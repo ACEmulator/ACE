@@ -473,7 +473,6 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetObject != null)
                     {
                         var stat = targetObject.GetProperty((PropertyInt)emote.Stat);
-                        stat = targetObject.GetProperty(PropertyInt.AttackersClass);
 
                         if (stat == null && HasValidTestNoQuality(emote.Message))
                             ExecuteEmoteSet(EmoteCategory.TestNoQuality, emote.Message, targetObject, true);
