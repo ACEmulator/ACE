@@ -1264,11 +1264,11 @@ namespace ACE.Server.WorldObjects
             var dir = Vector3.Normalize(endPos - startPos);
 
             // TODO: change to instantaneous velocity
-            var targetVelocity = target.PhysicsObj.CachedVelocity;
+            var targetVelocity = spell.IsTracking ? target.PhysicsObj.CachedVelocity : Vector3.Zero;
 
             var useGravity = spellType == ProjectileSpellType.Arc;
 
-            if (useGravity || target != null && targetVelocity != Vector3.Zero && spell.IsTracking)
+            if (useGravity || targetVelocity != Vector3.Zero)
             {
                 var gravity = useGravity ? PhysicsGlobals.Gravity : 0.0f;
 
