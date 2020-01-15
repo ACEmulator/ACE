@@ -1176,7 +1176,14 @@ namespace ACE.Server.WorldObjects
                         if (i >= spell.NumProjectiles)
                             break;
 
-                        var curOffset = baseOffset + spell.Peturbation * i;
+                        var curOffset = baseOffset;
+
+                        if (spell.Peturbation != Vector3.Zero)
+                        {
+                            var rng = new Vector3(ThreadSafeRandom.Next(-1.0f, 1.0f), ThreadSafeRandom.Next(-1.0f, 1.0f), ThreadSafeRandom.Next(-1.0f, 1.0f));
+
+                            curOffset += rng * spell.Peturbation * spell.Padding;
+                        }
 
                         if (!oddRow && spell.SpreadAngle == 0)
                             curOffset.X += spell.Padding.X * 0.5f + radius;
