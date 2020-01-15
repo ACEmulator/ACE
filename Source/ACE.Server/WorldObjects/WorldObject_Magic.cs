@@ -1126,7 +1126,7 @@ namespace ACE.Server.WorldObjects
 
             var spellType = SpellProjectile.GetProjectileSpellType(spell.Id);
 
-            var origins = CalculateProjectileOrigins(spell);
+            var origins = CalculateProjectileOrigins(spell, spellType);
 
             var velocity = CalculateProjectileVelocity(spell, target, spellType, origins[0]);
 
@@ -1139,7 +1139,7 @@ namespace ACE.Server.WorldObjects
         /// Returns a list of positions to spawn projectiles for a spell,
         /// in local space relative to the caster
         /// </summary>
-        public List<Vector3> CalculateProjectileOrigins(Spell spell)
+        public List<Vector3> CalculateProjectileOrigins(Spell spell, ProjectileSpellType spellType)
         {
             var origins = new List<Vector3>();
 
@@ -1157,7 +1157,9 @@ namespace ACE.Server.WorldObjects
 
             baseOffset.Y += radsum;
 
-            baseOffset.Z += Height * ProjHeight;
+            var projHeight = spellType == ProjectileSpellType.Arc ? 1.0f : ProjHeight;
+
+            baseOffset.Z += Height * projHeight;
 
             var anglePerStep = GetSpreadAnglePerStep(spell);
 
