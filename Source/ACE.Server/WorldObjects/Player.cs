@@ -199,24 +199,27 @@ namespace ACE.Server.WorldObjects
 
         public MotionStance stance = MotionStance.NonCombat;
 
-        public void ExamineObject(uint objectGuid)
+        /// <summary>
+        /// Called when player presses the 'e' key to appraise an object
+        /// </summary>
+        public void HandleActionIdentifyObject(uint objectGuid)
         {
-            // TODO: Throttle this request?. The live servers did this, likely for a very good reason, so we should, too.
-            //Console.WriteLine($"{Name}.ExamineObject({objectGuid:X8})");
+            //Console.WriteLine($"{Name}.HandleActionIdentifyObject({objectGuid:X8})");
 
             if (objectGuid == 0)
             {
                 // Deselect the formerly selected Target
-                // selectedTarget = ObjectGuid.Invalid;
+                //selectedTarget = ObjectGuid.Invalid;
                 RequestedAppraisalTarget = null;
                 CurrentAppraisalTarget = null;
                 return;
             }
 
             var wo = FindObject(objectGuid, SearchLocations.Everywhere, out _, out _, out _);
+
             if (wo == null)
             {
-                log.Debug($"{Name}.ExamineObject({objectGuid:X8}): couldn't find object");
+                log.Debug($"{Name}.HandleActionIdentifyObject({objectGuid:X8}): couldn't find object");
                 Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, objectGuid));
                 return;
             }
@@ -230,6 +233,7 @@ namespace ACE.Server.WorldObjects
                 {
                     // continued success, rng roll no longer needed
                     Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, wo, true));
+                    OnAppraisal(wo, true);
                     return;
                 }
 
@@ -237,6 +241,7 @@ namespace ACE.Server.WorldObjects
                 {
                     // rate limit for unsuccessful appraisal spam
                     Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, wo, false));
+                    OnAppraisal(wo, false);
                     return;
                 }
             }
@@ -286,11 +291,16 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, obj, success));
 
-            if (!success && player != null && !player.SquelchManager.Squelches.Contains(this, ChatMessageType.Appraisal))
+            OnAppraisal(obj, success);
+        }
+
+        public void OnAppraisal(WorldObject wo, bool success)
+        {
+            if (!success && wo is Player player && !player.SquelchManager.Squelches.Contains(this, ChatMessageType.Appraisal))
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} tried and failed to assess you!", ChatMessageType.Appraisal));
 
             // pooky logic - handle monsters attacking on appraisal
-            if (creature != null && creature.MonsterState == State.Idle)
+            if (wo is Creature creature && creature.MonsterState == State.Idle)
             {
                 if (creature.Tolerance.HasFlag(Tolerance.Appraise))
                 {
