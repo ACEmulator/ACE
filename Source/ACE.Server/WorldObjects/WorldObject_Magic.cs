@@ -1272,11 +1272,16 @@ namespace ACE.Server.WorldObjects
 
             var dir = Vector3.Normalize(endPos - startPos);
 
-            // TODO: change to instantaneous velocity
-            var targetVelocity = spell.IsTracking ? target.PhysicsObj.CachedVelocity : Vector3.Zero;
+            var targetVelocity = Vector3.Zero;
 
-            if (target is Player targetPlayer && targetPlayer.IsPKType && PropertyManager.GetBool("spellcast_accuracy").Item)
-                targetVelocity = targetPlayer.PhysicsObj.Velocity;
+            if (spell.IsTracking)
+            {
+                // TODO: change to instantaneous velocity
+                targetVelocity = target.PhysicsObj.CachedVelocity;
+
+                if (target is Player targetPlayer && targetPlayer.IsPKType && PropertyManager.GetBool("spellcast_accuracy").Item)
+                    targetVelocity = targetPlayer.PhysicsObj.Velocity;
+            }
 
             var useGravity = spellType == ProjectileSpellType.Arc;
 
