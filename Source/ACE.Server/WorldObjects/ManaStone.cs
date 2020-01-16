@@ -134,7 +134,7 @@ namespace ACE.Server.WorldObjects
                             ItemCurMana -= adjustedRation;
 
                             if (player.LumAugItemManaGain != 0)
-                                adjustedRation = (int)Math.Round(adjustedRation * Creature.GetPositiveRatingMod(player.LumAugItemManaGain));
+                                adjustedRation = (int)Math.Round(adjustedRation * Creature.GetPositiveRatingMod(player.LumAugItemManaGain * 5));
 
                             item.ItemCurMana += adjustedRation;
                             if (!itemsGivenMana.ContainsKey(item))

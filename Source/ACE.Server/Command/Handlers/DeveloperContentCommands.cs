@@ -254,6 +254,14 @@ namespace ACE.Server.Command.Handlers.Processors
             var json_folder = sql_folder.Replace("sql", "json");
             var json_filename = sql_filename.Replace(".sql", ".json");
 
+            var match = Regex.Match(json_filename, @"^(\d+)");
+            if (match.Success)
+            {
+                var wcid = match.Groups[1].Value;
+                if (!json_filename.StartsWith(wcid + " -"))
+                    json_filename = wcid + " -" + json_filename.Substring(wcid.Length);
+            }
+
             var di = new DirectoryInfo(json_folder);
 
             if (!di.Exists)

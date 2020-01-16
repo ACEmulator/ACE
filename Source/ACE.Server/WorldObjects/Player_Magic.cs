@@ -360,6 +360,24 @@ namespace ACE.Server.WorldObjects
                 SendUseDoneEvent(WeenieError.None);
                 return false;
             }
+
+            // bootstrapping this function for indoor/outdoor check, since it is called both before and after windup
+            if (spell.Flags.HasFlag(SpellFlags.NotIndoor))
+            {
+                if (Location.Indoors || target != null && target.Location.Indoors)
+                {
+                    SendUseDoneEvent(WeenieError.YourSpellCannotBeCastInside);
+                    return false;
+                }
+            }
+            if (spell.Flags.HasFlag(SpellFlags.NotOutdoor))
+            {
+                if (!Location.Indoors || target != null && !target.Location.Indoors)
+                {
+                    SendUseDoneEvent(WeenieError.YourSpellCannotBeCastOutside);
+                    return false;
+                }
+            }
             return true;
         }
 
