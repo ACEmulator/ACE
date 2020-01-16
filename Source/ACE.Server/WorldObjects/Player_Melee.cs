@@ -138,6 +138,8 @@ namespace ACE.Server.WorldObjects
 
                         if (success)
                             Attack(target, attackSequence);
+                        else
+                            Session.Network.EnqueueSend(new GameEventAttackDone(Session));
                     });
                 }
             }
