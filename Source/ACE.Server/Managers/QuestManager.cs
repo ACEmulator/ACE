@@ -419,7 +419,6 @@ namespace ACE.Server.Managers
                 Console.WriteLine("Quest Name: " + quest.QuestName);
                 Console.WriteLine("Times Completed: " + quest.NumTimesCompleted);
                 Console.WriteLine("Last Time Completed: " + quest.LastTimeCompleted);
-                Console.WriteLine("Quest ID: " + quest.Id.ToString("X8"));
                 Console.WriteLine("Player ID: " + quest.CharacterId.ToString("X8"));
                 Console.WriteLine("----");
             }
@@ -474,14 +473,25 @@ namespace ACE.Server.Managers
 
             if (player == null) return;
 
-            if (wo is Portal)
+            var error = new GameEventInventoryServerSaveFailed(player.Session, wo.Guid.Full, WeenieError.ItemRequiresQuestToBePickedUp);
+            player.Session.Network.EnqueueSend(error);
+        }
+
+        public void HandlePortalQuestError(string questName)
+        {
+            var player = Creature as Player;
+
+            if (player == null) return;
+
+            if (!HasQuest(questName))
             {
                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustCompleteQuestToUsePortal));
             }
-            else
+            else if (CanSolve(questName))
             {
-                var error = new GameEventInventoryServerSaveFailed(player.Session, wo.Guid.Full, WeenieError.ItemRequiresQuestToBePickedUp);
-                player.Session.Network.EnqueueSend(error);
+                var error = new GameEventWeenieError(player.Session, WeenieError.QuestSolvedTooLongAgo);
+                var text = new GameMessageSystemChat("You completed the quest this portal requires too long ago!", ChatMessageType.Magic); // This msg wasn't sent in retail PCAP, leading to a completely silent fail when using the portal with an expired flag.
+                player.Session.Network.EnqueueSend(text, error);
             }
         }
 

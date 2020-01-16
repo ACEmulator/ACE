@@ -24,7 +24,8 @@ namespace ACE.Server.WorldObjects
             // Save the the LoginTimestamp
             var lastLoginTimestamp = Time.GetUnixTime();
 
-            SetProperty(PropertyInt.LoginTimestamp, (int)lastLoginTimestamp);
+            LoginTimestamp = lastLoginTimestamp;
+            LastTeleportStartTimestamp = lastLoginTimestamp;
 
             Character.LastLoginTimestamp = lastLoginTimestamp;
             Character.TotalLogins++;
@@ -39,6 +40,13 @@ namespace ACE.Server.WorldObjects
                 AllegianceRank = (int)AllegianceNode.Rank;
             else
                 AllegianceRank = null;
+
+            if (!Account15Days)
+            {
+                var accountTimeSpan = DateTime.UtcNow - Account.CreateTime;
+                if (accountTimeSpan.TotalDays >= 15)
+                    Account15Days = true;
+            }
 
             // SendSelf will trigger the entrance into portal space
             SendSelf();

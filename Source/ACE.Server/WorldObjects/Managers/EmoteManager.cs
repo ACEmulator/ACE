@@ -109,9 +109,9 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.AdminSpam:
 
-                    var players = PlayerManager.GetAllOnline();
-                    foreach (var onlinePlayer in players)
-                        onlinePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.AdminTell));
+                    text = Replace(emote.Message, WorldObject, targetObject, emoteSet.Quest);
+
+                    PlayerManager.BroadcastToChannelFromEmote(Channel.Admin, text);
                     break;
 
                 case EmoteType.AwardLevelProportionalSkillXP:
@@ -177,7 +177,10 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.BLog:
-                    // only one test drudge used this emoteAction.
+
+                    text = Replace(emote.Message, WorldObject, targetObject, emoteSet.Quest);
+
+                    log.Info($"0x{WorldObject.Guid}:{WorldObject.Name}({WorldObject.WeenieClassId}).EmoteManager.BLog - {text}");
                     break;
 
                 case EmoteType.CastSpell:
@@ -384,13 +387,19 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.InqBoolStat:
 
-                    // This is only used with NPC's 24944 and 6386, which are dev tester npc's. Not worth the current effort.
-                    // Could also be post-ToD
+                    if (targetObject != null)
+                    {
+                        var stat = targetObject.GetProperty((PropertyBool)emote.Stat);
+
+                        if (stat != null)
+                            ExecuteEmoteSet(stat.Value ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        else
+                            ExecuteEmoteSet(EmoteCategory.TestNoQuality, emote.Message, targetObject, true);
+                    }
                     break;
 
                 case EmoteType.InqContractsFull:
 
-                    // not part of the game at PY16?
                     ExecuteEmoteSet(player != null && player.ContractManager.IsFull ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     break;
 
@@ -433,7 +442,6 @@ namespace ACE.Server.WorldObjects.Managers
                         success = stat >= emote.MinDbl && stat <= emote.MaxDbl;
 
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
-
                     }
                     break;
 
@@ -993,7 +1001,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.SpendLuminance:
                     if (player != null)
-                        player.SpendLuminance((long)emote.Amount);
+                        player.SpendLuminance(emote.HeroXP64 ?? 0);
                     break;
 
                 case EmoteType.StampFellowQuest:

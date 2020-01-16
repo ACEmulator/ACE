@@ -2546,7 +2546,7 @@ namespace ACE.Server.Command.Handlers
                     {
                         var profile = wo.GeneratorProfiles[activeProfile];
 
-                        msg += $"Active GeneratorProfile id: {activeProfile}\n";
+                        msg += $"Active GeneratorProfile id: {activeProfile} | LinkId: {profile.LinkId}\n";
 
                         msg += $"Probability: {profile.Biota.Probability} | WCID: {profile.Biota.WeenieClassId} | Delay: {profile.Biota.Delay} | Init: {profile.Biota.InitCreate} | Max: {profile.Biota.MaxCreate}\n";
                         msg += $"WhenCreate: {((RegenerationType)profile.Biota.WhenCreate).ToString()} | WhereCreate: {((RegenLocationType)profile.Biota.WhereCreate).ToString()}\n";
