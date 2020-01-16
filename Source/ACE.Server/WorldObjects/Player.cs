@@ -294,13 +294,13 @@ namespace ACE.Server.WorldObjects
             OnAppraisal(obj, success);
         }
 
-        public void OnAppraisal(WorldObject wo, bool success)
+        public void OnAppraisal(WorldObject obj, bool success)
         {
-            if (!success && wo is Player player && !player.SquelchManager.Squelches.Contains(this, ChatMessageType.Appraisal))
+            if (!success && obj is Player player && !player.SquelchManager.Squelches.Contains(this, ChatMessageType.Appraisal))
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} tried and failed to assess you!", ChatMessageType.Appraisal));
 
             // pooky logic - handle monsters attacking on appraisal
-            if (wo is Creature creature && creature.MonsterState == State.Idle)
+            if (obj is Creature creature && creature.MonsterState == State.Idle)
             {
                 if (creature.Tolerance.HasFlag(Tolerance.Appraise))
                 {
