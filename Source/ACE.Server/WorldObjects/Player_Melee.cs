@@ -139,8 +139,6 @@ namespace ACE.Server.WorldObjects
 
                     CreateMoveToChain(target, (success) =>
                     {
-                        log.Info($"{Name}.CreateMoveToChain({target.Name}) complete - {success}");
-
                         if (success)
                             Attack(target, attackSequence);
                         else
