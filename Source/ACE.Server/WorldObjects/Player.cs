@@ -158,6 +158,8 @@ namespace ACE.Server.WorldObjects
 
             RecordCast = new RecordCast(this);
 
+            AttackQueue = new AttackQueue(this);
+
             return; // todo
 
             // =======================================
