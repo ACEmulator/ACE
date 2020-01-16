@@ -24,7 +24,8 @@ namespace ACE.Server.WorldObjects
             // Save the the LoginTimestamp
             var lastLoginTimestamp = Time.GetUnixTime();
 
-            SetProperty(PropertyInt.LoginTimestamp, (int)lastLoginTimestamp);
+            LoginTimestamp = lastLoginTimestamp;
+            LastTeleportStartTimestamp = lastLoginTimestamp;
 
             Character.LastLoginTimestamp = lastLoginTimestamp;
             Character.TotalLogins++;
@@ -39,6 +40,13 @@ namespace ACE.Server.WorldObjects
                 AllegianceRank = (int)AllegianceNode.Rank;
             else
                 AllegianceRank = null;
+
+            if (!Account15Days)
+            {
+                var accountTimeSpan = DateTime.UtcNow - Account.CreateTime;
+                if (accountTimeSpan.TotalDays >= 15)
+                    Account15Days = true;
+            }
 
             // SendSelf will trigger the entrance into portal space
             SendSelf();
@@ -65,6 +73,9 @@ namespace ACE.Server.WorldObjects
                 SquelchManager.SendSquelchDB();
 
             AuditItemSpells();
+
+            HandleMissingXp();
+            HandleSkillCreditRefund();
 
             if (PlayerKillerStatus == PlayerKillerStatus.PKLite && !PropertyManager.GetBool("pkl_server").Item)
             {
@@ -178,9 +189,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Records where the client thinks we are, for use by physics engine later
         /// </summary>
-        public void SetRequestedLocation(Position pos)
+        public void SetRequestedLocation(Position pos, bool broadcast = true)
         {
             RequestedLocation = pos;
+            RequestedLocationBroadcast = broadcast;
         }
 
         //public DateTime LastSoulEmote;

@@ -1106,13 +1106,15 @@ namespace ACE.Adapter.Lifestoned
             //SerializerSettings.Converters.Add(new JavaScriptDateTimeConverter());
             SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
             SerializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
+
+            SerializerSettings.Formatting = Formatting.Indented;
         }
 
-        public static bool TryConvertACEWeenieToLSDJSON(Weenie weenie, out string result)
+        public static bool TryConvertACEWeenieToLSDJSON(Weenie weenie, out string result, out global::Lifestoned.DataModel.Gdle.Weenie lsdWeenie)
         {
             try
             {
-                if (TryConvert(weenie, out var lsdWeenie))
+                if (TryConvert(weenie, out lsdWeenie))
                 {
                     try
                     {
@@ -1131,6 +1133,7 @@ namespace ACE.Adapter.Lifestoned
             }
             catch
             {
+                lsdWeenie = null;
                 result = null;
                 return false;
             }

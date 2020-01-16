@@ -167,6 +167,19 @@ namespace ACE.Server.Managers
             return allPlayers;
         }
 
+        public static int GetOfflineCount()
+        {
+            playersLock.EnterReadLock();
+            try
+            {
+                return offlinePlayers.Count;
+            }
+            finally
+            {
+                playersLock.ExitReadLock();
+            }
+        }
+
         public static List<OfflinePlayer> GetAllOffline()
         {
             var results = new List<OfflinePlayer>();
@@ -183,6 +196,19 @@ namespace ACE.Server.Managers
             }
 
             return results;
+        }
+
+        public static int GetOnlineCount()
+        {
+            playersLock.EnterReadLock();
+            try
+            {
+                return onlinePlayers.Count;
+            }
+            finally
+            {
+                playersLock.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -530,6 +556,12 @@ namespace ACE.Server.Managers
                 player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, "CONSOLE", message));
         }
 
+        public static void BroadcastToChannelFromEmote(Channel channel, string message)
+        {
+            foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(channel)))
+                player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, "EMOTE", message));
+        }
+
         public static bool GagPlayer(Player issuer, string playerName)
         {
             var player = FindByName(playerName);
@@ -569,7 +601,7 @@ namespace ACE.Server.Managers
         public static void BootAllPlayers()
         {
             foreach (var player in GetAllOnline().Where(p => p.Session.AccessLevel < AccessLevel.Advocate))
-                player.Session.Terminate(SessionTerminationReason.WorldClosed, new GameMessageBootAccount(player.Session, "The world is now closed"), null, "The world is now closed");
+                player.Session.Terminate(SessionTerminationReason.WorldClosed, new GameMessageBootAccount(player.Session, " because the world is now closed"), null, "The world is now closed");
         }
 
         public static void UpdatePKStatusForAllPlayers(string worldType, bool enabled)

@@ -1,7 +1,9 @@
-using ACE.Common.Cryptography;
-using log4net;
 using System;
 using System.IO;
+
+using log4net;
+
+using ACE.Common.Cryptography;
 
 namespace ACE.Server.Network
 {
@@ -11,73 +13,66 @@ namespace ACE.Server.Network
 
         public static int MaxPacketSize { get; } = 1024;
 
-        public BinaryReader Payload { get; private set; }
-        public PacketHeaderOptional HeaderOptional { get; private set; }
-        public bool IsValid { get; private set; } = false;
-        public bool CRCVerified { get; private set; } = false;
+        public BinaryReader DataReader { get; private set; }
+        public PacketHeaderOptional HeaderOptional { get; } = new PacketHeaderOptional();
 
-        public ClientPacket(byte[] data)
-        {
-            data = NetworkSyntheticTesting.SyntheticCorruption_C2S(data);
-
-            ParsePacketData(data);
-            if (IsValid)
-            {
-                ReadFragments();
-            }
-        }
-
-        private void ParsePacketData(byte[] data)
+        public bool Unpack(byte[] data)
         {
             try
             {
-                using (MemoryStream stream = new MemoryStream(data))
-                {
-                    using (BinaryReader reader = new BinaryReader(stream))
-                    {
-                        Header = new PacketHeader(reader);
-                        if (Header.Size > data.Length - reader.BaseStream.Position)
-                        {
-                            IsValid = false;
-                            return;
-                        }
-                        Data = new MemoryStream(reader.ReadBytes(Header.Size), 0, Header.Size, false, true);
-                        Payload = new BinaryReader(Data);
-                        HeaderOptional = new PacketHeaderOptional(Payload, Header);
-                        if (!HeaderOptional.IsValid)
-                        {
-                            IsValid = false;
-                            return;
-                        }
-                    }
-                }
-                IsValid = true;
+                // This won't actually do anything by default unless some bools in NetworkSyntheticTesting are enabled manually
+                data = NetworkSyntheticTesting.SyntheticCorruption_C2S(data);
+
+                if (data.Length < PacketHeader.HeaderSize)
+                    return false;
+
+                Header.Unpack(data);
+
+                if (Header.Size > data.Length - PacketHeader.HeaderSize)
+                    return false;
+
+                Data = new MemoryStream(data, PacketHeader.HeaderSize, Header.Size, false, true);
+                DataReader = new BinaryReader(Data);
+                HeaderOptional.Unpack(DataReader, Header);
+
+                if (!HeaderOptional.IsValid)
+                    return false;
+
+                if (!ReadFragments())
+                    return false;
+
+                return true;
             }
             catch (Exception ex)
             {
-                IsValid = false;
                 packetLog.Error("Invalid packet data", ex);
+
+                return false;
             }
         }
 
-        private void ReadFragments()
+        private bool ReadFragments()
         {
             if (Header.HasFlag(PacketHeaderFlags.BlobFragments))
             {
-                while (Payload.BaseStream.Position != Payload.BaseStream.Length)
+                while (DataReader.BaseStream.Position != DataReader.BaseStream.Length)
                 {
                     try
                     {
-                        Fragments.Add(new ClientPacketFragment(Payload));
+                        var fragment = new ClientPacketFragment();
+                        fragment.Unpack(DataReader);
+
+                        Fragments.Add(fragment);
                     }
                     catch (Exception)
                     {
                         // corrupt packet
-                        IsValid = false;
-                        break;
+                        return false;
                     }
                 }
             }
+
+            return true;
         }
 
         private uint? _fragmentChecksum;
@@ -88,123 +83,114 @@ namespace ACE.Server.Network
                 if (_fragmentChecksum == null)
                 {
                     uint fragmentChecksum = 0u;
+
                     foreach (ClientPacketFragment fragment in Fragments)
-                    {
                         fragmentChecksum += fragment.CalculateHash32();
-                    }
+
                     _fragmentChecksum = fragmentChecksum;
                 }
+
                 return _fragmentChecksum.Value;
             }
         }
+
         private uint? _headerChecksum;
         private uint headerChecksum
         {
             get
             {
                 if (_headerChecksum == null)
-                {
                     _headerChecksum = Header.CalculateHash32();
-                }
+
                 return _headerChecksum.Value;
             }
         }
+
         private uint? _headerOptionalChecksum;
         private uint headerOptionalChecksum
         {
             get
             {
                 if (_headerOptionalChecksum == null)
-                {
                     _headerOptionalChecksum = HeaderOptional.CalculateHash32();
-                }
+
                 return _headerOptionalChecksum.Value;
             }
         }
+
         private uint? _payloadChecksum;
         private uint payloadChecksum
         {
             get
             {
                 if (_payloadChecksum == null)
-                {
                     _payloadChecksum = headerOptionalChecksum + fragmentChecksum;
-                }
+
                 return _payloadChecksum.Value;
             }
         }
 
-        private bool VerifyChecksum(uint issacXor)
+        private bool VerifyChecksum()
         {
-            return headerChecksum + (payloadChecksum ^ issacXor) == Header.Checksum;
+            return headerChecksum + payloadChecksum == Header.Checksum;
         }
 
-        private bool VerifyEncryptedCRC(CryptoSystem fq, out string keyOffsetForLogging, bool rangeAdvance)
+        private bool VerifyEncryptedCRC(CryptoSystem fq, out string keyOffsetForLogging)
         {
             var verifiedKey = new Tuple<int, uint>(0, 0);
+
+            uint receivedKey = (Header.Checksum - headerChecksum) ^ payloadChecksum;
+
             Func<Tuple<int, uint>, bool> cbSearch = new Func<Tuple<int, uint>, bool>((pair) =>
             {
-                if (VerifyChecksum(pair.Item2))
+                if (receivedKey == pair.Item2)
                 {
                     verifiedKey = pair;
                     return true;
                 }
-                else
-                {
-                    return false;
-                }
+
+                return false;
             });
 
-            if (fq.Search(cbSearch, rangeAdvance))
+            if (fq.Search(cbSearch))
             {
                 keyOffsetForLogging = verifiedKey.Item1.ToString();
                 return true;
             }
+
             keyOffsetForLogging = "???";
             return false;
         }
 
-        private bool VerifyEncryptedCRCAndLogResult(CryptoSystem fq, bool rangeAdvance)
+        private bool VerifyEncryptedCRCAndLogResult(CryptoSystem fq)
         {
-            bool result = VerifyEncryptedCRC(fq, out string key, rangeAdvance);
-            key = (key == "") ? $"" : $" Key: {key}";
-            packetLog.Debug($"{fq} {this}{key}");
+            bool result = VerifyEncryptedCRC(fq, out string key);
+
+            key = (key == "") ? "" : $" Key: {key}";
+            packetLog.DebugFormat("{0} {1}{2}", fq, this, key);
+
             return result;
         }
-        public bool VerifyCRC(CryptoSystem fq, bool rangeAdvance)
+        public bool VerifyCRC(CryptoSystem fq)
         {
             if (Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
             {
-                if (VerifyEncryptedCRCAndLogResult(fq, rangeAdvance))
-                {
-                    CRCVerified = true;
+                if (VerifyEncryptedCRCAndLogResult(fq))
                     return true;
-                }
             }
             else
             {
-                if (Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
+                if (VerifyChecksum())
                 {
-                    // discard retransmission request with cleartext CRC
-                    // client sends one encrypted version and one non encrypted version of each retransmission request
-                    // honoring these causes client to drop because it's only expecting one of the two retransmission requests to be honored
-                    // and it's more secure to only accept the trusted version
-                    return false;
+                    packetLog.DebugFormat("{0}", this);
+                    return true;
                 }
-                else
-                {
-                    if (VerifyChecksum(0))
-                    {
-                        packetLog.Debug($"{this}");
-                        return true;
-                    }
-                    else
-                    {
-                        packetLog.Debug($"{this}, Checksum Failed");
-                    }
-                }
+
+                packetLog.DebugFormat("{0}, Checksum Failed", this);
             }
+
             NetworkStatistics.C2S_CRCErrors_Aggregate_Increment();
+
             return false;
         }
 

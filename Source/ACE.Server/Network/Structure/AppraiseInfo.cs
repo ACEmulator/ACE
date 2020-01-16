@@ -105,6 +105,9 @@ namespace ACE.Server.Network.Structure
             if (PropertiesString.ContainsKey(PropertyString.HouseOwnerAccount) && !examiner.IsAdmin && !examiner.IsSentinel && !examiner.IsArch && !examiner.IsPsr)
                 PropertiesString.Remove(PropertyString.HouseOwnerAccount);
 
+            if (PropertiesInt.ContainsKey(PropertyInt.Lifespan))
+                PropertiesInt[PropertyInt.RemainingLifespan] = wo.GetRemainingLifespan();
+
             // armor / clothing / shield
             if (wo is Clothing || wo.IsShield)
                 BuildArmor(wo);
@@ -355,38 +358,42 @@ namespace ACE.Server.Network.Structure
             if (wo.ItemSkillLimit != null)
                 PropertiesInt[PropertyInt.AppraisalItemSkill] = (int)wo.ItemSkillLimit;
 
-            if (wielder == null || !wo.IsEnchantable) return;
-
             if (PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense) && !(wo is Missile) && !(wo is Ammunition))
             {
                 var defenseMod = wo.EnchantmentManager.GetDefenseMod();
-                var auraDefenseMod = wo.IsEnchantable ? wielder.EnchantmentManager.GetDefenseMod() : 0.0f;
+                var auraDefenseMod = wielder != null && wo.IsEnchantable ? wielder.EnchantmentManager.GetDefenseMod() : 0.0f;
 
                 PropertiesFloat[PropertyFloat.WeaponDefense] += defenseMod + auraDefenseMod;
             }
 
-            if (PropertiesFloat.ContainsKey(PropertyFloat.ManaConversionMod))
+            if (PropertiesFloat.TryGetValue(PropertyFloat.ManaConversionMod, out var manaConvMod))
             {
-                var manaConvMod = wielder.EnchantmentManager.GetManaConvMod();
-                if (manaConvMod != 1.0f)
+                if (manaConvMod != 0)
                 {
-                    PropertiesFloat[PropertyFloat.ManaConversionMod] *= manaConvMod;
+                    // hermetic link/void
+                    var enchantmentMod = ResistMaskHelper.GetManaConversionMod(wielder, wo);
 
-                    ResistHighlight = ResistMaskHelper.GetHighlightMask(wielder);
-                    ResistColor = ResistMaskHelper.GetColorMask(wielder);
+                    if (enchantmentMod != 1.0f)
+                    {
+                        PropertiesFloat[PropertyFloat.ManaConversionMod] *= enchantmentMod;
+
+                        ResistHighlight = ResistMaskHelper.GetHighlightMask(wielder, wo);
+                        ResistColor = ResistMaskHelper.GetColorMask(wielder, wo);
+                    }
+                }
+                else if (!PropertyManager.GetBool("show_mana_conv_bonus_0").Item)
+                {
+                    PropertiesFloat.Remove(PropertyFloat.ManaConversionMod);
                 }
             }
 
             if (PropertiesFloat.ContainsKey(PropertyFloat.ElementalDamageMod))
             {
-                var weaponEnchantments = wo.EnchantmentManager.GetElementalDamageMod();
-                var wielderEnchantments = wielder.EnchantmentManager.GetElementalDamageMod();
+                var enchantmentBonus = ResistMaskHelper.GetElementalDamageBonus(wielder, wo);
 
-                var enchantments = weaponEnchantments + wielderEnchantments;
-
-                if (enchantments != 0)
+                if (enchantmentBonus != 0)
                 {
-                    PropertiesFloat[PropertyFloat.ElementalDamageMod] += enchantments;
+                    PropertiesFloat[PropertyFloat.ElementalDamageMod] += enchantmentBonus;
 
                     ResistHighlight = ResistMaskHelper.GetHighlightMask(wielder, wo);
                     ResistColor = ResistMaskHelper.GetColorMask(wielder, wo);

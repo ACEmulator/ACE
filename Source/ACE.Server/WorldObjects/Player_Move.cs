@@ -147,8 +147,6 @@ namespace ACE.Server.WorldObjects
 
         public Position StartJump;
 
-        public bool InitMoveListener;
-
         public override void MoveTo(WorldObject target, float runRate = 0.0f)
         {
             if (runRate == 0.0f)
@@ -171,12 +169,6 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.MoveToObject(target.PhysicsObj, mvp);
 
             IsMoving = true;
-
-            if (!InitMoveListener)
-            {
-                PhysicsObj.add_moveto_listener(OnMoveComplete);
-                InitMoveListener = true;
-            }
 
             MoveTo_Tick();
         }
@@ -203,16 +195,31 @@ namespace ACE.Server.WorldObjects
 
         public override void OnMoveComplete(WeenieError status)
         {
-            //Console.WriteLine($"{Name}.OnMoveComplete()");
+            //Console.WriteLine($"{Name}.OnMoveComplete({status})");
+
             IsMoving = false;
+
+            if (IsPlayerMovingTo2)
+            {
+                OnMoveComplete_MoveTo2(status);
+
+                if (MagicState.IsCasting)
+                    OnMoveComplete_Magic(status);
+
+                return;
+            }
 
             switch (status)
             {
                 case WeenieError.None:
+
                     Attack(MeleeTarget, AttackSequence);
                     break;
+
                 default:
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, status));
+                    Session.Network.EnqueueSend(new GameEventAttackDone(Session));
+                    SendWeenieError(status);
+
                     HandleActionCancelAttack();
                     break;
             }
@@ -235,28 +242,32 @@ namespace ACE.Server.WorldObjects
         public void HandleFallingDamage(EnvCollisionProfile collision)
         {
             // starting with phat logic
-            var jumpVelocity = 0.0f;
-            PhysicsObj.WeenieObj.InqJumpVelocity(1.0f, ref jumpVelocity);
 
-            var cachedVelocity = PhysicsObj.CachedVelocity;
+            // jumping skill sort of used as a damping factor here
+            //var jumpVelocity = 0.0f;
+            //PhysicsObj.WeenieObj.InqJumpVelocity(1.0f, out jumpVelocity);
+            var jumpVelocity = 11.25434f;   // TODO: figure out how to scale this better
 
-            var overspeed = jumpVelocity + cachedVelocity.Z + 4.5f;     // a little leeway
+            var currVelocity = FastTick ? PhysicsObj.Velocity : PhysicsObj.CachedVelocity;
+
+            var overspeed = jumpVelocity + currVelocity.Z + 4.5f;     // a little leeway
 
             var ratio = -overspeed / jumpVelocity;
 
-            /*Console.WriteLine($"Collision velocity: {cachedVelocity}");
-            Console.WriteLine($"Jump velocity: {jumpVelocity}");
+            /*Console.WriteLine($"Jump velocity: {jumpVelocity}");
+            Console.WriteLine($"Velocity: {currVelocity}");
             Console.WriteLine($"Overspeed: {overspeed}");
             Console.WriteLine($"Ratio: {ratio}");*/
 
             if (ratio > 0.0f)
             {
-                var damage = ratio * 40.0f;
+                //var damage = ratio * 40.0f;
+                var damage = ratio * 87.293810f;
                 //Console.WriteLine($"Damage: {damage}");
 
                 // bludgeon damage
                 // impact damage
-                if (damage > 0.0f && (StartJump == null || StartJump.PositionZ - PhysicsObj.Position.Frame.Origin.Z > 10.0f))
+                if (damage > 0.0f && (FastTick || StartJump == null || StartJump.PositionZ - PhysicsObj.Position.Frame.Origin.Z > 10.0f))
                     TakeDamage_Falling(damage);
             }
         }

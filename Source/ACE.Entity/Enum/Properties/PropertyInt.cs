@@ -363,6 +363,7 @@ namespace ACE.Entity.Enum.Properties
         EquipmentSetId                           = 265,
         PetClass                                 = 266,
         Lifespan                                 = 267,
+        [Ephemeral]
         RemainingLifespan                        = 268,
         UseCreateQuantity                        = 269,
         WieldRequirements2                       = 270,
@@ -564,6 +565,14 @@ namespace ACE.Entity.Enum.Properties
 
         [ServerOnly]
         PCAPRecordedAutonomousMovement           = 8007,
+        [ServerOnly]
+        PCAPRecordedMaxVelocityEstimated         = 8030,
+        [ServerOnly]
+        PCAPRecordedPlacement                    = 8041,
+        [ServerOnly]
+        PCAPRecordedAppraisalPages               = 8042,
+        [ServerOnly]
+        PCAPRecordedAppraisalMaxPages            = 8043,
 
         //[ServerOnly]
         //TotalLogins                              = 9001,
@@ -694,6 +703,7 @@ namespace ACE.Entity.Enum.Properties
                     return System.Enum.GetName(typeof(PhysicsState), value);
                 case PropertyInt.HookPlacement:
                 case PropertyInt.Placement:
+                case PropertyInt.PCAPRecordedPlacement:
                     return System.Enum.GetName(typeof(Placement), value);
                 case PropertyInt.PortalBitmask:
                     return System.Enum.GetName(typeof(PortalBitmask), value);

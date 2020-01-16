@@ -595,6 +595,7 @@ namespace ACE.Server.WorldObjects
 
             Teleporting = true;
             LastTeleportTime = DateTime.UtcNow;
+            LastTeleportStartTimestamp = Time.GetUnixTime();
 
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
 
@@ -615,7 +616,7 @@ namespace ACE.Server.WorldObjects
             if (UnderLifestoneProtection)
                 LifestoneProtectionDispel();
 
-            UpdatePlayerPhysics(new Position(newPosition), true);
+            UpdatePlayerPosition(new Position(newPosition), true);
         }
 
         public void DoPreTeleportHide()

@@ -1,4 +1,3 @@
-
 using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -8,7 +7,7 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateMeleeWeapon(int tier, bool isMagical)
+        public static WorldObject CreateMeleeWeapon(int tier, bool isMagical, int weaponType = -1)
         {
             Skill wieldSkillType = Skill.None;
 
@@ -19,9 +18,9 @@ namespace ACE.Server.Factories
             double weaponOffense = 0;
             int longDescDecoration = 5;
 
-            ///Properties for weapons
-            double magicD = GetMissileDMod(tier);
-            double missileD = GetMissileDMod(tier);
+            // Properties for weapons
+            double magicD = GetMagicMissileDMod(tier);
+            double missileD = GetMagicMissileDMod(tier);
             int gemCount = ThreadSafeRandom.Next(1, 5);
             int gemType = ThreadSafeRandom.Next(10, 50);
             int workmanship = GetWorkmanship(tier);
@@ -29,7 +28,8 @@ namespace ACE.Server.Factories
             WieldRequirement wieldRequirments = WieldRequirement.RawSkill;
 
             int eleType = ThreadSafeRandom.Next(0, 4);
-            int weaponType = ThreadSafeRandom.Next(0, 3);
+            if (weaponType == -1)
+                weaponType = ThreadSafeRandom.Next(0, 3);
             switch (weaponType)
             {
                 case 0:
@@ -383,7 +383,7 @@ namespace ACE.Server.Factories
             Spears,
         }
 
-        //The percentages for variances need to be fixed
+        // The percentages for variances need to be fixed
         private static double GetVariance(Skill category, LootWeaponType type)
         {
             double variance = 0;
@@ -509,7 +509,7 @@ namespace ACE.Server.Factories
                     switch (type)
                     {
                         case LootWeaponType.Axe:
-                            //Axe
+                            // Axe
                             if (chance < 10)
                                 variance = .80;
                             else if (chance < 30)
@@ -522,7 +522,7 @@ namespace ACE.Server.Factories
                                 variance = .95;
                             break;
                         case LootWeaponType.Dagger:
-                            //Dagger
+                            // Dagger
                             if (chance < 10)
                                 variance = .42;
                             else if (chance < 30)
@@ -535,7 +535,7 @@ namespace ACE.Server.Factories
                                 variance = .60;
                             break;
                         case LootWeaponType.DaggerMulti:
-                            //Dagger MultiStrike
+                            // Dagger MultiStrike
                             if (chance < 10)
                                 variance = .24;
                             else if (chance < 30)
@@ -548,7 +548,7 @@ namespace ACE.Server.Factories
                                 variance = .45;
                             break;
                         case LootWeaponType.Mace:
-                            //Mace
+                            // Mace
                             if (chance < 10)
                                 variance = .23;
                             else if (chance < 30)
@@ -561,7 +561,7 @@ namespace ACE.Server.Factories
                                 variance = .43;
                             break;
                         case LootWeaponType.Jitte:
-                            //Jitte
+                            // Jitte
                             if (chance < 10)
                                 variance = .325;
                             else if (chance < 30)
@@ -574,7 +574,7 @@ namespace ACE.Server.Factories
                                 variance = .50;
                             break;
                         case LootWeaponType.Spear:
-                            //Spear
+                            // Spear
                             if (chance < 10)
                                 variance = .65;
                             else if (chance < 30)
@@ -587,7 +587,7 @@ namespace ACE.Server.Factories
                                 variance = .80;
                             break;
                         case LootWeaponType.Staff:
-                            //Staff
+                            // Staff
                             if (chance < 10)
                                 variance = .325;
                             else if (chance < 30)
@@ -600,7 +600,7 @@ namespace ACE.Server.Factories
                                 variance = .50;
                             break;
                         case LootWeaponType.Sword:
-                            //Sword
+                            // Sword
                             if (chance < 10)
                                 variance = .42;
                             else if (chance < 30)
@@ -613,7 +613,7 @@ namespace ACE.Server.Factories
                                 variance = .60;
                             break;
                         case LootWeaponType.SwordMulti:
-                            //Sword Multistrike
+                            // Sword Multistrike
                             if (chance < 10)
                                 variance = .24;
                             else if (chance < 30)
@@ -626,7 +626,7 @@ namespace ACE.Server.Factories
                                 variance = .45;
                             break;
                         case LootWeaponType.UA:
-                            //UA
+                            // UA
                             if (chance < 10)
                                 variance = .44;
                             else if (chance < 30)
@@ -641,7 +641,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case Skill.TwoHandedCombat:
-                    /// Two Handed only have one set of variances
+                    // Two Handed only have one set of variances
                     if (chance < 5)
                         variance = .30;
                     else if (chance < 20)
@@ -721,7 +721,7 @@ namespace ACE.Server.Factories
             }
 
             // To add a little bit of randomness to Max weapon damage
-            int maxDamageVariance = ThreadSafeRandom.Next(-4, 2);
+            int maxDamageVariance = ThreadSafeRandom.Next(-4, 0);
 
             return damageTable + maxDamageVariance;
         }

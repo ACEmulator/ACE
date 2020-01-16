@@ -33,12 +33,12 @@ namespace ACE.Database
                 {
                     if (((RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>()).Exists())
                     {
-                        log.Debug($"Successfully connected to {config.Database} database on {config.Host}:{config.Port}.");
+                        log.Debug($"[DATABASE] Successfully connected to {config.Database} database on {config.Host}:{config.Port}.");
                         return true;
                     }
                 }
 
-                log.Error($"Attempting to reconnect to {config.Database} database on {config.Host}:{config.Port} in 5 seconds...");
+                log.Error($"[DATABASE] Attempting to reconnect to {config.Database} database on {config.Host}:{config.Port} in 5 seconds...");
 
                 if (retryUntilFound)
                     Thread.Sleep(5000);
@@ -131,7 +131,11 @@ namespace ACE.Database
         public Weenie GetWeenie(uint weenieClassId)
         {
             using (var context = new WorldDbContext())
+            {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
                 return GetWeenie(context, weenieClassId);
+            }
         }
 
         /// <summary>
@@ -541,8 +545,8 @@ namespace ACE.Database
             {
                 var results = context.HousePortal
                     .AsNoTracking()
-                    .GroupBy(r => r.HouseId)
-                    .ToList();
+                    .AsEnumerable()
+                    .GroupBy(r => r.HouseId);
 
                 foreach (var result in results)
                     cachedHousePortals[result.Key] = result.ToList();
@@ -753,6 +757,11 @@ namespace ACE.Database
 
         private readonly ConcurrentDictionary<uint, Spell> spellCache = new ConcurrentDictionary<uint, Spell>();
 
+        public void ClearSpellCache()
+        {
+            spellCache.Clear();
+        }
+
         /// <summary>
         /// Returns the number of Spells currently cached.
         /// </summary>
@@ -945,8 +954,8 @@ namespace ACE.Database
             {
                 var results = context.TreasureWielded
                     .AsNoTracking()
-                    .GroupBy(r => r.TreasureType)
-                    .ToList();
+                    .AsEnumerable()
+                    .GroupBy(r => r.TreasureType);
 
                 foreach (var result in results)
                     cachedWieldedTreasure[result.Key] = result.ToList();
@@ -984,8 +993,8 @@ namespace ACE.Database
             {
                 var results = context.TreasureMaterialColor
                     .AsNoTracking()
-                    .GroupBy(r => r.MaterialId)
-                    .ToList();
+                    .AsEnumerable()
+                    .GroupBy(r => r.MaterialId);
 
                 foreach (var result in results)
                     cachedTreasureMaterialColor[(int)result.Key] = result.ToList();
@@ -1018,8 +1027,8 @@ namespace ACE.Database
             {
                 var results = context.TreasureMaterialBase
                     .AsNoTracking()
-                    .GroupBy(r => r.MaterialCode)
-                    .ToList();
+                    .AsEnumerable()
+                    .GroupBy(r => r.MaterialCode);
 
                 foreach (var result in results)
                     cachedTreasureMaterialBase[(int)result.Key] = result.ToList();
@@ -1064,8 +1073,8 @@ namespace ACE.Database
             {
                 var results = context.TreasureMaterialGroups
                     .AsNoTracking()
-                    .GroupBy(r => r.MaterialGroup)
-                    .ToList();
+                    .AsEnumerable()
+                    .GroupBy(r => r.MaterialGroup);
 
                 foreach (var result in results)
                 cachedTreasureMaterialGroups[(int)result.Key] = result.ToList();

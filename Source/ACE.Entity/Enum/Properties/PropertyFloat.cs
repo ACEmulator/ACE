@@ -147,6 +147,7 @@ namespace ACE.Entity.Enum.Properties
         TradeTimestamp                 = 129,
         AiTargetedDetectionRadius      = 130,
         EmotePriority                  = 131,
+        [Ephemeral]
         LastTeleportStartTimestamp     = 132,
         EventSpamTimestamp             = 133,
         EventSpamRate                  = 134,
@@ -157,6 +158,7 @@ namespace ACE.Entity.Enum.Properties
         AllegianceInfoSpamTimestamp    = 139,
         AllegianceInfoSpamRate         = 140,
         NextSpellcastTimestamp         = 141,
+        [Ephemeral]
         AppraisalRequestedTimestamp    = 142,
         AppraisalHeartbeatDueTimestamp = 143,
         ManaConversionMod              = 144,

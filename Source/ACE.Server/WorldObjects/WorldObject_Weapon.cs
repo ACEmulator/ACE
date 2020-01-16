@@ -35,6 +35,12 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt.WeaponType); else SetProperty(PropertyInt.WeaponType, (int)value); }
         }
 
+        public bool AutoWieldLeft
+        {
+            get => GetProperty(PropertyBool.AutowieldLeft) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.AutowieldLeft); else SetProperty(PropertyBool.AutowieldLeft, value); }
+        }
+
         /// <summary>
         /// Returns TRUE if this weapon cleaves
         /// </summary>
@@ -158,7 +164,27 @@ namespace ACE.Server.WorldObjects
             if (weapon == null)
                 return defaultModifier;
 
-            return defaultModifier + (float)(weapon.ManaConversionMod ?? 0.0f) * wielder.EnchantmentManager.GetManaConvMod();
+            if (wielder.CombatMode != CombatMode.NonCombat)
+            {
+                // hermetic link / void
+
+                // base mod starts at 0
+                var baseMod = (float)(weapon.ManaConversionMod ?? 0.0f);
+
+                // enchantments are multiplicative, so they are only effective if there is a base mod
+                var manaConvMod = weapon.EnchantmentManager.GetManaConvMod();
+
+                var auraManaConvMod = 1.0f;
+
+                if (weapon.IsEnchantable)
+                    auraManaConvMod = wielder?.EnchantmentManager.GetManaConvMod() ?? 1.0f;
+
+                var enchantmentMod = manaConvMod * auraManaConvMod;
+
+                return 1.0f + baseMod * enchantmentMod;
+            }
+
+            return defaultModifier;
         }
 
         private const uint defaultSpeed = 40;   // TODO: find default speed
@@ -312,7 +338,7 @@ namespace ACE.Server.WorldObjects
             if (modifier > 1.0f && wielder is Player && target is Player)
                 modifier = 1.0f + (modifier - 1.0f) * ElementalDamageBonusPvPReduction;
 
-            return (float)(elementalDamageMod + enchantments);
+            return modifier;
         }
 
         /// <summary>
@@ -738,6 +764,7 @@ namespace ACE.Server.WorldObjects
 
                 case Skill.WarMagic:
                 case Skill.VoidMagic:
+                case Skill.LifeMagic:   // Martyr's Hecatomb
 
                     return ImbuedSkillType.Magic;
 
@@ -940,7 +967,8 @@ namespace ACE.Server.WorldObjects
                     else
                         attackType = AttackType.Thrust;
                 }
-                else if (attackType.HasFlag(AttackType.DoubleThrust | AttackType.DoubleSlash))
+                else if (attackType.HasFlag(AttackType.DoubleThrust | AttackType.DoubleSlash) ||
+                    attackType.HasFlag(AttackType.Thrust | AttackType.DoubleSlash))     // FIXME data
                 {
                     if (powerLevel >= ThrustThreshold)
                         attackType = AttackType.DoubleSlash;

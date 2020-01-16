@@ -86,7 +86,7 @@ namespace ACE.Server.WorldObjects
                 var attr = AugTypeHelper.GetAttribute(type);
                 var playerAttr = player.Attributes[attr];
                 playerAttr.StartingValue += 5;
-                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(player, attr, playerAttr.Ranks, playerAttr.StartingValue, playerAttr.ExperienceSpent));
+                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(player, playerAttr));
             }
             else if (AugTypeHelper.IsResist(type))
                 player.AugmentationResistanceFamily++;
@@ -126,13 +126,13 @@ namespace ACE.Server.WorldObjects
             // send network messages
             var updateProp = new GameMessagePrivateUpdatePropertyInt(player, augProp, newVal);
             var updateXP = new GameMessagePrivateUpdatePropertyInt64(player, PropertyInt64.AvailableExperience, player.AvailableExperience ?? 0);
-            var msg = new GameMessageSystemChat($"Congratulations! You have succeeded in acquiring the {Name} augmentation.", ChatMessageType.Broadcast);
 
-            player.Session.Network.EnqueueSend(updateProp, updateXP, msg);
+            player.Session.Network.EnqueueSend(updateProp, updateXP);
+            player.SendWeenieErrorWithString(WeenieErrorWithString.YouSuccededAcquiringAugmentation, Name);
 
             // also broadcast to nearby players
             player.EnqueueBroadcast(new GameMessageScript(player.Guid, AugTypeHelper.GetEffect(type)));
-            player.EnqueueBroadcast(false, new GameMessageSystemChat($"{player.Name} has acquired the {Name} augmentation!", ChatMessageType.Broadcast));
+            player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} has acquired the {Name} augmentation!", ChatMessageType.Broadcast));
 
             player.SaveBiotaToDatabase();
         }
@@ -144,7 +144,7 @@ namespace ACE.Server.WorldObjects
 
             if (availableXP < augCost)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat("You do not have enough experience to use this augmentation gem.", ChatMessageType.Broadcast));
+                player.SendWeenieError(WeenieError.AugmentationNotEnoughExperience);
                 return false;
             }
 
@@ -156,8 +156,7 @@ namespace ACE.Server.WorldObjects
                 // innate attributes shared cap
                 if (player.AugmentationInnateFamily >= MaxAugs[type])
                 {
-                    // more descriptive message?
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("This augmentation is already active.", ChatMessageType.Broadcast));
+                    player.SendWeenieError(WeenieError.AugmentationTypeUsedTooManyTimes);
                     return false;
                 }
 
@@ -166,7 +165,7 @@ namespace ACE.Server.WorldObjects
                 // check InitLevel
                 if (playerAttribute.StartingValue >= 100)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("You are already at the maximum innate level.", ChatMessageType.Broadcast));
+                    player.SendWeenieErrorWithString(WeenieErrorWithString.AugmentationSkillNotTrained, $"You are not able to purchase this augmentation because your {playerAttribute.Attribute.ToString()} is already at the maximum innate level!");
                     return false;
                 }
             }
@@ -176,7 +175,7 @@ namespace ACE.Server.WorldObjects
 
                 if (playerSkill.AdvancementClass != SkillAdvancementClass.Trained)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("You are not trained in this skill!", ChatMessageType.Broadcast));
+                    player.SendWeenieErrorWithString(WeenieErrorWithString.AugmentationSkillNotTrained, $"You are not able to purchase this augmentation because you are not trained in {playerSkill.Skill.ToSentence()}!");
                     return false;
                 }
             }
@@ -185,8 +184,7 @@ namespace ACE.Server.WorldObjects
                 // resistance shared cap
                 if (player.AugmentationResistanceFamily >= MaxAugs[type])
                 {
-                    // more descriptive message?
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("This augmentation is already active.", ChatMessageType.Broadcast));
+                    player.SendWeenieError(WeenieError.AugmentationTypeUsedTooManyTimes);
                     return false;
                 }
             }
@@ -196,8 +194,7 @@ namespace ACE.Server.WorldObjects
 
             if (augProp >= MaxAugs[type])
             {
-                // more descriptive message when MaxAugs > 1?
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat("This augmentation is already active.", ChatMessageType.Broadcast));
+                player.SendWeenieError(WeenieError.AugmentationUsedTooManyTimes);
                 return false;
             }
 

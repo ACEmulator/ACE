@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
+using ACE.Server.Physics.Collision;
 
 namespace ACE.Server.Physics.Common
 {
@@ -116,9 +117,92 @@ namespace ACE.Server.Physics.Common
             }
         }
 
-        public static void add_all_outside_cells(int numParts, List<PhysicsPart> parts, CellArray cellArray)
+        public static void add_all_outside_cells(int numParts, List<PhysicsPart> parts, CellArray cellArray, uint id)
         {
-            // not implemented yet
+            if (cellArray.AddedOutside)
+                return;
+
+            cellArray.AddedOutside = true;
+
+            if (numParts == 0)
+                return;
+
+            var min_x = 0;
+            var min_y = 0;
+            var max_x = 0;
+            var max_y = 0;
+
+            for (var i = 0; i < numParts; i++)
+            {
+                var curPart = parts[i];
+
+                var loc = new Position(curPart.Pos);
+
+                if (!LandDefs.AdjustToOutside(loc))
+                    continue;
+
+                var _lcoord = LandDefs.gid_to_lcoord(loc.ObjCellID);
+
+                if (_lcoord == null)
+                    continue;
+
+                var lcoord = _lcoord.Value;
+
+                var lx = (int)(((loc.ObjCellID & 0xFFFF) - 1) / 8);
+                var ly = (int)(((loc.ObjCellID & 0xFFFF) - 1) % 8);
+
+                for (var j = 0; j < numParts; j++)
+                {
+                    var otherPart = parts[j];
+
+                    if (otherPart == null)
+                        continue;
+
+                    // add if missing: otherPart.Always2D, checks degrades.degradeMode != 1
+
+                    var bbox = new BBox();
+                    bbox.LocalToGlobal(otherPart.GetBoundingBox(), otherPart.Pos, loc);
+
+                    var min_cx = (int)Math.Floor(bbox.Min.X / 24.0f);
+                    var min_cy = (int)Math.Floor(bbox.Min.Y / 24.0f);
+
+                    var max_cx = (int)Math.Floor(bbox.Max.X / 24.0f);
+                    var max_cy = (int)Math.Floor(bbox.Max.Y / 24.0f);
+
+                    min_x = Math.Min(min_cx - lx, min_x);
+                    min_y = Math.Min(min_cy - ly, min_y);
+
+                    max_x = Math.Max(max_cx - lx, max_x);
+                    max_y = Math.Max(max_cy - ly, max_y);
+                }
+
+                add_cell_block(min_x + (int)lcoord.X, min_y + (int)lcoord.Y, max_x + (int)lcoord.X, max_y + (int)lcoord.Y, cellArray, id);
+            }
+        }
+
+        public static void add_cell_block(int min_x, int min_y, int max_x, int max_y, CellArray cellArray, uint id)
+        {
+            for (var i = min_x; i <= max_x; i++)
+            {
+                for (var j = min_y; j <= max_y; j++)
+                {
+                    if (i < 0 || j < 0 || i >= LandDefs.LandLength || j >= LandDefs.LandLength)
+                        continue;
+
+                    var ui = (uint)i;
+                    var uj = (uint)j;
+
+                    var cellID = (((uj >> 3) | 32 * (ui & 0xFFFFFFF8)) << 16) | ((uj & 7) + 8 * (ui & 7) + 1);
+
+                    // FIXME!
+                    if (id >> 16 != cellID >> 16)
+                        continue;
+
+                    var cell = LScape.get_landcell(cellID);
+
+                    cellArray.add_cell(cellID, cell);
+                }
+            }
         }
 
         public static void add_outside_cell(CellArray cellArray, float _x, float _y)
@@ -186,7 +270,7 @@ namespace ACE.Server.Physics.Common
 
         public override void find_transit_cells(int numParts, List<PhysicsPart> parts, CellArray cellArray)
         {
-            add_all_outside_cells(numParts, parts, cellArray);
+            add_all_outside_cells(numParts, parts, cellArray, ID);
             base.find_transit_cells(numParts, parts, cellArray);
         }
 

@@ -37,10 +37,55 @@ namespace ACE.Server.Physics.Common
             return true;
         }
 
-        public bool InqJumpVelocity(float extent, ref float velocityZ)
+        public bool InqJumpVelocity(float extent, out float velocity_z)
         {
-            velocityZ = MovementSystem.GetJumpHeight(1.0f, 100, 1.0f, 1.0f) * 19.6f;
+            velocity_z = 0.0f;
+
+            var player = WorldObject as Player;
+
+            if (player == null)
+                return false;
+
+            var burden = InqBurden();
+            if (burden == null)
+                return false;
+
+            var stamina = player.Stamina.Current;
+
+            var jumpSkill = player.GetCreatureSkill(Skill.Jump).Current;
+
+            if (stamina == 0)
+                jumpSkill = 0;
+
+            var height = MovementSystem.GetJumpHeight((float)burden, jumpSkill, extent, 1.0f);
+
+            velocity_z = (float)Math.Sqrt(height * 19.6);
+
             return true;
+        }
+
+        /// <summary>
+        /// Returns the player's load / burden as a percentage,
+        /// usually in the range 0.0 - 3.0 (max 300% typically)
+        /// </summary>
+        public float? InqBurden()
+        {
+            var player = WorldObject as Player;
+
+            if (player == null)
+                return null;
+
+            var strength = (int)player.Strength.Current;
+
+            var numAugs = player.AugmentationIncreasedCarryingCapacity;
+
+            var capacity = EncumbranceSystem.EncumbranceCapacity(strength, numAugs);
+
+            var encumbrance = player.EncumbranceVal ?? 0;
+
+            var burden = EncumbranceSystem.GetBurden(capacity, encumbrance);
+
+            return burden;
         }
 
         public bool InqRunRate(ref float rate)
@@ -174,7 +219,22 @@ namespace ACE.Server.Physics.Common
 
         public void OnMotionDone(uint motionID, bool success)
         {
+            WorldObject.HandleMotionDone(motionID, success);
+        }
 
+        public void OnMoveComplete(WeenieError status)
+        {
+            WorldObject.OnMoveComplete(status);
+        }
+
+        public void OnSticky()
+        {
+            WorldObject.OnSticky();
+        }
+
+        public void OnUnsticky()
+        {
+            WorldObject.OnUnsticky();
         }
     }
 }

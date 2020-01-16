@@ -380,28 +380,7 @@ namespace ACE.Server.Entity
             foreach (WorldObject wo in worldObjects.Values)
             {
                 // set to TRUE if object changes landblock
-                var landblockUpdate = false;
-
-                // detect player movement
-                // TODO: handle players the same as everything else
-                if (wo is Player player)
-                {
-                    player.InUpdate = true;
-
-                    var newPosition = player.RequestedLocation;
-
-                    if (newPosition != null)
-                    {
-                        // update position through physics engine
-                        landblockUpdate = player.UpdatePlayerPhysics(newPosition);
-
-                        player.RequestedLocation = null;
-                    }
-
-                    player.InUpdate = false;
-                }
-                else
-                    landblockUpdate = wo.UpdateObjectPhysics();
+                var landblockUpdate = wo.UpdateObjectPhysics();
 
                 if (landblockUpdate)
                     movedObjects.Add(wo);
@@ -793,6 +772,8 @@ namespace ACE.Server.Entity
 
             if (wo.PhysicsObj == null)
                 wo.InitPhysicsObj();
+            else
+                wo.PhysicsObj.set_object_guid(wo.Guid);  // re-add to ServerObjectManager
 
             if (wo.PhysicsObj.CurCell == null)
             {
@@ -1071,7 +1052,7 @@ namespace ACE.Server.Entity
         /// This is a rarely used method to broadcast network messages to all of the players within a landblock,
         /// and possibly the adjacent landblocks.
         /// </summary>
-        public void EnqueueBroadcast(ICollection<Player> excludeList, bool adjacents, params GameMessage[] msgs)
+        public void EnqueueBroadcast(ICollection<Player> excludeList, bool adjacents, Position pos = null, float? maxRangeSq = null, params GameMessage[] msgs)
         {
             var players = worldObjects.Values.OfType<Player>();
 
@@ -1082,20 +1063,29 @@ namespace ACE.Server.Entity
 
             // broadcast messages to player in this landblock
             foreach (var player in players)
+            {
+                if (pos != null && maxRangeSq != null)
+                {
+                    var distSq = player.Location.SquaredDistanceTo(pos);
+                    if (distSq > maxRangeSq)
+                        continue;
+                }
                 player.Session.Network.EnqueueSend(msgs);
+            }
 
             // if applicable, iterate into adjacent landblocks
             if (adjacents)
             {
                 foreach (var adjacent in this.Adjacents.Where(adj => adj != null))
-                    adjacent.EnqueueBroadcast(excludeList, false, msgs);
+                    adjacent.EnqueueBroadcast(excludeList, false, pos, maxRangeSq, msgs);
             }
         }
 
         private bool? isDungeon;
 
         /// <summary>
-        /// Returns TRUE if this landblock is a dungeon
+        /// Returns TRUE if this landblock is a dungeon,
+        /// with no traversable overworld
         /// </summary>
         public bool IsDungeon
         {
@@ -1122,21 +1112,30 @@ namespace ACE.Server.Entity
             }
         }
 
-        private bool? isHouseDungeon;
+        private bool? hasDungeon;
 
-        public bool IsHouseDungeon
+        /// <summary>
+        /// Returns TRUE if this landblock contains a dungeon
+        //
+        /// If a landblock contains both a dungeon + traversable overworld,
+        /// this field will return TRUE, whereas IsDungeon will return FALSE
+        /// 
+        /// This property should only be used in very specific scenarios,
+        /// such as determining if a landblock contains a mansion basement
+        /// </summary>
+        public bool HasDungeon
         {
             get
             {
                 // return cached value
-                if (isHouseDungeon != null)
-                    return isHouseDungeon.Value;
+                if (hasDungeon != null)
+                    return hasDungeon.Value;
 
-                isHouseDungeon = IsDungeon ? DatabaseManager.World.GetCachedHousePortalsByLandblock(Id.Landblock).Count > 0 : false;
-
-                return isHouseDungeon.Value;
+                hasDungeon = LandblockInfo != null && LandblockInfo.NumCells > 0 && LandblockInfo.Buildings != null && LandblockInfo.Buildings.Count == 0;
+                return hasDungeon.Value;
             }
         }
+
 
         public List<House> Houses = new List<House>();
 

@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text.RegularExpressions;
 
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 using ACE.Adapter.Lifestoned;
 using ACE.Database;
@@ -17,6 +19,7 @@ using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Command.Handlers.Processors
 {
@@ -48,8 +51,14 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
+            var converter = new WeenieSQLWriter();
+            converter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+            converter.SpellNames = DatabaseManager.World.GetAllSpellNames();
+            converter.TreasureDeath = DatabaseManager.World.GetAllTreasureDeath();
+            converter.TreasureWielded = DatabaseManager.World.GetAllTreasureWielded();
+
             foreach (var file in files)
-                HandleImportJson(session, json_folder, file.Name);
+                HandleImportJson(session, json_folder, file.Name, converter);
         }
 
         [CommandHandler("import-sql", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Imports SQL weenie from the Content folder", "<wcid>")]
@@ -111,7 +120,7 @@ namespace ACE.Server.Command.Handlers.Processors
         /// <summary>
         /// Converts JSON to SQL, imports to database, and clears the weenie cache
         /// </summary>
-        private static void HandleImportJson(Session session, string json_folder, string json_file)
+        private static void HandleImportJson(Session session, string json_folder, string json_file, WeenieSQLWriter converter)
         {
             if (!uint.TryParse(Regex.Match(json_file, @"\d+").Value, out var wcid))
             {
@@ -120,7 +129,7 @@ namespace ACE.Server.Command.Handlers.Processors
             }
 
             // convert json -> sql
-            var sqlFile = json2sql(session, json_folder, json_file);
+            var sqlFile = json2sql(session, json_folder, json_file, converter);
             if (sqlFile == null) return;
 
             // import sql to db
@@ -135,10 +144,11 @@ namespace ACE.Server.Command.Handlers.Processors
         /// <summary>
         /// Converts a json file to sql file
         /// </summary>
-        public static string json2sql(Session session, string folder, string json_filename)
+        public static string json2sql(Session session, string folder, string json_filename, WeenieSQLWriter converter)
         {
             var json_file = folder + json_filename;
 
+            // read json into lsd weenie
             var success = LifestonedLoader.TryLoadWeenie(json_file, out var weenie);
 
             if (!success)
@@ -147,7 +157,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 return null;
             }
 
-            // output to sql
+            // convert to ace weenie
             success = LifestonedConverter.TryConvert(weenie, out var output);
 
             if (!success)
@@ -156,6 +166,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 return null;
             }
 
+            // output to sql
             var sqlFolder = folder.Replace("json", "sql");
 
             var di = new DirectoryInfo(sqlFolder);
@@ -167,19 +178,24 @@ namespace ACE.Server.Command.Handlers.Processors
 
             try
             {
-                var converter = new WeenieSQLWriter();
-                converter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
-                converter.SpellNames = DatabaseManager.World.GetAllSpellNames();
-                converter.TreasureDeath = DatabaseManager.World.GetAllTreasureDeath();
-                converter.TreasureWielded = DatabaseManager.World.GetAllTreasureWielded();
                 if (output.LastModified == DateTime.MinValue)
                     output.LastModified = DateTime.UtcNow;
+
                 sqlFilename = converter.GetDefaultFileName(output);
                 var sqlFile = new StreamWriter(sqlFolder + sqlFilename);
 
                 converter.CreateSQLDELETEStatement(output, sqlFile);
                 sqlFile.WriteLine();
+
                 converter.CreateSQLINSERTStatement(output, sqlFile);
+
+                var metadata = new Adapter.GDLE.Models.Metadata(weenie);
+                if (metadata.HasInfo)
+                {
+                    var jsonEx = JsonConvert.SerializeObject(metadata, LifestonedConverter.SerializerSettings);
+                    sqlFile.WriteLine($"\n/* Lifestoned Changelog:\n{jsonEx}\n*/");
+                }
+
                 sqlFile.Close();
             }
             catch (Exception e)
@@ -229,7 +245,7 @@ namespace ACE.Server.Command.Handlers.Processors
         /// </summary>
         public static bool sql2json(Session session, Weenie weenie, string sql_folder, string sql_filename)
         {
-            if (!LifestonedConverter.TryConvertACEWeenieToLSDJSON(weenie, out var json))
+            if (!LifestonedConverter.TryConvertACEWeenieToLSDJSON(weenie, out var json, out var json_weenie))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {sql_filename} to json");
                 return false;
@@ -238,10 +254,23 @@ namespace ACE.Server.Command.Handlers.Processors
             var json_folder = sql_folder.Replace("sql", "json");
             var json_filename = sql_filename.Replace(".sql", ".json");
 
+            var match = Regex.Match(json_filename, @"^(\d+)");
+            if (match.Success)
+            {
+                var wcid = match.Groups[1].Value;
+                if (!json_filename.StartsWith(wcid + " -"))
+                    json_filename = wcid + " -" + json_filename.Substring(wcid.Length);
+            }
+
             var di = new DirectoryInfo(json_folder);
 
             if (!di.Exists)
                 di.Create();
+
+            if (File.Exists(json_folder + json_filename) && LifestonedLoader.AppendMetadata(json_folder + json_filename, json_weenie))
+            {
+                json = JsonConvert.SerializeObject(json_weenie, LifestonedConverter.SerializerSettings);
+            }
 
             File.WriteAllText(json_folder + json_filename, json);
 
@@ -256,6 +285,11 @@ namespace ACE.Server.Command.Handlers.Processors
         public static void ImportSQL(string sqlFile)
         {
             var sqlCommands = File.ReadAllText(sqlFile);
+
+            // not sure why ExecuteSqlCommand doesn't parse this correctly..
+            var idx = sqlCommands.IndexOf($"/* Lifestoned Changelog:");
+            if (idx != -1)
+                sqlCommands = sqlCommands.Substring(0, idx);
 
             using (var ctx = new WorldDbContext())
                 ctx.Database.ExecuteSqlCommand(sqlCommands);
@@ -302,6 +336,10 @@ namespace ACE.Server.Command.Handlers.Processors
             wo.Ethereal = true;
             wo.Location = new Position(loc);
 
+            // even on flat ground, objects can sometimes fail to spawn at the player's current Z
+            // Position.Z has some weird thresholds when moving around, but i guess the same logic doesn't apply when trying to spawn in...
+            wo.Location.PositionZ += 0.05f;
+
             session.Network.EnqueueSend(new GameMessageSystemChat($"Creating new landblock instance @ {loc.ToLOCString()}\n{wo.WeenieClassId} - {wo.Name} ({nextStaticGuid:X8})", ChatMessageType.Broadcast));
 
             wo.EnterWorld();
@@ -321,7 +359,7 @@ namespace ACE.Server.Command.Handlers.Processors
             var origin = pos.Frame.Origin;
             var rotation = pos.Frame.Orientation;
 
-            var timestamp = DateTime.Now.ToString("MM-dd-yyyy HH:mm:ss");
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
             var insert = $"INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)\n" +
                 $"VALUES(0x{wo.Guid.Full:X8}, {wo.WeenieClassId}, 0x{wo.PhysicsObj.Position.ObjCellID:X8}, {origin.X}, {origin.Y}, {origin.Z}, {rotation.W}, {rotation.X}, {rotation.Y}, {rotation.Z}, False, '{timestamp}'); /* {wo.Name} */\n" +
@@ -361,6 +399,112 @@ namespace ACE.Server.Command.Handlers.Processors
             }
         }
 
+        [CommandHandler("addenc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Spawns a new wcid or classname in the current outdoor cell as an encounter", "<wcid or classname>")]
+        public static void HandleAddEncounter(Session session, params string[] parameters)
+        {
+            var param = parameters[0];
+
+            Weenie weenie = null;
+
+            if (uint.TryParse(param, out var wcid))
+                weenie = DatabaseManager.World.GetCachedWeenie(wcid);   // wcid
+            else
+                weenie = DatabaseManager.World.GetCachedWeenie(param);  // classname
+
+            if (weenie == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find weenie {param}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var pos = session.Player.Location;
+
+            if ((pos.Cell & 0xFFFF) >= 0x100)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("You must be outdoors to create an encounter!", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var cellX = (int)pos.PositionX / 24;
+            var cellY = (int)pos.PositionY / 24;
+
+            // spawn encounter
+            var wo = SpawnEncounter(weenie, cellX, cellY, pos, session);
+
+            if (wo == null) return;
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Creating new encounter @ landblock {pos.Landblock:X4}, cellX={cellX}, cellY={cellY}\n{wo.WeenieClassId} - {wo.Name}", ChatMessageType.Broadcast));
+
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+            var sql = $"INSERT INTO encounter set landblock=0x{pos.Landblock:X4}, weenie_Class_Id={weenie.ClassId} /* {wo.Name} */, cell_X={cellX}, cell_Y={cellY}, last_Modified='{timestamp}';";
+
+            Console.WriteLine(sql);
+
+            // serialize to .sql file
+            var contentFolder = VerifyContentFolder(session, false);
+
+            var sep = Path.DirectorySeparatorChar;
+            var folder = new DirectoryInfo($"{contentFolder.FullName}{sep}sql{sep}6 LandblockExtendedData{sep}");
+
+            if (!folder.Exists)
+                folder.Create();
+
+            var sql_filename = $"{pos.Landblock:X4}.sql";
+
+            using (var file = File.Open($"{folder.FullName}{sep}{sql_filename}", FileMode.OpenOrCreate))
+            {
+                file.Seek(0, SeekOrigin.End);
+
+                using (var stream = new StreamWriter(file))
+                    stream.WriteLine(sql);
+            }
+        }
+
+        public static WorldObject SpawnEncounter(Weenie weenie, int cellX, int cellY, Position pos, Session session)
+        {
+            var wo = WorldObjectFactory.CreateNewWorldObject(weenie.ClassId);
+
+            if (wo == null)
+            {
+                Console.WriteLine($"Failed to create encounter weenie");
+                return null;
+            }
+
+            var xPos = Math.Clamp(cellX * 24.0f, 0.5f, 191.5f);
+            var yPos = Math.Clamp(cellY * 24.0f, 0.5f, 191.5f);
+
+            var newPos = new Physics.Common.Position();
+            newPos.ObjCellID = pos.Cell;
+            newPos.Frame = new Physics.Animation.AFrame(new Vector3(xPos, yPos, 0), Quaternion.Identity);
+            newPos.adjust_to_outside();
+
+            newPos.Frame.Origin.Z = session.Player.CurrentLandblock.PhysicsLandblock.GetZ(newPos.Frame.Origin);
+
+            wo.Location = new Position(newPos.ObjCellID, newPos.Frame.Origin, newPos.Frame.Orientation);
+
+            var sortCell = Physics.Common.LScape.get_landcell(newPos.ObjCellID) as Physics.Common.SortCell;
+            if (sortCell != null && sortCell.has_building())
+            {
+                Console.WriteLine($"Failed to create encounter near building cell");
+                return null;
+            }
+
+            if (PropertyManager.GetBool("override_encounter_spawn_rates").Item)
+            {
+                wo.RegenerationInterval = PropertyManager.GetDouble("encounter_regen_interval").Item;
+
+                wo.ReinitializeHeartbeats();
+
+                foreach (var profile in wo.Biota.BiotaPropertiesGenerator)
+                    profile.Delay = (float)PropertyManager.GetDouble("encounter_delay").Item;
+            }
+
+            wo.EnterWorld();
+
+            return wo;
+        }
+
         [CommandHandler("export-json", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Exports a weenie from database to JSON file", "<wcid>")]
         public static void HandleExportJson(Session session, params string[] parameters)
         {
@@ -381,7 +525,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            if (!LifestonedConverter.TryConvertACEWeenieToLSDJSON(weenie, out var json))
+            if (!LifestonedConverter.TryConvertACEWeenieToLSDJSON(weenie, out var json, out var json_weenie))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {weenie.ClassId} - {weenie.ClassName} to json");
                 return;
@@ -395,6 +539,11 @@ namespace ACE.Server.Command.Handlers.Processors
                 di.Create();
 
             var json_filename = $"{weenie.ClassId} - {weenie.WeeniePropertiesString.FirstOrDefault(i => i.Type == (int)PropertyString.Name)?.Value}.json";
+
+            if (File.Exists(json_folder + json_filename) && LifestonedLoader.AppendMetadata(json_folder + json_filename, json_weenie))
+            {
+                json = JsonConvert.SerializeObject(json_weenie, LifestonedConverter.SerializerSettings);
+            }
 
             File.WriteAllText(json_folder + json_filename, json);
 
@@ -455,5 +604,40 @@ namespace ACE.Server.Command.Handlers.Processors
 
             CommandHandlerHelper.WriteOutputInfo(session, $"Exported {sql_folder}{sql_filename}");
         }
+
+        [CommandHandler("clearcache", AccessLevel.Developer, CommandHandlerFlag.None, "Clears the various database caches. This enables live editing of the database information")]
+        public static void HandleClearCache(Session session, params string[] parameters)
+        {
+            var mode = CacheType.All;
+            if (parameters.Length > 0)
+            {
+                if (parameters[0].Contains("weenie", StringComparison.OrdinalIgnoreCase))
+                    mode = CacheType.Weenie;
+                if (parameters[0].Contains("spell", StringComparison.OrdinalIgnoreCase))
+                    mode = CacheType.Spell;
+            }
+
+            if (mode.HasFlag(CacheType.Weenie))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Clearing weenie cache");
+                DatabaseManager.World.ClearWeenieCache();
+            }
+
+            if (mode.HasFlag(CacheType.Spell))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Clearing spell cache");
+                DatabaseManager.World.ClearSpellCache();
+                WorldObject.ClearSpellCache();
+            }
+        }
+
+        [Flags]
+        public enum CacheType
+        {
+            None   = 0x0,
+            Weenie = 0x1,
+            Spell  = 0x2,
+            All    = 0xFFFF
+        };
     }
 }

@@ -22,6 +22,13 @@ namespace ACE.Server.Entity
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
+        /// The id for the profile. This id will be either a GUID from Landblock_Instances or an incremental id based on profile order from biota entry. 
+        /// </summary>
+        public uint Id;
+
+        public string LinkId => Id > 0x70000000 ? $"0x{Id:X8}" : $"{Id}";
+
+        /// <summary>
         /// The biota with all the generator profile info
         /// </summary>
         public BiotaPropertiesGenerator Biota;
@@ -90,6 +97,12 @@ namespace ACE.Server.Entity
         public bool MaxObjectsSpawned { get => CurrentCreate >= MaxCreate; }
 
         /// <summary>
+        /// Flag indicates if generator profile is performing the initial spawn (TRUE / default),
+        /// or the respawn (false)
+        /// </summary>
+        public bool FirstSpawn { get; set; } = true;
+
+        /// <summary>
         /// The delay for respawning objects
         /// </summary>
         public float Delay
@@ -114,10 +127,11 @@ namespace ACE.Server.Entity
         /// Constructs a new active generator profile
         /// from a biota generator
         /// </summary>
-        public GeneratorProfile(WorldObject generator, BiotaPropertiesGenerator biota)
+        public GeneratorProfile(WorldObject generator, BiotaPropertiesGenerator biota, uint profileId)
         {
             Generator = generator;
             Biota = biota;
+            Id = profileId;
         }
 
         /// <summary>
@@ -203,6 +217,7 @@ namespace ACE.Server.Entity
                             Spawned.Add(obj.Guid.Full, woi);
                         }
                     }
+
                 }
                 else
                 {
@@ -211,6 +226,7 @@ namespace ACE.Server.Entity
                 }
                 SpawnQueue.RemoveAt(index);
             }
+            FirstSpawn = false;
         }
 
         /// <summary>
@@ -254,6 +270,8 @@ namespace ACE.Server.Entity
                 objects.Add(wo);
             }
 
+            var spawned = new List<WorldObject>();
+
             foreach (var obj in objects)
             {
                 //log.Debug($"{_generator.Name}.Spawn({obj.Name})");
@@ -261,28 +279,35 @@ namespace ACE.Server.Entity
                 obj.Generator = Generator;
                 obj.GeneratorId = Generator.Guid.Full;
 
+                var success = false;
+
                 if (RegenLocationType.HasFlag(RegenLocationType.Specific))
-                    Spawn_Specific(obj);
+                    success = Spawn_Specific(obj);
 
                 else if (RegenLocationType.HasFlag(RegenLocationType.Scatter))
-                    Spawn_Scatter(obj);
+                    success = Spawn_Scatter(obj);
 
                 else if (RegenLocationType.HasFlag(RegenLocationType.Contain))
-                    Spawn_Container(obj);
+                    success = Spawn_Container(obj);
 
                 else if (RegenLocationType.HasFlag(RegenLocationType.Shop))
-                    Spawn_Shop(obj);
+                    success = Spawn_Shop(obj);
 
                 else
-                    Spawn_Default(obj);
+                    success = Spawn_Default(obj);
+
+                // if first spawn fails, don't continually attempt to retry
+                if (success || FirstSpawn)
+                    spawned.Add(obj);
             }
-            return objects;
+
+            return spawned;
         }
 
         /// <summary>
         /// Spawns an object at a specific position
         /// </summary>
-        public void Spawn_Specific(WorldObject obj)
+        public bool Spawn_Specific(WorldObject obj)
         {
             // specific position
             if ((Biota.ObjCellId ?? 0) > 0)
@@ -292,12 +317,13 @@ namespace ACE.Server.Entity
             else
                 obj.Location = new ACE.Entity.Position(Generator.Location.Cell, Generator.Location.PositionX + Biota.OriginX ?? 0, Generator.Location.PositionY + Biota.OriginY ?? 0, Generator.Location.PositionZ + Biota.OriginZ ?? 0, Biota.AnglesX ?? 0, Biota.AnglesY ?? 0, Biota.AnglesZ ?? 0, Biota.AnglesW ?? 0);
 
-            if (!VerifyLandblock(obj) || !VerifyWalkableSlope(obj)) return;
+            if (!VerifyLandblock(obj) || !VerifyWalkableSlope(obj))
+                return false;
 
-            obj.EnterWorld();
+            return obj.EnterWorld();
         }
 
-        public void Spawn_Scatter(WorldObject obj)
+        public bool Spawn_Scatter(WorldObject obj)
         {
             float genRadius = (float)(Generator.GetProperty(PropertyFloat.GeneratorRadius) ?? 0f);
             obj.Location = new ACE.Entity.Position(Generator.Location);
@@ -310,40 +336,44 @@ namespace ACE.Server.Entity
 
             obj.ScatterPos = new SetPosition(new Physics.Common.Position(obj.Location), SetPositionFlags.RandomScatter, genRadius);
 
-            obj.EnterWorld();
+            var success = obj.EnterWorld();
 
             obj.ScatterPos = null;
+
+            return success;
         }
 
-        public void Spawn_Container(WorldObject obj)
+        public bool Spawn_Container(WorldObject obj)
         {
-            var container = Generator as Container;
+            var success = Generator is Container container && container.TryAddToInventory(obj);
 
-            if (container == null || !container.TryAddToInventory(obj))
+            if (!success)
                 log.Debug($"{Generator.Name}.Spawn_Container({obj.Name}) - failed to add to container inventory");
+
+            return success;
         }
 
-        public void Spawn_Shop(WorldObject obj)
+        public bool Spawn_Shop(WorldObject obj)
         {
             // spawn item in vendor shop inventory
-            var vendor = Generator as Vendor;
-
-            if (vendor == null)
+            if (!(Generator is Vendor vendor))
             {
                 log.Debug($"{Generator.Name}.Spawn_Shop({obj.Name}) - generator is not a vendor type");
-                return;
+                return false;
             }
+
             vendor.AddDefaultItem(obj);
+            return true;
         }
 
-        public void Spawn_Default(WorldObject obj)
+        public bool Spawn_Default(WorldObject obj)
         {
             // default location handler?
             //log.Debug($"{_generator.Name}.Spawn_Default({obj.Name}): default handler for RegenLocationType {RegenLocationType}");
 
             obj.Location = new ACE.Entity.Position(Generator.Location);
 
-            obj.EnterWorld();
+            return obj.EnterWorld();
         }
 
         public bool VerifyLandblock(WorldObject obj)
@@ -436,19 +466,36 @@ namespace ACE.Server.Entity
         {
             //log.Debug($"{_generator.Name}.NotifyGenerator({target:X8}, {eventType})");
 
-            if (eventType == RegenerationType.PickUp && (RegenerationType)Biota.WhenCreate == RegenerationType.Destruction)
-                eventType = RegenerationType.Destruction;
-
-            // If WhenCreate is Undef, assume it means Destruction (bad data)
-            if (eventType == RegenerationType.Destruction && (RegenerationType)Biota.WhenCreate == RegenerationType.Undef)
-                Biota.WhenCreate = (uint)RegenerationType.Destruction;
-
-            if (Biota.WhenCreate != (uint)eventType)
-                return;
-
             Spawned.TryGetValue(target.Full, out var woi);
 
             if (woi == null) return;
+
+            var adjEventType = eventType; // some generators use pickup when they mean to use destruction, some use destruction when they mean to use pickup. this data comes from 16py mostly and these issues are corrected below.
+            var whenCreate = (RegenerationType)Biota.WhenCreate;
+            var adjWhenCreate = (RegenerationType)Biota.WhenCreate;
+
+            if (eventType == RegenerationType.PickUp && whenCreate == RegenerationType.Destruction)
+                adjEventType = RegenerationType.Destruction;
+
+            if (eventType == RegenerationType.Destruction && whenCreate == RegenerationType.PickUp)
+                adjEventType = RegenerationType.PickUp;
+
+            // If WhenCreate is Undef, assume it means Destruction (bad data)
+            if (eventType == RegenerationType.Destruction && whenCreate == RegenerationType.Undef)
+                adjWhenCreate = RegenerationType.Destruction;
+
+            // If WhenCreate is Undef, assume it means Pickup (bad data)
+            if (eventType == RegenerationType.PickUp && whenCreate == RegenerationType.Undef)
+                adjWhenCreate = RegenerationType.PickUp;
+
+            if (eventType != adjEventType)
+                log.Warn($"0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: RegenerationType = {eventType.ToString()}, WhenCreate = {whenCreate.ToString()}, Using {adjEventType.ToString()} as RegenerationType instead");
+
+            if (whenCreate != adjWhenCreate)
+                log.Warn($"0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: RegenerationType = {eventType.ToString()}, WhenCreate = {whenCreate.ToString()}, Using {adjWhenCreate.ToString()} as WhenCreate instead");
+
+            if (adjWhenCreate != adjEventType)
+                return;            
 
             RemoveQueue.Enqueue((DateTime.UtcNow.AddSeconds(Delay), woi.Guid.Full));
         }

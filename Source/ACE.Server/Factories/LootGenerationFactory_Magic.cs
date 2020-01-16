@@ -30,22 +30,34 @@ namespace ACE.Server.Factories
             // add rng ratings to pet device
             // linear or biased?
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearDamage = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearDamage = GeneratePetDeviceRating(tier);
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearDamageResist = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearDamageResist = GeneratePetDeviceRating(tier);
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearCritDamage = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearCritDamage = GeneratePetDeviceRating(tier);
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearCritDamageResist = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearCritDamageResist = GeneratePetDeviceRating(tier);
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearCrit = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearCrit = GeneratePetDeviceRating(tier);
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
-                petDevice.GearCritResist = ThreadSafeRandom.Next(1, 20);
+                petDevice.GearCritResist = GeneratePetDeviceRating(tier);
 
             var workmanship = GetWorkmanship(tier);
             petDevice.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             return petDevice;
+        }
+
+        public static int GeneratePetDeviceRating(int tier)
+        {
+            // thanks for morosity for this formula!
+            var baseRating = ThreadSafeRandom.Next(1, 10);
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+            var tierMod = 0.4f + tier * 0.02f;
+            if (rng > tierMod)
+                baseRating += ThreadSafeRandom.Next(1, 10);
+
+            return baseRating;
         }
 
         private static WorldObject CreateRandomScroll(int tier)
@@ -106,16 +118,17 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Creates Caster (Wand, Staff, Orb)
         /// </summary>
-        private static WorldObject CreateCaster(int tier, bool isMagical)
+        public static WorldObject CreateCaster(int tier, bool isMagical, int wield = -1, bool forceWar = false)
         {
             // Refactored 11/20/19  - HarliQ
 
-            int casterWeenie = 0; 
+            int casterWeenie = 0;
             double elementalDamageMod = 0;
             Skill wieldSkillType = Skill.None;
             WieldRequirement wieldRequirement = WieldRequirement.RawSkill;
             int subType = 0;
-            int wield = GetWield(tier, 2);
+            if (wield == -1)
+                wield = GetWield(tier, 2);
 
             // Getting the caster Weenie needed.
             if (wield == 0)
@@ -149,7 +162,7 @@ namespace ACE.Server.Factories
                 int casterType = ThreadSafeRandom.Next(1, 3);
 
                 // Determine element type: 0 - Slashing, 1 - Piercing, 2 - Blunt, 3 - Frost, 4 - Fire, 5 - Acid, 6 - Electric, 7 - Nether
-                int element = ThreadSafeRandom.Next(0, 7);
+                int element = forceWar ? ThreadSafeRandom.Next(0, 6) : ThreadSafeRandom.Next(0, 7);
                 casterWeenie = LootTables.CasterWeaponsMatrix[casterType][element];
 
                 // If element is Nether, Void Magic is required, else War Magic is required for all other elements
@@ -185,21 +198,9 @@ namespace ACE.Server.Factories
 
             // Setting Weapon defensive mods 
             wo.WeaponDefense = GetWieldReqMeleeDMod(wield);
-            // A 5% chance to get any MagicD/Missile Bonus
-            if (wield > 355)
-            {
-                int chance = ThreadSafeRandom.Next(1, 40);
-                if (chance > 39)
-                {
-                    wo.WeaponMagicDefense = GetMagicMissileDefenseBonus();
-                }
+            wo.WeaponMagicDefense = GetMagicMissileDMod(tier);
+            wo.WeaponMissileDefense = GetMagicMissileDMod(tier);
 
-                chance = ThreadSafeRandom.Next(1, 40);
-                if (chance > 39)
-                {
-                    wo.WeaponMissileDefense = GetMagicMissileDefenseBonus();
-                }
-            }
             // Setting weapon Offensive Mods
             if (elementalDamageMod > 1.0f)
                 wo.ElementalDamageMod = elementalDamageMod;
@@ -217,7 +218,7 @@ namespace ACE.Server.Factories
                 wo.WieldSkillType = null;
                 wo.WieldDifficulty = null;
             }
-           
+
             // Adjusting Properties if weapon has magic (spells)
             double manaConMod = GetManaCMod(tier);
             if (manaConMod > 0.0f)
@@ -232,7 +233,7 @@ namespace ACE.Server.Factories
                 wo.ItemCurMana = null;
                 wo.ItemSpellcraft = null;
                 wo.ItemDifficulty = null;
-            }          
+            }
 
             wo = RandomizeColor(wo);
 

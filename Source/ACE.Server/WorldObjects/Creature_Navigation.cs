@@ -43,6 +43,33 @@ namespace ACE.Server.WorldObjects
             return GetAngle(currentDir, targetDir);
         }
 
+        public float GetAngle_Physics(WorldObject target)
+        {
+            var currentDir = GetCurrentDir_Physics();
+
+            var targetDir = Vector3.Zero;
+            if (Location.Indoors == target.Location.Indoors)
+                targetDir = GetDirection(Location.ToGlobal(), target.Location.ToGlobal());
+            else
+                targetDir = GetDirection(Location.Pos, target.Location.Pos);
+
+            targetDir.Z = 0.0f;
+            targetDir = Vector3.Normalize(targetDir);
+
+            // get the 2D angle between these vectors
+            return GetAngle(currentDir, targetDir);
+        }
+
+        public Vector3 GetCurrentDir_Physics()
+        {
+            return Vector3.Normalize(Vector3.Transform(Vector3.UnitY, PhysicsObj.Position.Frame.Orientation));
+        }
+
+        public float GetAngle_Physics2(WorldObject target)
+        {
+            return PhysicsObj.Position.heading_diff(target.PhysicsObj.Position);
+        }
+
         /// <summary>
         /// Returns the 2D angle between current direction
         /// and rotation from an input position
@@ -93,6 +120,19 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Sends a TurnToObject command to the client
+        /// </summary>
+        public void TurnToObject(WorldObject target, bool stopCompletely = false)
+        {
+            var turnToMotion = new Motion(this, target, MovementType.TurnToObject);
+
+            if (stopCompletely)
+                turnToMotion.MoveToParameters.MovementParameters |= MovementParams.StopCompletely;
+
+            EnqueueBroadcastMotion(turnToMotion);
+        }
+
+        /// <summary>
         /// Starts rotating a creature from its current direction
         /// so that it eventually is facing the target position
         /// </summary>
@@ -103,8 +143,7 @@ namespace ACE.Server.WorldObjects
                 return 0.0f;
 
             // send network message to start turning creature
-            var turnToMotion = new Motion(this, target, MovementType.TurnToObject);
-            EnqueueBroadcastMotion(turnToMotion);
+            TurnToObject(target);
 
             var angle = GetAngle(target);
             //Console.WriteLine("Angle: " + angle);
@@ -269,12 +308,17 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sends a network message for moving a creature to a new position
         /// </summary>
-        public void MoveTo(Position position, float runRate = 1.0f, bool setLoc = true)
+        public void MoveTo(Position position, float runRate = 1.0f, bool setLoc = true, float? walkRunThreshold = null, float? speed = null)
         {
+            // TODO: change parameters to accept an optional MoveToParameters
+
             var motion = new Motion(this, position);
             motion.MovementType = MovementType.MoveToPosition;
             //motion.Flag |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.MoveAway;
-            motion.MoveToParameters.WalkRunThreshold = 1.0f;
+            if (walkRunThreshold != null)
+                motion.MoveToParameters.WalkRunThreshold = walkRunThreshold.Value;
+            if (speed != null)
+                motion.MoveToParameters.Speed = speed.Value;
 
             // always use final heading?
             var frame = new AFrame(position.Pos, position.Rotation);
@@ -287,9 +331,13 @@ namespace ACE.Server.WorldObjects
             else
                 motion.MoveToParameters.MovementParameters &= ~MovementParams.CanRun;
 
-            // todo: use better movement system
+            // todo: use physics MoveToManager
+            // todo: handle landblock updates
             if (setLoc)
+            {
                 Location = new Position(position);
+                PhysicsObj.SetPositionSimple(new Physics.Common.Position(position), true);
+            }
 
             EnqueueBroadcastMotion(motion);
         }

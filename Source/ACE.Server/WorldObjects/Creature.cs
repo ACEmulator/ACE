@@ -10,6 +10,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Database.Models.Shard;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
 using ACE.Server.WorldObjects.Entity;
 
 using Position = ACE.Entity.Position;
@@ -21,6 +22,24 @@ namespace ACE.Server.WorldObjects
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public bool IsExhausted { get => Stamina.Current == 0; }
+
+        protected QuestManager _questManager;
+
+        public QuestManager QuestManager
+        {
+            get
+            {
+                if (_questManager == null)
+                {
+                    if (!(this is Player))
+                        log.Debug($"Initializing non-player QuestManager for {Name} (0x{Guid})");   // verify this almost never happens
+
+                    _questManager = new QuestManager(this);
+                }
+
+                return _questManager;
+            }
+        }
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -74,11 +93,11 @@ namespace ACE.Server.WorldObjects
 
             if (!(this is Player))
             {
+                GenerateWieldList();
+
                 if (!(this is CombatPet)) //combat pets normally wouldn't have these items, but due to subbing in code currently, sometimes they do. this skips them for now.
                 {
-                    GenerateWieldList();
                     GenerateWieldedTreasure();
-
 
                     EquipInventoryItems();
                 }
@@ -223,12 +242,16 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sends the network commands to move a player towards an object
         /// </summary>
-        public void MoveToObject(WorldObject target, float? useRadius)
+        public void MoveToObject(WorldObject target, float? useRadius = null)
         {
             var distanceToObject = useRadius ?? target.UseRadius ?? 0.6f;
 
             var moveToObject = new Motion(this, target, MovementType.MoveToObject);
             moveToObject.MoveToParameters.DistanceToObject = distanceToObject;
+
+            // move directly to portal origin
+            //if (target is Portal)
+                //moveToObject.MoveToParameters.MovementParameters &= ~MovementParams.UseSpheres;
 
             SetWalkRunThreshold(moveToObject, target.Location);
 

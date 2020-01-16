@@ -158,7 +158,7 @@ namespace ACE.Server.Network.Handlers
                     else
                         log.Debug($"client {loginRequest.Account} connected with non matching password so booting");
 
-                    session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageBootAccount(session, "The password entered for this account was not correct."));
+                    session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageBootAccount(session, " because the password entered for this account was not correct."));
 
                     // TO-DO: temporary lockout of account preventing brute force password discovery
                     // exponential duration of lockout for targeted account
@@ -224,7 +224,7 @@ namespace ACE.Server.Network.Handlers
             session.UpdateCharacters(characters);
 
             GameMessageCharacterList characterListMessage = new GameMessageCharacterList(session.Characters, session);
-            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, PlayerManager.GetAllOnline().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
+            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, PlayerManager.GetOnlineCount(), (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
             GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
 
             session.Network.EnqueueSend(characterListMessage, serverNameMessage);

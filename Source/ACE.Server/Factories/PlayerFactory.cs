@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 using log4net;
@@ -477,9 +476,6 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Set Heritage based Melee and Ranged Masteries
         /// </summary>
-        /// <param name="heritageGroup"></param>
-        /// <param name="meleeMastery"></param>
-        /// <param name="rangedMastery"></param>
         private static void GetMasteries(HeritageGroup heritageGroup, out WeaponType meleeMastery, out WeaponType rangedMastery)
         {
             switch (heritageGroup)
@@ -622,166 +618,6 @@ namespace ACE.Server.Factories
             // Not official client defaults, might have been creation defaults however to avoid initial confusion about helm/cloak equipping
             player.SetCharacterOption(CharacterOption.ShowYourHelmOrHeadGear, true);
             player.SetCharacterOption(CharacterOption.ShowYourCloak, true);
-        }
-
-
-        /// <summary>
-        /// 100 Strength/Cord/Quick
-        /// trained Creature/Item/Life/Mana Conversion todo remove creature/item/life because it adds foci. Add it after the player is created. Augmentations will take care of the foci requirements
-        /// trained Magic/Melee Defense
-        /// </summary>
-        private static readonly byte[] baseGearKnight1 =
-        {
-            0x01, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
-            0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0xF0, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x3F, 0x88, 0x2E, 0x44, 0x17, 0xA2, 0x0B,
-            0xD1, 0x3F, 0xC7, 0xBF, 0xE3, 0xDF, 0xF1, 0xEF, 0xE8, 0x3F, 0xD4, 0x1E, 0x6A, 0x0F, 0xB5, 0x87, 0xDA, 0x3F,
-            0xAD, 0x76, 0x56, 0x3B, 0xAB, 0x9D, 0xD5, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 0x0A, 0x00,
-            0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 0x0A, 0x00, 0x00, 0x00, 0x0A, 0x00, 0x00, 0x00,
-            0x02, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x37, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x02, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
-            0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00,
-            0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
-            0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00,
-            0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
-            0x02, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x01, 0x00,
-            0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00,
-            0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
-            0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x07, 0x00,
-            0x4E, 0x6F, 0x20, 0x4E, 0x61, 0x6D, 0x65, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00
-        };
-
-        /// <summary>
-        /// Creates a fully leveled/augmented 275 Heavy Weapons character player
-        /// </summary>
-        public static Player Create275HeavyWeapons(Weenie weenie, ObjectGuid guid, uint accountId, string name)
-        {
-            var characterCreateInfo = new CharacterCreateInfo();
-
-            using (var memoryStream = new MemoryStream(baseGearKnight1))
-            using (var binaryReader = new BinaryReader(memoryStream))
-                characterCreateInfo.Unpack(binaryReader);
-
-            characterCreateInfo.Name = name;
-
-            Create(characterCreateInfo, weenie, guid, accountId, WeenieType.Creature, out var player);
-
-            LevelUpPlayer(player);
-
-            // todo add the creature/item/life skills here and remove them from the above base array once we have augmentations added in LevelUpPlayer()
-
-            // Specialize Heavy Weapon specific skills
-            player.TrainSkill(Skill.HeavyWeapons, 6);
-            player.SpecializeSkill(Skill.HeavyWeapons, 6);
-            player.TrainSkill(Skill.Healing, 6);
-            player.SpecializeSkill(Skill.Healing, 4);
-            player.TrainSkill(Skill.Shield, 2);
-            player.SpecializeSkill(Skill.Shield, 2);
-
-            // Raise base skills
-            player.TrainSkill(Skill.MissileDefense, 6);
-            player.SpecializeSkill(Skill.MeleeDefense, 10);
-            player.SpecializeSkill(Skill.MagicDefense, 12);
-
-            // todo 0 skill points. When we add the 4 skill points in LevelUpPlayer, we can spend them here
-
-            // todo aug endurance
-
-            SpendAllXp(player);
-
-            AddCommonEquipment(player);
-            AddCommonInventory(player);
-
-            // todo Give the character skill appropriate weapons
-
-            AddAllSpells(player);
-
-            return player;
-        }
-
-        private static void LevelUpPlayer(Player player)
-        {
-            player.AvailableExperience += 191226310247;
-            player.TotalExperience += 191226310247;
-            player.Level = 275;
-            player.AvailableSkillCredits += 46;
-            player.TotalSkillCredits += 46;
-
-            // todo add spec arcane lore quest flag + spec arcane lore
-
-            // todo add Hunting Aun Ralirea quest flag + skill credit
-            // todo add Chasing Oswald quest flag + skill credit
-
-            // todo add all augmentations except the element protection and attribute raising ones
-
-            // todo add Luminance quest flags + 2 luminance quest flags + skill credits
-        }
-
-        private static void SpendAllXp(Player player)
-        {
-            player.SpendAllXp(false);
-
-            player.Health.Current = player.Health.MaxValue;
-            player.Stamina.Current = player.Stamina.MaxValue;
-            player.Mana.Current = player.Mana.MaxValue;
-        }
-
-        private static void AddCommonEquipment(Player player)
-        {
-            // todo Armor that covers everything + has all spells
-        }
-
-        private static void AddCommonInventory(Player player)
-        {
-            // MMD
-            AddWeeniesToInventory(player, new HashSet<uint> { 20630 });
-
-            // Spell Components
-            AddWeeniesToInventory(player, new HashSet<uint> { 691, 689, 686, 688, 687, 690, 8897, 7299, 37155, 20631 });
-
-            // Focusing Stone
-            AddWeeniesToInventory(player, new HashSet<uint> { 8904 });
-
-            // todo Drudge Scrying Orb
-
-            // todo Buffing wand that has all defenses maxed
-        }
-
-        private static void AddWeeniesToInventory(Player player, HashSet<uint> weenieIds, ushort? stackSize = null)
-        {
-            foreach (uint weenieId in weenieIds)
-            {
-                var loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
-
-                if (loot == null) // weenie doesn't exist
-                    continue;
-
-                if (stackSize == null)
-                    stackSize = loot.MaxStackSize;
-
-                if (stackSize > 1)
-                    loot.SetStackSize(stackSize);
-
-                player.TryAddToInventory(loot);
-            }
-        }
-
-        private static void AddAllSpells(Player player)
-        {
-            for (uint spellLevel = 1; spellLevel <= 8; spellLevel++)
-            {
-                player.LearnSpellsInBulk(MagicSchool.CreatureEnchantment, spellLevel, false);
-                player.LearnSpellsInBulk(MagicSchool.ItemEnchantment, spellLevel, false);
-                player.LearnSpellsInBulk(MagicSchool.LifeMagic, spellLevel, false);
-                player.LearnSpellsInBulk(MagicSchool.VoidMagic, spellLevel, false);
-                player.LearnSpellsInBulk(MagicSchool.WarMagic, spellLevel, false);
-            }
         }
     }
 }

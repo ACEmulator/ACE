@@ -46,7 +46,7 @@ namespace ACE.Server.WorldObjects
             if (!PropertyManager.GetBool("advanced_combat_pets").Item)
                 Biota.BiotaPropertiesSpellBook.Clear();
 
-            Biota.BiotaPropertiesCreateList.Clear();
+            //Biota.BiotaPropertiesCreateList.Clear();
             Biota.BiotaPropertiesEmote.Clear();
             GeneratorProfiles.Clear();            
 
@@ -68,8 +68,8 @@ namespace ACE.Server.WorldObjects
             Name = player.Name + "'s " + Name;
             P_PetOwner = player;
             PetOwner = player.Guid.Full;
-            SetCombatMode(CombatMode.Melee);
             EnterWorld();
+            SetCombatMode(CombatMode.Melee);
             DamageType = damageType;
             Attackable = true;
             MonsterState = State.Awake;

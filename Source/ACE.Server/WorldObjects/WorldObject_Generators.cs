@@ -42,9 +42,10 @@ namespace ACE.Server.WorldObjects
         public void AddGeneratorProfiles()
         {
             GeneratorProfiles = new List<GeneratorProfile>();
+            uint i = 0;
 
             foreach (var generator in Biota.BiotaPropertiesGenerator)
-                GeneratorProfiles.Add(new GeneratorProfile(this, generator));
+                GeneratorProfiles.Add(new GeneratorProfile(this, generator, i++));
         }
 
         /// <summary>
@@ -701,9 +702,9 @@ namespace ACE.Server.WorldObjects
                     removeQueueTotal += generator.RemoveQueue.Count;
                 }
 
-                if (Generator.GeneratorId.HasValue && Generator.GeneratorId > 0) // Generator is controlled by another generator.
+                if (Generator.GeneratorId > 0) // Generator is controlled by another generator.
                 {
-                    if (Generator is GenericObject && Generator.Visibility && Generator.InitCreate > 0 && (Generator.CurrentCreate - removeQueueTotal) == 0) // Parent generator is basic generator, not visible to players
+                    if (!(Generator is Container) && Generator.InitCreate > 0 && (Generator.CurrentCreate - removeQueueTotal) == 0) // Parent generator is non-container (Container, Corpse, Chest, Slumlord, Storage, Hook, Creature) generator
                         Generator.Destroy(); // Generator's complete spawn count has been wiped out
                 }
             }
@@ -744,7 +745,7 @@ namespace ACE.Server.WorldObjects
                 profile.WhenCreate = profileTemplate.Biota.WhenCreate;
                 profile.WhereCreate = profileTemplate.Biota.WhereCreate;
 
-                GeneratorProfiles.Add(new GeneratorProfile(this, profile));
+                GeneratorProfiles.Add(new GeneratorProfile(this, profile, link.Guid));
                 if (profile.Probability == -1)
                 {
                     InitCreate += profile.InitCreate;
