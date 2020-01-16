@@ -547,7 +547,7 @@ namespace ACE.Server.WorldObjects
                 var rate = item.ManaRate.Value;
 
                 if (LumAugItemManaUsage != 0)
-                    rate *= GetNegativeRatingMod(LumAugItemManaUsage);
+                    rate *= GetNegativeRatingMod(LumAugItemManaUsage * 5);
 
                 if (!item.ItemManaConsumptionTimestamp.HasValue) item.ItemManaConsumptionTimestamp = DateTime.UtcNow;
                 DateTime mostRecentBurn = item.ItemManaConsumptionTimestamp.Value;
