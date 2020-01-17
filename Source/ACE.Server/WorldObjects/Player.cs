@@ -414,7 +414,7 @@ namespace ACE.Server.WorldObjects
                 var validLoadedLandblock = LandblockManager.GetLandblock(validLandblockId, false);
                 // use validLoadedLandblock to ensure action can run. current unknown problem is CurrentLandblock can go null with PKLogoutActive being true causing LogOut_Inner to never execute.
                 if (CurrentLandblock == null)
-                    log.Error($"0x{Guid}:{Name}.LogOut: CurrentLandblock is null");
+                    log.Error($"0x{Guid}:{Name}.LogOut: CurrentLandblock is null, validLoadedLandblock = 0x{validLandblockId.Landblock:X4} | Location = {Location.ToLOCString()}");
                 actionChain.AddAction(validLoadedLandblock, () => // TODO: revert validLoadedLandblock to this
                 {
                     if (CurrentLandblock == null)
@@ -497,13 +497,15 @@ namespace ACE.Server.WorldObjects
                 log.Debug($"0x{Guid}:{Name}.LogOut_Inner: CurrentLandblock is null");
                 if (Location != null)
                 {
-                    log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Location is not null");
+                    log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Location is not null, Location = {Location.ToLOCString()}");
                     var validLoadedLandblock = LandblockManager.GetLandblock(Location.LandblockId, false);
                     if (validLoadedLandblock.GetObject(Guid.Full) != null)
                     {
                         log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Player is still on landblock, removing...");
                         validLoadedLandblock.RemoveWorldObject(Guid, false);
                     }
+                    else
+                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Player is not found on the landblock Location references.");
                 }
                 else
                     log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Location is null");
