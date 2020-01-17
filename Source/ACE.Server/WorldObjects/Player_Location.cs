@@ -595,6 +595,7 @@ namespace ACE.Server.WorldObjects
 
             Teleporting = true;
             LastTeleportTime = DateTime.UtcNow;
+            LastTeleportStartTimestamp = Time.GetUnixTime();
 
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
 

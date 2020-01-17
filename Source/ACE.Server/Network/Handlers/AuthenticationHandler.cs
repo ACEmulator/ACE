@@ -158,7 +158,7 @@ namespace ACE.Server.Network.Handlers
                     else
                         log.Debug($"client {loginRequest.Account} connected with non matching password so booting");
 
-                    session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageBootAccount(session, "The password entered for this account was not correct."));
+                    session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageBootAccount(session, " because the password entered for this account was not correct."));
 
                     // TO-DO: temporary lockout of account preventing brute force password discovery
                     // exponential duration of lockout for targeted account

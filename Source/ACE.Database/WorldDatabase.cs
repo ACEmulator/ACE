@@ -428,12 +428,29 @@ namespace ACE.Database
         }
 
         /// <summary>
+        /// Clears the cached landblock instances for a specific landblock
+        /// </summary>
+        public bool ClearCachedInstancesByLandblock(ushort landblock)
+        {
+            using (var context = new WorldDbContext())
+                return ClearCachedInstancesByLandblock(context, landblock);
+        }
+
+        /// <summary>
         /// Returns statics spawn map and their links for the landblock
         /// </summary>
         public List<LandblockInstance> GetCachedInstancesByLandblock(ushort landblock)
         {
             using (var context = new WorldDbContext())
                 return GetCachedInstancesByLandblock(context, landblock);
+        }
+
+        /// <summary>
+        /// Clears the cached landblock instances for a specific landblock
+        /// </summary>
+        public bool ClearCachedInstancesByLandblock(WorldDbContext context, ushort landblock)
+        {
+            return cachedLandblockInstances.TryRemove(landblock, out _);
         }
 
         public List<LandblockInstance> GetCachedInstancesByLandblock(WorldDbContext context, ushort landblock)

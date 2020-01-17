@@ -1594,7 +1594,7 @@ namespace ACE.Database.Models.Shard
             if (biota.BiotaPropertiesBook != null)
             {
                 result.BiotaPropertiesBook = new BiotaPropertiesBook();
-                result.BiotaPropertiesBook.Id = biota.BiotaPropertiesBook.Id;
+                //result.BiotaPropertiesBook.Id = biota.BiotaPropertiesBook.Id;
                 result.BiotaPropertiesBook.ObjectId = biota.BiotaPropertiesBook.ObjectId;
                 result.BiotaPropertiesBook.MaxNumPages = biota.BiotaPropertiesBook.MaxNumPages;
                 result.BiotaPropertiesBook.MaxNumCharsPerPage = biota.BiotaPropertiesBook.MaxNumCharsPerPage;
@@ -1616,7 +1616,7 @@ namespace ACE.Database.Models.Shard
             {
                 result.BiotaPropertiesAttribute.Add(new BiotaPropertiesAttribute
                 {
-                    Id = value.Id,
+                    //Id = value.Id,
                     ObjectId = value.ObjectId,
                     Type = value.Type,
                     InitLevel = value.InitLevel,
@@ -1629,7 +1629,7 @@ namespace ACE.Database.Models.Shard
             {
                 result.BiotaPropertiesAttribute2nd.Add(new BiotaPropertiesAttribute2nd
                 {
-                    Id = value.Id,
+                    //Id = value.Id,
                     ObjectId = value.ObjectId,
                     Type = value.Type,
                     InitLevel = value.InitLevel,
@@ -1693,7 +1693,7 @@ namespace ACE.Database.Models.Shard
             {
                 result.BiotaPropertiesBool.Add(new BiotaPropertiesBool
                 {
-                    Id = value.Id,
+                    //Id = value.Id,
                     ObjectId = value.ObjectId,
                     Type = value.Type,
                     Value = value.Value,
@@ -1719,7 +1719,7 @@ namespace ACE.Database.Models.Shard
             {
                 result.BiotaPropertiesDID.Add(new BiotaPropertiesDID
                 {
-                    Id = value.Id,
+                    //Id = value.Id,
                     ObjectId = value.ObjectId,
                     Type = value.Type,
                     Value = value.Value,
@@ -1828,7 +1828,7 @@ namespace ACE.Database.Models.Shard
             {
                 result.BiotaPropertiesEventFilter.Add(new BiotaPropertiesEventFilter
                 {
-                    Id = value.Id,
+                    //Id = value.Id,
                     ObjectId = value.ObjectId,
                     Event = value.Event,
                 });
@@ -1838,7 +1838,7 @@ namespace ACE.Database.Models.Shard
             {
                 result.BiotaPropertiesFloat.Add(new BiotaPropertiesFloat
                 {
-                    Id = value.Id,
+                    //Id = value.Id,
                     ObjectId = value.ObjectId,
                     Type = value.Type,
                     Value = value.Value,
@@ -1876,7 +1876,7 @@ namespace ACE.Database.Models.Shard
             {
                 result.BiotaPropertiesIID.Add(new BiotaPropertiesIID
                 {
-                    Id = value.Id,
+                    //Id = value.Id,
                     ObjectId = value.ObjectId,
                     Type = value.Type,
                     Value = value.Value,
@@ -1887,7 +1887,7 @@ namespace ACE.Database.Models.Shard
             {
                 result.BiotaPropertiesInt.Add(new BiotaPropertiesInt
                 {
-                    Id = value.Id,
+                    //Id = value.Id,
                     ObjectId = value.ObjectId,
                     Type = value.Type,
                     Value = value.Value,
@@ -1898,7 +1898,7 @@ namespace ACE.Database.Models.Shard
             {
                 result.BiotaPropertiesInt64.Add(new BiotaPropertiesInt64
                 {
-                    Id = value.Id,
+                    //Id = value.Id,
                     ObjectId = value.ObjectId,
                     Type = value.Type,
                     Value = value.Value,
@@ -1921,7 +1921,7 @@ namespace ACE.Database.Models.Shard
             {
                 result.BiotaPropertiesPosition.Add(new BiotaPropertiesPosition
                 {
-                    Id = value.Id,
+                    //Id = value.Id,
                     ObjectId = value.ObjectId,
                     PositionType = value.PositionType,
                     ObjCellId = value.ObjCellId,
@@ -1939,7 +1939,7 @@ namespace ACE.Database.Models.Shard
             {
                 result.BiotaPropertiesSkill.Add(new BiotaPropertiesSkill
                 {
-                    Id = value.Id,
+                    //Id = value.Id,
                     ObjectId = value.ObjectId,
                     Type = value.Type,
                     LevelFromPP = value.LevelFromPP,
@@ -1955,7 +1955,7 @@ namespace ACE.Database.Models.Shard
             {
                 result.BiotaPropertiesSpellBook.Add(new BiotaPropertiesSpellBook
                 {
-                    Id = value.Id,
+                    //Id = value.Id,
                     ObjectId = value.ObjectId,
                     Spell = value.Spell,
                     Probability = value.Probability,
@@ -1966,7 +1966,7 @@ namespace ACE.Database.Models.Shard
             {
                 result.BiotaPropertiesString.Add(new BiotaPropertiesString
                 {
-                    Id = value.Id,
+                    //Id = value.Id,
                     ObjectId = value.ObjectId,
                     Type = value.Type,
                     Value = value.Value,

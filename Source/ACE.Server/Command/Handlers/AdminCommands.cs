@@ -187,7 +187,7 @@ namespace ACE.Server.Command.Handlers
             string specifiedReason = aceParams[2].Value != null ? aceParams[2].AsString : null;
 
             // Boot the player
-            playerSession.Terminate(SessionTerminationReason.AccountBooted, new GameMessageBootAccount(playerSession, specifiedReason), null, specifiedReason);
+            playerSession.Terminate(SessionTerminationReason.AccountBooted, new GameMessageBootAccount(playerSession, $" - {specifiedReason}"), null, specifiedReason);
 
             PlayerManager.BroadcastToAuditChannel(session?.Player, bootText);
 
