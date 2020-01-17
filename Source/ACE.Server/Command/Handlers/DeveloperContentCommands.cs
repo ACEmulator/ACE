@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -15,6 +16,7 @@ using ACE.Database.SQLFormatters.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
@@ -51,14 +53,8 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            var converter = new WeenieSQLWriter();
-            converter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
-            converter.SpellNames = DatabaseManager.World.GetAllSpellNames();
-            converter.TreasureDeath = DatabaseManager.World.GetAllTreasureDeath();
-            converter.TreasureWielded = DatabaseManager.World.GetAllTreasureWielded();
-
             foreach (var file in files)
-                HandleImportJson(session, json_folder, file.Name, converter);
+                HandleImportJson(session, json_folder, file.Name);
         }
 
         [CommandHandler("import-sql", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Imports SQL weenie from the Content folder", "<wcid>")]
@@ -120,7 +116,7 @@ namespace ACE.Server.Command.Handlers.Processors
         /// <summary>
         /// Converts JSON to SQL, imports to database, and clears the weenie cache
         /// </summary>
-        private static void HandleImportJson(Session session, string json_folder, string json_file, WeenieSQLWriter converter)
+        private static void HandleImportJson(Session session, string json_folder, string json_file)
         {
             if (!uint.TryParse(Regex.Match(json_file, @"\d+").Value, out var wcid))
             {
@@ -129,7 +125,7 @@ namespace ACE.Server.Command.Handlers.Processors
             }
 
             // convert json -> sql
-            var sqlFile = json2sql(session, json_folder, json_file, converter);
+            var sqlFile = json2sql(session, json_folder, json_file);
             if (sqlFile == null) return;
 
             // import sql to db
@@ -141,10 +137,12 @@ namespace ACE.Server.Command.Handlers.Processors
             DatabaseManager.World.ClearCachedWeenie(wcid);
         }
 
+        public static WeenieSQLWriter WeenieSQLWriter;
+
         /// <summary>
         /// Converts a json file to sql file
         /// </summary>
-        public static string json2sql(Session session, string folder, string json_filename, WeenieSQLWriter converter)
+        public static string json2sql(Session session, string folder, string json_filename)
         {
             var json_file = folder + json_filename;
 
@@ -178,16 +176,25 @@ namespace ACE.Server.Command.Handlers.Processors
 
             try
             {
+                if (WeenieSQLWriter == null)
+                {
+                    WeenieSQLWriter = new WeenieSQLWriter();
+                    WeenieSQLWriter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+                    WeenieSQLWriter.SpellNames = DatabaseManager.World.GetAllSpellNames();
+                    WeenieSQLWriter.TreasureDeath = DatabaseManager.World.GetAllTreasureDeath();
+                    WeenieSQLWriter.TreasureWielded = DatabaseManager.World.GetAllTreasureWielded();
+                }
+
                 if (output.LastModified == DateTime.MinValue)
                     output.LastModified = DateTime.UtcNow;
 
-                sqlFilename = converter.GetDefaultFileName(output);
+                sqlFilename = WeenieSQLWriter.GetDefaultFileName(output);
                 var sqlFile = new StreamWriter(sqlFolder + sqlFilename);
 
-                converter.CreateSQLDELETEStatement(output, sqlFile);
+                WeenieSQLWriter.CreateSQLDELETEStatement(output, sqlFile);
                 sqlFile.WriteLine();
 
-                converter.CreateSQLINSERTStatement(output, sqlFile);
+                WeenieSQLWriter.CreateSQLINSERTStatement(output, sqlFile);
 
                 var metadata = new Adapter.GDLE.Models.Metadata(weenie);
                 if (metadata.HasInfo)
@@ -295,6 +302,8 @@ namespace ACE.Server.Command.Handlers.Processors
                 ctx.Database.ExecuteSqlCommand(sqlCommands);
         }
 
+        public static LandblockInstanceWriter LandblockInstanceWriter;
+
         [CommandHandler("createinst", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Spawns a new wcid or classname as a landblock instance", "<wcid or classname>")]
         public static void HandleCreateInst(Session session, params string[] parameters)
         {
@@ -303,6 +312,53 @@ namespace ACE.Server.Command.Handlers.Processors
             var param = parameters[0];
 
             Weenie weenie = null;
+
+            uint? parentGuid = null;
+
+            var landblock = session.Player.CurrentLandblock.Id.Landblock;
+
+            var firstStaticGuid = 0x70000000 | (uint)landblock << 12;
+
+            if (parameters.Length > 1)
+            {
+                var allParams = string.Join(" ", parameters);
+
+                var match = Regex.Match(allParams, @"-p ([\S]+) -c ([\S]+)", RegexOptions.IgnoreCase);
+
+                if (match.Success)
+                {
+                    var parentGuidStr = match.Groups[1].Value;
+                    param = match.Groups[2].Value;
+
+                    if (parentGuidStr.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                        parentGuidStr = parentGuidStr.Substring(2);
+
+                    if (!uint.TryParse(parentGuidStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var _parentGuid))
+                    {
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't parse parent guid {match.Groups[1].Value}", ChatMessageType.Broadcast));
+                        return;
+                    }
+
+                    parentGuid = _parentGuid;
+
+                    if (parentGuid <= 0xFFF)
+                        parentGuid = firstStaticGuid | parentGuid;
+                }
+
+                else if (parameters[1].StartsWith("-c", StringComparison.OrdinalIgnoreCase))
+                {
+                    // get parent from last appraised object
+                    var parent = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+                    if (parent == null)
+                    {
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find parent object", ChatMessageType.Broadcast));
+                        return;
+                    }
+
+                    parentGuid = parent.Guid.Full;
+                }
+            }
 
             if (uint.TryParse(param, out var wcid))
                 weenie = DatabaseManager.World.GetCachedWeenie(wcid);   // wcid
@@ -315,9 +371,71 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            var landblock = session.Player.CurrentLandblock.Id.Landblock;
-            var nextStaticGuid = GetNextStaticGuid(landblock);
+            // clear any cached instances for this landblock
+            DatabaseManager.World.ClearCachedInstancesByLandblock(landblock);
 
+            var instances = DatabaseManager.World.GetCachedInstancesByLandblock(landblock);
+
+            // for link mode, ensure parent guid instance exists
+            WorldObject parentObj = null;
+            LandblockInstance parentInstance = null;
+
+            if (parentGuid != null)
+            {
+                parentInstance = instances.FirstOrDefault(i => i.Guid == parentGuid);
+
+                if (parentInstance == null)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find landblock instance for parent guid 0x{parentGuid:X8}", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                parentObj = session.Player.CurrentLandblock.GetObject(parentGuid.Value);
+
+                if (parentObj == null)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find parent object 0x{parentGuid:X8}", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+
+            var nextStaticGuid = GetNextStaticGuid(landblock, instances);
+
+            var maxStaticGuid = firstStaticGuid | 0xFFF;
+
+            // manually specify a start guid?
+            if (parameters.Length == 2)
+            {
+                if (uint.TryParse(parameters[1].Replace("0x", ""), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var startGuid))
+                {
+                    if (startGuid <= 0xFFF)
+                        startGuid = firstStaticGuid | startGuid;
+
+                    if (startGuid < firstStaticGuid || startGuid > maxStaticGuid)
+                    {
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Landblock instance guid {startGuid:X8} must be between {firstStaticGuid:X8} and {maxStaticGuid:X8}", ChatMessageType.Broadcast));
+                        return;
+                    }
+
+                    var existing = instances.FirstOrDefault(i => i.Guid == startGuid);
+
+                    if (existing != null)
+                    {
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Landblock instance guid {startGuid:X8} already exists", ChatMessageType.Broadcast));
+                        return;
+                    }
+                    nextStaticGuid = startGuid;
+                }
+            }
+
+
+            if (nextStaticGuid >= maxStaticGuid)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Landblock {landblock:X4} has reached the maximum # of static guids", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // create and spawn object
             var wo = WorldObjectFactory.CreateWorldObject(weenie, new ObjectGuid(nextStaticGuid));
 
             if (wo == null)
@@ -340,12 +458,48 @@ namespace ACE.Server.Command.Handlers.Processors
             // Position.Z has some weird thresholds when moving around, but i guess the same logic doesn't apply when trying to spawn in...
             wo.Location.PositionZ += 0.05f;
 
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Creating new landblock instance @ {loc.ToLOCString()}\n{wo.WeenieClassId} - {wo.Name} ({nextStaticGuid:X8})", ChatMessageType.Broadcast));
+            var isLinkChild = parentInstance != null;
 
-            wo.EnterWorld();
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Creating new landblock instance {(isLinkChild ? "child object " : "")}@ {loc.ToLOCString()}\n{wo.WeenieClassId} - {wo.Name} ({nextStaticGuid:X8})", ChatMessageType.Broadcast));
 
-            LastStaticGuid[landblock] = wo.Guid.Full;
+            if (!wo.EnterWorld())
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("Failed to spawn new object at this location", ChatMessageType.Broadcast));
+                return;
+            }
 
+            // create new landblock instance
+            var instance = CreateLandblockInstance(wo, isLinkChild);
+
+            instances.Add(instance);
+
+            if (isLinkChild)
+            {
+                var link = new LandblockInstanceLink();
+
+                link.ParentGuid = parentGuid.Value;
+                link.ChildGuid = wo.Guid.Full;
+                link.LastModified = DateTime.Now;
+
+                parentInstance.LandblockInstanceLink.Add(link);
+
+                parentObj.LinkedInstances.Add(instance);
+
+                // ActivateLinks?
+                parentObj.SetLinkProperties(wo);
+                parentObj.ChildLinks.Add(wo);
+                wo.ParentLink = parentObj;
+            }
+
+            SyncInstances(session, landblock, instances);
+        }
+
+        /// <summary>
+        /// Serializes landblock instances to XXYY.sql file,
+        /// import into database, and clears the cached landblock instances
+        /// </summary>
+        public static void SyncInstances(Session session, ushort landblock, List<LandblockInstance> instances)
+        {
             // serialize to .sql file
             var contentFolder = VerifyContentFolder(session, false);
 
@@ -355,48 +509,184 @@ namespace ACE.Server.Command.Handlers.Processors
             if (!folder.Exists)
                 folder.Create();
 
-            var pos = wo.PhysicsObj.Position;
-            var origin = pos.Frame.Origin;
-            var rotation = pos.Frame.Orientation;
+            var sqlFilename = $"{folder.FullName}{sep}{landblock:X4}.sql";
 
-            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            var fileWriter = new StreamWriter(sqlFilename);
 
-            var insert = $"INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)\n" +
-                $"VALUES(0x{wo.Guid.Full:X8}, {wo.WeenieClassId}, 0x{wo.PhysicsObj.Position.ObjCellID:X8}, {origin.X}, {origin.Y}, {origin.Z}, {rotation.W}, {rotation.X}, {rotation.Y}, {rotation.Z}, False, '{timestamp}'); /* {wo.Name} */\n" +
-                $"/* @teleloc {wo.Location.ToLOCString()} */";
-
-            var sql_filename = $"{landblock:X4}.sql";
-
-            using (var file = File.Open($"{folder.FullName}{sep}{sql_filename}", FileMode.OpenOrCreate))
+            if (LandblockInstanceWriter == null)
             {
-                file.Seek(0, SeekOrigin.End);
-                using (var stream = new StreamWriter(file))
-                {
-                    if (file.Position > 0)
-                        stream.WriteLine();
-
-                    stream.WriteLine(insert);
-                }
+                LandblockInstanceWriter = new LandblockInstanceWriter();
+                LandblockInstanceWriter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
             }
+
+            LandblockInstanceWriter.CreateSQLDELETEStatement(instances, fileWriter);
+
+            fileWriter.WriteLine();
+
+            LandblockInstanceWriter.CreateSQLINSERTStatement(instances, fileWriter);
+
+            fileWriter.Close();
+
+            // import into db
+            ImportSQL(sqlFilename);
+
+            // clear landblock instances for this landblock (again)
+            DatabaseManager.World.ClearCachedInstancesByLandblock(landblock);
         }
 
-        public static Dictionary<ushort, uint> LastStaticGuid = new Dictionary<ushort, uint>();
-
-        public static uint GetNextStaticGuid(ushort landblock)
+        public static LandblockInstance CreateLandblockInstance(WorldObject wo, bool isLinkChild = false)
         {
-            if (LastStaticGuid.TryGetValue(landblock, out var lastStaticGuid))
-                return lastStaticGuid + 1;
+            var instance = new LandblockInstance();
 
-            using (var ctx = new WorldDbContext())
+            instance.Guid = wo.Guid.Full;
+
+            instance.Landblock = (int)wo.Location.Landblock;
+
+            instance.WeenieClassId = wo.WeenieClassId;
+
+            instance.ObjCellId = wo.Location.Cell;
+
+            instance.OriginX = wo.Location.PositionX;
+            instance.OriginY = wo.Location.PositionY;
+            instance.OriginZ = wo.Location.PositionZ;
+
+            instance.AnglesW = wo.Location.RotationW;
+            instance.AnglesX = wo.Location.RotationX;
+            instance.AnglesY = wo.Location.RotationY;
+            instance.AnglesZ = wo.Location.RotationZ;
+
+            instance.IsLinkChild = isLinkChild;
+
+            instance.LastModified = DateTime.Now;
+
+            return instance;
+        }
+
+        public static uint GetNextStaticGuid(ushort landblock, List<LandblockInstance> instances)
+        {
+            // TODO: eventually find gaps
+            var highestLandblockInst = instances.Where(i => i.Landblock == landblock).OrderByDescending(i => i.Guid).FirstOrDefault();
+
+            if (highestLandblockInst == null)
+                return (uint)(0x70000000 | (landblock << 12));
+            else
+                return highestLandblockInst.Guid + 1;
+        }
+
+        [CommandHandler("removeinst", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Removes the last appraised object from the current landblock instances")]
+        public static void HandleRemoveInst(Session session, params string[] parameters)
+        {
+            RemoveInstance(session);
+        }
+
+        public static void RemoveInstance(Session session, bool confirmed = false)
+        {
+            var wo = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (wo == null) return;
+
+            var landblock = (ushort)wo.Location.Landblock;
+
+            var instances = DatabaseManager.World.GetCachedInstancesByLandblock(landblock);
+
+            var instance = instances.FirstOrDefault(i => i.Guid == wo.Guid.Full);
+
+            if (instance == null)
             {
-                // TODO: eventually find gaps
-                var highestLandblockInst = ctx.LandblockInstance.Where(i => i.Landblock == landblock).OrderByDescending(i => i.Guid).FirstOrDefault();
-
-                if (highestLandblockInst == null)
-                    return (uint)(0x70000000 | (landblock << 12));
-                else
-                    return highestLandblockInst.Guid + 1;
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find landblock_instance for {wo.WeenieClassId} - {wo.Name} (0x{wo.Guid})", ChatMessageType.Broadcast));
+                return;
             }
+
+            var numChilds = instance.LandblockInstanceLink.Count;
+
+            if (numChilds > 0 && !confirmed)
+            {
+                // get total numChilds iteratively
+                numChilds = 0;
+                foreach (var link in instance.LandblockInstanceLink)
+                    numChilds += GetNumChilds(session, link, instances);
+
+                // require confirmation for parent objects
+                var msg = $"Are you sure you want to delete this parent object, and {numChilds} child object{(numChilds != 1 ? "s" : "")}?";
+                session.Player.ConfirmationManager.EnqueueSend(new Confirmation_Custom(session.Player.Guid, () => RemoveInstance(session, true)), msg);
+                return;
+            }
+
+            if (instance.IsLinkChild)
+            {
+                LandblockInstanceLink link = null;
+
+                foreach (var parent in instances.Where(i => i.LandblockInstanceLink.Count > 0))
+                {
+                    link = parent.LandblockInstanceLink.FirstOrDefault(i => i.ChildGuid == instance.Guid);
+
+                    if (link != null)
+                    {
+                        parent.LandblockInstanceLink.Remove(link);
+                        break;
+                    }
+                }
+                if (link == null)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find parent link for child {wo.WeenieClassId} - {wo.Name} (0x{wo.Guid})", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+
+            wo.DeleteObject();
+
+            foreach (var link in instance.LandblockInstanceLink)
+                RemoveChild(session, link, instances);
+
+            instances.Remove(instance);
+
+            SyncInstances(session, landblock, instances);
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Removed {(instance.IsLinkChild ? "child " : "")}{wo.WeenieClassId} - {wo.Name} (0x{wo.Guid}) from landblock instances", ChatMessageType.Broadcast));
+        }
+
+        public static int GetNumChilds(Session session, LandblockInstanceLink link, List<LandblockInstance> instances)
+        {
+            var child = instances.FirstOrDefault(i => i.Guid == link.ChildGuid);
+
+            if (child == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find child instance 0x{link.ChildGuid:X8}", ChatMessageType.Broadcast));
+                return 0;
+            }
+
+            var numChilds = 1;
+
+            foreach (var subLink in child.LandblockInstanceLink)
+                numChilds += GetNumChilds(session, subLink, instances);
+
+            return numChilds;
+        }
+
+        public static void RemoveChild(Session session, LandblockInstanceLink link, List<LandblockInstance> instances)
+        {
+            var child = instances.FirstOrDefault(i => i.Guid == link.ChildGuid);
+
+            if (child == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find child instance 0x{link.ChildGuid:X8}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            instances.Remove(child);
+
+            var wo = session.Player.CurrentLandblock.GetObject(child.Guid);
+
+            if (wo != null)
+            {
+                wo.DeleteObject();
+
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Removed child {wo.WeenieClassId} - {wo.Name} (0x{wo.Guid}) from landblock instances", ChatMessageType.Broadcast));
+            }
+            else
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find child object for 0x{link.ChildGuid:X8}", ChatMessageType.Broadcast));
+
+            foreach (var subLink in child.LandblockInstanceLink)
+                RemoveChild(session, subLink, instances);
         }
 
         [CommandHandler("addenc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Spawns a new wcid or classname in the current outdoor cell as an encounter", "<wcid or classname>")]
