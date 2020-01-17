@@ -412,9 +412,13 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddDelaySeconds(20.0f);
                 var validLandblockId = Location != null ? Location.LandblockId : new LandblockId(0xE74EFFFF); // Ensure valid LandblockId can be aquired, either from player's current location, or the global landblock which should be permaloaded.
                 var validLoadedLandblock = LandblockManager.GetLandblock(validLandblockId, false);
-                // use validLoadedLandblock to ensure action can run. current unknown problem is CurrentLandblock can go null with PKLogoutActive being true causing LogOut_Inner to never execute. 
+                // use validLoadedLandblock to ensure action can run. current unknown problem is CurrentLandblock can go null with PKLogoutActive being true causing LogOut_Inner to never execute.
+                if (CurrentLandblock == null)
+                    log.Error($"0x{Guid}:{Name}.LogOut: CurrentLandblock is null");
                 actionChain.AddAction(validLoadedLandblock, () => // TODO: revert validLoadedLandblock to this
                 {
+                    if (CurrentLandblock == null)
+                        log.Error($"0x{Guid}:{Name}.LogOut Delayed Action: CurrentLandblock is null");
                     LogOut_Inner(clientSessionTerminatedAbruptly);
                     Session.logOffRequestTime = DateTime.UtcNow;
                 });
