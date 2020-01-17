@@ -494,6 +494,19 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
+                log.Debug($"0x{Guid}:{Name}.LogOut_Inner: CurrentLandblock is null");
+                if (Location != null)
+                {
+                    log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Location is not null");
+                    var validLoadedLandblock = LandblockManager.GetLandblock(Location.LandblockId, false);
+                    if (validLoadedLandblock.GetObject(Guid.Full) != null)
+                    {
+                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Player is still on landblock, removing...");
+                        validLoadedLandblock.RemoveWorldObject(Guid, false);
+                    }
+                }
+                else
+                    log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Location is null");
                 SetPropertiesAtLogOut();
                 SavePlayerToDatabase();
                 PlayerManager.SwitchPlayerFromOnlineToOffline(this);
