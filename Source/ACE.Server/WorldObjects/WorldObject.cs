@@ -71,8 +71,8 @@ namespace ACE.Server.WorldObjects
             {
                 if (this is Player && value == null)
                 {
-                    log.Warn($"0x{Guid}:{Name}.CurrentLandblock has been set to null:");
-                    log.Warn(System.Environment.StackTrace);
+                    log.Debug($"0x{Guid}:{Name}.CurrentLandblock has been set to null:");
+                    log.Debug("Null CurrentLandblock - StackTrace Begins:\n" + System.Environment.StackTrace + "\nNull CurrentLandblock - StackTrace Ends\n");
                 }
 
                 _currentLandblock = value;
