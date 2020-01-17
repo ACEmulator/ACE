@@ -196,6 +196,8 @@ namespace ACE.Server.Entity
                 target.UiEffects = source.UiEffects;
             target.MaterialType = source.MaterialType;
 
+            target.ObjScale = source.ObjScale;
+
             target.Shade = source.Shade;
 
             // This might not even be needed, but we'll do it anyways
@@ -242,8 +244,6 @@ namespace ACE.Server.Entity
             SetCommonProperties(source, target);
 
             target.TargetType = source.ItemType;
-
-            target.ObjScale = source.ObjScale;
 
             target.HookType = source.HookType;
             target.HookPlacement = source.HookPlacement;
@@ -486,6 +486,8 @@ namespace ACE.Server.Entity
             //player.UpdateProperty(target, PropertyInt.UiEffects, (int?)source.UiEffects);
             player.UpdateProperty(target, PropertyInt.MaterialType, (int?)source.MaterialType);
 
+            player.UpdateProperty(target, PropertyFloat.DefaultScale, source.ObjScale);
+
             player.UpdateProperty(target, PropertyFloat.Shade, source.Shade);
             player.UpdateProperty(target, PropertyFloat.Shade2, source.Shade2);
             player.UpdateProperty(target, PropertyFloat.Shade3, source.Shade3);
@@ -523,8 +525,6 @@ namespace ACE.Server.Entity
         public static void UpdateWeaponProps(Player player, WorldObject source, WorldObject target)
         {
             UpdateCommonProps(player, source, target);
-
-            player.UpdateProperty(target, PropertyFloat.DefaultScale, source.ObjScale);
 
             player.UpdateProperty(target, PropertyInt.HookType, source.HookType);
             player.UpdateProperty(target, PropertyInt.HookPlacement, source.HookPlacement);
