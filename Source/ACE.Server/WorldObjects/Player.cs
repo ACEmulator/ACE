@@ -410,7 +410,9 @@ namespace ACE.Server.WorldObjects
 
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(20.0f);
-                actionChain.AddAction(this, () =>
+                var lastKnownLandblock = LandblockManager.GetLandblock(Location.LandblockId, false);
+                // use lastKnownLandblock to ensure action can run. current unknown problem is CurrentLandblock can go null with PKLogoutActive being true causing LogOut_Inner to never execute. 
+                actionChain.AddAction(lastKnownLandblock, () => // TODO: revert lastKnownLandblock to this
                 {
                     LogOut_Inner(clientSessionTerminatedAbruptly);
                     Session.logOffRequestTime = DateTime.UtcNow;
