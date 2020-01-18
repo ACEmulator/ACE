@@ -73,8 +73,8 @@ namespace ACE.Server.WorldObjects
             IgnoreCollisions = false;
 
             // FIXME: use data here
-            if (!Spell.Name.Equals("Rolling Death"))
-                Ethereal = false;
+            //if (!Spell.Name.Equals("Rolling Death"))
+                //Ethereal = false;
 
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
                 || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley || SpellType == ProjectileSpellType.Blast
