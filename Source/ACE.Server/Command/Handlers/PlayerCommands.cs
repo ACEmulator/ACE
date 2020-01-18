@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using log4net;
 
@@ -314,6 +315,20 @@ namespace ACE.Server.Command.Handlers
 
             // update client
             session.Network.EnqueueSend(new GameEventPlayerDescription(session));
+        }
+
+        [CommandHandler("debug-projectile", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows active spell projectiles that are known to the player")]
+        public static void HandleDebugProjectile(Session session, params string[] parameters)
+        {
+            var spellProjectiles = session.Player.PhysicsObj.ObjMaint.GetKnownObjectsValuesWhere(i => i.WeenieObj.WorldObject is SpellProjectile).ToList();
+
+            if (spellProjectiles.Count > 0)
+            {
+                foreach (var spellProjectile in spellProjectiles)
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"0x{spellProjectile.ID:X8} - {spellProjectile.Name}: {spellProjectile.Position}", ChatMessageType.Broadcast));
+            }
+            else
+                session.Network.EnqueueSend(new GameMessageSystemChat("No currently visible spell projectiles.", ChatMessageType.Broadcast));
         }
     }
 }
