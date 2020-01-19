@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
 using ACE.Database.Models.World;
 
 namespace ACE.Adapter.GDLE
@@ -501,6 +501,50 @@ namespace ACE.Adapter.GDLE
             }
         }
 
+        public static bool TryConvert(Models.WieldedTreasureTable input, out List<Database.Models.World.TreasureWielded> results)
+        {
+            try
+            {
+                results = new List<Database.Models.World.TreasureWielded>();
+
+                foreach (var entry in input.Value)
+                {
+                    var result = new TreasureWielded();
+
+                    result.TreasureType = input.Key;
+
+                    result.ContinuesPreviousSet = entry.ContinuesPreviousSet;
+                    result.HasSubSet = entry.HasSubSet;
+                    result.PaletteId = entry.PaletteId;
+                    result.Probability = entry.Probability;
+                    result.SetStart = entry.SetStart;
+                    result.Shade = entry.Shade;
+                    result.StackSize = entry.StackSize;
+                    result.StackSizeVariance = entry.StackSizeVariance;
+                    result.Unknown1 = entry.Unknown1;
+                    result.Unknown10 = entry.Unknown10;
+                    result.Unknown11 = entry.Unknown11;
+                    result.Unknown12 = entry.Unknown12;
+                    result.Unknown3 = entry.Unknown3;
+                    result.Unknown4 = entry.Unknown4;
+                    result.Unknown5 = entry.Unknown5;
+                    result.Unknown9 = entry.Unknown9;
+                    result.WeenieClassId = entry.WeenieClassId;
+
+                    //result.LastModified = DateTime.UtcNow;
+
+                    results.Add(result);
+                }
+
+                return true;
+            }
+            catch
+            {
+                results = null;
+                return false;
+            }
+        }
+
         public static bool TryConvert(Models.RecipePrecursor input, out Database.Models.World.CookBook result)
         {
             try
@@ -517,6 +561,112 @@ namespace ACE.Adapter.GDLE
             catch
             {
                 result = null;
+                return false;
+            }
+        }
+
+        //public static bool TryConvert(Models.Encounter input, out Database.Models.World.Encounter result)
+        //{
+        //    try
+        //    {
+        //        result = new Database.Models.World.Encounter();
+
+        //        //result.Id // This is an Auto Increment field in the ACE schema
+
+        //        result.Id = input.Key;
+
+        //        result.StartTime = input.Value.StartTime;
+        //        result.EndTime = input.Value.EndTime;
+        //        result.State = input.Value.EventState;
+
+        //        return true;
+        //    }
+        //    catch
+        //    {
+        //        result = null;
+        //        return false;
+        //    }
+        //}
+
+        public static bool TryConvert(Models.Region regionInput, List<Models.TerrainData> terrainDataInput, out List<Database.Models.World.Encounter> results)
+        {
+            try
+            {
+                results = new List<Database.Models.World.Encounter>();
+
+                var encounters = new Dictionary<int, List<Encounter>>();
+
+                for (var landblock = 0; landblock < (255 * 255); landblock++)
+                {
+                    var block_x = (landblock & 0xFF00) >> 8;
+                    var block_y = (landblock & 0x00FF) >> 0;
+
+                    var tbIndex = ((block_x * 255) + block_y);
+
+                    //var terrain_base = landBlockData.TerrainLandblocks[tbIndex];
+                    var terrain_base = terrainDataInput.FirstOrDefault(x => x.Key == tbIndex);
+
+                    if (terrain_base == null)
+                        continue;
+
+                    for (var cell_x = 0; cell_x < 8; cell_x++)
+                    {
+                        for (var cell_y = 0; cell_y < 8; cell_y++)
+                        {
+                            //var terrain = terrain_base.Terrain[(cell_x * 9) + cell_y];
+                            var terrain = terrain_base.Value[(cell_x * 9) + cell_y];
+
+                            int encounterIndex = (terrain >> 7) & 0xF;
+
+                            //var encounterMap = regionInput.EncounterMaps[(block_x * 255) + block_y];
+                            var encounterMap = regionInput.EncounterMap[(block_x * 255) + block_y];
+                            //var encounterTable = input.EncounterTables.FirstOrDefault(t => t.Index == encounterMap.Index);
+                            var encounterTable = regionInput.Encounters.FirstOrDefault(t => t.Key == encounterMap);
+
+                            if (encounterTable == null)
+                                continue;
+
+                            //var wcid = encounterTable.Values[encounterIndex];
+                            var wcid = encounterTable.Value[encounterIndex];
+
+                            // System.Diagnostics.Debug.WriteLine($"landblock = {landblock:X4} | terrain = {terrain} | encounterIndex = {encounterIndex} | encounterTable = {encounterMap.Index} | wcid = {wcid}");
+
+                            if (wcid > 0)
+                            {
+                                if (!encounters.ContainsKey(landblock))
+                                    encounters.Add(landblock, new List<Encounter>());
+
+                                encounters[landblock].Add(new Encounter { Landblock = landblock, WeenieClassId = wcid, CellX = cell_x, CellY = cell_y });
+                            }
+                        }
+                    }
+                }
+
+
+                //var results = new List<Encounter>();
+
+                foreach (var kvp in encounters)
+                {
+                    foreach (var value in kvp.Value)
+                    {
+                        results.Add(new Encounter
+                        {
+                            Landblock = value.Landblock,
+                            WeenieClassId = value.WeenieClassId,
+                            CellX = value.CellX,
+                            CellY = value.CellY,
+                            //LastModified = new System.DateTime(2005, 2, 9, 10, 00, 00)
+                        });
+                    }
+                }
+
+                //return results;
+
+                return true;
+            }
+            catch
+            {
+                results = null;
                 return false;
             }
         }
