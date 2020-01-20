@@ -92,7 +92,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Launches a missile attack from player to target
         /// </summary>
-        public void LaunchMissile(WorldObject target, int attackSequence)
+        public void LaunchMissile(WorldObject target, int attackSequence, bool repeat = false)
         {
             var weapon = GetEquippedMissileWeapon();
             if (weapon == null || CombatMode == CombatMode.NonCombat) return;
@@ -107,11 +107,18 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            var actionChain = new ActionChain();
+
+            if (repeat && !IsFacing(target))
+            {
+                var rotateTime = Rotate(target);
+                actionChain.AddDelaySeconds(rotateTime);
+            }
+
             // launch animation
             // point of no return beyond this point -- cannot be cancelled
-            Attacking = true;
+            actionChain.AddAction(this, () => Attacking = true);
 
-            var actionChain = new ActionChain();
             var launchTime = EnqueueMotion(actionChain, MotionCommand.AimLevel);
 
             // launch projectile
@@ -180,7 +187,7 @@ namespace ACE.Server.WorldObjects
                     nextAttack.AddDelaySeconds(nextRefillTime);
 
                     // perform next attack
-                    nextAttack.AddAction(this, () => { LaunchMissile(target, attackSequence); });
+                    nextAttack.AddAction(this, () => { LaunchMissile(target, attackSequence, true); });
                     nextAttack.EnqueueChain();
                 }
                 else
