@@ -1668,5 +1668,15 @@ namespace ACE.Server.WorldObjects
         /// Returns the legendary cantrips from this item's spellbook
         /// </summary>
         public List<BiotaPropertiesSpellBook> LegendaryCantrips => Biota.BiotaPropertiesSpellBook.Where(i => LootTables.LegendaryCantrips.Contains(i.Spell)).ToList();
+
+        private uint? _maxSpellLevel;
+
+        public uint GetMaxSpellLevel()
+        {
+            if (_maxSpellLevel == null)
+                _maxSpellLevel = Biota.BiotaPropertiesSpellBook.Select(i => new Spell(i.Spell)).Max(i => i.Formula.Level);
+
+            return _maxSpellLevel.Value;
+        }
     }
 }

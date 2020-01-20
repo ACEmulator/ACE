@@ -718,14 +718,15 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public float GetArmorCleavingMod(WorldObject weapon)
+        public float GetArmorCleavingMod()
         {
-            var ignoreArmor = weapon?.IgnoreArmor ?? IgnoreArmor;
+            if (IgnoreArmor == null)
+                return 1.0f;
 
-            if (ignoreArmor == null)
-                return defaultModifier;
+            // thanks to moro for this formula
+            var maxSpellLevel = GetMaxSpellLevel();
 
-            return 1.0f - MaxArmorRendingMod;
+            return 1.0f - (0.1f + maxSpellLevel * 0.05f);
         }
 
         public static int GetBaseSkillImbued(CreatureSkill skill)
