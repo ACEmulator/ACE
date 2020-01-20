@@ -1,9 +1,13 @@
+using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
+using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Database.Models.World
 {
@@ -502,6 +506,393 @@ namespace ACE.Database.Models.World
                     OldId = value.OldId,
                     NewId = value.NewId,
                 });
+            }
+
+            return biota;
+        }
+
+        public static ACE.Entity.Models.Weenie CreateCopyAsEntityWeenie(this Weenie weenie)
+        {
+            var biota = new ACE.Entity.Models.Weenie();
+
+            biota.WeenieClassId = weenie.ClassId;
+            biota.ClassName = weenie.ClassName;
+            biota.WeenieType = weenie.Type;
+
+            if (weenie.WeeniePropertiesBool != null)
+            {
+                biota.PropertiesBool = new Dictionary<ushort, bool>();
+                foreach (var value in weenie.WeeniePropertiesBool)
+                    biota.PropertiesBool[value.Type] = value.Value;
+            }
+            if (weenie.WeeniePropertiesDID != null)
+            { 
+                biota.PropertiesDID = new Dictionary<ushort, uint>();
+                foreach (var value in weenie.WeeniePropertiesDID)
+                    biota.PropertiesDID[value.Type] = value.Value;
+            }
+            if (weenie.WeeniePropertiesFloat != null)
+            { 
+                biota.PropertiesFloat = new Dictionary<ushort, double>();
+                foreach (var value in weenie.WeeniePropertiesFloat)
+                    biota.PropertiesFloat[value.Type] = value.Value;
+            }
+            if (weenie.WeeniePropertiesIID != null)
+            { 
+                biota.PropertiesIID = new Dictionary<ushort, uint>();
+                foreach (var value in weenie.WeeniePropertiesIID)
+                    biota.PropertiesIID[value.Type] = value.Value;
+            }
+            if (weenie.WeeniePropertiesInt != null)
+            { 
+                biota.PropertiesInt = new Dictionary<ushort, int>();
+                foreach (var value in weenie.WeeniePropertiesInt)
+                    biota.PropertiesInt[value.Type] = value.Value;
+            }
+            if (weenie.WeeniePropertiesInt64 != null)
+            { 
+                biota.PropertiesInt64 = new Dictionary<ushort, long>();
+                foreach (var value in weenie.WeeniePropertiesInt64)
+                    biota.PropertiesInt64[value.Type] = value.Value;
+            }
+            if (weenie.WeeniePropertiesString != null)
+            { 
+                biota.PropertiesString = new Dictionary<ushort, string>();
+                foreach (var value in weenie.WeeniePropertiesString)
+                    biota.PropertiesString[value.Type] = value.Value;
+            }
+
+
+            if (weenie.WeeniePropertiesPosition != null)
+            {
+                biota.PropertiesPosition = new Dictionary<ushort, PropertiesPosition>();
+
+                foreach (var record in weenie.WeeniePropertiesPosition)
+                {
+                    var newEntity = new PropertiesPosition
+                    {
+                        ObjCellId = record.ObjCellId,
+                        OriginX = record.OriginX,
+                        OriginY = record.OriginY,
+                        OriginZ = record.OriginZ,
+                        AnglesW = record.AnglesW,
+                        AnglesX = record.AnglesX,
+                        AnglesY = record.AnglesY,
+                        AnglesZ = record.AnglesZ,
+
+                    };
+
+                    biota.PropertiesPosition[record.PositionType] = newEntity;
+                }
+            }
+
+
+            if (weenie.WeeniePropertiesSpellBook != null)
+            {
+                biota.PropertiesSpellBook = new Dictionary<int, float>();
+                foreach (var value in weenie.WeeniePropertiesSpellBook)
+                    biota.PropertiesSpellBook[value.Spell] = value.Probability;
+            }
+
+
+            if (weenie.WeeniePropertiesCreateList != null)
+            {
+                biota.PropertiesCreateList = new List<PropertiesCreateList>();
+
+                foreach (var record in weenie.WeeniePropertiesCreateList)
+                {
+                    var newEntity = new PropertiesCreateList
+                    {
+                        DestinationType = record.DestinationType,
+                        WeenieClassId = record.WeenieClassId,
+                        StackSize = record.StackSize,
+                        Palette = record.Palette,
+                        Shade = record.Shade,
+                        TryToBond = record.TryToBond,
+                    };
+
+                    biota.PropertiesCreateList.Add(newEntity);
+                }
+            }
+
+            if (weenie.WeeniePropertiesEmote != null)
+            {
+                biota.PropertiesEmote = new List<PropertiesEmote>();
+
+                foreach (var record in weenie.WeeniePropertiesEmote)
+                {
+                    var newEntity = new PropertiesEmote
+                    {
+                        Category = record.Category,
+                        Probability = record.Probability,
+                        WeenieClassId = record.WeenieClassId,
+                        Style = record.Style,
+                        Substyle = record.Substyle,
+                        Quest = record.Quest,
+                        VendorType = record.VendorType,
+                        MinHealth = record.MinHealth,
+                        MaxHealth = record.MaxHealth,
+                    };
+
+                    foreach (var record2 in record.WeeniePropertiesEmoteAction)
+                    {
+                        var newEntity2 = new PropertiesEmoteAction
+                        {
+                            Order = record2.Order,
+                            Type = record2.Type,
+                            Delay = record2.Delay,
+                            Extent = record2.Extent,
+                            Motion = record2.Motion,
+                            Message = record2.Message,
+                            TestString = record2.TestString,
+                            Min = record2.Min,
+                            Max = record2.Max,
+                            Min64 = record2.Min64,
+                            Max64 = record2.Max64,
+                            MinDbl = record2.MinDbl,
+                            MaxDbl = record2.MaxDbl,
+                            Stat = record2.Stat,
+                            Display = record2.Display,
+                            Amount = record2.Amount,
+                            Amount64 = record2.Amount64,
+                            HeroXP64 = record2.HeroXP64,
+                            Percent = record2.Percent,
+                            SpellId = record2.SpellId,
+                            WealthRating = record2.WealthRating,
+                            TreasureClass = record2.TreasureClass,
+                            TreasureType = record2.TreasureType,
+                            PScript = record2.PScript,
+                            Sound = record2.Sound,
+                            DestinationType = record2.DestinationType,
+                            WeenieClassId = record2.WeenieClassId,
+                            StackSize = record2.StackSize,
+                            Palette = record2.Palette,
+                            Shade = record2.Shade,
+                            TryToBond = record2.TryToBond,
+                            ObjCellId = record2.ObjCellId,
+                            OriginX = record2.OriginX,
+                            OriginY = record2.OriginY,
+                            OriginZ = record2.OriginZ,
+                            AnglesW = record2.AnglesW,
+                            AnglesX = record2.AnglesX,
+                            AnglesY = record2.AnglesY,
+                            AnglesZ = record2.AnglesZ,
+                        };
+
+                        newEntity.PropertiesEmoteAction.Add(newEntity2);
+                    }
+
+                    biota.PropertiesEmote.Add(newEntity);
+                }
+            }
+
+            if (weenie.WeeniePropertiesEventFilter != null)
+            {
+                biota.PropertiesEventFilter = new List<int>();
+                foreach (var value in weenie.WeeniePropertiesEventFilter)
+                    biota.PropertiesEventFilter.Add(value.Event);
+            }
+
+            if (weenie.WeeniePropertiesGenerator != null)
+            {
+                biota.PropertiesGenerator = new List<PropertiesGenerator>();
+
+                foreach (var record in weenie.WeeniePropertiesGenerator)
+                {
+                    var newEntity = new PropertiesGenerator
+                    {
+                        Probability = record.Probability,
+                        WeenieClassId = record.WeenieClassId,
+                        Delay = record.Delay,
+                        InitCreate = record.InitCreate,
+                        MaxCreate = record.MaxCreate,
+                        WhenCreate = record.WhenCreate,
+                        WhereCreate = record.WhereCreate,
+                        StackSize = record.StackSize,
+                        PaletteId = record.PaletteId,
+                        Shade = record.Shade,
+                        ObjCellId = record.ObjCellId,
+                        OriginX = record.OriginX,
+                        OriginY = record.OriginY,
+                        OriginZ = record.OriginZ,
+                        AnglesW = record.AnglesW,
+                        AnglesX = record.AnglesX,
+                        AnglesY = record.AnglesY,
+                        AnglesZ = record.AnglesZ,
+                    };
+
+                    biota.PropertiesGenerator.Add(newEntity);
+                }
+            }
+
+
+            if (weenie.WeeniePropertiesAnimPart != null)
+            {
+                biota.PropertiesAnimPart = new Dictionary<byte, uint>();
+                foreach (var value in weenie.WeeniePropertiesAnimPart)
+                    biota.PropertiesAnimPart[value.Index] = value.AnimationId;
+            }
+
+            if (weenie.WeeniePropertiesPalette != null)
+            {
+                biota.PropertiesPalette = new List<PropertiesPalette>();
+
+                foreach (var record in weenie.WeeniePropertiesPalette)
+                {
+                    var newEntity = new PropertiesPalette
+                    {
+                        SubPaletteId = record.SubPaletteId,
+                        Offset = record.Offset,
+                        Length = record.Length,
+                    };
+
+                    biota.PropertiesPalette.Add(newEntity);
+                }
+            }
+
+            if (weenie.WeeniePropertiesTextureMap != null)
+            {
+                biota.PropertiesTextureMap = new List<PropertiesTextureMap>();
+
+                foreach (var record in weenie.WeeniePropertiesTextureMap)
+                {
+                    var newEntity = new PropertiesTextureMap
+                    {
+                        Index = record.Index,
+                        OldId = record.OldId,
+                        NewId = record.NewId,
+                    };
+
+                    biota.PropertiesTextureMap.Add(newEntity);
+                }
+            }
+
+
+            // Properties for creatures
+
+            if (weenie.WeeniePropertiesAttribute != null)
+            {
+                biota.PropertiesAttribute = new Dictionary<ushort, PropertiesAttribute>();
+
+                foreach (var record in weenie.WeeniePropertiesAttribute)
+                {
+                    var newEntity = new PropertiesAttribute
+                    {
+                        InitLevel = record.InitLevel,
+                        LevelFromCP = record.LevelFromCP,
+                        CPSpent = record.CPSpent,
+                    };
+
+                    biota.PropertiesAttribute[record.Type] = newEntity;
+                }
+            }
+
+            if (weenie.WeeniePropertiesAttribute2nd != null)
+            {
+                biota.PropertiesAttribute2nd = new Dictionary<ushort, PropertiesAttribute2nd>();
+
+                foreach (var record in weenie.WeeniePropertiesAttribute2nd)
+                {
+                    var newEntity = new PropertiesAttribute2nd
+                    {
+                        InitLevel = record.InitLevel,
+                        LevelFromCP = record.LevelFromCP,
+                        CPSpent = record.CPSpent,
+                        CurrentLevel = record.CurrentLevel,
+                    };
+
+                    biota.PropertiesAttribute2nd[record.Type] = newEntity;
+                }
+            }
+
+            if (weenie.WeeniePropertiesBodyPart != null)
+            {
+                biota.PropertiesBodyPart = new Dictionary<ushort, PropertiesBodyPart>();
+
+                foreach (var record in weenie.WeeniePropertiesBodyPart)
+                {
+                    var newEntity = new PropertiesBodyPart
+                    {
+                        DType = record.DType,
+                        DVal = record.DVal,
+                        DVar = record.DVar,
+                        BaseArmor = record.BaseArmor,
+                        ArmorVsSlash = record.ArmorVsSlash,
+                        ArmorVsPierce = record.ArmorVsPierce,
+                        ArmorVsBludgeon = record.ArmorVsBludgeon,
+                        ArmorVsCold = record.ArmorVsCold,
+                        ArmorVsFire = record.ArmorVsFire,
+                        ArmorVsAcid = record.ArmorVsAcid,
+                        ArmorVsElectric = record.ArmorVsElectric,
+                        ArmorVsNether = record.ArmorVsNether,
+                        BH = record.BH,
+                        HLF = record.HLF,
+                        MLF = record.MLF,
+                        LLF = record.LLF,
+                        HRF = record.HRF,
+                        MRF = record.MRF,
+                        LRF = record.LRF,
+                        HLB = record.HLB,
+                        MLB = record.MLB,
+                        LLB = record.LLB,
+                        HRB = record.HRB,
+                        MRB = record.MRB,
+                        LRB = record.LRB,
+                    };
+
+                    biota.PropertiesBodyPart[record.Key] = newEntity;
+                }
+            }
+
+            if (weenie.WeeniePropertiesSkill != null)
+            {
+                biota.PropertiesSkill = new Dictionary<ushort, PropertiesSkill>();
+
+                foreach (var record in weenie.WeeniePropertiesSkill)
+                {
+                    var newEntity = new PropertiesSkill
+                    {
+                        LevelFromPP = record.LevelFromPP,
+                        SAC = record.SAC,
+                        PP = record.PP,
+                        InitLevel = record.InitLevel,
+                        ResistanceAtLastCheck = record.ResistanceAtLastCheck,
+                        LastUsedTime = record.LastUsedTime,
+                    };
+
+                    biota.PropertiesSkill[record.Type] = newEntity;
+                }
+            }
+
+
+            // Properties for books
+
+            if (weenie.WeeniePropertiesBook != null)
+            {
+                biota.PropertiesBook = new PropertiesBook
+                {
+                    MaxNumPages = weenie.WeeniePropertiesBook.MaxNumPages,
+                    MaxNumCharsPerPage = weenie.WeeniePropertiesBook.MaxNumCharsPerPage,
+                };
+            }
+
+            if (weenie.WeeniePropertiesBookPageData != null)
+            {
+                biota.PropertiesBookPageData = new Dictionary<uint, PropertiesBookPageData>();
+
+                foreach (var record in weenie.WeeniePropertiesBookPageData)
+                {
+                    var newEntity = new PropertiesBookPageData
+                    {
+                        AuthorId = record.AuthorId,
+                        AuthorName = record.AuthorName,
+                        AuthorAccount = record.AuthorAccount,
+                        IgnoreAuthor = record.IgnoreAuthor,
+                        PageText = record.PageText,
+                    };
+
+                    biota.PropertiesBookPageData[record.PageId] = newEntity;
+                }
             }
 
             return biota;
