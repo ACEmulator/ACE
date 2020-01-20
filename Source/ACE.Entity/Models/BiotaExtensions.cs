@@ -79,6 +79,27 @@ namespace ACE.Entity.Models
             }
         }
 
+        public static Dictionary<int, float> GetMatchingSpells(this Biota biota, HashSet<int> match, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                var results = new Dictionary<int, float>();
+
+                foreach (var value in biota.PropertiesSpellBook)
+                {
+                    if (match.Contains(value.Key))
+                        results[value.Key] = value.Value;
+                }
+
+                return results;
+            }
+            finally
+            {
+                rwLock.EnterReadLock();
+            }
+        }
+
         public static bool TryRemoveKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterUpgradeableReadLock();
@@ -102,11 +123,6 @@ namespace ACE.Entity.Models
                 rwLock.ExitUpgradeableReadLock();
             }
         }
-
-
-        // =====================================
-        // PropertiesAnimPart
-        // =====================================
 
 
         // =====================================

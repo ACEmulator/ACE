@@ -422,7 +422,6 @@ namespace ACE.Server.WorldObjects
 
         public void DoCantripLogging(DamageHistoryInfo killer, WorldObject wo)
         {
-            /* todo
             var epicCantrips = wo.EpicCantrips;
             var legendaryCantrips = wo.LegendaryCantrips;
 
@@ -431,15 +430,14 @@ namespace ACE.Server.WorldObjects
 
             if (legendaryCantrips.Count > 0)
                 log.Debug($"[LOOT][LEGENDARY] {Name} ({Guid}) generated item with {legendaryCantrips.Count} legendar{(legendaryCantrips.Count > 1 ? "ies" : "y")} - {wo.Name} ({wo.Guid}) - {GetSpellList(legendaryCantrips)} - killed by {killer?.Name} ({killer?.Guid})");
-            */
         }
 
-        public static string GetSpellList(List<int> spellIds)
+        public static string GetSpellList(Dictionary<int, float> spellTable)
         {
             var spells = new List<Server.Entity.Spell>();
 
-            foreach (var spellId in spellIds)
-                spells.Add(new Server.Entity.Spell(spellId, false));
+            foreach (var kvp in spellTable)
+                spells.Add(new Server.Entity.Spell(kvp.Key, false));
 
             return string.Join(", ", spells.Select(i => i.Name));
         }
