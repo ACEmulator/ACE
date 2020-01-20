@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+
+using Biota = ACE.Database.Models.Shard.Biota;
+using Weenie = ACE.Database.Models.World.Weenie;
 
 namespace ACE.Server.WorldObjects
 {
@@ -75,6 +78,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Allegiance(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
+            InitializePropertyDictionaries();
+
             //Console.WriteLine($"Allegiance({weenie.ClassId}, {guid}): weenie constructor");
         }
 
@@ -83,6 +88,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Allegiance(Biota biota) : base(biota)
         {
+            InitializePropertyDictionaries();
+
             //Console.WriteLine($"Allegiance({biota.Id:X8}): biota constructor");
 
             if (MonarchId == null)
@@ -96,9 +103,17 @@ namespace ACE.Server.WorldObjects
 
         public Allegiance(ObjectGuid monarch)
         {
+            InitializePropertyDictionaries();
+
             //Console.WriteLine($"Allegiance({monarch}): monarch constructor");
 
             Init(monarch);
+        }
+
+        private void InitializePropertyDictionaries()
+        {
+            if (NewBiota.PropertiesAllegiance == null)
+                NewBiota.PropertiesAllegiance = new List<PropertiesAllegiance>();
         }
 
         /// <summary>

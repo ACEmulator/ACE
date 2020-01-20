@@ -1,19 +1,22 @@
 using System;
+using System.Collections.Generic;
+
 using log4net;
 
-using ACE.Database.Models.World;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Database.Models.Shard;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects.Entity;
 
+using Biota = ACE.Database.Models.Shard.Biota;
 using Position = ACE.Entity.Position;
+using Weenie = ACE.Database.Models.World.Weenie;
 
 namespace ACE.Server.WorldObjects
 {
@@ -46,6 +49,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Creature(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
         }
 
@@ -54,7 +58,20 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Creature(Biota biota) : base(biota)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
+        }
+
+        private void InitializePropertyDictionaries()
+        {
+            if (NewBiota.PropertiesAttribute == null)
+                NewBiota.PropertiesAttribute = new Dictionary<ushort, PropertiesAttribute>();
+            if (NewBiota.PropertiesAttribute2nd == null)
+                NewBiota.PropertiesAttribute2nd = new Dictionary<ushort, PropertiesAttribute2nd>();
+            if (NewBiota.PropertiesBodyPart == null)
+                NewBiota.PropertiesBodyPart = new Dictionary<ushort, PropertiesBodyPart>();
+            if (NewBiota.PropertiesSkill == null)
+                NewBiota.PropertiesSkill = new Dictionary<ushort, PropertiesSkill>();
         }
 
         private void SetEphemeralValues()
@@ -81,8 +98,8 @@ namespace ACE.Server.WorldObjects
             Attributes[PropertyAttribute.Focus] = new CreatureAttribute(this, PropertyAttribute.Focus);
             Attributes[PropertyAttribute.Self] = new CreatureAttribute(this, PropertyAttribute.Self);
 
-            foreach (var skillProperty in Biota.BiotaPropertiesSkill)
-                Skills[(Skill)skillProperty.Type] = new CreatureSkill(this, skillProperty);
+            foreach (var kvp in NewBiota.PropertiesSkill)
+                Skills[(Skill)kvp.Key] = new CreatureSkill(this, (Skill)kvp.Key, kvp.Value);
 
             if (Health.Current <= 0)
                 Health.Current = Health.MaxValue;

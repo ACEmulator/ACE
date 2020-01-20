@@ -27,8 +27,8 @@ namespace ACE.Server.Entity
             if (skill.AdvancementClass < SkillAdvancementClass.Trained)
                 return;
 
-            var last_difficulty = skill.BiotaPropertiesSkill.ResistanceAtLastCheck;
-            var last_used_time = skill.BiotaPropertiesSkill.LastUsedTime;
+            var last_difficulty = skill.PropertiesSkill.ResistanceAtLastCheck;
+            var last_used_time = skill.PropertiesSkill.LastUsedTime;
 
             var currentTime = Time.GetUnixTime();
 
@@ -51,8 +51,8 @@ namespace ACE.Server.Entity
                     // any rng involved?
                 }
 
-                skill.BiotaPropertiesSkill.ResistanceAtLastCheck = difficulty;
-                skill.BiotaPropertiesSkill.LastUsedTime = currentTime;
+                skill.PropertiesSkill.ResistanceAtLastCheck = difficulty;
+                skill.PropertiesSkill.LastUsedTime = currentTime;
 
                 player.ChangesDetected = true;
 

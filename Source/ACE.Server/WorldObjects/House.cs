@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
@@ -48,6 +49,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public House(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
         }
 
@@ -56,7 +58,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public House(Biota biota) : base(biota)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
+        }
+
+        private void InitializePropertyDictionaries()
+        {
+            if (NewBiota.HousePermissions == null)
+                NewBiota.HousePermissions = new List<ACE.Entity.Models.HousePermission>();
         }
 
         private void SetEphemeralValues()

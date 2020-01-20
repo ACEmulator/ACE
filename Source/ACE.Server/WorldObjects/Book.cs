@@ -1,10 +1,14 @@
 using System.Collections.Generic;
+
 using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Network.GameEvent.Events;
+
+using Biota = ACE.Database.Models.Shard.Biota;
+using Weenie = ACE.Database.Models.World.Weenie;
 
 namespace ACE.Server.WorldObjects
 {
@@ -15,6 +19,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Book(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
         }
 
@@ -23,7 +28,16 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Book(Biota biota) : base(biota)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
+        }
+
+        private void InitializePropertyDictionaries()
+        {
+            if (NewBiota.PropertiesBook == null)
+                NewBiota.PropertiesBook = new PropertiesBook();
+            if (NewBiota.PropertiesBookPageData == null)
+                NewBiota.PropertiesBookPageData = new Dictionary<uint, PropertiesBookPageData>();
         }
 
         private void SetEphemeralValues()
