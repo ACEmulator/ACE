@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
@@ -221,7 +221,7 @@ namespace ACE.Server.Network.Structure
                 PropertiesString.Add(PropertyString.LongDesc, longDesc);
 
                 if (PropertiesInt.ContainsKey(PropertyInt.Value))
-                    PropertiesInt[PropertyInt.Value] = wo.OldBiota.GetProperty(PropertyInt.Value, wo.BiotaDatabaseLock) ?? 200; // Value is masked to base value of Storage
+                    PropertiesInt[PropertyInt.Value] = wo.Biota.GetProperty(PropertyInt.Value, wo.BiotaDatabaseLock) ?? 200; // Value is masked to base value of Storage
             }
 
             if (wo is Hook)
@@ -421,7 +421,7 @@ namespace ACE.Server.Network.Structure
 
         private void AddSpells(List<AppraisalSpellBook> activeSpells, WorldObject worldObject, WorldObject wielder = null)
         {
-            var wielderEnchantments = new List<BiotaPropertiesEnchantmentRegistry>();
+            var wielderEnchantments = new List<PropertiesEnchantmentRegistry>();
             if (worldObject == null) return;
 
             // get all currently active item enchantments on the item

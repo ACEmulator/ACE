@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects.Entity;
 
@@ -47,7 +47,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// Removes a spell from the enchantment registry, and
         /// sends the relevant network messages for spell removal
         /// </summary>
-        public override void Remove(BiotaPropertiesEnchantmentRegistry entry, bool sound = true)
+        public override void Remove(PropertiesEnchantmentRegistry entry, bool sound = true)
         {
             base.Remove(entry, sound);
 
@@ -106,7 +106,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Silently removes a spell from the enchantment registry, and sends the relevant network message for dispel
         /// </summary>
-        public override void Dispel(BiotaPropertiesEnchantmentRegistry entry)
+        public override void Dispel(PropertiesEnchantmentRegistry entry)
         {
             base.Dispel(entry);
 
@@ -125,7 +125,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Silently removes multiple spells from the enchantment registry, and sends the relevent network messages for dispel
         /// </summary>
-        public override void Dispel(List<BiotaPropertiesEnchantmentRegistry> entries)
+        public override void Dispel(List<PropertiesEnchantmentRegistry> entries)
         {
             base.Dispel(entries);
 

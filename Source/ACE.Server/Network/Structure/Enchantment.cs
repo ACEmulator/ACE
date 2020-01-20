@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using ACE.Database.Models.Shard;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Managers;
@@ -60,7 +60,7 @@ namespace ACE.Server.Network.Structure
             EnchantmentMask = enchantmentMask;
         }
 
-        public Enchantment(WorldObject target, BiotaPropertiesEnchantmentRegistry entry)
+        public Enchantment(WorldObject target, PropertiesEnchantmentRegistry entry)
         {
             if (entry.SpellCategory == EnchantmentManager.SpellCategory_Cooldown)
             {
@@ -98,7 +98,7 @@ namespace ACE.Server.Network.Structure
             }
         }
 
-        public void InitCooldown(WorldObject target, BiotaPropertiesEnchantmentRegistry entry)
+        public void InitCooldown(WorldObject target, PropertiesEnchantmentRegistry entry)
         {
             SpellID = (ushort)entry.SpellId;
             Layer = entry.LayerId;

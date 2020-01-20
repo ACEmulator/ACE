@@ -9,11 +9,11 @@ using log4net;
 
 using ACE.Database;
 using ACE.Database.Models.Auth;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -1726,7 +1726,7 @@ namespace ACE.Server.Command.Handlers
         {
             // @god - Sets your own stats to a godly level.
             // need to save stats so that we can return with /ungod
-            var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+            var biotas = new Collection<(Database.Models.Shard.Biota biota, ReaderWriterLockSlim rwLock)>();
             biotas.Add((session.Player.OldBiota, session.Player.BiotaDatabaseLock));
             DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => DoGodMode(result, session));
         }
@@ -1740,7 +1740,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            Biota biota = session.Player.OldBiota;
+            var biota = session.Player.OldBiota;
 
             string godString = session.Player.GodState;
 
@@ -2229,7 +2229,7 @@ namespace ACE.Server.Command.Handlers
                 }
             }
 
-            Weenie weenie;
+            Database.Models.World.Weenie weenie;
             if (wcid)
                 weenie = DatabaseManager.World.GetCachedWeenie(weenieClassId);
             else
@@ -2324,7 +2324,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 var possessions = player.GetAllPossessions();
-                var possessedBiotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+                var possessedBiotas = new Collection<(Database.Models.Shard.Biota biota, ReaderWriterLockSlim rwLock)>();
                 foreach (var possession in possessions)
                     possessedBiotas.Add((possession.OldBiota, possession.BiotaDatabaseLock));
 
@@ -3040,7 +3040,7 @@ namespace ACE.Server.Command.Handlers
             var item = CommandHandlerHelper.GetLastAppraisedObject(session);
             if (item == null) return;
 
-            var enchantments = item.EnchantmentManager.GetEnchantments_TopLayer(item.OldBiota.GetEnchantments(item.BiotaDatabaseLock));
+            var enchantments = item.EnchantmentManager.GetEnchantments_TopLayer(item.Biota.PropertiesEnchantmentRegistry.Clone(item.BiotaDatabaseLock));
 
             foreach (var enchantment in enchantments)
             {

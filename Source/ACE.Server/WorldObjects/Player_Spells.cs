@@ -499,7 +499,7 @@ namespace ACE.Server.WorldObjects
             // from previous bugs
 
             // get active item enchantments
-            var enchantments = OldBiota.GetEnchantments(BiotaDatabaseLock).Where(i => i.Duration == -1 && i.SpellId != (int)SpellId.Vitae).ToList();
+            var enchantments = Biota.PropertiesEnchantmentRegistry.Clone(BiotaDatabaseLock).Where(i => i.Duration == -1 && i.SpellId != (int)SpellId.Vitae).ToList();
 
             foreach (var enchantment in enchantments)
             {

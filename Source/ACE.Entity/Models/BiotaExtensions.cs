@@ -2,10 +2,34 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
+using ACE.Entity.Enum.Properties;
+
 namespace ACE.Entity.Models
 {
     public static class BiotaExtensions
     {
+        // =====================================
+        // Get
+        // Bool, DID, Float, IID, Int, Int64, Position, String
+        // =====================================
+
+        public static int? GetProperty(this Biota biota, PropertyInt property, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                if (!biota.PropertiesInt.TryGetValue((ushort)property, out var value))
+                    return null;
+
+                return value;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+
         // =====================================
         // BiotaPropertiesSpellBook
         // =====================================
