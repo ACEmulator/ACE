@@ -82,21 +82,6 @@ namespace ACE.Server.Factories
             if (itemChance <= profile.MundaneItemChance)
             {
                 numItems = ThreadSafeRandom.Next(profile.MundaneItemMinAmount, profile.MundaneItemMaxAmount);
-                for (var i = 0; i < numItems; i++)
-                {
-                    if (lootBias == LootBias.MagicEquipment)
-                        lootWorldObject = CreateRandomLootObjects(profile, false, LootBias.Weapons);
-                    else
-                        lootWorldObject = CreateRandomLootObjects(profile, false, lootBias);
-                    if (lootWorldObject != null)
-                        loot.Add(lootWorldObject);
-                }
-            }
-
-            itemChance = ThreadSafeRandom.Next(1, 100);
-            if (itemChance <= profile.MagicItemChance)
-            {
-                numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
 
                 bool aetheriaGenerated = false;
                 bool generateAetheria = false;
@@ -107,7 +92,7 @@ namespace ACE.Server.Factories
                 {
                     // Coalesced Aetheria doesn't drop in loot tiers less than 5
                     // According to wiki, Weapon Mana Forge chests don't drop Aetheria, also
-                    // a loot role will only drop one Coealesced Aetheria per call into loot system, as I don't remember there
+                    // a loot role should only drop one Coealesced Aetheria per call into loot system, as I don't remember there
                     // being multiples, and I didn't find any written mention of it.
                     if (!aetheriaGenerated && profile.Tier > 4 && lootBias != LootBias.Weapons && dropRate > 0)
                         generateAetheria = ThreadSafeRandom.Next(1, (int)(100 * dropRateMod)) == 1;     // base 1% of all magical items aetheria?
@@ -118,17 +103,31 @@ namespace ACE.Server.Factories
                     {
                         lootWorldObject = CreateAetheria(profile.Tier);
                         if (lootWorldObject != null)
-                        {
-                            loot.Add(lootWorldObject);
                             aetheriaGenerated = true;
-                        }
                     }
                     else
                     {
-                        lootWorldObject = CreateRandomLootObjects(profile, true, lootBias);
-                        if (lootWorldObject != null)
-                            loot.Add(lootWorldObject);
+                        if (lootBias == LootBias.MagicEquipment)
+                            lootWorldObject = CreateRandomLootObjects(profile, false, LootBias.Weapons);
+                        else
+                            lootWorldObject = CreateRandomLootObjects(profile, false, lootBias);
                     }
+
+                    if (lootWorldObject != null)
+                        loot.Add(lootWorldObject);
+                }
+            }
+
+            itemChance = ThreadSafeRandom.Next(1, 100);
+            if (itemChance <= profile.MagicItemChance)
+            {
+                numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
+
+                for (var i = 0; i < numItems; i++)
+                {
+                    lootWorldObject = CreateRandomLootObjects(profile, true, lootBias);
+                    if (lootWorldObject != null)
+                        loot.Add(lootWorldObject);
                 }
             }
 
