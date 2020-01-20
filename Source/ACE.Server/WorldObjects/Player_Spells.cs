@@ -20,7 +20,7 @@ namespace ACE.Server.WorldObjects
     {
         public bool SpellIsKnown(uint spellId)
         {
-            return NewBiota.SpellIsKnown((int)spellId, BiotaDatabaseLock);
+            return Biota.SpellIsKnown((int)spellId, BiotaDatabaseLock);
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool AddKnownSpell(uint spellId)
         {
-            NewBiota.GetOrAddKnownSpell((int)spellId, BiotaDatabaseLock, out var spellAdded);
+            Biota.GetOrAddKnownSpell((int)spellId, BiotaDatabaseLock, out var spellAdded);
 
             if (spellAdded)
                 ChangesDetected = true;
@@ -41,7 +41,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool RemoveKnownSpell(uint spellId)
         {
-            return NewBiota.TryRemoveKnownSpell((int)spellId, BiotaDatabaseLock);
+            return Biota.TryRemoveKnownSpell((int)spellId, BiotaDatabaseLock);
         }
 
         public void LearnSpellWithNetworking(uint spellId, bool uiOutput = true)
@@ -104,7 +104,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionMagicRemoveSpellId(uint spellId)
         {
-            if (!NewBiota.TryRemoveKnownSpell((int)spellId, BiotaDatabaseLock))
+            if (!Biota.TryRemoveKnownSpell((int)spellId, BiotaDatabaseLock))
             {
                 log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
                 return;
@@ -499,7 +499,7 @@ namespace ACE.Server.WorldObjects
             // from previous bugs
 
             // get active item enchantments
-            var enchantments = Biota.GetEnchantments(BiotaDatabaseLock).Where(i => i.Duration == -1 && i.SpellId != (int)SpellId.Vitae).ToList();
+            var enchantments = OldBiota.GetEnchantments(BiotaDatabaseLock).Where(i => i.Duration == -1 && i.SpellId != (int)SpellId.Vitae).ToList();
 
             foreach (var enchantment in enchantments)
             {

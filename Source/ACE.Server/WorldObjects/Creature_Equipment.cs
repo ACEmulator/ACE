@@ -209,7 +209,7 @@ namespace ACE.Server.WorldObjects
         private void TryActivateItemSpells(WorldObject item)
         {
             // check activation requirements?
-            foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
+            foreach (var spell in item.OldBiota.BiotaPropertiesSpellBook)
                 CreateItemSpell(item, (uint)spell.Spell);
         }
 
@@ -224,7 +224,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             worldObject.CurrentWieldedLocation = wieldedLocation;
-            worldObject.WielderId = Biota.Id;
+            worldObject.WielderId = OldBiota.Id;
             worldObject.Wielder = this;
 
             EquippedObjects[worldObject.Guid] = worldObject;
@@ -317,7 +317,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             // remove item spells
-            foreach (var spell in worldObject.Biota.BiotaPropertiesSpellBook)
+            foreach (var spell in worldObject.OldBiota.BiotaPropertiesSpellBook)
                 RemoveItemSpell(worldObject, (uint)spell.Spell, true);
 
             return true;
@@ -499,7 +499,7 @@ namespace ACE.Server.WorldObjects
 
         public void GenerateWieldList()
         {
-            var wielded = Biota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Wield) != 0).ToList();
+            var wielded = OldBiota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Wield) != 0).ToList();
 
             var items = CreateListSelect(wielded);
 

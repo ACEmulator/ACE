@@ -35,7 +35,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public SpellProjectile(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public SpellProjectile(Database.Models.World.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
         }
@@ -43,7 +43,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public SpellProjectile(Biota biota) : base(biota)
+        public SpellProjectile(Database.Models.Shard.Biota biota) : base(biota)
         {
             SetEphemeralValues();
         }

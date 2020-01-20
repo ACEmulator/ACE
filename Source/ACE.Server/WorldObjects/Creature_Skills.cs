@@ -23,7 +23,7 @@ namespace ACE.Server.WorldObjects
             PropertiesSkill propertiesSkill;
             if (add)
             {
-                propertiesSkill = NewBiota.GetOrAddSkill((ushort)skill, BiotaDatabaseLock, out var skillAdded);
+                propertiesSkill = Biota.GetOrAddSkill((ushort)skill, BiotaDatabaseLock, out var skillAdded);
 
                 if (skillAdded)
                 {
@@ -35,7 +35,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                propertiesSkill = NewBiota.GetSkill((ushort)skill, BiotaDatabaseLock);
+                propertiesSkill = Biota.GetSkill((ushort)skill, BiotaDatabaseLock);
 
                 if (propertiesSkill != null)
                     Skills[skill] = new CreatureSkill(this, skill, propertiesSkill);

@@ -288,7 +288,7 @@ namespace ACE.Server.WorldObjects
                     return true;
                 }
 
-                foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
+                foreach (var spell in item.OldBiota.BiotaPropertiesSpellBook)
                 {
                     if (item.HasProcSpell((uint)spell.Spell))
                         continue;
@@ -353,9 +353,9 @@ namespace ACE.Server.WorldObjects
                 new GameMessageSound(Guid, Sound.UnwieldObject));
 
             // If item has any spells, remove them from the registry on unequip
-            if (item.Biota.BiotaPropertiesSpellBook != null)
+            if (item.OldBiota.BiotaPropertiesSpellBook != null)
             {
-                foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
+                foreach (var spell in item.OldBiota.BiotaPropertiesSpellBook)
                 {
                     if (item.HasProcSpell((uint)spell.Spell))
                         continue;

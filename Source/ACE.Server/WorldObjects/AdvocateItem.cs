@@ -11,7 +11,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public AdvocateItem(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public AdvocateItem(Database.Models.World.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
         }
@@ -19,7 +19,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public AdvocateItem(Biota biota) : base(biota)
+        public AdvocateItem(Database.Models.Shard.Biota biota) : base(biota)
         {
             SetEphemeralValues();
         }

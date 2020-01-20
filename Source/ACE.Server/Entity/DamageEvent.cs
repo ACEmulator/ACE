@@ -417,7 +417,7 @@ namespace ACE.Server.Entity
 
             //Console.WriteLine($"AttackHeight: {AttackHeight}, Quadrant: {quadrant & FrontBack}{quadrant & LeftRight}, AttackPart: {bodyPart}");
 
-            BiotaPropertiesBodyPart = Defender.Biota.BiotaPropertiesBodyPart.FirstOrDefault(i => i.Key == (ushort)bodyPart);
+            BiotaPropertiesBodyPart = Defender.OldBiota.BiotaPropertiesBodyPart.FirstOrDefault(i => i.Key == (ushort)bodyPart);
 
             // select random body part @ current attack height
             /*BiotaPropertiesBodyPart = BodyParts.GetBodyPart(defender, attackHeight);

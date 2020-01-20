@@ -18,7 +18,7 @@ namespace ACE.Server.Network.Structure
 
         public EnchantmentRegistry(Player player)
         {
-            var enchantments = player.Biota.GetEnchantments(player.BiotaDatabaseLock);
+            var enchantments = player.OldBiota.GetEnchantments(player.BiotaDatabaseLock);
 
             Enchantments = BuildCategories(player, enchantments);
 

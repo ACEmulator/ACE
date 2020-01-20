@@ -1662,11 +1662,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the epic cantrips from this item's spellbook
         /// </summary>
-        public List<BiotaPropertiesSpellBook> EpicCantrips => Biota.BiotaPropertiesSpellBook.Where(i => LootTables.EpicCantrips.Contains(i.Spell)).ToList();
+        public List<BiotaPropertiesSpellBook> EpicCantrips => OldBiota.BiotaPropertiesSpellBook.Where(i => LootTables.EpicCantrips.Contains(i.Spell)).ToList();
 
         /// <summary>
         /// Returns the legendary cantrips from this item's spellbook
         /// </summary>
-        public List<BiotaPropertiesSpellBook> LegendaryCantrips => Biota.BiotaPropertiesSpellBook.Where(i => LootTables.LegendaryCantrips.Contains(i.Spell)).ToList();
+        public List<BiotaPropertiesSpellBook> LegendaryCantrips => OldBiota.BiotaPropertiesSpellBook.Where(i => LootTables.LegendaryCantrips.Contains(i.Spell)).ToList();
     }
 }

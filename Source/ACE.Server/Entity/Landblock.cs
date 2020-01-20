@@ -288,7 +288,8 @@ namespace ACE.Server.Entity
 
                     wo.ReinitializeHeartbeats();
 
-                    foreach (var profile in wo.Biota.BiotaPropertiesGenerator)
+                    // TODO don't modify the generator here, or, clone the collection
+                    foreach (var profile in wo.Biota.PropertiesGenerator)
                     {
                         profile.Delay = (float)PropertyManager.GetDouble("encounter_delay").Item;
                     }
@@ -1021,7 +1022,7 @@ namespace ACE.Server.Entity
 
         private void SaveDB()
         {
-            var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+            /*var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
 
             foreach (var wo in worldObjects.Values)
             {
@@ -1029,16 +1030,16 @@ namespace ACE.Server.Entity
                     AddWorldObjectToBiotasSaveCollection(wo, biotas);
             }
 
-            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => { });
+            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => { });*/
         }
 
         private void AddWorldObjectToBiotasSaveCollection(WorldObject wo, Collection<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
         {
-            if (wo.ChangesDetected)
+            /*if (wo.ChangesDetected)
             {
                 wo.SaveBiotaToDatabase(false);
-                biotas.Add((wo.Biota, wo.BiotaDatabaseLock));
-            }
+                biotas.Add((wo.OldBiota, wo.BiotaDatabaseLock));
+            }*/
 
             if (wo is Container container)
             {

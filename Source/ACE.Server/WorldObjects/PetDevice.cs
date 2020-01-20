@@ -59,7 +59,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public PetDevice(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public PetDevice(Database.Models.World.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
 
@@ -70,7 +70,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public PetDevice(Biota biota) : base(biota)
+        public PetDevice(Database.Models.Shard.Biota biota) : base(biota)
         {
             SetEphemeralValues();
         }

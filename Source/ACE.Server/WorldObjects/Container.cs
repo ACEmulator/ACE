@@ -5,8 +5,6 @@ using System.Linq;
 using log4net;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -26,7 +24,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Container(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public Container(Database.Models.World.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
 
@@ -36,9 +34,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public Container(Biota biota) : base(biota)
+        public Container(Database.Models.Shard.Biota biota) : base(biota)
         {
-            if (Biota.TryRemoveProperty(PropertyBool.Open, out _, BiotaDatabaseLock))
+            if (Biota.PropertiesBool.Remove((ushort)PropertyBool.Open))
                 ChangesDetected = true;
 
             SetEphemeralValues();
@@ -87,7 +85,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The only time this should be used is to populate Inventory from the ctor.
         /// </summary>
-        protected void SortBiotasIntoInventory(IEnumerable<Biota> biotas)
+        protected void SortBiotasIntoInventory(IEnumerable<Database.Models.Shard.Biota> biotas)
         {
             var worldObjects = new List<WorldObject>();
 
@@ -782,7 +780,7 @@ namespace ACE.Server.WorldObjects
 
         private void GenerateContainList()
         {
-            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (sbyte)DestinationType.Contain || x.DestinationType == (sbyte)DestinationType.ContainTreasure))
+            foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == (sbyte)DestinationType.Contain || x.DestinationType == (sbyte)DestinationType.ContainTreasure))
             {
                 var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 

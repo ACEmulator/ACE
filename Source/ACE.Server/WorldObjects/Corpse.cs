@@ -35,7 +35,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Corpse(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public Corpse(Database.Models.World.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
         }
@@ -43,7 +43,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public Corpse(Biota biota) : base(biota)
+        public Corpse(Database.Models.Shard.Biota biota) : base(biota)
         {
             SetEphemeralValues();
         }
@@ -76,20 +76,20 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override ObjDesc CalculateObjDesc()
         {
-            if (Biota.BiotaPropertiesAnimPart.Count == 0 && Biota.BiotaPropertiesPalette.Count == 0 && Biota.BiotaPropertiesTextureMap.Count == 0)
+            if (OldBiota.BiotaPropertiesAnimPart.Count == 0 && OldBiota.BiotaPropertiesPalette.Count == 0 && OldBiota.BiotaPropertiesTextureMap.Count == 0)
                 return base.CalculateObjDesc(); // No Saved ObjDesc, let base handle it.
 
             var objDesc = new ObjDesc();
 
             AddBaseModelData(objDesc);
 
-            foreach (var animPart in Biota.BiotaPropertiesAnimPart.OrderBy(b => b.Order))
+            foreach (var animPart in OldBiota.BiotaPropertiesAnimPart.OrderBy(b => b.Order))
                 objDesc.AnimPartChanges.Add(new AnimationPartChange { PartIndex = animPart.Index, PartID = animPart.AnimationId });
 
-            foreach (var subPalette in Biota.BiotaPropertiesPalette)
+            foreach (var subPalette in OldBiota.BiotaPropertiesPalette)
                 objDesc.SubPalettes.Add(new SubPalette { SubID = subPalette.SubPaletteId, Offset = subPalette.Offset, NumColors = subPalette.Length });
 
-            foreach (var textureMap in Biota.BiotaPropertiesTextureMap.OrderBy(b => b.Order))
+            foreach (var textureMap in OldBiota.BiotaPropertiesTextureMap.OrderBy(b => b.Order))
                 objDesc.TextureChanges.Add(new TextureMapChange { PartIndex = textureMap.Index, OldTexture = textureMap.OldId, NewTexture = textureMap.NewId });
 
             return objDesc;

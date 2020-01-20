@@ -9,6 +9,7 @@ using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
@@ -98,7 +99,7 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Creates a fully leveled/augmented 275 base character player
         /// </summary>
-        private static Player Create275Base(CharacterCreateInfo characterCreateInfo, Weenie weenie, ObjectGuid guid, uint accountId)
+        private static Player Create275Base(CharacterCreateInfo characterCreateInfo, Database.Models.World.Weenie weenie, ObjectGuid guid, uint accountId)
         {
             PlayerFactory.Create(characterCreateInfo, weenie, guid, accountId, WeenieType.Creature, out var player);
 
@@ -418,7 +419,7 @@ namespace ACE.Server.Factories
         /// Creates a fully leveled 275 Heavy Weapons character player
         /// No augmentations are included
         /// </summary>
-        public static Player Create275HeavyWeapons(Weenie weenie, ObjectGuid guid, uint accountId, string name)
+        public static Player Create275HeavyWeapons(Database.Models.World.Weenie weenie, ObjectGuid guid, uint accountId, string name)
         {
             var characterCreateInfo = CreateCharacterCreateInfo(name, 100, 10, 100, 100, 10, 10);
 
@@ -463,7 +464,7 @@ namespace ACE.Server.Factories
         /// Creates a fully leveled 275 Missile Weapons character player
         /// No augmentations are included
         /// </summary>
-        public static Player Create275MissileWeapons(Weenie weenie, ObjectGuid guid, uint accountId, string name)
+        public static Player Create275MissileWeapons(Database.Models.World.Weenie weenie, ObjectGuid guid, uint accountId, string name)
         {
             var characterCreateInfo = CreateCharacterCreateInfo(name, 10, 100, 100, 10, 10, 100);
 
@@ -507,7 +508,7 @@ namespace ACE.Server.Factories
         /// Creates a fully leveled 275 War Magic character player
         /// No augmentations are included
         /// </summary>
-        public static Player Create275WarMagic(Weenie weenie, ObjectGuid guid, uint accountId, string name)
+        public static Player Create275WarMagic(Database.Models.World.Weenie weenie, ObjectGuid guid, uint accountId, string name)
         {
             var characterCreateInfo = CreateCharacterCreateInfo(name, 10, 100, 10, 10, 100, 100);
 

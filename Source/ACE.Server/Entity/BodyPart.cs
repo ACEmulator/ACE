@@ -65,7 +65,7 @@ namespace ACE.Server.Entity
 
             // get all of the body parts for this creature
             // at this attack height
-            var heightParts = creature.Biota.BiotaPropertiesBodyPart.Where(b => b.BH == (int)height).ToList();
+            var heightParts = creature.OldBiota.BiotaPropertiesBodyPart.Where(b => b.BH == (int)height).ToList();
             if (heightParts.Count == 0) return null;
 
             // get random body part

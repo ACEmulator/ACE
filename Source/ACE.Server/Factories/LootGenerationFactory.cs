@@ -1034,7 +1034,7 @@ namespace ACE.Server.Factories
                 {
                     int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
                     int spellID = spells[shuffledValues[a]][col];
-                    wo.NewBiota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
 
@@ -1054,7 +1054,7 @@ namespace ACE.Server.Factories
                 {
                     int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
                     int spellID = LootTables.ArmorSpells[armorSpellImpenIndex][col];
-                    wo.NewBiota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
 
@@ -1072,28 +1072,28 @@ namespace ACE.Server.Factories
                 {
                     int spellID = cantrips[shuffledValues[shuffledPlace]][0];
                     shuffledPlace++;
-                    wo.NewBiota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
                 }
                 //major cantrips
                 for (int a = 0; a < majorCantrips; a++)
                 {
                     int spellID = cantrips[shuffledValues[shuffledPlace]][1];
                     shuffledPlace++;
-                    wo.NewBiota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
                 }
                 // epic cantrips
                 for (int a = 0; a < epicCantrips; a++)
                 {
                     int spellID = cantrips[shuffledValues[shuffledPlace]][2];
                     shuffledPlace++;
-                    wo.NewBiota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
                 }
                 //legendary cantrips
                 for (int a = 0; a < legendaryCantrips; a++)
                 {
                     int spellID = cantrips[shuffledValues[shuffledPlace]][3];
                     shuffledPlace++;
-                    wo.NewBiota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
 

@@ -69,7 +69,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Vendor(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public Vendor(Database.Models.World.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
         }
@@ -77,7 +77,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public Vendor(Biota biota) : base(biota)
+        public Vendor(Database.Models.Shard.Biota biota) : base(biota)
         {
             SetEphemeralValues();
         }
@@ -201,7 +201,7 @@ namespace ACE.Server.WorldObjects
             if (inventoryloaded)
                 return;
 
-            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Shop))
+            foreach (var item in OldBiota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Shop))
             {
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 

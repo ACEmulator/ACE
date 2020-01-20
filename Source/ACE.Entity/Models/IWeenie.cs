@@ -25,14 +25,15 @@ namespace ACE.Entity.Models
 
         IDictionary<int, float /* probability */> PropertiesSpellBook { get; set; }
 
+        IDictionary<byte, uint /* AnimationId */> PropertiesAnimPart { get; set; }
+        ICollection<PropertiesPalette> PropertiesPalette { get; set; }
+        ICollection<PropertiesTextureMap> PropertiesTextureMap { get; set; }
+
+        // Properties for all world objects that typically aren't modified over the original weenie
         ICollection<PropertiesCreateList> PropertiesCreateList { get; set; }
         ICollection<PropertiesEmote> PropertiesEmote { get; set; }
         ICollection<int> PropertiesEventFilter { get; set; }
         ICollection<PropertiesGenerator> PropertiesGenerator { get; set; }
-
-        IDictionary<byte, uint /* AnimationId */> PropertiesAnimPart { get; set; }
-        ICollection<PropertiesPalette> PropertiesPalette { get; set; }
-        ICollection<PropertiesTextureMap> PropertiesTextureMap { get; set; }
 
         // Properties for creatures
         IDictionary<ushort, PropertiesAttribute> PropertiesAttribute { get; set; }
@@ -42,6 +43,6 @@ namespace ACE.Entity.Models
 
         // Properties for books
         PropertiesBook PropertiesBook { get; set; }
-        IDictionary<uint, PropertiesBookPageData> PropertiesBookPageData { get; set; }
+        IList<PropertiesBookPageData> PropertiesBookPageData { get; set; }
     }
 }

@@ -14,9 +14,7 @@ using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects.Entity;
 
-using Biota = ACE.Database.Models.Shard.Biota;
 using Position = ACE.Entity.Position;
-using Weenie = ACE.Database.Models.World.Weenie;
 
 namespace ACE.Server.WorldObjects
 {
@@ -47,7 +45,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Creature(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public Creature(Database.Models.World.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             InitializePropertyDictionaries();
             SetEphemeralValues();
@@ -56,7 +54,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public Creature(Biota biota) : base(biota)
+        public Creature(Database.Models.Shard.Biota biota) : base(biota)
         {
             InitializePropertyDictionaries();
             SetEphemeralValues();
@@ -64,14 +62,14 @@ namespace ACE.Server.WorldObjects
 
         private void InitializePropertyDictionaries()
         {
-            if (NewBiota.PropertiesAttribute == null)
-                NewBiota.PropertiesAttribute = new Dictionary<ushort, PropertiesAttribute>();
-            if (NewBiota.PropertiesAttribute2nd == null)
-                NewBiota.PropertiesAttribute2nd = new Dictionary<ushort, PropertiesAttribute2nd>();
-            if (NewBiota.PropertiesBodyPart == null)
-                NewBiota.PropertiesBodyPart = new Dictionary<ushort, PropertiesBodyPart>();
-            if (NewBiota.PropertiesSkill == null)
-                NewBiota.PropertiesSkill = new Dictionary<ushort, PropertiesSkill>();
+            if (Biota.PropertiesAttribute == null)
+                Biota.PropertiesAttribute = new Dictionary<ushort, PropertiesAttribute>();
+            if (Biota.PropertiesAttribute2nd == null)
+                Biota.PropertiesAttribute2nd = new Dictionary<ushort, PropertiesAttribute2nd>();
+            if (Biota.PropertiesBodyPart == null)
+                Biota.PropertiesBodyPart = new Dictionary<ushort, PropertiesBodyPart>();
+            if (Biota.PropertiesSkill == null)
+                Biota.PropertiesSkill = new Dictionary<ushort, PropertiesSkill>();
         }
 
         private void SetEphemeralValues()
@@ -98,7 +96,7 @@ namespace ACE.Server.WorldObjects
             Attributes[PropertyAttribute.Focus] = new CreatureAttribute(this, PropertyAttribute.Focus);
             Attributes[PropertyAttribute.Self] = new CreatureAttribute(this, PropertyAttribute.Self);
 
-            foreach (var kvp in NewBiota.PropertiesSkill)
+            foreach (var kvp in Biota.PropertiesSkill)
                 Skills[(Skill)kvp.Key] = new CreatureSkill(this, (Skill)kvp.Key, kvp.Value);
 
             if (Health.Current <= 0)

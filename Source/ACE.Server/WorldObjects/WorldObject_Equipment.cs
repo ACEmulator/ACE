@@ -16,7 +16,7 @@ namespace ACE.Server.WorldObjects
         {
             var items = new List<WorldObject>();
 
-            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)type))
+            foreach (var item in OldBiota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)type))
             {
                 var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 

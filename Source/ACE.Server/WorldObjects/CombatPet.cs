@@ -24,7 +24,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public CombatPet(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public CombatPet(Database.Models.World.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
         }
@@ -32,7 +32,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public CombatPet(Biota biota) : base(biota)
+        public CombatPet(Database.Models.Shard.Biota biota) : base(biota)
         {
             SetEphemeralValues();
         }
@@ -44,17 +44,17 @@ namespace ACE.Server.WorldObjects
             Usable = ACE.Entity.Enum.Usable.No;
 
             if (!PropertyManager.GetBool("advanced_combat_pets").Item)
-                Biota.BiotaPropertiesSpellBook.Clear();
+                OldBiota.BiotaPropertiesSpellBook.Clear();
 
             //Biota.BiotaPropertiesCreateList.Clear();
-            Biota.BiotaPropertiesEmote.Clear();
+            OldBiota.BiotaPropertiesEmote.Clear();
             GeneratorProfiles.Clear();            
 
             DeathTreasureType = null;
             WieldedTreasureType = null;
 
-            if (Biota.WeenieType != (int)WeenieType.CombatPet) // Combat Pets are currently being made from real creatures
-                Biota.WeenieType = (int)WeenieType.CombatPet;
+            if (OldBiota.WeenieType != (int)WeenieType.CombatPet) // Combat Pets are currently being made from real creatures
+                OldBiota.WeenieType = (int)WeenieType.CombatPet;
         }
 
         public void Init(Player player, DamageType damageType, PetDevice petDevice)

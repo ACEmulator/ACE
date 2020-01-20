@@ -42,6 +42,28 @@ namespace ACE.Entity.Models
                 biota.PropertiesSpellBook = new Dictionary<int, float>(weenie.PropertiesSpellBook);
 
 
+            if (weenie.PropertiesAnimPart != null)
+                biota.PropertiesAnimPart = new Dictionary<byte, uint>(weenie.PropertiesAnimPart);
+
+            if (weenie.PropertiesPalette != null)
+            {
+                biota.PropertiesPalette = new List<PropertiesPalette>();
+
+                foreach (var record in weenie.PropertiesPalette)
+                    biota.PropertiesPalette.Add(record.Clone());
+            }
+
+            if (weenie.PropertiesTextureMap != null)
+            {
+                biota.PropertiesTextureMap = new List<PropertiesTextureMap>();
+
+                foreach (var record in weenie.PropertiesTextureMap)
+                    biota.PropertiesTextureMap.Add(record.Clone());
+            }
+
+
+            // Properties for all world objects that typically aren't modified over the original weenie
+
             if (weenie.PropertiesCreateList != null)
             {
                 biota.PropertiesCreateList = new List<PropertiesCreateList>();
@@ -67,26 +89,6 @@ namespace ACE.Entity.Models
 
                 foreach (var record in weenie.PropertiesGenerator)
                     biota.PropertiesGenerator.Add(record.Clone());
-            }
-
-
-            if (weenie.PropertiesAnimPart != null)
-                biota.PropertiesAnimPart = new Dictionary<byte, uint>(weenie.PropertiesAnimPart);
-
-            if (weenie.PropertiesPalette != null)
-            {
-                biota.PropertiesPalette = new List<PropertiesPalette>();
-
-                foreach (var record in weenie.PropertiesPalette)
-                    biota.PropertiesPalette.Add(record.Clone());
-            }
-
-            if (weenie.PropertiesTextureMap != null)
-            {
-                biota.PropertiesTextureMap = new List<PropertiesTextureMap>();
-
-                foreach (var record in weenie.PropertiesTextureMap)
-                    biota.PropertiesTextureMap.Add(record.Clone());
             }
 
 
@@ -131,12 +133,7 @@ namespace ACE.Entity.Models
                 biota.PropertiesBook = weenie.PropertiesBook.Clone();
 
             if (weenie.PropertiesBookPageData != null)
-            {
-                biota.PropertiesBookPageData = new Dictionary<uint, PropertiesBookPageData>();
-
-                foreach (var kvp in weenie.PropertiesBookPageData)
-                    biota.PropertiesBookPageData.Add(kvp.Key, kvp.Value.Clone());
-            }
+                biota.PropertiesBookPageData = new List<PropertiesBookPageData>(weenie.PropertiesBookPageData);
 
 
             return biota;

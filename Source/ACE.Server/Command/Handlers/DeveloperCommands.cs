@@ -2441,7 +2441,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            obj.NewBiota.GetOrAddKnownSpell(spellId, obj.BiotaDatabaseLock, out var spellAdded);
+            obj.Biota.GetOrAddKnownSpell(spellId, obj.BiotaDatabaseLock, out var spellAdded);
 
             var msg = spellAdded ? "added to" : "already on";
 

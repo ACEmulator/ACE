@@ -58,7 +58,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public SpellComponent(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public SpellComponent(Database.Models.World.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
         }
@@ -66,7 +66,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public SpellComponent(Biota biota) : base(biota)
+        public SpellComponent(Database.Models.Shard.Biota biota) : base(biota)
         {
             SetEphemeralValues();
         }

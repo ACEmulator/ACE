@@ -496,7 +496,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
                 wo.ReinitializeHeartbeats();
 
-                foreach (var profile in wo.Biota.BiotaPropertiesGenerator)
+                foreach (var profile in wo.OldBiota.BiotaPropertiesGenerator)
                     profile.Delay = (float)PropertyManager.GetDouble("encounter_delay").Item;
             }
 

@@ -1,14 +1,10 @@
 using System.Collections.Generic;
 
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Network.GameEvent.Events;
-
-using Biota = ACE.Database.Models.Shard.Biota;
-using Weenie = ACE.Database.Models.World.Weenie;
 
 namespace ACE.Server.WorldObjects
 {
@@ -17,7 +13,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Book(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public Book(Database.Models.World.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             InitializePropertyDictionaries();
             SetEphemeralValues();
@@ -26,7 +22,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public Book(Biota biota) : base(biota)
+        public Book(Database.Models.Shard.Biota biota) : base(biota)
         {
             InitializePropertyDictionaries();
             SetEphemeralValues();
@@ -34,20 +30,19 @@ namespace ACE.Server.WorldObjects
 
         private void InitializePropertyDictionaries()
         {
-            if (NewBiota.PropertiesBook == null)
-                NewBiota.PropertiesBook = new PropertiesBook();
-            if (NewBiota.PropertiesBookPageData == null)
-                NewBiota.PropertiesBookPageData = new Dictionary<uint, PropertiesBookPageData>();
+            if (Biota.PropertiesBook == null)
+                Biota.PropertiesBook = new PropertiesBook();
+            if (Biota.PropertiesBookPageData == null)
+                Biota.PropertiesBookPageData = new List<PropertiesBookPageData>();
         }
 
         private void SetEphemeralValues()
         {
             ObjectDescriptionFlags |= ObjectDescriptionFlag.Book;
 
-            SetProperty(PropertyInt.AppraisalPages, Biota.BiotaPropertiesBookPageData.Count);
+            SetProperty(PropertyInt.AppraisalPages, Biota.PropertiesBookPageData.Count);
 
-            if (Biota.BiotaPropertiesBook != null)
-                SetProperty(PropertyInt.AppraisalMaxPages, Biota.BiotaPropertiesBook.MaxNumPages);
+            SetProperty(PropertyInt.AppraisalMaxPages, Biota.PropertiesBook.MaxNumPages);
         }
 
         public void SetProperties(string name, string shortDesc, string inscription, string scribeName, string scribeAccount)
@@ -70,8 +65,8 @@ namespace ACE.Server.WorldObjects
             var player = worldObject as Player;
             if (player == null) return;
 
-            int maxChars = Biota.BiotaPropertiesBook.MaxNumCharsPerPage;
-            int maxPages = Biota.BiotaPropertiesBook.MaxNumPages;
+            int maxChars = Biota.PropertiesBook.MaxNumCharsPerPage;
+            int maxPages = Biota.PropertiesBook.MaxNumPages;
 
             string authorName;
             if (ScribeName != null)
@@ -88,17 +83,7 @@ namespace ACE.Server.WorldObjects
             //uint authorID = ScribeIID ?? 0xFFFFFFFF;
             uint authorID = (ScribeIID.HasValue) ? (uint)ScribeIID : 0xFFFFFFFF;
 
-            List<PageData> pageData = new List<PageData>();
-            foreach (var p in Biota.BiotaPropertiesBookPageData)
-            {
-                PageData newPage = new PageData();
-                newPage.AuthorID = p.AuthorId;
-                newPage.AuthorName = p.AuthorName;
-                newPage.AuthorAccount = p.AuthorAccount;
-                newPage.PageText = p.PageText;
-                newPage.IgnoreAuthor = p.IgnoreAuthor;
-                pageData.Add(newPage);
-            }
+            var pages = Biota.PropertiesBookPageData.Clone(BiotaDatabaseLock);
 
             bool ignoreAuthor = IgnoreAuthor ?? false;
 
@@ -108,21 +93,20 @@ namespace ACE.Server.WorldObjects
             else
                 inscription = "";
 
-            var bookDataResponse = new GameEventBookDataResponse(player.Session, Guid.Full, maxChars, maxPages, pageData, inscription, authorID, authorName, ignoreAuthor);
+            var bookDataResponse = new GameEventBookDataResponse(player.Session, Guid.Full, maxChars, maxPages, pages, inscription, authorID, authorName, ignoreAuthor);
             player.Session.Network.EnqueueSend(bookDataResponse);
         }
 
-        public BiotaPropertiesBookPageData AddPage(uint authorId, string authorName, string authorAccount, bool ignoreAuthor, string pageText)
+        public PropertiesBookPageData AddPage(uint authorId, string authorName, string authorAccount, bool ignoreAuthor, string pageText, out int index)
         {
-            var pages = Biota.GetBookAllPages(Guid.Full, BiotaDatabaseLock);
-
-            if (pages == null || pages.Count == AppraisalMaxPages)
-                return null;
-
-            var page = new BiotaPropertiesBookPageData()
+            if (Biota.PropertiesBookPageData.GetPageCount(BiotaDatabaseLock) >= Biota.PropertiesBook.MaxNumPages)
             {
-                ObjectId = Biota.Id,
-                PageId = (uint)pages.Count,
+                index = -1;
+                return null;
+            }
+
+            var page = new PropertiesBookPageData
+            {
                 AuthorId = authorId,
                 AuthorName = authorName,
                 AuthorAccount = authorAccount,
@@ -130,19 +114,18 @@ namespace ACE.Server.WorldObjects
                 PageText = pageText
             };
 
-            Biota.AddBookPage(page, BiotaDatabaseLock, out var alreadyExists);
-
-            if (alreadyExists) return null;
-
-            SetProperty(PropertyInt.AppraisalPages, pages.Count + 1);
+            Biota.PropertiesBookPageData.AddPage(page, out index, BiotaDatabaseLock);
             ChangesDetected = true;
+
+            var newPageCount = Biota.PropertiesBookPageData.GetPageCount(BiotaDatabaseLock);
+            SetProperty(PropertyInt.AppraisalPages, newPageCount);
 
             return page;
         }
 
-        public bool ModifyPage(uint pageId, string pageText, Player player)
+        public bool ModifyPage(int index, string pageText, Player player)
         {
-            var page = Biota.GetBookPageData(Guid.Full, pageId, BiotaDatabaseLock);
+            var page = Biota.PropertiesBookPageData.GetPage(index, BiotaDatabaseLock);
 
             if (page == null || page.PageText.Equals(pageText))
                 return false;
@@ -153,6 +136,7 @@ namespace ACE.Server.WorldObjects
                 page.AuthorId = player.Guid.Full;
                 page.AuthorName = player.Name;
                 page.PageText = pageText;
+
                 ChangesDetected = true;
             }
             else
@@ -161,40 +145,25 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        public bool DeletePage(uint pageId, Player player)
+        public bool DeletePage(int index, Player player)
         {
-            var pages = Biota.GetBookAllPages(Guid.Full, BiotaDatabaseLock);
-
-            var page = Biota.GetBookPageData(Guid.Full, pageId, BiotaDatabaseLock);
+            var page = Biota.PropertiesBookPageData.GetPage(index, BiotaDatabaseLock);
 
             if (page == null || (!page.IgnoreAuthor && player.Guid.Full != page.AuthorId && !(player is Sentinel) && !(player is Admin)))
                 return false;
 
-            var success = Biota.DeleteBookPage(pageId, out var entity, BiotaDatabaseLock);
-
-            if (!success)
-                return false;
-
-            if (pageId < pages.Count - 1)
-            {
-                // handle deleting page from middle of book
-                for (var i = pageId + 1; i < pages.Count; i++)
-                {
-                    var page2 = Biota.GetBookPageData(Guid.Full, i, BiotaDatabaseLock);
-                    page2.PageId--;
-                }
-            }
-            SetProperty(PropertyInt.AppraisalPages, pages.Count - 1);
+            Biota.PropertiesBookPageData.RemovePage(index, BiotaDatabaseLock);
             ChangesDetected = true;
+
+            var newPageCount = Biota.PropertiesBookPageData.GetPageCount(BiotaDatabaseLock);
+            SetProperty(PropertyInt.AppraisalPages, newPageCount);
 
             return true;
         }
 
-        public BiotaPropertiesBookPageData GetPage(uint pageId)
+        public PropertiesBookPageData GetPage(int index)
         {
-            var page = Biota.GetBookPageData(Guid.Full, pageId, BiotaDatabaseLock);
-
-            return page;
+            return Biota.PropertiesBookPageData.GetPage(index, BiotaDatabaseLock);
         }
     }
 }

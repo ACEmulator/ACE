@@ -95,7 +95,7 @@ namespace ACE.Server.Managers
             playersLock.EnterWriteLock();
             try
             {
-                var offlinePlayer = new OfflinePlayer(player.Biota);
+                var offlinePlayer = new OfflinePlayer(player.OldBiota);
                 offlinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
             }
             finally
@@ -326,7 +326,7 @@ namespace ACE.Server.Managers
                 if (!onlinePlayers.Remove(player.Guid.Full, out _))
                     return false; // This should never happen
 
-                var offlinePlayer = new OfflinePlayer(player.Biota);
+                var offlinePlayer = new OfflinePlayer(player.OldBiota);
 
                 offlinePlayer.Allegiance = player.Allegiance;
                 offlinePlayer.AllegianceNode = player.AllegianceNode;

@@ -16,12 +16,12 @@ namespace ACE.Server.WorldObjects
 {
     public class Hotspot : WorldObject
     {
-        public Hotspot(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public Hotspot(Database.Models.World.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
         }
 
-        public Hotspot(Biota biota) : base(biota)
+        public Hotspot(Database.Models.Shard.Biota biota) : base(biota)
         {
             SetEphemeralValues();
         }

@@ -127,15 +127,15 @@ namespace ACE.Server.WorldObjects
             if (eo.Count == 0)
             {
                 // Check if there is any defined ObjDesc in the Biota and, if so, apply them
-                if (Biota.BiotaPropertiesAnimPart.Count > 0 || Biota.BiotaPropertiesPalette.Count > 0 || Biota.BiotaPropertiesTextureMap.Count > 0)
+                if (OldBiota.BiotaPropertiesAnimPart.Count > 0 || OldBiota.BiotaPropertiesPalette.Count > 0 || OldBiota.BiotaPropertiesTextureMap.Count > 0)
                 {
-                    foreach (var animPart in Biota.BiotaPropertiesAnimPart.OrderBy(b => b.Order))
+                    foreach (var animPart in OldBiota.BiotaPropertiesAnimPart.OrderBy(b => b.Order))
                         objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = animPart.Index, PartID = animPart.AnimationId });
 
-                    foreach (var subPalette in Biota.BiotaPropertiesPalette)
+                    foreach (var subPalette in OldBiota.BiotaPropertiesPalette)
                         objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = subPalette.SubPaletteId, Offset = subPalette.Offset, NumColors = subPalette.Length });
 
-                    foreach (var textureMap in Biota.BiotaPropertiesTextureMap.OrderBy(b => b.Order))
+                    foreach (var textureMap in OldBiota.BiotaPropertiesTextureMap.OrderBy(b => b.Order))
                         objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = textureMap.Index, OldTexture = textureMap.OldId, NewTexture = textureMap.NewId });
 
                     return objDesc;

@@ -9,7 +9,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public LightSource(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public LightSource(Database.Models.World.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
         }
@@ -17,7 +17,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public LightSource(Biota biota) : base(biota)
+        public LightSource(Database.Models.Shard.Biota biota) : base(biota)
         {
             SetEphemeralValues();
         }

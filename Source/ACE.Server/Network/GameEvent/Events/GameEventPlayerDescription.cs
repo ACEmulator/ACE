@@ -192,7 +192,7 @@ namespace ACE.Server.Network.GameEvent.Events
 
             DescriptionVectorFlag vectorFlags = DescriptionVectorFlag.Attribute | DescriptionVectorFlag.Skill;
 
-            if (Session.Player.Biota.BiotaPropertiesSpellBook.Count > 0)
+            if (Session.Player.OldBiota.BiotaPropertiesSpellBook.Count > 0)
                 vectorFlags |= DescriptionVectorFlag.Spell;
             if (Session.Player.EnchantmentManager.HasEnchantments)
                 vectorFlags |= DescriptionVectorFlag.Enchantment;
@@ -295,10 +295,10 @@ namespace ACE.Server.Network.GameEvent.Events
 
             if ((vectorFlags & DescriptionVectorFlag.Spell) != 0)
             {
-                Writer.Write((ushort)Session.Player.Biota.BiotaPropertiesSpellBook.Count);
+                Writer.Write((ushort)Session.Player.OldBiota.BiotaPropertiesSpellBook.Count);
                 Writer.Write((ushort)64);
 
-                foreach (var spell in Session.Player.Biota.BiotaPropertiesSpellBook)
+                foreach (var spell in Session.Player.OldBiota.BiotaPropertiesSpellBook)
                 {
                     Writer.Write(spell.Spell);
                     // This sets a flag to use new spell configuration always 2

@@ -24,10 +24,10 @@ namespace ACE.Server.WorldObjects.Entity
             this.creature = creature;
             Attribute = attribute;
 
-            if (!creature.NewBiota.PropertiesAttribute.TryGetValue((ushort)attribute, out propertiesAttribute))
+            if (!creature.Biota.PropertiesAttribute.TryGetValue((ushort)attribute, out propertiesAttribute))
             {
                 propertiesAttribute = new PropertiesAttribute();
-                creature.NewBiota.PropertiesAttribute[(ushort)attribute] = propertiesAttribute;
+                creature.Biota.PropertiesAttribute[(ushort)attribute] = propertiesAttribute;
             }
         }
 

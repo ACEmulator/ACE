@@ -7,6 +7,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
+
 using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Database.Models.World
@@ -595,6 +596,50 @@ namespace ACE.Database.Models.World
             }
 
 
+            if (weenie.WeeniePropertiesAnimPart != null)
+            {
+                biota.PropertiesAnimPart = new Dictionary<byte, uint>();
+                foreach (var value in weenie.WeeniePropertiesAnimPart)
+                    biota.PropertiesAnimPart[value.Index] = value.AnimationId;
+            }
+
+            if (weenie.WeeniePropertiesPalette != null)
+            {
+                biota.PropertiesPalette = new List<PropertiesPalette>();
+
+                foreach (var record in weenie.WeeniePropertiesPalette)
+                {
+                    var newEntity = new PropertiesPalette
+                    {
+                        SubPaletteId = record.SubPaletteId,
+                        Offset = record.Offset,
+                        Length = record.Length,
+                    };
+
+                    biota.PropertiesPalette.Add(newEntity);
+                }
+            }
+
+            if (weenie.WeeniePropertiesTextureMap != null)
+            {
+                biota.PropertiesTextureMap = new List<PropertiesTextureMap>();
+
+                foreach (var record in weenie.WeeniePropertiesTextureMap)
+                {
+                    var newEntity = new PropertiesTextureMap
+                    {
+                        Index = record.Index,
+                        OldId = record.OldId,
+                        NewId = record.NewId,
+                    };
+
+                    biota.PropertiesTextureMap.Add(newEntity);
+                }
+            }
+
+
+            // Properties for all world objects that typically aren't modified over the original weenie
+
             if (weenie.WeeniePropertiesCreateList != null)
             {
                 biota.PropertiesCreateList = new List<PropertiesCreateList>();
@@ -726,48 +771,6 @@ namespace ACE.Database.Models.World
             }
 
 
-            if (weenie.WeeniePropertiesAnimPart != null)
-            {
-                biota.PropertiesAnimPart = new Dictionary<byte, uint>();
-                foreach (var value in weenie.WeeniePropertiesAnimPart)
-                    biota.PropertiesAnimPart[value.Index] = value.AnimationId;
-            }
-
-            if (weenie.WeeniePropertiesPalette != null)
-            {
-                biota.PropertiesPalette = new List<PropertiesPalette>();
-
-                foreach (var record in weenie.WeeniePropertiesPalette)
-                {
-                    var newEntity = new PropertiesPalette
-                    {
-                        SubPaletteId = record.SubPaletteId,
-                        Offset = record.Offset,
-                        Length = record.Length,
-                    };
-
-                    biota.PropertiesPalette.Add(newEntity);
-                }
-            }
-
-            if (weenie.WeeniePropertiesTextureMap != null)
-            {
-                biota.PropertiesTextureMap = new List<PropertiesTextureMap>();
-
-                foreach (var record in weenie.WeeniePropertiesTextureMap)
-                {
-                    var newEntity = new PropertiesTextureMap
-                    {
-                        Index = record.Index,
-                        OldId = record.OldId,
-                        NewId = record.NewId,
-                    };
-
-                    biota.PropertiesTextureMap.Add(newEntity);
-                }
-            }
-
-
             // Properties for creatures
 
             if (weenie.WeeniePropertiesAttribute != null)
@@ -878,9 +881,9 @@ namespace ACE.Database.Models.World
 
             if (weenie.WeeniePropertiesBookPageData != null)
             {
-                biota.PropertiesBookPageData = new Dictionary<uint, PropertiesBookPageData>();
+                biota.PropertiesBookPageData = new List<PropertiesBookPageData>();
 
-                foreach (var record in weenie.WeeniePropertiesBookPageData)
+                foreach (var record in weenie.WeeniePropertiesBookPageData.OrderBy(r => r.PageId))
                 {
                     var newEntity = new PropertiesBookPageData
                     {
@@ -891,7 +894,7 @@ namespace ACE.Database.Models.World
                         PageText = record.PageText,
                     };
 
-                    biota.PropertiesBookPageData[record.PageId] = newEntity;
+                    biota.PropertiesBookPageData.Add(newEntity);
                 }
             }
 
