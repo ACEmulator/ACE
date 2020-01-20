@@ -708,6 +708,26 @@ namespace ACE.Server.WorldObjects
             return armorRendingMod;
         }
 
+        /// <summary>
+        /// Armor Cleaving
+        /// </summary>
+        public double? IgnoreArmor
+        {
+            get => GetProperty(PropertyFloat.IgnoreArmor);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.IgnoreArmor); else SetProperty(PropertyFloat.IgnoreArmor, value.Value); }
+        }
+
+
+        public float GetArmorCleavingMod(WorldObject weapon)
+        {
+            var ignoreArmor = weapon?.IgnoreArmor ?? IgnoreArmor;
+
+            if (ignoreArmor == null)
+                return defaultModifier;
+
+            return 1.0f - MaxArmorRendingMod;
+        }
+
         public static int GetBaseSkillImbued(CreatureSkill skill)
         {
             switch (GetImbuedSkillType(skill))

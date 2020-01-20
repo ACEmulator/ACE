@@ -249,6 +249,10 @@ namespace ACE.Server.Entity
             if (Weapon != null && Weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
                 armorRendingMod = WorldObject.GetArmorRendingMod(attackSkill);
 
+            var armorCleavingMod = attacker.GetArmorCleavingMod(Weapon);
+
+            var ignoreArmorMod = Math.Min(armorRendingMod, armorCleavingMod);
+
             // get body part / armor pieces / armor modifier
             if (playerDefender != null)
             {
@@ -259,7 +263,7 @@ namespace ACE.Server.Entity
                 Armor = attacker.GetArmorLayers(playerDefender, BodyPart);
 
                 // get armor modifiers
-                ArmorMod = attacker.GetArmorMod(DamageType, Armor, Weapon, armorRendingMod);
+                ArmorMod = attacker.GetArmorMod(DamageType, Armor, Weapon, ignoreArmorMod);
             }
             else
             {
@@ -274,7 +278,7 @@ namespace ACE.Server.Entity
                 Armor = CreaturePart.GetArmorLayers((CombatBodyPart)BiotaPropertiesBodyPart.Key);
 
                 // get target armor
-                ArmorMod = CreaturePart.GetArmorMod(DamageType, Armor, Weapon, armorRendingMod);
+                ArmorMod = CreaturePart.GetArmorMod(DamageType, Armor, Weapon, ignoreArmorMod);
             }
 
             if (Weapon != null && Weapon.HasImbuedEffect(ImbuedEffectType.IgnoreAllArmor))
