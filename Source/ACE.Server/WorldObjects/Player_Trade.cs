@@ -221,7 +221,7 @@ namespace ACE.Server.WorldObjects
                 {
                     targetEscrow.Add(wo);
 
-                    tradedItems.Add((wo.OldBiota, wo.BiotaDatabaseLock));
+                    tradedItems.Add((wo.DatabaseBiota, wo.BiotaDatabaseLock));
                 }
             }
 
@@ -231,7 +231,7 @@ namespace ACE.Server.WorldObjects
                 {
                     myEscrow.Add(wo);
 
-                    tradedItems.Add((wo.OldBiota, wo.BiotaDatabaseLock));
+                    tradedItems.Add((wo.DatabaseBiota, wo.BiotaDatabaseLock));
                 }
             }
 

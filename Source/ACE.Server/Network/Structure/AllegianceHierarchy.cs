@@ -87,7 +87,7 @@ namespace ACE.Server.Network.Structure
                 //motdSetBy = allegiance.AllegianceMotdSetBy ?? "";
                 motd = "";          // fixes decal AllegianceUpdate parsing
                 motdSetBy = "";
-                chatRoomID = allegiance.OldBiota.Id;
+                chatRoomID = allegiance.DatabaseBiota.Id;
 
                 if (allegiance.Sanctuary != null)
                     bindPoint = allegiance.Sanctuary;

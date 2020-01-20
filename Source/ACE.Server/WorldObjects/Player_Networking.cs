@@ -95,7 +95,7 @@ namespace ACE.Server.WorldObjects
 
         public void UpdateChatChannels()
         {
-            var allegianceChannel = Allegiance != null ? Allegiance.OldBiota.Id : 0u;
+            var allegianceChannel = Allegiance != null ? Allegiance.DatabaseBiota.Id : 0u;
 
             Session.Network.EnqueueSend(new GameEventSetTurbineChatChannels(Session, allegianceChannel));
         }

@@ -245,11 +245,11 @@ namespace ACE.Server.WorldObjects
                 corpse.Biota.PropertiesAnimPart.Add(objDesc.AnimPartChanges, BiotaDatabaseLock);
 
                 foreach (var subPalette in objDesc.SubPalettes)
-                    corpse.OldBiota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
+                    corpse.DatabaseBiota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
 
                 byte i = 0;
                 foreach (var textureChange in objDesc.TextureChanges)
-                    corpse.OldBiota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
+                    corpse.DatabaseBiota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
             }
 
             corpse.Location = new Position(Location);
@@ -377,7 +377,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // contain and non-wielded treasure create
-            var createList = OldBiota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Contain) != 0 ||
+            var createList = DatabaseBiota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Contain) != 0 ||
                 (i.DestinationType & (int)DestinationType.Treasure) != 0 && (i.DestinationType & (int)DestinationType.Wield) == 0).ToList();
 
             var selected = CreateListSelect(createList);

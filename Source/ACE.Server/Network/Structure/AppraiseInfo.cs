@@ -415,7 +415,7 @@ namespace ACE.Server.Network.Structure
             if (wo.ProcSpell.HasValue)
                 SpellBook.Add(new AppraisalSpellBook { SpellId = (ushort)wo.ProcSpell.Value, EnchantmentState = AppraisalSpellBook._EnchantmentState.Off });
 
-            foreach ( var biotaPropertiesSpellBook in wo.OldBiota.BiotaPropertiesSpellBook.Where(i => i.Spell != wo.SpellDID && i.Spell != wo.ProcSpell))
+            foreach ( var biotaPropertiesSpellBook in wo.DatabaseBiota.BiotaPropertiesSpellBook.Where(i => i.Spell != wo.SpellDID && i.Spell != wo.ProcSpell))
                 SpellBook.Add(new AppraisalSpellBook { SpellId = (ushort)biotaPropertiesSpellBook.Spell, EnchantmentState = AppraisalSpellBook._EnchantmentState.Off });
         }
 

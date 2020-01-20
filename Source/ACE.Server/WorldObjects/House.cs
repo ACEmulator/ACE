@@ -123,7 +123,7 @@ namespace ACE.Server.WorldObjects
                     var houseInstance = instances.Where(h => h.Guid == houseGuid).FirstOrDefault();
 
                     if (houseInstance != null)
-                        biota = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(houseInstance.WeenieClassId), new ObjectGuid(houseInstance.Guid)).OldBiota;
+                        biota = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(houseInstance.WeenieClassId), new ObjectGuid(houseInstance.Guid)).DatabaseBiota;
                 }
             }
 

@@ -1261,7 +1261,7 @@ namespace ACE.Server.WorldObjects.Managers
         public BiotaPropertiesEmote GetEmoteSet(EmoteCategory category, string questName = null, VendorType? vendorType = null, uint? wcid = null, bool useRNG = true)
         {
             // always pull emoteSet from _worldObject
-            var emoteSet = _worldObject.OldBiota.BiotaPropertiesEmote.Where(e => e.Category == (uint)category);
+            var emoteSet = _worldObject.DatabaseBiota.BiotaPropertiesEmote.Where(e => e.Category == (uint)category);
 
             // optional criteria
             if (questName != null)
@@ -1419,7 +1419,7 @@ namespace ACE.Server.WorldObjects.Managers
 
         public IEnumerable<BiotaPropertiesEmote> Emotes(EmoteCategory emoteCategory)
         {
-            return WorldObject.OldBiota.BiotaPropertiesEmote.Where(x => x.Category == (int)emoteCategory);
+            return WorldObject.DatabaseBiota.BiotaPropertiesEmote.Where(x => x.Category == (int)emoteCategory);
         }
 
         public string Replace(string message, WorldObject source, WorldObject target, string quest)

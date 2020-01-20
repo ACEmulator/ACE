@@ -128,15 +128,15 @@ namespace ACE.Server.WorldObjects
             if (eo.Count == 0)
             {
                 // Check if there is any defined ObjDesc in the Biota and, if so, apply them
-                if (Biota.PropertiesAnimPart.GetCount(BiotaDatabaseLock) > 0 || OldBiota.BiotaPropertiesPalette.Count > 0 || OldBiota.BiotaPropertiesTextureMap.Count > 0)
+                if (Biota.PropertiesAnimPart.GetCount(BiotaDatabaseLock) > 0 || DatabaseBiota.BiotaPropertiesPalette.Count > 0 || DatabaseBiota.BiotaPropertiesTextureMap.Count > 0)
                 {
                     foreach (var animPart in Biota.PropertiesAnimPart.Clone(BiotaDatabaseLock))
                         objDesc.AnimPartChanges.Add(animPart);
 
-                    foreach (var subPalette in OldBiota.BiotaPropertiesPalette)
+                    foreach (var subPalette in DatabaseBiota.BiotaPropertiesPalette)
                         objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = subPalette.SubPaletteId, Offset = subPalette.Offset, NumColors = subPalette.Length });
 
-                    foreach (var textureMap in OldBiota.BiotaPropertiesTextureMap.OrderBy(b => b.Order))
+                    foreach (var textureMap in DatabaseBiota.BiotaPropertiesTextureMap.OrderBy(b => b.Order))
                         objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = textureMap.Index, OldTexture = textureMap.OldId, NewTexture = textureMap.NewId });
 
                     return objDesc;

@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.Entity;
 
@@ -44,17 +43,17 @@ namespace ACE.Server.WorldObjects
             Usable = ACE.Entity.Enum.Usable.No;
 
             if (!PropertyManager.GetBool("advanced_combat_pets").Item)
-                OldBiota.BiotaPropertiesSpellBook.Clear();
+                Biota.ClearSpells(BiotaDatabaseLock);
 
             //Biota.BiotaPropertiesCreateList.Clear();
-            OldBiota.BiotaPropertiesEmote.Clear();
+            DatabaseBiota.BiotaPropertiesEmote.Clear();
             GeneratorProfiles.Clear();            
 
             DeathTreasureType = null;
             WieldedTreasureType = null;
 
-            if (OldBiota.WeenieType != (int)WeenieType.CombatPet) // Combat Pets are currently being made from real creatures
-                OldBiota.WeenieType = (int)WeenieType.CombatPet;
+            if (DatabaseBiota.WeenieType != (int)WeenieType.CombatPet) // Combat Pets are currently being made from real creatures
+                DatabaseBiota.WeenieType = (int)WeenieType.CombatPet;
         }
 
         public void Init(Player player, DamageType damageType, PetDevice petDevice)

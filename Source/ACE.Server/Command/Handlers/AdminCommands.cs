@@ -1125,9 +1125,9 @@ namespace ACE.Server.Command.Handlers
                     return;
 
                 var msg = "";
-                if (wo is Creature creature && wo.OldBiota.BiotaPropertiesCreateList.Count > 0)
+                if (wo is Creature creature && wo.DatabaseBiota.BiotaPropertiesCreateList.Count > 0)
                 {
-                    var createList = creature.OldBiota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Contain) != 0 ||
+                    var createList = creature.DatabaseBiota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Contain) != 0 ||
                         (i.DestinationType & (int)DestinationType.Treasure) != 0 && (i.DestinationType & (int)DestinationType.Wield) == 0).ToList();
 
                     var wieldedTreasure = creature.Inventory.Values.Concat(creature.EquippedObjects.Values).Where(i => i.DestinationType.HasFlag(DestinationType.Treasure)).ToList();
@@ -1727,7 +1727,7 @@ namespace ACE.Server.Command.Handlers
             // @god - Sets your own stats to a godly level.
             // need to save stats so that we can return with /ungod
             var biotas = new Collection<(Database.Models.Shard.Biota biota, ReaderWriterLockSlim rwLock)>();
-            biotas.Add((session.Player.OldBiota, session.Player.BiotaDatabaseLock));
+            biotas.Add((session.Player.DatabaseBiota, session.Player.BiotaDatabaseLock));
             DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => DoGodMode(result, session));
         }
 
@@ -1740,7 +1740,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            var biota = session.Player.OldBiota;
+            var biota = session.Player.DatabaseBiota;
 
             string godString = session.Player.GodState;
 
@@ -2255,7 +2255,7 @@ namespace ACE.Server.Command.Handlers
 
             var player = new Player(weenie, guid, session.AccountId);
 
-            player.OldBiota.WeenieType = (int)session.Player.WeenieType;
+            player.DatabaseBiota.WeenieType = (int)session.Player.WeenieType;
 
             var name = string.Join(' ', parameters.Skip(1));
             if (parameters.Length > 1)
@@ -2326,9 +2326,9 @@ namespace ACE.Server.Command.Handlers
                 var possessions = player.GetAllPossessions();
                 var possessedBiotas = new Collection<(Database.Models.Shard.Biota biota, ReaderWriterLockSlim rwLock)>();
                 foreach (var possession in possessions)
-                    possessedBiotas.Add((possession.OldBiota, possession.BiotaDatabaseLock));
+                    possessedBiotas.Add((possession.DatabaseBiota, possession.BiotaDatabaseLock));
 
-                DatabaseManager.Shard.AddCharacterInParallel(player.OldBiota, player.BiotaDatabaseLock, possessedBiotas, player.Character, player.CharacterDatabaseLock, null);
+                DatabaseManager.Shard.AddCharacterInParallel(player.DatabaseBiota, player.BiotaDatabaseLock, possessedBiotas, player.Character, player.CharacterDatabaseLock, null);
 
                 PlayerManager.AddOfflinePlayer(player);
                 session.Characters.Add(player.Character);

@@ -34,6 +34,69 @@ namespace ACE.Entity.Models
         // BiotaPropertiesSpellBook
         // =====================================
 
+        public static Dictionary<int, float> CloneSpells(this Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                var results = new Dictionary<int, float>();
+
+                foreach (var kvp in biota.PropertiesSpellBook)
+                    results[kvp.Key] = kvp.Value;
+
+                return results;
+            }
+            finally
+            {
+                rwLock.EnterReadLock();
+            }
+        }
+
+        public static bool HasKnownSpell(this Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return biota.PropertiesSpellBook != null && biota.PropertiesSpellBook.Count > 0;
+            }
+            finally
+            {
+                rwLock.EnterReadLock();
+            }
+        }
+
+        public static List<int> GetKnownSpellsIds(this Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                if (biota.PropertiesSpellBook == null)
+                    return new List<int>();
+
+                return new List<int>(biota.PropertiesSpellBook.Keys);
+            }
+            finally
+            {
+                rwLock.EnterReadLock();
+            }
+        }
+
+        public static List<float> GetKnownSpellsProbabilities(this Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                if (biota.PropertiesSpellBook == null)
+                    return new List<float>();
+
+                return new List<float>(biota.PropertiesSpellBook.Values);
+            }
+            finally
+            {
+                rwLock.EnterReadLock();
+            }
+        }
+
         public static bool SpellIsKnown(this Biota biota, int spell, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
@@ -49,7 +112,7 @@ namespace ACE.Entity.Models
 
         public static float GetOrAddKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, out bool spellAdded, float probability = 2.0f)
         {
-            rwLock.EnterUpgradeableReadLock();
+            rwLock.EnterWriteLock();
             try
             {
                 if (biota.PropertiesSpellBook != null && biota.PropertiesSpellBook.TryGetValue(spell, out var value))
@@ -58,24 +121,17 @@ namespace ACE.Entity.Models
                     return value;
                 }
 
-                rwLock.EnterWriteLock();
-                try
-                {
-                    if (biota.PropertiesSpellBook == null)
-                        biota.PropertiesSpellBook = new Dictionary<int, float>();
+                if (biota.PropertiesSpellBook == null)
+                    biota.PropertiesSpellBook = new Dictionary<int, float>();
 
-                    biota.PropertiesSpellBook[spell] = probability;
-                    spellAdded = true;
-                    return probability;
-                }
-                finally
-                {
-                    rwLock.ExitWriteLock();
-                }
+                biota.PropertiesSpellBook[spell] = probability;
+                spellAdded = true;
+
+                return probability;
             }
             finally
             {
-                rwLock.ExitUpgradeableReadLock();
+                rwLock.ExitWriteLock();
             }
         }
 
@@ -102,25 +158,30 @@ namespace ACE.Entity.Models
 
         public static bool TryRemoveKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock)
         {
-            rwLock.EnterUpgradeableReadLock();
+            rwLock.EnterWriteLock();
             try
             {
                 if (biota.PropertiesSpellBook == null || !biota.PropertiesSpellBook.ContainsKey(spell))
                     return false;
 
-                rwLock.EnterWriteLock();
-                try
-                {
-                    return biota.PropertiesSpellBook.Remove(spell);
-                }
-                finally
-                {
-                    rwLock.ExitWriteLock();
-                }
+                return biota.PropertiesSpellBook.Remove(spell);
             }
             finally
             {
-                rwLock.ExitUpgradeableReadLock();
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        public static void ClearSpells(this Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                biota.PropertiesSpellBook?.Clear();
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
             }
         }
 
@@ -147,7 +208,7 @@ namespace ACE.Entity.Models
 
         public static  PropertiesSkill GetOrAddSkill(this Biota biota, ushort type, ReaderWriterLockSlim rwLock, out bool skillAdded)
         {
-            rwLock.EnterUpgradeableReadLock();
+            rwLock.EnterWriteLock();
             try
             {
                 if (biota.PropertiesSkill != null && biota.PropertiesSkill.TryGetValue(type, out var value))
@@ -156,25 +217,18 @@ namespace ACE.Entity.Models
                     return value;
                 }
 
-                rwLock.EnterWriteLock();
-                try
-                {
-                    if (biota.PropertiesSkill == null)
-                        biota.PropertiesSkill = new Dictionary<ushort, PropertiesSkill>();
+                if (biota.PropertiesSkill == null)
+                    biota.PropertiesSkill = new Dictionary<ushort, PropertiesSkill>();
 
-                    var entity = new PropertiesSkill();
-                    biota.PropertiesSkill[type] = entity;
-                    skillAdded = true;
-                    return entity;
-                }
-                finally
-                {
-                    rwLock.ExitWriteLock();
-                }
+                var entity = new PropertiesSkill();
+                biota.PropertiesSkill[type] = entity;
+                skillAdded = true;
+
+                return entity;
             }
             finally
             {
-                rwLock.ExitUpgradeableReadLock();
+                rwLock.ExitWriteLock();
             }
         }
     }

@@ -7,6 +7,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
@@ -288,15 +289,15 @@ namespace ACE.Server.WorldObjects
                     return true;
                 }
 
-                foreach (var spell in item.OldBiota.BiotaPropertiesSpellBook)
+                foreach (var spell in item.Biota.GetKnownSpellsIds(BiotaDatabaseLock))
                 {
-                    if (item.HasProcSpell((uint)spell.Spell))
+                    if (item.HasProcSpell((uint)spell))
                         continue;
 
-                    if (spell.Spell == item.SpellDID)
+                    if (spell == item.SpellDID)
                         continue;
 
-                    var enchantmentStatus = CreateItemSpell(item, (uint)spell.Spell);
+                    var enchantmentStatus = CreateItemSpell(item, (uint)spell);
                     if (enchantmentStatus.Success)
                         item.IsAffecting = true;
                 }
@@ -353,9 +354,9 @@ namespace ACE.Server.WorldObjects
                 new GameMessageSound(Guid, Sound.UnwieldObject));
 
             // If item has any spells, remove them from the registry on unequip
-            if (item.OldBiota.BiotaPropertiesSpellBook != null)
+            if (item.DatabaseBiota.BiotaPropertiesSpellBook != null)
             {
-                foreach (var spell in item.OldBiota.BiotaPropertiesSpellBook)
+                foreach (var spell in item.DatabaseBiota.BiotaPropertiesSpellBook)
                 {
                     if (item.HasProcSpell((uint)spell.Spell))
                         continue;
