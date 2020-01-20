@@ -30,27 +30,16 @@ namespace ACE.Entity.Enum
         Tinkers                          = 17,
         [Description("Crafter's")]
         Crafters                         = 18,
-        [Description("Hearty")]
         Hearty                           = 19,
-        [Description("Dexterous")]
         Dexterous                        = 20,
-        [Description("Wise")]
         Wise                             = 21,
-        [Description("Swift")]
         Swift                            = 22,
-        [Description("Hardened")]
         Hardened                         = 23,
-        [Description("Reinforced")]
         Reinforced                       = 24,
-        [Description("Interlocking")]
         Interlocking                     = 25,
-        [Description("Flameproof")]
         Flameproof                       = 26,
-        [Description("Acidproof")]
         Acidproof                        = 27,
-        [Description("Coldproof")]
         Coldproof                        = 28,
-        [Description("Lightningproof")]
         Lightningproof                   = 29,
         SocietyArmor                     = 30,
         ColosseumClothing                = 31,
