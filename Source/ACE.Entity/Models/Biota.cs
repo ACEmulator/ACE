@@ -26,7 +26,7 @@ namespace ACE.Entity.Models
 
         public IDictionary<int, float /* probability */> PropertiesSpellBook { get; set; }
 
-        public IDictionary<byte, uint /* AnimationId */> PropertiesAnimPart { get; set; }
+        public IList<PropertiesAnimPart> PropertiesAnimPart { get; set; }
         public ICollection<PropertiesPalette> PropertiesPalette { get; set; }
         public ICollection<PropertiesTextureMap> PropertiesTextureMap { get; set; }
 

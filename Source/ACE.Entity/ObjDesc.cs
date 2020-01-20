@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using ACE.Entity.Models;
+
 namespace ACE.Entity
 {
     public class ObjDesc
@@ -8,7 +10,7 @@ namespace ACE.Entity
         public uint PaletteID { get; set; }
         public List<SubPalette> SubPalettes { get; set; } = new List<SubPalette>();
         public List<TextureMapChange> TextureChanges { get; set; } = new List<TextureMapChange>();
-        public List<AnimationPartChange> AnimPartChanges { get; set; } = new List<AnimationPartChange>();
+        public List<PropertiesAnimPart> AnimPartChanges { get; set; } = new List<PropertiesAnimPart>();
 
         /// <summary>
         /// Helper function to ensure we don't add redundant parts to the list
@@ -23,9 +25,9 @@ namespace ACE.Entity
         /// <summary>
         /// Helper function to ensure we only have one AnimationPartChange.PartId in the list
         /// </summary>
-        public void AddAnimPartChange(AnimationPartChange ap)
+        public void AddAnimPartChange(PropertiesAnimPart ap)
         {
-            var p = AnimPartChanges.FirstOrDefault(c => c.PartIndex == ap.PartIndex && c.PartID == ap.PartID);
+            var p = AnimPartChanges.FirstOrDefault(c => c.Index == ap.Index && c.AnimationId == ap.AnimationId);
             if (p != null)
                 AnimPartChanges.Remove(p);
             AnimPartChanges.Add(ap);

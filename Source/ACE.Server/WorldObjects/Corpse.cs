@@ -5,9 +5,8 @@ using System.Linq;
 using log4net;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
+using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -76,15 +75,15 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override ObjDesc CalculateObjDesc()
         {
-            if (OldBiota.BiotaPropertiesAnimPart.Count == 0 && OldBiota.BiotaPropertiesPalette.Count == 0 && OldBiota.BiotaPropertiesTextureMap.Count == 0)
+            if (Biota.PropertiesAnimPart.GetCount(BiotaDatabaseLock) == 0 && OldBiota.BiotaPropertiesPalette.Count == 0 && OldBiota.BiotaPropertiesTextureMap.Count == 0)
                 return base.CalculateObjDesc(); // No Saved ObjDesc, let base handle it.
 
             var objDesc = new ObjDesc();
 
             AddBaseModelData(objDesc);
 
-            foreach (var animPart in OldBiota.BiotaPropertiesAnimPart.OrderBy(b => b.Order))
-                objDesc.AnimPartChanges.Add(new AnimationPartChange { PartIndex = animPart.Index, PartID = animPart.AnimationId });
+            foreach (var animPart in Biota.PropertiesAnimPart.Clone(BiotaDatabaseLock))
+                objDesc.AnimPartChanges.Add(animPart);
 
             foreach (var subPalette in OldBiota.BiotaPropertiesPalette)
                 objDesc.SubPalettes.Add(new SubPalette { SubID = subPalette.SubPaletteId, Offset = subPalette.Offset, NumColors = subPalette.Length });

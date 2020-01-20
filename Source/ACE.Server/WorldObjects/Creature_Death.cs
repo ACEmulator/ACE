@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
@@ -242,14 +242,12 @@ namespace ACE.Server.WorldObjects
                 // Pull and save objdesc for correct corpse apperance at time of death
                 var objDesc = CalculateObjDesc();
 
-                byte i = 0;
-                foreach (var animPartChange in objDesc.AnimPartChanges)
-                    corpse.OldBiota.BiotaPropertiesAnimPart.Add(new Database.Models.Shard.BiotaPropertiesAnimPart { ObjectId = corpse.Guid.Full, AnimationId = animPartChange.PartID, Index = animPartChange.PartIndex, Order = i++ });
+                corpse.Biota.PropertiesAnimPart.Add(objDesc.AnimPartChanges, BiotaDatabaseLock);
 
                 foreach (var subPalette in objDesc.SubPalettes)
                     corpse.OldBiota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
 
-                i = 0;
+                byte i = 0;
                 foreach (var textureChange in objDesc.TextureChanges)
                     corpse.OldBiota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
             }
@@ -424,6 +422,7 @@ namespace ACE.Server.WorldObjects
 
         public void DoCantripLogging(DamageHistoryInfo killer, WorldObject wo)
         {
+            /* todo
             var epicCantrips = wo.EpicCantrips;
             var legendaryCantrips = wo.LegendaryCantrips;
 
@@ -432,14 +431,15 @@ namespace ACE.Server.WorldObjects
 
             if (legendaryCantrips.Count > 0)
                 log.Debug($"[LOOT][LEGENDARY] {Name} ({Guid}) generated item with {legendaryCantrips.Count} legendar{(legendaryCantrips.Count > 1 ? "ies" : "y")} - {wo.Name} ({wo.Guid}) - {GetSpellList(legendaryCantrips)} - killed by {killer?.Name} ({killer?.Guid})");
+            */
         }
 
-        public static string GetSpellList(List<BiotaPropertiesSpellBook> spellbook)
+        public static string GetSpellList(List<int> spellIds)
         {
             var spells = new List<Server.Entity.Spell>();
 
-            foreach (var spell in spellbook)
-                spells.Add(new Server.Entity.Spell(spell.Spell, false));
+            foreach (var spellId in spellIds)
+                spells.Add(new Server.Entity.Spell(spellId, false));
 
             return string.Join(", ", spells.Select(i => i.Name));
         }

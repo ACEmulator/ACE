@@ -105,6 +105,11 @@ namespace ACE.Entity.Models
 
 
         // =====================================
+        // PropertiesAnimPart
+        // =====================================
+
+
+        // =====================================
         // BiotaPropertiesSkill
         // =====================================
         public static PropertiesSkill GetSkill(this Biota biota, ushort type, ReaderWriterLockSlim rwLock)

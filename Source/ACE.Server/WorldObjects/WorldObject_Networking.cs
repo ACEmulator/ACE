@@ -4,13 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 
-using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
@@ -247,8 +247,8 @@ namespace ACE.Server.WorldObjects
 
             foreach (var model in objDesc.AnimPartChanges)
             {
-                writer.Write(model.PartIndex);
-                writer.WritePackedDwordOfKnownType(model.PartID, 0x1000000);
+                writer.Write(model.Index);
+                writer.WritePackedDwordOfKnownType(model.AnimationId, 0x1000000);
             }
 
             writer.Align();
@@ -896,7 +896,7 @@ namespace ACE.Server.WorldObjects
                 foreach (CloObjectEffect t in clothingBaseEffect.CloObjectEffects)
                 {
                     byte partNum = (byte)t.Index;
-                    objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = (byte)t.Index, PartID = t.ModelId });
+                    objDesc.AnimPartChanges.Add(new PropertiesAnimPart { Index = (byte)t.Index, AnimationId = t.ModelId });
                     //AddModel((byte)t.Index, (ushort)t.ModelId);
                     foreach (CloTextureEffect t1 in t.CloTextureEffects)
                         objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = (byte)t.Index, OldTexture = t1.OldTexture, NewTexture = t1.NewTexture });
@@ -957,7 +957,7 @@ namespace ACE.Server.WorldObjects
             // if (HeadObjectDID.HasValue && !HairStyle.HasValue)
             // This Heritage check has been added for backwards compatibility. It works around the butthead Gear Knights appearance.
             if (HeadObjectDID.HasValue && !HairStyle.HasValue && Heritage.HasValue && Heritage != (int)HeritageGroup.Gearknight)
-                objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = 0x10, PartID = HeadObjectDID.Value });
+                objDesc.AnimPartChanges.Add(new PropertiesAnimPart { Index = 0x10, AnimationId = HeadObjectDID.Value });
             else if (HairStyle.HasValue && Heritage.HasValue && Gender.HasValue)
             {
                 // This indicates we have a Gear Knight or Olthoi(that is, player types treat "hairstyle" as a "Body Style")
@@ -975,7 +975,7 @@ namespace ACE.Server.WorldObjects
 
                     // Add all the animation part changes
                     foreach (var part in hairstyle.ObjDesc.AnimPartChanges)
-                        objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = part.PartIndex, PartID = part.PartID });
+                        objDesc.AnimPartChanges.Add(new PropertiesAnimPart { Index = part.PartIndex, AnimationId = part.PartID });
                 }
             }
 

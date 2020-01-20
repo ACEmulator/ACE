@@ -43,7 +43,12 @@ namespace ACE.Entity.Models
 
 
             if (weenie.PropertiesAnimPart != null)
-                biota.PropertiesAnimPart = new Dictionary<byte, uint>(weenie.PropertiesAnimPart);
+            {
+                biota.PropertiesAnimPart = new List<PropertiesAnimPart>();
+
+                foreach (var record in weenie.PropertiesAnimPart)
+                    biota.PropertiesAnimPart.Add(record.Clone());
+            }
 
             if (weenie.PropertiesPalette != null)
             {

@@ -598,9 +598,18 @@ namespace ACE.Database.Models.World
 
             if (weenie.WeeniePropertiesAnimPart != null)
             {
-                biota.PropertiesAnimPart = new Dictionary<byte, uint>();
-                foreach (var value in weenie.WeeniePropertiesAnimPart)
-                    biota.PropertiesAnimPart[value.Index] = value.AnimationId;
+                biota.PropertiesAnimPart = new List<PropertiesAnimPart>();
+
+                foreach (var record in weenie.WeeniePropertiesAnimPart)
+                {
+                    var newEntity = new PropertiesAnimPart
+                    {
+                        Index = record.Index,
+                        AnimationId = record.AnimationId,
+                    };
+
+                    biota.PropertiesAnimPart.Add(newEntity);
+                }
             }
 
             if (weenie.WeeniePropertiesPalette != null)
