@@ -1343,6 +1343,9 @@ namespace ACE.Server.WorldObjects
 
         public void HandleMotionDone_Magic(uint motionID, bool success)
         {
+            if (RecordCast.Enabled)
+                RecordCast.Log($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success}) - cast gesture done");
+
             //Console.WriteLine($"HandleMotionDone_Magic({(MotionCommand)motionID}, {success})");
 
             if (!FastTick || !MagicState.IsCasting) return;
@@ -1350,7 +1353,7 @@ namespace ACE.Server.WorldObjects
             if (motionID == (uint)MagicState.CastGesture)
             {
                 if (RecordCast.Enabled)
-                    RecordCast.Log($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success}) - cast gesture done");
+                    RecordCast.Log($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success}) - cast gesture done - inner");
 
                 MagicState.CastMotionDone = true;
                 DoCastSpell(MagicState);
@@ -1359,6 +1362,9 @@ namespace ACE.Server.WorldObjects
 
         public void OnMoveComplete_Magic(WeenieError status)
         {
+            if (RecordCast.Enabled)
+                RecordCast.Log($"{Name}.OnMoveComplete_Magic({status})");
+
             //Console.WriteLine($"OnMoveComplete_Magic({status})");
 
             if (!FastTick || !MagicState.IsCasting || !MagicState.TurnStarted)
@@ -1368,15 +1374,22 @@ namespace ACE.Server.WorldObjects
             // before the windup, or after the first half of the cast motion
             // either completed or cancelled
 
-            if (RecordCast.Enabled)
-                RecordCast.Log($"{Name}.OnMoveComplete_Magic({status}) - DoCastSpell");
-
             MagicState.IsTurning = false;
 
             if (!MagicState.CastMotionDone)
+            {
+                if (RecordCast.Enabled)
+                    RecordCast.Log($"{Name}.OnMoveComplete_Magic({status}) - DoWindup");
+
                 DoWindup(MagicState.WindupParams);
+            }
             else
+            {
+                if (RecordCast.Enabled)
+                    RecordCast.Log($"{Name}.OnMoveComplete_Magic({status}) - DoCastSpell");
+
                 DoCastSpell(MagicState, status != WeenieError.None);
+            }
         }
     }
 }
