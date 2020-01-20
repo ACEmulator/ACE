@@ -8,7 +8,7 @@ namespace ACE.Entity
     public class ObjDesc
     {
         public uint PaletteID { get; set; }
-        public List<SubPalette> SubPalettes { get; set; } = new List<SubPalette>();
+        public List<PropertiesPalette> SubPalettes { get; set; } = new List<PropertiesPalette>();
         public List<TextureMapChange> TextureChanges { get; set; } = new List<TextureMapChange>();
         public List<PropertiesAnimPart> AnimPartChanges { get; set; } = new List<PropertiesAnimPart>();
 

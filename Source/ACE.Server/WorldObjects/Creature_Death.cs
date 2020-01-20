@@ -244,8 +244,7 @@ namespace ACE.Server.WorldObjects
 
                 corpse.Biota.PropertiesAnimPart.Add(objDesc.AnimPartChanges, BiotaDatabaseLock);
 
-                foreach (var subPalette in objDesc.SubPalettes)
-                    corpse.DatabaseBiota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
+                corpse.Biota.PropertiesPalette.Add(objDesc.SubPalettes, BiotaDatabaseLock);
 
                 byte i = 0;
                 foreach (var textureChange in objDesc.TextureChanges)

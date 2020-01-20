@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
@@ -233,9 +232,9 @@ namespace ACE.Server.WorldObjects
 
             foreach (var palette in objDesc.SubPalettes)
             {
-                writer.WritePackedDwordOfKnownType(palette.SubID, 0x4000000);
+                writer.WritePackedDwordOfKnownType(palette.SubPaletteId, 0x4000000);
                 writer.Write((byte)palette.Offset);
-                writer.Write((byte)palette.NumColors);
+                writer.Write((byte)palette.Length);
             }
 
             foreach (var texture in objDesc.TextureChanges)
@@ -937,10 +936,10 @@ namespace ACE.Server.WorldObjects
 
                         for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
                         {
-                            uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
-                            uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                            ushort palOffset = (ushort)(itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8);
+                            ushort numColors = (ushort)(itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8);
                             if (PaletteTemplate.HasValue || Shade.HasValue)
-                                objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = itemPal, Offset = palOffset, NumColors = numColors });
+                                objDesc.SubPalettes.Add(new PropertiesPalette { SubPaletteId = itemPal, Offset = palOffset, Length = numColors });
                             //AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
                         }
                     }
@@ -983,7 +982,7 @@ namespace ACE.Server.WorldObjects
                 objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = player.Character.DefaultHairTexture, NewTexture = player.Character.HairTexture });
             //AddTexture(0x10, DefaultHairTextureDID.Value, HairTextureDID.Value);
             if (HairPaletteDID.HasValue)
-                objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = HairPaletteDID.Value, Offset = 0x18, NumColors = 0x8 });
+                objDesc.SubPalettes.Add(new PropertiesPalette { SubPaletteId = HairPaletteDID.Value, Offset = 0x18, Length = 0x8 });
             //AddPalette(HairPaletteDID.Value, 0x18, 0x8);
 
             // Skin
@@ -991,7 +990,7 @@ namespace ACE.Server.WorldObjects
             if (PaletteBaseDID.HasValue)
                 objDesc.PaletteID = PaletteBaseDID.Value;
             if (SkinPaletteDID.HasValue)
-                objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = SkinPaletteDID.Value, Offset = 0x0, NumColors = 0x18 });
+                objDesc.SubPalettes.Add(new PropertiesPalette { SubPaletteId = SkinPaletteDID.Value, Offset = 0x0, Length = 0x18 });
             //AddPalette(SkinPalette.Value, 0x0, 0x18);
 
             // Eyes
@@ -999,7 +998,7 @@ namespace ACE.Server.WorldObjects
                 objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultEyesTextureDID.Value, NewTexture = EyesTextureDID.Value });
             //AddTexture(0x10, DefaultEyesTextureDID.Value, EyesTextureDID.Value);
             if (EyesPaletteDID.HasValue)
-                objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = EyesPaletteDID.Value, Offset = 0x20, NumColors = 0x8 });
+                objDesc.SubPalettes.Add(new PropertiesPalette { SubPaletteId = EyesPaletteDID.Value, Offset = 0x20, Length = 0x8 });
             //AddPalette(EyesPaletteDID.Value, 0x20, 0x8);
 
             // Nose & Mouth

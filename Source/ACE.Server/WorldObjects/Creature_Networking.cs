@@ -128,13 +128,13 @@ namespace ACE.Server.WorldObjects
             if (eo.Count == 0)
             {
                 // Check if there is any defined ObjDesc in the Biota and, if so, apply them
-                if (Biota.PropertiesAnimPart.GetCount(BiotaDatabaseLock) > 0 || DatabaseBiota.BiotaPropertiesPalette.Count > 0 || DatabaseBiota.BiotaPropertiesTextureMap.Count > 0)
+                if (Biota.PropertiesAnimPart.GetCount(BiotaDatabaseLock) > 0 || Biota.PropertiesPalette.GetCount(BiotaDatabaseLock) > 0 || DatabaseBiota.BiotaPropertiesTextureMap.Count > 0)
                 {
                     foreach (var animPart in Biota.PropertiesAnimPart.Clone(BiotaDatabaseLock))
                         objDesc.AnimPartChanges.Add(animPart);
 
-                    foreach (var subPalette in DatabaseBiota.BiotaPropertiesPalette)
-                        objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = subPalette.SubPaletteId, Offset = subPalette.Offset, NumColors = subPalette.Length });
+                    foreach (var subPalette in Biota.PropertiesPalette.Clone(BiotaDatabaseLock))
+                        objDesc.SubPalettes.Add(subPalette);
 
                     foreach (var textureMap in DatabaseBiota.BiotaPropertiesTextureMap.OrderBy(b => b.Order))
                         objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = textureMap.Index, OldTexture = textureMap.OldId, NewTexture = textureMap.NewId });
@@ -210,9 +210,9 @@ namespace ACE.Server.WorldObjects
 
                                 for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
                                 {
-                                    uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
-                                    uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                                    objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = itemPal, Offset = palOffset, NumColors = numColors });
+                                    ushort palOffset = (ushort)(itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8);
+                                    ushort numColors = (ushort)(itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8);
+                                    objDesc.SubPalettes.Add(new PropertiesPalette { SubPaletteId = itemPal, Offset = palOffset, Length = numColors });
                                 }
                             }
                         }
