@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -434,32 +433,6 @@ namespace ACE.Adapter.GDLE
             }
         }
 
-        //public static bool TryLoadRegionConverted(string file, out List<Database.Models.World.Encounter> results)
-        //{
-        //    try
-        //    {
-        //        var fileText = File.ReadAllText(file);
-
-        //        var gdleModel = JsonConvert.DeserializeObject<List<Models.Region>>(fileText);
-
-        //        results = new List<Database.Models.World.Encounter>();
-
-        //        foreach (var value in gdleModel)
-        //        {
-        //            if (GDLEConverter.TryConvert(value, out var result))
-        //                results.Add(result);
-        //        }
-
-        //        return true;
-
-        //    }
-        //    catch
-        //    {
-        //        results = null;
-        //        return false;
-        //    }
-        //}
-
         public static bool TryLoadTerrainData(string file, out List<Models.TerrainData> results)
         {
             try
@@ -469,64 +442,6 @@ namespace ACE.Adapter.GDLE
                 results = JsonConvert.DeserializeObject<List<Models.TerrainData>>(fileText);
 
                 return true;
-            }
-            catch
-            {
-                results = null;
-                return false;
-            }
-        }
-
-        //public static bool TryLoadEncountersConverted(string file, out List<Database.Models.World.Encounter> results)
-        //{
-        //    try
-        //    {
-        //        var fileText = File.ReadAllText(file);
-
-        //        var gdleModel = JsonConvert.DeserializeObject<List<Models.Encounter>>(fileText);
-
-        //        results = new List<Database.Models.World.Encounter>();
-
-        //        foreach (var value in gdleModel)
-        //        {
-        //            if (GDLEConverter.TryConvert(value, out var result))
-        //                results.Add(result);
-        //        }
-
-        //        return true;
-
-        //    }
-        //    catch
-        //    {
-        //        results = null;
-        //        return false;
-        //    }
-        //}
-
-        public static bool TryLoadRegionAndTerrainDataConverted(string regionFile, string terrainDataFile, out List<Database.Models.World.Encounter> results)
-        {
-            try
-            {
-                var fileText = File.ReadAllText(regionFile);
-
-                var regionGdleModel = JsonConvert.DeserializeObject<Models.Region>(fileText);
-
-                fileText = File.ReadAllText(terrainDataFile);
-
-                var terrainDataGdleModel = JsonConvert.DeserializeObject<List<Models.TerrainData>>(fileText);
-
-                results = new List<Database.Models.World.Encounter>();
-
-                //foreach (var value in gdleModel)
-                //{
-                //    if (GDLEConverter.TryConvert(value, out var result))
-                //        results.Add(result);
-                //}
-
-                GDLEConverter.TryConvert(regionGdleModel, terrainDataGdleModel, out var result);
-
-                return true;
-
             }
             catch
             {
