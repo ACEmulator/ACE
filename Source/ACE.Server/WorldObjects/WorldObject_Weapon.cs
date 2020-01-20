@@ -722,9 +722,10 @@ namespace ACE.Server.WorldObjects
             if (IgnoreArmor == null)
                 return 1.0f;
 
-            // thanks to moro for this formula
+            // FIXME: data
             var maxSpellLevel = GetMaxSpellLevel();
 
+            // thanks to moro for this formula
             return 1.0f - (0.1f + maxSpellLevel * 0.05f);
         }
 
