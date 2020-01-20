@@ -717,7 +717,6 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.IgnoreArmor); else SetProperty(PropertyFloat.IgnoreArmor, value.Value); }
         }
 
-
         public float GetArmorCleavingMod()
         {
             if (IgnoreArmor == null)
