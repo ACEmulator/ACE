@@ -2760,7 +2760,7 @@ namespace ACE.Server.Command.Handlers
         {
             if (parameters.Length == 0)
             {
-                session.Player.RecordCast.Enabled = !session.Player.RecordCast.Enabled;
+                session.Player.RecordCast.Enabled = session.Player.RecordCast.Mode != RecordCastMode.Enabled;
             }
             else
             {

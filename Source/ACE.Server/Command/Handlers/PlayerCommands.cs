@@ -152,6 +152,8 @@ namespace ACE.Server.Command.Handlers
 
             if (magicState.IsCasting && DateTime.UtcNow - magicState.StartTime > TimeSpan.FromSeconds(5))
             {
+                session.Player.RecordCast.ShowInfo();
+
                 session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, "Fixed casting state"));
                 session.Player.SendUseDoneEvent();
                 magicState.OnCastDone();

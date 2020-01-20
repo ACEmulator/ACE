@@ -120,7 +120,9 @@ namespace ACE.Server.Entity
 
             if (Player.RecordCast.Enabled)
             {
-                Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Cast #: {CastNum}", ChatMessageType.Broadcast));
+                if (Player.RecordCast.Mode == RecordCastMode.Enabled)
+                    Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Cast #: {CastNum}", ChatMessageType.Broadcast));
+
                 Player.RecordCast.Log($"MagicState.OnCastStart({CastNum})");
                 Player.RecordCast.Log($"Player Location: {Player.Location.ToLOCString()}");
             }
