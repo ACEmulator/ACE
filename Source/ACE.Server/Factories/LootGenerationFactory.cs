@@ -62,16 +62,20 @@ namespace ACE.Server.Factories
 
             switch (profile.TreasureType)
             {
-                case var n when (n == 1001 || n == 2001):  // Mana Forge Chest, Advanced Equipment Chest, and Mixed Equipment Chest
+                case 1001:  // Mana Forge Chest, Advanced Equipment Chest, and Mixed Equipment Chest
+                case 2001:
                     lootBias = LootBias.MixedEquipment;
                     break;
-                case var n when (n == 1002 || n == 2002):  // Armor Chest
+                case 1002:  // Armor Chest
+                case 2002:
                     lootBias = LootBias.Armor;
                     break;
-                case var n when (n == 1003 || n == 2003):  // Magic Chest
+                case 1003:  // Magic Chest
+                case 2003:
                     lootBias = LootBias.MagicEquipment;
                     break;
-                case var n when (n == 1004 || n == 2004):  // Weapon Chest
+                case 1004:  // Weapon Chest
+                case 2004:
                     lootBias = LootBias.Weapons;
                     break;
                 default:    // Default to unbiased loot profile
