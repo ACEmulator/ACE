@@ -240,6 +240,9 @@ namespace ACE.Server.Factories
                     if (isMagical)
                         wo = CreateJewelry(profile, isMagical); // jewelry
                     else
+                        // Added Dinnerware at tail end of distribution, as
+                        // they are mutable loot drops that don't belong with the non-mutable drops
+                        // TODO: Will likely need some adjustment/fine tuning
                         wo = CreateDinnerware(profile.Tier); // dinnerware
                     break;
             }
