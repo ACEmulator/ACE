@@ -11,6 +11,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics;
 
 namespace ACE.Server.WorldObjects
 {
@@ -78,11 +79,20 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"{Name}.HandleActionCastTargetedSpell({targetGuid:X8}, {spellId}, {builtInSpell})");
 
             if (CombatMode != CombatMode.Magic)
+            {
+                SendUseDoneEvent();
                 return;
+            }
+
+            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            {
+                SendUseDoneEvent(WeenieError.YouCantDoThatWhileInTheAir);
+                return;
+            }
 
             if (PKLogout)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                SendUseDoneEvent(WeenieError.YouHaveBeenInPKBattleTooRecently);
                 return;
             }
 
@@ -232,11 +242,20 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"{Name}.HandleActionCastUnTargetedSpell({spellId})");
 
             if (CombatMode != CombatMode.Magic)
+            {
+                SendUseDoneEvent();
                 return;
+            }
+
+            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            {
+                SendUseDoneEvent(WeenieError.YouCantDoThatWhileInTheAir);
+                return;
+            }
 
             if (PKLogout)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                SendUseDoneEvent(WeenieError.YouHaveBeenInPKBattleTooRecently);
                 return;
             }
 
@@ -1377,6 +1396,19 @@ namespace ACE.Server.WorldObjects
                 DoWindup(MagicState.WindupParams);
             else
                 DoCastSpell(MagicState, status != WeenieError.None);
+        }
+
+        public void FailCast()
+        {
+            var parms = MagicState.CastSpellParams;
+
+            if (parms == null) return;
+
+            DoCastSpell_Inner(parms.Spell, parms.IsWeaponSpell, parms.ManaUsed, parms.Target, CastingPreCheckStatus.CastFailed, false);
+
+            SendUseDoneEvent(WeenieError.YourSpellFizzled);
+
+            MagicState.OnCastDone();
         }
     }
 }

@@ -791,6 +791,9 @@ namespace ACE.Server.WorldObjects
                 PhysicsObj.calc_acceleration();
                 PhysicsObj.set_on_walkable(false);
                 PhysicsObj.set_local_velocity(jump.Velocity, false);
+
+                if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
+                    FailCast();
             }
             else
             {
