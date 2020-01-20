@@ -4,6 +4,7 @@ using System.Linq;
 using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -578,7 +579,7 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(msg, sound);
                     if (item.WielderId != null)
                     {
-                        if (item.DatabaseBiota.BiotaPropertiesSpellBook != null)
+                        if (item.Biota.PropertiesSpellBook != null)
                         {
                             // unsure if these messages / sounds were ever sent in retail,
                             // or if it just purged the enchantments invisibly
@@ -587,10 +588,8 @@ namespace ACE.Server.WorldObjects
                             actionChain.AddDelaySeconds(2.0f);
                             actionChain.AddAction(this, () =>
                             {
-                                for (int i = 0; i < item.DatabaseBiota.BiotaPropertiesSpellBook.Count; i++)
-                                {
-                                    RemoveItemSpell(item, (uint)item.DatabaseBiota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
-                                }
+                                foreach (var spellId in item.Biota.GetKnownSpellsIds(item.BiotaDatabaseLock))
+                                    RemoveItemSpell(item, (uint)spellId);
                             });
                             actionChain.EnqueueChain();
                         }

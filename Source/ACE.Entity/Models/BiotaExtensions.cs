@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 using ACE.Entity.Enum.Properties;
@@ -74,6 +75,22 @@ namespace ACE.Entity.Models
                     return new List<int>();
 
                 return new List<int>(biota.PropertiesSpellBook.Keys);
+            }
+            finally
+            {
+                rwLock.EnterReadLock();
+            }
+        }
+
+        public static List<int> GetKnownSpellsIdsWhere(this Biota biota, Func<int, bool> predicate, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                if (biota.PropertiesSpellBook == null)
+                    return new List<int>();
+
+                return biota.PropertiesSpellBook.Keys.Where(predicate).ToList();
             }
             finally
             {
