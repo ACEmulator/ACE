@@ -778,6 +778,7 @@ namespace ACE.Server.Entity
             if (wo.PhysicsObj.CurCell == null)
             {
                 var success = wo.AddPhysicsObj();
+
                 if (!success)
                 {
                     wo.CurrentLandblock = null;
@@ -790,6 +791,18 @@ namespace ACE.Server.Entity
 
                     else if (wo.ProjectileTarget == null)
                         log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}]");
+
+                    return false;
+                }
+                else if (wo.PhysicsObj.CurCell == null)
+                {
+                    wo.CurrentLandblock = null;
+
+                    // this shouldn't happen, but seems like it might be somehow?
+                    log.Error($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] - AddPhysicsObj() returned success, but CurCell is null!");
+
+                    if (wo.Generator != null)
+                        wo.NotifyOfEvent(RegenerationType.PickUp);
 
                     return false;
                 }
