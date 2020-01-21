@@ -112,9 +112,6 @@ namespace ACE.Server.WorldObjects
 
             var success = LandblockManager.AddObject(proj);
 
-            if (proj.PhysicsObj == null)
-                return null;
-
             if (!success || proj.PhysicsObj == null)
             {
                 if (player != null)
