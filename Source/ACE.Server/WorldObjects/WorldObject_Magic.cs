@@ -1674,8 +1674,10 @@ namespace ACE.Server.WorldObjects
         public uint GetMaxSpellLevel()
         {
             if (_maxSpellLevel == null)
-                _maxSpellLevel = Biota.BiotaPropertiesSpellBook.Select(i => new Spell(i.Spell)).Max(i => i.Formula.Level);
-
+            {
+                _maxSpellLevel = Biota.BiotaPropertiesSpellBook.Any() ?
+                    Biota.BiotaPropertiesSpellBook.Select(i => new Spell(i.Spell)).Max(i => i.Formula.Level) : 0;
+            }
             return _maxSpellLevel.Value;
         }
     }
