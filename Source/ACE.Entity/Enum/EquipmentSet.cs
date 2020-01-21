@@ -1,5 +1,3 @@
-using System.ComponentModel;
-
 namespace ACE.Entity.Enum
 {
     // List of equipment sets for armor/weapons. Compiled from aclogview, and the client.
@@ -18,17 +16,11 @@ namespace ACE.Entity.Enum
         ArmMindHeart                     = 10,
         ArmorPerfectLight                = 11,
         ArmorPerfectLight2               = 12,
-        [Description("Soldier's")]
         Soldiers                         = 13,
-        [Description("Adept's")]
         Adepts                           = 14,
-        [Description("Archer's")]
         Archers                          = 15,
-        [Description("Defender's")]
         Defenders                        = 16,
-        [Description("Tinker's")]
         Tinkers                          = 17,
-        [Description("Crafter's")]
         Crafters                         = 18,
         Hearty                           = 19,
         Dexterous                        = 20,
@@ -156,14 +148,5 @@ namespace ACE.Entity.Enum
         UNKNOWN_139                      = 139,
         // Possibly Paragon Melee Weapons
         UNKNOWN_140                      = 140
-    }
-
-    public static class EquipmentSetStringExtensions
-    {
-        public static string GetDescription(this EquipmentSet prop)
-        {
-            var description = prop.GetAttributeOfType<DescriptionAttribute>();
-            return description?.Description ?? prop.ToString();
-        }
     }
 }

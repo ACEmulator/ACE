@@ -122,7 +122,7 @@ namespace ACE.Server.Factories
 
             wo = AssignArmorLevel(wo, profile.Tier, armorType);
 
-            wo = AssignEquipmentSetId(wo, profile.Tier);
+            wo = AssignEquipmentSetId(wo, profile);
 
             if (isMagical)
             {
@@ -194,20 +194,24 @@ namespace ACE.Server.Factories
             return wield;
         }
 
-        private static WorldObject AssignEquipmentSetId(WorldObject wo, int tier)
+        private static WorldObject AssignEquipmentSetId(WorldObject wo, TreasureDeath profile)
         {
             EquipmentSet equipSetId = EquipmentSet.Invalid;
 
             if (PropertyManager.GetBool("equipmentsetid_enabled").Item
-                && wo.ClothingPriority != (CoverageMask)CoverageMaskHelper.Underwear && !wo.IsShield && tier > 6)
+                && wo.ClothingPriority != (CoverageMask)CoverageMaskHelper.Underwear && !wo.IsShield && profile.Tier > 6)
             {
                 if (wo.WieldRequirements == WieldRequirement.Level || wo.WieldRequirements == WieldRequirement.RawSkill)
                 {
                     double dropRate = PropertyManager.GetDouble("equipmentsetid_drop_rate").Item;
                     double dropRateMod = 1.0 / dropRate;
 
+                    double lootQualityMod = 1.0f;
+                    if (profile.LootQualityMod > 0)
+                        lootQualityMod = 1.0f - profile.LootQualityMod;
+
                     // Initial base 10% chance to add a random EquipmentSetID, which can be adjusted via property mod
-                    int chance = ThreadSafeRandom.Next(1, (int)(100 * dropRateMod));
+                    int chance = ThreadSafeRandom.Next(1, (int)(100 * dropRateMod * lootQualityMod));
                     if (chance < 11)
                     {
                         equipSetId = (EquipmentSet)ThreadSafeRandom.Next((int)EquipmentSet.Soldiers, (int)EquipmentSet.Lightningproof);
@@ -215,7 +219,14 @@ namespace ACE.Server.Factories
                         wo.EquipmentSetId = equipSetId;
 
                         if (PropertyManager.GetBool("equipmentsetid_name_decoration").Item)
-                            wo.Name = string.Join(" ", equipSetId.GetDescription(), wo.Name);
+                        {
+                            string name = equipSetId.ToString();
+
+                            if (equipSetId >= EquipmentSet.Soldiers && equipSetId <= EquipmentSet.Crafters)
+                                name = name.TrimEnd('s') + "'s";
+
+                            wo.Name = string.Join(" ", name, wo.Name);
+                        }
                     }
                 }
             }
@@ -383,7 +394,7 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyInt.ArmorLevel, adjustedArmorLevel);
             }
 
-            if ((wo.ResistMagic == null || wo.ResistMagic < 9999) && wo.GetProperty(PropertyInt.ArmorLevel) >= 340)
+            if ((wo.ResistMagic == null || wo.ResistMagic < 9999) && wo.GetProperty(PropertyInt.ArmorLevel) >= 345)
                 log.Warn($"[LOOT] Standard armor item exceeding upper AL threshold {wo.WeenieClassId} - {wo.Name}");
 
             if (wo.ArmorType == null)
