@@ -194,7 +194,7 @@ namespace ACE.Server.WorldObjects
 
             var success = PhysicsObj.enter_world(location);
 
-            if (!success)
+            if (!success || PhysicsObj.CurCell == null)
             {
                 PhysicsObj.DestroyObject();
                 PhysicsObj = null;
