@@ -49,10 +49,6 @@ namespace ACE.Server.Managers
             }
         }
 
-        //private static readonly LinkedList<Player> sortedWorldObjectsByNextHeartbeat = new LinkedList<Player>();
-
-        //private static readonly Dictionary<uint, uint> playersPendingLogoff = new Dictionary<uint, uint>();
-
         private static readonly LinkedList<Player> playersPendingLogoff = new LinkedList<Player>();
 
         public static void AddPlayerToLogoffQueue(Player player) => playersPendingLogoff.AddLast(player);
