@@ -51,7 +51,11 @@ namespace ACE.Server.Managers
 
         private static readonly LinkedList<Player> playersPendingLogoff = new LinkedList<Player>();
 
-        public static void AddPlayerToLogoffQueue(Player player) => playersPendingLogoff.AddLast(player);
+        public static void AddPlayerToLogoffQueue(Player player)
+        {
+            if (!playersPendingLogoff.Contains(player))
+                playersPendingLogoff.AddLast(player);
+        }
 
         public static void Tick()
         {
