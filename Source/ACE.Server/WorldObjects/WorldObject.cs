@@ -1015,7 +1015,9 @@ namespace ACE.Server.WorldObjects
             // empty base
         }
 
-        public virtual bool IsAttunedOrContainsAttuned => (Attuned ?? 0) >= 1;
+        public virtual bool IsAttunedOrContainsAttuned => Attuned >= AttunedStatus.Attuned;
+
+        public virtual bool IsStickyAttunedOrContainsStickyAttuned => Attuned >= AttunedStatus.Sticky;
 
         public bool IsTradeNote => ItemType == ItemType.PromissoryNote;
 

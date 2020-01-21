@@ -573,8 +573,8 @@ namespace ACE.Server.Factories
 
             iou.SetProperties("IOU", "An IOU for a missing database object.", "Sorry about that chief...", "ACEmulator", "prewritten");
             iou.AddPage(uint.MaxValue, "ACEmulator", "prewritten", false, $"{missingWeenieId}\n\nSorry but the database does not have a weenie for weenieClassId #{missingWeenieId} so in lieu of that here is an IOU for that item.");
-            iou.Bonded = (int)BondedStatus.Bonded;
-            iou.Attuned = (int)AttunedStatus.Attuned;
+            iou.Bonded = BondedStatus.Bonded;
+            iou.Attuned = AttunedStatus.Attuned;
             iou.IsSellable = false;
             iou.Value = 0;
             iou.EncumbranceVal = 0;
