@@ -1180,7 +1180,10 @@ namespace ACE.Server.WorldObjects.Managers
                             var itemTaken = DatabaseManager.World.GetCachedWeenie(weenieItemToTake);
                             if (itemTaken != null)
                             {
-                                var msg = $"You hand over {(player.GetNumInventoryItemsOfWCID(itemTaken.ClassId) == 0 ? "all" : amountToTake.ToString())} of your {itemTaken.GetPluralName()}.";
+                                var amount = amountToTake == -1 ? "all" : amountToTake.ToString();
+
+                                var msg = $"You hand over {amount} of your {itemTaken.GetPluralName()}.";
+
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                             }
                         }
