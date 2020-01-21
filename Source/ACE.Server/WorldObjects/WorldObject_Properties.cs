@@ -2820,6 +2820,16 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Indicates the maximum amount of items w/ this wcid
+        /// a player can have in their possession
+        /// </summary>
+        public int? Unique
+        {
+            get => GetProperty(PropertyInt.Unique);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Unique); else SetProperty(PropertyInt.Unique, value.Value); }
+        }
+
+        /// <summary>
         /// In addition to setting StackSize, this will also set the EncumbranceVal and Value appropriately.
         /// </summary>
         /// <param name="value"></param>
