@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
-
+using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
@@ -49,11 +49,36 @@ namespace ACE.Server.Managers
             }
         }
 
+        //private static readonly LinkedList<Player> sortedWorldObjectsByNextHeartbeat = new LinkedList<Player>();
+
+        //private static readonly Dictionary<uint, uint> playersPendingLogoff = new Dictionary<uint, uint>();
+
+        private static readonly LinkedList<Player> playersPendingLogoff = new LinkedList<Player>();
+
+        public static void AddPlayerToLogoffQueue(Player player) => playersPendingLogoff.AddLast(player);
+
         public static void Tick()
         {
             // Database Save
             if (lastDatabaseSave + databaseSaveInterval <= DateTime.UtcNow)
                 SaveOfflinePlayersWithChanges();
+
+            var currentUnixTime = Time.GetUnixTime();
+
+            while (playersPendingLogoff.Count > 0)
+            {
+                var first = playersPendingLogoff.First.Value;
+
+                if (first.LogoffTimestamp <= currentUnixTime)
+                {
+                    playersPendingLogoff.RemoveFirst();
+                    first.LogOut_Inner();
+                }
+                else
+                {
+                    break;
+                }
+            }
         }
 
         /// <summary>
