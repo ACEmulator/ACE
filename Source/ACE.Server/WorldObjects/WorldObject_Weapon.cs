@@ -708,6 +708,20 @@ namespace ACE.Server.WorldObjects
             return armorRendingMod;
         }
 
+        public double? IgnoreShield
+        {
+            get => GetProperty(PropertyFloat.IgnoreShield);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.IgnoreShield); else SetProperty(PropertyFloat.IgnoreShield, value.Value); }
+        }
+
+        public float GetIgnoreShieldMod(WorldObject weapon)
+        {
+            var creatureMod = IgnoreShield ?? 0.0f;
+            var weaponMod = weapon?.IgnoreShield ?? 0.0f;
+
+            return 1.0f - (float)Math.Max(creatureMod, weaponMod);
+        }
+
         public static int GetBaseSkillImbued(CreatureSkill skill)
         {
             switch (GetImbuedSkillType(skill))
