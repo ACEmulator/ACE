@@ -717,6 +717,15 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.IgnoreArmor); else SetProperty(PropertyFloat.IgnoreArmor, value.Value); }
         }
 
+        public float GetArmorCleavingMod(WorldObject weapon)
+        {
+            // investigate: should this value be on creatures directly?
+            var creatureMod = GetArmorCleavingMod();
+            var weaponMod = weapon != null ? weapon.GetArmorCleavingMod() : 1.0f;
+
+            return Math.Min(creatureMod, weaponMod);
+        }
+
         public float GetArmorCleavingMod()
         {
             if (IgnoreArmor == null)

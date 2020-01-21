@@ -245,20 +245,13 @@ namespace ACE.Server.Entity
             }
 
             // armor rending and cleaving
-            var ignoreArmorMod = 1.0f;
+            var armorRendingMod = 1.0f;
+            if (Weapon != null && Weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
+                armorRendingMod = WorldObject.GetArmorRendingMod(attackSkill);
 
-            if (Weapon != null)
-            {
-                var armorRendingMod = 1.0f;
-                if (Weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
-                    armorRendingMod = WorldObject.GetArmorRendingMod(attackSkill);
+            var armorCleavingMod = attacker.GetArmorCleavingMod(Weapon);
 
-                var armorCleavingMod = 1.0f;
-                if (Weapon.IgnoreArmor != null)
-                    armorCleavingMod = Weapon.GetArmorCleavingMod();
-
-                ignoreArmorMod = Math.Min(armorRendingMod, armorCleavingMod);
-            }
+            var ignoreArmorMod = Math.Min(armorRendingMod, armorCleavingMod);
 
             // get body part / armor pieces / armor modifier
             if (playerDefender != null)
