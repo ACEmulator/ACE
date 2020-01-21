@@ -110,9 +110,18 @@ namespace ACE.Server.WorldObjects
 
             SetProjectilePhysicsState(proj, target);
 
-            var result = LandblockManager.AddObject(proj);
+            var success = LandblockManager.AddObject(proj);
+
             if (proj.PhysicsObj == null)
                 return null;
+
+            if (!success || proj.PhysicsObj == null)
+            {
+                if (player != null)
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("Your missile attack hit the environment.", ChatMessageType.Broadcast));
+
+                return null;
+            }
 
             var pkStatus = player?.PlayerKillerStatus ?? PlayerKillerStatus.Creature;
 
