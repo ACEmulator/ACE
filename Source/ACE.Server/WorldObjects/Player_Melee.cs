@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using ACE.Entity;
+
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
@@ -53,9 +53,15 @@ namespace ACE.Server.WorldObjects
             if (CombatMode != CombatMode.Melee)
                 return;
 
+            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            {
+                SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
+                return;
+            }
+
             if (PKLogout)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                SendWeenieError(WeenieError.YouHaveBeenInPKBattleTooRecently);
                 return;
             }
 

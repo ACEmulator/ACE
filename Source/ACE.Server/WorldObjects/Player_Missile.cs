@@ -4,6 +4,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
@@ -43,9 +44,15 @@ namespace ACE.Server.WorldObjects
             if (CombatMode != CombatMode.Missile)
                 return;
 
+            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            {
+                SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
+                return;
+            }
+
             if (PKLogout)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                SendWeenieError(WeenieError.YouHaveBeenInPKBattleTooRecently);
                 return;
             }
 
