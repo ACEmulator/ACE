@@ -44,6 +44,12 @@ namespace ACE.Server.WorldObjects
             if (CombatMode != CombatMode.Missile)
                 return;
 
+            if (IsBusy)
+            {
+                SendWeenieError(WeenieError.YoureTooBusy);
+                return;
+            }
+
             if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
             {
                 SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
