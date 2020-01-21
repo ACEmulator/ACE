@@ -195,9 +195,8 @@ namespace ACE.Server.WorldObjects
             RequestedLocationBroadcast = broadcast;
         }
 
-        //public DateTime LastSoulEmote;
-
-        //private static TimeSpan SoulEmoteTime = TimeSpan.FromSeconds(2);
+        public MotionCommand LastSoulEmote;
+        public DateTime LastSoulEmoteEndTime;
 
         public void BroadcastMovement(MoveToState moveToState)
         {
@@ -225,14 +224,23 @@ namespace ACE.Server.WorldObjects
                     CurrentMotionState.SetForwardCommand(state.Commands[0].MotionCommand);
             }
 
-            /*if (state.HasSoulEmote())
+            if (state.HasSoulEmote(false))
             {
                 // prevent soul emote spam / bug where client sends multiples
-                var elapsed = DateTime.UtcNow - LastSoulEmote;
-                if (elapsed < SoulEmoteTime) return;
+                var soulEmote = state.Commands[0].MotionCommand;
+                if (soulEmote == LastSoulEmote && DateTime.UtcNow < LastSoulEmoteEndTime)
+                {
+                    state.Commands.Clear();
+                    state.CommandListLength = 0;
+                }
+                else
+                {
+                    var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, soulEmote, state.Commands[0].Speed);
 
-                LastSoulEmote = DateTime.UtcNow;
-            }*/
+                    LastSoulEmote = soulEmote;
+                    LastSoulEmoteEndTime = DateTime.UtcNow + TimeSpan.FromSeconds(animLength);
+                }
+            }
 
             var movementData = new MovementData(this, moveToState);
 
