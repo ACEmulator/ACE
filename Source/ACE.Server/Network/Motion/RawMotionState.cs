@@ -137,9 +137,9 @@ namespace ACE.Server.Network.Structure
             return (Flags & (RawMotionFlags.ForwardCommand | RawMotionFlags.TurnCommand | RawMotionFlags.SideStepCommand)) != 0;
         }
 
-        public bool HasSoulEmote()
+        public bool HasSoulEmote(bool checkForward = true)
         {
-            if ((Flags & RawMotionFlags.ForwardCommand) != 0 && SoulEmote.SoulEmotes.Contains(ForwardCommand))
+            if (checkForward && (Flags & RawMotionFlags.ForwardCommand) != 0 && SoulEmote.SoulEmotes.Contains(ForwardCommand))
                 return true;
 
             if (CommandListLength > 0 && SoulEmote.SoulEmotes.Contains(Commands[0].MotionCommand))
