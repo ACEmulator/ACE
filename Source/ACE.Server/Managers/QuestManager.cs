@@ -454,8 +454,8 @@ namespace ACE.Server.Managers
             var quest = GetQuest(questName);
             var numSolves = quest != null ? quest.NumTimesCompleted : 0;
 
-            int min = _min ?? 0;    // use defaults?
-            int max = _max ?? 0;
+            int min = _min ?? int.MinValue;    // use defaults?
+            int max = _max ?? int.MaxValue;
 
             var hasQuestSolves = numSolves >= min && numSolves <= max;    // verify: can either of these be -1?
             if (Debug)
