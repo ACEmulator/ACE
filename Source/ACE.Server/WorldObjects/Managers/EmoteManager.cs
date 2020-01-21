@@ -1178,10 +1178,25 @@ namespace ACE.Server.WorldObjects.Managers
                         if (player.TryConsumeFromInventoryWithNetworking(weenieItemToTake, amountToTake == -1 ? int.MaxValue : amountToTake))
                         {
                             var itemTaken = DatabaseManager.World.GetCachedWeenie(weenieItemToTake);
+
                             if (itemTaken != null)
                             {
-                                var msg = $"You hand over {(player.GetNumInventoryItemsOfWCID(itemTaken.ClassId) == 0 ? "all" : amountToTake.ToString())} of your {itemTaken.GetPluralName()}.";
-                                player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                                var msg = "";
+
+                                if (amountToTake == 1)
+                                {
+                                    msg = $"your {itemTaken.GetProperty(PropertyString.Name)}";
+                                }
+                                else
+                                {
+                                    var remaining = player.GetNumInventoryItemsOfWCID(itemTaken.ClassId);
+
+                                    var amount = remaining == 0 ? "all" : amountToTake.ToString();
+
+                                    msg = $"{amount} of your {itemTaken.GetPluralName()}";
+                                }
+
+                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You hand over {msg}.", ChatMessageType.Broadcast));
                             }
                         }
                     }
