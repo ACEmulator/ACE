@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using System.Numerics;
 
+using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -12,7 +14,6 @@ using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
-using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
@@ -73,33 +74,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Launches a projectile from player to target
         /// </summary>
-        public WorldObject LaunchProjectile(WorldObject weapon, WorldObject ammo, WorldObject target, out float time)
+        public WorldObject LaunchProjectile(WorldObject weapon, WorldObject ammo, WorldObject target, Vector3 origin, Quaternion orientation, Vector3 velocity)
         {
-            var proj = WorldObjectFactory.CreateNewWorldObject(ammo.WeenieClassId);
-
-            proj.ProjectileSource = this;
-            proj.ProjectileTarget = target;
-
-            proj.ProjectileLauncher = weapon;
-
-            var localOrigin = GetProjectileSpawnOrigin(proj);
-
-            var dir = GetDir2D(Location.Pos, target.Location.Pos);
-
-            var angle = Math.Atan2(-dir.X, dir.Y);
-
-            var rot = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)angle);
-
-            var origin = Location.Pos + Vector3.Transform(localOrigin, rot);
-
-            var dest = target.Location.Pos;
-            dest.Z += target.Height / GetAimHeight(target);
-
-            var speed = 35.0f;  // TODO: get correct speed
-
-            var velocity = GetProjectileVelocity(target, origin, dir, dest, speed, out time);
-
             var player = this as Player;
+
             if (!velocity.IsValid())
             {
                 if (player != null)
@@ -108,15 +86,20 @@ namespace ACE.Server.WorldObjects
                 return null;
             }
 
+            var proj = WorldObjectFactory.CreateNewWorldObject(ammo.WeenieClassId);
+
+            proj.ProjectileSource = this;
+            proj.ProjectileTarget = target;
+
+            proj.ProjectileLauncher = weapon;
+
             proj.Location = new Position(Location);
             proj.Location.Pos = origin;
-            proj.Location.Rotation = rot;
+            proj.Location.Rotation = orientation;
 
             proj.Velocity = velocity;
 
             SetProjectilePhysicsState(proj, target);
-
-            Console.WriteLine($"Trying to spawn {proj.Name} @ {proj.Location}");
 
             var success = LandblockManager.AddObject(proj);
 
@@ -145,40 +128,107 @@ namespace ACE.Server.WorldObjects
             return proj;
         }
 
-        public static readonly float ProjSpawnHeight = 0.85f;
+        public static readonly float ProjSpawnHeight = 0.8454f;
 
         /// <summary>
         /// Returns the origin to spawn the projectile in the attacker local space
         /// </summary>
-        public Vector3 GetProjectileSpawnOrigin(WorldObject projectile)
+        public Vector3 GetProjectileSpawnOrigin(uint projectileWcid, MotionCommand motion)
         {
             var attackerRadius = PhysicsObj.GetPhysicsRadius();
-            var projectileRadius = GetProjectileRadius(projectile);
+            var projectileRadius = GetProjectileRadius(projectileWcid);
 
-            Console.WriteLine($"{Name} radius: {attackerRadius}");
-            Console.WriteLine($"{projectile.Name} radius: {projectileRadius}");
+            //Console.WriteLine($"{Name} radius: {attackerRadius}");
+            //Console.WriteLine($"Projectile {projectileWcid} radius: {projectileRadius}");
 
             var radsum = attackerRadius * 2.0f + projectileRadius * 2.0f + PhysicsGlobals.EPSILON;
 
-            return new Vector3(0, radsum, Height * ProjSpawnHeight);
+            var origin = new Vector3(0, radsum, 0);
+
+            // rotate by aim angle
+            var angle = motion.GetAimAngle().ToRadians();
+            var zRotation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, angle);
+
+            origin = Vector3.Transform(origin, zRotation);
+
+            origin.Z += Height * ProjSpawnHeight;
+
+            return origin;
         }
 
-                /// <summary>
-        /// Returns the cached physics radius for a projectile wcid,
-        /// before it has been instantiated as a PhysicsObj
+        /// <summary>
+        /// Returns the cached physics radius for a projectile wcid
         /// </summary>
-        private static float GetProjectileRadius(WorldObject projectile)
+        private static float GetProjectileRadius(uint projectileWcid)
         {
-            var projectileWcid = projectile.WeenieClassId;
-
             if (ProjectileRadiusCache.TryGetValue(projectileWcid, out var radius))
                 return radius;
 
-            var setup = DatManager.PortalDat.ReadFromDat<SetupModel>(projectile.SetupTableId);
+            var weenie = DatabaseManager.World.GetCachedWeenie(projectileWcid);
 
-            var scale = projectile.ObjScale ?? 1.0f;
+            if (weenie == null)
+            {
+                log.Error($"Creature_Missile.GetProjectileRadius(): couldn't find projectile weenie {projectileWcid}");
+                return 0.0f;
+            }
 
-            return ProjectileRadiusCache[projectileWcid] = setup.Spheres[0].Radius * scale;
+            var setupId = weenie.WeeniePropertiesDID.FirstOrDefault(i => i.Type == (ushort)PropertyDataId.Setup);
+
+            if (setupId == null)
+            {
+                log.Error($"Creature_Missile.GetProjectileRadius(): couldn't find SetupId for {weenie.ClassId} - {weenie.ClassName}");
+                return 0.0f;
+            }
+
+            var setup = DatManager.PortalDat.ReadFromDat<SetupModel>(setupId.Value);
+
+            var scale = weenie.WeeniePropertiesFloat.FirstOrDefault(i => i.Type == (ushort)PropertyFloat.DefaultScale)?.Value ?? 1.0f;
+
+            return ProjectileRadiusCache[projectileWcid] = (float)(setup.Spheres[0].Radius * scale);
+        }
+
+        // todo: get correct speed from ammo launcher
+        public static readonly float ProjectileSpeed = 35.0f;
+
+        public Vector3 GetAimVelocity(WorldObject target)
+        {
+            var crossLandblock = Location.Landblock != target.Location.Landblock;
+
+            // eye level -> target point
+            var origin = crossLandblock ? Location.ToGlobal(false) : Location.Pos;
+            origin.Z += target.Height * ProjSpawnHeight;
+
+            var dest = crossLandblock ? target.Location.ToGlobal(false) : target.Location.Pos;
+            dest.Z += target.Height / GetAimHeight(target);
+
+            var dir = Vector3.Normalize(dest - origin);
+
+            var velocity = GetProjectileVelocity(target, origin, dir, dest, ProjectileSpeed, out float time);
+
+            return velocity;
+        }
+
+        public Vector3 CalculateProjectileVelocity(Vector3 localOrigin, WorldObject target, out Vector3 origin, out Quaternion rotation)
+        {
+            var crossLandblock = Location.Landblock != target.Location.Landblock;
+
+            var startPos = crossLandblock ? Location.ToGlobal(false) : Location.Pos;
+            var endPos = crossLandblock ? target.Location.ToGlobal(false) : target.Location.Pos;
+
+            var dir = Vector3.Normalize(endPos - startPos);
+
+            var angle = Math.Atan2(-dir.X, dir.Y);
+
+            rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)angle);
+
+            origin = Location.Pos + Vector3.Transform(localOrigin, rotation);
+
+            startPos += Vector3.Transform(localOrigin, rotation);
+            endPos.Z += target.Height / GetAimHeight(target);
+
+            var velocity = GetProjectileVelocity(target, startPos, dir, endPos, ProjectileSpeed, out float time);
+
+            return velocity;
         }
 
         /// <summary>
@@ -302,6 +352,45 @@ namespace ACE.Server.WorldObjects
                 maxRangeYards = (float)Math.Ceiling(maxRangeYards);*/
 
             return maxRange;
+        }
+
+        public static MotionCommand GetAimLevel(Vector3 velocity)
+        {
+            // get z-angle?
+            var zAngle = Vector3.Normalize(velocity).Z * 90.0f;
+
+            var aimLevel = MotionCommand.AimLevel;
+
+            if (zAngle >= 82.5f)
+                aimLevel = MotionCommand.AimHigh90;
+            else if (zAngle >= 67.5f)
+                aimLevel = MotionCommand.AimHigh75;
+            else if (zAngle >= 52.5f)
+                aimLevel = MotionCommand.AimHigh60;
+            else if (zAngle >= 37.5f)
+                aimLevel = MotionCommand.AimHigh45;
+            else if (zAngle >= 22.5f)
+                aimLevel = MotionCommand.AimHigh30;
+            else if (zAngle >= 7.5f)
+                aimLevel = MotionCommand.AimHigh15;
+            else if (zAngle > -7.5f)
+                aimLevel = MotionCommand.AimLevel;
+            else if (zAngle > -22.5f)
+                aimLevel = MotionCommand.AimLow15;
+            else if (zAngle > -37.5f)
+                aimLevel = MotionCommand.AimLow30;
+            else if (zAngle > -52.5f)
+                aimLevel = MotionCommand.AimLow45;
+            else if (zAngle > -67.5f)
+                aimLevel = MotionCommand.AimLow60;
+            else if (zAngle > -82.5f)
+                aimLevel = MotionCommand.AimLow75;
+            else
+                aimLevel = MotionCommand.AimLow90;
+
+            //Console.WriteLine($"Z Angle: {aimLevel.GetAimAngle()}");
+
+            return aimLevel;
         }
     }
 }
