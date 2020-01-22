@@ -224,7 +224,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             worldObject.CurrentWieldedLocation = wieldedLocation;
-            worldObject.WielderId = DatabaseBiota.Id;
+            worldObject.WielderId = Biota.Id;
             worldObject.Wielder = this;
 
             EquippedObjects[worldObject.Guid] = worldObject;

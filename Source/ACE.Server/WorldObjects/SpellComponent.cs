@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
+
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 
 namespace ACE.Server.WorldObjects

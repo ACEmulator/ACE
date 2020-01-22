@@ -4,8 +4,6 @@ using System.Linq;
 
 using log4net;
 
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -201,7 +199,7 @@ namespace ACE.Server.WorldObjects
             if (inventoryloaded)
                 return;
 
-            foreach (var item in DatabaseBiota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Shop))
+            foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Shop))
             {
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 

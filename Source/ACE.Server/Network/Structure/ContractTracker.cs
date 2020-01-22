@@ -1,8 +1,9 @@
+using System.IO;
+
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.Server.WorldObjects;
-using System.IO;
 
 namespace ACE.Server.Network.Structure
 {

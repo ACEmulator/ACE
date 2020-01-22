@@ -1,6 +1,7 @@
+using System;
+
 using ACE.Database.Models.Shard;
 using ACE.Server.Network.Structure;
-using System;
 
 namespace ACE.Server.Network.GameEvent.Events
 {
