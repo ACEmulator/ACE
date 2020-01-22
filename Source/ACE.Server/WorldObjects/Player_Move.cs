@@ -212,10 +212,14 @@ namespace ACE.Server.WorldObjects
             switch (status)
             {
                 case WeenieError.None:
+
                     Attack(MeleeTarget, AttackSequence);
                     break;
+
                 default:
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, status));
+                    Session.Network.EnqueueSend(new GameEventAttackDone(Session));
+                    SendWeenieError(status);
+
                     HandleActionCancelAttack();
                     break;
             }

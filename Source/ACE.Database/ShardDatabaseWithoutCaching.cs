@@ -61,7 +61,7 @@ namespace ACE.Database
                         cachedContext.SaveChanges();
 
                         if (firstException != null)
-                            log.Debug($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+                            log.Debug($"[DATABASE] SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
 
                         return true;
                     }
@@ -74,8 +74,8 @@ namespace ACE.Database
                         }
 
                         // Character name might be in use or some other fault
-                        log.Error($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
-                        log.Error($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
+                        log.Error($"[DATABASE] SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
+                        log.Error($"[DATABASE] SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
                         return false;
                     }
                 }
@@ -106,7 +106,7 @@ namespace ACE.Database
                         context.SaveChanges();
 
                         if (firstException != null)
-                            log.Debug($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+                            log.Debug($"[DATABASE] SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
 
                         return true;
                     }
@@ -119,8 +119,8 @@ namespace ACE.Database
                         }
 
                         // Character name might be in use or some other fault
-                        log.Error($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
-                        log.Error($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
+                        log.Error($"[DATABASE] SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
+                        log.Error($"[DATABASE] SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
                         return false;
                     }
                 }
@@ -152,7 +152,7 @@ namespace ACE.Database
                         context.SaveChanges();
 
                         if (firstException != null)
-                            log.Debug($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+                            log.Debug($"[DATABASE] SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
 
                         return true;
                     }
@@ -165,8 +165,8 @@ namespace ACE.Database
                         }
 
                         // Character name might be in use or some other fault
-                        log.Error($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
-                        log.Error($"SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
+                        log.Error($"[DATABASE] SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
+                        log.Error($"[DATABASE] SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
                         return false;
                     }
                 }
@@ -183,7 +183,7 @@ namespace ACE.Database
             // You'll notice though that we're not using the recommended: context.Entry(existingEntry).CurrentValues.SetValues(newEntry);
             // It is EXTREMLY slow. 4x or more slower. I suspect because it uses reflection to find the properties that the object contains
             // Manually setting the properties like we do below is the best case scenario for performance. However, it also has risks.
-            // If we add columns to the schema and forget to add those changes here, changes to the biota may not propegate to the database.
+            // If we add columns to the schema and forget to add those changes here, changes to the biota may not propagate to the database.
             // Mag-nus 2018-08-18
 
             context.Entry(existingBiota).CurrentValues.SetValues(biota);
@@ -209,13 +209,12 @@ namespace ACE.Database
 
             foreach (var value in biota.BiotaPropertiesAttribute)
             {
-                BiotaPropertiesAttribute existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesAttribute.FirstOrDefault(r => r.Id == value.Id));
+                BiotaPropertiesAttribute existingValue = existingBiota.BiotaPropertiesAttribute.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesAttribute.Add(value);
                 else
                 {
-                    existingValue.Type = value.Type;
                     existingValue.InitLevel = value.InitLevel;
                     existingValue.LevelFromCP = value.LevelFromCP;
                     existingValue.CPSpent = value.CPSpent;
@@ -223,19 +222,18 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesAttribute)
             {
-                if (!biota.BiotaPropertiesAttribute.Any(p => p.Id == value.Id))
+                if (!biota.BiotaPropertiesAttribute.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesAttribute.Remove(value);
             }
 
             foreach (var value in biota.BiotaPropertiesAttribute2nd)
             {
-                BiotaPropertiesAttribute2nd existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesAttribute2nd.FirstOrDefault(r => r.Id == value.Id));
+                BiotaPropertiesAttribute2nd existingValue = existingBiota.BiotaPropertiesAttribute2nd.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesAttribute2nd.Add(value);
                 else
                 {
-                    existingValue.Type = value.Type;
                     existingValue.InitLevel = value.InitLevel;
                     existingValue.LevelFromCP = value.LevelFromCP;
                     existingValue.CPSpent = value.CPSpent;
@@ -244,7 +242,7 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesAttribute2nd)
             {
-                if (!biota.BiotaPropertiesAttribute2nd.Any(p => p.Id == value.Id))
+                if (!biota.BiotaPropertiesAttribute2nd.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesAttribute2nd.Remove(value);
             }
 
@@ -330,19 +328,16 @@ namespace ACE.Database
 
             foreach (var value in biota.BiotaPropertiesBool)
             {
-                BiotaPropertiesBool existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesBool.FirstOrDefault(r => r.Id == value.Id));
+                BiotaPropertiesBool existingValue = existingBiota.BiotaPropertiesBool.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesBool.Add(value);
                 else
-                {
-                    existingValue.Type = value.Type;
                     existingValue.Value = value.Value;
-                }
             }
             foreach (var value in existingBiota.BiotaPropertiesBool)
             {
-                if (!biota.BiotaPropertiesBool.Any(p => p.Id == value.Id))
+                if (!biota.BiotaPropertiesBool.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesBool.Remove(value);
             }
 
@@ -370,19 +365,16 @@ namespace ACE.Database
 
             foreach (var value in biota.BiotaPropertiesDID)
             {
-                BiotaPropertiesDID existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesDID.FirstOrDefault(r => r.Id == value.Id));
+                BiotaPropertiesDID existingValue = existingBiota.BiotaPropertiesDID.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesDID.Add(value);
                 else
-                {
-                    existingValue.Type = value.Type;
                     existingValue.Value = value.Value;
-                }
             }
             foreach (var value in existingBiota.BiotaPropertiesDID)
             {
-                if (!biota.BiotaPropertiesDID.Any(p => p.Id == value.Id))
+                if (!biota.BiotaPropertiesDID.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesDID.Remove(value);
             }
 
@@ -469,7 +461,7 @@ namespace ACE.Database
 
             foreach (var value in biota.BiotaPropertiesEnchantmentRegistry)
             {
-                BiotaPropertiesEnchantmentRegistry existingValue = (value.ObjectId == 0 ? null : existingBiota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(r => r.ObjectId == value.ObjectId && r.SpellId == value.SpellId && r.LayerId == value.LayerId && r.CasterObjectId == value.CasterObjectId));
+                BiotaPropertiesEnchantmentRegistry existingValue = (value.ObjectId == 0 ? null : existingBiota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(r => r.SpellId == value.SpellId && r.LayerId == value.LayerId && r.CasterObjectId == value.CasterObjectId));
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesEnchantmentRegistry.Add(value);
@@ -495,42 +487,35 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesEnchantmentRegistry)
             {
-                if (!biota.BiotaPropertiesEnchantmentRegistry.Any(p => p.ObjectId == value.ObjectId && p.SpellId == value.SpellId && p.LayerId == value.LayerId && p.CasterObjectId == value.CasterObjectId))
+                if (!biota.BiotaPropertiesEnchantmentRegistry.Any(p => p.SpellId == value.SpellId && p.LayerId == value.LayerId && p.CasterObjectId == value.CasterObjectId))
                     context.BiotaPropertiesEnchantmentRegistry.Remove(value);
             }
 
             foreach (var value in biota.BiotaPropertiesEventFilter)
             {
-                BiotaPropertiesEventFilter existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesEventFilter.FirstOrDefault(r => r.Id == value.Id));
+                BiotaPropertiesEventFilter existingValue = existingBiota.BiotaPropertiesEventFilter.FirstOrDefault(r => r.Event == value.Event);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesEventFilter.Add(value);
-                else
-                {
-                    existingValue.Event = value.Event;
-                }
             }
             foreach (var value in existingBiota.BiotaPropertiesEventFilter)
             {
-                if (!biota.BiotaPropertiesEventFilter.Any(p => p.Id == value.Id))
+                if (!biota.BiotaPropertiesEventFilter.Any(p => p.Event == value.Event))
                     context.BiotaPropertiesEventFilter.Remove(value);
             }
 
             foreach (var value in biota.BiotaPropertiesFloat)
             {
-                BiotaPropertiesFloat existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesFloat.FirstOrDefault(r => r.Id == value.Id));
+                BiotaPropertiesFloat existingValue = existingBiota.BiotaPropertiesFloat.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesFloat.Add(value);
                 else
-                {
-                    existingValue.Type = value.Type;
                     existingValue.Value = value.Value;
-                }
             }
             foreach (var value in existingBiota.BiotaPropertiesFloat)
             {
-                if (!biota.BiotaPropertiesFloat.Any(p => p.Id == value.Id))
+                if (!biota.BiotaPropertiesFloat.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesFloat.Remove(value);
             }
 
@@ -570,55 +555,46 @@ namespace ACE.Database
 
             foreach (var value in biota.BiotaPropertiesIID)
             {
-                BiotaPropertiesIID existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesIID.FirstOrDefault(r => r.Id == value.Id));
+                BiotaPropertiesIID existingValue = existingBiota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesIID.Add(value);
                 else
-                {
-                    existingValue.Type = value.Type;
                     existingValue.Value = value.Value;
-                }
             }
             foreach (var value in existingBiota.BiotaPropertiesIID)
             {
-                if (!biota.BiotaPropertiesIID.Any(p => p.Id == value.Id))
+                if (!biota.BiotaPropertiesIID.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesIID.Remove(value);
             }
 
             foreach (var value in biota.BiotaPropertiesInt)
             {
-                BiotaPropertiesInt existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesInt.FirstOrDefault(r => r.Id == value.Id));
+                BiotaPropertiesInt existingValue = existingBiota.BiotaPropertiesInt.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesInt.Add(value);
                 else
-                {
-                    existingValue.Type = value.Type;
                     existingValue.Value = value.Value;
-                }
             }
             foreach (var value in existingBiota.BiotaPropertiesInt)
             {
-                if (!biota.BiotaPropertiesInt.Any(p => p.Id == value.Id))
+                if (!biota.BiotaPropertiesInt.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesInt.Remove(value);
             }
 
             foreach (var value in biota.BiotaPropertiesInt64)
             {
-                BiotaPropertiesInt64 existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesInt64.FirstOrDefault(r => r.Id == value.Id));
+                BiotaPropertiesInt64 existingValue = existingBiota.BiotaPropertiesInt64.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesInt64.Add(value);
                 else
-                {
-                    existingValue.Type = value.Type;
                     existingValue.Value = value.Value;
-                }
             }
             foreach (var value in existingBiota.BiotaPropertiesInt64)
             {
-                if (!biota.BiotaPropertiesInt64.Any(p => p.Id == value.Id))
+                if (!biota.BiotaPropertiesInt64.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesInt64.Remove(value);
             }
 
@@ -643,13 +619,12 @@ namespace ACE.Database
 
             foreach (var value in biota.BiotaPropertiesPosition)
             {
-                BiotaPropertiesPosition existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesPosition.FirstOrDefault(r => r.Id == value.Id));
+                BiotaPropertiesPosition existingValue = existingBiota.BiotaPropertiesPosition.FirstOrDefault(r => r.PositionType == value.PositionType);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesPosition.Add(value);
                 else
                 {
-                    existingValue.PositionType = value.PositionType;
                     existingValue.ObjCellId = value.ObjCellId;
                     existingValue.OriginX = value.OriginX;
                     existingValue.OriginY = value.OriginY;
@@ -662,19 +637,18 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesPosition)
             {
-                if (!biota.BiotaPropertiesPosition.Any(p => p.Id == value.Id))
+                if (!biota.BiotaPropertiesPosition.Any(p => p.PositionType == value.PositionType))
                     context.BiotaPropertiesPosition.Remove(value);
             }
 
             foreach (var value in biota.BiotaPropertiesSkill)
             {
-                BiotaPropertiesSkill existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesSkill.FirstOrDefault(r => r.Id == value.Id));
+                BiotaPropertiesSkill existingValue = existingBiota.BiotaPropertiesSkill.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesSkill.Add(value);
                 else
                 {
-                    existingValue.Type = value.Type;
                     existingValue.LevelFromPP = value.LevelFromPP;
                     existingValue.SAC = value.SAC;
                     existingValue.PP = value.PP;
@@ -685,43 +659,37 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesSkill)
             {
-                if (!biota.BiotaPropertiesSkill.Any(p => p.Id == value.Id))
+                if (!biota.BiotaPropertiesSkill.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesSkill.Remove(value);
             }
 
             foreach (var value in biota.BiotaPropertiesSpellBook)
             {
-                BiotaPropertiesSpellBook existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesSpellBook.FirstOrDefault(r => r.Id == value.Id));
+                BiotaPropertiesSpellBook existingValue = existingBiota.BiotaPropertiesSpellBook.FirstOrDefault(r => r.Spell == value.Spell);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesSpellBook.Add(value);
                 else
-                {
-                    existingValue.Spell = value.Spell;
                     existingValue.Probability = value.Probability;
-                }
             }
             foreach (var value in existingBiota.BiotaPropertiesSpellBook)
             {
-                if (!biota.BiotaPropertiesSpellBook.Any(p => p.Id == value.Id))
+                if (!biota.BiotaPropertiesSpellBook.Any(p => p.Spell == value.Spell))
                     context.BiotaPropertiesSpellBook.Remove(value);
             }
 
             foreach (var value in biota.BiotaPropertiesString)
             {
-                BiotaPropertiesString existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesString.FirstOrDefault(r => r.Id == value.Id));
+                BiotaPropertiesString existingValue = existingBiota.BiotaPropertiesString.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesString.Add(value);
                 else
-                {
-                    existingValue.Type = value.Type;
                     existingValue.Value = value.Value;
-                }
             }
             foreach (var value in existingBiota.BiotaPropertiesString)
             {
-                if (!biota.BiotaPropertiesString.Any(p => p.Id == value.Id))
+                if (!biota.BiotaPropertiesString.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesString.Remove(value);
             }
 
@@ -747,19 +715,16 @@ namespace ACE.Database
 
             foreach (var value in biota.HousePermission)
             {
-                HousePermission existingValue = (value.Id == 0 ? null : existingBiota.HousePermission.FirstOrDefault(r => r.Id == value.Id));
+                HousePermission existingValue =  existingBiota.HousePermission.FirstOrDefault(r => r.HouseId == value.HouseId && r.PlayerGuid == value.PlayerGuid);
 
                 if (existingValue == null)
                     existingBiota.HousePermission.Add(value);
                 else
-                {
-                    existingValue.PlayerGuid = value.PlayerGuid;
                     existingValue.Storage = value.Storage;
-                }
             }
             foreach (var value in existingBiota.HousePermission)
             {
-                if (!biota.HousePermission.Any(p => p.Id == value.Id))
+                if (!biota.HousePermission.Any(p => p.HouseId == value.HouseId && p.PlayerGuid == value.PlayerGuid))
                     context.HousePermission.Remove(value);
             }
         }
@@ -783,7 +748,7 @@ namespace ACE.Database
                         cachedContext.SaveChanges();
 
                         if (firstException != null)
-                            log.Debug($"RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+                            log.Debug($"[DATABASE] RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
 
                         return true;
                     }
@@ -796,8 +761,8 @@ namespace ACE.Database
                         }
 
                         // Character name might be in use or some other fault
-                        log.Error($"RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
-                        log.Error($"RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
+                        log.Error($"[DATABASE] RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
+                        log.Error($"[DATABASE] RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
                         return false;
                     }
                 }
@@ -823,7 +788,7 @@ namespace ACE.Database
                     rwLock.EnterWriteLock();
                     try
                     {
-                        context.Biota.Remove(biota);
+                        context.Biota.Remove(existingBiota);
 
                         Exception firstException = null;
                         retry:
@@ -833,7 +798,7 @@ namespace ACE.Database
                             context.SaveChanges();
 
                             if (firstException != null)
-                                log.Debug($"RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+                                log.Debug($"[DATABASE] RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
 
                             return true;
                         }
@@ -846,8 +811,8 @@ namespace ACE.Database
                             }
 
                             // Character name might be in use or some other fault
-                            log.Error($"RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
-                            log.Error($"RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
+                            log.Error($"[DATABASE] RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
+                            log.Error($"[DATABASE] RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
                             return false;
                         }
                     }

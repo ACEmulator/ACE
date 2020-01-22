@@ -42,9 +42,10 @@ namespace ACE.Server.WorldObjects
         public void AddGeneratorProfiles()
         {
             GeneratorProfiles = new List<GeneratorProfile>();
+            uint i = 0;
 
             foreach (var generator in Biota.BiotaPropertiesGenerator)
-                GeneratorProfiles.Add(new GeneratorProfile(this, generator));
+                GeneratorProfiles.Add(new GeneratorProfile(this, generator, i++));
         }
 
         /// <summary>
@@ -744,7 +745,7 @@ namespace ACE.Server.WorldObjects
                 profile.WhenCreate = profileTemplate.Biota.WhenCreate;
                 profile.WhereCreate = profileTemplate.Biota.WhereCreate;
 
-                GeneratorProfiles.Add(new GeneratorProfile(this, profile));
+                GeneratorProfiles.Add(new GeneratorProfile(this, profile, link.Guid));
                 if (profile.Probability == -1)
                 {
                     InitCreate += profile.InitCreate;

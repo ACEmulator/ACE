@@ -33,12 +33,12 @@ namespace ACE.Database
                 {
                     if (((RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>()).Exists())
                     {
-                        log.Debug($"Successfully connected to {config.Database} database on {config.Host}:{config.Port}.");
+                        log.Debug($"[DATABASE] Successfully connected to {config.Database} database on {config.Host}:{config.Port}.");
                         return true;
                     }
                 }
 
-                log.Error($"Attempting to reconnect to {config.Database} database on {config.Host}:{config.Port} in 5 seconds...");
+                log.Error($"[DATABASE] Attempting to reconnect to {config.Database} database on {config.Host}:{config.Port} in 5 seconds...");
 
                 if (retryUntilFound)
                     Thread.Sleep(5000);
@@ -428,12 +428,29 @@ namespace ACE.Database
         }
 
         /// <summary>
+        /// Clears the cached landblock instances for a specific landblock
+        /// </summary>
+        public bool ClearCachedInstancesByLandblock(ushort landblock)
+        {
+            using (var context = new WorldDbContext())
+                return ClearCachedInstancesByLandblock(context, landblock);
+        }
+
+        /// <summary>
         /// Returns statics spawn map and their links for the landblock
         /// </summary>
         public List<LandblockInstance> GetCachedInstancesByLandblock(ushort landblock)
         {
             using (var context = new WorldDbContext())
                 return GetCachedInstancesByLandblock(context, landblock);
+        }
+
+        /// <summary>
+        /// Clears the cached landblock instances for a specific landblock
+        /// </summary>
+        public bool ClearCachedInstancesByLandblock(WorldDbContext context, ushort landblock)
+        {
+            return cachedLandblockInstances.TryRemove(landblock, out _);
         }
 
         public List<LandblockInstance> GetCachedInstancesByLandblock(WorldDbContext context, ushort landblock)

@@ -1096,22 +1096,30 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
-        public float EnqueueMotionAction(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, bool usePrevCommand = false)
+        public float EnqueueMotionAction(ActionChain actionChain, List<MotionCommand> motionCommands, float speed = 1.0f, bool useStance = true, bool usePrevCommand = false)
         {
             var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
 
             var motion = new Motion(stance, MotionCommand.Ready, speed);
-            motion.MotionState.AddCommand(this, motionCommand, speed);
+
+            foreach (var motionCommand in motionCommands)
+                motion.MotionState.AddCommand(this, motionCommand, speed);
+
             motion.MotionState.TurnSpeed = 2.25f;  // ??
 
             var animLength = 0.0f;
             if (usePrevCommand)
             {
                 var prevCommand = CurrentMotionState.MotionState.ForwardCommand;
-                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand, motionCommand, speed);
+
+                foreach (var motionCommand in motionCommands)
+                    animLength += Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand, motionCommand, speed);
             }
             else
-                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
+            {
+                foreach (var motionCommand in motionCommands)
+                    animLength += Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
+            }
 
             actionChain.AddAction(this, () =>
             {

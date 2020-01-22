@@ -134,7 +134,7 @@ namespace ACE.Database
             }
             catch (Exception ex)
             {
-                log.Error($"PurgeCharacter 0x{characterId:X8} failed with exception: {ex}");
+                log.Error($"[DATABASE][PURGE] PurgeCharacter 0x{characterId:X8} failed with exception: {ex}");
             }
         }
 
@@ -244,7 +244,7 @@ namespace ACE.Database
             }
             catch (Exception ex)
             {
-                log.Error($"PurgePlayer 0x{playerId:X8} failed with exception: {ex}");
+                log.Error($"[DATABASE][PURGE] PurgePlayer 0x{playerId:X8} failed with exception: {ex}");
             }
         }
 
@@ -297,7 +297,7 @@ namespace ACE.Database
                 }
                 catch (Exception ex)
                 {
-                    log.Error($"PurgeBiota 0x{id:X8} failed with exception: {ex}");
+                    log.Error($"[DATABASE][PURGE] PurgeBiota 0x{id:X8} failed with exception: {ex}");
                 }
 
                 return true;
@@ -341,10 +341,10 @@ namespace ACE.Database
                     PurgeCharacter(result.id, out var charactersPurged, out var playerBiotasPurged, out var posessionsPurged, "No Player biota counterpart found");
 
                     if (charactersPurged != 1)
-                        log.Error("PurgeOrphanedBiotasInParallel failed to purge exactly 1 character. This should not happen!");
+                        log.Error("[DATABASE][PURGE] PurgeOrphanedBiotasInParallel failed to purge exactly 1 character. This should not happen!");
 
                     if (playerBiotasPurged != 0)
-                        log.Error("PurgeOrphanedBiotasInParallel purged a player biota and character record. This should not happen!");
+                        log.Error("[DATABASE][PURGE] PurgeOrphanedBiotasInParallel purged a player biota and character record. This should not happen!");
 
                     Interlocked.Add(ref totalNumberOfBiotasPurged, charactersPurged);
                     Interlocked.Add(ref totalNumberOfBiotasPurged, playerBiotasPurged);
@@ -379,10 +379,10 @@ namespace ACE.Database
                     PurgePlayer(result.id, out var charactersPurged, out var playerBiotasPurged, out var posessionsPurged, "No Character record counterpart found");
 
                     if (charactersPurged != 0)
-                        log.Error("PurgeOrphanedBiotasInParallel purged a character record and a player biota. This should not happen!");
+                        log.Error("[DATABASE][PURGE] PurgeOrphanedBiotasInParallel purged a character record and a player biota. This should not happen!");
 
                     if (playerBiotasPurged != 1)
-                        log.Error("PurgeOrphanedBiotasInParallel failed to purge exactly 1 player biota. This should not happen!");
+                        log.Error("[DATABASE][PURGE] PurgeOrphanedBiotasInParallel failed to purge exactly 1 player biota. This should not happen!");
 
                     Interlocked.Add(ref totalNumberOfBiotasPurged, charactersPurged);
                     Interlocked.Add(ref totalNumberOfBiotasPurged, playerBiotasPurged);

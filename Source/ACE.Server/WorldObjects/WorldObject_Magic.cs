@@ -1118,9 +1118,15 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<SpellProjectile> CreateSpellProjectiles(Spell spell, WorldObject target, WorldObject caster)
         {
+            if (spell.NumProjectiles == 0)
+            {
+                log.Error($"{Name} ({Guid}).CreateSpellProjectiles({spell.Id} - {spell.Name}) - spell.NumProjectiles == 0");
+                return new List<SpellProjectile>();
+            }
+
             var spellType = SpellProjectile.GetProjectileSpellType(spell.Id);
 
-            var origins = CalculateProjectileOrigins(spell);
+            var origins = CalculateProjectileOrigins(spell, spellType);
 
             var velocity = CalculateProjectileVelocity(spell, target, spellType, origins[0]);
 
@@ -1133,7 +1139,7 @@ namespace ACE.Server.WorldObjects
         /// Returns a list of positions to spawn projectiles for a spell,
         /// in local space relative to the caster
         /// </summary>
-        public List<Vector3> CalculateProjectileOrigins(Spell spell)
+        public List<Vector3> CalculateProjectileOrigins(Spell spell, ProjectileSpellType spellType)
         {
             var origins = new List<Vector3>();
 
@@ -1151,7 +1157,9 @@ namespace ACE.Server.WorldObjects
 
             baseOffset.Y += radsum;
 
-            baseOffset.Z += Height * ProjHeight;
+            var projHeight = spellType == ProjectileSpellType.Arc ? 1.0f : ProjHeight;
+
+            baseOffset.Z += Height * projHeight;
 
             var anglePerStep = GetSpreadAnglePerStep(spell);
 
@@ -1170,7 +1178,14 @@ namespace ACE.Server.WorldObjects
                         if (i >= spell.NumProjectiles)
                             break;
 
-                        var curOffset = baseOffset + spell.Peturbation * i;
+                        var curOffset = baseOffset;
+
+                        if (spell.Peturbation != Vector3.Zero)
+                        {
+                            var rng = new Vector3(ThreadSafeRandom.Next(-1.0f, 1.0f), ThreadSafeRandom.Next(-1.0f, 1.0f), ThreadSafeRandom.Next(-1.0f, 1.0f));
+
+                            curOffset += rng * spell.Peturbation * spell.Padding;
+                        }
 
                         if (!oddRow && spell.SpreadAngle == 0)
                             curOffset.X += spell.Padding.X * 0.5f + radius;
@@ -1258,11 +1273,11 @@ namespace ACE.Server.WorldObjects
             var dir = Vector3.Normalize(endPos - startPos);
 
             // TODO: change to instantaneous velocity
-            var targetVelocity = target.PhysicsObj.CachedVelocity;
+            var targetVelocity = spell.IsTracking ? target.PhysicsObj.CachedVelocity : Vector3.Zero;
 
             var useGravity = spellType == ProjectileSpellType.Arc;
 
-            if (useGravity || target != null && targetVelocity != Vector3.Zero && spell.IsTracking)
+            if (useGravity || targetVelocity != Vector3.Zero)
             {
                 var gravity = useGravity ? PhysicsGlobals.Gravity : 0.0f;
 
@@ -1282,8 +1297,10 @@ namespace ACE.Server.WorldObjects
 
             var spellProjectiles = new List<SpellProjectile>();
 
-            foreach (var origin in origins)
+            for (var i = 0; i < origins.Count; i++)
             {
+                var origin = origins[i];
+
                 var sp = WorldObjectFactory.CreateNewWorldObject(spell.Wcid) as SpellProjectile;
 
                 if (sp == null)
@@ -1309,7 +1326,10 @@ namespace ACE.Server.WorldObjects
 
                 sp.ProjectileSource = this;
                 sp.Caster = caster;
-                sp.ProjectileTarget = target;
+
+                // side projectiles always untargeted?
+                if (i == 0)     
+                    sp.ProjectileTarget = target;
 
                 sp.SetProjectilePhysicsState(target, useGravity);
                 sp.SpawnPos = new Position(sp.Location);
@@ -1648,5 +1668,17 @@ namespace ACE.Server.WorldObjects
         /// Returns the legendary cantrips from this item's spellbook
         /// </summary>
         public List<BiotaPropertiesSpellBook> LegendaryCantrips => Biota.BiotaPropertiesSpellBook.Where(i => LootTables.LegendaryCantrips.Contains(i.Spell)).ToList();
+
+        private uint? _maxSpellLevel;
+
+        public uint GetMaxSpellLevel()
+        {
+            if (_maxSpellLevel == null)
+            {
+                _maxSpellLevel = Biota.BiotaPropertiesSpellBook.Any() ?
+                    Biota.BiotaPropertiesSpellBook.Select(i => new Spell(i.Spell)).Max(i => i.Formula.Level) : 0;
+            }
+            return _maxSpellLevel.Value;
+        }
     }
 }

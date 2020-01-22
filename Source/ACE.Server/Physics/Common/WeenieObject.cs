@@ -143,6 +143,9 @@ namespace ACE.Server.Physics.Common
 
         public void InqCollisionProfile(ObjCollisionProfile prof)
         {
+            if (WorldObject == null)
+                return;
+
             prof.WCID = ID;
             prof.ItemType = WorldObject.ItemType;
 

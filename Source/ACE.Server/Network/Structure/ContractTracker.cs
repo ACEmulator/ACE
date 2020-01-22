@@ -58,10 +58,20 @@ namespace ACE.Server.Network.Structure
                     Stage = ContractStage.InProgress;
             }
 
-            if (!string.IsNullOrWhiteSpace(Contract.QuestflagFinished))
+            if (!string.IsNullOrWhiteSpace(Contract.QuestflagStamped))
             {
-                if (player.QuestManager.HasQuest(Contract.QuestflagFinished))
-                    Stage = ContractStage.DoneOrPendingRepeat;
+                if (player.QuestManager.HasQuest(Contract.QuestflagStamped))
+                    Stage = ContractStage.InProgress;
+            }
+
+            if (!string.IsNullOrWhiteSpace(Contract.QuestflagTimer))
+            {
+                if (player.QuestManager.HasQuest(Contract.QuestflagTimer))
+                {
+                    TimeWhenDone = player.QuestManager.GetNextSolveTime(Contract.QuestflagTimer).TotalSeconds;
+
+                    Stage = ContractStage.InProgress;
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(Contract.QuestflagProgress))
@@ -75,23 +85,10 @@ namespace ACE.Server.Network.Structure
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(Contract.QuestflagStamped))
+            if (!string.IsNullOrWhiteSpace(Contract.QuestflagFinished))
             {
-                if (player.QuestManager.HasQuest(Contract.QuestflagStamped))
-                    Stage = ContractStage.InProgress; // Is this right?
-            }
-
-            if (!string.IsNullOrWhiteSpace(Contract.QuestflagTimer))
-            {
-                if (player.QuestManager.HasQuest(Contract.QuestflagTimer))
-                {
-                    TimeWhenDone = player.QuestManager.GetNextSolveTime(Contract.QuestflagTimer).TotalSeconds; // Is this right?
-
-                    if (TimeWhenDone > 0)
-                        Stage = ContractStage.InProgress;
-                    else
-                        Stage = ContractStage.DoneOrPendingRepeat;
-                }
+                if (player.QuestManager.HasQuest(Contract.QuestflagFinished))
+                    Stage = ContractStage.DoneOrPendingRepeat;
             }
 
             if (!string.IsNullOrWhiteSpace(Contract.QuestflagRepeatTime))

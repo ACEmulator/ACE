@@ -183,7 +183,7 @@ namespace ACE.Server.Managers
             double successChance;
             bool incItemTinkered = true;
 
-            Console.WriteLine($"{player.Name}.HandleTinkering({tool.Name}, {target.Name})");
+            Console.WriteLine($"{player.Name}.HandleTinkering({tool.NameWithMaterial}, {target.NameWithMaterial})");
 
             // calculate % success chance
 
@@ -726,7 +726,7 @@ namespace ACE.Server.Managers
             if (usable.HasFlag(Usable.Wielded))
                 searchLocations |= Player.SearchLocations.MyEquippedItems;
             if (usable.HasFlag(Usable.Remote))
-                searchLocations |= Player.SearchLocations.Landblock;    // TODO: moveto for this type
+                searchLocations |= Player.SearchLocations.LocationsICanMove;    // TODO: moveto for this type
 
             return player.FindObject(obj.Guid.Full, searchLocations) != null;
         }
