@@ -662,8 +662,19 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+        public PickupState PickupState { get; set; }
+        public Action NextPickup { get; set; }
+
+        public void StartPickup()
+        {
+            PickupState = PickupState.Start;
+            IsBusy = true;
+        }
+
         public void EnqueuePickupDone(MotionCommand pickupMotion)
         {
+            PickupState = PickupState.Return;
+
             var returnStance = new Motion(CurrentMotionState.Stance);
             EnqueueBroadcastMotion(returnStance);
 
@@ -671,7 +682,17 @@ namespace ACE.Server.WorldObjects
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(animTime);
-            actionChain.AddAction(this, () => IsBusy = false);
+            actionChain.AddAction(this, () =>
+            {
+                PickupState = PickupState.None;
+                IsBusy = false;
+
+                if (NextPickup != null)
+                {
+                    NextPickup();
+                    NextPickup = null;
+                }
+            });
             actionChain.EnqueueChain();
         }
 
@@ -694,8 +715,14 @@ namespace ACE.Server.WorldObjects
 
             if (IsBusy)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                if (PickupState != PickupState.Return || NextPickup != null)
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                }
+                else
+                    NextPickup = () => { HandleActionPutItemInContainer(itemGuid, containerGuid, placement); };
+
                 return;
             }
 
@@ -824,7 +851,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    IsBusy = true;
+                    StartPickup();
 
                     var pickupMotion = GetPickupMotion(moveToTarget);
                     var pickupChain = AddPickupChainToMoveToChain(pickupMotion);
@@ -1237,7 +1264,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    IsBusy = true;
+                    StartPickup();
 
                     var pickupMotion = GetPickupMotion(rootOwner ?? item);
                     var pickupChain = AddPickupChainToMoveToChain(pickupMotion);
@@ -1721,7 +1748,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    IsBusy = true;
+                    StartPickup();
 
                     var pickupMotion = GetPickupMotion(moveToObject);
                     var pickupChain = AddPickupChainToMoveToChain(pickupMotion);
@@ -2083,7 +2110,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    IsBusy = true;
+                    StartPickup();
 
                     var pickupMotion = GetPickupMotion(moveToObject);
                     var pickupChain = AddPickupChainToMoveToChain(pickupMotion);

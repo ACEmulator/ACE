@@ -616,8 +616,6 @@ namespace ACE.Server.Network
 
                 packetLog.Debug(packet.ToString());
 
-                buffer = NetworkSyntheticTesting.SyntheticCorruption_S2C(buffer);
-
                 if (packetLog.IsDebugEnabled)
                 {
                     var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;

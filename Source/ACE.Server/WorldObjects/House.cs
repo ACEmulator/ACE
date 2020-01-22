@@ -321,17 +321,30 @@ namespace ACE.Server.WorldObjects
 
             var housePermissions = Biota.HousePermissions.Clone(BiotaDatabaseLock);
 
+            var deleted = new List<uint>();
+
             foreach (var housePermission in housePermissions)
             {
                 var player = PlayerManager.FindByGuid(housePermission.PlayerGuid);
-
                 if (player == null)
                 {
                     Console.WriteLine($"{Name}.BuildGuests(): couldn't find guest {housePermission.PlayerGuid:X8}");
+
+                    // character has been deleted -- automatically remove?
+                    deleted.Add(housePermission.PlayerGuid);
                     continue;
                 }
-
                 Guests.Add(player.Guid, housePermission.Storage);
+            }
+
+            if (deleted.Count > 0)
+            {
+                foreach (var guid in deleted)
+                    Biota.HousePermissions.TryRemove(guid, BiotaDatabaseLock);
+
+                ChangesDetected = true;
+
+                SaveBiotaToDatabase();
             }
         }
 

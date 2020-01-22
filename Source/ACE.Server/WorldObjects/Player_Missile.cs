@@ -4,6 +4,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
@@ -38,12 +39,26 @@ namespace ACE.Server.WorldObjects
         /// <param name="accuracyLevel">The 0-1 accuracy bar level</param>
         public void HandleActionTargetedMissileAttack(uint targetGuid, uint attackHeight, float accuracyLevel)
         {
+            //log.Info($"-");
+
             if (CombatMode != CombatMode.Missile)
                 return;
 
+            if (IsBusy)
+            {
+                SendWeenieError(WeenieError.YoureTooBusy);
+                return;
+            }
+
+            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            {
+                SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
+                return;
+            }
+
             if (PKLogout)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                SendWeenieError(WeenieError.YouHaveBeenInPKBattleTooRecently);
                 return;
             }
 
@@ -56,7 +71,10 @@ namespace ACE.Server.WorldObjects
             if (weapon == null || weapon.IsAmmoLauncher && ammo == null) return;
 
             AttackHeight = (AttackHeight)attackHeight;
-            AccuracyLevel = accuracyLevel;
+            AttackQueue.Add(accuracyLevel);
+
+            if (MissileTarget == null)
+                AccuracyLevel = accuracyLevel;
 
             // get world object of target guid
             var target = CurrentLandblock?.GetObject(targetGuid) as Creature;
@@ -68,6 +86,18 @@ namespace ACE.Server.WorldObjects
 
             if (Attacking || MissileTarget != null && MissileTarget.IsAlive)
                 return;
+
+            // perform verifications
+            if (IsBusy || Teleporting)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                return;
+            }
+
+            if (target.Teleporting)
+                return;     // werror?
+
+            //log.Info($"{Name}.HandleActionTargetedMissileAttack({targetGuid:X8}, {attackHeight}, {accuracyLevel})");
 
             AttackTarget = target;
             MissileTarget = target;
@@ -94,16 +124,27 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void LaunchMissile(WorldObject target, int attackSequence)
         {
+            if (AttackSequence != attackSequence)
+                return;
+
             var weapon = GetEquippedMissileWeapon();
-            if (weapon == null || CombatMode == CombatMode.NonCombat) return;
+            if (weapon == null || CombatMode == CombatMode.NonCombat)
+            {
+                OnAttackDone();
+                return;
+            }
 
             var ammo = weapon.IsAmmoLauncher ? GetEquippedAmmo() : weapon;
-            if (ammo == null) return;
+            if (ammo == null)
+            {
+                OnAttackDone();
+                return;
+            }
 
             var creature = target as Creature;
-            if (!IsAlive || MissileTarget == null || creature == null || !creature.IsAlive || AttackSequence != attackSequence)
+            if (!IsAlive || MissileTarget == null || creature == null || !creature.IsAlive)
             {
-                MissileTarget = null;
+                OnAttackDone();
                 return;
             }
 
@@ -142,6 +183,7 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
                     SetCombatMode(CombatMode.NonCombat);
                     Attacking = false;
+                    OnAttackDone();
                 });
 
                 actionChain.EnqueueChain();
@@ -172,6 +214,8 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
                     Session.Network.EnqueueSend(new GameEventAttackDone(Session));
 
+                    AccuracyLevel = AttackQueue.Fetch();
+
                     // can be cancelled, but cannot be pre-empted with another attack
                     var nextAttack = new ActionChain();
                     var nextRefillTime = AccuracyLevel + 0.1f;
@@ -184,7 +228,7 @@ namespace ACE.Server.WorldObjects
                     nextAttack.EnqueueChain();
                 }
                 else
-                    MissileTarget = null;
+                    OnAttackDone();
             });
 
             actionChain.EnqueueChain();
