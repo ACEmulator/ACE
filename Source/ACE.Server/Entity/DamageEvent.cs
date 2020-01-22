@@ -7,6 +7,7 @@ using log4net;
 using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
@@ -114,7 +115,7 @@ namespace ACE.Server.Entity
         public List<WorldObject> Armor;
 
         // creature defender
-        public BiotaPropertiesBodyPart BiotaPropertiesBodyPart;
+        public KeyValuePair<CombatBodyPart, PropertiesBodyPart> PropertiesBodyPart;
         public Creature_BodyPart CreaturePart;
 
         public float Damage;
@@ -271,7 +272,7 @@ namespace ACE.Server.Entity
                 if (Evaded)
                     return 0.0f;
 
-                Armor = CreaturePart.GetArmorLayers((CombatBodyPart)BiotaPropertiesBodyPart.Key);
+                Armor = CreaturePart.GetArmorLayers((CombatBodyPart)PropertiesBodyPart.Key);
 
                 // get target armor
                 ArmorMod = CreaturePart.GetArmorMod(DamageType, Armor, Weapon, armorRendingMod);
@@ -417,7 +418,8 @@ namespace ACE.Server.Entity
 
             //Console.WriteLine($"AttackHeight: {AttackHeight}, Quadrant: {quadrant & FrontBack}{quadrant & LeftRight}, AttackPart: {bodyPart}");
 
-            BiotaPropertiesBodyPart = Defender.DatabaseBiota.BiotaPropertiesBodyPart.FirstOrDefault(i => i.Key == (ushort)bodyPart);
+            defender.Biota.PropertiesBodyPart.TryGetValue((ushort)bodyPart, out var value);
+            PropertiesBodyPart = new KeyValuePair<CombatBodyPart, PropertiesBodyPart>(bodyPart, value);
 
             // select random body part @ current attack height
             /*BiotaPropertiesBodyPart = BodyParts.GetBodyPart(defender, attackHeight);
@@ -428,7 +430,7 @@ namespace ACE.Server.Entity
                 return;
             }*/
 
-            CreaturePart = new Creature_BodyPart(defender, BiotaPropertiesBodyPart);
+            CreaturePart = new Creature_BodyPart(defender, PropertiesBodyPart);
         }
 
         public void ShowInfo(Player player)
@@ -524,8 +526,8 @@ namespace ACE.Server.Entity
             if (CreaturePart != null)
             {
                 // creature body part
-                info += $"BodyPart: {(CombatBodyPart)BiotaPropertiesBodyPart.Key}\n";
-                info += $"BaseArmor: {CreaturePart.Biota.BaseArmor}\n";
+                info += $"BodyPart: {(CombatBodyPart)PropertiesBodyPart.Key}\n";
+                info += $"BaseArmor: {CreaturePart.Biota.Value.BaseArmor}\n";
             }
 
             // damage mitigation

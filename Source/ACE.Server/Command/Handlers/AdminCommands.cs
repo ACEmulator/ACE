@@ -1125,9 +1125,9 @@ namespace ACE.Server.Command.Handlers
                     return;
 
                 var msg = "";
-                if (wo is Creature creature && wo.DatabaseBiota.BiotaPropertiesCreateList.Count > 0)
+                if (wo is Creature creature && wo.Biota.PropertiesCreateList != null && wo.Biota.PropertiesCreateList.Count > 0)
                 {
-                    var createList = creature.DatabaseBiota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Contain) != 0 ||
+                    var createList = creature.Biota.PropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Contain) != 0 ||
                         (i.DestinationType & (int)DestinationType.Treasure) != 0 && (i.DestinationType & (int)DestinationType.Wield) == 0).ToList();
 
                     var wieldedTreasure = creature.Inventory.Values.Concat(creature.EquippedObjects.Values).Where(i => i.DestinationType.HasFlag(DestinationType.Treasure)).ToList();

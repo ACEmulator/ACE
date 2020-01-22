@@ -49,7 +49,7 @@ namespace ACE.Entity.Models
             }
             finally
             {
-                rwLock.EnterReadLock();
+                rwLock.ExitReadLock();
             }
         }
 
@@ -62,7 +62,7 @@ namespace ACE.Entity.Models
             }
             finally
             {
-                rwLock.EnterReadLock();
+                rwLock.ExitReadLock();
             }
         }
 
@@ -78,7 +78,7 @@ namespace ACE.Entity.Models
             }
             finally
             {
-                rwLock.EnterReadLock();
+                rwLock.ExitReadLock();
             }
         }
 
@@ -94,7 +94,7 @@ namespace ACE.Entity.Models
             }
             finally
             {
-                rwLock.EnterReadLock();
+                rwLock.ExitReadLock();
             }
         }
 
@@ -110,7 +110,7 @@ namespace ACE.Entity.Models
             }
             finally
             {
-                rwLock.EnterReadLock();
+                rwLock.ExitReadLock();
             }
         }
 
