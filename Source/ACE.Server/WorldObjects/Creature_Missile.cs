@@ -145,6 +145,8 @@ namespace ACE.Server.WorldObjects
             return proj;
         }
 
+        public static readonly float ProjSpawnHeight = 0.85f;
+
         /// <summary>
         /// Returns the origin to spawn the projectile in the attacker local space
         /// </summary>
@@ -156,9 +158,9 @@ namespace ACE.Server.WorldObjects
             Console.WriteLine($"{Name} radius: {attackerRadius}");
             Console.WriteLine($"{projectile.Name} radius: {projectileRadius}");
 
-            var radsum = attackerRadius + projectileRadius + PhysicsGlobals.EPSILON;
+            var radsum = attackerRadius * 2.0f + projectileRadius * 2.0f + PhysicsGlobals.EPSILON;
 
-            return new Vector3(0, radsum, Height * 0.75f);
+            return new Vector3(0, radsum, Height * ProjSpawnHeight);
         }
 
                 /// <summary>
