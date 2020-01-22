@@ -590,7 +590,7 @@ namespace ACE.Server.Factories
             orb.RemoveProperty(PropertyDataId.TsysMutationFilter);
             // biota_properties_int
             orb.UiEffects = UiEffects.Magical;
-            orb.Bonded = 1;
+            orb.Bonded = BondedStatus.Bonded;
             orb.W_DamageType = DamageType.Slash;
             orb.TargetType = ItemType.Creature;
             orb.ItemSpellcraft = 325;

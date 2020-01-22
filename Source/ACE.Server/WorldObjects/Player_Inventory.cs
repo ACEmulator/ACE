@@ -777,7 +777,7 @@ namespace ACE.Server.WorldObjects
 
             if (containerRootOwner != this) // Is our target on the landscape?
             {
-                if (itemRootOwner == this && (item.Attuned ?? 0) >= 1)
+                if (itemRootOwner == this && item.IsAttunedOrContainsAttuned)
                 {
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.AttunedItem));
                     return;
@@ -810,21 +810,9 @@ namespace ACE.Server.WorldObjects
 
                 var itemAsContainer = item as Container;
 
-                if (itemAsContainer != null)
-                {
-                    // Checking to see if item to pick is an container itself and IsOpen
-                    if (!VerifyContainerOpenStatus(itemAsContainer, item))
-                        return;
-
-                    foreach (var obj in itemAsContainer.Inventory.Values)
-                    {
-                        if ((obj.Attuned ?? 0) >= 1)
-                        {
-                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.AttunedItem));
-                            return;
-                        }
-                    }
-                }
+                // Checking to see if item to pick is an container itself and IsOpen
+                if (itemAsContainer != null && !VerifyContainerOpenStatus(itemAsContainer, item))
+                    return;
 
                 WorldObject moveToTarget;
                 if (itemRootOwner == this)
@@ -2336,7 +2324,7 @@ namespace ACE.Server.WorldObjects
 
         private void GiveObjectToPlayer(Player target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount)
         {
-            if ((item.Attuned ?? 0) >= 1)
+            if (item.IsAttunedOrContainsAttuned)
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.AttunedItem));
                 return;
@@ -2346,18 +2334,6 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeItemBeingTraded));
                 return;
-            }
-
-            if (item is Container container)
-            {
-                foreach (var obj in container.Inventory.Values)
-                {
-                    if ((obj.Attuned ?? 0) >= 1)
-                    {
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.AttunedItem));
-                        return;
-                    }
-                }
             }
 
             if ((target.Character.CharacterOptions1 & (int)CharacterOptions1.LetOtherPlayersGiveYouItems) != (int)CharacterOptions1.LetOtherPlayersGiveYouItems)
@@ -2459,7 +2435,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var acceptAll = (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false) && (item.Attuned ?? 0) != (int)AttunedStatus.Sticky;
+            var acceptAll = (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false) && !item.IsStickyAttunedOrContainsStickyAttuned;
 
             if (target.HasGiveOrRefuseEmoteForItem(item, out var emoteResult) || acceptAll)
             {
