@@ -33,6 +33,33 @@ namespace ACE.Entity.Models
 
 
         // =====================================
+        // Set
+        // Bool, DID, Float, IID, Int, Int64, Position, String
+        // =====================================
+
+        public static void SetProperty(this Biota biota, PropertyBool property, bool value, ReaderWriterLockSlim rwLock, out bool biotaChanged)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                if (!biota.PropertiesBool.TryGetValue(property, out var existingValue) || value != existingValue)
+                {
+                    biota.PropertiesBool[property] = value;
+                    biotaChanged = true;
+                }
+                else
+                {
+                    biotaChanged = false;
+                }
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+
+        // =====================================
         // BiotaPropertiesSpellBook
         // =====================================
 
