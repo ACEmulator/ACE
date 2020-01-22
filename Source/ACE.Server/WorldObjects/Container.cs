@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Container(Database.Models.Shard.Biota biota) : base(biota)
         {
-            if (Biota.PropertiesBool.Remove((ushort)PropertyBool.Open))
+            if (Biota.PropertiesBool.Remove(PropertyBool.Open))
                 ChangesDetected = true;
 
             SetEphemeralValues();

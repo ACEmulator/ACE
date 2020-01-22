@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Entity.Models
@@ -19,7 +20,7 @@ namespace ACE.Entity.Models
             rwLock.EnterReadLock();
             try
             {
-                if (!biota.PropertiesInt.TryGetValue((ushort)property, out var value))
+                if (!biota.PropertiesInt.TryGetValue(property, out var value))
                     return null;
 
                 return value;
@@ -169,7 +170,7 @@ namespace ACE.Entity.Models
             }
             finally
             {
-                rwLock.EnterReadLock();
+                rwLock.ExitReadLock();
             }
         }
 
@@ -206,7 +207,7 @@ namespace ACE.Entity.Models
         // =====================================
         // BiotaPropertiesSkill
         // =====================================
-        public static PropertiesSkill GetSkill(this Biota biota, ushort type, ReaderWriterLockSlim rwLock)
+        public static PropertiesSkill GetSkill(this Biota biota, Skill skill, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
             try
@@ -214,7 +215,7 @@ namespace ACE.Entity.Models
                 if (biota.PropertiesSkill == null)
                     return null;
 
-                biota.PropertiesSkill.TryGetValue(type, out var value);
+                biota.PropertiesSkill.TryGetValue(skill, out var value);
                 return value;
             }
             finally
@@ -223,22 +224,22 @@ namespace ACE.Entity.Models
             }
         }
 
-        public static  PropertiesSkill GetOrAddSkill(this Biota biota, ushort type, ReaderWriterLockSlim rwLock, out bool skillAdded)
+        public static  PropertiesSkill GetOrAddSkill(this Biota biota, Skill skill, ReaderWriterLockSlim rwLock, out bool skillAdded)
         {
             rwLock.EnterWriteLock();
             try
             {
-                if (biota.PropertiesSkill != null && biota.PropertiesSkill.TryGetValue(type, out var value))
+                if (biota.PropertiesSkill != null && biota.PropertiesSkill.TryGetValue(skill, out var value))
                 {
                     skillAdded = false;
                     return value;
                 }
 
                 if (biota.PropertiesSkill == null)
-                    biota.PropertiesSkill = new Dictionary<ushort, PropertiesSkill>();
+                    biota.PropertiesSkill = new Dictionary<Skill, PropertiesSkill>();
 
                 var entity = new PropertiesSkill();
-                biota.PropertiesSkill[type] = entity;
+                biota.PropertiesSkill[skill] = entity;
                 skillAdded = true;
 
                 return entity;

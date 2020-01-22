@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+
 namespace ACE.Entity.Models
 {
     /// <summary>
@@ -14,15 +17,15 @@ namespace ACE.Entity.Models
         public uint WeenieClassId { get; set; }
         public int WeenieType { get; set; }
 
-        public IDictionary<ushort, bool> PropertiesBool { get; set; }
-        public IDictionary<ushort, uint> PropertiesDID { get; set; }
-        public IDictionary<ushort, double> PropertiesFloat { get; set; }
-        public IDictionary<ushort, uint> PropertiesIID { get; set; }
-        public IDictionary<ushort, int> PropertiesInt { get; set; }
-        public IDictionary<ushort, long> PropertiesInt64 { get; set; }
-        public IDictionary<ushort, string> PropertiesString { get; set; }
+        public IDictionary<PropertyBool, bool> PropertiesBool { get; set; }
+        public IDictionary<PropertyDataId, uint> PropertiesDID { get; set; }
+        public IDictionary<PropertyFloat, double> PropertiesFloat { get; set; }
+        public IDictionary<PropertyInstanceId, uint> PropertiesIID { get; set; }
+        public IDictionary<PropertyInt, int> PropertiesInt { get; set; }
+        public IDictionary<PropertyInt64, long> PropertiesInt64 { get; set; }
+        public IDictionary<PropertyString, string> PropertiesString { get; set; }
 
-        public IDictionary<ushort, PropertiesPosition> PropertiesPosition { get; set; }
+        public IDictionary<PositionType, PropertiesPosition> PropertiesPosition { get; set; }
 
         public IDictionary<int, float /* probability */> PropertiesSpellBook { get; set; }
 
@@ -37,10 +40,10 @@ namespace ACE.Entity.Models
         public ICollection<PropertiesGenerator> PropertiesGenerator { get; set; }
 
         // Properties for creatures
-        public IDictionary<ushort, PropertiesAttribute> PropertiesAttribute { get; set; }
-        public IDictionary<ushort, PropertiesAttribute2nd> PropertiesAttribute2nd { get; set; }
-        public IDictionary<ushort, PropertiesBodyPart> PropertiesBodyPart { get; set; }
-        public IDictionary<ushort, PropertiesSkill> PropertiesSkill { get; set; }
+        public IDictionary<PropertyAttribute, PropertiesAttribute> PropertiesAttribute { get; set; }
+        public IDictionary<PropertyAttribute2nd, PropertiesAttribute2nd> PropertiesAttribute2nd { get; set; }
+        public IDictionary<CombatBodyPart, PropertiesBodyPart> PropertiesBodyPart { get; set; }
+        public IDictionary<Skill, PropertiesSkill> PropertiesSkill { get; set; }
 
         // Properties for books
         public PropertiesBook PropertiesBook { get; set; }

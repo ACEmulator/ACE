@@ -26,10 +26,10 @@ namespace ACE.Server.WorldObjects.Entity
             this.creature = creature;
             Vital = vital;
 
-            if (!creature.Biota.PropertiesAttribute2nd.TryGetValue((ushort)vital, out propertiesAttribute2nd))
+            if (!creature.Biota.PropertiesAttribute2nd.TryGetValue(vital, out propertiesAttribute2nd))
             {
                 propertiesAttribute2nd = new PropertiesAttribute2nd();
-                creature.Biota.PropertiesAttribute2nd[(ushort)vital] = propertiesAttribute2nd;
+                creature.Biota.PropertiesAttribute2nd[vital] = propertiesAttribute2nd;
             }
 
             switch (Vital)

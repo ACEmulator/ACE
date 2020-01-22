@@ -6,7 +6,6 @@ using log4net;
 
 using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Database.Models.Shard;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 
 namespace ACE.Database.Adapter
@@ -19,51 +21,51 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesBool != null)
             {
-                result.PropertiesBool = new Dictionary<ushort, bool>();
+                result.PropertiesBool = new Dictionary<PropertyBool, bool>();
                 foreach (var value in weenie.WeeniePropertiesBool)
-                    result.PropertiesBool[value.Type] = value.Value;
+                    result.PropertiesBool[(PropertyBool)value.Type] = value.Value;
             }
             if (weenie.WeeniePropertiesDID != null)
             {
-                result.PropertiesDID = new Dictionary<ushort, uint>();
+                result.PropertiesDID = new Dictionary<PropertyDataId, uint>();
                 foreach (var value in weenie.WeeniePropertiesDID)
-                    result.PropertiesDID[value.Type] = value.Value;
+                    result.PropertiesDID[(PropertyDataId)value.Type] = value.Value;
             }
             if (weenie.WeeniePropertiesFloat != null)
             {
-                result.PropertiesFloat = new Dictionary<ushort, double>();
+                result.PropertiesFloat = new Dictionary<PropertyFloat, double>();
                 foreach (var value in weenie.WeeniePropertiesFloat)
-                    result.PropertiesFloat[value.Type] = value.Value;
+                    result.PropertiesFloat[(PropertyFloat)value.Type] = value.Value;
             }
             if (weenie.WeeniePropertiesIID != null)
             {
-                result.PropertiesIID = new Dictionary<ushort, uint>();
+                result.PropertiesIID = new Dictionary<PropertyInstanceId, uint>();
                 foreach (var value in weenie.WeeniePropertiesIID)
-                    result.PropertiesIID[value.Type] = value.Value;
+                    result.PropertiesIID[(PropertyInstanceId)value.Type] = value.Value;
             }
             if (weenie.WeeniePropertiesInt != null)
             {
-                result.PropertiesInt = new Dictionary<ushort, int>();
+                result.PropertiesInt = new Dictionary<PropertyInt, int>();
                 foreach (var value in weenie.WeeniePropertiesInt)
-                    result.PropertiesInt[value.Type] = value.Value;
+                    result.PropertiesInt[(PropertyInt)value.Type] = value.Value;
             }
             if (weenie.WeeniePropertiesInt64 != null)
             {
-                result.PropertiesInt64 = new Dictionary<ushort, long>();
+                result.PropertiesInt64 = new Dictionary<PropertyInt64, long>();
                 foreach (var value in weenie.WeeniePropertiesInt64)
-                    result.PropertiesInt64[value.Type] = value.Value;
+                    result.PropertiesInt64[(PropertyInt64)value.Type] = value.Value;
             }
             if (weenie.WeeniePropertiesString != null)
             {
-                result.PropertiesString = new Dictionary<ushort, string>();
+                result.PropertiesString = new Dictionary<PropertyString, string>();
                 foreach (var value in weenie.WeeniePropertiesString)
-                    result.PropertiesString[value.Type] = value.Value;
+                    result.PropertiesString[(PropertyString)value.Type] = value.Value;
             }
 
 
             if (weenie.WeeniePropertiesPosition != null)
             {
-                result.PropertiesPosition = new Dictionary<ushort, PropertiesPosition>();
+                result.PropertiesPosition = new Dictionary<PositionType, PropertiesPosition>();
 
                 foreach (var record in weenie.WeeniePropertiesPosition)
                 {
@@ -80,7 +82,7 @@ namespace ACE.Database.Adapter
 
                     };
 
-                    result.PropertiesPosition[record.PositionType] = newEntity;
+                    result.PropertiesPosition[(PositionType)record.PositionType] = newEntity;
                 }
             }
 
@@ -281,7 +283,7 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesAttribute != null)
             {
-                result.PropertiesAttribute = new Dictionary<ushort, PropertiesAttribute>();
+                result.PropertiesAttribute = new Dictionary<PropertyAttribute, PropertiesAttribute>();
 
                 foreach (var record in weenie.WeeniePropertiesAttribute)
                 {
@@ -292,13 +294,13 @@ namespace ACE.Database.Adapter
                         CPSpent = record.CPSpent,
                     };
 
-                    result.PropertiesAttribute[record.Type] = newEntity;
+                    result.PropertiesAttribute[(PropertyAttribute)record.Type] = newEntity;
                 }
             }
 
             if (weenie.WeeniePropertiesAttribute2nd != null)
             {
-                result.PropertiesAttribute2nd = new Dictionary<ushort, PropertiesAttribute2nd>();
+                result.PropertiesAttribute2nd = new Dictionary<PropertyAttribute2nd, PropertiesAttribute2nd>();
 
                 foreach (var record in weenie.WeeniePropertiesAttribute2nd)
                 {
@@ -310,13 +312,13 @@ namespace ACE.Database.Adapter
                         CurrentLevel = record.CurrentLevel,
                     };
 
-                    result.PropertiesAttribute2nd[record.Type] = newEntity;
+                    result.PropertiesAttribute2nd[(PropertyAttribute2nd)record.Type] = newEntity;
                 }
             }
 
             if (weenie.WeeniePropertiesBodyPart != null)
             {
-                result.PropertiesBodyPart = new Dictionary<ushort, PropertiesBodyPart>();
+                result.PropertiesBodyPart = new Dictionary<CombatBodyPart, PropertiesBodyPart>();
 
                 foreach (var record in weenie.WeeniePropertiesBodyPart)
                 {
@@ -349,13 +351,13 @@ namespace ACE.Database.Adapter
                         LRB = record.LRB,
                     };
 
-                    result.PropertiesBodyPart[record.Key] = newEntity;
+                    result.PropertiesBodyPart[(CombatBodyPart)record.Key] = newEntity;
                 }
             }
 
             if (weenie.WeeniePropertiesSkill != null)
             {
-                result.PropertiesSkill = new Dictionary<ushort, PropertiesSkill>();
+                result.PropertiesSkill = new Dictionary<Skill, PropertiesSkill>();
 
                 foreach (var record in weenie.WeeniePropertiesSkill)
                 {
@@ -369,7 +371,7 @@ namespace ACE.Database.Adapter
                         LastUsedTime = record.LastUsedTime,
                     };
 
-                    result.PropertiesSkill[record.Type] = newEntity;
+                    result.PropertiesSkill[(Skill)record.Type] = newEntity;
                 }
             }
 

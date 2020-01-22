@@ -63,13 +63,13 @@ namespace ACE.Server.WorldObjects
         private void InitializePropertyDictionaries()
         {
             if (Biota.PropertiesAttribute == null)
-                Biota.PropertiesAttribute = new Dictionary<ushort, PropertiesAttribute>();
+                Biota.PropertiesAttribute = new Dictionary<PropertyAttribute, PropertiesAttribute>();
             if (Biota.PropertiesAttribute2nd == null)
-                Biota.PropertiesAttribute2nd = new Dictionary<ushort, PropertiesAttribute2nd>();
+                Biota.PropertiesAttribute2nd = new Dictionary<PropertyAttribute2nd, PropertiesAttribute2nd>();
             if (Biota.PropertiesBodyPart == null)
-                Biota.PropertiesBodyPart = new Dictionary<ushort, PropertiesBodyPart>();
+                Biota.PropertiesBodyPart = new Dictionary<CombatBodyPart, PropertiesBodyPart>();
             if (Biota.PropertiesSkill == null)
-                Biota.PropertiesSkill = new Dictionary<ushort, PropertiesSkill>();
+                Biota.PropertiesSkill = new Dictionary<Skill, PropertiesSkill>();
         }
 
         private void SetEphemeralValues()

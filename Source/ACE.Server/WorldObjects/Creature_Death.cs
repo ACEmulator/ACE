@@ -246,7 +246,6 @@ namespace ACE.Server.WorldObjects
 
                 corpse.Biota.PropertiesPalette.Add(objDesc.SubPalettes, BiotaDatabaseLock);
 
-                byte i = 0;
                 foreach (var textureChange in objDesc.TextureChanges)
                     corpse.Biota.PropertiesTextureMap.Add(new PropertiesTextureMap { PartIndex = textureChange.PartIndex, OldTexture = textureChange.OldTexture, NewTexture = textureChange.NewTexture });
             }
