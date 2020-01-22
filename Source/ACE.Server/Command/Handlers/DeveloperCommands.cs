@@ -2305,7 +2305,9 @@ namespace ACE.Server.Command.Handlers
             var i = 0;
             foreach (var item in sorted.Inventory)
             {
-                if ((item.WorldObject.Bonded ?? 0) != 0)
+                var bonded = item.WorldObject.Bonded ?? BondedStatus.Normal;
+
+                if (bonded != BondedStatus.Normal)
                     continue;
 
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{++i}. {item.Name} ({item.Category}, AdjustedValue: {item.AdjustedValue})", ChatMessageType.Broadcast));
