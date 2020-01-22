@@ -73,7 +73,7 @@ namespace ACE.Server.Managers
                     if (player.ChangesDetected)
                     {
                         player.SaveBiotaToDatabase(false);
-                        biotas.Add((player.Biota, player.BiotaDatabaseLock));
+                        biotas.Add((player.DatabaseBiota, player.BiotaDatabaseLock));
                     }
                 }
             }

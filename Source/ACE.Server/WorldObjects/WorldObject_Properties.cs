@@ -10,6 +10,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.Structure;
@@ -20,7 +21,7 @@ namespace ACE.Server.WorldObjects
     // todo: In addition, unused setters should be commented (not removed).
     //
     // todo: Also, properties only used by certain WorldObjectTypes should be moved to that worldobject type class and not remain here in the base.
-    // todo: For example, ChessGamesWon would only be used by a player. That property doesn't need to be in WorldObject and thus accessable to all WorldObject classes.
+    // todo: For example, ChessGamesWon would only be used by a player. That property doesn't need to be in WorldObject and thus accessible to all WorldObject classes.
     //
     // todo: When we're confident a set of functions, or a group of properties are "final", we can wrap them in a region
     partial class WorldObject
@@ -41,175 +42,81 @@ namespace ACE.Server.WorldObjects
             if (ephemeralPropertyBools.TryGetValue(property, out var value))
                 return value;
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                if (Biota.PropertiesBool.TryGetValue(property, out var value2))
-                    return value2;
-                return null;
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
-            }
+            return Biota.GetProperty(property, BiotaDatabaseLock);
         }
         public uint? GetProperty(PropertyDataId property)
         {
             if (ephemeralPropertyDataIds.TryGetValue(property, out var value))
                 return value;
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                if (Biota.PropertiesDID.TryGetValue(property, out var value2))
-                    return value2;
-                return null;
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
-            }
+            return Biota.GetProperty(property, BiotaDatabaseLock);
         }
         public double? GetProperty(PropertyFloat property)
         {
             if (ephemeralPropertyFloats.TryGetValue(property, out var value))
                 return value;
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                if (Biota.PropertiesFloat.TryGetValue(property, out var value2))
-                    return value2;
-                return null;
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
-            }
+            return Biota.GetProperty(property, BiotaDatabaseLock);
         }
         public uint? GetProperty(PropertyInstanceId property)
         {
             if (ephemeralPropertyInstanceIds.TryGetValue(property, out var value))
                 return value;
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                if (Biota.PropertiesIID.TryGetValue(property, out var value2))
-                    return value2;
-                return null;
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
-            }
+            return Biota.GetProperty(property, BiotaDatabaseLock);
         }
         public int? GetProperty(PropertyInt property)
         {
             if (ephemeralPropertyInts.TryGetValue(property, out var value))
                 return value;
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                if (Biota.PropertiesInt.TryGetValue(property, out var value2))
-                    return value2;
-                return null;
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
-            }
+            return Biota.GetProperty(property, BiotaDatabaseLock);
         }
         public long? GetProperty(PropertyInt64 property)
         {
             if (ephemeralPropertyInt64s.TryGetValue(property, out var value))
                 return value;
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                if (Biota.PropertiesInt64.TryGetValue(property, out var value2))
-                    return value2;
-                return null;
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
-            }
+            return Biota.GetProperty(property, BiotaDatabaseLock);
         }
         public string GetProperty(PropertyString property)
         {
             if (ephemeralPropertyStrings.TryGetValue(property, out var value))
                 return value;
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                if (Biota.PropertiesString.TryGetValue(property, out var value2))
-                    return value2;
-                return null;
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
-            }
+            return Biota.GetProperty(property, BiotaDatabaseLock);
         }
         #endregion
 
         #region SetProperty Functions
         public void SetProperty(PropertyBool property, bool value)
         {
-            if (ephemeralPropertyBools.ContainsKey(property))
+            if (EphemeralProperties.PropertiesBool.Contains((ushort)property))
                 ephemeralPropertyBools[property] = value;
             else
             {
-                BiotaDatabaseLock.EnterWriteLock();
-                try
-                {
-                    Biota.PropertiesBool[property] = value;
-                    ChangesDetected = true;
-                }
-                finally
-                {
-                    BiotaDatabaseLock.ExitWriteLock();
-                }
+                Biota.SetProperty(property, value, BiotaDatabaseLock);
+                ChangesDetected = true;
             }
         }
         public void SetProperty(PropertyDataId property, uint value)
         {
-            if (ephemeralPropertyDataIds.ContainsKey(property))
+            if (EphemeralProperties.PropertiesDataId.Contains((ushort)property))
                 ephemeralPropertyDataIds[property] = value;
             else
             {
-                BiotaDatabaseLock.EnterWriteLock();
-                try
-                {
-                    Biota.PropertiesDID[property] = value;
-                    ChangesDetected = true;
-                }
-                finally
-                {
-                    BiotaDatabaseLock.ExitWriteLock();
-                }
+                Biota.SetProperty(property, value, BiotaDatabaseLock);
+                ChangesDetected = true;
             }
         }
         public void SetProperty(PropertyFloat property, double value)
         {
-            if (ephemeralPropertyFloats.ContainsKey(property))
+            if (EphemeralProperties.PropertiesDouble.Contains((ushort)property))
                 ephemeralPropertyFloats[property] = value;
             else
             {
-                BiotaDatabaseLock.EnterWriteLock();
-                try
-                {
-                    Biota.PropertiesFloat[property] = value;
-                    ChangesDetected = true;
-                }
-                finally
-                {
-                    BiotaDatabaseLock.ExitWriteLock();
-                }
+                Biota.SetProperty(property, value, BiotaDatabaseLock);
+                ChangesDetected = true;
             }
         }
         public void IncProperty(PropertyFloat property, double value)
@@ -219,38 +126,22 @@ namespace ACE.Server.WorldObjects
         }
         public void SetProperty(PropertyInstanceId property, uint value)
         {
-            if (ephemeralPropertyInstanceIds.ContainsKey(property))
+            if (EphemeralProperties.PropertiesInstanceId.Contains((ushort)property))
                 ephemeralPropertyInstanceIds[property] = value;
             else
             {
-                BiotaDatabaseLock.EnterWriteLock();
-                try
-                {
-                    Biota.PropertiesIID[property] = value;
-                    ChangesDetected = true;
-                }
-                finally
-                {
-                    BiotaDatabaseLock.ExitWriteLock();
-                }
+                Biota.SetProperty(property, value, BiotaDatabaseLock);
+                ChangesDetected = true;
             }
         }
         public void SetProperty(PropertyInt property, int value)
         {
-            if (ephemeralPropertyInts.ContainsKey(property))
+            if (EphemeralProperties.PropertiesInt.Contains((ushort)property))
                 ephemeralPropertyInts[property] = value;
             else
             {
-                BiotaDatabaseLock.EnterWriteLock();
-                try
-                {
-                    Biota.PropertiesInt[property] = value;
-                    ChangesDetected = true;
-                }
-                finally
-                {
-                    BiotaDatabaseLock.ExitWriteLock();
-                }
+                Biota.SetProperty(property, value, BiotaDatabaseLock);
+                ChangesDetected = true;
             }
         }
         public void IncProperty(PropertyInt property, int value)
@@ -260,38 +151,22 @@ namespace ACE.Server.WorldObjects
         }
         public void SetProperty(PropertyInt64 property, long value)
         {
-            if (ephemeralPropertyInt64s.ContainsKey(property))
+            if (EphemeralProperties.PropertiesInt64.Contains((ushort)property))
                 ephemeralPropertyInt64s[property] = value;
             else
             {
-                BiotaDatabaseLock.EnterWriteLock();
-                try
-                {
-                    Biota.PropertiesInt64[property] = value;
-                    ChangesDetected = true;
-                }
-                finally
-                {
-                    BiotaDatabaseLock.ExitWriteLock();
-                }
+                Biota.SetProperty(property, value, BiotaDatabaseLock);
+                ChangesDetected = true;
             }
         }
         public void SetProperty(PropertyString property, string value)
         {
-            if (ephemeralPropertyStrings.ContainsKey(property))
+            if (EphemeralProperties.PropertiesString.Contains((ushort)property))
                 ephemeralPropertyStrings[property] = value;
             else
             {
-                BiotaDatabaseLock.EnterWriteLock();
-                try
-                {
-                    Biota.PropertiesString[property] = value;
-                    ChangesDetected = true;
-                }
-                finally
-                {
-                    BiotaDatabaseLock.ExitWriteLock();
-                }
+                Biota.SetProperty(property, value, BiotaDatabaseLock);
+                ChangesDetected = true;
             }
         }
         #endregion
@@ -299,128 +174,72 @@ namespace ACE.Server.WorldObjects
         #region RemoveProperty Functions
         public void RemoveProperty(PropertyBool property)
         {
-            if (ephemeralPropertyBools.ContainsKey(property))
+            if (EphemeralProperties.PropertiesBool.Contains((ushort)property))
                 ephemeralPropertyBools[property] = null;
             else
             {
-                BiotaDatabaseLock.EnterWriteLock();
-                try
-                {
-                    if (Biota.PropertiesBool.Remove(property))
-                        ChangesDetected = true;
-                }
-                finally
-                {
-                    BiotaDatabaseLock.ExitWriteLock();
-                }
+                if (Biota.TryRemoveProperty(property, BiotaDatabaseLock))
+                    ChangesDetected = true;
             }
         }
         public void RemoveProperty(PropertyDataId property)
         {
-            if (ephemeralPropertyDataIds.ContainsKey(property))
+            if (EphemeralProperties.PropertiesDataId.Contains((ushort)property))
                 ephemeralPropertyDataIds[property] = null;
             else
             {
-                BiotaDatabaseLock.EnterWriteLock();
-                try
-                {
-                    if (Biota.PropertiesDID.Remove(property))
-                        ChangesDetected = true;
-                }
-                finally
-                {
-                    BiotaDatabaseLock.ExitWriteLock();
-                }
+                if (Biota.TryRemoveProperty(property, BiotaDatabaseLock))
+                    ChangesDetected = true;
             }
         }
         public void RemoveProperty(PropertyFloat property)
         {
-            if (ephemeralPropertyFloats.ContainsKey(property))
+            if (EphemeralProperties.PropertiesDouble.Contains((ushort)property))
                 ephemeralPropertyFloats[property] = null;
             else
             {
-                BiotaDatabaseLock.EnterWriteLock();
-                try
-                {
-                    if (Biota.PropertiesFloat.Remove(property))
-                        ChangesDetected = true;
-                }
-                finally
-                {
-                    BiotaDatabaseLock.ExitWriteLock();
-                }
+                if (Biota.TryRemoveProperty(property, BiotaDatabaseLock))
+                    ChangesDetected = true;
             }
         }
         public void RemoveProperty(PropertyInstanceId property)
         {
-            if (ephemeralPropertyInstanceIds.ContainsKey(property))
+            if (EphemeralProperties.PropertiesInstanceId.Contains((ushort)property))
                 ephemeralPropertyInstanceIds[property] = null;
             else
             {
-                BiotaDatabaseLock.EnterWriteLock();
-                try
-                {
-                    if (Biota.PropertiesIID.Remove(property))
-                        ChangesDetected = true;
-                }
-                finally
-                {
-                    BiotaDatabaseLock.ExitWriteLock();
-                }
+                if (Biota.TryRemoveProperty(property, BiotaDatabaseLock))
+                    ChangesDetected = true;
             }
         }
         public void RemoveProperty(PropertyInt property)
         {
-            if (ephemeralPropertyInts.ContainsKey(property))
+            if (EphemeralProperties.PropertiesInt.Contains((ushort)property))
                 ephemeralPropertyInts[property] = null;
             else
             {
-                BiotaDatabaseLock.EnterWriteLock();
-                try
-                {
-                    if (Biota.PropertiesInt.Remove(property))
-                        ChangesDetected = true;
-                }
-                finally
-                {
-                    BiotaDatabaseLock.ExitWriteLock();
-                }
+                if (Biota.TryRemoveProperty(property, BiotaDatabaseLock))
+                    ChangesDetected = true;
             }
         }
         public void RemoveProperty(PropertyInt64 property)
         {
-            if (ephemeralPropertyInt64s.ContainsKey(property))
+            if (EphemeralProperties.PropertiesInt64.Contains((ushort)property))
                 ephemeralPropertyInt64s[property] = null;
             else
             {
-                BiotaDatabaseLock.EnterWriteLock();
-                try
-                {
-                    if (Biota.PropertiesInt64.Remove(property))
-                        ChangesDetected = true;
-                }
-                finally
-                {
-                    BiotaDatabaseLock.ExitWriteLock();
-                }
+                if (Biota.TryRemoveProperty(property, BiotaDatabaseLock))
+                    ChangesDetected = true;
             }
         }
         public void RemoveProperty(PropertyString property)
         {
-            if (ephemeralPropertyStrings.ContainsKey(property))
+            if (EphemeralProperties.PropertiesString.Contains((ushort)property))
                 ephemeralPropertyStrings[property] = null;
             else
             {
-                BiotaDatabaseLock.EnterWriteLock();
-                try
-                {
-                    if (Biota.PropertiesString.Remove(property))
-                        ChangesDetected = true;
-                }
-                finally
-                {
-                    BiotaDatabaseLock.ExitWriteLock();
-                }
+                if (Biota.TryRemoveProperty(property, BiotaDatabaseLock))
+                    ChangesDetected = true;
             }
         }
         #endregion
@@ -664,9 +483,8 @@ namespace ACE.Server.WorldObjects
 
                     positionCache[positionType] = position;
 
-                    DatabaseBiota.SetPosition(positionType, position, BiotaDatabaseLock, out var biotaChanged);
-                    if (biotaChanged)
-                        ChangesDetected = true;
+                    DatabaseBiota.SetPosition(positionType, position);
+                    ChangesDetected = true;
                 }
             }
         }
@@ -679,19 +497,20 @@ namespace ACE.Server.WorldObjects
             {
                 positionCache.Remove(positionType);
 
-                if (DatabaseBiota.TryRemovePosition(positionType, out _, BiotaDatabaseLock))
+                if (DatabaseBiota.TryRemovePosition(positionType, out _))
                     ChangesDetected = true;
             }
         }
 
         public Dictionary<PositionType, Position> GetAllPositions()
         {
-            foreach (var position in DatabaseBiota.GetPositions(BiotaDatabaseLock))
+            /* TODO
+            foreach (var position in DatabaseBiota.GetPositions())
             {
                 // We only add new positions. We don't overwrite existing cached positions
                 if (!positionCache.ContainsKey(position.Key))
                     positionCache[position.Key] = position.Value;
-            }
+            }*/
 
             var result = new Dictionary<PositionType, Position>(positionCache);
 

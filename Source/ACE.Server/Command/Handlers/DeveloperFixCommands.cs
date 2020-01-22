@@ -50,7 +50,7 @@ namespace ACE.Server.Command.Handlers
             {
                 var updated = false;
 
-                foreach (var attr in player.Biota.BiotaPropertiesAttribute.ToList())
+                foreach (var attr in player.DatabaseBiota.BiotaPropertiesAttribute.ToList())
                 {
                     // ensure this is a valid attribute
                     if (attr.Type < (ushort)PropertyAttribute.Strength || attr.Type > (ushort)PropertyAttribute.Self)
@@ -63,7 +63,7 @@ namespace ACE.Server.Command.Handlers
                             // i have found no instances of this situation being run into,
                             // but if it does happen, verify-xp will refund the player xp properly
 
-                            player.Biota.BiotaPropertiesAttribute.Remove(attr);
+                            player.DatabaseBiota.BiotaPropertiesAttribute.Remove(attr);
                             updated = true;
                         }
                         continue;
@@ -128,7 +128,7 @@ namespace ACE.Server.Command.Handlers
             {
                 var updated = false;
 
-                foreach (var vital in player.Biota.BiotaPropertiesAttribute2nd.ToList())
+                foreach (var vital in player.DatabaseBiota.BiotaPropertiesAttribute2nd.ToList())
                 {
                     // ensure this is a valid MaxVital
                     if (vital.Type != (ushort)PropertyAttribute2nd.MaxHealth && vital.Type != (ushort)PropertyAttribute2nd.MaxStamina && vital.Type != (ushort)PropertyAttribute2nd.MaxMana)
@@ -141,7 +141,7 @@ namespace ACE.Server.Command.Handlers
                             // i have found no instances of this situation being run into,
                             // but if it does happen, verify-xp will refund the player xp properly
 
-                            player.Biota.BiotaPropertiesAttribute2nd.Remove(vital);
+                            player.DatabaseBiota.BiotaPropertiesAttribute2nd.Remove(vital);
                             updated = true;
                         }
                         continue;
@@ -207,7 +207,7 @@ namespace ACE.Server.Command.Handlers
             {
                 var updated = false;
 
-                foreach (var skill in player.Biota.BiotaPropertiesSkill.ToList())
+                foreach (var skill in player.DatabaseBiota.BiotaPropertiesSkill.ToList())
                 {
                     // ensure this is a valid player skill
                     if (!Player.PlayerSkills.Contains((Skill)skill.Type))
@@ -218,7 +218,7 @@ namespace ACE.Server.Command.Handlers
                         {
                             // i have found no instances of these skills ever having xp put into them,
                             // but if there were, verify-xp will fix that
-                            player.Biota.BiotaPropertiesSkill.Remove(skill);
+                            player.DatabaseBiota.BiotaPropertiesSkill.Remove(skill);
                             updated = true;
                         }
                         continue;
@@ -328,7 +328,7 @@ namespace ACE.Server.Command.Handlers
 
                     var used = 0;
 
-                    foreach (var skill in player.Biota.BiotaPropertiesSkill)
+                    foreach (var skill in player.DatabaseBiota.BiotaPropertiesSkill)
                     {
                         var sac = (SkillAdvancementClass)skill.SAC;
                         if (sac < SkillAdvancementClass.Trained)
@@ -479,7 +479,7 @@ namespace ACE.Server.Command.Handlers
         {
             long refundXP = 0;
 
-            foreach (var skill in player.Biota.BiotaPropertiesSkill)
+            foreach (var skill in player.DatabaseBiota.BiotaPropertiesSkill)
             {
                 if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue(skill.Type, out var skillBase))
                 {
@@ -716,13 +716,13 @@ namespace ACE.Server.Command.Handlers
 
                 long diffXP = Math.Min(0, player.GetProperty(PropertyInt64.VerifyXp) ?? 0);
 
-                foreach (var attribute in player.Biota.BiotaPropertiesAttribute)
+                foreach (var attribute in player.DatabaseBiota.BiotaPropertiesAttribute)
                     attributeXP += attribute.CPSpent;
 
-                foreach (var vital in player.Biota.BiotaPropertiesAttribute2nd)
+                foreach (var vital in player.DatabaseBiota.BiotaPropertiesAttribute2nd)
                     vitalXP += vital.CPSpent;
 
-                foreach (var skill in player.Biota.BiotaPropertiesSkill)
+                foreach (var skill in player.DatabaseBiota.BiotaPropertiesSkill)
                     skillXP += skill.PP;
 
                 // find any xp spent on augs

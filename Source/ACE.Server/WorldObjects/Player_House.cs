@@ -996,7 +996,7 @@ namespace ACE.Server.WorldObjects
             }
 
             house.OpenStatus = openStatus;
-            house.Biota.SetProperty(PropertyBool.Open, house.OpenStatus, house.BiotaDatabaseLock, out _);
+            house.Biota.SetProperty(PropertyBool.Open, house.OpenStatus, house.BiotaDatabaseLock);
             house.ChangesDetected = true;
             house.UpdateRestrictionDB();
 
