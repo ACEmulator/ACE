@@ -1,9 +1,9 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Threading;
+
 using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Managers;
@@ -67,7 +67,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SavePlayerToDatabase()
         {
-            if (CharacterChangesDetected)
+            /*if (CharacterChangesDetected)
                 SaveCharacterToDatabase();
 
             var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
@@ -88,7 +88,7 @@ namespace ACE.Server.WorldObjects
 
             var requestedTime = DateTime.UtcNow;
 
-            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => log.Debug($"{Name} has been saved. It took {(DateTime.UtcNow - requestedTime).TotalMilliseconds:N0} ms to process the request."));
+            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => log.Debug($"{Name} has been saved. It took {(DateTime.UtcNow - requestedTime).TotalMilliseconds:N0} ms to process the request."));*/
         }
 
         public void SaveCharacterToDatabase()
