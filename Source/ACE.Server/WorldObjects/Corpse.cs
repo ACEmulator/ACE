@@ -75,7 +75,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override ObjDesc CalculateObjDesc()
         {
-            if (Biota.PropertiesAnimPart.GetCount(BiotaDatabaseLock) == 0 && Biota.PropertiesPalette.GetCount(BiotaDatabaseLock) == 0 && DatabaseBiota.BiotaPropertiesTextureMap.Count == 0)
+            if (Biota.PropertiesAnimPart.GetCount(BiotaDatabaseLock) == 0 && Biota.PropertiesPalette.GetCount(BiotaDatabaseLock) == 0 && Biota.PropertiesTextureMap.GetCount(BiotaDatabaseLock) == 0)
                 return base.CalculateObjDesc(); // No Saved ObjDesc, let base handle it.
 
             var objDesc = new ObjDesc();
@@ -88,8 +88,8 @@ namespace ACE.Server.WorldObjects
             foreach (var subPalette in Biota.PropertiesPalette.Clone(BiotaDatabaseLock))
                 objDesc.SubPalettes.Add(subPalette);
 
-            foreach (var textureMap in DatabaseBiota.BiotaPropertiesTextureMap.OrderBy(b => b.Order))
-                objDesc.TextureChanges.Add(new TextureMapChange { PartIndex = textureMap.Index, OldTexture = textureMap.OldId, NewTexture = textureMap.NewId });
+            foreach (var textureChange in Biota.PropertiesTextureMap.Clone(BiotaDatabaseLock))
+                objDesc.TextureChanges.Add(textureChange);
 
             return objDesc;
         }

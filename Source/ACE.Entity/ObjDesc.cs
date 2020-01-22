@@ -9,13 +9,13 @@ namespace ACE.Entity
     {
         public uint PaletteID { get; set; }
         public List<PropertiesPalette> SubPalettes { get; set; } = new List<PropertiesPalette>();
-        public List<TextureMapChange> TextureChanges { get; set; } = new List<TextureMapChange>();
+        public List<PropertiesTextureMap> TextureChanges { get; set; } = new List<PropertiesTextureMap>();
         public List<PropertiesAnimPart> AnimPartChanges { get; set; } = new List<PropertiesAnimPart>();
 
         /// <summary>
         /// Helper function to ensure we don't add redundant parts to the list
         /// </summary>
-        public void AddTextureChange(TextureMapChange tm)
+        public void AddTextureChange(PropertiesTextureMap tm)
         {
             var e = TextureChanges.FirstOrDefault(c => c.PartIndex == tm.PartIndex && c.OldTexture == tm.OldTexture && c.NewTexture == tm.NewTexture);
             if (e == null)

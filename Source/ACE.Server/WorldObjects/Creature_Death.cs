@@ -248,7 +248,7 @@ namespace ACE.Server.WorldObjects
 
                 byte i = 0;
                 foreach (var textureChange in objDesc.TextureChanges)
-                    corpse.DatabaseBiota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
+                    corpse.Biota.PropertiesTextureMap.Add(new PropertiesTextureMap { PartIndex = textureChange.PartIndex, OldTexture = textureChange.OldTexture, NewTexture = textureChange.NewTexture });
             }
 
             corpse.Location = new Position(Location);

@@ -27,7 +27,7 @@ namespace ACE.Entity.Models
 
         IList<PropertiesAnimPart> PropertiesAnimPart { get; set; }
         ICollection<PropertiesPalette> PropertiesPalette { get; set; }
-        ICollection<PropertiesTextureMap> PropertiesTextureMap { get; set; }
+        IList<PropertiesTextureMap> PropertiesTextureMap { get; set; }
 
         // Properties for all world objects that typically aren't modified over the original weenie
         ICollection<PropertiesCreateList> PropertiesCreateList { get; set; }

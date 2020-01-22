@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 
 using Microsoft.EntityFrameworkCore;
@@ -8,8 +10,10 @@ using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Server.Command.Handlers.Processors;
+using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -138,6 +142,58 @@ namespace ACE.Server.Command.Handlers
                 strings.Add($"INSERT INTO `character_properties_shortcut_bar` SET `character_Id`={characterID}, `shortcut_Bar_Index`={shortcut.Key}, `shortcut_Object_Id`={shortcut.Value};");
 
             return strings;
+        }
+
+
+
+
+
+        // 9232 ~10.8 KB    prismatic arrow
+        // 8563 ~51.80 KB   mob archer          reduces to 1.10 KB
+
+        private static readonly Collection<WorldObject> WorldObjects = new Collection<WorldObject>();
+
+        [CommandHandler("test1", AccessLevel.Developer, CommandHandlerFlag.None)]
+        public static void test1(Session session, params string[] parameters)
+        {
+            uint wcid = 8563;
+            int count = 100000;
+
+            var temp = WorldObjectFactory.CreateNewWorldObject(wcid);
+
+            for (int i = 0; i < 100; i++)
+                GC.Collect();
+
+            var proc = Process.GetCurrentProcess();
+            var origMemory = proc.PrivateMemorySize64;
+
+            for (int i = 0; i < count; i++)
+            {
+                var wo = WorldObjectFactory.CreateNewWorldObject(wcid);
+
+                WorldObjects.Add(wo);
+            }
+
+            for (int i = 0; i < 100; i++)
+                GC.Collect();
+
+            CommandHandlerHelper.WriteOutputInfo(session, "test1 completed");
+
+            proc = Process.GetCurrentProcess();
+            var finalMemory = proc.PrivateMemorySize64;
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"each wcid {wcid} consumes {(finalMemory - origMemory) / (double)count / 1000:N2} KB");
+        }
+
+        [CommandHandler("cleartest1", AccessLevel.Developer, CommandHandlerFlag.None)]
+        public static void cleartest1(Session session, params string[] parameters)
+        {
+            WorldObjects.Clear();
+
+            for (int i = 0; i < 100; i++)
+                GC.Collect();
+
+            CommandHandlerHelper.WriteOutputInfo(session, "cleartest1 completed");
         }
     }
 }

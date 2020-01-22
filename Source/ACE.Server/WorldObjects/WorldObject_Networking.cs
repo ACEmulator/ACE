@@ -898,7 +898,7 @@ namespace ACE.Server.WorldObjects
                     objDesc.AnimPartChanges.Add(new PropertiesAnimPart { Index = (byte)t.Index, AnimationId = t.ModelId });
                     //AddModel((byte)t.Index, (ushort)t.ModelId);
                     foreach (CloTextureEffect t1 in t.CloTextureEffects)
-                        objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = (byte)t.Index, OldTexture = t1.OldTexture, NewTexture = t1.NewTexture });
+                        objDesc.TextureChanges.Add(new PropertiesTextureMap { PartIndex = (byte)t.Index, OldTexture = t1.OldTexture, NewTexture = t1.NewTexture });
                     //AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
                 }
 
@@ -970,7 +970,7 @@ namespace ACE.Server.WorldObjects
 
                     // Add all the texture changes
                     foreach (var tm in hairstyle.ObjDesc.TextureChanges)
-                        objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = tm.PartIndex, OldTexture = tm.OldTexture, NewTexture = tm.NewTexture });
+                        objDesc.TextureChanges.Add(new PropertiesTextureMap { PartIndex = tm.PartIndex, OldTexture = tm.OldTexture, NewTexture = tm.NewTexture });
 
                     // Add all the animation part changes
                     foreach (var part in hairstyle.ObjDesc.AnimPartChanges)
@@ -979,7 +979,7 @@ namespace ACE.Server.WorldObjects
             }
 
             if (this is Player player)
-                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = player.Character.DefaultHairTexture, NewTexture = player.Character.HairTexture });
+                objDesc.TextureChanges.Add(new PropertiesTextureMap { PartIndex = 0x10, OldTexture = player.Character.DefaultHairTexture, NewTexture = player.Character.HairTexture });
             //AddTexture(0x10, DefaultHairTextureDID.Value, HairTextureDID.Value);
             if (HairPaletteDID.HasValue)
                 objDesc.SubPalettes.Add(new PropertiesPalette { SubPaletteId = HairPaletteDID.Value, Offset = 0x18, Length = 0x8 });
@@ -995,7 +995,7 @@ namespace ACE.Server.WorldObjects
 
             // Eyes
             if (DefaultEyesTextureDID.HasValue && EyesTextureDID.HasValue)
-                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultEyesTextureDID.Value, NewTexture = EyesTextureDID.Value });
+                objDesc.TextureChanges.Add(new PropertiesTextureMap { PartIndex = 0x10, OldTexture = DefaultEyesTextureDID.Value, NewTexture = EyesTextureDID.Value });
             //AddTexture(0x10, DefaultEyesTextureDID.Value, EyesTextureDID.Value);
             if (EyesPaletteDID.HasValue)
                 objDesc.SubPalettes.Add(new PropertiesPalette { SubPaletteId = EyesPaletteDID.Value, Offset = 0x20, Length = 0x8 });
@@ -1003,10 +1003,10 @@ namespace ACE.Server.WorldObjects
 
             // Nose & Mouth
             if (DefaultNoseTextureDID.HasValue && NoseTextureDID.HasValue)
-                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultNoseTextureDID.Value, NewTexture = NoseTextureDID.Value });
+                objDesc.TextureChanges.Add(new PropertiesTextureMap { PartIndex = 0x10, OldTexture = DefaultNoseTextureDID.Value, NewTexture = NoseTextureDID.Value });
             //AddTexture(0x10, NoseTextureDID.Value, NoseTextureDID.Value);
             if (DefaultMouthTextureDID.HasValue && MouthTextureDID.HasValue)
-                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultMouthTextureDID.Value, NewTexture = MouthTextureDID.Value });
+                objDesc.TextureChanges.Add(new PropertiesTextureMap { PartIndex = 0x10, OldTexture = DefaultMouthTextureDID.Value, NewTexture = MouthTextureDID.Value });
             //AddTexture(0x10, DefaultMouthTextureDID.Value, MouthTextureDID.Value);
         }
 

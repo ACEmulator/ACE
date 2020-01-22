@@ -128,7 +128,7 @@ namespace ACE.Server.WorldObjects
             if (eo.Count == 0)
             {
                 // Check if there is any defined ObjDesc in the Biota and, if so, apply them
-                if (Biota.PropertiesAnimPart.GetCount(BiotaDatabaseLock) > 0 || Biota.PropertiesPalette.GetCount(BiotaDatabaseLock) > 0 || DatabaseBiota.BiotaPropertiesTextureMap.Count > 0)
+                if (Biota.PropertiesAnimPart.GetCount(BiotaDatabaseLock) > 0 || Biota.PropertiesPalette.GetCount(BiotaDatabaseLock) > 0 || Biota.PropertiesTextureMap.GetCount(BiotaDatabaseLock) > 0)
                 {
                     foreach (var animPart in Biota.PropertiesAnimPart.Clone(BiotaDatabaseLock))
                         objDesc.AnimPartChanges.Add(animPart);
@@ -136,8 +136,8 @@ namespace ACE.Server.WorldObjects
                     foreach (var subPalette in Biota.PropertiesPalette.Clone(BiotaDatabaseLock))
                         objDesc.SubPalettes.Add(subPalette);
 
-                    foreach (var textureMap in DatabaseBiota.BiotaPropertiesTextureMap.OrderBy(b => b.Order))
-                        objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = textureMap.Index, OldTexture = textureMap.OldId, NewTexture = textureMap.NewId });
+                    foreach (var textureChange in Biota.PropertiesTextureMap.Clone(BiotaDatabaseLock))
+                        objDesc.TextureChanges.Add(textureChange);
 
                     return objDesc;
                 }
@@ -179,7 +179,7 @@ namespace ACE.Server.WorldObjects
                             objDesc.AddAnimPartChange(new PropertiesAnimPart { Index = (byte)t.Index, AnimationId = t.ModelId });
 
                             foreach (CloTextureEffect t1 in t.CloTextureEffects)
-                                objDesc.AddTextureChange(new ACE.Entity.TextureMapChange { PartIndex = (byte)t.Index, OldTexture = t1.OldTexture, NewTexture = t1.NewTexture });
+                                objDesc.AddTextureChange(new PropertiesTextureMap { PartIndex = (byte)t.Index, OldTexture = t1.OldTexture, NewTexture = t1.NewTexture });
                         }
 
                         if (item.ClothingSubPalEffects.Count > 0)

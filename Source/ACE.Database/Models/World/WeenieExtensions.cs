@@ -637,9 +637,9 @@ namespace ACE.Database.Models.World
                 {
                     var newEntity = new PropertiesTextureMap
                     {
-                        Index = record.Index,
-                        OldId = record.OldId,
-                        NewId = record.NewId,
+                        PartIndex = record.Index,
+                        OldTexture = record.OldId,
+                        NewTexture = record.NewId,
                     };
 
                     biota.PropertiesTextureMap.Add(newEntity);

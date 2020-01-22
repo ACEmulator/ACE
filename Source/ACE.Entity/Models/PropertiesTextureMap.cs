@@ -4,17 +4,17 @@ namespace ACE.Entity.Models
 {
     public class PropertiesTextureMap
     {
-        public byte Index { get; set; }
-        public uint OldId { get; set; }
-        public uint NewId { get; set; }
+        public byte PartIndex { get; set; }
+        public uint OldTexture { get; set; }
+        public uint NewTexture { get; set; }
 
         public PropertiesTextureMap Clone()
         {
             var result = new PropertiesTextureMap
             {
-                Index = Index,
-                OldId = OldId,
-                NewId = NewId,
+                PartIndex = PartIndex,
+                OldTexture = OldTexture,
+                NewTexture = NewTexture,
             };
 
             return result;
