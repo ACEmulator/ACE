@@ -86,6 +86,8 @@ namespace ACE.Server.WorldObjects
 
         public WorldObject ProjectileLauncher;
 
+        public bool HitMsg;     // FIXME: find a better way to do this for projectiles
+
         public WorldObject Wielder;
 
         public WorldObject() { }
@@ -194,7 +196,7 @@ namespace ACE.Server.WorldObjects
 
             var success = PhysicsObj.enter_world(location);
 
-            if (!success)
+            if (!success || PhysicsObj.CurCell == null)
             {
                 PhysicsObj.DestroyObject();
                 PhysicsObj = null;

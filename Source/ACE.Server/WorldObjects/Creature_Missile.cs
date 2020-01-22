@@ -112,12 +112,9 @@ namespace ACE.Server.WorldObjects
 
             var success = LandblockManager.AddObject(proj);
 
-            if (proj.PhysicsObj == null)
-                return null;
-
             if (!success || proj.PhysicsObj == null)
             {
-                if (player != null)
+                if (!proj.HitMsg && player != null)
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat("Your missile attack hit the environment.", ChatMessageType.Broadcast));
 
                 return null;
