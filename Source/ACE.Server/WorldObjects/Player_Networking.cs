@@ -24,7 +24,8 @@ namespace ACE.Server.WorldObjects
             // Save the the LoginTimestamp
             var lastLoginTimestamp = Time.GetUnixTime();
 
-            SetProperty(PropertyInt.LoginTimestamp, (int)lastLoginTimestamp);
+            LoginTimestamp = lastLoginTimestamp;
+            LastTeleportStartTimestamp = lastLoginTimestamp;
 
             Character.LastLoginTimestamp = lastLoginTimestamp;
             Character.TotalLogins++;
@@ -39,6 +40,13 @@ namespace ACE.Server.WorldObjects
                 AllegianceRank = (int)AllegianceNode.Rank;
             else
                 AllegianceRank = null;
+
+            if (!Account15Days)
+            {
+                var accountTimeSpan = DateTime.UtcNow - Account.CreateTime;
+                if (accountTimeSpan.TotalDays >= 15)
+                    Account15Days = true;
+            }
 
             // SendSelf will trigger the entrance into portal space
             SendSelf();
@@ -187,9 +195,8 @@ namespace ACE.Server.WorldObjects
             RequestedLocationBroadcast = broadcast;
         }
 
-        //public DateTime LastSoulEmote;
-
-        //private static TimeSpan SoulEmoteTime = TimeSpan.FromSeconds(2);
+        public MotionCommand LastSoulEmote;
+        public DateTime LastSoulEmoteEndTime;
 
         public void BroadcastMovement(MoveToState moveToState)
         {
@@ -217,14 +224,23 @@ namespace ACE.Server.WorldObjects
                     CurrentMotionState.SetForwardCommand(state.Commands[0].MotionCommand);
             }
 
-            /*if (state.HasSoulEmote())
+            if (state.HasSoulEmote(false))
             {
                 // prevent soul emote spam / bug where client sends multiples
-                var elapsed = DateTime.UtcNow - LastSoulEmote;
-                if (elapsed < SoulEmoteTime) return;
+                var soulEmote = state.Commands[0].MotionCommand;
+                if (soulEmote == LastSoulEmote && DateTime.UtcNow < LastSoulEmoteEndTime)
+                {
+                    state.Commands.Clear();
+                    state.CommandListLength = 0;
+                }
+                else
+                {
+                    var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, soulEmote, state.Commands[0].Speed);
 
-                LastSoulEmote = DateTime.UtcNow;
-            }*/
+                    LastSoulEmote = soulEmote;
+                    LastSoulEmoteEndTime = DateTime.UtcNow + TimeSpan.FromSeconds(animLength);
+                }
+            }
 
             var movementData = new MovementData(this, moveToState);
 

@@ -218,6 +218,33 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.HouseRentTimestamp); else SetProperty(PropertyInt.HouseRentTimestamp, value.Value); }
         }
 
+        /// <summary>
+        /// The timestamp when the player last logged in
+        /// </summary>
+        public double? LoginTimestamp
+        {
+            get => GetProperty(PropertyFloat.LoginTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.LoginTimestamp); else SetProperty(PropertyFloat.LoginTimestamp, value.Value); }
+        }
+
+        /// <summary>
+        /// The timestamp when the player last logged off
+        /// </summary>
+        public double? LogoffTimestamp
+        {
+            get => GetProperty(PropertyFloat.LogoffTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.LogoffTimestamp); else SetProperty(PropertyFloat.LogoffTimestamp, value.Value); }
+        }
+
+        /// <summary>
+        /// The timestamp when the last teleport started
+        /// </summary>
+        public double? LastTeleportStartTimestamp
+        {
+            get => GetProperty(PropertyFloat.LastTeleportStartTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.LastTeleportStartTimestamp); else SetProperty(PropertyFloat.LastTeleportStartTimestamp, value.Value); }
+        }
+
         public bool SpellComponentsRequired
         {
             get => GetProperty(PropertyBool.SpellComponentsRequired) ?? true;
@@ -753,7 +780,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Aura of Mana Flow
-        /// Reduces the mana consumption of your items equal to 1 rating point per level (max 5 stacks)
+        /// Reduces the mana consumption of your items equal to 5 rating points per level (max 5 stacks)
         /// This is expressed as a rating, where the mana consumption is multiplied by the following: 100 / (100 + Mana Consumption Reduction Rating)
         /// </summary>
         public int LumAugItemManaUsage
@@ -765,7 +792,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Aura of Mana Infusion
         /// Increases the mana provided by Mana Stones to your items (max 5 stacks)
-        /// The mana is increased by a rating of 1 per level.
+        /// The mana is increased by a rating of 5 per level.
         /// </summary>
         public int LumAugItemManaGain
         {

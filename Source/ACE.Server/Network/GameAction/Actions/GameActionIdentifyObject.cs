@@ -8,7 +8,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var objectGuid = message.Payload.ReadUInt32();
 
-            session.Player.ExamineObject(objectGuid);
+            session.Player.HandleActionIdentifyObject(objectGuid);
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
@@ -52,6 +53,8 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        private static readonly TimeSpan MaximumTeleportTime = TimeSpan.FromMinutes(5);
+
         /// <summary>
         /// Called every ~5 seconds for Players
         /// </summary>
@@ -77,6 +80,14 @@ namespace ACE.Server.WorldObjects
 
             if (LastRequestedDatabaseSave.AddSeconds(PlayerSaveIntervalSecs) <= DateTime.UtcNow)
                 SavePlayerToDatabase();
+
+            if (Teleporting && DateTime.UtcNow > Time.GetDateTimeFromTimestamp(LastTeleportStartTimestamp ?? 0).Add(MaximumTeleportTime))
+            {
+                if (Session != null)
+                    Session.LogOffPlayer(true);
+                else
+                    LogOut();
+            }
 
             base.Heartbeat(currentUnixTime);
         }
@@ -536,7 +547,7 @@ namespace ACE.Server.WorldObjects
                 var rate = item.ManaRate.Value;
 
                 if (LumAugItemManaUsage != 0)
-                    rate *= GetNegativeRatingMod(LumAugItemManaUsage);
+                    rate *= GetNegativeRatingMod(LumAugItemManaUsage * 5);
 
                 if (!item.ItemManaConsumptionTimestamp.HasValue) item.ItemManaConsumptionTimestamp = DateTime.UtcNow;
                 DateTime mostRecentBurn = item.ItemManaConsumptionTimestamp.Value;

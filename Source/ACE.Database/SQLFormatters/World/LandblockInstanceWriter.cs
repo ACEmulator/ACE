@@ -29,7 +29,7 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(IList<LandblockInstance> input, StreamWriter writer)
         {
-            writer.WriteLine($"DELETE FROM `landblock_instance` WHERE `landblock` = {input[0].ObjCellId >> 16};");
+            writer.WriteLine($"DELETE FROM `landblock_instance` WHERE `landblock` = 0x{(input[0].ObjCellId >> 16):X4};");
         }
 
         /// <exception cref="System.Exception">WeenieClassNames must be set, and must have a record for input.ClassId.</exception>
@@ -50,9 +50,9 @@ namespace ACE.Database.SQLFormatters.World
                     WeenieNames.TryGetValue(value.WeenieClassId, out label);
 
                 var output = "VALUES (" +
-                             $"{value.Guid.ToString().PadLeft(10)}, " +
+                             $"0x{value.Guid.ToString("X8")}, " +
                              $"{value.WeenieClassId.ToString().PadLeft(5)}, " +
-                             $"{value.ObjCellId}, " +
+                             $"0x{value.ObjCellId:X8}, " +
                              $"{value.OriginX}, " +
                              $"{value.OriginY}, " +
                              $"{value.OriginZ}, " +
@@ -88,7 +88,7 @@ namespace ACE.Database.SQLFormatters.World
                 if (InstanceNames != null)
                     InstanceNames.TryGetValue(input[i].ChildGuid, out label);
 
-                return $"{input[i].ParentGuid.ToString().PadLeft(10)}, {input[i].ChildGuid.ToString().PadLeft(10)}, '{input[i].LastModified.ToString("yyyy-MM-dd HH:mm:ss")}') /* {label} */";
+                return $"0x{input[i].ParentGuid.ToString("X8")}, 0x{input[i].ChildGuid.ToString("X8")}, '{input[i].LastModified.ToString("yyyy-MM-dd HH:mm:ss")}') /* {label} */";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);

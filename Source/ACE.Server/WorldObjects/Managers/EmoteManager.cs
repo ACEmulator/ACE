@@ -109,9 +109,9 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.AdminSpam:
 
-                    var players = PlayerManager.GetAllOnline();
-                    foreach (var onlinePlayer in players)
-                        onlinePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.AdminTell));
+                    text = Replace(emote.Message, WorldObject, targetObject, emoteSet.Quest);
+
+                    PlayerManager.BroadcastToChannelFromEmote(Channel.Admin, text);
                     break;
 
                 case EmoteType.AwardLevelProportionalSkillXP:
@@ -177,7 +177,10 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.BLog:
-                    // only one test drudge used this emoteAction.
+
+                    text = Replace(emote.Message, WorldObject, targetObject, emoteSet.Quest);
+
+                    log.Info($"0x{WorldObject.Guid}:{WorldObject.Name}({WorldObject.WeenieClassId}).EmoteManager.BLog - {text}");
                     break;
 
                 case EmoteType.CastSpell:
@@ -244,7 +247,7 @@ namespace ACE.Server.WorldObjects.Managers
                     {
                         var intProperty = (PropertyInt)emote.Stat;
                         var current = targetObject.GetProperty(intProperty) ?? 0;
-                        current -= emote.Amount ?? 0;
+                        current -= emote.Amount ?? 1;
                         targetObject.SetProperty(intProperty, current);
 
                         if (player != null)
@@ -349,7 +352,7 @@ namespace ACE.Server.WorldObjects.Managers
                     {
                         var intProperty = (PropertyInt)emote.Stat;
                         var current = targetObject.GetProperty(intProperty) ?? 0;
-                        current += emote.Amount ?? 0;
+                        current += emote.Amount ?? 1;
                         targetObject.SetProperty(intProperty, current);
 
                         if (player != null)
@@ -377,20 +380,41 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetCreature != null)
                     {
                         var attr = targetCreature.Attributes[(PropertyAttribute)emote.Stat];
-                        success = attr != null && attr.Current >= emote.Min && attr.Current <= emote.Max;
-                        ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+
+                        if (attr == null && HasValidTestNoQuality(emote.Message))
+                        {
+                            ExecuteEmoteSet(EmoteCategory.TestNoQuality, emote.Message, targetObject, true);
+                        }
+                        else
+                        {
+                            success = attr != null && attr.Current >= (emote.Min ?? int.MinValue) && attr.Current <= (emote.Max ?? int.MaxValue);
+
+                            ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        }
                     }
                     break;
 
                 case EmoteType.InqBoolStat:
 
-                    // This is only used with NPC's 24944 and 6386, which are dev tester npc's. Not worth the current effort.
-                    // Could also be post-ToD
+                    if (targetObject != null)
+                    {
+                        var stat = targetObject.GetProperty((PropertyBool)emote.Stat);
+
+                        if (stat == null && HasValidTestNoQuality(emote.Message))
+                        {
+                            ExecuteEmoteSet(EmoteCategory.TestNoQuality, emote.Message, targetObject, true);
+                        }
+                        else
+                        {
+                            success = stat ?? false;
+
+                            ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        }
+                    }
                     break;
 
                 case EmoteType.InqContractsFull:
 
-                    // not part of the game at PY16?
                     ExecuteEmoteSet(player != null && player.ContractManager.IsFull ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     break;
 
@@ -429,11 +453,16 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (targetObject != null)
                     {
-                        var stat = targetObject.GetProperty((PropertyFloat)emote.Stat) ?? 0.0f;
-                        success = stat >= emote.MinDbl && stat <= emote.MaxDbl;
+                        var stat = targetObject.GetProperty((PropertyFloat)emote.Stat);
 
-                        ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
-
+                        if (stat == null && HasValidTestNoQuality(emote.Message))
+                            ExecuteEmoteSet(EmoteCategory.TestNoQuality, emote.Message, targetObject, true);
+                        else
+                        {
+                            stat ??= 0.0f;
+                            success = stat >= (emote.MinDbl ?? double.MinValue) && stat <= (emote.MaxDbl ?? double.MaxValue);
+                            ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        }
                     }
                     break;
 
@@ -441,10 +470,16 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (targetObject != null)
                     {
-                        var stat = targetObject.GetProperty((PropertyInt64)emote.Stat) ?? 0;
-                        success = stat >= emote.Min64 && stat <= emote.Max64;
+                        var stat = targetObject.GetProperty((PropertyInt64)emote.Stat);
 
-                        ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        if (stat == null && HasValidTestNoQuality(emote.Message))
+                            ExecuteEmoteSet(EmoteCategory.TestNoQuality, emote.Message, targetObject, true);
+                        else
+                        {
+                            stat ??= 0;
+                            success = stat >= (emote.Min64 ?? long.MinValue) && stat <= (emote.Max64 ?? long.MaxValue);
+                            ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        }
                     }
                     break;
 
@@ -452,10 +487,16 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (targetObject != null)
                     {
-                        var stat = targetObject.GetProperty((PropertyInt)emote.Stat) ?? 0;
-                        success = stat >= emote.Min && stat <= emote.Max;
+                        var stat = targetObject.GetProperty((PropertyInt)emote.Stat);
 
-                        ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        if (stat == null && HasValidTestNoQuality(emote.Message))
+                            ExecuteEmoteSet(EmoteCategory.TestNoQuality, emote.Message, targetObject, true);
+                        else
+                        {
+                            stat ??= 0;
+                            success = stat >= (emote.Min ?? int.MinValue) && stat <= (emote.Max ?? int.MaxValue);
+                            ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        }
                     }
                     break;
 
@@ -533,8 +574,17 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetCreature != null)
                     {
                         var attr = targetCreature.Attributes[(PropertyAttribute)emote.Stat];
-                        success = attr != null && attr.Base >= emote.Min && attr.Base <= emote.Max;
-                        ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+
+                        if (attr == null && HasValidTestNoQuality(emote.Message))
+                        {
+                            ExecuteEmoteSet(EmoteCategory.TestNoQuality, emote.Message, targetObject, true);
+                        }
+                        else
+                        {
+                            success = attr != null && attr.Base >= (emote.Min ?? int.MinValue) && attr.Base <= (emote.Max ?? int.MaxValue);
+
+                            ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        }
                     }
                     break;
 
@@ -543,8 +593,17 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetCreature != null)
                     {
                         var vital = targetCreature.Vitals[(PropertyAttribute2nd)emote.Stat];
-                        success = vital != null && vital.Base >= emote.Min && vital.Base <= emote.Max;
-                        ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+
+                        if (vital == null && HasValidTestNoQuality(emote.Message))
+                        {
+                            ExecuteEmoteSet(EmoteCategory.TestNoQuality, emote.Message, targetObject, true);
+                        }
+                        else
+                        {
+                            success = vital != null && vital.Base >= (emote.Min ?? int.MinValue) && vital.Base <= (emote.Max ?? int.MaxValue);
+
+                            ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        }
                     }
                     break;
 
@@ -553,8 +612,17 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetCreature != null)
                     {
                         var skill = targetCreature.GetCreatureSkill((Skill)emote.Stat);
-                        success = skill != null && skill.Base >= emote.Min && skill.Base <= emote.Max;
-                        ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+
+                        if (skill == null && HasValidTestNoQuality(emote.Message))
+                        {
+                            ExecuteEmoteSet(EmoteCategory.TestNoQuality, emote.Message, targetObject, true);
+                        }
+                        else
+                        {
+                            success = skill != null && skill.Base >= (emote.Min ?? int.MinValue) && skill.Base <= (emote.Max ?? int.MaxValue);
+
+                            ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        }
                     }
                     break;
 
@@ -563,8 +631,17 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetCreature != null)
                     {
                         var vital = targetCreature.Vitals[(PropertyAttribute2nd)emote.Stat];
-                        success = vital != null && vital.Current >= emote.Min && vital.Current <= emote.Max;
-                        ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+
+                        if (vital == null && HasValidTestNoQuality(emote.Message))
+                        {
+                            ExecuteEmoteSet(EmoteCategory.TestNoQuality, emote.Message, targetObject, true);
+                        }
+                        else
+                        {
+                            success = vital != null && vital.Current >= (emote.Min ?? int.MinValue) && vital.Current <= (emote.Max ?? int.MaxValue);
+
+                            ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        }
                     }
                     break;
 
@@ -573,9 +650,17 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetCreature != null)
                     {
                         var skill = targetCreature.GetCreatureSkill((Skill)emote.Stat);
-                        success = skill.AdvancementClass == SkillAdvancementClass.Specialized;
 
-                        ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        if (skill == null && HasValidTestNoQuality(emote.Message))
+                        {
+                            ExecuteEmoteSet(EmoteCategory.TestNoQuality, emote.Message, targetObject, true);
+                        }
+                        else
+                        {
+                            success = skill != null && skill.AdvancementClass == SkillAdvancementClass.Specialized;
+
+                            ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        }
                     }
                     break;
 
@@ -584,9 +669,17 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetCreature != null)
                     {
                         var skill = targetCreature.GetCreatureSkill((Skill)emote.Stat);
-                        success = skill != null && skill.Current >= emote.Min && skill.Current <= emote.Max;
 
-                        ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        if (skill == null && HasValidTestNoQuality(emote.Message))
+                        {
+                            ExecuteEmoteSet(EmoteCategory.TestNoQuality, emote.Message, targetObject, true);
+                        }
+                        else
+                        {
+                            success = skill != null && skill.Current >= (emote.Min ?? int.MinValue) && skill.Current <= (emote.Max ?? int.MaxValue);
+
+                            ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        }
                     }
                     break;
 
@@ -595,10 +688,17 @@ namespace ACE.Server.WorldObjects.Managers
                     if (targetCreature != null)
                     {
                         var skill = targetCreature.GetCreatureSkill((Skill)emote.Stat);
-                        success = skill.AdvancementClass >= SkillAdvancementClass.Trained;
 
-                        // TestNoQuality?
-                        ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        if (skill == null && HasValidTestNoQuality(emote.Message))
+                        {
+                            ExecuteEmoteSet(EmoteCategory.TestNoQuality, emote.Message, targetObject, true);
+                        }
+                        else
+                        {
+                            success = skill != null && skill.AdvancementClass >= SkillAdvancementClass.Trained;
+
+                            ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                        }
                     }
                     break;
 
@@ -606,13 +706,20 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (targetCreature != null)
                     {
-                        // rarely used, only in test data?
                         if (Enum.TryParse(emote.TestString, true, out PropertyString propStr))
                         {
                             var stat = targetCreature.GetProperty(propStr);
-                            success = stat.Equals(emote.Message);
 
-                            ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                            if (stat == null && HasValidTestNoQuality(emote.Message))
+                            {
+                                ExecuteEmoteSet(EmoteCategory.TestNoQuality, emote.Message, targetObject, true);
+                            }
+                            else
+                            {
+                                success = stat != null && stat.Equals(emote.Message);
+
+                                ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                            }
                         }
                     }
                     break;
@@ -993,7 +1100,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.SpendLuminance:
                     if (player != null)
-                        player.SpendLuminance((long)emote.Amount);
+                        player.SpendLuminance(emote.HeroXP64 ?? 0);
                     break;
 
                 case EmoteType.StampFellowQuest:
@@ -1054,17 +1161,17 @@ namespace ACE.Server.WorldObjects.Managers
                     if (player != null)
                     {
                         var weenieItemToTake = emote.WeenieClassId ?? 0;
-                        var amountToTake = emote.StackSize ?? 0;
+                        var amountToTake = emote.StackSize ?? 1;
 
                         if (weenieItemToTake == 0)
                         {
-                            log.Warn($"EmoteManager.Excute: 0x{WorldObject.Guid} {WorldObject.Name} ({WorldObject.WeenieClassId}) EmoteType.TakeItems has invalid emote.WeenieClassId: {weenieItemToTake}");
+                            log.Warn($"EmoteManager.Execute: 0x{WorldObject.Guid} {WorldObject.Name} ({WorldObject.WeenieClassId}) EmoteType.TakeItems has invalid emote.WeenieClassId: {weenieItemToTake}");
                             break;
                         }
 
                         if (amountToTake < -1 || amountToTake == 0)
                         {
-                            log.Warn($"EmoteManager.Excute: 0x{WorldObject.Guid} {WorldObject.Name} ({WorldObject.WeenieClassId}) EmoteType.TakeItems has invalid emote.StackSize: {amountToTake}");
+                            log.Warn($"EmoteManager.Execute: 0x{WorldObject.Guid} {WorldObject.Name} ({WorldObject.WeenieClassId}) EmoteType.TakeItems has invalid emote.StackSize: {amountToTake}");
                             break;
                         }
 
@@ -1073,7 +1180,10 @@ namespace ACE.Server.WorldObjects.Managers
                             var itemTaken = DatabaseManager.World.GetCachedWeenie(weenieItemToTake);
                             if (itemTaken != null)
                             {
-                                var msg = $"You hand over {(player.GetNumInventoryItemsOfWCID(itemTaken.ClassId) == 0 ? "all" : amountToTake.ToString())} of your {itemTaken.GetPluralName()}.";
+                                var amount = amountToTake == -1 ? "all" : amountToTake.ToString();
+
+                                var msg = $"You hand over {amount} of your {itemTaken.GetPluralName()}.";
+
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                             }
                         }
@@ -1383,6 +1493,8 @@ namespace ACE.Server.WorldObjects.Managers
                 }
             }
         }
+
+        public bool HasValidTestNoQuality(string testName) => GetEmoteSet(EmoteCategory.TestNoQuality, testName) != null;
 
         /// <summary>
         /// The maximum animation range of the client

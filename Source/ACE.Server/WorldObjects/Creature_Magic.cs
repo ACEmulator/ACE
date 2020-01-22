@@ -109,6 +109,9 @@ namespace ACE.Server.WorldObjects
                 baseCost += spell.ManaMod * (uint)numFellows;
             }
 
+            if (spell.Flags.HasFlag(SpellFlags.IgnoresManaConversion))
+                return baseCost;
+
             var difficulty = spell.PowerMod;   // modified power difficulty
 
             var mana_conversion_skill = (uint)Math.Round(caster.GetCreatureSkill(Skill.ManaConversion).Current * GetWeaponManaConversionModifier(caster));

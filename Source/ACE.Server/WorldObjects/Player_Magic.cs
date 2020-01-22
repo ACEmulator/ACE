@@ -11,6 +11,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics;
 
 namespace ACE.Server.WorldObjects
 {
@@ -78,11 +79,20 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"{Name}.HandleActionCastTargetedSpell({targetGuid:X8}, {spellId}, {builtInSpell})");
 
             if (CombatMode != CombatMode.Magic)
+            {
+                SendUseDoneEvent();
                 return;
+            }
+
+            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            {
+                SendUseDoneEvent(WeenieError.YouCantDoThatWhileInTheAir);
+                return;
+            }
 
             if (PKLogout)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                SendUseDoneEvent(WeenieError.YouHaveBeenInPKBattleTooRecently);
                 return;
             }
 
@@ -232,11 +242,20 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"{Name}.HandleActionCastUnTargetedSpell({spellId})");
 
             if (CombatMode != CombatMode.Magic)
+            {
+                SendUseDoneEvent();
                 return;
+            }
+
+            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            {
+                SendUseDoneEvent(WeenieError.YouCantDoThatWhileInTheAir);
+                return;
+            }
 
             if (PKLogout)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                SendUseDoneEvent(WeenieError.YouHaveBeenInPKBattleTooRecently);
                 return;
             }
 
@@ -360,6 +379,24 @@ namespace ACE.Server.WorldObjects
                 SendUseDoneEvent(WeenieError.None);
                 return false;
             }
+
+            // bootstrapping this function for indoor/outdoor check, since it is called both before and after windup
+            if (spell.Flags.HasFlag(SpellFlags.NotIndoor))
+            {
+                if (Location.Indoors || target != null && target.Location.Indoors)
+                {
+                    SendUseDoneEvent(WeenieError.YourSpellCannotBeCastInside);
+                    return false;
+                }
+            }
+            if (spell.Flags.HasFlag(SpellFlags.NotOutdoor))
+            {
+                if (!Location.Indoors || target != null && !target.Location.Indoors)
+                {
+                    SendUseDoneEvent(WeenieError.YourSpellCannotBeCastOutside);
+                    return false;
+                }
+            }
             return true;
         }
 
@@ -454,6 +491,8 @@ namespace ACE.Server.WorldObjects
                 });
             }
 
+            var windupTime = 0.0f;
+
             foreach (var windupGesture in spell.Formula.WindupGestures)
             {
                 if (RecordCast.Enabled)
@@ -466,10 +505,7 @@ namespace ACE.Server.WorldObjects
                 }
 
                 // don't mess with CurrentMotionState here?
-                var windupTime = 0.0f;
-                if (FastTick)
-                    windupTime = EnqueueMotion(castChain, windupGesture, CastSpeed);
-                else
+                if (!FastTick)
                     windupTime = EnqueueMotionMagic(castChain, windupGesture, CastSpeed);
 
                 /*Console.WriteLine($"{spell.Name}");
@@ -477,6 +513,9 @@ namespace ACE.Server.WorldObjects
                 Console.WriteLine($"Windup time: " + windupTime);
                 Console.WriteLine("-------");*/
             }
+
+            if (FastTick)
+                windupTime = EnqueueMotionAction(castChain, spell.Formula.WindupGestures, CastSpeed);
         }
 
         public void DoCastGesture(Spell spell, bool isWeaponSpell, ActionChain castChain)
@@ -1359,6 +1398,19 @@ namespace ACE.Server.WorldObjects
                 DoWindup(MagicState.WindupParams);
             else
                 DoCastSpell(MagicState, status != WeenieError.None);
+        }
+
+        public void FailCast()
+        {
+            var parms = MagicState.CastSpellParams;
+
+            if (parms == null) return;
+
+            DoCastSpell_Inner(parms.Spell, parms.IsWeaponSpell, parms.ManaUsed, parms.Target, CastingPreCheckStatus.CastFailed, false);
+
+            SendUseDoneEvent(WeenieError.YourSpellFizzled);
+
+            MagicState.OnCastDone();
         }
     }
 }

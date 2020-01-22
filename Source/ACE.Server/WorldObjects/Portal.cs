@@ -138,15 +138,23 @@ namespace ACE.Server.WorldObjects
             }
 
             // handle quest initial flagging
-            if (Quest != null && !player.QuestManager.HasQuest(Quest))
+            if (Quest != null)
             {
                 player.QuestManager.Update(Quest);
             }
 
-            if (QuestRestriction != null && !player.QuestManager.HasQuest(QuestRestriction) && !player.IgnorePortalRestrictions)
+            if (QuestRestriction != null && !player.IgnorePortalRestrictions)
             {
-                player.QuestManager.HandleNoQuestError(this);
-                return new ActivationResult(false);
+                var hasQuest = player.QuestManager.HasQuest(QuestRestriction);
+                var canSolve = player.QuestManager.CanSolve(QuestRestriction);
+
+                var success = hasQuest && !canSolve;
+
+                if (!success)
+                {
+                    player.QuestManager.HandlePortalQuestError(QuestRestriction);
+                    return new ActivationResult(false);
+                }
             }
 
             return new ActivationResult(true);
