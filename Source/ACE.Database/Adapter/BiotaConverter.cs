@@ -71,13 +71,13 @@ namespace ACE.Database.Adapter
                     var newEntity = new PropertiesPosition
                     {
                         ObjCellId = record.ObjCellId,
-                        OriginX = record.OriginX,
-                        OriginY = record.OriginY,
-                        OriginZ = record.OriginZ,
-                        AnglesW = record.AnglesW,
-                        AnglesX = record.AnglesX,
-                        AnglesY = record.AnglesY,
-                        AnglesZ = record.AnglesZ,
+                        PositionX = record.OriginX,
+                        PositionY = record.OriginY,
+                        PositionZ = record.OriginZ,
+                        RotationW = record.AnglesW,
+                        RotationX = record.AnglesX,
+                        RotationY = record.AnglesY,
+                        RotationZ = record.AnglesZ,
 
                     };
 

@@ -718,7 +718,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("listpositions", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Displays all available saved character positions from the database.", "@listpositions")]
         public static void HandleListPositions(Session session, params string[] parameters)
         {
-            var posDict = session.Player.GetPositions();
+            var posDict = session.Player.GetAllPositions();
             string message = "Saved character positions:\n";
 
             foreach (var posPair in posDict)

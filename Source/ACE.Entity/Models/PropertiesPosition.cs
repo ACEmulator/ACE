@@ -5,26 +5,26 @@ namespace ACE.Entity.Models
     public class PropertiesPosition
     {
         public uint ObjCellId { get; set; }
-        public float OriginX { get; set; }
-        public float OriginY { get; set; }
-        public float OriginZ { get; set; }
-        public float AnglesW { get; set; }
-        public float AnglesX { get; set; }
-        public float AnglesY { get; set; }
-        public float AnglesZ { get; set; }
+        public float PositionX { get; set; }
+        public float PositionY { get; set; }
+        public float PositionZ { get; set; }
+        public float RotationW { get; set; }
+        public float RotationX { get; set; }
+        public float RotationY { get; set; }
+        public float RotationZ { get; set; }
 
         public PropertiesPosition Clone()
         {
             var result = new PropertiesPosition
             {
                 ObjCellId = ObjCellId,
-                OriginX = OriginX,
-                OriginY = OriginY,
-                OriginZ = OriginZ,
-                AnglesW = AnglesW,
-                AnglesX = AnglesX,
-                AnglesY = AnglesY,
-                AnglesZ = AnglesZ,
+                PositionX = PositionX,
+                PositionY = PositionY,
+                PositionZ = PositionZ,
+                RotationW = RotationW,
+                RotationX = RotationX,
+                RotationY = RotationY,
+                RotationZ = RotationZ,
             };
 
             return result;
