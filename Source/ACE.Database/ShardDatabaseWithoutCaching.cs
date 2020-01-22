@@ -183,7 +183,7 @@ namespace ACE.Database
             // You'll notice though that we're not using the recommended: context.Entry(existingEntry).CurrentValues.SetValues(newEntry);
             // It is EXTREMLY slow. 4x or more slower. I suspect because it uses reflection to find the properties that the object contains
             // Manually setting the properties like we do below is the best case scenario for performance. However, it also has risks.
-            // If we add columns to the schema and forget to add those changes here, changes to the biota may not propegate to the database.
+            // If we add columns to the schema and forget to add those changes here, changes to the biota may not propagate to the database.
             // Mag-nus 2018-08-18
 
             context.Entry(existingBiota).CurrentValues.SetValues(biota);
@@ -209,7 +209,7 @@ namespace ACE.Database
 
             foreach (var value in biota.BiotaPropertiesAttribute)
             {
-                BiotaPropertiesAttribute existingValue = existingBiota.BiotaPropertiesAttribute.FirstOrDefault(r => r.ObjectId == value.ObjectId && r.Type == value.Type);
+                BiotaPropertiesAttribute existingValue = existingBiota.BiotaPropertiesAttribute.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesAttribute.Add(value);
@@ -222,13 +222,13 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesAttribute)
             {
-                if (!biota.BiotaPropertiesAttribute.Any(p => p.ObjectId == value.ObjectId && p.Type == value.Type))
+                if (!biota.BiotaPropertiesAttribute.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesAttribute.Remove(value);
             }
 
             foreach (var value in biota.BiotaPropertiesAttribute2nd)
             {
-                BiotaPropertiesAttribute2nd existingValue = existingBiota.BiotaPropertiesAttribute2nd.FirstOrDefault(r => r.ObjectId == value.ObjectId && r.Type == value.Type);
+                BiotaPropertiesAttribute2nd existingValue = existingBiota.BiotaPropertiesAttribute2nd.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesAttribute2nd.Add(value);
@@ -242,7 +242,7 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesAttribute2nd)
             {
-                if (!biota.BiotaPropertiesAttribute2nd.Any(p => p.ObjectId == value.ObjectId && p.Type == value.Type))
+                if (!biota.BiotaPropertiesAttribute2nd.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesAttribute2nd.Remove(value);
             }
 
@@ -328,7 +328,7 @@ namespace ACE.Database
 
             foreach (var value in biota.BiotaPropertiesBool)
             {
-                BiotaPropertiesBool existingValue = existingBiota.BiotaPropertiesBool.FirstOrDefault(r => r.ObjectId == value.ObjectId && r.Type == value.Type);
+                BiotaPropertiesBool existingValue = existingBiota.BiotaPropertiesBool.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesBool.Add(value);
@@ -337,7 +337,7 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesBool)
             {
-                if (!biota.BiotaPropertiesBool.Any(p => p.ObjectId == value.ObjectId && p.Type == value.Type))
+                if (!biota.BiotaPropertiesBool.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesBool.Remove(value);
             }
 
@@ -365,7 +365,7 @@ namespace ACE.Database
 
             foreach (var value in biota.BiotaPropertiesDID)
             {
-                BiotaPropertiesDID existingValue = existingBiota.BiotaPropertiesDID.FirstOrDefault(r => r.ObjectId == value.ObjectId && r.Type == value.Type);
+                BiotaPropertiesDID existingValue = existingBiota.BiotaPropertiesDID.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesDID.Add(value);
@@ -374,7 +374,7 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesDID)
             {
-                if (!biota.BiotaPropertiesDID.Any(p => p.ObjectId == value.ObjectId && p.Type == value.Type))
+                if (!biota.BiotaPropertiesDID.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesDID.Remove(value);
             }
 
@@ -461,7 +461,7 @@ namespace ACE.Database
 
             foreach (var value in biota.BiotaPropertiesEnchantmentRegistry)
             {
-                BiotaPropertiesEnchantmentRegistry existingValue = (value.ObjectId == 0 ? null : existingBiota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(r => r.ObjectId == value.ObjectId && r.SpellId == value.SpellId && r.LayerId == value.LayerId && r.CasterObjectId == value.CasterObjectId));
+                BiotaPropertiesEnchantmentRegistry existingValue = (value.ObjectId == 0 ? null : existingBiota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(r => r.SpellId == value.SpellId && r.LayerId == value.LayerId && r.CasterObjectId == value.CasterObjectId));
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesEnchantmentRegistry.Add(value);
@@ -487,26 +487,26 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesEnchantmentRegistry)
             {
-                if (!biota.BiotaPropertiesEnchantmentRegistry.Any(p => p.ObjectId == value.ObjectId && p.SpellId == value.SpellId && p.LayerId == value.LayerId && p.CasterObjectId == value.CasterObjectId))
+                if (!biota.BiotaPropertiesEnchantmentRegistry.Any(p => p.SpellId == value.SpellId && p.LayerId == value.LayerId && p.CasterObjectId == value.CasterObjectId))
                     context.BiotaPropertiesEnchantmentRegistry.Remove(value);
             }
 
             foreach (var value in biota.BiotaPropertiesEventFilter)
             {
-                BiotaPropertiesEventFilter existingValue = existingBiota.BiotaPropertiesEventFilter.FirstOrDefault(r => r.ObjectId == value.ObjectId && r.Event == value.Event);
+                BiotaPropertiesEventFilter existingValue = existingBiota.BiotaPropertiesEventFilter.FirstOrDefault(r => r.Event == value.Event);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesEventFilter.Add(value);
             }
             foreach (var value in existingBiota.BiotaPropertiesEventFilter)
             {
-                if (!biota.BiotaPropertiesEventFilter.Any(p => p.ObjectId == value.ObjectId && p.Event == value.Event))
+                if (!biota.BiotaPropertiesEventFilter.Any(p => p.Event == value.Event))
                     context.BiotaPropertiesEventFilter.Remove(value);
             }
 
             foreach (var value in biota.BiotaPropertiesFloat)
             {
-                BiotaPropertiesFloat existingValue = existingBiota.BiotaPropertiesFloat.FirstOrDefault(r => r.ObjectId == value.ObjectId && r.Type == value.Type);
+                BiotaPropertiesFloat existingValue = existingBiota.BiotaPropertiesFloat.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesFloat.Add(value);
@@ -515,7 +515,7 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesFloat)
             {
-                if (!biota.BiotaPropertiesFloat.Any(p => p.ObjectId == value.ObjectId && p.Type == value.Type))
+                if (!biota.BiotaPropertiesFloat.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesFloat.Remove(value);
             }
 
@@ -555,7 +555,7 @@ namespace ACE.Database
 
             foreach (var value in biota.BiotaPropertiesIID)
             {
-                BiotaPropertiesIID existingValue = existingBiota.BiotaPropertiesIID.FirstOrDefault(r => r.ObjectId == value.ObjectId && r.Type == value.Type);
+                BiotaPropertiesIID existingValue = existingBiota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesIID.Add(value);
@@ -564,13 +564,13 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesIID)
             {
-                if (!biota.BiotaPropertiesIID.Any(p => p.ObjectId == value.ObjectId && p.Type == value.Type))
+                if (!biota.BiotaPropertiesIID.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesIID.Remove(value);
             }
 
             foreach (var value in biota.BiotaPropertiesInt)
             {
-                BiotaPropertiesInt existingValue = existingBiota.BiotaPropertiesInt.FirstOrDefault(r => r.ObjectId == value.ObjectId && r.Type == value.Type);
+                BiotaPropertiesInt existingValue = existingBiota.BiotaPropertiesInt.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesInt.Add(value);
@@ -579,13 +579,13 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesInt)
             {
-                if (!biota.BiotaPropertiesInt.Any(p => p.ObjectId == value.ObjectId && p.Type == value.Type))
+                if (!biota.BiotaPropertiesInt.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesInt.Remove(value);
             }
 
             foreach (var value in biota.BiotaPropertiesInt64)
             {
-                BiotaPropertiesInt64 existingValue = existingBiota.BiotaPropertiesInt64.FirstOrDefault(r => r.ObjectId == value.ObjectId && r.Type == value.Type);
+                BiotaPropertiesInt64 existingValue = existingBiota.BiotaPropertiesInt64.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesInt64.Add(value);
@@ -594,7 +594,7 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesInt64)
             {
-                if (!biota.BiotaPropertiesInt64.Any(p => p.ObjectId == value.ObjectId && p.Type == value.Type))
+                if (!biota.BiotaPropertiesInt64.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesInt64.Remove(value);
             }
 
@@ -619,7 +619,7 @@ namespace ACE.Database
 
             foreach (var value in biota.BiotaPropertiesPosition)
             {
-                BiotaPropertiesPosition existingValue = existingBiota.BiotaPropertiesPosition.FirstOrDefault(r => r.ObjectId == value.ObjectId && r.PositionType == value.PositionType);
+                BiotaPropertiesPosition existingValue = existingBiota.BiotaPropertiesPosition.FirstOrDefault(r => r.PositionType == value.PositionType);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesPosition.Add(value);
@@ -637,13 +637,13 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesPosition)
             {
-                if (!biota.BiotaPropertiesPosition.Any(p => p.ObjectId == value.ObjectId && p.PositionType == value.PositionType))
+                if (!biota.BiotaPropertiesPosition.Any(p => p.PositionType == value.PositionType))
                     context.BiotaPropertiesPosition.Remove(value);
             }
 
             foreach (var value in biota.BiotaPropertiesSkill)
             {
-                BiotaPropertiesSkill existingValue = existingBiota.BiotaPropertiesSkill.FirstOrDefault(r => r.ObjectId == value.ObjectId && r.Type == value.Type);
+                BiotaPropertiesSkill existingValue = existingBiota.BiotaPropertiesSkill.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesSkill.Add(value);
@@ -659,13 +659,13 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesSkill)
             {
-                if (!biota.BiotaPropertiesSkill.Any(p => p.ObjectId == value.ObjectId && p.Type == value.Type))
+                if (!biota.BiotaPropertiesSkill.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesSkill.Remove(value);
             }
 
             foreach (var value in biota.BiotaPropertiesSpellBook)
             {
-                BiotaPropertiesSpellBook existingValue = existingBiota.BiotaPropertiesSpellBook.FirstOrDefault(r => r.ObjectId == value.ObjectId && r.Spell == value.Spell);
+                BiotaPropertiesSpellBook existingValue = existingBiota.BiotaPropertiesSpellBook.FirstOrDefault(r => r.Spell == value.Spell);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesSpellBook.Add(value);
@@ -674,13 +674,13 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesSpellBook)
             {
-                if (!biota.BiotaPropertiesSpellBook.Any(p => p.ObjectId == value.ObjectId && p.Spell == value.Spell))
+                if (!biota.BiotaPropertiesSpellBook.Any(p => p.Spell == value.Spell))
                     context.BiotaPropertiesSpellBook.Remove(value);
             }
 
             foreach (var value in biota.BiotaPropertiesString)
             {
-                BiotaPropertiesString existingValue = existingBiota.BiotaPropertiesString.FirstOrDefault(r => r.ObjectId == value.ObjectId && r.Type == value.Type);
+                BiotaPropertiesString existingValue = existingBiota.BiotaPropertiesString.FirstOrDefault(r => r.Type == value.Type);
 
                 if (existingValue == null)
                     existingBiota.BiotaPropertiesString.Add(value);
@@ -689,7 +689,7 @@ namespace ACE.Database
             }
             foreach (var value in existingBiota.BiotaPropertiesString)
             {
-                if (!biota.BiotaPropertiesString.Any(p => p.ObjectId == value.ObjectId && p.Type == value.Type))
+                if (!biota.BiotaPropertiesString.Any(p => p.Type == value.Type))
                     context.BiotaPropertiesString.Remove(value);
             }
 
@@ -788,7 +788,7 @@ namespace ACE.Database
                     rwLock.EnterWriteLock();
                     try
                     {
-                        context.Biota.Remove(biota);
+                        context.Biota.Remove(existingBiota);
 
                         Exception firstException = null;
                         retry:
