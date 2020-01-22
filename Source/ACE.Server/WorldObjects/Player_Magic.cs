@@ -596,10 +596,10 @@ namespace ACE.Server.WorldObjects
                         log.Error($"{Name}.IsWithinAngle({target.Name} ({target.Guid})) - couldn't find rootOwner");
 
                     else if (rootOwner != this)
-                        angle = Math.Abs(GetAngle_Physics2(rootOwner));
+                        angle = FastTick ? Math.Abs(GetAngle_Physics2(rootOwner)) : GetAngle(rootOwner.Location);
                 }
                 else
-                    angle = Math.Abs(GetAngle_Physics2(target));
+                    angle = FastTick ? Math.Abs(GetAngle_Physics2(target)) : GetAngle(target.Location);
             }
 
             //Console.WriteLine($"Angle: " + angle);
@@ -626,9 +626,20 @@ namespace ACE.Server.WorldObjects
 
                 // do second rotate, if applicable
                 // TODO: investigate this more, difference for GetAngle() between ACE and ac physics engine
-                if (FastTick && checkAngle && !IsWithinAngle(target))
+                if (checkAngle && !IsWithinAngle(target))
                 {
-                    TurnTo_Magic(target);
+                    if (!FastTick)
+                    {
+                        var rotateTime = Rotate(target);
+
+                        var actionChain = new ActionChain();
+                        actionChain.AddDelaySeconds(rotateTime);
+                        actionChain.AddAction(this, () => DoCastSpell(spell, isWeaponSpell, magicSkill, manaUsed, target, castingPreCheckStatus, false));
+                        actionChain.EnqueueChain();
+                    }
+                    else
+                        TurnTo_Magic(target);
+
                     return;
                 }
 
