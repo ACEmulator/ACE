@@ -1015,11 +1015,21 @@ namespace ACE.Server.WorldObjects
             // empty base
         }
 
+        public bool IsTradeNote => ItemType == ItemType.PromissoryNote;
+
         public virtual bool IsAttunedOrContainsAttuned => Attuned >= AttunedStatus.Attuned;
 
         public virtual bool IsStickyAttunedOrContainsStickyAttuned => Attuned >= AttunedStatus.Sticky;
 
-        public bool IsTradeNote => ItemType == ItemType.PromissoryNote;
+        public virtual bool IsUniqueOrContainsUnique => Unique != null;
+
+        public virtual List<WorldObject> GetUniqueObjects()
+        {
+            if (Unique == null)
+                return new List<WorldObject>();
+            else
+                return new List<WorldObject>() { this };
+        }
 
         /// <summary>
         /// Returns the wielder or the current object

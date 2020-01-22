@@ -841,6 +841,16 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
+                    if (itemRootOwner != this && containerRootOwner == this)
+                    {
+                        // moving from world container to player
+                        if (item.IsUniqueOrContainsUnique && !CheckUniques(item))
+                        {
+                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                            return;
+                        }
+                    }
+
                     StartPickup();
 
                     var pickupMotion = GetPickupMotion(moveToTarget);
@@ -2354,6 +2364,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (item.IsUniqueOrContainsUnique && !target.CheckUniques(item, this))
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.None));
+                return;
+            }
+
             if (!RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, amount, out WorldObject itemToGive))
                 return;
 
@@ -2827,6 +2843,43 @@ namespace ACE.Server.WorldObjects
             if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                 RushNextPlayerSave(5);
 
+            return true;
+        }
+
+        /// <summary>
+        /// Verifies a player can pick up an object that is unique,
+        /// or contains uniques.
+        public bool CheckUniques(WorldObject obj, Creature giver = null)
+        {
+            var uniqueObjects = obj.GetUniqueObjects();
+
+            // build dictionary of wcid => count
+            var uniqueTable = new UniqueTable(uniqueObjects);
+
+            // ensure player can add this obj to their inventory
+            foreach (var kvp in uniqueTable.Entries)
+            {
+                var wcid = kvp.Key;
+                var entry = kvp.Value;
+
+                var current = GetNumInventoryItemsOfWCID(wcid);
+
+                if (current + entry.Count > entry.Max)
+                {
+                    var wo = uniqueObjects.FirstOrDefault(i => i.WeenieClassId == wcid);
+
+                    var itemName = entry.Max == 1 ? wo.Name : wo.GetPluralName();
+
+                    var msgTarget = giver is Player player ? player : this;
+
+                    var name = msgTarget == this ? "You" : msgTarget.Name;
+                    var msg = $"{name} cannot pick up more than {entry.Max:N0} {itemName}!";
+
+                    msgTarget.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+
+                    return false;
+                }
+            }
             return true;
         }
     }
