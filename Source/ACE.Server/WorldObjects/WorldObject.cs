@@ -86,6 +86,8 @@ namespace ACE.Server.WorldObjects
 
         public WorldObject ProjectileLauncher;
 
+        public bool HitMsg;     // FIXME: find a better way to do this for projectiles
+
         public WorldObject Wielder;
 
         public WorldObject() { }
