@@ -1,6 +1,8 @@
 using System;
 using System.Numerics;
 
+using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -55,7 +57,7 @@ namespace ACE.Server.WorldObjects
             if (newChain)
                 actionChain.EnqueueChain();
 
-            var animLength2 = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload, MotionCommand.Ready);
+            var animLength2 = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload, MotionCommand.Ready);
             //Console.WriteLine($"AnimLength: {animLength} + {animLength2}");
 
             return animLength + animLength2;
@@ -80,16 +82,20 @@ namespace ACE.Server.WorldObjects
 
             proj.ProjectileLauncher = weapon;
 
-            var matchIndoors = Location.Indoors == target.Location.Indoors;
-            var origin = matchIndoors ? Location.ToGlobal() : Location.Pos;
-            origin.Z += Height;
+            var localOrigin = GetProjectileSpawnOrigin(proj);
 
-            var dest = matchIndoors ? target.Location.ToGlobal() : target.Location.Pos;
+            var dir = GetDir2D(Location.Pos, target.Location.Pos);
+
+            var angle = Math.Atan2(-dir.X, dir.Y);
+
+            var rot = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)angle);
+
+            var origin = Location.Pos + Vector3.Transform(localOrigin, rot);
+
+            var dest = target.Location.Pos;
             dest.Z += target.Height / GetAimHeight(target);
 
             var speed = 35.0f;  // TODO: get correct speed
-            var dir = GetDir2D(origin, dest);
-            origin += dir * 2.0f;
 
             var velocity = GetProjectileVelocity(target, origin, dir, dest, speed, out time);
 
@@ -102,13 +108,15 @@ namespace ACE.Server.WorldObjects
                 return null;
             }
 
+            proj.Location = new Position(Location);
+            proj.Location.Pos = origin;
+            proj.Location.Rotation = rot;
+
             proj.Velocity = velocity;
 
-            proj.Location = matchIndoors ? Location.FromGlobal(origin) : new Position(Location.Cell, origin, Location.Rotation);
-            if (!matchIndoors)
-                proj.Location.LandblockId = new LandblockId(proj.Location.GetCell());
-
             SetProjectilePhysicsState(proj, target);
+
+            Console.WriteLine($"Trying to spawn {proj.Name} @ {proj.Location}");
 
             var success = LandblockManager.AddObject(proj);
 
@@ -135,6 +143,40 @@ namespace ACE.Server.WorldObjects
             }*/
 
             return proj;
+        }
+
+        /// <summary>
+        /// Returns the origin to spawn the projectile in the attacker local space
+        /// </summary>
+        public Vector3 GetProjectileSpawnOrigin(WorldObject projectile)
+        {
+            var attackerRadius = PhysicsObj.GetPhysicsRadius();
+            var projectileRadius = GetProjectileRadius(projectile);
+
+            Console.WriteLine($"{Name} radius: {attackerRadius}");
+            Console.WriteLine($"{projectile.Name} radius: {projectileRadius}");
+
+            var radsum = attackerRadius + projectileRadius + PhysicsGlobals.EPSILON;
+
+            return new Vector3(0, radsum, Height * 0.75f);
+        }
+
+                /// <summary>
+        /// Returns the cached physics radius for a projectile wcid,
+        /// before it has been instantiated as a PhysicsObj
+        /// </summary>
+        private static float GetProjectileRadius(WorldObject projectile)
+        {
+            var projectileWcid = projectile.WeenieClassId;
+
+            if (ProjectileRadiusCache.TryGetValue(projectileWcid, out var radius))
+                return radius;
+
+            var setup = DatManager.PortalDat.ReadFromDat<SetupModel>(projectile.SetupTableId);
+
+            var scale = projectile.ObjScale ?? 1.0f;
+
+            return ProjectileRadiusCache[projectileWcid] = setup.Spheres[0].Radius * scale;
         }
 
         /// <summary>
