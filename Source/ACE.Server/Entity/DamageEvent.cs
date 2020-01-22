@@ -5,7 +5,6 @@ using System.Linq;
 using log4net;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Models;
 using ACE.Server.Managers;
@@ -98,7 +97,7 @@ namespace ACE.Server.Entity
 
         // creature attacker
         public MotionCommand? AttackMotion;
-        public BiotaPropertiesBodyPart AttackPart;      // the body part this monster is attacking with
+        public KeyValuePair<CombatBodyPart, PropertiesBodyPart> AttackPart;      // the body part this monster is attacking with
 
         // creature defender
         public Quadrant Quadrant;
@@ -371,16 +370,16 @@ namespace ACE.Server.Entity
         public void GetBaseDamage(Creature attacker, MotionCommand motionCommand)
         {
             AttackPart = attacker.GetAttackPart(motionCommand);
-            if (AttackPart == null)
+            if (AttackPart.Value == null)
             {
                 GeneralFailure = true;
                 return;
             }
 
-            BaseDamageMod = attacker.GetBaseDamage(AttackPart);
+            BaseDamageMod = attacker.GetBaseDamage(AttackPart.Value);
             BaseDamage = ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
 
-            DamageType = attacker.GetDamageType(AttackPart, CombatType);
+            DamageType = attacker.GetDamageType(AttackPart.Value, CombatType);
 
             if (attacker is CombatPet combatPet)
                 DamageType = combatPet.DamageType;
@@ -475,8 +474,8 @@ namespace ACE.Server.Entity
             {
                 if (AttackMotion != null)
                     info += $"AttackMotion: {AttackMotion}\n";
-                if (AttackPart != null)
-                    info += $"AttackPart: {(CombatBodyPart)AttackPart.Key}\n";
+                if (AttackPart.Value != null)
+                    info += $"AttackPart: {AttackPart.Key}\n";
             }
 
             // base damage

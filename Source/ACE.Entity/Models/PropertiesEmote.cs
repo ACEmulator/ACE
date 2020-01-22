@@ -16,7 +16,7 @@ namespace ACE.Entity.Models
         public float? MaxHealth { get; set; }
 
         public Weenie Object { get; set; }
-        public ICollection<PropertiesEmoteAction> PropertiesEmoteAction { get; set; } = new List<PropertiesEmoteAction>();
+        public IList<PropertiesEmoteAction> PropertiesEmoteAction { get; set; } = new List<PropertiesEmoteAction>();
 
         public PropertiesEmote Clone()
         {

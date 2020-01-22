@@ -13,6 +13,7 @@ using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
@@ -56,7 +57,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// <param name="emote">The emote to execute</param>
         /// <param name="targetObject">A target object, usually player</param>
         /// <param name="actionChain">Only used for passing to further sets</param>
-        public float ExecuteEmote(BiotaPropertiesEmote emoteSet, BiotaPropertiesEmoteAction emote, WorldObject targetObject = null)
+        public float ExecuteEmote(PropertiesEmote emoteSet, PropertiesEmoteAction emote, WorldObject targetObject = null)
         {
             var player = targetObject as Player;
             var creature = WorldObject as Creature;
@@ -1258,10 +1259,10 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Selects an emote set based on category, and optional: quest, vendor, rng
         /// </summary>
-        public BiotaPropertiesEmote GetEmoteSet(EmoteCategory category, string questName = null, VendorType? vendorType = null, uint? wcid = null, bool useRNG = true)
+        public PropertiesEmote GetEmoteSet(EmoteCategory category, string questName = null, VendorType? vendorType = null, uint? wcid = null, bool useRNG = true)
         {
             // always pull emoteSet from _worldObject
-            var emoteSet = _worldObject.DatabaseBiota.BiotaPropertiesEmote.Where(e => e.Category == (uint)category);
+            var emoteSet = _worldObject.Biota.PropertiesEmote.Where(e => e.Category == (uint)category);
 
             // optional criteria
             if (questName != null)
@@ -1306,7 +1307,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// <param name="emoteSet">A list of emotes to execute</param>
         /// <param name="targetObject">An optional target, usually player</param>
         /// <param name="actionChain">For adding delays between emotes</param>
-        public bool ExecuteEmoteSet(BiotaPropertiesEmote emoteSet, WorldObject targetObject = null, bool nested = false)
+        public bool ExecuteEmoteSet(PropertiesEmote emoteSet, WorldObject targetObject = null, bool nested = false)
         {
             // detect busy state
             // TODO: maybe eventually we should consider having categories that can be queued?
@@ -1320,7 +1321,7 @@ namespace ACE.Server.WorldObjects.Managers
             return true;
         }
 
-        public void Enqueue(BiotaPropertiesEmote emoteSet, WorldObject targetObject, int emoteIdx = 0, float delay = 0.0f)
+        public void Enqueue(PropertiesEmote emoteSet, WorldObject targetObject, int emoteIdx = 0, float delay = 0.0f)
         {
             if (emoteSet == null)
             {
@@ -1330,7 +1331,7 @@ namespace ACE.Server.WorldObjects.Managers
 
             IsBusy = true;
 
-            var emote = emoteSet.BiotaPropertiesEmoteAction.ElementAt(emoteIdx);
+            var emote = emoteSet.PropertiesEmoteAction.ElementAt(emoteIdx);
 
             if (delay + emote.Delay > 0)
             {
@@ -1355,7 +1356,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// This should only be called by Enqueue
         /// </summary>
-        private void DoEnqueue(BiotaPropertiesEmote emoteSet, WorldObject targetObject, int emoteIdx, BiotaPropertiesEmoteAction emote)
+        private void DoEnqueue(PropertiesEmote emoteSet, WorldObject targetObject, int emoteIdx, PropertiesEmoteAction emote)
         {
             if (Debug)
                 Console.Write($"{(EmoteType)emote.Type}");
@@ -1365,7 +1366,7 @@ namespace ACE.Server.WorldObjects.Managers
             if (Debug)
                 Console.WriteLine($" - { nextDelay}");
 
-            if (emoteIdx < emoteSet.BiotaPropertiesEmoteAction.Count - 1)
+            if (emoteIdx < emoteSet.PropertiesEmoteAction.Count - 1)
                 Enqueue(emoteSet, targetObject, emoteIdx + 1, nextDelay);
             else
             {
@@ -1417,9 +1418,9 @@ namespace ACE.Server.WorldObjects.Managers
             ExecuteEmoteSet(heartbeatSet, target, true);
         }
 
-        public IEnumerable<BiotaPropertiesEmote> Emotes(EmoteCategory emoteCategory)
+        public IEnumerable<PropertiesEmote> Emotes(EmoteCategory emoteCategory)
         {
-            return WorldObject.DatabaseBiota.BiotaPropertiesEmote.Where(x => x.Category == (int)emoteCategory);
+            return WorldObject.Biota.PropertiesEmote.Where(x => x.Category == (int)emoteCategory);
         }
 
         public string Replace(string message, WorldObject source, WorldObject target, string quest)
