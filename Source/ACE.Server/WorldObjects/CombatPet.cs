@@ -46,14 +46,14 @@ namespace ACE.Server.WorldObjects
                 Biota.ClearSpells(BiotaDatabaseLock);
 
             //Biota.BiotaPropertiesCreateList.Clear();
-            DatabaseBiota.BiotaPropertiesEmote.Clear();
+            Biota.PropertiesEmote.Clear();
             GeneratorProfiles.Clear();            
 
             DeathTreasureType = null;
             WieldedTreasureType = null;
 
-            if (DatabaseBiota.WeenieType != (int)WeenieType.CombatPet) // Combat Pets are currently being made from real creatures
-                DatabaseBiota.WeenieType = (int)WeenieType.CombatPet;
+            if (Biota.WeenieType != (int)WeenieType.CombatPet) // Combat Pets are currently being made from real creatures
+                Biota.WeenieType = (int)WeenieType.CombatPet;
         }
 
         public void Init(Player player, DamageType damageType, PetDevice petDevice)

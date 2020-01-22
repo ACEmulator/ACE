@@ -4,7 +4,6 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -500,7 +499,7 @@ namespace ACE.Server.WorldObjects
 
         public void GenerateWieldList()
         {
-            var wielded = DatabaseBiota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Wield) != 0).ToList();
+            var wielded = Biota.PropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Wield) != 0).ToList();
 
             var items = CreateListSelect(wielded);
 
@@ -520,7 +519,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public static List<BiotaPropertiesCreateList> CreateListSelect(List<BiotaPropertiesCreateList> createList)
+        public static List<PropertiesCreateList> CreateListSelect(List<PropertiesCreateList> createList)
         {
             var trophy_drop_rate = PropertyManager.GetDouble("trophy_drop_rate").Item;
             if (trophy_drop_rate != 1.0)
@@ -530,7 +529,7 @@ namespace ACE.Server.WorldObjects
             var totalProbability = 0.0f;
             var rngSelected = false;
 
-            var results = new List<BiotaPropertiesCreateList>();
+            var results = new List<PropertiesCreateList>();
 
             foreach (var item in createList)
             {
@@ -565,7 +564,7 @@ namespace ACE.Server.WorldObjects
             return results;
         }
 
-        public static List<BiotaPropertiesCreateList> CreateListSelect(List<BiotaPropertiesCreateList> _createList, float dropRateMod)
+        public static List<PropertiesCreateList> CreateListSelect(List<PropertiesCreateList> _createList, float dropRateMod)
         {
             var createList = new CreateList(_createList);
             CreateListSetModifier modifier = null;
@@ -574,7 +573,7 @@ namespace ACE.Server.WorldObjects
             var totalProbability = 0.0f;
             var rngSelected = false;
 
-            var results = new List<BiotaPropertiesCreateList>();
+            var results = new List<PropertiesCreateList>();
 
             for (var i = 0; i < _createList.Count; i++)
             {

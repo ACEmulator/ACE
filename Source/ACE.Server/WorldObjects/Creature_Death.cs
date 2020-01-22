@@ -375,7 +375,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // contain and non-wielded treasure create
-            var createList = DatabaseBiota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Contain) != 0 ||
+            var createList = Biota.PropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Contain) != 0 ||
                 (i.DestinationType & (int)DestinationType.Treasure) != 0 && (i.DestinationType & (int)DestinationType.Wield) == 0).ToList();
 
             var selected = CreateListSelect(createList);

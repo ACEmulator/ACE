@@ -5,12 +5,15 @@ using System.Linq;
 using log4net;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
+
+using Biota = ACE.Database.Models.Shard.Biota;
+using Weenie = ACE.Database.Models.World.Weenie;
 
 namespace ACE.Server.Factories
 {
@@ -372,7 +375,7 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Creates a new WorldObject from a CreateList item
         /// </summary>
-        public static WorldObject CreateNewWorldObject(BiotaPropertiesCreateList item)
+        public static WorldObject CreateNewWorldObject(PropertiesCreateList item)
         {
             var isTreasure = (item.DestinationType & (int)DestinationType.Treasure) != 0;
 
