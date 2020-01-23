@@ -167,6 +167,25 @@ namespace ACE.Entity.Models
             }
         }
 
+        public static Position GetPosition(this Biota biota, PositionType property, ReaderWriterLockSlim rwLock)
+        {
+            if (biota.PropertiesPosition == null)
+                return null;
+
+            rwLock.EnterReadLock();
+            try
+            {
+                if (!biota.PropertiesPosition.TryGetValue(property, out var value))
+                    return null;
+
+                return new Position(value.ObjCellId, value.PositionX, value.PositionY, value.PositionZ, value.RotationX, value.RotationY, value.RotationZ, value.RotationW);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
 
         // =====================================
         // Set
@@ -294,6 +313,24 @@ namespace ACE.Entity.Models
                     biota.PropertiesPosition = new Dictionary<PositionType, PropertiesPosition>();
 
                 biota.PropertiesPosition[property] = value;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        public static void SetPosition(this Biota biota, PositionType property, Position value, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                if (biota.PropertiesPosition == null)
+                    biota.PropertiesPosition = new Dictionary<PositionType, PropertiesPosition>();
+
+                var entity = new PropertiesPosition { ObjCellId = value.Cell, PositionX = value.PositionX, PositionY = value.PositionY, PositionZ = value.PositionZ, RotationW = value.RotationW, RotationX = value.RotationX, RotationY = value.RotationY, RotationZ = value.RotationZ };
+
+                biota.PropertiesPosition[property] = entity;
             }
             finally
             {

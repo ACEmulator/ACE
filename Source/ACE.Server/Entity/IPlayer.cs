@@ -18,6 +18,13 @@ namespace ACE.Server.Entity
 
         Account Account { get; }
 
+        /// <summary>
+        /// This method forces a player to be immediately saved to the database
+        /// It should only be called in critical sections that must guarantee
+        /// lock-step with other players
+        /// </summary>
+        void SaveBiotaToDatabase(bool enqueueSave = true);
+
         bool? GetProperty(PropertyBool property);
         uint? GetProperty(PropertyDataId property);
         double? GetProperty(PropertyFloat property);
@@ -88,12 +95,6 @@ namespace ACE.Server.Entity
 
         AllegianceNode AllegianceNode { get; set; }
 
-        /// <summary>
-        /// This method forces a player to be immediately saved to the database
-        /// It should only be called in critical sections that must guarantee
-        /// lock-step with other players
-        /// </summary>
-        void SaveBiotaToDatabase(bool enqueueSave = true);
 
         void UpdateProperty(PropertyInstanceId prop, uint? value, bool broadcast = false);
     }

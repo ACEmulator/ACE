@@ -4,7 +4,6 @@ using System.Numerics;
 
 using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -91,7 +90,7 @@ namespace ACE.Server.WorldObjects
         #region SetProperty Functions
         public void SetProperty(PropertyBool property, bool value)
         {
-            if (EphemeralProperties.PropertiesBool.Contains((ushort)property))
+            if (EphemeralProperties.PropertiesBool.Contains(property))
                 ephemeralPropertyBools[property] = value;
             else
             {
@@ -101,7 +100,7 @@ namespace ACE.Server.WorldObjects
         }
         public void SetProperty(PropertyDataId property, uint value)
         {
-            if (EphemeralProperties.PropertiesDataId.Contains((ushort)property))
+            if (EphemeralProperties.PropertiesDataId.Contains(property))
                 ephemeralPropertyDataIds[property] = value;
             else
             {
@@ -111,7 +110,7 @@ namespace ACE.Server.WorldObjects
         }
         public void SetProperty(PropertyFloat property, double value)
         {
-            if (EphemeralProperties.PropertiesDouble.Contains((ushort)property))
+            if (EphemeralProperties.PropertiesDouble.Contains(property))
                 ephemeralPropertyFloats[property] = value;
             else
             {
@@ -126,7 +125,7 @@ namespace ACE.Server.WorldObjects
         }
         public void SetProperty(PropertyInstanceId property, uint value)
         {
-            if (EphemeralProperties.PropertiesInstanceId.Contains((ushort)property))
+            if (EphemeralProperties.PropertiesInstanceId.Contains(property))
                 ephemeralPropertyInstanceIds[property] = value;
             else
             {
@@ -136,7 +135,7 @@ namespace ACE.Server.WorldObjects
         }
         public void SetProperty(PropertyInt property, int value)
         {
-            if (EphemeralProperties.PropertiesInt.Contains((ushort)property))
+            if (EphemeralProperties.PropertiesInt.Contains(property))
                 ephemeralPropertyInts[property] = value;
             else
             {
@@ -151,7 +150,7 @@ namespace ACE.Server.WorldObjects
         }
         public void SetProperty(PropertyInt64 property, long value)
         {
-            if (EphemeralProperties.PropertiesInt64.Contains((ushort)property))
+            if (EphemeralProperties.PropertiesInt64.Contains(property))
                 ephemeralPropertyInt64s[property] = value;
             else
             {
@@ -161,7 +160,7 @@ namespace ACE.Server.WorldObjects
         }
         public void SetProperty(PropertyString property, string value)
         {
-            if (EphemeralProperties.PropertiesString.Contains((ushort)property))
+            if (EphemeralProperties.PropertiesString.Contains(property))
                 ephemeralPropertyStrings[property] = value;
             else
             {
@@ -174,7 +173,7 @@ namespace ACE.Server.WorldObjects
         #region RemoveProperty Functions
         public void RemoveProperty(PropertyBool property)
         {
-            if (EphemeralProperties.PropertiesBool.Contains((ushort)property))
+            if (EphemeralProperties.PropertiesBool.Contains(property))
                 ephemeralPropertyBools[property] = null;
             else
             {
@@ -184,7 +183,7 @@ namespace ACE.Server.WorldObjects
         }
         public void RemoveProperty(PropertyDataId property)
         {
-            if (EphemeralProperties.PropertiesDataId.Contains((ushort)property))
+            if (EphemeralProperties.PropertiesDataId.Contains(property))
                 ephemeralPropertyDataIds[property] = null;
             else
             {
@@ -194,7 +193,7 @@ namespace ACE.Server.WorldObjects
         }
         public void RemoveProperty(PropertyFloat property)
         {
-            if (EphemeralProperties.PropertiesDouble.Contains((ushort)property))
+            if (EphemeralProperties.PropertiesDouble.Contains(property))
                 ephemeralPropertyFloats[property] = null;
             else
             {
@@ -204,7 +203,7 @@ namespace ACE.Server.WorldObjects
         }
         public void RemoveProperty(PropertyInstanceId property)
         {
-            if (EphemeralProperties.PropertiesInstanceId.Contains((ushort)property))
+            if (EphemeralProperties.PropertiesInstanceId.Contains(property))
                 ephemeralPropertyInstanceIds[property] = null;
             else
             {
@@ -214,7 +213,7 @@ namespace ACE.Server.WorldObjects
         }
         public void RemoveProperty(PropertyInt property)
         {
-            if (EphemeralProperties.PropertiesInt.Contains((ushort)property))
+            if (EphemeralProperties.PropertiesInt.Contains(property))
                 ephemeralPropertyInts[property] = null;
             else
             {
@@ -224,7 +223,7 @@ namespace ACE.Server.WorldObjects
         }
         public void RemoveProperty(PropertyInt64 property)
         {
-            if (EphemeralProperties.PropertiesInt64.Contains((ushort)property))
+            if (EphemeralProperties.PropertiesInt64.Contains(property))
                 ephemeralPropertyInt64s[property] = null;
             else
             {
@@ -234,7 +233,7 @@ namespace ACE.Server.WorldObjects
         }
         public void RemoveProperty(PropertyString property)
         {
-            if (EphemeralProperties.PropertiesString.Contains((ushort)property))
+            if (EphemeralProperties.PropertiesString.Contains(property))
                 ephemeralPropertyStrings[property] = null;
             else
             {
@@ -253,7 +252,7 @@ namespace ACE.Server.WorldObjects
             try
             {
                 foreach (var kvp in Biota.PropertiesBool)
-                    results[(PropertyBool)kvp.Key] = kvp.Value;
+                    results[kvp.Key] = kvp.Value;
             }
             finally
             {
@@ -263,7 +262,7 @@ namespace ACE.Server.WorldObjects
             foreach (var property in ephemeralPropertyBools)
             {
                 if (property.Value.HasValue)
-                    results[property.Key] = (bool)property.Value;
+                    results[property.Key] = property.Value.Value;
                 else
                     results.Remove(property.Key);
             }
@@ -279,7 +278,7 @@ namespace ACE.Server.WorldObjects
             try
             {
                 foreach (var kvp in Biota.PropertiesDID)
-                    results[(PropertyDataId)kvp.Key] = kvp.Value;
+                    results[kvp.Key] = kvp.Value;
             }
             finally
             {
@@ -289,7 +288,7 @@ namespace ACE.Server.WorldObjects
             foreach (var property in ephemeralPropertyDataIds)
             {
                 if (property.Value.HasValue)
-                    results[property.Key] = (uint)property.Value;
+                    results[property.Key] = property.Value.Value;
                 else
                     results.Remove(property.Key);
             }
@@ -305,7 +304,7 @@ namespace ACE.Server.WorldObjects
             try
             {
                 foreach (var kvp in Biota.PropertiesFloat)
-                    results[(PropertyFloat)kvp.Key] = kvp.Value;
+                    results[kvp.Key] = kvp.Value;
             }
             finally
             {
@@ -315,7 +314,7 @@ namespace ACE.Server.WorldObjects
             foreach (var property in ephemeralPropertyFloats)
             {
                 if (property.Value.HasValue)
-                    results[property.Key] = (double)property.Value;
+                    results[property.Key] = property.Value.Value;
                 else
                     results.Remove(property.Key);
             }
@@ -331,7 +330,7 @@ namespace ACE.Server.WorldObjects
             try
             {
                 foreach (var kvp in Biota.PropertiesIID)
-                    results[(PropertyInstanceId)kvp.Key] = kvp.Value;
+                    results[kvp.Key] = kvp.Value;
             }
             finally
             {
@@ -341,7 +340,7 @@ namespace ACE.Server.WorldObjects
             foreach (var property in ephemeralPropertyInstanceIds)
             {
                 if (property.Value.HasValue)
-                    results[property.Key] = (uint)property.Value;
+                    results[property.Key] = property.Value.Value;
                 else
                     results.Remove(property.Key);
             }
@@ -357,7 +356,7 @@ namespace ACE.Server.WorldObjects
             try
             {
                 foreach (var kvp in Biota.PropertiesInt)
-                    results[(PropertyInt)kvp.Key] = kvp.Value;
+                    results[kvp.Key] = kvp.Value;
             }
             finally
             {
@@ -367,7 +366,7 @@ namespace ACE.Server.WorldObjects
             foreach (var property in ephemeralPropertyInts)
             {
                 if (property.Value.HasValue)
-                    results[property.Key] = (int)property.Value;
+                    results[property.Key] = property.Value.Value;
                 else
                     results.Remove(property.Key);
             }
@@ -383,7 +382,7 @@ namespace ACE.Server.WorldObjects
             try
             {
                 foreach(var kvp in Biota.PropertiesInt64)
-                    results[(PropertyInt64)kvp.Key] = kvp.Value;
+                    results[kvp.Key] = kvp.Value;
             }
             finally
             {
@@ -393,7 +392,7 @@ namespace ACE.Server.WorldObjects
             foreach (var property in ephemeralPropertyInt64s)
             {
                 if (property.Value.HasValue)
-                    results[property.Key] = (long)property.Value;
+                    results[property.Key] = property.Value.Value;
                 else
                     results.Remove(property.Key);
             }
@@ -409,7 +408,7 @@ namespace ACE.Server.WorldObjects
             try
             {
                 foreach (var kvp in Biota.PropertiesString)
-                    results[(PropertyString)kvp.Key] = kvp.Value;
+                    results[kvp.Key] = kvp.Value;
             }
             finally
             {
@@ -440,23 +439,17 @@ namespace ACE.Server.WorldObjects
         #region GetPosition, SetPosition, RemovePosition, GetAllPositions Functions
         public Position GetPosition(PositionType positionType)
         {
-            if (ephemeralPositions.TryGetValue(positionType, out var value))
-                return value;
+            if (ephemeralPositions.TryGetValue(positionType, out var ephemeralPosition))
+                return ephemeralPosition;
 
-            if (positionCache.TryGetValue(positionType, out var ret))
-                return ret;
+            if (positionCache.TryGetValue(positionType, out var cachedPosition))
+                return cachedPosition;
 
-            // todo need thread safety
-            if (Biota.PropertiesPosition.TryGetValue(positionType, out var ret2))
-            {
-                var pos = new Position(ret2.ObjCellId, ret2.PositionX, ret2.PositionY, ret2.PositionZ, ret2.RotationX, ret2.RotationY, ret2.RotationZ, ret2.RotationW);
+            var position = Biota.GetPosition(positionType, BiotaDatabaseLock);
 
-                positionCache.TryAdd(positionType, pos);
+            positionCache[positionType] = position;
 
-                return pos;
-            }
-
-            return null;
+            return position;
         }
 
         /// <summary>
@@ -469,7 +462,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetPosition(PositionType positionType, Position position)
         {
-            if (ephemeralPositions.ContainsKey(positionType))
+            if (EphemeralProperties.PositionTypes.Contains(positionType))
                 ephemeralPositions[positionType] = position;
             else
             {
@@ -477,13 +470,9 @@ namespace ACE.Server.WorldObjects
                     RemovePosition(positionType);
                 else
                 {
-                    // TODO IS THIS EPHEMERAL? IF SO, SET IT IN EPHEMERAL DICT
-                    // TODO basically move the current one to the ephemeral and make a new one for the base dict
-                    // TODO that will make sure refs are intact
-
                     positionCache[positionType] = position;
 
-                    DatabaseBiota.SetPosition(positionType, position);
+                    Biota.SetPosition(positionType, position, BiotaDatabaseLock);
                     ChangesDetected = true;
                 }
             }
@@ -491,34 +480,41 @@ namespace ACE.Server.WorldObjects
 
         public void RemovePosition(PositionType positionType)
         {
-            if (ephemeralPositions.ContainsKey(positionType))
+            if (EphemeralProperties.PositionTypes.Contains(positionType))
                 ephemeralPositions[positionType] = null;
             else
             {
                 positionCache.Remove(positionType);
 
-                if (DatabaseBiota.TryRemovePosition(positionType, out _))
+                if (Biota.TryRemoveProperty(positionType, BiotaDatabaseLock))
                     ChangesDetected = true;
             }
         }
 
         public Dictionary<PositionType, Position> GetAllPositions()
         {
-            /* TODO
-            foreach (var position in DatabaseBiota.GetPositions())
+            var results = new Dictionary<PositionType, Position>();
+
+            BiotaDatabaseLock.EnterReadLock();
+            try
             {
-                // We only add new positions. We don't overwrite existing cached positions
-                if (!positionCache.ContainsKey(position.Key))
-                    positionCache[position.Key] = position.Value;
-            }*/
+                foreach (var kvp in Biota.PropertiesPosition)
+                    results[kvp.Key] = new Position(kvp.Value.ObjCellId, kvp.Value.PositionX, kvp.Value.PositionY, kvp.Value.PositionZ, kvp.Value.RotationX, kvp.Value.RotationY, kvp.Value.RotationZ, kvp.Value.RotationW);
+            }
+            finally
+            {
+                BiotaDatabaseLock.ExitReadLock();
+            }
 
-            var result = new Dictionary<PositionType, Position>(positionCache);
+            foreach (var property in ephemeralPositions)
+            {
+                if (property.Value != null)
+                    results[property.Key] = property.Value;
+                else
+                    results.Remove(property.Key);
+            }
 
-            // Add the ephemeral positions over the cached positions
-            foreach (var kvp in ephemeralPositions)
-                result[kvp.Key] = kvp.Value;
-
-            return result;
+            return results;
         }
         #endregion
 

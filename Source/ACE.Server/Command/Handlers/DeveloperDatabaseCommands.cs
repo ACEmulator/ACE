@@ -148,8 +148,16 @@ namespace ACE.Server.Command.Handlers
 
 
 
-        // 9232 ~10.8 KB    prismatic arrow
-        // 8563 ~51.80 KB   mob archer          reduces to 1.10 KB
+        // Old system
+
+        // 9232 prismatic arrow     ~10.8 KB
+        // 8563 mob archer          ~51.80 KB   reduces to 1.10 KB
+        // 8563 mob archer          ~52.31 KB
+
+
+        // New system (Non Hybrid)
+        // 8563 mob archer          ~41.45 KB
+
 
         private static readonly Collection<WorldObject> WorldObjects = new Collection<WorldObject>();
 
