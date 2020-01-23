@@ -1,3 +1,4 @@
+
 namespace ACE.Common.Extensions
 {
     public static class StringExtensions
@@ -20,8 +21,8 @@ namespace ACE.Common.Extensions
         {
             if (name.EndsWith("ch") || name.EndsWith("s") || name.EndsWith("sh") || name.EndsWith("x") || name.EndsWith("z"))
                 return name + "es";
-            else
-                return name + "s";
+
+            return name + "s";
         }
     }
 }

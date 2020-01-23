@@ -315,6 +315,7 @@ namespace ACE.Database.Models.Shard
         public static BiotaPropertiesSkill GetOrAddSkill(this Biota biota, ushort type, out bool skillAdded)
         {
             var entity = biota.BiotaPropertiesSkill.FirstOrDefault(x => x.Type == type);
+
             if (entity != null)
             {
                 skillAdded = false;
@@ -322,6 +323,7 @@ namespace ACE.Database.Models.Shard
             }
 
             entity = new BiotaPropertiesSkill { ObjectId = biota.Id, Type = type, Object = biota };
+
             biota.BiotaPropertiesSkill.Add(entity);
             skillAdded = true;
             return entity;

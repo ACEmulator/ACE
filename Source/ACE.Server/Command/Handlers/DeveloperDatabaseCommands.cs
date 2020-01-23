@@ -161,7 +161,7 @@ namespace ACE.Server.Command.Handlers
 
             var temp = WorldObjectFactory.CreateNewWorldObject(wcid);
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 20; i++)
                 GC.Collect();
 
             var proc = Process.GetCurrentProcess();
@@ -174,7 +174,7 @@ namespace ACE.Server.Command.Handlers
                 WorldObjects.Add(wo);
             }
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 20; i++)
                 GC.Collect();
 
             CommandHandlerHelper.WriteOutputInfo(session, "test1 completed");
@@ -190,7 +190,7 @@ namespace ACE.Server.Command.Handlers
         {
             WorldObjects.Clear();
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 20; i++)
                 GC.Collect();
 
             CommandHandlerHelper.WriteOutputInfo(session, "cleartest1 completed");
