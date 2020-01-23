@@ -1351,7 +1351,7 @@ namespace ACE.Server.WorldObjects
             ProjectileSpeedCache.Clear();
         }
 
-        private static Dictionary<uint, float> ProjectileRadiusCache = new Dictionary<uint, float>();
+        public static Dictionary<uint, float> ProjectileRadiusCache = new Dictionary<uint, float>();
 
         private float GetProjectileRadius(Spell spell)
         {
