@@ -863,6 +863,23 @@ namespace ACE.Server.WorldObjects
 
         public override bool IsAttunedOrContainsAttuned => base.IsAttunedOrContainsAttuned || Inventory.Values.Any(i => i.IsAttunedOrContainsAttuned);
 
+        public override bool IsStickyAttunedOrContainsStickyAttuned => base.IsStickyAttunedOrContainsStickyAttuned || Inventory.Values.Any(i => i.IsStickyAttunedOrContainsStickyAttuned);
+
+        public override bool IsUniqueOrContainsUnique => base.IsUniqueOrContainsUnique || Inventory.Values.Any(i => i.IsUniqueOrContainsUnique);
+
+        public override List<WorldObject> GetUniqueObjects()
+        {
+            var uniqueObjects = new List<WorldObject>();
+
+            if (Unique != null)
+                uniqueObjects.Add(this);
+
+            foreach (var item in Inventory.Values)
+                uniqueObjects.AddRange(item.GetUniqueObjects());
+
+            return uniqueObjects;
+        }
+
         public override void OnTalk(WorldObject activator)
         {
             if (activator is Player player)

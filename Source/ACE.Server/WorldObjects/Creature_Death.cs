@@ -404,7 +404,7 @@ namespace ACE.Server.WorldObjects
             var wieldedTreasure = Inventory.Values.Concat(EquippedObjects.Values).Where(i => (i.DestinationType & dropFlags) != 0);
             foreach (var item in wieldedTreasure.ToList())
             {
-                if ((item.Bonded ?? 0) == (int)BondedStatus.Destroy)
+                if (item.Bonded == BondedStatus.Destroy)
                     continue;
 
                 if (TryDequipObjectWithBroadcasting(item.Guid, out var wo, out var wieldedLocation))

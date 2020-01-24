@@ -86,6 +86,8 @@ namespace ACE.Server.WorldObjects
 
         public WorldObject ProjectileLauncher;
 
+        public bool HitMsg;     // FIXME: find a better way to do this for projectiles
+
         public WorldObject Wielder;
 
         public WorldObject() { }
@@ -194,7 +196,7 @@ namespace ACE.Server.WorldObjects
 
             var success = PhysicsObj.enter_world(location);
 
-            if (!success)
+            if (!success || PhysicsObj.CurCell == null)
             {
                 PhysicsObj.DestroyObject();
                 PhysicsObj = null;
@@ -1015,9 +1017,21 @@ namespace ACE.Server.WorldObjects
             // empty base
         }
 
-        public virtual bool IsAttunedOrContainsAttuned => (Attuned ?? 0) >= 1;
-
         public bool IsTradeNote => ItemType == ItemType.PromissoryNote;
+
+        public virtual bool IsAttunedOrContainsAttuned => Attuned >= AttunedStatus.Attuned;
+
+        public virtual bool IsStickyAttunedOrContainsStickyAttuned => Attuned >= AttunedStatus.Sticky;
+
+        public virtual bool IsUniqueOrContainsUnique => Unique != null;
+
+        public virtual List<WorldObject> GetUniqueObjects()
+        {
+            if (Unique == null)
+                return new List<WorldObject>();
+            else
+                return new List<WorldObject>() { this };
+        }
 
         /// <summary>
         /// Returns the wielder or the current object
