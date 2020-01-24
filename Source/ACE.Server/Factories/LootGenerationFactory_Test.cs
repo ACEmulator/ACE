@@ -552,6 +552,18 @@ namespace ACE.Server.Factories
                                 $"Jewelry= {ls.JewelryCount / ls.TotalItems * 100}% \n " +
                                 $"Gem= {ls.GemCount / ls.TotalItems * 100}% \n " +
                                 $"Clothing= {ls.ClothingCount / ls.TotalItems * 100}% \n " +
+                                $"Food= {ls.Food / ls.TotalItems * 100}% \n " +
+                                $"SpellComps= {ls.SpellComponents / ls.TotalItems * 100}% \n " +
+                                $"Keys= {ls.Key / ls.TotalItems * 100}% \n " +
+                                $"Mana Stones= {ls.ManaStone / ls.TotalItems * 100}% \n " +
+                                $"Pets= {ls.PetsCount / ls.TotalItems * 100}% \n " +
+                                $"Encap. Spirits= {ls.Spirits / ls.TotalItems * 100}% \n " +
+                                $"Scrolls= {ls.Scrolls / ls.TotalItems * 100}% \n " +
+                                $"Potions= {ls.Poitions / ls.TotalItems * 100}% \n " +
+                                $"Healing Kits= {ls.HealingKit / ls.TotalItems * 100}% \n " +
+                                $"Level 8 Comps= {ls.LevelEightComp / ls.TotalItems * 100}% \n " +
+                                $"DinnerWare= {ls.DinnerWare / ls.TotalItems * 100}% \n " +
+                                $"Misc= {ls.Misc / ls.TotalItems * 100}% \n " +
                                 $"Other={ls.OtherCount / ls.TotalItems * 100}% \n";
 
             // Armor Level Stats
