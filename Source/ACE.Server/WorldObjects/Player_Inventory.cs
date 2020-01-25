@@ -224,7 +224,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"{Name}.TryStanceShuffle({wieldedLocation})");
 
             // do the appropriate combat stance shuffling, based on the item types
-            // todo: instead of switching the weapon immediately, the weapon should be swpped in the middle of the animation chain
+            // todo: instead of switching the weapon immediately, the weapon should be swapped in the middle of the animation chain
 
             if (CombatMode != CombatMode.NonCombat && CombatMode != CombatMode.Undef)
             {
@@ -232,27 +232,15 @@ namespace ACE.Server.WorldObjects
                 {
                     case EquipMask.MissileWeapon:
 
-                        var animTime = SetCombatMode(CombatMode.Missile, out var queueTime);
-
-                        var equippedAmmo = GetEquippedAmmo();
-
-                        if (equippedAmmo == null)
-                        {
-                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
-
-                            var actionChain = new ActionChain();
-                            actionChain.AddDelaySeconds(animTime - queueTime);
-                            actionChain.AddAction(this, () => SetCombatMode(CombatMode.NonCombat));
-                            actionChain.EnqueueChain();
-                        }
+                        HandleActionChangeCombatMode(CombatMode.Missile);
                         break;
 
                     case EquipMask.Held:
-                        SetCombatMode(CombatMode.Magic);
+                        HandleActionChangeCombatMode(CombatMode.Magic);
                         break;
 
                     default:
-                        SetCombatMode(CombatMode.Melee);
+                        HandleActionChangeCombatMode(CombatMode.Melee);
                         break;
                 }
             }
