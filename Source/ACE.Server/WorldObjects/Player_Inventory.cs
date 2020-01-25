@@ -394,7 +394,25 @@ namespace ACE.Server.WorldObjects
             {
                 if (CombatMode == CombatMode.Missile && wieldedLocation == (int)EquipMask.MissileAmmo)
                 {
-                    SetCombatMode(CombatMode.NonCombat);
+                    // hack for IsInChildLocation
+                    var prevCombatMode = CombatMode;
+                    CombatMode = CombatMode.NonCombat;
+
+                    // wait a split second, then check for scenario where player swapped ammo
+                    var actionChain = new ActionChain();
+                    actionChain.AddDelaySeconds(0.1f);
+                    actionChain.AddAction(this, () =>
+                    {
+                        CombatMode = prevCombatMode;
+
+                        // is this slot still empty?
+                        var ammo = GetEquippedAmmo();
+                        if (ammo == null)
+                            SetCombatMode(CombatMode.NonCombat);
+                        else
+                            ReloadMissileAmmo();
+                    });
+                    actionChain.EnqueueChain();
                     return true;
                 }
 

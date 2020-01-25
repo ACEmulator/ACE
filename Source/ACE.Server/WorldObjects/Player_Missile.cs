@@ -183,7 +183,6 @@ namespace ACE.Server.WorldObjects
                 var staminaCost = GetAttackStamina(GetAccuracyRange());
                 UpdateVitalDelta(Stamina, -staminaCost);
 
-                float targetTime = 0.0f;
                 var projectile = LaunchProjectile(weapon, ammo, target, origin, orientation, velocity);
                 UpdateAmmoAfterLaunch(ammo);
             });
