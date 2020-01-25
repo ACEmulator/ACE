@@ -37,7 +37,7 @@ namespace ACE.Server.WorldObjects
             MonsterState = State.Awake;
             IsAwake = true;
             //DoAttackStance();
-            EmoteManager.OnAttack(AttackTarget as Creature);
+            EmoteManager.OnWakeUp(AttackTarget as Creature);
             //SelectTargetingTactic();
 
             if (alertNearby)
@@ -165,6 +165,8 @@ namespace ACE.Server.WorldObjects
                 // Players within the creature's detection sphere are weighted by how close they are to the creature --
                 // the closer you are, the more chance you have to be selected to be attacked.
 
+                var prevAttackTarget = AttackTarget;
+
                 switch (CurrentTargetingTactic)
                 {
                     case TargetingTactic.None:
@@ -223,6 +225,9 @@ namespace ACE.Server.WorldObjects
                 }
 
                 //Console.WriteLine($"{Name}.FindNextTarget = {AttackTarget.Name}");
+
+                if (AttackTarget != null && AttackTarget != prevAttackTarget)
+                    EmoteManager.OnNewEnemy(AttackTarget);
 
                 return AttackTarget != null;
             }
