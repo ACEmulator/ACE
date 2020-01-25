@@ -810,11 +810,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// wcid - stands for weenie class id
         /// </summary>
-        public uint WeenieClassId => DatabaseBiota.WeenieClassId;
+        public uint WeenieClassId => Biota.WeenieClassId;
 
         public string WeenieClassName => DatabaseManager.World.GetCachedWeenie(WeenieClassId).ClassName;
 
-        public WeenieType WeenieType => (WeenieType)DatabaseBiota.WeenieType;
+        public WeenieType WeenieType => (WeenieType)Biota.WeenieType;
 
         public uint IconId
         {

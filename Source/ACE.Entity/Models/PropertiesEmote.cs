@@ -5,7 +5,7 @@ namespace ACE.Entity.Models
 {
     public class PropertiesEmote
     {
-        public uint Category { get; set; }
+        public uint Category { get; set; } // todo should this be a key in the Weenie/Biota dictionary?
         public float Probability { get; set; }
         public uint? WeenieClassId { get; set; }
         public uint? Style { get; set; }
