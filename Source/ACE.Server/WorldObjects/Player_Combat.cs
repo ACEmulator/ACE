@@ -654,7 +654,7 @@ namespace ACE.Server.WorldObjects
             if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
                 FailCast();
 
-            var animTime = 0.0f;
+            float animTime = 0.0f, queueTime = 0.0f;
 
             switch (newCombatMode)
             {
@@ -696,7 +696,7 @@ namespace ACE.Server.WorldObjects
                                     var equippedAmmo = GetEquippedAmmo();
                                     if (equippedAmmo == null)
                                     {
-                                        animTime = SetCombatMode(newCombatMode, out var queueTime);
+                                        animTime = SetCombatMode(newCombatMode, out queueTime);
                                         Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
                                         NextUseTime = DateTime.UtcNow.AddSeconds(animTime - queueTime);
 
@@ -727,10 +727,10 @@ namespace ACE.Server.WorldObjects
                     break;
 
             }
-            animTime = SetCombatMode(newCombatMode);
-            //log.Info($"{Name}.HandleActionChangeCombatMode_Inner({newCombatMode}) - animTime: {animTime}");
+            animTime = SetCombatMode(newCombatMode, out queueTime);
+            //log.Info($"{Name}.HandleActionChangeCombatMode_Inner({newCombatMode}) - animTime: {animTime}, queueTime: {queueTime}");
 
-            NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
+            NextUseTime = DateTime.UtcNow.AddSeconds(animTime - queueTime);
 
             if (RecordCast.Enabled)
                 RecordCast.OnSetCombatMode(newCombatMode);
