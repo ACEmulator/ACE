@@ -146,7 +146,7 @@ namespace ACE.Server.Entity
             {
                 Player.RecordCast.Log($"MagicState.OnCastDone()");
                 Player.RecordCast.Log($"Player Location: {Player.Location.ToLOCString()}");
-                if (CastSpellParams?.Target != null)
+                if (CastSpellParams?.Target?.Location != null)
                     Player.RecordCast.Log($"Target Location: {CastSpellParams.Target.Location.ToLOCString()}");
                 Player.RecordCast.Log("================================================================================");
                 Player.RecordCast.Flush();
@@ -160,7 +160,7 @@ namespace ACE.Server.Entity
         {
             CastSpellParams = new CastSpellParams(spell, isWeaponSpell, magicSkill, manaUsed, target, status);
 
-            if (Player.RecordCast.Enabled && CastSpellParams.Target != null)
+            if (Player.RecordCast.Enabled && CastSpellParams.Target?.Location != null)
                 Player.RecordCast.Log($"Target Location: {CastSpellParams.Target.Location.ToLOCString()}");
         }
 
