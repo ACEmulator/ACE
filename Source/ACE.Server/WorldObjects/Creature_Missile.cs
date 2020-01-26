@@ -44,6 +44,9 @@ namespace ACE.Server.WorldObjects
             // ensure ammo visibility for players
             actionChain.AddAction(this, () =>
             {
+                if (CombatMode != CombatMode.Missile)
+                    return;
+
                 EnqueueActionBroadcast(p => p.TrackEquippedObject(this, ammo));
 
                 var delayChain = new ActionChain();
