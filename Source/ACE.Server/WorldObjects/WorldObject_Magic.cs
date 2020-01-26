@@ -972,7 +972,7 @@ namespace ACE.Server.WorldObjects
                                             if (!result.Success && result.Message != null)
                                                 player.Session.Network.EnqueueSend(result.Message);
 
-                                            if (!targetPortal.NoTie && result.Success)
+                                            if (!recallPortal.NoTie && result.Success)
                                             {
                                                 if (isPrimary)
                                                 {
