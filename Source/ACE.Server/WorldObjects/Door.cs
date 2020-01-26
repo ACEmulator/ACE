@@ -53,14 +53,13 @@ namespace ACE.Server.WorldObjects
             ResetInterval = ResetInterval ?? 30.0f;
             LockCode = LockCode ?? "";
 
-            // If we had the base weenies this would be the way to go
-            ////if (DefaultLocked)
-            ////    IsLocked = true;
-            ////else
-            ////    IsLocked = false;
+            if (DefaultLocked)
+                IsLocked = true;
+            else
+                IsLocked = false;
 
-            // But since we don't know what doors were DefaultLocked, let's assume for now that any door that starts Locked should default as such.
-            if (IsLocked)
+            // Account for possible missing property from recreated weenies
+            if (IsLocked && !DefaultLocked)
                 DefaultLocked = true;
 
             ActivationResponse |= ActivationResponse.Use;

@@ -25,9 +25,17 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.ResetInterval); else SetProperty(PropertyFloat.ResetInterval, value.Value); }
         }
 
-        protected bool DefaultLocked { get; set; }
+        protected bool DefaultLocked
+        {
+            get => GetProperty(PropertyBool.DefaultLocked) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.DefaultLocked); else SetProperty(PropertyBool.DefaultLocked, value); }
+        }
 
-        protected bool DefaultOpen { get; set; }
+        protected bool DefaultOpen
+        {
+            get => GetProperty(PropertyBool.DefaultOpen) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.DefaultOpen); else SetProperty(PropertyBool.DefaultOpen, value); }
+        }
 
         /// <summary>
         /// Used to determine how close you need to be to use an item.
