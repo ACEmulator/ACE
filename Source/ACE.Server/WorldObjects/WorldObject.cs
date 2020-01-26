@@ -59,25 +59,10 @@ namespace ACE.Server.WorldObjects
 
         public virtual float ListeningRadius { get; protected set; } = 5f;
 
-        private Landblock _currentLandblock;
         /// <summary>
         /// Should only be adjusted by Landblock -- default is null
         /// </summary>
-        public Landblock CurrentLandblock
-        {
-            get => _currentLandblock;
-
-            internal set
-            {
-                if (this is Player && value == null)
-                {
-                    log.Debug($"0x{Guid}:{Name}.CurrentLandblock has been set to null:");
-                    log.Debug("Null CurrentLandblock - StackTrace Begins:\n" + System.Environment.StackTrace + "\nNull CurrentLandblock - StackTrace Ends\n");
-                }
-
-                _currentLandblock = value;
-            }            
-        }
+        public Landblock CurrentLandblock { get; internal set; }
 
         public DateTime? ItemManaDepletionMessageTimestamp { get; set; } = null;
         public DateTime? ItemManaConsumptionTimestamp { get; set; } = null;

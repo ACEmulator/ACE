@@ -408,18 +408,9 @@ namespace ACE.Server.WorldObjects
 
                 PKLogout = true;
 
-                //var actionChain = new ActionChain();
-                //actionChain.AddDelaySeconds(20.0f);
-                //actionChain.AddAction(this, () =>
-                //{
-                //    if (CurrentLandblock == null)
-                //        log.Error($"0x{Guid}:{Name}.LogOut Delayed Action: CurrentLandblock is null");
-                //    LogOut_Inner(clientSessionTerminatedAbruptly);
-                //    Session.logOffRequestTime = DateTime.UtcNow;
-                //});
-                //actionChain.EnqueueChain();
-                LogoffTimestamp = Time.GetFutureUnixTime(20);
+                LogoffTimestamp = Time.GetFutureUnixTime(PropertyManager.GetLong("pk_timer").Item);
                 PlayerManager.AddPlayerToLogoffQueue(this);
+
                 return false;
             }
 
