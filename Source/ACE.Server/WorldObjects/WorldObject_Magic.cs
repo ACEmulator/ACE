@@ -969,11 +969,8 @@ namespace ACE.Server.WorldObjects
                                         if (recallPortal != null)
                                         {
                                             var result = recallPortal.CheckUseRequirements(player);
-                                            if (!result.Success)
-                                            {
-                                                if (result.Message != null)
-                                                    player.Session.Network.EnqueueSend(result.Message);
-                                            }
+                                            if (!result.Success && result.Message != null)
+                                                player.Session.Network.EnqueueSend(result.Message);
 
                                             if (!targetPortal.NoTie && result.Success)
                                             {
@@ -990,6 +987,8 @@ namespace ACE.Server.WorldObjects
 
                                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the portal.", ChatMessageType.Magic));
                                             }
+                                            else
+                                                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotLinkToThatPortal));
                                         }
                                         else
                                             player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotLinkToThatPortal));
