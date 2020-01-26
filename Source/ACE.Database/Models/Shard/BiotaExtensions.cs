@@ -48,6 +48,11 @@ namespace ACE.Database.Models.Shard
             return biota.BiotaPropertiesString.FirstOrDefault(x => x.Type == (uint)property)?.Value;
         }
 
+        public static BiotaPropertiesPosition GetProperty(this Biota weenie, PositionType positionType)
+        {
+            return weenie.BiotaPropertiesPosition.FirstOrDefault(x => x.PositionType == (uint)positionType);
+        }
+
         public static Position GetPosition(this Biota biota, PositionType positionType)
         {
             var result = biota.BiotaPropertiesPosition.FirstOrDefault(x => x.PositionType == (uint)positionType);

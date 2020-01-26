@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,8 @@ namespace ACE.Database
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        private static readonly ConditionalWeakTable<Biota, ShardDbContext> PlayerBiotaContexts = new ConditionalWeakTable<Biota, ShardDbContext>();
+
         public override Biota GetBiota(uint id)
         {
             if (ObjectGuid.IsPlayer(id))
@@ -31,7 +34,7 @@ namespace ACE.Database
                 var biota = GetBiota(context, id);
 
                 if (biota != null)
-                    BiotaContexts.Add(biota, context);
+                    PlayerBiotaContexts.Add(biota, context);
 
                 return biota;
             }
@@ -46,7 +49,7 @@ namespace ACE.Database
 
         public override bool SaveBiota(Biota biota, ReaderWriterLockSlim rwLock)
         {
-            if (BiotaContexts.TryGetValue(biota, out var cachedContext))
+            if (PlayerBiotaContexts.TryGetValue(biota, out var cachedContext))
             {
                 rwLock.EnterReadLock();
                 try
@@ -89,7 +92,7 @@ namespace ACE.Database
             {
                 var context = new ShardDbContext();
 
-                BiotaContexts.Add(biota, context);
+                PlayerBiotaContexts.Add(biota, context);
 
                 rwLock.EnterReadLock();
                 try
@@ -731,9 +734,9 @@ namespace ACE.Database
 
         public override bool RemoveBiota(Biota biota, ReaderWriterLockSlim rwLock)
         {
-            if (BiotaContexts.TryGetValue(biota, out var cachedContext))
+            if (PlayerBiotaContexts.TryGetValue(biota, out var cachedContext))
             {
-                BiotaContexts.Remove(biota);
+                PlayerBiotaContexts.Remove(biota);
 
                 rwLock.EnterReadLock();
                 try

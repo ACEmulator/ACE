@@ -49,6 +49,11 @@ namespace ACE.Database.Models.World
             return weenie.WeeniePropertiesString.FirstOrDefault(x => x.Type == (uint)property)?.Value;
         }
 
+        public static WeeniePropertiesPosition GetProperty(this Weenie weenie, PositionType positionType)
+        {
+            return weenie.WeeniePropertiesPosition.FirstOrDefault(x => x.PositionType == (uint)positionType);
+        }
+
         public static Position GetPosition(this Weenie weenie, PositionType positionType)
         {
             var result = weenie.WeeniePropertiesPosition.FirstOrDefault(x => x.PositionType == (uint)positionType);

@@ -27,7 +27,7 @@ namespace ACE.Database
             if (playerWeenieLoadTest == null)
                 log.Fatal("Database does not contain the weenie for human (1). Characters cannot be created or logged into until the missing weenie is restored.");
 
-            var shardDb = new ShardDatabase();
+            var shardDb = new ShardDatabaseWithCaching();
             serializedShardDb = new SerializedShardDatabase(shardDb);
             Shard = serializedShardDb;
 

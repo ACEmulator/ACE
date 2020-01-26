@@ -229,22 +229,6 @@ namespace ACE.Database
             }));
         }
 
-        public void FreeBiotaAndDisposeContext(Biota biota)
-        {
-            _queue.Add(new Task(() =>
-            {
-                _wrappedDatabase.FreeBiotaAndDisposeContext(biota);
-            }));
-        }
-
-        public void FreeBiotaAndDisposeContexts(IEnumerable<Biota> biotas)
-        {
-            _queue.Add(new Task(() =>
-            {
-                _wrappedDatabase.FreeBiotaAndDisposeContexts(biotas);
-            }));
-        }
-
 
         public void GetPossessedBiotasInParallel(uint id, Action<PossessedBiotas> callback)
         {

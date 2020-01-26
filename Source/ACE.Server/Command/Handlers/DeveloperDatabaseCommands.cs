@@ -154,6 +154,8 @@ namespace ACE.Server.Command.Handlers
         // 8563 mob archer          ~51.80 KB   reduces to 1.10 KB
         // 8563 mob archer          ~52.31 KB
 
+        // World DB Caching         ~5.1 GB -> ~1.4 GB
+        //                          ~4.8 GB -> ~1.4 GB
 
         // New system (Non Hybrid)
         // 8563 mob archer          ~41.45 KB
