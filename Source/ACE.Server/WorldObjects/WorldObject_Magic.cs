@@ -965,20 +965,31 @@ namespace ACE.Server.WorldObjects
 
                                         var targetDID = summoned ? targetPortal.OriginalPortal : targetPortal.WeenieClassId;
 
-                                        if (!targetPortal.NoTie)
+                                        var recallPortal = GetPortal(targetDID.Value);
+                                        if (recallPortal != null)
                                         {
-                                            if (isPrimary)
+                                            var result = recallPortal.CheckUseRequirements(player);
+                                            if (!result.Success)
                                             {
-                                                player.LinkedPortalOneDID = targetDID;
-                                                player.SetProperty(PropertyBool.LinkedPortalOneSummon, summoned);
-                                            }
-                                            else
-                                            {
-                                                player.LinkedPortalTwoDID = targetDID;
-                                                player.SetProperty(PropertyBool.LinkedPortalTwoSummon, summoned);
+                                                if (result.Message != null)
+                                                    player.Session.Network.EnqueueSend(result.Message);
                                             }
 
-                                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the portal.", ChatMessageType.Magic));
+                                            if (!targetPortal.NoTie && result.Success)
+                                            {
+                                                if (isPrimary)
+                                                {
+                                                    player.LinkedPortalOneDID = targetDID;
+                                                    player.SetProperty(PropertyBool.LinkedPortalOneSummon, summoned);
+                                                }
+                                                else
+                                                {
+                                                    player.LinkedPortalTwoDID = targetDID;
+                                                    player.SetProperty(PropertyBool.LinkedPortalTwoSummon, summoned);
+                                                }
+
+                                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the portal.", ChatMessageType.Magic));
+                                            }
                                         }
                                         else
                                             player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotLinkToThatPortal));
@@ -1033,6 +1044,15 @@ namespace ACE.Server.WorldObjects
                             {
                                 // You cannot summon that portal!
                                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotSummonPortal));
+                                break;
+                            }
+
+                            var result = summonPortal.CheckUseRequirements(player);
+                            if (!result.Success)
+                            {
+                                if (result.Message != null)
+                                    player.Session.Network.EnqueueSend(result.Message);
+
                                 break;
                             }
 
