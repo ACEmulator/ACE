@@ -965,14 +965,14 @@ namespace ACE.Server.WorldObjects
 
                                         var targetDID = summoned ? targetPortal.OriginalPortal : targetPortal.WeenieClassId;
 
-                                        var recallPortal = GetPortal(targetDID.Value);
-                                        if (recallPortal != null)
+                                        var tiePortal = GetPortal(targetDID.Value);
+                                        if (tiePortal != null)
                                         {
-                                            var result = recallPortal.CheckUseRequirements(player);
+                                            var result = tiePortal.CheckUseRequirements(player);
                                             if (!result.Success && result.Message != null)
                                                 player.Session.Network.EnqueueSend(result.Message);
 
-                                            if (!recallPortal.NoTie && result.Success)
+                                            if (!tiePortal.NoTie && result.Success)
                                             {
                                                 if (isPrimary)
                                                 {
