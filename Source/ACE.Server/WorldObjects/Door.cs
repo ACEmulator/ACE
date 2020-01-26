@@ -53,14 +53,14 @@ namespace ACE.Server.WorldObjects
             ResetInterval = ResetInterval ?? 30.0f;
             LockCode = LockCode ?? "";
 
+            // Account for possible missing property from recreated weenies
+            if (IsLocked && !DefaultLocked)
+                DefaultLocked = true;
+
             if (DefaultLocked)
                 IsLocked = true;
             else
                 IsLocked = false;
-
-            // Account for possible missing property from recreated weenies
-            if (IsLocked && !DefaultLocked)
-                DefaultLocked = true;
 
             ActivationResponse |= ActivationResponse.Use;
         }
