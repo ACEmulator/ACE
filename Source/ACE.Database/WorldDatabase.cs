@@ -655,6 +655,26 @@ namespace ACE.Database
                 return cookbookCache.Count(r => r.Value != null);
         }
 
+        public void ClearCookbookCache()
+        {
+            lock (cookbookCache)
+                cookbookCache.Clear();
+        }
+
+        public List<CookBook> GetCachedCookbooks(uint recipeId)
+        {
+            var results = new List<CookBook>();
+
+            using (var ctx = new WorldDbContext())
+            {
+                var cookbooks = ctx.CookBook.Where(i => i.RecipeId == recipeId).ToList();
+
+                foreach (var cookbook in cookbooks)
+                    results.Add(GetCachedCookbook(cookbook.SourceWCID, cookbook.TargetWCID));
+            }
+            return results;
+        }
+
         public CookBook GetCachedCookbook(uint sourceWeenieClassid, uint targetWeenieClassId)
         {
             lock (cookbookCache)
