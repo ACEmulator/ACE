@@ -702,7 +702,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sets the physics state for a launched projectile
         /// </summary>
-        public void SetProjectilePhysicsState(bool useGravity)
+        public void SetProjectilePhysicsState(WorldObject target, bool useGravity)
         {
             if (useGravity)
                 GravityStatus = true;
@@ -722,6 +722,9 @@ namespace ACE.Server.WorldObjects
             var velocity = Velocity;
             //velocity = Vector3.Transform(velocity, Matrix4x4.Transpose(Matrix4x4.CreateFromQuaternion(rotation)));
             PhysicsObj.Velocity = velocity.Value;
+
+            if (target != null)
+                PhysicsObj.ProjectileTarget = target.PhysicsObj;
 
             PhysicsObj.set_active(true);
         }

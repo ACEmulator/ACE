@@ -1350,7 +1350,7 @@ namespace ACE.Server.WorldObjects
                 if (i == 0)     
                     sp.ProjectileTarget = target;
 
-                sp.SetProjectilePhysicsState(useGravity);
+                sp.SetProjectilePhysicsState(sp.ProjectileTarget, useGravity);
                 sp.SpawnPos = new Position(sp.Location);
 
                 if (!LandblockManager.AddObject(sp))
