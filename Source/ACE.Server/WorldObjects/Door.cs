@@ -47,7 +47,7 @@ namespace ACE.Server.WorldObjects
             {
                 CurrentMotionState = motionOpen;
                 IsOpen = true;
-                //Ethereal = true;
+                Ethereal = true;
             }
 
             ResetInterval = ResetInterval ?? 30.0f;
