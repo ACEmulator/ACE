@@ -236,7 +236,7 @@ namespace ACE.Server.Command.Handlers.Processors
             DatabaseManager.World.ClearCachedWeenie(wcid);
 
             // load weenie from database
-            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+            var weenie = DatabaseManager.World.GetWeenie(wcid);
 
             if (weenie == null)
             {
@@ -244,9 +244,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            var databaseWeenie = ACE.Database.Adapter.WeenieConverter.ConvertFromEntityWeenie(weenie);
-
-            sql2json(session, databaseWeenie, sql_folder, sql_file);
+            sql2json(session, weenie, sql_folder, sql_file);
         }
 
         /// <summary>
@@ -810,18 +808,16 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+            var weenie = DatabaseManager.World.GetWeenie(wcid);
             if (weenie == null)
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find weenie {wcid}");
                 return;
             }
 
-            var databaseWeenie = ACE.Database.Adapter.WeenieConverter.ConvertFromEntityWeenie(weenie);
-
-            if (!LifestonedConverter.TryConvertACEWeenieToLSDJSON(databaseWeenie, out var json, out var json_weenie))
+            if (!LifestonedConverter.TryConvertACEWeenieToLSDJSON(weenie, out var json, out var json_weenie))
             {
-                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {weenie.WeenieClassId} - {weenie.ClassName} to json");
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {weenie.ClassId} - {weenie.ClassName} to json");
                 return;
             }
 
@@ -832,7 +828,7 @@ namespace ACE.Server.Command.Handlers.Processors
             if (!di.Exists)
                 di.Create();
 
-            var json_filename = $"{weenie.WeenieClassId} - {databaseWeenie.WeeniePropertiesString.FirstOrDefault(i => i.Type == (int)PropertyString.Name)?.Value}.json";
+            var json_filename = $"{weenie.ClassId} - {weenie.WeeniePropertiesString.FirstOrDefault(i => i.Type == (int)PropertyString.Name)?.Value}.json";
 
             if (File.Exists(json_folder + json_filename) && LifestonedLoader.AppendMetadata(json_folder + json_filename, json_weenie))
             {
@@ -857,7 +853,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+            var weenie = DatabaseManager.World.GetWeenie(wcid);
             if (weenie == null)
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find weenie {wcid}");
@@ -878,23 +874,21 @@ namespace ACE.Server.Command.Handlers.Processors
             converter.TreasureDeath = DatabaseManager.World.GetAllTreasureDeath();
             converter.TreasureWielded = DatabaseManager.World.GetAllTreasureWielded();
 
-            var databaseWeenie = ACE.Database.Adapter.WeenieConverter.ConvertFromEntityWeenie(weenie);
-
-            var sql_filename = converter.GetDefaultFileName(databaseWeenie);
+            var sql_filename = converter.GetDefaultFileName(weenie);
 
             var writer = new StreamWriter(sql_folder + sql_filename);
 
             try
             {
-                converter.CreateSQLDELETEStatement(databaseWeenie, writer);
+                converter.CreateSQLDELETEStatement(weenie, writer);
                 writer.WriteLine();
-                converter.CreateSQLINSERTStatement(databaseWeenie, writer);
+                converter.CreateSQLINSERTStatement(weenie, writer);
                 writer.Close();
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {weenie.WeenieClassId} - {weenie.ClassName}");
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {weenie.ClassId} - {weenie.ClassName}");
                 return;
             }
 
