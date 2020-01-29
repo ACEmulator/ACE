@@ -476,6 +476,10 @@ namespace ACE.Server.WorldObjects
 
             MonsterState = State.Return;
 
+            EmoteManager.OnHomeSick(AttackTarget);
+
+            AttackTarget = null;
+
             var home = GetPosition(PositionType.Home);
 
             if (Location.Equals(home))
@@ -483,10 +487,6 @@ namespace ACE.Server.WorldObjects
                 Sleep();
                 return;
             }
-
-            EmoteManager.OnHomeSick(AttackTarget);
-
-            AttackTarget = null;
 
             NextCancelTime = Timers.RunningTime + 5.0f;
 
