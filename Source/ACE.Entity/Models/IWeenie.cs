@@ -14,7 +14,7 @@ namespace ACE.Entity.Models
     public interface IWeenie
     {
         uint WeenieClassId { get; set; }
-        int WeenieType { get; set; }
+        WeenieType WeenieType { get; set; }
 
         IDictionary<PropertyBool, bool> PropertiesBool { get; set; }
         IDictionary<PropertyDataId, uint> PropertiesDID { get; set; }

@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
-using log4net;
-
 using ACE.Database.Adapter;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
@@ -17,9 +15,6 @@ namespace ACE.Database
 {
     public class WorldDatabaseWithEntityCache : WorldDatabase
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-
         // =====================================
         // Weenie
         // =====================================
@@ -124,7 +119,7 @@ namespace ACE.Database
 
         private bool weenieSpecificCachesPopulated;
 
-        private readonly ConcurrentDictionary<int, List<ACE.Entity.Models.Weenie>> weenieCacheByType = new ConcurrentDictionary<int, List<ACE.Entity.Models.Weenie>>();
+        private readonly ConcurrentDictionary<WeenieType, List<ACE.Entity.Models.Weenie>> weenieCacheByType = new ConcurrentDictionary<WeenieType, List<ACE.Entity.Models.Weenie>>();
 
         private readonly Dictionary<uint, ACE.Entity.Models.Weenie> scrollsBySpellID = new Dictionary<uint, ACE.Entity.Models.Weenie>();
 
@@ -152,7 +147,7 @@ namespace ACE.Database
                 if (weenie == null)
                     continue;
 
-                if (weenie.WeenieType == (int)WeenieType.Scroll)
+                if (weenie.WeenieType == WeenieType.Scroll)
                 {
                     if (weenie.PropertiesDID.TryGetValue(PropertyDataId.Spell, out var value))
                     {
@@ -167,7 +162,7 @@ namespace ACE.Database
 
         public List<ACE.Entity.Models.Weenie> GetRandomWeeniesOfType(int weenieTypeId, int count)
         {
-            if (!weenieCacheByType.TryGetValue(weenieTypeId, out var weenies))
+            if (!weenieCacheByType.TryGetValue((WeenieType)weenieTypeId, out var weenies))
             {
                 if (!weenieSpecificCachesPopulated)
                 {
@@ -196,7 +191,7 @@ namespace ACE.Database
                 }
 
                 weenies = new List<ACE.Entity.Models.Weenie>();
-                weenieCacheByType[weenieTypeId] = weenies;
+                weenieCacheByType[(WeenieType)weenieTypeId] = weenies;
             }
 
             if (weenies.Count == 0)

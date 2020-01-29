@@ -17,7 +17,7 @@ namespace ACE.Database.Adapter
 
             result.WeenieClassId = weenie.ClassId;
             result.ClassName = weenie.ClassName;
-            result.WeenieType = weenie.Type;
+            result.WeenieType = (WeenieType)weenie.Type;
 
             if (weenie.WeeniePropertiesBool != null)
             {

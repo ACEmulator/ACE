@@ -77,9 +77,9 @@ namespace ACE.Entity.Models
             return null;
         }
 
-        public static Position GetPosition(this Weenie weenie, PositionType positionType)
+        public static Position GetPosition(this Weenie weenie, PositionType property)
         {
-            if (weenie.PropertiesPosition.TryGetValue(positionType, out var value))
+            if (weenie.PropertiesPosition.TryGetValue(property, out var value))
                 return new Position(value.ObjCellId, value.PositionX, value.PositionY, value.PositionZ, value.RotationX, value.RotationY, value.RotationZ, value.RotationW);
 
             return null;
@@ -112,7 +112,7 @@ namespace ACE.Entity.Models
         {
             var requiresBackPackSlot = weenie.GetProperty(PropertyBool.RequiresBackpackSlot) ?? false;
 
-            return requiresBackPackSlot || weenie.WeenieType == (int)WeenieType.Container;
+            return requiresBackPackSlot || weenie.WeenieType == WeenieType.Container;
         }
 
         public static bool IsVendorService(this Weenie weenie)

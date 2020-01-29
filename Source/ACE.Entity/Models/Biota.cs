@@ -15,7 +15,7 @@ namespace ACE.Entity.Models
     {
         public uint Id { get; set; }
         public uint WeenieClassId { get; set; }
-        public int WeenieType { get; set; }
+        public WeenieType WeenieType { get; set; }
 
         public IDictionary<PropertyBool, bool> PropertiesBool { get; set; }
         public IDictionary<PropertyDataId, uint> PropertiesDID { get; set; }

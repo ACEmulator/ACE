@@ -16,7 +16,7 @@ namespace ACE.Database.Adapter
 
             result.Id = biota.Id;
             result.WeenieClassId = biota.WeenieClassId;
-            result.WeenieType = biota.WeenieType;
+            result.WeenieType = (WeenieType)biota.WeenieType;
 
             if (biota.BiotaPropertiesBool != null)
             {
