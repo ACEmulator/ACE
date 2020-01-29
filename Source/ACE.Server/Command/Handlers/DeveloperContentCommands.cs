@@ -244,7 +244,9 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            sql2json(session, weenie, sql_folder, sql_file);
+            var databaseWeenie = ACE.Database.Adapter.WeenieConverter.ConvertFromEntityWeenie(weenie);
+
+            sql2json(session, databaseWeenie, sql_folder, sql_file);
         }
 
         /// <summary>
@@ -311,7 +313,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var param = parameters[0];
 
-            Weenie weenie = null;
+            ACE.Entity.Models.Weenie weenie = null;
 
             uint? parentGuid = null;
 
@@ -440,13 +442,13 @@ namespace ACE.Server.Command.Handlers.Processors
 
             if (wo == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Failed to create new object for {weenie.ClassId} - {weenie.ClassName}", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Failed to create new object for {weenie.WeenieClassId} - {weenie.ClassName}", ChatMessageType.Broadcast));
                 return;
             }
 
             if (!wo.Stuck)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"{weenie.ClassId} - {weenie.ClassName} is missing PropertyBool.Stuck, cannot spawn as landblock instance", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{weenie.WeenieClassId} - {weenie.ClassName} is missing PropertyBool.Stuck, cannot spawn as landblock instance", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -694,7 +696,7 @@ namespace ACE.Server.Command.Handlers.Processors
         {
             var param = parameters[0];
 
-            Weenie weenie = null;
+            ACE.Entity.Models.Weenie weenie = null;
 
             if (uint.TryParse(param, out var wcid))
                 weenie = DatabaseManager.World.GetCachedWeenie(wcid);   // wcid
@@ -727,7 +729,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-            var sql = $"INSERT INTO encounter set landblock=0x{pos.Landblock:X4}, weenie_Class_Id={weenie.ClassId} /* {wo.Name} */, cell_X={cellX}, cell_Y={cellY}, last_Modified='{timestamp}';";
+            var sql = $"INSERT INTO encounter set landblock=0x{pos.Landblock:X4}, weenie_Class_Id={weenie.WeenieClassId} /* {wo.Name} */, cell_X={cellX}, cell_Y={cellY}, last_Modified='{timestamp}';";
 
             Console.WriteLine(sql);
 
@@ -751,9 +753,9 @@ namespace ACE.Server.Command.Handlers.Processors
             }
         }
 
-        public static WorldObject SpawnEncounter(Weenie weenie, int cellX, int cellY, Position pos, Session session)
+        public static WorldObject SpawnEncounter(ACE.Entity.Models.Weenie weenie, int cellX, int cellY, Position pos, Session session)
         {
-            var wo = WorldObjectFactory.CreateNewWorldObject(weenie.ClassId);
+            var wo = WorldObjectFactory.CreateNewWorldObject(weenie.WeenieClassId);
 
             if (wo == null)
             {
@@ -815,9 +817,11 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            if (!LifestonedConverter.TryConvertACEWeenieToLSDJSON(weenie, out var json, out var json_weenie))
+            var databaseWeenie = ACE.Database.Adapter.WeenieConverter.ConvertFromEntityWeenie(weenie);
+
+            if (!LifestonedConverter.TryConvertACEWeenieToLSDJSON(databaseWeenie, out var json, out var json_weenie))
             {
-                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {weenie.ClassId} - {weenie.ClassName} to json");
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {weenie.WeenieClassId} - {weenie.ClassName} to json");
                 return;
             }
 
@@ -828,7 +832,7 @@ namespace ACE.Server.Command.Handlers.Processors
             if (!di.Exists)
                 di.Create();
 
-            var json_filename = $"{weenie.ClassId} - {weenie.WeeniePropertiesString.FirstOrDefault(i => i.Type == (int)PropertyString.Name)?.Value}.json";
+            var json_filename = $"{weenie.WeenieClassId} - {databaseWeenie.WeeniePropertiesString.FirstOrDefault(i => i.Type == (int)PropertyString.Name)?.Value}.json";
 
             if (File.Exists(json_folder + json_filename) && LifestonedLoader.AppendMetadata(json_folder + json_filename, json_weenie))
             {
@@ -874,21 +878,23 @@ namespace ACE.Server.Command.Handlers.Processors
             converter.TreasureDeath = DatabaseManager.World.GetAllTreasureDeath();
             converter.TreasureWielded = DatabaseManager.World.GetAllTreasureWielded();
 
-            var sql_filename = converter.GetDefaultFileName(weenie);
+            var databaseWeenie = ACE.Database.Adapter.WeenieConverter.ConvertFromEntityWeenie(weenie);
+
+            var sql_filename = converter.GetDefaultFileName(databaseWeenie);
 
             var writer = new StreamWriter(sql_folder + sql_filename);
 
             try
             {
-                converter.CreateSQLDELETEStatement(weenie, writer);
+                converter.CreateSQLDELETEStatement(databaseWeenie, writer);
                 writer.WriteLine();
-                converter.CreateSQLINSERTStatement(weenie, writer);
+                converter.CreateSQLINSERTStatement(databaseWeenie, writer);
                 writer.Close();
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {weenie.ClassId} - {weenie.ClassName}");
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {weenie.WeenieClassId} - {weenie.ClassName}");
                 return;
             }
 
