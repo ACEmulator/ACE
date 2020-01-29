@@ -2229,7 +2229,7 @@ namespace ACE.Server.Command.Handlers
                 }
             }
 
-            Database.Models.World.Weenie weenie;
+            ACE.Entity.Models.Weenie weenie;
             if (wcid)
                 weenie = DatabaseManager.World.GetCachedWeenie(weenieClassId);
             else
@@ -2241,11 +2241,11 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            if (weenie.Type != (int)WeenieType.Creature && weenie.Type != (int)WeenieType.Cow
-                && weenie.Type != (int)WeenieType.Admin && weenie.Type != (int)WeenieType.Sentinel && weenie.Type != (int)WeenieType.Vendor
-                && weenie.Type != (int)WeenieType.Pet && weenie.Type != (int)WeenieType.CombatPet)
+            if (weenie.WeenieType != (int)WeenieType.Creature && weenie.WeenieType != (int)WeenieType.Cow
+                && weenie.WeenieType != (int)WeenieType.Admin && weenie.WeenieType != (int)WeenieType.Sentinel && weenie.WeenieType != (int)WeenieType.Vendor
+                && weenie.WeenieType != (int)WeenieType.Pet && weenie.WeenieType != (int)WeenieType.CombatPet)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Weenie {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription}) is of WeenieType.{Enum.GetName(typeof(WeenieType), weenie.Type)} ({weenie.Type}), unable to morph because that is not allowed.", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Weenie {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription}) is of WeenieType.{Enum.GetName(typeof(WeenieType), weenie.WeenieType)} ({weenie.WeenieType}), unable to morph because that is not allowed.", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -2281,7 +2281,7 @@ namespace ACE.Server.Command.Handlers
                 player.Character.CharacterOptions2 = session.Player.Character.CharacterOptions2;
 
                 //var wearables = weenie.GetCreateList((sbyte)DestinationType.Wield);
-                var wearables = weenie.WeeniePropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Wield || x.DestinationType == (int)DestinationType.WieldTreasure).ToList();
+                var wearables = weenie.PropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Wield || x.DestinationType == (int)DestinationType.WieldTreasure).ToList();
                 foreach (var wearable in wearables)
                 {
                     var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(wearable.WeenieClassId);
@@ -2302,7 +2302,7 @@ namespace ACE.Server.Command.Handlers
                     player.TryEquipObjectWithNetworking(worldObject, worldObject.ValidLocations ?? 0);
                 }
 
-                var containables = weenie.WeeniePropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Shop
+                var containables = weenie.PropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Shop
                 || x.DestinationType == (int)DestinationType.Treasure || x.DestinationType == (int)DestinationType.ContainTreasure || x.DestinationType == (int)DestinationType.ShopTreasure).ToList();
                 foreach (var containable in containables)
                 {
