@@ -59,6 +59,7 @@ namespace ACE.Server.WorldObjects
             AttackTarget = null;
             IsAwake = false;
             IsMoving = false;
+            isHomeSick = false;
             MonsterState = State.Idle;
 
             PhysicsObj.CachedVelocity = Vector3.Zero;
@@ -148,6 +149,11 @@ namespace ACE.Server.WorldObjects
                 {
                     if (MonsterState != State.Return)
                     {
+                        if (!isHomeSick)
+                        {
+                            isHomeSick = true;
+                            EmoteManager.OnHomeSick(AttackTarget);
+                        }
                         AttackTarget = null;
                         MoveToHome();
                     }
@@ -357,6 +363,7 @@ namespace ACE.Server.WorldObjects
 
         public static float AlertRadius = 12.0f;    // TODO: find alert radius from retail
         public static float AlertRadiusSq = AlertRadius * AlertRadius;
+        private bool isHomeSick = false;
 
         public void AlertFriendly()
         {
