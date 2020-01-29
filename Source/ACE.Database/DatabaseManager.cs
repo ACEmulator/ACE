@@ -9,7 +9,7 @@ namespace ACE.Database
 
         public static AuthenticationDatabase Authentication { get; } = new AuthenticationDatabase();
 
-        public static WorldDatabase World { get; } = new WorldDatabase();
+        public static WorldDatabaseWithEntityCache World { get; } = new WorldDatabaseWithEntityCache();
 
         private static SerializedShardDatabase serializedShardDb;
 
