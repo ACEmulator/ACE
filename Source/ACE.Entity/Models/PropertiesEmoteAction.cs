@@ -4,7 +4,6 @@ namespace ACE.Entity.Models
 {
     public class PropertiesEmoteAction
     {
-        public uint Order { get; set; } // TODO investigate the need for this? maybe make sure the order is correct in the list when these objects are created
         public uint Type { get; set; }
         public float Delay { get; set; }
         public float Extent { get; set; }
@@ -48,7 +47,6 @@ namespace ACE.Entity.Models
         {
             var result = new PropertiesEmoteAction
             {
-                Order = Order,
                 Type = Type,
                 Delay = Delay,
                 Extent = Extent,

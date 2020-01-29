@@ -186,11 +186,10 @@ namespace ACE.Database.Adapter
                         MaxHealth = record.MaxHealth,
                     };
 
-                    foreach (var record2 in record.BiotaPropertiesEmoteAction)
+                    foreach (var record2 in record.BiotaPropertiesEmoteAction.OrderBy(r => r.Order))
                     {
                         var newEntity2 = new PropertiesEmoteAction
                         {
-                            Order = record2.Order,
                             Type = record2.Type,
                             Delay = record2.Delay,
                             Extent = record2.Extent,
