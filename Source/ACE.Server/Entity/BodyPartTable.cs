@@ -2,9 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
-using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Database.Models.World;
+using ACE.Entity.Models;
 
 namespace ACE.Server.Entity
 {
@@ -21,23 +20,23 @@ namespace ACE.Server.Entity
             for (var i = 0; i < Quadrants.Length; i++)
                 Quadrants[i] = new List<BodyPartProbability>();
 
-            foreach (var bodyPart in Weenie.WeeniePropertiesBodyPart)
+            foreach (var bodyPart in Weenie.PropertiesBodyPart)
             {
-                if (bodyPart.HLF > 0.0f) Quadrants[0].Add(new BodyPartProbability(bodyPart.Key, bodyPart.HLF));
-                if (bodyPart.MLF > 0.0f) Quadrants[1].Add(new BodyPartProbability(bodyPart.Key, bodyPart.MLF));
-                if (bodyPart.LLF > 0.0f) Quadrants[2].Add(new BodyPartProbability(bodyPart.Key, bodyPart.LLF));
+                if (bodyPart.Value.HLF > 0.0f) Quadrants[0].Add(new BodyPartProbability(bodyPart.Key, bodyPart.Value.HLF));
+                if (bodyPart.Value.MLF > 0.0f) Quadrants[1].Add(new BodyPartProbability(bodyPart.Key, bodyPart.Value.MLF));
+                if (bodyPart.Value.LLF > 0.0f) Quadrants[2].Add(new BodyPartProbability(bodyPart.Key, bodyPart.Value.LLF));
 
-                if (bodyPart.HRF > 0.0f) Quadrants[3].Add(new BodyPartProbability(bodyPart.Key, bodyPart.HRF));
-                if (bodyPart.MRF > 0.0f) Quadrants[4].Add(new BodyPartProbability(bodyPart.Key, bodyPart.MRF));
-                if (bodyPart.LRF > 0.0f) Quadrants[5].Add(new BodyPartProbability(bodyPart.Key, bodyPart.LRF));
+                if (bodyPart.Value.HRF > 0.0f) Quadrants[3].Add(new BodyPartProbability(bodyPart.Key, bodyPart.Value.HRF));
+                if (bodyPart.Value.MRF > 0.0f) Quadrants[4].Add(new BodyPartProbability(bodyPart.Key, bodyPart.Value.MRF));
+                if (bodyPart.Value.LRF > 0.0f) Quadrants[5].Add(new BodyPartProbability(bodyPart.Key, bodyPart.Value.LRF));
 
-                if (bodyPart.HLB > 0.0f) Quadrants[6].Add(new BodyPartProbability(bodyPart.Key, bodyPart.HLB));
-                if (bodyPart.MLB > 0.0f) Quadrants[7].Add(new BodyPartProbability(bodyPart.Key, bodyPart.MLB));
-                if (bodyPart.LLB > 0.0f) Quadrants[8].Add(new BodyPartProbability(bodyPart.Key, bodyPart.LLB));
+                if (bodyPart.Value.HLB > 0.0f) Quadrants[6].Add(new BodyPartProbability(bodyPart.Key, bodyPart.Value.HLB));
+                if (bodyPart.Value.MLB > 0.0f) Quadrants[7].Add(new BodyPartProbability(bodyPart.Key, bodyPart.Value.MLB));
+                if (bodyPart.Value.LLB > 0.0f) Quadrants[8].Add(new BodyPartProbability(bodyPart.Key, bodyPart.Value.LLB));
 
-                if (bodyPart.HRB > 0.0f) Quadrants[9].Add(new BodyPartProbability(bodyPart.Key, bodyPart.HRB));
-                if (bodyPart.MRB > 0.0f) Quadrants[10].Add(new BodyPartProbability(bodyPart.Key, bodyPart.MRB));
-                if (bodyPart.LRB > 0.0f) Quadrants[11].Add(new BodyPartProbability(bodyPart.Key, bodyPart.LRB));
+                if (bodyPart.Value.HRB > 0.0f) Quadrants[9].Add(new BodyPartProbability(bodyPart.Key, bodyPart.Value.HRB));
+                if (bodyPart.Value.MRB > 0.0f) Quadrants[10].Add(new BodyPartProbability(bodyPart.Key, bodyPart.Value.MRB));
+                if (bodyPart.Value.LRB > 0.0f) Quadrants[11].Add(new BodyPartProbability(bodyPart.Key, bodyPart.Value.LRB));
             }
         }
 

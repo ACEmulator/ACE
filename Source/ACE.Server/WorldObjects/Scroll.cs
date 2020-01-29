@@ -14,7 +14,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Scroll(Database.Models.World.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public Scroll(ACE.Entity.Models.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
         }

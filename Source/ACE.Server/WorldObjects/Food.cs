@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Food(Database.Models.World.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public Food(ACE.Entity.Models.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
         }

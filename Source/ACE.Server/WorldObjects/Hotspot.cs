@@ -13,7 +13,7 @@ namespace ACE.Server.WorldObjects
 {
     public class Hotspot : WorldObject
     {
-        public Hotspot(Database.Models.World.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public Hotspot(ACE.Entity.Models.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
         }

@@ -10,7 +10,6 @@ using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Adapter;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -40,12 +39,6 @@ namespace ACE.Server.WorldObjects
     public abstract partial class WorldObject : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-        /// <summary>
-        /// This is object property overrides that should have come from the shard db (or init to defaults of object is new to this instance).
-        /// You should not manipulate these values directly. To manipulate this use the exposed SetProperty and RemoveProperty functions instead.
-        /// </summary>
-        //public Database.Models.World.Weenie Weenie { get; }
 
         /// <summary>
         /// This is object property overrides that should have come from the shard db (or init to defaults of object is new to this instance).
@@ -99,22 +92,15 @@ namespace ACE.Server.WorldObjects
 
         public WorldObject() { }
 
-        private static readonly Dictionary<uint, ACE.Entity.Models.Weenie> weenieCache = new Dictionary<uint, ACE.Entity.Models.Weenie>(); // todo temp
-
         /// <summary>
         /// A new biota will be created taking all of its values from weenie.
         /// </summary>
-        protected WorldObject(Database.Models.World.Weenie weenie, ObjectGuid guid)
+        protected WorldObject(Weenie weenie, ObjectGuid guid)
         {
             //Weenie = weenie;
             DatabaseBiota = new Database.Models.Shard.Biota(); // todo temp
             //Biota = weenie.CreateCopyAsBiota(guid.Full);
-            if (!weenieCache.TryGetValue(weenie.ClassId, out var cachedWeenie))
-            {
-                cachedWeenie = WeenieConverter.ConvertToEntityWeenie(weenie);
-                weenieCache[weenie.ClassId] = cachedWeenie;
-            }
-            Biota = ACE.Entity.Adapter.WeenieConverter.ConvertToBiota(cachedWeenie, guid.Full);
+            Biota = ACE.Entity.Adapter.WeenieConverter.ConvertToBiota(weenie, guid.Full);
             Guid = guid;
 
             InitializePropertyDictionaries();

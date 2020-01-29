@@ -23,10 +23,10 @@ namespace ACE.Entity.Models
             rwLock.EnterReadLock();
             try
             {
-                if (!biota.PropertiesBool.TryGetValue(property, out var value))
-                    return null;
+                if (biota.PropertiesBool.TryGetValue(property, out var value))
+                    return value;
 
-                return value;
+                return null;
             }
             finally
             {
@@ -42,10 +42,10 @@ namespace ACE.Entity.Models
             rwLock.EnterReadLock();
             try
             {
-                if (!biota.PropertiesDID.TryGetValue(property, out var value))
-                    return null;
+                if (biota.PropertiesDID.TryGetValue(property, out var value))
+                    return value;
 
-                return value;
+                return null;
             }
             finally
             {
@@ -61,10 +61,10 @@ namespace ACE.Entity.Models
             rwLock.EnterReadLock();
             try
             {
-                if (!biota.PropertiesFloat.TryGetValue(property, out var value))
-                    return null;
+                if (biota.PropertiesFloat.TryGetValue(property, out var value))
+                    return value;
 
-                return value;
+                return null;
             }
             finally
             {
@@ -80,10 +80,10 @@ namespace ACE.Entity.Models
             rwLock.EnterReadLock();
             try
             {
-                if (!biota.PropertiesIID.TryGetValue(property, out var value))
-                    return null;
+                if (biota.PropertiesIID.TryGetValue(property, out var value))
+                    return value;
 
-                return value;
+                return null;
             }
             finally
             {
@@ -99,10 +99,10 @@ namespace ACE.Entity.Models
             rwLock.EnterReadLock();
             try
             {
-                if (!biota.PropertiesInt.TryGetValue(property, out var value))
-                    return null;
+                if (biota.PropertiesInt.TryGetValue(property, out var value))
+                    return value;
 
-                return value;
+                return null;
             }
             finally
             {
@@ -118,10 +118,10 @@ namespace ACE.Entity.Models
             rwLock.EnterReadLock();
             try
             {
-                if (!biota.PropertiesInt64.TryGetValue(property, out var value))
-                    return null;
+                if (biota.PropertiesInt64.TryGetValue(property, out var value))
+                    return value;
 
-                return value;
+                return null;
             }
             finally
             {
@@ -137,10 +137,10 @@ namespace ACE.Entity.Models
             rwLock.EnterReadLock();
             try
             {
-                if (!biota.PropertiesString.TryGetValue(property, out var value))
-                    return null;
+                if (biota.PropertiesString.TryGetValue(property, out var value))
+                    return value;
 
-                return value;
+                return null;
             }
             finally
             {
@@ -156,10 +156,10 @@ namespace ACE.Entity.Models
             rwLock.EnterReadLock();
             try
             {
-                if (!biota.PropertiesPosition.TryGetValue(property, out var value))
-                    return null;
+                if (biota.PropertiesPosition.TryGetValue(property, out var value))
+                    return value;
 
-                return value;
+                return null;
             }
             finally
             {
@@ -175,10 +175,10 @@ namespace ACE.Entity.Models
             rwLock.EnterReadLock();
             try
             {
-                if (!biota.PropertiesPosition.TryGetValue(property, out var value))
-                    return null;
+                if (biota.PropertiesPosition.TryGetValue(property, out var value))
+                    return new Position(value.ObjCellId, value.PositionX, value.PositionY, value.PositionZ, value.RotationX, value.RotationY, value.RotationZ, value.RotationW);
 
-                return new Position(value.ObjCellId, value.PositionX, value.PositionY, value.PositionZ, value.RotationX, value.RotationY, value.RotationZ, value.RotationW);
+                return null;
             }
             finally
             {

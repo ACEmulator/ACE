@@ -24,7 +24,7 @@ namespace ACE.Database
         // Weenie
         // =====================================
 
-        private readonly ConcurrentDictionary<uint, Weenie> weenieCache = new ConcurrentDictionary<uint, Weenie>();
+        private readonly ConcurrentDictionary<uint, ACE.Entity.Models.Weenie> weenieCache = new ConcurrentDictionary<uint, ACE.Entity.Models.Weenie>();
 
         private readonly ConcurrentDictionary<string, uint> weenieClassNameToClassIdCache = new ConcurrentDictionary<string, uint>();
 
@@ -39,7 +39,7 @@ namespace ACE.Database
             // If the weenie doesn't exist in the cache, we'll add it.
             if (weenie != null)
             {
-                weenieCache[weenieClassId] = weenie;//WeenieConverter.ConvertToEntityWeenie(weenie);
+                weenieCache[weenieClassId] = WeenieConverter.ConvertToEntityWeenie(weenie);
                 weenieClassNameToClassIdCache[weenie.ClassName] = weenie.ClassId;
             }
             else
@@ -88,23 +88,31 @@ namespace ACE.Database
         /// <summary>
         /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest
         /// </summary>
-        public Weenie GetCachedWeenie(uint weenieClassId)
+        public ACE.Entity.Models.Weenie GetCachedWeenie(uint weenieClassId)
         {
             if (weenieCache.TryGetValue(weenieClassId, out var value))
                 return value;
 
-            return GetWeenie(weenieClassId); // This will add the result into the caches
+            GetWeenie(weenieClassId); // This will add the result into the caches
+
+            weenieCache.TryGetValue(weenieClassId, out value);
+
+            return value;
         }
 
         /// <summary>
         /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest
         /// </summary>
-        public Weenie GetCachedWeenie(string weenieClassName)
+        public ACE.Entity.Models.Weenie GetCachedWeenie(string weenieClassName)
         {
             if (weenieClassNameToClassIdCache.TryGetValue(weenieClassName, out var value))
                 return GetCachedWeenie(value); // This will add the result into the caches
 
-            return GetWeenie(weenieClassName); // This will add the result into the caches
+            GetWeenie(weenieClassName); // This will add the result into the caches
+
+            weenieClassNameToClassIdCache.TryGetValue(weenieClassName, out value);
+
+            return GetCachedWeenie(value); // This will add the result into the caches
         }
 
         public bool ClearCachedWeenie(uint weenieClassId)
@@ -116,9 +124,9 @@ namespace ACE.Database
 
         private bool weenieSpecificCachesPopulated;
 
-        private readonly ConcurrentDictionary<int, List<Weenie>> weenieCacheByType = new ConcurrentDictionary<int, List<Weenie>>();
+        private readonly ConcurrentDictionary<int, List<ACE.Entity.Models.Weenie>> weenieCacheByType = new ConcurrentDictionary<int, List<ACE.Entity.Models.Weenie>>();
 
-        private readonly Dictionary<uint, Weenie> scrollsBySpellID = new Dictionary<uint, Weenie>();
+        private readonly Dictionary<uint, ACE.Entity.Models.Weenie> scrollsBySpellID = new Dictionary<uint, ACE.Entity.Models.Weenie>();
 
         private void PopulateWeenieSpecificCaches()
         {
@@ -128,10 +136,10 @@ namespace ACE.Database
                 if (weenie == null)
                     continue;
 
-                if (!weenieCacheByType.TryGetValue(weenie.Type, out var weenies))
+                if (!weenieCacheByType.TryGetValue(weenie.WeenieType, out var weenies))
                 {
-                    weenies = new List<Weenie>();
-                    weenieCacheByType[weenie.Type] = weenies;
+                    weenies = new List<ACE.Entity.Models.Weenie>();
+                    weenieCacheByType[weenie.WeenieType] = weenies;
                 }
 
                 if (!weenies.Contains(weenie))
@@ -144,15 +152,12 @@ namespace ACE.Database
                 if (weenie == null)
                     continue;
 
-                if (weenie.Type == (int)WeenieType.Scroll)
+                if (weenie.WeenieType == (int)WeenieType.Scroll)
                 {
-                    foreach (var record in weenie.WeeniePropertiesDID)
+                    if (weenie.PropertiesDID.TryGetValue(PropertyDataId.Spell, out var value))
                     {
-                        if (record.Type == (ushort)PropertyDataId.Spell)
-                        {
-                            scrollsBySpellID[record.Value] = weenie;
-                            break;
-                        }
+                        scrollsBySpellID[value] = weenie;
+                        break;
                     }
                 }
             }
@@ -160,7 +165,7 @@ namespace ACE.Database
             weenieSpecificCachesPopulated = true;
         }
 
-        public List<Weenie> GetRandomWeeniesOfType(int weenieTypeId, int count)
+        public List<ACE.Entity.Models.Weenie> GetRandomWeeniesOfType(int weenieTypeId, int count)
         {
             if (!weenieCacheByType.TryGetValue(weenieTypeId, out var weenies))
             {
@@ -175,7 +180,7 @@ namespace ACE.Database
 
                         var rand = new Random();
 
-                        weenies = new List<Weenie>();
+                        weenies = new List<ACE.Entity.Models.Weenie>();
 
                         for (int i = 0; i < count; i++)
                         {
@@ -190,23 +195,23 @@ namespace ACE.Database
                     }
                 }
 
-                weenies = new List<Weenie>();
+                weenies = new List<ACE.Entity.Models.Weenie>();
                 weenieCacheByType[weenieTypeId] = weenies;
             }
 
             if (weenies.Count == 0)
-                return new List<Weenie>();
+                return new List<ACE.Entity.Models.Weenie>();
 
             {
                 var rand = new Random();
 
-                var results = new List<Weenie>();
+                var results = new List<ACE.Entity.Models.Weenie>();
 
                 for (int i = 0; i < count; i++)
                 {
                     var index = rand.Next(0, weenies.Count - 1);
 
-                    var weenie = GetCachedWeenie(weenies[index].ClassId);
+                    var weenie = GetCachedWeenie(weenies[index].WeenieClassId);
 
                     results.Add(weenie);
                 }
@@ -215,7 +220,7 @@ namespace ACE.Database
             }
         }
 
-        public Weenie GetScrollWeenie(uint spellID)
+        public ACE.Entity.Models.Weenie GetScrollWeenie(uint spellID)
         {
             if (!scrollsBySpellID.TryGetValue(spellID, out var weenie))
             {
@@ -228,7 +233,9 @@ namespace ACE.Database
                                     where weenieRecord.Type == (int)WeenieType.Scroll && did.Type == (ushort)PropertyDataId.Spell && did.Value == spellID
                                     select weenieRecord;
 
-                        weenie = query.FirstOrDefault();
+                        var result = query.FirstOrDefault();
+
+                        weenie = WeenieConverter.ConvertToEntityWeenie(result);
 
                         scrollsBySpellID[spellID] = weenie;
                     }

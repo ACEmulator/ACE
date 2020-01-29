@@ -13,7 +13,7 @@ using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
 using Biota = ACE.Database.Models.Shard.Biota;
-using Weenie = ACE.Database.Models.World.Weenie;
+using Weenie = ACE.Entity.Models.Weenie;
 
 namespace ACE.Server.Factories
 {
@@ -29,7 +29,7 @@ namespace ACE.Server.Factories
             if (weenie == null || guid == null)
                 return null;
 
-            var objWeenieType = (WeenieType)weenie.Type;
+            var objWeenieType = (WeenieType)weenie.WeenieType;
 
             switch (objWeenieType)
             {
@@ -369,7 +369,7 @@ namespace ACE.Server.Factories
             if (weenie == null)
                 return null;
 
-            return CreateNewWorldObject(weenie.ClassId);
+            return CreateNewWorldObject(weenie.WeenieClassId);
         }
 
         /// <summary>

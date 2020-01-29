@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 
-using ACE.Common.Extensions;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -44,6 +43,7 @@ namespace ACE.Database.Models.World
         {
             return weenie.WeeniePropertiesInt64.FirstOrDefault(x => x.Type == (uint)property)?.Value;
         }
+
         public static string GetProperty(this Weenie weenie, PropertyString property)
         {
             return weenie.WeeniePropertiesString.FirstOrDefault(x => x.Type == (uint)property)?.Value;
@@ -149,40 +149,6 @@ namespace ACE.Database.Models.World
         public static WeeniePropertiesBookPageData GetBookPageData(this Weenie weenie, uint pageId)
         {
             return weenie.WeeniePropertiesBookPageData.FirstOrDefault(x => x.PageId == pageId);
-        }
-
-
-        // TODO THese utility functions should be moved out of WeenieExtensions
-        public static string GetPluralName(this Weenie weenie)
-        {
-            var pluralName = weenie.GetProperty(PropertyString.PluralName);
-
-            if (pluralName == null)
-                pluralName = weenie.GetProperty(PropertyString.Name).Pluralize();
-
-            return pluralName;
-        }
-
-        public static bool IsStackable(this Weenie weenie)
-        {
-            var weenieType = (WeenieType)weenie.Type;
-
-            return weenieType == WeenieType.Stackable      || weenieType == WeenieType.Food || weenieType == WeenieType.Coin       || weenieType == WeenieType.CraftTool
-                || weenieType == WeenieType.SpellComponent || weenieType == WeenieType.Gem  || weenieType == WeenieType.Ammunition || weenieType == WeenieType.Missile;
-        }
-
-        public static bool RequiresBackpackSlotOrIsContainer(this Weenie weenie)
-        {
-            var requiresBackPackSlot = weenie.GetProperty(PropertyBool.RequiresBackpackSlot) ?? false;
-
-            return requiresBackPackSlot || weenie.Type == (int)WeenieType.Container;
-        }
-
-        public static bool IsVendorService(this Weenie weenie)
-        {
-            var vendorService = weenie.GetProperty(PropertyBool.VendorService) ?? false;
-
-            return vendorService;
         }
     }
 }

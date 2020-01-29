@@ -5,16 +5,14 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Managers;
@@ -744,7 +742,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when a player first logs in
         /// </summary>
-        public static void HandleNoLogLandblock(Biota biota)
+        public static void HandleNoLogLandblock(ACE.Database.Models.Shard.Biota biota)
         {
             if (biota.WeenieType == (int)WeenieType.Sentinel || biota.WeenieType == (int)WeenieType.Admin) return;
 

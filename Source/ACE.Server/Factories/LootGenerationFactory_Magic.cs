@@ -1,3 +1,4 @@
+
 using ACE.Common;
 using ACE.Database;
 using ACE.Entity.Enum;
@@ -103,7 +104,7 @@ namespace ACE.Server.Factories
                 return null;
             }
 
-            wo = WorldObjectFactory.CreateNewWorldObject(weenie.ClassId);
+            wo = WorldObjectFactory.CreateNewWorldObject(weenie.WeenieClassId);
             return wo;
         }
 

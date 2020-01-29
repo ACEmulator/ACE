@@ -19,6 +19,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -1033,7 +1034,7 @@ namespace ACE.Server.Entity
             DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => { });*/
         }
 
-        private void AddWorldObjectToBiotasSaveCollection(WorldObject wo, Collection<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
+        private void AddWorldObjectToBiotasSaveCollection(WorldObject wo, Collection<(ACE.Database.Models.Shard.Biota biota, ReaderWriterLockSlim rwLock)> biotas)
         {
             /*if (wo.ChangesDetected)
             {

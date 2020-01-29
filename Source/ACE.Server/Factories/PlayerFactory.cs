@@ -14,6 +14,8 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
 
+using Weenie = ACE.Entity.Models.Weenie;
+
 namespace ACE.Server.Factories
 {
     public static class PlayerFactory

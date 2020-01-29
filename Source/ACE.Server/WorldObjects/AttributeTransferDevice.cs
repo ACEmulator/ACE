@@ -25,7 +25,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public AttributeTransferDevice(Database.Models.World.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
+        public AttributeTransferDevice(ACE.Entity.Models.Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
         }

@@ -14,6 +14,7 @@ using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.WorldObjects;
+using ACE.Entity.Models;
 
 namespace ACE.Server.Command.Handlers
 {
