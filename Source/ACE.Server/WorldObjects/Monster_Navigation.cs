@@ -466,10 +466,7 @@ namespace ACE.Server.WorldObjects
             var homeDistSq = Vector3.DistanceSquared(globalHomePos, globalPos);
 
             if (homeDistSq > HomeRadiusSq)
-            {
-                EmoteManager.OnHomeSick(AttackTarget);
                 MoveToHome();
-            }
         }
 
         public void MoveToHome()
@@ -478,6 +475,9 @@ namespace ACE.Server.WorldObjects
                 Console.WriteLine($"{Name}.MoveToHome()");
 
             MonsterState = State.Return;
+
+            EmoteManager.OnHomeSick(AttackTarget);
+
             AttackTarget = null;
 
             var home = GetPosition(PositionType.Home);
