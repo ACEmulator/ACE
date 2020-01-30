@@ -2266,6 +2266,27 @@ namespace ACE.Server.Factories
             switch (wield)
             {
                 case 0:
+                    if (chance < 16)
+                        meleeMod = 0.01;
+                    else if (chance < 31)
+                        meleeMod = 0.02;
+                    else if (chance < 41)
+                        meleeMod = 0.03;
+                    else if (chance < 51)
+                        meleeMod = 0.04;
+                    else if (chance < 61)
+                        meleeMod = 0.05;
+                    else if (chance < 71)
+                        meleeMod = 0.06;
+                    else if (chance < 81)
+                        meleeMod = 0.07;
+                    else if (chance < 91)
+                        meleeMod = 0.08;
+                    else if (chance < 98)
+                        meleeMod = 0.09;
+                    else
+                        meleeMod = 0.10;
+                    break;
                 case 250: // Missile
                     if (chance < 20)
                         meleeMod = 0.01;

@@ -702,7 +702,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetProjectilePhysicsState(WorldObject target, bool useGravity)
         {
-            if (useGravity) GravityStatus = true;
+            if (useGravity)
+                GravityStatus = true;
 
             CurrentMotionState = null;
             Placement = null;
@@ -719,6 +720,7 @@ namespace ACE.Server.WorldObjects
             var velocity = Velocity;
             //velocity = Vector3.Transform(velocity, Matrix4x4.Transpose(Matrix4x4.CreateFromQuaternion(rotation)));
             PhysicsObj.Velocity = velocity.Value;
+
             if (target != null)
                 PhysicsObj.ProjectileTarget = target.PhysicsObj;
 

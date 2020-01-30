@@ -16,10 +16,10 @@ namespace ACE.Server.WorldObjects
     {
         public WorldObject WorldObject;
 
-        public PhysicsObj PhysicsObj { get => WorldObject.PhysicsObj; }
+        public PhysicsObj PhysicsObj => WorldObject.PhysicsObj;
 
-        public WorldObject ProjectileSource { get => WorldObject.ProjectileSource; }
-        public WorldObject ProjectileTarget { get => WorldObject.ProjectileTarget; }
+        public WorldObject ProjectileSource => WorldObject.ProjectileSource;
+        public WorldObject ProjectileTarget => WorldObject.ProjectileTarget;
 
         public Projectile() { }
 
@@ -101,6 +101,8 @@ namespace ACE.Server.WorldObjects
 
             WorldObject.CurrentLandblock?.RemoveWorldObject(WorldObject.Guid, showError: !PhysicsObj.entering_world);
             PhysicsObj.set_active(false);
+
+            WorldObject.HitMsg = true;
         }
 
         public void OnCollideEnvironment()
@@ -125,6 +127,8 @@ namespace ACE.Server.WorldObjects
             {
                 creature.MonsterProjectile_OnCollideEnvironment();
             }
+
+            WorldObject.HitMsg = true;
         }
     }
 }

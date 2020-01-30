@@ -5,6 +5,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using System;
 
 namespace ACE.Server.WorldObjects
 {
@@ -63,6 +64,8 @@ namespace ACE.Server.WorldObjects
                 {
                     player.Sanctuary = new Position(player.Location);
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Magic));
+                    var newStamina = (uint)Math.Round(player.Stamina.Current / 2f);
+                    player.UpdateVital(player.Stamina, newStamina);
                 }
                 else
                     player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));

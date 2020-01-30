@@ -222,6 +222,9 @@ namespace ACE.Server.WorldObjects.Managers
                     // animation delay?
                     if (WorldObject is Container container)
                         container.Close(null);
+                    else if (WorldObject is Door closeDoor)
+                        closeDoor.Close();
+
                     break;
 
                 case EmoteType.CreateTreasure:
@@ -947,6 +950,8 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (WorldObject is Container openContainer)
                         openContainer.Open(null);
+                    else if (WorldObject is Door openDoor)
+                        openDoor.Open();
 
                     break;
 

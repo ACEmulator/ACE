@@ -130,12 +130,18 @@ namespace ACE.Server.WorldObjects
                 if (wo == null)
                     return;
             }
-                
 
             if (wo.IsAttunedOrContainsAttuned)
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You cannot trade that!"));
                 Session.Network.EnqueueSend(new GameEventTradeFailure(Session, itemGuid, WeenieError.AttunedItem));
+                return;
+            }
+
+            if (wo.IsUniqueOrContainsUnique && !target.CheckUniques(wo, this))
+            {
+                // WeenieError.TooManyUniqueItems / WeenieErrorWithString._CannotCarryAnymore?
+                Session.Network.EnqueueSend(new GameEventTradeFailure(Session, itemGuid, WeenieError.None));
                 return;
             }
 
@@ -259,6 +265,7 @@ namespace ACE.Server.WorldObjects
                 HandleActionResetTrade(Guid);
                 target.HandleActionResetTrade(target.Guid);
             });
+
             actionChain.EnqueueChain();
         }
 

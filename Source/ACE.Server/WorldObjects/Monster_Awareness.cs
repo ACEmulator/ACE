@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 using ACE.Common;
 using ACE.Common.Extensions;
@@ -59,6 +60,8 @@ namespace ACE.Server.WorldObjects
             IsAwake = false;
             IsMoving = false;
             MonsterState = State.Idle;
+
+            PhysicsObj.CachedVelocity = Vector3.Zero;
         }
 
         public Tolerance Tolerance

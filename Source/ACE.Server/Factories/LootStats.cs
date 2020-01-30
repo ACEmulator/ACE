@@ -18,19 +18,19 @@ namespace ACE.Server.Factories
         public float NullCount { get; set; }
         public int MinItemsCreated { get; set; }
         public int MaxItemsCreated { get; set; }
-        public int SpellComponents { get; set; }
-        public int Food { get; set; }
-        public int Key { get; set; }
-        public int ManaStone { get; set; }
-        public int Misc { get; set; }
-        public int TotalItems { get; set; }
-        public int Scrolls { get; set; }
-        public int PetsCount { get; set; }
-        public int Spirits { get; set; }
-        public int Poitions { get; set; }
-        public int HealingKit { get; set; }
-        public int DinnerWare { get; set; }
-        public int LevelEightComp { get; set; }
+        public float SpellComponents { get; set; }
+        public float Food { get; set; }
+        public float Key { get; set; }
+        public float ManaStone { get; set; }
+        public float Misc { get; set; }
+        public float TotalItems { get; set; }
+        public float Scrolls { get; set; }
+        public float PetsCount { get; set; }
+        public float Spirits { get; set; }
+        public float Poitions { get; set; }
+        public float HealingKit { get; set; }
+        public float DinnerWare { get; set; }
+        public float LevelEightComp { get; set; }
 
         // Tables
         public string MeleeWeapons { get; set; }
