@@ -21,7 +21,7 @@ using ACE.Entity.Enum.Properties;
 
 namespace ACE.Database
 {
-    public abstract class ShardDatabase
+    public class ShardDatabase
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -88,19 +88,19 @@ namespace ACE.Database
             // https://stackoverflow.com/questions/50402015/how-to-execute-sqlquery-with-entity-framework-core-2-1
 
             // This query is ugly, but very fast.
-            var sql = "SELECT"                                                                          + Environment.NewLine +
+            var sql = "SELECT" + Environment.NewLine +
                       " z.gap_starts_at, z.gap_ends_at_not_inclusive, @available_ids:=@available_ids+(z.gap_ends_at_not_inclusive - z.gap_starts_at) as running_total_available_ids" + Environment.NewLine +
-                      "FROM ("                                                                          + Environment.NewLine +
-                      " SELECT"                                                                         + Environment.NewLine +
-                      "  @rownum:=@rownum+1 AS gap_starts_at,"                                          + Environment.NewLine +
-                      "  @available_ids:=0,"                                                            + Environment.NewLine +
-                      "  IF(@rownum=id, 0, @rownum:=id) AS gap_ends_at_not_inclusive"                   + Environment.NewLine +
-                      " FROM"                                                                           + Environment.NewLine +
-                      "  (SELECT @rownum:=(SELECT MIN(id)-1 FROM biota WHERE id > " + min + ")) AS a"   + Environment.NewLine +
-                      "  JOIN biota"                                                                    + Environment.NewLine +
-                      "  WHERE id > " + min                                                             + Environment.NewLine +
-                      "  ORDER BY id"                                                                   + Environment.NewLine +
-                      " ) AS z"                                                                         + Environment.NewLine +
+                      "FROM (" + Environment.NewLine +
+                      " SELECT" + Environment.NewLine +
+                      "  @rownum:=@rownum+1 AS gap_starts_at," + Environment.NewLine +
+                      "  @available_ids:=0," + Environment.NewLine +
+                      "  IF(@rownum=id, 0, @rownum:=id) AS gap_ends_at_not_inclusive" + Environment.NewLine +
+                      " FROM" + Environment.NewLine +
+                      "  (SELECT @rownum:=(SELECT MIN(id)-1 FROM biota WHERE id > " + min + ")) AS a" + Environment.NewLine +
+                      "  JOIN biota" + Environment.NewLine +
+                      "  WHERE id > " + min + Environment.NewLine +
+                      "  ORDER BY id" + Environment.NewLine +
+                      " ) AS z" + Environment.NewLine +
                       "WHERE z.gap_ends_at_not_inclusive!=0 AND @available_ids<" + limitAvailableIDsReturned + "; ";
 
             using (var context = new ShardDbContext())
@@ -115,8 +115,8 @@ namespace ACE.Database
 
                 while (reader.Read())
                 {
-                    var gap_starts_at               = reader.GetFieldValue<double>(0);
-                    var gap_ends_at_not_inclusive   = reader.GetFieldValue<decimal>(1);
+                    var gap_starts_at = reader.GetFieldValue<double>(0);
+                    var gap_ends_at_not_inclusive = reader.GetFieldValue<decimal>(1);
                     //var running_total_available_ids = reader.GetFieldValue<double>(2);
 
                     gaps.Add(((uint)gap_starts_at, (uint)gap_ends_at_not_inclusive - 1));
@@ -136,31 +136,31 @@ namespace ACE.Database
         [Flags]
         enum PopulatedCollectionFlags
         {
-            BiotaPropertiesAnimPart             = 0x1,
-            BiotaPropertiesAttribute            = 0x2,
-            BiotaPropertiesAttribute2nd         = 0x4,
-            BiotaPropertiesBodyPart             = 0x8,
-            BiotaPropertiesBook                 = 0x10,
-            BiotaPropertiesBookPageData         = 0x20,
-            BiotaPropertiesBool                 = 0x40,
-            BiotaPropertiesCreateList           = 0x80,
-            BiotaPropertiesDID                  = 0x100,
-            BiotaPropertiesEmote                = 0x200,
-            BiotaPropertiesEnchantmentRegistry  = 0x400,
-            BiotaPropertiesEventFilter          = 0x800,
-            BiotaPropertiesFloat                = 0x1000,
-            BiotaPropertiesGenerator            = 0x2000,
-            BiotaPropertiesIID                  = 0x4000,
-            BiotaPropertiesInt                  = 0x8000,
-            BiotaPropertiesInt64                = 0x10000,
-            BiotaPropertiesPalette              = 0x20000,
-            BiotaPropertiesPosition             = 0x40000,
-            BiotaPropertiesSkill                = 0x80000,
-            BiotaPropertiesSpellBook            = 0x100000,
-            BiotaPropertiesString               = 0x200000,
-            BiotaPropertiesTextureMap           = 0x400000,
-            HousePermission                     = 0x800000,
-            BiotaPropertiesAllegiance           = 0x1000000,
+            BiotaPropertiesAnimPart = 0x1,
+            BiotaPropertiesAttribute = 0x2,
+            BiotaPropertiesAttribute2nd = 0x4,
+            BiotaPropertiesBodyPart = 0x8,
+            BiotaPropertiesBook = 0x10,
+            BiotaPropertiesBookPageData = 0x20,
+            BiotaPropertiesBool = 0x40,
+            BiotaPropertiesCreateList = 0x80,
+            BiotaPropertiesDID = 0x100,
+            BiotaPropertiesEmote = 0x200,
+            BiotaPropertiesEnchantmentRegistry = 0x400,
+            BiotaPropertiesEventFilter = 0x800,
+            BiotaPropertiesFloat = 0x1000,
+            BiotaPropertiesGenerator = 0x2000,
+            BiotaPropertiesIID = 0x4000,
+            BiotaPropertiesInt = 0x8000,
+            BiotaPropertiesInt64 = 0x10000,
+            BiotaPropertiesPalette = 0x20000,
+            BiotaPropertiesPosition = 0x40000,
+            BiotaPropertiesSkill = 0x80000,
+            BiotaPropertiesSpellBook = 0x100000,
+            BiotaPropertiesString = 0x200000,
+            BiotaPropertiesTextureMap = 0x400000,
+            HousePermission = 0x800000,
+            BiotaPropertiesAllegiance = 0x1000000,
         }
 
         protected static void SetBiotaPopulatedCollections(Biota biota)
@@ -195,6 +195,8 @@ namespace ACE.Database
 
             biota.PopulatedCollectionFlags = (uint)populatedCollectionFlags;
         }
+
+        protected static readonly ConditionalWeakTable<Biota, ShardDbContext> BiotaContexts = new ConditionalWeakTable<Biota, ShardDbContext>();
 
         public static Biota GetBiota(ShardDbContext context, uint id)
         {
@@ -237,7 +239,17 @@ namespace ACE.Database
             return biota;
         }
 
-        public abstract Biota GetBiota(uint id);
+        public virtual Biota GetBiota(uint id)
+        {
+            var context = new ShardDbContext();
+
+            var biota = GetBiota(context, id);
+
+            if (biota != null)
+                BiotaContexts.Add(biota, context);
+
+            return biota;
+        }
 
         public List<Biota> GetBiotasByWcid(uint wcid)
         {
@@ -270,7 +282,89 @@ namespace ACE.Database
             }
         }
 
-        public abstract bool SaveBiota(Biota biota, ReaderWriterLockSlim rwLock);
+        public virtual bool SaveBiota(Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            if (BiotaContexts.TryGetValue(biota, out var cachedContext))
+            {
+                rwLock.EnterReadLock();
+                try
+                {
+                    SetBiotaPopulatedCollections(biota);
+
+                    Exception firstException = null;
+                retry:
+
+                    try
+                    {
+                        cachedContext.SaveChanges();
+
+                        if (firstException != null)
+                            log.Debug($"[DATABASE] SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (firstException == null)
+                        {
+                            firstException = ex;
+                            goto retry;
+                        }
+
+                        // Character name might be in use or some other fault
+                        log.Error($"[DATABASE] SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
+                        log.Error($"[DATABASE] SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
+                        return false;
+                    }
+                }
+                finally
+                {
+                    rwLock.ExitReadLock();
+                }
+            }
+
+            var context = new ShardDbContext();
+
+            BiotaContexts.Add(biota, context);
+
+            rwLock.EnterReadLock();
+            try
+            {
+                SetBiotaPopulatedCollections(biota);
+
+                context.Biota.Add(biota);
+
+                Exception firstException = null;
+            retry:
+
+                try
+                {
+                    context.SaveChanges();
+
+                    if (firstException != null)
+                        log.Debug($"[DATABASE] SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    if (firstException == null)
+                    {
+                        firstException = ex;
+                        goto retry;
+                    }
+
+                    // Character name might be in use or some other fault
+                    log.Error($"[DATABASE] SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
+                    log.Error($"[DATABASE] SaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
+                    return false;
+                }
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
 
         public bool SaveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
         {
@@ -285,7 +379,55 @@ namespace ACE.Database
             return result;
         }
 
-        public abstract bool RemoveBiota(Biota biota, ReaderWriterLockSlim rwLock);
+        public virtual bool RemoveBiota(Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            if (BiotaContexts.TryGetValue(biota, out var cachedContext))
+            {
+                BiotaContexts.Remove(biota);
+
+                rwLock.EnterReadLock();
+                try
+                {
+                    cachedContext.Biota.Remove(biota);
+
+                    Exception firstException = null;
+                retry:
+
+                    try
+                    {
+                        cachedContext.SaveChanges();
+
+                        if (firstException != null)
+                            log.Debug($"[DATABASE] RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (firstException == null)
+                        {
+                            firstException = ex;
+                            goto retry;
+                        }
+
+                        // Character name might be in use or some other fault
+                        log.Error($"[DATABASE] RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
+                        log.Error($"[DATABASE] RemoveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
+                        return false;
+                    }
+                }
+                finally
+                {
+                    rwLock.ExitReadLock();
+
+                    cachedContext.Dispose();
+                }
+            }
+
+            // If we got here, the biota didn't come from the database through this class.
+            // Most likely, it doesn't exist in the database, so, no need to remove.
+            return true;
+        }
 
         public bool RemoveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
         {
@@ -298,6 +440,21 @@ namespace ACE.Database
             });
 
             return result;
+        }
+
+        public void FreeBiotaAndDisposeContext(Biota biota)
+        {
+            if (BiotaContexts.TryGetValue(biota, out var context))
+            {
+                BiotaContexts.Remove(biota);
+                context.Dispose();
+            }
+        }
+
+        public void FreeBiotaAndDisposeContexts(IEnumerable<Biota> biotas)
+        {
+            foreach (var biota in biotas)
+                FreeBiotaAndDisposeContext(biota);
         }
 
 
@@ -608,7 +765,7 @@ namespace ACE.Database
                 try
                 {
                     Exception firstException = null;
-                    retry:
+                retry:
 
                     try
                     {
@@ -649,7 +806,7 @@ namespace ACE.Database
                 context.Character.Add(character);
 
                 Exception firstException = null;
-                retry:
+            retry:
 
                 try
                 {
