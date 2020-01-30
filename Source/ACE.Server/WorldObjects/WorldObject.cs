@@ -132,6 +132,23 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Restore a WorldObject from the database.
+        /// Any properties tagged as Ephemeral will be removed from the biota.
+        /// </summary>
+        protected WorldObject(ACE.Entity.Models.Biota biota)
+        {
+            Biota = biota;
+            Guid = new ObjectGuid(DatabaseBiota.Id);
+
+            biotaOriginatedFromDatabase = true;
+
+            InitializePropertyDictionaries();
+            SetEphemeralValues();
+            InitializeGenerator();
+            InitializeHeartbeats();
+        }
+
+        /// <summary>
         /// Initializes a new default physics object
         /// </summary>
         public virtual void InitPhysicsObj()

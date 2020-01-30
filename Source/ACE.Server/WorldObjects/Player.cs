@@ -98,6 +98,24 @@ namespace ACE.Server.WorldObjects
             UpdateCoinValue(false);
         }
 
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Player(ACE.Entity.Models.Biota biota, IEnumerable<Biota> inventory, IEnumerable<Biota> wieldedItems, Character character, Session session) : base(biota)
+        {
+            Character = character;
+            Session = session;
+
+            Account = DatabaseManager.Authentication.GetAccountById(Character.AccountId);
+
+            SetEphemeralValues();
+
+            SortBiotasIntoInventory(inventory);
+            AddBiotasToEquippedObjects(wieldedItems);
+
+            UpdateCoinValue(false);
+        }
+
         public override void InitPhysicsObj()
         {
             base.InitPhysicsObj();

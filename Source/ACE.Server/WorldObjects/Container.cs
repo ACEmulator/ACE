@@ -51,6 +51,25 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Container(ACE.Entity.Models.Biota biota) : base(biota)
+        {
+            if (Biota.PropertiesBool.Remove(PropertyBool.Open))
+                ChangesDetected = true;
+
+            SetEphemeralValues();
+
+            // A player has their possessions passed via the ctor. All other world objects must load their own inventory
+            if (!(this is Player) && !ObjectGuid.IsPlayer(ContainerId ?? 0))
+            {
+                DatabaseManager.Shard.GetInventoryInParallel(biota.Id, false, biotas =>
+                {
+                    EnqueueAction(new ActionEventDelegate(() => SortBiotasIntoInventory(biotas)));
+                });
+            }
+        }
+
         private void SetEphemeralValues()
         {
             ephemeralPropertyInts.TryAdd(PropertyInt.EncumbranceVal, EncumbranceVal ?? 0); // Containers are init at 0 burden or their initial value from database. As inventory/equipment is added the burden will be increased

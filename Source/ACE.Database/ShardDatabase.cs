@@ -856,9 +856,9 @@ namespace ACE.Database
         /// <summary>
         /// This will get all player biotas that are backed by characters that are not deleted.
         /// </summary>
-        public List<Biota> GetAllPlayerBiotasInParallel()
+        public List<ACE.Entity.Models.Biota> GetAllPlayerBiotasInParallel()
         {
-            var biotas = new ConcurrentBag<Biota>();
+            var biotas = new ConcurrentBag<ACE.Entity.Models.Biota>();
 
             using (var context = new ShardDbContext())
             {
@@ -872,7 +872,11 @@ namespace ACE.Database
                     var biota = GetBiota(result.Id);
 
                     if (biota != null)
-                        biotas.Add(biota);
+                    {
+                        var convertedBiota = ACE.Database.Adapter.BiotaConverter.ConvertToEntityBiota(biota);
+
+                        biotas.Add(convertedBiota);
+                    }
                     else
                         log.Error($"ShardDatabase.GetAllPlayerBiotasInParallel() - couldn't find biota for character 0x{result.Id:X8}");
                 });

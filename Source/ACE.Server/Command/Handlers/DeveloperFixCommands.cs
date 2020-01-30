@@ -51,12 +51,12 @@ namespace ACE.Server.Command.Handlers
             {
                 var updated = false;
 
-                foreach (var attr in player.DatabaseBiota.BiotaPropertiesAttribute.ToList())
+                foreach (var attr in new Dictionary<PropertyAttribute, PropertiesAttribute>(player.Biota.PropertiesAttribute))
                 {
                     // ensure this is a valid attribute
-                    if (attr.Type < (ushort)PropertyAttribute.Strength || attr.Type > (ushort)PropertyAttribute.Self)
+                    if (attr.Key < PropertyAttribute.Strength || attr.Key > PropertyAttribute.Self)
                     {
-                        Console.WriteLine($"{player.Name} has unknown attribute {(PropertyAttribute)attr.Type}{fixStr}");
+                        Console.WriteLine($"{player.Name} has unknown attribute {attr.Key}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
@@ -64,24 +64,24 @@ namespace ACE.Server.Command.Handlers
                             // i have found no instances of this situation being run into,
                             // but if it does happen, verify-xp will refund the player xp properly
 
-                            player.DatabaseBiota.BiotaPropertiesAttribute.Remove(attr);
+                            player.Biota.PropertiesAttribute.Remove(attr.Key);
                             updated = true;
                         }
                         continue;
                     }
 
-                    var rank = attr.LevelFromCP;
+                    var rank = attr.Value.LevelFromCP;
 
                     // verify attribute rank
-                    var correctRank = Player.CalcAttributeRank(attr.CPSpent);
+                    var correctRank = Player.CalcAttributeRank(attr.Value.CPSpent);
                     if (rank != correctRank)
                     {
-                        Console.WriteLine($"{player.Name}'s {(PropertyAttribute)attr.Type} rank is {rank}, should be {correctRank}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {attr.Key} rank is {rank}, should be {correctRank}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
                         {
-                            attr.LevelFromCP = (ushort)correctRank;
+                            attr.Value.LevelFromCP = (ushort)correctRank;
                             updated = true;
                         }
                     }
@@ -90,9 +90,9 @@ namespace ACE.Server.Command.Handlers
                     var attributeXPTable = DatManager.PortalDat.XpTable.AttributeXpList;
                     var maxAttributeXp = attributeXPTable[attributeXPTable.Count - 1];
 
-                    if (attr.CPSpent > maxAttributeXp)
+                    if (attr.Value.CPSpent > maxAttributeXp)
                     {
-                        Console.WriteLine($"{player.Name}'s {(PropertyAttribute)attr.Type} attribute total xp is {attr.CPSpent:N0}, should be capped at {maxAttributeXp:N0}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {attr.Key} attribute total xp is {attr.Value.CPSpent:N0}, should be capped at {maxAttributeXp:N0}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
@@ -100,7 +100,7 @@ namespace ACE.Server.Command.Handlers
                             // again i have found no instances of this situation being run into,
                             // but if it does happen, verify-xp will refund the player xp properly
 
-                            attr.CPSpent = maxAttributeXp;
+                            attr.Value.CPSpent = maxAttributeXp;
                             updated = true;
                         }
                     }
@@ -129,12 +129,12 @@ namespace ACE.Server.Command.Handlers
             {
                 var updated = false;
 
-                foreach (var vital in player.DatabaseBiota.BiotaPropertiesAttribute2nd.ToList())
+                foreach (var vital in new Dictionary<PropertyAttribute2nd, PropertiesAttribute2nd>(player.Biota.PropertiesAttribute2nd))
                 {
                     // ensure this is a valid MaxVital
-                    if (vital.Type != (ushort)PropertyAttribute2nd.MaxHealth && vital.Type != (ushort)PropertyAttribute2nd.MaxStamina && vital.Type != (ushort)PropertyAttribute2nd.MaxMana)
+                    if (vital.Key != PropertyAttribute2nd.MaxHealth && vital.Key != PropertyAttribute2nd.MaxStamina && vital.Key != PropertyAttribute2nd.MaxMana)
                     {
-                        Console.WriteLine($"{player.Name} has unknown vita {(PropertyAttribute2nd)vital.Type}{fixStr}");
+                        Console.WriteLine($"{player.Name} has unknown vita {vital.Key}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
@@ -142,24 +142,24 @@ namespace ACE.Server.Command.Handlers
                             // i have found no instances of this situation being run into,
                             // but if it does happen, verify-xp will refund the player xp properly
 
-                            player.DatabaseBiota.BiotaPropertiesAttribute2nd.Remove(vital);
+                            player.Biota.PropertiesAttribute2nd.Remove(vital.Key);
                             updated = true;
                         }
                         continue;
                     }
 
-                    var rank = vital.LevelFromCP;
+                    var rank = vital.Value.LevelFromCP;
 
                     // verify vital rank
-                    var correctRank = Player.CalcVitalRank(vital.CPSpent);
+                    var correctRank = Player.CalcVitalRank(vital.Value.CPSpent);
                     if (rank != correctRank)
                     {
-                        Console.WriteLine($"{player.Name}'s {(PropertyAttribute2nd)vital.Type} rank is {rank}, should be {correctRank}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {vital.Key} rank is {rank}, should be {correctRank}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
                         {
-                            vital.LevelFromCP = (ushort)correctRank;
+                            vital.Value.LevelFromCP = (ushort)correctRank;
                             updated = true;
                         }
                     }
@@ -168,9 +168,9 @@ namespace ACE.Server.Command.Handlers
                     var vitalXPTable = DatManager.PortalDat.XpTable.VitalXpList;
                     var maxVitalXp = vitalXPTable[vitalXPTable.Count - 1];
 
-                    if (vital.CPSpent > maxVitalXp)
+                    if (vital.Value.CPSpent > maxVitalXp)
                     {
-                        Console.WriteLine($"{player.Name}'s {(PropertyAttribute2nd)vital.Type} vital total xp is {vital.CPSpent:N0}, should be capped at {maxVitalXp:N0}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {vital.Key} vital total xp is {vital.Value.CPSpent:N0}, should be capped at {maxVitalXp:N0}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
@@ -178,7 +178,7 @@ namespace ACE.Server.Command.Handlers
                             // again i have found no instances of this situation being run into,
                             // but if it does happen, verify-xp will refund the player xp properly
 
-                            vital.CPSpent = maxVitalXp;
+                            vital.Value.CPSpent = maxVitalXp;
                             updated = true;
                         }
                     }
@@ -208,39 +208,39 @@ namespace ACE.Server.Command.Handlers
             {
                 var updated = false;
 
-                foreach (var skill in player.DatabaseBiota.BiotaPropertiesSkill.ToList())
+                foreach (var skill in new Dictionary<Skill, PropertiesSkill>(player.Biota.PropertiesSkill))
                 {
                     // ensure this is a valid player skill
-                    if (!Player.PlayerSkills.Contains((Skill)skill.Type))
+                    if (!Player.PlayerSkills.Contains(skill.Key))
                     {
-                        Console.WriteLine($"{player.Name} has unknown skill {(Skill)skill.Type}{fixStr}");
+                        Console.WriteLine($"{player.Name} has unknown skill {skill.Key}{fixStr}");
                         foundIssues = true;
                         if (fix)
                         {
                             // i have found no instances of these skills ever having xp put into them,
                             // but if there were, verify-xp will fix that
-                            player.DatabaseBiota.BiotaPropertiesSkill.Remove(skill);
+                            player.Biota.PropertiesSkill.Remove(skill.Key);
                             updated = true;
                         }
                         continue;
                     }
 
-                    var rank = skill.LevelFromPP;
+                    var rank = skill.Value.LevelFromPP;
 
-                    var sac = (SkillAdvancementClass)skill.SAC;
+                    var sac = (SkillAdvancementClass)skill.Value.SAC;
                     if (sac < SkillAdvancementClass.Trained)
                     {
-                        if (skill.PP > 0 || skill.LevelFromPP > 0)
+                        if (skill.Value.PP > 0 || skill.Value.LevelFromPP > 0)
                         {
-                            Console.WriteLine($"{player.Name} has {sac} skill {(Skill)skill.Type} with {skill.PP:N0} xp (rank {skill.LevelFromPP})");
+                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.PP:N0} xp (rank {skill.Value.LevelFromPP})");
                             foundIssues = true;
 
                             if (fix)
                             {
                                 // i have found no instances of this situation being run into,
                                 // but if it does happen, verify-xp will refund the player xp properly
-                                skill.PP = 0;
-                                skill.LevelFromPP = 0;
+                                skill.Value.PP = 0;
+                                skill.Value.LevelFromPP = 0;
 
                                 updated = true;
                             }
@@ -249,15 +249,15 @@ namespace ACE.Server.Command.Handlers
                     }
 
                     // verify skill rank
-                    var correctRank = Player.CalcSkillRank(sac, skill.PP);
+                    var correctRank = Player.CalcSkillRank(sac, skill.Value.PP);
                     if (rank != correctRank)
                     {
-                        Console.WriteLine($"{player.Name}'s {(Skill)skill.Type} rank is {rank}, should be {correctRank}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {skill.Key} rank is {rank}, should be {correctRank}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
                         {
-                            skill.LevelFromPP = (ushort)correctRank;
+                            skill.Value.LevelFromPP = (ushort)correctRank;
                             updated = true;
                         }
                     }
@@ -274,15 +274,15 @@ namespace ACE.Server.Command.Handlers
                     var skillXPTable = Player.GetSkillXPTable(SkillAdvancementClass.Trained);
                     var maxSkillXp = skillXPTable[skillXPTable.Count - 1];
 
-                    if (skill.PP > maxSkillXp)
+                    if (skill.Value.PP > maxSkillXp)
                     {
-                        Console.WriteLine($"{player.Name}'s {sac} {(Skill)skill.Type} skill total xp is {skill.PP:N0}, should be capped at {maxSkillXp:N0}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {sac} {skill.Key} skill total xp is {skill.Value.PP:N0}, should be capped at {maxSkillXp:N0}{fixStr}");
                         foundIssues = true;
                         if (fix)
                         {
                             // again i have found no instances of this situation being run into,
                             // but if it does happen, verify-xp will refund the player xp properly
-                            skill.PP = maxSkillXp;
+                            skill.Value.PP = maxSkillXp;
                             updated = true;
                         }
                     }
@@ -329,15 +329,15 @@ namespace ACE.Server.Command.Handlers
 
                     var used = 0;
 
-                    foreach (var skill in player.DatabaseBiota.BiotaPropertiesSkill)
+                    foreach (var skill in new Dictionary<Skill, PropertiesSkill>(player.Biota.PropertiesSkill))
                     {
-                        var sac = (SkillAdvancementClass)skill.SAC;
+                        var sac = (SkillAdvancementClass)skill.Value.SAC;
                         if (sac < SkillAdvancementClass.Trained)
                             continue;
 
-                        if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue(skill.Type, out var skillInfo))
+                        if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue((uint)skill.Key, out var skillInfo))
                         {
-                            Console.WriteLine($"{player.Name}.HandleVerifySkillCredits({(Skill)skill.Type}): unknown skill");
+                            Console.WriteLine($"{player.Name}.HandleVerifySkillCredits({skill.Key}): unknown skill");
                             continue;
                         }
 
@@ -347,7 +347,7 @@ namespace ACE.Server.Command.Handlers
 
                         if (sac == SkillAdvancementClass.Specialized)
                         {
-                            switch ((Skill)skill.Type)
+                            switch (skill.Key)
                             {
                                 // these can only be speced through augs, they have >= 999 in the spec data
                                 case Skill.ArmorTinkering:
@@ -480,25 +480,25 @@ namespace ACE.Server.Command.Handlers
         {
             long refundXP = 0;
 
-            foreach (var skill in player.DatabaseBiota.BiotaPropertiesSkill)
+            foreach (var skill in new Dictionary<Skill, PropertiesSkill>(player.Biota.PropertiesSkill))
             {
-                if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue(skill.Type, out var skillBase))
+                if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue((uint)skill.Key, out var skillBase))
                 {
-                    Console.WriteLine($"{player.Name}.UntrainSkills({(Skill)skill.Type}) - unknown skill");
+                    Console.WriteLine($"{player.Name}.UntrainSkills({skill.Key}) - unknown skill");
                     continue;
                 }
 
-                var sac = (SkillAdvancementClass)skill.SAC;
+                var sac = (SkillAdvancementClass)skill.Value.SAC;
 
-                if (sac != SkillAdvancementClass.Trained || !Player.IsSkillUntrainable((Skill)skill.Type))
+                if (sac != SkillAdvancementClass.Trained || !Player.IsSkillUntrainable(skill.Key))
                     continue;
 
-                refundXP += skill.PP;
+                refundXP += skill.Value.PP;
 
-                skill.SAC = (uint)SkillAdvancementClass.Untrained;
-                skill.InitLevel -= 5;
-                skill.PP = 0;
-                skill.LevelFromPP = 0;
+                skill.Value.SAC = (uint)SkillAdvancementClass.Untrained;
+                skill.Value.InitLevel -= 5;
+                skill.Value.PP = 0;
+                skill.Value.LevelFromPP = 0;
 
                 targetCredits += skillBase.TrainedCost;
             }
@@ -717,14 +717,14 @@ namespace ACE.Server.Command.Handlers
 
                 long diffXP = Math.Min(0, player.GetProperty(PropertyInt64.VerifyXp) ?? 0);
 
-                foreach (var attribute in player.DatabaseBiota.BiotaPropertiesAttribute)
-                    attributeXP += attribute.CPSpent;
+                foreach (var attribute in player.Biota.PropertiesAttribute)
+                    attributeXP += attribute.Value.CPSpent;
 
-                foreach (var vital in player.DatabaseBiota.BiotaPropertiesAttribute2nd)
-                    vitalXP += vital.CPSpent;
+                foreach (var vital in player.Biota.PropertiesAttribute2nd)
+                    vitalXP += vital.Value.CPSpent;
 
-                foreach (var skill in player.DatabaseBiota.BiotaPropertiesSkill)
-                    skillXP += skill.PP;
+                foreach (var skill in player.Biota.PropertiesSkill)
+                    skillXP += skill.Value.PP;
 
                 // find any xp spent on augs
                 var heritage = (HeritageGroup?)player.GetProperty(PropertyInt.HeritageGroup);

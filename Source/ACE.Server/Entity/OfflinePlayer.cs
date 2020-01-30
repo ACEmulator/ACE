@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 
 using ACE.Database;
-using ACE.Database.Adapter;
 using ACE.Database.Models.Auth;
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
@@ -13,13 +12,7 @@ namespace ACE.Server.Entity
 {
     public class OfflinePlayer : IPlayer
     {
-        /// <summary>
-        /// This is object property overrides that should have come from the shard db (or init to defaults of object is new to this instance).
-        /// You should not manipulate these values directly. To manipulate this use the exposed SetProperty and RemoveProperty functions instead.
-        /// </summary>
-        public ACE.Database.Models.Shard.Biota DatabaseBiota { get; }
-
-        public ACE.Entity.Models.Biota Biota = new ACE.Entity.Models.Biota();
+        public Biota Biota { get; }
 
         /// <summary>
         /// This is just a wrapper around Biota.Id
@@ -32,11 +25,10 @@ namespace ACE.Server.Entity
         /// Restore a WorldObject from the database.
         /// Any properties tagged as Ephemeral will be removed from the biota.
         /// </summary>
-        public OfflinePlayer(ACE.Database.Models.Shard.Biota biota)
+        public OfflinePlayer(Biota biota)
         {
-            DatabaseBiota = biota;
-            Biota = BiotaConverter.ConvertToEntityBiota(biota);
-            Guid = new ObjectGuid(DatabaseBiota.Id);
+            Biota = biota;
+            Guid = new ObjectGuid(biota.Id);
 
             var character = DatabaseManager.Shard.GetCharacterByGuid(Guid.Full);
 
@@ -64,7 +56,7 @@ namespace ACE.Server.Entity
             ChangesDetected = false;
 
             if (enqueueSave)
-                DatabaseManager.Shard.SaveBiota(DatabaseBiota, BiotaDatabaseLock, null);
+                DatabaseManager.Shard.SaveBiota(Biota, BiotaDatabaseLock, null);
         }
 
 

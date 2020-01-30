@@ -40,6 +40,20 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Sentinel(ACE.Entity.Models.Biota biota, IEnumerable<Biota> inventory, IEnumerable<Biota> wieldedItems, Character character, Session session) : base(biota, inventory, wieldedItems, character, session)
+        {
+            if (!Character.IsPlussed)
+            {
+                Character.IsPlussed = true;
+                CharacterChangesDetected = true;
+            }
+
+            SetEphemeralValues();
+        }
+
         private void SetEphemeralValues()
         {
             ObjectDescriptionFlags |= ObjectDescriptionFlag.Admin;

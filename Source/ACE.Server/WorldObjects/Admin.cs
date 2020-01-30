@@ -28,6 +28,14 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Admin(ACE.Entity.Models.Biota biota, IEnumerable<Biota> inventory, IEnumerable<Biota> wieldedItems, Character character, Session session) : base(biota, inventory, wieldedItems, character, session)
+        {
+            SetEphemeralValues();
+        }
+
         private void SetEphemeralValues()
         {
             //BaseDescriptionFlags |= ObjectDescriptionFlag.Admin;

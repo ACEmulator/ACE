@@ -146,6 +146,14 @@ namespace ACE.Database
             }));
         }
 
+        public void SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                throw new NotImplementedException();
+            }));
+        }
+
         public void SaveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
         {
             var initialCallTime = DateTime.UtcNow;
@@ -166,6 +174,14 @@ namespace ACE.Database
             {
                 var result = _wrappedDatabase.SaveBiotasInParallel(biotas);
                 callback?.Invoke(result);
+            }));
+        }
+
+        public void SaveBiotasInParallel(IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                throw new NotImplementedException();
             }));
         }
 
@@ -341,7 +357,7 @@ namespace ACE.Database
         /// <summary>
         /// This will get all player biotas that are backed by characters that are not deleted.
         /// </summary>
-        public List<Biota> GetAllPlayerBiotasInParallel()
+        public List<ACE.Entity.Models.Biota> GetAllPlayerBiotasInParallel()
         {
             return _wrappedDatabase.GetAllPlayerBiotasInParallel();
         }

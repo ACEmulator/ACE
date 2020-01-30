@@ -63,7 +63,7 @@ namespace ACE.Server.Managers
         {
             lastDatabaseSave = DateTime.UtcNow;
 
-            var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+            var biotas = new Collection<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)>();
 
             playersLock.EnterReadLock();
             try
@@ -73,7 +73,7 @@ namespace ACE.Server.Managers
                     if (player.ChangesDetected)
                     {
                         player.SaveBiotaToDatabase(false);
-                        biotas.Add((player.DatabaseBiota, player.BiotaDatabaseLock));
+                        biotas.Add((player.Biota, player.BiotaDatabaseLock));
                     }
                 }
             }
@@ -95,7 +95,7 @@ namespace ACE.Server.Managers
             playersLock.EnterWriteLock();
             try
             {
-                var offlinePlayer = new OfflinePlayer(player.DatabaseBiota);
+                var offlinePlayer = new OfflinePlayer(player.Biota);
                 offlinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
             }
             finally
@@ -326,7 +326,7 @@ namespace ACE.Server.Managers
                 if (!onlinePlayers.Remove(player.Guid.Full, out _))
                     return false; // This should never happen
 
-                var offlinePlayer = new OfflinePlayer(player.DatabaseBiota);
+                var offlinePlayer = new OfflinePlayer(player.Biota);
 
                 offlinePlayer.Allegiance = player.Allegiance;
                 offlinePlayer.AllegianceNode = player.AllegianceNode;
