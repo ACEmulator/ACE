@@ -366,7 +366,25 @@ namespace ACE.Database
             }
         }
 
+        public virtual bool SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool SaveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
+        {
+            var result = true;
+
+            Parallel.ForEach(biotas, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, biota =>
+            {
+                if (!SaveBiota(biota.biota, biota.rwLock))
+                    result = false;
+            });
+
+            return result;
+        }
+
+        public bool SaveBiotasInParallel(IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> biotas)
         {
             var result = true;
 
@@ -427,6 +445,11 @@ namespace ACE.Database
             // If we got here, the biota didn't come from the database through this class.
             // Most likely, it doesn't exist in the database, so, no need to remove.
             return true;
+        }
+
+        public virtual bool RemoveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            throw new NotImplementedException();
         }
 
         public bool RemoveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
@@ -839,6 +862,20 @@ namespace ACE.Database
 
 
         public bool AddCharacterInParallel(Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock)
+        {
+            if (!SaveBiota(biota, biotaLock))
+                return false; // Biota save failed which mean Character fails.
+
+            if (!SaveBiotasInParallel(possessions))
+                return false;
+
+            if (!SaveCharacter(character, characterLock))
+                return false;
+
+            return true;
+        }
+
+        public bool AddCharacterInParallel(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock)
         {
             if (!SaveBiota(biota, biotaLock))
                 return false; // Biota save failed which mean Character fails.

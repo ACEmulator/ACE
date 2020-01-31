@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
@@ -456,11 +457,11 @@ namespace ACE.Database.Adapter
 
             if (biota.HousePermission != null)
             {
-                result.HousePermissions = new List<HousePermission>();
+                result.HousePermissions = new List<ACE.Entity.Models.HousePermission>();
 
                 foreach (var record in biota.HousePermission)
                 {
-                    var newEntity = new HousePermission
+                    var newEntity = new ACE.Entity.Models.HousePermission
                     {
                         PlayerGuid = record.PlayerGuid,
                         Storage = record.Storage,
@@ -476,7 +477,413 @@ namespace ACE.Database.Adapter
 
         public static ACE.Database.Models.Shard.Biota ConvertFromEntityBiota(ACE.Entity.Models.Biota biota)
         {
-            throw new NotImplementedException();
+            var result = new ACE.Database.Models.Shard.Biota();
+
+            result.Id = biota.Id;
+            result.WeenieClassId = biota.WeenieClassId;
+            result.WeenieType = (int)biota.WeenieType;
+
+            if (biota.PropertiesBool != null)
+            {
+                foreach (var kvp in biota.PropertiesBool)
+                    result.SetProperty(kvp.Key, kvp.Value);
+            }
+            if (biota.PropertiesDID != null)
+            {
+                foreach (var kvp in biota.PropertiesDID)
+                    result.SetProperty(kvp.Key, kvp.Value);
+            }
+            if (biota.PropertiesFloat != null)
+            {
+                foreach (var kvp in biota.PropertiesFloat)
+                    result.SetProperty(kvp.Key, kvp.Value);
+            }
+            if (biota.PropertiesIID != null)
+            {
+                foreach (var kvp in biota.PropertiesIID)
+                    result.SetProperty(kvp.Key, kvp.Value);
+            }
+            if (biota.PropertiesInt != null)
+            {
+                foreach (var kvp in biota.PropertiesInt)
+                    result.SetProperty(kvp.Key, kvp.Value);
+            }
+            if (biota.PropertiesInt64 != null)
+            {
+                foreach (var kvp in biota.PropertiesInt64)
+                    result.SetProperty(kvp.Key, kvp.Value);
+            }
+            if (biota.PropertiesString != null)
+            {
+                foreach (var kvp in biota.PropertiesString)
+                    result.SetProperty(kvp.Key, kvp.Value);
+            }
+
+
+            if (biota.PropertiesPosition != null)
+            {
+                foreach (var kvp in biota.PropertiesPosition)
+                {
+                    var entity = new BiotaPropertiesPosition { ObjectId = biota.Id, PositionType = (ushort)kvp.Key, ObjCellId = kvp.Value.ObjCellId, OriginX = kvp.Value.PositionX, OriginY = kvp.Value.PositionY, OriginZ = kvp.Value.PositionZ, AnglesW = kvp.Value.RotationW, AnglesX = kvp.Value.RotationX, AnglesY = kvp.Value.RotationY, AnglesZ = kvp.Value.RotationZ };
+
+                    result.BiotaPropertiesPosition.Add(entity);
+                }
+            }
+
+
+            if (biota.PropertiesSpellBook != null)
+            {
+                foreach (var kvp in biota.PropertiesSpellBook)
+                {
+                    var entity = new BiotaPropertiesSpellBook { ObjectId = biota.Id, Spell = kvp.Key, Probability = kvp.Value };
+
+                    result.BiotaPropertiesSpellBook.Add(entity);
+                }
+            }
+
+
+            if (biota.PropertiesAnimPart != null)
+            {
+                foreach (var value in biota.PropertiesAnimPart)
+                {
+                    var entity = new BiotaPropertiesAnimPart { ObjectId = biota.Id, Index = value.Index, AnimationId = value.AnimationId, Order = (byte)biota.PropertiesAnimPart.IndexOf(value) };
+
+                    result.BiotaPropertiesAnimPart.Add(entity);
+                }
+            }
+
+            if (biota.PropertiesPalette != null)
+            {
+                foreach (var value in biota.PropertiesPalette)
+                {
+                    var entity = new BiotaPropertiesPalette { ObjectId = biota.Id, SubPaletteId = value.SubPaletteId, Offset = value.Offset, Length = value.Length };
+
+                    result.BiotaPropertiesPalette.Add(entity);
+                }
+            }
+
+            if (biota.PropertiesTextureMap != null)
+            {
+                foreach (var value in biota.PropertiesTextureMap)
+                {
+                    var entity = new BiotaPropertiesTextureMap { ObjectId = biota.Id, Index = value.PartIndex, OldId = value.OldTexture, NewId = value.NewTexture, Order = (byte)biota.PropertiesTextureMap.IndexOf(value) };
+
+                    result.BiotaPropertiesTextureMap.Add(entity);
+                }
+            }
+
+
+            // Properties for all world objects that typically aren't modified over the original weenie
+
+            if (biota.PropertiesCreateList != null)
+            {
+                foreach (var value in biota.PropertiesCreateList)
+                {
+                    var entity = new BiotaPropertiesCreateList
+                    {
+                        ObjectId = biota.Id,
+                        DestinationType = value.DestinationType,
+                        WeenieClassId = value.WeenieClassId,
+                        StackSize = value.StackSize,
+                        Palette = value.Palette,
+                        Shade = value.Shade,
+                        TryToBond = value.TryToBond
+                    };
+
+                    result.BiotaPropertiesCreateList.Add(entity);
+                }
+            }
+
+            if (biota.PropertiesEmote != null)
+            {
+                foreach (var value in biota.PropertiesEmote)
+                {
+                    var entity = new BiotaPropertiesEmote
+                    {
+                        ObjectId = biota.Id,
+                        Category = value.Category,
+                        Probability = value.Probability,
+                        WeenieClassId = value.WeenieClassId,
+                        Style = value.Style,
+                        Substyle = value.Substyle,
+                        Quest = value.Quest,
+                        VendorType = value.VendorType,
+                        MinHealth = value.MinHealth,
+                        MaxHealth = value.MaxHealth,
+                    };
+
+                    foreach (var value2 in value.PropertiesEmoteAction)
+                    {
+                        var entity2 = new BiotaPropertiesEmoteAction
+                        {
+                            // EmoteId is a foreign key to Emote.Id.
+                            // If we don't set this to a non-zero number, EF will not auto-set this for us when we add this biota to the database.
+                            // We set it to uint.MaxValue instead of 1 because 1 is more likely to be a valid foreign key. We don't want to enter a valid foreign key.
+                            // We just want to enter a value that forces EF to update the record with the correct foreign key. If this behavior changes in the future and we set it to 1,
+                            // we're more likely to run into an unnoticed issue (because 1 would not throw an exception and uint.MaxValue probably would).
+                            // We put this here instead of in ShardDatabase for efficiency.
+                            // It's possible this might be fixable with a attribute in the Emote or EmoteAction classes.
+                            // It's also possible we don't have the schema defined in a way that helps scaffolding identify the relationship.
+                            // Mag-nus 2018-08-04
+                            EmoteId = uint.MaxValue,
+
+                            Order = (uint)value.PropertiesEmoteAction.IndexOf(value2),
+                            Type = value2.Type,
+                            Delay = value2.Delay,
+                            Extent = value2.Extent,
+                            Motion = value2.Motion,
+                            Message = value2.Message,
+                            TestString = value2.TestString,
+                            Min = value2.Min,
+                            Max = value2.Max,
+                            Min64 = value2.Min64,
+                            Max64 = value2.Max64,
+                            MinDbl = value2.MinDbl,
+                            MaxDbl = value2.MaxDbl,
+                            Stat = value2.Stat,
+                            Display = value2.Display,
+                            Amount = value2.Amount,
+                            Amount64 = value2.Amount64,
+                            HeroXP64 = value2.HeroXP64,
+                            Percent = value2.Percent,
+                            SpellId = value2.SpellId,
+                            WealthRating = value2.WealthRating,
+                            TreasureClass = value2.TreasureClass,
+                            TreasureType = value2.TreasureType,
+                            PScript = value2.PScript,
+                            Sound = value2.Sound,
+                            DestinationType = value2.DestinationType,
+                            WeenieClassId = value2.WeenieClassId,
+                            StackSize = value2.StackSize,
+                            Palette = value2.Palette,
+                            Shade = value2.Shade,
+                            TryToBond = value2.TryToBond,
+                            ObjCellId = value2.ObjCellId,
+                            OriginX = value2.OriginX,
+                            OriginY = value2.OriginY,
+                            OriginZ = value2.OriginZ,
+                            AnglesW = value2.AnglesW,
+                            AnglesX = value2.AnglesX,
+                            AnglesY = value2.AnglesY,
+                            AnglesZ = value2.AnglesZ,
+                        };
+
+                        entity.BiotaPropertiesEmoteAction.Add(entity2);
+                    }
+
+                    result.BiotaPropertiesEmote.Add(entity);
+                }
+            }
+
+            if (biota.PropertiesEventFilter != null)
+            {
+                foreach (var value in biota.PropertiesEventFilter)
+                {
+                    var entity = new BiotaPropertiesEventFilter { ObjectId = biota.Id, Event = value };
+
+                    result.BiotaPropertiesEventFilter.Add(entity);
+                }
+            }
+
+            if (biota.PropertiesGenerator != null)
+            {
+                foreach (var value in biota.PropertiesGenerator)
+                {
+                    var entity = new BiotaPropertiesGenerator
+                    {
+                        ObjectId = biota.Id,
+                        Probability = value.Probability,
+                        WeenieClassId = value.WeenieClassId,
+                        Delay = value.Delay,
+                        InitCreate = value.InitCreate,
+                        MaxCreate = value.MaxCreate,
+                        WhenCreate = value.WhenCreate,
+                        WhereCreate = value.WhereCreate,
+                        StackSize = value.StackSize,
+                        PaletteId = value.PaletteId,
+                        Shade = value.Shade,
+                        ObjCellId = value.ObjCellId,
+                        OriginX = value.OriginX,
+                        OriginY = value.OriginY,
+                        OriginZ = value.OriginZ,
+                        AnglesW = value.AnglesW,
+                        AnglesX = value.AnglesX,
+                        AnglesY = value.AnglesY,
+                        AnglesZ = value.AnglesZ,
+                    };
+
+                    result.BiotaPropertiesGenerator.Add(entity);
+                }
+            }
+
+
+            // Properties for creatures
+
+            if (biota.PropertiesAttribute != null)
+            {
+                foreach (var kvp in biota.PropertiesAttribute)
+                {
+                    var entity = new BiotaPropertiesAttribute { ObjectId = biota.Id, Type = (ushort)kvp.Key, InitLevel = kvp.Value.InitLevel, LevelFromCP = kvp.Value.LevelFromCP, CPSpent = kvp.Value.CPSpent };
+
+                    result.BiotaPropertiesAttribute.Add(entity);
+                }
+            }
+
+            if (biota.PropertiesAttribute2nd != null)
+            {
+                foreach (var kvp in biota.PropertiesAttribute2nd)
+                {
+                    var entity = new BiotaPropertiesAttribute2nd { ObjectId = biota.Id, Type = (ushort)kvp.Key, InitLevel = kvp.Value.InitLevel, LevelFromCP = kvp.Value.LevelFromCP, CPSpent = kvp.Value.CPSpent, CurrentLevel = kvp.Value.CurrentLevel };
+
+                    result.BiotaPropertiesAttribute2nd.Add(entity);
+                }
+            }
+
+            if (biota.PropertiesBodyPart != null)
+            {
+                foreach (var kvp in biota.PropertiesBodyPart)
+                {
+                    var entity = new BiotaPropertiesBodyPart
+                    {
+                        ObjectId = biota.Id,
+                        Key = (ushort)kvp.Key,
+                        DType = kvp.Value.DType,
+                        DVal = kvp.Value.DVal,
+                        DVar = kvp.Value.DVar,
+                        BaseArmor = kvp.Value.BaseArmor,
+                        ArmorVsSlash = kvp.Value.ArmorVsSlash,
+                        ArmorVsPierce = kvp.Value.ArmorVsPierce,
+                        ArmorVsBludgeon = kvp.Value.ArmorVsBludgeon,
+                        ArmorVsCold = kvp.Value.ArmorVsCold,
+                        ArmorVsFire = kvp.Value.ArmorVsFire,
+                        ArmorVsAcid = kvp.Value.ArmorVsAcid,
+                        ArmorVsElectric = kvp.Value.ArmorVsElectric,
+                        ArmorVsNether = kvp.Value.ArmorVsNether,
+                        BH = kvp.Value.BH,
+                        HLF = kvp.Value.HLF,
+                        MLF = kvp.Value.MLF,
+                        LLF = kvp.Value.LLF,
+                        HRF = kvp.Value.HRF,
+                        MRF = kvp.Value.MRF,
+                        LRF = kvp.Value.LRF,
+                        HLB = kvp.Value.HLB,
+                        MLB = kvp.Value.MLB,
+                        LLB = kvp.Value.LLB,
+                        HRB = kvp.Value.HRB,
+                        MRB = kvp.Value.MRB,
+                        LRB = kvp.Value.LRB,
+                    };
+
+                    result.BiotaPropertiesBodyPart.Add(entity);
+                }
+            }
+
+            if (biota.PropertiesSkill != null)
+            {
+                foreach (var kvp in biota.PropertiesSkill)
+                {
+                    var entity = new BiotaPropertiesSkill
+                    {
+                        ObjectId = biota.Id,
+                        Type = (ushort)kvp.Key,
+                        LevelFromPP = kvp.Value.LevelFromPP,
+                        SAC = kvp.Value.SAC,
+                        PP = kvp.Value.PP,
+                        InitLevel = kvp.Value.InitLevel,
+                        ResistanceAtLastCheck = kvp.Value.ResistanceAtLastCheck,
+                        LastUsedTime = kvp.Value.LastUsedTime,
+                    };
+
+                    result.BiotaPropertiesSkill.Add(entity);
+                }
+            }
+
+
+            // Properties for books
+
+            if (biota.PropertiesBook != null)
+            {
+                result.BiotaPropertiesBook = new BiotaPropertiesBook
+                {
+                    ObjectId = biota.Id,
+                    MaxNumPages = biota.PropertiesBook.MaxNumPages,
+                    MaxNumCharsPerPage = biota.PropertiesBook.MaxNumCharsPerPage
+                };
+            }
+
+            if (biota.PropertiesBookPageData != null)
+            {
+                foreach (var value in biota.PropertiesBookPageData)
+                {
+                    var entity = new BiotaPropertiesBookPageData
+                    {
+                        ObjectId = biota.Id,
+                        PageId = (uint)biota.PropertiesBookPageData.IndexOf(value),
+                        AuthorId = value.AuthorId,
+                        AuthorName = value.AuthorName,
+                        AuthorAccount = value.AuthorAccount,
+                        IgnoreAuthor = value.IgnoreAuthor,
+                        PageText = value.PageText
+                    };
+
+                    result.BiotaPropertiesBookPageData.Add(entity);
+                }
+            }
+
+
+
+            // Biota additions over Weenie
+
+            if (biota.PropertiesAllegiance != null)
+            {
+                foreach (var value in biota.PropertiesAllegiance)
+                {
+                    var entity = new BiotaPropertiesAllegiance { AllegianceId = biota.Id, CharacterId = value.CharacterId, Banned = value.Banned, ApprovedVassal = value.ApprovedVassal };
+
+                    result.BiotaPropertiesAllegiance.Add(entity);
+                }
+            }
+
+            if (biota.PropertiesEnchantmentRegistry != null)
+            {
+                foreach (var value in biota.PropertiesEnchantmentRegistry)
+                {
+                    var entity = new BiotaPropertiesEnchantmentRegistry
+                    {
+                        ObjectId = biota.Id,
+                        EnchantmentCategory = value.EnchantmentCategory,
+                        SpellId = value.SpellId,
+                        LayerId = value.LayerId,
+                        HasSpellSetId = value.HasSpellSetId,
+                        SpellCategory = value.SpellCategory,
+                        PowerLevel = value.PowerLevel,
+                        StartTime = value.StartTime,
+                        Duration = value.Duration,
+                        CasterObjectId = value.CasterObjectId,
+                        DegradeModifier = value.DegradeModifier,
+                        DegradeLimit = value.DegradeLimit,
+                        LastTimeDegraded = value.LastTimeDegraded,
+                        StatModType = value.StatModType,
+                        StatModKey = value.StatModKey,
+                        StatModValue = value.StatModValue,
+                        SpellSetId = value.SpellSetId,
+                    };
+
+                    result.BiotaPropertiesEnchantmentRegistry.Add(entity);
+                }
+            }
+
+            if (biota.HousePermissions != null)
+            {
+                foreach (var value in biota.HousePermissions)
+                {
+                    var entity = new ACE.Database.Models.Shard.HousePermission { HouseId = biota.Id, PlayerGuid = value.PlayerGuid, Storage = value.Storage };
+
+                    result.HousePermission.Add(entity);
+                }
+            }
+
+            return result;
         }
     }
 }

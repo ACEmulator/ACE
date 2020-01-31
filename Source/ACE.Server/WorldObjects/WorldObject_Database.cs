@@ -4,6 +4,7 @@ using System.Threading;
 using ACE.Common;
 using ACE.Database;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -47,8 +48,11 @@ namespace ACE.Server.WorldObjects
         public virtual void SaveBiotaToDatabase(bool enqueueSave = true)
         {
             // Make sure all of our positions in the biota are up to date with our current cached values.
-            /*foreach (var kvp in positionCache)
-                Biota.SetPosition(kvp.Key, kvp.Value, BiotaDatabaseLock, out _);
+            foreach (var kvp in positionCache)
+            {
+                if (kvp.Value != null)
+                    Biota.SetPosition(kvp.Key, kvp.Value, BiotaDatabaseLock);
+            }
 
             LastRequestedDatabaseSave = DateTime.UtcNow;
             ChangesDetected = false;
@@ -68,7 +72,7 @@ namespace ACE.Server.WorldObjects
                         }
                     }
                 });
-            }*/
+            }
         }
 
         /// <summary>
@@ -79,7 +83,7 @@ namespace ACE.Server.WorldObjects
         public void RemoveBiotaFromDatabase(bool enqueueRemove = true)
         {
             // If this entity doesn't exist in the database, let's not queue up work unnecessary database work.
-            /*if (!BiotaOriginatedFromOrHasBeenSavedToDatabase())
+            if (!BiotaOriginatedFromOrHasBeenSavedToDatabase())
             {
                 ChangesDetected = true;
                 return;
@@ -89,7 +93,7 @@ namespace ACE.Server.WorldObjects
             ChangesDetected = true;
 
             if (enqueueRemove)
-                DatabaseManager.Shard.RemoveBiota(Biota, BiotaDatabaseLock, null);*/
+                DatabaseManager.Shard.RemoveBiota(Biota, BiotaDatabaseLock, null);
         }
 
         /// <summary>

@@ -67,10 +67,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SavePlayerToDatabase()
         {
-            /*if (CharacterChangesDetected)
+            if (CharacterChangesDetected)
                 SaveCharacterToDatabase();
 
-            var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+            var biotas = new Collection<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)>();
 
             SaveBiotaToDatabase(false);
             biotas.Add((Biota, BiotaDatabaseLock));
@@ -88,7 +88,7 @@ namespace ACE.Server.WorldObjects
 
             var requestedTime = DateTime.UtcNow;
 
-            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => log.Debug($"{Name} has been saved. It took {(DateTime.UtcNow - requestedTime).TotalMilliseconds:N0} ms to process the request."));*/
+            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => log.Debug($"{Name} has been saved. It took {(DateTime.UtcNow - requestedTime).TotalMilliseconds:N0} ms to process the request."));
         }
 
         public void SaveCharacterToDatabase()

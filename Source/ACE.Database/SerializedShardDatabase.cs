@@ -150,7 +150,8 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                throw new NotImplementedException();
+                var result = _wrappedDatabase.SaveBiota(biota, rwLock);
+                callback?.Invoke(result);
             }));
         }
 
@@ -181,7 +182,8 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                throw new NotImplementedException();
+                var result = _wrappedDatabase.SaveBiotasInParallel(biotas);
+                callback?.Invoke(result);
             }));
         }
 
@@ -200,6 +202,15 @@ namespace ACE.Database
         }
 
         public void RemoveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveBiota(biota, rwLock);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
@@ -345,6 +356,15 @@ namespace ACE.Database
 
 
         public void AddCharacterInParallel(Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.AddCharacterInParallel(biota, biotaLock, possessions, character, characterLock);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void AddCharacterInParallel(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {

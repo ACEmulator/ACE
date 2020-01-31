@@ -99,9 +99,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected WorldObject(Weenie weenie, ObjectGuid guid)
         {
-            //Weenie = weenie;
-            DatabaseBiota = new Database.Models.Shard.Biota(); // todo temp
-            //Biota = weenie.CreateCopyAsBiota(guid.Full);
             Biota = ACE.Entity.Adapter.WeenieConverter.ConvertToBiota(weenie, guid.Full);
             Guid = guid;
 
@@ -119,9 +116,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected WorldObject(Database.Models.Shard.Biota biota)
         {
-            DatabaseBiota = biota;
             Biota = BiotaConverter.ConvertToEntityBiota(biota);
-            Guid = new ObjectGuid(DatabaseBiota.Id);
+            Guid = new ObjectGuid(biota.Id);
 
             biotaOriginatedFromDatabase = true;
 
@@ -138,7 +134,7 @@ namespace ACE.Server.WorldObjects
         protected WorldObject(ACE.Entity.Models.Biota biota)
         {
             Biota = biota;
-            Guid = new ObjectGuid(DatabaseBiota.Id);
+            Guid = new ObjectGuid(biota.Id);
 
             biotaOriginatedFromDatabase = true;
 

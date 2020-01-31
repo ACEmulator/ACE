@@ -675,6 +675,7 @@ namespace ACE.Entity.Models
         // =====================================
         // BiotaPropertiesSkill
         // =====================================
+
         public static PropertiesSkill GetSkill(this Biota biota, Skill skill, ReaderWriterLockSlim rwLock)
         {
             if (biota.PropertiesSkill == null)
@@ -719,6 +720,19 @@ namespace ACE.Entity.Models
             {
                 rwLock.ExitWriteLock();
             }
+        }
+
+
+        // =====================================
+        // Utility
+        // =====================================
+
+        public static string GetName(this Biota biota)
+        {
+            if (biota.PropertiesString.TryGetValue(PropertyString.Name, out var value))
+                return value;
+
+            return null;
         }
     }
 }

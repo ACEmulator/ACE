@@ -138,12 +138,12 @@ namespace ACE.Server.Network.Handlers
                 }
 
                 var possessions = player.GetAllPossessions();
-                var possessedBiotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+                var possessedBiotas = new Collection<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)>();
                 foreach (var possession in possessions)
-                    possessedBiotas.Add((possession.DatabaseBiota, possession.BiotaDatabaseLock));
+                    possessedBiotas.Add((possession.Biota, possession.BiotaDatabaseLock));
 
                 // We must await here -- 
-                DatabaseManager.Shard.AddCharacterInParallel(player.DatabaseBiota, player.BiotaDatabaseLock, possessedBiotas, player.Character, player.CharacterDatabaseLock, saveSuccess =>
+                DatabaseManager.Shard.AddCharacterInParallel(player.Biota, player.BiotaDatabaseLock, possessedBiotas, player.Character, player.CharacterDatabaseLock, saveSuccess =>
                 {
                     if (!saveSuccess)
                     {
