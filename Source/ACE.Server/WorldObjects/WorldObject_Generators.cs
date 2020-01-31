@@ -44,8 +44,11 @@ namespace ACE.Server.WorldObjects
             GeneratorProfiles = new List<GeneratorProfile>();
             uint i = 0;
 
-            foreach (var generator in Biota.PropertiesGenerator)
-                GeneratorProfiles.Add(new GeneratorProfile(this, generator, i++));
+            if (Biota.PropertiesGenerator != null)
+            {
+                foreach (var generator in Biota.PropertiesGenerator)
+                    GeneratorProfiles.Add(new GeneratorProfile(this, generator, i++));
+            }
         }
 
         /// <summary>

@@ -1366,6 +1366,9 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public PropertiesEmote GetEmoteSet(EmoteCategory category, string questName = null, VendorType? vendorType = null, uint? wcid = null, bool useRNG = true)
         {
+            if (_worldObject.Biota.PropertiesEmote == null)
+                return null;
+
             // always pull emoteSet from _worldObject
             var emoteSet = _worldObject.Biota.PropertiesEmote.Where(e => e.Category == (uint)category);
 

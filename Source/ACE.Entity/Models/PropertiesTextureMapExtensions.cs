@@ -11,6 +11,9 @@ namespace ACE.Entity.Models
             rwLock.EnterReadLock();
             try
             {
+                if (value == null)
+                    return 0;
+
                 return value.Count;
             }
             finally

@@ -164,6 +164,12 @@ namespace ACE.Server.Command.Handlers
         //                          ~2.4 GB -> ~1.3 GB
 
 
+        // New system (Non Hybrid, !instantiateEmptyCollections, Lazy Load property collections)
+        // 8563 mob archer          ~26.03 KB
+
+        // World DB Caching         ~2.1 GB -> ~1.3 GB
+        //                          ~2.1 GB -> ~1.3 GB
+
         private static readonly Collection<WorldObject> WorldObjects = new Collection<WorldObject>();
 
         [CommandHandler("test1", AccessLevel.Developer, CommandHandlerFlag.None)]
