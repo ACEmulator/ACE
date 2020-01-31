@@ -989,21 +989,20 @@ namespace ACE.Database
 
                 if (existingValue == null)
                 {
-                    var entity = new BiotaPropertiesPosition { ObjectId = biota.Id, PositionType = (ushort)kvp.Key, ObjCellId = kvp.Value.ObjCellId, OriginX = kvp.Value.PositionX, OriginY = kvp.Value.PositionY, OriginZ = kvp.Value.PositionZ, AnglesW = kvp.Value.RotationW, AnglesX = kvp.Value.RotationX, AnglesY = kvp.Value.RotationY, AnglesZ = kvp.Value.RotationZ };
+                    existingValue = new BiotaPropertiesPosition { ObjectId = biota.Id };
 
-                    existingBiota.BiotaPropertiesPosition.Add(entity);
+                    existingBiota.BiotaPropertiesPosition.Add(existingValue);
                 }
-                else
-                {
-                    existingValue.ObjCellId = kvp.Value.ObjCellId;
-                    existingValue.OriginX = kvp.Value.PositionX;
-                    existingValue.OriginY = kvp.Value.PositionY;
-                    existingValue.OriginZ = kvp.Value.PositionZ;
-                    existingValue.AnglesW = kvp.Value.RotationW;
-                    existingValue.AnglesX = kvp.Value.RotationX;
-                    existingValue.AnglesY = kvp.Value.RotationY;
-                    existingValue.AnglesZ = kvp.Value.RotationZ;
-                }
+
+                existingValue.PositionType = (ushort)kvp.Key;
+                existingValue.ObjCellId = kvp.Value.ObjCellId;
+                existingValue.OriginX = kvp.Value.PositionX;
+                existingValue.OriginY = kvp.Value.PositionY;
+                existingValue.OriginZ = kvp.Value.PositionZ;
+                existingValue.AnglesW = kvp.Value.RotationW;
+                existingValue.AnglesX = kvp.Value.RotationX;
+                existingValue.AnglesY = kvp.Value.RotationY;
+                existingValue.AnglesZ = kvp.Value.RotationZ;
             }
             foreach (var value in existingBiota.BiotaPropertiesPosition)
             {
@@ -1012,14 +1011,19 @@ namespace ACE.Database
             }
 
 
-            /*foreach (var kvp in biota.PropertiesSpellBook)
+            foreach (var kvp in biota.PropertiesSpellBook)
             {
                 BiotaPropertiesSpellBook existingValue = existingBiota.BiotaPropertiesSpellBook.FirstOrDefault(r => r.Spell == (ushort)kvp.Key);
 
                 if (existingValue == null)
-                    existingBiota.BiotaPropertiesSpellBook.Add(kvp);
-                else
-                    existingValue.Probability = kvp.Value;
+                {
+                    existingValue = new BiotaPropertiesSpellBook { ObjectId = biota.Id };
+
+                    existingBiota.BiotaPropertiesSpellBook.Add(existingValue);
+                }
+
+                existingValue.Spell = kvp.Key;
+                existingValue.Probability = kvp.Value;
             }
             foreach (var value in existingBiota.BiotaPropertiesSpellBook)
             {
@@ -1028,7 +1032,7 @@ namespace ACE.Database
             }
 
 
-            foreach (var value in biota.PropertiesAnimPart) // todo switch to for int i
+            /*foreach (var value in biota.PropertiesAnimPart) // todo switch to for int i
             {
                 BiotaPropertiesAnimPart existingValue = existingBiota.BiotaPropertiesAnimPart.FirstOrDefault(r => r.AnimationId == value.AnimationId); // todo animationid is not a unique key
 
@@ -1045,9 +1049,9 @@ namespace ACE.Database
             {
                 if (!biota.PropertiesAnimPart.Any(p => p.AnimationId == value.AnimationId))
                     context.BiotaPropertiesAnimPart.Remove(value);
-            }
+            }*/
 
-            foreach (var value in biota.PropertiesPalette)
+            /*foreach (var value in biota.PropertiesPalette)
             {
                 BiotaPropertiesPalette existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesPalette.FirstOrDefault(r => r.Id == value.Id));
 
@@ -1064,27 +1068,31 @@ namespace ACE.Database
             {
                 if (!biota.PropertiesPalette.Any(p => p.Id == value.Id))
                     context.BiotaPropertiesPalette.Remove(value);
-            }
+            }*/
 
-            foreach (var value in biota.PropertiesTextureMap) // todo switch this to for int i
+            for (int i = 0; i < biota.PropertiesTextureMap.Count ; i++)
             {
-                BiotaPropertiesTextureMap existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesTextureMap.FirstOrDefault(r => r.Id == value.Id));
+                var value = biota.PropertiesTextureMap[i];
+
+                BiotaPropertiesTextureMap existingValue = existingBiota.BiotaPropertiesTextureMap.FirstOrDefault(r => r.Order == i);
 
                 if (existingValue == null)
-                    existingBiota.BiotaPropertiesTextureMap.Add(value);
-                else
                 {
-                    existingValue.Index = value.PartIndex;
-                    existingValue.OldId = value.OldTexture;
-                    existingValue.NewId = value.NewTexture;
-                    existingValue.Order = (byte)biota.PropertiesTextureMap.IndexOf(value);
+                    existingValue = new BiotaPropertiesTextureMap { ObjectId = biota.Id };
+
+                    existingBiota.BiotaPropertiesTextureMap.Add(existingValue);
                 }
+
+                existingValue.Index = value.PartIndex;
+                existingValue.OldId = value.OldTexture;
+                existingValue.NewId = value.NewTexture;
+                existingValue.Order = (byte)biota.PropertiesTextureMap.IndexOf(value);
             }
             foreach (var value in existingBiota.BiotaPropertiesTextureMap)
             {
-                if (!biota.PropertiesTextureMap.Any(p => p.Id == value.Id))
+                if (value.Order >= biota.PropertiesTextureMap.Count)
                     context.BiotaPropertiesTextureMap.Remove(value);
-            }*/
+            }
 
 
             // Properties for all world objects that typically aren't modified over the original Biota
@@ -1190,22 +1198,26 @@ namespace ACE.Database
             {
                 if (!biota.PropertiesEmote.Any(p => p.Id == value.Id))
                     context.BiotaPropertiesEmote.Remove(value);
-            }
+            }*/
 
             foreach (var value in biota.PropertiesEventFilter)
             {
-                BiotaPropertiesEventFilter existingValue = existingBiota.BiotaPropertiesEventFilter.FirstOrDefault(r => r.Event == value.Event);
+                BiotaPropertiesEventFilter existingValue = existingBiota.BiotaPropertiesEventFilter.FirstOrDefault(r => r.Event == value);
 
                 if (existingValue == null)
-                    existingBiota.BiotaPropertiesEventFilter.Add(value);
+                {
+                    var entity = new BiotaPropertiesEventFilter { ObjectId = biota.Id, Event = value };
+
+                    existingBiota.BiotaPropertiesEventFilter.Add(entity);
+                }
             }
             foreach (var value in existingBiota.BiotaPropertiesEventFilter)
             {
-                if (!biota.PropertiesEventFilter.Any(p => p.Event == value.Event))
+                if (!biota.PropertiesEventFilter.Any(p => p == value.Event))
                     context.BiotaPropertiesEventFilter.Remove(value);
             }
 
-            foreach (var value in biota.PropertiesGenerator)
+            /*foreach (var value in biota.PropertiesGenerator)
             {
                 BiotaPropertiesGenerator existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesGenerator.FirstOrDefault(r => r.Id == value.Id));
 
@@ -1242,18 +1254,21 @@ namespace ACE.Database
 
             // Properties for creatures
 
-            /*foreach (var kvp in biota.PropertiesAttribute)
+            foreach (var kvp in biota.PropertiesAttribute)
             {
                 BiotaPropertiesAttribute existingValue = existingBiota.BiotaPropertiesAttribute.FirstOrDefault(r => r.Type == (ushort)kvp.Key);
 
                 if (existingValue == null)
-                    existingBiota.BiotaPropertiesAttribute.Add(kvp);
-                else
                 {
-                    existingValue.InitLevel = kvp.Value.InitLevel;
-                    existingValue.LevelFromCP = kvp.Value.LevelFromCP;
-                    existingValue.CPSpent = kvp.Value.CPSpent;
+                    existingValue = new BiotaPropertiesAttribute { ObjectId = biota.Id };
+
+                    existingBiota.BiotaPropertiesAttribute.Add(existingValue);
                 }
+
+                existingValue.Type = (ushort)kvp.Key;
+                existingValue.InitLevel = kvp.Value.InitLevel;
+                existingValue.LevelFromCP = kvp.Value.LevelFromCP;
+                existingValue.CPSpent = kvp.Value.CPSpent;
             }
             foreach (var value in existingBiota.BiotaPropertiesAttribute)
             {
@@ -1266,14 +1281,17 @@ namespace ACE.Database
                 BiotaPropertiesAttribute2nd existingValue = existingBiota.BiotaPropertiesAttribute2nd.FirstOrDefault(r => r.Type == (ushort)kvp.Key);
 
                 if (existingValue == null)
-                    existingBiota.BiotaPropertiesAttribute2nd.Add(kvp);
-                else
                 {
-                    existingValue.InitLevel = kvp.Value.InitLevel;
-                    existingValue.LevelFromCP = kvp.Value.LevelFromCP;
-                    existingValue.CPSpent = kvp.Value.CPSpent;
-                    existingValue.CurrentLevel = kvp.Value.CurrentLevel;
+                    existingValue = new BiotaPropertiesAttribute2nd { ObjectId = biota.Id };
+
+                    existingBiota.BiotaPropertiesAttribute2nd.Add(existingValue);
                 }
+
+                existingValue.Type = (ushort)kvp.Key;
+                existingValue.InitLevel = kvp.Value.InitLevel;
+                existingValue.LevelFromCP = kvp.Value.LevelFromCP;
+                existingValue.CPSpent = kvp.Value.CPSpent;
+                existingValue.CurrentLevel = kvp.Value.CurrentLevel;
             }
             foreach (var value in existingBiota.BiotaPropertiesAttribute2nd)
             {
@@ -1286,36 +1304,38 @@ namespace ACE.Database
                 BiotaPropertiesBodyPart existingValue = existingBiota.BiotaPropertiesBodyPart.FirstOrDefault(r => r.Key == (uint)kvp.Key);
 
                 if (existingValue == null)
-                    existingBiota.BiotaPropertiesBodyPart.Add(kvp);
-                else
                 {
-                    existingValue.Key = (ushort)kvp.Key;
-                    existingValue.DType = kvp.Value.DType;
-                    existingValue.DVal = kvp.Value.DVal;
-                    existingValue.DVar = kvp.Value.DVar;
-                    existingValue.BaseArmor = kvp.Value.BaseArmor;
-                    existingValue.ArmorVsSlash = kvp.Value.ArmorVsSlash;
-                    existingValue.ArmorVsPierce = kvp.Value.ArmorVsPierce;
-                    existingValue.ArmorVsBludgeon = kvp.Value.ArmorVsBludgeon;
-                    existingValue.ArmorVsCold = kvp.Value.ArmorVsCold;
-                    existingValue.ArmorVsFire = kvp.Value.ArmorVsFire;
-                    existingValue.ArmorVsAcid = kvp.Value.ArmorVsAcid;
-                    existingValue.ArmorVsElectric = kvp.Value.ArmorVsElectric;
-                    existingValue.ArmorVsNether = kvp.Value.ArmorVsNether;
-                    existingValue.BH = kvp.Value.BH;
-                    existingValue.HLF = kvp.Value.HLF;
-                    existingValue.MLF = kvp.Value.MLF;
-                    existingValue.LLF = kvp.Value.LLF;
-                    existingValue.HRF = kvp.Value.HRF;
-                    existingValue.MRF = kvp.Value.MRF;
-                    existingValue.LRF = kvp.Value.LRF;
-                    existingValue.HLB = kvp.Value.HLB;
-                    existingValue.MLB = kvp.Value.MLB;
-                    existingValue.LLB = kvp.Value.LLB;
-                    existingValue.HRB = kvp.Value.HRB;
-                    existingValue.MRB = kvp.Value.MRB;
-                    existingValue.LRB = kvp.Value.LRB;
+                    existingValue = new BiotaPropertiesBodyPart { ObjectId = biota.Id };
+
+                    existingBiota.BiotaPropertiesBodyPart.Add(existingValue);
                 }
+
+                existingValue.Key = (ushort)kvp.Key;
+                existingValue.DType = kvp.Value.DType;
+                existingValue.DVal = kvp.Value.DVal;
+                existingValue.DVar = kvp.Value.DVar;
+                existingValue.BaseArmor = kvp.Value.BaseArmor;
+                existingValue.ArmorVsSlash = kvp.Value.ArmorVsSlash;
+                existingValue.ArmorVsPierce = kvp.Value.ArmorVsPierce;
+                existingValue.ArmorVsBludgeon = kvp.Value.ArmorVsBludgeon;
+                existingValue.ArmorVsCold = kvp.Value.ArmorVsCold;
+                existingValue.ArmorVsFire = kvp.Value.ArmorVsFire;
+                existingValue.ArmorVsAcid = kvp.Value.ArmorVsAcid;
+                existingValue.ArmorVsElectric = kvp.Value.ArmorVsElectric;
+                existingValue.ArmorVsNether = kvp.Value.ArmorVsNether;
+                existingValue.BH = kvp.Value.BH;
+                existingValue.HLF = kvp.Value.HLF;
+                existingValue.MLF = kvp.Value.MLF;
+                existingValue.LLF = kvp.Value.LLF;
+                existingValue.HRF = kvp.Value.HRF;
+                existingValue.MRF = kvp.Value.MRF;
+                existingValue.LRF = kvp.Value.LRF;
+                existingValue.HLB = kvp.Value.HLB;
+                existingValue.MLB = kvp.Value.MLB;
+                existingValue.LLB = kvp.Value.LLB;
+                existingValue.HRB = kvp.Value.HRB;
+                existingValue.MRB = kvp.Value.MRB;
+                existingValue.LRB = kvp.Value.LRB;
             }
             foreach (var value in existingBiota.BiotaPropertiesBodyPart)
             {
@@ -1328,35 +1348,39 @@ namespace ACE.Database
                 BiotaPropertiesSkill existingValue = existingBiota.BiotaPropertiesSkill.FirstOrDefault(r => r.Type == (ushort)kvp.Key);
 
                 if (existingValue == null)
-                    existingBiota.BiotaPropertiesSkill.Add(kvp);
-                else
                 {
-                    existingValue.LevelFromPP = kvp.Value.LevelFromPP;
-                    existingValue.SAC = kvp.Value.SAC;
-                    existingValue.PP = kvp.Value.PP;
-                    existingValue.InitLevel = kvp.Value.InitLevel;
-                    existingValue.ResistanceAtLastCheck = kvp.Value.ResistanceAtLastCheck;
-                    existingValue.LastUsedTime = kvp.Value.LastUsedTime;
+                    existingValue = new BiotaPropertiesSkill { ObjectId = biota.Id };
+
+                    existingBiota.BiotaPropertiesSkill.Add(existingValue);
                 }
+
+                existingValue.Type = (ushort)kvp.Key;
+                existingValue.LevelFromPP = kvp.Value.LevelFromPP;
+                existingValue.SAC = kvp.Value.SAC;
+                existingValue.PP = kvp.Value.PP;
+                existingValue.InitLevel = kvp.Value.InitLevel;
+                existingValue.ResistanceAtLastCheck = kvp.Value.ResistanceAtLastCheck;
+                existingValue.LastUsedTime = kvp.Value.LastUsedTime;
             }
             foreach (var value in existingBiota.BiotaPropertiesSkill)
             {
                 if (!biota.PropertiesSkill.ContainsKey((Skill)value.Type))
                     context.BiotaPropertiesSkill.Remove(value);
-            }*/
+            }
 
+            // TODO FIGURE OUT WHY BOTH OF THESE ARE NOT NULL AT THE SAME TIME
+            if (biota.PropertiesAttribute != null && biota.PropertiesBookPageData != null)
+                ;
 
             // Properties for books
 
-            /*if (biota.PropertiesBook != null)
+            if (biota.PropertiesBook != null)
             {
                 if (existingBiota.BiotaPropertiesBook == null)
-                    existingBiota.BiotaPropertiesBook = biota.BiotaPropertiesBook;
-                else
-                {
-                    existingBiota.BiotaPropertiesBook.MaxNumPages = biota.PropertiesBook.MaxNumPages;
-                    existingBiota.BiotaPropertiesBook.MaxNumCharsPerPage = biota.PropertiesBook.MaxNumCharsPerPage;
-                }
+                    existingBiota.BiotaPropertiesBook = new BiotaPropertiesBook { ObjectId = biota.Id, };
+
+                existingBiota.BiotaPropertiesBook.MaxNumPages = biota.PropertiesBook.MaxNumPages;
+                existingBiota.BiotaPropertiesBook.MaxNumCharsPerPage = biota.PropertiesBook.MaxNumCharsPerPage;
             }
             else
             {
@@ -1364,58 +1388,68 @@ namespace ACE.Database
                     context.BiotaPropertiesBook.Remove(existingBiota.BiotaPropertiesBook);
             }
 
-            foreach (var value in biota.PropertiesBookPageData) // todo switch this to for int i
+            for (int i = 0 ; i< biota.PropertiesBookPageData.Count ; i++)
             {
-                BiotaPropertiesBookPageData existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesBookPageData.FirstOrDefault(r => r.Id == value.Id));
+                var value = biota.PropertiesBookPageData[i];
+
+                BiotaPropertiesBookPageData existingValue = existingBiota.BiotaPropertiesBookPageData.FirstOrDefault(r => r.PageId == i);
 
                 if (existingValue == null)
-                    existingBiota.BiotaPropertiesBookPageData.Add(value);
-                else
                 {
-                    existingValue.PageId = (uint)biota.PropertiesBookPageData.IndexOf(value);
-                    existingValue.AuthorId = value.AuthorId;
-                    existingValue.AuthorName = value.AuthorName;
-                    existingValue.AuthorAccount = value.AuthorAccount;
-                    existingValue.IgnoreAuthor = value.IgnoreAuthor;
-                    existingValue.PageText = value.PageText;
+                    existingValue = new BiotaPropertiesBookPageData { ObjectId = biota.Id };
+
+                    existingBiota.BiotaPropertiesBookPageData.Add(existingValue);
                 }
+
+                existingValue.PageId = (uint)i;
+                existingValue.AuthorId = value.AuthorId;
+                existingValue.AuthorName = value.AuthorName;
+                existingValue.AuthorAccount = value.AuthorAccount;
+                existingValue.IgnoreAuthor = value.IgnoreAuthor;
+                existingValue.PageText = value.PageText;
             }
             foreach (var value in existingBiota.BiotaPropertiesBookPageData)
             {
-                if (!biota.PropertiesBookPageData.Any(p => p.Id == value.Id))
+                if (value.PageId >= biota.PropertiesBookPageData.Count)
                     context.BiotaPropertiesBookPageData.Remove(value);
-            }*/
+            }
 
 
             // Biota additions over Weenie
 
-            // todo allegiance
-
-            /*foreach (var value in biota.PropertiesEnchantmentRegistry)
+            foreach (var value in biota.PropertiesAllegiance)
             {
-                BiotaPropertiesEnchantmentRegistry existingValue = (value.ObjectId == 0 ? null : existingBiota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(r => r.SpellId == value.SpellId && r.LayerId == value.LayerId && r.CasterObjectId == value.CasterObjectId));
+                // todo allegiance
+            }
+            // todo allegiance reverse
+
+            foreach (var value in biota.PropertiesEnchantmentRegistry)
+            {
+                BiotaPropertiesEnchantmentRegistry existingValue = existingBiota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(r => r.SpellId == value.SpellId && r.LayerId == value.LayerId && r.CasterObjectId == value.CasterObjectId);
 
                 if (existingValue == null)
-                    existingBiota.BiotaPropertiesEnchantmentRegistry.Add(value);
-                else
                 {
-                    existingValue.EnchantmentCategory = value.EnchantmentCategory;
-                    existingValue.SpellId = value.SpellId;
-                    existingValue.LayerId = value.LayerId;
-                    existingValue.HasSpellSetId = value.HasSpellSetId;
-                    existingValue.SpellCategory = value.SpellCategory;
-                    existingValue.PowerLevel = value.PowerLevel;
-                    existingValue.StartTime = value.StartTime;
-                    existingValue.Duration = value.Duration;
-                    existingValue.CasterObjectId = value.CasterObjectId;
-                    existingValue.DegradeModifier = value.DegradeModifier;
-                    existingValue.DegradeLimit = value.DegradeLimit;
-                    existingValue.LastTimeDegraded = value.LastTimeDegraded;
-                    existingValue.StatModType = value.StatModType;
-                    existingValue.StatModKey = value.StatModKey;
-                    existingValue.StatModValue = value.StatModValue;
-                    existingValue.SpellSetId = value.SpellSetId;
+                    existingValue = new BiotaPropertiesEnchantmentRegistry { ObjectId = biota.Id };
+
+                    existingBiota.BiotaPropertiesEnchantmentRegistry.Add(existingValue);
                 }
+
+                existingValue.EnchantmentCategory = value.EnchantmentCategory;
+                existingValue.SpellId = value.SpellId;
+                existingValue.LayerId = value.LayerId;
+                existingValue.HasSpellSetId = value.HasSpellSetId;
+                existingValue.SpellCategory = value.SpellCategory;
+                existingValue.PowerLevel = value.PowerLevel;
+                existingValue.StartTime = value.StartTime;
+                existingValue.Duration = value.Duration;
+                existingValue.CasterObjectId = value.CasterObjectId;
+                existingValue.DegradeModifier = value.DegradeModifier;
+                existingValue.DegradeLimit = value.DegradeLimit;
+                existingValue.LastTimeDegraded = value.LastTimeDegraded;
+                existingValue.StatModType = value.StatModType;
+                existingValue.StatModKey = value.StatModKey;
+                existingValue.StatModValue = value.StatModValue;
+                existingValue.SpellSetId = value.SpellSetId;
             }
             foreach (var value in existingBiota.BiotaPropertiesEnchantmentRegistry)
             {
@@ -1423,7 +1457,7 @@ namespace ACE.Database
                     context.BiotaPropertiesEnchantmentRegistry.Remove(value);
             }
 
-            foreach (var value in biota.HousePermissions)
+            /*foreach (var value in biota.HousePermissions)
             {
                 Models.Shard.HousePermission existingValue = existingBiota.HousePermission.FirstOrDefault(r => r.HouseId == value.HouseId && r.PlayerGuid == value.PlayerGuid);
 

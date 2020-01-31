@@ -1023,7 +1023,7 @@ namespace ACE.Server.Entity
 
         private void SaveDB()
         {
-            /*var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+            var biotas = new Collection<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)>();
 
             foreach (var wo in worldObjects.Values)
             {
@@ -1031,16 +1031,16 @@ namespace ACE.Server.Entity
                     AddWorldObjectToBiotasSaveCollection(wo, biotas);
             }
 
-            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => { });*/
+            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => { });
         }
 
-        private void AddWorldObjectToBiotasSaveCollection(WorldObject wo, Collection<(ACE.Database.Models.Shard.Biota biota, ReaderWriterLockSlim rwLock)> biotas)
+        private void AddWorldObjectToBiotasSaveCollection(WorldObject wo, Collection<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> biotas)
         {
-            /*if (wo.ChangesDetected)
+            if (wo.ChangesDetected)
             {
                 wo.SaveBiotaToDatabase(false);
-                biotas.Add((wo.OldBiota, wo.BiotaDatabaseLock));
-            }*/
+                biotas.Add((wo.Biota, wo.BiotaDatabaseLock));
+            }
 
             if (wo is Container container)
             {

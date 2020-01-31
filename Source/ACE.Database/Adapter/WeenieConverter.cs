@@ -11,7 +11,7 @@ namespace ACE.Database.Adapter
 {
     public static class WeenieConverter
     {
-        public static ACE.Entity.Models.Weenie ConvertToEntityWeenie(ACE.Database.Models.World.Weenie weenie)
+        public static ACE.Entity.Models.Weenie ConvertToEntityWeenie(ACE.Database.Models.World.Weenie weenie, bool copyEmptyCollections = false)
         {
             var result = new ACE.Entity.Models.Weenie();
 
@@ -19,43 +19,43 @@ namespace ACE.Database.Adapter
             result.ClassName = weenie.ClassName;
             result.WeenieType = (WeenieType)weenie.Type;
 
-            if (weenie.WeeniePropertiesBool != null)
+            if (weenie.WeeniePropertiesBool != null && (copyEmptyCollections || weenie.WeeniePropertiesBool.Count > 0))
             {
                 result.PropertiesBool = new Dictionary<PropertyBool, bool>();
                 foreach (var value in weenie.WeeniePropertiesBool)
                     result.PropertiesBool[(PropertyBool)value.Type] = value.Value;
             }
-            if (weenie.WeeniePropertiesDID != null)
+            if (weenie.WeeniePropertiesDID != null && (copyEmptyCollections || weenie.WeeniePropertiesDID.Count > 0))
             {
                 result.PropertiesDID = new Dictionary<PropertyDataId, uint>();
                 foreach (var value in weenie.WeeniePropertiesDID)
                     result.PropertiesDID[(PropertyDataId)value.Type] = value.Value;
             }
-            if (weenie.WeeniePropertiesFloat != null)
+            if (weenie.WeeniePropertiesFloat != null && (copyEmptyCollections || weenie.WeeniePropertiesFloat.Count > 0))
             {
                 result.PropertiesFloat = new Dictionary<PropertyFloat, double>();
                 foreach (var value in weenie.WeeniePropertiesFloat)
                     result.PropertiesFloat[(PropertyFloat)value.Type] = value.Value;
             }
-            if (weenie.WeeniePropertiesIID != null)
+            if (weenie.WeeniePropertiesIID != null && (copyEmptyCollections || weenie.WeeniePropertiesIID.Count > 0))
             {
                 result.PropertiesIID = new Dictionary<PropertyInstanceId, uint>();
                 foreach (var value in weenie.WeeniePropertiesIID)
                     result.PropertiesIID[(PropertyInstanceId)value.Type] = value.Value;
             }
-            if (weenie.WeeniePropertiesInt != null)
+            if (weenie.WeeniePropertiesInt != null && (copyEmptyCollections || weenie.WeeniePropertiesInt.Count > 0))
             {
                 result.PropertiesInt = new Dictionary<PropertyInt, int>();
                 foreach (var value in weenie.WeeniePropertiesInt)
                     result.PropertiesInt[(PropertyInt)value.Type] = value.Value;
             }
-            if (weenie.WeeniePropertiesInt64 != null)
+            if (weenie.WeeniePropertiesInt64 != null && (copyEmptyCollections || weenie.WeeniePropertiesInt64.Count > 0))
             {
                 result.PropertiesInt64 = new Dictionary<PropertyInt64, long>();
                 foreach (var value in weenie.WeeniePropertiesInt64)
                     result.PropertiesInt64[(PropertyInt64)value.Type] = value.Value;
             }
-            if (weenie.WeeniePropertiesString != null)
+            if (weenie.WeeniePropertiesString != null && (copyEmptyCollections || weenie.WeeniePropertiesString.Count > 0))
             {
                 result.PropertiesString = new Dictionary<PropertyString, string>();
                 foreach (var value in weenie.WeeniePropertiesString)
@@ -63,7 +63,7 @@ namespace ACE.Database.Adapter
             }
 
 
-            if (weenie.WeeniePropertiesPosition != null)
+            if (weenie.WeeniePropertiesPosition != null && (copyEmptyCollections || weenie.WeeniePropertiesPosition.Count > 0))
             {
                 result.PropertiesPosition = new Dictionary<PositionType, PropertiesPosition>();
 
@@ -87,7 +87,7 @@ namespace ACE.Database.Adapter
             }
 
 
-            if (weenie.WeeniePropertiesSpellBook != null)
+            if (weenie.WeeniePropertiesSpellBook != null && (copyEmptyCollections || weenie.WeeniePropertiesSpellBook.Count > 0))
             {
                 result.PropertiesSpellBook = new Dictionary<int, float>();
                 foreach (var value in weenie.WeeniePropertiesSpellBook)
@@ -95,7 +95,7 @@ namespace ACE.Database.Adapter
             }
 
 
-            if (weenie.WeeniePropertiesAnimPart != null)
+            if (weenie.WeeniePropertiesAnimPart != null && (copyEmptyCollections || weenie.WeeniePropertiesAnimPart.Count > 0))
             {
                 result.PropertiesAnimPart = new List<PropertiesAnimPart>();
 
@@ -111,7 +111,7 @@ namespace ACE.Database.Adapter
                 }
             }
 
-            if (weenie.WeeniePropertiesPalette != null)
+            if (weenie.WeeniePropertiesPalette != null && (copyEmptyCollections || weenie.WeeniePropertiesPalette.Count > 0))
             {
                 result.PropertiesPalette = new List<PropertiesPalette>();
 
@@ -128,7 +128,7 @@ namespace ACE.Database.Adapter
                 }
             }
 
-            if (weenie.WeeniePropertiesTextureMap != null)
+            if (weenie.WeeniePropertiesTextureMap != null && (copyEmptyCollections || weenie.WeeniePropertiesTextureMap.Count > 0))
             {
                 result.PropertiesTextureMap = new List<PropertiesTextureMap>();
 
@@ -148,7 +148,7 @@ namespace ACE.Database.Adapter
 
             // Properties for all world objects that typically aren't modified over the original weenie
 
-            if (weenie.WeeniePropertiesCreateList != null)
+            if (weenie.WeeniePropertiesCreateList != null && (copyEmptyCollections || weenie.WeeniePropertiesCreateList.Count > 0))
             {
                 result.PropertiesCreateList = new List<PropertiesCreateList>();
 
@@ -168,7 +168,7 @@ namespace ACE.Database.Adapter
                 }
             }
 
-            if (weenie.WeeniePropertiesEmote != null)
+            if (weenie.WeeniePropertiesEmote != null && (copyEmptyCollections || weenie.WeeniePropertiesEmote.Count > 0))
             {
                 result.PropertiesEmote = new List<PropertiesEmote>();
 
@@ -238,14 +238,14 @@ namespace ACE.Database.Adapter
                 }
             }
 
-            if (weenie.WeeniePropertiesEventFilter != null)
+            if (weenie.WeeniePropertiesEventFilter != null && (copyEmptyCollections || weenie.WeeniePropertiesEventFilter.Count > 0))
             {
                 result.PropertiesEventFilter = new List<int>();
                 foreach (var value in weenie.WeeniePropertiesEventFilter)
                     result.PropertiesEventFilter.Add(value.Event);
             }
 
-            if (weenie.WeeniePropertiesGenerator != null)
+            if (weenie.WeeniePropertiesGenerator != null && (copyEmptyCollections || weenie.WeeniePropertiesGenerator.Count > 0))
             {
                 result.PropertiesGenerator = new List<PropertiesGenerator>();
 
@@ -280,7 +280,7 @@ namespace ACE.Database.Adapter
 
             // Properties for creatures
 
-            if (weenie.WeeniePropertiesAttribute != null)
+            if (weenie.WeeniePropertiesAttribute != null && (copyEmptyCollections || weenie.WeeniePropertiesAttribute.Count > 0))
             {
                 result.PropertiesAttribute = new Dictionary<PropertyAttribute, PropertiesAttribute>();
 
@@ -297,7 +297,7 @@ namespace ACE.Database.Adapter
                 }
             }
 
-            if (weenie.WeeniePropertiesAttribute2nd != null)
+            if (weenie.WeeniePropertiesAttribute2nd != null && (copyEmptyCollections || weenie.WeeniePropertiesAttribute2nd.Count > 0))
             {
                 result.PropertiesAttribute2nd = new Dictionary<PropertyAttribute2nd, PropertiesAttribute2nd>();
 
@@ -315,7 +315,7 @@ namespace ACE.Database.Adapter
                 }
             }
 
-            if (weenie.WeeniePropertiesBodyPart != null)
+            if (weenie.WeeniePropertiesBodyPart != null && (copyEmptyCollections || weenie.WeeniePropertiesBodyPart.Count > 0))
             {
                 result.PropertiesBodyPart = new Dictionary<CombatBodyPart, PropertiesBodyPart>();
 
@@ -354,7 +354,7 @@ namespace ACE.Database.Adapter
                 }
             }
 
-            if (weenie.WeeniePropertiesSkill != null)
+            if (weenie.WeeniePropertiesSkill != null && (copyEmptyCollections || weenie.WeeniePropertiesSkill.Count > 0))
             {
                 result.PropertiesSkill = new Dictionary<Skill, PropertiesSkill>();
 
@@ -386,7 +386,7 @@ namespace ACE.Database.Adapter
                 };
             }
 
-            if (weenie.WeeniePropertiesBookPageData != null)
+            if (weenie.WeeniePropertiesBookPageData != null && (copyEmptyCollections || weenie.WeeniePropertiesBookPageData.Count > 0))
             {
                 result.PropertiesBookPageData = new List<PropertiesBookPageData>();
 
@@ -421,13 +421,100 @@ namespace ACE.Database.Adapter
             result.WeenieClassId = weenie.ClassId;
             result.WeenieType = weenie.Type;
 
-            if (weenie.WeeniePropertiesBook != null)
+            foreach (var value in weenie.WeeniePropertiesBool)
             {
-                result.BiotaPropertiesBook = new BiotaPropertiesBook();
-                result.BiotaPropertiesBook.ObjectId = result.Id;
-                result.BiotaPropertiesBook.MaxNumPages = weenie.WeeniePropertiesBook.MaxNumPages;
-                result.BiotaPropertiesBook.MaxNumCharsPerPage = weenie.WeeniePropertiesBook.MaxNumCharsPerPage;
+                result.BiotaPropertiesBool.Add(new BiotaPropertiesBool
+                {
+                    ObjectId = result.Id,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
             }
+            foreach (var value in weenie.WeeniePropertiesDID)
+            {
+                result.BiotaPropertiesDID.Add(new BiotaPropertiesDID
+                {
+                    ObjectId = result.Id,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+            foreach (var value in weenie.WeeniePropertiesFloat)
+            {
+                result.BiotaPropertiesFloat.Add(new BiotaPropertiesFloat
+                {
+                    ObjectId = result.Id,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+            foreach (var value in weenie.WeeniePropertiesIID)
+            {
+                result.BiotaPropertiesIID.Add(new BiotaPropertiesIID
+                {
+                    ObjectId = result.Id,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+            foreach (var value in weenie.WeeniePropertiesInt)
+            {
+                result.BiotaPropertiesInt.Add(new BiotaPropertiesInt
+                {
+                    ObjectId = result.Id,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+            foreach (var value in weenie.WeeniePropertiesInt64)
+            {
+                result.BiotaPropertiesInt64.Add(new BiotaPropertiesInt64
+                {
+                    ObjectId = result.Id,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+            foreach (var value in weenie.WeeniePropertiesString)
+            {
+                result.BiotaPropertiesString.Add(new BiotaPropertiesString
+                {
+                    ObjectId = result.Id,
+                    Type = value.Type,
+                    Value = value.Value,
+                });
+            }
+
+
+            foreach (var value in weenie.WeeniePropertiesPosition)
+            {
+                result.BiotaPropertiesPosition.Add(new BiotaPropertiesPosition
+                {
+                    ObjectId = result.Id,
+                    PositionType = value.PositionType,
+                    ObjCellId = value.ObjCellId,
+                    OriginX = value.OriginX,
+                    OriginY = value.OriginY,
+                    OriginZ = value.OriginZ,
+                    AnglesW = value.AnglesW,
+                    AnglesX = value.AnglesX,
+                    AnglesY = value.AnglesY,
+                    AnglesZ = value.AnglesZ,
+                });
+            }
+
+
+            foreach (var value in weenie.WeeniePropertiesSpellBook)
+            {
+                result.BiotaPropertiesSpellBook.Add(new BiotaPropertiesSpellBook
+                {
+                    ObjectId = result.Id,
+                    Spell = value.Spell,
+                    Probability = value.Probability,
+                });
+            }
+
+
 
             foreach (var value in weenie.WeeniePropertiesAnimPart)
             {
@@ -439,88 +526,30 @@ namespace ACE.Database.Adapter
                 });
             }
 
-            foreach (var value in weenie.WeeniePropertiesAttribute)
+            foreach (var value in weenie.WeeniePropertiesPalette)
             {
-                result.BiotaPropertiesAttribute.Add(new BiotaPropertiesAttribute
+                result.BiotaPropertiesPalette.Add(new BiotaPropertiesPalette
                 {
                     ObjectId = result.Id,
-                    Type = value.Type,
-                    InitLevel = value.InitLevel,
-                    LevelFromCP = value.LevelFromCP,
-                    CPSpent = value.CPSpent,
+                    SubPaletteId = value.SubPaletteId,
+                    Offset = value.Offset,
+                    Length = value.Length,
                 });
             }
 
-            foreach (var value in weenie.WeeniePropertiesAttribute2nd)
+            foreach (var value in weenie.WeeniePropertiesTextureMap)
             {
-                result.BiotaPropertiesAttribute2nd.Add(new BiotaPropertiesAttribute2nd
+                result.BiotaPropertiesTextureMap.Add(new BiotaPropertiesTextureMap
                 {
                     ObjectId = result.Id,
-                    Type = value.Type,
-                    InitLevel = value.InitLevel,
-                    LevelFromCP = value.LevelFromCP,
-                    CPSpent = value.CPSpent,
-                    CurrentLevel = value.CurrentLevel,
+                    Index = value.Index,
+                    OldId = value.OldId,
+                    NewId = value.NewId,
                 });
             }
 
-            foreach (var value in weenie.WeeniePropertiesBodyPart)
-            {
-                result.BiotaPropertiesBodyPart.Add(new BiotaPropertiesBodyPart
-                {
-                    ObjectId = result.Id,
-                    Key = value.Key,
-                    DType = value.DType,
-                    DVal = value.DVal,
-                    DVar = value.DVar,
-                    BaseArmor = value.BaseArmor,
-                    ArmorVsSlash = value.ArmorVsSlash,
-                    ArmorVsPierce = value.ArmorVsPierce,
-                    ArmorVsBludgeon = value.ArmorVsBludgeon,
-                    ArmorVsCold = value.ArmorVsCold,
-                    ArmorVsFire = value.ArmorVsFire,
-                    ArmorVsAcid = value.ArmorVsAcid,
-                    ArmorVsElectric = value.ArmorVsElectric,
-                    ArmorVsNether = value.ArmorVsNether,
-                    BH = value.BH,
-                    HLF = value.HLF,
-                    MLF = value.MLF,
-                    LLF = value.LLF,
-                    HRF = value.HRF,
-                    MRF = value.MRF,
-                    LRF = value.LRF,
-                    HLB = value.HLB,
-                    MLB = value.MLB,
-                    LLB = value.LLB,
-                    HRB = value.HRB,
-                    MRB = value.MRB,
-                    LRB = value.LRB,
-                });
-            }
 
-            foreach (var value in weenie.WeeniePropertiesBookPageData)
-            {
-                result.BiotaPropertiesBookPageData.Add(new BiotaPropertiesBookPageData
-                {
-                    ObjectId = result.Id,
-                    PageId = value.PageId,
-                    AuthorId = value.AuthorId,
-                    AuthorName = value.AuthorName,
-                    AuthorAccount = value.AuthorAccount,
-                    IgnoreAuthor = value.IgnoreAuthor,
-                    PageText = value.PageText,
-                });
-            }
-
-            foreach (var value in weenie.WeeniePropertiesBool)
-            {
-                result.BiotaPropertiesBool.Add(new BiotaPropertiesBool
-                {
-                    ObjectId = result.Id,
-                    Type = value.Type,
-                    Value = value.Value,
-                });
-            }
+            // Properties for all world objects that typically aren't modified over the original weenie
 
             foreach (var value in weenie.WeeniePropertiesCreateList)
             {
@@ -535,17 +564,6 @@ namespace ACE.Database.Adapter
                     TryToBond = value.TryToBond,
                 });
             }
-
-            foreach (var value in weenie.WeeniePropertiesDID)
-            {
-                result.BiotaPropertiesDID.Add(new BiotaPropertiesDID
-                {
-                    ObjectId = result.Id,
-                    Type = value.Type,
-                    Value = value.Value,
-                });
-            }
-
 
             foreach (var value in weenie.WeeniePropertiesEmote)
             {
@@ -625,23 +643,12 @@ namespace ACE.Database.Adapter
                 result.BiotaPropertiesEmote.Add(emote);
             }
 
-
             foreach (var value in weenie.WeeniePropertiesEventFilter)
             {
                 result.BiotaPropertiesEventFilter.Add(new BiotaPropertiesEventFilter
                 {
                     ObjectId = result.Id,
                     Event = value.Event,
-                });
-            }
-
-            foreach (var value in weenie.WeeniePropertiesFloat)
-            {
-                result.BiotaPropertiesFloat.Add(new BiotaPropertiesFloat
-                {
-                    ObjectId = result.Id,
-                    Type = value.Type,
-                    Value = value.Value,
                 });
             }
 
@@ -671,61 +678,65 @@ namespace ACE.Database.Adapter
                 });
             }
 
-            foreach (var value in weenie.WeeniePropertiesIID)
+
+            // Properties for creatures
+
+            foreach (var value in weenie.WeeniePropertiesAttribute)
             {
-                result.BiotaPropertiesIID.Add(new BiotaPropertiesIID
+                result.BiotaPropertiesAttribute.Add(new BiotaPropertiesAttribute
                 {
                     ObjectId = result.Id,
                     Type = value.Type,
-                    Value = value.Value,
+                    InitLevel = value.InitLevel,
+                    LevelFromCP = value.LevelFromCP,
+                    CPSpent = value.CPSpent,
                 });
             }
 
-            foreach (var value in weenie.WeeniePropertiesInt)
+            foreach (var value in weenie.WeeniePropertiesAttribute2nd)
             {
-                result.BiotaPropertiesInt.Add(new BiotaPropertiesInt
+                result.BiotaPropertiesAttribute2nd.Add(new BiotaPropertiesAttribute2nd
                 {
                     ObjectId = result.Id,
                     Type = value.Type,
-                    Value = value.Value,
+                    InitLevel = value.InitLevel,
+                    LevelFromCP = value.LevelFromCP,
+                    CPSpent = value.CPSpent,
+                    CurrentLevel = value.CurrentLevel,
                 });
             }
 
-            foreach (var value in weenie.WeeniePropertiesInt64)
+            foreach (var value in weenie.WeeniePropertiesBodyPart)
             {
-                result.BiotaPropertiesInt64.Add(new BiotaPropertiesInt64
+                result.BiotaPropertiesBodyPart.Add(new BiotaPropertiesBodyPart
                 {
                     ObjectId = result.Id,
-                    Type = value.Type,
-                    Value = value.Value,
-                });
-            }
-
-            foreach (var value in weenie.WeeniePropertiesPalette)
-            {
-                result.BiotaPropertiesPalette.Add(new BiotaPropertiesPalette
-                {
-                    ObjectId = result.Id,
-                    SubPaletteId = value.SubPaletteId,
-                    Offset = value.Offset,
-                    Length = value.Length,
-                });
-            }
-
-            foreach (var value in weenie.WeeniePropertiesPosition)
-            {
-                result.BiotaPropertiesPosition.Add(new BiotaPropertiesPosition
-                {
-                    ObjectId = result.Id,
-                    PositionType = value.PositionType,
-                    ObjCellId = value.ObjCellId,
-                    OriginX = value.OriginX,
-                    OriginY = value.OriginY,
-                    OriginZ = value.OriginZ,
-                    AnglesW = value.AnglesW,
-                    AnglesX = value.AnglesX,
-                    AnglesY = value.AnglesY,
-                    AnglesZ = value.AnglesZ,
+                    Key = value.Key,
+                    DType = value.DType,
+                    DVal = value.DVal,
+                    DVar = value.DVar,
+                    BaseArmor = value.BaseArmor,
+                    ArmorVsSlash = value.ArmorVsSlash,
+                    ArmorVsPierce = value.ArmorVsPierce,
+                    ArmorVsBludgeon = value.ArmorVsBludgeon,
+                    ArmorVsCold = value.ArmorVsCold,
+                    ArmorVsFire = value.ArmorVsFire,
+                    ArmorVsAcid = value.ArmorVsAcid,
+                    ArmorVsElectric = value.ArmorVsElectric,
+                    ArmorVsNether = value.ArmorVsNether,
+                    BH = value.BH,
+                    HLF = value.HLF,
+                    MLF = value.MLF,
+                    LLF = value.LLF,
+                    HRF = value.HRF,
+                    MRF = value.MRF,
+                    LRF = value.LRF,
+                    HLB = value.HLB,
+                    MLB = value.MLB,
+                    LLB = value.LLB,
+                    HRB = value.HRB,
+                    MRB = value.MRB,
+                    LRB = value.LRB,
                 });
             }
 
@@ -744,34 +755,28 @@ namespace ACE.Database.Adapter
                 });
             }
 
-            foreach (var value in weenie.WeeniePropertiesSpellBook)
+
+            // Properties for books
+
+            if (weenie.WeeniePropertiesBook != null)
             {
-                result.BiotaPropertiesSpellBook.Add(new BiotaPropertiesSpellBook
-                {
-                    ObjectId = result.Id,
-                    Spell = value.Spell,
-                    Probability = value.Probability,
-                });
+                result.BiotaPropertiesBook = new BiotaPropertiesBook();
+                result.BiotaPropertiesBook.ObjectId = result.Id;
+                result.BiotaPropertiesBook.MaxNumPages = weenie.WeeniePropertiesBook.MaxNumPages;
+                result.BiotaPropertiesBook.MaxNumCharsPerPage = weenie.WeeniePropertiesBook.MaxNumCharsPerPage;
             }
 
-            foreach (var value in weenie.WeeniePropertiesString)
+            foreach (var value in weenie.WeeniePropertiesBookPageData)
             {
-                result.BiotaPropertiesString.Add(new BiotaPropertiesString
+                result.BiotaPropertiesBookPageData.Add(new BiotaPropertiesBookPageData
                 {
                     ObjectId = result.Id,
-                    Type = value.Type,
-                    Value = value.Value,
-                });
-            }
-
-            foreach (var value in weenie.WeeniePropertiesTextureMap)
-            {
-                result.BiotaPropertiesTextureMap.Add(new BiotaPropertiesTextureMap
-                {
-                    ObjectId = result.Id,
-                    Index = value.Index,
-                    OldId = value.OldId,
-                    NewId = value.NewId,
+                    PageId = value.PageId,
+                    AuthorId = value.AuthorId,
+                    AuthorName = value.AuthorName,
+                    AuthorAccount = value.AuthorAccount,
+                    IgnoreAuthor = value.IgnoreAuthor,
+                    PageText = value.PageText,
                 });
             }
 
