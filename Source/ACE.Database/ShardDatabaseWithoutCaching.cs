@@ -923,7 +923,7 @@ namespace ACE.Database
             // If we add columns to the schema and forget to add those changes here, changes to the biota may not propagate to the database.
             // Mag-nus 2018-08-18
 
- existingBiota.WeenieClassId = biota.WeenieClassId;
+            existingBiota.WeenieClassId = biota.WeenieClassId;
             existingBiota.WeenieType = (int)biota.WeenieType;
 
             if (biota.PropertiesBool != null)

@@ -214,5 +214,49 @@ namespace ACE.Server.Command.Handlers
 
             CommandHandlerHelper.WriteOutputInfo(session, "cleartest1 completed");
         }
+
+        [CommandHandler("test2", AccessLevel.Developer, CommandHandlerFlag.None)]
+        public static void test2(Session session, params string[] parameters)
+        {
+            var weenieSQLWriter = new ACE.Database.SQLFormatters.World.WeenieSQLWriter();
+            var biotaSQLWriter = new ACE.Database.SQLFormatters.Shard.BiotaSQLWriter();
+            biotaSQLWriter.WeenieNames = new Dictionary<uint, string>();
+
+            for (uint i = 0; i < 10000; i++)
+            {
+                var wcid = i;
+
+                var dbWeenie = DatabaseManager.World.GetWeenie(wcid);
+
+                if (dbWeenie == null)
+                    continue;
+
+                var dbWeenieToEntityWeenie = ACE.Database.Adapter.WeenieConverter.ConvertToEntityWeenie(dbWeenie);
+                var dbWeenieToDbBiota = ACE.Database.Adapter.WeenieConverter.ConvertToDatabaseBiota(dbWeenie, 1);
+
+                var dbWeenieToEntityWeenieToEntityBiota = ACE.Entity.Adapter.WeenieConverter.ConvertToBiota(dbWeenieToEntityWeenie, 1);
+                var dbWeenieToEntityWeenieToEntityBiotaToDbBiota = ACE.Database.Adapter.BiotaConverter.ConvertFromEntityBiota(dbWeenieToEntityWeenieToEntityBiota);
+
+
+                var dbWeenieToDbBiotaMS = new System.IO.MemoryStream();
+                var dbWeenieToDbBiotaTW = new System.IO.StreamWriter(dbWeenieToDbBiotaMS);
+                biotaSQLWriter.CreateSQLINSERTStatement(dbWeenieToDbBiota, dbWeenieToDbBiotaTW);
+                var dbWeenieToDbBiotaSQL = System.Text.Encoding.ASCII.GetString(dbWeenieToDbBiotaMS.ToArray());
+
+
+                var dbWeenieToDdbWeenieToEntityWeenieToEntityBiotaToDbBiotaMSbBiotaMS = new System.IO.MemoryStream();
+                var dbWeenieToEntityWeenieToEntityBiotaToDbBiotaTW = new System.IO.StreamWriter(dbWeenieToDdbWeenieToEntityWeenieToEntityBiotaToDbBiotaMSbBiotaMS);
+                biotaSQLWriter.CreateSQLINSERTStatement(dbWeenieToEntityWeenieToEntityBiotaToDbBiota, dbWeenieToEntityWeenieToEntityBiotaToDbBiotaTW);
+                var dbWeenieToEntityWeenieToEntityBiotaToDbBiotaSQL = System.Text.Encoding.ASCII.GetString(dbWeenieToDdbWeenieToEntityWeenieToEntityBiotaToDbBiotaMSbBiotaMS.ToArray());
+
+                if (dbWeenieToDbBiotaSQL != dbWeenieToEntityWeenieToEntityBiotaToDbBiotaSQL)
+                {
+                    // Probably a biota_properties_emote_action order issue with the original db weenie, ie, non sequential orders, 0, 1, 4.. (missing 2, 3)
+                    CommandHandlerHelper.WriteOutputInfo(session, $"wcid {i} has an error in the translation path somewhere");
+                }
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, "test2 completed");
+        }
     }
 }
