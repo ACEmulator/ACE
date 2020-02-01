@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 using ACE.Database;
@@ -242,10 +243,16 @@ namespace ACE.Server.WorldObjects
                 // Pull and save objdesc for correct corpse apperance at time of death
                 var objDesc = CalculateObjDesc();
 
+                if (corpse.Biota.PropertiesAnimPart == null)
+                    corpse.Biota.PropertiesAnimPart = new List<PropertiesAnimPart>();
                 corpse.Biota.PropertiesAnimPart.Add(objDesc.AnimPartChanges, BiotaDatabaseLock);
 
+                if (corpse.Biota.PropertiesPalette == null)
+                    corpse.Biota.PropertiesPalette = new Collection<PropertiesPalette>();
                 corpse.Biota.PropertiesPalette.Add(objDesc.SubPalettes, BiotaDatabaseLock);
 
+                if (corpse.Biota.PropertiesTextureMap == null)
+                    corpse.Biota.PropertiesTextureMap = new List<PropertiesTextureMap>();
                 foreach (var textureChange in objDesc.TextureChanges)
                     corpse.Biota.PropertiesTextureMap.Add(new PropertiesTextureMap { PartIndex = textureChange.PartIndex, OldTexture = textureChange.OldTexture, NewTexture = textureChange.NewTexture });
             }

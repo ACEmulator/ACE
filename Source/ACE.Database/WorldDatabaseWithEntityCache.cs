@@ -35,7 +35,7 @@ namespace ACE.Database
             if (weenie != null)
             {
                 weenieCache[weenieClassId] = WeenieConverter.ConvertToEntityWeenie(weenie);
-                weenieClassNameToClassIdCache[weenie.ClassName] = weenie.ClassId;
+                weenieClassNameToClassIdCache[weenie.ClassName.ToLower()] = weenie.ClassId;
             }
             else
                 weenieCache[weenieClassId] = null;
@@ -100,12 +100,12 @@ namespace ACE.Database
         /// </summary>
         public ACE.Entity.Models.Weenie GetCachedWeenie(string weenieClassName)
         {
-            if (weenieClassNameToClassIdCache.TryGetValue(weenieClassName, out var value))
+            if (weenieClassNameToClassIdCache.TryGetValue(weenieClassName.ToLower(), out var value))
                 return GetCachedWeenie(value); // This will add the result into the caches
 
             GetWeenie(weenieClassName); // This will add the result into the caches
 
-            weenieClassNameToClassIdCache.TryGetValue(weenieClassName, out value);
+            weenieClassNameToClassIdCache.TryGetValue(weenieClassName.ToLower(), out value);
 
             return GetCachedWeenie(value); // This will add the result into the caches
         }
