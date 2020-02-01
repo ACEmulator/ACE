@@ -12,6 +12,8 @@ namespace ACE.Database
 {
     public class ShardDatabaseWithCaching : ShardDatabase
     {
+        // TODO add a ctor option that enables CharacterCaching, PlayerBiotaCaching, WeenieCaching,
+
         // todo
     }
 }
