@@ -157,6 +157,9 @@ namespace ACE.Server.Command.Handlers
         // World DB Caching         ~5.1 GB -> ~1.4 GB
         //                          ~4.8 GB -> ~1.4 GB
 
+        // Large player db load        TODO
+
+
         // New system (Non Hybrid)
         // 8563 mob archer          ~41.45 KB
 
@@ -169,6 +172,8 @@ namespace ACE.Server.Command.Handlers
 
         // World DB Caching         ~2.1 GB -> ~1.3 GB
         //                          ~2.1 GB -> ~1.3 GB
+
+        // Large player db load
 
         private static readonly Collection<WorldObject> WorldObjects = new Collection<WorldObject>();
 
