@@ -111,13 +111,39 @@ namespace ACE.Server.WorldObjects
             // find all players with this monarch
             var members = AllegianceManager.FindAllPlayers(monarch);
 
-            Monarch.BuildChain(this, members);
+            var patronVassals = BuildPatronVassals(members);
+            
+            Monarch.BuildChain(this, members, patronVassals);
             BuildMembers(Monarch);
 
             //Console.WriteLine("TotalMembers: " + TotalMembers);
             BuildOfficers();
 
             ChatFilters = new Dictionary<ObjectGuid, DateTime>();
+        }
+
+        /// <summary>
+        /// Build a mapping of patron guids => vassal guids
+        /// </summary>
+        public Dictionary<uint, List<IPlayer>> BuildPatronVassals(List<IPlayer> members)
+        {
+            var patronVassals = new Dictionary<uint, List<IPlayer>>();
+
+            foreach (var member in members)
+            {
+                var patronId = member.PatronId;
+
+                if (patronId == null)
+                    continue;
+
+                if (!patronVassals.TryGetValue(patronId.Value, out var vassals))
+                {
+                    vassals = new List<IPlayer>();
+                    patronVassals.Add(patronId.Value, vassals);
+                }
+                vassals.Add(member);
+            }
+            return patronVassals;
         }
 
         /// <summary>

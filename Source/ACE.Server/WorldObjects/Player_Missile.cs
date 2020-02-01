@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
@@ -152,8 +153,20 @@ namespace ACE.Server.WorldObjects
             // point of no return beyond this point -- cannot be cancelled
             Attacking = true;
 
+            // get z-angle for aim motion
+            var aimVelocity = GetAimVelocity(target);
+
+            var aimLevel = GetAimLevel(aimVelocity);
+
+            // calculate projectile spawn pos and velocity
+            var localOrigin = GetProjectileSpawnOrigin(ammo.WeenieClassId, aimLevel);
+
+            var velocity = CalculateProjectileVelocity(localOrigin, target, out Vector3 origin, out Quaternion orientation);
+
+            //Console.WriteLine($"Velocity: {velocity}");
+
             var actionChain = new ActionChain();
-            var launchTime = EnqueueMotion(actionChain, MotionCommand.AimLevel);
+            var launchTime = EnqueueMotion(actionChain, aimLevel);
 
             // launch projectile
             actionChain.AddAction(this, () =>
@@ -170,8 +183,7 @@ namespace ACE.Server.WorldObjects
                 var staminaCost = GetAttackStamina(GetAccuracyRange());
                 UpdateVitalDelta(Stamina, -staminaCost);
 
-                float targetTime = 0.0f;
-                var projectile = LaunchProjectile(weapon, ammo, target, out targetTime);
+                var projectile = LaunchProjectile(weapon, ammo, target, origin, orientation, velocity);
                 UpdateAmmoAfterLaunch(ammo);
             });
 

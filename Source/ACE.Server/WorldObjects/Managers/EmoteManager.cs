@@ -223,6 +223,9 @@ namespace ACE.Server.WorldObjects.Managers
                     // animation delay?
                     if (WorldObject is Container container)
                         container.Close(null);
+                    else if (WorldObject is Door closeDoor)
+                        closeDoor.Close();
+
                     break;
 
                 case EmoteType.CreateTreasure:
@@ -948,6 +951,8 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (WorldObject is Container openContainer)
                         openContainer.Open(null);
+                    else if (WorldObject is Door openDoor)
+                        openDoor.Open();
 
                     break;
 
@@ -1581,6 +1586,10 @@ namespace ACE.Server.WorldObjects.Managers
                 result = result.Replace("%CDtime", !string.IsNullOrWhiteSpace(quest) ? targetPlayer.QuestManager.GetNextSolveTime(questName).GetFriendlyString() : "");
 
                 result = result.Replace("%tf", $"{(targetPlayer.Fellowship != null ? targetPlayer.Fellowship.FellowshipName : "")}");
+
+                result = result.Replace("%tqm", !string.IsNullOrWhiteSpace(quest) ? targetPlayer.QuestManager.GetMaxSolves(questName).ToString() : "");
+
+                result = result.Replace("%tqc", !string.IsNullOrWhiteSpace(quest) ? targetPlayer.QuestManager.GetCurrentSolves(questName).ToString() : "");
             }
 
             if (source is Creature sourceCreature)

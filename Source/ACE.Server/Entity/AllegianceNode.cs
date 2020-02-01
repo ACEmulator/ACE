@@ -47,20 +47,22 @@ namespace ACE.Server.Entity
             Patron = patron;
         }
 
-        public void BuildChain(Allegiance allegiance, List<IPlayer> players)
+        public void BuildChain(Allegiance allegiance, List<IPlayer> players, Dictionary<uint, List<IPlayer>> patronVassals)
         {
-            var vassals = players.Where(p => p.PatronId == PlayerGuid.Full).ToList();
+            patronVassals.TryGetValue(PlayerGuid.Full, out var vassals);
 
             Vassals = new Dictionary<uint, AllegianceNode>();
 
-            foreach (var vassal in vassals)
+            if (vassals != null)
             {
-                var node = new AllegianceNode(vassal.Guid, allegiance, Monarch, this);
-                node.BuildChain(allegiance, players);
+                foreach (var vassal in vassals)
+                {
+                    var node = new AllegianceNode(vassal.Guid, allegiance, Monarch, this);
+                    node.BuildChain(allegiance, players, patronVassals);
 
-                Vassals.Add(vassal.Guid.Full, node);
+                    Vassals.Add(vassal.Guid.Full, node);
+                }
             }
-
             CalculateRank();
         }
 

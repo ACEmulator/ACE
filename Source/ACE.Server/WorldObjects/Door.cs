@@ -47,21 +47,20 @@ namespace ACE.Server.WorldObjects
             {
                 CurrentMotionState = motionOpen;
                 IsOpen = true;
-                //Ethereal = true;
+                Ethereal = true;
             }
 
             ResetInterval = ResetInterval ?? 30.0f;
             LockCode = LockCode ?? "";
 
-            // If we had the base weenies this would be the way to go
-            ////if (DefaultLocked)
-            ////    IsLocked = true;
-            ////else
-            ////    IsLocked = false;
-
-            // But since we don't know what doors were DefaultLocked, let's assume for now that any door that starts Locked should default as such.
-            if (IsLocked)
+            // Account for possible missing property from recreated weenies
+            if (IsLocked && !DefaultLocked)
                 DefaultLocked = true;
+
+            if (DefaultLocked)
+                IsLocked = true;
+            else
+                IsLocked = false;
 
             ActivationResponse |= ActivationResponse.Use;
         }
@@ -134,7 +133,7 @@ namespace ACE.Server.WorldObjects
                 UseTimestamp++;
         }
 
-        private void Close(ObjectGuid closer = new ObjectGuid())
+        public void Close(ObjectGuid closer = new ObjectGuid())
         {
             if (CurrentMotionState == motionClosed)
                 return;

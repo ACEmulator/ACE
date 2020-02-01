@@ -631,6 +631,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionChangeCombatMode(CombatMode newCombatMode)
         {
+            //log.Info($"{Name}.HandleActionChangeCombatMode({newCombatMode})");
+
             if (DateTime.UtcNow >= NextUseTime)
                 HandleActionChangeCombatMode_Inner(newCombatMode);
             else
@@ -651,6 +653,8 @@ namespace ACE.Server.WorldObjects
 
             if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
                 FailCast();
+
+            float animTime = 0.0f, queueTime = 0.0f;
 
             switch (newCombatMode)
             {
@@ -692,11 +696,12 @@ namespace ACE.Server.WorldObjects
                                     var equippedAmmo = GetEquippedAmmo();
                                     if (equippedAmmo == null)
                                     {
-                                        var animTime = SetCombatMode(newCombatMode);
+                                        animTime = SetCombatMode(newCombatMode, out queueTime);
                                         Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
+                                        NextUseTime = DateTime.UtcNow.AddSeconds(animTime - queueTime);
 
                                         var actionChain = new ActionChain();
-                                        actionChain.AddDelaySeconds(animTime);
+                                        actionChain.AddDelaySeconds(animTime - queueTime);
                                         actionChain.AddAction(this, () => SetCombatMode(CombatMode.NonCombat));
                                         actionChain.EnqueueChain();
                                         return;
@@ -722,7 +727,10 @@ namespace ACE.Server.WorldObjects
                     break;
 
             }
-            SetCombatMode(newCombatMode);
+            animTime = SetCombatMode(newCombatMode, out queueTime);
+            //log.Info($"{Name}.HandleActionChangeCombatMode_Inner({newCombatMode}) - animTime: {animTime}, queueTime: {queueTime}");
+
+            NextUseTime = DateTime.UtcNow.AddSeconds(animTime - queueTime);
 
             if (RecordCast.Enabled)
                 RecordCast.OnSetCombatMode(newCombatMode);

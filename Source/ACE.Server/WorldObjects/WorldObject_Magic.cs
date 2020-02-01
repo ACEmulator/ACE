@@ -965,20 +965,30 @@ namespace ACE.Server.WorldObjects
 
                                         var targetDID = summoned ? targetPortal.OriginalPortal : targetPortal.WeenieClassId;
 
-                                        if (!targetPortal.NoTie)
+                                        var tiePortal = GetPortal(targetDID.Value);
+                                        if (tiePortal != null)
                                         {
-                                            if (isPrimary)
+                                            var result = tiePortal.CheckUseRequirements(player);
+                                            if (!result.Success && result.Message != null)
+                                                player.Session.Network.EnqueueSend(result.Message);
+
+                                            if (!tiePortal.NoTie && result.Success)
                                             {
-                                                player.LinkedPortalOneDID = targetDID;
-                                                player.SetProperty(PropertyBool.LinkedPortalOneSummon, summoned);
+                                                if (isPrimary)
+                                                {
+                                                    player.LinkedPortalOneDID = targetDID;
+                                                    player.SetProperty(PropertyBool.LinkedPortalOneSummon, summoned);
+                                                }
+                                                else
+                                                {
+                                                    player.LinkedPortalTwoDID = targetDID;
+                                                    player.SetProperty(PropertyBool.LinkedPortalTwoSummon, summoned);
+                                                }
+
+                                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the portal.", ChatMessageType.Magic));
                                             }
                                             else
-                                            {
-                                                player.LinkedPortalTwoDID = targetDID;
-                                                player.SetProperty(PropertyBool.LinkedPortalTwoSummon, summoned);
-                                            }
-
-                                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the portal.", ChatMessageType.Magic));
+                                                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotLinkToThatPortal));
                                         }
                                         else
                                             player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotLinkToThatPortal));
@@ -1033,6 +1043,15 @@ namespace ACE.Server.WorldObjects
                             {
                                 // You cannot summon that portal!
                                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotSummonPortal));
+                                break;
+                            }
+
+                            var result = summonPortal.CheckUseRequirements(player);
+                            if (!result.Success)
+                            {
+                                if (result.Message != null)
+                                    player.Session.Network.EnqueueSend(result.Message);
+
                                 break;
                             }
 
@@ -1331,7 +1350,7 @@ namespace ACE.Server.WorldObjects
                 if (i == 0)     
                     sp.ProjectileTarget = target;
 
-                sp.SetProjectilePhysicsState(target, useGravity);
+                sp.SetProjectilePhysicsState(sp.ProjectileTarget, useGravity);
                 sp.SpawnPos = new Position(sp.Location);
 
                 if (!LandblockManager.AddObject(sp))
@@ -1351,7 +1370,7 @@ namespace ACE.Server.WorldObjects
             ProjectileSpeedCache.Clear();
         }
 
-        private static Dictionary<uint, float> ProjectileRadiusCache = new Dictionary<uint, float>();
+        public static Dictionary<uint, float> ProjectileRadiusCache = new Dictionary<uint, float>();
 
         private float GetProjectileRadius(Spell spell)
         {
