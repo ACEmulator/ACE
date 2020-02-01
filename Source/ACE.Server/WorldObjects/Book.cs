@@ -28,6 +28,15 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Book(ACE.Entity.Models.Biota biota) : base(biota)
+        {
+            InitializePropertyDictionaries();
+            SetEphemeralValues();
+        }
+
         private void InitializePropertyDictionaries()
         {
             if (Biota.PropertiesBook == null)

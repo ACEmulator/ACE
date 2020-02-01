@@ -33,6 +33,14 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Portal(ACE.Entity.Models.Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
+
         protected void SetEphemeralValues()
         {
             ObjectDescriptionFlags |= ObjectDescriptionFlag.Portal;

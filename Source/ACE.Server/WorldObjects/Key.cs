@@ -22,6 +22,14 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Key(ACE.Entity.Models.Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
+
         private void SetEphemeralValues()
         {
             // These shoudl come from the weenie. After confirmation, remove these

@@ -194,7 +194,13 @@ namespace ACE.Server.Entity
         private void CreateWorldObjects()
         {
             var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock);
-            var shardObjects = DatabaseManager.Shard.GetStaticObjectsByLandblock(Id.Landblock);
+            var shardDbObjects = DatabaseManager.Shard.GetStaticObjectsByLandblock(Id.Landblock);
+            var shardObjects = new List<ACE.Entity.Models.Biota>();
+            foreach (var shardDbObject in shardDbObjects)
+            {
+                var newObject = ACE.Database.Adapter.BiotaConverter.ConvertToEntityBiota(shardDbObject);
+                shardObjects.Add(newObject);
+            }
             var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects, shardObjects);
 
             actionQueue.EnqueueAction(new ActionEventDelegate(() =>

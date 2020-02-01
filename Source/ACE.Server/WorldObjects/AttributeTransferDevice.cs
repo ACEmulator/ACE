@@ -38,6 +38,14 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public AttributeTransferDevice(ACE.Entity.Models.Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
+
         private void SetEphemeralValues()
         {
         }

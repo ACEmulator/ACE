@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Server.Factories;
@@ -16,7 +16,7 @@ namespace ACE.Server.WorldObjects
         public WorldObject ParentLink;
         public List<WorldObject> ChildLinks = new List<WorldObject>();
 
-        public void ActivateLinks(List<LandblockInstance> sourceObjects, List<Biota> biotas, WorldObject parent = null)
+        public void ActivateLinks(List<LandblockInstance> sourceObjects, List<ACE.Entity.Models.Biota> biotas, WorldObject parent = null)
         {
             if (LinkedInstances.Count == 0) return;
 

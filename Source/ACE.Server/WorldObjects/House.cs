@@ -4,6 +4,7 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.Database;
+using ACE.Database.Adapter;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -61,6 +62,15 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public House(ACE.Entity.Models.Biota biota) : base(biota)
+        {
+            InitializePropertyDictionaries();
+            SetEphemeralValues();
+        }
+
         private void InitializePropertyDictionaries()
         {
             if (Biota.HousePermissions == null)
@@ -113,7 +123,8 @@ namespace ACE.Server.WorldObjects
         {
             var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
 
-            var biota = DatabaseManager.Shard.GetBiota(houseGuid);
+            var dbBiota = DatabaseManager.Shard.GetBiota(houseGuid);
+            var biota = BiotaConverter.ConvertToEntityBiota(dbBiota);
             var instances = DatabaseManager.World.GetCachedInstancesByLandblock(landblock);
 
             if (biota == null)
@@ -123,14 +134,18 @@ namespace ACE.Server.WorldObjects
                     var houseInstance = instances.Where(h => h.Guid == houseGuid).FirstOrDefault();
 
                     if (houseInstance != null)
-                        biota = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(houseInstance.WeenieClassId), new ObjectGuid(houseInstance.Guid)).DatabaseBiota;
+                    {
+                        var weenie = DatabaseManager.World.GetCachedWeenie(houseInstance.WeenieClassId);
+                        var objectGuid = new ObjectGuid(houseInstance.Guid);
+                        biota = WorldObjectFactory.CreateWorldObject(weenie, objectGuid).Biota;
+                    }
                 }
             }
 
-            var linkedHouses = WorldObjectFactory.CreateNewWorldObjects(instances, new List<Database.Models.Shard.Biota>() { biota }, biota.WeenieClassId);
+            var linkedHouses = WorldObjectFactory.CreateNewWorldObjects(instances, new List<ACE.Entity.Models.Biota>() { biota }, biota.WeenieClassId);
 
             foreach (var linkedHouse in linkedHouses)
-                linkedHouse.ActivateLinks(instances, new List<Database.Models.Shard.Biota>() { biota }, linkedHouses[0]);
+                linkedHouse.ActivateLinks(instances, new List<ACE.Entity.Models.Biota>() { biota }, linkedHouses[0]);
 
             var house = (House)linkedHouses[0];
 

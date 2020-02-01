@@ -23,6 +23,11 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        public Hotspot(ACE.Entity.Models.Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
+
         private void SetEphemeralValues()
         {
             // If CycleTime is less than 1, player has a very bad time.

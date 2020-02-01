@@ -260,9 +260,126 @@ namespace ACE.Server.Factories
         }
 
         /// <summary>
+        /// Restore a WorldObject from the database.
+        /// Any properties tagged as Ephemeral will be removed from the biota.
+        /// </summary>
+        public static WorldObject CreateWorldObject(ACE.Entity.Models.Biota biota)
+        {
+            var objWeenieType = (WeenieType)biota.WeenieType;
+
+            switch (objWeenieType)
+            {
+                case WeenieType.Undef:
+                    return null;
+                case WeenieType.LifeStone:
+                    return new Lifestone(biota);
+                case WeenieType.Door:
+                    return new Door(biota);
+                case WeenieType.Portal:
+                    return new Portal(biota);
+                case WeenieType.Book:
+                    return new Book(biota);
+                case WeenieType.PKModifier:
+                    return new PKModifier(biota);
+                case WeenieType.Cow:
+                    return new Cow(biota);
+                case WeenieType.Creature:
+                    return new Creature(biota);
+                case WeenieType.Container:
+                    return new Container(biota);
+                case WeenieType.Scroll:
+                    return new Scroll(biota);
+                case WeenieType.Vendor:
+                    return new Vendor(biota);
+                case WeenieType.Coin:
+                    return new Coin(biota);
+                case WeenieType.Key:
+                    return new Key(biota);
+                case WeenieType.Food:
+                    return new Food(biota);
+                case WeenieType.Gem:
+                    return new Gem(biota);
+                case WeenieType.Game:
+                    return new Game(biota);
+                case WeenieType.GamePiece:
+                    return new GamePiece(biota);
+                case WeenieType.AllegianceBindstone:
+                    return new Bindstone(biota);
+                case WeenieType.Clothing:
+                    return new Clothing(biota);
+                case WeenieType.MeleeWeapon:
+                    return new MeleeWeapon(biota);
+                case WeenieType.MissileLauncher:
+                    return new MissileLauncher(biota);
+                case WeenieType.Ammunition:
+                    return new Ammunition(biota);
+                case WeenieType.Missile:
+                    return new Missile(biota);
+                case WeenieType.Corpse:
+                    return new Corpse(biota);
+                case WeenieType.Chest:
+                    return new Chest(biota);
+                case WeenieType.Stackable:
+                    return new Stackable(biota);
+                case WeenieType.SpellComponent:
+                    return new SpellComponent(biota);
+                case WeenieType.Switch:
+                    return new Switch(biota);
+                case WeenieType.AdvocateFane:
+                    return new AdvocateFane(biota);
+                case WeenieType.AdvocateItem:
+                    return new AdvocateItem(biota);
+                case WeenieType.Healer:
+                    return new Healer(biota);
+                case WeenieType.Lockpick:
+                    return new Lockpick(biota);
+                case WeenieType.Caster:
+                    return new Caster(biota);
+                case WeenieType.HotSpot:
+                    return new Hotspot(biota);
+                case WeenieType.ManaStone:
+                    return new ManaStone(biota);
+                case WeenieType.House:
+                    return new House(biota);
+                case WeenieType.SlumLord:
+                    return new SlumLord(biota);
+                case WeenieType.Storage:
+                    return new Storage(biota);
+                case WeenieType.Hook:
+                    return new Hook(biota);
+                case WeenieType.Hooker:
+                    return new Hooker(biota);
+                case WeenieType.HousePortal:
+                    return new WorldObjects.HousePortal(biota);
+                case WeenieType.SkillAlterationDevice:
+                    return new SkillAlterationDevice(biota);
+                case WeenieType.PressurePlate:
+                    return new PressurePlate(biota);
+                case WeenieType.PetDevice:
+                    return new PetDevice(biota);
+                case WeenieType.Pet:
+                    return new Pet(biota);
+                case WeenieType.CombatPet:
+                    return new CombatPet(biota);
+                case WeenieType.Allegiance:
+                    return new Allegiance(biota);
+                case WeenieType.AugmentationDevice:
+                    return new AugmentationDevice(biota);
+                case WeenieType.AttributeTransferDevice:
+                    return new AttributeTransferDevice(biota);
+                case WeenieType.CraftTool:
+                    return new CraftTool(biota);
+                case WeenieType.LightSource:
+                    return new LightSource(biota);
+                default:
+                    return new GenericObject(biota);
+            }
+        }
+
+        /// <summary>
         /// This will create a list of WorldObjects, all with new GUIDs and for every position provided.
         /// </summary>
-        public static List<WorldObject> CreateNewWorldObjects(List<LandblockInstance> sourceObjects, List<Biota> biotas, uint? restrict_wcid = null)
+        public static List<WorldObject> CreateNewWorldObjects(List<LandblockInstance> sourceObjects, List<ACE.Entity.Models.Biota> biotas, uint? restrict_wcid = null)
         {
             var results = new List<WorldObject>();
 

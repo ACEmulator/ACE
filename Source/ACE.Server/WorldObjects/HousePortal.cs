@@ -34,6 +34,14 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public HousePortal(ACE.Entity.Models.Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
+
         public override void SetLinkProperties(WorldObject wo)
         {
             // get properties from parent?

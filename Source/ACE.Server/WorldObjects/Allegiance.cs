@@ -95,6 +95,24 @@ namespace ACE.Server.WorldObjects
             Init(new ObjectGuid(MonarchId.Value));
         }
 
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Allegiance(ACE.Entity.Models.Biota biota) : base(biota)
+        {
+            InitializePropertyDictionaries();
+
+            //Console.WriteLine($"Allegiance({biota.Id:X8}): biota constructor");
+
+            if (MonarchId == null)
+            {
+                Console.WriteLine($"Allegiance({biota.Id:X8}): constructor called with no monarch");
+                return;
+            }
+
+            Init(new ObjectGuid(MonarchId.Value));
+        }
+
         public Allegiance(ObjectGuid monarch)
         {
             InitializePropertyDictionaries();

@@ -30,6 +30,14 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public PKModifier(ACE.Entity.Models.Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
+
         public bool IsPKSwitch  => PkLevelModifier ==  1;
         public bool IsNPKSwitch => PkLevelModifier == -1;
 
