@@ -38,7 +38,8 @@ namespace ACE.Server.Command.Handlers.Processors
 
         private void Run(Session session, int biotasPerTest)
         {
-            CommandHandlerHelper.WriteOutputInfo(session, $"Starting Shard Database Performance Tests.\nBiotas per test: {biotasPerTest}\nThis may take several minutes to complete...\nCurrent database queue count: {DatabaseManager.Shard.QueueCount}");
+            CommandHandlerHelper.WriteOutputInfo(session, "This command needs to be updated for the new biota model.");
+            /*CommandHandlerHelper.WriteOutputInfo(session, $"Starting Shard Database Performance Tests.\nBiotas per test: {biotasPerTest}\nThis may take several minutes to complete...\nCurrent database queue count: {DatabaseManager.Shard.QueueCount}");
 
 
             // Get the current queue wait time
@@ -266,7 +267,7 @@ namespace ACE.Server.Command.Handlers.Processors
             if (session != null && !SessionIsStillInWorld(session))
                 return;
 
-            CommandHandlerHelper.WriteOutputInfo(session, "Database Performance Tests Completed");
+            CommandHandlerHelper.WriteOutputInfo(session, "Database Performance Tests Completed");*/
         }
 
         private static void ModifyBiotas(ICollection<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)

@@ -1724,16 +1724,18 @@ namespace ACE.Server.Command.Handlers
             + "Use the /god command with caution. While unlikely, there is a possibility that the character that runs the command will not be able to return to normal or will end up in a state that is unrecoverable.")]
         public static void HandleGod(Session session, params string[] parameters)
         {
-            // @god - Sets your own stats to a godly level.
+            CommandHandlerHelper.WriteOutputInfo(session, "This command needs to be updated for the new biota model.");
+            /*// @god - Sets your own stats to a godly level.
             // need to save stats so that we can return with /ungod
             var biotas = new Collection<(Database.Models.Shard.Biota biota, ReaderWriterLockSlim rwLock)>();
             biotas.Add((session.Player.DatabaseBiota, session.Player.BiotaDatabaseLock));
-            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => DoGodMode(result, session));
+            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => DoGodMode(result, session));*/
         }
 
         private static void DoGodMode(bool playerSaved, Session session, bool exceptionReturn = false)
         {
-            if (!playerSaved)
+            CommandHandlerHelper.WriteOutputInfo(session, "This command needs to be updated for the new biota model.");
+            /*if (!playerSaved)
             {
                 ChatPacket.SendServerMessage(session, "Error saving player. Godmode not available.", ChatMessageType.Broadcast);
                 Console.WriteLine($"Player {session.Player.Name} tried to enter god mode but there was an error saving player. Godmode not available.");
@@ -1873,7 +1875,7 @@ namespace ACE.Server.Command.Handlers
 
             currentPlayer.SetMaxVitals();
 
-            ChatPacket.SendServerMessage(session, "You are now a god!!!", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, "You are now a god!!!", ChatMessageType.Broadcast);*/
         }
 
         // ungod
@@ -2216,7 +2218,8 @@ namespace ACE.Server.Command.Handlers
             "<wcid or weenie class name> [character name]")]
         public static void HandleMorph(Session session, params string[] parameters)
         {
-            // @morph - Morphs your bodily form into that of the specified creature. Be careful with this one!
+            CommandHandlerHelper.WriteOutputInfo(session, "This command needs to be updated for the new biota model.");
+            /*// @morph - Morphs your bodily form into that of the specified creature. Be careful with this one!
 
             string weenieClassDescription = parameters[0];
             bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
@@ -2335,7 +2338,7 @@ namespace ACE.Server.Command.Handlers
 
                 session.LogOffPlayer();
             });
-
+            */
         }
 
         // qst

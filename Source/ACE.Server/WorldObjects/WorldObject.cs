@@ -40,12 +40,6 @@ namespace ACE.Server.WorldObjects
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        /// <summary>
-        /// This is object property overrides that should have come from the shard db (or init to defaults of object is new to this instance).
-        /// You should not manipulate these values directly. To manipulate this use the exposed SetProperty and RemoveProperty functions instead.
-        /// </summary>
-        public Database.Models.Shard.Biota DatabaseBiota { get; }
-
         public ACE.Entity.Models.Biota Biota = new ACE.Entity.Models.Biota();
 
         /// <summary>
