@@ -720,7 +720,7 @@ namespace ACE.Database
 
             foreach (var value in biota.HousePermission)
             {
-                Models.Shard.HousePermission existingValue =  existingBiota.HousePermission.FirstOrDefault(r => r.HouseId == value.HouseId && r.PlayerGuid == value.PlayerGuid);
+                Models.Shard.HousePermission existingValue = existingBiota.HousePermission.FirstOrDefault(r => r.HouseId == value.HouseId && r.PlayerGuid == value.PlayerGuid);
 
                 if (existingValue == null)
                     existingBiota.HousePermission.Add(value);
@@ -746,7 +746,7 @@ namespace ACE.Database
                     cachedContext.Biota.Remove(biota);
 
                     Exception firstException = null;
-                    retry:
+                retry:
 
                     try
                     {
@@ -796,7 +796,7 @@ namespace ACE.Database
                         context.Biota.Remove(existingBiota);
 
                         Exception firstException = null;
-                        retry:
+                    retry:
 
                         try
                         {
@@ -882,7 +882,7 @@ namespace ACE.Database
                     }
 
                     Exception firstException = null;
-                    retry:
+                retry:
 
                     try
                     {
