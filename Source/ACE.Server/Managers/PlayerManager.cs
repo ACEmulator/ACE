@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
-
+using System.Threading.Tasks;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
@@ -42,11 +42,13 @@ namespace ACE.Server.Managers
         {
             var results = DatabaseManager.Shard.GetAllPlayerBiotasInParallel();
 
-            foreach (var result in results)
+            Parallel.ForEach(results, result =>
             {
                 var offlinePlayer = new OfflinePlayer(result);
-                offlinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
-            }
+
+                lock (offlinePlayers)
+                    offlinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
+            });
         }
 
         public static void Tick()
