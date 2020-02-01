@@ -216,7 +216,7 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "The items are being traded"));
             target.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(target.Session, "The items are being traded"));
 
-            var tradedItems = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+            var tradedItems = new Collection<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)>();
 
             var myEscrow = new List<WorldObject>();
             var targetEscrow = new List<WorldObject>();
@@ -227,7 +227,7 @@ namespace ACE.Server.WorldObjects
                 {
                     targetEscrow.Add(wo);
 
-                    tradedItems.Add((wo.DatabaseBiota, wo.BiotaDatabaseLock));
+                    tradedItems.Add((wo.Biota, wo.BiotaDatabaseLock));
                 }
             }
 
@@ -237,7 +237,7 @@ namespace ACE.Server.WorldObjects
                 {
                     myEscrow.Add(wo);
 
-                    tradedItems.Add((wo.DatabaseBiota, wo.BiotaDatabaseLock));
+                    tradedItems.Add((wo.Biota, wo.BiotaDatabaseLock));
                 }
             }
 
