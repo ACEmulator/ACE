@@ -926,6 +926,16 @@ namespace ACE.Server.Managers
             var destroyTarget = ThreadSafeRandom.Next(0.0f, 1.0f) <= destroyTargetChance;
             var destroySource = ThreadSafeRandom.Next(0.0f, 1.0f) <= destroySourceChance;
 
+            var createItem = success ? recipe.SuccessWCID : recipe.FailWCID;
+            var createAmount = success ? recipe.SuccessAmount : recipe.FailAmount;
+
+            if (createItem > 0 && DatabaseManager.World.GetWeenie(createItem) == null)
+            {
+                log.Error($"RecipeManager.CreateDestroyItems: Recipe.Id({recipe.Id}) couldn't find {(success ? "Success" : "Fail")}WCID {createItem} in database.");
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.CraftGeneralErrorUiMsg));
+                return;
+            }
+
             if (destroyTarget)
             {
                 var destroyTargetAmount = success ? recipe.SuccessDestroyTargetAmount : recipe.FailDestroyTargetAmount;
@@ -941,9 +951,6 @@ namespace ACE.Server.Managers
 
                 DestroyItem(player, recipe, source, destroySourceAmount, destroySourceMessage);
             }
-
-            var createItem = success ? recipe.SuccessWCID : recipe.FailWCID;
-            var createAmount = success ? recipe.SuccessAmount : recipe.FailAmount;
 
             WorldObject result = null;
 
