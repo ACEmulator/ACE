@@ -382,21 +382,24 @@ namespace ACE.Server.WorldObjects
             }
 
             // contain and non-wielded treasure create
-            var createList = Biota.PropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Contain) != 0 ||
-                (i.DestinationType & (int)DestinationType.Treasure) != 0 && (i.DestinationType & (int)DestinationType.Wield) == 0).ToList();
-
-            var selected = CreateListSelect(createList);
-
-            foreach (var item in selected)
+            if (Biota.PropertiesCreateList != null)
             {
-                var wo = WorldObjectFactory.CreateNewWorldObject(item);
+                var createList = Biota.PropertiesCreateList.Where(i => (i.DestinationType & (int) DestinationType.Contain) != 0 ||
+                                (i.DestinationType & (int) DestinationType.Treasure) != 0 && (i.DestinationType & (int) DestinationType.Wield) == 0).ToList();
 
-                if (wo != null)
+                var selected = CreateListSelect(createList);
+
+                foreach (var item in selected)
                 {
-                    if (corpse != null)
-                        corpse.TryAddToInventory(wo);
-                    else
-                        droppedItems.Add(wo);
+                    var wo = WorldObjectFactory.CreateNewWorldObject(item);
+
+                    if (wo != null)
+                    {
+                        if (corpse != null)
+                            corpse.TryAddToInventory(wo);
+                        else
+                            droppedItems.Add(wo);
+                    }
                 }
             }
 
