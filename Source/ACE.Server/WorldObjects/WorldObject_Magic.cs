@@ -840,6 +840,8 @@ namespace ACE.Server.WorldObjects
                         {
                             if (recallDID == null)
                             {
+                                EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+
                                 // lifestone recall
                                 ActionChain lifestoneRecall = new ActionChain();
                                 lifestoneRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
@@ -861,6 +863,8 @@ namespace ACE.Server.WorldObjects
 
                                     break;
                                 }
+
+                                EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
 
                                 ActionChain portalRecall = new ActionChain();
                                 portalRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
