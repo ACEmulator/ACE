@@ -46,7 +46,8 @@ namespace ACE.Server.WorldObjects
                 Biota.ClearSpells(BiotaDatabaseLock);
 
             //Biota.BiotaPropertiesCreateList.Clear();
-            Biota.PropertiesEmote.Clear();
+            if (Biota.PropertiesEmote != null)
+                Biota.PropertiesEmote.Clear(); // todo set this to null instead?
             GeneratorProfiles.Clear();            
 
             DeathTreasureType = null;
