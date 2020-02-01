@@ -1059,22 +1059,21 @@ namespace ACE.Database
             }
 
 
-            /*
-             if (biota.PropertiesAnimPart != null)
+            /*if (biota.PropertiesAnimPart != null)
             {
-            foreach (var value in biota.PropertiesAnimPart) // todo switch to for int i
-            {
-                BiotaPropertiesAnimPart existingValue = existingBiota.BiotaPropertiesAnimPart.FirstOrDefault(r => r.AnimationId == value.AnimationId); // todo animationid is not a unique key
-
-                if (existingValue == null)
-                    existingBiota.BiotaPropertiesAnimPart.Add(value);
-                else
+                foreach (var value in biota.PropertiesAnimPart) // todo switch to for int i
                 {
-                    existingValue.Index = value.Index;
-                    existingValue.AnimationId = value.AnimationId;
-                    existingValue.Order = (byte)biota.PropertiesAnimPart.IndexOf(value);
+                    BiotaPropertiesAnimPart existingValue = existingBiota.BiotaPropertiesAnimPart.FirstOrDefault(r => r.AnimationId == value.AnimationId); // todo animationid is not a unique key
+
+                    if (existingValue == null)
+                        existingBiota.BiotaPropertiesAnimPart.Add(value);
+                    else
+                    {
+                        existingValue.Index = value.Index;
+                        existingValue.AnimationId = value.AnimationId;
+                        existingValue.Order = (byte)biota.PropertiesAnimPart.IndexOf(value);
+                    }
                 }
-            }
             }
             foreach (var value in existingBiota.BiotaPropertiesAnimPart)
             {
@@ -1082,22 +1081,21 @@ namespace ACE.Database
                     context.BiotaPropertiesAnimPart.Remove(value);
             }*/
 
-            /*
-             if (biota.PropertiesPalette != null)
+            /*if (biota.PropertiesPalette != null)
             {
-            foreach (var value in biota.PropertiesPalette)
-            {
-                BiotaPropertiesPalette existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesPalette.FirstOrDefault(r => r.Id == value.Id));
-
-                if (existingValue == null)
-                    existingBiota.BiotaPropertiesPalette.Add(value);
-                else
+                foreach (var value in biota.PropertiesPalette)
                 {
-                    existingValue.SubPaletteId = value.SubPaletteId;
-                    existingValue.Offset = value.Offset;
-                    existingValue.Length = value.Length;
+                    BiotaPropertiesPalette existingValue = existingBiota.BiotaPropertiesPalette.FirstOrDefault(r => r.Id == value.Id);
+
+                    if (existingValue == null)
+                        existingBiota.BiotaPropertiesPalette.Add(value);
+                    else
+                    {
+                        existingValue.SubPaletteId = value.SubPaletteId;
+                        existingValue.Offset = value.Offset;
+                        existingValue.Length = value.Length;
+                    }
                 }
-            }
             }
             foreach (var value in existingBiota.BiotaPropertiesPalette)
             {
@@ -1135,109 +1133,108 @@ namespace ACE.Database
 
             // Properties for all world objects that typically aren't modified over the original Biota
 
-            /*
-             if (biota.PropertiesCreateList != null)
+            /*if (biota.PropertiesCreateList != null)
             {
-            foreach (var value in biota.PropertiesCreateList)
-            {
-                BiotaPropertiesCreateList existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesCreateList.FirstOrDefault(r => r.Id == value.Id));
-
-                if (existingValue == null)
-                    existingBiota.BiotaPropertiesCreateList.Add(value);
-                else
+                foreach (var value in biota.PropertiesCreateList)
                 {
-                    existingValue.DestinationType = value.DestinationType;
-                    existingValue.WeenieClassId = value.WeenieClassId;
-                    existingValue.StackSize = value.StackSize;
-                    existingValue.Palette = value.Palette;
-                    existingValue.Shade = value.Shade;
-                    existingValue.TryToBond = value.TryToBond;
+                    BiotaPropertiesCreateList existingValue = existingBiota.BiotaPropertiesCreateList.FirstOrDefault(r => r.Id == value.Id);
+
+                    if (existingValue == null)
+                        existingBiota.BiotaPropertiesCreateList.Add(value);
+                    else
+                    {
+                        existingValue.DestinationType = value.DestinationType;
+                        existingValue.WeenieClassId = value.WeenieClassId;
+                        existingValue.StackSize = value.StackSize;
+                        existingValue.Palette = value.Palette;
+                        existingValue.Shade = value.Shade;
+                        existingValue.TryToBond = value.TryToBond;
+                    }
                 }
-            }
             }
             foreach (var value in existingBiota.BiotaPropertiesCreateList)
             {
                 if (biota.PropertiesCreateList == null || !biota.PropertiesCreateList.Any(p => p.Id == value.Id))
                     context.BiotaPropertiesCreateList.Remove(value);
-            }
+            }*/
 
-            if (biota.PropertiesEmote != null)
+            /*if (biota.PropertiesEmote != null)
             {
-            foreach (var value in biota.PropertiesEmote)
-            {
-                BiotaPropertiesEmote existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesEmote.FirstOrDefault(r => r.Id == value.Id));
-
-                if (existingValue == null)
-                    existingBiota.BiotaPropertiesEmote.Add(value);
-                else
+                foreach (var value in biota.PropertiesEmote)
                 {
-                    existingValue.Category = value.Category;
-                    existingValue.Probability = value.Probability;
-                    existingValue.WeenieClassId = value.WeenieClassId;
-                    existingValue.Style = value.Style;
-                    existingValue.Substyle = value.Substyle;
-                    existingValue.Quest = value.Quest;
-                    existingValue.VendorType = value.VendorType;
-                    existingValue.MinHealth = value.MinHealth;
-                    existingValue.MaxHealth = value.MaxHealth;
+                    BiotaPropertiesEmote existingValue = existingBiota.BiotaPropertiesEmote.FirstOrDefault(r => r.Id == value.Id);
 
-                    foreach (var value2 in value.PropertiesEmoteAction)
+                    if (existingValue == null)
+                        existingBiota.BiotaPropertiesEmote.Add(value);
+                    else
                     {
-                        BiotaPropertiesEmoteAction existingValue2 = (value2.Id == 0 ? null : existingValue.BiotaPropertiesEmoteAction.FirstOrDefault(r => r.Id == value2.Id));
+                        existingValue.Category = value.Category;
+                        existingValue.Probability = value.Probability;
+                        existingValue.WeenieClassId = value.WeenieClassId;
+                        existingValue.Style = value.Style;
+                        existingValue.Substyle = value.Substyle;
+                        existingValue.Quest = value.Quest;
+                        existingValue.VendorType = value.VendorType;
+                        existingValue.MinHealth = value.MinHealth;
+                        existingValue.MaxHealth = value.MaxHealth;
 
-                        if (existingValue2 == null)
-                            existingValue.BiotaPropertiesEmoteAction.Add(value2);
-                        else
+                        foreach (var value2 in value.PropertiesEmoteAction)
                         {
-                            //existingValue2.EmoteId = value2.EmoteId;
-                            existingValue2.Order = (uint)value.PropertiesEmoteAction.IndexOf(value2);
-                            existingValue2.Type = value2.Type;
-                            existingValue2.Delay = value2.Delay;
-                            existingValue2.Extent = value2.Extent;
-                            existingValue2.Motion = value2.Motion;
-                            existingValue2.Message = value2.Message;
-                            existingValue2.TestString = value2.TestString;
-                            existingValue2.Min = value2.Min;
-                            existingValue2.Max = value2.Max;
-                            existingValue2.Min64 = value2.Min64;
-                            existingValue2.Max64 = value2.Max64;
-                            existingValue2.MinDbl = value2.MinDbl;
-                            existingValue2.MaxDbl = value2.MaxDbl;
-                            existingValue2.Stat = value2.Stat;
-                            existingValue2.Display = value2.Display;
-                            existingValue2.Amount = value2.Amount;
-                            existingValue2.Amount64 = value2.Amount64;
-                            existingValue2.HeroXP64 = value2.HeroXP64;
-                            existingValue2.Percent = value2.Percent;
-                            existingValue2.SpellId = value2.SpellId;
-                            existingValue2.WealthRating = value2.WealthRating;
-                            existingValue2.TreasureClass = value2.TreasureClass;
-                            existingValue2.TreasureType = value2.TreasureType;
-                            existingValue2.PScript = value2.PScript;
-                            existingValue2.Sound = value2.Sound;
-                            existingValue2.DestinationType = value2.DestinationType;
-                            existingValue2.WeenieClassId = value2.WeenieClassId;
-                            existingValue2.StackSize = value2.StackSize;
-                            existingValue2.Palette = value2.Palette;
-                            existingValue2.Shade = value2.Shade;
-                            existingValue2.TryToBond = value2.TryToBond;
-                            existingValue2.ObjCellId = value2.ObjCellId;
-                            existingValue2.OriginX = value2.OriginX;
-                            existingValue2.OriginY = value2.OriginY;
-                            existingValue2.OriginZ = value2.OriginZ;
-                            existingValue2.AnglesW = value2.AnglesW;
-                            existingValue2.AnglesX = value2.AnglesX;
-                            existingValue2.AnglesY = value2.AnglesY;
-                            existingValue2.AnglesZ = value2.AnglesZ;
+                            BiotaPropertiesEmoteAction existingValue2 = existingValue.BiotaPropertiesEmoteAction.FirstOrDefault(r => r.Id == value2.Id);
+
+                            if (existingValue2 == null)
+                                existingValue.BiotaPropertiesEmoteAction.Add(value2);
+                            else
+                            {
+                                //existingValue2.EmoteId = value2.EmoteId;
+                                existingValue2.Order = (uint)value.PropertiesEmoteAction.IndexOf(value2);
+                                existingValue2.Type = value2.Type;
+                                existingValue2.Delay = value2.Delay;
+                                existingValue2.Extent = value2.Extent;
+                                existingValue2.Motion = value2.Motion;
+                                existingValue2.Message = value2.Message;
+                                existingValue2.TestString = value2.TestString;
+                                existingValue2.Min = value2.Min;
+                                existingValue2.Max = value2.Max;
+                                existingValue2.Min64 = value2.Min64;
+                                existingValue2.Max64 = value2.Max64;
+                                existingValue2.MinDbl = value2.MinDbl;
+                                existingValue2.MaxDbl = value2.MaxDbl;
+                                existingValue2.Stat = value2.Stat;
+                                existingValue2.Display = value2.Display;
+                                existingValue2.Amount = value2.Amount;
+                                existingValue2.Amount64 = value2.Amount64;
+                                existingValue2.HeroXP64 = value2.HeroXP64;
+                                existingValue2.Percent = value2.Percent;
+                                existingValue2.SpellId = value2.SpellId;
+                                existingValue2.WealthRating = value2.WealthRating;
+                                existingValue2.TreasureClass = value2.TreasureClass;
+                                existingValue2.TreasureType = value2.TreasureType;
+                                existingValue2.PScript = value2.PScript;
+                                existingValue2.Sound = value2.Sound;
+                                existingValue2.DestinationType = value2.DestinationType;
+                                existingValue2.WeenieClassId = value2.WeenieClassId;
+                                existingValue2.StackSize = value2.StackSize;
+                                existingValue2.Palette = value2.Palette;
+                                existingValue2.Shade = value2.Shade;
+                                existingValue2.TryToBond = value2.TryToBond;
+                                existingValue2.ObjCellId = value2.ObjCellId;
+                                existingValue2.OriginX = value2.OriginX;
+                                existingValue2.OriginY = value2.OriginY;
+                                existingValue2.OriginZ = value2.OriginZ;
+                                existingValue2.AnglesW = value2.AnglesW;
+                                existingValue2.AnglesX = value2.AnglesX;
+                                existingValue2.AnglesY = value2.AnglesY;
+                                existingValue2.AnglesZ = value2.AnglesZ;
+                            }
+                        }
+                        foreach (var value2 in value.PropertiesEmoteAction)
+                        {
+                            if (!existingValue.BiotaPropertiesEmoteAction.Any(p => p.Id == value2.Id))
+                                context.BiotaPropertiesEmoteAction.Remove(value2);
                         }
                     }
-                    foreach (var value2 in value.PropertiesEmoteAction)
-                    {
-                        if (!existingValue.BiotaPropertiesEmoteAction.Any(p => p.Id == value2.Id))
-                            context.BiotaPropertiesEmoteAction.Remove(value2);
-                    }
                 }
-            }
             }
             foreach (var value in existingBiota.BiotaPropertiesEmote)
             {
@@ -1265,37 +1262,36 @@ namespace ACE.Database
                     context.BiotaPropertiesEventFilter.Remove(value);
             }
 
-            /*
-             if (biota.PropertiesGenerator != null)
+            /*if (biota.PropertiesGenerator != null)
             {
-            foreach (var value in biota.PropertiesGenerator)
-            {
-                BiotaPropertiesGenerator existingValue = (value.Id == 0 ? null : existingBiota.BiotaPropertiesGenerator.FirstOrDefault(r => r.Id == value.Id));
-
-                if (existingValue == null)
-                    existingBiota.BiotaPropertiesGenerator.Add(value);
-                else
+                foreach (var value in biota.PropertiesGenerator)
                 {
-                    existingValue.Probability = value.Probability;
-                    existingValue.WeenieClassId = value.WeenieClassId;
-                    existingValue.Delay = value.Delay;
-                    existingValue.InitCreate = value.InitCreate;
-                    existingValue.MaxCreate = value.MaxCreate;
-                    existingValue.WhenCreate = value.WhenCreate;
-                    existingValue.WhereCreate = value.WhereCreate;
-                    existingValue.StackSize = value.StackSize;
-                    existingValue.PaletteId = value.PaletteId;
-                    existingValue.Shade = value.Shade;
-                    existingValue.ObjCellId = value.ObjCellId;
-                    existingValue.OriginX = value.OriginX;
-                    existingValue.OriginY = value.OriginY;
-                    existingValue.OriginZ = value.OriginZ;
-                    existingValue.AnglesW = value.AnglesW;
-                    existingValue.AnglesX = value.AnglesX;
-                    existingValue.AnglesY = value.AnglesY;
-                    existingValue.AnglesZ = value.AnglesZ;
+                    BiotaPropertiesGenerator existingValue = existingBiota.BiotaPropertiesGenerator.FirstOrDefault(r => r.Id == value.Id);
+
+                    if (existingValue == null)
+                        existingBiota.BiotaPropertiesGenerator.Add(value);
+                    else
+                    {
+                        existingValue.Probability = value.Probability;
+                        existingValue.WeenieClassId = value.WeenieClassId;
+                        existingValue.Delay = value.Delay;
+                        existingValue.InitCreate = value.InitCreate;
+                        existingValue.MaxCreate = value.MaxCreate;
+                        existingValue.WhenCreate = value.WhenCreate;
+                        existingValue.WhereCreate = value.WhereCreate;
+                        existingValue.StackSize = value.StackSize;
+                        existingValue.PaletteId = value.PaletteId;
+                        existingValue.Shade = value.Shade;
+                        existingValue.ObjCellId = value.ObjCellId;
+                        existingValue.OriginX = value.OriginX;
+                        existingValue.OriginY = value.OriginY;
+                        existingValue.OriginZ = value.OriginZ;
+                        existingValue.AnglesW = value.AnglesW;
+                        existingValue.AnglesX = value.AnglesX;
+                        existingValue.AnglesY = value.AnglesY;
+                        existingValue.AnglesZ = value.AnglesZ;
+                    }
                 }
-            }
             }
             foreach (var value in existingBiota.BiotaPropertiesGenerator)
             {
@@ -1486,10 +1482,25 @@ namespace ACE.Database
             {
                 foreach (var value in biota.PropertiesAllegiance)
                 {
-                    // todo allegiance
+                    BiotaPropertiesAllegiance existingValue = existingBiota.BiotaPropertiesAllegiance.FirstOrDefault(r => r.CharacterId == value.CharacterId);
+
+                    if (existingValue == null)
+                    {
+                        existingValue = new BiotaPropertiesAllegiance { AllegianceId = biota.Id };
+
+                        existingBiota.BiotaPropertiesAllegiance.Add(existingValue);
+                    }
+
+                    existingValue.CharacterId = value.CharacterId;
+                    existingValue.Banned = value.Banned;
+                    existingValue.ApprovedVassal = value.ApprovedVassal;
                 }
             }
-            // todo allegiance reverse
+            foreach (var value in existingBiota.BiotaPropertiesAllegiance)
+            {
+                if (biota.PropertiesAllegiance == null || !biota.PropertiesAllegiance.Any(p => p.CharacterId == value.CharacterId))
+                    context.BiotaPropertiesAllegiance.Remove(value);
+            }
 
             if (biota.PropertiesEnchantmentRegistry != null)
             {
@@ -1528,18 +1539,17 @@ namespace ACE.Database
                     context.BiotaPropertiesEnchantmentRegistry.Remove(value);
             }
 
-            /*
-             if (biota.HousePermissions != null)
+            /*if (biota.HousePermissions != null)
             {
-             foreach (var value in biota.HousePermissions)
-            {
-                Models.Shard.HousePermission existingValue = existingBiota.HousePermission.FirstOrDefault(r => r.HouseId == value.HouseId && r.PlayerGuid == value.PlayerGuid);
+                foreach (var value in biota.HousePermissions)
+                {
+                    Models.Shard.HousePermission existingValue = existingBiota.HousePermission.FirstOrDefault(r => r.HouseId == value.HouseId && r.PlayerGuid == value.PlayerGuid);
 
-                if (existingValue == null)
-                    existingBiota.HousePermission.Add(value);
-                else
-                    existingValue.Storage = value.Storage;
-            }
+                    if (existingValue == null)
+                        existingBiota.HousePermission.Add(value);
+                    else
+                        existingValue.Storage = value.Storage;
+                }
             }
             foreach (var value in existingBiota.HousePermission)
             {
