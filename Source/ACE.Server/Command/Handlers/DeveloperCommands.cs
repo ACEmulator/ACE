@@ -8,6 +8,7 @@ using System.Numerics;
 using log4net;
 
 using ACE.Common;
+using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Database.Models.Shard;
@@ -2121,6 +2122,39 @@ namespace ACE.Server.Command.Handlers
                 WorldObject.AdjustDungeon(pos);
 
                 session.Player.Teleport(pos);
+            }
+        }
+
+        /// <summary>
+        /// Displays the dungeon name for the current landblock
+        /// </summary>
+        [CommandHandler("dungeonname", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the dungeon name for the current landblock")]
+        public static void HandleDungeonName(Session session, params string[] parameters)
+        {
+            var landblock = session.Player.Location.Landblock;
+
+            using (var ctx = new WorldDbContext())
+            {
+                var query = from weenie in ctx.Weenie
+                            join wstr in ctx.WeeniePropertiesString on weenie.ClassId equals wstr.ObjectId
+                            join wpos in ctx.WeeniePropertiesPosition on weenie.ClassId equals wpos.ObjectId
+                            where weenie.Type == (int)WeenieType.Portal && wpos.PositionType == (int)PositionType.Destination && wpos.ObjCellId >> 16 == landblock
+                            select wstr;
+
+                var results = query.ToList();
+
+                if (results.Count() == 0)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find dungeon {landblock:X4}", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                foreach (var result in results)
+                {
+                    var name = result.Value.TrimStart("Portal to ").TrimEnd(" Portal");
+
+                    session.Network.EnqueueSend(new GameMessageSystemChat(name, ChatMessageType.Broadcast));
+                }
             }
         }
 
