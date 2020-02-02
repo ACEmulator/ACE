@@ -91,7 +91,7 @@ namespace ACE.Entity.Adapter
             }
 
             if (weenie.PropertiesEventFilter != null && (instantiateEmptyCollections || weenie.PropertiesEventFilter.Count > 0))
-                result.PropertiesEventFilter = new Collection<int>((Collection<int>)weenie.PropertiesEventFilter);
+                result.PropertiesEventFilter = new HashSet<int>(weenie.PropertiesEventFilter);
 
             if (weenie.PropertiesGenerator != null && (instantiateEmptyCollections || weenie.PropertiesGenerator.Count > 0))
             {

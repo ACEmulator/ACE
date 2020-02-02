@@ -241,7 +241,7 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesEventFilter != null && (instantiateEmptyCollections || weenie.WeeniePropertiesEventFilter.Count > 0))
             {
-                result.PropertiesEventFilter = new Collection<int>();
+                result.PropertiesEventFilter = new HashSet<int>();
                 foreach (var value in weenie.WeeniePropertiesEventFilter)
                     result.PropertiesEventFilter.Add(value.Event);
             }

@@ -36,7 +36,7 @@ namespace ACE.Entity.Models
         // Properties for all world objects that typically aren't modified over the original weenie
         public ICollection<PropertiesCreateList> PropertiesCreateList { get; set; }
         public ICollection<PropertiesEmote> PropertiesEmote { get; set; }
-        public ICollection<int> PropertiesEventFilter { get; set; }
+        public HashSet<int> PropertiesEventFilter { get; set; }
         public IList<PropertiesGenerator> PropertiesGenerator { get; set; }
 
         // Properties for creatures

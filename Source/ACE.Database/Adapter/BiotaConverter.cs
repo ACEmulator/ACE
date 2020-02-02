@@ -241,7 +241,7 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesEventFilter != null && (instantiateEmptyCollections || biota.BiotaPropertiesEventFilter.Count > 0))
             {
-                result.PropertiesEventFilter = new List<int>();
+                result.PropertiesEventFilter = new HashSet<int>();
                 foreach (var value in biota.BiotaPropertiesEventFilter)
                     result.PropertiesEventFilter.Add(value.Event);
             }
@@ -428,7 +428,7 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesEnchantmentRegistry != null && (instantiateEmptyCollections || biota.BiotaPropertiesEnchantmentRegistry.Count > 0))
             {
-                result.PropertiesEnchantmentRegistry = new List<PropertiesEnchantmentRegistry>();
+                result.PropertiesEnchantmentRegistry = new Collection<PropertiesEnchantmentRegistry>();
 
                 foreach (var record in biota.BiotaPropertiesEnchantmentRegistry)
                 {
