@@ -788,7 +788,7 @@ namespace ACE.Server.WorldObjects.Managers
                     if (WorldObject == null || WorldObject.CurrentMotionState == null) break;
 
                     // TODO: REFACTOR ME
-                    if (emoteSet.Category != (uint)EmoteCategory.Vendor && emoteSet.Style != null)
+                    if (emoteSet.Category != EmoteCategory.Vendor && emoteSet.Style != null)
                     {
                         var startingMotion = new Motion((MotionStance)emoteSet.Style, (MotionCommand)emoteSet.Substyle);
                         motion = new Motion((MotionStance)emoteSet.Style, (MotionCommand)emote.Motion, emote.Extent);
@@ -1370,7 +1370,7 @@ namespace ACE.Server.WorldObjects.Managers
                 return null;
 
             // always pull emoteSet from _worldObject
-            var emoteSet = _worldObject.Biota.PropertiesEmote.Where(e => e.Category == (uint)category);
+            var emoteSet = _worldObject.Biota.PropertiesEmote.Where(e => e.Category == category);
 
             // optional criteria
             if (questName != null)
@@ -1530,7 +1530,7 @@ namespace ACE.Server.WorldObjects.Managers
 
         public IEnumerable<PropertiesEmote> Emotes(EmoteCategory emoteCategory)
         {
-            return WorldObject.Biota.PropertiesEmote.Where(x => x.Category == (int)emoteCategory);
+            return WorldObject.Biota.PropertiesEmote.Where(x => x.Category == emoteCategory);
         }
 
         public string Replace(string message, WorldObject source, WorldObject target, string quest)

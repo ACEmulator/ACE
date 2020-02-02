@@ -176,7 +176,7 @@ namespace ACE.Database.Adapter
                 {
                     var newEntity = new PropertiesEmote
                     {
-                        Category = record.Category,
+                        Category = (EmoteCategory)record.Category,
                         Probability = record.Probability,
                         WeenieClassId = record.WeenieClassId,
                         Style = record.Style,
@@ -601,7 +601,7 @@ namespace ACE.Database.Adapter
                     var entity = new BiotaPropertiesEmote
                     {
                         ObjectId = biota.Id,
-                        Category = value.Category,
+                        Category = (uint)value.Category,
                         Probability = value.Probability,
                         WeenieClassId = value.WeenieClassId,
                         Style = value.Style,

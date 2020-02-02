@@ -2441,7 +2441,7 @@ namespace ACE.Server.WorldObjects
 
             if (target.HasGiveOrRefuseEmoteForItem(item, out var emoteResult) || acceptAll)
             {
-                if (acceptAll || emoteResult.Category == (uint)EmoteCategory.Give)
+                if (acceptAll || emoteResult.Category == EmoteCategory.Give)
                 {
                     var isStackable = item is Stackable;
 
@@ -2481,7 +2481,7 @@ namespace ACE.Server.WorldObjects
                         }
                     }
                 }
-                else if (emoteResult.Category == (uint)EmoteCategory.Refuse)
+                else if (emoteResult.Category == EmoteCategory.Refuse)
                 {
                     // Item rejected by npc
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"You allow {target.Name} to examine your {item.NameWithMaterial}.", ChatMessageType.Broadcast));
