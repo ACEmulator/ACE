@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 using ACE.Database.Models.Shard;
@@ -113,7 +114,7 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesPalette != null && (instantiateEmptyCollections || biota.BiotaPropertiesPalette.Count > 0))
             {
-                result.PropertiesPalette = new List<PropertiesPalette>();
+                result.PropertiesPalette = new Collection<PropertiesPalette>();
 
                 foreach (var record in biota.BiotaPropertiesPalette)
                 {
@@ -150,7 +151,7 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesCreateList != null && (instantiateEmptyCollections || biota.BiotaPropertiesCreateList.Count > 0))
             {
-                result.PropertiesCreateList = new List<PropertiesCreateList>();
+                result.PropertiesCreateList = new Collection<PropertiesCreateList>();
 
                 foreach (var record in biota.BiotaPropertiesCreateList)
                 {
@@ -170,7 +171,7 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesEmote != null && (instantiateEmptyCollections || biota.BiotaPropertiesEmote.Count > 0))
             {
-                result.PropertiesEmote = new List<PropertiesEmote>();
+                result.PropertiesEmote = new Collection<PropertiesEmote>();
 
                 foreach (var record in biota.BiotaPropertiesEmote)
                 {
@@ -249,7 +250,7 @@ namespace ACE.Database.Adapter
             {
                 result.PropertiesGenerator = new List<PropertiesGenerator>();
 
-                foreach (var record in biota.BiotaPropertiesGenerator)
+                foreach (var record in biota.BiotaPropertiesGenerator) // TODO do we have the correct order?
                 {
                     var newEntity = new PropertiesGenerator
                     {
@@ -410,7 +411,7 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesAllegiance != null && (instantiateEmptyCollections || biota.BiotaPropertiesAllegiance.Count > 0))
             {
-                result.PropertiesAllegiance = new List<PropertiesAllegiance>();
+                result.PropertiesAllegiance = new Collection<PropertiesAllegiance>();
 
                 foreach (var record in biota.BiotaPropertiesAllegiance)
                 {
@@ -457,7 +458,7 @@ namespace ACE.Database.Adapter
 
             if (biota.HousePermission != null && (instantiateEmptyCollections || biota.HousePermission.Count > 0))
             {
-                result.HousePermissions = new List<ACE.Entity.Models.HousePermission>();
+                result.HousePermissions = new Collection<ACE.Entity.Models.HousePermission>();
 
                 foreach (var record in biota.HousePermission)
                 {

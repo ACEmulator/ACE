@@ -37,7 +37,7 @@ namespace ACE.Entity.Models
         public ICollection<PropertiesCreateList> PropertiesCreateList { get; set; }
         public ICollection<PropertiesEmote> PropertiesEmote { get; set; }
         public ICollection<int> PropertiesEventFilter { get; set; }
-        public ICollection<PropertiesGenerator> PropertiesGenerator { get; set; }
+        public IList<PropertiesGenerator> PropertiesGenerator { get; set; }
 
         // Properties for creatures
         public IDictionary<PropertyAttribute, PropertiesAttribute> PropertiesAttribute { get; set; }

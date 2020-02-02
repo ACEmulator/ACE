@@ -36,7 +36,7 @@ namespace ACE.Entity.Models
         ICollection<PropertiesCreateList> PropertiesCreateList { get; set; }
         ICollection<PropertiesEmote> PropertiesEmote { get; set; }
         ICollection<int> PropertiesEventFilter { get; set; }
-        ICollection<PropertiesGenerator> PropertiesGenerator { get; set; } // TODO: This might need to be IList, see https://github.com/ACEmulator/ACE/pull/2616
+        IList<PropertiesGenerator> PropertiesGenerator { get; set; } // Using a list per this: https://github.com/ACEmulator/ACE/pull/2616, however, no order is guaranteed for db records
 
         // Properties for creatures
         IDictionary<PropertyAttribute, PropertiesAttribute> PropertiesAttribute { get; set; }

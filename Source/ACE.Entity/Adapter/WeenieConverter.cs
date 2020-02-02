@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -56,7 +57,7 @@ namespace ACE.Entity.Adapter
 
             if (weenie.PropertiesPalette != null && (instantiateEmptyCollections || weenie.PropertiesPalette.Count > 0))
             {
-                result.PropertiesPalette = new List<PropertiesPalette>();
+                result.PropertiesPalette = new Collection<PropertiesPalette>();
 
                 foreach (var record in weenie.PropertiesPalette)
                     result.PropertiesPalette.Add(record.Clone());
@@ -75,7 +76,7 @@ namespace ACE.Entity.Adapter
 
             if (weenie.PropertiesCreateList != null && (instantiateEmptyCollections || weenie.PropertiesCreateList.Count > 0))
             {
-                result.PropertiesCreateList = new List<PropertiesCreateList>();
+                result.PropertiesCreateList = new Collection<PropertiesCreateList>();
 
                 foreach (var record in weenie.PropertiesCreateList)
                     result.PropertiesCreateList.Add(record.Clone());
@@ -83,14 +84,14 @@ namespace ACE.Entity.Adapter
 
             if (weenie.PropertiesEmote != null && (instantiateEmptyCollections || weenie.PropertiesEmote.Count > 0))
             {
-                result.PropertiesEmote = new List<PropertiesEmote>();
+                result.PropertiesEmote = new Collection<PropertiesEmote>();
 
                 foreach (var record in weenie.PropertiesEmote)
                     result.PropertiesEmote.Add(record.Clone());
             }
 
             if (weenie.PropertiesEventFilter != null && (instantiateEmptyCollections || weenie.PropertiesEventFilter.Count > 0))
-                result.PropertiesEventFilter = new List<int>(weenie.PropertiesEventFilter);
+                result.PropertiesEventFilter = new Collection<int>((Collection<int>)weenie.PropertiesEventFilter);
 
             if (weenie.PropertiesGenerator != null && (instantiateEmptyCollections || weenie.PropertiesGenerator.Count > 0))
             {

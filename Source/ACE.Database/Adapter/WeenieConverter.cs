@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 using ACE.Database.Models.Shard;
@@ -113,7 +114,7 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesPalette != null && (instantiateEmptyCollections || weenie.WeeniePropertiesPalette.Count > 0))
             {
-                result.PropertiesPalette = new List<PropertiesPalette>();
+                result.PropertiesPalette = new Collection<PropertiesPalette>();
 
                 foreach (var record in weenie.WeeniePropertiesPalette)
                 {
@@ -150,7 +151,7 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesCreateList != null && (instantiateEmptyCollections || weenie.WeeniePropertiesCreateList.Count > 0))
             {
-                result.PropertiesCreateList = new List<PropertiesCreateList>();
+                result.PropertiesCreateList = new Collection<PropertiesCreateList>();
 
                 foreach (var record in weenie.WeeniePropertiesCreateList)
                 {
@@ -170,7 +171,7 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesEmote != null && (instantiateEmptyCollections || weenie.WeeniePropertiesEmote.Count > 0))
             {
-                result.PropertiesEmote = new List<PropertiesEmote>();
+                result.PropertiesEmote = new Collection<PropertiesEmote>();
 
                 foreach (var record in weenie.WeeniePropertiesEmote)
                 {
@@ -240,7 +241,7 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesEventFilter != null && (instantiateEmptyCollections || weenie.WeeniePropertiesEventFilter.Count > 0))
             {
-                result.PropertiesEventFilter = new List<int>();
+                result.PropertiesEventFilter = new Collection<int>();
                 foreach (var value in weenie.WeeniePropertiesEventFilter)
                     result.PropertiesEventFilter.Add(value.Event);
             }
@@ -249,7 +250,7 @@ namespace ACE.Database.Adapter
             {
                 result.PropertiesGenerator = new List<PropertiesGenerator>();
 
-                foreach (var record in weenie.WeeniePropertiesGenerator)
+                foreach (var record in weenie.WeeniePropertiesGenerator) // TODO do we have the correct order?
                 {
                     var newEntity = new PropertiesGenerator
                     {
