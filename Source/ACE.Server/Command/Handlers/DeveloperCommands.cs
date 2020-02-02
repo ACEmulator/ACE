@@ -2126,7 +2126,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         /// <summary>
-        /// Displays the dungeon name for the current landblock
+        /// Shows the dungeon name for the current landblock
         /// </summary>
         [CommandHandler("dungeonname", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the dungeon name for the current landblock")]
         public static void HandleDungeonName(Session session, params string[] parameters)
