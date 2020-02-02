@@ -34,9 +34,9 @@ namespace ACE.Entity.Models
 
         // Properties for all world objects that typically aren't modified over the original weenie
         ICollection<PropertiesCreateList> PropertiesCreateList { get; set; }
-        ICollection<PropertiesEmote> PropertiesEmote { get; set; }
+        IDictionary<EmoteCategory, List<PropertiesEmote>> PropertiesEmote { get; set; }
         ICollection<int> PropertiesEventFilter { get; set; }
-        ICollection<PropertiesGenerator> PropertiesGenerator { get; set; }
+        ICollection<PropertiesGenerator> PropertiesGenerator { get; set; } // TODO: This might need to be IList, see https://github.com/ACEmulator/ACE/pull/2616
 
         // Properties for creatures
         IDictionary<PropertyAttribute, PropertiesAttribute> PropertiesAttribute { get; set; }
