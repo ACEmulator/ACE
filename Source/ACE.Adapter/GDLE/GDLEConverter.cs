@@ -25,9 +25,9 @@ namespace ACE.Adapter.GDLE
             foreach (var lbi in input)
             {
                 if (result.Value.Weenies == null)
-                    result.Value.Weenies = new List<Models.LandblockWeeny>();
+                    result.Value.Weenies = new List<Models.LandblockWeenie>();
 
-                var weenie = new Models.LandblockWeeny();
+                var weenie = new Models.LandblockWeenie();
                 weenie.Id = lbi.Guid;
 
                 // fix this ***, write it properly.

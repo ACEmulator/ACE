@@ -10,6 +10,6 @@ namespace ACE.Adapter.GDLE.Models
         public List<LandblockLink> Links { get; set; }
 
         [JsonProperty("weenies")]
-        public List<LandblockWeeny> Weenies { get; set; }
+        public List<LandblockWeenie> Weenies { get; set; }
     }
 }

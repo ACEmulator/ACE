@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace ACE.Adapter.GDLE.Models
 {
-    public class LandblockWeeny
+    public class LandblockWeenie
     {
         [JsonProperty("_desc")]
         public string Desc { get; set; }
