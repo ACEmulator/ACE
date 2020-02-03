@@ -10,10 +10,10 @@ namespace ACE.Entity.Models
         public EmoteCategory Category { get; set; }
         public float Probability { get; set; }
         public uint? WeenieClassId { get; set; }
-        public uint? Style { get; set; }
-        public uint? Substyle { get; set; }
+        public MotionStance? Style { get; set; }
+        public MotionCommand? Substyle { get; set; }
         public string Quest { get; set; }
-        public int? VendorType { get; set; }
+        public VendorType? VendorType { get; set; }
         public float? MinHealth { get; set; }
         public float? MaxHealth { get; set; }
 

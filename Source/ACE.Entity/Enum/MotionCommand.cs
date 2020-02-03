@@ -421,12 +421,12 @@ namespace ACE.Entity.Enum
 
     public static class MotionCommandHelper
     {
-        public static MotionCommand GetMotion(int motionCommand)
+        public static MotionCommand GetMotion(MotionCommand motionCommand)
         {
-            if (motionCommand == 0x10000162)
+            if ((int)motionCommand == 0x10000162)
                 return MotionCommand.Fishing;
 
-            return (MotionCommand)motionCommand;
+            return motionCommand;
         }
 
         public static bool IsMultiStrike(this MotionCommand motionCommand)

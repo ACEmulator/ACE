@@ -1376,7 +1376,7 @@ namespace ACE.Server.WorldObjects.Managers
             if (questName != null)
                 emoteSet = emoteSet.Where(e => e.Quest.Equals(questName, StringComparison.OrdinalIgnoreCase));
             if (vendorType != null)
-                emoteSet = emoteSet.Where(e => e.VendorType != null && e.VendorType.Value == (uint)vendorType);
+                emoteSet = emoteSet.Where(e => e.VendorType != null && e.VendorType.Value == vendorType);
             if (wcid != null)
                 emoteSet = emoteSet.Where(e => e.WeenieClassId == wcid.Value);
 
@@ -1384,8 +1384,8 @@ namespace ACE.Server.WorldObjects.Managers
             {
                 WorldObject.GetCurrentMotionState(out MotionStance currentStance, out MotionCommand currentMotion);
 
-                emoteSet = emoteSet.Where(e => e.Style == null || e.Style == (uint)currentStance);
-                emoteSet = emoteSet.Where(e => e.Substyle == null || e.Substyle == (uint)currentMotion);
+                emoteSet = emoteSet.Where(e => e.Style == null || e.Style == currentStance);
+                emoteSet = emoteSet.Where(e => e.Substyle == null || e.Substyle == currentMotion);
             }
 
             if (useRNG)

@@ -1,5 +1,7 @@
 using System;
 
+using ACE.Entity.Enum;
+
 namespace ACE.Entity.Models
 {
     public class PropertiesEmoteAction
@@ -7,7 +9,7 @@ namespace ACE.Entity.Models
         public uint Type { get; set; }
         public float Delay { get; set; }
         public float Extent { get; set; }
-        public int? Motion { get; set; }
+        public MotionCommand? Motion { get; set; }
         public string Message { get; set; }
         public string TestString { get; set; }
         public int? Min { get; set; }
@@ -26,8 +28,8 @@ namespace ACE.Entity.Models
         public int? WealthRating { get; set; }
         public int? TreasureClass { get; set; }
         public int? TreasureType { get; set; }
-        public int? PScript { get; set; }
-        public int? Sound { get; set; }
+        public PlayScript? PScript { get; set; }
+        public Sound? Sound { get; set; }
         public sbyte? DestinationType { get; set; }
         public uint? WeenieClassId { get; set; }
         public int? StackSize { get; set; }
