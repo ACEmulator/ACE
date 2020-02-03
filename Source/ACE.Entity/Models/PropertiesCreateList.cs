@@ -1,10 +1,12 @@
 using System;
 
+using ACE.Entity.Enum;
+
 namespace ACE.Entity.Models
 {
     public class PropertiesCreateList
     {
-        public sbyte DestinationType { get; set; }
+        public DestinationType DestinationType { get; set; }
         public uint WeenieClassId { get; set; }
         public int StackSize { get; set; }
         public sbyte Palette { get; set; }

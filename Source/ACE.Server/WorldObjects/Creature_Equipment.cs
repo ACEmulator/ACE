@@ -502,7 +502,7 @@ namespace ACE.Server.WorldObjects
             if (Biota.PropertiesCreateList == null)
                 return;
 
-            var wielded = Biota.PropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Wield) != 0).ToList();
+            var wielded = Biota.PropertiesCreateList.Where(i => (i.DestinationType & DestinationType.Wield) != 0).ToList();
 
             var items = CreateListSelect(wielded);
 

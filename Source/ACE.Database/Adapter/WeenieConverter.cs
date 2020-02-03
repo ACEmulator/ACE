@@ -157,7 +157,7 @@ namespace ACE.Database.Adapter
                 {
                     var newEntity = new PropertiesCreateList
                     {
-                        DestinationType = record.DestinationType,
+                        DestinationType = (DestinationType)record.DestinationType,
                         WeenieClassId = record.WeenieClassId,
                         StackSize = record.StackSize,
                         Palette = record.Palette,
@@ -259,8 +259,8 @@ namespace ACE.Database.Adapter
                         Delay = record.Delay,
                         InitCreate = record.InitCreate,
                         MaxCreate = record.MaxCreate,
-                        WhenCreate = record.WhenCreate,
-                        WhereCreate = record.WhereCreate,
+                        WhenCreate = (RegenerationType)record.WhenCreate,
+                        WhereCreate = (RegenLocationType)record.WhereCreate,
                         StackSize = record.StackSize,
                         PaletteId = record.PaletteId,
                         Shade = record.Shade,
@@ -324,7 +324,7 @@ namespace ACE.Database.Adapter
                 {
                     var newEntity = new PropertiesBodyPart
                     {
-                        DType = record.DType,
+                        DType = (DamageType)record.DType,
                         DVal = record.DVal,
                         DVar = record.DVar,
                         BaseArmor = record.BaseArmor,

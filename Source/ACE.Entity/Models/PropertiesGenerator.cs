@@ -1,5 +1,7 @@
 using System;
 
+using ACE.Entity.Enum;
+
 namespace ACE.Entity.Models
 {
     public class PropertiesGenerator
@@ -9,8 +11,8 @@ namespace ACE.Entity.Models
         public float? Delay { get; set; }
         public int InitCreate { get; set; }
         public int MaxCreate { get; set; }
-        public uint WhenCreate { get; set; }
-        public uint WhereCreate { get; set; }
+        public RegenerationType WhenCreate { get; set; }
+        public RegenLocationType WhereCreate { get; set; }
         public int? StackSize { get; set; }
         public uint? PaletteId { get; set; }
         public float? Shade { get; set; }

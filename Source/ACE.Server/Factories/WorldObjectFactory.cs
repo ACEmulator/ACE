@@ -494,7 +494,7 @@ namespace ACE.Server.Factories
         /// </summary>
         public static WorldObject CreateNewWorldObject(PropertiesCreateList item)
         {
-            var isTreasure = (item.DestinationType & (int)DestinationType.Treasure) != 0;
+            var isTreasure = (item.DestinationType & DestinationType.Treasure) != 0;
 
             var wo = CreateNewWorldObject(item.WeenieClassId);
 

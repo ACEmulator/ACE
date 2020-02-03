@@ -207,7 +207,7 @@ namespace ACE.Server.WorldObjects
             if (inventoryloaded)
                 return;
 
-            foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Shop))
+            foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Shop))
             {
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 

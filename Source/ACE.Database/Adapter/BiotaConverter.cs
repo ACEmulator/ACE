@@ -157,7 +157,7 @@ namespace ACE.Database.Adapter
                 {
                     var newEntity = new PropertiesCreateList
                     {
-                        DestinationType = record.DestinationType,
+                        DestinationType = (DestinationType)record.DestinationType,
                         WeenieClassId = record.WeenieClassId,
                         StackSize = record.StackSize,
                         Palette = record.Palette,
@@ -259,8 +259,8 @@ namespace ACE.Database.Adapter
                         Delay = record.Delay,
                         InitCreate = record.InitCreate,
                         MaxCreate = record.MaxCreate,
-                        WhenCreate = record.WhenCreate,
-                        WhereCreate = record.WhereCreate,
+                        WhenCreate = (RegenerationType)record.WhenCreate,
+                        WhereCreate = (RegenLocationType)record.WhereCreate,
                         StackSize = record.StackSize,
                         PaletteId = record.PaletteId,
                         Shade = record.Shade,
@@ -324,7 +324,7 @@ namespace ACE.Database.Adapter
                 {
                     var newEntity = new PropertiesBodyPart
                     {
-                        DType = record.DType,
+                        DType = (DamageType)record.DType,
                         DVal = record.DVal,
                         DVar = record.DVar,
                         BaseArmor = record.BaseArmor,
@@ -583,7 +583,7 @@ namespace ACE.Database.Adapter
                     var entity = new BiotaPropertiesCreateList
                     {
                         ObjectId = biota.Id,
-                        DestinationType = value.DestinationType,
+                        DestinationType = (sbyte)value.DestinationType,
                         WeenieClassId = value.WeenieClassId,
                         StackSize = value.StackSize,
                         Palette = value.Palette,
@@ -698,8 +698,8 @@ namespace ACE.Database.Adapter
                         Delay = value.Delay,
                         InitCreate = value.InitCreate,
                         MaxCreate = value.MaxCreate,
-                        WhenCreate = value.WhenCreate,
-                        WhereCreate = value.WhereCreate,
+                        WhenCreate = (uint)value.WhenCreate,
+                        WhereCreate = (uint)value.WhereCreate,
                         StackSize = value.StackSize,
                         PaletteId = value.PaletteId,
                         Shade = value.Shade,
@@ -748,7 +748,7 @@ namespace ACE.Database.Adapter
                     {
                         ObjectId = biota.Id,
                         Key = (ushort)kvp.Key,
-                        DType = kvp.Value.DType,
+                        DType = (int)kvp.Value.DType,
                         DVal = kvp.Value.DVal,
                         DVar = kvp.Value.DVar,
                         BaseArmor = kvp.Value.BaseArmor,

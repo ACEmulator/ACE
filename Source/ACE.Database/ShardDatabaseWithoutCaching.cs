@@ -1368,7 +1368,7 @@ namespace ACE.Database
                     }
 
                     existingValue.Key = (ushort)kvp.Key;
-                    existingValue.DType = kvp.Value.DType;
+                    existingValue.DType = (int)kvp.Value.DType;
                     existingValue.DVal = kvp.Value.DVal;
                     existingValue.DVar = kvp.Value.DVar;
                     existingValue.BaseArmor = kvp.Value.BaseArmor;

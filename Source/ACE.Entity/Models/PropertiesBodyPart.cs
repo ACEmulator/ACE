@@ -1,10 +1,12 @@
 using System;
 
+using ACE.Entity.Enum;
+
 namespace ACE.Entity.Models
 {
     public class PropertiesBodyPart
     {
-        public int DType { get; set; }
+        public DamageType DType { get; set; }
         public int DVal { get; set; }
         public float DVar { get; set; }
         public int BaseArmor { get; set; }
