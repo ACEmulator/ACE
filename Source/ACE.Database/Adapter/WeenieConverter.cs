@@ -364,7 +364,7 @@ namespace ACE.Database.Adapter
                     var newEntity = new PropertiesSkill
                     {
                         LevelFromPP = record.LevelFromPP,
-                        SAC = record.SAC,
+                        SAC = (SkillAdvancementClass)record.SAC,
                         PP = record.PP,
                         InitLevel = record.InitLevel,
                         ResistanceAtLastCheck = record.ResistanceAtLastCheck,

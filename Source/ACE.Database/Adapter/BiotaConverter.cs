@@ -364,7 +364,7 @@ namespace ACE.Database.Adapter
                     var newEntity = new PropertiesSkill
                     {
                         LevelFromPP = record.LevelFromPP,
-                        SAC = record.SAC,
+                        SAC = (SkillAdvancementClass)record.SAC,
                         PP = record.PP,
                         InitLevel = record.InitLevel,
                         ResistanceAtLastCheck = record.ResistanceAtLastCheck,
@@ -788,7 +788,7 @@ namespace ACE.Database.Adapter
                         ObjectId = biota.Id,
                         Type = (ushort)kvp.Key,
                         LevelFromPP = kvp.Value.LevelFromPP,
-                        SAC = kvp.Value.SAC,
+                        SAC = (uint)kvp.Value.SAC,
                         PP = kvp.Value.PP,
                         InitLevel = kvp.Value.InitLevel,
                         ResistanceAtLastCheck = kvp.Value.ResistanceAtLastCheck,

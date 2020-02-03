@@ -495,7 +495,7 @@ namespace ACE.Server.Command.Handlers
 
                 refundXP += skill.Value.PP;
 
-                skill.Value.SAC = (uint)SkillAdvancementClass.Untrained;
+                skill.Value.SAC = SkillAdvancementClass.Untrained;
                 skill.Value.InitLevel -= 5;
                 skill.Value.PP = 0;
                 skill.Value.LevelFromPP = 0;

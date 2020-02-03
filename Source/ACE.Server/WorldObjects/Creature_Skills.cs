@@ -27,7 +27,7 @@ namespace ACE.Server.WorldObjects
 
                 if (skillAdded)
                 {
-                    propertiesSkill.SAC = (uint)SkillAdvancementClass.Untrained;
+                    propertiesSkill.SAC = SkillAdvancementClass.Untrained;
                     ChangesDetected = true;
                 }
 

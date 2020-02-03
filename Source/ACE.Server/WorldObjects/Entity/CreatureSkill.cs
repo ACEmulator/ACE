@@ -38,10 +38,10 @@ namespace ACE.Server.WorldObjects.Entity
             get => (SkillAdvancementClass)PropertiesSkill.SAC;
             set
             {
-                if (PropertiesSkill.SAC != (uint)value)
+                if (PropertiesSkill.SAC != value)
                     creature.ChangesDetected = true;
 
-                PropertiesSkill.SAC = (uint)value;
+                PropertiesSkill.SAC = value;
             }
         }
 

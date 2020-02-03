@@ -1416,7 +1416,7 @@ namespace ACE.Database
 
                     existingValue.Type = (ushort)kvp.Key;
                     existingValue.LevelFromPP = kvp.Value.LevelFromPP;
-                    existingValue.SAC = kvp.Value.SAC;
+                    existingValue.SAC = (uint)kvp.Value.SAC;
                     existingValue.PP = kvp.Value.PP;
                     existingValue.InitLevel = kvp.Value.InitLevel;
                     existingValue.ResistanceAtLastCheck = kvp.Value.ResistanceAtLastCheck;
