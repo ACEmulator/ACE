@@ -8,12 +8,12 @@ namespace ACE.Entity.Models
     {
         public static int GetCount(this ICollection<PropertiesPalette> value, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return 0;
+
             rwLock.EnterReadLock();
             try
             {
-                if (value == null)
-                    return 0;
-
                 return value.Count;
             }
             finally
@@ -24,6 +24,9 @@ namespace ACE.Entity.Models
 
         public static List<PropertiesPalette> Clone(this ICollection<PropertiesPalette> value, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return null;
+
             rwLock.EnterReadLock();
             try
             {

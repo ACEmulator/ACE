@@ -12,6 +12,9 @@ namespace ACE.Entity.Models
             rwLock.EnterReadLock();
             try
             {
+                if (value == null)
+                    return new List<PropertiesAllegiance>();
+
                 return value.Where(i => i.ApprovedVassal).ToList();
             }
             finally
@@ -22,6 +25,9 @@ namespace ACE.Entity.Models
 
         public static List<PropertiesAllegiance> GetBanList(this ICollection<PropertiesAllegiance> value, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return new List<PropertiesAllegiance>();
+
             rwLock.EnterReadLock();
             try
             {
@@ -35,6 +41,9 @@ namespace ACE.Entity.Models
 
         public static PropertiesAllegiance GetFirstOrDefaultByCharacterId(this ICollection<PropertiesAllegiance> value, uint characterId, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return null;
+
             rwLock.EnterReadLock();
             try
             {
@@ -71,12 +80,15 @@ namespace ACE.Entity.Models
             }
         }
 
-        public static bool TryRemoveAllegiance(this ICollection<PropertiesAllegiance> value, uint characterId, out PropertiesAllegiance entity, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveAllegiance(this ICollection<PropertiesAllegiance> value, uint characterId, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return false;
+
             rwLock.EnterWriteLock();
             try
             {
-                entity = value.FirstOrDefault(x => x.CharacterId == characterId);
+                var entity = value.FirstOrDefault(x => x.CharacterId == characterId);
 
                 if (entity != null)
                 {

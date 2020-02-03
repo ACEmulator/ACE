@@ -323,7 +323,7 @@ namespace ACE.Server.WorldObjects.Managers
 
             var spellID = entry.SpellId;
 
-            if (WorldObject.Biota.PropertiesEnchantmentRegistry.TryRemoveEnchantment(entry.SpellId, entry.CasterObjectId, out _, WorldObject.BiotaDatabaseLock))
+            if (WorldObject.Biota.PropertiesEnchantmentRegistry.TryRemoveEnchantment(entry.SpellId, entry.CasterObjectId, WorldObject.BiotaDatabaseLock))
                 WorldObject.ChangesDetected = true;
 
             if (Player != null)
@@ -476,7 +476,7 @@ namespace ACE.Server.WorldObjects.Managers
 
             var spellID = entry.SpellId;
 
-            if (WorldObject.Biota.PropertiesEnchantmentRegistry.TryRemoveEnchantment(entry.SpellId, entry.CasterObjectId, out _, WorldObject.BiotaDatabaseLock))
+            if (WorldObject.Biota.PropertiesEnchantmentRegistry.TryRemoveEnchantment(entry.SpellId, entry.CasterObjectId, WorldObject.BiotaDatabaseLock))
                 WorldObject.ChangesDetected = true;
 
             if (Player != null)
@@ -493,7 +493,7 @@ namespace ACE.Server.WorldObjects.Managers
 
             foreach (var entry in entries)
             {
-                if (WorldObject.Biota.PropertiesEnchantmentRegistry.TryRemoveEnchantment(entry.SpellId, entry.CasterObjectId, out _, WorldObject.BiotaDatabaseLock))
+                if (WorldObject.Biota.PropertiesEnchantmentRegistry.TryRemoveEnchantment(entry.SpellId, entry.CasterObjectId, WorldObject.BiotaDatabaseLock))
                     WorldObject.ChangesDetected = true;
             }
             if (Player != null)

@@ -8,6 +8,9 @@ namespace ACE.Entity.Models
     {
         public static int GetPageCount(this IList<PropertiesBookPageData> value, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return 0;
+
             rwLock.EnterReadLock();
             try
             {
@@ -21,6 +24,9 @@ namespace ACE.Entity.Models
 
         public static List<PropertiesBookPageData> Clone(this IList<PropertiesBookPageData> value, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return null;
+
             rwLock.EnterReadLock();
             try
             {
@@ -35,6 +41,9 @@ namespace ACE.Entity.Models
 
         public static PropertiesBookPageData GetPage(this IList<PropertiesBookPageData> value, int index, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return null;
+
             rwLock.EnterReadLock();
             try
             {
@@ -66,6 +75,9 @@ namespace ACE.Entity.Models
 
         public static bool RemovePage(this IList<PropertiesBookPageData> value, int index, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return false;
+
             rwLock.EnterWriteLock();
             try
             {

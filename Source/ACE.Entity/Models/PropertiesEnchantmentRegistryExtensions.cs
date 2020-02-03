@@ -9,6 +9,9 @@ namespace ACE.Entity.Models
     {
         public static List<PropertiesEnchantmentRegistry> Clone(this ICollection<PropertiesEnchantmentRegistry> value, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return null;
+
             rwLock.EnterReadLock();
             try
             {
@@ -23,6 +26,9 @@ namespace ACE.Entity.Models
 
         public static bool HasEnchantments(this ICollection<PropertiesEnchantmentRegistry> value, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return false;
+
             rwLock.EnterReadLock();
             try
             {
@@ -36,6 +42,9 @@ namespace ACE.Entity.Models
 
         public static bool HasEnchantment(this ICollection<PropertiesEnchantmentRegistry> value, uint spellId, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return false;
+
             rwLock.EnterReadLock();
             try
             {
@@ -49,6 +58,9 @@ namespace ACE.Entity.Models
 
         public static PropertiesEnchantmentRegistry GetEnchantmentBySpell(this ICollection<PropertiesEnchantmentRegistry> value, int spellId, uint? casterGuid, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return null;
+
             rwLock.EnterReadLock();
             try
             {
@@ -67,6 +79,9 @@ namespace ACE.Entity.Models
 
         public static PropertiesEnchantmentRegistry GetEnchantmentBySpellSet(this ICollection<PropertiesEnchantmentRegistry> value, int spellId, int spellSetId, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return null;
+
             rwLock.EnterReadLock();
             try
             {
@@ -80,6 +95,9 @@ namespace ACE.Entity.Models
 
         public static List<PropertiesEnchantmentRegistry> GetEnchantmentsByCategory(this ICollection<PropertiesEnchantmentRegistry> value, ushort spellCategory, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return null;
+
             rwLock.EnterReadLock();
             try
             {
@@ -93,6 +111,9 @@ namespace ACE.Entity.Models
 
         public static List<PropertiesEnchantmentRegistry> GetEnchantmentsByStatModType(this ICollection<PropertiesEnchantmentRegistry> value, uint statModType, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return null;
+
             rwLock.EnterReadLock();
             try
             {
@@ -117,12 +138,15 @@ namespace ACE.Entity.Models
             }
         }
 
-        public static bool TryRemoveEnchantment(this ICollection<PropertiesEnchantmentRegistry> value, int spellId, uint casterObjectId, out PropertiesEnchantmentRegistry entity, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveEnchantment(this ICollection<PropertiesEnchantmentRegistry> value, int spellId, uint casterObjectId, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return false;
+
             rwLock.EnterWriteLock();
             try
             {
-                entity = value.FirstOrDefault(x => x.SpellId == spellId && x.CasterObjectId == casterObjectId);
+                var entity = value.FirstOrDefault(x => x.SpellId == spellId && x.CasterObjectId == casterObjectId);
 
                 if (entity != null)
                 {
@@ -141,6 +165,9 @@ namespace ACE.Entity.Models
 
         public static void RemoveAllEnchantments(this ICollection<PropertiesEnchantmentRegistry> value, IEnumerable<int> spellsToExclude, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return;
+
             rwLock.EnterWriteLock();
             try
             {

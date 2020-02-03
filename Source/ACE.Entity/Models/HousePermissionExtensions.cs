@@ -9,6 +9,9 @@ namespace ACE.Entity.Models
     {
         public static List<HousePermission> Clone(this ICollection<HousePermission> value, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return null;
+
             rwLock.EnterReadLock();
             try
             {
@@ -23,6 +26,9 @@ namespace ACE.Entity.Models
 
         public static HousePermission FindByPlayerGuid(this ICollection<HousePermission> value, uint playerGuid, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return null;
+
             rwLock.EnterReadLock();
             try
             {
@@ -49,6 +55,9 @@ namespace ACE.Entity.Models
 
         public static bool TryRemove(this ICollection<HousePermission> value, uint playerGuid, ReaderWriterLockSlim rwLock)
         {
+            if (value == null)
+                return false;
+
             rwLock.EnterWriteLock();
             try
             {

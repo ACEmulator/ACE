@@ -420,7 +420,7 @@ namespace ACE.Server.WorldObjects
                 return true;
             }
 
-            var removed = Biota.PropertiesAllegiance.TryRemoveAllegiance(playerGuid, out _, BiotaDatabaseLock);
+            var removed = Biota.PropertiesAllegiance.TryRemoveAllegiance(playerGuid, BiotaDatabaseLock);
 
             if (removed)
                 SaveBiotaToDatabase();
@@ -462,7 +462,7 @@ namespace ACE.Server.WorldObjects
                 return true;
             }
 
-            var removed = Biota.PropertiesAllegiance.TryRemoveAllegiance(playerGuid, out _, BiotaDatabaseLock);
+            var removed = Biota.PropertiesAllegiance.TryRemoveAllegiance(playerGuid, BiotaDatabaseLock);
 
             if (removed)
                 SaveBiotaToDatabase();
