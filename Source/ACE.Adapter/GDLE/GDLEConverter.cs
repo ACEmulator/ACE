@@ -9,6 +9,70 @@ namespace ACE.Adapter.GDLE
     public static class GDLEConverter
     {
         /// <summary>
+        /// Converts ACE landblock instances -> GDLE landblock instances
+        /// </summary>
+        public static bool TryConvert(List<LandblockInstance> input, out Models.Landblock result)
+        {
+            result = new Models.Landblock();
+
+            if (input.Count == 0)
+                return true;
+
+            result.Key = (uint)input[0].Landblock;
+
+            result.Value = new Models.LandblockValue();
+
+            foreach (var lbi in input)
+            {
+                if (result.Value.Weenies == null)
+                    result.Value.Weenies = new List<Models.LandblockWeeny>();
+
+                var weenie = new Models.LandblockWeeny();
+                weenie.Id = lbi.Guid;
+
+                // fix this ***, write it properly.
+                var pos = new Models.Position();
+                pos.ObjCellId = lbi.ObjCellId;
+
+                var frame = new Models.Frame();
+
+                frame.Origin = new Models.Origin();
+                frame.Origin.X = lbi.OriginX;
+                frame.Origin.Y = lbi.OriginY;
+                frame.Origin.Z = lbi.OriginZ;
+
+                frame.Angles = new Models.Angles();
+                frame.Angles.W = lbi.AnglesW;
+                frame.Angles.X = lbi.AnglesX;
+                frame.Angles.Y = lbi.AnglesY;
+                frame.Angles.Z = lbi.AnglesZ;
+
+                pos.Frame = frame;
+                weenie.Position = pos;
+
+                weenie.WCID = lbi.WeenieClassId;
+
+                result.Value.Weenies.Add(weenie);
+
+                if (lbi.LandblockInstanceLink != null)
+                {
+                    foreach (var link in lbi.LandblockInstanceLink)
+                    {
+                        if (result.Value.Links == null)
+                            result.Value.Links = new List<Models.LandblockLink>();
+
+                        var _link = new Models.LandblockLink();
+                        _link.Source = link.ParentGuid;
+                        _link.Target = link.ChildGuid;
+
+                        result.Value.Links.Add(_link);
+                    }
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
         /// This will not alter the Guid. To sanitize the Guid for ACE usage, you should use GDLELoader.TryLoadWorldSpawnsConverted() instead.
         /// </summary>
         public static bool TryConvert(Models.Landblock input, out List<LandblockInstance> results, out List<LandblockInstanceLink> links)
