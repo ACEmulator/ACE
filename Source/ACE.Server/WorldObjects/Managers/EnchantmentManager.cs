@@ -72,7 +72,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public PropertiesEnchantmentRegistry GetEnchantment(uint spellID, EquipmentSet equipmentSet)
         {
-            return WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentBySpellSet((int)spellID, (int)equipmentSet, WorldObject.BiotaDatabaseLock);
+            return WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentBySpellSet((int)spellID, equipmentSet, WorldObject.BiotaDatabaseLock);
         }
 
         /// <summary>
@@ -112,7 +112,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public List<PropertiesEnchantmentRegistry> GetEnchantments(SpellCategory spellCategory)
         {
-            return WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsByCategory((ushort)spellCategory, WorldObject.BiotaDatabaseLock);
+            return WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsByCategory(spellCategory, WorldObject.BiotaDatabaseLock);
         }
 
         /// <summary>
@@ -146,7 +146,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public List<PropertiesEnchantmentRegistry> GetEnchantments_TopLayer(EnchantmentTypeFlags statModType)
         {
-            return GetEnchantments_TopLayer(WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsByStatModType((uint)statModType, WorldObject.BiotaDatabaseLock));
+            return GetEnchantments_TopLayer(WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsByStatModType(statModType, WorldObject.BiotaDatabaseLock));
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public List<PropertiesEnchantmentRegistry> GetEnchantments_TopLayer(EnchantmentTypeFlags statModType, uint statModKey)
         {
-            return GetEnchantments_TopLayer(WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsByStatModType((uint)statModType, WorldObject.BiotaDatabaseLock).Where(e => e.StatModKey == statModKey).ToList());
+            return GetEnchantments_TopLayer(WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsByStatModType(statModType, WorldObject.BiotaDatabaseLock).Where(e => e.StatModKey == statModKey).ToList());
         }
 
         /// <summary>
@@ -235,7 +235,7 @@ namespace ACE.Server.WorldObjects.Managers
 
             entry.EnchantmentCategory = (uint)spell.MetaSpellType;
             entry.SpellId = (int)spell.Id;
-            entry.SpellCategory = (ushort)spell.Category;
+            entry.SpellCategory = spell.Category;
             entry.PowerLevel = spell.Power;
 
             // should default duration be 0 or -1 here?
@@ -268,7 +268,7 @@ namespace ACE.Server.WorldObjects.Managers
 
             entry.DegradeModifier = spell.DegradeModifier;
             entry.DegradeLimit = spell.DegradeLimit;
-            entry.StatModType = (uint)spell.StatModType;
+            entry.StatModType = spell.StatModType;
             entry.StatModKey = spell.StatModKey;
             entry.StatModValue = spell.StatModVal;
 
@@ -276,7 +276,7 @@ namespace ACE.Server.WorldObjects.Managers
             if (caster != null && caster.HasItemSet && caster.ItemSetContains(spell.Id))
             {
                 entry.HasSpellSetId = true;
-                entry.SpellSetId = (uint)caster.EquipmentSetId;
+                entry.SpellSetId = (EquipmentSet)caster.EquipmentSetId;
             }
 
             return entry;
@@ -295,12 +295,12 @@ namespace ACE.Server.WorldObjects.Managers
 
             // TODO: PropertiesEnchantmentRegistry.SpellId should be uint
             newEntry.SpellId = (int)GetCooldownSpellID(cooldownID.Value);
-            newEntry.SpellCategory = SpellCategory_Cooldown;
+            newEntry.SpellCategory = (SpellCategory)SpellCategory_Cooldown;
             newEntry.HasSpellSetId = true;
             newEntry.Duration = item.CooldownDuration ?? 0.0f;
             newEntry.CasterObjectId = item.Guid.Full;
             newEntry.DegradeLimit = -666;
-            newEntry.StatModType = (uint)EnchantmentTypeFlags.Cooldown;
+            newEntry.StatModType = EnchantmentTypeFlags.Cooldown;
             newEntry.EnchantmentCategory = (uint)EnchantmentMask.Cooldown;
 
             newEntry.LayerId = 1;      // cooldown at layer 1, any spells at layer 2?
@@ -331,7 +331,7 @@ namespace ACE.Server.WorldObjects.Managers
                 var layer = (entry.SpellId == (uint)SpellId.Vitae) ? (ushort)0 : entry.LayerId; // this line is to force vitae to be layer 0 to match retail pcaps. We save it as layer 1 to make EF Core happy.
                 Player.Session.Network.EnqueueSend(new GameEventMagicRemoveEnchantment(Player.Session, (ushort)entry.SpellId, layer));
 
-                if (sound && entry.SpellCategory != SpellCategory_Cooldown)
+                if (sound && entry.SpellCategory != (SpellCategory)SpellCategory_Cooldown)
                     Player.Session.Network.EnqueueSend(new GameMessageSound(Player.Guid, Sound.SpellExpire, 1.0f));
             }
             else
@@ -1148,9 +1148,9 @@ namespace ACE.Server.WorldObjects.Managers
                 var baseDamage = Math.Max(0.5f, spell.Formula.Level - 1);
 
                 // destructive curse / corruption
-                if (netherDot.SpellCategory == (int)SpellCategory.NetherDamageOverTimeRaising || netherDot.SpellCategory == (int)SpellCategory.NetherDamageOverTimeRaising3)
+                if (netherDot.SpellCategory == SpellCategory.NetherDamageOverTimeRaising || netherDot.SpellCategory == SpellCategory.NetherDamageOverTimeRaising3)
                     totalRating += baseDamage;
-                else if (netherDot.SpellCategory == (int)SpellCategory.NetherDamageOverTimeRaising2)    // corrosion
+                else if (netherDot.SpellCategory == SpellCategory.NetherDamageOverTimeRaising2)    // corrosion
                     totalRating += Math.Max(baseDamage * 2 - 1, 2);
             }
             return totalRating.Round();

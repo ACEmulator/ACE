@@ -532,7 +532,7 @@ namespace ACE.Server.WorldObjects
                 // remove any item set spells that shouldn't be active
                 foreach (var inactiveSpell in inactiveSpells)
                 {
-                    var removeSpells = enchantments.Where(i => i.SpellSetId == (uint)item.EquipmentSetId && i.SpellId == inactiveSpell.Id).ToList();
+                    var removeSpells = enchantments.Where(i => i.SpellSetId == item.EquipmentSetId && i.SpellId == inactiveSpell.Id).ToList();
 
                     foreach (var removeSpell in removeSpells)
                     {

@@ -438,7 +438,7 @@ namespace ACE.Database.Adapter
                         SpellId = record.SpellId,
                         LayerId = record.LayerId,
                         HasSpellSetId = record.HasSpellSetId,
-                        SpellCategory = record.SpellCategory,
+                        SpellCategory = (SpellCategory)record.SpellCategory,
                         PowerLevel = record.PowerLevel,
                         StartTime = record.StartTime,
                         Duration = record.Duration,
@@ -446,10 +446,10 @@ namespace ACE.Database.Adapter
                         DegradeModifier = record.DegradeModifier,
                         DegradeLimit = record.DegradeLimit,
                         LastTimeDegraded = record.LastTimeDegraded,
-                        StatModType = record.StatModType,
+                        StatModType = (EnchantmentTypeFlags)record.StatModType,
                         StatModKey = record.StatModKey,
                         StatModValue = record.StatModValue,
-                        SpellSetId = record.SpellSetId,
+                        SpellSetId = (EquipmentSet)record.SpellSetId,
                     };
 
                     result.PropertiesEnchantmentRegistry.Add(newEntity);
@@ -856,7 +856,7 @@ namespace ACE.Database.Adapter
                         SpellId = value.SpellId,
                         LayerId = value.LayerId,
                         HasSpellSetId = value.HasSpellSetId,
-                        SpellCategory = value.SpellCategory,
+                        SpellCategory = (ushort)value.SpellCategory,
                         PowerLevel = value.PowerLevel,
                         StartTime = value.StartTime,
                         Duration = value.Duration,
@@ -864,10 +864,10 @@ namespace ACE.Database.Adapter
                         DegradeModifier = value.DegradeModifier,
                         DegradeLimit = value.DegradeLimit,
                         LastTimeDegraded = value.LastTimeDegraded,
-                        StatModType = value.StatModType,
+                        StatModType = (uint)value.StatModType,
                         StatModKey = value.StatModKey,
                         StatModValue = value.StatModValue,
-                        SpellSetId = value.SpellSetId,
+                        SpellSetId = (uint)value.SpellSetId,
                     };
 
                     result.BiotaPropertiesEnchantmentRegistry.Add(entity);

@@ -1,5 +1,7 @@
 using System;
 
+using ACE.Entity.Enum;
+
 namespace ACE.Entity.Models
 {
     public class PropertiesEnchantmentRegistry
@@ -8,7 +10,7 @@ namespace ACE.Entity.Models
         public int SpellId { get; set; }
         public ushort LayerId { get; set; }
         public bool HasSpellSetId { get; set; }
-        public ushort SpellCategory { get; set; }
+        public SpellCategory SpellCategory { get; set; }
         public uint PowerLevel { get; set; }
         public double StartTime { get; set; }
         public double Duration { get; set; }
@@ -16,9 +18,9 @@ namespace ACE.Entity.Models
         public float DegradeModifier { get; set; }
         public float DegradeLimit { get; set; }
         public double LastTimeDegraded { get; set; }
-        public uint StatModType { get; set; }
+        public EnchantmentTypeFlags StatModType { get; set; }
         public uint StatModKey { get; set; }
         public float StatModValue { get; set; }
-        public uint SpellSetId { get; set; }
+        public EquipmentSet SpellSetId { get; set; }
     }
 }

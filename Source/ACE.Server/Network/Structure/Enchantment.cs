@@ -62,7 +62,7 @@ namespace ACE.Server.Network.Structure
 
         public Enchantment(WorldObject target, PropertiesEnchantmentRegistry entry)
         {
-            if (entry.SpellCategory == EnchantmentManager.SpellCategory_Cooldown)
+            if (entry.SpellCategory == (SpellCategory)EnchantmentManager.SpellCategory_Cooldown)
             {
                 InitCooldown(target, entry);
                 return;
@@ -75,7 +75,7 @@ namespace ACE.Server.Network.Structure
             Duration = entry.Duration;      // item spells can have -1, overriding the spell duration
             CasterGuid = entry.CasterObjectId;
             StatModValue = entry.StatModValue;
-            SpellSetID = entry.SpellSetId;
+            SpellSetID = (uint)entry.SpellSetId;
 
             Target = target;
             EnchantmentMask = (EnchantmentMask)entry.EnchantmentCategory;
@@ -102,7 +102,7 @@ namespace ACE.Server.Network.Structure
         {
             SpellID = (ushort)entry.SpellId;
             Layer = entry.LayerId;
-            SpellCategory = entry.SpellCategory;
+            SpellCategory = (ushort)entry.SpellCategory;
             StartTime = entry.StartTime;
             Duration = entry.Duration;
             CasterGuid = entry.CasterObjectId;

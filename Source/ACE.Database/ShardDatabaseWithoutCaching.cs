@@ -1519,7 +1519,7 @@ namespace ACE.Database
                     existingValue.SpellId = value.SpellId;
                     existingValue.LayerId = value.LayerId;
                     existingValue.HasSpellSetId = value.HasSpellSetId;
-                    existingValue.SpellCategory = value.SpellCategory;
+                    existingValue.SpellCategory = (ushort)value.SpellCategory;
                     existingValue.PowerLevel = value.PowerLevel;
                     existingValue.StartTime = value.StartTime;
                     existingValue.Duration = value.Duration;
@@ -1527,10 +1527,10 @@ namespace ACE.Database
                     existingValue.DegradeModifier = value.DegradeModifier;
                     existingValue.DegradeLimit = value.DegradeLimit;
                     existingValue.LastTimeDegraded = value.LastTimeDegraded;
-                    existingValue.StatModType = value.StatModType;
+                    existingValue.StatModType = (uint)value.StatModType;
                     existingValue.StatModKey = value.StatModKey;
                     existingValue.StatModValue = value.StatModValue;
-                    existingValue.SpellSetId = value.SpellSetId;
+                    existingValue.SpellSetId = (uint)value.SpellSetId;
                 }
             }
             foreach (var value in existingBiota.BiotaPropertiesEnchantmentRegistry)

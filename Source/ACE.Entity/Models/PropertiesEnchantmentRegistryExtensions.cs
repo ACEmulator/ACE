@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
+using ACE.Entity.Enum;
+
 namespace ACE.Entity.Models
 {
     public static class PropertiesEnchantmentRegistryExtensions
@@ -77,7 +79,7 @@ namespace ACE.Entity.Models
             }
         }
 
-        public static PropertiesEnchantmentRegistry GetEnchantmentBySpellSet(this ICollection<PropertiesEnchantmentRegistry> value, int spellId, int spellSetId, ReaderWriterLockSlim rwLock)
+        public static PropertiesEnchantmentRegistry GetEnchantmentBySpellSet(this ICollection<PropertiesEnchantmentRegistry> value, int spellId, EquipmentSet spellSetId, ReaderWriterLockSlim rwLock)
         {
             if (value == null)
                 return null;
@@ -93,7 +95,7 @@ namespace ACE.Entity.Models
             }
         }
 
-        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsByCategory(this ICollection<PropertiesEnchantmentRegistry> value, ushort spellCategory, ReaderWriterLockSlim rwLock)
+        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsByCategory(this ICollection<PropertiesEnchantmentRegistry> value, SpellCategory spellCategory, ReaderWriterLockSlim rwLock)
         {
             if (value == null)
                 return null;
@@ -109,7 +111,7 @@ namespace ACE.Entity.Models
             }
         }
 
-        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsByStatModType(this ICollection<PropertiesEnchantmentRegistry> value, uint statModType, ReaderWriterLockSlim rwLock)
+        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsByStatModType(this ICollection<PropertiesEnchantmentRegistry> value, EnchantmentTypeFlags statModType, ReaderWriterLockSlim rwLock)
         {
             if (value == null)
                 return null;

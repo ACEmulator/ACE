@@ -58,7 +58,7 @@ namespace ACE.Server.WorldObjects.Managers
 
             if (Player != null)
             {
-                if (entry.SpellCategory != SpellCategory_Cooldown)
+                if (entry.SpellCategory != (SpellCategory)SpellCategory_Cooldown)
                 {
                     var spell = new Spell(entry.SpellId);
                     Player.HandleSpellHooks(spell);
