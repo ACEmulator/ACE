@@ -141,6 +141,8 @@ namespace ACE.Server.WorldObjects
             healer.EnqueueMotion(actionChain, MotionCommand.Ready);
 
             actionChain.EnqueueChain();
+
+            healer.NextUseTime = DateTime.UtcNow.AddSeconds(animLength);
         }
 
         public void DoHealing(Player healer, Player target)

@@ -70,6 +70,8 @@ namespace ACE.Server.Entity
                 return;
             }
 
+            var animTime = 0.0f;
+
             var actionChain = new ActionChain();
 
             // handle switching to peace mode
@@ -77,14 +79,18 @@ namespace ACE.Server.Entity
             {
                 var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
                 actionChain.AddDelaySeconds(stanceTime);
+
+                animTime += stanceTime;
             }
 
             // perform clapping motion
-            player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
+            animTime += player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
 
             actionChain.AddAction(player, () => DoTailoring(player, source, target));
 
             actionChain.EnqueueChain();
+
+            player.NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
         }
 
         public static WeenieError VerifyUseRequirements(Player player, WorldObject source, WorldObject target)
