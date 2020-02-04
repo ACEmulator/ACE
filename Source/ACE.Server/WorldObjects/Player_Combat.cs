@@ -626,6 +626,8 @@ namespace ACE.Server.WorldObjects
             return PlayerKillerStatus.HasFlag(PlayerKillerStatus.PKLite) && new ObjectGuid(killerGuid ?? 0).IsPlayer() && killerGuid != Guid.Full;
         }
 
+        public static readonly float UseTimeEpsilon = 0.05f;
+
         /// <summary>
         /// This method processes the Game Action (F7B1) Change Combat Mode (0x0053)
         /// </summary>
@@ -633,12 +635,12 @@ namespace ACE.Server.WorldObjects
         {
             //log.Info($"{Name}.HandleActionChangeCombatMode({newCombatMode})");
 
-            if (DateTime.UtcNow >= NextUseTime)
+            if (DateTime.UtcNow >= NextUseTime.AddSeconds(UseTimeEpsilon))
                 HandleActionChangeCombatMode_Inner(newCombatMode);
             else
             {
                 var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds((NextUseTime - DateTime.UtcNow).TotalSeconds);
+                actionChain.AddDelaySeconds((NextUseTime - DateTime.UtcNow).TotalSeconds + UseTimeEpsilon);
                 actionChain.AddAction(this, () => HandleActionChangeCombatMode_Inner(newCombatMode));
                 actionChain.EnqueueChain();
             }
