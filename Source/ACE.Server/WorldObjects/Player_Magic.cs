@@ -173,6 +173,7 @@ namespace ACE.Server.WorldObjects
             if (target == null)
             {
                 SendUseDoneEvent(WeenieError.TargetNotAcquired);
+                MagicState.OnCastDone();
                 return;
             }
 
