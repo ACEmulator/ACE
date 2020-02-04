@@ -806,9 +806,11 @@ namespace ACE.Server.WorldObjects
 
             if (FastTick)
             {
+                var fastbuff = selfTarget && PropertyManager.GetBool("fastbuff").Item;
+
                 // return to magic ready stance
                 var actionChain = new ActionChain();
-                EnqueueMotion(actionChain, MotionCommand.Ready, 1.0f, true, castGesture, false, selfTarget);
+                EnqueueMotion(actionChain, MotionCommand.Ready, 1.0f, true, castGesture, false, fastbuff);
                 actionChain.AddAction(this, () =>
                 {
                     //if (!queue)
