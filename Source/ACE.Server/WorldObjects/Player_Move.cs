@@ -36,6 +36,12 @@ namespace ACE.Server.WorldObjects
 
         public void CreateMoveToChain(WorldObject target, Action<bool> callback, float? useRadius = null, bool rotate = true)
         {
+            if (FastTick)
+            {
+                CreateMoveToChain2(target, callback, useRadius, rotate);
+                return;
+            }
+
             var thisMoveToChainNumber = GetNextMoveToChainNumber();
 
             if (target.Location == null)
