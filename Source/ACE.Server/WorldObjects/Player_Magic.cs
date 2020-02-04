@@ -17,6 +17,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        // TODO: get rid of this, only used for determining if TurnTo is required
         public enum TargetCategory
         {
             Undef,
@@ -206,7 +207,7 @@ namespace ACE.Server.WorldObjects
             // self-wielded
             target = GetEquippedItem(targetGuid);
             if (target != null)
-                return TargetCategory.Wielded;
+                return TargetCategory.Inventory;
 
             // inventory item
             target = GetInventoryItem(targetGuid);
