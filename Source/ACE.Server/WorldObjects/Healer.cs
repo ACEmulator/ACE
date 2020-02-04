@@ -60,7 +60,11 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (targetPlayer.PlayerKillerStatus != healer.PlayerKillerStatus)
+            // ensure same PKType, although PK and PKLite players can heal NPKs:
+            // https://asheron.fandom.com/wiki/Player_Killer
+            // https://asheron.fandom.com/wiki/Player_Killer_Lite
+
+            if (targetPlayer.PlayerKillerStatus != healer.PlayerKillerStatus && targetPlayer.PlayerKillerStatus != PlayerKillerStatus.NPK)
             {
                 healer.SendWeenieErrorWithString(WeenieErrorWithString.YouFailToAffect_NotSamePKType, targetPlayer.Name);
                 healer.SendUseDoneEvent();

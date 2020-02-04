@@ -188,9 +188,16 @@ namespace ACE.Server.WorldObjects
                     return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_AcrossHouseBoundary, WeenieErrorWithString._FailsToAffectYouAcrossHouseBoundary };
             }
 
-            // Ensure that spell isn't being cast on another player that doesn't have the same PK status
+            // additional checks for different PKTypes
             if (player.PlayerKillerStatus != targetPlayer.PlayerKillerStatus)
-                return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_NotSamePKType, WeenieErrorWithString._FailsToAffectYou_NotSamePKType };
+            {
+                // require same pk status, unless beneficial spell being cast on NPK
+                // https://asheron.fandom.com/wiki/Player_Killer
+                // https://asheron.fandom.com/wiki/Player_Killer_Lite
+
+                if (spell == null || spell.IsHarmful || targetPlayer.PlayerKillerStatus != PlayerKillerStatus.NPK)
+                    return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_NotSamePKType, WeenieErrorWithString._FailsToAffectYou_NotSamePKType };
+            }
 
             return null;
         }
