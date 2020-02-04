@@ -183,14 +183,22 @@ namespace ACE.Server.WorldObjects
                 if (targetPlayer.PlayerKillerStatus == PlayerKillerStatus.NPK)
                     return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_TheyAreNotPK, WeenieErrorWithString._FailsToAffectYou_YouAreNotPK };
 
-                // Ensure that a harmful spell isn't being cast on another player that doesn't have the same PK status
-                if (player.PlayerKillerStatus != targetPlayer.PlayerKillerStatus)
-                    return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_NotSamePKType, WeenieErrorWithString._FailsToAffectYou_NotSamePKType };
-
                 // Ensure not attacking across housing boundary
                 if (!player.CheckHouseRestrictions(targetPlayer))
                     return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_AcrossHouseBoundary, WeenieErrorWithString._FailsToAffectYouAcrossHouseBoundary };
             }
+
+            // additional checks for different PKTypes
+            if (player.PlayerKillerStatus != targetPlayer.PlayerKillerStatus)
+            {
+                // require same pk status, unless beneficial spell being cast on NPK
+                // https://asheron.fandom.com/wiki/Player_Killer
+                // https://asheron.fandom.com/wiki/Player_Killer_Lite
+
+                if (spell == null || spell.IsHarmful || targetPlayer.PlayerKillerStatus != PlayerKillerStatus.NPK)
+                    return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_NotSamePKType, WeenieErrorWithString._FailsToAffectYou_NotSamePKType };
+            }
+
             return null;
         }
 
