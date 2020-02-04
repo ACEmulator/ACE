@@ -60,6 +60,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (targetPlayer.PlayerKillerStatus != healer.PlayerKillerStatus)
+            {
+                healer.SendWeenieErrorWithString(WeenieErrorWithString.YouFailToAffect_NotSamePKType, targetPlayer.Name);
+                healer.SendUseDoneEvent();
+                return;
+            }
+
             // ensure target player vital < MaxValue
             var vital = targetPlayer.GetCreatureVital(BoosterEnum);
 
