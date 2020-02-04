@@ -253,9 +253,9 @@ namespace ACE.Server.Entity
             // These values are all set just for verification purposes. Likely originally handled by unique WCID and recipe system.
             if (source is MeleeWeapon)
             {
-                target.DefaultCombatStyle = source.DefaultCombatStyle;
+                target.DefaultCombatStyle = source.DefaultCombatStyle;  // unused currently, keeping this around in case its needed..
                 target.W_AttackType = source.W_AttackType;
-                target.W_WeaponType = source.W_WeaponType;      // unused currently, keeping this around in case its needed..
+                target.W_WeaponType = source.W_WeaponType;
             }
             else if (source is MissileLauncher)
                 target.DefaultCombatStyle = source.DefaultCombatStyle;
@@ -434,8 +434,7 @@ namespace ACE.Server.Entity
             {
                 case ItemType.MeleeWeapon:
 
-                    if (source.DefaultCombatStyle != target.DefaultCombatStyle ||
-                        source.W_AttackType != target.W_AttackType ||
+                    if (source.W_WeaponType != target.W_WeaponType ||
                         source.W_DamageType != target.W_DamageType)
                     {
                         player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
