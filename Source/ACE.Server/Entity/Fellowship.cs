@@ -460,7 +460,7 @@ namespace ACE.Server.Entity
         /// Returns the amount to scale the XP for a fellow
         /// based on distance from the leader
         /// </summary>
-        private double GetDistanceScalar(Player earner, Player fellow, XpType xpType)
+        public double GetDistanceScalar(Player earner, Player fellow, XpType xpType)
         {
             if (earner == null || fellow == null)
                 return 0.0f;
