@@ -789,10 +789,13 @@ namespace ACE.Server.WorldObjects
 
         public void FinishCast(WeenieError useDone)
         {
+            var hasWindupGestures = MagicState.CastSpellParams.HasWindupGestures;
             var castGesture = MagicState.CastGesture;
 
             if (FastTick)
-                castGesture = MagicState.CastSpellParams.HasWindupGestures ? CurrentMotionState.MotionState.ForwardCommand : MagicState.CastGesture;
+                castGesture = hasWindupGestures ? CurrentMotionState.MotionState.ForwardCommand : MagicState.CastGesture;
+
+            var selfTarget = !hasWindupGestures && MagicState.CastSpellParams.Target == this;
 
             MagicState.OnCastDone();
 
@@ -805,7 +808,7 @@ namespace ACE.Server.WorldObjects
             {
                 // return to magic ready stance
                 var actionChain = new ActionChain();
-                EnqueueMotion(actionChain, MotionCommand.Ready, 1.0f, true, castGesture);
+                EnqueueMotion(actionChain, MotionCommand.Ready, 1.0f, true, castGesture, false, selfTarget);
                 actionChain.AddAction(this, () =>
                 {
                     //if (!queue)
