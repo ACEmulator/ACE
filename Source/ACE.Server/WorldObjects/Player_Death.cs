@@ -989,7 +989,7 @@ namespace ACE.Server.WorldObjects
         {
             var allPossessions = GetAllPossessions();
 
-            return allPossessions.Where(i => (i.Bonded ?? 0) == (int)BondedStatus.Slippery).ToList();
+            return allPossessions.Where(i => i.Bonded == BondedStatus.Slippery).ToList();
         }
 
         public List<WorldObject> HandleDestroyBonded()
@@ -997,7 +997,7 @@ namespace ACE.Server.WorldObjects
             var destroyedItems = new List<WorldObject>();
 
             var allPossessions = GetAllPossessions();
-            foreach (var destroyItem in allPossessions.Where(i => (i.Bonded ?? 0) == (int)BondedStatus.Destroy).ToList())
+            foreach (var destroyItem in allPossessions.Where(i => i.Bonded == BondedStatus.Destroy).ToList())
             {
                 TryConsumeFromInventoryWithNetworking(destroyItem, (destroyItem.StackSize ?? 1));
                 destroyedItems.Add(destroyItem);

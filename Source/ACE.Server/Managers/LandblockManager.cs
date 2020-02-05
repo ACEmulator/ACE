@@ -335,6 +335,7 @@ namespace ACE.Server.Managers
         public static bool AddObject(WorldObject worldObject, bool loadAdjacents = false)
         {
             var block = GetLandblock(worldObject.Location.LandblockId, loadAdjacents);
+
             return block.AddWorldObject(worldObject);
         }
 

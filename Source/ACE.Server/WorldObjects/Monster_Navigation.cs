@@ -151,7 +151,7 @@ namespace ACE.Server.WorldObjects
             if (MonsterState == State.Return)
                 Sleep();
 
-            PhysicsObj.CachedVelocity = Vector3.Zero;   // ??
+            PhysicsObj.CachedVelocity = Vector3.Zero;
             IsMoving = false;
         }
 

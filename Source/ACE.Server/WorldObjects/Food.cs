@@ -59,26 +59,30 @@ namespace ACE.Server.WorldObjects
             // manually send this swap
             var prevStance = player.CurrentMotionState.Stance;
 
+            var animTime = 0.0f;
+
             if (prevStance != MotionStance.NonCombat)
-                player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, (MotionCommand)prevStance);
+                animTime = player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, (MotionCommand)prevStance);
 
             // start the eat/drink motion
             var motionCommand = GetUseSound() == Sound.Eat1 ? MotionCommand.Eat : MotionCommand.Drink;
 
-            player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, motionCommand);
+            animTime += player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, motionCommand);
 
             // apply consumable
             actionChain.AddAction(player, () => ApplyConsumable(player));
 
             // return to ready stance
-            player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, motionCommand);
+            animTime += player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, motionCommand);
 
             if (prevStance != MotionStance.NonCombat)
-                player.EnqueueMotion_Force(actionChain, prevStance, MotionCommand.Ready, MotionCommand.NonCombat);
+                animTime += player.EnqueueMotion_Force(actionChain, prevStance, MotionCommand.Ready, MotionCommand.NonCombat);
 
             actionChain.AddAction(player, () => { player.IsBusy = false; });
 
             actionChain.EnqueueChain();
+
+            player.LastUseTime = animTime;
         }
 
         public enum ConsumableBuffType

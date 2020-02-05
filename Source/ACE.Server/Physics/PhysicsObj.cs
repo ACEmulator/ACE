@@ -2314,7 +2314,7 @@ namespace ACE.Server.Physics
             //Console.WriteLine($"{Name}.enter_cell_server({newCell.ID:X8})");
 
             enter_cell(newCell);
-            RequestPos.ObjCellID = newCell.ID;
+            RequestPos.ObjCellID = newCell.ID;      // document this control flow better
 
             // sync location for initial CO
             if (entering_world)
@@ -3389,6 +3389,16 @@ namespace ACE.Server.Physics
             if (CurCell == null || CurCell.ID != Position.ObjCellID)
             {
                 var newCell = LScape.get_landcell(newPos.ObjCellID);
+
+                if (WeenieObj.WorldObject is Player player && player.LastContact && newCell is LandCell landCell)
+                {
+                    Polygon walkable = null;
+                    if (landCell.find_terrain_poly(newPos.Frame.Origin, ref walkable))
+                    {
+                        ContactPlaneCellID = newPos.ObjCellID;
+                        ContactPlane = walkable.Plane;
+                    }
+                }
                 change_cell_server(newCell);
             }
         }
@@ -4219,6 +4229,8 @@ namespace ACE.Server.Physics
 
                 success &= requestCell >> 16 != 0x18A || CurCell?.ID >> 16 == requestCell >> 16;
             }
+
+            RequestPos.ObjCellID = requestCell;
 
             if (forcePos && success)
                 set_current_pos(RequestPos);

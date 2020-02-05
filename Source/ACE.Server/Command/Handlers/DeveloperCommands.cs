@@ -8,6 +8,7 @@ using System.Numerics;
 using log4net;
 
 using ACE.Common;
+using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Database.Models.Shard;
@@ -23,6 +24,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics.Entity;
+using ACE.Server.Physics.Extensions;
 using ACE.Server.Physics.Managers;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
@@ -2123,6 +2125,39 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
+        /// <summary>
+        /// Shows the dungeon name for the current landblock
+        /// </summary>
+        [CommandHandler("dungeonname", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the dungeon name for the current landblock")]
+        public static void HandleDungeonName(Session session, params string[] parameters)
+        {
+            var landblock = session.Player.Location.Landblock;
+
+            using (var ctx = new WorldDbContext())
+            {
+                var query = from weenie in ctx.Weenie
+                            join wstr in ctx.WeeniePropertiesString on weenie.ClassId equals wstr.ObjectId
+                            join wpos in ctx.WeeniePropertiesPosition on weenie.ClassId equals wpos.ObjectId
+                            where weenie.Type == (int)WeenieType.Portal && wpos.PositionType == (int)PositionType.Destination && wpos.ObjCellId >> 16 == landblock
+                            select wstr;
+
+                var results = query.ToList();
+
+                if (results.Count() == 0)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find dungeon {landblock:X4}", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                foreach (var result in results)
+                {
+                    var name = result.Value.TrimStart("Portal to ").TrimEnd(" Portal");
+
+                    session.Network.EnqueueSend(new GameMessageSystemChat(name, ChatMessageType.Broadcast));
+                }
+            }
+        }
+
 
         [CommandHandler("clearphysicscaches", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Clears Physics Object Caches")]
         public static void HandleClearPhysicsCaches(Session session, params string[] parameters)
@@ -2304,7 +2339,9 @@ namespace ACE.Server.Command.Handlers
             var i = 0;
             foreach (var item in sorted.Inventory)
             {
-                if ((item.WorldObject.Bonded ?? 0) != 0)
+                var bonded = item.WorldObject.Bonded ?? BondedStatus.Normal;
+
+                if (bonded != BondedStatus.Normal)
                     continue;
 
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{++i}. {item.Name} ({item.Category}, AdjustedValue: {item.AdjustedValue})", ChatMessageType.Broadcast));
@@ -2444,6 +2481,32 @@ namespace ACE.Server.Command.Handlers
 
                 //session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(levelScale * 100, 2)}% / {Math.Round(levelXPScale * 100, 2)}%", ChatMessageType.Broadcast));
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(levelXPScale * 100, 2)}%", ChatMessageType.Broadcast));
+            }
+        }
+
+        [CommandHandler("fellow-dist", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows distance to each fellowship member")]
+        public static void HandleFellowDist(Session session, params string[] parameters)
+        {
+            var player = session.Player;
+
+            var fellowship = player.Fellowship;
+
+            if (fellowship == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("You must be in a fellowship to use this command.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var fellows = fellowship.GetFellowshipMembers();
+
+            foreach (var fellow in fellows.Values)
+            {
+                var dist2d = session.Player.Location.Distance2D(fellow.Location);
+                var dist3d = session.Player.Location.DistanceTo(fellow.Location);
+
+                var scalar = session.Player.Fellowship.GetDistanceScalar(session.Player, fellow, XpType.Kill);
+
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name} | 2d: {dist2d:N0} | 3d: {dist3d:N0} | Scalar: {scalar:N0}", ChatMessageType.Broadcast));
             }
         }
 
@@ -2793,6 +2856,55 @@ namespace ACE.Server.Command.Handlers
 
             if (wo != null)
                 session.Network.EnqueueSend(new GameMessageSystemChat($"WeenieClassId: {wo.WeenieClassId}\nWeenieClassName: {wo.WeenieClassName}", ChatMessageType.Broadcast));
+        }
+
+        public static WorldObject LastTestAim;
+
+        [CommandHandler("testaim", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Tests the aim high/low motions, and projectile spawn position")]
+        public static void HandleTestAim(Session session, params string[] parameters)
+        {
+            var motionStr = parameters[0];
+
+            if (!motionStr.StartsWith("Aim", StringComparison.OrdinalIgnoreCase))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Motion must start with Aim!", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (!Enum.TryParse(motionStr, true, out MotionCommand motionCommand))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find MotionCommand {motionStr}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var positive = motionCommand >= MotionCommand.AimHigh15 && motionCommand <= MotionCommand.AimHigh90;
+
+            if (LastTestAim != null)
+                LastTestAim.Destroy();
+
+            var motion = new Motion(session.Player, motionCommand);
+
+            session.Player.EnqueueBroadcastMotion(motion);
+
+            // spawn ethereal arrow w/ no velocity or gravity
+            var localOrigin = session.Player.GetProjectileSpawnOrigin(300, motionCommand);
+
+            var globalOrigin = session.Player.Location.Pos + Vector3.Transform(localOrigin, session.Player.Location.Rotation);
+
+            var wo = WorldObjectFactory.CreateNewWorldObject(300);
+            wo.Ethereal = true;
+            wo.GravityStatus = false;
+
+            var angle = motionCommand.GetAimAngle().ToRadians();
+            var zRotation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, angle);
+
+            wo.Location = new Position(session.Player.Location);
+            wo.Location.Pos = globalOrigin;
+            wo.Location.Rotation *= zRotation;
+
+            session.Player.CurrentLandblock.AddWorldObject(wo);
+
+            LastTestAim = wo;
         }
     }
 }

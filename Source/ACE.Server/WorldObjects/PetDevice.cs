@@ -517,6 +517,8 @@ namespace ACE.Server.WorldObjects
 
             player.IsBusy = true;
 
+            var animTime = 0.0f;
+
             var actionChain = new ActionChain();
 
             // handle switching to peace mode
@@ -524,10 +526,12 @@ namespace ACE.Server.WorldObjects
             {
                 var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
                 actionChain.AddDelaySeconds(stanceTime);
+
+                animTime += stanceTime;
             }
 
             // perform clapping motion
-            player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
+            animTime += player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
 
             actionChain.AddAction(player, () =>
             {
@@ -545,6 +549,8 @@ namespace ACE.Server.WorldObjects
             player.EnqueueMotion(actionChain, MotionCommand.Ready);
 
             actionChain.EnqueueChain();
+
+            player.NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
         }
     }
 }

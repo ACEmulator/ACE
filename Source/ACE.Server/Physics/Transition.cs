@@ -260,7 +260,7 @@ namespace ACE.Server.Physics.Animation
             else
             {
                 SpherePath.AddOffsetToCheckPos(collideNormal * -angle);
-                CollisionInfo.SetCollisionNormal(collideNormal * angle);    // verify
+                CollisionInfo.SetCollisionNormal(-collideNormal);
             }
             return TransitionState.Adjusted;
         }
