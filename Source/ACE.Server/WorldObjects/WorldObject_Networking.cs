@@ -1066,7 +1066,7 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
-        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, MotionCommand? prevCommand = null, bool castGesture = false)
+        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, MotionCommand? prevCommand = null, bool castGesture = false, bool half = false)
         {
             var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
 
@@ -1089,6 +1089,9 @@ namespace ACE.Server.WorldObjects
                 CurrentMotionState = motion;
                 EnqueueBroadcastMotion(motion);
             });
+
+            if (half)
+                animLength *= 0.5f;
 
             actionChain.AddDelaySeconds(animLength);
 
