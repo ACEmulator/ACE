@@ -644,9 +644,6 @@ namespace ACE.Entity.Models
             rwLock.EnterWriteLock();
             try
             {
-                if (!biota.PropertiesSpellBook.ContainsKey(spell))
-                    return false;
-
                 return biota.PropertiesSpellBook.Remove(spell);
             }
             finally
