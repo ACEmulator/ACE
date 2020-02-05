@@ -69,6 +69,9 @@ namespace ACE.Server.Command.Handlers
                     break;
                 case "all":
                     break;
+                case "-log":
+                    logstats = true;                    
+                    break;
                 case "":
                     break;
                 default:
@@ -157,6 +160,9 @@ namespace ACE.Server.Command.Handlers
                 case "aetheria":
                     break;
                 case "all":
+                    break;
+                case "-log":
+                    logstats = true;
                     break;
                 case "":
                     break;

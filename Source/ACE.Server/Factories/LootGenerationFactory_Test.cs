@@ -22,7 +22,7 @@ namespace ACE.Server.Factories
 
             Console.WriteLine($"Creating {numItems} items, that are in tier {tier}");
 
-             var ls = SetLootStatsDefaults(new LootStats(),logstats);
+             var ls = SetLootStatsDefaults(new LootStats(), logstats);
 
             // Loop depending on how many items you are creating
             for (int i = 0; i < numItems; i++)
@@ -33,6 +33,11 @@ namespace ACE.Server.Factories
             Console.WriteLine(displayHeader);
             Console.WriteLine(DisplayStats(ls, displaytable));
             displayHeader += $" A total of {ls.TotalItems} items were generated in Tier {tier}. \n";
+            if (logstats == true)
+            {
+                string myfilename = string.Format("LootSim-{0:hh-mm-ss-tt_MM-dd-yyyy}.csv", DateTime.Now);
+                System.IO.File.WriteAllText(myfilename, displayHeader + DisplayStats(ls, displaytable));
+            }
 
             return displayHeader;
         }
@@ -41,7 +46,7 @@ namespace ACE.Server.Factories
             string displayHeader = $"\n LootFactory Simulator - Corpses\n ---------------------\n";
 
             var corpseContainer = new List<WorldObject>();
-            var ls = SetLootStatsDefaults(new LootStats(),logstats);
+            var ls = SetLootStatsDefaults(new LootStats(), logstats);
 
             Console.WriteLine($"Creating {numberofcorpses} corpses.");
             
@@ -76,11 +81,11 @@ namespace ACE.Server.Factories
             }
             Console.WriteLine(displayHeader);
             Console.WriteLine(DisplayStats(ls, displaytable));
-            displayHeader += $" A total of {ls.TotalItems} unique items were generated.";
+            displayHeader += $" A total of {ls.TotalItems} unique items were generated. \n";
             if (logstats == true)
             {
                 string myfilename = string.Format("LootSim-{0:hh-mm-ss-tt_MM-dd-yyyy}.csv", DateTime.Now);
-                System.IO.File.WriteAllText(myfilename, DisplayStats(ls, displaytable));
+                System.IO.File.WriteAllText(myfilename, displayHeader + DisplayStats(ls, displaytable));
             }
 
             return displayHeader;
@@ -386,9 +391,7 @@ namespace ACE.Server.Factories
                         Console.WriteLine($"ItemType.Useless Name={testItem.Name}");
                         break;
                     case ItemType.Gem:
-                        //ls.GemCount++;
                         string aetheriaColor = "None";
-                        int aetheriaLevel = 0;
                         if (testItem.Name.Contains("Aetheria"))
                         {
                             ls.AetheriaCount++;
