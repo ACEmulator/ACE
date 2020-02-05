@@ -158,12 +158,15 @@ namespace ACE.Server.Factories
                         break;
                     case ItemType.Armor:
                         ls.ArmorCount++;
+                        string equipmentSet = "None";
+                        if (testItem.EquipmentSetId != null)
+                            equipmentSet = Enum.GetName(typeof(EquipmentSet), testItem.EquipmentSetId);
                         if (logstats == true)
                         {
-                            ls.Armor += $"{testItem.ArmorLevel},{testItem.Value.Value},{testItem.Name}\n";
+                            ls.Armor += $"{testItem.ArmorLevel},{equipmentSet},{testItem.Value.Value},{testItem.Name}\n";
                         }
                         else
-                            ls.Armor += $" {testItem.ArmorLevel}\t {testItem.Value.Value} \t {testItem.Name}\n";
+                            ls.Armor += $" {testItem.ArmorLevel}\t {equipmentSet}\t\t {testItem.Value.Value} \t {testItem.Name}\n";
                         if (testItem.Name.Contains("Sheild"))
                             break;
                         if (testItem.ArmorLevel > ls.MaxAL)
@@ -710,10 +713,10 @@ namespace ACE.Server.Factories
                 ls.CasterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus \t Value \t MaxMana\n";
             if (logstats == true)
             {
-                ls.Armor = $"-----Armor----\nAL,Value,Type\n";
+                ls.Armor = $"-----Armor----\nAL,EquipmentSet,Value,Type\n";
             }
             else
-                ls.Armor = $"-----Armor----\n AL \t Value \t Type\n";
+                ls.Armor = $"-----Armor----\n AL \t Equipment Set \t\t Value \t Type\n";
             if (logstats == true)
             {
                 ls.Pets = $"-----Pet Devices----\nLevel,Dmg,DmgR,Crit,CritD,CDR,CritR,Total\n";
