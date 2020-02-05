@@ -65,6 +65,8 @@ namespace ACE.Server.Command.Handlers
                     break;
                 case "pet":
                     break;
+                case "aetheria":
+                    break;
                 case "all":
                     break;
                 case "":
@@ -152,12 +154,14 @@ namespace ACE.Server.Command.Handlers
                     break;
                 case "pet":
                     break;
+                case "aetheria":
+                    break;
                 case "all":
                     break;
                 case "":
                     break;
                 default:
-                    Console.WriteLine("Invalid Table Option.  Available Tables to show are melee, missile, caster, armor, pet, or all.");
+                    Console.WriteLine("Invalid Table Option.  Available Tables to show are melee, missile, caster, armor, pet, aetheria or all.");
                     return;
             }
             if (parameters.LongLength > 3)

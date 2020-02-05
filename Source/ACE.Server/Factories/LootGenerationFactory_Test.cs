@@ -386,7 +386,27 @@ namespace ACE.Server.Factories
                         Console.WriteLine($"ItemType.Useless Name={testItem.Name}");
                         break;
                     case ItemType.Gem:
-                        ls.GemCount++;
+                        //ls.GemCount++;
+                        string aetheriaColor = "None";
+                        int aetheriaLevel = 0;
+                        if (testItem.Name.Contains("Aetheria"))
+                        {
+                            ls.AetheriaCount++;
+                            if (testItem.WieldDifficulty == 75)
+                                aetheriaColor = "Blue  ";
+                            else if (testItem.WieldDifficulty == 150)
+                                aetheriaColor = "Yellow";
+                            else if (testItem.WieldDifficulty == 225)
+                                aetheriaColor = "Red   ";
+                            if (logstats == true)
+                            {
+                                ls.Aetheria += $"{aetheriaColor},{testItem.ItemMaxLevel}\n";
+                            }
+                            else
+                                ls.Aetheria += $" {aetheriaColor}\t {testItem.ItemMaxLevel}\n";
+                        }
+                        else
+                            ls.GemCount++;
                         break;
                     case ItemType.SpellComponents:
                         ls.SpellComponents++;
@@ -548,12 +568,16 @@ namespace ACE.Server.Factories
                 case "pet":
                     displayStats += ls.Pets + $"\n";
                     break;
+                case "aetheria":
+                    displayStats += ls.Aetheria + $"\n";
+                    break;
                 case "all":
                     displayStats += ls.MeleeWeapons + $"\n";
                     displayStats += ls.MissileWeapons + $"\n";
                     displayStats += ls.CasterWeapons + $"\n";
                     displayStats += ls.Armor + $"\n";
                     displayStats += ls.Pets + $"\n";
+                    displayStats += ls.Aetheria + $"\n";
                     break;
                 default:
                     displayStats += $"\n No Table(s) was selected to display, showing only general statistics";
@@ -568,6 +592,7 @@ namespace ACE.Server.Factories
                     $"MissileWeapon={ls.MissileWeaponCount} \n " +
                     $"Jewelry={ls.JewelryCount} \n " +
                     $"Gem={ls.GemCount} \n " +
+                    $"Aetheria={ls.AetheriaCount} \n " +
                     $"Clothing={ls.ClothingCount} \n " +
                     $"\n Generic Items \n " +
                     $"---- \n " +
@@ -595,6 +620,7 @@ namespace ACE.Server.Factories
                                 $"MissileWeapon= {ls.MissileWeaponCount / ls.TotalItems * 100}% \n " +
                                 $"Jewelry= {ls.JewelryCount / ls.TotalItems * 100}% \n " +
                                 $"Gem= {ls.GemCount / ls.TotalItems * 100}% \n " +
+                                $"Aetheria= {ls.AetheriaCount / ls.TotalItems * 100}% \n " +
                                 $"Clothing= {ls.ClothingCount / ls.TotalItems * 100}% \n " +
                                 $"Food= {ls.Food / ls.TotalItems * 100}% \n " +
                                 $"SpellComps= {ls.SpellComponents / ls.TotalItems * 100}% \n " +
@@ -653,6 +679,7 @@ namespace ACE.Server.Factories
             ls.MissileWeaponCount = 0;
             ls.JewelryCount = 0;
             ls.GemCount = 0;
+            ls.AetheriaCount = 0;
             ls.ClothingCount = 0;
             ls.OtherCount = 0;
             ls.NullCount = 0;
@@ -723,7 +750,12 @@ namespace ACE.Server.Factories
             }
             else
                 ls.Pets = $"-----Pet Devices----\n Level \t Dmg \t DmgR \t Crit \t CritD \t CDR \t CritR \t Total \n";
-
+            if (logstats == true)
+            {
+                ls.Aetheria = $"-----Aetheria----\nColor,Level";
+            }
+            else
+                ls.Aetheria = $"-----Aetheria----\n Color \t Level\n";
             return ls;
         }
         public static string LogStats()
