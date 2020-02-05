@@ -23,16 +23,16 @@ namespace ACE.Server.Factories
 
             switch (chance)
             {
-                case var rate when (rate < 3):
+                case var rate when (rate < 2):
                     wo = WorldObjectFactory.CreateNewWorldObject(49485); // Encapsulated Spirit
                     break;
-                case var rate when (rate < 18):
+                case var rate when (rate < 10):
                     wo = CreateSummoningEssence(tier);
                     break;
-                case var rate when (rate < 26):
+                case var rate when (rate < 28):
                     wo = CreateRandomScroll(tier);
                     break;
-                case var rate when (rate < 51):
+                case var rate when (rate < 57):
                     wo = CreateFood();
                     break;
                 default:
