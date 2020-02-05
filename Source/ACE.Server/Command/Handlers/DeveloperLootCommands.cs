@@ -80,8 +80,8 @@ namespace ACE.Server.Command.Handlers
                 case "":
                     break;
                 case "-log":
-                    logstats = false;
-                    Console.WriteLine("Logging is not currently working, Displaying results to screen.");
+                    logstats = true;
+                    // Console.WriteLine("Logging is not currently working, Displaying results to screen.");
                     break;
                 default:
                     Console.WriteLine("Invalid Option.  To log a file, use option -log");
@@ -167,8 +167,8 @@ namespace ACE.Server.Command.Handlers
                 case "":
                     break;
                 case "-log":
-                    logstats = false;
-                    Console.WriteLine("Logging is not currently working, Displaying results to screen.");
+                    logstats = true;
+                    // Console.WriteLine("Logging is not currently working, Displaying results to screen.");
                     break;
                 default:
                     Console.WriteLine("Invalid Option.  To log a file, use option -log");
