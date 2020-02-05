@@ -317,5 +317,11 @@ namespace ACE.Server.Command.Handlers
             // update client
             session.Network.EnqueueSend(new GameEventPlayerDescription(session));
         }
+
+        /*[CommandHandler("debugstance", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Debug logs the most recent stance history")]
+        public static void HandleDebugStance(Session session, params string[] parameters)
+        {
+            session.Player.StanceLog.Show();
+        }*/
     }
 }

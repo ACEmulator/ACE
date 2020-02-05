@@ -41,6 +41,8 @@ namespace ACE.Server.Entity
 
         public string Filename => $"{Player.Name}Cast.log";
 
+        public string DebugFilename => $"{Player.Name}-FixCast.log";
+
         public StringBuilder Buffer = new StringBuilder();
 
         public RecordCast(Player player)
@@ -93,7 +95,7 @@ namespace ACE.Server.Entity
 
         public void Output(string line)
         {
-            var timestamp = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss,fff");
+            var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss,fff");
 
             var timestamp_line = $"[{timestamp}] {line}";
 
@@ -111,7 +113,13 @@ namespace ACE.Server.Entity
 
         public void ShowInfo()
         {
-            log.Error($"{Player.Name} used /fixcast after being frozen for 5+ seconds:\n{Buffer}");
+            var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss,fff");
+
+            var stanceLog = Player.StanceLog.ToString();
+
+            var info = $"[{timestamp}] {Player.Name} used /fixcast after being frozen for 5+ seconds:\n{Buffer}\n{stanceLog}\n===================================================";
+
+            File.AppendAllText(DebugFilename, info);
         }
     }
 }

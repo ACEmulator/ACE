@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Common;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -506,6 +508,13 @@ namespace ACE.Server.Physics.Animation
         public void apply_raw_movement(bool cancelMoveTo, bool allowJump)
         {
             if (PhysicsObj == null) return;
+
+            if (PhysicsObj.IsPlayer && InterpretedState.CurrentStyle != RawState.CurrentStyle && PhysicsObj.WeenieObj.WorldObject is Player player)
+            {
+                var line = $"apply_raw_movement: {(MotionCommand)InterpretedState.CurrentStyle} -> {(MotionCommand)RawState.CurrentStyle}";
+                var stackTrace = Environment.StackTrace;
+                player.StanceLog.Add(line, stackTrace);
+            }
 
             InterpretedState.CurrentStyle = RawState.CurrentStyle;
             InterpretedState.ForwardCommand = RawState.ForwardCommand;
