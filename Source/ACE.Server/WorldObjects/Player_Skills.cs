@@ -356,7 +356,7 @@ namespace ACE.Server.WorldObjects
 
             amount = Math.Min(amount, creatureSkill.ExperienceLeft);
 
-            if (min > 0 && min <= uint.MinValue)
+            if (min > 0)
                 amount = Math.Max((uint)min, amount);
 
             //Console.WriteLine($"{Name}.GrantLevelProportionalSkillXP({skill}, {percent}, {max:N0})");
