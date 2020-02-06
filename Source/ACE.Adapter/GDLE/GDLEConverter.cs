@@ -18,7 +18,7 @@ namespace ACE.Adapter.GDLE
             if (input.Count == 0)
                 return true;
 
-            result.Key = (uint)input[0].Landblock;
+            result.Key = (uint)input[0].Landblock << 16;
 
             result.Value = new Models.LandblockValue();
 
