@@ -130,7 +130,7 @@ namespace ACE.Server.WorldObjects.Managers
                     max = emote.Max64 ?? emote.Max ?? 0;
 
                     if (player != null)
-                        player.GrantLevelProportionalXp(emote.Percent ?? 0, min, min, shareXP);
+                        player.GrantLevelProportionalXp(emote.Percent ?? 0, min, max, shareXP);
                     break;
 
                 case EmoteType.AwardLuminance:
