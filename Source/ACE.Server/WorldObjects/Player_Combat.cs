@@ -626,17 +626,21 @@ namespace ACE.Server.WorldObjects
             return PlayerKillerStatus.HasFlag(PlayerKillerStatus.PKLite) && new ObjectGuid(killerGuid ?? 0).IsPlayer() && killerGuid != Guid.Full;
         }
 
+        public static readonly float UseTimeEpsilon = 0.05f;
+
         /// <summary>
         /// This method processes the Game Action (F7B1) Change Combat Mode (0x0053)
         /// </summary>
         public void HandleActionChangeCombatMode(CombatMode newCombatMode)
         {
-            if (DateTime.UtcNow >= NextUseTime)
+            //log.Info($"{Name}.HandleActionChangeCombatMode({newCombatMode})");
+
+            if (DateTime.UtcNow >= NextUseTime.AddSeconds(UseTimeEpsilon))
                 HandleActionChangeCombatMode_Inner(newCombatMode);
             else
             {
                 var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds((NextUseTime - DateTime.UtcNow).TotalSeconds);
+                actionChain.AddDelaySeconds((NextUseTime - DateTime.UtcNow).TotalSeconds + UseTimeEpsilon);
                 actionChain.AddAction(this, () => HandleActionChangeCombatMode_Inner(newCombatMode));
                 actionChain.EnqueueChain();
             }
@@ -649,13 +653,10 @@ namespace ACE.Server.WorldObjects
             var missileWeapon = GetEquippedMissileWeapon();
             var caster = GetEquippedWand();
 
-            if (CombatMode == CombatMode.Magic && MagicState.IsCasting && MagicState.CastSpellParams != null)
-            {
-                var parms = MagicState.CastSpellParams;
-                DoCastSpell_Inner(parms.Spell, parms.IsWeaponSpell, parms.ManaUsed, parms.Target, CastingPreCheckStatus.CastFailed, false);
-                SendUseDoneEvent(WeenieError.YourSpellFizzled);
-                MagicState.OnCastDone();
-            }
+            if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
+                FailCast();
+
+            float animTime = 0.0f, queueTime = 0.0f;
 
             switch (newCombatMode)
             {
@@ -697,11 +698,12 @@ namespace ACE.Server.WorldObjects
                                     var equippedAmmo = GetEquippedAmmo();
                                     if (equippedAmmo == null)
                                     {
-                                        var animTime = SetCombatMode(newCombatMode);
+                                        animTime = SetCombatMode(newCombatMode, out queueTime);
                                         Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
+                                        NextUseTime = DateTime.UtcNow.AddSeconds(animTime - queueTime);
 
                                         var actionChain = new ActionChain();
-                                        actionChain.AddDelaySeconds(animTime);
+                                        actionChain.AddDelaySeconds(animTime - queueTime);
                                         actionChain.AddAction(this, () => SetCombatMode(CombatMode.NonCombat));
                                         actionChain.EnqueueChain();
                                         return;
@@ -727,7 +729,10 @@ namespace ACE.Server.WorldObjects
                     break;
 
             }
-            SetCombatMode(newCombatMode);
+            animTime = SetCombatMode(newCombatMode, out queueTime);
+            //log.Info($"{Name}.HandleActionChangeCombatMode_Inner({newCombatMode}) - animTime: {animTime}, queueTime: {queueTime}");
+
+            NextUseTime = DateTime.UtcNow.AddSeconds(animTime - queueTime);
 
             if (RecordCast.Enabled)
                 RecordCast.OnSetCombatMode(newCombatMode);

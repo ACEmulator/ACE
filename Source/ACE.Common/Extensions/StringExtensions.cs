@@ -1,3 +1,5 @@
+using System;
+
 namespace ACE.Common.Extensions
 {
     public static class StringExtensions
@@ -22,6 +24,28 @@ namespace ACE.Common.Extensions
                 return name + "es";
             else
                 return name + "s";
+        }
+
+        /// <summary>
+        /// Removes a string from the beginning of a string
+        /// </summary>
+        public static string TrimStart(this string result, string trimStart)
+        {
+            if (result.StartsWith(trimStart, StringComparison.OrdinalIgnoreCase))
+                result = result.Substring(trimStart.Length);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Removes a string from the end of a string
+        /// </summary>
+        public static string TrimEnd(this string result, string trimEnd)
+        {
+            if (result.EndsWith(trimEnd, StringComparison.OrdinalIgnoreCase))
+                result = result.Substring(0, result.Length - trimEnd.Length);
+
+            return result;
         }
     }
 }

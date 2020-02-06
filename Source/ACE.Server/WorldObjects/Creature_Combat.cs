@@ -676,6 +676,11 @@ namespace ACE.Server.WorldObjects
 
             effectiveLevel = Math.Min(effectiveLevel, shieldCap);
 
+            var ignoreShieldMod = attacker.GetIgnoreShieldMod(weapon);
+            //Console.WriteLine($"IgnoreShieldMod: {ignoreShieldMod}");
+
+            effectiveLevel *= ignoreShieldMod;
+
             // SL is multiplied by existing AL
             var shieldMod = SkillFormula.CalcArmorMod(effectiveLevel);
             //Console.WriteLine("ShieldMod: " + shieldMod);

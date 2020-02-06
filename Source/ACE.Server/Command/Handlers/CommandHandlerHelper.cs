@@ -49,7 +49,7 @@ namespace ACE.Server.Command.Handlers
         /// </summary>
         public static WorldObject GetLastAppraisedObject(Session session)
         {
-            var targetID = session.Player.CurrentAppraisalTarget;
+            var targetID = session.Player.RequestedAppraisalTarget;
             if (targetID == null)
             {
                 WriteOutputInfo(session, "GetLastAppraisedObject() - no appraisal target");

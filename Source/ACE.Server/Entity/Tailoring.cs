@@ -70,6 +70,8 @@ namespace ACE.Server.Entity
                 return;
             }
 
+            var animTime = 0.0f;
+
             var actionChain = new ActionChain();
 
             // handle switching to peace mode
@@ -77,14 +79,18 @@ namespace ACE.Server.Entity
             {
                 var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
                 actionChain.AddDelaySeconds(stanceTime);
+
+                animTime += stanceTime;
             }
 
             // perform clapping motion
-            player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
+            animTime += player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
 
             actionChain.AddAction(player, () => DoTailoring(player, source, target));
 
             actionChain.EnqueueChain();
+
+            player.NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
         }
 
         public static WeenieError VerifyUseRequirements(Player player, WorldObject source, WorldObject target)
@@ -196,6 +202,8 @@ namespace ACE.Server.Entity
                 target.UiEffects = source.UiEffects;
             target.MaterialType = source.MaterialType;
 
+            target.ObjScale = source.ObjScale;
+
             target.Shade = source.Shade;
 
             // This might not even be needed, but we'll do it anyways
@@ -242,8 +250,6 @@ namespace ACE.Server.Entity
             SetCommonProperties(source, target);
 
             target.TargetType = source.ItemType;
-
-            target.ObjScale = source.ObjScale;
 
             target.HookType = source.HookType;
             target.HookPlacement = source.HookPlacement;
@@ -486,6 +492,8 @@ namespace ACE.Server.Entity
             //player.UpdateProperty(target, PropertyInt.UiEffects, (int?)source.UiEffects);
             player.UpdateProperty(target, PropertyInt.MaterialType, (int?)source.MaterialType);
 
+            player.UpdateProperty(target, PropertyFloat.DefaultScale, source.ObjScale);
+
             player.UpdateProperty(target, PropertyFloat.Shade, source.Shade);
             player.UpdateProperty(target, PropertyFloat.Shade2, source.Shade2);
             player.UpdateProperty(target, PropertyFloat.Shade3, source.Shade3);
@@ -523,8 +531,6 @@ namespace ACE.Server.Entity
         public static void UpdateWeaponProps(Player player, WorldObject source, WorldObject target)
         {
             UpdateCommonProps(player, source, target);
-
-            player.UpdateProperty(target, PropertyFloat.DefaultScale, source.ObjScale);
 
             player.UpdateProperty(target, PropertyInt.HookType, source.HookType);
             player.UpdateProperty(target, PropertyInt.HookPlacement, source.HookPlacement);
