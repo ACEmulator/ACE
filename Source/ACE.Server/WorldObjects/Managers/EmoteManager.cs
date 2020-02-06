@@ -116,21 +116,21 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.AwardLevelProportionalSkillXP:
 
-                    var max = emote.Max64 ?? emote.Max ?? 0;
                     var min = emote.Min64 ?? emote.Min ?? 0;
+                    var max = emote.Max64 ?? emote.Max ?? 0;
 
                     if (player != null)
-                        player.GrantLevelProportionalSkillXP((Skill)emote.Stat, emote.Percent ?? 0, max, min);
+                        player.GrantLevelProportionalSkillXP((Skill)emote.Stat, emote.Percent ?? 0, min, max);
                     break;
 
                 case EmoteType.AwardLevelProportionalXP:
 
                     bool shareXP = emote.Display ?? false;
-                    max = emote.Max64 ?? emote.Max ?? 0;
                     min = emote.Min64 ?? emote.Min ?? 0;
+                    max = emote.Max64 ?? emote.Max ?? 0;
 
                     if (player != null)
-                        player.GrantLevelProportionalXp(emote.Percent ?? 0, max, min, shareXP);
+                        player.GrantLevelProportionalXp(emote.Percent ?? 0, min, min, shareXP);
                     break;
 
                 case EmoteType.AwardLuminance:
