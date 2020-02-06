@@ -242,6 +242,22 @@ namespace ACE.Adapter.GDLE
             }
         }
 
+        public static bool TryLoadQuest(string file, out Models.Quest result)
+        {
+            try
+            {
+                var fileText = File.ReadAllText(file);
+
+                result = JsonConvert.DeserializeObject<Models.Quest>(fileText);
+
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
+        }
 
         public static bool TryLoadQuests(string file, out List<Models.Quest> results)
         {

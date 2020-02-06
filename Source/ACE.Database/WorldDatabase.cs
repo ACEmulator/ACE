@@ -1122,6 +1122,11 @@ namespace ACE.Database
 
         private readonly ConcurrentDictionary<string, Quest> cachedQuest = new ConcurrentDictionary<string, Quest>();
 
+        public bool ClearCachedQuest(string questName)
+        {
+            return cachedQuest.TryRemove(questName, out _);
+        }
+
         public Quest GetCachedQuest(string questName)
         {
             if (cachedQuest.TryGetValue(questName, out var quest))
