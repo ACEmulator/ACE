@@ -116,16 +116,21 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.AwardLevelProportionalSkillXP:
 
+                    var max = emote.Max64 ?? emote.Max ?? 0;
+                    var min = emote.Min64 ?? emote.Min ?? 0;
+
                     if (player != null)
-                        player.GrantLevelProportionalSkillXP((Skill)emote.Stat, emote.Percent ?? 0, emote.Max64 ?? 0);
+                        player.GrantLevelProportionalSkillXP((Skill)emote.Stat, emote.Percent ?? 0, max, min);
                     break;
 
                 case EmoteType.AwardLevelProportionalXP:
 
                     bool shareXP = emote.Display ?? false;
+                    max = emote.Max64 ?? emote.Max ?? 0;
+                    min = emote.Min64 ?? emote.Min ?? 0;
 
                     if (player != null)
-                        player.GrantLevelProportionalXp(emote.Percent ?? 0, emote.Max64 ?? 0, shareXP);
+                        player.GrantLevelProportionalXp(emote.Percent ?? 0, max, min, shareXP);
                     break;
 
                 case EmoteType.AwardLuminance:
@@ -138,7 +143,7 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.AwardNoShareXP:
 
                     if (player != null)
-                        player.EarnXP(emote.Amount64 ?? 0, XpType.Quest, ShareType.None);
+                        player.EarnXP(emote.Amount64 ?? emote.Amount ?? 0, XpType.Quest, ShareType.None);
 
                     break;
 
@@ -164,7 +169,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (player != null)
                     {
-                        var amt = emote.Amount64 ?? 0;
+                        var amt = emote.Amount64 ?? emote.Amount ?? 0;
                         if (amt > 0)
                         {
                             player.EarnXP(amt, XpType.Quest, ShareType.All);
