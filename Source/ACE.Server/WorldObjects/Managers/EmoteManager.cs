@@ -1400,7 +1400,7 @@ namespace ACE.Server.WorldObjects.Managers
             var emoteSet = new List<BiotaPropertiesEmote>();
             var hasValidEmoteSets = false;
             if (vendorType != null)
-                hasValidEmoteSets = emoteCacheVendor.TryGetValue(vendorType ?? VendorType.Undef, out emoteSet);
+                hasValidEmoteSets = emoteCacheVendor.TryGetValue(vendorType.Value, out emoteSet);
             else
                 hasValidEmoteSets = emoteCache.TryGetValue(category, out emoteSet);
 
