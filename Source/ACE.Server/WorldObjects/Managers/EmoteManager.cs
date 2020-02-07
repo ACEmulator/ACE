@@ -47,6 +47,36 @@ namespace ACE.Server.WorldObjects.Managers
         public EmoteManager(WorldObject worldObject)
         {
             _worldObject = worldObject;
+            InitEmoteCaches();
+        }
+
+        private Dictionary<EmoteCategory, List<BiotaPropertiesEmote>> emoteCache = new Dictionary<EmoteCategory, List<BiotaPropertiesEmote>>();
+        private Dictionary<VendorType, List<BiotaPropertiesEmote>> emoteCacheVendor = new Dictionary<VendorType, List<BiotaPropertiesEmote>>();
+
+        private void InitEmoteCaches()
+        {
+            emoteCache.Clear();
+
+            var emoteSets = WorldObject.Biota.BiotaPropertiesEmote.Where(x => x.Category != (uint)EmoteCategory.Vendor).OrderBy(x => x.Category).ThenBy(x => x.Probability);
+            var emoteSetsVendor = WorldObject.Biota.BiotaPropertiesEmote.Where(x => x.Category == (uint)EmoteCategory.Vendor).OrderBy(x => x.VendorType).ThenBy(x => x.Probability);
+
+            foreach (var set in emoteSets)
+            {
+                var category = (EmoteCategory)set.Category;
+                if (!emoteCache.ContainsKey(category))
+                    emoteCache.Add(category, new List<BiotaPropertiesEmote>());
+
+                emoteCache[category].Add(set);
+            }
+
+            foreach (var set in emoteSetsVendor)
+            {
+                var category = (VendorType)set.VendorType;
+                if (!emoteCacheVendor.ContainsKey(category))
+                    emoteCacheVendor.Add(category, new List<BiotaPropertiesEmote>());
+
+                emoteCacheVendor[category].Add(set);
+            }
         }
 
         /// <summary>
@@ -1368,29 +1398,38 @@ namespace ACE.Server.WorldObjects.Managers
         public BiotaPropertiesEmote GetEmoteSet(EmoteCategory category, string questName = null, VendorType? vendorType = null, uint? wcid = null, bool useRNG = true)
         {
             // always pull emoteSet from _worldObject
-            var emoteSet = _worldObject.Biota.BiotaPropertiesEmote.Where(e => e.Category == (uint)category);
+            //var emoteSet = _worldObject.Biota.BiotaPropertiesEmote.Where(e => e.Category == (uint)category);
+
+            if (!emoteCache.ContainsKey(category) && vendorType == null)
+                return null;
+
+            if (vendorType != null && !emoteCacheVendor.ContainsKey(vendorType ?? VendorType.Undef))
+                return null;
+
+            var emoteSet = vendorType != null ? emoteCacheVendor[vendorType ?? VendorType.Undef] : emoteCache[category];
 
             // optional criteria
             if (questName != null)
-                emoteSet = emoteSet.Where(e => e.Quest.Equals(questName, StringComparison.OrdinalIgnoreCase));
-            if (vendorType != null)
-                emoteSet = emoteSet.Where(e => e.VendorType != null && e.VendorType.Value == (uint)vendorType);
+                emoteSet = emoteSet.Where(e => e.Quest.Equals(questName, StringComparison.OrdinalIgnoreCase)).ToList();
+            //if (vendorType != null)
+            //    emoteSet = emoteSet.Where(e => e.VendorType != null && e.VendorType.Value == (uint)vendorType);
             if (wcid != null)
-                emoteSet = emoteSet.Where(e => e.WeenieClassId == wcid.Value);
+                emoteSet = emoteSet.Where(e => e.WeenieClassId == wcid.Value).ToList();
 
             if (category == EmoteCategory.HeartBeat)
             {
                 WorldObject.GetCurrentMotionState(out MotionStance currentStance, out MotionCommand currentMotion);
 
-                emoteSet = emoteSet.Where(e => e.Style == null || e.Style == (uint)currentStance);
-                emoteSet = emoteSet.Where(e => e.Substyle == null || e.Substyle == (uint)currentMotion);
+                emoteSet = emoteSet.Where(e => e.Style == null || e.Style == (uint)currentStance).ToList();
+                emoteSet = emoteSet.Where(e => e.Substyle == null || e.Substyle == (uint)currentMotion).ToList();
             }
 
             if (useRNG)
             {
                 var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-                emoteSet = emoteSet.OrderBy(e => e.Probability).Where(e => e.Probability >= rng);
+                //emoteSet = emoteSet.OrderBy(e => e.Probability).Where(e => e.Probability >= rng);
                 //emoteSet = emoteSet.Where(e => e.Probability >= rng);
+                emoteSet = emoteSet.Where(e => e.Probability >= rng).ToList();
             }
 
             return emoteSet.FirstOrDefault();
@@ -1749,6 +1788,7 @@ namespace ACE.Server.WorldObjects.Managers
         public void SetProxy(WorldObject worldObject)
         {
             _proxy = worldObject;
+            InitEmoteCaches();
         }
 
         /// <summary>
@@ -1757,6 +1797,7 @@ namespace ACE.Server.WorldObjects.Managers
         public void ClearProxy()
         {
             _proxy = null;
+            InitEmoteCaches();
         }
     }
 }
