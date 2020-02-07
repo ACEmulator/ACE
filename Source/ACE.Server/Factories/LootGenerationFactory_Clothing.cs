@@ -198,8 +198,11 @@ namespace ACE.Server.Factories
         {
             EquipmentSet equipSetId = EquipmentSet.Invalid;
 
+            // Last condition included to prevent equipment set Ids being added to armor weenies
+            // that would be assigned AL via AssignArmorLevelCompat()
             if (PropertyManager.GetBool("equipmentsetid_enabled").Item
-                && wo.ClothingPriority != (CoverageMask)CoverageMaskHelper.Underwear && !wo.IsShield && profile.Tier > 6)
+                && wo.ClothingPriority != (CoverageMask)CoverageMaskHelper.Underwear && !wo.IsShield && profile.Tier > 6
+                && (wo.GetProperty(PropertyInt.Version) ?? 0) >= 3)
             {
                 if (wo.WieldRequirements == WieldRequirement.Level || wo.WieldRequirements == WieldRequirement.RawSkill)
                 {
