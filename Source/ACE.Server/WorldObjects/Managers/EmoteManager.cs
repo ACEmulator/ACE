@@ -1397,22 +1397,20 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public BiotaPropertiesEmote GetEmoteSet(EmoteCategory category, string questName = null, VendorType? vendorType = null, uint? wcid = null, bool useRNG = true)
         {
-            // always pull emoteSet from _worldObject
-            //var emoteSet = _worldObject.Biota.BiotaPropertiesEmote.Where(e => e.Category == (uint)category);
+            var emoteSet = new List<BiotaPropertiesEmote>();
+            var hasValidEmoteSets = false;
+            if (vendorType != null)
+                hasValidEmoteSets = emoteCacheVendor.TryGetValue(vendorType ?? VendorType.Undef, out emoteSet);
+            else
+                hasValidEmoteSets = emoteCache.TryGetValue(category, out emoteSet);
 
-            if (!emoteCache.ContainsKey(category) && vendorType == null)
+            if (!hasValidEmoteSets)
                 return null;
-
-            if (vendorType != null && !emoteCacheVendor.ContainsKey(vendorType ?? VendorType.Undef))
-                return null;
-
-            var emoteSet = vendorType != null ? emoteCacheVendor[vendorType ?? VendorType.Undef] : emoteCache[category];
 
             // optional criteria
             if (questName != null)
                 emoteSet = emoteSet.Where(e => e.Quest.Equals(questName, StringComparison.OrdinalIgnoreCase)).ToList();
-            //if (vendorType != null)
-            //    emoteSet = emoteSet.Where(e => e.VendorType != null && e.VendorType.Value == (uint)vendorType);
+
             if (wcid != null)
                 emoteSet = emoteSet.Where(e => e.WeenieClassId == wcid.Value).ToList();
 
@@ -1427,8 +1425,6 @@ namespace ACE.Server.WorldObjects.Managers
             if (useRNG)
             {
                 var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-                //emoteSet = emoteSet.OrderBy(e => e.Probability).Where(e => e.Probability >= rng);
-                //emoteSet = emoteSet.Where(e => e.Probability >= rng);
                 emoteSet = emoteSet.Where(e => e.Probability >= rng).ToList();
             }
 
