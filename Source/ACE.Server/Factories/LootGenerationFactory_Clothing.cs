@@ -207,7 +207,7 @@ namespace ACE.Server.Factories
                     double dropRateMod = 1.0 / dropRate;
 
                     double lootQualityMod = 1.0f;
-                    if (profile.LootQualityMod > 0)
+                    if (PropertyManager.GetBool("loot_quality_mod").Item && profile.LootQualityMod > 0)
                         lootQualityMod = 1.0f - profile.LootQualityMod;
 
                     // Initial base 10% chance to add a random EquipmentSetID, which can be adjusted via property mod

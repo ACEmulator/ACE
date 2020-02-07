@@ -1888,7 +1888,7 @@ namespace ACE.Server.Factories
             var dropRateMod = 1.0 / dropRate;
 
             double lootQualityMod = 1.0f;
-            if (profile.LootQualityMod > 0)
+            if (PropertyManager.GetBool("loot_quality_mod").Item && profile.LootQualityMod > 0)
                 lootQualityMod = 1.0f - profile.LootQualityMod;
 
             // 1% chance for a legendary, 0.02% chance for 2 legendaries
@@ -1914,7 +1914,7 @@ namespace ACE.Server.Factories
             var dropRateMod = 1.0 / dropRate;
 
             double lootQualityMod = 1.0f;
-            if (profile.LootQualityMod > 0)
+            if (PropertyManager.GetBool("loot_quality_mod").Item && profile.LootQualityMod > 0)
                 lootQualityMod = 1.0f - profile.LootQualityMod;
 
             // 25% base chance for no epics for tier 7
@@ -1946,7 +1946,7 @@ namespace ACE.Server.Factories
             var dropRateMod = 1.0 / dropRate;
 
             double lootQualityMod = 1.0f;
-            if (profile.LootQualityMod > 0)
+            if (PropertyManager.GetBool("loot_quality_mod").Item && profile.LootQualityMod > 0)
                 lootQualityMod = 1.0f - profile.LootQualityMod;
 
             switch (profile.Tier)
@@ -1997,7 +1997,7 @@ namespace ACE.Server.Factories
             var dropRateMod = 1.0 / dropRate;
 
             double lootQualityMod = 1.0f;
-            if (profile.LootQualityMod > 0)
+            if (PropertyManager.GetBool("loot_quality_mod").Item && profile.LootQualityMod > 0)
                 lootQualityMod = 1.0f - profile.LootQualityMod;
 
             switch (profile.Tier)
