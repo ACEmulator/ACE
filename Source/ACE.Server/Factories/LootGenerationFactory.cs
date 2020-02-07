@@ -83,39 +83,16 @@ namespace ACE.Server.Factories
             }
 
             var itemChance = ThreadSafeRandom.Next(1, 100);
-            if (itemChance <= profile.MundaneItemChance)
+            if (itemChance <= profile.ItemChance)
             {
-                numItems = ThreadSafeRandom.Next(profile.MundaneItemMinAmount, profile.MundaneItemMaxAmount);
-
-                bool aetheriaGenerated = false;
-                bool generateAetheria = false;
-                double dropRate = PropertyManager.GetDouble("aetheria_drop_rate").Item;
-                double dropRateMod = 1.0 / dropRate;
+                numItems = ThreadSafeRandom.Next(profile.ItemMinAmount, profile.ItemMaxAmount);
 
                 for (var i = 0; i < numItems; i++)
                 {
-                    // Coalesced Aetheria doesn't drop in loot tiers less than 5
-                    // According to wiki, Weapon Mana Forge chests don't drop Aetheria, also
-                    // a loot role should only drop one Coealesced Aetheria per call into loot system, as I don't remember there
-                    // being multiples, and I didn't find any written mention of it.
-                    if (!aetheriaGenerated && profile.Tier > 4 && lootBias != LootBias.Weapons && dropRate > 0)
-                        generateAetheria = ThreadSafeRandom.Next(1, (int)(100 * dropRateMod)) <= 2;     // base 1% of all magical items aetheria?
+                    if (lootBias == LootBias.MagicEquipment)
+                        lootWorldObject = CreateRandomLootObjects(profile, false, LootBias.Weapons);
                     else
-                        generateAetheria = false;
-
-                    if (generateAetheria)
-                    {
-                        lootWorldObject = CreateAetheria(profile.Tier);
-                        if (lootWorldObject != null)
-                            aetheriaGenerated = true;
-                    }
-                    else
-                    {
-                        if (lootBias == LootBias.MagicEquipment)
-                            lootWorldObject = CreateRandomLootObjects(profile, false, LootBias.Weapons);
-                        else
-                            lootWorldObject = CreateRandomLootObjects(profile, false, lootBias);
-                    }
+                        lootWorldObject = CreateRandomLootObjects(profile, false, lootBias);
 
                     if (lootWorldObject != null)
                         loot.Add(lootWorldObject);
@@ -136,9 +113,27 @@ namespace ACE.Server.Factories
             }
 
             itemChance = ThreadSafeRandom.Next(1, 100);
-            if (itemChance <= profile.ItemChance)
+            if (itemChance <= profile.MundaneItemChance)
             {
-                numItems = ThreadSafeRandom.Next(profile.ItemMinAmount, profile.ItemMaxAmount);
+                double dropRate = PropertyManager.GetDouble("aetheria_drop_rate").Item;
+                double dropRateMod = 1.0 / dropRate;
+
+                // Coalesced Aetheria doesn't drop in loot tiers less than 5
+                // According to wiki, Weapon Mana Forge chests don't drop Aetheria
+                // An Aetheria drop was in addition to the normal drops of the mundane profile
+                // https://asheron.fandom.com/wiki/Announcements_-_2010/04_-_Shedding_Skin :: May 5th, 2010 entry
+                if (profile.Tier > 4 && lootBias != LootBias.Weapons && dropRate > 0)
+                {
+                    if (ThreadSafeRandom.Next(1, (int)(100 * dropRateMod)) <= 2)     // base 1% to drop aetheria?
+                    {
+                        lootWorldObject = CreateAetheria(profile.Tier);
+                        if (lootWorldObject != null)
+                            loot.Add(lootWorldObject);
+                    }
+                }
+
+                numItems = ThreadSafeRandom.Next(profile.MundaneItemMinAmount, profile.MundaneItemMaxAmount);
+
                 for (var i = 0; i < numItems; i++)
                 {
                     if (lootBias != LootBias.UnBiased)
