@@ -57,25 +57,27 @@ namespace ACE.Server.WorldObjects.Managers
         {
             emoteCache.Clear();
 
-            var emoteSets = WorldObject.Biota.BiotaPropertiesEmote.Where(x => x.Category != (uint)EmoteCategory.Vendor).OrderBy(x => x.Category).ThenBy(x => x.Probability);
-            var emoteSetsVendor = WorldObject.Biota.BiotaPropertiesEmote.Where(x => x.Category == (uint)EmoteCategory.Vendor).OrderBy(x => x.VendorType).ThenBy(x => x.Probability);
+            var emoteSets = WorldObject.Biota.BiotaPropertiesEmote.OrderBy(x => x.Category).ThenBy(x => x.VendorType).ThenBy(x => x.Probability);
 
             foreach (var set in emoteSets)
             {
                 var category = (EmoteCategory)set.Category;
+
+                if (category == EmoteCategory.Vendor)
+                {
+                    var vendorType = (VendorType)set.VendorType;
+                    if (!emoteCacheVendor.ContainsKey(vendorType))
+                        emoteCacheVendor.Add(vendorType, new List<BiotaPropertiesEmote>());
+
+                    emoteCacheVendor[vendorType] = emoteCacheVendor[vendorType].Append(set);
+
+                    continue;
+                }
+
                 if (!emoteCache.ContainsKey(category))
                     emoteCache.Add(category, new List<BiotaPropertiesEmote>());
 
                 emoteCache[category] = emoteCache[category].Append(set);
-            }
-
-            foreach (var set in emoteSetsVendor)
-            {
-                var category = (VendorType)set.VendorType;
-                if (!emoteCacheVendor.ContainsKey(category))
-                    emoteCacheVendor.Add(category, new List<BiotaPropertiesEmote>());
-
-                emoteCacheVendor[category] = emoteCacheVendor[category].Append(set);
             }
         }
 
