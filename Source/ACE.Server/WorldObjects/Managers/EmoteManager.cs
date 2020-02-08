@@ -66,18 +66,19 @@ namespace ACE.Server.WorldObjects.Managers
                 if (category == EmoteCategory.Vendor)
                 {
                     var vendorType = (VendorType)set.VendorType;
-                    if (!emoteCacheVendor.ContainsKey(vendorType))
-                        emoteCacheVendor.Add(vendorType, new List<BiotaPropertiesEmote>());
 
-                    emoteCacheVendor[vendorType] = emoteCacheVendor[vendorType].Append(set);
+                    if (!emoteCacheVendor.TryGetValue(vendorType, out var vendList))
+                        emoteCacheVendor[vendorType] = new List<BiotaPropertiesEmote>() { set };
+                    else
+                        emoteCacheVendor[vendorType] = vendList.Append(set);
 
                     continue;
                 }
 
-                if (!emoteCache.ContainsKey(category))
-                    emoteCache.Add(category, new List<BiotaPropertiesEmote>());
-
-                emoteCache[category] = emoteCache[category].Append(set);
+                if (!emoteCache.TryGetValue(category, out var list))
+                    emoteCache[category] = new List<BiotaPropertiesEmote>() { set };
+                else
+                    emoteCache[category] = list.Append(set);
             }
         }
 
