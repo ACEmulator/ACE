@@ -50,8 +50,8 @@ namespace ACE.Server.WorldObjects.Managers
             InitEmoteCaches();
         }
 
-        private Dictionary<EmoteCategory, List<BiotaPropertiesEmote>> emoteCache = new Dictionary<EmoteCategory, List<BiotaPropertiesEmote>>();
-        private Dictionary<VendorType, List<BiotaPropertiesEmote>> emoteCacheVendor = new Dictionary<VendorType, List<BiotaPropertiesEmote>>();
+        private Dictionary<EmoteCategory, IEnumerable<BiotaPropertiesEmote>> emoteCache = new Dictionary<EmoteCategory, IEnumerable<BiotaPropertiesEmote>>();
+        private Dictionary<VendorType, IEnumerable<BiotaPropertiesEmote>> emoteCacheVendor = new Dictionary<VendorType, IEnumerable<BiotaPropertiesEmote>>();
 
         private void InitEmoteCaches()
         {
@@ -66,7 +66,7 @@ namespace ACE.Server.WorldObjects.Managers
                 if (!emoteCache.ContainsKey(category))
                     emoteCache.Add(category, new List<BiotaPropertiesEmote>());
 
-                emoteCache[category].Add(set);
+                emoteCache[category] = emoteCache[category].Append(set);
             }
 
             foreach (var set in emoteSetsVendor)
@@ -75,7 +75,7 @@ namespace ACE.Server.WorldObjects.Managers
                 if (!emoteCacheVendor.ContainsKey(category))
                     emoteCacheVendor.Add(category, new List<BiotaPropertiesEmote>());
 
-                emoteCacheVendor[category].Add(set);
+                emoteCacheVendor[category] = emoteCacheVendor[category].Append(set);
             }
         }
 
@@ -1397,7 +1397,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public BiotaPropertiesEmote GetEmoteSet(EmoteCategory category, string questName = null, VendorType? vendorType = null, uint? wcid = null, bool useRNG = true)
         {
-            var emoteSet = new List<BiotaPropertiesEmote>();
+            IEnumerable<BiotaPropertiesEmote> emoteSet = null;
             var hasValidEmoteSets = false;
             if (vendorType != null)
                 hasValidEmoteSets = emoteCacheVendor.TryGetValue(vendorType.Value, out emoteSet);
@@ -1409,23 +1409,23 @@ namespace ACE.Server.WorldObjects.Managers
 
             // optional criteria
             if (questName != null)
-                emoteSet = emoteSet.Where(e => e.Quest.Equals(questName, StringComparison.OrdinalIgnoreCase)).ToList();
+                emoteSet = emoteSet.Where(e => e.Quest.Equals(questName, StringComparison.OrdinalIgnoreCase));
 
             if (wcid != null)
-                emoteSet = emoteSet.Where(e => e.WeenieClassId == wcid.Value).ToList();
+                emoteSet = emoteSet.Where(e => e.WeenieClassId == wcid.Value);
 
             if (category == EmoteCategory.HeartBeat)
             {
                 WorldObject.GetCurrentMotionState(out MotionStance currentStance, out MotionCommand currentMotion);
 
-                emoteSet = emoteSet.Where(e => e.Style == null || e.Style == (uint)currentStance).ToList();
-                emoteSet = emoteSet.Where(e => e.Substyle == null || e.Substyle == (uint)currentMotion).ToList();
+                emoteSet = emoteSet.Where(e => e.Style == null || e.Style == (uint)currentStance);
+                emoteSet = emoteSet.Where(e => e.Substyle == null || e.Substyle == (uint)currentMotion);
             }
 
             if (useRNG)
             {
                 var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-                emoteSet = emoteSet.Where(e => e.Probability >= rng).ToList();
+                emoteSet = emoteSet.Where(e => e.Probability >= rng);
             }
 
             return emoteSet.FirstOrDefault();
