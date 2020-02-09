@@ -656,15 +656,24 @@ namespace ACE.Server.Command.Handlers.Processors
             }
 
             // link up instances
+            // TODO: move this to TryConvert
             foreach (var link in landblockInstanceLinks)
             {
-                var instance = landblockInstances.FirstOrDefault(i => i.Guid == link.ParentGuid);
-                if (instance == null)
+                var parent = landblockInstances.FirstOrDefault(i => i.Guid == link.ParentGuid);
+                if (parent == null)
                 {
-                    Console.WriteLine($"Couldn't find parent guid for {link.ParentGuid}!");
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find parent guid for {link.ParentGuid:X8}");
                     continue;
                 }
-                instance.LandblockInstanceLink.Add(link);
+                parent.LandblockInstanceLink.Add(link);
+
+                var child = landblockInstances.FirstOrDefault(i => i.Guid == link.ChildGuid);
+                if (child == null)
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find child guid for {link.ChildGuid:X8}");
+                    continue;
+                }
+                child.IsLinkChild = true;
             }
 
             // output to sql
