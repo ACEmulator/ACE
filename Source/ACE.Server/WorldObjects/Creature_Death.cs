@@ -31,7 +31,11 @@ namespace ACE.Server.WorldObjects
             IsTurning = false;
             IsMoving = false;
 
-            EmoteManager.OnDeath(lastDamager?.TryGetAttacker());
+            var killer = lastDamager?.TryGetAttacker();
+
+            EmoteManager.OnDeath(killer);
+
+            QuestManager.HandleKillQuest(killer);
 
             OnDeath_GrantXP();
 
