@@ -35,7 +35,7 @@ namespace ACE.Server.WorldObjects
 
             EmoteManager.OnDeath(killer);
 
-            QuestManager.HandleKillQuest(killer);
+            QuestManager.OnDeath(killer);
 
             OnDeath_GrantXP();
 

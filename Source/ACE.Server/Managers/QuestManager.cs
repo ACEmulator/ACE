@@ -603,16 +603,16 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Called when a player kills Creature
         /// </summary>
-        public void HandleKillQuest(WorldObject killer)
+        public void OnDeath(WorldObject killer)
         {
             var player = killer as Player;
             if (player == null) return;
 
-            if (!string.IsNullOrEmpty(Creature.KillQuest))
+            if (!string.IsNullOrWhiteSpace(Creature.KillQuest))
                 player.QuestManager.HandleKillTask(Creature.KillQuest, Creature);
-            if (!string.IsNullOrEmpty(Creature.KillQuest2))
+            if (!string.IsNullOrWhiteSpace(Creature.KillQuest2))
                 player.QuestManager.HandleKillTask(Creature.KillQuest2, Creature);
-            if (!string.IsNullOrEmpty(Creature.KillQuest3))
+            if (!string.IsNullOrWhiteSpace(Creature.KillQuest3))
                 player.QuestManager.HandleKillTask(Creature.KillQuest3, Creature);
         }
     }
