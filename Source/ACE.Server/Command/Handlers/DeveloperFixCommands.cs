@@ -744,7 +744,7 @@ namespace ACE.Server.Command.Handlers
                         continue;
 
                     var aug = DatabaseManager.World.GetCachedWeenie(kvp.Value);
-                    var costPer = aug.GetProperty(PropertyInt64.AugmentationCost).Value;
+                    aug.PropertiesInt64.TryGetValue(PropertyInt64.AugmentationCost, out var costPer);
 
                     augXP += costPer * numAugs;
                 }
