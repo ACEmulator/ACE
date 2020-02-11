@@ -1076,7 +1076,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool AlertMonster(Creature monster)
         {
-            if ((monster.Attackable || monster.TargetingTactic != TargetingTactic.None) && monster.MonsterState == State.Idle && monster.Tolerance == Tolerance.None)
+            // TODO: it's very possible this messy logic can be greatly simplified, investigate...
+            if ((monster.Attackable || monster.TargetingTactic != TargetingTactic.None) && monster.MonsterState == State.Idle && monster.Tolerance == Tolerance.None && monster.PlayerKillerStatus != PlayerKillerStatus.RubberGlue)
             {
                 //Console.WriteLine($"[{Timers.RunningTime}] - {monster.Name} ({monster.Guid}) - waking up");
                 monster.AttackTarget = this;
