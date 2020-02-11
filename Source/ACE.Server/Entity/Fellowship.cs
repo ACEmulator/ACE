@@ -579,12 +579,12 @@ namespace ACE.Server.Entity
             {
                 var offlinePlayer = PlayerManager.FindByGuid(fellowGuid);
                 var offlineName = offlinePlayer != null ? offlinePlayer.Name : "NULL";
+
                 log.Warn($"Dropped fellow: {offlineName}");
+                fellowshipMembers.Remove(fellowGuid);
 
                 if (fellowGuid == FellowshipLeaderGuid)
                     AssignNewLeader(null);
-
-                fellowshipMembers.Remove(fellowGuid);
             }
             CalculateXPSharing();
             UpdateAllMembers();
