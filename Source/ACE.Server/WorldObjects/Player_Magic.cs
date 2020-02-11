@@ -1418,15 +1418,19 @@ namespace ACE.Server.WorldObjects
                 DoCastSpell(MagicState, status != WeenieError.None);
         }
 
-        public void FailCast()
+        public void FailCast(bool tryFizzle = true)
         {
             var parms = MagicState.CastSpellParams;
 
-            if (parms == null) return;
+            var werror = WeenieError.None;
 
-            DoCastSpell_Inner(parms.Spell, parms.IsWeaponSpell, parms.ManaUsed, parms.Target, CastingPreCheckStatus.CastFailed, false);
+            if (parms != null && tryFizzle)
+            {
+                DoCastSpell_Inner(parms.Spell, parms.IsWeaponSpell, parms.ManaUsed, parms.Target, CastingPreCheckStatus.CastFailed, false);
 
-            SendUseDoneEvent(WeenieError.YourSpellFizzled);
+                werror = WeenieError.YourSpellFizzled;
+            }
+            SendUseDoneEvent(werror);
 
             MagicState.OnCastDone();
         }
