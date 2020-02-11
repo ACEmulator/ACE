@@ -582,10 +582,10 @@ namespace ACE.Server.Entity
 
                 log.Warn($"Dropped fellow: {offlineName}");
                 fellowshipMembers.Remove(fellowGuid);
-
-                if (fellowGuid == FellowshipLeaderGuid)
-                    AssignNewLeader(null);
             }
+            if (fellowGuids.Contains(FellowshipLeaderGuid))
+                AssignNewLeader(null);
+
             CalculateXPSharing();
             UpdateAllMembers();
         }
