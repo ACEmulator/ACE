@@ -37,7 +37,7 @@ namespace ACE.Server.WorldObjects
             IsChessPiece = this is GamePiece;
 
             // includes CombatPets
-            IsMonster = Attackable || TargetingTactic != TargetingTactic.None;
+            IsMonster = (Attackable || TargetingTactic != TargetingTactic.None) && PlayerKillerStatus != PlayerKillerStatus.RubberGlue;
         }
     }
 }

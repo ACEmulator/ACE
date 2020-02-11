@@ -306,7 +306,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void CheckTargets()
         {
-            if (!Attackable && TargetingTactic == TargetingTactic.None || Tolerance != Tolerance.None)
+            if (!Attackable && TargetingTactic == TargetingTactic.None || Tolerance != Tolerance.None || PlayerKillerStatus == PlayerKillerStatus.RubberGlue)
                 return;
 
             var actionChain = new ActionChain();
