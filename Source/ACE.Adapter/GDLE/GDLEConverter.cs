@@ -173,6 +173,9 @@ namespace ACE.Adapter.GDLE
         }
 
 
+        /// <summary>
+        /// Converts GDLE -> ACE quest
+        /// </summary>
         public static bool TryConvert(Models.Quest input, out Quest result)
         {
             try
