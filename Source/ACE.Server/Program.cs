@@ -119,25 +119,26 @@ namespace ACE.Server
             {
                 log.Info("Precaching Weenies...");
                 DatabaseManager.World.CacheAllWeeniesInParallel();
+                log.Info("Precaching Cookbooks...");
+                DatabaseManager.World.CacheAllCookbooksInParallel();
+                log.Info("Precaching Events...");
+                DatabaseManager.World.GetAllEvents();
                 log.Info("Precaching House Portals...");
                 DatabaseManager.World.CacheAllHousePortals();
                 log.Info("Precaching Points Of Interest...");
                 DatabaseManager.World.CacheAllPointsOfInterest();
                 log.Info("Precaching Spells...");
                 DatabaseManager.World.CacheAllSpells();
-                log.Info("Precaching Events...");
-                DatabaseManager.World.GetAllEvents();
-                log.Info("Precaching Death Treasures...");
-                DatabaseManager.World.CacheAllDeathTreasures();
-                log.Info("Precaching Wielded Treasures...");
-                DatabaseManager.World.CacheAllWieldedTreasuresInParallel();
-                log.Info("Precaching Treasure Materials...");
+                log.Info("Precaching Treasures - Death...");
+                DatabaseManager.World.CacheAllTreasuresDeath();
+                log.Info("Precaching Treasures - Material Base...");
                 DatabaseManager.World.CacheAllTreasuresMaterialBaseInParallel();
+                log.Info("Precaching Treasures - Material Groups...");
                 DatabaseManager.World.CacheAllTreasuresMaterialGroupsInParallel();
-                log.Info("Precaching Treasure Colors...");
+                log.Info("Precaching Treasures - Material Colors...");
                 DatabaseManager.World.CacheAllTreasuresMaterialColorInParallel();
-                log.Info("Precaching Cookbooks...");
-                DatabaseManager.World.CacheAllCookbooksInParallel();
+                log.Info("Precaching Treasures - Wielded...");
+                DatabaseManager.World.CacheAllTreasuresWieldedInParallel();
             }
             else
                 log.Info("Precaching World Database Disabled...");

@@ -1,9 +1,11 @@
 using System;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Network.GameMessages.Messages;
+
+using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {

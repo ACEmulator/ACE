@@ -1115,7 +1115,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private Portal GetPortal(uint wcid)
         {
-            return WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(wcid), new ObjectGuid(wcid)) as Portal;
+            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+
+            return WorldObjectFactory.CreateWorldObject(weenie, new ObjectGuid(wcid)) as Portal;
         }
 
         /// <summary>
@@ -1405,17 +1407,16 @@ namespace ACE.Server.WorldObjects
                 return 0.0f;
             }
 
-            var setupId = weenie.WeeniePropertiesDID.FirstOrDefault(i => i.Type == (ushort)PropertyDataId.Setup);
-
-            if (setupId == null)
+            if (!weenie.PropertiesDID.TryGetValue(PropertyDataId.Setup, out var setupId))
             {
-                log.Error($"{Name} ({Guid}).GetSetupRadius({spell.Id} - {spell.Name}): couldn't find setup ID for {weenie.ClassId} - {weenie.ClassName}");
+                log.Error($"{Name} ({Guid}).GetSetupRadius({spell.Id} - {spell.Name}): couldn't find setup ID for {weenie.WeenieClassId} - {weenie.ClassName}");
                 return 0.0f;
             }
 
-            var setup = DatManager.PortalDat.ReadFromDat<SetupModel>(setupId.Value);
+            var setup = DatManager.PortalDat.ReadFromDat<SetupModel>(setupId);
 
-            var scale = weenie.WeeniePropertiesFloat.FirstOrDefault(i => i.Type == (ushort)PropertyFloat.DefaultScale)?.Value ?? 1.0f;
+            if (!weenie.PropertiesFloat.TryGetValue(PropertyFloat.DefaultScale, out var scale))
+                scale = 1.0f;
 
             return ProjectileRadiusCache[projectileWcid] = (float)(setup.Spheres[0].Radius * scale);
         }
@@ -1444,15 +1445,13 @@ namespace ACE.Server.WorldObjects
                     return 0.0f;
                 }
 
-                var maxVelocity = weenie.WeeniePropertiesFloat.FirstOrDefault(i => i.Type == (ushort)PropertyFloat.MaximumVelocity);
-
-                if (maxVelocity == null)
+                if (!weenie.PropertiesFloat.TryGetValue(PropertyFloat.MaximumVelocity, out var maxVelocity))
                 {
-                    log.Error($"{Name} ({Guid}).GetSpellProjectileSpeed({spell.Id} - {spell.Name}, {distance}): couldn't find MaxVelocity for {weenie.ClassId} - {weenie.ClassName}");
+                    log.Error($"{Name} ({Guid}).GetSpellProjectileSpeed({spell.Id} - {spell.Name}, {distance}): couldn't find MaxVelocity for {weenie.WeenieClassId} - {weenie.ClassName}");
                     return 0.0f;
                 }
 
-                baseSpeed = (float)maxVelocity.Value;
+                baseSpeed = (float)maxVelocity;
 
                 ProjectileSpeedCache[projectileWcid] = baseSpeed;
             }
