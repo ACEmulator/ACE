@@ -249,12 +249,6 @@ namespace ACE.Server.Managers
         {
             var questName = GetQuestName(questFormat);
 
-            // Always return false for Kill Task count quests,
-            // as their emote logic is backwards from standard quests, and
-            // they should always be solvable, once flagged with main kill task quest
-            if (questName.EndsWith("count", StringComparison.Ordinal) || questName.EndsWith("counter", StringComparison.Ordinal))
-                return false;
-
             // verify max solves / quest timer
             var nextSolveTime = GetNextSolveTime(questName);
 
