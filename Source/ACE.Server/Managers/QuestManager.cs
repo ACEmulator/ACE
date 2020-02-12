@@ -281,12 +281,27 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns the maximum # of solves for this quest
         /// </summary>
-        public int GetMaxSolves(string questName)
+        public int GetMaxSolves(string questFormat)
         {
+            var questName = GetQuestName(questFormat);
+
             var quest = DatabaseManager.World.GetCachedQuest(questName);
             if (quest == null) return 0;
 
             return quest.MaxSolves;
+        }
+
+        /// <summary>
+        /// Returns the current # of solves for this quest
+        /// </summary>
+        public int GetCurrentSolves(string questFormat)
+        {
+            var questName = GetQuestName(questFormat);
+
+            var quest = GetQuest(questName);
+            if (quest == null) return 0;
+
+            return quest.NumTimesCompleted;
         }
 
         /// <summary>

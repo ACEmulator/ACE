@@ -569,6 +569,7 @@ namespace ACE.Server.Network.Structure
             var critDamageResistRating = creature.GetCritDamageResistRating();
 
             var healingBoostRating = creature.GetHealingBoostRating();
+            var dotResistRating = creature.GetDotResistanceRating();
             var netherResistRating = creature.GetNetherResistRating();
 
             var lifeResistRating = creature.GetLifeResistRating();  // drain / harm resistance
@@ -593,6 +594,8 @@ namespace ACE.Server.Network.Structure
                 PropertiesInt[PropertyInt.HealingBoostRating] = healingBoostRating;
             if (netherResistRating != 0)
                 PropertiesInt[PropertyInt.NetherResistRating] = netherResistRating;
+            if (dotResistRating != 0)
+                PropertiesInt[PropertyInt.DotResistRating] = dotResistRating;
 
             if (lifeResistRating != 0)
                 PropertiesInt[PropertyInt.LifeResistRating] = lifeResistRating;
