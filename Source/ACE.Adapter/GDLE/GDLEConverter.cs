@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+
 using ACE.Database.Models.World;
 
 namespace ACE.Adapter.GDLE
@@ -6,43 +9,109 @@ namespace ACE.Adapter.GDLE
     public static class GDLEConverter
     {
         /// <summary>
+        /// Converts ACE landblock instances -> GDLE landblock instances
+        /// </summary>
+        public static bool TryConvert(List<LandblockInstance> input, out Models.Landblock result)
+        {
+            result = new Models.Landblock();
+
+            if (input.Count == 0)
+                return true;
+
+            result.key = (uint)input[0].Landblock << 16;
+
+            result.value = new Models.LandblockValue();
+
+            foreach (var lbi in input)
+            {
+                if (result.value.weenies == null)
+                    result.value.weenies = new List<Models.LandblockWeenie>();
+
+                var weenie = new Models.LandblockWeenie();
+                weenie.id = lbi.Guid;
+
+                // fix this ***, write it properly.
+                var pos = new Models.Position();
+                pos.ObjCellId = lbi.ObjCellId;
+
+                var frame = new Models.Frame();
+
+                frame.Origin = new Models.Origin();
+                frame.Origin.X = lbi.OriginX;
+                frame.Origin.Y = lbi.OriginY;
+                frame.Origin.Z = lbi.OriginZ;
+
+                frame.Angles = new Models.Angles();
+                frame.Angles.W = lbi.AnglesW;
+                frame.Angles.X = lbi.AnglesX;
+                frame.Angles.Y = lbi.AnglesY;
+                frame.Angles.Z = lbi.AnglesZ;
+
+                pos.Frame = frame;
+                weenie.pos = pos;
+
+                weenie.wcid = lbi.WeenieClassId;
+
+                result.value.weenies.Add(weenie);
+
+                if (lbi.LandblockInstanceLink != null)
+                {
+                    foreach (var link in lbi.LandblockInstanceLink)
+                    {
+                        if (result.value.links == null)
+                            result.value.links = new List<Models.LandblockLink>();
+
+                        var _link = new Models.LandblockLink();
+                        _link.source = link.ParentGuid;
+                        _link.target = link.ChildGuid;
+
+                        result.value.links.Add(_link);
+                    }
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Converts GDLE spawn map -> ACE landblock instances
+        ///
         /// This will not alter the Guid. To sanitize the Guid for ACE usage, you should use GDLELoader.TryLoadWorldSpawnsConverted() instead.
         /// </summary>
-        public static bool TryConvert(Models.Landblock input, out List<Database.Models.World.LandblockInstance> results, out List<Database.Models.World.LandblockInstanceLink> links)
+        public static bool TryConvert(Models.Landblock input, out List<LandblockInstance> results, out List<LandblockInstanceLink> links)
         {
             try
             {
                 results = new List<LandblockInstance>();
                 links = new List<LandblockInstanceLink>();
 
-                foreach (var value in input.Value.Weenies)
+                foreach (var value in input.value.weenies)
                 {
                     var result = new LandblockInstance();
 
-                    result.Guid = value.Id; // Collisions and other errors can be caused by invalid input. Data should be sanitized by the running ACE server.
+                    result.Guid = value.id; // Collisions and other errors can be caused by invalid input. Data should be sanitized by the running ACE server.
                     //result.Landblock = input.key; ACE uses a virtual column here of (result.ObjCellId >> 16)
-                    result.WeenieClassId = value.WCID;
+                    result.WeenieClassId = value.wcid;
 
-                    result.ObjCellId = value.Position.ObjCellId;
-                    result.OriginX = (float)value.Position.Frame.Origin.X;
-                    result.OriginY = (float)value.Position.Frame.Origin.Y;
-                    result.OriginZ = (float)value.Position.Frame.Origin.Z;
-                    result.AnglesW = (float)value.Position.Frame.Angles.W;
-                    result.AnglesX = (float)value.Position.Frame.Angles.X;
-                    result.AnglesY = (float)value.Position.Frame.Angles.Y;
-                    result.AnglesZ = (float)value.Position.Frame.Angles.Z;
+                    result.ObjCellId = value.pos.ObjCellId;
+                    result.OriginX = (float)value.pos.Frame.Origin.X;
+                    result.OriginY = (float)value.pos.Frame.Origin.Y;
+                    result.OriginZ = (float)value.pos.Frame.Origin.Z;
+                    result.AnglesW = (float)value.pos.Frame.Angles.W;
+                    result.AnglesX = (float)value.pos.Frame.Angles.X;
+                    result.AnglesY = (float)value.pos.Frame.Angles.Y;
+                    result.AnglesZ = (float)value.pos.Frame.Angles.Z;
 
                     results.Add(result);
                 }
 
-                if (input.Value.Links != null)
+                if (input.value.links != null)
                 {
-                    foreach (var value in input.Value.Links)
+                    foreach (var value in input.value.links)
                     {
                         var result = new LandblockInstanceLink();
 
-                        result.ParentGuid = value.Target;
-                        result.ChildGuid = value.Source;
+                        result.ParentGuid = value.source;
+                        result.ChildGuid = value.target;
 
                         links.Add(result);
                     }
@@ -59,11 +128,11 @@ namespace ACE.Adapter.GDLE
         }
 
 
-        public static bool TryConvert(Models.Event input, out Database.Models.World.Event result)
+        public static bool TryConvert(Models.Event input, out Event result)
         {
             try
             {
-                result = new Database.Models.World.Event();
+                result = new Event();
 
                 //result.Id // This is an Auto Increment field in the ACE schema
 
@@ -83,11 +152,11 @@ namespace ACE.Adapter.GDLE
         }
 
 
-        public static bool TryConvert(Models.Quest input, out Database.Models.World.Quest result)
+        public static bool TryConvert(Models.Quest input, out Quest result)
         {
             try
             {
-                result = new Database.Models.World.Quest();
+                result = new Quest();
 
                 //result.Id // This is an Auto Increment field in the ACE schema
 
@@ -107,11 +176,11 @@ namespace ACE.Adapter.GDLE
         }
 
 
-        public static bool TryConvert(uint id, Models.SpellValue input, out Database.Models.World.Spell result)
+        public static bool TryConvert(uint id, Models.SpellValue input, out Spell result)
         {
             try
             {
-                result = new Database.Models.World.Spell();
+                result = new Spell();
 
                 result.Id = id;
 
@@ -230,8 +299,363 @@ namespace ACE.Adapter.GDLE
             }
         }
 
+        public static int GetIndex(RecipeMod mod)
+        {
+            if (mod.RecipeModsBool != null && mod.RecipeModsBool.Count > 0)
+                return mod.RecipeModsBool.First().Index;
+            if (mod.RecipeModsDID != null && mod.RecipeModsDID.Count > 0)
+                return mod.RecipeModsDID.First().Index;
+            if (mod.RecipeModsFloat != null && mod.RecipeModsFloat.Count > 0)
+                return mod.RecipeModsFloat.First().Index;
+            if (mod.RecipeModsIID != null && mod.RecipeModsIID.Count > 0)
+                return mod.RecipeModsIID.First().Index;
+            if (mod.RecipeModsInt != null && mod.RecipeModsInt.Count > 0)
+                return mod.RecipeModsInt.First().Index;
+            if (mod.RecipeModsString != null && mod.RecipeModsString.Count > 0)
+                return mod.RecipeModsString.First().Index;
 
-        public static bool TryConvert(Models.Recipe input, out Database.Models.World.Recipe result)
+            return -1;
+        }
+
+        /// <summary>
+        /// Converts ACE recipe + cookbooks to GDLE recipe + precursors
+        /// </summary>
+        public static bool TryConvert(List<CookBook> cookbooks, out Models.RecipeCombined result)
+        {
+            if (cookbooks == null || cookbooks.Count == 0)
+            {
+                result = null;
+                return false;
+            }
+
+            var recipe = cookbooks[0].Recipe;
+
+            result = new Models.RecipeCombined();
+
+            result.key = recipe.Id;
+            result.desc = cookbooks[0].SourceWCID.ToString();   // TODO: get weenie name
+
+            TryConvert(recipe, out var newRecipe);
+            if (newRecipe != null)
+                newRecipe.RecipeId = 0;
+
+            result.recipe = newRecipe;
+
+            result.precursors = new List<Models.RecipePrecursor>();
+            foreach (var cookbook in cookbooks)
+            {
+                if (TryConvert(cookbook, out var precursor))
+                {
+                    precursor.RecipeId = null;
+                    result.precursors.Add(precursor);
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Converts an ACE recipe to GDLE recipe
+        /// </summary>
+        public static bool TryConvert(Recipe input, out Models.Recipe result)
+        {
+            try
+            {
+                result = new Models.Recipe();
+
+                result.RecipeId = input.Id;
+
+                result.Unknown = (int)input.Unknown1;
+                result.Skill = input.Skill;
+                result.Difficulty = input.Difficulty;
+                result.SkillCheckFormulaType = (int)input.SalvageType;
+
+                result.SuccessWcid = input.SuccessWCID;
+                result.SuccessAmount = input.SuccessAmount;
+                result.SuccessMessage = input.SuccessMessage;
+
+                result.FailWcid = input.FailWCID;
+                result.FailAmount = input.FailAmount;
+                result.FailMessage = input.FailMessage;
+
+                result.SuccessConsumeTargetChance = (int)input.SuccessDestroyTargetChance;
+                result.SuccessConsumeTargetAmount = input.SuccessDestroyTargetAmount;
+                result.SuccessConsumeTargetMessage = input.SuccessDestroyTargetMessage;
+
+                result.SuccessConsumeToolChance = (int)input.SuccessDestroySourceChance;
+                result.SuccessConsumeToolAmount = input.SuccessDestroySourceAmount;
+                result.SuccessConsumeToolMessage = input.SuccessDestroySourceMessage;
+
+                result.FailureConsumeTargetChance = (int)input.FailDestroyTargetChance;
+                result.FailureConsumeTargetAmount = input.FailDestroyTargetAmount;
+                result.FailureConsumeTargetMessage = input.FailDestroyTargetMessage;
+
+                result.FailureConsumeToolChance = (int)input.FailDestroySourceChance;
+                result.FailureConsumeToolAmount = input.FailDestroySourceAmount;
+                result.FailureConsumeToolMessage = input.FailDestroySourceMessage;
+
+                result.DataId = input.DataId;
+
+                // requirements
+                result.Requirements = new List<Models.RecipeRequirements>();
+                for (var idx = 0; idx < 3; idx++)
+                    result.Requirements.Add(null);
+
+                foreach (var intReq in input.RecipeRequirementsInt)
+                {
+                    var requirements = result.Requirements[intReq.Index];
+
+                    if (requirements == null)
+                    {
+                        requirements = new Models.RecipeRequirements();
+                        result.Requirements[intReq.Index] = requirements;
+                    }
+
+                    requirements.IntRequirements.Add(new Models.IntRequirement
+                    {
+                        Stat = intReq.Stat,
+                        Value = intReq.Value,
+                        OperationType = intReq.Enum,
+                        Message = intReq.Message
+                    });
+                }
+
+                foreach (var didReq in input.RecipeRequirementsDID)
+                {
+                    var requirements = result.Requirements[didReq.Index];
+
+                    if (requirements == null)
+                    {
+                        requirements = new Models.RecipeRequirements();
+                        result.Requirements[didReq.Index] = requirements;
+                    }
+
+                    requirements.DIDRequirements.Add(new Models.DIDRequirement
+                    {
+                        Stat = didReq.Stat,
+                        Value = didReq.Value,
+                        OperationType = didReq.Enum,
+                        Message = didReq.Message
+                    });
+                }
+
+                foreach (var iidReq in input.RecipeRequirementsIID)
+                {
+                    var requirements = result.Requirements[iidReq.Index];
+
+                    if (requirements == null)
+                    {
+                        requirements = new Models.RecipeRequirements();
+                        result.Requirements[iidReq.Index] = requirements;
+                    }
+
+                    requirements.DIDRequirements.Add(new Models.DIDRequirement
+                    {
+                        Stat = iidReq.Stat,
+                        Value = iidReq.Value,
+                        OperationType = iidReq.Enum,
+                        Message = iidReq.Message
+                    });
+                }
+
+                foreach (var floatReq in input.RecipeRequirementsFloat)
+                {
+                    var requirements = result.Requirements[floatReq.Index];
+
+                    if (requirements == null)
+                    {
+                        requirements = new Models.RecipeRequirements();
+                        result.Requirements[floatReq.Index] = requirements;
+                   }
+
+                    requirements.FloatRequirements.Add(new Models.FloatRequirement
+                    {
+                        Stat = floatReq.Stat,
+                        Value = floatReq.Value,
+                        OperationType = floatReq.Enum,
+                        Message = floatReq.Message
+                    });
+                }
+
+                foreach (var stringReq in input.RecipeRequirementsString)
+                {
+                    var requirements = result.Requirements[stringReq.Index];
+
+                    if (requirements == null)
+                    {
+                        requirements = new Models.RecipeRequirements();
+                        result.Requirements[stringReq.Index] = requirements;
+                    }
+
+                    requirements.StringRequirements.Add(new Models.StringRequirement
+                    {
+                        Stat = stringReq.Stat,
+                        Value = stringReq.Value,
+                        OperationType = stringReq.Enum,
+                    });
+                }
+
+                foreach (var boolReq in input.RecipeRequirementsBool)
+                {
+                    var requirements = result.Requirements[boolReq.Index];
+
+                    if (requirements == null)
+                    {
+                        requirements = new Models.RecipeRequirements();
+                        result.Requirements[boolReq.Index] = requirements;
+                    }
+
+                    requirements.BoolRequirements.Add(new Models.BoolRequirement
+                    {
+                        Stat = boolReq.Stat,
+                        Value = boolReq.Value,
+                        OperationType = boolReq.Enum,
+                    });
+                }
+
+                // modifications
+                result.Mods = new List<Models.Mod>();
+                for (var idx = 0; idx < 8; idx++)
+                    result.Mods.Add(null);
+
+                foreach (var recipeMod in input.RecipeMod)
+                {
+                    // should index be on RecipeMod, or RecipeModType?
+                    var idx = GetIndex(recipeMod);
+                    if (idx == -1)
+                    {
+                        Console.WriteLine($"Couldn't find recipe mod idx");
+                        continue;
+                    }
+
+                    var mod = result.Mods[idx];
+                    if (mod == null)
+                    {
+                        mod = new Models.Mod();
+                        result.Mods[idx] = mod;
+                    }
+
+                    // base stats
+                    mod.ModifyHealth = recipeMod.Health;
+                    mod.ModifyStamina = recipeMod.Stamina;
+                    mod.ModifyMana = recipeMod.Mana;
+
+                    // TODO!!! we're missing the following RequiresHealth, RequiresStamina, RequiresMana
+
+                    mod.Unknown7 = recipeMod.Unknown7;
+                    mod.ModificationScriptId = recipeMod.DataId;
+
+                    mod.Unknown9 = recipeMod.Unknown9;
+                    mod.Unknown10 = recipeMod.InstanceId;
+
+                    // type mods
+                    foreach (var intMod in recipeMod.RecipeModsInt)
+                    {
+                        mod.IntRequirements.Add(new Models.IntRequirement
+                        {
+                            Stat = intMod.Stat,
+                            Value = intMod.Value,
+                            OperationType = intMod.Enum,
+                            Unknown = intMod.Source
+                        });
+                    }
+
+                    foreach (var didMod in recipeMod.RecipeModsDID)
+                    {
+                        mod.DIDRquirements.Add(new Models.DIDRequirement
+                        {
+                            Stat = didMod.Stat,
+                            Value = didMod.Value,
+                            OperationType = didMod.Enum,
+                            Unknown = didMod.Source
+                        });
+                    }
+
+                    foreach (var iidMod in recipeMod.RecipeModsIID)
+                    {
+                        mod.IIDRequirements.Add(new Models.IIDRequirement
+                        {
+                            Stat = iidMod.Stat,
+                            Value = iidMod.Value,
+                            OperationType = iidMod.Enum,
+                            Unknown = iidMod.Source
+                        });
+                    }
+
+                    foreach (var floatMod in recipeMod.RecipeModsFloat)
+                    {
+                        mod.FloatRequirements.Add(new Models.FloatRequirement
+                        {
+                            Stat = floatMod.Stat,
+                            Value = floatMod.Value,
+                            OperationType = floatMod.Enum,
+                            Unknown = floatMod.Source
+                        });
+                    }
+
+                    foreach (var stringMod in recipeMod.RecipeModsString)
+                    {
+                        mod.StringRequirements.Add(new Models.StringRequirement
+                        {
+                            Stat = stringMod.Stat,
+                            Value = stringMod.Value,
+                            OperationType = stringMod.Enum,
+                            Unknown = stringMod.Source
+                        });
+                    }
+
+                    foreach (var boolMod in recipeMod.RecipeModsBool)
+                    {
+                        mod.BoolRequirements.Add(new Models.BoolRequirement
+                        {
+                            Stat = boolMod.Stat,
+                            Value = boolMod.Value,
+                            OperationType = boolMod.Enum,
+                            Unknown = boolMod.Source
+                        });
+                    }
+                }
+
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Converts GDLE recipe + precursors to ACE recipe + cookbooks
+        /// </summary>
+        public static bool TryConvert(Models.RecipeCombined input, out List<CookBook> cookbooks, out Recipe recipe)
+        {
+            if (!TryConvert(input.recipe, out recipe))
+            {
+                cookbooks = null;
+                return false;
+            }
+
+            recipe.Id = input.key;
+
+            cookbooks = new List<CookBook>();
+
+            foreach (var precursor in input.precursors)
+            {
+                if (!TryConvert(precursor, out var cookbook))
+                    return false;
+
+                cookbook.RecipeId = input.key;
+
+                cookbooks.Add(cookbook);
+            }
+            return true;
+        }
+
+
+        /// <summary>
+        /// Converts a GDLE recipe to an ACE recipe
+        /// </summary>
+        public static bool TryConvert(Models.Recipe input, out Recipe result)
         {
             try
             {
@@ -277,9 +701,6 @@ namespace ACE.Adapter.GDLE
                     if (value == null)
                         continue;
 
-                    // TODO!!! GDLE only has 2 requirements, int and bool. Why do we have all of them defined?
-                    // TODO!!! GDLE requirements also define properties OperationType and Unknown
-
                     if (value.IntRequirements != null)
                     {
                         foreach (var requirement in value.IntRequirements)
@@ -288,22 +709,23 @@ namespace ACE.Adapter.GDLE
                             {
                                 Index = index,
                                 Stat = requirement.Stat,
-                                Value = (int)requirement.Value,
+                                Value = requirement.Value,
                                 Enum = requirement.OperationType,
                                 Message = requirement.Message
                             });
                         }
                     }
 
-                    /*if (value.DIDRequirements != null)
+                    if (value.DIDRequirements != null)
                     {
                         foreach (var requirement in value.DIDRequirements)
                         {
                             result.RecipeRequirementsDID.Add(new RecipeRequirementsDID
                             {
+                                Index = index,
                                 Stat = requirement.Stat,
                                 Value = requirement.Value,
-                                Enum = requirement.Enum,
+                                Enum = requirement.OperationType,
                                 Message = requirement.Message
                             });
                         }
@@ -315,9 +737,10 @@ namespace ACE.Adapter.GDLE
                         {
                             result.RecipeRequirementsIID.Add(new RecipeRequirementsIID
                             {
+                                Index = index,
                                 Stat = requirement.Stat,
                                 Value = requirement.Value,
-                                Enum = requirement.Enum,
+                                Enum = requirement.OperationType,
                                 Message = requirement.Message
                             });
                         }
@@ -329,9 +752,10 @@ namespace ACE.Adapter.GDLE
                         {
                             result.RecipeRequirementsFloat.Add(new RecipeRequirementsFloat
                             {
+                                Index = index,
                                 Stat = requirement.Stat,
                                 Value = requirement.Value,
-                                Enum = requirement.Enum,
+                                Enum = requirement.OperationType,
                                 Message = requirement.Message
                             });
                         }
@@ -343,13 +767,13 @@ namespace ACE.Adapter.GDLE
                         {
                             result.RecipeRequirementsString.Add(new RecipeRequirementsString
                             {
+                                Index = index,
                                 Stat = requirement.Stat,
                                 Value = requirement.Value,
-                                Enum = requirement.Enum,
-                                Message = requirement.Message
+                                Enum = requirement.OperationType,
                             });
                         }
-                    }*/
+                    }
 
                     if (value.BoolRequirements != null)
                     {
@@ -359,7 +783,7 @@ namespace ACE.Adapter.GDLE
                             {
                                 Index = index,
                                 Stat = requirement.Stat,
-                                Value = (requirement.Value != 0),
+                                Value = requirement.Value,
                                 Enum = requirement.OperationType,
                                 Message = requirement.Message
                             });
@@ -384,42 +808,42 @@ namespace ACE.Adapter.GDLE
                             {
                                 Index = (sbyte)i,
                                 Stat = mod.Stat,
-                                Value = (int)mod.Value,
+                                Value = mod.Value,
                                 Enum = mod.OperationType,
                                 Source = mod.Unknown ?? 0
                             });
                         }
                     }
 
-                    if (value.DidRequirements != null)
+                    if (value.DIDRquirements != null)
                     {
-                        foreach (var mod in value.DidRequirements)
+                        foreach (var mod in value.DIDRquirements)
                         {
                             recipeMod.RecipeModsDID.Add(new RecipeModsDID
                             {
                                 Index = (sbyte)i,
                                 Stat = mod.Stat,
-                                Value = (uint)mod.Value,
+                                Value = mod.Value,
                                 Enum = mod.OperationType,
                                 Source = mod.Unknown ?? 0
                             });
                         }
                     }
 
-                    // TODO!!!! GDLE doesn't have this
-                    /*if (value.IIDMods != null)
+                    if (value.IIDRequirements != null)
                     {
-                        foreach (var mod in value.IIDMods)
+                        foreach (var mod in value.IIDRequirements)
                         {
                             recipeMod.RecipeModsIID.Add(new RecipeModsIID
                             {
+                                Index = (sbyte)i,
                                 Stat = mod.Stat,
                                 Value = mod.Value,
-                                Enum = mod.Enum,
-                                Unknown1 = mod.Unknown1
-                            });
+                                Enum = mod.OperationType,
+                                Source = mod.Unknown ?? 0
+                            }); ;
                         }
-                    }*/
+                    }
 
                     if (value.FloatRequirements != null)
                     {
@@ -459,7 +883,7 @@ namespace ACE.Adapter.GDLE
                             {
                                 Index = (sbyte)i,
                                 Stat = mod.Stat,
-                                Value = (mod.Value != 0),
+                                Value = mod.Value,
                                 Enum = mod.OperationType,
                                 Source = mod.Unknown ?? 0
                             });
@@ -470,11 +894,11 @@ namespace ACE.Adapter.GDLE
 
                     recipeMod.ExecutesOnSuccess = (i <= 3); // The first 4 are "act on success", the second 4 are "act on failure"
 
-                    // TODO!!!
                     recipeMod.Health = value.ModifyHealth;
                     recipeMod.Stamina = value.ModifyStamina;
                     recipeMod.Mana = value.ModifyMana;
-                    // TODO!!! we're missing the following RequiresHealth, RequiresStamina, RequiresMana
+
+                    // TODO: ACE is missing RequiresHealth, RequiresStamina, RequiresMana
 
                     recipeMod.Unknown7 = value.Unknown7;
                     recipeMod.DataId = value.ModificationScriptId;
@@ -499,11 +923,60 @@ namespace ACE.Adapter.GDLE
             }
         }
 
-        public static bool TryConvert(Models.WieldedTreasureTable input, out List<Database.Models.World.TreasureWielded> results)
+        /// <summary>
+        /// Converts ACE cookbook to GDLE precursor
+        /// </summary>
+        public static bool TryConvert(CookBook input, out Models.RecipePrecursor result)
         {
             try
             {
-                results = new List<Database.Models.World.TreasureWielded>();
+                result = new Models.RecipePrecursor();
+
+                result.RecipeId = input.RecipeId;
+
+                result.Tool = input.SourceWCID;
+                result.Target = input.TargetWCID;
+
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Converts a GDLE precursor to ACE cookbook
+        /// </summary>
+        public static bool TryConvert(Models.RecipePrecursor input, out CookBook result)
+        {
+            try
+            {
+                result = new CookBook();
+
+                result.RecipeId = input.RecipeId ?? 0;
+
+                result.SourceWCID = input.Tool;
+                result.TargetWCID = input.Target;
+
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Converts GDLE -> ACE wielded treasure table
+        /// </summary>
+        public static bool TryConvert(Models.WieldedTreasureTable input, out List<TreasureWielded> results)
+        {
+            try
+            {
+                results = new List<TreasureWielded>();
 
                 foreach (var entry in input.Value)
                 {
@@ -537,26 +1010,6 @@ namespace ACE.Adapter.GDLE
             catch
             {
                 results = null;
-                return false;
-            }
-        }
-
-        public static bool TryConvert(Models.RecipePrecursor input, out Database.Models.World.CookBook result)
-        {
-            try
-            {
-                result = new CookBook();
-
-                result.RecipeId = input.RecipeId;
-
-                result.SourceWCID = input.Tool;
-                result.TargetWCID = input.Target;
-
-                return true;
-            }
-            catch
-            {
-                result = null;
                 return false;
             }
         }
