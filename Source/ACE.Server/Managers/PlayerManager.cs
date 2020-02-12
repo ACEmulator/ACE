@@ -53,11 +53,37 @@ namespace ACE.Server.Managers
             });
         }
 
+        private static readonly LinkedList<Player> playersPendingLogoff = new LinkedList<Player>();
+
+        public static void AddPlayerToLogoffQueue(Player player)
+        {
+            if (!playersPendingLogoff.Contains(player))
+                playersPendingLogoff.AddLast(player);
+        }
+
         public static void Tick()
         {
             // Database Save
             if (lastDatabaseSave + databaseSaveInterval <= DateTime.UtcNow)
                 SaveOfflinePlayersWithChanges();
+
+            var currentUnixTime = Time.GetUnixTime();
+
+            while (playersPendingLogoff.Count > 0)
+            {
+                var first = playersPendingLogoff.First.Value;
+
+                if (first.LogoffTimestamp <= currentUnixTime)
+                {
+                    playersPendingLogoff.RemoveFirst();
+                    first.LogOut_Inner();
+                    first.Session.logOffRequestTime = DateTime.UtcNow;
+                }
+                else
+                {
+                    break;
+                }
+            }
         }
 
         /// <summary>
