@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-
 using ACE.Database.Models.World;
 
 namespace ACE.Adapter.GDLE
@@ -497,6 +495,48 @@ namespace ACE.Adapter.GDLE
             catch
             {
                 result = null;
+                return false;
+            }
+        }
+
+        public static bool TryConvert(Models.WieldedTreasureTable input, out List<Database.Models.World.TreasureWielded> results)
+        {
+            try
+            {
+                results = new List<Database.Models.World.TreasureWielded>();
+
+                foreach (var entry in input.Value)
+                {
+                    var result = new TreasureWielded();
+
+                    result.TreasureType = input.Key;
+
+                    result.ContinuesPreviousSet = entry.ContinuesPreviousSet;
+                    result.HasSubSet = entry.HasSubSet;
+                    result.PaletteId = entry.PaletteId;
+                    result.Probability = entry.Probability;
+                    result.SetStart = entry.SetStart;
+                    result.Shade = entry.Shade;
+                    result.StackSize = entry.StackSize;
+                    result.StackSizeVariance = entry.StackSizeVariance;
+                    result.Unknown1 = entry.Unknown1;
+                    result.Unknown10 = entry.Unknown10;
+                    result.Unknown11 = entry.Unknown11;
+                    result.Unknown12 = entry.Unknown12;
+                    result.Unknown3 = entry.Unknown3;
+                    result.Unknown4 = entry.Unknown4;
+                    result.Unknown5 = entry.Unknown5;
+                    result.Unknown9 = entry.Unknown9;
+                    result.WeenieClassId = entry.WeenieClassId;
+
+                    results.Add(result);
+                }
+
+                return true;
+            }
+            catch
+            {
+                results = null;
                 return false;
             }
         }
