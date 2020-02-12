@@ -215,7 +215,7 @@ namespace ACE.Adapter.GDLE
             }
         }
 
-        public static bool TryLoadEventsConverted(string file, out List<Database.Models.World.Event> results)
+        public static bool TryLoadEventsConverted(string file, out List<Event> results)
         {
             try
             {
@@ -223,7 +223,7 @@ namespace ACE.Adapter.GDLE
 
                 var gdleModel = JsonConvert.DeserializeObject<List<Models.Event>>(fileText);
 
-                results = new List<Database.Models.World.Event>();
+                results = new List<Event>();
 
                 foreach (var value in gdleModel)
                 {
@@ -259,7 +259,7 @@ namespace ACE.Adapter.GDLE
             }
         }
 
-        public static bool TryLoadQuestsConverted(string file, out List<Database.Models.World.Quest> results)
+        public static bool TryLoadQuestsConverted(string file, out List<Quest> results)
         {
             try
             {
@@ -267,7 +267,7 @@ namespace ACE.Adapter.GDLE
 
                 var gdleModel = JsonConvert.DeserializeObject<List<Models.Quest>>(fileText);
 
-                results = new List<Database.Models.World.Quest>();
+                results = new List<Quest>();
 
                 foreach (var value in gdleModel)
                 {
@@ -303,7 +303,7 @@ namespace ACE.Adapter.GDLE
             }
         }
 
-        public static bool TryLoadSpellsConverted(string file, out List<Database.Models.World.Spell> results)
+        public static bool TryLoadSpellsConverted(string file, out List<Spell> results)
         {
             try
             {
@@ -311,7 +311,7 @@ namespace ACE.Adapter.GDLE
 
                 var gdleModel = JsonConvert.DeserializeObject<Models.Spells>(fileText);
 
-                results = new List<Database.Models.World.Spell>();
+                results = new List<Spell>();
 
                 foreach (var value in gdleModel.Table.SpellBaseHash)
                 {
@@ -329,25 +329,41 @@ namespace ACE.Adapter.GDLE
             }
         }
 
-
-        public static bool TryLoadRecipes(string file, out List<Models.Recipe> results)
+        public static bool TryLoadRecipe(string file, out Models.Recipe result)
         {
             try
             {
                 var fileText = File.ReadAllText(file);
 
-                results = JsonConvert.DeserializeObject<List<Models.Recipe>>(fileText);
+                result = JsonConvert.DeserializeObject<Models.Recipe>(fileText);
 
                 return true;
             }
             catch
             {
-                results = null;
+                result = null;
                 return false;
             }
         }
 
-        public static bool TryLoadRecipesConverted(string file, out List<Database.Models.World.Recipe> results)
+        public static bool TryLoadRecipeCombined(string file, out Models.RecipeCombined result)
+        {
+            try
+            {
+                var fileText = File.ReadAllText(file);
+
+                result = JsonConvert.DeserializeObject<Models.RecipeCombined>(fileText);
+
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
+        }
+
+        public static bool TryLoadRecipesConverted(string file, out List<Recipe> results)
         {
             try
             {
@@ -355,7 +371,7 @@ namespace ACE.Adapter.GDLE
 
                 var gdleModel = JsonConvert.DeserializeObject<List<Models.Recipe>>(fileText);
 
-                results = new List<Database.Models.World.Recipe>();
+                results = new List<Recipe>();
 
                 foreach (var value in gdleModel)
                 {
@@ -390,7 +406,7 @@ namespace ACE.Adapter.GDLE
             }
         }
 
-        public static bool TryLoadRecipePrecursorsConverted(string file, out List<Database.Models.World.CookBook> results)
+        public static bool TryLoadRecipePrecursorsConverted(string file, out List<CookBook> results)
         {
             try
             {
@@ -398,7 +414,7 @@ namespace ACE.Adapter.GDLE
 
                 var gdleModel = JsonConvert.DeserializeObject<List<Models.RecipePrecursor>>(fileText);
 
-                results = new List<Database.Models.World.CookBook>();
+                results = new List<CookBook>();
 
                 foreach (var value in gdleModel)
                 {
