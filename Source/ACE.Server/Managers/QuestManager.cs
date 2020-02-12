@@ -602,11 +602,11 @@ namespace ACE.Server.Managers
             var player = killer as Player;
             if (player == null) return;
 
-            if (!string.IsNullOrWhiteSpace(Creature.KillQuest))
+            if (Creature.KillQuest != null)
                 player.QuestManager.HandleKillTask(Creature.KillQuest, Creature);
-            if (!string.IsNullOrWhiteSpace(Creature.KillQuest2))
+            if (Creature.KillQuest2 != null)
                 player.QuestManager.HandleKillTask(Creature.KillQuest2, Creature);
-            if (!string.IsNullOrWhiteSpace(Creature.KillQuest3))
+            if (Creature.KillQuest3 != null)
                 player.QuestManager.HandleKillTask(Creature.KillQuest3, Creature);
         }
     }
