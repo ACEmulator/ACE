@@ -47,7 +47,7 @@ namespace ACE.Server.WorldObjects
             {
                 CurrentMotionState = motionOpen;
                 IsOpen = true;
-                //Ethereal = true;
+                Ethereal = true;
             }
 
             ResetInterval = ResetInterval ?? 30.0f;
@@ -133,7 +133,7 @@ namespace ACE.Server.WorldObjects
                 UseTimestamp++;
         }
 
-        private void Close(ObjectGuid closer = new ObjectGuid())
+        public void Close(ObjectGuid closer = new ObjectGuid())
         {
             if (CurrentMotionState == motionClosed)
                 return;

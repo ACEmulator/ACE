@@ -60,6 +60,17 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // ensure same PKType, although PK and PKLite players can heal NPKs:
+            // https://asheron.fandom.com/wiki/Player_Killer
+            // https://asheron.fandom.com/wiki/Player_Killer_Lite
+
+            if (targetPlayer.PlayerKillerStatus != healer.PlayerKillerStatus && targetPlayer.PlayerKillerStatus != PlayerKillerStatus.NPK)
+            {
+                healer.SendWeenieErrorWithString(WeenieErrorWithString.YouFailToAffect_NotSamePKType, targetPlayer.Name);
+                healer.SendUseDoneEvent();
+                return;
+            }
+
             // ensure target player vital < MaxValue
             var vital = targetPlayer.GetCreatureVital(BoosterEnum);
 
@@ -130,6 +141,8 @@ namespace ACE.Server.WorldObjects
             healer.EnqueueMotion(actionChain, MotionCommand.Ready);
 
             actionChain.EnqueueChain();
+
+            healer.NextUseTime = DateTime.UtcNow.AddSeconds(animLength);
         }
 
         public void DoHealing(Player healer, Player target)

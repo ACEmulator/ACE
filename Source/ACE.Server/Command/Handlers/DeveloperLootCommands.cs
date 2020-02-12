@@ -10,7 +10,7 @@ namespace ACE.Server.Command.Handlers
 {
     public static class DeveloperLootCommands
     {
-        [CommandHandler("testlootgen", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Generates Loot for testing LootFactories.  Do testlootgen -info for examples.", "<number of items> <loot tier> <melee, missile, caster, armor, pet (optional)>")]
+        [CommandHandler("testlootgen", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Generates Loot for testing LootFactories.  Do testlootgen -info for examples.", "<number of items> <loot tier> <melee, missile, caster, armor, pet, aetheria (optional)>")]
         public static void TestLootGenerator(Session session, params string[] parameters)
         {
             // This generates loot items and displays the drop rates of LootFactory
@@ -22,7 +22,7 @@ namespace ACE.Server.Command.Handlers
             {
                 case "-info":
                     Console.WriteLine($"Usage: \n" +
-                                    $"<number of items> <loot tier> <(optional)display table - melee, missile, caster, armor, pet> \n" +
+                                    $"<number of items> <loot tier> <(optional)display table - melee, missile, caster, armor, pet, aetheria> \n" +
                                     $" Example: The following command will generate 1000 items in Tier 7 that shows the melee table\n" +
                                     $"testlootgen 1000 7 melee \n" +
                                     $" Example: The following command will generate 1000 items in Tier 6 that just shows a summary \n" +
@@ -65,12 +65,17 @@ namespace ACE.Server.Command.Handlers
                     break;
                 case "pet":
                     break;
+                case "aetheria":
+                    break;
                 case "all":
+                    break;
+                case "-log":
+                    logstats = true;                    
                     break;
                 case "":
                     break;
                 default:
-                    Console.WriteLine("Invalid Table Option.  Available Tables to show are melee, missile, caster, armor, pet, or all.");
+                    Console.WriteLine("Invalid Table Option.  Available Tables to show are melee, missile, caster, armor, pet, aetheria or all.");
                     return;
             }
             if (parameters.LongLength > 3)
@@ -80,8 +85,8 @@ namespace ACE.Server.Command.Handlers
                 case "":
                     break;
                 case "-log":
-                    logstats = false;
-                    Console.WriteLine("Logging is not currently working, Displaying results to screen.");
+                    logstats = true;
+                    // Console.WriteLine("Logging is not currently working, Displaying results to screen.");
                     break;
                 default:
                     Console.WriteLine("Invalid Option.  To log a file, use option -log");
@@ -95,7 +100,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
         }
-        [CommandHandler("testlootgencorpse", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Generates Corpses for testing LootFactories", "<DID> <number corpses> <display table - melee, missile, caster, armor, pet>")]
+        [CommandHandler("testlootgencorpse", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Generates Corpses for testing LootFactories", "<DID> <number corpses> <display table - melee, missile, caster, armor, pet, aetheria>")]
         public static void TestLootGeneratorCorpse(Session session, params string[] parameters)
         {
             // This generates loot items and displays the drop rates of LootFactory
@@ -111,7 +116,7 @@ namespace ACE.Server.Command.Handlers
             {
                 case "-info":
                     Console.WriteLine($"Usage: \n" +
-                                    $"<DID> <number corpses> <(optional)display table - melee, missile, caster, armor, pet> \n" +
+                                    $"<DID> <number corpses> <(optional)display table - melee, missile, caster, armor, pet, aetheria> \n" +
                                     $" Example: The following command will generate 50 corpses generated from DeathTreasure DID 998 that shows the caster table\n" +
                                     $"testlootgencorpse 998 50 caster \n" +
                                     $" Example: The following command will generate 75 corpses generated from DeathTreasure DID 452 that just shows a summary \n" +
@@ -152,12 +157,17 @@ namespace ACE.Server.Command.Handlers
                     break;
                 case "pet":
                     break;
+                case "aetheria":
+                    break;
                 case "all":
+                    break;
+                case "-log":
+                    logstats = true;
                     break;
                 case "":
                     break;
                 default:
-                    Console.WriteLine("Invalid Table Option.  Available Tables to show are melee, missile, caster, armor, pet, or all.");
+                    Console.WriteLine("Invalid Table Option.  Available Tables to show are melee, missile, caster, armor, pet, aetheria or all.");
                     return;
             }
             if (parameters.LongLength > 3)
@@ -167,8 +177,8 @@ namespace ACE.Server.Command.Handlers
                 case "":
                     break;
                 case "-log":
-                    logstats = false;
-                    Console.WriteLine("Logging is not currently working, Displaying results to screen.");
+                    logstats = true;
+                    // Console.WriteLine("Logging is not currently working, Displaying results to screen.");
                     break;
                 default:
                     Console.WriteLine("Invalid Option.  To log a file, use option -log");

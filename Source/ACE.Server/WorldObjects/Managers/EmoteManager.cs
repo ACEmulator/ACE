@@ -116,16 +116,21 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.AwardLevelProportionalSkillXP:
 
+                    var min = emote.Min64 ?? emote.Min ?? 0;
+                    var max = emote.Max64 ?? emote.Max ?? 0;
+
                     if (player != null)
-                        player.GrantLevelProportionalSkillXP((Skill)emote.Stat, emote.Percent ?? 0, emote.Max64 ?? 0);
+                        player.GrantLevelProportionalSkillXP((Skill)emote.Stat, emote.Percent ?? 0, min, max);
                     break;
 
                 case EmoteType.AwardLevelProportionalXP:
 
                     bool shareXP = emote.Display ?? false;
+                    min = emote.Min64 ?? emote.Min ?? 0;
+                    max = emote.Max64 ?? emote.Max ?? 0;
 
                     if (player != null)
-                        player.GrantLevelProportionalXp(emote.Percent ?? 0, emote.Max64 ?? 0, shareXP);
+                        player.GrantLevelProportionalXp(emote.Percent ?? 0, min, max, shareXP);
                     break;
 
                 case EmoteType.AwardLuminance:
@@ -138,7 +143,7 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.AwardNoShareXP:
 
                     if (player != null)
-                        player.EarnXP(emote.Amount64 ?? 0, XpType.Quest, ShareType.None);
+                        player.EarnXP(emote.Amount64 ?? emote.Amount ?? 0, XpType.Quest, ShareType.None);
 
                     break;
 
@@ -164,7 +169,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (player != null)
                     {
-                        var amt = emote.Amount64 ?? 0;
+                        var amt = emote.Amount64 ?? emote.Amount ?? 0;
                         if (amt > 0)
                         {
                             player.EarnXP(amt, XpType.Quest, ShareType.All);
@@ -223,6 +228,9 @@ namespace ACE.Server.WorldObjects.Managers
                     // animation delay?
                     if (WorldObject is Container container)
                         container.Close(null);
+                    else if (WorldObject is Door closeDoor)
+                        closeDoor.Close();
+
                     break;
 
                 case EmoteType.CreateTreasure:
@@ -948,6 +956,8 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (WorldObject is Container openContainer)
                         openContainer.Open(null);
+                    else if (WorldObject is Door openDoor)
+                        openDoor.Open();
 
                     break;
 
@@ -1581,6 +1591,10 @@ namespace ACE.Server.WorldObjects.Managers
                 result = result.Replace("%CDtime", !string.IsNullOrWhiteSpace(quest) ? targetPlayer.QuestManager.GetNextSolveTime(questName).GetFriendlyString() : "");
 
                 result = result.Replace("%tf", $"{(targetPlayer.Fellowship != null ? targetPlayer.Fellowship.FellowshipName : "")}");
+
+                result = result.Replace("%tqm", !string.IsNullOrWhiteSpace(quest) ? targetPlayer.QuestManager.GetMaxSolves(questName).ToString() : "");
+
+                result = result.Replace("%tqc", !string.IsNullOrWhiteSpace(quest) ? targetPlayer.QuestManager.GetCurrentSolves(questName).ToString() : "");
             }
 
             if (source is Creature sourceCreature)
