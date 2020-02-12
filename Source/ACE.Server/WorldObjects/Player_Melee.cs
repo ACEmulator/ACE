@@ -285,7 +285,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventAttackDone(Session));
                 Attacking = false;
 
-                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
+                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && IsStickyDistance(creature, true))
                 {
                     Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
                     Session.Network.EnqueueSend(new GameEventAttackDone(Session));
@@ -378,12 +378,12 @@ namespace ACE.Server.WorldObjects
             return motion;
         }
 
-        public bool IsStickyDistance(WorldObject target)
+        public bool IsStickyDistance(WorldObject target, bool repeat = false)
         {
             var cylDist = (float)Physics.Common.Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
                 target.PhysicsObj.GetRadius(), target.PhysicsObj.GetHeight(), target.PhysicsObj.Position);
 
-            return cylDist <= 4.0f;
+            return cylDist <= (repeat ? 4.0f : 16.0f);
         }
     }
 }
