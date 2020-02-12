@@ -102,18 +102,18 @@ namespace ACE.Adapter.GDLE
             {
                 var currentOffset = startingIdOffset;
 
-                if (!idChanges.ContainsKey(landblock.Key))
-                    idChanges.Add(landblock.Key, new Dictionary<uint, uint>());
+                if (!idChanges.ContainsKey(landblock.key))
+                    idChanges.Add(landblock.key, new Dictionary<uint, uint>());
 
-                foreach (var weenie in landblock.Value.Weenies)
+                foreach (var weenie in landblock.value.weenies)
                 {
-                    var newGuid = (0x70000000 | ((weenie.Position.ObjCellId & 0xFFFF0000) >> 4) | currentOffset);
+                    var newGuid = (0x70000000 | ((weenie.pos.ObjCellId & 0xFFFF0000) >> 4) | currentOffset);
                     currentOffset++;
 
-                    if (!idChanges[landblock.Key].ContainsKey(weenie.Id))
+                    if (!idChanges[landblock.key].ContainsKey(weenie.id))
                     {
-                        idChanges[landblock.Key].Add(weenie.Id, newGuid);
-                        weenie.Id = newGuid;
+                        idChanges[landblock.key].Add(weenie.id, newGuid);
+                        weenie.id = newGuid;
                     }
                 }
             }
@@ -121,20 +121,20 @@ namespace ACE.Adapter.GDLE
             // Then we update all the links
             foreach (var landblock in landblocks)
             {
-                if (landblock.Value.Links == null)
+                if (landblock.value.links == null)
                     continue;
 
-                foreach (var link in landblock.Value.Links)
+                foreach (var link in landblock.value.links)
                 {
-                    if (idChanges[landblock.Key].TryGetValue(link.Source, out var source))
-                        link.Source = source;
+                    if (idChanges[landblock.key].TryGetValue(link.source, out var source))
+                        link.source = source;
                     else
-                        link.Source = 0;
+                        link.source = 0;
 
-                    if (idChanges[landblock.Key].TryGetValue(link.Target, out var target))
-                        link.Target = target;
+                    if (idChanges[landblock.key].TryGetValue(link.target, out var target))
+                        link.target = target;
                     else
-                        link.Target = 0;
+                        link.target = 0;
                 }
             }
 
