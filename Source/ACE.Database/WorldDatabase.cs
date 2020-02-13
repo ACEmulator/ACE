@@ -192,7 +192,7 @@ namespace ACE.Database
         // CookBook
         // =====================================
 
-        public CookBook GetCookbook(WorldDbContext context, uint sourceWeenieClassId, uint targetWeenieClassId)
+        public virtual CookBook GetCookbook(WorldDbContext context, uint sourceWeenieClassId, uint targetWeenieClassId)
         {
             var result = context.CookBook
                 .Include(r => r.Recipe)
@@ -219,7 +219,7 @@ namespace ACE.Database
             return result;
         }
 
-        public virtual CookBook GetCookbook(uint sourceWeenieClassId, uint targetWeenieClassId)
+        public CookBook GetCookbook(uint sourceWeenieClassId, uint targetWeenieClassId)
         {
             using (var context = new WorldDbContext())
             {
@@ -227,6 +227,27 @@ namespace ACE.Database
 
                 return GetCookbook(context, sourceWeenieClassId, targetWeenieClassId);
             }
+        }
+
+        public List<CookBook> GetCookbooksByRecipeId(uint recipeId)
+        {
+            var results = new List<CookBook>();
+
+            using (var context = new WorldDbContext())
+            {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
+                var baseRecords = context.CookBook.Where(i => i.RecipeId == recipeId).ToList();
+
+                foreach (var baseRecord in baseRecords)
+                {
+                    var cookbook = GetCookbook(context, baseRecord.SourceWCID, baseRecord.TargetWCID);
+
+                    results.Add(cookbook);
+                }
+            }
+
+            return results;
         }
 
 
@@ -251,7 +272,7 @@ namespace ACE.Database
         /// <summary>
         /// This takes under 1 second to complete.
         /// </summary>
-        public virtual List<Event> GetAllEvents()
+        public List<Event> GetAllEvents()
         {
             using (var context = new WorldDbContext())
             {

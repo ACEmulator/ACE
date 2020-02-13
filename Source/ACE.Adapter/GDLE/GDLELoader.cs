@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -103,18 +102,18 @@ namespace ACE.Adapter.GDLE
             {
                 var currentOffset = startingIdOffset;
 
-                if (!idChanges.ContainsKey(landblock.Key))
-                    idChanges.Add(landblock.Key, new Dictionary<uint, uint>());
+                if (!idChanges.ContainsKey(landblock.key))
+                    idChanges.Add(landblock.key, new Dictionary<uint, uint>());
 
-                foreach (var weenie in landblock.Value.Weenies)
+                foreach (var weenie in landblock.value.weenies)
                 {
-                    var newGuid = (0x70000000 | ((weenie.Position.ObjCellId & 0xFFFF0000) >> 4) | currentOffset);
+                    var newGuid = (0x70000000 | ((weenie.pos.ObjCellId & 0xFFFF0000) >> 4) | currentOffset);
                     currentOffset++;
 
-                    if (!idChanges[landblock.Key].ContainsKey(weenie.Id))
+                    if (!idChanges[landblock.key].ContainsKey(weenie.id))
                     {
-                        idChanges[landblock.Key].Add(weenie.Id, newGuid);
-                        weenie.Id = newGuid;
+                        idChanges[landblock.key].Add(weenie.id, newGuid);
+                        weenie.id = newGuid;
                     }
                 }
             }
@@ -122,20 +121,20 @@ namespace ACE.Adapter.GDLE
             // Then we update all the links
             foreach (var landblock in landblocks)
             {
-                if (landblock.Value.Links == null)
+                if (landblock.value.links == null)
                     continue;
 
-                foreach (var link in landblock.Value.Links)
+                foreach (var link in landblock.value.links)
                 {
-                    if (idChanges[landblock.Key].TryGetValue(link.Source, out var source))
-                        link.Source = source;
+                    if (idChanges[landblock.key].TryGetValue(link.source, out var source))
+                        link.source = source;
                     else
-                        link.Source = 0;
+                        link.source = 0;
 
-                    if (idChanges[landblock.Key].TryGetValue(link.Target, out var target))
-                        link.Target = target;
+                    if (idChanges[landblock.key].TryGetValue(link.target, out var target))
+                        link.target = target;
                     else
-                        link.Target = 0;
+                        link.target = 0;
                 }
             }
 
@@ -216,7 +215,7 @@ namespace ACE.Adapter.GDLE
             }
         }
 
-        public static bool TryLoadEventsConverted(string file, out List<Database.Models.World.Event> results)
+        public static bool TryLoadEventsConverted(string file, out List<Event> results)
         {
             try
             {
@@ -224,7 +223,7 @@ namespace ACE.Adapter.GDLE
 
                 var gdleModel = JsonConvert.DeserializeObject<List<Models.Event>>(fileText);
 
-                results = new List<Database.Models.World.Event>();
+                results = new List<Event>();
 
                 foreach (var value in gdleModel)
                 {
@@ -242,6 +241,22 @@ namespace ACE.Adapter.GDLE
             }
         }
 
+        public static bool TryLoadQuest(string file, out Models.Quest result)
+        {
+            try
+            {
+                var fileText = File.ReadAllText(file);
+
+                result = JsonConvert.DeserializeObject<Models.Quest>(fileText);
+
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
+        }
 
         public static bool TryLoadQuests(string file, out List<Models.Quest> results)
         {
@@ -260,7 +275,7 @@ namespace ACE.Adapter.GDLE
             }
         }
 
-        public static bool TryLoadQuestsConverted(string file, out List<Database.Models.World.Quest> results)
+        public static bool TryLoadQuestsConverted(string file, out List<Quest> results)
         {
             try
             {
@@ -268,7 +283,7 @@ namespace ACE.Adapter.GDLE
 
                 var gdleModel = JsonConvert.DeserializeObject<List<Models.Quest>>(fileText);
 
-                results = new List<Database.Models.World.Quest>();
+                results = new List<Quest>();
 
                 foreach (var value in gdleModel)
                 {
@@ -304,7 +319,7 @@ namespace ACE.Adapter.GDLE
             }
         }
 
-        public static bool TryLoadSpellsConverted(string file, out List<Database.Models.World.Spell> results)
+        public static bool TryLoadSpellsConverted(string file, out List<Spell> results)
         {
             try
             {
@@ -312,7 +327,7 @@ namespace ACE.Adapter.GDLE
 
                 var gdleModel = JsonConvert.DeserializeObject<Models.Spells>(fileText);
 
-                results = new List<Database.Models.World.Spell>();
+                results = new List<Spell>();
 
                 foreach (var value in gdleModel.Table.SpellBaseHash)
                 {
@@ -330,25 +345,41 @@ namespace ACE.Adapter.GDLE
             }
         }
 
-
-        public static bool TryLoadRecipes(string file, out List<Models.Recipe> results)
+        public static bool TryLoadRecipe(string file, out Models.Recipe result)
         {
             try
             {
                 var fileText = File.ReadAllText(file);
 
-                results = JsonConvert.DeserializeObject<List<Models.Recipe>>(fileText);
+                result = JsonConvert.DeserializeObject<Models.Recipe>(fileText);
 
                 return true;
             }
             catch
             {
-                results = null;
+                result = null;
                 return false;
             }
         }
 
-        public static bool TryLoadRecipesConverted(string file, out List<Database.Models.World.Recipe> results)
+        public static bool TryLoadRecipeCombined(string file, out Models.RecipeCombined result)
+        {
+            try
+            {
+                var fileText = File.ReadAllText(file);
+
+                result = JsonConvert.DeserializeObject<Models.RecipeCombined>(fileText);
+
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
+        }
+
+        public static bool TryLoadRecipesConverted(string file, out List<Recipe> results)
         {
             try
             {
@@ -356,7 +387,7 @@ namespace ACE.Adapter.GDLE
 
                 var gdleModel = JsonConvert.DeserializeObject<List<Models.Recipe>>(fileText);
 
-                results = new List<Database.Models.World.Recipe>();
+                results = new List<Recipe>();
 
                 foreach (var value in gdleModel)
                 {
@@ -391,7 +422,7 @@ namespace ACE.Adapter.GDLE
             }
         }
 
-        public static bool TryLoadRecipePrecursorsConverted(string file, out List<Database.Models.World.CookBook> results)
+        public static bool TryLoadRecipePrecursorsConverted(string file, out List<CookBook> results)
         {
             try
             {
@@ -399,12 +430,89 @@ namespace ACE.Adapter.GDLE
 
                 var gdleModel = JsonConvert.DeserializeObject<List<Models.RecipePrecursor>>(fileText);
 
-                results = new List<Database.Models.World.CookBook>();
+                results = new List<CookBook>();
 
                 foreach (var value in gdleModel)
                 {
                     if (GDLEConverter.TryConvert(value, out var result))
                         results.Add(result);
+                }
+
+                return true;
+
+            }
+            catch
+            {
+                results = null;
+                return false;
+            }
+        }
+
+        public static bool TryLoadRegion(string file, out Models.Region result)
+        {
+            try
+            {
+                var fileText = File.ReadAllText(file);
+
+                result = JsonConvert.DeserializeObject<Models.Region>(fileText);
+
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
+        }
+
+        public static bool TryLoadTerrainData(string file, out List<Models.TerrainData> results)
+        {
+            try
+            {
+                var fileText = File.ReadAllText(file);
+
+                results = JsonConvert.DeserializeObject<List<Models.TerrainData>>(fileText);
+
+                return true;
+            }
+            catch
+            {
+                results = null;
+                return false;
+            }
+        }
+
+        public static bool TryLoadWieldedTreasureTable(string file, out List<Models.WieldedTreasureTable> results)
+        {
+            try
+            {
+                var fileText = File.ReadAllText(file);
+
+                results = JsonConvert.DeserializeObject<List<Models.WieldedTreasureTable>>(fileText);
+
+                return true;
+            }
+            catch
+            {
+                results = null;
+                return false;
+            }
+        }
+
+        public static bool TryLoadWieldedTreasureTableConverted(string file, out List<Database.Models.World.TreasureWielded> results)
+        {
+            try
+            {
+                var fileText = File.ReadAllText(file);
+
+                var gdleModel = JsonConvert.DeserializeObject<List<Models.WieldedTreasureTable>>(fileText);
+
+                results = new List<Database.Models.World.TreasureWielded>();
+
+                foreach (var value in gdleModel)
+                {
+                    if (GDLEConverter.TryConvert(value, out var result))
+                        results.AddRange(result);
                 }
 
                 return true;

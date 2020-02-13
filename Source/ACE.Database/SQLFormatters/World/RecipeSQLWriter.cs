@@ -40,14 +40,14 @@ namespace ACE.Database.SQLFormatters.World
                 }
             }
 
-            if (String.IsNullOrEmpty(description) && !String.IsNullOrEmpty(alternateDescription))
+            if (string.IsNullOrEmpty(description) && !string.IsNullOrEmpty(alternateDescription))
                 description = alternateDescription;
 
-            if (description == "Cooking Pot" && !String.IsNullOrEmpty(alternateDescription))
+            if (description == "Cooking Pot" && !string.IsNullOrEmpty(alternateDescription))
                 description = alternateDescription;
 
             string fileName = input.Id.ToString("00000");
-            if (!String.IsNullOrEmpty(description))
+            if (!string.IsNullOrEmpty(description))
                 fileName += " " + description;
             fileName = IllegalInFileName.Replace(fileName, "_");
             fileName += ".sql";
