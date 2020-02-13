@@ -11,10 +11,12 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database.Entity;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+
 using Version = ACE.Database.Models.World.Version;
 
 namespace ACE.Database
@@ -332,7 +334,7 @@ namespace ACE.Database
                     .AsNoTracking()
                     .ToList();
 
-                Parallel.ForEach(results, result =>
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
                     if (!weenieCache.ContainsKey(result.ClassId))
                         GetWeenie(result.ClassId);
@@ -772,7 +774,7 @@ namespace ACE.Database
                     .AsNoTracking()
                     .ToList();
 
-                Parallel.ForEach(results, result =>
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
                     GetCachedCookbook(result.SourceWCID, result.TargetWCID);
                 });
