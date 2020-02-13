@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
+using ACE.Common;
 using ACE.Database.Adapter;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
@@ -19,9 +20,9 @@ namespace ACE.Database
         // Weenie
         // =====================================
 
-        private readonly ConcurrentDictionary<uint, ACE.Entity.Models.Weenie> weenieCache = new ConcurrentDictionary<uint, ACE.Entity.Models.Weenie>();
+        private readonly ConcurrentDictionary<uint /* WCID */, ACE.Entity.Models.Weenie> weenieCache = new ConcurrentDictionary<uint /* WCID */, ACE.Entity.Models.Weenie>();
 
-        private readonly ConcurrentDictionary<string, uint> weenieClassNameToClassIdCache = new ConcurrentDictionary<string, uint>();
+        private readonly ConcurrentDictionary<string /* Class Name */, uint /* WCID */> weenieClassNameToClassIdCache = new ConcurrentDictionary<string, uint>();
 
          /// <summary>
         /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest<para />
@@ -56,7 +57,7 @@ namespace ACE.Database
                     .AsNoTracking()
                     .ToList();
 
-                Parallel.ForEach(results, result =>
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
                     if (!weenieCache.ContainsKey(result.ClassId))
                         GetWeenie(result.ClassId); // This will add the result into the caches
@@ -121,7 +122,7 @@ namespace ACE.Database
 
         private readonly ConcurrentDictionary<WeenieType, List<ACE.Entity.Models.Weenie>> weenieCacheByType = new ConcurrentDictionary<WeenieType, List<ACE.Entity.Models.Weenie>>();
 
-        private readonly Dictionary<uint, ACE.Entity.Models.Weenie> scrollsBySpellID = new Dictionary<uint, ACE.Entity.Models.Weenie>();
+        private readonly Dictionary<uint /* Spell ID */, ACE.Entity.Models.Weenie> scrollsBySpellID = new Dictionary<uint, ACE.Entity.Models.Weenie>();
 
         private void PopulateWeenieSpecificCaches()
         {
@@ -245,7 +246,27 @@ namespace ACE.Database
         // CookBook
         // =====================================
 
-        private readonly Dictionary<uint, Dictionary<uint, CookBook>> cookbookCache = new Dictionary<uint, Dictionary<uint, CookBook>>();
+        private readonly Dictionary<uint /* source WCID */, Dictionary<uint /* target WCID */, CookBook>> cookbookCache = new Dictionary<uint, Dictionary<uint, CookBook>>();
+
+        public override CookBook GetCookbook(WorldDbContext context, uint sourceWeenieClassId, uint targetWeenieClassId)
+        {
+            var cookbook = base.GetCookbook(context, sourceWeenieClassId, targetWeenieClassId);
+
+            lock (cookbookCache)
+            {
+                // We double check before commiting the recipe.
+                // We could be in this lock, and queued up behind us is an attempt to add a result for the same source:target pair.
+                if (cookbookCache.TryGetValue(sourceWeenieClassId, out var sourceRecipes))
+                {
+                    if (!sourceRecipes.ContainsKey(targetWeenieClassId))
+                        sourceRecipes.Add(targetWeenieClassId, cookbook);
+                }
+                else
+                    cookbookCache.Add(sourceWeenieClassId, new Dictionary<uint, CookBook>() { { targetWeenieClassId, cookbook } });
+            }
+
+            return cookbook;
+        }
 
         /// <summary>
         /// This can take 1-2 minutes to complete.
@@ -258,7 +279,7 @@ namespace ACE.Database
                     .AsNoTracking()
                     .ToList();
 
-                Parallel.ForEach(results, result =>
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
                     GetCookbook(result.SourceWCID, result.TargetWCID);  // This will add the result into the cache
                 });
@@ -274,24 +295,10 @@ namespace ACE.Database
                 return cookbookCache.Count(r => r.Value != null);
         }
 
-        public override CookBook GetCookbook(uint sourceWeenieClassId, uint targetWeenieClassId)
+        public void ClearCookbookCache()
         {
-            var result = base.GetCookbook(sourceWeenieClassId, targetWeenieClassId);
-
             lock (cookbookCache)
-            {
-                // We double check before commiting the recipe.
-                // We could be in this lock, and queued up behind us is an attempt to add a result for the same source:target pair.
-                if (cookbookCache.TryGetValue(sourceWeenieClassId, out var sourceRecipes))
-                {
-                    if (!sourceRecipes.ContainsKey(targetWeenieClassId))
-                        sourceRecipes.Add(targetWeenieClassId, result);
-                }
-                else
-                    cookbookCache.Add(sourceWeenieClassId, new Dictionary<uint, CookBook>() { { targetWeenieClassId, result } });
-            }
-
-            return result;
+                cookbookCache.Clear();
         }
 
         public CookBook GetCachedCookbook(uint sourceWeenieClassId, uint targetWeenieClassId)
@@ -313,7 +320,7 @@ namespace ACE.Database
         // Encounter
         // =====================================
 
-        private readonly ConcurrentDictionary<ushort, List<Encounter>> cachedEncounters = new ConcurrentDictionary<ushort, List<Encounter>>();
+        private readonly ConcurrentDictionary<ushort /* Landblock */, List<Encounter>> cachedEncounters = new ConcurrentDictionary<ushort, List<Encounter>>();
 
         /// <summary>
         /// Returns the number of Encounters currently cached.
@@ -345,19 +352,16 @@ namespace ACE.Database
         // Event
         // =====================================
 
-        private readonly ConcurrentDictionary<string, Event> cachedEvents = new ConcurrentDictionary<string, Event>();
+        private readonly ConcurrentDictionary<string /* Event Name */, Event> cachedEvents = new ConcurrentDictionary<string, Event>();
 
-        /// <summary>
-        /// This takes under 1 second to complete.
-        /// </summary>
-        public override List<Event> GetAllEvents()
+        public override List<Event> GetAllEvents(WorldDbContext context)
         {
-            var results = base.GetAllEvents();
+            var events = base.GetAllEvents(context);
 
-            foreach (var result in results)
+            foreach (var result in events)
                 cachedEvents[result.Name.ToLower()] = result;
 
-            return results;
+            return events;
         }
 
         /// <summary>
@@ -391,7 +395,7 @@ namespace ACE.Database
         // HousePortal
         // =====================================
 
-        private readonly ConcurrentDictionary<uint, List<HousePortal>> cachedHousePortals = new ConcurrentDictionary<uint, List<HousePortal>>();
+        private readonly ConcurrentDictionary<uint /* House ID */, List<HousePortal>> cachedHousePortals = new ConcurrentDictionary<uint, List<HousePortal>>();
 
         /// <summary>
         /// This takes under ? second to complete.
@@ -429,7 +433,7 @@ namespace ACE.Database
         }
 
 
-        private readonly ConcurrentDictionary<uint, List<HousePortal>> cachedHousePortalsByLandblock = new ConcurrentDictionary<uint, List<HousePortal>>();
+        private readonly ConcurrentDictionary<uint /* Landblock */, List<HousePortal>> cachedHousePortalsByLandblock = new ConcurrentDictionary<uint, List<HousePortal>>();
 
         public List<HousePortal> GetCachedHousePortalsByLandblock(uint landblockId)
         {
@@ -454,7 +458,7 @@ namespace ACE.Database
         // LandblockInstance
         // =====================================
 
-        private readonly ConcurrentDictionary<ushort, List<LandblockInstance>> cachedLandblockInstances = new ConcurrentDictionary<ushort, List<LandblockInstance>>();
+        private readonly ConcurrentDictionary<ushort /* Landblock */, List<LandblockInstance>> cachedLandblockInstances = new ConcurrentDictionary<ushort, List<LandblockInstance>>();
 
         /// <summary>
         /// Returns the number of LandblockInstances currently cached.
@@ -507,7 +511,7 @@ namespace ACE.Database
         }
 
 
-        private readonly ConcurrentDictionary<ushort, uint> cachedBasementHouseGuids = new ConcurrentDictionary<ushort, uint>();
+        private readonly ConcurrentDictionary<ushort /* Landblock */, uint /* House GUID */> cachedBasementHouseGuids = new ConcurrentDictionary<ushort, uint>();
 
         public uint GetCachedBasementHouseGuid(ushort landblock)
         {
@@ -598,6 +602,11 @@ namespace ACE.Database
 
         private readonly ConcurrentDictionary<string, Quest> cachedQuest = new ConcurrentDictionary<string, Quest>();
 
+        public bool ClearCachedQuest(string questName)
+        {
+            return cachedQuest.TryRemove(questName, out _);
+        }
+
         public Quest GetCachedQuest(string questName)
         {
             if (cachedQuest.TryGetValue(questName, out var quest))
@@ -622,7 +631,7 @@ namespace ACE.Database
         // Spell
         // =====================================
 
-        private readonly ConcurrentDictionary<uint, Spell> spellCache = new ConcurrentDictionary<uint, Spell>();
+        private readonly ConcurrentDictionary<uint /* Spell ID */, Spell> spellCache = new ConcurrentDictionary<uint, Spell>();
 
         /// <summary>
         /// This takes under 1 second to complete.
@@ -674,7 +683,7 @@ namespace ACE.Database
         // TreasureDeath
         // =====================================
 
-        private readonly ConcurrentDictionary<uint, TreasureDeath> cachedDeathTreasure = new ConcurrentDictionary<uint, TreasureDeath>();
+        private readonly ConcurrentDictionary<uint /* Data ID */, TreasureDeath> cachedDeathTreasure = new ConcurrentDictionary<uint, TreasureDeath>();
 
         /// <summary>
         /// This takes under 1 second to complete.
@@ -722,7 +731,7 @@ namespace ACE.Database
 
         // The Key is the Material Code (derived from PropertyInt.TsysMaterialData)
         // The Value is a list of all 
-        private readonly ConcurrentDictionary<int, List<TreasureMaterialBase>> cachedTreasureMaterialBase = new ConcurrentDictionary<int, List<TreasureMaterialBase>>();
+        private readonly ConcurrentDictionary<int /* Material Code */, List<TreasureMaterialBase>> cachedTreasureMaterialBase = new ConcurrentDictionary<int, List<TreasureMaterialBase>>();
 
         public void CacheAllTreasuresMaterialBaseInParallel()
         {
@@ -753,7 +762,7 @@ namespace ACE.Database
         }
 
 
-        private readonly ConcurrentDictionary<int, List<TreasureMaterialColor>> cachedTreasureMaterialColor = new ConcurrentDictionary<int, List<TreasureMaterialColor>>();
+        private readonly ConcurrentDictionary<int /* Material ID */, List<TreasureMaterialColor>> cachedTreasureMaterialColor = new ConcurrentDictionary<int, List<TreasureMaterialColor>>();
 
         public void CacheAllTreasuresMaterialColorInParallel()
         {
@@ -794,7 +803,7 @@ namespace ACE.Database
 
         // The Key is the Material Group (technically a MaterialId, but more generic...e.g. "Material.Metal", "Material.Cloth", etc.)
         // The Value is a list of all 
-        private readonly ConcurrentDictionary<int, List<TreasureMaterialGroups>> cachedTreasureMaterialGroups = new ConcurrentDictionary<int, List<TreasureMaterialGroups>>();
+        private readonly ConcurrentDictionary<int /* Material Group */, List<TreasureMaterialGroups>> cachedTreasureMaterialGroups = new ConcurrentDictionary<int, List<TreasureMaterialGroups>>();
 
         public void CacheAllTreasuresMaterialGroupsInParallel()
         {
@@ -838,7 +847,7 @@ namespace ACE.Database
         // TreasureWielded
         // =====================================
 
-        private readonly ConcurrentDictionary<uint, List<TreasureWielded>> cachedWieldedTreasure = new ConcurrentDictionary<uint, List<TreasureWielded>>();
+        private readonly ConcurrentDictionary<uint /* Data ID */, List<TreasureWielded>> cachedWieldedTreasure = new ConcurrentDictionary<uint, List<TreasureWielded>>();
 
         /// <summary>
         /// This takes under 1 second to complete.

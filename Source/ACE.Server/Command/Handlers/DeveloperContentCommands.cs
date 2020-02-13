@@ -836,7 +836,7 @@ namespace ACE.Server.Command.Handlers.Processors
             DatabaseManager.World.ClearCookbookCache();
 
             // load cookbooks + recipe from database
-            var cookbooks = DatabaseManager.World.GetCachedCookbooks(recipeId);
+            var cookbooks = DatabaseManager.World.GetCookbooksByRecipeId(recipeId);
 
             if (cookbooks == null || cookbooks.Count == 0)
             {
