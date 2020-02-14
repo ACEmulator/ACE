@@ -278,7 +278,7 @@ namespace ACE.Server.Entity
                 Armor = CreaturePart.GetArmorLayers((CombatBodyPart)BiotaPropertiesBodyPart.Key);
 
                 // get target armor
-                ArmorMod = CreaturePart.GetArmorMod(DamageType, Armor, Weapon, ignoreArmorMod);
+                ArmorMod = CreaturePart.GetArmorMod(DamageType, Armor, Attacker, Weapon, ignoreArmorMod);
             }
 
             if (Weapon != null && Weapon.HasImbuedEffect(ImbuedEffectType.IgnoreAllArmor))
@@ -289,12 +289,12 @@ namespace ACE.Server.Entity
 
             if (playerDefender != null)
             {
-                ResistanceMod = playerDefender.GetResistanceMod(DamageType, Weapon, WeaponResistanceMod);
+                ResistanceMod = playerDefender.GetResistanceMod(DamageType, Attacker, Weapon, WeaponResistanceMod);
             }
             else
             {
                 var resistanceType = Creature.GetResistanceType(DamageType);
-                ResistanceMod = (float)Math.Max(0.0f, defender.GetResistanceMod(resistanceType, Weapon, WeaponResistanceMod));
+                ResistanceMod = (float)Math.Max(0.0f, defender.GetResistanceMod(resistanceType, Attacker, Weapon, WeaponResistanceMod));
             }
 
             // damage resistance rating

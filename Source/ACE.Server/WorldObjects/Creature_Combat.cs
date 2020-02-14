@@ -645,7 +645,7 @@ namespace ACE.Server.WorldObjects
 
             // shield AL item enchantment additives:
             // impenetrability, brittlemail
-            var ignoreMagicArmor = (weapon?.IgnoreMagicArmor ?? false) || IgnoreMagicArmor;
+            var ignoreMagicArmor = (weapon?.IgnoreMagicArmor ?? false) || (attacker?.IgnoreMagicArmor ?? false);
 
             var modSL = ignoreMagicArmor ? 0 : shield.EnchantmentManager.GetArmorMod();
             var effectiveSL = baseSL + modSL;
