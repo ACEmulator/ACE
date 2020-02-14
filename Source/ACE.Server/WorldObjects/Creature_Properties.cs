@@ -97,7 +97,7 @@ namespace ACE.Server.WorldObjects
 
         public float GetResistanceMod(DamageType damageType, WorldObject weapon, float weaponResistanceMod = 1.0f)
         {
-            var ignoreMagicResist = weapon != null ? weapon.IgnoreMagicResist : false;
+            var ignoreMagicResist = (weapon?.IgnoreMagicResist ?? false) || IgnoreMagicResist;
 
             // hollow weapons also ignore player natural resistances
             if (ignoreMagicResist)

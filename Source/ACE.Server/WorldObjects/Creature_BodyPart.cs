@@ -35,8 +35,8 @@ namespace ACE.Server.WorldObjects
 
         public float GetEffectiveArmorVsType(DamageType damageType, List<WorldObject> armorLayers, WorldObject weapon, float armorRendingMod = 1.0f)
         {
-            var ignoreMagicArmor  = weapon != null ? weapon.IgnoreMagicArmor : false;
-            var ignoreMagicResist = weapon != null ? weapon.IgnoreMagicResist : false;
+            var ignoreMagicArmor =  (weapon?.IgnoreMagicArmor ?? false)  || (Creature?.IgnoreMagicArmor ?? false);
+            var ignoreMagicResist = (weapon?.IgnoreMagicResist ?? false) || (Creature?.IgnoreMagicResist ?? false);
 
             // get base AL / RL
             var enchantmentMod = ignoreMagicResist ? 0 : EnchantmentManager.GetBodyArmorMod();
