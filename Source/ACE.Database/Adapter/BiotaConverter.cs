@@ -484,6 +484,7 @@ namespace ACE.Database.Adapter
             result.WeenieClassId = biota.WeenieClassId;
             result.WeenieType = (int)biota.WeenieType;
 
+
             /* Switch to this code when Step 3 is implemented
             if (biota.PropertiesBool != null)
             {
