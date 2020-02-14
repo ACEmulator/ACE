@@ -358,8 +358,8 @@ namespace ACE.Server.WorldObjects
             if (sourceCreature?.Overpower != null)
                 overpower = Creature.GetOverpower(sourceCreature, target);
 
-            var resisted = source.ResistSpell(target, Spell, caster);
-            if (resisted == true && !overpower)
+            var resisted = source.TryResistSpell(target, Spell, caster, true);
+            if (resisted && !overpower)
                 return null;
 
             CreatureSkill attackSkill = null;
