@@ -174,8 +174,11 @@ namespace ACE.Server.WorldObjects
             switch (DamageType)
             {
                 default:
+
                     if (creature.Invincible) return;
-                    amount *= (float)creature.GetLifeResistance(DamageType);
+
+                    if (!IgnoreMagicResist)
+                        amount *= (float)creature.GetLifeResistance(DamageType);
 
                     if (player != null)
                         iAmount = player.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
@@ -184,14 +187,17 @@ namespace ACE.Server.WorldObjects
 
                     if (creature.IsDead && Creatures.Contains(creature.Guid))
                         Creatures.Remove(creature.Guid);
+
                     break;
 
                 case DamageType.Mana:
                     iAmount = creature.UpdateVitalDelta(creature.Mana, -iAmount);
                     break;
+
                 case DamageType.Stamina:
                     iAmount = creature.UpdateVitalDelta(creature.Stamina, -iAmount);
                     break;
+
                 case DamageType.Health:
                     iAmount = creature.UpdateVitalDelta(creature.Health, -iAmount);
 
