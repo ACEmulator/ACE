@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using log4net;
 
@@ -14,8 +13,6 @@ using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
-
-using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {
@@ -77,21 +74,21 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override ObjDesc CalculateObjDesc()
         {
-            if (Biota.BiotaPropertiesAnimPart.Count == 0 && Biota.BiotaPropertiesPalette.Count == 0 && Biota.BiotaPropertiesTextureMap.Count == 0)
+            if (Biota.PropertiesAnimPart.GetCount(BiotaDatabaseLock) == 0 && Biota.PropertiesPalette.GetCount(BiotaDatabaseLock) == 0 && Biota.PropertiesTextureMap.GetCount(BiotaDatabaseLock) == 0)
                 return base.CalculateObjDesc(); // No Saved ObjDesc, let base handle it.
 
             var objDesc = new ObjDesc();
 
             AddBaseModelData(objDesc);
 
-            foreach (var animPart in Biota.BiotaPropertiesAnimPart.OrderBy(b => b.Order))
-                objDesc.AnimPartChanges.Add(new AnimationPartChange { PartIndex = animPart.Index, PartID = animPart.AnimationId });
+            foreach (var animPart in Biota.PropertiesAnimPart.Clone(BiotaDatabaseLock))
+                objDesc.AnimPartChanges.Add(animPart);
 
-            foreach (var subPalette in Biota.BiotaPropertiesPalette)
-                objDesc.SubPalettes.Add(new SubPalette { SubID = subPalette.SubPaletteId, Offset = subPalette.Offset, NumColors = subPalette.Length });
+            foreach (var subPalette in Biota.PropertiesPalette.Clone(BiotaDatabaseLock))
+                objDesc.SubPalettes.Add(subPalette);
 
-            foreach (var textureMap in Biota.BiotaPropertiesTextureMap.OrderBy(b => b.Order))
-                objDesc.TextureChanges.Add(new TextureMapChange { PartIndex = textureMap.Index, OldTexture = textureMap.OldId, NewTexture = textureMap.NewId });
+            foreach (var textureChange in Biota.PropertiesTextureMap.Clone(BiotaDatabaseLock))
+                objDesc.TextureChanges.Add(textureChange);
 
             return objDesc;
         }

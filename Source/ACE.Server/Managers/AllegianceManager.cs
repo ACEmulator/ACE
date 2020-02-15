@@ -61,7 +61,16 @@ namespace ACE.Server.Managers
             var allegianceID = DatabaseManager.Shard.GetAllegianceID(monarch.Guid.Full);
             var biota = allegianceID != null ? DatabaseManager.Shard.GetBiota(allegianceID.Value) : null;
 
-            var allegiance = biota != null ? new Allegiance(biota) : new Allegiance(monarch.Guid);
+            Allegiance allegiance;
+
+            if (biota != null)
+            {
+                var entityBiota = ACE.Database.Adapter.BiotaConverter.ConvertToEntityBiota(biota);
+
+                allegiance = new Allegiance(entityBiota);
+            }
+            else
+                allegiance = new Allegiance(monarch.Guid);
 
             if (allegiance.TotalMembers == 1)
                 return null;

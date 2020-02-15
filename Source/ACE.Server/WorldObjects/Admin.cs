@@ -5,7 +5,6 @@ using ACE.Entity.Enum;
 using ACE.Entity.Models;
 using ACE.Server.Network;
 
-using Biota = ACE.Database.Models.Shard.Biota;
 using Character = ACE.Database.Models.Shard.Character;
 
 namespace ACE.Server.WorldObjects
@@ -23,7 +22,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public Admin(Biota biota, IEnumerable<Biota> inventory, IEnumerable<Biota> wieldedItems, Character character, Session session) : base(biota, inventory, wieldedItems, character, session)
+        public Admin(Biota biota, IEnumerable<ACE.Database.Models.Shard.Biota> inventory, IEnumerable<ACE.Database.Models.Shard.Biota> wieldedItems, Character character, Session session) : base(biota, inventory, wieldedItems, character, session)
         {
             SetEphemeralValues();
         }

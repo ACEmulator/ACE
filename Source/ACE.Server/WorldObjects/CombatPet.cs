@@ -7,8 +7,6 @@ using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.Entity;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     /// <summary>
@@ -45,17 +43,17 @@ namespace ACE.Server.WorldObjects
             Usable = ACE.Entity.Enum.Usable.No;
 
             if (!PropertyManager.GetBool("advanced_combat_pets").Item)
-                Biota.BiotaPropertiesSpellBook.Clear();
+                Biota.PropertiesSpellBook = null;
 
             //Biota.BiotaPropertiesCreateList.Clear();
-            Biota.BiotaPropertiesEmote.Clear();
-            GeneratorProfiles.Clear();            
+            Biota.PropertiesEmote = null;
+            GeneratorProfiles = null;
 
             DeathTreasureType = null;
             WieldedTreasureType = null;
 
-            if (Biota.WeenieType != (int)WeenieType.CombatPet) // Combat Pets are currently being made from real creatures
-                Biota.WeenieType = (int)WeenieType.CombatPet;
+            if (Biota.WeenieType != WeenieType.CombatPet) // Combat Pets are currently being made from real creatures
+                Biota.WeenieType = WeenieType.CombatPet;
         }
 
         public void Init(Player player, DamageType damageType, PetDevice petDevice)

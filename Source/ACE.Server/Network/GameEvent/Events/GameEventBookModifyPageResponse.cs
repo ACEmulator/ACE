@@ -4,7 +4,7 @@ namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventBookModifyPageResponse : GameEventMessage
     {
-        public GameEventBookModifyPageResponse(Session session, uint bookGuid, uint page, bool success)
+        public GameEventBookModifyPageResponse(Session session, uint bookGuid, int page, bool success)
             : base(GameEventType.BookModifyPageResponse, GameMessageGroup.UIQueue, session)
         {
             Writer.Write(bookGuid);

@@ -7,12 +7,12 @@ using log4net;
 using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
@@ -536,7 +536,7 @@ namespace ACE.Server.Managers
 
         public static void AddSpell(Player player, WorldObject target, SpellId spell, int difficulty = 25)
         {
-            target.Biota.GetOrAddKnownSpell((int)spell, target.BiotaDatabaseLock, target.BiotaPropertySpells, out _);
+            target.Biota.GetOrAddKnownSpell((int)spell, target.BiotaDatabaseLock, out _);
             target.ChangesDetected = true;
 
             if (difficulty != 0)
@@ -1144,7 +1144,7 @@ namespace ACE.Server.Managers
                 case ModificationOperation.AddSpell:
                     if (value != -1)
                     {
-                        targetMod.Biota.GetOrAddKnownSpell(value, target.BiotaDatabaseLock, target.BiotaPropertySpells, out var added);
+                        targetMod.Biota.GetOrAddKnownSpell(value, target.BiotaDatabaseLock, out var added);
                         if (added)
                             targetMod.ChangesDetected = true;
                     }

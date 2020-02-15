@@ -9,7 +9,6 @@ using log4net;
 
 using ACE.Database;
 using ACE.Database.Models.Auth;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -23,7 +22,6 @@ using ACE.Server.WorldObjects;
 using ACE.Server.Network.Enum;
 using ACE.Server.WorldObjects.Entity;
 
-using Biota = ACE.Database.Models.Shard.Biota;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Command.Handlers
@@ -1126,10 +1124,10 @@ namespace ACE.Server.Command.Handlers
                     return;
 
                 var msg = "";
-                if (wo is Creature creature && wo.Biota.BiotaPropertiesCreateList.Count > 0)
+                if (wo is Creature creature && wo.Biota.PropertiesCreateList != null && wo.Biota.PropertiesCreateList.Count > 0)
                 {
-                    var createList = creature.Biota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Contain) != 0 ||
-                        (i.DestinationType & (int)DestinationType.Treasure) != 0 && (i.DestinationType & (int)DestinationType.Wield) == 0).ToList();
+                    var createList = creature.Biota.PropertiesCreateList.Where(i => (i.DestinationType & DestinationType.Contain) != 0 ||
+                        (i.DestinationType & DestinationType.Treasure) != 0 && (i.DestinationType & DestinationType.Wield) == 0).ToList();
 
                     var wieldedTreasure = creature.Inventory.Values.Concat(creature.EquippedObjects.Values).Where(i => i.DestinationType.HasFlag(DestinationType.Treasure)).ToList();
 
@@ -1727,9 +1725,7 @@ namespace ACE.Server.Command.Handlers
         {
             // @god - Sets your own stats to a godly level.
             // need to save stats so that we can return with /ungod
-            var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
-            biotas.Add((session.Player.Biota, session.Player.BiotaDatabaseLock));
-            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => DoGodMode(result, session));
+            DatabaseManager.Shard.SaveBiota(session.Player.Biota, session.Player.BiotaDatabaseLock, result => DoGodMode(result, session));
         }
 
         private static void DoGodMode(bool playerSaved, Session session, bool exceptionReturn = false)
@@ -1741,7 +1737,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            Biota biota = session.Player.Biota;
+            var biota = session.Player.Biota;
 
             string godString = session.Player.GodState;
 
@@ -1769,11 +1765,13 @@ namespace ACE.Server.Command.Handlers
 
                 // need all attributes
                 // 1 through 6 str, end, coord, quick, focus, self
-                foreach (var att in biota.BiotaPropertiesAttribute)
+                foreach (var kvp in biota.PropertiesAttribute)
                 {
-                    if (att.Type > 0 && att.Type <= 6)
+                    var att = kvp.Value;
+
+                    if (kvp.Key > 0 && (int)kvp.Key <= 6)
                     {
-                        returnState += $"{att.Type}=";
+                        returnState += $"{(int)kvp.Key}=";
                         returnState += $"{att.InitLevel}=";
                         returnState += $"{att.LevelFromCP}=";
                         returnState += $"{att.CPSpent}=";
@@ -1782,11 +1780,13 @@ namespace ACE.Server.Command.Handlers
 
                 // need all vitals
                 // 1, 3, 5 H,S,M (2,4,6 are current values and are not stored since they will be maxed entering/exiting godmode)
-                foreach (var attSec in biota.BiotaPropertiesAttribute2nd)
+                foreach (var kvp in biota.PropertiesAttribute2nd)
                 {
-                    if (attSec.Type == 1 || attSec.Type == 3 || attSec.Type == 5)
+                    var attSec = kvp.Value;
+
+                    if ((int)kvp.Key == 1 || (int)kvp.Key == 3 || (int)kvp.Key == 5)
                     {
-                        returnState += $"{attSec.Type}=";
+                        returnState += $"{(int)kvp.Key}=";
                         returnState += $"{attSec.InitLevel}=";
                         returnState += $"{attSec.LevelFromCP}=";
                         returnState += $"{attSec.CPSpent}=";
@@ -1795,11 +1795,13 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 // need all skills
-                foreach (var sk in biota.BiotaPropertiesSkill)
+                foreach (var kvp in biota.PropertiesSkill)
                 {
-                    if (SkillHelper.ValidSkills.Contains((Skill)sk.Type))
+                    var sk = kvp.Value;
+
+                    if (SkillHelper.ValidSkills.Contains(kvp.Key))
                     {
-                        returnState += $"{sk.Type}=";
+                        returnState += $"{(int)kvp.Key}=";
                         returnState += $"{sk.LevelFromPP}=";
                         returnState += $"{sk.SAC}=";
                         returnState += $"{sk.PP}=";
@@ -2256,7 +2258,7 @@ namespace ACE.Server.Command.Handlers
 
             var player = new Player(weenie, guid, session.AccountId);
 
-            player.Biota.WeenieType = (int)session.Player.WeenieType;
+            player.Biota.WeenieType = session.Player.WeenieType;
 
             var name = string.Join(' ', parameters.Skip(1));
             if (parameters.Length > 1)
@@ -3041,7 +3043,7 @@ namespace ACE.Server.Command.Handlers
             var item = CommandHandlerHelper.GetLastAppraisedObject(session);
             if (item == null) return;
 
-            var enchantments = item.EnchantmentManager.GetEnchantments_TopLayer(item.Biota.GetEnchantments(item.BiotaDatabaseLock));
+            var enchantments = item.EnchantmentManager.GetEnchantments_TopLayer(item.Biota.PropertiesEnchantmentRegistry.Clone(item.BiotaDatabaseLock));
 
             foreach (var enchantment in enchantments)
             {

@@ -1,17 +1,17 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Database.Models.Shard;
+using ACE.Entity.Models;
 
 namespace ACE.Server.Entity
 {
     public class CreateListSet
     {
-        public List<BiotaPropertiesCreateList> Items;
+        public List<PropertiesCreateList> Items;
 
-        public List<BiotaPropertiesCreateList> Trophies => Items.Where(i => i.WeenieClassId != 0).ToList();
+        public List<PropertiesCreateList> Trophies => Items.Where(i => i.WeenieClassId != 0).ToList();
 
-        public List<BiotaPropertiesCreateList> None => Items.Where(i => i.WeenieClassId == 0).ToList();
+        public List<PropertiesCreateList> None => Items.Where(i => i.WeenieClassId == 0).ToList();
 
         public float TotalProbability => Items.Sum(i => i.Shade);
 
@@ -22,10 +22,10 @@ namespace ACE.Server.Entity
 
         public CreateListSet()
         {
-            Items = new List<BiotaPropertiesCreateList>();
+            Items = new List<PropertiesCreateList>();
         }
 
-        public void Add(BiotaPropertiesCreateList item)
+        public void Add(PropertiesCreateList item)
         {
             Items.Add(item);
         }

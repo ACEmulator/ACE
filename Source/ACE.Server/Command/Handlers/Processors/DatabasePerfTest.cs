@@ -60,7 +60,8 @@ namespace ACE.Server.Command.Handlers.Processors
             for (int i = 0; i < biotasPerTest; i++)
             {
                 var worldObject = WorldObjectFactory.CreateNewWorldObject(testWeenies[i % testWeenies.Count]);
-                biotas.Add((worldObject.Biota, worldObject.BiotaDatabaseLock));
+                // TODO fix this
+                //biotas.Add((worldObject.Biota, worldObject.BiotaDatabaseLock));
             }
 
 
@@ -170,7 +171,8 @@ namespace ACE.Server.Command.Handlers.Processors
             for (int i = 0; i < biotasPerTest; i++)
             {
                 var worldObject = WorldObjectFactory.CreateNewWorldObject(testWeenies[i % testWeenies.Count]);
-                biotas.Add((worldObject.Biota, worldObject.BiotaDatabaseLock));
+                // TODO fix this
+                //biotas.Add((worldObject.Biota, worldObject.BiotaDatabaseLock));
             }
 
 

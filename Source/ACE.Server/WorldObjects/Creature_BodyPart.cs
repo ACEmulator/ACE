@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects.Managers;
 
@@ -13,11 +13,11 @@ namespace ACE.Server.WorldObjects
     public class Creature_BodyPart
     {
         public Creature Creature;
-        public BiotaPropertiesBodyPart Biota;
+        public KeyValuePair<CombatBodyPart, PropertiesBodyPart> Biota;
 
         public EnchantmentManager EnchantmentManager => Creature.EnchantmentManager;
 
-        public Creature_BodyPart(Creature creature, BiotaPropertiesBodyPart biota)
+        public Creature_BodyPart(Creature creature, KeyValuePair<CombatBodyPart, PropertiesBodyPart> biota)
         {
             Creature = creature;
             Biota = biota;
@@ -41,7 +41,7 @@ namespace ACE.Server.WorldObjects
             // get base AL / RL
             var enchantmentMod = ignoreMagicResist ? 0 : EnchantmentManager.GetBodyArmorMod();
 
-            var baseArmorMod = (float)(Biota.BaseArmor + enchantmentMod);
+            var baseArmorMod = (float)(Biota.Value.BaseArmor + enchantmentMod);
 
             // for creatures, can this be modified via enchantments?
             var armorVsType = Creature.GetArmorVsType(damageType);

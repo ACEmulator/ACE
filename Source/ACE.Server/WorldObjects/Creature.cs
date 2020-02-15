@@ -1,4 +1,5 @@
 using System;
+
 using log4net;
 
 using ACE.DatLoader.FileTypes;
@@ -12,7 +13,6 @@ using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects.Entity;
 
-using Biota = ACE.Database.Models.Shard.Biota;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
@@ -81,8 +81,8 @@ namespace ACE.Server.WorldObjects
             Attributes[PropertyAttribute.Focus] = new CreatureAttribute(this, PropertyAttribute.Focus);
             Attributes[PropertyAttribute.Self] = new CreatureAttribute(this, PropertyAttribute.Self);
 
-            foreach (var skillProperty in Biota.BiotaPropertiesSkill)
-                Skills[(Skill)skillProperty.Type] = new CreatureSkill(this, skillProperty);
+            foreach (var kvp in Biota.PropertiesSkill)
+                Skills[kvp.Key] = new CreatureSkill(this, kvp.Key, kvp.Value);
 
             if (Health.Current <= 0)
                 Health.Current = Health.MaxValue;

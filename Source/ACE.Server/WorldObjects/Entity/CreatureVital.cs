@@ -1,11 +1,10 @@
 using System;
-using System.Linq;
 
 using ACE.Common.Extensions;
-using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects.Entity
@@ -17,7 +16,7 @@ namespace ACE.Server.WorldObjects.Entity
         public readonly PropertyAttribute2nd Vital;
 
         // the underlying database record
-        private readonly BiotaPropertiesAttribute2nd biotaPropertiesAttribute2nd;
+        private readonly PropertiesAttribute2nd propertiesAttribute2nd;
 
         /// <summary>
         /// If the creature's biota does not contain this vital, a new record will be created.
@@ -27,12 +26,10 @@ namespace ACE.Server.WorldObjects.Entity
             this.creature = creature;
             Vital = vital;
 
-            biotaPropertiesAttribute2nd = creature.Biota.BiotaPropertiesAttribute2nd.FirstOrDefault(x => x.Type == (uint)Vital);
-
-            if (biotaPropertiesAttribute2nd == null)
+            if (!creature.Biota.PropertiesAttribute2nd.TryGetValue(vital, out propertiesAttribute2nd))
             {
-                biotaPropertiesAttribute2nd = new BiotaPropertiesAttribute2nd { ObjectId = creature.Biota.Id, Type = (ushort)Vital };
-                creature.Biota.BiotaPropertiesAttribute2nd.Add(biotaPropertiesAttribute2nd);
+                propertiesAttribute2nd = new PropertiesAttribute2nd();
+                creature.Biota.PropertiesAttribute2nd[vital] = propertiesAttribute2nd;
             }
 
             switch (Vital)
@@ -51,8 +48,8 @@ namespace ACE.Server.WorldObjects.Entity
 
         public uint StartingValue
         {
-            get => biotaPropertiesAttribute2nd.InitLevel;
-            set => biotaPropertiesAttribute2nd.InitLevel = value;
+            get => propertiesAttribute2nd.InitLevel;
+            set => propertiesAttribute2nd.InitLevel = value;
         }
 
         /// <summary>
@@ -60,8 +57,8 @@ namespace ACE.Server.WorldObjects.Entity
         /// </summary>
         public uint ExperienceSpent
         {
-            get => biotaPropertiesAttribute2nd.CPSpent;
-            set => biotaPropertiesAttribute2nd.CPSpent = value;
+            get => propertiesAttribute2nd.CPSpent;
+            set => propertiesAttribute2nd.CPSpent = value;
         }
 
         /// <summary>
@@ -84,8 +81,8 @@ namespace ACE.Server.WorldObjects.Entity
         /// </summary>
         public uint Ranks
         {
-            get => biotaPropertiesAttribute2nd.LevelFromCP;
-            set => biotaPropertiesAttribute2nd.LevelFromCP = value;
+            get => propertiesAttribute2nd.LevelFromCP;
+            set => propertiesAttribute2nd.LevelFromCP = value;
         }
 
         /// <summary>
@@ -116,8 +113,8 @@ namespace ACE.Server.WorldObjects.Entity
 
         public uint Current
         {
-            get => biotaPropertiesAttribute2nd.CurrentLevel;
-            set => biotaPropertiesAttribute2nd.CurrentLevel = value;
+            get => propertiesAttribute2nd.CurrentLevel;
+            set => propertiesAttribute2nd.CurrentLevel = value;
         }
 
         public uint MaxValue

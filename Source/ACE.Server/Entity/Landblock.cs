@@ -12,7 +12,6 @@ using log4net;
 
 using ACE.Common.Performance;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
@@ -27,7 +26,6 @@ using ACE.Server.Physics.Common;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.WorldObjects;
 
-using Biota = ACE.Database.Models.Shard.Biota;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Entity
@@ -290,10 +288,9 @@ namespace ACE.Server.Entity
 
                     wo.ReinitializeHeartbeats();
 
-                    foreach (var profile in wo.Biota.BiotaPropertiesGenerator)
-                    {
+                    // TODO don't modify the delay here. Instead, scale where the delay is checked
+                    foreach (var profile in wo.Biota.PropertiesGenerator)
                         profile.Delay = (float)PropertyManager.GetDouble("encounter_delay").Item;
-                    }
                 }
 
                 actionQueue.EnqueueAction(new ActionEventDelegate(() =>

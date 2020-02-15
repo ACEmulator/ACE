@@ -4,7 +4,6 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -15,9 +14,6 @@ using ACE.Server.Managers;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-
-using Biota = ACE.Database.Models.Shard.Biota;
-using HousePermission = ACE.Database.Models.Shard.HousePermission;
 
 namespace ACE.Server.WorldObjects
 {
@@ -116,17 +112,24 @@ namespace ACE.Server.WorldObjects
             {
                 if (instances != null)
                 {
-                    var houseInstance = instances.Where(h => h.Guid == houseGuid).FirstOrDefault();
+                    var houseInstance = instances.FirstOrDefault(h => h.Guid == houseGuid);
 
                     if (houseInstance != null)
-                        biota = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(houseInstance.WeenieClassId), new ObjectGuid(houseInstance.Guid)).Biota;
+                    {
+                        var weenie = DatabaseManager.World.GetCachedWeenie(houseInstance.WeenieClassId);
+                        var objectGuid = new ObjectGuid(houseInstance.Guid);
+
+                        var newWorldObject = WorldObjectFactory.CreateWorldObject(weenie, objectGuid);
+
+                        biota = ACE.Database.Adapter.BiotaConverter.ConvertFromEntityBiota(newWorldObject.Biota);
+                    }
                 }
             }
 
-            var linkedHouses = WorldObjectFactory.CreateNewWorldObjects(instances, new List<Biota>() { biota }, biota.WeenieClassId);
+            var linkedHouses = WorldObjectFactory.CreateNewWorldObjects(instances, new List<ACE.Database.Models.Shard.Biota> { biota }, biota.WeenieClassId);
 
             foreach (var linkedHouse in linkedHouses)
-                linkedHouse.ActivateLinks(instances, new List<Biota>() { biota }, linkedHouses[0]);
+                linkedHouse.ActivateLinks(instances, new List<ACE.Database.Models.Shard.Biota> { biota }, linkedHouses[0]);
 
             var house = (House)linkedHouses[0];
 
@@ -315,11 +318,11 @@ namespace ACE.Server.WorldObjects
         {
             Guests = new Dictionary<ObjectGuid, bool>();
 
-            var housePermissions = Biota.GetHousePermission(BiotaDatabaseLock);
+            var housePermissions = Biota.HousePermissions.Clone(BiotaDatabaseLock);
 
             var deleted = new List<uint>();
 
-            foreach (var housePermission in Biota.HousePermission)
+            foreach (var housePermission in housePermissions)
             {
                 var player = PlayerManager.FindByGuid(housePermission.PlayerGuid);
                 if (player == null)
@@ -336,7 +339,7 @@ namespace ACE.Server.WorldObjects
             if (deleted.Count > 0)
             {
                 foreach (var guid in deleted)
-                    Biota.TryRemoveHousePermission(guid, out var entity, BiotaDatabaseLock);
+                    Biota.HousePermissions.TryRemove(guid, BiotaDatabaseLock);
 
                 ChangesDetected = true;
 
@@ -346,12 +349,13 @@ namespace ACE.Server.WorldObjects
 
         public void AddGuest(IPlayer guest, bool storage)
         {
-            var housePermission = new HousePermission();
-            housePermission.HouseId = Guid.Full;
-            housePermission.PlayerGuid = guest.Guid.Full;
-            housePermission.Storage = storage;
+            var housePermission = new HousePermission
+            {
+                PlayerGuid = guest.Guid.Full,
+                Storage = storage
+            };
 
-            Biota.AddHousePermission(housePermission, BiotaDatabaseLock);
+            Biota.HousePermissions.Add(housePermission, BiotaDatabaseLock);
             ChangesDetected = true;
 
             BuildGuests();
@@ -380,7 +384,9 @@ namespace ACE.Server.WorldObjects
 
         public void RemoveGuest(IPlayer guest)
         {
-            Biota.TryRemoveHousePermission(guest.Guid.Full, out var entity, BiotaDatabaseLock);
+            if (!Biota.HousePermissions.TryRemove(guest.Guid.Full, BiotaDatabaseLock))
+                return;
+
             ChangesDetected = true;
 
             BuildGuests();
@@ -406,9 +412,7 @@ namespace ACE.Server.WorldObjects
 
         public HousePermission FindGuest(IPlayer guest)
         {
-            var housePermissions = Biota.GetHousePermission(BiotaDatabaseLock);
-
-            var existing = housePermissions.FirstOrDefault(i => i.PlayerGuid == guest.Guid.Full);
+            var existing = Biota.HousePermissions.FindByPlayerGuid(guest.Guid.Full, BiotaDatabaseLock);
 
             if (existing == null)
                 Console.WriteLine($"{Name}.FindGuest({guest.Guid}): couldn't find {guest.Name}");

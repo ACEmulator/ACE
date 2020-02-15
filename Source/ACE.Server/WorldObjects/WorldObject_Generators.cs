@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Common;
-using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
-using ACE.Server.Factories;
 using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
@@ -44,8 +43,11 @@ namespace ACE.Server.WorldObjects
             GeneratorProfiles = new List<GeneratorProfile>();
             uint i = 0;
 
-            foreach (var generator in Biota.BiotaPropertiesGenerator)
-                GeneratorProfiles.Add(new GeneratorProfile(this, generator, i++));
+            if (Biota.PropertiesGenerator != null)
+            {
+                foreach (var generator in Biota.PropertiesGenerator)
+                    GeneratorProfiles.Add(new GeneratorProfile(this, generator, i++));
+            }
         }
 
         /// <summary>
@@ -728,7 +730,7 @@ namespace ACE.Server.WorldObjects
 
             foreach (var link in LinkedInstances)
             {
-                var profile = new BiotaPropertiesGenerator();
+                var profile = new PropertiesGenerator();
                 profile.WeenieClassId = link.WeenieClassId;
                 profile.ObjCellId = link.ObjCellId;
                 profile.OriginX = link.OriginX;
