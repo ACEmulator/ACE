@@ -51,7 +51,7 @@ namespace ACE.Server.WorldObjects
                 return;*/
 
             // perform resistance check, if applicable
-            var resisted = tryResist ? TryResistSpell(spell, target, caster) : false;
+            var resisted = tryResist ? TryResistSpell(target, spell, caster) : false;
             if (resisted)
                 return;
 
@@ -98,55 +98,6 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// If this spell has a chance to be resisted, rolls for a chance
-        /// Returns TRUE if spell is resistable and was resisted for this attempt
-        /// </summary>
-        public bool TryResistSpell(Spell spell, WorldObject target, WorldObject caster = null)
-        {
-            if (spell.IsBeneficial || !spell.IsResistable)
-                return false;
-
-            // todo: verify this flag exists for all resistable spells
-            //if (!spell.Flags.HasFlag(SpellFlags.Resistable))
-                //return false;
-
-            var targetSelf = spell.Flags.HasFlag(SpellFlags.SelfTargeted);
-            if (targetSelf) return false;
-
-            switch (spell.School)
-            {
-                case MagicSchool.WarMagic:
-                    // war magic projectiles do the resistance check on projectile collision
-                    break;
-                case MagicSchool.LifeMagic:
-                case MagicSchool.CreatureEnchantment:
-                    if (spell.NumProjectiles == 0)  // life magic projectiles
-                    {
-                        bool? resisted = ResistSpell(target, spell, caster);
-                        if (resisted != null && resisted == true)
-                            return true;
-                    }
-                    break;
-                case MagicSchool.ItemEnchantment:
-                    {
-                        bool? resisted = ResistSpell(target, spell, caster);
-                        if (resisted != null && resisted == true)
-                            return true;
-                    }
-                    break;
-                case MagicSchool.VoidMagic:
-                    if (spell.NumProjectiles == 0)  // void magic projectiles
-                    {
-                        bool? resisted = ResistSpell(target, spell, caster);
-                        if (resisted != null && resisted == true)
-                            return true;
-                    }
-                    break;
-            }
-            return false;
-        }
-
-        /// <summary>
         /// Determine Player's PK status and whether it matches the target Player
         /// </summary>
         /// <returns>
@@ -183,14 +134,22 @@ namespace ACE.Server.WorldObjects
                 if (targetPlayer.PlayerKillerStatus == PlayerKillerStatus.NPK)
                     return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_TheyAreNotPK, WeenieErrorWithString._FailsToAffectYou_YouAreNotPK };
 
-                // Ensure that a harmful spell isn't being cast on another player that doesn't have the same PK status
-                if (player.PlayerKillerStatus != targetPlayer.PlayerKillerStatus)
-                    return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_NotSamePKType, WeenieErrorWithString._FailsToAffectYou_NotSamePKType };
-
                 // Ensure not attacking across housing boundary
                 if (!player.CheckHouseRestrictions(targetPlayer))
                     return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_AcrossHouseBoundary, WeenieErrorWithString._FailsToAffectYouAcrossHouseBoundary };
             }
+
+            // additional checks for different PKTypes
+            if (player.PlayerKillerStatus != targetPlayer.PlayerKillerStatus)
+            {
+                // require same pk status, unless beneficial spell being cast on NPK
+                // https://asheron.fandom.com/wiki/Player_Killer
+                // https://asheron.fandom.com/wiki/Player_Killer_Lite
+
+                if (spell == null || spell.IsHarmful || targetPlayer.PlayerKillerStatus != PlayerKillerStatus.NPK)
+                    return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_NotSamePKType, WeenieErrorWithString._FailsToAffectYou_NotSamePKType };
+            }
+
             return null;
         }
 
@@ -281,10 +240,17 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Performs the magic defense checks for spell attacks
+        /// If this spell has a chance to be resisted, rolls for a chance
+        /// Returns TRUE if spell is resistable and was resisted for this attempt
         /// </summary>
-        public bool? ResistSpell(WorldObject target, Spell spell, WorldObject caster = null)
+        public bool TryResistSpell(WorldObject target, Spell spell, WorldObject caster = null, bool projectileHit = false)
         {
+            if (!spell.IsResistable && spell.School != MagicSchool.ItemEnchantment || spell.IsSelfTargeted)
+                return false;
+
+            if (spell.NumProjectiles > 0 && !projectileHit)
+                return false;
+
             uint magicSkill = 0;
 
             if (caster == null)
@@ -311,7 +277,7 @@ namespace ACE.Server.WorldObjects
 
             // only creatures can resist spells?
             if (!(target is Creature targetCreature))
-                return null;
+                return false;
 
             // Retrieve target's Magic Defense Skill
             var difficulty = targetCreature.GetEffectiveMagicDefense();
@@ -840,6 +806,8 @@ namespace ACE.Server.WorldObjects
                         {
                             if (recallDID == null)
                             {
+                                EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+
                                 // lifestone recall
                                 ActionChain lifestoneRecall = new ActionChain();
                                 lifestoneRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
@@ -861,6 +829,8 @@ namespace ACE.Server.WorldObjects
 
                                     break;
                                 }
+
+                                EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
 
                                 ActionChain portalRecall = new ActionChain();
                                 portalRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
@@ -945,6 +915,8 @@ namespace ACE.Server.WorldObjects
 
                                     if (target.WeenieType == WeenieType.LifeStone)
                                     {
+                                        EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+
                                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the life stone.", ChatMessageType.Magic));
                                         player.LinkedLifestone = target.Location;
                                     }
@@ -984,6 +956,8 @@ namespace ACE.Server.WorldObjects
                                                     player.LinkedPortalTwoDID = targetDID;
                                                     player.SetProperty(PropertyBool.LinkedPortalTwoSummon, summoned);
                                                 }
+
+                                                EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
 
                                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the portal.", ChatMessageType.Magic));
                                             }
@@ -1073,7 +1047,9 @@ namespace ACE.Server.WorldObjects
                         if (summonLoc != null)
                             summonLoc.LandblockId = new LandblockId(summonLoc.GetCell());
 
-                        if (!SummonPortal(portalId, summonLoc, spell.PortalLifetime) && player != null)
+                        if (SummonPortal(portalId, summonLoc, spell.PortalLifetime))
+                            EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+                        else if (player != null)
                             player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouFailToSummonPortal));
 
                         break;
@@ -1485,17 +1461,8 @@ namespace ACE.Server.WorldObjects
             if (player != null && targetCreature != null && targetPlayer == null)
                 player.OnAttackMonster(targetCreature);
 
-            if (spell.IsHarmful)
-            {
-                var resisted = ResistSpell(target, spell, caster);
-                if (resisted == true)
-                    return false;
-                if (resisted == null)
-                {
-                    log.Error("Something went wrong with the Magic resistance check");
-                    return false;
-                }
-            }
+            if (TryResistSpell(target, spell, caster))
+                return false;
 
             EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, spell.Formula.Scale));
             var enchantmentStatus = CreatureMagic(target, spell);

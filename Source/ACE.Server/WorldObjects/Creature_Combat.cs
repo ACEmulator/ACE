@@ -124,13 +124,15 @@ namespace ACE.Server.WorldObjects
 
             float peace1 = 0.0f, unarmed = 0.0f, peace2 = 0.0f;
 
+            // this is now handled as a proper 2-step process in HandleActionChangeCombatMode / NextUseTime
+
             // FIXME: just call generic method to switch to HandCombat first
             peace1 = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.NonCombat);
-            if (CurrentMotionState.Stance != MotionStance.HandCombat && combatStance != MotionStance.HandCombat)
+            /*if (CurrentMotionState.Stance != MotionStance.HandCombat && combatStance != MotionStance.HandCombat)
             {
                 unarmed = MotionTable.GetAnimationLength(MotionTableId, MotionStance.NonCombat, MotionCommand.Ready, MotionCommand.HandCombat);
                 peace2 = MotionTable.GetAnimationLength(MotionTableId, MotionStance.HandCombat, MotionCommand.Ready, MotionCommand.NonCombat);
-            }
+            }*/
 
             SetStance(MotionStance.NonCombat, false);
 
@@ -643,7 +645,7 @@ namespace ACE.Server.WorldObjects
 
             // shield AL item enchantment additives:
             // impenetrability, brittlemail
-            var ignoreMagicArmor = weapon != null ? weapon.IgnoreMagicArmor : false;
+            var ignoreMagicArmor = (weapon?.IgnoreMagicArmor ?? false) || (attacker?.IgnoreMagicArmor ?? false);
 
             var modSL = ignoreMagicArmor ? 0 : shield.EnchantmentManager.GetArmorMod();
             var effectiveSL = baseSL + modSL;

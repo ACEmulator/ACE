@@ -340,18 +340,6 @@ namespace ACE.Server.WorldObjects
                 new GameMessagePickupEvent(item),
                 new GameMessageSound(Guid, Sound.UnwieldObject));
 
-            // If item has any spells, remove them from the registry on unequip
-            if (item.Biota.BiotaPropertiesSpellBook != null)
-            {
-                foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
-                {
-                    if (item.HasProcSpell((uint)spell.Spell))
-                        continue;
-
-                    RemoveItemSpell(item, (uint)spell.Spell, true);
-                }
-            }
-
             // handle equipment sets
             if (item.HasItemSet)
                 DequipItemFromSet(item);
@@ -382,14 +370,14 @@ namespace ACE.Server.WorldObjects
             {
                 if (CombatMode == CombatMode.Missile && wieldedLocation == (int)EquipMask.MissileAmmo)
                 {
-                    SetCombatMode(CombatMode.NonCombat);
+                    HandleActionChangeCombatMode(CombatMode.NonCombat);
                     return true;
                 }
 
                 if (CombatMode == CombatMode.NonCombat || (wieldedLocation != (int)EquipMask.MeleeWeapon && wieldedLocation != (int)EquipMask.MissileWeapon && wieldedLocation != (int)EquipMask.Held && wieldedLocation != (int)EquipMask.Shield && !item.IsTwoHanded))
                     return true;
 
-                SetCombatMode(CombatMode.Melee);
+                HandleActionChangeCombatMode(CombatMode.Melee);
             }
 
             return true;
@@ -787,7 +775,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            if ((itemRootOwner == this && containerRootOwner != this)  || (itemRootOwner != this && containerRootOwner == this)) // Movement is between the player and the world
+            if ((itemRootOwner == this && containerRootOwner != this) || (itemRootOwner != this && containerRootOwner == this)) // Movement is between the player and the world
             {
                 if (itemRootOwner is Vendor)
                 {

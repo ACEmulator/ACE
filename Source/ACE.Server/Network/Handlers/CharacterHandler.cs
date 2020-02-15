@@ -280,6 +280,7 @@ namespace ACE.Server.Network.Handlers
                 if (result)
                 {
                     session.Network.EnqueueSend(new GameMessageCharacterList(session.Characters, session));
+
                     PlayerManager.HandlePlayerDelete(character.Id);
                 }
                 else

@@ -11,10 +11,12 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database.Entity;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+
 using Version = ACE.Database.Models.World.Version;
 
 namespace ACE.Database
@@ -332,7 +334,7 @@ namespace ACE.Database
                     .AsNoTracking()
                     .ToList();
 
-                Parallel.ForEach(results, result =>
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
                     if (!weenieCache.ContainsKey(result.ClassId))
                         GetWeenie(result.ClassId);
@@ -655,6 +657,26 @@ namespace ACE.Database
                 return cookbookCache.Count(r => r.Value != null);
         }
 
+        public void ClearCookbookCache()
+        {
+            lock (cookbookCache)
+                cookbookCache.Clear();
+        }
+
+        public List<CookBook> GetCachedCookbooks(uint recipeId)
+        {
+            var results = new List<CookBook>();
+
+            using (var ctx = new WorldDbContext())
+            {
+                var cookbooks = ctx.CookBook.Where(i => i.RecipeId == recipeId).ToList();
+
+                foreach (var cookbook in cookbooks)
+                    results.Add(GetCachedCookbook(cookbook.SourceWCID, cookbook.TargetWCID));
+            }
+            return results;
+        }
+
         public CookBook GetCachedCookbook(uint sourceWeenieClassid, uint targetWeenieClassId)
         {
             lock (cookbookCache)
@@ -752,7 +774,7 @@ namespace ACE.Database
                     .AsNoTracking()
                     .ToList();
 
-                Parallel.ForEach(results, result =>
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
                     GetCachedCookbook(result.SourceWCID, result.TargetWCID);
                 });
@@ -1101,6 +1123,11 @@ namespace ACE.Database
         #endregion
 
         private readonly ConcurrentDictionary<string, Quest> cachedQuest = new ConcurrentDictionary<string, Quest>();
+
+        public bool ClearCachedQuest(string questName)
+        {
+            return cachedQuest.TryRemove(questName, out _);
+        }
 
         public Quest GetCachedQuest(string questName)
         {

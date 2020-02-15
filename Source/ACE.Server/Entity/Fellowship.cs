@@ -232,23 +232,15 @@ namespace ACE.Server.Entity
             }
             else
             {
-                if (p != null && p.Fellowship.FellowshipLeaderGuid == FellowshipLeaderGuid)
-                {
-                    FellowshipLeaderGuid = p.Guid.Full;
-                    SendMessageAndUpdate($"{newLeaderName} now leads the fellowship");
-                }
-                else
-                {
-                    var fellowshipMembers = GetFellowshipMembers();
+                var fellowshipMembers = GetFellowshipMembers();
 
-                    if (fellowshipMembers.Count > 0)
-                    {
-                        int newLeaderIndex = ThreadSafeRandom.Next(0, fellowshipMembers.Count - 1);
-                        var fellowGuids = fellowshipMembers.Keys.ToList();
-                        FellowshipLeaderGuid = fellowGuids[newLeaderIndex];
-                        newLeaderName = fellowshipMembers[FellowshipLeaderGuid].Name;
-                        SendMessageAndUpdate($"{newLeaderName} now leads the fellowship");
-                    }
+                if (fellowshipMembers.Count > 0)
+                {
+                    int newLeaderIndex = ThreadSafeRandom.Next(0, fellowshipMembers.Count - 1);
+                    var fellowGuids = fellowshipMembers.Keys.ToList();
+                    FellowshipLeaderGuid = fellowGuids[newLeaderIndex];
+                    newLeaderName = fellowshipMembers[FellowshipLeaderGuid].Name;
+                    SendMessageAndUpdate($"{newLeaderName} now leads the fellowship");
                 }
             }
         }
@@ -458,9 +450,9 @@ namespace ACE.Server.Entity
 
         /// <summary>
         /// Returns the amount to scale the XP for a fellow
-        /// based on distance from the leader
+        /// based on distance from the earner
         /// </summary>
-        private double GetDistanceScalar(Player earner, Player fellow, XpType xpType)
+        public double GetDistanceScalar(Player earner, Player fellow, XpType xpType)
         {
             if (earner == null || fellow == null)
                 return 0.0f;
@@ -468,10 +460,17 @@ namespace ACE.Server.Entity
             if (xpType == XpType.Quest)
                 return 1.0f;
 
-            var earnerPosition = earner.Location;
-            var fellowPosition = fellow.Location;
+            // https://asheron.fandom.com/wiki/Announcements_-_2004/01_-_Mirror,_Mirror#Rollout_Article
 
-            var dist = fellowPosition.Distance2D(earnerPosition);
+            // If they are indoors while you are outdoors, or vice-versa.
+            if (earner.Location.Indoors != fellow.Location.Indoors)
+                return 0.0f;
+
+            // If you are both indoors but in different landblocks.
+            if (earner.Location.Indoors && fellow.Location.Indoors && earner.Location.Landblock != fellow.Location.Landblock)
+                return 0.0f;
+
+            var dist = earner.Location.Distance2D(fellow.Location);
 
             if (dist >= MaxDistance * 2.0f)
                 return 0.0f;
@@ -479,7 +478,7 @@ namespace ACE.Server.Entity
             if (dist <= MaxDistance)
                 return 1.0f;
 
-            var scalar = 1 - (dist - MaxDistance) / MaxDistance;
+            var scalar = 1.0f - (dist - MaxDistance) / MaxDistance;
 
             return Math.Max(0.0f, scalar);
         }
@@ -580,10 +579,13 @@ namespace ACE.Server.Entity
             {
                 var offlinePlayer = PlayerManager.FindByGuid(fellowGuid);
                 var offlineName = offlinePlayer != null ? offlinePlayer.Name : "NULL";
-                log.Warn($"Dropped fellow: {offlineName}");
 
+                log.Warn($"Dropped fellow: {offlineName}");
                 fellowshipMembers.Remove(fellowGuid);
             }
+            if (fellowGuids.Contains(FellowshipLeaderGuid))
+                AssignNewLeader(null);
+
             CalculateXPSharing();
             UpdateAllMembers();
         }
