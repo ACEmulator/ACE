@@ -146,6 +146,15 @@ namespace ACE.Database
             }));
         }
 
+        public void SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.SaveBiota(biota, rwLock);
+                callback?.Invoke(result);
+            }));
+        }
+
         public void SaveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
         {
             var initialCallTime = DateTime.UtcNow;
@@ -169,6 +178,15 @@ namespace ACE.Database
             }));
         }
 
+        public void SaveBiotasInParallel(IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.SaveBiotasInParallel(biotas);
+                callback?.Invoke(result);
+            }));
+        }
+
         public void SaveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
         {
             var initialCallTime = DateTime.UtcNow;
@@ -184,6 +202,15 @@ namespace ACE.Database
         }
 
         public void RemoveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.RemoveBiota(biota, rwLock);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
@@ -226,22 +253,6 @@ namespace ACE.Database
                 var taskCompletedTime = DateTime.UtcNow;
                 callback?.Invoke(result);
                 performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
-            }));
-        }
-
-        public void FreeBiotaAndDisposeContext(Biota biota)
-        {
-            _queue.Add(new Task(() =>
-            {
-                _wrappedDatabase.FreeBiotaAndDisposeContext(biota);
-            }));
-        }
-
-        public void FreeBiotaAndDisposeContexts(IEnumerable<Biota> biotas)
-        {
-            _queue.Add(new Task(() =>
-            {
-                _wrappedDatabase.FreeBiotaAndDisposeContexts(biotas);
             }));
         }
 
@@ -353,11 +364,20 @@ namespace ACE.Database
             }));
         }
 
+        public void AddCharacterInParallel(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.AddCharacterInParallel(biota, biotaLock, possessions, character, characterLock);
+                callback?.Invoke(result);
+            }));
+        }
+
 
         /// <summary>
         /// This will get all player biotas that are backed by characters that are not deleted.
         /// </summary>
-        public List<Biota> GetAllPlayerBiotasInParallel()
+        public List<ACE.Entity.Models.Biota> GetAllPlayerBiotasInParallel()
         {
             return _wrappedDatabase.GetAllPlayerBiotasInParallel();
         }

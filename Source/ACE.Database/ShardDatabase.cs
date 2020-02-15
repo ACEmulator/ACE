@@ -366,7 +366,25 @@ namespace ACE.Database
             }
         }
 
+        public virtual bool SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool SaveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
+        {
+            var result = true;
+
+            Parallel.ForEach(biotas, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, biota =>
+            {
+                if (!SaveBiota(biota.biota, biota.rwLock))
+                    result = false;
+            });
+
+            return result;
+        }
+
+        public bool SaveBiotasInParallel(IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> biotas)
         {
             var result = true;
 
@@ -427,6 +445,11 @@ namespace ACE.Database
             // If we got here, the biota didn't come from the database through this class.
             // Most likely, it doesn't exist in the database, so, no need to remove.
             return true;
+        }
+
+        public virtual bool RemoveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            throw new NotImplementedException();
         }
 
         public bool RemoveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
@@ -852,13 +875,27 @@ namespace ACE.Database
             return true;
         }
 
+        public bool AddCharacterInParallel(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock)
+        {
+            if (!SaveBiota(biota, biotaLock))
+                return false; // Biota save failed which mean Character fails.
+
+            if (!SaveBiotasInParallel(possessions))
+                return false;
+
+            if (!SaveCharacter(character, characterLock))
+                return false;
+
+            return true;
+        }
+
 
         /// <summary>
         /// This will get all player biotas that are backed by characters that are not deleted.
         /// </summary>
-        public List<Biota> GetAllPlayerBiotasInParallel()
+        public List<ACE.Entity.Models.Biota> GetAllPlayerBiotasInParallel()
         {
-            var biotas = new ConcurrentBag<Biota>();
+            var biotas = new ConcurrentBag<ACE.Entity.Models.Biota>();
 
             using (var context = new ShardDbContext())
             {
@@ -867,12 +904,16 @@ namespace ACE.Database
                     .AsNoTracking()
                     .ToList();
 
-                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
+                Parallel.ForEach(results, result =>
                 {
                     var biota = GetBiota(result.Id);
 
                     if (biota != null)
-                        biotas.Add(biota);
+                    {
+                        var convertedBiota = ACE.Database.Adapter.BiotaConverter.ConvertToEntityBiota(biota);
+
+                        biotas.Add(convertedBiota);
+                    }
                     else
                         log.Error($"ShardDatabase.GetAllPlayerBiotasInParallel() - couldn't find biota for character 0x{result.Id:X8}");
                 });

@@ -485,7 +485,6 @@ namespace ACE.Database.Adapter
             result.WeenieType = (int)biota.WeenieType;
 
 
-            /* Switch to this code when Step 3 is implemented
             if (biota.PropertiesBool != null)
             {
                 foreach (var kvp in biota.PropertiesBool)
@@ -520,69 +519,6 @@ namespace ACE.Database.Adapter
             {
                 foreach (var kvp in biota.PropertiesString)
                     result.SetProperty(kvp.Key, kvp.Value);
-            }*/
-            if (biota.PropertiesBool != null)
-            {
-                foreach (var kvp in biota.PropertiesBool)
-                {
-                    var entity = new BiotaPropertiesBool { ObjectId = biota.Id, Type = (ushort)kvp.Key, Value = kvp.Value };
-
-                    result.BiotaPropertiesBool.Add(entity);
-                }
-            }
-            if (biota.PropertiesDID != null)
-            {
-                foreach (var kvp in biota.PropertiesDID)
-                {
-                    var entity = new BiotaPropertiesDID { ObjectId = biota.Id, Type = (ushort)kvp.Key, Value = kvp.Value };
-
-                    result.BiotaPropertiesDID.Add(entity);
-                }
-            }
-            if (biota.PropertiesFloat != null)
-            {
-                foreach (var kvp in biota.PropertiesFloat)
-                {
-                    var entity = new BiotaPropertiesFloat { ObjectId = biota.Id, Type = (ushort)kvp.Key, Value = kvp.Value };
-
-                    result.BiotaPropertiesFloat.Add(entity);
-                }
-            }
-            if (biota.PropertiesIID != null)
-            {
-                foreach (var kvp in biota.PropertiesIID)
-                {
-                    var entity = new BiotaPropertiesIID { ObjectId = biota.Id, Type = (ushort)kvp.Key, Value = kvp.Value };
-
-                    result.BiotaPropertiesIID.Add(entity);
-                }
-            }
-            if (biota.PropertiesInt != null)
-            {
-                foreach (var kvp in biota.PropertiesInt)
-                {
-                    var entity = new BiotaPropertiesInt { ObjectId = biota.Id, Type = (ushort)kvp.Key, Value = kvp.Value };
-
-                    result.BiotaPropertiesInt.Add(entity);
-                }
-            }
-            if (biota.PropertiesInt64 != null)
-            {
-                foreach (var kvp in biota.PropertiesInt64)
-                {
-                    var entity = new BiotaPropertiesInt64 { ObjectId = biota.Id, Type = (ushort)kvp.Key, Value = kvp.Value };
-
-                    result.BiotaPropertiesInt64.Add(entity);
-                }
-            }
-            if (biota.PropertiesString != null)
-            {
-                foreach (var kvp in biota.PropertiesString)
-                {
-                    var entity = new BiotaPropertiesString { ObjectId = biota.Id, Type = (ushort)kvp.Key, Value = kvp.Value };
-
-                    result.BiotaPropertiesString.Add(entity);
-                }
             }
 
 
