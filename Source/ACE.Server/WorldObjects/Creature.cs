@@ -1,5 +1,5 @@
 using System;
-
+using System.Collections.Generic;
 using log4net;
 
 using ACE.DatLoader.FileTypes;
@@ -46,6 +46,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Creature(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
         }
 
@@ -54,7 +55,20 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Creature(Biota biota) : base(biota)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
+        }
+
+        private void InitializePropertyDictionaries()
+        {
+            if (Biota.PropertiesAttribute == null)
+                Biota.PropertiesAttribute = new Dictionary<PropertyAttribute, PropertiesAttribute>();
+            if (Biota.PropertiesAttribute2nd == null)
+                Biota.PropertiesAttribute2nd = new Dictionary<PropertyAttribute2nd, PropertiesAttribute2nd>();
+            if (Biota.PropertiesBodyPart == null)
+                Biota.PropertiesBodyPart = new Dictionary<CombatBodyPart, PropertiesBodyPart>();
+            if (Biota.PropertiesSkill == null)
+                Biota.PropertiesSkill = new Dictionary<Skill, PropertiesSkill>();
         }
 
         private void SetEphemeralValues()

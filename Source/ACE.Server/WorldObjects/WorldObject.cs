@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -27,7 +28,6 @@ using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Util;
 using ACE.Server.WorldObjects.Managers;
 
-using BiotaPropertiesEmote = ACE.Database.Models.Shard.BiotaPropertiesEmote;
 using Landblock = ACE.Server.Entity.Landblock;
 using Position = ACE.Entity.Position;
 
@@ -100,6 +100,7 @@ namespace ACE.Server.WorldObjects
             Biota = ACE.Entity.Adapter.WeenieConverter.ConvertToBiota(weenie, guid.Full);
             Guid = guid;
 
+            InitializePropertyDictionaries();
             SetEphemeralValues();
             InitializeGenerator();
             InitializeHeartbeats();
@@ -118,6 +119,7 @@ namespace ACE.Server.WorldObjects
 
             biotaOriginatedFromDatabase = true;
 
+            InitializePropertyDictionaries();
             SetEphemeralValues();
             InitializeGenerator();
             InitializeHeartbeats();
@@ -215,6 +217,12 @@ namespace ACE.Server.WorldObjects
             Location.LandblockId = new LandblockId(PhysicsObj.Position.ObjCellID);
             Location.Pos = PhysicsObj.Position.Frame.Origin;
             Location.Rotation = PhysicsObj.Position.Frame.Orientation;
+        }
+
+        private void InitializePropertyDictionaries()
+        {
+            if (Biota.PropertiesEnchantmentRegistry == null)
+                Biota.PropertiesEnchantmentRegistry = new Collection<PropertiesEnchantmentRegistry>();
         }
 
         private void SetEphemeralValues()

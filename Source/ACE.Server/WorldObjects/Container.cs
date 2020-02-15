@@ -27,6 +27,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Container(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
 
             InventoryLoaded = true;
@@ -40,6 +41,7 @@ namespace ACE.Server.WorldObjects
             if (Biota.TryRemoveProperty(PropertyBool.Open, BiotaDatabaseLock))
                 ChangesDetected = true;
 
+            InitializePropertyDictionaries();
             SetEphemeralValues();
 
             // A player has their possessions passed via the ctor. All other world objects must load their own inventory
@@ -50,6 +52,12 @@ namespace ACE.Server.WorldObjects
                     EnqueueAction(new ActionEventDelegate(() => SortBiotasIntoInventory(biotas)));
                 });
             }
+        }
+
+        private void InitializePropertyDictionaries()
+        {
+            if (ephemeralPropertyInts == null)
+                ephemeralPropertyInts = new Dictionary<PropertyInt, int?>();
         }
 
         private void SetEphemeralValues()

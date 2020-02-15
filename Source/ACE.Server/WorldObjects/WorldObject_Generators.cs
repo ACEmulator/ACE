@@ -24,7 +24,7 @@ namespace ACE.Server.WorldObjects
         /// Returns TRUE if this object is a generator
         /// (spawns other world objects)
         /// </summary>
-        public bool IsGenerator { get => GeneratorProfiles.Count > 0; }
+        public bool IsGenerator { get => GeneratorProfiles != null && GeneratorProfiles.Count > 0; }
        
         //public List<string> History = new List<string>();
 
