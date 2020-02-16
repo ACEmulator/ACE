@@ -52,6 +52,6 @@ namespace ACE.Entity.Models
         // Biota additions over Weenie
         public virtual ICollection<PropertiesAllegiance> PropertiesAllegiance { get; set; }
         public virtual ICollection<PropertiesEnchantmentRegistry> PropertiesEnchantmentRegistry { get; set; }
-        public virtual ICollection<HousePermission> HousePermissions { get; set; }
+        public virtual IDictionary<uint /* Player GUID */, bool /* Storage */> HousePermissions { get; set; }
     }
 }

@@ -634,23 +634,27 @@ namespace ACE.Database.Adapter
                     context.BiotaPropertiesEnchantmentRegistry.Remove(value);
             }
 
-            /*if (biota.HousePermissions != null)
+            if (sourceBiota.HousePermissions != null)
             {
-                foreach (var value in biota.HousePermissions)
+                foreach (var kvp in sourceBiota.HousePermissions)
                 {
-                    Models.Shard.HousePermission existingValue = existingBiota.HousePermission.FirstOrDefault(r => r.HouseId == value.HouseId && r.PlayerGuid == value.PlayerGuid);
+                    HousePermission existingValue = targetBiota.HousePermission.FirstOrDefault(r => r.PlayerGuid == kvp.Key);
 
                     if (existingValue == null)
-                        existingBiota.HousePermission.Add(value);
-                    else
-                        existingValue.Storage = value.Storage;
+                    {
+                        existingValue = new HousePermission { HouseId = sourceBiota.Id, PlayerGuid = kvp.Key };
+
+                        targetBiota.HousePermission.Add(existingValue);
+                    }
+
+                    existingValue.Storage = kvp.Value;
                 }
             }
-            foreach (var value in existingBiota.HousePermission)
+            foreach (var value in targetBiota.HousePermission)
             {
-                if ((biota.HousePermissions == null || !biota.HousePermissions.Any(p => p.HouseId == value.HouseId && p.PlayerGuid == value.PlayerGuid))
+                if (sourceBiota.HousePermissions == null || !sourceBiota.HousePermissions.ContainsKey(value.PlayerGuid))
                     context.HousePermission.Remove(value);
-            }*/
+            }
         }
     }
 }

@@ -19,6 +19,7 @@ namespace ACE.Server.WorldObjects
 {
     public class House : WorldObject
     {
+        // TODO now that the new biota model uses a dictionary for this, see if we can remove this duplicate dictionary
         public Dictionary<ObjectGuid, bool> Guests;
 
         public static int MaxGuests = 128;
@@ -64,7 +65,7 @@ namespace ACE.Server.WorldObjects
         private void InitializePropertyDictionaries()
         {
             if (Biota.HousePermissions == null)
-                Biota.HousePermissions = new List<HousePermission>();
+                Biota.HousePermissions = new Dictionary<uint, bool>();
         }
 
         private void SetEphemeralValues()
@@ -326,28 +327,28 @@ namespace ACE.Server.WorldObjects
         {
             Guests = new Dictionary<ObjectGuid, bool>();
 
-            var housePermissions = Biota.HousePermissions.Clone(BiotaDatabaseLock);
+            var housePermissions = Biota.CloneHousePermissions(BiotaDatabaseLock);
 
             var deleted = new List<uint>();
 
-            foreach (var housePermission in housePermissions)
+            foreach (var kvp in housePermissions)
             {
-                var player = PlayerManager.FindByGuid(housePermission.PlayerGuid);
+                var player = PlayerManager.FindByGuid(kvp.Key);
                 if (player == null)
                 {
-                    Console.WriteLine($"{Name}.BuildGuests(): couldn't find guest {housePermission.PlayerGuid:X8}");
+                    Console.WriteLine($"{Name}.BuildGuests(): couldn't find guest {kvp.Key:X8}");
 
                     // character has been deleted -- automatically remove?
-                    deleted.Add(housePermission.PlayerGuid);
+                    deleted.Add(kvp.Key);
                     continue;
                 }
-                Guests.Add(player.Guid, housePermission.Storage);
+                Guests.Add(player.Guid, kvp.Value);
             }
 
             if (deleted.Count > 0)
             {
                 foreach (var guid in deleted)
-                    Biota.HousePermissions.TryRemove(guid, BiotaDatabaseLock);
+                    Biota.RemoveHouseGuest(guid, BiotaDatabaseLock);
 
                 ChangesDetected = true;
 
@@ -357,13 +358,7 @@ namespace ACE.Server.WorldObjects
 
         public void AddGuest(IPlayer guest, bool storage)
         {
-            var housePermission = new HousePermission
-            {
-                PlayerGuid = guest.Guid.Full,
-                Storage = storage
-            };
-
-            Biota.HousePermissions.Add(housePermission, BiotaDatabaseLock);
+            Biota.AddOrUpdateHouseGuest(guest.Guid.Full, storage, BiotaDatabaseLock);
             ChangesDetected = true;
 
             BuildGuests();
@@ -375,12 +370,19 @@ namespace ACE.Server.WorldObjects
 
         public void ModifyGuest(IPlayer guest, bool storage)
         {
-            var existing = FindGuest(guest);
+            var existingStorage = Biota.GetHouseGuestStoragePermission(guest.Guid.Full, BiotaDatabaseLock);
 
-            if (existing == null || existing.Storage == storage)
+            if (existingStorage == null)
+            {
+                Console.WriteLine($"{Name}.FindGuest({guest.Guid}): couldn't find {guest.Name}");
+
+                return;
+            }
+
+            if (existingStorage == storage)
                 return;
 
-            existing.Storage = storage;
+            Biota.AddOrUpdateHouseGuest(guest.Guid.Full, storage, BiotaDatabaseLock);
             ChangesDetected = true;
 
             BuildGuests();
@@ -392,7 +394,7 @@ namespace ACE.Server.WorldObjects
 
         public void RemoveGuest(IPlayer guest)
         {
-            if (!Biota.HousePermissions.TryRemove(guest.Guid.Full, BiotaDatabaseLock))
+            if (!Biota.RemoveHouseGuest(guest.Guid.Full, BiotaDatabaseLock))
                 return;
 
             ChangesDetected = true;
@@ -416,16 +418,6 @@ namespace ACE.Server.WorldObjects
                 }
                 RemoveGuest(player);
             }
-        }
-
-        public HousePermission FindGuest(IPlayer guest)
-        {
-            var existing = Biota.HousePermissions.FindByPlayerGuid(guest.Guid.Full, BiotaDatabaseLock);
-
-            if (existing == null)
-                Console.WriteLine($"{Name}.FindGuest({guest.Guid}): couldn't find {guest.Name}");
-
-            return existing;
         }
 
         /// <summary>

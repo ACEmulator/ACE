@@ -458,18 +458,10 @@ namespace ACE.Database.Adapter
 
             if (biota.HousePermission != null && (instantiateEmptyCollections || biota.HousePermission.Count > 0))
             {
-                result.HousePermissions = new Collection<ACE.Entity.Models.HousePermission>();
+                result.HousePermissions = new Dictionary<uint, bool>();
 
                 foreach (var record in biota.HousePermission)
-                {
-                    var newEntity = new ACE.Entity.Models.HousePermission
-                    {
-                        PlayerGuid = record.PlayerGuid,
-                        Storage = record.Storage,
-                    };
-
-                    result.HousePermissions.Add(newEntity);
-                }
+                    result.HousePermissions[record.PlayerGuid] = record.Storage;
             }
 
 
@@ -877,9 +869,9 @@ namespace ACE.Database.Adapter
 
             if (biota.HousePermissions != null)
             {
-                foreach (var value in biota.HousePermissions)
+                foreach (var kvp in biota.HousePermissions)
                 {
-                    var entity = new ACE.Database.Models.Shard.HousePermission { HouseId = biota.Id, PlayerGuid = value.PlayerGuid, Storage = value.Storage };
+                    var entity = new ACE.Database.Models.Shard.HousePermission { HouseId = biota.Id, PlayerGuid = kvp.Key, Storage = kvp.Value };
 
                     result.HousePermission.Add(entity);
                 }
