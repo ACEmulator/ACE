@@ -73,6 +73,7 @@ namespace ACE.Server.Command.Handlers.Processors
             var totalQueryExecutionTime = TimeSpan.Zero;
             foreach (var biota in biotas)
             {
+                /* todo
                 DatabaseManager.Shard.SaveBiota(biota.biota, biota.rwLock, result =>
                 {
                     if (result)
@@ -85,7 +86,7 @@ namespace ACE.Server.Command.Handlers.Processors
                         initialQueueWaitTime = queueWaitTime;
 
                     totalQueryExecutionTime += queryExecutionTime;
-                });
+                });*/
             }
 
             while (Interlocked.Read(ref trueResults) + Interlocked.Read(ref falseResults) < biotas.Count)
@@ -108,6 +109,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
                 foreach (var biota in biotas)
                 {
+                    /* todo
                     DatabaseManager.Shard.SaveBiota(biota.biota, biota.rwLock, result =>
                     {
                         if (result)
@@ -120,7 +122,7 @@ namespace ACE.Server.Command.Handlers.Processors
                             initialQueueWaitTime = queueWaitTime;
 
                         totalQueryExecutionTime += queryExecutionTime;
-                    });
+                    });*/
                 }
 
                 while (Interlocked.Read(ref trueResults) + Interlocked.Read(ref falseResults) < biotas.Count)
@@ -140,7 +142,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             foreach (var biota in biotas)
             {
-                DatabaseManager.Shard.RemoveBiota(biota.biota, biota.rwLock, result =>
+                DatabaseManager.Shard.RemoveBiota(biota.biota.Id, result =>
                 {
                     if (result)
                         Interlocked.Increment(ref trueResults);
@@ -182,7 +184,7 @@ namespace ACE.Server.Command.Handlers.Processors
             startTime = DateTime.UtcNow;
             initialQueueWaitTime = TimeSpan.Zero;
             totalQueryExecutionTime = TimeSpan.Zero;
-
+            /* todo
             DatabaseManager.Shard.SaveBiotasInParallel(biotas, result =>
             {
                 if (result)
@@ -195,7 +197,7 @@ namespace ACE.Server.Command.Handlers.Processors
                     initialQueueWaitTime = queueWaitTime;
 
                 totalQueryExecutionTime += queryExecutionTime;
-            });
+            });*/
 
             while (Interlocked.Read(ref trueResults) + Interlocked.Read(ref falseResults) < 1)
                 Thread.Sleep(1);
@@ -214,7 +216,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 startTime = DateTime.UtcNow;
                 initialQueueWaitTime = TimeSpan.Zero;
                 totalQueryExecutionTime = TimeSpan.Zero;
-
+                /* todo
                 DatabaseManager.Shard.SaveBiotasInParallel(biotas, result =>
                 {
                     if (result)
@@ -227,7 +229,7 @@ namespace ACE.Server.Command.Handlers.Processors
                         initialQueueWaitTime = queueWaitTime;
 
                     totalQueryExecutionTime += queryExecutionTime;
-                });
+                });*/
 
                 while (Interlocked.Read(ref trueResults) + Interlocked.Read(ref falseResults) < 1)
                     Thread.Sleep(1);
@@ -244,7 +246,9 @@ namespace ACE.Server.Command.Handlers.Processors
             initialQueueWaitTime = TimeSpan.Zero;
             totalQueryExecutionTime = TimeSpan.Zero;
 
-            DatabaseManager.Shard.RemoveBiotasInParallel(biotas, result =>
+            var ids = biotas.Select(r => r.biota.Id).ToList();
+
+            DatabaseManager.Shard.RemoveBiotasInParallel(ids, result =>
             {
                 if (result)
                     Interlocked.Increment(ref trueResults);

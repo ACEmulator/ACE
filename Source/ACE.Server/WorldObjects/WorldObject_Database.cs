@@ -93,7 +93,7 @@ namespace ACE.Server.WorldObjects
             ChangesDetected = true;
 
             if (enqueueRemove)
-                DatabaseManager.Shard.RemoveBiota(Biota, BiotaDatabaseLock, null);
+                DatabaseManager.Shard.RemoveBiota(Biota.Id, null);
         }
 
         /// <summary>

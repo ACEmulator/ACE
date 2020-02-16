@@ -137,15 +137,6 @@ namespace ACE.Database
             }));
         }
 
-        public void SaveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.SaveBiota(biota, rwLock);
-                callback?.Invoke(result);
-            }));
-        }
-
         public void SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
@@ -155,28 +146,6 @@ namespace ACE.Database
             }));
         }
 
-        public void SaveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
-        {
-            var initialCallTime = DateTime.UtcNow;
-
-            _queue.Add(new Task(() =>
-            {
-                var taskStartTime = DateTime.UtcNow;
-                var result = _wrappedDatabase.SaveBiota(biota, rwLock);
-                var taskCompletedTime = DateTime.UtcNow;
-                callback?.Invoke(result);
-                performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
-            }));
-        }
-
-        public void SaveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.SaveBiotasInParallel(biotas);
-                callback?.Invoke(result);
-            }));
-        }
 
         public void SaveBiotasInParallel(IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
         {
@@ -187,7 +156,7 @@ namespace ACE.Database
             }));
         }
 
-        public void SaveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
+        public void SaveBiotasInParallel(IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
         {
             var initialCallTime = DateTime.UtcNow;
 
@@ -201,55 +170,46 @@ namespace ACE.Database
             }));
         }
 
-        public void RemoveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
+        public void RemoveBiota(uint id, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.RemoveBiota(biota, rwLock);
+                var result = _wrappedDatabase.RemoveBiota(id);
                 callback?.Invoke(result);
             }));
         }
 
-        public void RemoveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveBiota(biota, rwLock);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
+        public void RemoveBiota(uint id, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
         {
             var initialCallTime = DateTime.UtcNow;
 
             _queue.Add(new Task(() =>
             {
                 var taskStartTime = DateTime.UtcNow;
-                var result = _wrappedDatabase.RemoveBiota(biota, rwLock);
+                var result = _wrappedDatabase.RemoveBiota(id);
                 var taskCompletedTime = DateTime.UtcNow;
                 callback?.Invoke(result);
                 performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
             }));
         }
 
-        public void RemoveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
+        public void RemoveBiotasInParallel(IEnumerable<uint> ids, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.RemoveBiotasInParallel(biotas);
+                var result = _wrappedDatabase.RemoveBiotasInParallel(ids);
                 callback?.Invoke(result);
             }));
         }
 
-        public void RemoveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
+        public void RemoveBiotasInParallel(IEnumerable<uint> ids, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
         {
             var initialCallTime = DateTime.UtcNow;
 
             _queue.Add(new Task(() =>
             {
                 var taskStartTime = DateTime.UtcNow;
-                var result = _wrappedDatabase.RemoveBiotasInParallel(biotas);
+                var result = _wrappedDatabase.RemoveBiotasInParallel(ids);
                 var taskCompletedTime = DateTime.UtcNow;
                 callback?.Invoke(result);
                 performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
@@ -354,15 +314,6 @@ namespace ACE.Database
             }));
         }
 
-
-        public void AddCharacterInParallel(Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.AddCharacterInParallel(biota, biotaLock, possessions, character, characterLock);
-                callback?.Invoke(result);
-            }));
-        }
 
         public void AddCharacterInParallel(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock, Action<bool> callback)
         {
