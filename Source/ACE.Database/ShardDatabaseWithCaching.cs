@@ -26,16 +26,16 @@ namespace ACE.Database
         }
 
 
-        private class CacheObject<T>
+        public class CacheObject<T>
         {
             public DateTime LastSeen;
             public ShardDbContext Context;
             public T CachedObject;
         }
 
-        private readonly ConcurrentDictionary<uint, CacheObject<Biota>> biotaCache = new ConcurrentDictionary<uint, CacheObject<Biota>>();
+        public readonly ConcurrentDictionary<uint, CacheObject<Biota>> BiotaCache = new ConcurrentDictionary<uint, CacheObject<Biota>>();
 
-        private readonly ConcurrentDictionary<uint, CacheObject<Character>> characterCache = new ConcurrentDictionary<uint, CacheObject<Character>>();
+        public readonly ConcurrentDictionary<uint, CacheObject<Character>> CharacterCache = new ConcurrentDictionary<uint, CacheObject<Character>>();
 
         // todo MaintainCache
 
@@ -44,22 +44,22 @@ namespace ACE.Database
             if (ObjectGuid.IsPlayer(biota.Id))
             {
                 if (PlayerBiotaRetentionTime > TimeSpan.Zero)
-                    biotaCache[biota.Id] = new CacheObject<Biota> { LastSeen = DateTime.UtcNow, Context = context, CachedObject = biota };
+                    BiotaCache[biota.Id] = new CacheObject<Biota> { LastSeen = DateTime.UtcNow, Context = context, CachedObject = biota };
             }
             else if (NonPlayerBiotaRetentionTime > TimeSpan.Zero)
-                biotaCache[biota.Id] = new CacheObject<Biota> { LastSeen = DateTime.UtcNow, Context = context, CachedObject = biota };
+                BiotaCache[biota.Id] = new CacheObject<Biota> { LastSeen = DateTime.UtcNow, Context = context, CachedObject = biota };
         }
 
         private void TryAddToCache(ShardDbContext context, Character character)
         {
             if (CharacterRetentionTime > TimeSpan.Zero)
-                characterCache[character.Id] = new CacheObject<Character> { LastSeen = DateTime.UtcNow, Context = context, CachedObject = character };
+                CharacterCache[character.Id] = new CacheObject<Character> { LastSeen = DateTime.UtcNow, Context = context, CachedObject = character };
         }
 
 
         public override Biota GetBiota(ShardDbContext context, uint id)
         {
-            if (biotaCache.TryGetValue(id, out var value))
+            if (BiotaCache.TryGetValue(id, out var value))
             {
                 value.LastSeen = DateTime.UtcNow;
 
@@ -101,7 +101,7 @@ namespace ACE.Database
 
         public override bool SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)
         {
-            if (biotaCache.TryGetValue(biota.Id, out var value))
+            if (BiotaCache.TryGetValue(biota.Id, out var value))
             {
                 value.LastSeen = DateTime.UtcNow;
 
@@ -155,7 +155,7 @@ namespace ACE.Database
 
         public override bool RemoveBiota(uint id)
         {
-            biotaCache.TryRemove(id, out _);
+            BiotaCache.TryRemove(id, out _);
 
             return base.RemoveBiota(id);
         }

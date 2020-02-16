@@ -109,6 +109,8 @@ namespace ACE.Server.Command.Handlers
 
             sb.Append($"World DB Cache Counts - Weenies: {DatabaseManager.World.GetWeenieCacheCount():N0}, LandblockInstances: {DatabaseManager.World.GetLandblockInstancesCacheCount():N0}, PointsOfInterest: {DatabaseManager.World.GetPointsOfInterestCacheCount():N0}, Cookbooks: {DatabaseManager.World.GetCookbookCacheCount():N0}, Spells: {DatabaseManager.World.GetSpellCacheCount():N0}, Encounters: {DatabaseManager.World.GetEncounterCacheCount():N0}, Events: {DatabaseManager.World.GetEventsCacheCount():N0}{'\n'}");
             sb.Append($"Shard DB Counts - Biotas: {DatabaseManager.Shard.GetBiotaCount():N0}{'\n'}");
+            if (DatabaseManager.Shard._wrappedDatabase is ShardDatabaseWithCaching shardDatabaseWithCaching)
+                sb.Append($"Shard DB Cache Counts - Characters: {shardDatabaseWithCaching.CharacterCache.Count} ~ {shardDatabaseWithCaching.CharacterRetentionTime.TotalMinutes:N0} m, Biotas: {shardDatabaseWithCaching.BiotaCache.Count} ~ (Players) {shardDatabaseWithCaching.PlayerBiotaRetentionTime.TotalMinutes:N0} m, (Non Players) {shardDatabaseWithCaching.NonPlayerBiotaRetentionTime.TotalMinutes:N0} m{'\n'}");
 
             sb.Append(GuidManager.GetDynamicGuidDebugInfo() + '\n');
 

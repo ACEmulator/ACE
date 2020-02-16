@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -15,6 +16,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Book(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
         }
 
@@ -23,7 +25,16 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Book(Biota biota) : base(biota)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
+        }
+
+        private void InitializePropertyDictionaries()
+        {
+            if (Biota.PropertiesBook == null)
+                Biota.PropertiesBook = new PropertiesBook();
+            if (Biota.PropertiesBookPageData == null)
+                Biota.PropertiesBookPageData = new List<PropertiesBookPageData>();
         }
 
         private void SetEphemeralValues()

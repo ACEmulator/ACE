@@ -12,7 +12,8 @@ namespace ACE.Database
 {
     public class SerializedShardDatabase
     {
-        private readonly ShardDatabase _wrappedDatabase;
+        // todo this is only public so ServerStatus can report cache info... figure out a solution where this isn't public?? or better rename?
+        public readonly ShardDatabase _wrappedDatabase;
 
         private readonly BlockingCollection<Task> _queue = new BlockingCollection<Task>();
 
