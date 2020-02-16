@@ -48,6 +48,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public House(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
         }
 
@@ -56,7 +57,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public House(Biota biota) : base(biota)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
+        }
+
+        private void InitializePropertyDictionaries()
+        {
+            if (Biota.HousePermissions == null)
+                Biota.HousePermissions = new List<HousePermission>();
         }
 
         private void SetEphemeralValues()
