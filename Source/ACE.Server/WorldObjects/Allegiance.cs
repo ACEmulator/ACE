@@ -35,7 +35,8 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Approved vassals for adding to locked allegiances
         /// </summary>
-        public List<PropertiesAllegiance> ApprovedVassals => Biota.PropertiesAllegiance.GetApprovedVassals(BiotaDatabaseLock);
+        /// // TODO now that the new biota model uses a dictionary for this, see if we can remove this duplicate dictionary
+        public Dictionary<uint, PropertiesAllegiance> ApprovedVassals => Biota.PropertiesAllegiance.GetApprovedVassals(BiotaDatabaseLock);
 
         /// <summary>
         /// Handles booting players from allegiance chat
@@ -46,7 +47,8 @@ namespace ACE.Server.WorldObjects
         /// A list of players who are banned from joining.
         /// </summary>
         //public HashSet<ObjectGuid> BanList { get; set; }
-        public List<PropertiesAllegiance> BanList => Biota.PropertiesAllegiance.GetBanList(BiotaDatabaseLock);
+        // TODO now that the new biota model uses a dictionary for this, see if we can remove this duplicate dictionary
+        public Dictionary<uint, PropertiesAllegiance> BanList => Biota.PropertiesAllegiance.GetBanList(BiotaDatabaseLock);
 
         /// <summary>
         /// Returns the list of allegiance members who are currently online
@@ -400,7 +402,7 @@ namespace ACE.Server.WorldObjects
 
         public bool IsBanned(uint playerGuid)
         {
-            return BanList.Any(i => i.CharacterId == playerGuid);
+            return BanList.ContainsKey(playerGuid);
         }
 
         public void AddApprovedVassal(uint playerGuid)
@@ -442,7 +444,7 @@ namespace ACE.Server.WorldObjects
 
         public bool HasApprovedVassal(uint playerGuid)
         {
-            return ApprovedVassals.Any(i => i.CharacterId == playerGuid);
+            return ApprovedVassals.ContainsKey(playerGuid);
         }
     }
 }

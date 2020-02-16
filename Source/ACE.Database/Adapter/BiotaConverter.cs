@@ -411,18 +411,17 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesAllegiance != null && (instantiateEmptyCollections || biota.BiotaPropertiesAllegiance.Count > 0))
             {
-                result.PropertiesAllegiance = new Collection<PropertiesAllegiance>();
+                result.PropertiesAllegiance = new Dictionary<uint, PropertiesAllegiance>();
 
                 foreach (var record in biota.BiotaPropertiesAllegiance)
                 {
                     var newEntity = new PropertiesAllegiance
                     {
-                        CharacterId = record.CharacterId,
                         Banned = record.Banned,
                         ApprovedVassal = record.ApprovedVassal,
                     };
 
-                    result.PropertiesAllegiance.Add(newEntity);
+                    result.PropertiesAllegiance[record.CharacterId] = newEntity;
                 }
             }
 
@@ -830,9 +829,9 @@ namespace ACE.Database.Adapter
 
             if (biota.PropertiesAllegiance != null)
             {
-                foreach (var value in biota.PropertiesAllegiance)
+                foreach (var kvp in biota.PropertiesAllegiance)
                 {
-                    var entity = new BiotaPropertiesAllegiance { AllegianceId = biota.Id, CharacterId = value.CharacterId, Banned = value.Banned, ApprovedVassal = value.ApprovedVassal };
+                    var entity = new BiotaPropertiesAllegiance { AllegianceId = biota.Id, CharacterId = kvp.Key, Banned = kvp.Value.Banned, ApprovedVassal = kvp.Value.ApprovedVassal };
 
                     result.BiotaPropertiesAllegiance.Add(entity);
                 }

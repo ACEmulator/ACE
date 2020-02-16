@@ -575,9 +575,9 @@ namespace ACE.Database.Adapter
 
             if (sourceBiota.PropertiesAllegiance != null)
             {
-                foreach (var value in sourceBiota.PropertiesAllegiance)
+                foreach (var kvp in sourceBiota.PropertiesAllegiance)
                 {
-                    BiotaPropertiesAllegiance existingValue = targetBiota.BiotaPropertiesAllegiance.FirstOrDefault(r => r.CharacterId == value.CharacterId);
+                    BiotaPropertiesAllegiance existingValue = targetBiota.BiotaPropertiesAllegiance.FirstOrDefault(r => r.CharacterId == kvp.Key);
 
                     if (existingValue == null)
                     {
@@ -586,14 +586,14 @@ namespace ACE.Database.Adapter
                         targetBiota.BiotaPropertiesAllegiance.Add(existingValue);
                     }
 
-                    existingValue.CharacterId = value.CharacterId;
-                    existingValue.Banned = value.Banned;
-                    existingValue.ApprovedVassal = value.ApprovedVassal;
+                    existingValue.CharacterId = kvp.Key;
+                    existingValue.Banned = kvp.Value.Banned;
+                    existingValue.ApprovedVassal = kvp.Value.ApprovedVassal;
                 }
             }
             foreach (var value in targetBiota.BiotaPropertiesAllegiance)
             {
-                if (sourceBiota.PropertiesAllegiance == null || !sourceBiota.PropertiesAllegiance.Any(p => p.CharacterId == value.CharacterId))
+                if (sourceBiota.PropertiesAllegiance == null || !sourceBiota.PropertiesAllegiance.ContainsKey(value.CharacterId))
                     context.BiotaPropertiesAllegiance.Remove(value);
             }
 
@@ -642,11 +642,12 @@ namespace ACE.Database.Adapter
 
                     if (existingValue == null)
                     {
-                        existingValue = new HousePermission { HouseId = sourceBiota.Id, PlayerGuid = kvp.Key };
+                        existingValue = new HousePermission { HouseId = sourceBiota.Id };
 
                         targetBiota.HousePermission.Add(existingValue);
                     }
 
+                    existingValue.PlayerGuid = kvp.Key;
                     existingValue.Storage = kvp.Value;
                 }
             }
