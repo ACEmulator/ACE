@@ -33,9 +33,11 @@ namespace ACE.Database
             public T CachedObject;
         }
 
+        private readonly ConcurrentDictionary<uint, CacheObject<Biota>> biotaCache = new ConcurrentDictionary<uint, CacheObject<Biota>>();
+
         private readonly ConcurrentDictionary<uint, CacheObject<Character>> characterCache = new ConcurrentDictionary<uint, CacheObject<Character>>();
 
-        private readonly ConcurrentDictionary<uint, CacheObject<Biota>> biotaCache = new ConcurrentDictionary<uint, CacheObject<Biota>>();
+        // todo MaintainCache
 
         private void TryAddToCache(ShardDbContext context, Biota biota)
         {
@@ -46,6 +48,12 @@ namespace ACE.Database
             }
             else if (NonPlayerBiotaRetentionTime > TimeSpan.Zero)
                 biotaCache[biota.Id] = new CacheObject<Biota> { LastSeen = DateTime.UtcNow, Context = context, CachedObject = biota };
+        }
+
+        private void TryAddToCache(ShardDbContext context, Character character)
+        {
+            if (CharacterRetentionTime > TimeSpan.Zero)
+                characterCache[character.Id] = new CacheObject<Character> { LastSeen = DateTime.UtcNow, Context = context, CachedObject = character };
         }
 
 

@@ -2568,7 +2568,7 @@ namespace ACE.Server.Command.Handlers
                         return;
                     }
 
-                    var character = DatabaseManager.Shard.GetCharacterByName(oldName);
+                    var character = DatabaseManager.Shard.GetCharacterStubByName(oldName);
 
                     character.Name = newName;
                     DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), null);

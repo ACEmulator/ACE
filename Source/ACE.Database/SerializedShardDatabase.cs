@@ -128,15 +128,6 @@ namespace ACE.Database
             return _wrappedDatabase.GetBiotasByType(type);
         }
 
-        public void GetBiota(uint id, Action<Biota> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var c = _wrappedDatabase.GetBiota(id);
-                callback?.Invoke(c);
-            }));
-        }
-
         public void SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
@@ -153,20 +144,6 @@ namespace ACE.Database
             {
                 var result = _wrappedDatabase.SaveBiotasInParallel(biotas);
                 callback?.Invoke(result);
-            }));
-        }
-
-        public void SaveBiotasInParallel(IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
-        {
-            var initialCallTime = DateTime.UtcNow;
-
-            _queue.Add(new Task(() =>
-            {
-                var taskStartTime = DateTime.UtcNow;
-                var result = _wrappedDatabase.SaveBiotasInParallel(biotas);
-                var taskCompletedTime = DateTime.UtcNow;
-                callback?.Invoke(result);
-                performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
             }));
         }
 
@@ -190,15 +167,6 @@ namespace ACE.Database
                 var taskCompletedTime = DateTime.UtcNow;
                 callback?.Invoke(result);
                 performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
-            }));
-        }
-
-        public void RemoveBiotasInParallel(IEnumerable<uint> ids, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveBiotasInParallel(ids);
-                callback?.Invoke(result);
             }));
         }
 
@@ -236,34 +204,14 @@ namespace ACE.Database
 
         }
 
-        public void GetWieldedItemsInParallel(uint parentId, Action<List<Biota>> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var c = _wrappedDatabase.GetWieldedItemsInParallel(parentId);
-                callback?.Invoke(c);
-            }));
-
-        }
-
         public List<Biota> GetStaticObjectsByLandblock(ushort landblockId)
         {
             return _wrappedDatabase.GetStaticObjectsByLandblock(landblockId);
         }
 
-        public List<Biota> GetStaticObjectsByLandblockInParallel(ushort landblockId)
-        {
-            return _wrappedDatabase.GetStaticObjectsByLandblockInParallel(landblockId);
-        }
-
         public List<Biota> GetDynamicObjectsByLandblock(ushort landblockId)
         {
             return _wrappedDatabase.GetDynamicObjectsByLandblock(landblockId);
-        }
-
-        public List<Biota> GetDynamicObjectsByLandblockInParallel(ushort landblockId)
-        {
-            return _wrappedDatabase.GetDynamicObjectsByLandblockInParallel(landblockId);
         }
 
 
@@ -285,24 +233,19 @@ namespace ACE.Database
             }));
         }
 
-        public Character GetFullCharacter(string name)
-        {
-            return _wrappedDatabase.GetFullCharacter(name);
-        }
-
         public List<Character> GetCharacters(uint accountId, bool includeDeleted)
         {
             return _wrappedDatabase.GetCharacters(accountId, includeDeleted);
         }
 
-        public Character GetCharacterByName(string name)
+        public Character GetCharacterStubByName(string name)
         {
-            return _wrappedDatabase.GetCharacterByName(name);
+            return _wrappedDatabase.GetCharacterStubByName(name);
         }
 
-        public Character GetCharacterByGuid(uint guid)
+        public Character GetCharacterStubByGuid(uint guid)
         {
-            return _wrappedDatabase.GetCharacterByGuid(guid);
+            return _wrappedDatabase.GetCharacterStubByGuid(guid);
         }
 
         public void SaveCharacter(Character character, ReaderWriterLockSlim rwLock, Action<bool> callback)

@@ -500,31 +500,6 @@ namespace ACE.Database
             return staticObjects;
         }
 
-        public List<Biota> GetStaticObjectsByLandblockInParallel(ushort landblockId)
-        {
-            var staticObjects = new ConcurrentBag<Biota>();
-
-            var staticLandblockId = (uint)(0x70000 | landblockId);
-
-            var min = staticLandblockId << 12;
-            var max = min | 0xFFF;
-
-            using (var context = new ShardDbContext())
-            {
-                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
-                var results = context.Biota.Where(b => b.Id >= min && b.Id <= max).ToList();
-
-                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
-                {
-                    var biota = GetBiota(result.Id);
-                    staticObjects.Add(biota);
-                });
-            }
-
-            return staticObjects.ToList();
-        }
-
         public List<Biota> GetDynamicObjectsByLandblock(ushort landblockId)
         {
             var dynamics = new List<Biota>();
@@ -559,40 +534,6 @@ namespace ACE.Database
             return dynamics;
         }
 
-        public List<Biota> GetDynamicObjectsByLandblockInParallel(ushort landblockId)
-        {
-            var dynamics = new ConcurrentBag<Biota>();
-
-            var min = (uint)(landblockId << 16);
-            var max = min | 0xFFFF;
-
-            using (var context = new ShardDbContext())
-            {
-                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
-                var results = context.BiotaPropertiesPosition
-                    .Where(p => p.PositionType == 1 && p.ObjCellId >= min && p.ObjCellId <= max && p.ObjectId >= 0x80000000)
-                    .ToList();
-
-                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
-                {
-                    var biota = GetBiota(result.ObjectId);
-
-                    // Filter out objects that are in a container
-                    if (biota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == 2 && r.Value != 0) != null)
-                        return;
-
-                    // Filter out wielded objects
-                    if (biota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == 3 && r.Value != 0) != null)
-                        return;
-
-                    dynamics.Add(biota);
-                });
-            }
-
-            return dynamics.ToList();
-        }
-
         public List<Biota> GetHousesOwned()
         {
             using (var context = new ShardDbContext())
@@ -622,29 +563,6 @@ namespace ACE.Database
 
         private static readonly ConditionalWeakTable<Character, ShardDbContext> CharacterContexts = new ConditionalWeakTable<Character, ShardDbContext>();
 
-        public Character GetFullCharacter(string name)
-        {
-            var context = new ShardDbContext();
-
-            var result = context.Character
-                .Include(r => r.CharacterPropertiesContractRegistry)
-                .Include(r => r.CharacterPropertiesFillCompBook)
-                .Include(r => r.CharacterPropertiesFriendList)
-                .Include(r => r.CharacterPropertiesQuestRegistry)
-                .Include(r => r.CharacterPropertiesShortcutBar)
-                .Include(r => r.CharacterPropertiesSpellBar)
-                .Include(r => r.CharacterPropertiesSquelch)
-                .Include(r => r.CharacterPropertiesTitleBook)
-                .FirstOrDefault(r => r.Name == name && !r.IsDeleted);
-
-            if (result == null)
-                Console.WriteLine($"ShardDatabase.GetFullCharacter({name}): couldn't find character");
-            else
-                CharacterContexts.Add(result, context);
-
-            return result;
-        }
-
         public List<Character> GetCharacters(uint accountId, bool includeDeleted)
         {
             var context = new ShardDbContext();
@@ -667,7 +585,7 @@ namespace ACE.Database
             return results;
         }
 
-        public Character GetCharacterByName(string name) // When searching by name, only non-deleted characters matter
+        public Character GetCharacterStubByName(string name) // When searching by name, only non-deleted characters matter
         {
             var context = new ShardDbContext();
 
@@ -681,13 +599,10 @@ namespace ACE.Database
                 //.Include(r => r.CharacterPropertiesTitleBook)
                 .FirstOrDefault(r => r.Name == name.ToLower() && !r.IsDeleted);
 
-            if (result != null)
-                CharacterContexts.Add(result, context);
-
             return result;
         }
 
-        public Character GetCharacterByGuid(uint guid)
+        public Character GetCharacterStubByGuid(uint guid)
         {
             var context = new ShardDbContext();
 
@@ -700,9 +615,6 @@ namespace ACE.Database
                 //.Include(r => r.CharacterPropertiesSpellBar)
                 //.Include(r => r.CharacterPropertiesTitleBook)
                 .FirstOrDefault(r => r.Id == guid);
-
-            if (result != null)
-                CharacterContexts.Add(result, context);
 
             return result;
         }
