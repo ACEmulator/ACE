@@ -4,7 +4,6 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Managers;
 using ACE.Server.Entity;
 
@@ -13,14 +12,8 @@ namespace ACE.Server.WorldObjects
     /// <summary>
     /// Summonable monsters combat AI
     /// </summary>
-    public class CombatPet : Creature
+    public class CombatPet : Pet
     {
-        public DateTime ExpirationTime;
-
-        public DamageType DamageType;
-
-        public Player P_PetOwner;
-
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -39,42 +32,15 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            Ethereal = true;
-            RadarBehavior = ACE.Entity.Enum.RadarBehavior.ShowNever;
-            Usable = ACE.Entity.Enum.Usable.No;
-
-            if (!PropertyManager.GetBool("advanced_combat_pets").Item)
-                Biota.BiotaPropertiesSpellBook.Clear();
-
-            //Biota.BiotaPropertiesCreateList.Clear();
-            Biota.BiotaPropertiesEmote.Clear();
-            GeneratorProfiles.Clear();            
-
-            DeathTreasureType = null;
-            WieldedTreasureType = null;
-
-            if (Biota.WeenieType != (int)WeenieType.CombatPet) // Combat Pets are currently being made from real creatures
-                Biota.WeenieType = (int)WeenieType.CombatPet;
         }
 
-        public void Init(Player player, DamageType damageType, PetDevice petDevice)
+        public override void Init(Player player, PetDevice petDevice)
         {
-            SuppressGenerateEffect = true;
-            NoCorpse = true;
-            TreasureCorpse = false;
-            ExpirationTime = DateTime.UtcNow + TimeSpan.FromSeconds(45);
-            Location = player.Location.InFrontOf(5f);
-            Location.LandblockId = new LandblockId(Location.GetCell());
-            Name = player.Name + "'s " + Name;
-            P_PetOwner = player;
-            PetOwner = player.Guid.Full;
-            EnterWorld();
+            base.Init(player, petDevice);
+
             SetCombatMode(CombatMode.Melee);
-            DamageType = damageType;
-            Attackable = true;
             MonsterState = State.Awake;
             IsAwake = true;
-            player.CurrentActiveCombatPet = this;
 
             // copy ratings from pet device
             DamageRating = petDevice.GearDamage;

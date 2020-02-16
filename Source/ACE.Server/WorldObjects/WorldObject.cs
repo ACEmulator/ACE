@@ -834,11 +834,8 @@ namespace ACE.Server.WorldObjects
                     item.Destroy();
             }
 
-            if (this is CombatPet combatPet)
-            {
-                if (combatPet.P_PetOwner != null && combatPet.P_PetOwner.CurrentActiveCombatPet == this)
-                    combatPet.P_PetOwner.CurrentActiveCombatPet = null;
-            }
+            if (this is Pet pet && pet.P_PetOwner?.CurrentActivePet == this)
+                pet.P_PetOwner.CurrentActivePet = null;
 
             if (raiseNotifyOfDestructionEvent)
                 NotifyOfEvent(RegenerationType.Destruction);
