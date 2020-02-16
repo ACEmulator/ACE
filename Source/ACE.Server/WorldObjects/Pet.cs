@@ -1,11 +1,14 @@
 using System;
 using System.Numerics;
 
+using log4net;
+
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
@@ -16,6 +19,8 @@ namespace ACE.Server.WorldObjects
     public class Pet : Creature
     {
         public Player P_PetOwner;
+
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -54,7 +59,16 @@ namespace ACE.Server.WorldObjects
             PetOwner = player.Guid.Full;
             P_PetOwner = player;
 
-            EnterWorld();
+            // TODO: handle spawn failure
+            var success = EnterWorld();
+
+            if (IsPassivePet)
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(0.25f);
+                actionChain.AddAction(this, () => TryCastSpells());
+                actionChain.EnqueueChain();
+            }
         }
 
         // if the passive pet is between min-max distance to owner,
@@ -65,6 +79,9 @@ namespace ACE.Server.WorldObjects
 
         private static readonly float MinDistanceSq = MinDistance * MinDistance;
         private static readonly float MaxDistanceSq = MaxDistance * MaxDistance;
+
+        private static readonly float CastDistance = 96.0f;
+        private static readonly float CastDistanceSq = CastDistance * CastDistance;
 
         public override void Heartbeat(double currentUnixTime)
         {
@@ -77,9 +94,12 @@ namespace ACE.Server.WorldObjects
 
             if (distSq > MinDistanceSq && distSq < MaxDistanceSq)
                 StartFollow();
+
+            if (distSq < CastDistanceSq && DateTime.UtcNow > NextCastTime)
+                TryCastSpells();
         }
 
-        public void StartFollow()
+        private void StartFollow()
         {
             // similar to Monster_Navigation.StartTurn()
 
@@ -102,6 +122,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void MoveTo(WorldObject target, float runRate = 1.0f)
         {
+            if (WeenieType == WeenieType.CombatPet)
+            {
+                base.MoveTo(target, runRate);
+                return;
+            }
+
             if (MoveSpeed == 0.0f)
                 GetMovementSpeed();
 
@@ -125,7 +151,7 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.OnMoveComplete({status})");
 
-            if (this is CombatPet)
+            if (WeenieType == WeenieType.CombatPet)
             {
                 base.OnMoveComplete(status);
                 return;
@@ -143,8 +169,37 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void Tick(double currentUnixTime)
         {
+            NextMonsterTickTime = currentUnixTime + monsterTickInterval;
+
             if (IsMoving)
                 PhysicsObj.update_object();
+        }
+
+        /// <summary>
+        /// A pet casts spells on its owner every 30 seconds?
+        /// </summary>
+        private static TimeSpan CastInterval = TimeSpan.FromSeconds(30);
+
+        private DateTime NextCastTime;
+
+        /// <summary>
+        /// Passive pet cast spells on its owner
+        /// </summary>
+        public void TryCastSpells()
+        {
+            foreach (var _spell in Biota.BiotaPropertiesSpellBook)
+            {
+                var spell = new Server.Entity.Spell(_spell.Spell);
+
+                if (spell.NotFound)
+                {
+                    log.Error($"{Name}.CastSpells(): spell {_spell.Spell} not found");
+                    continue;
+                }
+
+                TryCastSpell(spell, P_PetOwner);
+            }
+            NextCastTime = DateTime.UtcNow + CastInterval;
         }
     }
 }
