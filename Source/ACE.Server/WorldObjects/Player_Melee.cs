@@ -285,7 +285,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventAttackDone(Session));
                 Attacking = false;
 
-                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && IsStickyDistance(creature, true))
+                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && IsStickyDistance(creature, true) && IsDirectVisible(creature))
                 {
                     Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
                     Session.Network.EnqueueSend(new GameEventAttackDone(Session));
@@ -341,6 +341,10 @@ namespace ACE.Server.WorldObjects
             CurrentMotionState = motion;
 
             EnqueueBroadcastMotion(motion);
+
+            if (FastTick)
+                PhysicsObj.stick_to_object(target.Guid.Full);
+
             return animLength;
         }
 
@@ -383,7 +387,7 @@ namespace ACE.Server.WorldObjects
             var cylDist = (float)Physics.Common.Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
                 target.PhysicsObj.GetRadius(), target.PhysicsObj.GetHeight(), target.PhysicsObj.Position);
 
-            return cylDist <= (repeat ? 4.0f : 16.0f);
+            return cylDist <= (repeat ? 16.0f : 4.0f);
         }
     }
 }
