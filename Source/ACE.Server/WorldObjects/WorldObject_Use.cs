@@ -89,16 +89,40 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            //// find activation target
-            //var target = ActivationTarget != 0 ? CurrentLandblock?.GetObject(new ObjectGuid(ActivationTarget)) : this;
-
-            //// special case for creatures - redirect through emote chain?
-            //if (this is Creature) target = this;
-
-            var target = this;
-
             if (player != null)
                 player.EnchantmentManager.StartCooldown(this);
+
+            // perform motion animation - rarely used (only 4 instances in PY16 db)
+            if (ActivationResponse.HasFlag(ActivationResponse.Animate))
+                OnAnimate(activator);
+
+            // perform activation emote
+            if (ActivationResponse.HasFlag(ActivationResponse.Emote))
+                OnEmote(activator);
+
+            // cast a spell on the player (spell traps)
+            if (ActivationResponse.HasFlag(ActivationResponse.CastSpell))
+                OnCastSpell(activator);
+
+            // call to generator to spawn new object
+            if (ActivationResponse.HasFlag(ActivationResponse.Generate))
+                OnGenerate(activator);
+
+            // default use action
+            if (ActivationResponse.HasFlag(ActivationResponse.Use))
+            {
+                if (activator is Creature creature)
+                {
+                    //target.EmoteManager.OnActivation(creature); // found a few things with Activation on them but not ActivationResponse.Emote...
+                    EmoteManager.OnUse(creature);
+                }
+
+                ActOnUse(activator);
+            }
+
+            // send chat text - rarely used (only 8 instances in PY16 db)
+            if (ActivationResponse.HasFlag(ActivationResponse.Talk))
+                OnTalk(activator);
 
             if (!(this is Creature) && ActivationTarget > 0)
             {
@@ -110,41 +134,6 @@ namespace ACE.Server.WorldObjects
                     log.Warn($"{Name}.OnActivate({activator.Name}): couldn't find activation target {ActivationTarget:X8}");
                 }
             }
-
-            // if ActivationTarget is another object,
-            // should this be checking the ActivationResponse of the target object?
-
-            // perform motion animation - rarely used (only 4 instances in PY16 db)
-            if (ActivationResponse.HasFlag(ActivationResponse.Animate))
-                target.OnAnimate(activator);
-
-            // perform activation emote
-            if (ActivationResponse.HasFlag(ActivationResponse.Emote))
-                target.OnEmote(activator);
-
-            // cast a spell on the player (spell traps)
-            if (ActivationResponse.HasFlag(ActivationResponse.CastSpell))
-                target.OnCastSpell(activator);
-
-            // call to generator to spawn new object
-            if (ActivationResponse.HasFlag(ActivationResponse.Generate))
-                target.OnGenerate(activator);
-
-            // default use action
-            if (ActivationResponse.HasFlag(ActivationResponse.Use))
-            {
-                if (activator is Creature creature)
-                {
-                    //target.EmoteManager.OnActivation(creature); // found a few things with Activation on them but not ActivationResponse.Emote...
-                    target.EmoteManager.OnUse(creature);
-                }
-
-                target.ActOnUse(activator);
-            }
-
-            // send chat text - rarely used (only 8 instances in PY16 db)
-            if (ActivationResponse.HasFlag(ActivationResponse.Talk))
-                target.OnTalk(activator);
         }
 
         public virtual void ActOnUse(WorldObject activator)
