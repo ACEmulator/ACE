@@ -260,6 +260,7 @@ namespace ACE.Server.Factories
             new int[] { 313, 3774, 3775, 3776, 3777 }, // Dabus
             new int[] { 356, 3897, 3898, 3899, 3900 }, // Tofun
             new int[] { 321, 3802, 3803, 3804, 3805 }, // Jitte
+            new int[] { 31774, 31775, 31776, 31777, 31773 }, // Stone Mace
             new int[] { 308, 3762, 3763, 3764, 3765 }, // Budiaq
             new int[] { 7771, 7795, 7796, 7797, 7798 }, // Naginata
             new int[] { 30606, 30607, 30608, 30609, 30610 }, // Bastone
