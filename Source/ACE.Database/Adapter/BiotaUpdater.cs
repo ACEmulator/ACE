@@ -9,15 +9,8 @@ namespace ACE.Database.Adapter
 {
     public static class BiotaUpdater
     {
-        public static void UpdateBiota(ShardDbContext context, ACE.Entity.Models.Biota sourceBiota, ACE.Database.Models.Shard.Biota targetBiota)
+        public static void UpdateDatabaseBiota(ShardDbContext context, ACE.Entity.Models.Biota sourceBiota, ACE.Database.Models.Shard.Biota targetBiota)
         {
-            // This pattern is described here: https://docs.microsoft.com/en-us/ef/core/saving/disconnected-entities
-            // You'll notice though that we're not using the recommended: context.Entry(existingEntry).CurrentValues.SetValues(newEntry);
-            // It is EXTREMLY slow. 4x or more slower. I suspect because it uses reflection to find the properties that the object contains
-            // Manually setting the properties like we do below is the best case scenario for performance. However, it also has risks.
-            // If we add columns to the schema and forget to add those changes here, changes to the biota may not propagate to the database.
-            // Mag-nus 2018-08-18
-
             targetBiota.WeenieClassId = sourceBiota.WeenieClassId;
             targetBiota.WeenieType = (int)sourceBiota.WeenieType;
 
@@ -154,49 +147,51 @@ namespace ACE.Database.Adapter
             }
 
 
-            /*if (biota.PropertiesAnimPart != null)
+            if (sourceBiota.PropertiesAnimPart != null)
             {
-                foreach (var value in biota.PropertiesAnimPart) // todo switch to for int i
+                for (int i = 0; i < sourceBiota.PropertiesAnimPart.Count; i++)
                 {
-                    BiotaPropertiesAnimPart existingValue = existingBiota.BiotaPropertiesAnimPart.FirstOrDefault(r => r.AnimationId == value.AnimationId); // todo animationid is not a unique key
+                    var value = sourceBiota.PropertiesAnimPart[i];
+
+                    BiotaPropertiesAnimPart existingValue = targetBiota.BiotaPropertiesAnimPart.FirstOrDefault(r => r.Order == i);
 
                     if (existingValue == null)
-                        existingBiota.BiotaPropertiesAnimPart.Add(value);
-                    else
                     {
-                        existingValue.Index = value.Index;
-                        existingValue.AnimationId = value.AnimationId;
-                        existingValue.Order = (byte)biota.PropertiesAnimPart.IndexOf(value);
+                        existingValue = new BiotaPropertiesAnimPart { ObjectId = sourceBiota.Id };
+
+                        targetBiota.BiotaPropertiesAnimPart.Add(existingValue);
                     }
+
+                    existingValue.Index = value.Index;
+                    existingValue.AnimationId = value.AnimationId;
+                    existingValue.Order = (byte)i;
                 }
             }
-            foreach (var value in existingBiota.BiotaPropertiesAnimPart)
+            foreach (var value in targetBiota.BiotaPropertiesAnimPart)
             {
-                if (biota.PropertiesAnimPart == null || !biota.PropertiesAnimPart.Any(p => p.AnimationId == value.AnimationId))
+                if (sourceBiota.PropertiesAnimPart == null || value.Order >= sourceBiota.PropertiesAnimPart.Count)
                     context.BiotaPropertiesAnimPart.Remove(value);
-            }*/
+            }
 
-            /*if (biota.PropertiesPalette != null)
+            if (sourceBiota.PropertiesPalette != null)
             {
-                foreach (var value in biota.PropertiesPalette)
+                foreach (var value in sourceBiota.PropertiesPalette)
                 {
-                    BiotaPropertiesPalette existingValue = existingBiota.BiotaPropertiesPalette.FirstOrDefault(r => r.Id == value.Id);
+                    BiotaPropertiesPalette existingValue = targetBiota.BiotaPropertiesPalette.FirstOrDefault(r => r.SubPaletteId == value.SubPaletteId && r.Offset == value.Offset && r.Length == value.Length);
 
                     if (existingValue == null)
-                        existingBiota.BiotaPropertiesPalette.Add(value);
-                    else
                     {
-                        existingValue.SubPaletteId = value.SubPaletteId;
-                        existingValue.Offset = value.Offset;
-                        existingValue.Length = value.Length;
+                        existingValue = new BiotaPropertiesPalette { ObjectId = sourceBiota.Id, SubPaletteId = value.SubPaletteId, Offset =value.Offset, Length = value.Length };
+
+                        targetBiota.BiotaPropertiesPalette.Add(existingValue);
                     }
                 }
             }
-            foreach (var value in existingBiota.BiotaPropertiesPalette)
+            foreach (var value in targetBiota.BiotaPropertiesPalette)
             {
-                if (biota.PropertiesPalette == null || !biota.PropertiesPalette.Any(p => p.Id == value.Id))
+                if (sourceBiota.PropertiesPalette == null || !sourceBiota.PropertiesPalette.Any(p => p.SubPaletteId == value.SubPaletteId && p.Offset == value.Offset && p.Length == value.Length))
                     context.BiotaPropertiesPalette.Remove(value);
-            }*/
+            }
 
             if (sourceBiota.PropertiesTextureMap != null)
             {
@@ -216,7 +211,7 @@ namespace ACE.Database.Adapter
                     existingValue.Index = value.PartIndex;
                     existingValue.OldId = value.OldTexture;
                     existingValue.NewId = value.NewTexture;
-                    existingValue.Order = (byte)sourceBiota.PropertiesTextureMap.IndexOf(value);
+                    existingValue.Order = (byte)i;
                 }
             }
             foreach (var value in targetBiota.BiotaPropertiesTextureMap)
