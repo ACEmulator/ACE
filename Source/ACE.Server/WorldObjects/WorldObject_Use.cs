@@ -100,7 +100,7 @@ namespace ACE.Server.WorldObjects
             if (player != null)
                 player.EnchantmentManager.StartCooldown(this);
 
-            if (!(this is Creature))
+            if (!(this is Creature) && ActivationTarget > 0)
             {
                 var activationTarget = CurrentLandblock?.GetObject(new ObjectGuid(ActivationTarget));
                 if (activationTarget != null)
