@@ -14,13 +14,11 @@ namespace ACE.Database
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 
-        public TimeSpan CharacterRetentionTime { get; set; }
         public TimeSpan PlayerBiotaRetentionTime { get; set; }
         public TimeSpan NonPlayerBiotaRetentionTime { get; set; }
 
-        public ShardDatabaseWithCaching(TimeSpan characterRetentionTime, TimeSpan playerBiotaRetentionTime, TimeSpan nonPlayerBiotaRetentionTime)
+        public ShardDatabaseWithCaching(TimeSpan playerBiotaRetentionTime, TimeSpan nonPlayerBiotaRetentionTime)
         {
-            CharacterRetentionTime = characterRetentionTime;
             PlayerBiotaRetentionTime = playerBiotaRetentionTime;
             NonPlayerBiotaRetentionTime = nonPlayerBiotaRetentionTime;
         }
@@ -34,8 +32,6 @@ namespace ACE.Database
         }
 
         public readonly ConcurrentDictionary<uint, CacheObject<Biota>> BiotaCache = new ConcurrentDictionary<uint, CacheObject<Biota>>();
-
-        public readonly ConcurrentDictionary<uint, CacheObject<Character>> CharacterCache = new ConcurrentDictionary<uint, CacheObject<Character>>();
 
         private static readonly TimeSpan MaintenanceInterval = TimeSpan.FromMinutes(1);
 
@@ -72,12 +68,6 @@ namespace ACE.Database
             }
             else if (NonPlayerBiotaRetentionTime > TimeSpan.Zero)
                 BiotaCache[biota.Id] = new CacheObject<Biota> { LastSeen = DateTime.UtcNow, Context = context, CachedObject = biota };
-        }
-
-        private void TryAddToCache(ShardDbContext context, Character character)
-        {
-            if (CharacterRetentionTime > TimeSpan.Zero)
-                CharacterCache[character.Id] = new CacheObject<Character> { LastSeen = DateTime.UtcNow, Context = context, CachedObject = character };
         }
 
 

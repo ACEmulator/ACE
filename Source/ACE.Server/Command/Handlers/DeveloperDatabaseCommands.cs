@@ -140,35 +140,6 @@ namespace ACE.Server.Command.Handlers
             return strings;
         }
 
-        [CommandHandler("database-shard-cache-crt", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Shard Database, Character Cache - Retention Time (in minutes)")]
-        public static void HandleDatabaseShardCacheCRT(Session session, params string[] parameters)
-        {
-            if (!(DatabaseManager.Shard._wrappedDatabase is ShardDatabaseWithCaching shardDatabaseWithCaching))
-            {
-                CommandHandlerHelper.WriteOutputInfo(session, "DatabaseManager is not using ShardDatabaseWithCaching");
-
-                return;
-            }
-
-            if (parameters == null || parameters.Length == 0)
-            {
-                CommandHandlerHelper.WriteOutputInfo(session, $"Shard Database, Character Cache - Retention Time {shardDatabaseWithCaching.CharacterRetentionTime.TotalMinutes:N0} m");
-
-                return;
-            }
-
-            if (!int.TryParse(parameters[0], out var value) || value < 0)
-            {
-                CommandHandlerHelper.WriteOutputInfo(session, "Unable to parse argument. Specify retention time in integer minutes.");
-
-                return;
-            }
-
-            shardDatabaseWithCaching.CharacterRetentionTime = TimeSpan.FromMinutes(value);
-
-            CommandHandlerHelper.WriteOutputInfo(session, $"Shard Database, Character Cache - Retention Time {shardDatabaseWithCaching.CharacterRetentionTime.TotalMinutes:N0} m");
-        }
-
         [CommandHandler("database-shard-cache-pbrt", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Shard Database, Player Biota Cache - Retention Time (in minutes)")]
         public static void HandleDatabaseShardCachePBRT(Session session, params string[] parameters)
         {
