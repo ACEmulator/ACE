@@ -411,18 +411,17 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesAllegiance != null && (instantiateEmptyCollections || biota.BiotaPropertiesAllegiance.Count > 0))
             {
-                result.PropertiesAllegiance = new Collection<PropertiesAllegiance>();
+                result.PropertiesAllegiance = new Dictionary<uint, PropertiesAllegiance>();
 
                 foreach (var record in biota.BiotaPropertiesAllegiance)
                 {
                     var newEntity = new PropertiesAllegiance
                     {
-                        CharacterId = record.CharacterId,
                         Banned = record.Banned,
                         ApprovedVassal = record.ApprovedVassal,
                     };
 
-                    result.PropertiesAllegiance.Add(newEntity);
+                    result.PropertiesAllegiance[record.CharacterId] = newEntity;
                 }
             }
 
@@ -458,18 +457,10 @@ namespace ACE.Database.Adapter
 
             if (biota.HousePermission != null && (instantiateEmptyCollections || biota.HousePermission.Count > 0))
             {
-                result.HousePermissions = new Collection<ACE.Entity.Models.HousePermission>();
+                result.HousePermissions = new Dictionary<uint, bool>();
 
                 foreach (var record in biota.HousePermission)
-                {
-                    var newEntity = new ACE.Entity.Models.HousePermission
-                    {
-                        PlayerGuid = record.PlayerGuid,
-                        Storage = record.Storage,
-                    };
-
-                    result.HousePermissions.Add(newEntity);
-                }
+                    result.HousePermissions[record.PlayerGuid] = record.Storage;
             }
 
 
@@ -902,9 +893,9 @@ namespace ACE.Database.Adapter
 
             if (biota.PropertiesAllegiance != null)
             {
-                foreach (var value in biota.PropertiesAllegiance)
+                foreach (var kvp in biota.PropertiesAllegiance)
                 {
-                    var entity = new BiotaPropertiesAllegiance { AllegianceId = biota.Id, CharacterId = value.CharacterId, Banned = value.Banned, ApprovedVassal = value.ApprovedVassal };
+                    var entity = new BiotaPropertiesAllegiance { AllegianceId = biota.Id, CharacterId = kvp.Key, Banned = kvp.Value.Banned, ApprovedVassal = kvp.Value.ApprovedVassal };
 
                     result.BiotaPropertiesAllegiance.Add(entity);
                 }
@@ -941,9 +932,9 @@ namespace ACE.Database.Adapter
 
             if (biota.HousePermissions != null)
             {
-                foreach (var value in biota.HousePermissions)
+                foreach (var kvp in biota.HousePermissions)
                 {
-                    var entity = new ACE.Database.Models.Shard.HousePermission { HouseId = biota.Id, PlayerGuid = value.PlayerGuid, Storage = value.Storage };
+                    var entity = new ACE.Database.Models.Shard.HousePermission { HouseId = biota.Id, PlayerGuid = kvp.Key, Storage = kvp.Value };
 
                     result.HousePermission.Add(entity);
                 }
