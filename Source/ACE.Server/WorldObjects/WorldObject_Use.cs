@@ -89,20 +89,27 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // find activation target
-            var target = ActivationTarget != 0 ? CurrentLandblock?.GetObject(new ObjectGuid(ActivationTarget)) : this;
+            //// find activation target
+            //var target = ActivationTarget != 0 ? CurrentLandblock?.GetObject(new ObjectGuid(ActivationTarget)) : this;
 
-            // special case for creatures - redirect through emote chain?
-            if (this is Creature) target = this;
+            //// special case for creatures - redirect through emote chain?
+            //if (this is Creature) target = this;
 
-            if (target == null)
-            {
-                log.Warn($"{Name}.OnActivate({activator.Name}): couldn't find activation target {ActivationTarget:X8}");
-                return;
-            }
+            var target = this;
 
             if (player != null)
                 player.EnchantmentManager.StartCooldown(this);
+
+            if (!(this is Creature))
+            {
+                var activationTarget = CurrentLandblock?.GetObject(new ObjectGuid(ActivationTarget));
+                if (activationTarget != null)
+                    activationTarget.OnActivate(activator);
+                else
+                {
+                    log.Warn($"{Name}.OnActivate({activator.Name}): couldn't find activation target {ActivationTarget:X8}");
+                }
+            }
 
             // if ActivationTarget is another object,
             // should this be checking the ActivationResponse of the target object?
