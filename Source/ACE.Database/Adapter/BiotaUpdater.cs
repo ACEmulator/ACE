@@ -14,6 +14,7 @@ namespace ACE.Database.Adapter
             targetBiota.WeenieClassId = sourceBiota.WeenieClassId;
             targetBiota.WeenieType = (int)sourceBiota.WeenieType;
 
+
             if (sourceBiota.PropertiesBool != null)
             {
                 foreach (var kvp in sourceBiota.PropertiesBool)
