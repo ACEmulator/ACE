@@ -328,7 +328,7 @@ namespace ACE.Database
                     }
                     else
                     {
-                        ACE.Database.Adapter.BiotaUpdater.UpdateBiota(context, biota, existingBiota);
+                        ACE.Database.Adapter.BiotaUpdater.UpdateDatabaseBiota(context, biota, existingBiota);
                     }
                 }
                 finally

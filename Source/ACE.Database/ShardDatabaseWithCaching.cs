@@ -37,7 +37,31 @@ namespace ACE.Database
 
         public readonly ConcurrentDictionary<uint, CacheObject<Character>> CharacterCache = new ConcurrentDictionary<uint, CacheObject<Character>>();
 
-        // todo MaintainCache
+        private static readonly TimeSpan MaintenanceInterval = TimeSpan.FromMinutes(1);
+
+        private DateTime lastMaintenanceInterval;
+
+        private void TryPerformMaintenance()
+        {
+            if (lastMaintenanceInterval + MaintenanceInterval > DateTime.UtcNow)
+                return;
+
+            foreach (var kvp in BiotaCache)
+            {
+                if (ObjectGuid.IsPlayer(kvp.Key))
+                {
+                    if (kvp.Value.LastSeen + PlayerBiotaRetentionTime < DateTime.UtcNow)
+                        BiotaCache.TryRemove(kvp.Key, out _);
+                }
+                else
+                {
+                    if (kvp.Value.LastSeen + NonPlayerBiotaRetentionTime < DateTime.UtcNow)
+                        BiotaCache.TryRemove(kvp.Key, out _);
+                }
+            }
+
+            lastMaintenanceInterval = DateTime.UtcNow;
+        }
 
         private void TryAddToCache(ShardDbContext context, Biota biota)
         {
@@ -59,6 +83,8 @@ namespace ACE.Database
 
         public override Biota GetBiota(ShardDbContext context, uint id)
         {
+            TryPerformMaintenance();
+
             if (BiotaCache.TryGetValue(id, out var value))
             {
                 value.LastSeen = DateTime.UtcNow;
@@ -108,7 +134,7 @@ namespace ACE.Database
                 rwLock.EnterReadLock();
                 try
                 {
-                    ACE.Database.Adapter.BiotaUpdater.UpdateBiota(value.Context, biota, value.CachedObject);
+                    ACE.Database.Adapter.BiotaUpdater.UpdateDatabaseBiota(value.Context, biota, value.CachedObject);
                 }
                 finally
                 {
@@ -135,7 +161,7 @@ namespace ACE.Database
                 }
                 else
                 {
-                    ACE.Database.Adapter.BiotaUpdater.UpdateBiota(context, biota, existingBiota);
+                    ACE.Database.Adapter.BiotaUpdater.UpdateDatabaseBiota(context, biota, existingBiota);
                 }
             }
             finally
