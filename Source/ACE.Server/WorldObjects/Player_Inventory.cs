@@ -159,7 +159,7 @@ namespace ACE.Server.WorldObjects
                 if (leftReq <= 0)
                     break;
             }
-            return leftReq <= 0;
+            return true;
         }
 
         public enum RemoveFromInventoryAction
