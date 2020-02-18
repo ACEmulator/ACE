@@ -204,6 +204,9 @@ namespace ACE.Server.WorldObjects
             if (caster == target && spell.IsNegativeRedirectable)
                 return true;
 
+            if (targetCreature != null && spell.NonComponentTargetType == ItemType.Creature && !caster.CanDamage(targetCreature))
+                return true;
+
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
             if ((spell.MetaSpellType == SpellType.Enchantment) && (spell.School == MagicSchool.ItemEnchantment))
             {
