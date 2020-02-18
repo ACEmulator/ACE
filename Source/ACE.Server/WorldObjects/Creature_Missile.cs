@@ -114,6 +114,12 @@ namespace ACE.Server.WorldObjects
                 return null;
             }
 
+            if (!IsProjectileVisible(proj))
+            {
+                proj.OnCollideEnvironment();
+                return null;
+            }
+
             var pkStatus = player?.PlayerKillerStatus ?? PlayerKillerStatus.Creature;
 
             proj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(proj, PropertyInt.PlayerKillerStatus, (int)pkStatus));
