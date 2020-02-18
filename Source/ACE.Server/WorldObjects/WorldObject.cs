@@ -408,7 +408,7 @@ namespace ACE.Server.WorldObjects
 
         public bool IsProjectileVisible(WorldObject proj)
         {
-            if (!(this is Creature))
+            if (!(this is Creature) || (Ethereal ?? false))
                 return true;
 
             if (PhysicsObj == null || proj.PhysicsObj == null)
