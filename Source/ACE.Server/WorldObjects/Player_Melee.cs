@@ -121,7 +121,7 @@ namespace ACE.Server.WorldObjects
 
             var attackSequence = ++AttackSequence;
 
-            if (IsStickyDistance(target) && IsDirectVisible(target))
+            if (IsStickyDistance(target) && IsMeleeVisible(target))
             {
                 // sticky melee
                 var rotateTime = Rotate(target);
@@ -285,7 +285,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventAttackDone(Session));
                 Attacking = false;
 
-                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && IsStickyDistance(creature, true) && IsDirectVisible(creature))
+                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && IsStickyDistance(creature, true) && IsMeleeVisible(creature))
                 {
                     Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
                     Session.Network.EnqueueSend(new GameEventAttackDone(Session));
