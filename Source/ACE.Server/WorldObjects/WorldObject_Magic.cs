@@ -1337,6 +1337,12 @@ namespace ACE.Server.WorldObjects
 
                 sp.EnqueueBroadcast(new GameMessageScript(sp.Guid, PlayScript.Launch, sp.GetProjectileScriptIntensity(spellType)));
 
+                if (!IsProjectileVisible(sp))
+                {
+                    sp.OnCollideEnvironment();
+                    continue;
+                }
+
                 spellProjectiles.Add(sp);
             }
 
