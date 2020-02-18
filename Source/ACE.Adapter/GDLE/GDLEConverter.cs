@@ -9,6 +9,27 @@ namespace ACE.Adapter.GDLE
     public static class GDLEConverter
     {
         /// <summary>
+        /// Converts ACE -> GDLE quest
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        public static bool TryConvert(Quest input, out Models.Quest result)
+        {
+            result = new Models.Quest();
+            result.key = input.Name;
+
+            var quest = new Models.QuestValue();
+            quest.fullname = input.Message;
+            quest.mindelta = (int)input.MinDelta;
+            quest.maxsolves = input.MaxSolves;
+
+            result.value = quest;
+
+            return true;
+        }
+
+        /// <summary>
         /// Converts ACE landblock instances -> GDLE landblock instances
         /// </summary>
         public static bool TryConvert(List<LandblockInstance> input, out Models.Landblock result)
@@ -152,6 +173,9 @@ namespace ACE.Adapter.GDLE
         }
 
 
+        /// <summary>
+        /// Converts GDLE -> ACE quest
+        /// </summary>
         public static bool TryConvert(Models.Quest input, out Quest result)
         {
             try
@@ -160,11 +184,12 @@ namespace ACE.Adapter.GDLE
 
                 //result.Id // This is an Auto Increment field in the ACE schema
 
-                result.Name = input.Key;
+                result.Name = input.key;
 
-                result.MinDelta = (input.Value.MinDelta <= 0) ? 0 : (uint)input.Value.MinDelta; // the jsons have values of -1 here sometimes
-                result.MaxSolves = input.Value.MaxSolves;
-                result.Message = input.Value.FullName;
+                // FIXME: db schema should be int
+                result.MinDelta = (uint)input.value.mindelta;
+                result.MaxSolves = input.value.maxsolves;
+                result.Message = input.value.fullname;
 
                 return true;
             }

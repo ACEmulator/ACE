@@ -209,7 +209,7 @@ namespace ACE.Server.Factories
             new int[] { 331, 3834, 3835, 3836, 3837 }, // Mace
             new int[] { 30581, 30582, 30583, 30584, 30585 }, // Mazule
             new int[] { 332, 3937, 3938, 3939, 3940 }, // Morning Star
-            new int[] { 30581, 30582, 30583, 30584, 30585 }, // Spine Glaive
+            new int[] { 31778, 31779, 31780, 31781, 31782 }, // Spine Glaive
             new int[] { 30591, 30592, 30593, 30594, 30595 }, // Partizan
             new int[] { 7772, 7791, 7792, 7793, 7794 }, // Trident
             new int[] { 333, 22159, 22160, 22161, 22162 }, // Nabut
