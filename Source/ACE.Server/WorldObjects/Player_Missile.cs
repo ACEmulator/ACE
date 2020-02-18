@@ -95,7 +95,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (target.Teleporting)
+            if (!CanDamage(target))
                 return;     // werror?
 
             //log.Info($"{Name}.HandleActionTargetedMissileAttack({targetGuid:X8}, {attackHeight}, {accuracyLevel})");
