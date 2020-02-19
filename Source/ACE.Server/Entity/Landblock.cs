@@ -170,9 +170,10 @@ namespace ACE.Server.Entity
             PhysicsLandblock = new Physics.Common.Landblock(cellLandblock);
         }
 
-        public void Init()
+        public void Init(bool reload = false)
         {
-            PhysicsLandblock.PostInit();
+            if (!reload)
+                PhysicsLandblock.PostInit();
 
             Task.Run(() =>
             {
@@ -1017,6 +1018,26 @@ namespace ACE.Server.Entity
 
             // remove physics landblock
             LScape.unload_landblock(landblockID);
+        }
+
+        public void DestroyAllNonPlayerObjects()
+        {
+            ProcessPendingWorldObjectAdditionsAndRemovals();
+
+            SaveDB();
+
+            // remove all objects
+            foreach (var wo in worldObjects.Where(i => !(i.Value is Player)).ToList())
+            {
+                if (!wo.Value.BiotaOriginatedFromOrHasBeenSavedToDatabase())
+                    wo.Value.Destroy(false);
+                else
+                    RemoveWorldObjectInternal(wo.Key);
+            }
+
+            ProcessPendingWorldObjectAdditionsAndRemovals();
+
+            actionQueue.Clear();
         }
 
         private void SaveDB()
