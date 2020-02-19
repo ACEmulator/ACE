@@ -239,10 +239,7 @@ namespace ACE.Server.WorldObjects
             //if (!IsRanged)
                 UpdatePosition();
 
-            if (MonsterState != State.Awake)
-                return;
-
-            if (GetDistanceToTarget() >= MaxChaseRange)
+            if (MonsterState == State.Awake && GetDistanceToTarget() >= MaxChaseRange)
             {
                 CancelMoveTo();
                 FindNextTarget();
