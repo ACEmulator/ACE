@@ -430,6 +430,14 @@ namespace ACE.Database
         }
 
         /// <summary>
+        /// Clears the cached landblock instances for all landblocks
+        /// </summary>
+        public void ClearCachedLandblockInstances()
+        {
+            cachedLandblockInstances.Clear();
+        }
+
+        /// <summary>
         /// Clears the cached landblock instances for a specific landblock
         /// </summary>
         public bool ClearCachedInstancesByLandblock(ushort landblock)
