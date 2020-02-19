@@ -56,6 +56,7 @@ namespace ACE.Server.WorldObjects.Managers
         private void InitEmoteCaches()
         {
             emoteCache.Clear();
+            emoteCacheVendor.Clear();
 
             var emoteSets = WorldObject.Biota.BiotaPropertiesEmote.OrderBy(x => x.Category).ThenBy(x => x.VendorType).ThenBy(x => x.Probability);
 
