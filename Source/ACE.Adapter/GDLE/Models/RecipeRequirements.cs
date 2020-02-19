@@ -1,15 +1,14 @@
 using System.Collections.Generic;
 
-using Newtonsoft.Json;
-
 namespace ACE.Adapter.GDLE.Models
 {
     public class RecipeRequirements
     {
-        [JsonProperty("BoolRequirements", NullValueHandling = NullValueHandling.Ignore)]
-        public List<DoubleRequirement> BoolRequirements { get; set; }
-
-        [JsonProperty("IntRequirements", NullValueHandling = NullValueHandling.Ignore)]
-        public List<DoubleRequirement> IntRequirements { get; set; }
+        public List<IntRequirement> IntRequirements { get; set; } = new List<IntRequirement>();
+        public List<DIDRequirement> DIDRequirements { get; set; } = new List<DIDRequirement>();
+        public List<IIDRequirement> IIDRequirements { get; set; } = new List<IIDRequirement>();
+        public List<FloatRequirement> FloatRequirements { get; set; } = new List<FloatRequirement>();
+        public List<StringRequirement> StringRequirements { get; set; } = new List<StringRequirement>();
+        public List<BoolRequirement> BoolRequirements { get; set; } = new List<BoolRequirement>();
     }
 }

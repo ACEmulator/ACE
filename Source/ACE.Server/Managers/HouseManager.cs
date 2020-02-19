@@ -717,7 +717,7 @@ namespace ACE.Server.Managers
                     callback(house);
             }
             else
-                log.Error($"HouseManager.GetHouse(${houseGuid:X8}): couldn't find house on loaded landblock");
+                log.Error($"HouseManager.GetHouse({houseGuid:X8}): couldn't find house on loaded landblock");
         }
 
         /// <summary>

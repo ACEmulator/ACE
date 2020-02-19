@@ -340,18 +340,6 @@ namespace ACE.Server.WorldObjects
                 new GameMessagePickupEvent(item),
                 new GameMessageSound(Guid, Sound.UnwieldObject));
 
-            // If item has any spells, remove them from the registry on unequip
-            if (item.Biota.BiotaPropertiesSpellBook != null)
-            {
-                foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
-                {
-                    if (item.HasProcSpell((uint)spell.Spell))
-                        continue;
-
-                    RemoveItemSpell(item, (uint)spell.Spell, true);
-                }
-            }
-
             // handle equipment sets
             if (item.HasItemSet)
                 DequipItemFromSet(item);

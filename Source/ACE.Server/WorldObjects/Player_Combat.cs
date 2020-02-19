@@ -744,7 +744,7 @@ namespace ACE.Server.WorldObjects
 
         public override bool CanDamage(Creature target)
         {
-            return true;    // handled elsewhere
+            return target.Attackable && !target.Teleporting && !(target is CombatPet);
         }
 
         // http://acpedia.org/wiki/Announcements_-_2002/04_-_Betrayal

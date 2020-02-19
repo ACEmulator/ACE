@@ -358,8 +358,8 @@ namespace ACE.Server.WorldObjects
             if (sourceCreature?.Overpower != null)
                 overpower = Creature.GetOverpower(sourceCreature, target);
 
-            var resisted = source.ResistSpell(target, Spell, caster);
-            if (resisted == true && !overpower)
+            var resisted = source.TryResistSpell(target, Spell, caster, true);
+            if (resisted && !overpower)
                 return null;
 
             CreatureSkill attackSkill = null;
@@ -462,7 +462,10 @@ namespace ACE.Server.WorldObjects
 
                 var weaponResistanceMod = GetWeaponResistanceModifier(sourceCreature, attackSkill, Spell.DamageType);
 
-                var resistanceMod = Math.Max(0.0f, target.GetResistanceMod(resistanceType, null, weaponResistanceMod));
+                // if attacker/weapon has IgnoreMagicResist directly, do not transfer to spell projectile
+                // only pass if SpellProjectile has it directly, such as 2637 - Invoking Aun Tanua
+
+                var resistanceMod = Math.Max(0.0f, target.GetResistanceMod(resistanceType, this, null, weaponResistanceMod));
 
                 finalDamage = baseDamage + damageBonus + warSkillBonus;
 

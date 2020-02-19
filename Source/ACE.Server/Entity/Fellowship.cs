@@ -232,23 +232,15 @@ namespace ACE.Server.Entity
             }
             else
             {
-                if (p != null && p.Fellowship.FellowshipLeaderGuid == FellowshipLeaderGuid)
-                {
-                    FellowshipLeaderGuid = p.Guid.Full;
-                    SendMessageAndUpdate($"{newLeaderName} now leads the fellowship");
-                }
-                else
-                {
-                    var fellowshipMembers = GetFellowshipMembers();
+                var fellowshipMembers = GetFellowshipMembers();
 
-                    if (fellowshipMembers.Count > 0)
-                    {
-                        int newLeaderIndex = ThreadSafeRandom.Next(0, fellowshipMembers.Count - 1);
-                        var fellowGuids = fellowshipMembers.Keys.ToList();
-                        FellowshipLeaderGuid = fellowGuids[newLeaderIndex];
-                        newLeaderName = fellowshipMembers[FellowshipLeaderGuid].Name;
-                        SendMessageAndUpdate($"{newLeaderName} now leads the fellowship");
-                    }
+                if (fellowshipMembers.Count > 0)
+                {
+                    int newLeaderIndex = ThreadSafeRandom.Next(0, fellowshipMembers.Count - 1);
+                    var fellowGuids = fellowshipMembers.Keys.ToList();
+                    FellowshipLeaderGuid = fellowGuids[newLeaderIndex];
+                    newLeaderName = fellowshipMembers[FellowshipLeaderGuid].Name;
+                    SendMessageAndUpdate($"{newLeaderName} now leads the fellowship");
                 }
             }
         }
@@ -587,10 +579,13 @@ namespace ACE.Server.Entity
             {
                 var offlinePlayer = PlayerManager.FindByGuid(fellowGuid);
                 var offlineName = offlinePlayer != null ? offlinePlayer.Name : "NULL";
-                log.Warn($"Dropped fellow: {offlineName}");
 
+                log.Warn($"Dropped fellow: {offlineName}");
                 fellowshipMembers.Remove(fellowGuid);
             }
+            if (fellowGuids.Contains(FellowshipLeaderGuid))
+                AssignNewLeader(null);
+
             CalculateXPSharing();
             UpdateAllMembers();
         }

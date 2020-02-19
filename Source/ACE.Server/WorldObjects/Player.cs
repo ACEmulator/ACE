@@ -420,14 +420,9 @@ namespace ACE.Server.WorldObjects
 
                 PKLogout = true;
 
-                var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(20.0f);
-                actionChain.AddAction(this, () =>
-                {
-                    LogOut_Inner(clientSessionTerminatedAbruptly);
-                    Session.logOffRequestTime = DateTime.UtcNow;
-                });
-                actionChain.EnqueueChain();
+                LogoffTimestamp = Time.GetFutureUnixTime(PropertyManager.GetLong("pk_timer").Item);
+                PlayerManager.AddPlayerToLogoffQueue(this);
+
                 return false;
             }
 
@@ -480,6 +475,13 @@ namespace ACE.Server.WorldObjects
                 // remove the player from landblock management -- after the animation has run
                 logoutChain.AddAction(this, () =>
                 {
+                    if (CurrentLandblock == null)
+                    {
+                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner.logoutChain: CurrentLandblock is null, unable to remove from a landblock...");
+                        if (Location != null)
+                            log.Debug($"0x{Guid}:{Name}.LogOut_Inner.logoutChain: Location is not null, Location = {Location.ToLOCString()}");
+                    }
+
                     CurrentLandblock?.RemoveWorldObject(Guid, false);
                     SetPropertiesAtLogOut();
                     SavePlayerToDatabase();
@@ -499,6 +501,21 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
+                log.Debug($"0x{Guid}:{Name}.LogOut_Inner: CurrentLandblock is null");
+                if (Location != null)
+                {
+                    log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Location is not null, Location = {Location.ToLOCString()}");
+                    var validLoadedLandblock = LandblockManager.GetLandblock(Location.LandblockId, false);
+                    if (validLoadedLandblock.GetObject(Guid.Full) != null)
+                    {
+                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Player is still on landblock, removing...");
+                        validLoadedLandblock.RemoveWorldObject(Guid, false);
+                    }
+                    else
+                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Player is not found on the landblock Location references.");
+                }
+                else
+                    log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Location is null");
                 SetPropertiesAtLogOut();
                 SavePlayerToDatabase();
                 PlayerManager.SwitchPlayerFromOnlineToOffline(this);
