@@ -1226,7 +1226,7 @@ namespace ACE.Server.Command.Handlers.Processors
             var contentFolder = VerifyContentFolder(session, false);
 
             var sep = Path.DirectorySeparatorChar;
-            var folder = new DirectoryInfo($"{contentFolder.FullName}{sep}sql{sep}encounters{sep}");
+            var folder = new DirectoryInfo($"{contentFolder.FullName}{sep}sql{sep}landblocks{sep}");
 
             if (!folder.Exists)
                 folder.Create();
