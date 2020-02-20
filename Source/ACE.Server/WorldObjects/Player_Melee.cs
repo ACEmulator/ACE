@@ -107,7 +107,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (target.Teleporting)
+            if (!CanDamage(creatureTarget))
                 return;     // werror?
 
             //log.Info($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {attackHeight}, {powerLevel})");
