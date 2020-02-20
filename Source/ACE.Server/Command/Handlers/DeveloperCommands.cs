@@ -2427,9 +2427,14 @@ namespace ACE.Server.Command.Handlers
         public static void HandleAddItemSpell(Session session, params string[] parameters)
         {
             var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
-
-            if (!int.TryParse(parameters[0], out var spellId))
+            if (obj == null)
                 return;
+
+            if (!Enum.TryParse(parameters[0], true, out SpellId spellId))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{parameters[0]} is not a valid spell id", ChatMessageType.Broadcast));
+                return;
+            }
 
             // ensure valid spell id
             var spell = new Spell(spellId);
@@ -2440,9 +2445,38 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            obj.Biota.GetOrAddKnownSpell(spellId, obj.BiotaDatabaseLock, obj.BiotaPropertySpells, out var spellAdded);
+            obj.Biota.GetOrAddKnownSpell((int)spellId, obj.BiotaDatabaseLock, obj.BiotaPropertySpells, out var spellAdded);
 
             var msg = spellAdded ? "added to" : "already on";
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} ({spell.Id}) {msg} {obj.Name}", ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("removeitemspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Removes a spell to the last appraised item's spellbook.", "<spell id>")]
+        public static void HandleRemoveItemSpell(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (obj == null)
+                return;
+
+            if (!Enum.TryParse(parameters[0], true, out SpellId spellId))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{parameters[0]} is not a valid spell id", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // ensure valid spell id
+            var spell = new Spell(spellId);
+
+            if (spell.NotFound)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("SpellID is not found", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var spellRemoved = obj.Biota.TryRemoveKnownSpell((int)spellId, out _, obj.BiotaDatabaseLock, obj.BiotaPropertySpells);
+
+            var msg = spellRemoved ? "removed from" : "not found on";
 
             session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} ({spell.Id}) {msg} {obj.Name}", ChatMessageType.Broadcast));
         }
