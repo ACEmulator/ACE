@@ -362,6 +362,10 @@ namespace ACE.Server.Entity
             // TODO: combat maneuvers for player?
             BaseDamageMod = attacker.GetBaseDamageMod(DamageSource);
 
+            // some quest bows can have built-in damage bonus
+            if (Weapon?.WeenieType == WeenieType.MissileLauncher)
+                BaseDamageMod.DamageBonus += Weapon.Damage ?? 0;
+
             if (DamageSource.ItemType == ItemType.MissileWeapon)
                 BaseDamageMod.ElementalBonus = WorldObject.GetMissileElementalDamageBonus(attacker, DamageType);
 

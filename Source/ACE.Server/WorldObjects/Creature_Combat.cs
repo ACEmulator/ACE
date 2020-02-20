@@ -451,6 +451,9 @@ namespace ACE.Server.WorldObjects
         public virtual uint GetEffectiveAttackSkill()
         {
             var attackSkill = GetCreatureSkill(GetCurrentAttackSkill()).Current;
+
+            // TODO: don't use for bow?
+            // https://asheron.fandom.com/wiki/Developer_Chat_-_2002/09/23
             var offenseMod = GetWeaponOffenseModifier(this);
 
             // monsters don't use accuracy mod?
