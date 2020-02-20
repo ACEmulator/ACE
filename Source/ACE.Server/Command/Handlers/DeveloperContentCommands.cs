@@ -1228,7 +1228,7 @@ namespace ACE.Server.Command.Handlers.Processors
             var contentFolder = VerifyContentFolder(session, false);
 
             var sep = Path.DirectorySeparatorChar;
-            var folder = new DirectoryInfo($"{contentFolder.FullName}{sep}sql{sep}encounters{sep}");
+            var folder = new DirectoryInfo($"{contentFolder.FullName}{sep}sql{sep}landblocks{sep}");
 
             if (!folder.Exists)
                 folder.Create();
@@ -1625,16 +1625,18 @@ namespace ACE.Server.Command.Handlers.Processors
             var mode = CacheType.All;
             if (parameters.Length > 0)
             {
-                if (parameters[0].Contains("weenie", StringComparison.OrdinalIgnoreCase))
-                    mode = CacheType.Weenie;
+                if (parameters[0].Contains("landblock", StringComparison.OrdinalIgnoreCase))
+                    mode = CacheType.Landblock;
                 if (parameters[0].Contains("spell", StringComparison.OrdinalIgnoreCase))
                     mode = CacheType.Spell;
+                if (parameters[0].Contains("weenie", StringComparison.OrdinalIgnoreCase))
+                    mode = CacheType.Weenie;
             }
 
-            if (mode.HasFlag(CacheType.Weenie))
+            if (mode.HasFlag(CacheType.Landblock))
             {
-                CommandHandlerHelper.WriteOutputInfo(session, "Clearing weenie cache");
-                DatabaseManager.World.ClearWeenieCache();
+                CommandHandlerHelper.WriteOutputInfo(session, "Clearing landblock instance cache");
+                DatabaseManager.World.ClearCachedLandblockInstances();
             }
 
             if (mode.HasFlag(CacheType.Spell))
@@ -1643,15 +1645,22 @@ namespace ACE.Server.Command.Handlers.Processors
                 DatabaseManager.World.ClearSpellCache();
                 WorldObject.ClearSpellCache();
             }
+
+            if (mode.HasFlag(CacheType.Weenie))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Clearing weenie cache");
+                DatabaseManager.World.ClearWeenieCache();
+            }
         }
 
         [Flags]
         public enum CacheType
         {
-            None   = 0x0,
-            Weenie = 0x1,
-            Spell  = 0x2,
-            All    = 0xFFFF
+            None      = 0x0,
+            Landblock = 0x1,
+            Spell     = 0x2,
+            Weenie    = 0x4,
+            All       = 0xFFFF
         };
 
         public static FileType GetFileType(string filename)

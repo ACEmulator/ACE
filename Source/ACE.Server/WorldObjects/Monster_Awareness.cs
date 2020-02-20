@@ -147,10 +147,8 @@ namespace ACE.Server.WorldObjects
                 if (visibleTargets.Count == 0)
                 {
                     if (MonsterState != State.Return)
-                    {
-                        AttackTarget = null;
                         MoveToHome();
-                    }
+
                     return false;
                 }
 
