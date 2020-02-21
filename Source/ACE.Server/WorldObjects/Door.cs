@@ -104,7 +104,7 @@ namespace ACE.Server.WorldObjects
                 // Create Door auto close timer
                 ActionChain autoCloseTimer = new ActionChain();
                 autoCloseTimer.AddDelaySeconds(ResetInterval ?? 0);
-                autoCloseTimer.AddAction(this, () => Reset());
+                autoCloseTimer.AddAction(this, () => Reset(UseCounter));
                 autoCloseTimer.EnqueueChain();
             }
             else
@@ -125,14 +125,17 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcastMotion(motionOpen);
             CurrentMotionState = motionOpen;
+
             Ethereal = true;
             IsOpen = true;
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? true));
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? true));
-            if (opener.Full > 0)
-                UseTimestamp++;
 
             EnqueueBroadcastPhysicsState();
+
+            if (opener.Full > 0)
+            {
+                UseCounter++;
+                UseTimestamp = Time.GetUnixTime();
+            }
         }
 
         public void Close(ObjectGuid closer = new ObjectGuid())
@@ -142,19 +145,22 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcastMotion(motionClosed);
             CurrentMotionState = motionClosed;
+
             Ethereal = false;
             IsOpen = false;
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? false));
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? false));
-            if (closer.Full > 0)
-                UseTimestamp++;
 
             EnqueueBroadcastPhysicsState();
+
+            if (closer.Full > 0)
+            {
+                UseCounter++;
+                UseTimestamp = Time.GetUnixTime();
+            }
         }
 
-        private void Reset()
+        private void Reset(int useCounter)
         {
-            if ((Time.GetUnixTime() - UseTimestamp) < ResetInterval)
+            if (useCounter != UseCounter)
                 return;
 
             if (!DefaultOpen)
@@ -170,7 +176,7 @@ namespace ACE.Server.WorldObjects
             else
                 Open(ObjectGuid.Invalid);
 
-            ResetTimestamp++;
+            ResetTimestamp = Time.GetUnixTime();
         }
 
         /// <summary>
