@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
@@ -594,34 +592,6 @@ namespace ACE.Server.Physics.Animation
                 }
             }
             return false;
-        }
-
-        public static float GetHookTime(uint motionTableID, uint currentStyle, uint currentMotion, uint newMotion, AnimationHookType hookType)
-        {
-            var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableID);
-            var key = (currentStyle << 16) | (ushort)currentMotion;
-            if (!motionTable.Links.TryGetValue(key, out var links))
-                return -1;
-            if (!links.TryGetValue(newMotion, out var motionData))
-                return -1;
-
-            var currTime = 0.0f;
-            foreach (var anim in motionData.Anims)
-            {
-                var secondsPerFrame = Math.Abs(1.0f / anim.Framerate);
-
-                var animation = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.Animation>(anim.AnimId);
-                if (animation == null) continue;
-
-                foreach (var frame in animation.PartFrames)
-                {
-                    if (frame.Hooks.FirstOrDefault(i => i.HookType == hookType) != null)
-                        return currTime;
-
-                    currTime += secondsPerFrame;
-                }
-            }
-            return -1;
         }
     }
 }
