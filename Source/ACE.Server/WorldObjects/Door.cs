@@ -1,4 +1,5 @@
 using System;
+using log4net;
 using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -14,6 +15,8 @@ namespace ACE.Server.WorldObjects
 {
     public class Door : WorldObject, Lock
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private static readonly Motion motionOpen = new Motion(MotionStance.NonCombat, MotionCommand.On);
         private static readonly Motion motionClosed = new Motion(MotionStance.NonCombat, MotionCommand.Off);
 
@@ -125,14 +128,31 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcastMotion(motionOpen);
             CurrentMotionState = motionOpen;
-            Ethereal = true;
+
             IsOpen = true;
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? true));
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? true));
+
             if (opener.Full > 0)
                 UseTimestamp++;
 
-            EnqueueBroadcastPhysicsState();
+            var animTime = Physics.Animation.MotionTable.GetHookTime(MotionTableId, (uint)MotionStance.NonCombat, (uint)MotionCommand.Off, (uint)MotionCommand.On, AnimationHookType.Ethereal);
+
+            if (animTime == -1)
+            {
+                log.Warn($"{Name}.Open() - couldn't find ethereal hook for wcid {WeenieClassId}, mtable {MotionTableId:X8}");
+                animTime = 0.0f;
+            }
+
+            //Console.WriteLine($"{Name}.Open() - ethereal hook {animTime}");
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(animTime);
+            actionChain.AddAction(this, () =>
+            {
+                Ethereal = true;
+
+                EnqueueBroadcastPhysicsState();
+            });
+            actionChain.EnqueueChain();
         }
 
         public void Close(ObjectGuid closer = new ObjectGuid())
@@ -142,14 +162,31 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcastMotion(motionClosed);
             CurrentMotionState = motionClosed;
-            Ethereal = false;
+
             IsOpen = false;
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? false));
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? false));
+
             if (closer.Full > 0)
                 UseTimestamp++;
 
-            EnqueueBroadcastPhysicsState();
+            var animTime = Physics.Animation.MotionTable.GetHookTime(MotionTableId, (uint)MotionStance.NonCombat, (uint)MotionCommand.On, (uint)MotionCommand.Off, AnimationHookType.Ethereal);
+
+            if (animTime == -1)
+            {
+                log.Warn($"{Name}.Close() - couldn't find ethereal hook for wcid {WeenieClassId}, mtable {MotionTableId:X8}");
+                animTime = 0.0f;
+            }
+
+            //Console.WriteLine($"{Name}.Close() - ethereal hook {animTime}");
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(animTime);
+            actionChain.AddAction(this, () =>
+            {
+                Ethereal = false;
+
+                EnqueueBroadcastPhysicsState();
+            });
+            actionChain.EnqueueChain();
         }
 
         private void Reset()
