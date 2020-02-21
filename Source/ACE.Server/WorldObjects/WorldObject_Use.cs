@@ -11,8 +11,6 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        protected int UseCounter;
-
         protected double? UseTimestamp
         {
             get => GetProperty(PropertyFloat.UseTimestamp);
