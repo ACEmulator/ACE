@@ -125,14 +125,14 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcastMotion(motionOpen);
             CurrentMotionState = motionOpen;
+
             Ethereal = true;
             IsOpen = true;
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? true));
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? true));
-            if (opener.Full > 0)
-                UseTimestamp++;
 
             EnqueueBroadcastPhysicsState();
+
+            if (opener.Full > 0)
+                UseTimestamp = Time.GetUnixTime();
         }
 
         public void Close(ObjectGuid closer = new ObjectGuid())
@@ -142,14 +142,25 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcastMotion(motionClosed);
             CurrentMotionState = motionClosed;
-            Ethereal = false;
-            IsOpen = false;
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? false));
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? false));
-            if (closer.Full > 0)
-                UseTimestamp++;
 
-            EnqueueBroadcastPhysicsState();
+            IsOpen = false;
+
+            var animTime = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, MotionStance.NonCombat, MotionCommand.On, MotionCommand.Off);
+
+            //Console.WriteLine($"AnimTime: {animTime}");
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(animTime);
+            actionChain.AddAction(this, () =>
+            {
+                Ethereal = false;
+
+                EnqueueBroadcastPhysicsState();
+            });
+            actionChain.EnqueueChain();
+
+            if (closer.Full > 0)
+                UseTimestamp = Time.GetUnixTime();
         }
 
         private void Reset()
