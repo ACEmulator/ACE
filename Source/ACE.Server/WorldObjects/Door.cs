@@ -127,7 +127,7 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcastPhysicsState();
 
             if (opener.Full > 0)
-                UseTimestamp++;
+                UseTimestamp = Time.GetUnixTime();
         }
 
         public void Close(ObjectGuid closer = new ObjectGuid())
@@ -155,7 +155,7 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
 
             if (closer.Full > 0)
-                UseTimestamp++;
+                UseTimestamp = Time.GetUnixTime();
         }
 
         private void Reset(double useTimestamp)
