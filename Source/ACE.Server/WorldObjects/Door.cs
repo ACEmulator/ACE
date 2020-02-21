@@ -131,6 +131,8 @@ namespace ACE.Server.WorldObjects
             //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? true));
             if (opener.Full > 0)
                 UseTimestamp++;
+
+            EnqueueBroadcastPhysicsState();
         }
 
         public void Close(ObjectGuid closer = new ObjectGuid())
@@ -146,6 +148,8 @@ namespace ACE.Server.WorldObjects
             //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? false));
             if (closer.Full > 0)
                 UseTimestamp++;
+
+            EnqueueBroadcastPhysicsState();
         }
 
         private void Reset()
