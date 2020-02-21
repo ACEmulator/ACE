@@ -138,10 +138,21 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcastMotion(motionClosed);
             CurrentMotionState = motionClosed;
 
-            Ethereal = false;
             IsOpen = false;
 
-            EnqueueBroadcastPhysicsState();
+            var animTime = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, MotionStance.NonCombat, MotionCommand.On, MotionCommand.Off);
+
+            //Console.WriteLine($"AnimTime: {animTime}");
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(animTime);
+            actionChain.AddAction(this, () =>
+            {
+                Ethereal = false;
+
+                EnqueueBroadcastPhysicsState();
+            });
+            actionChain.EnqueueChain();
 
             if (closer.Full > 0)
                 UseTimestamp = Time.GetUnixTime();
