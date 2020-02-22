@@ -7,7 +7,7 @@ namespace ACE.Server.Entity
 {
     public class Cloak
     {
-        private static readonly float ChanceMod = 3.0f;
+        private static readonly float ChanceMod = 2.5f;
 
         /// <summary>
         /// Rolls for a chance at procing a cloak spell
@@ -70,6 +70,8 @@ namespace ACE.Server.Entity
                 target = null;
             else if (targetSelf)
                 target = defender;
+
+            // cloak range?
 
             var msg = new GameMessageSystemChat($"The cloak of {defender.Name} weaves the power of {spell.Name}!", ChatMessageType.Spellcasting);
 
