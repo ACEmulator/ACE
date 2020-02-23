@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 
 using ACE.Adapter.GDLE;
 using ACE.Adapter.Lifestoned;
+using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Database.SQLFormatters.World;
@@ -45,6 +46,8 @@ namespace ACE.Server.Command.Handlers.Processors
 
             if (fileType.StartsWith("landblock"))
                 return FileType.LandblockInstance;
+            else if (fileType.StartsWith("quest"))
+                return FileType.Quest;
             else if (fileType.StartsWith("recipe"))
                 return FileType.Recipe;
             else if (fileType.StartsWith("weenie"))
@@ -72,6 +75,10 @@ namespace ACE.Server.Command.Handlers.Processors
             {
                 case FileType.LandblockInstance:
                     ImportJsonLandblock(session, parameters);
+                    break;
+
+                case FileType.Quest:
+                    ImportJsonQuest(session, parameters);
                     break;
 
                 case FileType.Recipe:
@@ -171,6 +178,35 @@ namespace ACE.Server.Command.Handlers.Processors
                 ImportJsonLandblock(session, json_folder, file.Name);
         }
 
+        public static void ImportJsonQuest(Session session, params string[] parameters)
+        {
+            DirectoryInfo di = VerifyContentFolder(session);
+            if (!di.Exists) return;
+
+            var sep = Path.DirectorySeparatorChar;
+
+            var json_folder = $"{di.FullName}{sep}json{sep}quests{sep}";
+
+            var questName = parameters[0];
+            var prefix = questName;
+
+            if (questName.Equals("all", StringComparison.OrdinalIgnoreCase))
+                prefix = "";
+
+            di = new DirectoryInfo(json_folder);
+
+            var files = di.Exists ? di.GetFiles($"{prefix}*.json") : null;
+
+            if (files == null || files.Length == 0)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find {json_folder}{prefix}*.json");
+                return;
+            }
+
+            foreach (var file in files)
+                ImportJsonQuest(session, json_folder, file.Name);
+        }
+
         [CommandHandler("import-sql", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Imports sql data from the Content folder", "<wcid>")]
         public static void HandleImportSQL(Session session, params string[] parameters)
         {
@@ -190,6 +226,10 @@ namespace ACE.Server.Command.Handlers.Processors
             {
                 case FileType.LandblockInstance:
                     ImportSQLLandblock(session, parameters);
+                    break;
+
+                case FileType.Quest:
+                    ImportSQLQuest(session, parameters);
                     break;
 
                 case FileType.Recipe:
@@ -289,6 +329,35 @@ namespace ACE.Server.Command.Handlers.Processors
                 ImportSQLLandblock(session, sql_folder, file.Name);
         }
 
+        public static void ImportSQLQuest(Session session, params string[] parameters)
+        {
+            DirectoryInfo di = VerifyContentFolder(session);
+            if (!di.Exists) return;
+
+            var sep = Path.DirectorySeparatorChar;
+
+            var sql_folder = $"{di.FullName}{sep}sql{sep}quests{sep}";
+
+            var questName = parameters[0];
+            var prefix = questName;
+
+            if (questName.Equals("all", StringComparison.OrdinalIgnoreCase))
+                prefix = "";
+
+            di = new DirectoryInfo(sql_folder);
+
+            var files = di.Exists ? di.GetFiles($"{prefix}*.sql") : null;
+
+            if (files == null || files.Length == 0)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find {sql_folder}{prefix}*.sql");
+                return;
+            }
+
+            foreach (var file in files)
+                ImportSQLQuest(session, sql_folder, file.Name);
+        }
+
         /// <summary>
         /// Returns the absolute content folder path, and verifies it exists
         /// </summary>
@@ -379,6 +448,23 @@ namespace ACE.Server.Command.Handlers.Processors
 
             // clear any cached instances for this landblock
             DatabaseManager.World.ClearCachedInstancesByLandblock(landblockId);
+        }
+
+        private static void ImportJsonQuest(Session session, string json_folder, string json_file)
+        {
+            var questName = json_file.TrimEnd(".json");
+
+            // convert json -> sql
+            var sqlFile = json2sql_quest(session, json_folder, json_file);
+            if (sqlFile == null) return;
+
+            // import sql to db
+            var sql_folder = json_folder.Replace("json", "sql");
+            ImportSQL(sql_folder + sqlFile);
+            CommandHandlerHelper.WriteOutputInfo(session, $"Imported {sqlFile}");
+
+            // clear cached quest
+            DatabaseManager.World.ClearCachedQuest(questName);
         }
 
         public static WeenieSQLWriter WeenieSQLWriter;
@@ -642,6 +728,68 @@ namespace ACE.Server.Command.Handlers.Processors
             return sqlFilename;
         }
 
+        public static QuestSQLWriter QuestSQLWriter;
+
+        public static string json2sql_quest(Session session, string folder, string json_filename)
+        {
+            var json_file = folder + json_filename;
+
+            // read json quest
+            var success = GDLELoader.TryLoadQuest(json_file, out var result);
+
+            if (!success)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to load {json_file}");
+                return null;
+            }
+
+            // convert to sql quest
+            success = GDLEConverter.TryConvert(result, out var quest);
+
+            if (!success)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {json_file}");
+                return null;
+            }
+
+            // output to sql
+            var sqlFolder = folder.Replace("json", "sql");
+            var sqlFilename = json_filename.Replace(".json", ".sql");
+
+            var di = new DirectoryInfo(sqlFolder);
+
+            if (!di.Exists)
+                di.Create();
+
+            try
+            {
+                if (QuestSQLWriter == null)
+                    QuestSQLWriter = new QuestSQLWriter();
+
+                if (quest.LastModified == DateTime.MinValue)
+                    quest.LastModified = DateTime.UtcNow;
+
+                var sqlFile = new StreamWriter(sqlFolder + sqlFilename);
+
+                QuestSQLWriter.CreateSQLDELETEStatement(quest, sqlFile);
+                sqlFile.WriteLine();
+
+                QuestSQLWriter.CreateSQLINSERTStatement(quest, sqlFile);
+
+                sqlFile.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {json_file}");
+                return null;
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"Converted {json_filename} to {sqlFilename}");
+
+            return sqlFilename;
+        }
+
         /// <summary>
         /// Converts SQL to JSON, imports to database, clears the weenie cache
         /// </summary>
@@ -721,6 +869,23 @@ namespace ACE.Server.Command.Handlers.Processors
             sql2json_landblock(session, instances, sql_folder, sql_file);
         }
 
+        private static void ImportSQLQuest(Session session, string sql_folder, string sql_file)
+        {
+            // import sql to db
+            ImportSQL(sql_folder + sql_file);
+            CommandHandlerHelper.WriteOutputInfo(session, $"Imported {sql_file}");
+
+            // clear cached quest
+            var questName = sql_file.TrimEnd(".sql");
+            DatabaseManager.World.ClearCachedQuest(questName);
+
+            // load quest from db
+            var quest = DatabaseManager.World.GetCachedQuest(questName);
+
+            // convert to json file
+            sql2json_quest(session, quest, sql_folder, sql_file);
+        }
+
         /// <summary>
         /// Converts a sql file to json file
         /// </summary>
@@ -796,6 +961,31 @@ namespace ACE.Server.Command.Handlers.Processors
         public static bool sql2json_landblock(Session session, List<LandblockInstance> instances, string sql_folder, string sql_filename)
         {
             if (!GDLEConverter.TryConvert(instances, out var result))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {sql_filename} to json");
+                return false;
+            }
+
+            var json_folder = sql_folder.Replace("sql", "json");
+            var json_filename = sql_filename.Replace(".sql", ".json");
+
+            var di = new DirectoryInfo(json_folder);
+
+            if (!di.Exists)
+                di.Create();
+
+            var json = JsonConvert.SerializeObject(result, LifestonedConverter.SerializerSettings);
+
+            File.WriteAllText(json_folder + json_filename, json);
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"Converted {sql_filename} to {json_filename}");
+
+            return true;
+        }
+
+        public static bool sql2json_quest(Session session, Quest quest, string sql_folder, string sql_filename)
+        {
+            if (!GDLEConverter.TryConvert(quest, out var result))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {sql_filename} to json");
                 return false;
@@ -1036,7 +1226,7 @@ namespace ACE.Server.Command.Handlers.Processors
             var contentFolder = VerifyContentFolder(session, false);
 
             var sep = Path.DirectorySeparatorChar;
-            var folder = new DirectoryInfo($"{contentFolder.FullName}{sep}sql{sep}encounters{sep}");
+            var folder = new DirectoryInfo($"{contentFolder.FullName}{sep}sql{sep}landblocks{sep}");
 
             if (!folder.Exists)
                 folder.Create();
@@ -1433,16 +1623,18 @@ namespace ACE.Server.Command.Handlers.Processors
             var mode = CacheType.All;
             if (parameters.Length > 0)
             {
-                if (parameters[0].Contains("weenie", StringComparison.OrdinalIgnoreCase))
-                    mode = CacheType.Weenie;
+                if (parameters[0].Contains("landblock", StringComparison.OrdinalIgnoreCase))
+                    mode = CacheType.Landblock;
                 if (parameters[0].Contains("spell", StringComparison.OrdinalIgnoreCase))
                     mode = CacheType.Spell;
+                if (parameters[0].Contains("weenie", StringComparison.OrdinalIgnoreCase))
+                    mode = CacheType.Weenie;
             }
 
-            if (mode.HasFlag(CacheType.Weenie))
+            if (mode.HasFlag(CacheType.Landblock))
             {
-                CommandHandlerHelper.WriteOutputInfo(session, "Clearing weenie cache");
-                DatabaseManager.World.ClearWeenieCache();
+                CommandHandlerHelper.WriteOutputInfo(session, "Clearing landblock instance cache");
+                DatabaseManager.World.ClearCachedLandblockInstances();
             }
 
             if (mode.HasFlag(CacheType.Spell))
@@ -1451,15 +1643,22 @@ namespace ACE.Server.Command.Handlers.Processors
                 DatabaseManager.World.ClearSpellCache();
                 WorldObject.ClearSpellCache();
             }
+
+            if (mode.HasFlag(CacheType.Weenie))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Clearing weenie cache");
+                DatabaseManager.World.ClearWeenieCache();
+            }
         }
 
         [Flags]
         public enum CacheType
         {
-            None   = 0x0,
-            Weenie = 0x1,
-            Spell  = 0x2,
-            All    = 0xFFFF
+            None      = 0x0,
+            Landblock = 0x1,
+            Spell     = 0x2,
+            Weenie    = 0x4,
+            All       = 0xFFFF
         };
 
         public static FileType GetFileType(string filename)

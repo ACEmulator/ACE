@@ -182,9 +182,6 @@ namespace ACE.Server.WorldObjects
         {
             if (AttackTarget == null) return;
 
-            bool? resisted;
-            //var spell = GetCurrentSpell();
-
             var targetSelf = spell.Flags.HasFlag(SpellFlags.SelfTargeted);
             var untargeted = spell.NonComponentTargetType == ItemType.None;
 
@@ -194,6 +191,10 @@ namespace ACE.Server.WorldObjects
             else if (targetSelf)
                 target = this;
 
+            // try to resist spell, if applicable
+            if (TryResistSpell(target, spell))
+                return;
+
             switch (spell.School)
             {
                 case MagicSchool.WarMagic:
@@ -202,16 +203,6 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case MagicSchool.LifeMagic:
-
-                    // todo: investigate calling TryResistSpell
-                    if (spell.IsHarmful && spell.IsResistable)
-                    {
-                        resisted = ResistSpell(target, spell);
-                        if (resisted == null)
-                            log.Error("Something went wrong with the Magic resistance check");
-                        if (resisted ?? true)
-                            break;
-                    }
 
                     var targetDeath = LifeMagic(spell, out uint damage, out bool critical, out var msg, target);
                     if (targetDeath && target is Creature targetCreature)
@@ -226,15 +217,6 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.CreatureEnchantment:
 
-                    if (spell.IsHarmful && spell.IsResistable)
-                    {
-                        resisted = ResistSpell(target, spell);
-                        if (resisted == null)
-                            log.Error("Something went wrong with the Magic resistance check");
-                        if (resisted ?? true)
-                            break;
-                    }
-
                     CreatureMagic(target, spell);
 
                     if (target != null)
@@ -244,17 +226,11 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.VoidMagic:
 
-                    if (spell.NumProjectiles == 0 && spell.IsHarmful && spell.IsResistable)
-                    {
-                        resisted = ResistSpell(target, spell);
-                        if (resisted == null)
-                            log.Error("Something went wrong with the Magic resistance check");
-                        if (resisted ?? true)
-                            break;
-                    }
                     VoidMagic(target, spell, this);
+
                     if (spell.NumProjectiles == 0 && target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
                     break;
             }
         }

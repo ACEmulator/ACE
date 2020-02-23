@@ -11,10 +11,12 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database.Entity;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+
 using Version = ACE.Database.Models.World.Version;
 
 namespace ACE.Database
@@ -332,7 +334,7 @@ namespace ACE.Database
                     .AsNoTracking()
                     .ToList();
 
-                Parallel.ForEach(results, result =>
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
                     if (!weenieCache.ContainsKey(result.ClassId))
                         GetWeenie(result.ClassId);
@@ -425,6 +427,14 @@ namespace ACE.Database
         public int GetLandblockInstancesCacheCount()
         {
             return cachedLandblockInstances.Count(r => r.Value != null);
+        }
+
+        /// <summary>
+        /// Clears the cached landblock instances for all landblocks
+        /// </summary>
+        public void ClearCachedLandblockInstances()
+        {
+            cachedLandblockInstances.Clear();
         }
 
         /// <summary>
@@ -772,7 +782,7 @@ namespace ACE.Database
                     .AsNoTracking()
                     .ToList();
 
-                Parallel.ForEach(results, result =>
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
                     GetCachedCookbook(result.SourceWCID, result.TargetWCID);
                 });
@@ -1121,6 +1131,11 @@ namespace ACE.Database
         #endregion
 
         private readonly ConcurrentDictionary<string, Quest> cachedQuest = new ConcurrentDictionary<string, Quest>();
+
+        public bool ClearCachedQuest(string questName)
+        {
+            return cachedQuest.TryRemove(questName, out _);
+        }
 
         public Quest GetCachedQuest(string questName)
         {

@@ -89,39 +89,24 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // find activation target
-            var target = ActivationTarget != 0 ? CurrentLandblock?.GetObject(new ObjectGuid(ActivationTarget)) : this;
-
-            // special case for creatures - redirect through emote chain?
-            if (this is Creature) target = this;
-
-            if (target == null)
-            {
-                log.Warn($"{Name}.OnActivate({activator.Name}): couldn't find activation target {ActivationTarget:X8}");
-                return;
-            }
-
             if (player != null)
                 player.EnchantmentManager.StartCooldown(this);
 
-            // if ActivationTarget is another object,
-            // should this be checking the ActivationResponse of the target object?
-
             // perform motion animation - rarely used (only 4 instances in PY16 db)
             if (ActivationResponse.HasFlag(ActivationResponse.Animate))
-                target.OnAnimate(activator);
+                OnAnimate(activator);
 
             // perform activation emote
             if (ActivationResponse.HasFlag(ActivationResponse.Emote))
-                target.OnEmote(activator);
+                OnEmote(activator);
 
             // cast a spell on the player (spell traps)
             if (ActivationResponse.HasFlag(ActivationResponse.CastSpell))
-                target.OnCastSpell(activator);
+                OnCastSpell(activator);
 
             // call to generator to spawn new object
             if (ActivationResponse.HasFlag(ActivationResponse.Generate))
-                target.OnGenerate(activator);
+                OnGenerate(activator);
 
             // default use action
             if (ActivationResponse.HasFlag(ActivationResponse.Use))
@@ -129,15 +114,26 @@ namespace ACE.Server.WorldObjects
                 if (activator is Creature creature)
                 {
                     //target.EmoteManager.OnActivation(creature); // found a few things with Activation on them but not ActivationResponse.Emote...
-                    target.EmoteManager.OnUse(creature);
+                    EmoteManager.OnUse(creature);
                 }
 
-                target.ActOnUse(activator);
+                ActOnUse(activator);
             }
 
             // send chat text - rarely used (only 8 instances in PY16 db)
             if (ActivationResponse.HasFlag(ActivationResponse.Talk))
-                target.OnTalk(activator);
+                OnTalk(activator);
+
+            if (!(this is Creature) && ActivationTarget > 0)
+            {
+                var activationTarget = CurrentLandblock?.GetObject(new ObjectGuid(ActivationTarget));
+                if (activationTarget != null)
+                    activationTarget.OnActivate(activator);
+                else
+                {
+                    log.Warn($"{Name}.OnActivate({activator.Name}): couldn't find activation target {ActivationTarget:X8}");
+                }
+            }
         }
 
         public virtual void ActOnUse(WorldObject activator)

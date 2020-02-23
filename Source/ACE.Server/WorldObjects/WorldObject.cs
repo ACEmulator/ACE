@@ -406,6 +406,35 @@ namespace ACE.Server.WorldObjects
             return isVisible;
         }
 
+        public bool IsProjectileVisible(WorldObject proj)
+        {
+            if (!(this is Creature) || (Ethereal ?? false))
+                return true;
+
+            if (PhysicsObj == null || proj.PhysicsObj == null)
+                return false;
+
+            var startPos = new Physics.Common.Position(proj.PhysicsObj.Position);
+            var targetPos = new Physics.Common.Position(PhysicsObj.Position);
+
+            // set to eye level
+            targetPos.Frame.Origin.Z += PhysicsObj.GetHeight() - proj.PhysicsObj.GetHeight();
+
+            var prevTarget = proj.PhysicsObj.ProjectileTarget;
+            proj.PhysicsObj.ProjectileTarget = PhysicsObj;
+
+            // perform line of sight test
+            var transition = proj.PhysicsObj.transition(startPos, targetPos, false);
+
+            proj.PhysicsObj.ProjectileTarget = prevTarget;
+
+            if (transition == null) return false;
+
+            // check if target object was reached
+            var isVisible = transition.CollisionInfo.CollideObject.FirstOrDefault(c => c.ID == PhysicsObj.ID) != null;
+            return isVisible;
+        }
+
 
 
         // ******************************************************************* OLD CODE BELOW ********************************

@@ -74,5 +74,10 @@ namespace ACE.Server.WorldObjects
 
             base.OnActivate(activator);
         }
+
+        public override void ActOnUse(WorldObject wo)
+        {
+            // Do nothing
+        }
     }
 }
