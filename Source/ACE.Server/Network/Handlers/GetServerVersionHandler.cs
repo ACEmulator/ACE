@@ -17,9 +17,13 @@ namespace ACE.Server.Network.Handlers
             // Client version 00.00.11.6096.r Portal: compiled Fri Jun 12 04:16:27 2015 : RETAIL
             // ^^^^^^ embedded response in client
 
-            var version = DatabaseManager.World.GetVersion();
+            var serverVersion = System.Reflection.Assembly.GetExecutingAssembly();
+            var databaseVersion = DatabaseManager.World.GetVersion();
+            //var x = Constants.CompilationTimestampUtc;
 
-            var msg = $"Server database version Base: {version.BaseVersion} Patch: {version.PatchVersion} - compiled {version.LastModified.ToString("ddd MMM d HH:mm:ss yyyy")}\n";
+            var msg = $"Server binaries version {serverVersion.GetName().Version.ToString()} - compiled {Constants.CompilationTimestampUtc.ToString("ddd MMM d HH:mm:ss yyyy")} : ACEmulator\n";
+
+            msg += $"Server database version Base: {databaseVersion.BaseVersion} Patch: {databaseVersion.PatchVersion} - compiled {databaseVersion.LastModified.ToString("ddd MMM d HH:mm:ss yyyy")}\n";
 
 #if DEBUG
             msg += "Server is compiled in DEBUG mode";
