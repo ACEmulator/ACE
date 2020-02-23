@@ -1,9 +1,8 @@
 using System;
-using ACE.Common;
-using ACE.Server.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -12,11 +11,16 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        private double? useTimestamp;
         protected double? UseTimestamp
         {
-            get { return useTimestamp; }
-            set => useTimestamp = Time.GetUnixTime();
+            get => GetProperty(PropertyFloat.UseTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.UseTimestamp); else SetProperty(PropertyFloat.UseTimestamp, value.Value); }
+        }
+
+        protected double? ResetTimestamp
+        {
+            get => GetProperty(PropertyFloat.ResetTimestamp);
+            set { if (value.HasValue) RemoveProperty(PropertyFloat.ResetTimestamp); else SetProperty(PropertyFloat.ResetTimestamp, value.Value); }
         }
 
         protected double? ResetInterval
