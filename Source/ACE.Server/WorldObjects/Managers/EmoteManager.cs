@@ -1691,9 +1691,21 @@ namespace ACE.Server.WorldObjects.Managers
             ExecuteEmoteSet(EmoteCategory.Drop, null, dropper);
         }
 
-        public void OnAttack(Creature attacker)
+        /// <summary>
+        /// Called when an idle mob becomes alerted by a player
+        /// and initially wakes up
+        /// </summary>
+        public void OnWakeUp(Creature target)
         {
-            ExecuteEmoteSet(EmoteCategory.NewEnemy, null, attacker);
+            ExecuteEmoteSet(EmoteCategory.Scream, null, target);
+        }
+
+        /// <summary>
+        /// Called when a monster switches targets
+        /// </summary>
+        public void OnNewEnemy(WorldObject newEnemy)
+        {
+            ExecuteEmoteSet(EmoteCategory.NewEnemy, null, newEnemy);
         }
 
         public void OnDamage(Creature attacker)
