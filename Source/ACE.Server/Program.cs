@@ -51,6 +51,23 @@ namespace ACE.Server
             var log4netFileInfo = new FileInfo("log4net.config");
             if (!log4netFileInfo.Exists)
                 log4netFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "log4net.config"));
+
+            if (!log4netFileInfo.Exists)
+            {
+                var exampleFile = new FileInfo(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "log4net.config.example"));
+                if (!exampleFile.Exists)
+                {
+                    Console.WriteLine("log4net Configuration file is missing.  Please copy the file log4net.config.example to log4net.config and edit it to match your needs before running ACE.");
+                    throw new Exception("missing log4net configuration file");
+                }
+                else
+                {
+                    Console.WriteLine("log4net Configuration file is missing,  cloning from example file.");
+                    File.Copy(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "log4net.config.example"), Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "log4net.config"));
+                }
+            }
+
+
             var logRepository = LogManager.GetRepository(System.Reflection.Assembly.GetEntryAssembly());
             XmlConfigurator.Configure(logRepository, log4netFileInfo);
 
