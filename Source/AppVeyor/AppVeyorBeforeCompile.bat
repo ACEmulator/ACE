@@ -28,3 +28,4 @@ echo         } >> Source\ACE.Server\Constants.cs
 echo     } >> Source\ACE.Server\Constants.cs
 echo } >> Source\ACE.Server\Constants.cs
 echo. >> Source\ACE.Server\Constants.cs
+@echo on
