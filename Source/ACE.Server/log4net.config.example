@@ -1,0 +1,53 @@
+<log4net>
+
+  <appender name="Console" type="log4net.Appender.ManagedColoredConsoleAppender">
+    <mapping>
+        <level value="ERROR" />
+        <foreColor value="Red" />
+    </mapping>
+    <mapping>
+        <level value="WARN" />
+        <foreColor value="Yellow" />
+    </mapping>
+    <mapping>
+        <level value="INFO" />
+        <foreColor value="White" />
+    </mapping>
+    <mapping>
+        <level value="DEBUG" />
+        <foreColor value="Cyan" />
+    </mapping>
+    <layout type="log4net.Layout.PatternLayout">
+      <conversionPattern value="%date %-5level: %message%newline" />
+    </layout>
+    <threshold value="INFO" />
+  </appender>
+
+  <appender name="RollingFileAppender" type="log4net.Appender.RollingFileAppender">
+    <file value="ACE_Log.txt" />
+    <appendToFile value="true" />
+    <rollingStyle value="Size" />
+    <maxSizeRollBackups value="10" />
+    <maximumFileSize value="20480KB" />
+    <staticLogFileName value="true" />
+    <layout type="log4net.Layout.PatternLayout">
+      <conversionPattern value="%date [%thread] %-5level (%logger) %message%newline" />
+    </layout>
+    <threshold value="ALL" />
+  </appender>
+
+  <logger name="Packets">
+    <level value="INFO" />
+  </logger> 
+
+  <appender name="asyncForwarder" type="Log4Net.Async.AsyncForwardingAppender,Log4Net.Async">
+    <appender-ref ref="Console" />
+    <appender-ref ref="RollingFileAppender" />
+  </appender>
+
+  <root>
+    <level value="ALL" />
+    <appender-ref ref="asyncForwarder" />
+  </root>
+
+</log4net>

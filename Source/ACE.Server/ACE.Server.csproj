@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <None Remove="Config.json" />
+    <None Remove="log4net.config" />
     <None Remove="starterGear.json" />
     <None Include="..\..\LICENSE">
       <Pack>True</Pack>
@@ -65,7 +66,7 @@
     <None Update="Config.js.example">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="log4net.config">
+    <None Update="log4net.config.example">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="start_server.bat">
@@ -74,7 +75,7 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="if not exist &quot;$(ProjectDir)Config.js&quot; if exist &quot;$(ProjectDir)Config.json&quot; move &quot;$(ProjectDir)Config.json&quot; &quot;$(ProjectDir)Config.js&quot;&#xD;&#xA;copy &quot;$(ProjectDir)Config.js&quot; &quot;$(TargetDir)Config.js&quot;" Condition="'$(OS)' == 'Windows_NT'" />
+    <Exec Command="if not exist &quot;$(ProjectDir)Config.js&quot; if exist &quot;$(ProjectDir)Config.json&quot; move &quot;$(ProjectDir)Config.json&quot; &quot;$(ProjectDir)Config.js&quot;&#xD;&#xA;copy &quot;$(ProjectDir)Config.js&quot; &quot;$(TargetDir)Config.js&quot;&#xD;&#xA;copy &quot;$(ProjectDir)log4net.config&quot; &quot;$(TargetDir)log4net.config&quot;" Condition="'$(OS)' == 'Windows_NT'" />
     <Exec Command="if [ ! -f &quot;$(ProjectDir)Config.js&quot; ] &amp;&amp; [ -f &quot;$(ProjectDir)Config.json&quot; ] ; then mv &quot;$(ProjectDir)Config.json&quot; &quot;$(ProjectDir)Config.js&quot; ; fi&#xA;cp &quot;$(ProjectDir)Config.js&quot; &quot;$(TargetDir)Config.js&quot;" Condition="'$(OS)' != 'Windows_NT'" />
   </Target>
 
