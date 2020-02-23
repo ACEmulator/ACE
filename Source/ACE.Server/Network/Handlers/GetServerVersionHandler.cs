@@ -26,7 +26,7 @@ namespace ACE.Server.Network.Handlers
             var fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
             var serverVersion = fileVersionInfo.ProductVersion;
 
-            var msg = $"Server binaries version {serverVersion} - compiled {Constants.CompilationTimestampUtc.ToString("ddd MMM d HH:mm:ss yyyy")} : ACEmulator\n";
+            var msg = $"Server binaries version {serverVersion} - compiled {VersionConstant.CompilationTimestampUtc.ToString("ddd MMM d HH:mm:ss yyyy")} : ACEmulator\n";
 
             msg += $"Server database version Base: {databaseVersion.BaseVersion} Patch: {databaseVersion.PatchVersion} - compiled {databaseVersion.LastModified.ToString("ddd MMM d HH:mm:ss yyyy")}\n";
 

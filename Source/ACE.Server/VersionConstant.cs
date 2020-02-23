@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ACE.Server
 {
-    public static partial class Constants
+    public static partial class VersionConstant
     {
         public static DateTime CompilationTimestampUtc
         {
