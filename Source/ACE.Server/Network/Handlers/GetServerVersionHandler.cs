@@ -20,9 +20,7 @@ namespace ACE.Server.Network.Handlers
             // Client version 00.00.11.6096.r Portal: compiled Fri Jun 12 04:16:27 2015 : RETAIL
             // ^^^^^^ embedded response in client
 
-            //var serverVersion = System.Reflection.Assembly.GetExecutingAssembly();
             var databaseVersion = DatabaseManager.World.GetVersion();
-
 
             var assembly = Assembly.GetExecutingAssembly();
             var fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);

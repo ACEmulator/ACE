@@ -15,6 +15,8 @@ using ACE.Server.Managers;
 using ACE.Server.Network.Managers;
 using DouglasCrockford.JsMin;
 using Newtonsoft.Json;
+using System.Reflection;
+using System.Diagnostics;
 
 namespace ACE.Server
 {
@@ -90,7 +92,10 @@ namespace ACE.Server
             }
 
             log.Info("Starting ACEmulator...");
-            Console.Title = @"ACEmulator";
+            var assembly = Assembly.GetExecutingAssembly();
+            var fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
+            var serverVersion = fileVersionInfo.ProductVersion;
+            Console.Title = @$"ACEmulator - v{serverVersion}";
 
             var configFile = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Config.js");
             if (!File.Exists(configFile))
