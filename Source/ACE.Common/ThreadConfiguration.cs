@@ -58,10 +58,13 @@ namespace ACE.Common
 
 
         // World Thread Management
+        [JsonIgnore]
         public readonly ParallelOptions LandblockManagerParallelOptions = new ParallelOptions();
+        [JsonIgnore]
         public readonly ParallelOptions NetworkManagerParallelOptions = new ParallelOptions();
 
         // Database Thread Management
+        [JsonIgnore]
         public readonly ParallelOptions DatabaseParallelOptions = new ParallelOptions();
     }
 }

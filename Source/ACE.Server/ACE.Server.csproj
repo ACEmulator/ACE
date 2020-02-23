@@ -8,11 +8,29 @@
 
   <PropertyGroup>
     <ServerGarbageCollection>true</ServerGarbageCollection>
+    <Authors>ACEmulator Contributors</Authors>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/ACEmulator/ACE</RepositoryUrl>
+    <PackageProjectUrl>https://emulator.ac</PackageProjectUrl>
+    <Copyright>© 2017-2020 ACEmulator Team and Contributors</Copyright>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <Description>Asheron's Call server emulator</Description>
+    <Company>ACEmulator</Company>
+    <Version>1.0.0</Version>
+    <PackageIcon>ace-retro-icon2.png</PackageIcon>
+    <PackageIconUrl />
+    <ApplicationIcon>images\ace_retro_icon_2.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Config.json" />
+    <None Remove="log4net.config" />
     <None Remove="starterGear.json" />
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -41,7 +59,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="log4net.config">
+    <None Update="images\ace-retro-icon2.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+    <None Update="Config.js.example">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="log4net.config.example">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="start_server.bat">
@@ -49,8 +74,12 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="if not exist &quot;$(ProjectDir)Config.js&quot; if exist &quot;$(ProjectDir)Config.json&quot; move &quot;$(ProjectDir)Config.json&quot; &quot;$(ProjectDir)Config.js&quot;&#xD;&#xA;copy &quot;$(ProjectDir)Config.js&quot; &quot;$(TargetDir)Config.js&quot;" Condition="'$(OS)' == 'Windows_NT'" />
+    <Exec Command="if not exist &quot;$(ProjectDir)Config.js&quot; if exist &quot;$(ProjectDir)Config.json&quot; move &quot;$(ProjectDir)Config.json&quot; &quot;$(ProjectDir)Config.js&quot;&#xD;&#xA;copy &quot;$(ProjectDir)Config.js&quot; &quot;$(TargetDir)Config.js&quot;&#xD;&#xA;if not exist &quot;$(ProjectDir)log4net.config&quot; if exist &quot;$(ProjectDir)log4net.config&quot; copy &quot;$(ProjectDir)log4net.config&quot; &quot;$(TargetDir)log4net.config&quot;" Condition="'$(OS)' == 'Windows_NT'" />
     <Exec Command="if [ ! -f &quot;$(ProjectDir)Config.js&quot; ] &amp;&amp; [ -f &quot;$(ProjectDir)Config.json&quot; ] ; then mv &quot;$(ProjectDir)Config.json&quot; &quot;$(ProjectDir)Config.js&quot; ; fi&#xA;cp &quot;$(ProjectDir)Config.js&quot; &quot;$(TargetDir)Config.js&quot;" Condition="'$(OS)' != 'Windows_NT'" />
   </Target>
 
