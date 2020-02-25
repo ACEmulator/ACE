@@ -611,7 +611,7 @@ namespace ACE.Server
                 {
 
                 }
-                Console.WriteLine("complete!");
+                Console.WriteLine(" complete!");
 
                 Console.Write($"Deleting {sqlFile} .... ");
                 File.Delete(sqlFile);
