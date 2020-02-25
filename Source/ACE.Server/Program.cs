@@ -550,9 +550,9 @@ namespace ACE.Server
             Console.WriteLine();
             Console.WriteLine();
             Console.WriteLine();
-            Console.Write("Do you want to download the latest world database and import it? (y/N): ");
+            Console.Write("Do you want to download the latest world database and import it? (Y/n): ");
             variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable) && (variable.Equals("y", StringComparison.OrdinalIgnoreCase) || variable.Equals("yes", StringComparison.OrdinalIgnoreCase)))
+            if (!variable.Equals("n", StringComparison.OrdinalIgnoreCase) && !variable.Equals("no", StringComparison.OrdinalIgnoreCase))
             {
                 Console.WriteLine();
 
@@ -604,6 +604,7 @@ namespace ACE.Server
                 Console.Write($"Importing {sqlFile} into SQL server at {config.MySql.World.Host}:{config.MySql.World.Port} (This will take a while, please be patient) .... ");
                 try
                 {
+                    script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(script_StatementExecuted);
                     var count = script.Execute();
                 }
                 catch (MySql.Data.MySqlClient.MySqlException)
@@ -618,6 +619,12 @@ namespace ACE.Server
             }
 
             Console.WriteLine("exiting setup for ACEmulator.");
+        }
+
+        private static void script_StatementExecuted(object sender, MySql.Data.MySqlClient.MySqlScriptEventArgs args)
+        {
+            //Console.WriteLine("script_StatementExecuted");
+            Console.Write(".");
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
