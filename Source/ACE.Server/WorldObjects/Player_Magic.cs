@@ -662,9 +662,12 @@ namespace ACE.Server.WorldObjects
             DoCastSpell_Inner(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus);
         }
 
+        public WorldObject TurnTarget;
+
         public void TurnTo_Magic(WorldObject target)
         {
             //Console.WriteLine($"{Name}.TurnTo_Magic()");
+            TurnTarget = target;
 
             MagicState.TurnStarted = true;
             MagicState.IsTurning = true;
@@ -1406,6 +1409,12 @@ namespace ACE.Server.WorldObjects
             SendUseDoneEvent(werror);
 
             MagicState.OnCastDone();
+        }
+
+        public void CheckTurn()
+        {
+            if (TurnTarget != null && IsWithinAngle(TurnTarget))
+                PhysicsObj.StopCompletely(false);
         }
     }
 }

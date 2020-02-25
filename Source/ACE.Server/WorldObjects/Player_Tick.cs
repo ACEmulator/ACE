@@ -301,6 +301,9 @@ namespace ACE.Server.WorldObjects
                 }
                 LastMoveToState = null;
             }
+
+            if (MagicState.IsCasting && MagicState.IsTurning)
+                CheckTurn();
         }
 
         /// <summary>

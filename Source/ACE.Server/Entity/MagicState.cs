@@ -136,6 +136,7 @@ namespace ACE.Server.Entity
             CastMotionDone = false;
             TurnStarted = false;
             IsTurning = false;
+            Player.TurnTarget = null;
 
             CastGesture = MotionCommand.Invalid;
             CastGestureStartTime = DateTime.MinValue;
