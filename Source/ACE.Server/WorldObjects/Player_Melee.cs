@@ -312,7 +312,7 @@ namespace ACE.Server.WorldObjects
 
                 var dist = GetCylinderDistance(target);
 
-                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && dist <= MeleeDistance || dist <= StickyDistance && IsMeleeVisible(target))
+                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && (dist <= MeleeDistance || dist <= StickyDistance && IsMeleeVisible(target)))
                 {
                     Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
                     Session.Network.EnqueueSend(new GameEventAttackDone(Session));
