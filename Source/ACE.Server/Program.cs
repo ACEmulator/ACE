@@ -470,13 +470,14 @@ namespace ACE.Server
                     Console.Write($"Importing into SQL server at {config.MySql.World.Host}:{config.MySql.World.Port} .... ");
                     try
                     {
+                        script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
                         var count = script.Execute();
                     }
                     catch (MySql.Data.MySqlClient.MySqlException)
                     {
 
                     }
-                    Console.WriteLine("complete!");
+                    Console.WriteLine(" complete!");
                 }
                 Console.WriteLine("Base SQL scripts import complete!");
 
@@ -493,13 +494,14 @@ namespace ACE.Server
                     Console.Write($"Importing into {config.MySql.Authentication.Database} database on SQL server at {config.MySql.Authentication.Host}:{config.MySql.Authentication.Port} .... ");
                     try
                     {
+                        script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
                         var count = script.Execute();
                     }
                     catch (MySql.Data.MySqlClient.MySqlException)
                     {
 
                     }
-                    Console.WriteLine("complete!");
+                    Console.WriteLine(" complete!");
                 }
                 Console.WriteLine("Authentication update SQL scripts import complete!");
 
@@ -514,13 +516,14 @@ namespace ACE.Server
                     Console.Write($"Importing into {config.MySql.Shard.Database} database on SQL server at {config.MySql.Shard.Host}:{config.MySql.Shard.Port} .... ");
                     try
                     {
+                        script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
                         var count = script.Execute();
                     }
                     catch (MySql.Data.MySqlClient.MySqlException)
                     {
 
                     }
-                    Console.WriteLine("complete!");
+                    Console.WriteLine(" complete!");
                 }
                 Console.WriteLine("Shard update SQL scripts import complete!");
 
@@ -535,13 +538,14 @@ namespace ACE.Server
                     Console.Write($"Importing into {config.MySql.World.Database} database on SQL server at {config.MySql.World.Host}:{config.MySql.World.Port} .... ");
                     try
                     {
+                        script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
                         var count = script.Execute();
                     }
                     catch (MySql.Data.MySqlClient.MySqlException)
                     {
 
                     }
-                    Console.WriteLine("complete!");
+                    Console.WriteLine(" complete!");
                 }
                 Console.WriteLine("World update SQL scripts import complete!");
             }
