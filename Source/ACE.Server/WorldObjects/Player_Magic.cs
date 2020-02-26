@@ -85,6 +85,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (FastTick && PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.CurrentStyle != (uint)MotionStance.Magic)
+            {
+                log.Warn($"{Name} CombatMode: {CombatMode}, CurrentMotionState: {CurrentMotionState.Stance}.{CurrentMotionState.MotionState.ForwardCommand}, Physics: {(MotionStance)PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.CurrentStyle}.{(MotionCommand)PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.ForwardCommand}");
+                SendUseDoneEvent();
+                return;
+            }
+
             if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
             {
                 SendUseDoneEvent(WeenieError.YouCantDoThatWhileInTheAir);
@@ -245,6 +252,13 @@ namespace ACE.Server.WorldObjects
 
             if (CombatMode != CombatMode.Magic)
             {
+                SendUseDoneEvent();
+                return;
+            }
+
+            if (FastTick && PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.CurrentStyle != (uint)MotionStance.Magic)
+            {
+                log.Warn($"{Name} CombatMode: {CombatMode}, CurrentMotionState: {CurrentMotionState.Stance}.{CurrentMotionState.MotionState.ForwardCommand}, Physics: {(MotionStance)PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.CurrentStyle}.{(MotionCommand)PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.ForwardCommand}");
                 SendUseDoneEvent();
                 return;
             }
