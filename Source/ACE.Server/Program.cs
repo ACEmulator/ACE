@@ -237,7 +237,7 @@ namespace ACE.Server
             Console.Write($"Enter the name for your World (default: \"{config.Server.WorldName}\"): ");
             var variable = Console.ReadLine();
             if (!string.IsNullOrWhiteSpace(variable))
-                config.Server.WorldName = new string(variable.Trim());
+                config.Server.WorldName = variable.Trim();
             Console.WriteLine();
 
             Console.WriteLine();
@@ -248,7 +248,7 @@ namespace ACE.Server
             Console.Write($"Enter the Host address for your World (default: \"{config.Server.Network.Host}\"): ");
             variable = Console.ReadLine();
             if (!string.IsNullOrWhiteSpace(variable))
-                config.Server.Network.Host = new string(variable.Trim());
+                config.Server.Network.Host = variable.Trim();
             Console.WriteLine();
 
             Console.Write($"Enter the Port for your World (default: \"{config.Server.Network.Port}\"): ");
@@ -264,7 +264,7 @@ namespace ACE.Server
             variable = Console.ReadLine();
             if (!string.IsNullOrWhiteSpace(variable))
             {
-                var path = Path.GetFullPath(new string(variable.Trim()));
+                var path = Path.GetFullPath(variable.Trim());
                 if (!Path.EndsInDirectorySeparator(path))
                     path += Path.DirectorySeparatorChar;
                 //path = path.Replace($"{Path.DirectorySeparatorChar}", $"{Path.DirectorySeparatorChar}{Path.DirectorySeparatorChar}");
@@ -285,19 +285,19 @@ namespace ACE.Server
             Console.Write($"Enter the database name for your authentication database (default: \"{config.MySql.Authentication.Database}\"): ");
             variable = Console.ReadLine();
             if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Authentication.Database = new string(variable.Trim());
+                config.MySql.Authentication.Database = variable.Trim();
             Console.WriteLine();
 
             Console.Write($"Enter the database name for your shard database (default: \"{config.MySql.Shard.Database}\"): ");
             variable = Console.ReadLine();
             if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Shard.Database = new string(variable.Trim());
+                config.MySql.Shard.Database = variable.Trim();
             Console.WriteLine();
 
             Console.Write($"Enter the database name for your world database (default: \"{config.MySql.World.Database}\"): ");
             variable = Console.ReadLine();
             if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.World.Database = new string(variable.Trim());
+                config.MySql.World.Database = variable.Trim();
             Console.WriteLine();
 
             Console.WriteLine();
@@ -310,9 +310,9 @@ namespace ACE.Server
                 variable = Console.ReadLine();
                 if (!string.IsNullOrWhiteSpace(variable))
                 {
-                    config.MySql.Authentication.Host = new string(variable.Trim());
-                    config.MySql.Shard.Host = new string(variable.Trim());
-                    config.MySql.World.Host = new string(variable.Trim());
+                    config.MySql.Authentication.Host = variable.Trim();
+                    config.MySql.Shard.Host = variable.Trim();
+                    config.MySql.World.Host = variable.Trim();
                 }
                 Console.WriteLine();
 
@@ -331,7 +331,7 @@ namespace ACE.Server
                 Console.Write($"Enter the Host address for your authentication database (default: \"{config.MySql.Authentication.Host}\"): ");
                 variable = Console.ReadLine();
                 if (!string.IsNullOrWhiteSpace(variable))
-                    config.MySql.Authentication.Host = new string(variable.Trim());
+                    config.MySql.Authentication.Host = variable.Trim();
                 Console.WriteLine();
 
                 Console.Write($"Enter the Port for your authentication database (default: \"{config.MySql.Authentication.Port}\"): ");
@@ -343,7 +343,7 @@ namespace ACE.Server
                 Console.Write($"Enter the Host address for your shard database (default: \"{config.MySql.Shard.Host}\"): ");
                 variable = Console.ReadLine();
                 if (!string.IsNullOrWhiteSpace(variable))
-                    config.MySql.Shard.Host = new string(variable.Trim());
+                    config.MySql.Shard.Host = variable.Trim();
                 Console.WriteLine();
 
                 Console.Write($"Enter the Port for your shard database (default: \"{config.MySql.Shard.Port}\"): ");
@@ -355,7 +355,7 @@ namespace ACE.Server
                 Console.Write($"Enter the Host address for your world database (default: \"{config.MySql.World.Host}\"): ");
                 variable = Console.ReadLine();
                 if (!string.IsNullOrWhiteSpace(variable))
-                    config.MySql.World.Host = new string(variable.Trim());
+                    config.MySql.World.Host = variable.Trim();
                 Console.WriteLine();
 
                 Console.Write($"Enter the Port for your world database (default: \"{config.MySql.World.Port}\"): ");
@@ -375,9 +375,9 @@ namespace ACE.Server
                 variable = Console.ReadLine();
                 if (!string.IsNullOrWhiteSpace(variable))
                 {
-                    config.MySql.Authentication.Username = new string(variable.Trim());
-                    config.MySql.Shard.Username = new string(variable.Trim());
-                    config.MySql.World.Username = new string(variable.Trim());
+                    config.MySql.Authentication.Username = variable.Trim();
+                    config.MySql.Shard.Username = variable.Trim();
+                    config.MySql.World.Username = variable.Trim();
                 }
                 Console.WriteLine();
 
@@ -385,9 +385,9 @@ namespace ACE.Server
                 variable = Console.ReadLine();
                 if (!string.IsNullOrWhiteSpace(variable))
                 {
-                    config.MySql.Authentication.Password = new string(variable.Trim());
-                    config.MySql.Shard.Password = new string(variable.Trim());
-                    config.MySql.World.Password = new string(variable.Trim());
+                    config.MySql.Authentication.Password = variable.Trim();
+                    config.MySql.Shard.Password = variable.Trim();
+                    config.MySql.World.Password = variable.Trim();
                 }
             }
             else
@@ -395,37 +395,37 @@ namespace ACE.Server
                 Console.Write($"Enter the username for your authentication database (default: \"{config.MySql.Authentication.Username}\"): ");
                 variable = Console.ReadLine();
                 if (!string.IsNullOrWhiteSpace(variable))
-                    config.MySql.Authentication.Username = new string(variable.Trim());
+                    config.MySql.Authentication.Username = variable.Trim();
                 Console.WriteLine();
 
                 Console.Write($"Enter the password for your authentication database (default: \"{config.MySql.Authentication.Password}\"): ");
                 variable = Console.ReadLine();
                 if (!string.IsNullOrWhiteSpace(variable))
-                    config.MySql.Authentication.Password = new string(variable.Trim());
+                    config.MySql.Authentication.Password = variable.Trim();
                 Console.WriteLine();
 
                 Console.Write($"Enter the username for your shard database (default: \"{config.MySql.Shard.Username}\"): ");
                 variable = Console.ReadLine();
                 if (!string.IsNullOrWhiteSpace(variable))
-                    config.MySql.Shard.Username = new string(variable.Trim());
+                    config.MySql.Shard.Username = variable.Trim();
                 Console.WriteLine();
 
                 Console.Write($"Enter the password for your shard database (default: \"{config.MySql.Shard.Password}\"): ");
                 variable = Console.ReadLine();
                 if (!string.IsNullOrWhiteSpace(variable))
-                    config.MySql.Shard.Password = new string(variable.Trim());
+                    config.MySql.Shard.Password = variable.Trim();
                 Console.WriteLine();
 
                 Console.Write($"Enter the username for your world database (default: \"{config.MySql.World.Username}\"): ");
                 variable = Console.ReadLine();
                 if (!string.IsNullOrWhiteSpace(variable))
-                    config.MySql.World.Username = new string(variable.Trim());
+                    config.MySql.World.Username = variable.Trim();
                 Console.WriteLine();
 
                 Console.Write($"Enter the password for your world database (default: \"{config.MySql.World.Password}\"): ");
                 variable = Console.ReadLine();
                 if (!string.IsNullOrWhiteSpace(variable))
-                    config.MySql.World.Password = new string(variable.Trim());
+                    config.MySql.World.Password = variable.Trim();
             }
 
             Console.WriteLine("commiting configuration to memory...");
@@ -604,7 +604,7 @@ namespace ACE.Server
                 Console.Write($"Importing {sqlFile} into SQL server at {config.MySql.World.Host}:{config.MySql.World.Port} (This will take a while, please be patient) .... ");
                 try
                 {
-                    script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(script_StatementExecuted);
+                    script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
                     var count = script.Execute();
                 }
                 catch (MySql.Data.MySqlClient.MySqlException)
@@ -621,9 +621,8 @@ namespace ACE.Server
             Console.WriteLine("exiting setup for ACEmulator.");
         }
 
-        private static void script_StatementExecuted(object sender, MySql.Data.MySqlClient.MySqlScriptEventArgs args)
+        private static void OnStatementExecutedOutputDot(object sender, MySql.Data.MySqlClient.MySqlScriptEventArgs args)
         {
-            //Console.WriteLine("script_StatementExecuted");
             Console.Write(".");
         }
 
