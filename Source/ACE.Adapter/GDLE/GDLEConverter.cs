@@ -11,9 +11,6 @@ namespace ACE.Adapter.GDLE
         /// <summary>
         /// Converts ACE -> GDLE quest
         /// </summary>
-        /// <param name="input"></param>
-        /// <param name="result"></param>
-        /// <returns></returns>
         public static bool TryConvert(Quest input, out Models.Quest result)
         {
             result = new Models.Quest();
@@ -143,13 +140,13 @@ namespace ACE.Adapter.GDLE
                     result.WeenieClassId = value.wcid;
 
                     result.ObjCellId = value.pos.objcell_id;
-                    result.OriginX = (float)value.pos.frame.origin.x;
-                    result.OriginY = (float)value.pos.frame.origin.y;
-                    result.OriginZ = (float)value.pos.frame.origin.z;
-                    result.AnglesW = (float)value.pos.frame.angles.w;
-                    result.AnglesX = (float)value.pos.frame.angles.x;
-                    result.AnglesY = (float)value.pos.frame.angles.y;
-                    result.AnglesZ = (float)value.pos.frame.angles.z;
+                    result.OriginX = value.pos.frame.origin.x;
+                    result.OriginY = value.pos.frame.origin.y;
+                    result.OriginZ = value.pos.frame.origin.z;
+                    result.AnglesW = value.pos.frame.angles.w;
+                    result.AnglesX = value.pos.frame.angles.x;
+                    result.AnglesY = value.pos.frame.angles.y;
+                    result.AnglesZ = value.pos.frame.angles.z;
 
                     results.Add(result);
                 }
@@ -325,14 +322,14 @@ namespace ACE.Adapter.GDLE
                 {
                     result.PositionObjCellId = input.MetaSpell.Spell.Position.objcell_id;
 
-                    result.PositionOriginX = (float)input.MetaSpell.Spell.Position.frame.origin.x;
-                    result.PositionOriginY = (float)input.MetaSpell.Spell.Position.frame.origin.y;
-                    result.PositionOriginZ = (float)input.MetaSpell.Spell.Position.frame.origin.z;
+                    result.PositionOriginX = input.MetaSpell.Spell.Position.frame.origin.x;
+                    result.PositionOriginY = input.MetaSpell.Spell.Position.frame.origin.y;
+                    result.PositionOriginZ = input.MetaSpell.Spell.Position.frame.origin.z;
 
-                    result.PositionAnglesW = (float)input.MetaSpell.Spell.Position.frame.angles.w;
-                    result.PositionAnglesX = (float)input.MetaSpell.Spell.Position.frame.angles.x;
-                    result.PositionAnglesY = (float)input.MetaSpell.Spell.Position.frame.angles.y;
-                    result.PositionAnglesZ = (float)input.MetaSpell.Spell.Position.frame.angles.z;
+                    result.PositionAnglesW = input.MetaSpell.Spell.Position.frame.angles.w;
+                    result.PositionAnglesX = input.MetaSpell.Spell.Position.frame.angles.x;
+                    result.PositionAnglesY = input.MetaSpell.Spell.Position.frame.angles.y;
+                    result.PositionAnglesZ = input.MetaSpell.Spell.Position.frame.angles.z;
                 }
 
                 // Dispel, FellowDispel
