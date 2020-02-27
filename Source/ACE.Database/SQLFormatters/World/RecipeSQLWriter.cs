@@ -14,7 +14,7 @@ namespace ACE.Database.SQLFormatters.World
         /// <summary>
         /// Default is formed from: input.RecipeId.ToString("00000") + " " + [SuccessWeenieName or Cook Book Source]
         /// </summary>
-        public string GetDefaultFileName(Recipe input, IList<CookBook> cookBooks)
+        public string GetDefaultFileName(Recipe input, IList<CookBook> cookBooks, bool descOnly = false)
         {
             string description = null;
 
@@ -45,6 +45,9 @@ namespace ACE.Database.SQLFormatters.World
 
             if (description == "Cooking Pot" && !string.IsNullOrEmpty(alternateDescription))
                 description = alternateDescription;
+
+            if (descOnly)
+                return description;
 
             string fileName = input.Id.ToString("00000");
             if (!string.IsNullOrEmpty(description))

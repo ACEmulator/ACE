@@ -44,7 +44,7 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Creature)) return;
 
             // move this to base?
-            EnqueueBroadcast(new GameMessageSound(Guid, Sound.TriggerActivated));
+            EnqueueBroadcast(new GameMessageSound(activator.Guid, Sound.TriggerActivated));
 
             var actionChain = new ActionChain();
 

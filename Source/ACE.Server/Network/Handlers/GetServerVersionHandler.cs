@@ -4,6 +4,9 @@ using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 
+using System.Diagnostics;
+using System.Reflection;
+
 namespace ACE.Server.Network.Handlers
 {
     public static class GetServerVersionHandler
@@ -17,9 +20,15 @@ namespace ACE.Server.Network.Handlers
             // Client version 00.00.11.6096.r Portal: compiled Fri Jun 12 04:16:27 2015 : RETAIL
             // ^^^^^^ embedded response in client
 
-            var version = DatabaseManager.World.GetVersion();
+            var databaseVersion = DatabaseManager.World.GetVersion();
 
-            var msg = $"Server database version Base: {version.BaseVersion} Patch: {version.PatchVersion} - compiled {version.LastModified.ToString("ddd MMM d HH:mm:ss yyyy")}\n";
+            var assembly = Assembly.GetExecutingAssembly();
+            var fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
+            var serverVersion = fileVersionInfo.ProductVersion;
+
+            var msg = $"Server binaries version {serverVersion} - compiled {VersionConstant.CompilationTimestampUtc.ToString("ddd MMM d HH:mm:ss yyyy")} : ACEmulator\n";
+
+            msg += $"Server database version Base: {databaseVersion.BaseVersion} Patch: {databaseVersion.PatchVersion} - compiled {databaseVersion.LastModified.ToString("ddd MMM d HH:mm:ss yyyy")}\n";
 
 #if DEBUG
             msg += "Server is compiled in DEBUG mode";
