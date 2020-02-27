@@ -1,8 +1,12 @@
 extern alias MySqlConnectorAlias;
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
+using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -15,13 +19,9 @@ using ACE.DatLoader;
 using ACE.Server.Command;
 using ACE.Server.Managers;
 using ACE.Server.Network.Managers;
+
 using DouglasCrockford.JsMin;
 using Newtonsoft.Json;
-using System.Reflection;
-using System.Diagnostics;
-using System.Net;
-using System.IO.Compression;
-using Microsoft.EntityFrameworkCore;
 
 namespace ACE.Server
 {
@@ -57,13 +57,16 @@ namespace ACE.Server
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
             // Look for the log4net.config first in the current environment directory, then in the ExecutingAssembly location
+            var exeLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var log4netConfig = Path.Combine(exeLocation, "log4net.config");
+            var log4netConfigExample = Path.Combine(exeLocation, "log4net.config.example");
             var log4netFileInfo = new FileInfo("log4net.config");
             if (!log4netFileInfo.Exists)
-                log4netFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "log4net.config"));
+                log4netFileInfo = new FileInfo(log4netConfig);
 
             if (!log4netFileInfo.Exists)
             {
-                var exampleFile = new FileInfo(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "log4net.config.example"));
+                var exampleFile = new FileInfo(log4netConfigExample);
                 if (!exampleFile.Exists)
                 {
                     Console.WriteLine("log4net Configuration file is missing.  Please copy the file log4net.config.example to log4net.config and edit it to match your needs before running ACE.");
@@ -72,7 +75,7 @@ namespace ACE.Server
                 else
                 {
                     Console.WriteLine("log4net Configuration file is missing,  cloning from example file.");
-                    File.Copy(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "log4net.config.example"), Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "log4net.config"));
+                    File.Copy(log4netConfigExample, log4netConfig);
                 }
             }
 
