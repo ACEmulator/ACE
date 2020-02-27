@@ -499,7 +499,7 @@ namespace ACE.Adapter.GDLE
             }
         }
 
-        public static bool TryLoadWieldedTreasureTableConverted(string file, out List<Database.Models.World.TreasureWielded> results)
+        public static bool TryLoadWieldedTreasureTableConverted(string file, out List<TreasureWielded> results)
         {
             try
             {
@@ -507,7 +507,7 @@ namespace ACE.Adapter.GDLE
 
                 var gdleModel = JsonConvert.DeserializeObject<List<Models.WieldedTreasureTable>>(fileText);
 
-                results = new List<Database.Models.World.TreasureWielded>();
+                results = new List<TreasureWielded>();
 
                 foreach (var value in gdleModel)
                 {
