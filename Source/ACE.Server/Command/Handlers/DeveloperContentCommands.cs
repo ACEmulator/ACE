@@ -431,7 +431,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
         private static void ImportJsonLandblock(Session session, string json_folder, string json_file)
         {
-            if (!ushort.TryParse(Regex.Match(json_file, @"[0-9A-F]+").Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var landblockId))
+            if (!ushort.TryParse(Regex.Match(json_file, @"[0-9A-F]+", RegexOptions.IgnoreCase).Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var landblockId))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find landblock id from {json_file}");
                 return;
@@ -849,7 +849,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
         private static void ImportSQLLandblock(Session session, string sql_folder, string sql_file)
         {
-            if (!ushort.TryParse(Regex.Match(sql_file, @"[0-9A-F]+").Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var landblockId))
+            if (!ushort.TryParse(Regex.Match(sql_file, @"[0-9A-F]+", RegexOptions.IgnoreCase).Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var landblockId))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find landblock id from {sql_file}");
                 return;
@@ -960,6 +960,12 @@ namespace ACE.Server.Command.Handlers.Processors
 
         public static bool sql2json_landblock(Session session, List<LandblockInstance> instances, string sql_folder, string sql_filename)
         {
+            if (GDLEConverter.WeenieNames == null)
+                GDLEConverter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+
+            if (GDLEConverter.WeenieClassNames == null)
+                GDLEConverter.WeenieClassNames = DatabaseManager.World.GetAllWeenieClassNames();
+
             if (!GDLEConverter.TryConvert(instances, out var result))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {sql_filename} to json");
@@ -1651,7 +1657,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var sep = Path.DirectorySeparatorChar;
 
-            if (!ushort.TryParse(Regex.Match(parameters[0], @"[0-9A-F]+").Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var landblockId))
+            if (!ushort.TryParse(Regex.Match(parameters[0], @"[0-9A-F]+", RegexOptions.IgnoreCase).Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var landblockId))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"{parameters[0]} not a valid landblock");
                 return;
@@ -1663,6 +1669,12 @@ namespace ACE.Server.Command.Handlers.Processors
                 CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find landblock {landblockId:X4}");
                 return;
             }
+
+            if (GDLEConverter.WeenieNames == null)
+                GDLEConverter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+
+            if (GDLEConverter.WeenieClassNames == null)
+                GDLEConverter.WeenieClassNames = DatabaseManager.World.GetAllWeenieClassNames();
 
             if (!GDLEConverter.TryConvert(instances, out var result))
             {
@@ -1891,7 +1903,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var sep = Path.DirectorySeparatorChar;
 
-            if (!ushort.TryParse(Regex.Match(parameters[0], @"[0-9A-F]+").Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var landblockId))
+            if (!ushort.TryParse(Regex.Match(parameters[0], @"[0-9A-F]+", RegexOptions.IgnoreCase).Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var landblockId))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"{parameters[0]} not a valid landblock");
                 return;
