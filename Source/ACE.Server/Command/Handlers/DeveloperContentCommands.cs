@@ -1610,7 +1610,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            var cookbooks = DatabaseManager.World.GetCachedCookbooks(recipeId);
+            var cookbooks = DatabaseManager.World.GetCookbooksByRecipeId(recipeId);
             if (cookbooks == null)
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find recipe id {recipeId}");
@@ -1829,7 +1829,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            var cookbooks = DatabaseManager.World.GetCachedCookbooks(recipeId);
+            var cookbooks = DatabaseManager.World.GetCookbooksByRecipeId(recipeId);
             if (cookbooks == null)
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find recipe id {recipeId}");
