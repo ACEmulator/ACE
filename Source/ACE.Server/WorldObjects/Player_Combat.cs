@@ -150,12 +150,12 @@ namespace ACE.Server.WorldObjects
 
             if (damageEvent.HasDamage)
             {
-                OnDamageTarget(target, damageEvent.CombatType, damageEvent.IsCritical);
-
                 if (targetPlayer != null)
                     targetPlayer.TakeDamage(this, damageEvent);
                 else
                     target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.IsCritical);
+
+                OnDamageTarget(target, damageEvent.CombatType, damageEvent.IsCritical);
             }
             else
             {
@@ -211,20 +211,10 @@ namespace ACE.Server.WorldObjects
         {
             if (target is Creature creature && creature.IsAlive)
             {
-                // ensure emote process occurs after damage msg
-                var actionChain = new ActionChain();
-                actionChain.AddDelayForOneTick();
-                actionChain.AddAction(this, () =>
-                {
-                    if (creature.IsAlive)
-                    {
-                        if (critical)
-                            target.EmoteManager.OnReceiveCritical(this);
-                        else
-                            target.EmoteManager.OnDamage(this);
-                    }
-                });
-                actionChain.EnqueueChain();
+                if (critical)
+                    target.EmoteManager.OnReceiveCritical(this);
+                else
+                    target.EmoteManager.OnDamage(this);
             }
 
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
