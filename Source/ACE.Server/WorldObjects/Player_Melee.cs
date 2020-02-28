@@ -107,7 +107,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!CanDamage(creatureTarget))
+            if (!CanDamage(creatureTarget) || !creatureTarget.IsAlive)
                 return;     // werror?
 
             //log.Info($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {attackHeight}, {powerLevel})");
@@ -127,7 +127,12 @@ namespace ACE.Server.WorldObjects
 
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(delayTime);
-                actionChain.AddAction(this, () => HandleActionTargetedMeleeAttack_Inner(target, attackSequence));
+                actionChain.AddAction(this, () =>
+                {
+                    if (!creatureTarget.IsAlive) return;
+
+                    HandleActionTargetedMeleeAttack_Inner(target, attackSequence);
+                });
                 actionChain.EnqueueChain();
             }
             else
