@@ -807,6 +807,11 @@ namespace ACE.Server.Entity
             if (wo is Player player)
                 player.SetFogColor(FogColor);
 
+            if (wo is SpellProjectile)
+            {
+                wo.CurrentLandblock.lastActiveTime = DateTime.UtcNow;
+                wo.CurrentLandblock.IsDormant = false;
+            }
             return true;
         }
 
