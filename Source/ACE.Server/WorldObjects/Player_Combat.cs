@@ -150,12 +150,12 @@ namespace ACE.Server.WorldObjects
 
             if (damageEvent.HasDamage)
             {
+                OnDamageTarget(target, damageEvent.CombatType, damageEvent.IsCritical);
+
                 if (targetPlayer != null)
                     targetPlayer.TakeDamage(this, damageEvent);
                 else
-                    target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.IsCritical);
-
-                OnDamageTarget(target, damageEvent.CombatType, damageEvent.IsCritical);
+                    target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.IsCritical);                
             }
             else
             {
@@ -193,6 +193,11 @@ namespace ACE.Server.WorldObjects
                 // handle Dirty Fighting
                 if (GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
                     FightDirty(target);
+
+                if (damageEvent.IsCritical)
+                    target.EmoteManager.OnReceiveCritical(this);
+                else
+                    target.EmoteManager.OnDamage(this);
             }
 
             if (damageEvent.Damage > 0.0f)
@@ -209,14 +214,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void OnDamageTarget(WorldObject target, CombatType attackType, bool critical)
         {
-            if (target is Creature creature && creature.IsAlive)
-            {
-                if (critical)
-                    target.EmoteManager.OnReceiveCritical(this);
-                else
-                    target.EmoteManager.OnDamage(this);
-            }
-
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
             var difficulty = GetTargetEffectiveDefenseSkill(target);
 
