@@ -757,10 +757,10 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.LocalSignal:
 
-                    if (player != null)
+                    if (creature != null)
                     {
-                        if (player.CurrentLandblock != null)
-                            player.CurrentLandblock.EmitSignal(player, emote.Message);
+                        if (creature.CurrentLandblock != null)
+                            creature.CurrentLandblock.EmitSignal(creature, emote.Message);
                     }
                     break;
 
@@ -1745,9 +1745,9 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Called when this NPC receives a local signal from a player
         /// </summary>
-        public void OnLocalSignal(Player player, string message)
+        public void OnLocalSignal(Creature emitter, string message)
         {
-            ExecuteEmoteSet(EmoteCategory.ReceiveLocalSignal, message, player);
+            ExecuteEmoteSet(EmoteCategory.ReceiveLocalSignal, message, emitter);
         }
 
         /// <summary>

@@ -852,14 +852,14 @@ namespace ACE.Server.Entity
             }
         }
 
-        public void EmitSignal(Player player, string message)
+        public void EmitSignal(Creature emitter, string message)
         {
             foreach (var wo in worldObjects.Values.Where(w => w.HearLocalSignals).ToList())
             {
-                if (player.IsWithinUseRadiusOf(wo, wo.HearLocalSignalsRadius))
+                if (emitter.IsWithinUseRadiusOf(wo, wo.HearLocalSignalsRadius))
                 {
                     //Console.WriteLine($"{wo.Name}.EmoteManager.OnLocalSignal({player.Name}, {message})");
-                    wo.EmoteManager.OnLocalSignal(player, message);
+                    wo.EmoteManager.OnLocalSignal(emitter, message);
                 }
             }
         }
