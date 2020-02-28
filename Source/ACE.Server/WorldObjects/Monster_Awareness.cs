@@ -38,6 +38,7 @@ namespace ACE.Server.WorldObjects
             IsAwake = true;
             //DoAttackStance();
             EmoteManager.OnWakeUp(AttackTarget as Creature);
+            EmoteManager.OnNewEnemy(AttackTarget as Creature);
             //SelectTargetingTactic();
 
             if (alertNearby)
