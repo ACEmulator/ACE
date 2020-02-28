@@ -648,9 +648,6 @@ namespace ACE.Server.WorldObjects
 
             amount = (uint)Math.Round(damage.Value);    // full amount for debugging
 
-            if (critical)
-                target.EmoteManager.OnReceiveCritical(player);
-
             if (target.IsAlive)
             {
                 string verb = null, plural = null;
@@ -700,6 +697,15 @@ namespace ACE.Server.WorldObjects
 
                 if (!nonHealth && target.HasCloakEquipped)
                     Cloak.TryProcSpell(target, ProjectileSource, percent);
+
+                // ensure emote process occurs after damage msg
+                var actionChain = new ActionChain();
+                actionChain.AddDelayForOneTick();
+                if (critical)
+                    actionChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
+                else
+                    actionChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
+                actionChain.EnqueueChain();
             }
             else
             {

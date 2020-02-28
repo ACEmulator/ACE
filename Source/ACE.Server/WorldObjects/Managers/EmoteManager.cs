@@ -1391,6 +1391,12 @@ namespace ACE.Server.WorldObjects.Managers
                 emoteSet = emoteSet.Where(e => e.Substyle == null || e.Substyle == (uint)currentMotion);
             }
 
+            if (category == EmoteCategory.WoundedTaunt)
+            {
+                if (_worldObject is Creature creature)
+                    emoteSet = emoteSet.Where(e => creature.Health.Percent >= e.MinHealth && creature.Health.Percent <= e.MaxHealth);
+            }
+
             if (useRNG)
             {
                 var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
@@ -1710,7 +1716,6 @@ namespace ACE.Server.WorldObjects.Managers
 
         public void OnDamage(Creature attacker)
         {
-            // optionally restrict to Min/Max Health %
             ExecuteEmoteSet(EmoteCategory.WoundedTaunt, null, attacker);
         }
 

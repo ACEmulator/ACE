@@ -31,7 +31,11 @@ namespace ACE.Server.WorldObjects
             IsTurning = false;
             IsMoving = false;
 
-            EmoteManager.OnDeath(lastDamager?.TryGetAttacker());
+            // ensure emote process occurs after death msg
+            var actionChain = new ActionChain();
+            actionChain.AddDelayForOneTick();
+            actionChain.AddAction(this, () => EmoteManager.OnDeath(lastDamager?.TryGetAttacker()));
+            actionChain.EnqueueChain();
 
             OnDeath_GrantXP();
 

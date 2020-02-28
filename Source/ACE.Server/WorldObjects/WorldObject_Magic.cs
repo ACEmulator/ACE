@@ -452,6 +452,18 @@ namespace ACE.Server.WorldObjects
                         });
                         actionChain.EnqueueChain();
                     }
+
+                    if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health") && boost < 0)
+                    {
+                        // ensure emote process occurs after damage msg
+                        var actionChain = new ActionChain();
+                        actionChain.AddDelayForOneTick();
+                        if (critical)
+                            actionChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
+                        else
+                            actionChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
+                        actionChain.EnqueueChain();
+                    }
                     break;
 
                 case SpellType.Transfer:
@@ -596,6 +608,18 @@ namespace ACE.Server.WorldObjects
                             var pct = (float)srcVitalChange / spellTarget.Health.MaxValue;
                             Cloak.TryProcSpell(spellTarget, this, pct);
                         });
+                        actionChain.EnqueueChain();
+                    }
+
+                    if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health"))
+                    {
+                        // ensure emote process occurs after damage msg
+                        var actionChain = new ActionChain();
+                        actionChain.AddDelayForOneTick();
+                        if (critical)
+                            actionChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
+                        else
+                            actionChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
                         actionChain.EnqueueChain();
                     }
                     break;

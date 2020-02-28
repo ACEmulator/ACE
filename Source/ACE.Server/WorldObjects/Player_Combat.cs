@@ -209,8 +209,23 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void OnDamageTarget(WorldObject target, CombatType attackType, bool critical)
         {
-            if (critical)
-                target.EmoteManager.OnReceiveCritical(this);
+            if (target is Creature creature && creature.IsAlive)
+            {
+                // ensure emote process occurs after damage msg
+                var actionChain = new ActionChain();
+                actionChain.AddDelayForOneTick();
+                actionChain.AddAction(this, () =>
+                {
+                    if (creature.IsAlive)
+                    {
+                        if (critical)
+                            target.EmoteManager.OnReceiveCritical(this);
+                        else
+                            target.EmoteManager.OnDamage(this);
+                    }
+                });
+                actionChain.EnqueueChain();
+            }
 
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
             var difficulty = GetTargetEffectiveDefenseSkill(target);
