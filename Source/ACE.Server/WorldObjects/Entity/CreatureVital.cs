@@ -157,6 +157,8 @@ namespace ACE.Server.WorldObjects.Entity
 
         public uint Missing => MaxValue - Current;
 
+        public float Percent => (float)Current / MaxValue;
+
         public ModifierType ModifierType
         {
             get
