@@ -1,5 +1,5 @@
-
 using ACE.Common;
+using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
@@ -95,7 +95,7 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static WorldObject CreateJewelry(int tier, bool isMagical)
+        private static WorldObject CreateJewelry(TreasureDeath profile, bool isMagical)
         {
 
             // 35% chance ring, 35% chance bracelet, 30% chance necklace
@@ -131,45 +131,38 @@ namespace ACE.Server.Factories
 
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
             wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
-            int materialType = GetMaterialType(wo, tier);
+            int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
             int gemCount = ThreadSafeRandom.Next(1, 5);
             int gemType = ThreadSafeRandom.Next(10, 50);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
-            int workmanship = GetWorkmanship(tier);
+            int workmanship = GetWorkmanship(profile.Tier);
 
             double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(tier, workmanship, gemMaterialMod, materialMod);
+            var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
             wo.Value = value;
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
 
-            if (tier > 6)
+            if (profile.Tier > 6)
             {
-                int wield;
-
                 wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.Level);
                 wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.Axe);  // Set by examples from PCAP data
 
-                switch (tier)
+                var wield = profile.Tier switch
                 {
-                    case 7:
-                        wield = 150; // In this instance, used for indicating player level, rather than skill level
-                        break;
-                    default:
-                        wield = 180; // In this instance, used for indicating player level, rather than skill level
-                        break;
-                }
-
+                    7 => 150,// In this instance, used for indicating player level, rather than skill level
+                    _ => 180,// In this instance, used for indicating player level, rather than skill level
+                };
                 wo.SetProperty(PropertyInt.WieldDifficulty, wield);
             }
 
             if (isMagical)
-                wo = AssignMagic(wo, tier);
+                wo = AssignMagic(wo, profile);
             else
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
