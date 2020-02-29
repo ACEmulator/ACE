@@ -51,7 +51,7 @@ namespace ACE.Server.WorldObjects
                 return;*/
 
             // perform resistance check, if applicable
-            var resisted = tryResist ? TryResistSpell(spell, target, caster) : false;
+            var resisted = tryResist ? TryResistSpell(target, spell, caster) : false;
             if (resisted)
                 return;
 
@@ -86,7 +86,7 @@ namespace ACE.Server.WorldObjects
             if (player != null && status.Message != null && !status.Broadcast && showMsg)
                 player.Session.Network.EnqueueSend(status.Message);
             else if (player != null && status.Message != null && status.Broadcast && showMsg)
-                player.EnqueueBroadcast(status.Message, LocalBroadcastRange);
+                player.EnqueueBroadcast(status.Message, LocalBroadcastRange, ChatMessageType.Magic);
 
             // for invisible spell traps,
             // their effects won't be seen if they broadcast from themselves
@@ -95,55 +95,6 @@ namespace ACE.Server.WorldObjects
 
             if (caster != null && spell.CasterEffect != 0)
                 caster.EnqueueBroadcast(new GameMessageScript(caster.Guid, spell.CasterEffect, spell.Formula.Scale));
-        }
-
-        /// <summary>
-        /// If this spell has a chance to be resisted, rolls for a chance
-        /// Returns TRUE if spell is resistable and was resisted for this attempt
-        /// </summary>
-        public bool TryResistSpell(Spell spell, WorldObject target, WorldObject caster = null)
-        {
-            if (spell.IsBeneficial || !spell.IsResistable)
-                return false;
-
-            // todo: verify this flag exists for all resistable spells
-            //if (!spell.Flags.HasFlag(SpellFlags.Resistable))
-                //return false;
-
-            var targetSelf = spell.Flags.HasFlag(SpellFlags.SelfTargeted);
-            if (targetSelf) return false;
-
-            switch (spell.School)
-            {
-                case MagicSchool.WarMagic:
-                    // war magic projectiles do the resistance check on projectile collision
-                    break;
-                case MagicSchool.LifeMagic:
-                case MagicSchool.CreatureEnchantment:
-                    if (spell.NumProjectiles == 0)  // life magic projectiles
-                    {
-                        bool? resisted = ResistSpell(target, spell, caster);
-                        if (resisted != null && resisted == true)
-                            return true;
-                    }
-                    break;
-                case MagicSchool.ItemEnchantment:
-                    {
-                        bool? resisted = ResistSpell(target, spell, caster);
-                        if (resisted != null && resisted == true)
-                            return true;
-                    }
-                    break;
-                case MagicSchool.VoidMagic:
-                    if (spell.NumProjectiles == 0)  // void magic projectiles
-                    {
-                        bool? resisted = ResistSpell(target, spell, caster);
-                        if (resisted != null && resisted == true)
-                            return true;
-                    }
-                    break;
-            }
-            return false;
         }
 
         /// <summary>
@@ -253,6 +204,9 @@ namespace ACE.Server.WorldObjects
             if (caster == target && spell.IsNegativeRedirectable)
                 return true;
 
+            if (targetCreature != null && spell.NonComponentTargetType == ItemType.Creature && !caster.CanDamage(targetCreature))
+                return true;
+
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
             if ((spell.MetaSpellType == SpellType.Enchantment) && (spell.School == MagicSchool.ItemEnchantment))
             {
@@ -289,10 +243,17 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Performs the magic defense checks for spell attacks
+        /// If this spell has a chance to be resisted, rolls for a chance
+        /// Returns TRUE if spell is resistable and was resisted for this attempt
         /// </summary>
-        public bool? ResistSpell(WorldObject target, Spell spell, WorldObject caster = null)
+        public bool TryResistSpell(WorldObject target, Spell spell, WorldObject caster = null, bool projectileHit = false)
         {
+            if (!spell.IsResistable && (spell.School != MagicSchool.ItemEnchantment || spell.NonComponentTargetType == ItemType.Creature) || spell.IsSelfTargeted)
+                return false;
+
+            if (spell.NumProjectiles > 0 && !projectileHit)
+                return false;
+
             uint magicSkill = 0;
 
             if (caster == null)
@@ -319,7 +280,7 @@ namespace ACE.Server.WorldObjects
 
             // only creatures can resist spells?
             if (!(target is Creature targetCreature))
-                return null;
+                return false;
 
             // Retrieve target's Magic Defense Skill
             var difficulty = targetCreature.GetEffectiveMagicDefense();
@@ -478,6 +439,31 @@ namespace ACE.Server.WorldObjects
                     if (player != null && srcVital != null && srcVital.Equals("health"))
                         player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
 
+                    // handle cloaks
+                    if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health") && boost < 0 && spellTarget.HasCloakEquipped)
+                    {
+
+                        if (spellTarget.HasCloakEquipped)
+                        {
+                            // ensure message is sent after enchantment.Message
+                            var actionChain = new ActionChain();
+                            actionChain.AddDelayForOneTick();
+                            actionChain.AddAction(this, () =>
+                            {
+                                var pct = (float)-boost / spellTarget.Health.MaxValue;
+                                Cloak.TryProcSpell(spellTarget, this, pct);
+                            });
+                            actionChain.EnqueueChain();
+                        }
+
+                        // ensure emote process occurs after damage msg
+                        var emoteChain = new ActionChain();
+                        emoteChain.AddDelayForOneTick();
+                        emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
+                        //if (critical)
+                        //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
+                        emoteChain.EnqueueChain();
+                    }
                     break;
 
                 case SpellType.Transfer:
@@ -611,6 +597,30 @@ namespace ACE.Server.WorldObjects
                     if (player != null && srcVital != null && srcVital.Equals("health"))
                         player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
 
+                    // handle cloaks
+                    if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health"))
+                    {
+                        if (spellTarget.HasCloakEquipped)
+                        {
+                            // ensure message is sent after enchantment.Message
+                            var actionChain = new ActionChain();
+                            actionChain.AddDelayForOneTick();
+                            actionChain.AddAction(this, () =>
+                            {
+                                var pct = (float)srcVitalChange / spellTarget.Health.MaxValue;
+                                Cloak.TryProcSpell(spellTarget, this, pct);
+                            });
+                            actionChain.EnqueueChain();
+                        }
+
+                        // ensure emote process occurs after damage msg
+                        var emoteChain = new ActionChain();
+                        emoteChain.AddDelayForOneTick();
+                        emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
+                        //if (critical)
+                        //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
+                        emoteChain.EnqueueChain();
+                    }
                     break;
 
                 case SpellType.LifeProjectile:
@@ -1376,6 +1386,12 @@ namespace ACE.Server.WorldObjects
 
                 sp.EnqueueBroadcast(new GameMessageScript(sp.Guid, PlayScript.Launch, sp.GetProjectileScriptIntensity(spellType)));
 
+                if (!IsProjectileVisible(sp))
+                {
+                    sp.OnCollideEnvironment();
+                    continue;
+                }
+
                 spellProjectiles.Add(sp);
             }
 
@@ -1503,17 +1519,8 @@ namespace ACE.Server.WorldObjects
             if (player != null && targetCreature != null && targetPlayer == null)
                 player.OnAttackMonster(targetCreature);
 
-            if (spell.IsHarmful)
-            {
-                var resisted = ResistSpell(target, spell, caster);
-                if (resisted == true)
-                    return false;
-                if (resisted == null)
-                {
-                    log.Error("Something went wrong with the Magic resistance check");
-                    return false;
-                }
-            }
+            if (TryResistSpell(target, spell, caster))
+                return false;
 
             EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, spell.Formula.Scale));
             var enchantmentStatus = CreatureMagic(target, spell);
@@ -1552,15 +1559,22 @@ namespace ACE.Server.WorldObjects
             // create enchantment
             AddEnchantmentResult addResult;
             var aetheriaProc = false;
+            var cloakProc = false;
 
-            if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId) && caster.ProcSpell == spell.Id)
+            if (caster.ProcSpell == spell.Id)
             {
-                caster = this;
-                addResult = target.EnchantmentManager.Add(spell, caster, equip);
-                aetheriaProc = true;
+                if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId))
+                {
+                    caster = this;
+                    aetheriaProc = true;
+                }
+                else if (Cloak.IsCloak(caster))
+                {
+                    caster = this;
+                    cloakProc = true;
+                }
             }
-            else
-                addResult = target.EnchantmentManager.Add(spell, caster, equip);
+            addResult = target.EnchantmentManager.Add(spell, caster, equip);
 
             // build message
             var suffix = "";
@@ -1614,7 +1628,7 @@ namespace ACE.Server.WorldObjects
             if (playerTarget == null && target.Wielder is Player wielder)
                 playerTarget = wielder;
 
-            if (playerTarget != null && playerTarget != this && !playerTarget.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic))
+            if (playerTarget != null && playerTarget != this && !playerTarget.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic) && !cloakProc)
             {
                 var targetName = target == playerTarget ? "you" : target.Name;
 

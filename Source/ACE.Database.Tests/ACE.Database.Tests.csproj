@@ -6,6 +6,24 @@
     <IsPackable>false</IsPackable>
 
     <Platforms>x64</Platforms>
+
+    <Authors>ACEmulator Contributors</Authors>
+
+    <Company>ACEmulator</Company>
+
+    <Description>Asheron's Call server emulator</Description>
+
+    <Copyright>© 2017-2020 ACEmulator Team and Contributors</Copyright>
+
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+
+    <RepositoryUrl>https://github.com/ACEmulator/ACE</RepositoryUrl>
+
+    <PackageProjectUrl>https://emulator.ac</PackageProjectUrl>
+
+    <RepositoryType>git</RepositoryType>
+
+    <Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +36,13 @@
   <ItemGroup>
     <ProjectReference Include="..\ACE.Common\ACE.Common.csproj" />
     <ProjectReference Include="..\ACE.Database\ACE.Database.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

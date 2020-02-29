@@ -11,10 +11,12 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database.Entity;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+
 using Version = ACE.Database.Models.World.Version;
 
 namespace ACE.Database
@@ -332,7 +334,7 @@ namespace ACE.Database
                     .AsNoTracking()
                     .ToList();
 
-                Parallel.ForEach(results, result =>
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
                     if (!weenieCache.ContainsKey(result.ClassId))
                         GetWeenie(result.ClassId);
@@ -425,6 +427,14 @@ namespace ACE.Database
         public int GetLandblockInstancesCacheCount()
         {
             return cachedLandblockInstances.Count(r => r.Value != null);
+        }
+
+        /// <summary>
+        /// Clears the cached landblock instances for all landblocks
+        /// </summary>
+        public void ClearCachedLandblockInstances()
+        {
+            cachedLandblockInstances.Clear();
         }
 
         /// <summary>
@@ -772,7 +782,7 @@ namespace ACE.Database
                     .AsNoTracking()
                     .ToList();
 
-                Parallel.ForEach(results, result =>
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
                     GetCachedCookbook(result.SourceWCID, result.TargetWCID);
                 });
@@ -1122,6 +1132,11 @@ namespace ACE.Database
 
         private readonly ConcurrentDictionary<string, Quest> cachedQuest = new ConcurrentDictionary<string, Quest>();
 
+        public bool ClearCachedQuest(string questName)
+        {
+            return cachedQuest.TryRemove(questName, out _);
+        }
+
         public Quest GetCachedQuest(string questName)
         {
             if (cachedQuest.TryGetValue(questName, out var quest))
@@ -1134,6 +1149,17 @@ namespace ACE.Database
 
                 return quest;
             }
+        }
+
+        public Dictionary<uint, string> GetAllWeenieClassNames(WorldDbContext context)
+        {
+            return context.Weenie.ToDictionary(r => r.ClassId, r => r.ClassName);
+        }
+
+        public Dictionary<uint, string> GetAllWeenieClassNames()
+        {
+            using (var context = new WorldDbContext())
+                return GetAllWeenieClassNames(context);
         }
 
         public Dictionary<uint, string> GetAllWeenieNames(WorldDbContext context)

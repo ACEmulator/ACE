@@ -107,7 +107,7 @@ namespace ACE.Adapter.GDLE
 
                 foreach (var weenie in landblock.value.weenies)
                 {
-                    var newGuid = (0x70000000 | ((weenie.pos.ObjCellId & 0xFFFF0000) >> 4) | currentOffset);
+                    var newGuid = (0x70000000 | ((weenie.pos.objcell_id & 0xFFFF0000) >> 4) | currentOffset);
                     currentOffset++;
 
                     if (!idChanges[landblock.key].ContainsKey(weenie.id))
@@ -241,6 +241,22 @@ namespace ACE.Adapter.GDLE
             }
         }
 
+        public static bool TryLoadQuest(string file, out Models.Quest result)
+        {
+            try
+            {
+                var fileText = File.ReadAllText(file);
+
+                result = JsonConvert.DeserializeObject<Models.Quest>(fileText);
+
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
+        }
 
         public static bool TryLoadQuests(string file, out List<Models.Quest> results)
         {
@@ -483,7 +499,7 @@ namespace ACE.Adapter.GDLE
             }
         }
 
-        public static bool TryLoadWieldedTreasureTableConverted(string file, out List<Database.Models.World.TreasureWielded> results)
+        public static bool TryLoadWieldedTreasureTableConverted(string file, out List<TreasureWielded> results)
         {
             try
             {
@@ -491,7 +507,7 @@ namespace ACE.Adapter.GDLE
 
                 var gdleModel = JsonConvert.DeserializeObject<List<Models.WieldedTreasureTable>>(fileText);
 
-                results = new List<Database.Models.World.TreasureWielded>();
+                results = new List<TreasureWielded>();
 
                 foreach (var value in gdleModel)
                 {

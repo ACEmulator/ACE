@@ -451,6 +451,9 @@ namespace ACE.Server.WorldObjects
         public virtual uint GetEffectiveAttackSkill()
         {
             var attackSkill = GetCreatureSkill(GetCurrentAttackSkill()).Current;
+
+            // TODO: don't use for bow?
+            // https://asheron.fandom.com/wiki/Developer_Chat_-_2002/09/23
             var offenseMod = GetWeaponOffenseModifier(this);
 
             // monsters don't use accuracy mod?
@@ -645,7 +648,7 @@ namespace ACE.Server.WorldObjects
 
             // shield AL item enchantment additives:
             // impenetrability, brittlemail
-            var ignoreMagicArmor = weapon != null ? weapon.IgnoreMagicArmor : false;
+            var ignoreMagicArmor = (weapon?.IgnoreMagicArmor ?? false) || (attacker?.IgnoreMagicArmor ?? false);
 
             var modSL = ignoreMagicArmor ? 0 : shield.EnchantmentManager.GetArmorMod();
             var effectiveSL = baseSL + modSL;
@@ -1226,5 +1229,16 @@ namespace ACE.Server.WorldObjects
         {
             return EquippedObjects.Values.Count(i => i.GetImbuedEffects().HasFlag(imbuedEffectType));
         }
+
+        /// <summary>
+        /// Returns the cloak the creature has equipped,
+        /// or 'null' if no cloak is equipped
+        /// </summary>
+        public WorldObject EquippedCloak => EquippedObjects.Values.FirstOrDefault(i => i.ValidLocations == EquipMask.Cloak);
+
+        /// <summary>
+        /// Returns TRUE if creature has cloak equipped
+        /// </summary>
+        public bool HasCloakEquipped => EquippedCloak != null;
     }
 }

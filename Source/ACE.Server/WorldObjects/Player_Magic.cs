@@ -938,17 +938,8 @@ namespace ACE.Server.WorldObjects
                     if (targetPlayer == null)
                         OnAttackMonster(targetCreature);
 
-                    if (spell.IsHarmful)
-                    {
-                        var resisted = ResistSpell(target, spell, caster);
-                        if (resisted == true)
-                            break;
-                        if (resisted == null)
-                        {
-                            log.Error("Something went wrong with the Magic resistance check");
-                            break;
-                        }
-                    }
+                    if (TryResistSpell(target, spell, caster))
+                        break;
 
                     if (targetCreature != null && targetCreature.NonProjectileMagicImmune)
                     {
@@ -983,20 +974,11 @@ namespace ACE.Server.WorldObjects
                     if (targetPlayer == null)
                         OnAttackMonster(targetCreature);
 
+                    if (TryResistSpell(target, spell, caster))
+                        break;
+
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
-                        if (spell.IsHarmful)
-                        {
-                            var resisted = ResistSpell(target, spell, caster);
-                            if (resisted == true)
-                                break;
-                            if (resisted == null)
-                            {
-                                log.Error("Something went wrong with the Magic resistance check");
-                                break;
-                            }
-                        }
-
                         if (targetCreature != null && targetCreature.NonProjectileMagicImmune)
                         {
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetCreature.Name} with {spell.Name}", ChatMessageType.Magic));
@@ -1049,17 +1031,8 @@ namespace ACE.Server.WorldObjects
                         if (targetResist == null && target?.WielderId != null)
                             targetResist = CurrentLandblock?.GetObject(target.WielderId.Value) as Creature;
 
-                        if (targetResist != null)
-                        {
-                            var resisted = ResistSpell(targetResist, spell, caster);
-                            if (resisted == true)
-                                break;
-                            if (resisted == null)
-                            {
-                                log.Error("Something went wrong with the Magic resistance check");
-                                break;
-                            }
-                        }
+                        if (targetResist != null && TryResistSpell(targetResist, spell, caster))
+                            break;
                     }
 
                     if (spell.IsImpenBaneType)

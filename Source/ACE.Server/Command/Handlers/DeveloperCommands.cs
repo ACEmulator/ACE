@@ -18,6 +18,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
@@ -2291,9 +2292,16 @@ namespace ACE.Server.Command.Handlers
             if (parameters.Length > 1)
                 int.TryParse(parameters[1], out numItems);
 
+            // Create a dummy treasure profile for passing in tier value
+            TreasureDeath profile = new TreasureDeath
+            {
+                Tier = 7,
+                LootQualityMod = 0
+            };
+
             for (var i = 0; i < numItems; i++)
             {
-                var wo = LootGenerationFactory.CreateRandomLootObjects(tier, true);
+                var wo = LootGenerationFactory.CreateRandomLootObjects(profile, true);
                 if (wo != null)
                     session.Player.TryCreateInInventoryWithNetworking(wo);
                 else
@@ -2427,9 +2435,14 @@ namespace ACE.Server.Command.Handlers
         public static void HandleAddItemSpell(Session session, params string[] parameters)
         {
             var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
-
-            if (!int.TryParse(parameters[0], out var spellId))
+            if (obj == null)
                 return;
+
+            if (!Enum.TryParse(parameters[0], true, out SpellId spellId))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{parameters[0]} is not a valid spell id", ChatMessageType.Broadcast));
+                return;
+            }
 
             // ensure valid spell id
             var spell = new Spell(spellId);
@@ -2440,9 +2453,38 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            obj.Biota.GetOrAddKnownSpell(spellId, obj.BiotaDatabaseLock, obj.BiotaPropertySpells, out var spellAdded);
+            obj.Biota.GetOrAddKnownSpell((int)spellId, obj.BiotaDatabaseLock, obj.BiotaPropertySpells, out var spellAdded);
 
             var msg = spellAdded ? "added to" : "already on";
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} ({spell.Id}) {msg} {obj.Name}", ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("removeitemspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Removes a spell to the last appraised item's spellbook.", "<spell id>")]
+        public static void HandleRemoveItemSpell(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (obj == null)
+                return;
+
+            if (!Enum.TryParse(parameters[0], true, out SpellId spellId))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{parameters[0]} is not a valid spell id", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // ensure valid spell id
+            var spell = new Spell(spellId);
+
+            if (spell.NotFound)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("SpellID is not found", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var spellRemoved = obj.Biota.TryRemoveKnownSpell((int)spellId, out _, obj.BiotaDatabaseLock, obj.BiotaPropertySpells);
+
+            var msg = spellRemoved ? "removed from" : "not found on";
 
             session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} ({spell.Id}) {msg} {obj.Name}", ChatMessageType.Broadcast));
         }
@@ -2905,6 +2947,31 @@ namespace ACE.Server.Command.Handlers
             session.Player.CurrentLandblock.AddWorldObject(wo);
 
             LastTestAim = wo;
+        }
+
+        [CommandHandler("reload-landblock", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Reloads the current landblock.")]
+        public static void HandleReloadLandblocks(Session session, params string[] parameters)
+        {
+            var landblock = session.Player.CurrentLandblock;
+
+            var landblockId = landblock.Id.Raw | 0xFFFF;
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Reloading 0x{landblockId:X8}", ChatMessageType.Broadcast));
+
+            // destroy all non-player server objects
+            landblock.DestroyAllNonPlayerObjects();
+
+            // clear landblock cache
+            DatabaseManager.World.ClearCachedInstancesByLandblock(landblock.Id.Landblock);
+
+            // reload landblock
+            var actionChain = new ActionChain();
+            actionChain.AddDelayForOneTick();
+            actionChain.AddAction(session.Player, () =>
+            {
+                landblock.Init(true);
+            });
+            actionChain.EnqueueChain();
         }
     }
 }

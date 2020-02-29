@@ -97,9 +97,13 @@ namespace ACE.Server.WorldObjects
 
             if (SpellDID.HasValue)
             {
+                // TODO: Gem 7559 - Condensed Dispel Potion
+                // has values similar to Food, ie. UseUserAnimation - MimeEat,
+                // and UseSound - Drink1
+
                 var spell = new Server.Entity.Spell((uint)SpellDID);
 
-                TryCastSpell(spell, player, this);
+                TryCastSpell(spell, player, this, false);
             }
 
             if (UseCreateContractId > 0)

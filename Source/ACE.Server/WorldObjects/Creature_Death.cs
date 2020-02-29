@@ -32,12 +32,8 @@ namespace ACE.Server.WorldObjects
             IsTurning = false;
             IsMoving = false;
 
-            var killer = lastDamager?.TryGetAttacker();
-
-            EmoteManager.OnDeath(killer);
-
-            QuestManager.OnDeath(killer);
-
+            QuestManager.OnDeath(lastDamager?.TryGetAttacker());
+            
             OnDeath_GrantXP();
 
             if (IsGenerator)
@@ -105,6 +101,8 @@ namespace ACE.Server.WorldObjects
             // broadcast death animation
             var motionDeath = new Motion(MotionStance.NonCombat, MotionCommand.Dead);
             var deathAnimLength = ExecuteMotion(motionDeath);
+
+            EmoteManager.OnDeath(lastDamager?.TryGetAttacker());
 
             var dieChain = new ActionChain();
 
