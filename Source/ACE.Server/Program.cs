@@ -1,6 +1,12 @@
+extern alias MySqlConnectorAlias;
+
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
+using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -13,10 +19,9 @@ using ACE.DatLoader;
 using ACE.Server.Command;
 using ACE.Server.Managers;
 using ACE.Server.Network.Managers;
+
 using DouglasCrockford.JsMin;
 using Newtonsoft.Json;
-using System.Reflection;
-using System.Diagnostics;
 
 namespace ACE.Server
 {
@@ -52,13 +57,16 @@ namespace ACE.Server
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
             // Look for the log4net.config first in the current environment directory, then in the ExecutingAssembly location
+            var exeLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var log4netConfig = Path.Combine(exeLocation, "log4net.config");
+            var log4netConfigExample = Path.Combine(exeLocation, "log4net.config.example");
             var log4netFileInfo = new FileInfo("log4net.config");
             if (!log4netFileInfo.Exists)
-                log4netFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "log4net.config"));
+                log4netFileInfo = new FileInfo(log4netConfig);
 
             if (!log4netFileInfo.Exists)
             {
-                var exampleFile = new FileInfo(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "log4net.config.example"));
+                var exampleFile = new FileInfo(log4netConfigExample);
                 if (!exampleFile.Exists)
                 {
                     Console.WriteLine("log4net Configuration file is missing.  Please copy the file log4net.config.example to log4net.config and edit it to match your needs before running ACE.");
@@ -67,7 +75,7 @@ namespace ACE.Server
                 else
                 {
                     Console.WriteLine("log4net Configuration file is missing,  cloning from example file.");
-                    File.Copy(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "log4net.config.example"), Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "log4net.config"));
+                    File.Copy(log4netConfigExample, log4netConfig);
                 }
             }
 
@@ -215,7 +223,7 @@ namespace ACE.Server
             else
             {
                 Console.WriteLine("config.js Configuration file is missing,  cloning from example file.");
-                File.Copy(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "config.js.example"), configFile);
+                File.Copy(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "config.js.example"), configFile, true);
             }
 
             var fileText = File.ReadAllText(configFile);
@@ -232,7 +240,7 @@ namespace ACE.Server
             Console.Write($"Enter the name for your World (default: \"{config.Server.WorldName}\"): ");
             var variable = Console.ReadLine();
             if (!string.IsNullOrWhiteSpace(variable))
-                config.Server.WorldName = new string(variable.Trim());
+                config.Server.WorldName = variable.Trim();
             Console.WriteLine();
 
             Console.WriteLine();
@@ -243,7 +251,7 @@ namespace ACE.Server
             Console.Write($"Enter the Host address for your World (default: \"{config.Server.Network.Host}\"): ");
             variable = Console.ReadLine();
             if (!string.IsNullOrWhiteSpace(variable))
-                config.Server.Network.Host = new string(variable.Trim());
+                config.Server.Network.Host = variable.Trim();
             Console.WriteLine();
 
             Console.Write($"Enter the Port for your World (default: \"{config.Server.Network.Port}\"): ");
@@ -259,7 +267,7 @@ namespace ACE.Server
             variable = Console.ReadLine();
             if (!string.IsNullOrWhiteSpace(variable))
             {
-                var path = Path.GetFullPath(new string(variable.Trim()));
+                var path = Path.GetFullPath(variable.Trim());
                 if (!Path.EndsInDirectorySeparator(path))
                     path += Path.DirectorySeparatorChar;
                 //path = path.Replace($"{Path.DirectorySeparatorChar}", $"{Path.DirectorySeparatorChar}{Path.DirectorySeparatorChar}");
@@ -280,95 +288,148 @@ namespace ACE.Server
             Console.Write($"Enter the database name for your authentication database (default: \"{config.MySql.Authentication.Database}\"): ");
             variable = Console.ReadLine();
             if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Authentication.Database = new string(variable.Trim());
+                config.MySql.Authentication.Database = variable.Trim();
             Console.WriteLine();
-
-            Console.Write($"Enter the Host address for your authentication database (default: \"{config.MySql.Authentication.Host}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Authentication.Host = new string(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the Port for your authentication database (default: \"{config.MySql.Authentication.Port}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Authentication.Port = Convert.ToUInt32(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the username for your authentication database (default: \"{config.MySql.Authentication.Username}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Authentication.Username = new string(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the password for your authentication database (default: \"{config.MySql.Authentication.Password}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Authentication.Password = new string(variable.Trim());
-            Console.WriteLine();
-
 
             Console.Write($"Enter the database name for your shard database (default: \"{config.MySql.Shard.Database}\"): ");
             variable = Console.ReadLine();
             if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Shard.Database = new string(variable.Trim());
+                config.MySql.Shard.Database = variable.Trim();
             Console.WriteLine();
-
-            Console.Write($"Enter the Host address for your shard database (default: \"{config.MySql.Shard.Host}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Shard.Host = new string(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the Port for your shard database (default: \"{config.MySql.Shard.Port}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Shard.Port = Convert.ToUInt32(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the username for your shard database (default: \"{config.MySql.Shard.Username}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Shard.Username = new string(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the password for your shard database (default: \"{config.MySql.Shard.Password}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Shard.Password = new string(variable.Trim());
-            Console.WriteLine();
-
 
             Console.Write($"Enter the database name for your world database (default: \"{config.MySql.World.Database}\"): ");
             variable = Console.ReadLine();
             if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.World.Database = new string(variable.Trim());
+                config.MySql.World.Database = variable.Trim();
             Console.WriteLine();
 
-            Console.Write($"Enter the Host address for your world database (default: \"{config.MySql.World.Host}\"): ");
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.Write("Typically, all three databases will be on the same SQL server, is this how you want to proceed? (Y/n) ");
             variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.World.Host = new string(variable.Trim());
-            Console.WriteLine();
+            if (!variable.Equals("n", StringComparison.OrdinalIgnoreCase) && !variable.Equals("no", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.Write($"Enter the Host address for your SQL server (default: \"{config.MySql.World.Host}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                {
+                    config.MySql.Authentication.Host = variable.Trim();
+                    config.MySql.Shard.Host = variable.Trim();
+                    config.MySql.World.Host = variable.Trim();
+                }
+                Console.WriteLine();
 
-            Console.Write($"Enter the Port for your world database (default: \"{config.MySql.World.Port}\"): ");
+                Console.Write($"Enter the Port for your SQL server (default: \"{config.MySql.World.Port}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                {
+                    config.MySql.Authentication.Port = Convert.ToUInt32(variable.Trim());
+                    config.MySql.Shard.Port = Convert.ToUInt32(variable.Trim());
+                    config.MySql.World.Port = Convert.ToUInt32(variable.Trim());
+                }
+                Console.WriteLine();
+            }
+            else
+            {
+                Console.Write($"Enter the Host address for your authentication database (default: \"{config.MySql.Authentication.Host}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                    config.MySql.Authentication.Host = variable.Trim();
+                Console.WriteLine();
+
+                Console.Write($"Enter the Port for your authentication database (default: \"{config.MySql.Authentication.Port}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                    config.MySql.Authentication.Port = Convert.ToUInt32(variable.Trim());
+                Console.WriteLine();
+
+                Console.Write($"Enter the Host address for your shard database (default: \"{config.MySql.Shard.Host}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                    config.MySql.Shard.Host = variable.Trim();
+                Console.WriteLine();
+
+                Console.Write($"Enter the Port for your shard database (default: \"{config.MySql.Shard.Port}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                    config.MySql.Shard.Port = Convert.ToUInt32(variable.Trim());
+                Console.WriteLine();
+
+                Console.Write($"Enter the Host address for your world database (default: \"{config.MySql.World.Host}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                    config.MySql.World.Host = variable.Trim();
+                Console.WriteLine();
+
+                Console.Write($"Enter the Port for your world database (default: \"{config.MySql.World.Port}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                    config.MySql.World.Port = Convert.ToUInt32(variable.Trim());
+                Console.WriteLine();
+            }
+
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.Write("Typically, all three databases will be on the using the same SQL server credentials, is this how you want to proceed? (Y/n) ");
             variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.World.Port = Convert.ToUInt32(variable.Trim());
-            Console.WriteLine();
+            if (!variable.Equals("n", StringComparison.OrdinalIgnoreCase) && !variable.Equals("no", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.Write($"Enter the username for your SQL server (default: \"{config.MySql.World.Username}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                {
+                    config.MySql.Authentication.Username = variable.Trim();
+                    config.MySql.Shard.Username = variable.Trim();
+                    config.MySql.World.Username = variable.Trim();
+                }
+                Console.WriteLine();
 
-            Console.Write($"Enter the username for your world database (default: \"{config.MySql.World.Username}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.World.Username = new string(variable.Trim());
-            Console.WriteLine();
+                Console.Write($"Enter the password for your SQL server (default: \"{config.MySql.World.Password}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                {
+                    config.MySql.Authentication.Password = variable.Trim();
+                    config.MySql.Shard.Password = variable.Trim();
+                    config.MySql.World.Password = variable.Trim();
+                }
+            }
+            else
+            {
+                Console.Write($"Enter the username for your authentication database (default: \"{config.MySql.Authentication.Username}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                    config.MySql.Authentication.Username = variable.Trim();
+                Console.WriteLine();
 
-            Console.Write($"Enter the password for your world database (default: \"{config.MySql.World.Password}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.World.Password = new string(variable.Trim());
-            Console.WriteLine();
+                Console.Write($"Enter the password for your authentication database (default: \"{config.MySql.Authentication.Password}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                    config.MySql.Authentication.Password = variable.Trim();
+                Console.WriteLine();
 
+                Console.Write($"Enter the username for your shard database (default: \"{config.MySql.Shard.Username}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                    config.MySql.Shard.Username = variable.Trim();
+                Console.WriteLine();
+
+                Console.Write($"Enter the password for your shard database (default: \"{config.MySql.Shard.Password}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                    config.MySql.Shard.Password = variable.Trim();
+                Console.WriteLine();
+
+                Console.Write($"Enter the username for your world database (default: \"{config.MySql.World.Username}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                    config.MySql.World.Username = variable.Trim();
+                Console.WriteLine();
+
+                Console.Write($"Enter the password for your world database (default: \"{config.MySql.World.Password}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                    config.MySql.World.Password = variable.Trim();
+            }
 
             Console.WriteLine("commiting configuration to memory...");
             using (StreamWriter file = File.CreateText(configFile))
@@ -380,7 +441,196 @@ namespace ACE.Server
                 serializer.Serialize(file, config);
             }
 
-            Console.WriteLine("exiting out of box setup for ACEmulator.");
+
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.Write("Do you want to ACEmulator to attempt to initilize your SQL databases? This will erase any existing ACEmulator specific databases that may already exist on the server (Y/n): ");
+            variable = Console.ReadLine();
+            if (!variable.Equals("n", StringComparison.OrdinalIgnoreCase) && !variable.Equals("no", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine();
+
+                Console.WriteLine("Searching for base SQL scripts .... ");
+                foreach (var file in new DirectoryInfo("DatabaseSetupScripts\\Base").GetFiles("*.sql"))
+                {
+                    Console.Write($"Found {file.Name} .... ");
+                    var sqlDBFile = File.ReadAllText(file.FullName);
+                    var sqlConnectInfo = $"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password}";
+                    switch (file.Name)
+                    {
+                        case "AuthenticationBase":
+                            sqlConnectInfo = $"server={config.MySql.Authentication.Host};port={config.MySql.Authentication.Port};user={config.MySql.Authentication.Username};password={config.MySql.Authentication.Password}";
+                            break;
+                        case "ShardBase":
+                            sqlConnectInfo = $"server={config.MySql.Shard.Host};port={config.MySql.Shard.Port};user={config.MySql.Shard.Username};password={config.MySql.Shard.Password}";
+                            break;
+                    }
+                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection(sqlConnectInfo);
+                    var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
+
+                    Console.Write($"Importing into SQL server at {config.MySql.World.Host}:{config.MySql.World.Port} .... ");
+                    try
+                    {
+                        script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
+                        var count = script.Execute();
+                    }
+                    catch (MySql.Data.MySqlClient.MySqlException)
+                    {
+
+                    }
+                    Console.WriteLine(" complete!");
+                }
+                Console.WriteLine("Base SQL scripts import complete!");
+
+                Console.WriteLine("Searching for Update SQL scripts .... ");
+
+                Console.WriteLine("Searching for Authentication update SQL scripts .... ");
+                foreach (var file in new DirectoryInfo("DatabaseSetupScripts\\Updates\\Authentication").GetFiles("*.sql"))
+                {
+                    Console.Write($"Found {file.Name} .... ");
+                    var sqlDBFile = File.ReadAllText(file.FullName);
+                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.Authentication.Host};port={config.MySql.Authentication.Port};user={config.MySql.Authentication.Username};password={config.MySql.Authentication.Password};database={config.MySql.Authentication.Database}");
+                    var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
+
+                    Console.Write($"Importing into {config.MySql.Authentication.Database} database on SQL server at {config.MySql.Authentication.Host}:{config.MySql.Authentication.Port} .... ");
+                    try
+                    {
+                        script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
+                        var count = script.Execute();
+                    }
+                    catch (MySql.Data.MySqlClient.MySqlException)
+                    {
+
+                    }
+                    Console.WriteLine(" complete!");
+                }
+                Console.WriteLine("Authentication update SQL scripts import complete!");
+
+                Console.WriteLine("Searching for Shard update SQL scripts .... ");
+                foreach (var file in new DirectoryInfo("DatabaseSetupScripts\\Updates\\Shard").GetFiles("*.sql"))
+                {
+                    Console.Write($"Found {file.Name} .... ");
+                    var sqlDBFile = File.ReadAllText(file.FullName);
+                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.Shard.Host};port={config.MySql.Shard.Port};user={config.MySql.Shard.Username};password={config.MySql.Shard.Password};database={config.MySql.Shard.Database}");
+                    var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
+
+                    Console.Write($"Importing into {config.MySql.Shard.Database} database on SQL server at {config.MySql.Shard.Host}:{config.MySql.Shard.Port} .... ");
+                    try
+                    {
+                        script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
+                        var count = script.Execute();
+                    }
+                    catch (MySql.Data.MySqlClient.MySqlException)
+                    {
+
+                    }
+                    Console.WriteLine(" complete!");
+                }
+                Console.WriteLine("Shard update SQL scripts import complete!");
+
+                Console.WriteLine("Searching for World update SQL scripts .... ");
+                foreach (var file in new DirectoryInfo("DatabaseSetupScripts\\Updates\\World").GetFiles("*.sql"))
+                {
+                    Console.Write($"Found {file.Name} .... ");
+                    var sqlDBFile = File.ReadAllText(file.FullName);
+                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};database={config.MySql.World.Database}");
+                    var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
+
+                    Console.Write($"Importing into {config.MySql.World.Database} database on SQL server at {config.MySql.World.Host}:{config.MySql.World.Port} .... ");
+                    try
+                    {
+                        script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
+                        var count = script.Execute();
+                    }
+                    catch (MySql.Data.MySqlClient.MySqlException)
+                    {
+
+                    }
+                    Console.WriteLine(" complete!");
+                }
+                Console.WriteLine("World update SQL scripts import complete!");
+            }
+
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.Write("Do you want to download the latest world database and import it? (Y/n): ");
+            variable = Console.ReadLine();
+            if (!variable.Equals("n", StringComparison.OrdinalIgnoreCase) && !variable.Equals("no", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine();
+
+                Console.Write("Looking up latest release from ACEmulator/ACE-World-16PY-Patches .... ");
+                // webrequest code provided by OptimShi
+                var url = "https://api.github.com/repos/ACEmulator/ACE-World-16PY-Patches/releases";
+                var request = (HttpWebRequest)WebRequest.Create(url);
+                request.UserAgent = "Mozilla//5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko//20100101 Firefox//72.0";
+                request.UserAgent = "ACE.Server";
+
+                var response = request.GetResponse();
+                var reader = new StreamReader(response.GetResponseStream(), System.Text.Encoding.UTF8);
+                var html = reader.ReadToEnd();
+                reader.Close();
+                response.Close();
+
+                dynamic json = JsonConvert.DeserializeObject(html);
+                string tag = json[0].tag_name;
+                string dbURL = json[0].assets[0].browser_download_url;
+                string dbFileName = json[0].assets[0].name;
+                // webrequest code provided by OptimShi
+
+                Console.WriteLine($"Found {tag} !");
+
+                Console.Write($"Downloading {dbFileName} .... ");
+                using (var client = new WebClient())
+                {
+                    client.DownloadFile(dbURL, dbFileName);
+                }
+                Console.WriteLine("download complete!");
+
+                Console.Write($"Extracting {dbFileName} .... ");
+                ZipFile.ExtractToDirectory(dbFileName, ".", true);
+                Console.WriteLine("extraction complete!");
+                Console.Write($"Deleting {dbFileName} .... ");
+                File.Delete(dbFileName);
+                Console.WriteLine("Deleted!");
+
+                var sqlFile = (string)dbFileName;
+                sqlFile = sqlFile.Substring(0, sqlFile.Length - 4);
+
+                Console.Write($"Reading {sqlFile} .... ");
+                var sqlDB = File.ReadAllText(sqlFile);
+                Console.WriteLine("complete!");
+
+                var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password}");
+                var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDB);
+
+                Console.Write($"Importing {sqlFile} into SQL server at {config.MySql.World.Host}:{config.MySql.World.Port} (This will take a while, please be patient) .... ");
+                try
+                {
+                    script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
+                    var count = script.Execute();
+                }
+                catch (MySql.Data.MySqlClient.MySqlException)
+                {
+
+                }
+                Console.WriteLine(" complete!");
+
+                Console.Write($"Deleting {sqlFile} .... ");
+                File.Delete(sqlFile);
+                Console.WriteLine("Deleted!");
+            }
+
+            Console.WriteLine("exiting setup for ACEmulator.");
+        }
+
+        private static void OnStatementExecutedOutputDot(object sender, MySql.Data.MySqlClient.MySqlScriptEventArgs args)
+        {
+            Console.Write(".");
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
