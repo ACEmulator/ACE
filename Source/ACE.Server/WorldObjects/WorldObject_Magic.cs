@@ -442,27 +442,27 @@ namespace ACE.Server.WorldObjects
                     // handle cloaks
                     if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health") && boost < 0 && spellTarget.HasCloakEquipped)
                     {
-                        // ensure message is sent after enchantment.Message
-                        var actionChain = new ActionChain();
-                        actionChain.AddDelayForOneTick();
-                        actionChain.AddAction(this, () =>
-                        {
-                            var pct = (float)-boost / spellTarget.Health.MaxValue;
-                            Cloak.TryProcSpell(spellTarget, this, pct);
-                        });
-                        actionChain.EnqueueChain();
-                    }
 
-                    if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health") && boost < 0)
-                    {
+                        if (spellTarget.HasCloakEquipped)
+                        {
+                            // ensure message is sent after enchantment.Message
+                            var actionChain = new ActionChain();
+                            actionChain.AddDelayForOneTick();
+                            actionChain.AddAction(this, () =>
+                            {
+                                var pct = (float)-boost / spellTarget.Health.MaxValue;
+                                Cloak.TryProcSpell(spellTarget, this, pct);
+                            });
+                            actionChain.EnqueueChain();
+                        }
+
                         // ensure emote process occurs after damage msg
-                        var actionChain = new ActionChain();
-                        actionChain.AddDelayForOneTick();
+                        var emoteChain = new ActionChain();
+                        emoteChain.AddDelayForOneTick();
+                        emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
                         if (critical)
-                            actionChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
-                        else
-                            actionChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
-                        actionChain.EnqueueChain();
+                            emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
+                        emoteChain.EnqueueChain();
                     }
                     break;
 
@@ -616,10 +616,11 @@ namespace ACE.Server.WorldObjects
                         // ensure emote process occurs after damage msg
                         var emoteChain = new ActionChain();
                         emoteChain.AddDelayForOneTick();
+                        emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
+
                         if (critical)
                             emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
-                        else
-                            emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
+                        
                         emoteChain.EnqueueChain();
                     }
                     break;

@@ -698,14 +698,10 @@ namespace ACE.Server.WorldObjects
                 if (!nonHealth && target.HasCloakEquipped)
                     Cloak.TryProcSpell(target, ProjectileSource, percent);
 
-                // ensure emote process occurs after damage msg
-                var actionChain = new ActionChain();
-                actionChain.AddDelayForOneTick();
+                target.EmoteManager.OnDamage(player);
+
                 if (critical)
-                    actionChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
-                else
-                    actionChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
-                actionChain.EnqueueChain();
+                    target.EmoteManager.OnReceiveCritical(player);
             }
             else
             {

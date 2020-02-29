@@ -155,7 +155,7 @@ namespace ACE.Server.WorldObjects
                 if (targetPlayer != null)
                     targetPlayer.TakeDamage(this, damageEvent);
                 else
-                    target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.IsCritical);                
+                    target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.IsCritical);
             }
             else
             {
@@ -194,10 +194,11 @@ namespace ACE.Server.WorldObjects
                 if (GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
                     FightDirty(target);
 
+                
+                target.EmoteManager.OnDamage(this);
+
                 if (damageEvent.IsCritical)
                     target.EmoteManager.OnReceiveCritical(this);
-                else
-                    target.EmoteManager.OnDamage(this);
             }
 
             if (damageEvent.Damage > 0.0f)
