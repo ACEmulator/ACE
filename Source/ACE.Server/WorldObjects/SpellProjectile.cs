@@ -695,13 +695,16 @@ namespace ACE.Server.WorldObjects
                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat(defenderMsg, ChatMessageType.Magic));
                 }
 
-                if (!nonHealth && target.HasCloakEquipped)
-                    Cloak.TryProcSpell(target, ProjectileSource, percent);
+                if (!nonHealth)
+                {
+                    if (target.HasCloakEquipped)
+                        Cloak.TryProcSpell(target, ProjectileSource, percent);
 
-                target.EmoteManager.OnDamage(player);
+                    target.EmoteManager.OnDamage(player);
 
-                if (critical)
-                    target.EmoteManager.OnReceiveCritical(player);
+                    if (critical)
+                        target.EmoteManager.OnReceiveCritical(player);
+                }
             }
             else
             {
