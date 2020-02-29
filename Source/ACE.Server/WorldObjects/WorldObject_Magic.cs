@@ -460,8 +460,8 @@ namespace ACE.Server.WorldObjects
                         var emoteChain = new ActionChain();
                         emoteChain.AddDelayForOneTick();
                         emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
-                        if (critical)
-                            emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
+                        //if (critical)
+                        //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
                         emoteChain.EnqueueChain();
                     }
                     break;
