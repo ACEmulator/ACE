@@ -1116,6 +1116,7 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.SpendLuminance:
+
                     if (player != null)
                         player.SpendLuminance(emote.HeroXP64 ?? 0);
                     break;
@@ -1128,13 +1129,7 @@ namespace ACE.Server.WorldObjects.Managers
                         {
                             var questName = emote.Message;
 
-                            // are there fellowship only kill tasks?
-                            //if (questName.EndsWith("@#kt", StringComparison.Ordinal))
-                            //{
-                            //    player.Fellowship.QuestManager.HandleKillTask(questName, WorldObject);
-                            //}
-                            //else
-                                player.Fellowship.QuestManager.Stamp(emote.Message);
+                            player.Fellowship.QuestManager.Stamp(emote.Message);
                         }
                     }
                     break;
@@ -1149,11 +1144,9 @@ namespace ACE.Server.WorldObjects.Managers
                         var questName = emote.Message;
 
                         if (questName.EndsWith("@#kt", StringComparison.Ordinal))
-                        {
-                            questTarget.QuestManager.HandleKillTask(questName, WorldObject);
-                        }
-                        else
-                            questTarget.QuestManager.Stamp(emote.Message);
+                            log.Warn($"0x{WorldObject.Guid}:{WorldObject.Name} ({WorldObject.WeenieClassId}).EmoteManager.ExecuteEmote: EmoteType.StampQuest({questName}) is a depreciated kill task method.");
+
+                        questTarget.QuestManager.Stamp(emote.Message);
                     }
                     break;
 
