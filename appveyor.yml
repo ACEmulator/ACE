@@ -1,14 +1,30 @@
-version: 0.0.{build}
+version: 1.1.{build}
 pull_requests:
   do_not_increment_build_number: true
+skip_tags: true
 image: Visual Studio 2019
+configuration: Release
 platform: x64
+dotnet_csproj:
+  patch: true
+  file: '**\*.csproj'
+  version: '{version}'
+  version_prefix: '{version}'
+  package_version: '{version}'
+  assembly_version: '{version}'
+  file_version: '{version}'
+  informational_version: '{version}'
 services: mysql
 before_build:
 - cmd: source\AppVeyor\AppVeyorBeforeCompile.bat
 build:
   project: source\ACE.sln
   verbosity: minimal
+before_package:
+- cmd: >-
+    dotnet publish "C:\projects\ace\source\ACE.Server\ACE.Server.csproj" --output C:\projects\ace\publish --configuration Release --verbosity minimal
+
+    7z.exe a ACE.Server-v%APPVEYOR_BUILD_VERSION%.zip "C:\projects\ace\publish\*"
 after_build:
 - cmd: source\AppVeyor\AppVeyorAfterCompile.bat
 test_script:
@@ -19,4 +35,18 @@ test_script:
 artifacts:
 - path: '**\ACETests*.txt'
   name: test logs
-  type: zip
+- path: '**\ACE.Server-*.zip'
+  name: release candidate
+deploy:
+- provider: GitHub
+  tag: v$(appveyor_build_version)
+  release: ACEmulator Server - v$(appveyor_build_version)
+  description: <h1> ACEmulator Server - v$(appveyor_build_version) </h1> <blockquote>The following commit is included in this release:</<blockquote> <h1></h1>$(APPVEYOR_REPO_COMMIT_MESSAGE) <p>$(APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED)<h1><h6>automated server build - $(APPVEYOR_REPO_COMMIT_TIMESTAMP)
+  auth_token:
+    secure: k8Q9MwG7UgKbocfdJvD4iBwL1K2AsdjZs6B34/vFqkoukW9p3tJ3uRacb1Zmclyp
+  artifact: ACE.Server-v$(appveyor_build_version).zip
+  draft: true
+  prerelease: false
+  force_update: true
+  on:
+    branch: master
