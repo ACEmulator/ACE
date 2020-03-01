@@ -37,6 +37,8 @@ namespace ACE.Server
 
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public static readonly bool IsRunningInContainer = Convert.ToBoolean(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"));
+
         public static void Main(string[] args)
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -51,8 +53,14 @@ namespace ACE.Server
 
             // Look for the log4net.config first in the current environment directory, then in the ExecutingAssembly location
             var exeLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var containerConfigDirectory = "/ace/Config";
             var log4netConfig = Path.Combine(exeLocation, "log4net.config");
             var log4netConfigExample = Path.Combine(exeLocation, "log4net.config.example");
+            var log4netConfigContainer = Path.Combine(containerConfigDirectory, "log4net.config");
+
+            if (File.Exists(log4netConfigContainer))
+                File.Copy(log4netConfigContainer, log4netConfig, true);
+
             var log4netFileInfo = new FileInfo("log4net.config");
             if (!log4netFileInfo.Exists)
                 log4netFileInfo = new FileInfo(log4netConfig);
@@ -67,18 +75,25 @@ namespace ACE.Server
                 }
                 else
                 {
-                    var isContainer = Convert.ToBoolean(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"));
-
-                    if (!isContainer)
+                    if (!IsRunningInContainer)
                     {
                         Console.WriteLine("log4net Configuration file is missing,  cloning from example file.");
                         File.Copy(log4netConfigExample, log4netConfig);
                     }
                     else
-                    {
-                        Console.WriteLine("log4net Configuration file is missing, ACEmulator is running in a container,  cloning from docker file.");
-                        var log4netConfigDocker = Path.Combine(exeLocation, "log4net.config.docker");
-                        File.Copy(log4netConfigDocker, log4netConfig);
+                    {                        
+                        if (!File.Exists(log4netConfigContainer))
+                        {
+                            Console.WriteLine("log4net Configuration file is missing, ACEmulator is running in a container,  cloning from docker file.");
+                            var log4netConfigDocker = Path.Combine(exeLocation, "log4net.config.docker");
+                            File.Copy(log4netConfigDocker, log4netConfig);
+                            File.Copy(log4netConfigDocker, log4netConfigContainer);
+                        }
+                        else
+                        {
+                            File.Copy(log4netConfigContainer, log4netConfig);
+                        }
+
                     }
                 }
             }
@@ -110,9 +125,25 @@ namespace ACE.Server
             Console.Title = @$"ACEmulator - v{serverVersion}";
 
             var configFile = Path.Combine(exeLocation, "Config.js");
+            var configConfigContainer = Path.Combine(containerConfigDirectory, "Config.js");
+
+            if (File.Exists(configConfigContainer))
+                File.Copy(configConfigContainer, configFile, true);
+
             if (!File.Exists(configFile))
             {
-                DoOutOfBoxSetup(configFile);
+                if (!IsRunningInContainer)
+                    DoOutOfBoxSetup(configFile);
+                else
+                {
+                    if (!File.Exists(configConfigContainer))
+                    {
+                        DoOutOfBoxSetup(configFile);
+                        File.Copy(configFile, configConfigContainer);
+                    }
+                    else
+                        File.Copy(configConfigContainer, configFile);
+                }
             }
 
             log.Info("Initializing ConfigManager...");
@@ -223,9 +254,7 @@ namespace ACE.Server
 
         private static void OnProcessExit(object sender, EventArgs e)
         {
-            var isContainer = Convert.ToBoolean(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"));
-
-            if (!isContainer)
+            if (!IsRunningInContainer)
             {
                 if (!ServerManager.ShutdownInitiated)
                     log.Warn("Unsafe server shutdown detected! Data loss is possible!");

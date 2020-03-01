@@ -48,9 +48,7 @@ namespace ACE.Server.Command
                 }
             }
 
-            var isContainer = Convert.ToBoolean(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"));
-
-            if (isContainer) return;
+            if (Program.IsRunningInContainer) return;
 
             var thread = new Thread(new ThreadStart(CommandThread));
             thread.Name = "Command Manager";
