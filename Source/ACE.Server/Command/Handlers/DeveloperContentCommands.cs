@@ -40,30 +40,37 @@ namespace ACE.Server.Command.Handlers.Processors
             Weenie,
         }
 
-        public static FileType GetContentType(string fileType)
+        public static FileType GetContentType(string[] parameters, ref string param)
         {
-            fileType = fileType.ToLower();
+            for (var i = 0; i < parameters.Length; i++)
+            {
+                var otherIdx = i == 0 ? 1 : 0;
 
-            if (fileType.StartsWith("landblock"))
-                return FileType.LandblockInstance;
-            else if (fileType.StartsWith("quest"))
-                return FileType.Quest;
-            else if (fileType.StartsWith("recipe"))
-                return FileType.Recipe;
-            else if (fileType.StartsWith("weenie"))
-                return FileType.Weenie;
-            else
-                return FileType.Undefined;
+                param = parameters[otherIdx];
+
+                var fileType = parameters[i].ToLower();
+
+                if (fileType.StartsWith("landblock"))
+                    return FileType.LandblockInstance;
+                else if (fileType.StartsWith("quest"))
+                    return FileType.Quest;
+                else if (fileType.StartsWith("recipe"))
+                    return FileType.Recipe;
+                else if (fileType.StartsWith("weenie"))
+                    return FileType.Weenie;
+            }
+            return FileType.Undefined;
         }
 
         [CommandHandler("import-json", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Imports json data from the Content folder", "<wcid>")]
         public static void HandleImportJson(Session session, params string[] parameters)
         {
+            var param = parameters[0];
             var contentType = FileType.Weenie;
 
             if (parameters.Length > 1)
             {
-                contentType = GetContentType(parameters[1]);
+                contentType = GetContentType(parameters, ref param);
 
                 if (contentType == FileType.Undefined)
                 {
@@ -74,24 +81,24 @@ namespace ACE.Server.Command.Handlers.Processors
             switch (contentType)
             {
                 case FileType.LandblockInstance:
-                    ImportJsonLandblock(session, parameters);
+                    ImportJsonLandblock(session, param);
                     break;
 
                 case FileType.Quest:
-                    ImportJsonQuest(session, parameters);
+                    ImportJsonQuest(session, param);
                     break;
 
                 case FileType.Recipe:
-                    ImportJsonRecipe(session, parameters);
+                    ImportJsonRecipe(session, param);
                     break;
 
                 case FileType.Weenie:
-                    ImportJsonWeenie(session, parameters);
+                    ImportJsonWeenie(session, param);
                     break;
             }
         }
 
-        public static void ImportJsonWeenie(Session session, params string[] parameters)
+        public static void ImportJsonWeenie(Session session, string wcid)
         {
             DirectoryInfo di = VerifyContentFolder(session);
             if (!di.Exists) return;
@@ -100,7 +107,6 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var json_folder = $"{di.FullName}{sep}json{sep}weenies{sep}";
 
-            var wcid = parameters[0];
             var prefix = wcid + " - ";
 
             if (wcid.Equals("all", StringComparison.OrdinalIgnoreCase))
@@ -120,7 +126,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 ImportJsonWeenie(session, json_folder, file.Name);
         }
 
-        public static void ImportJsonRecipe(Session session, params string[] parameters)
+        public static void ImportJsonRecipe(Session session, string recipeId)
         {
             DirectoryInfo di = VerifyContentFolder(session);
             if (!di.Exists) return;
@@ -129,7 +135,6 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var json_folder = $"{di.FullName}{sep}json{sep}recipes{sep}";
 
-            var recipeId = parameters[0];
             var prefix = recipeId + " - ";
 
             if (recipeId.Equals("all", StringComparison.OrdinalIgnoreCase))
@@ -149,7 +154,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 ImportJsonRecipe(session, json_folder, file.Name);
         }
 
-        public static void ImportJsonLandblock(Session session, params string[] parameters)
+        public static void ImportJsonLandblock(Session session, string landblockId)
         {
             DirectoryInfo di = VerifyContentFolder(session);
             if (!di.Exists) return;
@@ -158,7 +163,6 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var json_folder = $"{di.FullName}{sep}json{sep}landblocks{sep}";
 
-            var landblockId = parameters[0];
             var prefix = landblockId;
 
             if (landblockId.Equals("all", StringComparison.OrdinalIgnoreCase))
@@ -178,7 +182,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 ImportJsonLandblock(session, json_folder, file.Name);
         }
 
-        public static void ImportJsonQuest(Session session, params string[] parameters)
+        public static void ImportJsonQuest(Session session, string questName)
         {
             DirectoryInfo di = VerifyContentFolder(session);
             if (!di.Exists) return;
@@ -187,7 +191,6 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var json_folder = $"{di.FullName}{sep}json{sep}quests{sep}";
 
-            var questName = parameters[0];
             var prefix = questName;
 
             if (questName.Equals("all", StringComparison.OrdinalIgnoreCase))
@@ -210,11 +213,12 @@ namespace ACE.Server.Command.Handlers.Processors
         [CommandHandler("import-sql", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Imports sql data from the Content folder", "<wcid>")]
         public static void HandleImportSQL(Session session, params string[] parameters)
         {
+            var param = parameters[0];
             var contentType = FileType.Weenie;
 
             if (parameters.Length > 1)
             {
-                contentType = GetContentType(parameters[1]);
+                contentType = GetContentType(parameters, ref param);
 
                 if (contentType == FileType.Undefined)
                 {
@@ -225,24 +229,24 @@ namespace ACE.Server.Command.Handlers.Processors
             switch (contentType)
             {
                 case FileType.LandblockInstance:
-                    ImportSQLLandblock(session, parameters);
+                    ImportSQLLandblock(session, param);
                     break;
 
                 case FileType.Quest:
-                    ImportSQLQuest(session, parameters);
+                    ImportSQLQuest(session, param);
                     break;
 
                 case FileType.Recipe:
-                    ImportSQLRecipe(session, parameters);
+                    ImportSQLRecipe(session, param);
                     break;
 
                 case FileType.Weenie:
-                    ImportSQLWeenie(session, parameters);
+                    ImportSQLWeenie(session, param);
                     break;
             }
         }
 
-        public static void ImportSQLWeenie(Session session, params string[] parameters)
+        public static void ImportSQLWeenie(Session session, string wcid)
         {
             DirectoryInfo di = VerifyContentFolder(session);
             if (!di.Exists) return;
@@ -251,7 +255,6 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var sql_folder = $"{di.FullName}{sep}sql{sep}weenies{sep}";
 
-            var wcid = parameters[0];
             var prefix = wcid + " ";
 
             if (wcid.Equals("all", StringComparison.OrdinalIgnoreCase))
@@ -271,7 +274,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 ImportSQLWeenie(session, sql_folder, file.Name);
         }
 
-        public static void ImportSQLRecipe(Session session, params string[] parameters)
+        public static void ImportSQLRecipe(Session session, string recipeId)
         {
             DirectoryInfo di = VerifyContentFolder(session);
             if (!di.Exists) return;
@@ -280,7 +283,6 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var sql_folder = $"{di.FullName}{sep}sql{sep}recipes{sep}";
 
-            var recipeId = parameters[0];
             var prefix = recipeId + " ";
 
             if (recipeId.Equals("all", StringComparison.OrdinalIgnoreCase))
@@ -300,7 +302,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 ImportSQLRecipe(session, sql_folder, file.Name);
         }
 
-        public static void ImportSQLLandblock(Session session, params string[] parameters)
+        public static void ImportSQLLandblock(Session session, string landblockId)
         {
             DirectoryInfo di = VerifyContentFolder(session);
             if (!di.Exists) return;
@@ -309,7 +311,6 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var sql_folder = $"{di.FullName}{sep}sql{sep}landblocks{sep}";
 
-            var landblockId = parameters[0];
             var prefix = landblockId;
 
             if (landblockId.Equals("all", StringComparison.OrdinalIgnoreCase))
@@ -329,7 +330,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 ImportSQLLandblock(session, sql_folder, file.Name);
         }
 
-        public static void ImportSQLQuest(Session session, params string[] parameters)
+        public static void ImportSQLQuest(Session session, string questName)
         {
             DirectoryInfo di = VerifyContentFolder(session);
             if (!di.Exists) return;
@@ -338,7 +339,6 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var sql_folder = $"{di.FullName}{sep}sql{sep}quests{sep}";
 
-            var questName = parameters[0];
             var prefix = questName;
 
             if (questName.Equals("all", StringComparison.OrdinalIgnoreCase))
@@ -431,7 +431,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
         private static void ImportJsonLandblock(Session session, string json_folder, string json_file)
         {
-            if (!ushort.TryParse(Regex.Match(json_file, @"[0-9A-F]+").Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var landblockId))
+            if (!ushort.TryParse(Regex.Match(json_file, @"[0-9A-F]{4}", RegexOptions.IgnoreCase).Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var landblockId))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find landblock id from {json_file}");
                 return;
@@ -849,7 +849,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
         private static void ImportSQLLandblock(Session session, string sql_folder, string sql_file)
         {
-            if (!ushort.TryParse(Regex.Match(sql_file, @"[0-9A-F]+").Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var landblockId))
+            if (!ushort.TryParse(Regex.Match(sql_file, @"[0-9A-F]{4}", RegexOptions.IgnoreCase).Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var landblockId))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find landblock id from {sql_file}");
                 return;
@@ -960,6 +960,12 @@ namespace ACE.Server.Command.Handlers.Processors
 
         public static bool sql2json_landblock(Session session, List<LandblockInstance> instances, string sql_folder, string sql_filename)
         {
+            if (GDLEConverter.WeenieNames == null)
+                GDLEConverter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+
+            if (GDLEConverter.WeenieClassNames == null)
+                GDLEConverter.WeenieClassNames = DatabaseManager.World.GetAllWeenieClassNames();
+
             if (!GDLEConverter.TryConvert(instances, out var result))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {sql_filename} to json");
@@ -1517,23 +1523,58 @@ namespace ACE.Server.Command.Handlers.Processors
             return wo;
         }
 
-        [CommandHandler("export-json", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Exports a weenie from database to JSON file", "<wcid>")]
+        [CommandHandler("export-json", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Exports content from database to JSON file", "<wcid>")]
         public static void HandleExportJson(Session session, params string[] parameters)
+        {
+            var param = parameters[0];
+            var contentType = FileType.Weenie;
+
+            if (parameters.Length > 1)
+            {
+                contentType = GetContentType(parameters, ref param);
+
+                if (contentType == FileType.Undefined)
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Unknown content type '{parameters[1]}'");
+                    return;
+                }
+            }
+            switch (contentType)
+            {
+                case FileType.LandblockInstance:
+                    ExportJsonLandblock(session, param);
+                    break;
+
+                case FileType.Quest:
+                    ExportJsonQuest(session, param);
+                    break;
+
+                case FileType.Recipe:
+                    ExportJsonRecipe(session, param);
+                    break;
+
+                case FileType.Weenie:
+                    ExportJsonWeenie(session, param);
+                    break;
+            }
+        }
+
+        public static void ExportJsonWeenie(Session session, string param)
         {
             DirectoryInfo di = VerifyContentFolder(session, false);
 
             var sep = Path.DirectorySeparatorChar;
 
-            if (!uint.TryParse(parameters[0], out var wcid))
-            {
-                CommandHandlerHelper.WriteOutputInfo(session, $"{parameters[0]} not a valid wcid");
-                return;
-            }
+            Weenie weenie = null;
 
-            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+            if (uint.TryParse(param, out var wcid))
+                weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+            else
+                weenie = DatabaseManager.World.GetCachedWeenie(param);
+
             if (weenie == null)
             {
-                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find weenie {wcid}");
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find weenie {param}");
                 return;
             }
 
@@ -1562,23 +1603,190 @@ namespace ACE.Server.Command.Handlers.Processors
             CommandHandlerHelper.WriteOutputInfo(session, $"Exported {json_folder}{json_filename}");
         }
 
-        [CommandHandler("export-sql", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Exports a weenie from database to SQL file", "<wcid>")]
-        public static void HandleExportSql(Session session, params string[] parameters)
+        public static void ExportJsonRecipe(Session session, string param)
         {
             DirectoryInfo di = VerifyContentFolder(session, false);
 
             var sep = Path.DirectorySeparatorChar;
 
-            if (!uint.TryParse(parameters[0], out var wcid))
+            if (!uint.TryParse(param, out var recipeId))
             {
-                CommandHandlerHelper.WriteOutputInfo(session, $"{parameters[0]} not a valid wcid");
+                CommandHandlerHelper.WriteOutputInfo(session, $"{param} not a valid recipe id");
                 return;
             }
 
-            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+            var cookbooks = DatabaseManager.World.GetCachedCookbooks(recipeId);
+            if (cookbooks == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find recipe id {recipeId}");
+                return;
+            }
+
+            if (!GDLEConverter.TryConvert(cookbooks, out var result))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert recipe id {recipeId} to json");
+                return;
+            }
+
+            var json_folder = $"{di.FullName}{sep}json{sep}recipes{sep}";
+
+            di = new DirectoryInfo(json_folder);
+
+            if (!di.Exists)
+                di.Create();
+
+            if (RecipeSQLWriter == null)
+            {
+                RecipeSQLWriter = new RecipeSQLWriter();
+                RecipeSQLWriter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+            }
+
+            var desc = RecipeSQLWriter.GetDefaultFileName(cookbooks[0].Recipe, cookbooks, true);
+
+            var json_filename = $"{recipeId.ToString("00000")} - {desc}.json";
+
+            var json = JsonConvert.SerializeObject(result, LifestonedConverter.SerializerSettings);
+
+            File.WriteAllText(json_folder + json_filename, json);
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"Exported {json_folder}{json_filename}");
+        }
+
+        public static void ExportJsonLandblock(Session session, string param)
+        {
+            DirectoryInfo di = VerifyContentFolder(session, false);
+
+            var sep = Path.DirectorySeparatorChar;
+
+            if (!ushort.TryParse(Regex.Match(param, @"[0-9A-F]{4}", RegexOptions.IgnoreCase).Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var landblockId))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"{param} not a valid landblock");
+                return;
+            }
+
+            var instances = DatabaseManager.World.GetCachedInstancesByLandblock(landblockId);
+            if (instances == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find landblock {landblockId:X4}");
+                return;
+            }
+
+            if (GDLEConverter.WeenieNames == null)
+                GDLEConverter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+
+            if (GDLEConverter.WeenieClassNames == null)
+                GDLEConverter.WeenieClassNames = DatabaseManager.World.GetAllWeenieClassNames();
+
+            if (!GDLEConverter.TryConvert(instances, out var result))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert landblock {landblockId:X4} to json");
+                return;
+            }
+
+            var json_folder = $"{di.FullName}{sep}json{sep}landblocks{sep}";
+
+            di = new DirectoryInfo(json_folder);
+
+            if (!di.Exists)
+                di.Create();
+
+            var json_filename = $"{landblockId:X4}.json";
+
+            var json = JsonConvert.SerializeObject(result, LifestonedConverter.SerializerSettings);
+
+            File.WriteAllText(json_folder + json_filename, json);
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"Exported {json_folder}{json_filename}");
+        }
+
+        public static void ExportJsonQuest(Session session, string questName)
+        {
+            DirectoryInfo di = VerifyContentFolder(session, false);
+
+            var sep = Path.DirectorySeparatorChar;
+
+            var quest = DatabaseManager.World.GetCachedQuest(questName);
+
+            if (quest == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find quest {questName}");
+                return;
+            }
+
+            if (!GDLEConverter.TryConvert(quest, out var result))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert quest {questName} to json");
+                return;
+            }
+
+            var json_folder = $"{di.FullName}{sep}json{sep}quests{sep}";
+
+            di = new DirectoryInfo(json_folder);
+
+            if (!di.Exists)
+                di.Create();
+
+            var json_filename = $"{questName}.json";
+
+            var json = JsonConvert.SerializeObject(result, LifestonedConverter.SerializerSettings);
+
+            File.WriteAllText(json_folder + json_filename, json);
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"Exported {json_folder}{json_filename}");
+        }
+
+        [CommandHandler("export-sql", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Exports content from database to SQL file", "<wcid>")]
+        public static void HandleExportSql(Session session, params string[] parameters)
+        {
+            var param = parameters[0];
+            var contentType = FileType.Weenie;
+
+            if (parameters.Length > 1)
+            {
+                contentType = GetContentType(parameters, ref param);
+
+                if (contentType == FileType.Undefined)
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Unknown content type '{parameters[1]}'");
+                    return;
+                }
+            }
+            switch (contentType)
+            {
+                case FileType.LandblockInstance:
+                    ExportSQLLandblock(session, param);
+                    break;
+
+                case FileType.Quest:
+                    ExportSQLQuest(session, param);
+                    break;
+
+                case FileType.Recipe:
+                    ExportSQLRecipe(session, param);
+                    break;
+
+                case FileType.Weenie:
+                    ExportSQLWeenie(session, param);
+                    break;
+            }
+        }
+
+        public static void ExportSQLWeenie(Session session, string param)
+        {
+            DirectoryInfo di = VerifyContentFolder(session, false);
+
+            var sep = Path.DirectorySeparatorChar;
+
+            Weenie weenie = null;
+
+            if (uint.TryParse(param, out var wcid))
+                weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+            else
+                weenie = DatabaseManager.World.GetCachedWeenie(param);
+
             if (weenie == null)
             {
-                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find weenie {wcid}");
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find weenie {param}");
                 return;
             }
 
@@ -1589,28 +1797,202 @@ namespace ACE.Server.Command.Handlers.Processors
             if (!di.Exists)
                 di.Create();
 
-            var converter = new WeenieSQLWriter();
+            if (WeenieSQLWriter == null)
+            {
+                WeenieSQLWriter = new WeenieSQLWriter();
+                WeenieSQLWriter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+                WeenieSQLWriter.SpellNames = DatabaseManager.World.GetAllSpellNames();
+                WeenieSQLWriter.TreasureDeath = DatabaseManager.World.GetAllTreasureDeath();
+                WeenieSQLWriter.TreasureWielded = DatabaseManager.World.GetAllTreasureWielded();
+            }
 
-            converter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
-            converter.SpellNames = DatabaseManager.World.GetAllSpellNames();
-            converter.TreasureDeath = DatabaseManager.World.GetAllTreasureDeath();
-            converter.TreasureWielded = DatabaseManager.World.GetAllTreasureWielded();
-
-            var sql_filename = converter.GetDefaultFileName(weenie);
+            var sql_filename = WeenieSQLWriter.GetDefaultFileName(weenie);
 
             var writer = new StreamWriter(sql_folder + sql_filename);
 
             try
             {
-                converter.CreateSQLDELETEStatement(weenie, writer);
+                WeenieSQLWriter.CreateSQLDELETEStatement(weenie, writer);
                 writer.WriteLine();
-                converter.CreateSQLINSERTStatement(weenie, writer);
+                WeenieSQLWriter.CreateSQLINSERTStatement(weenie, writer);
                 writer.Close();
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to convert {weenie.ClassId} - {weenie.ClassName}");
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to export {sql_folder}{sql_filename}");
+                return;
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"Exported {sql_folder}{sql_filename}");
+        }
+
+        public static void ExportSQLRecipe(Session session, string param)
+        {
+            DirectoryInfo di = VerifyContentFolder(session, false);
+
+            var sep = Path.DirectorySeparatorChar;
+
+            if (!uint.TryParse(param, out var recipeId))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"{param} not a valid recipe id");
+                return;
+            }
+
+            var cookbooks = DatabaseManager.World.GetCachedCookbooks(recipeId);
+            if (cookbooks == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find recipe id {recipeId}");
+                return;
+            }
+
+            var sql_folder = $"{di.FullName}{sep}sql{sep}recipes{sep}";
+
+            di = new DirectoryInfo(sql_folder);
+
+            if (!di.Exists)
+                di.Create();
+
+            if (RecipeSQLWriter == null)
+            {
+                RecipeSQLWriter = new RecipeSQLWriter();
+                RecipeSQLWriter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+            }
+
+            if (CookBookSQLWriter == null)
+            {
+                CookBookSQLWriter = new CookBookSQLWriter();
+                CookBookSQLWriter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+            }
+
+            // same recipe for all cookbooks
+            var recipe = cookbooks[0].Recipe;
+
+            var sql_filename = RecipeSQLWriter.GetDefaultFileName(recipe, cookbooks);
+
+            try
+            {
+                var sqlFile = new StreamWriter(sql_folder + sql_filename);
+
+                RecipeSQLWriter.CreateSQLDELETEStatement(recipe, sqlFile);
+                sqlFile.WriteLine();
+
+                RecipeSQLWriter.CreateSQLINSERTStatement(recipe, sqlFile);
+                sqlFile.WriteLine();
+
+                CookBookSQLWriter.CreateSQLDELETEStatement(cookbooks, sqlFile);
+                sqlFile.WriteLine();
+
+                CookBookSQLWriter.CreateSQLINSERTStatement(cookbooks, sqlFile);
+
+                sqlFile.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to export {sql_folder}{sql_filename}");
+                return;
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"Exported {sql_folder}{sql_filename}");
+        }
+
+        public static void ExportSQLLandblock(Session session, string param)
+        {
+            DirectoryInfo di = VerifyContentFolder(session, false);
+
+            var sep = Path.DirectorySeparatorChar;
+
+            if (!ushort.TryParse(Regex.Match(param, @"[0-9A-F]{4}", RegexOptions.IgnoreCase).Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var landblockId))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"{param} not a valid landblock");
+                return;
+            }
+
+            var instances = DatabaseManager.World.GetCachedInstancesByLandblock(landblockId);
+            if (instances == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find landblock {landblockId:X4}");
+                return;
+            }
+
+            var sql_folder = $"{di.FullName}{sep}sql{sep}landblocks{sep}";
+
+            di = new DirectoryInfo(sql_folder);
+
+            if (!di.Exists)
+                di.Create();
+
+            var sql_filename = $"{landblockId:X4}.sql";
+
+            try
+            {
+                if (LandblockInstanceWriter == null)
+                {
+                    LandblockInstanceWriter = new LandblockInstanceWriter();
+                    LandblockInstanceWriter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+                }
+
+                var sqlFile = new StreamWriter(sql_folder + sql_filename);
+
+                LandblockInstanceWriter.CreateSQLDELETEStatement(instances, sqlFile);
+                sqlFile.WriteLine();
+
+                LandblockInstanceWriter.CreateSQLINSERTStatement(instances, sqlFile);
+
+                sqlFile.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to export {sql_folder}{sql_filename}");
+                return;
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"Exported {sql_folder}{sql_filename}");
+        }
+
+        public static void ExportSQLQuest(Session session, string questName)
+        {
+            DirectoryInfo di = VerifyContentFolder(session, false);
+
+            var sep = Path.DirectorySeparatorChar;
+
+            var quest = DatabaseManager.World.GetCachedQuest(questName);
+
+            if (quest == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find quest {questName}");
+                return;
+            }
+
+            var sql_folder = $"{di.FullName}{sep}sql{sep}quests{sep}";
+
+            di = new DirectoryInfo(sql_folder);
+
+            if (!di.Exists)
+                di.Create();
+
+            if (QuestSQLWriter == null)
+                QuestSQLWriter = new QuestSQLWriter();
+
+            var sql_filename = questName + ".sql";
+
+            try
+            {
+                var sqlFile = new StreamWriter(sql_folder + sql_filename);
+
+                QuestSQLWriter.CreateSQLDELETEStatement(quest, sqlFile);
+                sqlFile.WriteLine();
+
+                QuestSQLWriter.CreateSQLINSERTStatement(quest, sqlFile);
+
+                sqlFile.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to export {sql_folder}{sql_filename}");
                 return;
             }
 

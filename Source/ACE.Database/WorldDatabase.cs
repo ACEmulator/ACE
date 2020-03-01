@@ -1151,6 +1151,17 @@ namespace ACE.Database
             }
         }
 
+        public Dictionary<uint, string> GetAllWeenieClassNames(WorldDbContext context)
+        {
+            return context.Weenie.ToDictionary(r => r.ClassId, r => r.ClassName);
+        }
+
+        public Dictionary<uint, string> GetAllWeenieClassNames()
+        {
+            using (var context = new WorldDbContext())
+                return GetAllWeenieClassNames(context);
+        }
+
         public Dictionary<uint, string> GetAllWeenieNames(WorldDbContext context)
         {
             return context.Weenie

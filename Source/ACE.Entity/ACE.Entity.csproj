@@ -3,6 +3,15 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Platforms>AnyCPU</Platforms>
+    <Authors>ACEmulator Contributors</Authors>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/ACEmulator/ACE</RepositoryUrl>
+    <PackageProjectUrl>https://emulator.ac</PackageProjectUrl>
+    <Copyright>© 2017-2020 ACEmulator Team and Contributors</Copyright>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <Description>Asheron's Call server emulator</Description>
+    <Company>ACEmulator</Company>
+    <Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,5 +21,12 @@
   <ItemGroup>
     <ProjectReference Include="..\ACE.Common\ACE.Common.csproj" />
   </ItemGroup>
+
+    <ItemGroup>
+      <None Include="..\..\LICENSE">
+        <Pack>True</Pack>
+        <PackagePath></PackagePath>
+      </None>
+    </ItemGroup>
 
 </Project>

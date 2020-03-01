@@ -249,12 +249,6 @@ namespace ACE.Server.Managers
         {
             var questName = GetQuestName(questFormat);
 
-            // Always return false for Kill Task count quests,
-            // as their emote logic is backwards from standard quests, and
-            // they should always be solvable, once flagged with main kill task quest
-            if (questName.EndsWith("count", StringComparison.Ordinal) || questName.EndsWith("counter", StringComparison.Ordinal))
-                return false;
-
             // verify max solves / quest timer
             var nextSolveTime = GetNextSolveTime(questName);
 
@@ -538,46 +532,47 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Increments the counter for a kill task, and optionally shares with fellowship
         /// </summary>
-        public void HandleKillTask(string _questName, WorldObject obj, bool shareable = true)
+        public void HandleKillTask(string killQuestName, WorldObject killedCreature, bool shareable = true)
         {
             var player = Creature as Player;
             if (player == null) return;
 
             // http://acpedia.org/wiki/Announcements_-_2012/12_-_A_Growing_Twilight#Release_Notes
 
-            if (HasQuest(_questName))
+            if (killedCreature == null)
             {
-                Stamp(_questName);
+                log.Error($"{Name}.QuestManager.HandleKillTask({killQuestName}): input object is null!");
+                return;
+            }
 
-                var questName = GetQuestName(_questName);
-                var quest = DatabaseManager.World.GetCachedQuest(questName);
+            var questName = GetQuestName(killQuestName);
+            var quest = DatabaseManager.World.GetCachedQuest(questName);
 
-                if (quest == null)
-                {
-                    log.Error($"{Name}.QuestManager.HandleKillTask({_questName}): couldn't find kill task {questName} in database");
-                    return;
-                }
+            if (quest == null)
+            {
+                log.Error($"{Name}.QuestManager.HandleKillTask({killQuestName}): couldn't find kill task {questName} in database");
+                return;
+            }
+
+            if (HasQuest(questName))
+            {
+                Stamp(killQuestName);
 
                 var playerQuest = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
 
                 if (playerQuest == null)
                 {
-                    log.Error($"{Name}.QuestManager.HandleKillTask({_questName}): couldn't find kill task {questName} in player quests");
+                    // this should be impossible
+                    log.Error($"{Name}.QuestManager.HandleKillTask({killQuestName}): couldn't find kill task {questName} in player quests");
                     return;
                 }
 
-                if (obj == null)
-                {
-                    log.Error($"{Name}.QuestManager.HandleKillTask({_questName}): input object is null!");
-                    return;
-                }
-
-                var msg = "";
+                var msg = $"You have killed {playerQuest.NumTimesCompleted} {killedCreature.GetPluralName()}!";
 
                 if (IsMaxSolves(questName))
-                    msg = $"You have killed {quest.MaxSolves} {obj.GetPluralName()}. Your task is complete!";
+                    msg += $" Your task is complete.";
                 else
-                    msg = $"You have killed {playerQuest.NumTimesCompleted} {obj.GetPluralName()}. You must kill {quest.MaxSolves} to complete your task!";
+                    msg += $" You must kill {quest.MaxSolves} to complete your task.";
 
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
             }
@@ -595,8 +590,24 @@ namespace ACE.Server.Managers
                 var fellows = player.Fellowship.WithinRange(player);
 
                 foreach (var fellow in fellows)
-                    fellow.QuestManager.HandleKillTask(_questName, obj, false);
+                    fellow.QuestManager.HandleKillTask(killQuestName, killedCreature, false);
             }
+        }
+
+        /// <summary>
+        /// Called when a player kills Creature
+        /// </summary>
+        public void OnDeath(WorldObject killer)
+        {
+            var player = killer as Player;
+            if (player == null) return;
+
+            if (Creature.KillQuest != null)
+                player.QuestManager.HandleKillTask(Creature.KillQuest, Creature);
+            if (Creature.KillQuest2 != null)
+                player.QuestManager.HandleKillTask(Creature.KillQuest2, Creature);
+            if (Creature.KillQuest3 != null)
+                player.QuestManager.HandleKillTask(Creature.KillQuest3, Creature);
         }
     }
 }
