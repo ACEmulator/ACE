@@ -560,7 +560,7 @@ namespace ACE.Server.Managers
                 ("quest_mindelta_rate", new Property<double>(1.0, "scales all quest min delta time between solves, 1 being normal"))
                 );
 
-        public static readonly ReadOnlyDictionary<string, Property<String>> DefaultStringProperties =
+        public static readonly ReadOnlyDictionary<string, Property<string>> DefaultStringProperties =
             DictOf(
                 ("content_folder", new Property<string>(".\\Content", "for content creators to live edit weenies. defaults to Content in the netcoreapp2.2 folder")),
                 ("dat_warning_msg", new Property<string>("Your DAT files are incomplete.\nACEmulator does not support dynamic DAT updating at this time.\nPlease visit https://emulator.ac/how-to-play to download the complete DAT files.", "Warning message displayed (if show_dat_warning is true) to player if client attempts DAT download from server")),

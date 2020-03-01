@@ -101,6 +101,8 @@ namespace ACE.Server.WorldObjects
                 DoHealMotion(healer, targetPlayer, true);
         }
 
+        public static readonly float Healing_MaxMove = 3.0f;
+
         public void DoHealMotion(Player healer, Player target, bool success)
         {
             if (!success || target.IsDead || target.Teleporting)
@@ -128,7 +130,7 @@ namespace ACE.Server.WorldObjects
                 var dist = startPos.DistanceTo(endPos);
 
                 // only PKs affected by these caps?
-                if (dist < Player.Windup_MaxMove || PlayerKillerStatus == PlayerKillerStatus.NPK)
+                if (dist < Healing_MaxMove || healer.PlayerKillerStatus == PlayerKillerStatus.NPK)
                     DoHealing(healer, target);
                 else
                     healer.Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted healing!", ChatMessageType.Broadcast));
