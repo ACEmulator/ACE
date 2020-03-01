@@ -292,3 +292,6 @@ __pycache__/
 Source/ACE.Server/config.js
 Database/tools/password.txt
 Source/ACE.Server/log4net.config
+Config/
+Dats/
+Logs/
