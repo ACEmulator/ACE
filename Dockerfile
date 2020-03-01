@@ -14,20 +14,29 @@ RUN dotnet publish ./ACE.Server/ACE.Server.csproj -c release -o /ace --no-restor
 
 # final stage/image
 FROM mcr.microsoft.com/dotnet/core/runtime:3.1
+ARG DEBIAN_FRONTEND="noninteractive"
 WORKDIR /ace
+
+# install net-tools (netstat for health check) & cleanup
+RUN apt-get update && \
+    apt-get install -y \
+    net-tools && \
+    apt-get clean && \
+    rm -rf \
+    /tmp/* \
+    /var/lib/apt/lists/* \
+    /var/tmp/*
+
+# add app from build
 COPY --from=build /ace .
-RUN apt-get update \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    net-tools \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["dotnet", "ACE.Server.dll"]
 
 # ports and volumes
 EXPOSE 9000/udp
 EXPOSE 9001/udp
-VOLUME /ace/Logs
+VOLUME /ace/Config
 VOLUME /ace/Dats
+VOLUME /ace/Logs
 
 # health check
 HEALTHCHECK --start-period=5m --interval=1m --timeout=3s \
