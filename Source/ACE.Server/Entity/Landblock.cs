@@ -465,11 +465,14 @@ namespace ACE.Server.Entity
                 {
                     if (lastActiveTime + dormantInterval < thisHeartBeat)
                     {
-                        var spellProjectiles = worldObjects.Values.Where(i => i is SpellProjectile).ToList();
-                        foreach (var spellProjectile in spellProjectiles)
+                        if (!IsDormant)
                         {
-                            spellProjectile.PhysicsObj.set_active(false);
-                            spellProjectile.Destroy();
+                            var spellProjectiles = worldObjects.Values.Where(i => i is SpellProjectile).ToList();
+                            foreach (var spellProjectile in spellProjectiles)
+                            {
+                                spellProjectile.PhysicsObj.set_active(false);
+                                spellProjectile.Destroy();
+                            }
                         }
 
                         IsDormant = true;
