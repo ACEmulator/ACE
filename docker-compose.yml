@@ -23,9 +23,9 @@ services:
     env_file:
       - docker.env
     volumes:
+      - C:\ACE\Config:/ace/Config
       - C:\ACE\Dats:/ace/Dats
       - C:\ACE\Logs:/ace/Logs
-      #- C:\ACE\Config.js:/ace/Config.js
     ports:
       - "9000-9001:9000-9001/udp"
     #restart: unless-stopped
