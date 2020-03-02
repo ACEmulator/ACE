@@ -1516,8 +1516,11 @@ namespace ACE.Server.Command.Handlers.Processors
 
                 wo.ReinitializeHeartbeats();
 
-                foreach (var profile in wo.Biota.BiotaPropertiesGenerator)
-                    profile.Delay = (float)PropertyManager.GetDouble("encounter_delay").Item;
+                if (wo.Biota.PropertiesGenerator != null)
+                {
+                    foreach (var profile in wo.Biota.PropertiesGenerator)
+                        profile.Delay = (float) PropertyManager.GetDouble("encounter_delay").Item;
+                }
             }
 
             wo.EnterWorld();

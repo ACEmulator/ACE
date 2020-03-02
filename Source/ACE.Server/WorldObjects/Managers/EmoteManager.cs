@@ -237,7 +237,7 @@ namespace ACE.Server.WorldObjects.Managers
                     if (emote.WealthRating.HasValue)
                     {
                         // Create a dummy treasure profile for passing in tier value
-                        TreasureDeath profile = new TreasureDeath
+                        var profile = new Database.Models.World.TreasureDeath
                         {
                             Tier = emote.WealthRating ?? 1,
                             LootQualityMod = 0

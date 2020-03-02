@@ -26,7 +26,6 @@ using ACE.Server.Physics.Common;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.WorldObjects;
 
-using Biota = ACE.Database.Models.Shard.Biota;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Entity

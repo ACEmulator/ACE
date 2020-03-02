@@ -10,8 +10,6 @@ using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class Hotspot : WorldObject
