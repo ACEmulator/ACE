@@ -41,7 +41,7 @@ COPY --from=build /ace .
 ENTRYPOINT ["dotnet", "ACE.Server.dll"]
 
 # ports and volumes
-EXPOSE 9000/udp 9001/udp
+EXPOSE 9000-9001/udp
 VOLUME /ace/Config /ace/Dats /ace/Logs
 
 # health check
