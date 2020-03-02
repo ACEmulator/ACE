@@ -74,7 +74,7 @@ namespace ACE.Server.Managers
             ShutdownTime = DateTime.MinValue;
         }
 
-        public static void DoShutdown()
+        public static void DoShutdownNow()
         {
             SetShutdownInterval(0);
             ShutdownInitiated = true;

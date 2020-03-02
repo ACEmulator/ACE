@@ -277,7 +277,7 @@ namespace ACE.Server
             }
             else
             {
-                ServerManager.DoShutdown();
+                ServerManager.DoShutdownNow();
                 DatabaseManager.Stop();
             }
         }
