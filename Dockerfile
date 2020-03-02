@@ -22,7 +22,7 @@ COPY . ../.
 RUN dotnet publish ./ACE.Server/ACE.Server.csproj -c release -o /ace --no-restore
 
 # final stage/image
-FROM mcr.microsoft.com/dotnet/core/runtime:3.1
+FROM mcr.microsoft.com/dotnet/core/runtime:3.1-buster-slim
 ARG DEBIAN_FRONTEND="noninteractive"
 WORKDIR /ace
 
