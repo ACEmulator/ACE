@@ -1078,7 +1078,7 @@ namespace ACE.Server.Command.Handlers
                     Console.WriteLine($"Found {armorItems.Count:N0} armors, {adjusted:N0}{willBe}adjusted");
 
                     if (!fix)
-                        Console.WriteLine($"Dry run completed. Type 'verify-armor-level fix' to fix any issues.");
+                        Console.WriteLine($"Dry run completed. Type 'verify-armor-levels fix' to fix any issues.");
                 }
                 else
                     Console.WriteLine($"Verified {armorItems.Count:N0} armors.");
