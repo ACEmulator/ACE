@@ -450,7 +450,7 @@ namespace ACE.Server.Factories
             AddCommonInventory(player, RelicAlduressa);
 
             // Create a dummy treasure profile for passing in tier value
-            TreasureDeath profile = new TreasureDeath
+            var profile = new Database.Models.World.TreasureDeath
             {
                 Tier = 7,
                 LootQualityMod = 0
@@ -501,7 +501,7 @@ namespace ACE.Server.Factories
             AddCommonInventory(player, NobleRelic);
 
             // Create a dummy treasure profile for passing in tier value
-            TreasureDeath profile = new TreasureDeath
+            var profile = new Database.Models.World.TreasureDeath
             {
                 Tier = 7,
                 LootQualityMod = 0
@@ -553,7 +553,7 @@ namespace ACE.Server.Factories
             AddCommonInventory(player, AncientRelic);
 
             // Create a dummy treasure profile for passing in tier value
-            TreasureDeath profile = new TreasureDeath
+            var profile = new Database.Models.World.TreasureDeath
             {
                 Tier = 7,
                 LootQualityMod = 0
