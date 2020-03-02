@@ -5,6 +5,9 @@
 **/.vs/
 **/.git/
 **/.github/
+**/sed/
+**/AppVeyor/
+**/publish/
 
 # files
 Dockerfile*

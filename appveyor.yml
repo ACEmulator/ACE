@@ -14,6 +14,11 @@ dotnet_csproj:
   assembly_version: '{version}'
   file_version: '{version}'
   informational_version: '{version}'
+environment:
+  DOCKER_USER:
+    secure: W1VGZaNWpZ6jXC/uUlas9w==
+  DOCKER_PASS:
+    secure: 53ErfXNQlZoG1iZHLmVL/Q==
 services: mysql
 before_build:
 - cmd: source\AppVeyor\AppVeyorBeforeCompile.bat
@@ -21,17 +26,11 @@ build:
   project: source\ACE.sln
   verbosity: minimal
 before_package:
-- cmd: >-
-    dotnet publish "C:\projects\ace\source\ACE.Server\ACE.Server.csproj" --output C:\projects\ace\publish --configuration Release --verbosity minimal
-
-    7z.exe a ACE.Server-v%APPVEYOR_BUILD_VERSION%.zip "C:\projects\ace\publish\*"
+- cmd: source\AppVeyor\AppVeyorBeforePackage.bat
 after_build:
 - cmd: source\AppVeyor\AppVeyorAfterCompile.bat
 test_script:
-- cmd: >-
-    dotnet test --diag ACETests-Server.txt --no-build "Source\ACE.Server.Tests" --test-adapter-path:. --logger:Appveyor
-
-    dotnet test --diag ACETests-Database.txt --no-build "Source\ACE.Database.Tests" --test-adapter-path:. --logger:Appveyor
+- cmd: source\AppVeyor\AppVeyorTestScript.bat
 artifacts:
 - path: '**\ACETests*.txt'
   name: test logs
@@ -50,3 +49,5 @@ deploy:
   force_update: true
   on:
     branch: master
+after_deploy:
+- cmd: source\AppVeyor\AppVeyorAfterDeploy.bat
