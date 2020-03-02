@@ -18,7 +18,7 @@ environment:
   DOCKER_USER:
     secure: qs6SGmd8XeCqWCMGx5+VAg==
   DOCKER_PASS:
-    secure: Nybz0dIvG/X4x7nTyS9NHg==
+    secure: AdN3f5EVMXteNIDrqS8FhSezFUuiZ7F4LU0woD5raBE=
 services: mysql
 before_build:
 - cmd: source\AppVeyor\AppVeyorBeforeCompile.bat
