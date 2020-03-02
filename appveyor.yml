@@ -16,9 +16,9 @@ dotnet_csproj:
   informational_version: '{version}'
 environment:
   DOCKER_USER:
-    secure: W1VGZaNWpZ6jXC/uUlas9w==
+    secure: qs6SGmd8XeCqWCMGx5+VAg==
   DOCKER_PASS:
-    secure: 53ErfXNQlZoG1iZHLmVL/Q==
+    secure: Nybz0dIvG/X4x7nTyS9NHg==
 services: mysql
 before_build:
 - cmd: source\AppVeyor\AppVeyorBeforeCompile.bat
