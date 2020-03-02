@@ -1109,9 +1109,9 @@ namespace ACE.Server.Command.Handlers
         {
             using (var ctx = new ShardDbContext())
             {
-                var numTimesTinkered = ctx.BiotaPropertiesInt.Where(i => i.Type == (int)PropertyInt.ImbuedEffect).ToDictionary(i => i.ObjectId, i => i.Value);
+                var imbuedEffect = ctx.BiotaPropertiesInt.Where(i => i.Type == (int)PropertyInt.ImbuedEffect).ToDictionary(i => i.ObjectId, i => i.Value);
 
-                return numTimesTinkered;
+                return imbuedEffect;
             }
         }
 
