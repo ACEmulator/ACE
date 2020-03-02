@@ -58,7 +58,7 @@ namespace ACE.Server
             var log4netConfigExample = Path.Combine(exeLocation, "log4net.config.example");
             var log4netConfigContainer = Path.Combine(containerConfigDirectory, "log4net.config");
 
-            if (File.Exists(log4netConfigContainer))
+            if (IsRunningInContainer && File.Exists(log4netConfigContainer))
                 File.Copy(log4netConfigContainer, log4netConfig, true);
 
             var log4netFileInfo = new FileInfo("log4net.config");
@@ -127,7 +127,7 @@ namespace ACE.Server
             var configFile = Path.Combine(exeLocation, "Config.js");
             var configConfigContainer = Path.Combine(containerConfigDirectory, "Config.js");
 
-            if (File.Exists(configConfigContainer))
+            if (IsRunningInContainer && File.Exists(configConfigContainer))
                 File.Copy(configConfigContainer, configFile, true);
 
             if (!File.Exists(configFile))
