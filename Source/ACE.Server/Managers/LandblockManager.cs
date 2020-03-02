@@ -346,6 +346,14 @@ namespace ACE.Server.Managers
         {
             var oldBlock = worldObject.CurrentLandblock;
             var newBlock = GetLandblock(worldObject.Location.LandblockId, true);
+
+            if (newBlock.IsDormant && worldObject is SpellProjectile)
+            {
+                worldObject.PhysicsObj.set_active(false);
+                worldObject.Destroy();
+                return;
+            }
+
             // Remove from the old landblock -- force
             if (oldBlock != null)
                 oldBlock.RemoveWorldObjectForPhysics(worldObject.Guid, adjacencyMove);

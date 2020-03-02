@@ -511,7 +511,7 @@ namespace ACE.Database.Adapter
                 foreach (var kvp in biota.PropertiesString)
                     result.SetProperty(kvp.Key, kvp.Value);
             }
-
+ 
 
             if (biota.PropertiesPosition != null)
             {

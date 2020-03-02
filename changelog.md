@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2020-03-02
+[Mag-nus]
+* Added ACE.Database.WorldDatabaseWithEntityCache class
+* Switched ACE.Server over to the new ACE.Entity.Models.Weenie model
+
 ### 2019-12-31
 [Mag-nus]
 * Added ShardDatabaseWithoutCaching

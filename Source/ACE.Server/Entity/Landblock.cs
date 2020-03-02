@@ -26,6 +26,7 @@ using ACE.Server.Physics.Common;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.WorldObjects;
 
+using Biota = ACE.Database.Models.Shard.Biota;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Entity
@@ -170,9 +171,10 @@ namespace ACE.Server.Entity
             PhysicsLandblock = new Physics.Common.Landblock(cellLandblock);
         }
 
-        public void Init()
+        public void Init(bool reload = false)
         {
-            PhysicsLandblock.PostInit();
+            if (!reload)
+                PhysicsLandblock.PostInit();
 
             Task.Run(() =>
             {
@@ -462,7 +464,19 @@ namespace ACE.Server.Entity
                 if (!Permaload)
                 {
                     if (lastActiveTime + dormantInterval < thisHeartBeat)
+                    {
+                        if (!IsDormant)
+                        {
+                            var spellProjectiles = worldObjects.Values.Where(i => i is SpellProjectile).ToList();
+                            foreach (var spellProjectile in spellProjectiles)
+                            {
+                                spellProjectile.PhysicsObj.set_active(false);
+                                spellProjectile.Destroy();
+                            }
+                        }
+
                         IsDormant = true;
+                    }
                     if (lastActiveTime + UnloadInterval < thisHeartBeat)
                         LandblockManager.AddToDestructionQueue(this);
                 }
@@ -850,14 +864,14 @@ namespace ACE.Server.Entity
             }
         }
 
-        public void EmitSignal(Player player, string message)
+        public void EmitSignal(Creature emitter, string message)
         {
             foreach (var wo in worldObjects.Values.Where(w => w.HearLocalSignals).ToList())
             {
-                if (player.IsWithinUseRadiusOf(wo, wo.HearLocalSignalsRadius))
+                if (emitter.IsWithinUseRadiusOf(wo, wo.HearLocalSignalsRadius))
                 {
                     //Console.WriteLine($"{wo.Name}.EmoteManager.OnLocalSignal({player.Name}, {message})");
-                    wo.EmoteManager.OnLocalSignal(player, message);
+                    wo.EmoteManager.OnLocalSignal(emitter, message);
                 }
             }
         }
@@ -1016,6 +1030,26 @@ namespace ACE.Server.Entity
 
             // remove physics landblock
             LScape.unload_landblock(landblockID);
+        }
+
+        public void DestroyAllNonPlayerObjects()
+        {
+            ProcessPendingWorldObjectAdditionsAndRemovals();
+
+            SaveDB();
+
+            // remove all objects
+            foreach (var wo in worldObjects.Where(i => !(i.Value is Player)).ToList())
+            {
+                if (!wo.Value.BiotaOriginatedFromOrHasBeenSavedToDatabase())
+                    wo.Value.Destroy(false);
+                else
+                    RemoveWorldObjectInternal(wo.Key);
+            }
+
+            ProcessPendingWorldObjectAdditionsAndRemovals();
+
+            actionQueue.Clear();
         }
 
         private void SaveDB()

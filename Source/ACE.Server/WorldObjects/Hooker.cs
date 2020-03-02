@@ -6,6 +6,8 @@ using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
 
+using Biota = ACE.Database.Models.Shard.Biota;
+
 namespace ACE.Server.WorldObjects
 {
     public class Hooker : WorldObject

@@ -7,6 +7,8 @@ using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.Entity;
 
+using Biota = ACE.Database.Models.Shard.Biota;
+
 namespace ACE.Server.WorldObjects
 {
     /// <summary>

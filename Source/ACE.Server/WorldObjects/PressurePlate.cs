@@ -5,6 +5,8 @@ using ACE.Entity.Enum;
 using ACE.Entity.Models;
 using ACE.Server.Network.GameMessages.Messages;
 
+using Biota = ACE.Database.Models.Shard.Biota;
+
 namespace ACE.Server.WorldObjects
 {
     /// <summary>
@@ -73,6 +75,11 @@ namespace ACE.Server.WorldObjects
             player.EnqueueBroadcast(new GameMessageSound(player.Guid, UseSound));
 
             base.OnActivate(activator);
+        }
+
+        public override void ActOnUse(WorldObject wo)
+        {
+            // Do nothing
         }
     }
 }

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects.Managers;
 
@@ -13,11 +13,11 @@ namespace ACE.Server.WorldObjects
     public class Creature_BodyPart
     {
         public Creature Creature;
-        public KeyValuePair<CombatBodyPart, PropertiesBodyPart> Biota;
+        public BiotaPropertiesBodyPart Biota;
 
         public EnchantmentManager EnchantmentManager => Creature.EnchantmentManager;
 
-        public Creature_BodyPart(Creature creature, KeyValuePair<CombatBodyPart, PropertiesBodyPart> biota)
+        public Creature_BodyPart(Creature creature, BiotaPropertiesBodyPart biota)
         {
             Creature = creature;
             Biota = biota;
@@ -35,22 +35,17 @@ namespace ACE.Server.WorldObjects
 
         public float GetEffectiveArmorVsType(DamageType damageType, List<WorldObject> armorLayers, Creature attacker, WorldObject weapon, float armorRendingMod = 1.0f)
         {
-            var ignoreMagicArmor =  (weapon?.IgnoreMagicArmor ?? false)  || (attacker?.IgnoreMagicArmor ?? false);
+            var ignoreMagicArmor = (weapon?.IgnoreMagicArmor ?? false) || (attacker?.IgnoreMagicArmor ?? false);
             var ignoreMagicResist = (weapon?.IgnoreMagicResist ?? false) || (attacker?.IgnoreMagicResist ?? false);
 
             // get base AL / RL
+            var armorVsType = Biota.BaseArmor * (float)Creature.GetArmorVsType(damageType);
+
+            // additive enchantments:
+            // imperil / armor
             var enchantmentMod = ignoreMagicResist ? 0 : EnchantmentManager.GetBodyArmorMod();
 
-            var baseArmorMod = (float)(Biota.Value.BaseArmor + enchantmentMod);
-
-            // for creatures, can this be modified via enchantments?
-            var armorVsType = Creature.GetArmorVsType(damageType);
-
-            // handle negative baseArmorMod?
-            if (baseArmorMod < 0)
-                armorVsType = 1.0f + (1.0f - armorVsType);
-
-            var effectiveAL = (float)(baseArmorMod * armorVsType);
+            var effectiveAL = armorVsType + enchantmentMod;
 
             // handle monsters w/ multiple layers of armor
             foreach (var armorLayer in armorLayers)
