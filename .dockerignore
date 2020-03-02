@@ -1,0 +1,20 @@
+# directories
+**/bin/
+**/obj/
+**/out/
+**/.vs/
+**/.git/
+**/.github/
+**/sed/
+**/AppVeyor/
+**/publish/
+
+# files
+Dockerfile*
+**/.dockerignore*
+**/*.user
+**/*.trx
+**/*.md
+**/*.ps1
+**/*.cmd
+**/*.sh
