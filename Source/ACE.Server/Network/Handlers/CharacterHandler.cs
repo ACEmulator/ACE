@@ -7,15 +7,16 @@ using log4net;
 using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
+
+using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.Network.Handlers
 {
@@ -70,19 +71,19 @@ namespace ACE.Server.Network.Handlers
                 else
                     weenie = DatabaseManager.World.GetCachedWeenie("human");
 
-                if (characterCreateInfo.Heritage == (int)HeritageGroup.Olthoi && weenie.Type == (int)WeenieType.Admin)
+                if (characterCreateInfo.Heritage == (int)HeritageGroup.Olthoi && weenie.WeenieType == WeenieType.Admin)
                     weenie = DatabaseManager.World.GetCachedWeenie("olthoiadmin");
 
-                if (characterCreateInfo.Heritage == (int)HeritageGroup.OlthoiAcid && weenie.Type == (int)WeenieType.Admin)
+                if (characterCreateInfo.Heritage == (int)HeritageGroup.OlthoiAcid && weenie.WeenieType == WeenieType.Admin)
                     weenie = DatabaseManager.World.GetCachedWeenie("olthoiacidadmin");
             }
             else
                 weenie = DatabaseManager.World.GetCachedWeenie("human");
 
-            if (characterCreateInfo.Heritage == (int)HeritageGroup.Olthoi && weenie.Type == (int)WeenieType.Creature)
+            if (characterCreateInfo.Heritage == (int)HeritageGroup.Olthoi && weenie.WeenieType == WeenieType.Creature)
                 weenie = DatabaseManager.World.GetCachedWeenie("olthoiplayer");
 
-            if (characterCreateInfo.Heritage == (int)HeritageGroup.OlthoiAcid && weenie.Type == (int)WeenieType.Creature)
+            if (characterCreateInfo.Heritage == (int)HeritageGroup.OlthoiAcid && weenie.WeenieType == WeenieType.Creature)
                 weenie = DatabaseManager.World.GetCachedWeenie("olthoiacidplayer");
 
             if (characterCreateInfo.IsSentinel && session.AccessLevel >= AccessLevel.Sentinel)
@@ -103,11 +104,11 @@ namespace ACE.Server.Network.Handlers
 
             // Removes the generic knife and buckler, hidden Javelin, 30 stack of arrows, and 5 stack of coins that are given to all characters
             // Starter Gear from the JSON file are added to the character later in the CharacterCreateEx() process
-            weenie.WeeniePropertiesCreateList.Clear();
+            weenie.PropertiesCreateList = null;
 
             var guid = GuidManager.NewPlayerGuid();
 
-            var weenieType = (WeenieType)weenie.Type;
+            var weenieType = weenie.WeenieType;
 
             // If Database didn't have Sentinel/Admin weenies, alter the weenietype coming in.
             if (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)

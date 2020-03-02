@@ -19,6 +19,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -26,6 +27,7 @@ using ACE.Server.Physics.Common;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.WorldObjects;
 
+using Biota = ACE.Database.Models.Shard.Biota;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Entity

@@ -1,11 +1,12 @@
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
+using System;
+
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
-using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using System.IO;
+using ACE.Entity.Models;
+
+using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {
