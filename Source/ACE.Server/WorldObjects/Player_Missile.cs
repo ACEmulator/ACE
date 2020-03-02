@@ -143,7 +143,7 @@ namespace ACE.Server.WorldObjects
             }
 
             var creature = target as Creature;
-            if (!IsAlive || MissileTarget == null || creature == null || !creature.IsAlive)
+            if (!IsAlive || IsBusy || MissileTarget == null || creature == null || !creature.IsAlive)
             {
                 OnAttackDone();
                 return;

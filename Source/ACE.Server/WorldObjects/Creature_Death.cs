@@ -12,6 +12,7 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -31,8 +32,8 @@ namespace ACE.Server.WorldObjects
             IsTurning = false;
             IsMoving = false;
 
-            EmoteManager.OnDeath(lastDamager?.TryGetAttacker());
-
+            QuestManager.OnDeath(lastDamager?.TryGetAttacker());
+            
             OnDeath_GrantXP();
 
             if (IsGenerator)
@@ -57,11 +58,10 @@ namespace ACE.Server.WorldObjects
 
                 var killerMsg = string.Format(deathMessage.Killer, Name);
 
-                // todo: verify message type
                 var playerKiller = lastDamager.TryGetAttacker() as Player;
 
                 if (playerKiller != null)
-                    playerKiller.Session.Network.EnqueueSend(new GameMessageSystemChat(killerMsg, ChatMessageType.Broadcast));
+                    playerKiller.Session.Network.EnqueueSend(new GameEventKillerNotification(playerKiller.Session, killerMsg));
             }
             return deathMessage;
         }
@@ -101,6 +101,8 @@ namespace ACE.Server.WorldObjects
             // broadcast death animation
             var motionDeath = new Motion(MotionStance.NonCombat, MotionCommand.Dead);
             var deathAnimLength = ExecuteMotion(motionDeath);
+
+            EmoteManager.OnDeath(lastDamager?.TryGetAttacker());
 
             var dieChain = new ActionChain();
 

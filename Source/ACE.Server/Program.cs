@@ -1,6 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -13,14 +15,10 @@ using ACE.DatLoader;
 using ACE.Server.Command;
 using ACE.Server.Managers;
 using ACE.Server.Network.Managers;
-using DouglasCrockford.JsMin;
-using Newtonsoft.Json;
-using System.Reflection;
-using System.Diagnostics;
 
 namespace ACE.Server
 {
-    class Program
+    partial class Program
     {
         /// <summary>
         /// The timeBeginPeriod function sets the minimum timer resolution for an application or device driver. Used to manipulate the timer frequency.
@@ -39,6 +37,8 @@ namespace ACE.Server
 
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public static readonly bool IsRunningInContainer = Convert.ToBoolean(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"));
+
         public static void Main(string[] args)
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -52,13 +52,22 @@ namespace ACE.Server
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
             // Look for the log4net.config first in the current environment directory, then in the ExecutingAssembly location
+            var exeLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var containerConfigDirectory = "/ace/Config";
+            var log4netConfig = Path.Combine(exeLocation, "log4net.config");
+            var log4netConfigExample = Path.Combine(exeLocation, "log4net.config.example");
+            var log4netConfigContainer = Path.Combine(containerConfigDirectory, "log4net.config");
+
+            if (IsRunningInContainer && File.Exists(log4netConfigContainer))
+                File.Copy(log4netConfigContainer, log4netConfig, true);
+
             var log4netFileInfo = new FileInfo("log4net.config");
             if (!log4netFileInfo.Exists)
-                log4netFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "log4net.config"));
+                log4netFileInfo = new FileInfo(log4netConfig);
 
             if (!log4netFileInfo.Exists)
             {
-                var exampleFile = new FileInfo(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "log4net.config.example"));
+                var exampleFile = new FileInfo(log4netConfigExample);
                 if (!exampleFile.Exists)
                 {
                     Console.WriteLine("log4net Configuration file is missing.  Please copy the file log4net.config.example to log4net.config and edit it to match your needs before running ACE.");
@@ -66,8 +75,26 @@ namespace ACE.Server
                 }
                 else
                 {
-                    Console.WriteLine("log4net Configuration file is missing,  cloning from example file.");
-                    File.Copy(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "log4net.config.example"), Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "log4net.config"));
+                    if (!IsRunningInContainer)
+                    {
+                        Console.WriteLine("log4net Configuration file is missing,  cloning from example file.");
+                        File.Copy(log4netConfigExample, log4netConfig);
+                    }
+                    else
+                    {                        
+                        if (!File.Exists(log4netConfigContainer))
+                        {
+                            Console.WriteLine("log4net Configuration file is missing, ACEmulator is running in a container,  cloning from docker file.");
+                            var log4netConfigDocker = Path.Combine(exeLocation, "log4net.config.docker");
+                            File.Copy(log4netConfigDocker, log4netConfig);
+                            File.Copy(log4netConfigDocker, log4netConfigContainer);
+                        }
+                        else
+                        {
+                            File.Copy(log4netConfigContainer, log4netConfig);
+                        }
+
+                    }
                 }
             }
 
@@ -97,10 +124,26 @@ namespace ACE.Server
             var serverVersion = fileVersionInfo.ProductVersion;
             Console.Title = @$"ACEmulator - v{serverVersion}";
 
-            var configFile = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Config.js");
+            var configFile = Path.Combine(exeLocation, "Config.js");
+            var configConfigContainer = Path.Combine(containerConfigDirectory, "Config.js");
+
+            if (IsRunningInContainer && File.Exists(configConfigContainer))
+                File.Copy(configConfigContainer, configFile, true);
+
             if (!File.Exists(configFile))
             {
-                DoOutOfBoxSetup(configFile);
+                if (!IsRunningInContainer)
+                    DoOutOfBoxSetup(configFile);
+                else
+                {
+                    if (!File.Exists(configConfigContainer))
+                    {
+                        DoOutOfBoxSetup(configFile);
+                        File.Copy(configFile, configConfigContainer);
+                    }
+                    else
+                        File.Copy(configConfigContainer, configFile);
+                }
             }
 
             log.Info("Initializing ConfigManager...");
@@ -205,185 +248,6 @@ namespace ACE.Server
             }
         }
 
-        private static void DoOutOfBoxSetup(string configFile)
-        {
-            var exampleFile = new FileInfo(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "config.js.example"));
-            if (!exampleFile.Exists)
-            {
-                log.Error("config.js.example Configuration file is missing.  Please copy the file config.js.example to config.js and edit it to match your needs before running ACE.");
-                throw new Exception("missing config.js configuration file");
-            }
-            else
-            {
-                Console.WriteLine("config.js Configuration file is missing,  cloning from example file.");
-                File.Copy(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "config.js.example"), configFile);
-            }
-
-            var fileText = File.ReadAllText(configFile);
-            var config = JsonConvert.DeserializeObject<MasterConfiguration>(new JsMinifier().Minify(fileText));
-
-            Console.WriteLine("Performing setup for ACEmulator...");
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.WriteLine("Welcome to ACEmulator! To configure your world for first use, please follow the instructions below. Press enter at each prompt to accept default values.");
-            Console.WriteLine();
-            Console.WriteLine();
-
-            Console.Write($"Enter the name for your World (default: \"{config.Server.WorldName}\"): ");
-            var variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.Server.WorldName = new string(variable.Trim());
-            Console.WriteLine();
-
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.WriteLine("The next two entries should use defaults, unless you have specific network environments...");
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.Write($"Enter the Host address for your World (default: \"{config.Server.Network.Host}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.Server.Network.Host = new string(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the Port for your World (default: \"{config.Server.Network.Port}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.Server.Network.Port = Convert.ToUInt32(variable.Trim());
-            Console.WriteLine();
-
-            Console.WriteLine();
-            Console.WriteLine();
-
-            Console.Write($"Enter the directory location for your DAT files (default: \"{config.Server.DatFilesDirectory}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-            {
-                var path = Path.GetFullPath(new string(variable.Trim()));
-                if (!Path.EndsInDirectorySeparator(path))
-                    path += Path.DirectorySeparatorChar;
-                //path = path.Replace($"{Path.DirectorySeparatorChar}", $"{Path.DirectorySeparatorChar}{Path.DirectorySeparatorChar}");
-
-                config.Server.DatFilesDirectory = path;
-            }
-            Console.WriteLine();
-
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.WriteLine("Next we will configure your SQL server connections. You will need to know your database name, username and password for each.");
-            Console.WriteLine("Default names for the databases are recommended, and it is also recommended you not use root for login to database. The password must not be blank.");
-            Console.WriteLine("It is also recommended the SQL server be hosted on the same machine as this server, so defaults for Host and Port would be ideal as well.");
-            Console.WriteLine("As before, pressing enter will use default value.");
-            Console.WriteLine();
-            Console.WriteLine();
-
-            Console.Write($"Enter the database name for your authentication database (default: \"{config.MySql.Authentication.Database}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Authentication.Database = new string(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the Host address for your authentication database (default: \"{config.MySql.Authentication.Host}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Authentication.Host = new string(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the Port for your authentication database (default: \"{config.MySql.Authentication.Port}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Authentication.Port = Convert.ToUInt32(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the username for your authentication database (default: \"{config.MySql.Authentication.Username}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Authentication.Username = new string(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the password for your authentication database (default: \"{config.MySql.Authentication.Password}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Authentication.Password = new string(variable.Trim());
-            Console.WriteLine();
-
-
-            Console.Write($"Enter the database name for your shard database (default: \"{config.MySql.Shard.Database}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Shard.Database = new string(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the Host address for your shard database (default: \"{config.MySql.Shard.Host}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Shard.Host = new string(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the Port for your shard database (default: \"{config.MySql.Shard.Port}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Shard.Port = Convert.ToUInt32(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the username for your shard database (default: \"{config.MySql.Shard.Username}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Shard.Username = new string(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the password for your shard database (default: \"{config.MySql.Shard.Password}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.Shard.Password = new string(variable.Trim());
-            Console.WriteLine();
-
-
-            Console.Write($"Enter the database name for your world database (default: \"{config.MySql.World.Database}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.World.Database = new string(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the Host address for your world database (default: \"{config.MySql.World.Host}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.World.Host = new string(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the Port for your world database (default: \"{config.MySql.World.Port}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.World.Port = Convert.ToUInt32(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the username for your world database (default: \"{config.MySql.World.Username}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.World.Username = new string(variable.Trim());
-            Console.WriteLine();
-
-            Console.Write($"Enter the password for your world database (default: \"{config.MySql.World.Password}\"): ");
-            variable = Console.ReadLine();
-            if (!string.IsNullOrWhiteSpace(variable))
-                config.MySql.World.Password = new string(variable.Trim());
-            Console.WriteLine();
-
-
-            Console.WriteLine("commiting configuration to memory...");
-            using (StreamWriter file = File.CreateText(configFile))
-            {
-                JsonSerializer serializer = new JsonSerializer();
-                serializer.Formatting = Formatting.Indented;
-                //serializer.NullValueHandling = NullValueHandling.Ignore;
-                //serializer.DefaultValueHandling = DefaultValueHandling.Ignore;
-                serializer.Serialize(file, config);
-            }
-
-            Console.WriteLine("exiting out of box setup for ACEmulator.");
-        }
-
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             log.Error(e.ExceptionObject);
@@ -391,23 +255,31 @@ namespace ACE.Server
 
         private static void OnProcessExit(object sender, EventArgs e)
         {
-            if (!ServerManager.ShutdownInitiated)
-                log.Warn("Unsafe server shutdown detected! Data loss is possible!");
-
-            PropertyManager.StopUpdating();
-            DatabaseManager.Stop();
-
-            // Do system specific cleanup here
-            try
+            if (!IsRunningInContainer)
             {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                if (!ServerManager.ShutdownInitiated)
+                    log.Warn("Unsafe server shutdown detected! Data loss is possible!");
+
+                PropertyManager.StopUpdating();
+                DatabaseManager.Stop();
+
+                // Do system specific cleanup here
+                try
                 {
-                    MM_EndPeriod(1);
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        MM_EndPeriod(1);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.Error(ex.ToString());
                 }
             }
-            catch (Exception ex)
+            else
             {
-                log.Error(ex.ToString());
+                ServerManager.DoShutdownNow();
+                DatabaseManager.Stop();
             }
         }
     }

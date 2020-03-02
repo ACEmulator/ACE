@@ -251,5 +251,23 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.OverpowerResist);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.OverpowerResist); else SetProperty(PropertyInt.OverpowerResist, value.Value); }
         }
+
+        public string KillQuest
+        {
+            get => GetProperty(PropertyString.KillQuest);
+            set { if (value == null) RemoveProperty(PropertyString.KillQuest); else SetProperty(PropertyString.KillQuest, value); }
+        }
+
+        public string KillQuest2
+        {
+            get => GetProperty(PropertyString.KillQuest2);
+            set { if (value == null) RemoveProperty(PropertyString.KillQuest2); else SetProperty(PropertyString.KillQuest2, value); }
+        }
+
+        public string KillQuest3
+        {
+            get => GetProperty(PropertyString.KillQuest3);
+            set { if (value == null) RemoveProperty(PropertyString.KillQuest3); else SetProperty(PropertyString.KillQuest3, value); }
+        }
     }
 }

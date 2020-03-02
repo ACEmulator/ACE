@@ -193,6 +193,11 @@ namespace ACE.Server.WorldObjects
                 // handle Dirty Fighting
                 if (GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
                     FightDirty(target);
+                
+                target.EmoteManager.OnDamage(this);
+
+                if (damageEvent.IsCritical)
+                    target.EmoteManager.OnReceiveCritical(this);
             }
 
             if (damageEvent.Damage > 0.0f)
@@ -209,9 +214,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void OnDamageTarget(WorldObject target, CombatType attackType, bool critical)
         {
-            if (critical)
-                target.EmoteManager.OnReceiveCritical(this);
-
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
             var difficulty = GetTargetEffectiveDefenseSkill(target);
 
