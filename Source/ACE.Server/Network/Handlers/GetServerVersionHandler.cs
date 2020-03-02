@@ -36,6 +36,9 @@ namespace ACE.Server.Network.Handlers
             msg += "Server is compiled in RELEASE mode";
 #endif
 
+            if (Program.IsRunningInContainer)
+                msg += "Server is running inside a Container";
+
             session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
         }
     }
