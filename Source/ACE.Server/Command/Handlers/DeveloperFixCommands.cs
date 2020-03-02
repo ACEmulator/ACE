@@ -1017,7 +1017,7 @@ namespace ACE.Server.Command.Handlers
             var fix = parameters.Length > 0 && parameters[0].Equals("fix");
             var fixStr = fix ? " -- fixed" : "";
 
-            // get all items on server with armor level
+            // get all loot-generated items on server with armor level
             using (var ctx = new ShardDbContext())
             {
                 ctx.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
