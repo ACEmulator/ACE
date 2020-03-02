@@ -1,15 +1,16 @@
 using System;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+
+using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {
@@ -97,9 +98,13 @@ namespace ACE.Server.WorldObjects
 
             if (SpellDID.HasValue)
             {
+                // TODO: Gem 7559 - Condensed Dispel Potion
+                // has values similar to Food, ie. UseUserAnimation - MimeEat,
+                // and UseSound - Drink1
+
                 var spell = new Server.Entity.Spell((uint)SpellDID);
 
-                TryCastSpell(spell, player, this);
+                TryCastSpell(spell, player, this, false);
             }
 
             if (UseCreateContractId > 0)

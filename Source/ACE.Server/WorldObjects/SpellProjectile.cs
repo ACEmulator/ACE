@@ -2,16 +2,17 @@ using System;
 using System.Numerics;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
+
+using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {
@@ -75,6 +76,8 @@ namespace ACE.Server.WorldObjects
             // FIXME: use data here
             if (!Spell.Name.Equals("Rolling Death"))
                 Ethereal = false;
+            else if (spellType == ProjectileSpellType.Ring)
+                Ethereal = true;
 
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
                 || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley || SpellType == ProjectileSpellType.Blast
@@ -646,9 +649,6 @@ namespace ACE.Server.WorldObjects
 
             amount = (uint)Math.Round(damage.Value);    // full amount for debugging
 
-            if (critical)
-                target.EmoteManager.OnReceiveCritical(player);
-
             if (target.IsAlive)
             {
                 string verb = null, plural = null;
@@ -659,6 +659,8 @@ namespace ACE.Server.WorldObjects
                 var sneakMsg = sneakAttackMod > 1.0f ? "Sneak Attack! " : "";
                 var overpowerMsg = overpower ? "Overpower! " : "";
 
+                var nonHealth = Spell.Category == SpellCategory.StaminaLowering || Spell.Category == SpellCategory.ManaLowering;
+
                 if (player != null)
                 {
                     var critProt = critDefended ? " Your target's Critical Protection augmentation allows them to avoid your critical hit!" : "";
@@ -666,7 +668,7 @@ namespace ACE.Server.WorldObjects
                     var attackerMsg = $"{critMsg}{overpowerMsg}{sneakMsg}You {verb} {target.Name} for {amount} points with {Spell.Name}.{critProt}";
 
                     // could these crit / sneak attack?
-                    if (Spell.Category == SpellCategory.StaminaLowering || Spell.Category == SpellCategory.ManaLowering)
+                    if (nonHealth)
                     {
                         var vital = Spell.Category == SpellCategory.StaminaLowering ? "stamina" : "mana";
                         attackerMsg = $"With {Spell.Name} you drain {amount} points of {vital} from {target.Name}.";
@@ -684,7 +686,7 @@ namespace ACE.Server.WorldObjects
 
                     var defenderMsg = $"{critMsg}{overpowerMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.{critProt}";
 
-                    if (Spell.Category == SpellCategory.StaminaLowering || Spell.Category == SpellCategory.ManaLowering)
+                    if (nonHealth)
                     {
                         var vital = Spell.Category == SpellCategory.StaminaLowering ? "stamina" : "mana";
                         defenderMsg = $"{ProjectileSource.Name} casts {Spell.Name} and drains {amount} points of your {vital}.";
@@ -692,6 +694,17 @@ namespace ACE.Server.WorldObjects
 
                     if (!targetPlayer.SquelchManager.Squelches.Contains(ProjectileSource, ChatMessageType.Magic))
                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat(defenderMsg, ChatMessageType.Magic));
+                }
+
+                if (!nonHealth)
+                {
+                    if (target.HasCloakEquipped)
+                        Cloak.TryProcSpell(target, ProjectileSource, percent);
+
+                    target.EmoteManager.OnDamage(player);
+
+                    if (critical)
+                        target.EmoteManager.OnReceiveCritical(player);
                 }
             }
             else

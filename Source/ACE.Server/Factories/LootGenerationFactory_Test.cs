@@ -24,10 +24,17 @@ namespace ACE.Server.Factories
 
              var ls = SetLootStatsDefaults(new LootStats(), logstats);
 
+            // Create a dummy treasure profile for passing in tier value
+            TreasureDeath profile = new TreasureDeath
+            {
+                Tier = tier,
+                LootQualityMod = 0
+            };
+
             // Loop depending on how many items you are creating
             for (int i = 0; i < numItems; i++)
             {
-                var testItem = LootGenerationFactory.CreateRandomLootObjects(tier, true);
+                var testItem = LootGenerationFactory.CreateRandomLootObjects(profile, true);
                 ls = LootStats(testItem, ls, logstats);
             }
             Console.WriteLine(displayHeader);
@@ -242,8 +249,10 @@ namespace ACE.Server.Factories
                                 petLevel = 100;
                             else if (petDevice.UseRequiresSkillLevel == 370)
                                 petLevel = 80;
-                            else if (petDevice.UseRequiresSkillLevel == 310)
+                            else if (petDevice.UseRequiresSkillLevel == 310 || petDevice.UseRequiresSkillLevel == 320)
                                 petLevel = 50;
+                            if (petLevel == 0)
+                                Console.WriteLine("Skill= " + petDevice.UseRequiresSkillLevel);
 
                             if (petDevice.GearDamage != null)
                             {

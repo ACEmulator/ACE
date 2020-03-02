@@ -7,15 +7,15 @@ namespace ACE.Entity.Models
 {
     public static class PropertiesAllegianceExtensions
     {
-        public static List<PropertiesAllegiance> GetApprovedVassals(this ICollection<PropertiesAllegiance> value, ReaderWriterLockSlim rwLock)
+        public static Dictionary<uint, PropertiesAllegiance> GetApprovedVassals(this IDictionary<uint, PropertiesAllegiance> value, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
             try
             {
                 if (value == null)
-                    return new List<PropertiesAllegiance>();
+                    return new Dictionary<uint, PropertiesAllegiance>();
 
-                return value.Where(i => i.ApprovedVassal).ToList();
+                return value.Where(i => i.Value.ApprovedVassal).ToDictionary(i => i.Key, i => i.Value);
             }
             finally
             {
@@ -23,15 +23,15 @@ namespace ACE.Entity.Models
             }
         }
 
-        public static List<PropertiesAllegiance> GetBanList(this ICollection<PropertiesAllegiance> value, ReaderWriterLockSlim rwLock)
+        public static Dictionary<uint, PropertiesAllegiance> GetBanList(this IDictionary<uint, PropertiesAllegiance> value, ReaderWriterLockSlim rwLock)
         {
             if (value == null)
-                return new List<PropertiesAllegiance>();
+                return new Dictionary<uint, PropertiesAllegiance>();
 
             rwLock.EnterReadLock();
             try
             {
-                return value.Where(i => i.Banned).ToList();
+                return value.Where(i => i.Value.Banned).ToDictionary(i => i.Key, i => i.Value);
             }
             finally
             {
@@ -39,7 +39,7 @@ namespace ACE.Entity.Models
             }
         }
 
-        public static PropertiesAllegiance GetFirstOrDefaultByCharacterId(this ICollection<PropertiesAllegiance> value, uint characterId, ReaderWriterLockSlim rwLock)
+        public static PropertiesAllegiance GetFirstOrDefaultByCharacterId(this IDictionary<uint, PropertiesAllegiance> value, uint characterId, ReaderWriterLockSlim rwLock)
         {
             if (value == null)
                 return null;
@@ -47,7 +47,9 @@ namespace ACE.Entity.Models
             rwLock.EnterReadLock();
             try
             {
-                return value.FirstOrDefault(i => i.CharacterId == characterId);
+                value.TryGetValue(characterId, out var entity);
+
+                return entity;
             }
             finally
             {
@@ -55,24 +57,20 @@ namespace ACE.Entity.Models
             }
         }
 
-        public static void AddOrUpdateAllegiance(this ICollection<PropertiesAllegiance> value, uint characterId, bool isBanned, bool approvedVassal, ReaderWriterLockSlim rwLock)
+        public static void AddOrUpdateAllegiance(this IDictionary<uint, PropertiesAllegiance> value, uint characterId, bool isBanned, bool approvedVassal, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterWriteLock();
             try
             {
-                var entity = value.FirstOrDefault(x => x.CharacterId == characterId);
-
-                if (entity == null)
+                if (!value.TryGetValue(characterId, out var entity))
                 {
-                    entity = new PropertiesAllegiance { CharacterId = characterId, Banned = isBanned, ApprovedVassal = approvedVassal };
+                    entity = new PropertiesAllegiance { Banned = isBanned, ApprovedVassal = approvedVassal };
 
-                    value.Add(entity);
+                    value.Add(characterId, entity);
                 }
-                else
-                {
-                    entity.Banned = isBanned;
-                    entity.ApprovedVassal = approvedVassal;
-                }
+
+                entity.Banned = isBanned;
+                entity.ApprovedVassal = approvedVassal;
             }
             finally
             {
@@ -80,7 +78,7 @@ namespace ACE.Entity.Models
             }
         }
 
-        public static bool TryRemoveAllegiance(this ICollection<PropertiesAllegiance> value, uint characterId, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveAllegiance(this IDictionary<uint, PropertiesAllegiance> value, uint characterId, ReaderWriterLockSlim rwLock)
         {
             if (value == null)
                 return false;
@@ -88,16 +86,7 @@ namespace ACE.Entity.Models
             rwLock.EnterWriteLock();
             try
             {
-                var entity = value.FirstOrDefault(x => x.CharacterId == characterId);
-
-                if (entity != null)
-                {
-                    value.Remove(entity);
-
-                    return true;
-                }
-
-                return false;
+                return value.Remove(characterId);
             }
             finally
             {

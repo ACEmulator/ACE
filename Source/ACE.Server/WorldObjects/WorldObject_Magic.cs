@@ -86,7 +86,7 @@ namespace ACE.Server.WorldObjects
             if (player != null && status.Message != null && !status.Broadcast && showMsg)
                 player.Session.Network.EnqueueSend(status.Message);
             else if (player != null && status.Message != null && status.Broadcast && showMsg)
-                player.EnqueueBroadcast(status.Message, LocalBroadcastRange);
+                player.EnqueueBroadcast(status.Message, LocalBroadcastRange, ChatMessageType.Magic);
 
             // for invisible spell traps,
             // their effects won't be seen if they broadcast from themselves
@@ -204,6 +204,9 @@ namespace ACE.Server.WorldObjects
             if (caster == target && spell.IsNegativeRedirectable)
                 return true;
 
+            if (targetCreature != null && spell.NonComponentTargetType == ItemType.Creature && !caster.CanDamage(targetCreature))
+                return true;
+
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
             if ((spell.MetaSpellType == SpellType.Enchantment) && (spell.School == MagicSchool.ItemEnchantment))
             {
@@ -245,7 +248,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool TryResistSpell(WorldObject target, Spell spell, WorldObject caster = null, bool projectileHit = false)
         {
-            if (!spell.IsResistable && spell.School != MagicSchool.ItemEnchantment || spell.IsSelfTargeted)
+            if (!spell.IsResistable && (spell.School != MagicSchool.ItemEnchantment || spell.NonComponentTargetType == ItemType.Creature) || spell.IsSelfTargeted)
                 return false;
 
             if (spell.NumProjectiles > 0 && !projectileHit)
@@ -436,6 +439,31 @@ namespace ACE.Server.WorldObjects
                     if (player != null && srcVital != null && srcVital.Equals("health"))
                         player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
 
+                    // handle cloaks
+                    if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health") && boost < 0 && spellTarget.HasCloakEquipped)
+                    {
+
+                        if (spellTarget.HasCloakEquipped)
+                        {
+                            // ensure message is sent after enchantment.Message
+                            var actionChain = new ActionChain();
+                            actionChain.AddDelayForOneTick();
+                            actionChain.AddAction(this, () =>
+                            {
+                                var pct = (float)-boost / spellTarget.Health.MaxValue;
+                                Cloak.TryProcSpell(spellTarget, this, pct);
+                            });
+                            actionChain.EnqueueChain();
+                        }
+
+                        // ensure emote process occurs after damage msg
+                        var emoteChain = new ActionChain();
+                        emoteChain.AddDelayForOneTick();
+                        emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
+                        //if (critical)
+                        //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
+                        emoteChain.EnqueueChain();
+                    }
                     break;
 
                 case SpellType.Transfer:
@@ -569,6 +597,30 @@ namespace ACE.Server.WorldObjects
                     if (player != null && srcVital != null && srcVital.Equals("health"))
                         player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
 
+                    // handle cloaks
+                    if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health"))
+                    {
+                        if (spellTarget.HasCloakEquipped)
+                        {
+                            // ensure message is sent after enchantment.Message
+                            var actionChain = new ActionChain();
+                            actionChain.AddDelayForOneTick();
+                            actionChain.AddAction(this, () =>
+                            {
+                                var pct = (float)srcVitalChange / spellTarget.Health.MaxValue;
+                                Cloak.TryProcSpell(spellTarget, this, pct);
+                            });
+                            actionChain.EnqueueChain();
+                        }
+
+                        // ensure emote process occurs after damage msg
+                        var emoteChain = new ActionChain();
+                        emoteChain.AddDelayForOneTick();
+                        emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
+                        //if (critical)
+                        //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
+                        emoteChain.EnqueueChain();
+                    }
                     break;
 
                 case SpellType.LifeProjectile:
@@ -1073,7 +1125,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private Portal GetPortal(uint wcid)
         {
-            return WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(wcid), new ObjectGuid(wcid)) as Portal;
+            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+
+            return WorldObjectFactory.CreateWorldObject(weenie, new ObjectGuid(wcid)) as Portal;
         }
 
         /// <summary>
@@ -1334,6 +1388,12 @@ namespace ACE.Server.WorldObjects
 
                 sp.EnqueueBroadcast(new GameMessageScript(sp.Guid, PlayScript.Launch, sp.GetProjectileScriptIntensity(spellType)));
 
+                if (!IsProjectileVisible(sp))
+                {
+                    sp.OnCollideEnvironment();
+                    continue;
+                }
+
                 spellProjectiles.Add(sp);
             }
 
@@ -1363,17 +1423,16 @@ namespace ACE.Server.WorldObjects
                 return 0.0f;
             }
 
-            var setupId = weenie.WeeniePropertiesDID.FirstOrDefault(i => i.Type == (ushort)PropertyDataId.Setup);
-
-            if (setupId == null)
+            if (!weenie.PropertiesDID.TryGetValue(PropertyDataId.Setup, out var setupId))
             {
-                log.Error($"{Name} ({Guid}).GetSetupRadius({spell.Id} - {spell.Name}): couldn't find setup ID for {weenie.ClassId} - {weenie.ClassName}");
+                log.Error($"{Name} ({Guid}).GetSetupRadius({spell.Id} - {spell.Name}): couldn't find setup ID for {weenie.WeenieClassId} - {weenie.ClassName}");
                 return 0.0f;
             }
 
-            var setup = DatManager.PortalDat.ReadFromDat<SetupModel>(setupId.Value);
+            var setup = DatManager.PortalDat.ReadFromDat<SetupModel>(setupId);
 
-            var scale = weenie.WeeniePropertiesFloat.FirstOrDefault(i => i.Type == (ushort)PropertyFloat.DefaultScale)?.Value ?? 1.0f;
+            if (!weenie.PropertiesFloat.TryGetValue(PropertyFloat.DefaultScale, out var scale))
+                scale = 1.0f;
 
             return ProjectileRadiusCache[projectileWcid] = (float)(setup.Spheres[0].Radius * scale);
         }
@@ -1402,15 +1461,13 @@ namespace ACE.Server.WorldObjects
                     return 0.0f;
                 }
 
-                var maxVelocity = weenie.WeeniePropertiesFloat.FirstOrDefault(i => i.Type == (ushort)PropertyFloat.MaximumVelocity);
-
-                if (maxVelocity == null)
+                if (!weenie.PropertiesFloat.TryGetValue(PropertyFloat.MaximumVelocity, out var maxVelocity))
                 {
-                    log.Error($"{Name} ({Guid}).GetSpellProjectileSpeed({spell.Id} - {spell.Name}, {distance}): couldn't find MaxVelocity for {weenie.ClassId} - {weenie.ClassName}");
+                    log.Error($"{Name} ({Guid}).GetSpellProjectileSpeed({spell.Id} - {spell.Name}, {distance}): couldn't find MaxVelocity for {weenie.WeenieClassId} - {weenie.ClassName}");
                     return 0.0f;
                 }
 
-                baseSpeed = (float)maxVelocity.Value;
+                baseSpeed = (float)maxVelocity;
 
                 ProjectileSpeedCache[projectileWcid] = baseSpeed;
             }
@@ -1501,15 +1558,22 @@ namespace ACE.Server.WorldObjects
             // create enchantment
             AddEnchantmentResult addResult;
             var aetheriaProc = false;
+            var cloakProc = false;
 
-            if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId) && caster.ProcSpell == spell.Id)
+            if (caster.ProcSpell == spell.Id)
             {
-                caster = this;
-                addResult = target.EnchantmentManager.Add(spell, caster, equip);
-                aetheriaProc = true;
+                if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId))
+                {
+                    caster = this;
+                    aetheriaProc = true;
+                }
+                else if (Cloak.IsCloak(caster))
+                {
+                    caster = this;
+                    cloakProc = true;
+                }
             }
-            else
-                addResult = target.EnchantmentManager.Add(spell, caster, equip);
+            addResult = target.EnchantmentManager.Add(spell, caster, equip);
 
             // build message
             var suffix = "";
@@ -1563,7 +1627,7 @@ namespace ACE.Server.WorldObjects
             if (playerTarget == null && target.Wielder is Player wielder)
                 playerTarget = wielder;
 
-            if (playerTarget != null && playerTarget != this && !playerTarget.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic))
+            if (playerTarget != null && playerTarget != this && !playerTarget.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic) && !cloakProc)
             {
                 var targetName = target == playerTarget ? "you" : target.Name;
 
