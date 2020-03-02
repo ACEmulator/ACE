@@ -464,7 +464,19 @@ namespace ACE.Server.Entity
                 if (!Permaload)
                 {
                     if (lastActiveTime + dormantInterval < thisHeartBeat)
+                    {
+                        if (!IsDormant)
+                        {
+                            var spellProjectiles = worldObjects.Values.Where(i => i is SpellProjectile).ToList();
+                            foreach (var spellProjectile in spellProjectiles)
+                            {
+                                spellProjectile.PhysicsObj.set_active(false);
+                                spellProjectile.Destroy();
+                            }
+                        }
+
                         IsDormant = true;
+                    }
                     if (lastActiveTime + UnloadInterval < thisHeartBeat)
                         LandblockManager.AddToDestructionQueue(this);
                 }
@@ -807,11 +819,6 @@ namespace ACE.Server.Entity
             if (wo is Player player)
                 player.SetFogColor(FogColor);
 
-            if (wo is SpellProjectile)
-            {
-                wo.CurrentLandblock.lastActiveTime = DateTime.UtcNow;
-                wo.CurrentLandblock.IsDormant = false;
-            }
             return true;
         }
 
