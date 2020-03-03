@@ -12,7 +12,6 @@ namespace ACE.Server.Factories
         {
             int weaponWeenie;
             int elemenatalBonus = 0;
-
             int wieldDifficulty = GetWield(profile.Tier, 1);
 
             // Changing based on wield, not tier. Refactored, less code, best results.  HarliQ 11/18/19
@@ -50,6 +49,7 @@ namespace ACE.Server.Factories
             if (elemenatalBonus > 0)
                 wo.ElementalDamageBonus = elemenatalBonus;
 
+            // Wields
             if (wieldDifficulty > 0)
             {
                 wo.WieldDifficulty = wieldDifficulty;
@@ -63,6 +63,7 @@ namespace ACE.Server.Factories
                 wo.WieldSkillType = null;
             }
 
+            // Magic
             if (isMagical)
                 wo = AssignMagic(wo, profile);
             else
@@ -75,12 +76,13 @@ namespace ACE.Server.Factories
                 wo.ManaRate = null;
             }
 
+            // Material/Value/Color
             double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
             var value = GetValue(profile.Tier, GetWorkmanship(profile.Tier), gemMaterialMod, materialMod);
             wo.Value = value;
-
             wo = RandomizeColor(wo);
+            
             return wo;
         }
 
@@ -98,11 +100,16 @@ namespace ACE.Server.Factories
                 360 => 6,
                 375 => 7,
                 385 => 8,
-                _ => 0,  // Default
+                _ => 0,  // Default/Else
             };
             return index;
         }
 
+        /// <summary>
+        /// Get Missile Damage based on Missile Weapon Type.
+        /// </summary>
+        /// <param name="wieldDiff"></param><param name="missileType"></param>
+        /// <returns>Missile Damage</returns>
         private static float GetMissileDamageMod(int wieldDiff, int? missileType)
         {
             WeaponType weaponType = (WeaponType)(missileType ?? 8);
@@ -115,7 +122,7 @@ namespace ACE.Server.Factories
                 WeaponType.Bow => LootTables.MissileDamageMod[bow][GetMissileWieldToIndex(wieldDiff)],
                 WeaponType.Crossbow => LootTables.MissileDamageMod[crossbow][GetMissileWieldToIndex(wieldDiff)],
                 WeaponType.Thrown => LootTables.MissileDamageMod[thrown][GetMissileWieldToIndex(wieldDiff)],
-                _ => 1.5f, // Default
+                _ => 1.5f, // Default/Else
             };
             // Added varaiance for Damage Modifier.  Full Modifier was rare in retail
             int modChance = ThreadSafeRandom.Next(0, 100);
@@ -140,6 +147,11 @@ namespace ACE.Server.Factories
 
             return damageMod;
         }
+        /// <summary>
+        /// Get Missile Elemental Damage based on Wield.
+        /// </summary>
+        /// <param name="wield"></param>
+        /// <returns>Missile Weapon Wield Requirement</returns>
         private static int GetElementalBonus(int wield)
         {
             int chance = 0;
@@ -254,7 +266,7 @@ namespace ACE.Server.Factories
                 0 => ThreadSafeRandom.Next(0, 6),
                 1 => ThreadSafeRandom.Next(0, 2),
                 2 => ThreadSafeRandom.Next(0, 1),
-                _ => 0, // default
+                _ => 0, // Default/Else
             };
             return LootTables.NonElementalMissileWeaponsMatrix[missileType][subType];
         }
