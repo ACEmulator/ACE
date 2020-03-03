@@ -1123,7 +1123,7 @@ namespace ACE.Server.Command.Handlers
 
         public static int GetArmorLevel(int armorLevel, EquipMask equipMask, TinkerLog tinkerLog, int numTinkers, int imbuedEffect)
         {
-            var maxArmorLevel = (equipMask & EquipMask.Extremity) != 0  ? MaxArmorLevel_Extremity : MaxArmorLevel_NonExtremity;
+            var maxArmorLevel = (equipMask & EquipMask.Extremity) != 0 ? MaxArmorLevel_Extremity : MaxArmorLevel_NonExtremity;
 
             if (tinkerLog != null && tinkerLog.Tinkers.Count == numTinkers)
             {
@@ -1139,6 +1139,10 @@ namespace ACE.Server.Command.Handlers
 
                 if (rngMax > 0)
                 {
+                    // prevent further iterations on multiple re-runs
+                    if (armorLevel <= maxArmorLevel + rngMax * 20)
+                        return armorLevel;
+
                     var rng = ThreadSafeRandom.Next(0, rngMax);
                     maxArmorLevel += rng * 20;
                 }
