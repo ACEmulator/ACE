@@ -115,10 +115,14 @@ namespace ACE.Server.WorldObjects
 
             if (SummonCreature(player, wcid))
             {
-                // decrease remaining uses
-                Structure--;
+                // CombatPet devices should always have structure
+                if (Structure != null)
+                {
+                    // decrease remaining uses
+                    Structure--;
 
-                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, Structure.Value));
+                    player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, Structure.Value));
+                }
             }
             else
             {
