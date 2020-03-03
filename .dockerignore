@@ -18,3 +18,4 @@ Dockerfile*
 **/*.ps1
 **/*.cmd
 **/*.sh
+**/*.zip
