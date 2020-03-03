@@ -911,9 +911,8 @@ namespace ACE.Server.Factories
                 default:
                     break;
             }
-            double damageMod2 = 1.0 + damageMod;
 
-            return damageMod2;
+            return damageMod + 1;   
         }
 
         public static double GetManaRate(WorldObject wo)
@@ -969,7 +968,7 @@ namespace ACE.Server.Factories
             if (spells == null || cantrips == null)
                 return wo;
 
-            // Refactor
+            // Refactor 3/2/2020 - HQ
 
             int numSpells = GetSpellDistribution(profile, out int minorCantrips, out int majorCantrips, out int epicCantrips, out int legendaryCantrips);
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
