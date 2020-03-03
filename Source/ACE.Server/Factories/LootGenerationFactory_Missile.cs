@@ -253,7 +253,10 @@ namespace ACE.Server.Factories
 
             return eleMod;
         }
-
+        /// <summary>
+        /// Determines Type of Missile Weapon, and the element.
+        /// </summary>
+        /// <returns>Missile Type, Element</returns>
         private static int GetElementalMissileWeapon()
         {
             // Determine missile weapon type: 0 - Bow, 1 - Crossbows, 2 - Atlatl, 3 - Slingshot, 4 - Compound Bow, 5 - Compound Crossbow
@@ -263,8 +266,12 @@ namespace ACE.Server.Factories
             int element = ThreadSafeRandom.Next(0, 6);
 
             return LootTables.ElementalMissileWeaponsMatrix[missileType][element];
+            
         }
-
+        /// <summary>
+        /// Determines Non Elemental type of missile weapon (No Wields).
+        /// </summary>
+        /// <returns>Missile Weapon Type and SubType</returns>      
         private static int GetNonElementalMissileWeapon()
         {
 
