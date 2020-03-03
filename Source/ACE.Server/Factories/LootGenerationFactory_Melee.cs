@@ -8,6 +8,11 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
+        /// <summary>
+        /// Creates a Melee weapon object.
+        /// </summary>
+        /// <param name="profile"></param><param name="isMagical"></param>
+        /// <returns>Returns Melee Weapon WO</returns>
         public static WorldObject CreateMeleeWeapon(TreasureDeath profile, bool isMagical, int weaponType = -1)
         {
             Skill wieldSkillType = Skill.None;
@@ -401,6 +406,11 @@ namespace ACE.Server.Factories
         }
 
         // The percentages for variances need to be fixed
+        /// <summary>
+        /// Gets Melee Weapon Variance
+        /// </summary>
+        /// <param name="category"></param><param name="type"></param>
+        /// <returns>Returns Melee Weapon Variance</returns>
         private static double GetVariance(Skill category, LootWeaponType type)
         {
             double variance = 0;
@@ -678,7 +688,11 @@ namespace ACE.Server.Factories
 
             return variance;
         }
-
+        /// <summary>
+        /// Gets Melee Weapon Index
+        /// </summary>
+        /// <param name="wieldDiff"></param>
+        /// <returns>Melee Weapon Index</returns>
         private static int GetMeleeWieldToIndex(int wieldDiff)
         {
             int index = 0;
@@ -716,7 +730,11 @@ namespace ACE.Server.Factories
 
             return index;
         }
-
+        /// <summary>
+        /// Gets Melee Weapon Max Damage
+        /// </summary>
+        /// <param name="weaponType"></param><param name="wieldDiff"></param><param name="baseWeapon"></param>
+        /// <returns>Melee Weapon Max Damage</returns>
         private static int GetMeleeMaxDamage(Skill weaponType, int wieldDiff, LootWeaponType baseWeapon)
         {
             int damageTable = 0;
