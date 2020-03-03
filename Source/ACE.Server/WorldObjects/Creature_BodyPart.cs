@@ -39,18 +39,13 @@ namespace ACE.Server.WorldObjects
             var ignoreMagicResist = (weapon?.IgnoreMagicResist ?? false) || (attacker?.IgnoreMagicResist ?? false);
 
             // get base AL / RL
+            var armorVsType = Biota.BaseArmor * (float)Creature.GetArmorVsType(damageType);
+
+            // additive enchantments:
+            // imperil / armor
             var enchantmentMod = ignoreMagicResist ? 0 : EnchantmentManager.GetBodyArmorMod();
 
-            var baseArmorMod = (float)(Biota.BaseArmor + enchantmentMod);
-
-            // for creatures, can this be modified via enchantments?
-            var armorVsType = Creature.GetArmorVsType(damageType);
-
-            // handle negative baseArmorMod?
-            if (baseArmorMod < 0)
-                armorVsType = 1.0f + (1.0f - armorVsType);
-
-            var effectiveAL = (float)(baseArmorMod * armorVsType);
+            var effectiveAL = armorVsType + enchantmentMod;
 
             // handle monsters w/ multiple layers of armor
             foreach (var armorLayer in armorLayers)

@@ -5,12 +5,12 @@ using System.Linq;
 using log4net;
 
 using ACE.Database;
-using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
 
@@ -353,7 +353,7 @@ namespace ACE.Server.Factories
                 starterArea.Locations[0].Frame.Orientation.X, starterArea.Locations[0].Frame.Orientation.Y, starterArea.Locations[0].Frame.Orientation.Z, starterArea.Locations[0].Frame.Orientation.W);
 
             var instantiation = new Position(0xA9B40019, 84, 7.1f, 94, 0, 0, -0.0784591f, 0.996917f); // ultimate fallback.
-            var spellFreeRide = new Spell();
+            var spellFreeRide = new ACE.Database.Models.World.Spell();
             switch (starterArea.Name)
             {
                 case "OlthoiLair": //todo: check this when olthoi play is allowed in ace

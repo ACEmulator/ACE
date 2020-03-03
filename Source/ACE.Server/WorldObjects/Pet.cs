@@ -3,13 +3,14 @@ using System.Numerics;
 
 using log4net;
 
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Physics.Animation;
+
+using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {

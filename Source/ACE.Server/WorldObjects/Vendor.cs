@@ -4,17 +4,18 @@ using System.Linq;
 
 using log4net;
 
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
+using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Managers;
-using ACE.Database;
+
+using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {
@@ -28,7 +29,7 @@ namespace ACE.Server.WorldObjects
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static readonly uint CoinStackWCID = DatabaseManager.World.GetCachedWeenie("coinstack").ClassId;
+        public static readonly uint CoinStackWCID = DatabaseManager.World.GetCachedWeenie("coinstack").WeenieClassId;
 
         public readonly Dictionary<ObjectGuid, WorldObject> DefaultItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
 

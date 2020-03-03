@@ -6,11 +6,14 @@ using log4net;
 
 using ACE.Database;
 using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
+
+using Biota = ACE.Database.Models.Shard.Biota;
+using LandblockInstance = ACE.Database.Models.World.LandblockInstance;
 
 namespace ACE.Server.Factories
 {
@@ -26,7 +29,7 @@ namespace ACE.Server.Factories
             if (weenie == null || guid == null)
                 return null;
 
-            var objWeenieType = (WeenieType)weenie.Type;
+            var objWeenieType = weenie.WeenieType;
 
             switch (objWeenieType)
             {
@@ -113,7 +116,7 @@ namespace ACE.Server.Factories
                 case WeenieType.Hooker:
                     return new Hooker(weenie, guid);
                 case WeenieType.HousePortal:
-                    return new WorldObjects.HousePortal(weenie, guid);
+                    return new HousePortal(weenie, guid);
                 case WeenieType.SkillAlterationDevice:
                     return new SkillAlterationDevice(weenie, guid);
                 case WeenieType.PressurePlate:
@@ -366,7 +369,7 @@ namespace ACE.Server.Factories
             if (weenie == null)
                 return null;
 
-            return CreateNewWorldObject(weenie.ClassId);
+            return CreateNewWorldObject(weenie.WeenieClassId);
         }
 
         /// <summary>

@@ -54,7 +54,7 @@ namespace ACE.Server.WorldObjects
                 }
 
                 var sound = new GameMessageSound(Guid, Sound.RaiseTrait);
-                var msg = new GameMessageSystemChat($"Your base {skill.ToSentence()} is now {creatureSkill.Base}{suffix}!", ChatMessageType.Advancement);
+                var msg = new GameMessageSystemChat($"Your base {skill.ToSentence()} skill is now {creatureSkill.Base}{suffix}!", ChatMessageType.Advancement);
 
                 Session.Network.EnqueueSend(sound, msg);
 

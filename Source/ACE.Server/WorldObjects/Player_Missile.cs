@@ -95,7 +95,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (target.Teleporting)
+            if (!CanDamage(target))
                 return;     // werror?
 
             //log.Info($"{Name}.HandleActionTargetedMissileAttack({targetGuid:X8}, {attackHeight}, {accuracyLevel})");
@@ -143,7 +143,7 @@ namespace ACE.Server.WorldObjects
             }
 
             var creature = target as Creature;
-            if (!IsAlive || MissileTarget == null || creature == null || !creature.IsAlive)
+            if (!IsAlive || IsBusy || MissileTarget == null || creature == null || !creature.IsAlive)
             {
                 OnAttackDone();
                 return;

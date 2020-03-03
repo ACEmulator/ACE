@@ -1,14 +1,16 @@
 using System;
+
 using ACE.Common;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+
+using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {
@@ -65,13 +67,6 @@ namespace ACE.Server.WorldObjects
             ActivationResponse |= ActivationResponse.Use;
         }
 
-        private double? useLockTimestamp;
-        private double? UseLockTimestamp
-        {
-            get { return useLockTimestamp; }
-            set => useLockTimestamp = Time.GetUnixTime();
-        }
-
         public string LockCode
         {
             get => GetProperty(PropertyString.LockCode);
@@ -102,9 +97,11 @@ namespace ACE.Server.WorldObjects
                     Close(worldObject.Guid);
 
                 // Create Door auto close timer
-                ActionChain autoCloseTimer = new ActionChain();
+                var useTimestamp = UseTimestamp ?? 0;
+
+                var autoCloseTimer = new ActionChain();
                 autoCloseTimer.AddDelaySeconds(ResetInterval ?? 0);
-                autoCloseTimer.AddAction(this, () => Reset());
+                autoCloseTimer.AddAction(this, () => Reset(useTimestamp));
                 autoCloseTimer.EnqueueChain();
             }
             else
@@ -125,12 +122,14 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcastMotion(motionOpen);
             CurrentMotionState = motionOpen;
+
             Ethereal = true;
             IsOpen = true;
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? true));
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? true));
+
+            EnqueueBroadcastPhysicsState();
+
             if (opener.Full > 0)
-                UseTimestamp++;
+                UseTimestamp = Time.GetUnixTime();
         }
 
         public void Close(ObjectGuid closer = new ObjectGuid())
@@ -140,18 +139,30 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcastMotion(motionClosed);
             CurrentMotionState = motionClosed;
-            Ethereal = false;
+
             IsOpen = false;
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? false));
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? false));
+
+            var animTime = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, MotionStance.NonCombat, MotionCommand.On, MotionCommand.Off);
+
+            //Console.WriteLine($"AnimTime: {animTime}");
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(animTime);
+            actionChain.AddAction(this, () =>
+            {
+                Ethereal = false;
+
+                EnqueueBroadcastPhysicsState();
+            });
+            actionChain.EnqueueChain();
+
             if (closer.Full > 0)
-                UseTimestamp++;
+                UseTimestamp = Time.GetUnixTime();
         }
 
-        private void Reset()
+        private void Reset(double useTimestamp)
         {
-            if ((Time.GetUnixTime() - UseTimestamp) < ResetInterval)
-                return;
+            if (useTimestamp != UseTimestamp) return;
 
             if (!DefaultOpen)
             {
@@ -166,7 +177,7 @@ namespace ACE.Server.WorldObjects
             else
                 Open(ObjectGuid.Invalid);
 
-            ResetTimestamp++;
+            ResetTimestamp = Time.GetUnixTime();
         }
 
         /// <summary>
