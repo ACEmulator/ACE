@@ -322,8 +322,6 @@ namespace ACE.Server.Factories
             if (wo == null)
                 return null;
 
-            //wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, longDescDecoration);
-            //wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
 
             // Description
             wo.AppraisalLongDescDecoration = longDescDecoration;
@@ -332,20 +330,10 @@ namespace ACE.Server.Factories
             // GemTypes, Material, Workmanship
             wo.GemCount = gemCount;
             wo.GemType = (MaterialType)gemType;
-            // wo.SetProperty(PropertyInt.GemType, gemType);
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
             wo.ItemWorkmanship = workmanship;
-
-
-            //wo.SetProperty(PropertyInt.GemCount, gemCount);
-            //wo.SetProperty(PropertyInt.GemType, gemType);
-            //int materialType = GetMaterialType(wo, profile.Tier);
-            //if (materialType > 0)
-            //    wo.MaterialType = (MaterialType)materialType;
-            //wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-
 
             // Weapon Stats
             wo.Damage = damage;
@@ -355,15 +343,6 @@ namespace ACE.Server.Factories
             wo.WeaponMissileDefense = missileD;
             wo.WeaponMagicDefense = magicD;
 
-
-            //wo.SetProperty(PropertyInt.Damage, damage);
-            //wo.SetProperty(PropertyFloat.DamageVariance, damageVariance);
-            //wo.SetProperty(PropertyFloat.WeaponDefense, weaponDefense);
-            //wo.SetProperty(PropertyFloat.WeaponOffense, weaponOffense);
-            //wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileD);
-            //wo.SetProperty(PropertyFloat.WeaponMagicDefense, magicD);
-
-
             // Adding Wield Reqs if required
             if (wieldDiff > 0)
             {
@@ -371,9 +350,6 @@ namespace ACE.Server.Factories
                 wo.WieldRequirements = wieldRequirments;
                 wo.WieldSkillType = (int)wieldSkillType;
 
-                //wo.SetProperty(PropertyInt.WieldDifficulty, wieldDiff);
-                //wo.SetProperty(PropertyInt.WieldRequirements, (int)wieldRequirments);
-                //wo.SetProperty(PropertyInt.WieldSkillType, (int)wieldSkillType);
             }
             else
             {
@@ -382,9 +358,6 @@ namespace ACE.Server.Factories
                 wo.WieldRequirements = WieldRequirement.Invalid;                
                 wo.WieldSkillType = null;
 
-                //wo.RemoveProperty(PropertyInt.WieldDifficulty);
-                //wo.RemoveProperty(PropertyInt.WieldRequirements);
-                //wo.RemoveProperty(PropertyInt.WieldSkillType);
             }
 
             // Adding Magic Spells
@@ -393,18 +366,12 @@ namespace ACE.Server.Factories
             else
             {
                 // If no spells remove magic properites
-
                 wo.ItemManaCost = null;
                 wo.ItemMaxMana = null;
                 wo.ItemCurMana = null;
                 wo.ItemSpellcraft = null;
                 wo.ItemDifficulty = null;
 
-                //wo.RemoveProperty(PropertyInt.ItemManaCost);
-                //wo.RemoveProperty(PropertyInt.ItemMaxMana);
-                //wo.RemoveProperty(PropertyInt.ItemCurMana);
-                //wo.RemoveProperty(PropertyInt.ItemSpellcraft);
-                //wo.RemoveProperty(PropertyInt.ItemDifficulty);
             }
 
             double materialMod = LootTables.getMaterialValueModifier(wo);
