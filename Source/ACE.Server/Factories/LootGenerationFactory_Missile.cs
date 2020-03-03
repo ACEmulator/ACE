@@ -29,9 +29,7 @@ namespace ACE.Server.Factories
             if (wo == null)
                 return null;
 
-
-
-            // int workmanship = GetWorkmanship(profile.Tier);
+            // Item Basics
             wo.ItemWorkmanship = GetWorkmanship(profile.Tier); 
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
@@ -40,75 +38,41 @@ namespace ACE.Server.Factories
             wo.GemType = (MaterialType)ThreadSafeRandom.Next(10, 50);
             wo.LongDesc = wo.Name;
 
-
-            //int workmanship = GetWorkmanship(profile.Tier);
-            //wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            //int materialType = GetMaterialType(wo, profile.Tier);
-            //if (materialType > 0)
-            //    wo.MaterialType = (MaterialType)materialType;
-            //wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
-            //wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
-            //wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
-
-
-
             // MeleeD/MagicD/Missile Bonus
             wo.WeaponMagicDefense = GetMagicMissileDMod(profile.Tier); 
             wo.WeaponMissileDefense = GetMagicMissileDMod(profile.Tier);
             double meleeDMod = GetWieldReqMeleeDMod(wieldDifficulty);
-            // double meleeDMod = GetMeleeDMod(tier);
             if (meleeDMod > 0.0f)
                 wo.WeaponDefense = meleeDMod;
-            //wo.SetProperty(PropertyFloat.WeaponDefense, meleeDMod);
 
+            // Damage
             wo.DamageMod = GetMissileDamageMod(wieldDifficulty, wo.GetProperty(PropertyInt.WeaponType));
-            // wo.SetProperty(PropertyFloat.DamageMod, GetMissileDamageMod(wieldDifficulty, wo.GetProperty(PropertyInt.WeaponType)));
-
-
-
             if (elemenatalBonus > 0)
                 wo.ElementalDamageBonus = elemenatalBonus;
-                //wo.SetProperty(PropertyInt.ElementalDamageBonus, elemenatalBonus);
 
             if (wieldDifficulty > 0)
             {
                 wo.WieldDifficulty = wieldDifficulty;
                 wo.WieldRequirements = WieldRequirement.RawSkill;
                 wo.WieldSkillType = (int)Skill.MissileWeapons;
-
-                //wo.SetProperty(PropertyInt.WieldDifficulty, wieldDifficulty);
-                //wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.RawSkill);
-                //wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.MissileWeapons);
             }
             else
             {
                 wo.WieldDifficulty = null;
                 wo.WieldRequirements = WieldRequirement.Invalid;
                 wo.WieldSkillType = null;
-
-                //wo.RemoveProperty(PropertyInt.WieldDifficulty);
-                //wo.RemoveProperty(PropertyInt.WieldRequirements);
-                //wo.RemoveProperty(PropertyInt.WieldSkillType);
             }
 
             if (isMagical)
                 wo = AssignMagic(wo, profile);
             else
             {
-
                 wo.ItemManaCost = null;
                 wo.ItemMaxMana = null;
                 wo.ItemCurMana = null;
                 wo.ItemSpellcraft = null;
                 wo.ItemDifficulty = null;
                 wo.ManaRate = null;
-
-                //wo.RemoveProperty(PropertyInt.ItemManaCost);
-                //wo.RemoveProperty(PropertyInt.ItemMaxMana);
-                //wo.RemoveProperty(PropertyInt.ItemCurMana);
-                //wo.RemoveProperty(PropertyInt.ItemSpellcraft);
-                //wo.RemoveProperty(PropertyInt.ItemDifficulty);
-                //wo.RemoveProperty(PropertyFloat.ManaRate);
             }
 
             double materialMod = LootTables.getMaterialValueModifier(wo);
