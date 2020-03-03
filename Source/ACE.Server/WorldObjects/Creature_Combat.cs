@@ -1,10 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 using ACE.Common;
-using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -19,10 +16,10 @@ namespace ACE.Server.WorldObjects
     {
         public enum DebugDamageType
         {
-            None = 0x0,
+            None     = 0x0,
             Attacker = 0x1,
             Defender = 0x2,
-            All = Attacker | Defender
+            All      = Attacker | Defender
         };
 
         public DebugDamageType DebugDamage;
