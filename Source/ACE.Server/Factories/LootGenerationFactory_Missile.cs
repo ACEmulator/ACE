@@ -8,6 +8,11 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
+        /// <summary>
+        /// Creates a Missile weapon object.
+        /// </summary>
+        /// <param name="profile"></param><param name="isMagical"></param>
+        /// <returns>Returns Missile WO</returns>
         public static WorldObject CreateMissileWeapon(TreasureDeath profile, bool isMagical)
         {
             int weaponWeenie;
@@ -85,7 +90,11 @@ namespace ACE.Server.Factories
             
             return wo;
         }
-
+        /// <summary>
+        /// Get Missile Wield Index.
+        /// </summary>
+        /// <param name="wieldDiff"></param>
+        /// <returns>Missile Wield Index</returns>
         private static int GetMissileWieldToIndex(int wieldDiff)
         {
             int index = 0;
