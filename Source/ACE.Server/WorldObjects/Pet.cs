@@ -52,8 +52,24 @@ namespace ACE.Server.WorldObjects
             SuppressGenerateEffect = true;
         }
 
-        public virtual void Init(Player player, PetDevice petDevice)
+        public virtual bool Init(Player player, PetDevice petDevice)
         {
+            if (player.CurrentActivePet != null)
+            {
+                if (player.CurrentActivePet is CombatPet)
+                {
+                    player.SendTransientError($"{player.CurrentActivePet.Name} is already active");
+                    return false;
+                }
+
+                var stowPet = WeenieClassId == player.CurrentActivePet.WeenieClassId;
+
+                // despawn passive pet
+                player.CurrentActivePet.Destroy();
+
+                if (stowPet) return false;
+           }
+
             if (IsPassivePet)
             {
                 // get physics radius of player and pet
@@ -81,6 +97,12 @@ namespace ACE.Server.WorldObjects
             // TODO: handle spawn failure
             var success = EnterWorld();
 
+            if (!success)
+            {
+                player.SendTransientError($"Couldn't spawn {Name}");
+                return false;
+            }
+
             if (IsPassivePet)
             {
                 var actionChain = new ActionChain();
@@ -90,6 +112,7 @@ namespace ACE.Server.WorldObjects
 
                 nextSlowTickTime = Time.GetUnixTime();
             }
+            return true;
         }
 
         /// <summary>
@@ -124,11 +147,14 @@ namespace ACE.Server.WorldObjects
 
             nextSlowTickTime += slowTickSeconds;
 
-            if (IsMoving) return;
-
             var dist = GetCylinderDistance(P_PetOwner);
 
-            if (dist > MinDistance && dist < MaxDistance)
+            if (dist > MaxDistance)
+                Destroy();
+
+            if (IsMoving) return;
+
+            if (dist > MinDistance)
                 StartFollow();
 
             if (dist < CastDistance && DateTime.UtcNow > NextCastTime)
@@ -226,6 +252,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void TryCastSpells()
         {
+            // deprecated: should use Heartbeat emotes and PetCastSpellOnOwner
             foreach (var _spell in Biota.BiotaPropertiesSpellBook)
             {
                 var spell = new Spell(_spell.Spell);

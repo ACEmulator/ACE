@@ -165,9 +165,9 @@ namespace ACE.Server.WorldObjects
                 log.Error($"{player.Name}.SummonCreature({wcid}) - PetDevice {WeenieClassId} - {WeenieClassName} tried to summon {wo.WeenieClassId} - {wo.WeenieClassName} of unknown type {wo.WeenieType}");
                 return false;
             }
-            pet.Init(player, this);
+            var success = pet.Init(player, this);
 
-            return true;
+            return success;
         }
 
         /// <summary>

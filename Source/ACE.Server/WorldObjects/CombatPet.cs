@@ -36,9 +36,12 @@ namespace ACE.Server.WorldObjects
         {
         }
 
-        public override void Init(Player player, PetDevice petDevice)
+        public override bool Init(Player player, PetDevice petDevice)
         {
-            base.Init(player, petDevice);
+            var success = base.Init(player, petDevice);
+
+            if (!success)
+                return false;
 
             SetCombatMode(CombatMode.Melee);
             MonsterState = State.Awake;
@@ -51,6 +54,8 @@ namespace ACE.Server.WorldObjects
             CritDamageResistRating = petDevice.GearCritDamageResist;
             CritRating = petDevice.GearCrit;
             CritResistRating = petDevice.GearCritResist;
+
+            return true;
         }
 
         public override void HandleFindTarget()
