@@ -88,46 +88,43 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddAction(this, () => TryCastSpells());
                 actionChain.EnqueueChain();
 
-                nextStaticHeartbeatTime = Time.GetUnixTime();
+                nextSlowTickTime = Time.GetUnixTime();
             }
         }
 
-        private static readonly double staticHeartbeatSeconds = 1.0;
-        private double nextStaticHeartbeatTime;
-
         /// <summary>
-        /// Called ~5x per second for passive pets
+        /// Called 5x per second for passive pets
         /// </summary>
         public void Tick(double currentUnixTime)
         {
             NextMonsterTickTime = currentUnixTime + monsterTickInterval;
 
             if (IsMoving)
+            {
                 PhysicsObj.update_object();
 
-            if (currentUnixTime >= nextStaticHeartbeatTime)
-                HeartbeatStatic(currentUnixTime);
+                UpdatePosition_SyncLocation();
+
+                SendUpdatePosition();
+            }
+
+            if (currentUnixTime >= nextSlowTickTime)
+                SlowTick(currentUnixTime);
         }
 
-        // if the passive pet is between min-max distance to owner,
-        // it will turn and start running torwards its owner
-
-        private static readonly float MinDistance = 2.0f;
-        private static readonly float MaxDistance = 192.0f;
-
-        private static readonly float CastDistance = 96.0f;
+        private static readonly double slowTickSeconds = 1.0;
+        private double nextSlowTickTime;
 
         /// <summary>
-        /// Called every 5 seconds, regardless of actual HeartbeatInterval
+        /// Called 1x per second
         /// </summary>
-        public void HeartbeatStatic(double currentUnixTime)
+        public void SlowTick(double currentUnixTime)
         {
             //Console.WriteLine($"{Name}.HeartbeatStatic({currentUnixTime})");
 
-            nextStaticHeartbeatTime += staticHeartbeatSeconds;
+            nextSlowTickTime += slowTickSeconds;
 
-            if (IsMoving || this is CombatPet)
-                return;
+            if (IsMoving) return;
 
             var dist = GetCylinderDistance(P_PetOwner);
 
@@ -137,6 +134,14 @@ namespace ACE.Server.WorldObjects
             if (dist < CastDistance && DateTime.UtcNow > NextCastTime)
                 TryCastSpells();
         }
+
+        // if the passive pet is between min-max distance to owner,
+        // it will turn and start running torwards its owner
+
+        private static readonly float MinDistance = 2.0f;
+        private static readonly float MaxDistance = 192.0f;
+
+        private static readonly float CastDistance = 96.0f;
 
         private void StartFollow()
         {
@@ -152,11 +157,14 @@ namespace ACE.Server.WorldObjects
             // perform movement on server
             var mvp = new MovementParameters();
             mvp.DistanceToObject = MinDistance;
-            mvp.FailWalk = true;
-            mvp.MoveAway = true;
+            mvp.WalkRunThreshold = 0.0f;
+
             //mvp.UseFinalHeading = true;
 
             PhysicsObj.MoveToObject(P_PetOwner.PhysicsObj, mvp);
+
+            // prevent snap forward
+            PhysicsObj.UpdateTime = Physics.Common.PhysicsTimer.CurrentTime;
         }
 
         /// <summary>
@@ -164,7 +172,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void MoveTo(WorldObject target, float runRate = 1.0f)
         {
-            if (WeenieType == WeenieType.CombatPet)
+            if (!IsPassivePet)
             {
                 base.MoveTo(target, runRate);
                 return;
@@ -175,10 +183,9 @@ namespace ACE.Server.WorldObjects
 
             var motion = new Motion(this, target, MovementType.MoveToObject);
 
-            //motion.MoveToParameters.MovementParameters |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.MoveAway;
-            motion.MoveToParameters.MovementParameters |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.MoveAway;
+            motion.MoveToParameters.MovementParameters |= MovementParams.CanCharge | MovementParams.StopCompletely;
             motion.MoveToParameters.DistanceToObject = MinDistance;
-            motion.MoveToParameters.WalkRunThreshold = 1.0f;
+            motion.MoveToParameters.WalkRunThreshold = 0.0f;
 
             motion.RunRate = RunRate;
 
@@ -194,7 +201,7 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.OnMoveComplete({status})");
 
-            if (WeenieType == WeenieType.CombatPet)
+            if (!IsPassivePet)
             {
                 base.OnMoveComplete(status);
                 return;
