@@ -29,18 +29,6 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     partial class Player
     {
-        public enum DebugDamageType
-        {
-            None     = 0x0,
-            Attacker = 0x1,
-            Defender = 0x2,
-            All      = Attacker | Defender
-        };
-
-        public DebugDamageType DebugDamage;
-
-        public ObjectGuid DebugDamageTarget;
-
         public int AttackSequence;
         public bool Attacking;
 
