@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 using log4net;
 
+using ACE.Common;
+using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Models;
@@ -50,7 +54,21 @@ namespace ACE.Server.WorldObjects
 
         public virtual void Init(Player player, PetDevice petDevice)
         {
-            Location = player.Location.InFrontOf(5f);
+            if (IsPassivePet)
+            {
+                // get physics radius of player and pet
+                var playerRadius = player.PhysicsObj.GetPhysicsRadius();
+                var petRadius = GetPetRadius();
+
+                var spawnDist = playerRadius + petRadius + MinDistance;
+
+                Location = player.Location.InFrontOf(spawnDist, true);
+            }
+            else
+            {
+                Location = player.Location.InFrontOf(5.0f);
+            }
+
             Location.LandblockId = new LandblockId(Location.GetCell());
 
             Name = player.Name + "'s " + Name;
@@ -69,7 +87,26 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddDelaySeconds(0.25f);
                 actionChain.AddAction(this, () => TryCastSpells());
                 actionChain.EnqueueChain();
+
+                nextStaticHeartbeatTime = Time.GetUnixTime();
             }
+        }
+
+        private static readonly double staticHeartbeatSeconds = 1.0;
+        private double nextStaticHeartbeatTime;
+
+        /// <summary>
+        /// Called ~5x per second for passive pets
+        /// </summary>
+        public void Tick(double currentUnixTime)
+        {
+            NextMonsterTickTime = currentUnixTime + monsterTickInterval;
+
+            if (IsMoving)
+                PhysicsObj.update_object();
+
+            if (currentUnixTime >= nextStaticHeartbeatTime)
+                HeartbeatStatic(currentUnixTime);
         }
 
         // if the passive pet is between min-max distance to owner,
@@ -78,25 +115,26 @@ namespace ACE.Server.WorldObjects
         private static readonly float MinDistance = 2.0f;
         private static readonly float MaxDistance = 192.0f;
 
-        private static readonly float MinDistanceSq = MinDistance * MinDistance;
-        private static readonly float MaxDistanceSq = MaxDistance * MaxDistance;
-
         private static readonly float CastDistance = 96.0f;
-        private static readonly float CastDistanceSq = CastDistance * CastDistance;
 
-        public override void Heartbeat(double currentUnixTime)
+        /// <summary>
+        /// Called every 5 seconds, regardless of actual HeartbeatInterval
+        /// </summary>
+        public void HeartbeatStatic(double currentUnixTime)
         {
-            base.Heartbeat(currentUnixTime);
+            //Console.WriteLine($"{Name}.HeartbeatStatic({currentUnixTime})");
+
+            nextStaticHeartbeatTime += staticHeartbeatSeconds;
 
             if (IsMoving || this is CombatPet)
                 return;
 
-            var distSq = Location.SquaredDistanceTo(P_PetOwner.Location);
+            var dist = GetCylinderDistance(P_PetOwner);
 
-            if (distSq > MinDistanceSq && distSq < MaxDistanceSq)
+            if (dist > MinDistance && dist < MaxDistance)
                 StartFollow();
 
-            if (distSq < CastDistanceSq && DateTime.UtcNow > NextCastTime)
+            if (dist < CastDistance && DateTime.UtcNow > NextCastTime)
                 TryCastSpells();
         }
 
@@ -114,6 +152,9 @@ namespace ACE.Server.WorldObjects
             // perform movement on server
             var mvp = new MovementParameters();
             mvp.DistanceToObject = MinDistance;
+            mvp.FailWalk = true;
+            mvp.MoveAway = true;
+            //mvp.UseFinalHeading = true;
 
             PhysicsObj.MoveToObject(P_PetOwner.PhysicsObj, mvp);
         }
@@ -134,7 +175,8 @@ namespace ACE.Server.WorldObjects
 
             var motion = new Motion(this, target, MovementType.MoveToObject);
 
-            motion.MoveToParameters.MovementParameters |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.MoveAway;
+            //motion.MoveToParameters.MovementParameters |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.MoveAway;
+            motion.MoveToParameters.MovementParameters |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.MoveAway;
             motion.MoveToParameters.DistanceToObject = MinDistance;
             motion.MoveToParameters.WalkRunThreshold = 1.0f;
 
@@ -166,20 +208,9 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Called ~5x per second
-        /// </summary>
-        public void Tick(double currentUnixTime)
-        {
-            NextMonsterTickTime = currentUnixTime + monsterTickInterval;
-
-            if (IsMoving)
-                PhysicsObj.update_object();
-        }
-
-        /// <summary>
         /// A pet casts spells on its owner every 30 seconds?
         /// </summary>
-        private static TimeSpan CastInterval = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan CastInterval = TimeSpan.FromSeconds(30);
 
         private DateTime NextCastTime;
 
@@ -190,7 +221,7 @@ namespace ACE.Server.WorldObjects
         {
             foreach (var _spell in Biota.BiotaPropertiesSpellBook)
             {
-                var spell = new Server.Entity.Spell(_spell.Spell);
+                var spell = new Spell(_spell.Spell);
 
                 if (spell.NotFound)
                 {
@@ -201,6 +232,20 @@ namespace ACE.Server.WorldObjects
                 TryCastSpell(spell, P_PetOwner);
             }
             NextCastTime = DateTime.UtcNow + CastInterval;
+        }
+
+        public static Dictionary<uint, float> PetRadiusCache = new Dictionary<uint, float>();
+
+        private float GetPetRadius()
+        {
+            if (PetRadiusCache.TryGetValue(WeenieClassId, out var radius))
+                return radius;
+
+            var setup = DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId);
+
+            var scale = ObjScale ?? 1.0f;
+
+            return ProjectileRadiusCache[WeenieClassId] = setup.Spheres[0].Radius * scale;
         }
     }
 }
