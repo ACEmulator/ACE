@@ -94,7 +94,6 @@ namespace ACE.Server.WorldObjects
             PetOwner = player.Guid.Full;
             P_PetOwner = player;
 
-            // TODO: handle spawn failure
             var success = EnterWorld();
 
             if (!success)
