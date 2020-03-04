@@ -458,7 +458,7 @@ namespace ACE.Server.WorldObjects
                     goldcost += Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (wo.Value ?? 0)) - 0.1));
                 }
                 else
-                    altcost += (uint)(wo.Value ?? 1);
+                    altcost += (uint)Math.Max(1, wo.Value ?? 1);
             }
 
             // send transaction to player for further processing and.
