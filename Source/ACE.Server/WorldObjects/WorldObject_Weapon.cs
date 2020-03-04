@@ -250,14 +250,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public static float GetWeaponCriticalChance(Creature wielder, CreatureSkill skill, Creature target)
         {
-            WorldObject weapon = GetWeapon(wielder as Player);
+            WorldObject weapon = GetWeapon(wielder);
 
-            if (weapon == null)
-                return defaultPhysicalCritFrequency;
+            var critRate = (float)(weapon?.CriticalFrequency ?? defaultPhysicalCritFrequency);
 
-            var critRate = (float)(weapon.CriticalFrequency ?? defaultPhysicalCritFrequency);
-
-            if (weapon.HasImbuedEffect(ImbuedEffectType.CriticalStrike))
+            if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.CriticalStrike))
             {
                 var criticalStrikeBonus = GetCriticalStrikeMod(skill);
 
@@ -317,14 +314,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public static float GetWeaponCritDamageMod(Creature wielder, CreatureSkill skill, Creature target)
         {
-            WorldObject weapon = GetWeapon(wielder as Player);
+            WorldObject weapon = GetWeapon(wielder);
 
-            if (weapon == null)
-                return defaultCritDamageMultiplier;     // 1.0 would be normal crit damage here
+            var critDamageMod = (float)(weapon?.GetProperty(PropertyFloat.CriticalMultiplier) ?? defaultCritDamageMultiplier);
 
-            var critDamageMod = (float)(weapon.GetProperty(PropertyFloat.CriticalMultiplier) ?? defaultCritDamageMultiplier);
-
-            if (weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
+            if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
             {
                 var cripplingBlowMod = GetCripplingBlowMod(skill);
 
