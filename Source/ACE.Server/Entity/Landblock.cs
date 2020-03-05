@@ -19,6 +19,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -26,6 +27,7 @@ using ACE.Server.Physics.Common;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.WorldObjects;
 
+using Biota = ACE.Database.Models.Shard.Biota;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Entity
@@ -464,7 +466,19 @@ namespace ACE.Server.Entity
                 if (!Permaload)
                 {
                     if (lastActiveTime + dormantInterval < thisHeartBeat)
+                    {
+                        if (!IsDormant)
+                        {
+                            var spellProjectiles = worldObjects.Values.Where(i => i is SpellProjectile).ToList();
+                            foreach (var spellProjectile in spellProjectiles)
+                            {
+                                spellProjectile.PhysicsObj.set_active(false);
+                                spellProjectile.Destroy();
+                            }
+                        }
+
                         IsDormant = true;
+                    }
                     if (lastActiveTime + UnloadInterval < thisHeartBeat)
                         LandblockManager.AddToDestructionQueue(this);
                 }
@@ -852,14 +866,14 @@ namespace ACE.Server.Entity
             }
         }
 
-        public void EmitSignal(Player player, string message)
+        public void EmitSignal(Creature emitter, string message)
         {
             foreach (var wo in worldObjects.Values.Where(w => w.HearLocalSignals).ToList())
             {
-                if (player.IsWithinUseRadiusOf(wo, wo.HearLocalSignalsRadius))
+                if (emitter.IsWithinUseRadiusOf(wo, wo.HearLocalSignalsRadius))
                 {
                     //Console.WriteLine($"{wo.Name}.EmoteManager.OnLocalSignal({player.Name}, {message})");
-                    wo.EmoteManager.OnLocalSignal(player, message);
+                    wo.EmoteManager.OnLocalSignal(emitter, message);
                 }
             }
         }

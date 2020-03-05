@@ -2,16 +2,17 @@ using System;
 using System.Numerics;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
+
+using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {
@@ -648,9 +649,6 @@ namespace ACE.Server.WorldObjects
 
             amount = (uint)Math.Round(damage.Value);    // full amount for debugging
 
-            if (critical)
-                target.EmoteManager.OnReceiveCritical(player);
-
             if (target.IsAlive)
             {
                 string verb = null, plural = null;
@@ -698,8 +696,16 @@ namespace ACE.Server.WorldObjects
                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat(defenderMsg, ChatMessageType.Magic));
                 }
 
-                if (!nonHealth && target.HasCloakEquipped)
-                    Cloak.TryProcSpell(target, ProjectileSource, percent);
+                if (!nonHealth)
+                {
+                    if (target.HasCloakEquipped)
+                        Cloak.TryProcSpell(target, ProjectileSource, percent);
+
+                    target.EmoteManager.OnDamage(player);
+
+                    if (critical)
+                        target.EmoteManager.OnReceiveCritical(player);
+                }
             }
             else
             {

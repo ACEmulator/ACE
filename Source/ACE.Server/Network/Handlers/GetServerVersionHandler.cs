@@ -31,10 +31,13 @@ namespace ACE.Server.Network.Handlers
             msg += $"Server database version Base: {databaseVersion.BaseVersion} Patch: {databaseVersion.PatchVersion} - compiled {databaseVersion.LastModified.ToString("ddd MMM d HH:mm:ss yyyy")}\n";
 
 #if DEBUG
-            msg += "Server is compiled in DEBUG mode";
+            msg += "Server is compiled in DEBUG mode\n";
 #else
-            msg += "Server is compiled in RELEASE mode";
+            msg += "Server is compiled in RELEASE mode\n";
 #endif
+
+            if (Program.IsRunningInContainer)
+                msg += "Server is running inside a Container\n";
 
             session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
         }
