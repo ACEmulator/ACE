@@ -13,6 +13,7 @@ using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
@@ -116,16 +117,21 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.AwardLevelProportionalSkillXP:
 
+                    var min = emote.Min64 ?? emote.Min ?? 0;
+                    var max = emote.Max64 ?? emote.Max ?? 0;
+
                     if (player != null)
-                        player.GrantLevelProportionalSkillXP((Skill)emote.Stat, emote.Percent ?? 0, emote.Max64 ?? 0);
+                        player.GrantLevelProportionalSkillXP((Skill)emote.Stat, emote.Percent ?? 0, min, max);
                     break;
 
                 case EmoteType.AwardLevelProportionalXP:
 
                     bool shareXP = emote.Display ?? false;
+                    min = emote.Min64 ?? emote.Min ?? 0;
+                    max = emote.Max64 ?? emote.Max ?? 0;
 
                     if (player != null)
-                        player.GrantLevelProportionalXp(emote.Percent ?? 0, emote.Max64 ?? 0, shareXP);
+                        player.GrantLevelProportionalXp(emote.Percent ?? 0, min, max, shareXP);
                     break;
 
                 case EmoteType.AwardLuminance:
@@ -138,7 +144,7 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.AwardNoShareXP:
 
                     if (player != null)
-                        player.EarnXP(emote.Amount64 ?? 0, XpType.Quest, ShareType.None);
+                        player.EarnXP(emote.Amount64 ?? emote.Amount ?? 0, XpType.Quest, ShareType.None);
 
                     break;
 
@@ -164,7 +170,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (player != null)
                     {
-                        var amt = emote.Amount64 ?? 0;
+                        var amt = emote.Amount64 ?? emote.Amount ?? 0;
                         if (amt > 0)
                         {
                             player.EarnXP(amt, XpType.Quest, ShareType.All);
@@ -232,9 +238,16 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (emote.WealthRating.HasValue)
                     {
+                        // Create a dummy treasure profile for passing in tier value
+                        TreasureDeath profile = new TreasureDeath
+                        {
+                            Tier = emote.WealthRating ?? 1,
+                            LootQualityMod = 0
+                        };
+
                         // todo: make use of emote.TreasureClass and emote.TreasureType fields.
                         // this emote is primarily seen on fishing holes so defaulting with jewelery as the only pcap showed 2:1 amulet to crown pull (not much to go on) for now
-                        var treasure = LootGenerationFactory.CreateRandomLootObjects(emote.WealthRating ?? 1, false, LootGenerationFactory.LootBias.Jewelry /* probably treasure type here */);
+                        var treasure = LootGenerationFactory.CreateRandomLootObjects(profile, false, LootGenerationFactory.LootBias.Jewelry /* probably treasure type here */);
                         if (treasure != null)
                         {
                             player.TryCreateInInventoryWithNetworking(treasure);
@@ -752,10 +765,10 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.LocalSignal:
 
-                    if (player != null)
+                    if (creature != null)
                     {
-                        if (player.CurrentLandblock != null)
-                            player.CurrentLandblock.EmitSignal(player, emote.Message);
+                        if (creature.CurrentLandblock != null)
+                            creature.CurrentLandblock.EmitSignal(creature, emote.Message);
                     }
                     break;
 
@@ -1104,6 +1117,7 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.SpendLuminance:
+
                     if (player != null)
                         player.SpendLuminance(emote.HeroXP64 ?? 0);
                     break;
@@ -1116,13 +1130,7 @@ namespace ACE.Server.WorldObjects.Managers
                         {
                             var questName = emote.Message;
 
-                            // are there fellowship only kill tasks?
-                            //if (questName.EndsWith("@#kt", StringComparison.Ordinal))
-                            //{
-                            //    player.Fellowship.QuestManager.HandleKillTask(questName, WorldObject);
-                            //}
-                            //else
-                                player.Fellowship.QuestManager.Stamp(emote.Message);
+                            player.Fellowship.QuestManager.Stamp(emote.Message);
                         }
                     }
                     break;
@@ -1137,11 +1145,9 @@ namespace ACE.Server.WorldObjects.Managers
                         var questName = emote.Message;
 
                         if (questName.EndsWith("@#kt", StringComparison.Ordinal))
-                        {
-                            questTarget.QuestManager.HandleKillTask(questName, WorldObject);
-                        }
-                        else
-                            questTarget.QuestManager.Stamp(emote.Message);
+                            log.Warn($"0x{WorldObject.Guid}:{WorldObject.Name} ({WorldObject.WeenieClassId}).EmoteManager.ExecuteEmote: EmoteType.StampQuest({questName}) is a depreciated kill task method.");
+
+                        questTarget.QuestManager.Stamp(emote.Message);
                     }
                     break;
 
@@ -1180,7 +1186,7 @@ namespace ACE.Server.WorldObjects.Managers
                             break;
                         }
 
-                        if (player.TryConsumeFromInventoryWithNetworking(weenieItemToTake, amountToTake == -1 ? int.MaxValue : amountToTake))
+                        if (player.GetNumInventoryItemsOfWCID(weenieItemToTake) > 0 && player.TryConsumeFromInventoryWithNetworking(weenieItemToTake, amountToTake == -1 ? int.MaxValue : amountToTake))
                         {
                             var itemTaken = DatabaseManager.World.GetCachedWeenie(weenieItemToTake);
                             if (itemTaken != null)
@@ -1386,10 +1392,16 @@ namespace ACE.Server.WorldObjects.Managers
                 emoteSet = emoteSet.Where(e => e.Substyle == null || e.Substyle == (uint)currentMotion);
             }
 
+            if (category == EmoteCategory.WoundedTaunt)
+            {
+                if (_worldObject is Creature creature)
+                    emoteSet = emoteSet.Where(e => creature.Health.Percent >= e.MinHealth && creature.Health.Percent <= e.MaxHealth);
+            }
+
             if (useRNG)
             {
                 var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-                emoteSet = emoteSet.OrderBy(e => e.Probability).Where(e => e.Probability >= rng);
+                emoteSet = emoteSet.Where(e => e.Probability >= rng).OrderBy(e => e.Probability);
                 //emoteSet = emoteSet.Where(e => e.Probability >= rng);
             }
 
@@ -1686,14 +1698,25 @@ namespace ACE.Server.WorldObjects.Managers
             ExecuteEmoteSet(EmoteCategory.Drop, null, dropper);
         }
 
-        public void OnAttack(Creature attacker)
+        /// <summary>
+        /// Called when an idle mob becomes alerted by a player
+        /// and initially wakes up
+        /// </summary>
+        public void OnWakeUp(Creature target)
         {
-            ExecuteEmoteSet(EmoteCategory.NewEnemy, null, attacker);
+            ExecuteEmoteSet(EmoteCategory.Scream, null, target);
+        }
+
+        /// <summary>
+        /// Called when a monster switches targets
+        /// </summary>
+        public void OnNewEnemy(WorldObject newEnemy)
+        {
+            ExecuteEmoteSet(EmoteCategory.NewEnemy, null, newEnemy);
         }
 
         public void OnDamage(Creature attacker)
         {
-            // optionally restrict to Min/Max Health %
             ExecuteEmoteSet(EmoteCategory.WoundedTaunt, null, attacker);
         }
 
@@ -1728,9 +1751,9 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Called when this NPC receives a local signal from a player
         /// </summary>
-        public void OnLocalSignal(Player player, string message)
+        public void OnLocalSignal(Creature emitter, string message)
         {
-            ExecuteEmoteSet(EmoteCategory.ReceiveLocalSignal, message, player);
+            ExecuteEmoteSet(EmoteCategory.ReceiveLocalSignal, message, emitter);
         }
 
         /// <summary>

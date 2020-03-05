@@ -29,18 +29,6 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     partial class Player
     {
-        public enum DebugDamageType
-        {
-            None     = 0x0,
-            Attacker = 0x1,
-            Defender = 0x2,
-            All      = Attacker | Defender
-        };
-
-        public DebugDamageType DebugDamage;
-
-        public ObjectGuid DebugDamageTarget;
-
         public int AttackSequence;
         public bool Attacking;
 
@@ -193,6 +181,11 @@ namespace ACE.Server.WorldObjects
                 // handle Dirty Fighting
                 if (GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
                     FightDirty(target);
+                
+                target.EmoteManager.OnDamage(this);
+
+                if (damageEvent.IsCritical)
+                    target.EmoteManager.OnReceiveCritical(this);
             }
 
             if (damageEvent.Damage > 0.0f)
@@ -209,9 +202,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void OnDamageTarget(WorldObject target, CombatType attackType, bool critical)
         {
-            if (critical)
-                target.EmoteManager.OnReceiveCritical(this);
-
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
             var difficulty = GetTargetEffectiveDefenseSkill(target);
 
@@ -472,6 +462,9 @@ namespace ACE.Server.WorldObjects
             if (percent >= 0.1f)
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound1, 1.0f));
 
+            if (HasCloakEquipped)
+                Cloak.TryProcSpell(this, source, percent);
+
             // if player attacker, update PK timer
             if (source is Player attacker)
                 UpdatePKTimers(attacker, this);
@@ -699,13 +692,17 @@ namespace ACE.Server.WorldObjects
                                     if (equippedAmmo == null)
                                     {
                                         animTime = SetCombatMode(newCombatMode, out queueTime);
-                                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
-                                        NextUseTime = DateTime.UtcNow.AddSeconds(animTime - queueTime);
 
                                         var actionChain = new ActionChain();
-                                        actionChain.AddDelaySeconds(animTime - queueTime);
-                                        actionChain.AddAction(this, () => SetCombatMode(CombatMode.NonCombat));
+                                        actionChain.AddDelaySeconds(animTime);
+                                        actionChain.AddAction(this, () =>
+                                        {
+                                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
+                                            SetCombatMode(CombatMode.NonCombat);
+                                        });
                                         actionChain.EnqueueChain();
+
+                                        NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
                                         return;
                                     }
                                     else
@@ -732,7 +729,7 @@ namespace ACE.Server.WorldObjects
             animTime = SetCombatMode(newCombatMode, out queueTime);
             //log.Info($"{Name}.HandleActionChangeCombatMode_Inner({newCombatMode}) - animTime: {animTime}, queueTime: {queueTime}");
 
-            NextUseTime = DateTime.UtcNow.AddSeconds(animTime - queueTime);
+            NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
 
             if (RecordCast.Enabled)
                 RecordCast.OnSetCombatMode(newCombatMode);
@@ -742,7 +739,7 @@ namespace ACE.Server.WorldObjects
 
         public override bool CanDamage(Creature target)
         {
-            return true;    // handled elsewhere
+            return target.Attackable && !target.Teleporting && !(target is CombatPet);
         }
 
         // http://acpedia.org/wiki/Announcements_-_2002/04_-_Betrayal

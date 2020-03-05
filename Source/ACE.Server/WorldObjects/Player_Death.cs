@@ -160,6 +160,9 @@ namespace ACE.Server.WorldObjects
             NumDeaths++;
             suicideInProgress = false;
 
+            if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
+                FailCast(false);
+
             // TODO: instead of setting IsBusy here,
             // eventually all of the places that check for states such as IsBusy || Teleporting
             // might want to use a common function, and IsDead should return a separate error
@@ -503,6 +506,7 @@ namespace ACE.Server.WorldObjects
                         Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
 
                         var dropItem = WorldObjectFactory.CreateNewWorldObject(deathItem.WorldObject.WeenieClassId);
+                        dropItem.SetStackSize(1);
 
                         //Console.WriteLine("Dropping " + deathItem.WorldObject.Name + " (stack)");
                         dropItems.Add(dropItem);

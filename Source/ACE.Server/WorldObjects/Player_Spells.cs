@@ -496,18 +496,22 @@ namespace ACE.Server.WorldObjects
             // cleans up bugged chars with dangling item set spells
             // from previous bugs
 
+            // this is a legacy method, but is still a decent failsafe to catch any existing issues
+
             // get active item enchantments
             var enchantments = Biota.GetEnchantments(BiotaDatabaseLock).Where(i => i.Duration == -1 && i.SpellId != (int)SpellId.Vitae).ToList();
 
             foreach (var enchantment in enchantments)
             {
                 // if this item is not equipped, remove enchantment
+
                 if (!EquippedObjects.TryGetValue(new ObjectGuid(enchantment.CasterObjectId), out var item))
                 {
-                    var spell = new Spell(enchantment.SpellId, false);
+                    // this can fail for item sets, so disabling this section
+                    /*var spell = new Spell(enchantment.SpellId, false);
                     log.Error($"{Name}.AuditItemSpells(): removing spell {spell.Name} from non-equipped item");
 
-                    EnchantmentManager.Dispel(enchantment);
+                    EnchantmentManager.Dispel(enchantment);*/
                     continue;
                 }
 

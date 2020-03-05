@@ -1,12 +1,15 @@
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
+using System;
+using System.Collections.Generic;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
-using System.Collections.Generic;
+
+using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {

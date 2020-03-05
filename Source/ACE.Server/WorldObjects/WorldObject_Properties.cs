@@ -1627,13 +1627,6 @@ namespace ACE.Server.WorldObjects
         // =========== Other Properties ===========
         // ========================================
 
-        private double? resetTimestamp;
-        protected double? ResetTimestamp
-        {
-            get { return resetTimestamp; }
-            set => resetTimestamp = Time.GetUnixTime();
-        }
-
         public int? Level
         {
             get => GetProperty(PropertyInt.Level);
@@ -2696,7 +2689,7 @@ namespace ACE.Server.WorldObjects
         public int? CritDamageResistRating
         {
             get => GetProperty(PropertyInt.CritDamageResistRating);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.CritDamageRating); else SetProperty(PropertyInt.CritDamageRating, value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CritDamageResistRating); else SetProperty(PropertyInt.CritDamageResistRating, value.Value); }
         }
 
         /// <summary>

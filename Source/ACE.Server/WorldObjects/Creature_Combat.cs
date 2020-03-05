@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 using ACE.Common;
-using ACE.DatLoader.Entity;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -16,6 +14,18 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
+        public enum DebugDamageType
+        {
+            None     = 0x0,
+            Attacker = 0x1,
+            Defender = 0x2,
+            All      = Attacker | Defender
+        };
+
+        public DebugDamageType DebugDamage;
+
+        public ObjectGuid DebugDamageTarget;
+
         /// <summary>
         /// The list of combat maneuvers performable by this creature
         /// </summary>
@@ -124,13 +134,15 @@ namespace ACE.Server.WorldObjects
 
             float peace1 = 0.0f, unarmed = 0.0f, peace2 = 0.0f;
 
+            // this is now handled as a proper 2-step process in HandleActionChangeCombatMode / NextUseTime
+
             // FIXME: just call generic method to switch to HandCombat first
             peace1 = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.NonCombat);
-            if (CurrentMotionState.Stance != MotionStance.HandCombat && combatStance != MotionStance.HandCombat)
+            /*if (CurrentMotionState.Stance != MotionStance.HandCombat && combatStance != MotionStance.HandCombat)
             {
                 unarmed = MotionTable.GetAnimationLength(MotionTableId, MotionStance.NonCombat, MotionCommand.Ready, MotionCommand.HandCombat);
                 peace2 = MotionTable.GetAnimationLength(MotionTableId, MotionStance.HandCombat, MotionCommand.Ready, MotionCommand.NonCombat);
-            }
+            }*/
 
             SetStance(MotionStance.NonCombat, false);
 
@@ -449,6 +461,9 @@ namespace ACE.Server.WorldObjects
         public virtual uint GetEffectiveAttackSkill()
         {
             var attackSkill = GetCreatureSkill(GetCurrentAttackSkill()).Current;
+
+            // TODO: don't use for bow?
+            // https://asheron.fandom.com/wiki/Developer_Chat_-_2002/09/23
             var offenseMod = GetWeaponOffenseModifier(this);
 
             // monsters don't use accuracy mod?
@@ -643,7 +658,7 @@ namespace ACE.Server.WorldObjects
 
             // shield AL item enchantment additives:
             // impenetrability, brittlemail
-            var ignoreMagicArmor = weapon != null ? weapon.IgnoreMagicArmor : false;
+            var ignoreMagicArmor = (weapon?.IgnoreMagicArmor ?? false) || (attacker?.IgnoreMagicArmor ?? false);
 
             var modSL = ignoreMagicArmor ? 0 : shield.EnchantmentManager.GetArmorMod();
             var effectiveSL = baseSL + modSL;
@@ -1224,5 +1239,16 @@ namespace ACE.Server.WorldObjects
         {
             return EquippedObjects.Values.Count(i => i.GetImbuedEffects().HasFlag(imbuedEffectType));
         }
+
+        /// <summary>
+        /// Returns the cloak the creature has equipped,
+        /// or 'null' if no cloak is equipped
+        /// </summary>
+        public WorldObject EquippedCloak => EquippedObjects.Values.FirstOrDefault(i => i.ValidLocations == EquipMask.Cloak);
+
+        /// <summary>
+        /// Returns TRUE if creature has cloak equipped
+        /// </summary>
+        public bool HasCloakEquipped => EquippedCloak != null;
     }
 }

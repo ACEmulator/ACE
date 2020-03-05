@@ -415,7 +415,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Raise the available XP by a percentage of the current level XP or a maximum
         /// </summary>
-        public void GrantLevelProportionalXp(double percent, long max, bool shareable = false)
+        public void GrantLevelProportionalXp(double percent, long min, long max, bool shareable = false)
         {
             var nextLevelXP = GetXPBetweenLevels(Level.Value, Level.Value + 1);
 
@@ -423,6 +423,9 @@ namespace ACE.Server.WorldObjects
 
             if (max > 0)
                 scaledXP = Math.Min(scaledXP, max);
+
+            if (min > 0)
+                scaledXP = Math.Max(scaledXP, min);
 
             var shareType = shareable ? ShareType.All : ShareType.None;
 
