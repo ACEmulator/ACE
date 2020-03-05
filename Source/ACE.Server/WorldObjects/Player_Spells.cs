@@ -8,6 +8,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -454,7 +455,12 @@ namespace ACE.Server.WorldObjects
         public void HandleSpellHooks(Spell spell)
         {
             HandleMaxVitalUpdate(spell);
-            HandleRunRateUpdate(spell);
+
+            // unsure if spell hook was here in retail,
+            // but this has the potential to take the client out of autorun mode
+            // which causes them to stop if they hit a turn key afterwards
+            if (PropertyManager.GetBool("runrate_add_hooks").Item)
+                HandleRunRateUpdate(spell);
         }
 
         /// <summary>
