@@ -53,7 +53,10 @@ namespace ACE.Server.WorldObjects
 
         public SquelchManager SquelchManager;
 
-        public float CurrentRadarRange => Location.Indoors ? 25.0f : 75.0f;
+        public static readonly float MaxRadarRange_Indoors = 25.0f;
+        public static readonly float MaxRadarRange_Outdoors = 75.0f;
+
+        public float CurrentRadarRange => Location.Indoors ? MaxRadarRange_Indoors : MaxRadarRange_Outdoors;
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
