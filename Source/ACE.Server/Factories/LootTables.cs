@@ -1223,7 +1223,7 @@ namespace ACE.Server.Factories
                 new int[] { 581, 582, 583, 584, 585, 586, 2249, 4564 }, // Item Enchantment Mastery
                 new int[] { 605, 606, 607, 608, 609, 610, 2267, 4582 }, // Life Magic Mastery
                 new int[] { 629, 630, 631, 632, 633, 634 , 2287, 4602}, // War Magic Mastery
-                new int[] { 1599, 1600, 1601, 1602, 1603, 1604, 2101, 4400 }, // Defender
+                new int[] { 1599, 1601, 1602, 1603, 1604, 1605, 2101, 4400 }, // Defender
                 new int[] { 1475, 1476, 1477, 1478, 1479, 1480, 2117, 4418 }, // Hermetic Link
         };
 
@@ -1474,7 +1474,7 @@ namespace ACE.Server.Factories
             ////Heart Seeker
             new int[] { 1587, 1588, 1589, 1590, 1591, 1592, 2106, 4405 },
             ////Defender
-            new int[] { 1599, 1600, 1601, 1602, 1603, 1604, 2101, 4400 },
+            new int[] { 1599, 1601, 1602, 1603, 1604, 1605, 2101, 4400 },
             ////SwiftKiller
             new int[] { 49, 1623, 1624, 1625, 1626, 1627, 2116, 4417 },
             ////Blooddrinker
@@ -1498,7 +1498,7 @@ namespace ACE.Server.Factories
             ////Heart Seeker
             new int[] { 1587, 1588, 1589, 1590, 1591, 1592, 2106, 4405 },
             ////Defender
-            new int[] { 1599, 1600, 1601, 1602, 1603, 1604, 2101, 4400 },
+            new int[] { 1599, 1601, 1602, 1603, 1604, 1605, 2101, 4400 },
             ////SwiftKiller
             new int[] { 49, 1623, 1624, 1625, 1626, 1627, 2116, 4417 },
             ////Blooddrinker
