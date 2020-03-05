@@ -289,17 +289,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        /// <summary>
-        /// This is raised by Player.HandleActionUseItem.<para />
-        /// The item does not exist in the players possession.<para />
-        /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
-        /// When this is called, it should be assumed that the player is within range.
-        /// 
-        /// This is the OnUse method.   This is just an initial implemention.   I have put in the turn to action at this point.
-        /// If we are out of use radius, move to the object.   Once in range, let's turn the creature toward us and get started.
-        /// Note - we may need to make an NPC class vs monster as using a monster does not make them turn towrad you as I recall. Og II
-        ///  Also, once we are reading in the emotes table by weenie - this will automatically customize the behavior for creatures.
-        /// </summary>
         public override void ActOnUse(WorldObject worldObject)
         {
             // handled in base.OnActivate -> EmoteManager.OnUse()

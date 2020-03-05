@@ -1,8 +1,8 @@
-using System;
-
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Entity.Models;
-
+using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
@@ -29,15 +29,21 @@ namespace ACE.Server.WorldObjects
         {
         }
 
-        /// <summary>
-        /// This is raised by Player.HandleActionUseItem.<para />
-        /// The item does not exist in the players possession.<para />
-        /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
-        /// When this is called, it should be assumed that the player is within range.
-        /// </summary>
         public override void ActOnUse(WorldObject activator)
         {
-            // handled in base.OnActivate -> EmoteManager.OnUse()
+            if (activator is Player player)
+            {
+                if (CreatureType == ACE.Entity.Enum.CreatureType.Auroch)
+                    player.SendMessage($"The {Name} ignores you.");
+                else
+                {
+                    Active = false;
+                    var actionChain = new ActionChain();
+                    EnqueueMotion(actionChain, MotionCommand.TippedRight);
+                    actionChain.AddAction(this, () => Active = true);
+                    actionChain.EnqueueChain();
+                }
+            }
         }
     }
 }
