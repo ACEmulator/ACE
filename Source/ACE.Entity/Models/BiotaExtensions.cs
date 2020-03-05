@@ -693,7 +693,7 @@ namespace ACE.Entity.Models
             }
         }
 
-        public static  PropertiesSkill GetOrAddSkill(this Biota biota, Skill skill, ReaderWriterLockSlim rwLock, out bool skillAdded)
+        public static PropertiesSkill GetOrAddSkill(this Biota biota, Skill skill, ReaderWriterLockSlim rwLock, out bool skillAdded)
         {
             rwLock.EnterWriteLock();
             try
@@ -712,6 +712,94 @@ namespace ACE.Entity.Models
                 skillAdded = true;
 
                 return entity;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+
+        // =====================================
+        // HousePermissions
+        // =====================================
+
+        public static Dictionary<uint, bool> CloneHousePermissions(this Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                if (biota.HousePermissions == null)
+                    return new Dictionary<uint, bool>();
+
+                return new Dictionary<uint, bool>(biota.HousePermissions);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static bool HasHouseGuest(this Biota biota, uint guestGuid, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                if (biota.HousePermissions == null)
+                    return false;
+
+                return biota.HousePermissions.ContainsKey(guestGuid);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static bool? GetHouseGuestStoragePermission(this Biota biota, uint guestGuid, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                if (biota.HousePermissions == null)
+                    return null;
+
+                if (!biota.HousePermissions.TryGetValue(guestGuid, out var value))
+                    return null;
+
+                return value;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static void AddOrUpdateHouseGuest(this Biota biota, uint guestGuid, bool storage, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                if (biota.HousePermissions == null)
+                    biota.HousePermissions = new Dictionary<uint, bool>();
+
+                biota.HousePermissions[guestGuid] = storage;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        public static bool RemoveHouseGuest(this Biota biota, uint guestGuid, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                if (biota.HousePermissions == null)
+                    return false;
+
+                return biota.HousePermissions.Remove(guestGuid);
             }
             finally
             {

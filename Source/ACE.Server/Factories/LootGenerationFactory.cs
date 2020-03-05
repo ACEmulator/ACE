@@ -32,7 +32,7 @@ namespace ACE.Server.Factories
 
             foreach (var weenie in weenies)
             {
-                var wo = WorldObjectFactory.CreateNewWorldObject(weenie.ClassId);
+                var wo = WorldObjectFactory.CreateNewWorldObject(weenie.WeenieClassId);
                 worldObjects.Add(wo);
             }
 

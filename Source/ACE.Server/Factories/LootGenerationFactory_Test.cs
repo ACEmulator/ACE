@@ -249,8 +249,10 @@ namespace ACE.Server.Factories
                                 petLevel = 100;
                             else if (petDevice.UseRequiresSkillLevel == 370)
                                 petLevel = 80;
-                            else if (petDevice.UseRequiresSkillLevel == 310)
+                            else if (petDevice.UseRequiresSkillLevel == 310 || petDevice.UseRequiresSkillLevel == 320)
                                 petLevel = 50;
+                            if (petLevel == 0)
+                                Console.WriteLine("Skill= " + petDevice.UseRequiresSkillLevel);
 
                             if (petDevice.GearDamage != null)
                             {

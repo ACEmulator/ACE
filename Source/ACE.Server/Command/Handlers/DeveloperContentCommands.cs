@@ -809,7 +809,7 @@ namespace ACE.Server.Command.Handlers.Processors
             DatabaseManager.World.ClearCachedWeenie(wcid);
 
             // load weenie from database
-            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+            var weenie = DatabaseManager.World.GetWeenie(wcid);
 
             if (weenie == null)
             {
@@ -836,7 +836,7 @@ namespace ACE.Server.Command.Handlers.Processors
             DatabaseManager.World.ClearCookbookCache();
 
             // load cookbooks + recipe from database
-            var cookbooks = DatabaseManager.World.GetCachedCookbooks(recipeId);
+            var cookbooks = DatabaseManager.World.GetCookbooksByRecipeId(recipeId);
 
             if (cookbooks == null || cookbooks.Count == 0)
             {
@@ -1089,9 +1089,9 @@ namespace ACE.Server.Command.Handlers.Processors
             }
 
             if (uint.TryParse(param, out var wcid))
-                weenie = DatabaseManager.World.GetCachedWeenie(wcid);   // wcid
+                weenie = DatabaseManager.World.GetWeenie(wcid);   // wcid
             else
-                weenie = DatabaseManager.World.GetCachedWeenie(param);  // classname
+                weenie = DatabaseManager.World.GetWeenie(param);  // classname
 
             if (weenie == null)
             {
@@ -1164,7 +1164,9 @@ namespace ACE.Server.Command.Handlers.Processors
             }
 
             // create and spawn object
-            var wo = WorldObjectFactory.CreateWorldObject(weenie, new ObjectGuid(nextStaticGuid));
+            var entityWeenie = ACE.Database.Adapter.WeenieConverter.ConvertToEntityWeenie(weenie);
+
+            var wo = WorldObjectFactory.CreateWorldObject(entityWeenie, new ObjectGuid(nextStaticGuid));
 
             if (wo == null)
             {
@@ -1425,9 +1427,9 @@ namespace ACE.Server.Command.Handlers.Processors
             Weenie weenie = null;
 
             if (uint.TryParse(param, out var wcid))
-                weenie = DatabaseManager.World.GetCachedWeenie(wcid);   // wcid
+                weenie = DatabaseManager.World.GetWeenie(wcid);   // wcid
             else
-                weenie = DatabaseManager.World.GetCachedWeenie(param);  // classname
+                weenie = DatabaseManager.World.GetWeenie(param);  // classname
 
             if (weenie == null)
             {
@@ -1568,9 +1570,9 @@ namespace ACE.Server.Command.Handlers.Processors
             Weenie weenie = null;
 
             if (uint.TryParse(param, out var wcid))
-                weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+                weenie = DatabaseManager.World.GetWeenie(wcid);
             else
-                weenie = DatabaseManager.World.GetCachedWeenie(param);
+                weenie = DatabaseManager.World.GetWeenie(param);
 
             if (weenie == null)
             {
@@ -1615,7 +1617,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            var cookbooks = DatabaseManager.World.GetCachedCookbooks(recipeId);
+            var cookbooks = DatabaseManager.World.GetCookbooksByRecipeId(recipeId);
             if (cookbooks == null)
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find recipe id {recipeId}");
@@ -1780,9 +1782,9 @@ namespace ACE.Server.Command.Handlers.Processors
             Weenie weenie = null;
 
             if (uint.TryParse(param, out var wcid))
-                weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+                weenie = DatabaseManager.World.GetWeenie(wcid);
             else
-                weenie = DatabaseManager.World.GetCachedWeenie(param);
+                weenie = DatabaseManager.World.GetWeenie(param);
 
             if (weenie == null)
             {
@@ -1839,7 +1841,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            var cookbooks = DatabaseManager.World.GetCachedCookbooks(recipeId);
+            var cookbooks = DatabaseManager.World.GetCookbooksByRecipeId(recipeId);
             if (cookbooks == null)
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find recipe id {recipeId}");

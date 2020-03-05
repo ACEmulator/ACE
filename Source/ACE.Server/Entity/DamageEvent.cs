@@ -139,7 +139,7 @@ namespace ACE.Server.Entity
 
             var damage = damageEvent.DoCalculateDamage(attacker, defender, damageSource);
 
-            damageEvent.HandleLogging(attacker as Player, defender as Player);
+            damageEvent.HandleLogging(attacker, defender);
 
             return damageEvent;
         }
@@ -439,12 +439,12 @@ namespace ACE.Server.Entity
             CreaturePart = new Creature_BodyPart(defender, BiotaPropertiesBodyPart);
         }
 
-        public void ShowInfo(Player player)
+        public void ShowInfo(Creature creature)
         {
-            var targetInfo = PlayerManager.GetOnlinePlayer(player.DebugDamageTarget);
+            var targetInfo = PlayerManager.GetOnlinePlayer(creature.DebugDamageTarget);
             if (targetInfo == null)
             {
-                player.DebugDamage = Player.DebugDamageType.None;
+                creature.DebugDamage = Creature.DebugDamageType.None;
                 return;
             }
 
@@ -559,14 +559,14 @@ namespace ACE.Server.Entity
             targetInfo.Session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
         }
 
-        public void HandleLogging(Player attacker, Player defender)
+        public void HandleLogging(Creature attacker, Creature defender)
         {
-            if (attacker != null && (attacker.DebugDamage & Player.DebugDamageType.Attacker) != 0)
+            if (attacker != null && (attacker.DebugDamage & Creature.DebugDamageType.Attacker) != 0)
             {
                 ShowInfo(attacker);
                 return;
             }
-            if (defender != null && (defender.DebugDamage & Player.DebugDamageType.Defender) != 0)
+            if (defender != null && (defender.DebugDamage & Creature.DebugDamageType.Defender) != 0)
             {
                 ShowInfo(defender);
                 return;
