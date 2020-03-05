@@ -2740,7 +2740,7 @@ namespace ACE.Server.WorldObjects
         public int? CritDamageResistRating
         {
             get => GetProperty(PropertyInt.CritDamageResistRating);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.CritDamageRating); else SetProperty(PropertyInt.CritDamageRating, value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CritDamageResistRating); else SetProperty(PropertyInt.CritDamageResistRating, value.Value); }
         }
 
         /// <summary>

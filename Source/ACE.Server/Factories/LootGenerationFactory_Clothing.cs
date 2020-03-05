@@ -248,9 +248,15 @@ namespace ACE.Server.Factories
         /// <returns></returns>
         private static WorldObject AssignArmorLevel(WorldObject wo, int tier, LootTables.ArmorType armorType)
         {
+            if (wo.ArmorType == null)
+            {
+                log.Warn($"[LOOT] Missing PropertyInt.ArmorType on loot item {wo.WeenieClassId} - {wo.Name}");
+                return wo;
+            }
+
             var baseArmorLevel = wo.GetProperty(PropertyInt.ArmorLevel) ?? 0;
 
-            if (wo.ArmorType != null && wo.ClothingPriority != (CoverageMask)CoverageMaskHelper.Underwear)
+            if ((wo.ClothingPriority & (CoverageMask)CoverageMaskHelper.Underwear) == 0)
             {
                 int armorModValue = 0;
 
@@ -399,9 +405,6 @@ namespace ACE.Server.Factories
 
             if ((wo.ResistMagic == null || wo.ResistMagic < 9999) && wo.GetProperty(PropertyInt.ArmorLevel) >= 345)
                 log.Warn($"[LOOT] Standard armor item exceeding upper AL threshold {wo.WeenieClassId} - {wo.Name}");
-
-            if (wo.ArmorType == null)
-                log.Warn($"[LOOT] Missing PropertyInt.ArmorType on loot item {wo.WeenieClassId} - {wo.Name}");
 
             return wo;
         }

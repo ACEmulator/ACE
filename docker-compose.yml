@@ -24,6 +24,7 @@ services:
       - docker.env
     volumes:
       - C:\ACE\Config:/ace/Config
+      - C:\ACE\Content:/ace/Content
       - C:\ACE\Dats:/ace/Dats
       - C:\ACE\Logs:/ace/Logs
     ports:
