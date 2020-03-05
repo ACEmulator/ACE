@@ -37,6 +37,8 @@ namespace ACE.Server.WorldObjects
                 TipCow(player);
         }
 
+        private static readonly List<MotionCommand> motionTippedRight = new List<MotionCommand> { MotionCommand.TippedRight };
+
         private void TipCow(Player player)
         {
             if (CreatureType == ACE.Entity.Enum.CreatureType.Auroch)
@@ -45,8 +47,7 @@ namespace ACE.Server.WorldObjects
             {
                 Active = false;
                 var actionChain = new ActionChain();
-                //EnqueueMotion(actionChain, MotionCommand.TippedRight);
-                EnqueueMotionAction(actionChain, new List<MotionCommand> { MotionCommand.TippedRight });
+                EnqueueMotionAction(actionChain, motionTippedRight);
                 actionChain.AddAction(this, () => HandleCowTipQuest(player));
                 actionChain.AddAction(this, () => Active = true);
                 actionChain.EnqueueChain();
@@ -60,35 +61,17 @@ namespace ACE.Server.WorldObjects
             player.QuestManager.Stamp("CowTipCounter");
 
             var currentNumberOfCowTips = player.QuestManager.GetCurrentSolves("CowTipCounter");
-            string thinkText;
-            switch (currentNumberOfCowTips)
+            var thinkText = currentNumberOfCowTips switch
             {
-                case 300:
-                    thinkText = "It seems to you like you have done enough tipping for now, maybe Dwennon in Holtburg has an update for you...";
-                    break;
-                case 250:
-                    thinkText = "Unless you lost track someplace along the way, which you think is very possible at this point, you believe that's your 250th tip. What, no fireworks? Maybe you have a few more tips to go still.";
-                    break;
-                case 200:
-                    thinkText = "Your arms are getting tired, you think to yourself \"I must have tipped at least 200 times by now..\"";
-                    break;
-                case 150:
-                    thinkText = "You think to yourself \"I must be at least half done, and if not then Dwennon can just finish tipping this cow himself.\"";
-                    break;
-                case 100:
-                    thinkText = "A thought pops into your head \"CowLogic\" and you think... \"What's that?\" Maybe you can ask Dwennon about it some day.";
-                    break;
-                case 50:
-                    thinkText = "The cows lips do not move but you would almost swear you just heard \"Moooo, Mooo Mooooooo!\"";
-                    break;
-                case 1:
-                    thinkText = "You think to yourself \"One tip down, I wonder how many more this guy could possibly expect...\"";
-                    break;
-                default:
-                    thinkText = null;
-                    break;
-            }
-
+                300 => "It seems to you like you have done enough tipping for now, maybe Dwennon in Holtburg has an update for you...",
+                250 => "Unless you lost track someplace along the way, which you think is very possible at this point, you believe that's your 250th tip. What, no fireworks? Maybe you have a few more tips to go still.",
+                200 => "Your arms are getting tired, you think to yourself \"I must have tipped at least 200 times by now..\"",
+                150 => "You think to yourself \"I must be at least half done, and if not then Dwennon can just finish tipping this cow himself.\"",
+                100 => "A thought pops into your head \"CowLogic\" and you think... \"What's that?\" Maybe you can ask Dwennon about it some day.",
+                50 => "The cows lips do not move but you would almost swear you just heard \"Moooo, Mooo Mooooooo!\"",
+                1 => "You think to yourself \"One tip down, I wonder how many more this guy could possibly expect...\"",
+                _ => null,
+            };
             if (!string.IsNullOrEmpty(thinkText))
                 player.SendMessage(thinkText);
         }
