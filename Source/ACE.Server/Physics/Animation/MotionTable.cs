@@ -6,12 +6,14 @@ using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation.Internal;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Physics.Animation
 {
     public class MotionTable
     {
         public uint ID;
+        public PhysicsObj PhysicsObj;
         public Dictionary<uint, uint> StyleDefaults;
         public Dictionary<uint, MotionData> Cycles;
         public Dictionary<uint, MotionData> Modifiers;
@@ -57,6 +59,9 @@ namespace ACE.Server.Physics.Animation
 
         public bool GetObjectSequence(uint motion, MotionState currState, Sequence sequence, float speedMod, ref uint numAnims, bool stopModifiers)
         {
+            if (PhysicsObj.IsPlayer && PhysicsObj.WeenieObj.WorldObject is Player player && player.MagicState.IsCasting && player.RecordCast.Enabled)
+                player.RecordCast.Log($"GetObjectSequence({(MotionCommand)motion}){(sequence.AnimList.Count > 0 ? $", {string.Join(", ", sequence.AnimList)}" : "")}");
+
             numAnims = 0;
             if (currState.Style == 0 || currState.Substate == 0)
                 return false;

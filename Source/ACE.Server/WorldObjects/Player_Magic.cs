@@ -1356,7 +1356,7 @@ namespace ACE.Server.WorldObjects
         public void HandleMotionDone_Magic(uint motionID, bool success)
         {
             if (RecordCast.Enabled)
-                RecordCast.Log($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success}) - cast gesture done");
+                RecordCast.Log($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success})");
 
             //Console.WriteLine($"HandleMotionDone_Magic({(MotionCommand)motionID}, {success})");
 
@@ -1365,7 +1365,7 @@ namespace ACE.Server.WorldObjects
             if (motionID == (uint)MagicState.CastGesture)
             {
                 if (RecordCast.Enabled)
-                    RecordCast.Log($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success}) - cast gesture done - inner");
+                    RecordCast.Log($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success}) - cast gesture done");
 
                 MagicState.CastMotionDone = true;
                 DoCastSpell(MagicState);

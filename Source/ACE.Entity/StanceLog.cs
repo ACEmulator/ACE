@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ACE.Entity
@@ -30,9 +31,11 @@ namespace ACE.Entity
         {
             var sb = new StringBuilder();
 
-            foreach (var entry in Entries)
+            for (var i = Entries.Count - 1; i >= 0; i--)
+            {
+                var entry = Entries.ElementAt(i);
                 sb.AppendLine($"{entry}\n------------------------------------------");
-
+            }
             return sb.ToString();
         }
     }

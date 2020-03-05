@@ -111,5 +111,10 @@ namespace ACE.Server.Physics.Animation
             if (LowFrame > HighFrame)
                 HighFrame = LowFrame;
         }
+
+        public override string ToString()
+        {
+            return $"{Anim.ID:X8}";
+        }
     }
 }
