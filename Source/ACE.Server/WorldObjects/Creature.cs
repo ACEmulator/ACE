@@ -62,10 +62,13 @@ namespace ACE.Server.WorldObjects
             CombatMode = CombatMode.NonCombat;
             DamageHistory = new DamageHistory(this);
 
-            if (CreatureType == ACE.Entity.Enum.CreatureType.Human && !(WeenieClassId == 1 || WeenieClassId == 4))
-                GenerateNewFace();
+            //if (CreatureType == ACE.Entity.Enum.CreatureType.Human && !(WeenieClassId == 1 || WeenieClassId == 4))
+            //    GenerateNewFace();
 
-            if (CreatureType == ACE.Entity.Enum.CreatureType.Empyrean || CreatureType == ACE.Entity.Enum.CreatureType.Shadow || CreatureType == ACE.Entity.Enum.CreatureType.Simulacrum)
+            //if (CreatureType == ACE.Entity.Enum.CreatureType.Empyrean || CreatureType == ACE.Entity.Enum.CreatureType.Shadow || CreatureType == ACE.Entity.Enum.CreatureType.Simulacrum)
+            //    GenerateNewFace();
+
+            if (!(this is Player))
                 GenerateNewFace();
 
             // If any of the vitals don't exist for this biota, one will be created automatically in the CreatureVital ctor
@@ -119,7 +122,7 @@ namespace ACE.Server.WorldObjects
 
             if (!Heritage.HasValue)
             {
-                if (!String.IsNullOrEmpty(HeritageGroupName))
+                if (!string.IsNullOrEmpty(HeritageGroupName))
                 {
                     HeritageGroup parsed = (HeritageGroup)Enum.Parse(typeof(HeritageGroup), HeritageGroupName.Replace("'", ""), true);
                     if (parsed != 0)
@@ -129,7 +132,7 @@ namespace ACE.Server.WorldObjects
 
             if (!Gender.HasValue)
             {
-                if (!String.IsNullOrEmpty(Sex))
+                if (!string.IsNullOrEmpty(Sex))
                 {
                     Gender parsed = (Gender)Enum.Parse(typeof(Gender), Sex, true);
                     if (parsed != 0)
@@ -148,7 +151,9 @@ namespace ACE.Server.WorldObjects
 
             if (!cg.HeritageGroups.ContainsKey((uint)Heritage) || !cg.HeritageGroups[(uint)Heritage].Genders.ContainsKey((int)Gender))
             {
+#if DEBUG
                 log.Debug($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data invalid, Cannot randomize face.");
+#endif
                 return;
             }
 
