@@ -98,28 +98,39 @@ namespace ACE.Server.Factories
         private static WorldObject CreateJewelry(TreasureDeath profile, bool isMagical)
         {
 
-            // 35% chance ring, 35% chance bracelet, 30% chance necklace
-            int ringPercent = 35;
-            int braceletPercent = 35;
+            // 32% chance ring, 32% chance bracelet, 30% chance necklace 6% chance Trinket
+            int ringPercent = 32;
+            int braceletPercent = 32;
             int necklacePercent = 30;
+            int trinketPercent = 6;
 
-            int jewelrySlot = ThreadSafeRandom.Next(0, ringPercent + braceletPercent + necklacePercent);
+            int jewelrySlot = ThreadSafeRandom.Next(0, ringPercent + braceletPercent + necklacePercent + trinketPercent);
             int jewelType;
 
-            switch (jewelrySlot)
-            {
-                case int n when (n <= ringPercent):
-                    jewelType = LootTables.ringItems[ThreadSafeRandom.Next(0, LootTables.ringItems.Length - 1)];
-                    break;
-                case int n when (n <= ringPercent + braceletPercent && n > ringPercent):
-                    jewelType = LootTables.braceletItems[ThreadSafeRandom.Next(0, LootTables.braceletItems.Length - 1)];
-                    break;
-                case int n when (n <= ringPercent + braceletPercent + necklacePercent && n > ringPercent + braceletPercent):
-                    jewelType = LootTables.necklaceItems[ThreadSafeRandom.Next(0, LootTables.necklaceItems.Length - 1)];
-                    break;
-                default:
-                    return null;
-            }
+
+            if (jewelrySlot <= 32)
+                jewelType = LootTables.ringItems[ThreadSafeRandom.Next(0, LootTables.ringItems.Length - 1)];
+            else if (jewelrySlot <= 64)
+                jewelType = LootTables.braceletItems[ThreadSafeRandom.Next(0, LootTables.braceletItems.Length - 1)];
+            else if (jewelrySlot <= 94)
+                jewelType = LootTables.necklaceItems[ThreadSafeRandom.Next(0, LootTables.necklaceItems.Length - 1)];
+            else
+                jewelType = LootTables.trinketItems[ThreadSafeRandom.Next(0, LootTables.necklaceItems.Length - 1)];
+
+            //switch (jewelrySlot)
+            //{
+            //    case int n when (n <= ringPercent):
+            //        jewelType = LootTables.ringItems[ThreadSafeRandom.Next(0, LootTables.ringItems.Length - 1)];
+            //        break;
+            //    case int n when (n <= ringPercent + braceletPercent && n > ringPercent):
+            //        jewelType = LootTables.braceletItems[ThreadSafeRandom.Next(0, LootTables.braceletItems.Length - 1)];
+            //        break;
+            //    case int n when (n <= ringPercent + braceletPercent + necklacePercent && n > ringPercent + braceletPercent):
+            //        jewelType = LootTables.necklaceItems[ThreadSafeRandom.Next(0, LootTables.necklaceItems.Length - 1)];
+            //        break;
+            //    default:
+            //        return null;
+            //}
 
             //int rank = 0;
             //int skill_level_limit = 0;
@@ -129,49 +140,99 @@ namespace ACE.Server.Factories
             if (wo == null)
                 return null;
 
-            wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
-            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
+
+            wo.AppraisalLongDescDecoration = 1;
+            wo.LongDesc = wo.GetProperty(PropertyString.Name);
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
             int gemCount = ThreadSafeRandom.Next(1, 5);
             int gemType = ThreadSafeRandom.Next(10, 50);
-            wo.SetProperty(PropertyInt.GemCount, gemCount);
-            wo.SetProperty(PropertyInt.GemType, gemType);
+            wo.GemCount = gemCount;
+            wo.GemType = (MaterialType)gemType;
             int workmanship = GetWorkmanship(profile.Tier);
 
             double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
             var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
             wo.Value = value;
-            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
+            wo.ItemWorkmanship = workmanship;
 
-            wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
+            wo.ItemSkillLevelLimit = null;
 
             if (profile.Tier > 6)
             {
-                wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.Level);
-                wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.Axe);  // Set by examples from PCAP data
+                wo.WieldRequirements = WieldRequirement.Level;
+                wo.WieldSkillType = (int)Skill.Axe;  // Set by examples from PCAP data
 
                 var wield = profile.Tier switch
                 {
                     7 => 150,// In this instance, used for indicating player level, rather than skill level
                     _ => 180,// In this instance, used for indicating player level, rather than skill level
                 };
-                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+                wo.WieldDifficulty = wield;
             }
 
             if (isMagical)
                 wo = AssignMagic(wo, profile);
             else
             {
-                wo.RemoveProperty(PropertyInt.ItemManaCost);
-                wo.RemoveProperty(PropertyInt.ItemMaxMana);
-                wo.RemoveProperty(PropertyInt.ItemCurMana);
-                wo.RemoveProperty(PropertyInt.ItemSpellcraft);
-                wo.RemoveProperty(PropertyInt.ItemDifficulty);
-                wo.RemoveProperty(PropertyFloat.ManaRate);
+                wo.ItemManaCost = null;
+                wo.ItemMaxMana = null;
+                wo.ItemCurMana = null;
+                wo.ItemSpellcraft = null;
+                wo.ItemDifficulty = null;
+                wo.ManaRate = null;
             }
+
+
+
+            //wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
+            //wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
+            //int materialType = GetMaterialType(wo, profile.Tier);
+            //if (materialType > 0)
+            //    wo.MaterialType = (MaterialType)materialType;
+            //int gemCount = ThreadSafeRandom.Next(1, 5);
+            //int gemType = ThreadSafeRandom.Next(10, 50);
+            //wo.SetProperty(PropertyInt.GemCount, gemCount);
+            //wo.SetProperty(PropertyInt.GemType, gemType);
+            //int workmanship = GetWorkmanship(profile.Tier);
+
+            //double materialMod = LootTables.getMaterialValueModifier(wo);
+            //double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+            //var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
+            //wo.Value = value;
+            //wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
+
+            //wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
+
+            //if (profile.Tier > 6)
+            //{
+            //    wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.Level);
+            //    wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.Axe);  // Set by examples from PCAP data
+
+            //    var wield = profile.Tier switch
+            //    {
+            //        7 => 150,// In this instance, used for indicating player level, rather than skill level
+            //        _ => 180,// In this instance, used for indicating player level, rather than skill level
+            //    };
+            //    wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+            //}
+
+            //if (isMagical)
+            //    wo = AssignMagic(wo, profile);
+            //else
+            //{
+            //    wo.RemoveProperty(PropertyInt.ItemManaCost);
+            //    wo.RemoveProperty(PropertyInt.ItemMaxMana);
+            //    wo.RemoveProperty(PropertyInt.ItemCurMana);
+            //    wo.RemoveProperty(PropertyInt.ItemSpellcraft);
+            //    wo.RemoveProperty(PropertyInt.ItemDifficulty);
+            //    wo.RemoveProperty(PropertyFloat.ManaRate);
+            //}
+
+
+
 
             wo = RandomizeColor(wo);
             return wo;
