@@ -304,6 +304,9 @@ namespace ACE.Server.WorldObjects
                 }
                 LastMoveToState = null;
             }
+
+            if (MagicState.IsCasting && (MagicState.IsTurning || MagicState.PendingTurnRelease))
+                CheckTurn();
         }
 
         /// <summary>

@@ -672,9 +672,12 @@ namespace ACE.Server.WorldObjects
             DoCastSpell_Inner(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus);
         }
 
+        public WorldObject TurnTarget;
+
         public void TurnTo_Magic(WorldObject target)
         {
             //Console.WriteLine($"{Name}.TurnTo_Magic()");
+            TurnTarget = target;
 
             MagicState.TurnStarted = true;
             MagicState.IsTurning = true;
@@ -725,7 +728,7 @@ namespace ACE.Server.WorldObjects
             bool movedTooFar = false;
 
             // only PKs affected by these caps?
-            if (dist > Windup_MaxMove && PlayerKillerStatus != PlayerKillerStatus.NPK && false)
+            if (dist > Windup_MaxMove && PlayerKillerStatus != PlayerKillerStatus.NPK)
             {
                 castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
                 movedTooFar = true;
@@ -1437,6 +1440,17 @@ namespace ACE.Server.WorldObjects
                 DoWindup(MagicState.WindupParams);
             else
                 DoCastSpell(MagicState, true);
+        }
+
+        public void CheckTurn()
+        {
+            if (TurnTarget != null && IsWithinAngle(TurnTarget))
+            {
+                if (MagicState.PendingTurnRelease)
+                    OnTurnRelease();
+                else
+                    PhysicsObj.StopCompletely(false);
+            }
         }
     }
 }
