@@ -1,15 +1,16 @@
 using System;
-using System.Linq;
 using System.Numerics;
-using ACE.Database;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
+
+using log4net;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
-using log4net;
+
+using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {

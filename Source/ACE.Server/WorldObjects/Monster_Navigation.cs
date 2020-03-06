@@ -105,6 +105,9 @@ namespace ACE.Server.WorldObjects
                 PhysicsObj.TurnToObject(AttackTarget.PhysicsObj, mvp);
             else
                 PhysicsObj.MoveToObject(AttackTarget.PhysicsObj, mvp);
+
+            // prevent initial snap
+            PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
         }
 
         /// <summary>
