@@ -212,7 +212,7 @@ namespace ACE.Server.WorldObjects
             if (AttackSequence != attackSequence)
                 return;
 
-            if (CombatMode != CombatMode.Melee || MeleeTarget == null || !IsAlive)
+            if (CombatMode != CombatMode.Melee || MeleeTarget == null || IsBusy || !IsAlive)
             {
                 OnAttackDone();
                 return;

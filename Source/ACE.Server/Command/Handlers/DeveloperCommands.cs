@@ -474,14 +474,6 @@ namespace ACE.Server.Command.Handlers
             });
         }
 
-        [CommandHandler("cacheallweenies", AccessLevel.Developer, CommandHandlerFlag.None, "Loads and caches all Weenies. This may take 15+ minutes and is very heavy on the database.")]
-        public static void HandleCacheAllWeenies(Session session, params string[] parameters)
-        {
-            CommandHandlerHelper.WriteOutputInfo(session, "Caching Weenies... This may take more than 15 minutes...");
-
-            Task.Run(() => DatabaseManager.World.CacheAllWeenies());
-        }
-
 
         // ==================================
         // World Object Properties
@@ -1967,37 +1959,37 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("debugdamage", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Toggles the display for player damage info", "/debugdamage <attack|defense|all|on|off>")]
         public static void HandleDebugDamage(Session session, params string[] parameters)
         {
-            // get last appraisal player target
-            var targetPlayer = CommandHandlerHelper.GetLastAppraisedObject(session) as Player;
-            if (targetPlayer == null) return;
+            // get last appraisal creature target
+            var targetCreature = CommandHandlerHelper.GetLastAppraisedObject(session) as Creature;
+            if (targetCreature == null) return;
 
             if (parameters.Length == 0)
             {
                 // toggle
-                if (targetPlayer.DebugDamage == Player.DebugDamageType.None)
-                    targetPlayer.DebugDamage = Player.DebugDamageType.All;
+                if (targetCreature.DebugDamage == Creature.DebugDamageType.None)
+                    targetCreature.DebugDamage = Creature.DebugDamageType.All;
                 else
-                    targetPlayer.DebugDamage = Player.DebugDamageType.None;
+                    targetCreature.DebugDamage = Creature.DebugDamageType.None;
             }
             else
             {
                 var param = parameters[0].ToLower();
                 if (param.Equals("on") || param.Equals("all"))
-                    targetPlayer.DebugDamage = Player.DebugDamageType.All;
+                    targetCreature.DebugDamage = Creature.DebugDamageType.All;
                 else if (param.Equals("off"))
-                    targetPlayer.DebugDamage = Player.DebugDamageType.None;
+                    targetCreature.DebugDamage = Creature.DebugDamageType.None;
                 else if (param.StartsWith("attack"))
-                    targetPlayer.DebugDamage = Player.DebugDamageType.Attacker;
+                    targetCreature.DebugDamage = Creature.DebugDamageType.Attacker;
                 else if (param.StartsWith("defen"))
-                    targetPlayer.DebugDamage = Player.DebugDamageType.Defender;
+                    targetCreature.DebugDamage = Creature.DebugDamageType.Defender;
                 else
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: - unknown {param} ({targetPlayer.Name})", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: - unknown {param} ({targetCreature.Name})", ChatMessageType.Broadcast));
                     return;
                 }
             }
-            session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: - {session.Player.DebugDamage} ({targetPlayer.Name})", ChatMessageType.Broadcast));
-            targetPlayer.DebugDamageTarget = session.Player.Guid;
+            session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: - {targetCreature.DebugDamage} ({targetCreature.Name})", ChatMessageType.Broadcast));
+            targetCreature.DebugDamageTarget = session.Player.Guid;
         }
 
         /// <summary>
@@ -2794,12 +2786,24 @@ namespace ACE.Server.Command.Handlers
         {
             var spell = new Spell(SpellId.QuicknessSelf8);
             session.Player.CreateEnchantment(session.Player, session.Player, spell);
+
+            spell = new Spell(SpellId.SprintSelf8);
+            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+
+            spell = new Spell(SpellId.StrengthSelf8);
+            session.Player.CreateEnchantment(session.Player, session.Player, spell);
         }
 
         [CommandHandler("slow", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void HandleSlow(Session session, params string[] parameters)
         {
             var spell = new Spell(SpellId.SlownessSelf8);
+            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+
+            spell = new Spell(SpellId.LeadenFeetSelf8);
+            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+
+            spell = new Spell(SpellId.WeaknessSelf8);
             session.Player.CreateEnchantment(session.Player, session.Player, spell);
         }
 
