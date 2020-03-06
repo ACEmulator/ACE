@@ -236,8 +236,12 @@ namespace ACE.Server.WorldObjects
                 var probability = profile.Biota.Probability;
 
                 if (probability == -1)
-                    continue;
+                {
+                    if (!profile.MaxObjectsSpawned)
+                        return 1.0f;
 
+                    continue;
+                }
                 if (!profile.MaxObjectsSpawned)
                 {
                     if (lastProbability > probability)
@@ -294,6 +298,7 @@ namespace ACE.Server.WorldObjects
 
             for (var i = 0; i <= index; i++)
             {
+                profile = GeneratorProfiles[i];
                 var probability = profile.Biota.Probability;
 
                 if (probability == -1)

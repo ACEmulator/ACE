@@ -20,9 +20,6 @@ namespace ACE.Server.Network
         {
             try
             {
-                // This won't actually do anything by default unless some bools in NetworkSyntheticTesting are enabled manually
-                data = NetworkSyntheticTesting.SyntheticCorruption_C2S(data);
-
                 if (data.Length < PacketHeader.HeaderSize)
                     return false;
 

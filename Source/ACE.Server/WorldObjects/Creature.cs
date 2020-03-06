@@ -1,18 +1,18 @@
 using System;
 using log4net;
 
-using ACE.Database.Models.World;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Database.Models.Shard;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects.Entity;
 
+using Biota = ACE.Database.Models.Shard.Biota;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
@@ -141,14 +141,14 @@ namespace ACE.Server.WorldObjects
             {
 #if DEBUG
                 if (!(NpcLooksLikeObject ?? false))
-                    log.Warn($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data missing or unparsable, Cannot randomize face.");
+                    log.Debug($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data missing or unparsable, Cannot randomize face.");
 #endif
                 return;
             }
 
             if (!cg.HeritageGroups.ContainsKey((uint)Heritage) || !cg.HeritageGroups[(uint)Heritage].Genders.ContainsKey((int)Gender))
             {
-                log.Warn($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data invalid, Cannot randomize face.");
+                log.Debug($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data invalid, Cannot randomize face.");
                 return;
             }
 

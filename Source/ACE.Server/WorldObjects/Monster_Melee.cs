@@ -362,8 +362,8 @@ namespace ACE.Server.WorldObjects
         /// <param name="armors">The list of armor/clothing covering the targeted body part</param>
         public float GetArmorMod(DamageType damageType, List<WorldObject> armors, WorldObject weapon, float armorRendingMod = 1.0f)
         {
-            var ignoreMagicArmor  = weapon != null ? weapon.IgnoreMagicArmor : false;
-            var ignoreMagicResist = weapon != null ? weapon.IgnoreMagicResist : false;
+            var ignoreMagicArmor =  (weapon?.IgnoreMagicArmor ?? false)  || IgnoreMagicArmor;
+            var ignoreMagicResist = (weapon?.IgnoreMagicResist ?? false) || IgnoreMagicResist;
 
             var effectiveAL = 0.0f;
 

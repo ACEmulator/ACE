@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Numerics;
 
 using ACE.Common;
 using ACE.Entity;
@@ -231,6 +232,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             bool isDying = false;
+            bool cachedVelocityFix = false;
 
             if (this is Creature creature)
             {
@@ -248,6 +250,9 @@ namespace ACE.Server.WorldObjects
 
                 if (!runUpdate)
                     return false;
+
+                if (creature.IsMonster && !creature.IsAwake)
+                    cachedVelocityFix = true;
             }
             else
             {
@@ -335,6 +340,9 @@ namespace ACE.Server.WorldObjects
                         return false;
                     }
                 }
+
+                if (cachedVelocityFix)
+                    PhysicsObj.CachedVelocity = Vector3.Zero;
 
                 return landblockUpdate;
             }

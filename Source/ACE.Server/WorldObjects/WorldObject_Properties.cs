@@ -1393,19 +1393,19 @@ namespace ACE.Server.WorldObjects
         public int? GemCount
         {
             get => GetProperty(PropertyInt.GemCount);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.GemCount); else SetProperty(PropertyInt.GemCount, (int)value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GemCount); else SetProperty(PropertyInt.GemCount, value.Value); }
         }
 
-        public int? Attuned
+        public AttunedStatus? Attuned
         {
-            get => GetProperty(PropertyInt.Attuned);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.Attuned); else SetProperty(PropertyInt.Attuned, value.Value); }
+            get => (AttunedStatus?)GetProperty(PropertyInt.Attuned);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Attuned); else SetProperty(PropertyInt.Attuned, (int)value.Value); }
         }
 
-        public int? Bonded
+        public BondedStatus? Bonded
         {
-            get => GetProperty(PropertyInt.Bonded);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.Bonded); else SetProperty(PropertyInt.Bonded, value.Value); }
+            get => (BondedStatus?)GetProperty(PropertyInt.Bonded);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Bonded); else SetProperty(PropertyInt.Bonded, (int)value.Value); }
         }
 
         public bool IsOpen
@@ -1626,13 +1626,6 @@ namespace ACE.Server.WorldObjects
         // ========================================
         // =========== Other Properties ===========
         // ========================================
-
-        private double? resetTimestamp;
-        protected double? ResetTimestamp
-        {
-            get { return resetTimestamp; }
-            set => resetTimestamp = Time.GetUnixTime();
-        }
 
         public int? Level
         {
@@ -2696,7 +2689,7 @@ namespace ACE.Server.WorldObjects
         public int? CritDamageResistRating
         {
             get => GetProperty(PropertyInt.CritDamageResistRating);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.CritDamageRating); else SetProperty(PropertyInt.CritDamageRating, value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CritDamageResistRating); else SetProperty(PropertyInt.CritDamageResistRating, value.Value); }
         }
 
         /// <summary>
@@ -2817,6 +2810,16 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyFloat.MaximumVelocity);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.MaximumVelocity); else SetProperty(PropertyFloat.MaximumVelocity, value.Value); }
+        }
+
+        /// <summary>
+        /// Indicates the maximum amount of items w/ this wcid
+        /// a player can have in their possession
+        /// </summary>
+        public int? Unique
+        {
+            get => GetProperty(PropertyInt.Unique);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Unique); else SetProperty(PropertyInt.Unique, value.Value); }
         }
 
         /// <summary>

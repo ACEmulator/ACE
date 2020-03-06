@@ -83,15 +83,19 @@ namespace ACE.Server.Managers
             bool success = true; // assume success, unless there's a skill check
             double percentSuccess = 1;
 
+            var animTime = 0.0f;
+
             player.IsBusy = true;
 
             if (player.CombatMode != CombatMode.NonCombat)
             {
                 var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
                 craftChain.AddDelaySeconds(stanceTime);
+
+                animTime += stanceTime;
             }
 
-            player.EnqueueMotion(craftChain, MotionCommand.ClapHands);
+            animTime += player.EnqueueMotion(craftChain, MotionCommand.ClapHands);
 
             craftChain.AddAction(player, () =>
             {
@@ -166,6 +170,8 @@ namespace ACE.Server.Managers
             player.EnqueueMotion(craftChain, MotionCommand.Ready);
 
             craftChain.EnqueueChain();
+
+            player.NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
         }
 
         public static float DoMotion(Player player, MotionCommand motionCommand)
@@ -268,13 +274,21 @@ namespace ACE.Server.Managers
                 incItemTinkered = false;
             }
 
+            player.IsBusy = true;
+
             var animLength = DoMotion(player, MotionCommand.ClapHands);
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(animLength);
-            actionChain.AddAction(player, () => DoTinkering(player, tool, target, recipe, (float)successChance, incItemTinkered));
-            actionChain.AddAction(player, () => DoMotion(player, MotionCommand.Ready));
+            actionChain.AddAction(player, () =>
+            {
+                DoTinkering(player, tool, target, recipe, (float)successChance, incItemTinkered);
+                DoMotion(player, MotionCommand.Ready);
+                player.IsBusy = false;
+            });
             actionChain.EnqueueChain();
+
+            player.NextUseTime = DateTime.UtcNow.AddSeconds(animLength);
         }
 
         public static void DoTinkering(Player player, WorldObject tool, WorldObject target, Recipe recipe, float chance, bool incItemTinkered)
@@ -586,8 +600,8 @@ namespace ACE.Server.Managers
             { ImbuedEffectType.ElectricRending, 0x06003354 },
             { ImbuedEffectType.AcidRending,     0x06003355 },
             { ImbuedEffectType.ArmorRending,    0x06003356 },
-            { ImbuedEffectType.CriticalStrike,  0x06003357 },
             { ImbuedEffectType.CripplingBlow,   0x06003357 },
+            { ImbuedEffectType.CriticalStrike,  0x06003358 },
             { ImbuedEffectType.FireRending,     0x06003359 },
             { ImbuedEffectType.BludgeonRending, 0x0600335a },
             { ImbuedEffectType.PierceRending,   0x0600335b },
@@ -926,6 +940,16 @@ namespace ACE.Server.Managers
             var destroyTarget = ThreadSafeRandom.Next(0.0f, 1.0f) <= destroyTargetChance;
             var destroySource = ThreadSafeRandom.Next(0.0f, 1.0f) <= destroySourceChance;
 
+            var createItem = success ? recipe.SuccessWCID : recipe.FailWCID;
+            var createAmount = success ? recipe.SuccessAmount : recipe.FailAmount;
+
+            if (createItem > 0 && DatabaseManager.World.GetWeenie(createItem) == null)
+            {
+                log.Error($"RecipeManager.CreateDestroyItems: Recipe.Id({recipe.Id}) couldn't find {(success ? "Success" : "Fail")}WCID {createItem} in database.");
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.CraftGeneralErrorUiMsg));
+                return;
+            }
+
             if (destroyTarget)
             {
                 var destroyTargetAmount = success ? recipe.SuccessDestroyTargetAmount : recipe.FailDestroyTargetAmount;
@@ -941,9 +965,6 @@ namespace ACE.Server.Managers
 
                 DestroyItem(player, recipe, source, destroySourceAmount, destroySourceMessage);
             }
-
-            var createItem = success ? recipe.SuccessWCID : recipe.FailWCID;
-            var createAmount = success ? recipe.SuccessAmount : recipe.FailAmount;
 
             WorldObject result = null;
 

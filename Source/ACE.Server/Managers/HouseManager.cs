@@ -611,10 +611,17 @@ namespace ACE.Server.Managers
             return houseData;
         }
 
+        // This function is called from a database callback.
+        // We must add thread safety to prevent AllegianceManager corruption
+        public static void HandlePlayerDelete(uint playerGuid)
+        {
+            WorldManager.EnqueueAction(new ActionEventDelegate(() => DoHandlePlayerDelete(playerGuid)));
+        }
+
         /// <summary>
         /// Called on character delete, evicts from house
         /// </summary>
-        public static void HandlePlayerDelete(uint playerGuid)
+        private static void DoHandlePlayerDelete(uint playerGuid)
         {
             var player = PlayerManager.FindByGuid(playerGuid);
             if (player == null)
@@ -710,7 +717,7 @@ namespace ACE.Server.Managers
                     callback(house);
             }
             else
-                log.Error($"HouseManager.GetHouse(${houseGuid:X8}): couldn't find house on loaded landblock");
+                log.Error($"HouseManager.GetHouse({houseGuid:X8}): couldn't find house on loaded landblock");
         }
 
         /// <summary>

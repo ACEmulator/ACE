@@ -327,6 +327,7 @@ namespace ACE.Server.Entity
         {
             float genRadius = (float)(Generator.GetProperty(PropertyFloat.GeneratorRadius) ?? 0f);
             obj.Location = new ACE.Entity.Position(Generator.Location);
+            obj.Location.PositionZ += 0.05f;
 
             // we are going to delay this scatter logic until the physics engine,
             // where the remnants of this function are in the client (SetScatterPositionInternal)
@@ -488,8 +489,8 @@ namespace ACE.Server.Entity
             if (eventType == RegenerationType.PickUp && whenCreate == RegenerationType.Undef)
                 adjWhenCreate = RegenerationType.PickUp;
 
-            if (eventType != adjEventType)
-                log.Warn($"0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: RegenerationType = {eventType.ToString()}, WhenCreate = {whenCreate.ToString()}, Using {adjEventType.ToString()} as RegenerationType instead");
+            //if (eventType != adjEventType)
+            //    log.Warn($"0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: RegenerationType = {eventType.ToString()}, WhenCreate = {whenCreate.ToString()}, Using {adjEventType.ToString()} as RegenerationType instead");
 
             if (whenCreate != adjWhenCreate)
                 log.Warn($"0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: RegenerationType = {eventType.ToString()}, WhenCreate = {whenCreate.ToString()}, Using {adjWhenCreate.ToString()} as WhenCreate instead");

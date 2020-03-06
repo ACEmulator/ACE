@@ -2,16 +2,17 @@ using System;
 using System.Collections.Generic;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+
+using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {
@@ -517,6 +518,8 @@ namespace ACE.Server.WorldObjects
 
             player.IsBusy = true;
 
+            var animTime = 0.0f;
+
             var actionChain = new ActionChain();
 
             // handle switching to peace mode
@@ -524,10 +527,12 @@ namespace ACE.Server.WorldObjects
             {
                 var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
                 actionChain.AddDelaySeconds(stanceTime);
+
+                animTime += stanceTime;
             }
 
             // perform clapping motion
-            player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
+            animTime += player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
 
             actionChain.AddAction(player, () =>
             {
@@ -545,6 +550,8 @@ namespace ACE.Server.WorldObjects
             player.EnqueueMotion(actionChain, MotionCommand.Ready);
 
             actionChain.EnqueueChain();
+
+            player.NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
         }
     }
 }

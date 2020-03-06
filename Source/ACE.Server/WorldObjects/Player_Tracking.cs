@@ -181,7 +181,7 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
         }
 
-        public void Cloak()
+        public void HandleCloak()
         {
             if (CloakStatus == CloakStatus.On)
                 return;

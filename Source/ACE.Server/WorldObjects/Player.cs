@@ -1,19 +1,17 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using log4net;
 
 using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Auth;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
@@ -25,6 +23,8 @@ using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects.Managers;
 
+using Biota = ACE.Database.Models.Shard.Biota;
+using Character = ACE.Database.Models.Shard.Character;
 using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
 
 namespace ACE.Server.WorldObjects
@@ -53,7 +53,10 @@ namespace ACE.Server.WorldObjects
 
         public SquelchManager SquelchManager;
 
-        public float CurrentRadarRange => Location.Indoors ? 25.0f : 75.0f;
+        public static readonly float MaxRadarRange_Indoors = 25.0f;
+        public static readonly float MaxRadarRange_Outdoors = 75.0f;
+
+        public float CurrentRadarRange => Location.Indoors ? MaxRadarRange_Indoors : MaxRadarRange_Outdoors;
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -158,6 +161,8 @@ namespace ACE.Server.WorldObjects
 
             RecordCast = new RecordCast(this);
 
+            AttackQueue = new AttackQueue(this);
+
             return; // todo
 
             // =======================================
@@ -199,24 +204,27 @@ namespace ACE.Server.WorldObjects
 
         public MotionStance stance = MotionStance.NonCombat;
 
-        public void ExamineObject(uint objectGuid)
+        /// <summary>
+        /// Called when player presses the 'e' key to appraise an object
+        /// </summary>
+        public void HandleActionIdentifyObject(uint objectGuid)
         {
-            // TODO: Throttle this request?. The live servers did this, likely for a very good reason, so we should, too.
-            //Console.WriteLine($"{Name}.ExamineObject({objectGuid:X8})");
+            //Console.WriteLine($"{Name}.HandleActionIdentifyObject({objectGuid:X8})");
 
             if (objectGuid == 0)
             {
                 // Deselect the formerly selected Target
-                // selectedTarget = ObjectGuid.Invalid;
+                //selectedTarget = ObjectGuid.Invalid;
                 RequestedAppraisalTarget = null;
                 CurrentAppraisalTarget = null;
                 return;
             }
 
             var wo = FindObject(objectGuid, SearchLocations.Everywhere, out _, out _, out _);
+
             if (wo == null)
             {
-                log.Debug($"{Name}.ExamineObject({objectGuid:X8}): couldn't find object");
+                log.Debug($"{Name}.HandleActionIdentifyObject({objectGuid:X8}): couldn't find object");
                 Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, objectGuid));
                 return;
             }
@@ -230,6 +238,7 @@ namespace ACE.Server.WorldObjects
                 {
                     // continued success, rng roll no longer needed
                     Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, wo, true));
+                    OnAppraisal(wo, true);
                     return;
                 }
 
@@ -237,6 +246,7 @@ namespace ACE.Server.WorldObjects
                 {
                     // rate limit for unsuccessful appraisal spam
                     Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, wo, false));
+                    OnAppraisal(wo, false);
                     return;
                 }
             }
@@ -286,11 +296,16 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, obj, success));
 
-            if (!success && player != null && !player.SquelchManager.Squelches.Contains(this, ChatMessageType.Appraisal))
+            OnAppraisal(obj, success);
+        }
+
+        public void OnAppraisal(WorldObject obj, bool success)
+        {
+            if (!success && obj is Player player && !player.SquelchManager.Squelches.Contains(this, ChatMessageType.Appraisal))
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} tried and failed to assess you!", ChatMessageType.Appraisal));
 
             // pooky logic - handle monsters attacking on appraisal
-            if (creature != null && creature.MonsterState == State.Idle)
+            if (obj is Creature creature && creature.MonsterState == State.Idle)
             {
                 if (creature.Tolerance.HasFlag(Tolerance.Appraise))
                 {
@@ -408,14 +423,9 @@ namespace ACE.Server.WorldObjects
 
                 PKLogout = true;
 
-                var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(20.0f);
-                actionChain.AddAction(this, () =>
-                {
-                    LogOut_Inner(clientSessionTerminatedAbruptly);
-                    Session.logOffRequestTime = DateTime.UtcNow;
-                });
-                actionChain.EnqueueChain();
+                LogoffTimestamp = Time.GetFutureUnixTime(PropertyManager.GetLong("pk_timer").Item);
+                PlayerManager.AddPlayerToLogoffQueue(this);
+
                 return false;
             }
 
@@ -468,6 +478,13 @@ namespace ACE.Server.WorldObjects
                 // remove the player from landblock management -- after the animation has run
                 logoutChain.AddAction(this, () =>
                 {
+                    if (CurrentLandblock == null)
+                    {
+                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner.logoutChain: CurrentLandblock is null, unable to remove from a landblock...");
+                        if (Location != null)
+                            log.Debug($"0x{Guid}:{Name}.LogOut_Inner.logoutChain: Location is not null, Location = {Location.ToLOCString()}");
+                    }
+
                     CurrentLandblock?.RemoveWorldObject(Guid, false);
                     SetPropertiesAtLogOut();
                     SavePlayerToDatabase();
@@ -487,6 +504,21 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
+                log.Debug($"0x{Guid}:{Name}.LogOut_Inner: CurrentLandblock is null");
+                if (Location != null)
+                {
+                    log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Location is not null, Location = {Location.ToLOCString()}");
+                    var validLoadedLandblock = LandblockManager.GetLandblock(Location.LandblockId, false);
+                    if (validLoadedLandblock.GetObject(Guid.Full) != null)
+                    {
+                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Player is still on landblock, removing...");
+                        validLoadedLandblock.RemoveWorldObject(Guid, false);
+                    }
+                    else
+                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Player is not found on the landblock Location references.");
+                }
+                else
+                    log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Location is null");
                 SetPropertiesAtLogOut();
                 SavePlayerToDatabase();
                 PlayerManager.SwitchPlayerFromOnlineToOffline(this);
@@ -781,6 +813,9 @@ namespace ACE.Server.WorldObjects
                 PhysicsObj.calc_acceleration();
                 PhysicsObj.set_on_walkable(false);
                 PhysicsObj.set_local_velocity(jump.Velocity, false);
+
+                if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
+                    FailCast();
             }
             else
             {
