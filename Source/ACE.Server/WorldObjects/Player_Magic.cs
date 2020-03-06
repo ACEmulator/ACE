@@ -81,8 +81,15 @@ namespace ACE.Server.WorldObjects
 
             if (CombatMode != CombatMode.Magic)
             {
-                SendUseDoneEvent();
-                return;
+                log.Error($"{Name}.HandleActionCastTargetedSpell({targetGuid:X8}, {spellId}, {builtInSpell}) - CombatMode mismatch {CombatMode}, LastCombatMode: {LastCombatMode}");
+
+                if (LastCombatMode == CombatMode.Magic)
+                    CombatMode = CombatMode.Magic;
+                else
+                {
+                    SendUseDoneEvent();
+                    return;
+                }
             }
 
             if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
@@ -245,8 +252,15 @@ namespace ACE.Server.WorldObjects
 
             if (CombatMode != CombatMode.Magic)
             {
-                SendUseDoneEvent();
-                return;
+                log.Error($"{Name}.HandleActionMagicCastUnTargetedSpell({spellId}) - CombatMode mismatch {CombatMode}, LastCombatMode {LastCombatMode}");
+
+                if (LastCombatMode == CombatMode.Magic)
+                    CombatMode = CombatMode.Magic;
+                else
+                {
+                    SendUseDoneEvent();
+                    return;
+                }
             }
 
             if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
