@@ -4152,6 +4152,11 @@ namespace ACE.Server.Physics
                 Console.WriteLine($"{(MotionCommand)motion.Motion}");
         }
 
+        public bool motions_pending()
+        {
+            return IsAnimating;
+        }
+
         /// <summary>
         /// This is for legacy movement system
         /// </summary>
