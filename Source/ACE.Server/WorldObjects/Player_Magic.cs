@@ -185,7 +185,10 @@ namespace ACE.Server.WorldObjects
             else
             {
                 // restart turn if required
-                TurnTo_Magic(target);
+                if (PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.TurnCommand == 0)
+                    TurnTo_Magic(target);
+                else
+                    MagicState.PendingTurnRelease = true;
             }
         }
 
@@ -642,7 +645,12 @@ namespace ACE.Server.WorldObjects
                         actionChain.EnqueueChain();
                     }
                     else
-                        TurnTo_Magic(target);
+                    {
+                        if (PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.TurnCommand == 0)
+                            TurnTo_Magic(target);
+                        else
+                            MagicState.PendingTurnRelease = true;
+                    }
 
                     return;
                 }
@@ -673,7 +681,8 @@ namespace ACE.Server.WorldObjects
 
             if (FastTick)
             {
-                var stopCompletely = !MagicState.CastMotionDone;
+                //var stopCompletely = !MagicState.CastMotionDone;
+                var stopCompletely = true;
 
                 CreateTurnToChain2(target, null, stopCompletely);
             }
@@ -716,7 +725,7 @@ namespace ACE.Server.WorldObjects
             bool movedTooFar = false;
 
             // only PKs affected by these caps?
-            if (dist > Windup_MaxMove && PlayerKillerStatus != PlayerKillerStatus.NPK)
+            if (dist > Windup_MaxMove && PlayerKillerStatus != PlayerKillerStatus.NPK && false)
             {
                 castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
                 movedTooFar = true;
@@ -1367,7 +1376,11 @@ namespace ACE.Server.WorldObjects
                     RecordCast.Log($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success}) - cast gesture done");
 
                 MagicState.CastMotionDone = true;
-                DoCastSpell(MagicState);
+
+                var actionChain = new ActionChain();
+                actionChain.AddDelayForOneTick();
+                actionChain.AddAction(this, () => DoCastSpell(MagicState));
+                actionChain.EnqueueChain();
             }
         }
 
@@ -1387,10 +1400,16 @@ namespace ACE.Server.WorldObjects
 
             MagicState.IsTurning = false;
 
-            if (!MagicState.CastMotionDone)
-                DoWindup(MagicState.WindupParams);
-            else
-                DoCastSpell(MagicState, status != WeenieError.None);
+            var actionChain = new ActionChain();
+            actionChain.AddDelayForOneTick();
+            actionChain.AddAction(this, () =>
+            {
+                if (!MagicState.CastMotionDone)
+                    DoWindup(MagicState.WindupParams);
+                else
+                    DoCastSpell(MagicState, status != WeenieError.None);
+            });
+            actionChain.EnqueueChain();
         }
 
         public void FailCast(bool tryFizzle = true)
@@ -1408,6 +1427,16 @@ namespace ACE.Server.WorldObjects
             SendUseDoneEvent(werror);
 
             MagicState.OnCastDone();
+        }
+
+        public void OnTurnRelease()
+        {
+            MagicState.PendingTurnRelease = false;
+
+            if (!MagicState.CastMotionDone)
+                DoWindup(MagicState.WindupParams);
+            else
+                DoCastSpell(MagicState, true);
         }
     }
 }

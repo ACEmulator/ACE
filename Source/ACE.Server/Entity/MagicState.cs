@@ -73,6 +73,12 @@ namespace ACE.Server.Entity
         public DateTime StartTime { get; set; }
 
         /// <summary>
+        /// If a player interrupts a TurnTo during casting,
+        /// the TurnTo resumes when the player is no longer holding any Turn keys
+        /// </summary>
+        public bool PendingTurnRelease { get; set; }
+
+        /// <summary>
         /// Tracks the cast # for /recordcast
         /// </summary>
         public int CastNum { get; set; }
@@ -109,6 +115,7 @@ namespace ACE.Server.Entity
             CastMotionDone = false;
             TurnStarted = false;
             IsTurning = false;
+            PendingTurnRelease = false;
 
             StartTime = DateTime.UtcNow;
             CastGestureStartTime = DateTime.MinValue;
@@ -136,6 +143,7 @@ namespace ACE.Server.Entity
             CastMotionDone = false;
             TurnStarted = false;
             IsTurning = false;
+            PendingTurnRelease = false;
 
             CastGesture = MotionCommand.Invalid;
             CastGestureStartTime = DateTime.MinValue;

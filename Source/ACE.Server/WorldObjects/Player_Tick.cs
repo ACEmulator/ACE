@@ -140,6 +140,9 @@ namespace ACE.Server.WorldObjects
                 OnMoveToState_ServerMethod(moveToState);
             else
                 OnMoveToState_ClientMethod(moveToState);
+
+            if (MagicState.IsCasting && MagicState.PendingTurnRelease && moveToState.RawMotionState.TurnCommand == 0)
+                OnTurnRelease();
         }
 
         public void OnMoveToState_ClientMethod(MoveToState moveToState)
