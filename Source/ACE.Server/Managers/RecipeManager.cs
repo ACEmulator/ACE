@@ -274,12 +274,18 @@ namespace ACE.Server.Managers
                 incItemTinkered = false;
             }
 
+            player.IsBusy = true;
+
             var animLength = DoMotion(player, MotionCommand.ClapHands);
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(animLength);
-            actionChain.AddAction(player, () => DoTinkering(player, tool, target, recipe, (float)successChance, incItemTinkered));
-            actionChain.AddAction(player, () => DoMotion(player, MotionCommand.Ready));
+            actionChain.AddAction(player, () =>
+            {
+                DoTinkering(player, tool, target, recipe, (float)successChance, incItemTinkered);
+                DoMotion(player, MotionCommand.Ready);
+                player.IsBusy = false;
+            });
             actionChain.EnqueueChain();
 
             player.NextUseTime = DateTime.UtcNow.AddSeconds(animLength);
@@ -594,8 +600,8 @@ namespace ACE.Server.Managers
             { ImbuedEffectType.ElectricRending, 0x06003354 },
             { ImbuedEffectType.AcidRending,     0x06003355 },
             { ImbuedEffectType.ArmorRending,    0x06003356 },
-            { ImbuedEffectType.CriticalStrike,  0x06003357 },
             { ImbuedEffectType.CripplingBlow,   0x06003357 },
+            { ImbuedEffectType.CriticalStrike,  0x06003358 },
             { ImbuedEffectType.FireRending,     0x06003359 },
             { ImbuedEffectType.BludgeonRending, 0x0600335a },
             { ImbuedEffectType.PierceRending,   0x0600335b },
