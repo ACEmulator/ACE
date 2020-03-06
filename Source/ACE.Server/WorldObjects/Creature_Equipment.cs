@@ -338,6 +338,18 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcast(new GameMessageObjDescEvent(this));
 
+            // If item has any spells, remove them from the registry on unequip
+            if (worldObject.Biota.PropertiesSpellBook != null)
+            {
+                foreach (var spell in worldObject.Biota.PropertiesSpellBook)
+                {
+                    if (worldObject.HasProcSpell((uint)spell.Key))
+                        continue;
+
+                    RemoveItemSpell(worldObject, (uint)spell.Key, true);
+                }
+            }
+
             if (!droppingToLandscape)
             {
                 // This should only be called if the object is going to the private storage, not when dropped on the landscape

@@ -35,7 +35,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Approved vassals for adding to locked allegiances
         /// </summary>
-        /// // TODO now that the new biota model uses a dictionary for this, see if we can remove this duplicate dictionary
+        // TODO now that the new biota model uses a dictionary for this, see if we can remove this duplicate dictionary
         public Dictionary<uint, PropertiesAllegiance> ApprovedVassals => Biota.PropertiesAllegiance.GetApprovedVassals(BiotaDatabaseLock);
 
         /// <summary>

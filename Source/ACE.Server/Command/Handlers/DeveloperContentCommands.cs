@@ -2041,11 +2041,11 @@ namespace ACE.Server.Command.Handlers.Processors
         [Flags]
         public enum CacheType
         {
-            None = 0x0,
+            None      = 0x0,
             Landblock = 0x1,
-            Spell = 0x2,
-            Weenie = 0x4,
-            All = 0xFFFF
+            Spell     = 0x2,
+            Weenie    = 0x4,
+            All       = 0xFFFF
         };
 
         public static FileType GetFileType(string filename)

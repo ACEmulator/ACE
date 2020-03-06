@@ -81,14 +81,11 @@ namespace ACE.Server.WorldObjects
 
             AddBaseModelData(objDesc);
 
-            foreach (var animPart in Biota.PropertiesAnimPart.Clone(BiotaDatabaseLock))
-                objDesc.AnimPartChanges.Add(animPart);
+            Biota.PropertiesAnimPart.CopyTo(objDesc.AnimPartChanges, BiotaDatabaseLock);
 
-            foreach (var subPalette in Biota.PropertiesPalette.Clone(BiotaDatabaseLock))
-                objDesc.SubPalettes.Add(subPalette);
+            Biota.PropertiesPalette.CopyTo(objDesc.SubPalettes, BiotaDatabaseLock);
 
-            foreach (var textureChange in Biota.PropertiesTextureMap.Clone(BiotaDatabaseLock))
-                objDesc.TextureChanges.Add(textureChange);
+            Biota.PropertiesTextureMap.CopyTo(objDesc.TextureChanges, BiotaDatabaseLock);
 
             return objDesc;
         }
