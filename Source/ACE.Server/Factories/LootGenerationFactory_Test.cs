@@ -14,7 +14,7 @@ using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.Factories
 {
-      public static class LootGenerationFactory_Test
+    public static class LootGenerationFactory_Test
     {
         public static string TestLootGen(int numItems, int tier, bool logstats, string displaytable)
         {
@@ -22,7 +22,7 @@ namespace ACE.Server.Factories
 
             Console.WriteLine($"Creating {numItems} items, that are in tier {tier}");
 
-             var ls = SetLootStatsDefaults(new LootStats(), logstats);
+            var ls = SetLootStatsDefaults(new LootStats(), logstats);
 
             // Create a dummy treasure profile for passing in tier value
             TreasureDeath profile = new TreasureDeath
@@ -56,11 +56,11 @@ namespace ACE.Server.Factories
             var ls = SetLootStatsDefaults(new LootStats(), logstats);
 
             Console.WriteLine($"Creating {numberofcorpses} corpses.");
-            
-                var deathTreasure = DatabaseManager.World.GetCachedDeathTreasure(wcid);
+
+            var deathTreasure = DatabaseManager.World.GetCachedDeathTreasure(wcid);
             if (deathTreasure != null)
             {
-               displayHeader += $" Loot profile {deathTreasure.Id} (a Tier {deathTreasure.Tier} profile) from DID {wcid} was used for creating {numberofcorpses} corpses. \n";
+                displayHeader += $" Loot profile {deathTreasure.Id} (a Tier {deathTreasure.Tier} profile) from DID {wcid} was used for creating {numberofcorpses} corpses. \n";
             }
             else
             {
@@ -98,7 +98,7 @@ namespace ACE.Server.Factories
             return displayHeader;
         }
         public static LootStats LootStats(WorldObject wo, LootStats ls, bool logstats)
-        {          
+        {
             // Weapon Properties 
             double missileDefMod = 0.00f;
             double magicDefMod = 0.00f;
@@ -123,7 +123,7 @@ namespace ACE.Server.Factories
 
                     continue;
                 }
-   
+
                 switch (testItem.ItemType)
                 {
                     case ItemType.None:
@@ -143,10 +143,10 @@ namespace ACE.Server.Factories
                         {
                             if (logstats == true)
                             {
-                                ls.MeleeWeapons += $"{testItem.WeaponSkill},{wield},{testItem.Damage.Value},{strikeType},{testItem.DamageVariance.Value},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{value},{testItem.Name}\n";
+                                ls.MeleeWeapons += $"{testItem.WeaponSkill},{wield},{testItem.Damage.Value},{strikeType},{testItem.DamageVariance.Value},{Math.Round(testItem.WeaponDefense.Value)},{magicDefMod},{missileDefMod},{value},{testItem.Name}\n";
                             }
                             else
-                                ls.MeleeWeapons += $" {testItem.WeaponSkill}\t {wield}\t {testItem.Damage.Value}\t\t {strikeType} \t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.Name}\n";
+                                ls.MeleeWeapons += $" {testItem.WeaponSkill}\t {wield}\t {testItem.Damage.Value}\t\t {strikeType} \t\t {testItem.DamageVariance.Value}\t\t {Math.Round(testItem.WeaponDefense.Value)}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.Name}\n";
                         }
                         else
                         {
@@ -162,15 +162,15 @@ namespace ACE.Server.Factories
                             }
                             if (logstats == true)
                             {
-                                ls.MeleeWeapons += $"{testItem.WeaponSkill},{wield},{testItem.Damage.Value},{strikeType},{testItem.DamageVariance.Value},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{value},{testItem.Name}\n";
+                                ls.MeleeWeapons += $"{testItem.WeaponSkill},{wield},{testItem.Damage.Value},{strikeType},{testItem.DamageVariance.Value},{Math.Round(testItem.WeaponDefense.Value)},{magicDefMod},{missileDefMod},{value},{testItem.Name}\n";
                             }
                             else
-                                ls.MeleeWeapons += $" {testItem.WeaponSkill}\t\t {wield}\t {testItem.Damage.Value}\t\t {strikeType}\t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.Name}\n";
+                                ls.MeleeWeapons += $" {testItem.WeaponSkill}\t\t {wield}\t {testItem.Damage.Value}\t\t {strikeType}\t\t {testItem.DamageVariance.Value}\t\t {Math.Round(testItem.WeaponDefense.Value)}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.Name}\n";
                         }
                         break;
                     case ItemType.Armor:
                         ls.ArmorCount++;
-                        string equipmentSet = "None";
+                        string equipmentSet = "None    ";
                         if (testItem.EquipmentSetId != null)
                             equipmentSet = Enum.GetName(typeof(EquipmentSet), testItem.EquipmentSetId);
                         if (logstats == true)
@@ -178,7 +178,7 @@ namespace ACE.Server.Factories
                             ls.Armor += $"{testItem.ArmorLevel},{equipmentSet},{testItem.Value.Value},{testItem.Name}\n";
                         }
                         else
-                            ls.Armor += $" {testItem.ArmorLevel}\t {equipmentSet}\t\t {testItem.Value.Value} \t {testItem.Name}\n";
+                            ls.Armor += $" {testItem.ArmorLevel}\t {equipmentSet}\t\t\t {testItem.Value.Value} \t {testItem.Name}\n";
                         if (testItem.Name.Contains("Sheild"))
                             break;
                         if (testItem.ArmorLevel > ls.MaxAL)
@@ -196,6 +196,8 @@ namespace ACE.Server.Factories
                         ls.ClothingCount++;
                         break;
                     case ItemType.Jewelry:
+                        // if (testItem.ItemType.)
+
                         ls.JewelryCount++;
                         break;
                     case ItemType.Creature:
@@ -203,7 +205,7 @@ namespace ACE.Server.Factories
                     case ItemType.Food:
                         ls.Food++;
                         break;
-                    case ItemType.Money:                        
+                    case ItemType.Money:
                         break;
                     case ItemType.Misc:
 
@@ -249,10 +251,8 @@ namespace ACE.Server.Factories
                                 petLevel = 100;
                             else if (petDevice.UseRequiresSkillLevel == 370)
                                 petLevel = 80;
-                            else if (petDevice.UseRequiresSkillLevel == 310 || petDevice.UseRequiresSkillLevel == 320)
+                            else if (petDevice.UseRequiresSkillLevel == 310)
                                 petLevel = 50;
-                            if (petLevel == 0)
-                                Console.WriteLine("Skill= " + petDevice.UseRequiresSkillLevel);
 
                             if (petDevice.GearDamage != null)
                             {
@@ -312,7 +312,7 @@ namespace ACE.Server.Factories
                             else if (totalRatings > 9)
                                 ls.PetRatingsOverTen++;
                             else if (totalRatings > 0)
-                                ls.PetRatingsEqualOne++;                           
+                                ls.PetRatingsEqualOne++;
                             else if (totalRatings < 1)
                                 ls.PetRatingsEqualZero++;
                         }
@@ -339,15 +339,15 @@ namespace ACE.Server.Factories
                                 case ACE.Entity.Enum.AmmoType.None:
                                     break;
                                 case ACE.Entity.Enum.AmmoType.Arrow:
-                                    missileType = " Bow";
+                                    missileType = "Bow";
                                     ls.MissileWeaponCount++;
                                     break;
                                 case ACE.Entity.Enum.AmmoType.Bolt:
-                                    missileType = " X Bow";
+                                    missileType = "X Bow";
                                     ls.MissileWeaponCount++;
                                     break;
                                 case ACE.Entity.Enum.AmmoType.Atlatl:
-                                    missileType = " Thrown";
+                                    missileType = "Thrown";
                                     ls.MissileWeaponCount++;
                                     break;
                                 case ACE.Entity.Enum.AmmoType.ArrowCrystal:
@@ -387,17 +387,17 @@ namespace ACE.Server.Factories
                         {
                             if (logstats == true)
                             {
-                                ls.MissileWeapons += $"{missileType},{wield},{Math.Round(damageMod, 2)},{eleBonus},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{value}\n";
+                                ls.MissileWeapons += $"{missileType},{wield},{Math.Round(damageMod, 2)},{eleBonus},{Math.Round(testItem.WeaponDefense.Value)},{magicDefMod},{missileDefMod},{value}\n";
                             }
                             else
-                                ls.MissileWeapons += $" {missileType}\t {wield}\t {Math.Round(damageMod, 2)}\t\t{eleBonus}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\n";
+                                ls.MissileWeapons += $"{missileType}\t {wield}\t {Math.Round(damageMod, 2)}\t\t{eleBonus}\t\t {Math.Round(testItem.WeaponDefense.Value)}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\n";
                         }
-                        
+
                         break;
                     case ItemType.Container:
                         break;
                     case ItemType.Useless:
-                        Console.WriteLine($"ItemType.Useless Name={testItem.Name}");
+                        // Console.WriteLine($"ItemType.Useless Name={testItem.Name}");
                         break;
                     case ItemType.Gem:
                         string aetheriaColor = "None";
@@ -425,7 +425,7 @@ namespace ACE.Server.Factories
                         break;
                     case ItemType.Writable:
                         string scrolls = "Scroll";
-                        
+
                         if (testItem.Name.Contains(scrolls))
                             ls.Scrolls++;
                         else
@@ -451,10 +451,10 @@ namespace ACE.Server.Factories
                             ls.ItemMaxMana = testItem.ItemMaxMana.Value;
                         if (logstats == true)
                         {
-                            ls.CasterWeapons += $"{wield},{eleMod},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{value},{ls.ItemMaxMana}\n";
+                            ls.CasterWeapons += $"{wield},{eleMod},{Math.Round(testItem.WeaponDefense.Value, 2)},{magicDefMod},{missileDefMod},{value},{ls.ItemMaxMana}\n";
                         }
                         else
-                            ls.CasterWeapons += $" {wield}\t {eleMod}\t\t {testItem.WeaponDefense.Value}\t\t  {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {ls.ItemMaxMana}\n";
+                            ls.CasterWeapons += $" {wield}\t {eleMod}\t\t {Math.Round(testItem.WeaponDefense.Value, 2)}\t\t  {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {ls.ItemMaxMana}\n";
                         break;
                     case ItemType.Portal:
                         break;
@@ -521,19 +521,19 @@ namespace ACE.Server.Factories
                 }
                 switch (itemType)
                 {
-                    case "Armor":                        
+                    case "Armor":
                         break;
-                    case "MeleeWeapon":                      
+                    case "MeleeWeapon":
                         break;
-                    case "Caster":                        
+                    case "Caster":
                         break;
-                    case "MissileWeapon":                     
+                    case "MissileWeapon":
                         break;
                     case "Jewelry":
                         break;
                     case "Gem":
                         break;
-                    case "Clothing":                       
+                    case "Clothing":
                         break;
                     default:
 
@@ -664,7 +664,7 @@ namespace ACE.Server.Factories
                                 $"  20-29 = {ls.PetRatingsOverTwenty} \n" +
                                 $"  10-19 = {ls.PetRatingsOverTen} \n" +
                                 $"    1-9 = {ls.PetRatingsEqualOne} \n" +
-                                $"      0 = {ls.PetRatingsEqualZero} \n" +                                
+                                $"      0 = {ls.PetRatingsEqualZero} \n" +
                                 $" Total Pets Generated = {ls.PetsCount} \n");
 
             if (ls.HasManaCount == 0)
@@ -755,7 +755,7 @@ namespace ACE.Server.Factories
                 ls.Armor = $"-----Armor----\nAL,EquipmentSet,Value,Type\n";
             }
             else
-                ls.Armor = $"-----Armor----\n AL \t Equipment Set \t\t Value \t Type\n";
+                ls.Armor = $"-----Armor----\n AL \t Equipment Set \t\t\t Value \t Type\n";
             if (logstats == true)
             {
                 ls.Pets = $"-----Pet Devices----\nLevel,Dmg,DmgR,Crit,CritD,CDR,CritR,Total\n";
@@ -773,7 +773,7 @@ namespace ACE.Server.Factories
         public static string LogStats()
         {
             string test = "";
-                return test;
+            return test;
         }
     }
 }
