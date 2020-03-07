@@ -88,6 +88,7 @@ namespace ACE.Server.Factories
                 wo.ItemCurMana = null;
                 wo.ItemSpellcraft = null;
                 wo.ItemDifficulty = null;
+                wo.ItemSkillLevelLimit = null;
                 wo.ManaRate = null;
 
             }
@@ -100,12 +101,8 @@ namespace ACE.Server.Factories
         {
 
             // 31% chance ring, 31% chance bracelet, 30% chance necklace 8% chance Trinket
-            int ringPercent = 31;
-            int braceletPercent = 31;
-            int necklacePercent = 30;
-            int trinketPercent = 8;
 
-            int jewelrySlot = ThreadSafeRandom.Next(0, ringPercent + braceletPercent + necklacePercent + trinketPercent);
+            int jewelrySlot = ThreadSafeRandom.Next(1, 100);
             int jewelType;
 
             // Made this easier to read (switch -> if statement)
@@ -124,7 +121,7 @@ namespace ACE.Server.Factories
                 return null;
 
             wo.AppraisalLongDescDecoration = 1;
-            wo.LongDesc = wo.GetProperty(PropertyString.Name);
+            wo.LongDesc = wo.Name;
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
