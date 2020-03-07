@@ -81,8 +81,15 @@ namespace ACE.Server.WorldObjects
 
             if (CombatMode != CombatMode.Magic)
             {
-                SendUseDoneEvent();
-                return;
+                log.Error($"{Name}.HandleActionCastTargetedSpell({targetGuid:X8}, {spellId}, {builtInSpell}) - CombatMode mismatch {CombatMode}, LastCombatMode: {LastCombatMode}");
+
+                if (LastCombatMode == CombatMode.Magic)
+                    CombatMode = CombatMode.Magic;
+                else
+                {
+                    SendUseDoneEvent();
+                    return;
+                }
             }
 
             if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
@@ -185,7 +192,10 @@ namespace ACE.Server.WorldObjects
             else
             {
                 // restart turn if required
-                TurnTo_Magic(target);
+                if (PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.TurnCommand == 0)
+                    TurnTo_Magic(target);
+                else
+                    MagicState.PendingTurnRelease = true;
             }
         }
 
@@ -245,8 +255,15 @@ namespace ACE.Server.WorldObjects
 
             if (CombatMode != CombatMode.Magic)
             {
-                SendUseDoneEvent();
-                return;
+                log.Error($"{Name}.HandleActionMagicCastUnTargetedSpell({spellId}) - CombatMode mismatch {CombatMode}, LastCombatMode {LastCombatMode}");
+
+                if (LastCombatMode == CombatMode.Magic)
+                    CombatMode = CombatMode.Magic;
+                else
+                {
+                    SendUseDoneEvent();
+                    return;
+                }
             }
 
             if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
@@ -642,7 +659,12 @@ namespace ACE.Server.WorldObjects
                         actionChain.EnqueueChain();
                     }
                     else
-                        TurnTo_Magic(target);
+                    {
+                        if (PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.TurnCommand == 0)
+                            TurnTo_Magic(target);
+                        else
+                            MagicState.PendingTurnRelease = true;
+                    }
 
                     return;
                 }
@@ -664,16 +686,20 @@ namespace ACE.Server.WorldObjects
             DoCastSpell_Inner(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus);
         }
 
+        public WorldObject TurnTarget;
+
         public void TurnTo_Magic(WorldObject target)
         {
             //Console.WriteLine($"{Name}.TurnTo_Magic()");
+            TurnTarget = target;
 
             MagicState.TurnStarted = true;
             MagicState.IsTurning = true;
 
             if (FastTick)
             {
-                var stopCompletely = !MagicState.CastMotionDone;
+                //var stopCompletely = !MagicState.CastMotionDone;
+                var stopCompletely = true;
 
                 CreateTurnToChain2(target, null, stopCompletely);
             }
@@ -1367,7 +1393,11 @@ namespace ACE.Server.WorldObjects
                     RecordCast.Log($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success}) - cast gesture done");
 
                 MagicState.CastMotionDone = true;
-                DoCastSpell(MagicState);
+
+                var actionChain = new ActionChain();
+                actionChain.AddDelayForOneTick();
+                actionChain.AddAction(this, () => DoCastSpell(MagicState));
+                actionChain.EnqueueChain();
             }
         }
 
@@ -1387,10 +1417,16 @@ namespace ACE.Server.WorldObjects
 
             MagicState.IsTurning = false;
 
-            if (!MagicState.CastMotionDone)
-                DoWindup(MagicState.WindupParams);
-            else
-                DoCastSpell(MagicState, status != WeenieError.None);
+            var actionChain = new ActionChain();
+            actionChain.AddDelayForOneTick();
+            actionChain.AddAction(this, () =>
+            {
+                if (!MagicState.CastMotionDone)
+                    DoWindup(MagicState.WindupParams);
+                else
+                    DoCastSpell(MagicState, status != WeenieError.None);
+            });
+            actionChain.EnqueueChain();
         }
 
         public void FailCast(bool tryFizzle = true)
@@ -1408,6 +1444,27 @@ namespace ACE.Server.WorldObjects
             SendUseDoneEvent(werror);
 
             MagicState.OnCastDone();
+        }
+
+        public void OnTurnRelease()
+        {
+            MagicState.PendingTurnRelease = false;
+
+            if (!MagicState.CastMotionDone)
+                DoWindup(MagicState.WindupParams);
+            else
+                DoCastSpell(MagicState, true);
+        }
+
+        public void CheckTurn()
+        {
+            if (TurnTarget != null && IsWithinAngle(TurnTarget))
+            {
+                if (MagicState.PendingTurnRelease)
+                    OnTurnRelease();
+                else
+                    PhysicsObj.StopCompletely(false);
+            }
         }
     }
 }
