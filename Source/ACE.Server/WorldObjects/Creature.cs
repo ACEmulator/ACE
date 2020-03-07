@@ -1,9 +1,9 @@
 using System;
 using log4net;
 
+using ACE.Common;
 using ACE.DatLoader.FileTypes;
 using ACE.DatLoader;
-using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -14,8 +14,6 @@ using ACE.Server.WorldObjects.Entity;
 
 using Biota = ACE.Database.Models.Shard.Biota;
 using Position = ACE.Entity.Position;
-using ACE.Common;
-using System.Linq;
 
 namespace ACE.Server.WorldObjects
 {
