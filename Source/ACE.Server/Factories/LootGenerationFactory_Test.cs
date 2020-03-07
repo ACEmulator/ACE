@@ -196,9 +196,19 @@ namespace ACE.Server.Factories
                         ls.ClothingCount++;
                         break;
                     case ItemType.Jewelry:
-                        // if (testItem.ItemType.)
-
                         ls.JewelryCount++;
+                        if (testItem.Name.Contains("Necklace") || testItem.Name.Contains("Gorget") || testItem.Name.Contains("Amulet"))
+                            ls.JewelryNecklaceCount++;
+                        else if (testItem.Name.Contains("Bracelet"))
+                            ls.JewelryBraceletCount++;
+                        else if (testItem.Name.Contains("Ring"))
+                            ls.JewelryRingCount++;
+                        else if (testItem.Name.Contains("Trinket"))
+                            ls.JewelryTrinketCount++;
+                        else
+                        {
+                            // Console.WriteLine(testItem.Name);                            
+                        }
                         break;
                     case ItemType.Creature:
                         break;
@@ -324,7 +334,7 @@ namespace ACE.Server.Factories
                             ls.HealingKit++;
                         else
                         {
-                            Console.WriteLine($"ItemType.Misc Name={testItem.Name}");
+                            // Console.WriteLine($"ItemType.Misc Name={testItem.Name}");
                             ls.Misc++;
                         }
                         break;
@@ -666,7 +676,12 @@ namespace ACE.Server.Factories
                                 $"    1-9 = {ls.PetRatingsEqualOne} \n" +
                                 $"      0 = {ls.PetRatingsEqualZero} \n" +
                                 $" Total Pets Generated = {ls.PetsCount} \n");
-
+            // Jewelry
+            displayStats += ($"\n Jewelry Counts Stats \n ----\n " +
+                                $"Necklace = {ls.JewelryNecklaceCount}\t Droprate = {ls.JewelryNecklaceCount / ls.JewelryCount * 100}%\n" +
+                                $" Bracelet = {ls.JewelryBraceletCount}\t Droprate = {ls.JewelryBraceletCount / ls.JewelryCount * 100}%\n" +
+                                $"     Ring = {ls.JewelryRingCount}\t Droprate = {ls.JewelryRingCount / ls.JewelryCount * 100}%\n" +
+                                $"  Trinket = {ls.JewelryTrinketCount}\t Droprate = {ls.JewelryTrinketCount / ls.JewelryCount * 100}%\n");
             if (ls.HasManaCount == 0)
             {
             }
@@ -690,6 +705,10 @@ namespace ACE.Server.Factories
             ls.CasterCount = 0;
             ls.MissileWeaponCount = 0;
             ls.JewelryCount = 0;
+            ls.JewelryNecklaceCount = 0;
+            ls.JewelryBraceletCount = 0;
+            ls.JewelryRingCount = 0;
+            ls.JewelryTrinketCount = 0;
             ls.GemCount = 0;
             ls.AetheriaCount = 0;
             ls.ClothingCount = 0;
