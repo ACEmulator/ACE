@@ -1396,7 +1396,12 @@ namespace ACE.Server.WorldObjects
 
                 var actionChain = new ActionChain();
                 actionChain.AddDelayForOneTick();
-                actionChain.AddAction(this, () => DoCastSpell(MagicState));
+                actionChain.AddAction(this, () =>
+                {
+                    if (!MagicState.IsCasting) return;
+
+                    DoCastSpell(MagicState);
+                });
                 actionChain.EnqueueChain();
             }
         }
@@ -1421,6 +1426,8 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelayForOneTick();
             actionChain.AddAction(this, () =>
             {
+                if (!MagicState.IsCasting) return;
+
                 if (!MagicState.CastMotionDone)
                     DoWindup(MagicState.WindupParams);
                 else
