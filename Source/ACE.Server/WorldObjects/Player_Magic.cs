@@ -104,6 +104,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsBusy && MagicState.CanQueue)
+            {
+                MagicState.CastQueue = new CastQueue(CastQueueType.Targeted, targetGuid, spellId, builtInSpell);
+                MagicState.CanQueue = false;
+                return;
+            }
+
             if (!VerifyBusy())
                 return;
 
@@ -275,6 +282,13 @@ namespace ACE.Server.WorldObjects
             if (PKLogout)
             {
                 SendUseDoneEvent(WeenieError.YouHaveBeenInPKBattleTooRecently);
+                return;
+            }
+
+            if (IsBusy && MagicState.CanQueue)
+            {
+                MagicState.CastQueue = new CastQueue(CastQueueType.Untargeted, 0, spellId, false);
+                MagicState.CanQueue = false;
                 return;
             }
 
@@ -829,10 +843,12 @@ namespace ACE.Server.WorldObjects
 
             MagicState.OnCastDone();
 
-            //var queue = PropertyManager.GetBool("spellcast_recoil_queue").Item;
-
-            //if (!queue)
             IsBusy = true;
+
+            var queue = PropertyManager.GetBool("spellcast_recoil_queue").Item;
+
+            if (queue)
+                MagicState.CanQueue = true;
 
             if (FastTick)
             {
@@ -843,10 +859,11 @@ namespace ACE.Server.WorldObjects
                 EnqueueMotion(actionChain, MotionCommand.Ready, 1.0f, true, castGesture, false, fastbuff);
                 actionChain.AddAction(this, () =>
                 {
-                    //if (!queue)
                     IsBusy = false;
-
                     SendUseDoneEvent(useDone);
+
+                    if (queue)
+                        HandleCastQueue();
 
                     //Console.WriteLine("====================================");
                 });
@@ -863,8 +880,12 @@ namespace ACE.Server.WorldObjects
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(1.0f);   // TODO: get actual recoil timing
                 actionChain.AddAction(this, () => {
+
                     IsBusy = false;
-                    SendUseDoneEvent();
+                    SendUseDoneEvent(useDone);
+
+                    if (queue)
+                        HandleCastQueue();
                 });
                 actionChain.EnqueueChain();
             }
@@ -1464,6 +1485,19 @@ namespace ACE.Server.WorldObjects
                     OnTurnRelease();
                 else
                     PhysicsObj.StopCompletely(false);
+            }
+        }
+
+        public void HandleCastQueue()
+        {
+            MagicState.CanQueue = false;
+
+            if (MagicState.CastQueue != null)
+            {
+                if (MagicState.CastQueue.Type == CastQueueType.Targeted)
+                    HandleActionCastTargetedSpell(MagicState.CastQueue.TargetGuid, MagicState.CastQueue.SpellId, MagicState.CastQueue.BuiltInSpell);
+                else
+                    HandleActionMagicCastUnTargetedSpell(MagicState.CastQueue.SpellId);
             }
         }
     }
