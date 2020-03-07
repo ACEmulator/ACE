@@ -203,7 +203,7 @@ namespace ACE.Server.Factories
                             ls.JewelryBraceletCount++;
                         else if (testItem.Name.Contains("Ring"))
                             ls.JewelryRingCount++;
-                        else if (testItem.Name.Contains("Trinket"))
+                        else if (testItem.Name.Contains("Compass") || testItem.Name.Contains("Goggles") || testItem.Name.Contains("Mechanical Scarab") || testItem.Name.Contains("Puzzle Box") || testItem.Name.Contains("Pocket Watch") || testItem.Name.Contains("Top"))
                             ls.JewelryTrinketCount++;
                         else
                         {
