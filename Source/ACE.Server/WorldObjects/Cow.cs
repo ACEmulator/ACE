@@ -33,8 +33,11 @@ namespace ACE.Server.WorldObjects
 
         public override void ActOnUse(WorldObject activator)
         {
-            if (activator is Player player)
-                TipCow(player);
+            // Cow class handled Cow Tipping action prior to Come What Follows patch.
+            // in patch Come What Follows, cow class was either depreciated to be nothing, or updated to blanket proccess cow tipping quest addition to tipping action.
+
+            //if (activator is Player player)
+            //    TipCow(player);
         }
 
         private static readonly List<MotionCommand> motionTippedRight = new List<MotionCommand> { MotionCommand.TippedRight };
