@@ -122,7 +122,7 @@ namespace ACE.Server.WorldObjects
 
             if (!Gender.HasValue)
             {
-                if (!string.IsNullOrEmpty(Sex) && Enum.TryParse(typeof(Gender), Sex, true, out var gender))
+                if (!string.IsNullOrEmpty(Sex) && Enum.TryParse(Sex, true, out Gender gender))
                     Gender = (int)gender;
             }
 
@@ -135,7 +135,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!(cg.HeritageGroups.TryGetValue((uint)Heritage, out var x) && x.Genders.TryGetValue((int)Gender, out var sex)))
+            if (!cg.HeritageGroups.TryGetValue((uint)Heritage, out var heritageGroup) || !heritageGroup.Genders.TryGetValue((int)Gender, out var sex))
             {
 #if DEBUG
                 log.Debug($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data invalid, Cannot randomize face.");
