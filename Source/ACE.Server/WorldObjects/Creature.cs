@@ -116,14 +116,14 @@ namespace ACE.Server.WorldObjects
 
             if (!Heritage.HasValue)
             {
-                if (!string.IsNullOrEmpty(HeritageGroupName) && Enum.TryParse(typeof(HeritageGroup), HeritageGroupName.Replace("'", ""), true, out var heritage))
+                if (!string.IsNullOrEmpty(HeritageGroupName) && Enum.TryParse(HeritageGroupName.Replace("'", ""), true, out HeritageGroup heritage))
                     Heritage = (int)heritage;
             }
 
             if (!Gender.HasValue)
             {
-                if (!string.IsNullOrEmpty(Sex) && Enum.TryParse(typeof(Gender), Sex, true, out var heritage))
-                    Gender = (int)heritage;
+                if (!string.IsNullOrEmpty(Sex) && Enum.TryParse(typeof(Gender), Sex, true, out var gender))
+                    Gender = (int)gender;
             }
 
             if (!Heritage.HasValue || !Gender.HasValue)
