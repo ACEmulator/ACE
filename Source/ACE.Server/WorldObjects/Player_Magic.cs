@@ -698,8 +698,8 @@ namespace ACE.Server.WorldObjects
 
             if (FastTick)
             {
-                //var stopCompletely = !MagicState.CastMotionDone;
-                var stopCompletely = true;
+                var stopCompletely = !MagicState.CastMotionDone;
+                //var stopCompletely = true;
 
                 CreateTurnToChain2(target, null, stopCompletely);
             }
