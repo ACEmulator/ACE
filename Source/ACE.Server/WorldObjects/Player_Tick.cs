@@ -284,6 +284,7 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.update_object();
 
             // sync ace position?
+            Location.Rotation = PhysicsObj.Position.Frame.Orientation;
 
             // this fixes some differences between client movement (DoMotion/StopMotion) and server movement (apply_raw_movement)
             //

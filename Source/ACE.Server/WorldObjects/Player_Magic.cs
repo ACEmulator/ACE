@@ -177,7 +177,7 @@ namespace ACE.Server.WorldObjects
                 TurnTo_Magic(target);
         }
 
-        public void DoWindup(WindupParams windupParams)
+        public void DoWindup(WindupParams windupParams, bool checkAngle)
         {
             //Console.WriteLine($"{Name}.DoWindup()");
 
@@ -191,7 +191,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsWithinAngle(target))
+            if (!checkAngle || IsWithinAngle(target))
             {
                 if (!CreatePlayerSpell(target, targetCategory, windupParams.SpellId, windupParams.BuiltInSpell))
                     MagicState.OnCastDone();
@@ -631,10 +631,10 @@ namespace ACE.Server.WorldObjects
                         log.Error($"{Name}.IsWithinAngle({target.Name} ({target.Guid})) - couldn't find rootOwner");
 
                     else if (rootOwner != this)
-                        angle = FastTick ? Math.Abs(GetAngle_Physics2(rootOwner)) : GetAngle(rootOwner.Location);
+                        angle = GetAngle(rootOwner);
                 }
                 else
-                    angle = FastTick ? Math.Abs(GetAngle_Physics2(target)) : GetAngle(target.Location);
+                    angle = GetAngle(target);
             }
 
             //Console.WriteLine($"Angle: " + angle);
@@ -1443,6 +1443,8 @@ namespace ACE.Server.WorldObjects
 
             MagicState.IsTurning = false;
 
+            var checkAngle = status != WeenieError.None;
+
             var actionChain = new ActionChain();
             actionChain.AddDelayForOneTick();
             actionChain.AddAction(this, () =>
@@ -1450,9 +1452,9 @@ namespace ACE.Server.WorldObjects
                 if (!MagicState.IsCasting) return;
 
                 if (!MagicState.CastMotionDone)
-                    DoWindup(MagicState.WindupParams);
+                    DoWindup(MagicState.WindupParams, checkAngle);
                 else
-                    DoCastSpell(MagicState, status != WeenieError.None);
+                    DoCastSpell(MagicState, checkAngle);
             });
             actionChain.EnqueueChain();
         }
@@ -1479,7 +1481,7 @@ namespace ACE.Server.WorldObjects
             MagicState.PendingTurnRelease = false;
 
             if (!MagicState.CastMotionDone)
-                DoWindup(MagicState.WindupParams);
+                DoWindup(MagicState.WindupParams, true);
             else
                 DoCastSpell(MagicState, true);
         }
