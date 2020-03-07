@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
             // Cow class handled Cow Tipping action prior to Come What Follows patch.
             // in patch Come What Follows, cow class was either depreciated to be nothing, or updated to blanket proccess cow tipping quest addition to tipping action.
 
-            // could an cow in combat be tipped?
+            // could a cow in combat be tipped?
 
             //if (activator is Player player)
             //    TipCow(player);
