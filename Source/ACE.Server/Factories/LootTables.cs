@@ -1928,12 +1928,12 @@ namespace ACE.Server.Factories
 
         public static readonly int[] trinketItems =
 {
-            00001,    // Compass
-            00002,    // Goggles
-            00003,    // Mechanical Scarab
-            00004,    // Puzzle Box
-            00005,    // PocketWatch
-            00006     // Top
+            41483,    // Compass
+            41484,    // Goggles
+            41487,    // Mechanical Scarab
+            41486,    // Puzzle Box
+            41485,    // PocketWatch
+            41488     // Top
         };
 
         public static readonly int[] Helms =
