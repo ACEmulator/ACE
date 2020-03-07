@@ -38,8 +38,8 @@ namespace ACE.Server.WorldObjects
 
             // could a cow in combat be tipped?
 
-            //if (activator is Player player)
-            //    TipCow(player);
+            if (activator is Player player)
+                TipCow(player);
         }
 
         private static readonly List<MotionCommand> motionTippedRight = new List<MotionCommand> { MotionCommand.TippedRight };
@@ -50,6 +50,7 @@ namespace ACE.Server.WorldObjects
                 player.SendMessage($"The {Name} ignores you.");
             else
             {
+                //IsBusy over Active?
                 Active = false;
                 var actionChain = new ActionChain();
                 EnqueueMotionAction(actionChain, motionTippedRight);

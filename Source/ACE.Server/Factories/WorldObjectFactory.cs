@@ -46,7 +46,8 @@ namespace ACE.Server.Factories
                 case WeenieType.PKModifier:
                     return new PKModifier(weenie, guid);
                 case WeenieType.Cow:
-                    return new Cow(weenie, guid);
+                    //class depreciated
+                    //return new Cow(weenie, guid);
                 case WeenieType.Creature:
                     return new Creature(weenie, guid);
                 case WeenieType.Container:
@@ -165,7 +166,8 @@ namespace ACE.Server.Factories
                 case WeenieType.PKModifier:
                     return new PKModifier(biota);
                 case WeenieType.Cow:
-                    return new Cow(biota);
+                    //class depreciated
+                    //return new Cow(biota);
                 case WeenieType.Creature:
                     return new Creature(biota);
                 case WeenieType.Container:
