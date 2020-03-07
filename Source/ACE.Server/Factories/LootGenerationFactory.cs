@@ -164,14 +164,13 @@ namespace ACE.Server.Factories
             if (wo == null)
                 return null;
 
+            // Basic Item Stats
             int workmanship = GetWorkmanship(tier);
-            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-
-            wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
-            wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
-
-            wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, longDescDecoration);
-            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
+            wo.ItemWorkmanship = workmanship;
+            wo.GemCount = ThreadSafeRandom.Next(1, 5);
+            wo.GemType = (MaterialType)ThreadSafeRandom.Next(10, 50);
+            wo.AppraisalLongDescDecoration = longDescDecoration;
+            wo.LongDesc = wo.Name;
 
             if (wo.TsysMutationData != null)
             {
@@ -288,7 +287,7 @@ namespace ACE.Server.Factories
             ////Types: 1 Missiles, 2 Casters, 3 melee weapons, 4 covenant armor
             switch (type)
             {
-                case 1:
+                case 1:  // Missile Weapons
                     switch (tier)
                     {
                         case 1:
@@ -350,7 +349,7 @@ namespace ACE.Server.Factories
                             break;
                     }
                     break;
-                case 2:
+                case 2:  // Casters
                     switch (tier)
                     {
                         case 1:
@@ -404,7 +403,7 @@ namespace ACE.Server.Factories
                             break;
                     }
                     break;
-                case 3:
+                case 3: // Melee Weapons
                     switch (tier)
                     {
                         case 1:
@@ -902,9 +901,8 @@ namespace ACE.Server.Factories
                 default:
                     break;
             }
-            double damageMod2 = 1.0 + damageMod;
 
-            return damageMod2;
+            return damageMod + 1;   
         }
 
         public static double GetManaRate(WorldObject wo)
@@ -960,20 +958,18 @@ namespace ACE.Server.Factories
             if (spells == null || cantrips == null)
                 return wo;
 
-            wo.SetProperty(PropertyInt.UiEffects, (int)UiEffects.Magical);
-
-            wo.SetProperty(PropertyFloat.ManaRate, manaRate);
-
+            // Refactor 3/2/2020 - HQ
+            // Magic stats
             int numSpells = GetSpellDistribution(profile, out int minorCantrips, out int majorCantrips, out int epicCantrips, out int legendaryCantrips);
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
-
             int spellcraft = GetSpellcraft(numSpells, profile.Tier);
-            wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
-            wo.SetProperty(PropertyInt.ItemDifficulty, GetDifficulty(profile.Tier, spellcraft));
 
-            int maxMana = GetMaxMana(numSpells, profile.Tier);
-            wo.SetProperty(PropertyInt.ItemMaxMana, maxMana);
-            wo.SetProperty(PropertyInt.ItemCurMana, maxMana);
+            wo.UiEffects = UiEffects.Magical;
+            wo.ManaRate = manaRate;
+            wo.ItemSpellcraft = spellcraft;
+            wo.ItemDifficulty = GetDifficulty(profile.Tier, spellcraft);
+            wo.ItemMaxMana = GetMaxMana(numSpells, profile.Tier);
+            wo.ItemCurMana = wo.ItemMaxMana;
 
             int[] shuffledValues = new int[spells.Length];
             for (int i = 0; i < spells.Length; i++)
