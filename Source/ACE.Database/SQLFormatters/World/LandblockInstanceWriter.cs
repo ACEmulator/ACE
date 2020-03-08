@@ -82,7 +82,7 @@ namespace ACE.Database.SQLFormatters.World
                 string label = null;
 
                 if (WeenieNames != null && instanceWcids.TryGetValue(input[i].ChildGuid, out var wcid) && WeenieNames.TryGetValue(wcid, out var weenieName))
-                    label = $" /* {weenieName} */";
+                    label = $" /* {weenieName} ({wcid}) */";
 
                 return $"0x{input[i].ParentGuid.ToString("X8")}, 0x{input[i].ChildGuid.ToString("X8")}, '{input[i].LastModified.ToString("yyyy-MM-dd HH:mm:ss")}'){label}";
             });
