@@ -113,6 +113,20 @@ namespace ACE.Server.WorldObjects
             if (protMod > naturalResistMod)
                 protMod = naturalResistMod;
 
+            // does this stack with natural resistance?
+            if (this is Player player)
+            {
+                var resistAug = player.GetAugmentationResistance(damageType);
+                if (resistAug > 0)
+                {
+                    // should the existing protMod be converted to additive space first?
+
+                    // +10% protection = 0.90909 mod
+                    // +20% protection = 0.83333 mod
+                    protMod *= 1.0f / (1.0f + resistAug * 0.1f);
+                }
+            }
+
             // vulnerability mod becomes either life vuln or weapon resistance mod,
             // whichever is more powerful
             if (vulnMod < weaponResistanceMod)

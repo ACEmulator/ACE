@@ -31,7 +31,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public DatLoader.FileTypes.CombatManeuverTable CombatTable { get; set; }
 
-        public CombatMode CombatMode { get; private set; }
+        public CombatMode CombatMode { get; protected set; }
 
         public AttackType AttackType { get; set; }
 

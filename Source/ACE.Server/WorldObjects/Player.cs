@@ -420,11 +420,13 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
                 Session.Network.EnqueueSend(new GameMessageSystemChat("Logging out in 20s...", ChatMessageType.Magic));
 
-                PKLogout = true;
+                if (!PKLogout)
+                {
+                    PKLogout = true;
 
-                LogoffTimestamp = Time.GetFutureUnixTime(PropertyManager.GetLong("pk_timer").Item);
-                PlayerManager.AddPlayerToLogoffQueue(this);
-
+                    LogoffTimestamp = Time.GetFutureUnixTime(PropertyManager.GetLong("pk_timer").Item);
+                    PlayerManager.AddPlayerToLogoffQueue(this);
+                }
                 return false;
             }
 

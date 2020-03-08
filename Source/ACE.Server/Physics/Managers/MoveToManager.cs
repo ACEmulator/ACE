@@ -516,8 +516,7 @@ namespace ACE.Server.Physics.Animation
                 return;
             }
 
-            if (PendingActions.Count == 0)
-                return;
+            if (PhysicsObj.IsAnimating) return;
 
             var pendingAction = PendingActions[0];
             var headingDiff = heading_diff(pendingAction.Heading, PhysicsObj.get_heading(), (uint)MotionCommand.TurnRight);

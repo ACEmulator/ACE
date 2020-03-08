@@ -8,9 +8,12 @@ using System.Net.Sockets;
 using System.Text;
 
 using ACE.Common.Cryptography;
+using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
 using ACE.Server.Network.Managers;
 
@@ -387,7 +390,10 @@ namespace ACE.Server.Network
 
             // If we have an EchoRequest flag, we should flag to respond with an echo response on next send.
             if (packet.Header.HasFlag(PacketHeaderFlags.EchoRequest))
+            {
                 FlagEcho(packet.HeaderOptional.EchoRequestClientTime);
+                VerifyEcho(packet.HeaderOptional.EchoRequestClientTime);
+            }
 
             // If we have an AcknowledgeSequence flag, we can clear our cached packet buffer up to that sequence.
             if (packet.Header.HasFlag(PacketHeaderFlags.AckSequence))
@@ -518,6 +524,75 @@ namespace ACE.Server.Network
             {
                 packetLog.DebugFormat("[{0}] Ready to handle out of order fragment {1}", session.LoggingIdentifier, lastReceivedFragmentSequence + 1);
                 HandleFragment(message);
+            }
+        }
+
+        //private List<EchoStamp> EchoStamps = new List<EchoStamp>();
+
+        private static int EchoLogInterval = 5;
+        private static int EchoInterval = 10;
+        private static float EchoThreshold = 2.0f;
+        private static float DiffThreshold = 0.01f;
+
+        private float lastClientTime;
+        private DateTime lastServerTime;
+
+        private double lastDiff;
+        private int echoDiff;
+
+        private void VerifyEcho(float clientTime)
+        {
+            if (session.Player == null || session.logOffRequestTime != DateTime.MinValue)
+                return;
+
+            var serverTime = DateTime.UtcNow;
+
+            if (lastClientTime == 0)
+            {
+                lastClientTime = clientTime;
+                lastServerTime = serverTime;
+                return;
+            }
+
+            var serverTimeDiff = serverTime - lastServerTime;
+            var clientTimeDiff = clientTime - lastClientTime;
+
+            var diff = Math.Abs(serverTimeDiff.TotalSeconds - clientTimeDiff);
+
+            if (diff > EchoThreshold && diff - lastDiff > DiffThreshold)
+            {
+                lastDiff = diff;
+                echoDiff++;
+
+                if (echoDiff >= EchoLogInterval)
+                    log.Warn($"{session.Player.Name} - TimeSync error: {echoDiff} (diff: {diff})");
+
+                if (echoDiff >= EchoInterval)
+                {
+                    log.Error($"{session.Player.Name} - disconnected for speedhacking");
+
+                    var actionChain = new ActionChain();
+                    actionChain.AddAction(session.Player, () =>
+                    {
+                        //session.Network.EnqueueSend(new GameMessageBootAccount(session));
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"TimeSync: client speed error", ChatMessageType.Broadcast));
+                        session.LogOffPlayer();
+
+                        echoDiff = 0;
+                        lastDiff = 0;
+                        lastClientTime = 0;
+
+                    });
+                    actionChain.EnqueueChain();
+                }
+            }
+            else if (echoDiff > 0)
+            {
+                if (echoDiff > EchoLogInterval)
+                    log.Warn($"{session.Player.Name} - Diff: {diff}");
+
+                lastDiff = 0;
+                echoDiff = 0;
             }
         }
 
