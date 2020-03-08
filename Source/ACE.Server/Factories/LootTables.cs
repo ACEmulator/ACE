@@ -1722,7 +1722,7 @@ namespace ACE.Server.Factories
             ////Fire Prot
             new int[] { 2618, 2611, 4675, 6082},
             ////Blade Prot
-            new int[] { 2621, 2614, 3957, 6085},
+            new int[] { 2621, 2614, 4678, 6085},
             ////Pierce Prot
             new int[] { 2620, 2613, 3956, 6084},
             ///Shield
