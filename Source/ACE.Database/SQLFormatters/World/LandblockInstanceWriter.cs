@@ -43,7 +43,7 @@ namespace ACE.Database.SQLFormatters.World
                 string label = null;
 
                 if (WeenieNames != null)
-                    WeenieNames.TryGetValue(value.WeenieClassId, out label)
+                    WeenieNames.TryGetValue(value.WeenieClassId, out label);
 
                 var output = "VALUES (" +
                              $"0x{value.Guid.ToString("X8")}, " +
