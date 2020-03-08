@@ -10,12 +10,6 @@ namespace ACE.Database.SQLFormatters.World
     public class LandblockInstanceWriter : SQLWriter
     {
         /// <summary>
-        /// Set this to enable auto commenting when creating SQL statements.<para />
-        /// If a child link is found in the dictionary, the name will be added in the form of a /* Friendly Instance Name */
-        /// </summary>
-        public Dictionary<uint, string> InstanceNames;
-
-        /// <summary>
         /// Default is formed from: (input.ObjCellId >> 16).ToString("X4")
         /// </summary>
         public string GetDefaultFileName(LandblockInstance input)
@@ -35,6 +29,8 @@ namespace ACE.Database.SQLFormatters.World
         /// <exception cref="System.Exception">WeenieClassNames must be set, and must have a record for input.ClassId.</exception>
         public void CreateSQLINSERTStatement(IList<LandblockInstance> input, StreamWriter writer)
         {
+            var instanceWcids = input.ToDictionary(i => i.Guid, i => i.WeenieClassId);
+
             input = input.OrderBy(r => r.Guid).ToList();
 
             foreach (var value in input)
@@ -47,7 +43,10 @@ namespace ACE.Database.SQLFormatters.World
                 string label = null;
 
                 if (WeenieNames != null)
-                    WeenieNames.TryGetValue(value.WeenieClassId, out label);
+                {
+                    if (WeenieNames.TryGetValue(value.WeenieClassId, out label))
+                        InstanceNames[value.Guid] = label;
+                }
 
                 var output = "VALUES (" +
                              $"0x{value.Guid.ToString("X8")}, " +
@@ -72,12 +71,12 @@ namespace ACE.Database.SQLFormatters.World
                 if (value.LandblockInstanceLink != null && value.LandblockInstanceLink.Count > 0)
                 {
                     writer.WriteLine();
-                    CreateSQLINSERTStatement(value.LandblockInstanceLink.OrderBy(r => r.ChildGuid).ToList(), writer);
+                    CreateSQLINSERTStatement(value.LandblockInstanceLink.OrderBy(r => r.ChildGuid).ToList(), instanceWcids, writer);
                 }
             }
         }
 
-        private void CreateSQLINSERTStatement(IList<LandblockInstanceLink> input, StreamWriter writer)
+        private void CreateSQLINSERTStatement(IList<LandblockInstanceLink> input, Dictionary<uint, uint> instanceWcids, StreamWriter writer)
         {
             writer.WriteLine("INSERT INTO `landblock_instance_link` (`parent_GUID`, `child_GUID`, `last_Modified`)");
 
@@ -85,8 +84,8 @@ namespace ACE.Database.SQLFormatters.World
             {
                 string label = null;
 
-                if (InstanceNames != null)
-                    InstanceNames.TryGetValue(input[i].ChildGuid, out label);
+                if (WeenieNames != null && instanceWcids.TryGetValue(input[i].ChildGuid, out var wcid) && WeenieNames.TryGetValue(wcid, out var weenieName))
+                    label = $" /* {weenieName} */";
 
                 return $"0x{input[i].ParentGuid.ToString("X8")}, 0x{input[i].ChildGuid.ToString("X8")}, '{input[i].LastModified.ToString("yyyy-MM-dd HH:mm:ss")}') /* {label} */";
             });
