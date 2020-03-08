@@ -73,6 +73,12 @@ namespace ACE.Server.Entity
         public DateTime StartTime { get; set; }
 
         /// <summary>
+        /// If a player interrupts a TurnTo during casting,
+        /// the TurnTo resumes when the player is no longer holding any Turn keys
+        /// </summary>
+        public bool PendingTurnRelease { get; set; }
+
+        /// <summary>
         /// Tracks the cast # for /recordcast
         /// </summary>
         public int CastNum { get; set; }
@@ -94,6 +100,13 @@ namespace ACE.Server.Entity
         /// </summary>
         public DateTime CastGestureStartTime { get; set; }
 
+        /// <summary>
+        /// This is only used if server option spellcast_recoil_queue = true
+        /// Allows the player to queue the next spellcast as soon as the previous spell is released
+        /// </summary>
+        public bool CanQueue;
+        public CastQueue CastQueue;
+
         public MagicState(Player player)
         {
             Player = player;
@@ -109,6 +122,9 @@ namespace ACE.Server.Entity
             CastMotionDone = false;
             TurnStarted = false;
             IsTurning = false;
+            PendingTurnRelease = false;
+            CanQueue = false;
+            CastQueue = null;
 
             StartTime = DateTime.UtcNow;
             CastGestureStartTime = DateTime.MinValue;
@@ -136,6 +152,10 @@ namespace ACE.Server.Entity
             CastMotionDone = false;
             TurnStarted = false;
             IsTurning = false;
+            PendingTurnRelease = false;
+            Player.TurnTarget = null;
+            CanQueue = false;
+            CastQueue = null;
 
             CastGesture = MotionCommand.Invalid;
             CastGestureStartTime = DateTime.MinValue;

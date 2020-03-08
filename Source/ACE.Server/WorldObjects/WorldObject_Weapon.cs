@@ -261,7 +261,8 @@ namespace ACE.Server.WorldObjects
                 critRate = Math.Max(critRate, criticalStrikeBonus);
             }
 
-            critRate += wielder.GetCritRating() * 0.01f;
+            if (wielder != null)
+                critRate += wielder.GetCritRating() * 0.01f;
 
             // mitigation
             var critResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritResistRating());
@@ -325,7 +326,8 @@ namespace ACE.Server.WorldObjects
                 critDamageMod = Math.Max(critDamageMod, cripplingBlowMod); 
             }
 
-            critDamageMod += wielder.GetCritDamageRating() * 0.01f;
+            if (wielder != null)
+                critDamageMod += wielder.GetCritDamageRating() * 0.01f;
 
             // mitigation
             var critDamageResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritDamageResistRating());

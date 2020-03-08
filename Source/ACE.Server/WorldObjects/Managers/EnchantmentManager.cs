@@ -852,41 +852,6 @@ namespace ACE.Server.WorldObjects.Managers
             foreach (var enchantment in enchantments)
                 modifier *= enchantment.StatModValue;
 
-            if (WorldObject is Player player)
-            {
-                switch (resistance)
-                {
-                    case PropertyFloat.ResistSlash:
-                        if (player.AugmentationResistanceSlash > 0)
-                            modifier -= player.AugmentationResistanceSlash * 0.1f;
-                        break;
-                    case PropertyFloat.ResistPierce:
-                        if (player.AugmentationResistancePierce > 0)
-                            modifier -= player.AugmentationResistancePierce * 0.1f;
-                        break;
-                    case PropertyFloat.ResistBludgeon:
-                        if (player.AugmentationResistanceBlunt > 0)
-                            modifier -= player.AugmentationResistanceBlunt * 0.1f;
-                        break;
-                    case PropertyFloat.ResistFire:
-                        if (player.AugmentationResistanceFire > 0)
-                            modifier -= player.AugmentationResistanceFire * 0.1f;
-                        break;
-                    case PropertyFloat.ResistCold:
-                        if (player.AugmentationResistanceFrost > 0)
-                            modifier -= player.AugmentationResistanceFrost * 0.1f;
-                        break;
-                    case PropertyFloat.ResistAcid:
-                        if (player.AugmentationResistanceAcid > 0)
-                            modifier -= player.AugmentationResistanceAcid * 0.1f;
-                        break;
-                    case PropertyFloat.ResistElectric:
-                        if (player.AugmentationResistanceLightning > 0)
-                            modifier -= player.AugmentationResistanceLightning * 0.1f;
-                        break;
-                }
-            }
-
             return modifier;
         }
 
