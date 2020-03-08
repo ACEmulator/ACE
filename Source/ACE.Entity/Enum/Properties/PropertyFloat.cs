@@ -69,6 +69,7 @@ namespace ACE.Entity.Enum.Properties
         ReleasedTimestamp              = 56,
         MinHomeRadius                  = 57,
         Facing                         = 58,
+        [Ephemeral]
         ResetTimestamp                 = 59,
         LogoffTimestamp                = 60,
         EconRecoveryInterval           = 61,
