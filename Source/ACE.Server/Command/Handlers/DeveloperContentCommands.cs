@@ -1247,6 +1247,11 @@ namespace ACE.Server.Command.Handlers.Processors
             {
                 LandblockInstanceWriter = new LandblockInstanceWriter();
                 LandblockInstanceWriter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+                foreach (var value in instances)
+                {
+                    if (LandblockInstanceWriter.WeenieNames.TryGetValue(value.WeenieClassId, out var name))
+                        LandblockInstanceWriter.InstanceNames[value.Guid] = name;
+                }
             }
 
             LandblockInstanceWriter.CreateSQLDELETEStatement(instances, fileWriter);
