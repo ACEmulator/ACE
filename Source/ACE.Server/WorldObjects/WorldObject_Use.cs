@@ -20,7 +20,7 @@ namespace ACE.Server.WorldObjects
         protected double? ResetTimestamp
         {
             get => GetProperty(PropertyFloat.ResetTimestamp);
-            set { if (value.HasValue) RemoveProperty(PropertyFloat.ResetTimestamp); else SetProperty(PropertyFloat.ResetTimestamp, value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ResetTimestamp); else SetProperty(PropertyFloat.ResetTimestamp, value.Value); }
         }
 
         protected double? ResetInterval
