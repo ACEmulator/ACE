@@ -10,6 +10,12 @@ namespace ACE.Database.SQLFormatters.World
     public class LandblockInstanceWriter : SQLWriter
     {
         /// <summary>
+        /// Set this to enable auto commenting when creating SQL statements.<para />
+        /// If a child link is found in the dictionary, the name will be added in the form of a /* Friendly Instance Name */
+        /// </summary>
+        public Dictionary<uint, string> InstanceNames;
+
+        /// <summary>
         /// Default is formed from: (input.ObjCellId >> 16).ToString("X4")
         /// </summary>
         public string GetDefaultFileName(LandblockInstance input)
@@ -79,8 +85,8 @@ namespace ACE.Database.SQLFormatters.World
             {
                 string label = null;
 
-                if (WeenieNames != null)
-                    WeenieNames.TryGetValue(input[i].ChildGuid, out label);
+                if (InstanceNames != null)
+                    InstanceNames.TryGetValue(input[i].ChildGuid, out label);
 
                 return $"0x{input[i].ParentGuid.ToString("X8")}, 0x{input[i].ChildGuid.ToString("X8")}, '{input[i].LastModified.ToString("yyyy-MM-dd HH:mm:ss")}') /* {label} */";
             });
