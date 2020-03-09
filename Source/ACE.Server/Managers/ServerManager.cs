@@ -30,6 +30,11 @@ namespace ACE.Server.Managers
         public static bool ShutdownInitiated { get; private set; }
 
         /// <summary>
+        /// Indicates server shutting down.
+        /// </summary>
+        public static bool ShutdownInProgress { get; private set; }
+
+        /// <summary>
         /// The amount of seconds that the server will wait before unloading the application.
         /// </summary>
         public static uint ShutdownInterval { get; private set; }
@@ -115,6 +120,8 @@ namespace ACE.Server.Managers
 
                 Thread.Sleep(10);
             }
+
+            ShutdownInProgress = true;
 
             PropertyManager.ResyncVariables();
             PropertyManager.StopUpdating();
