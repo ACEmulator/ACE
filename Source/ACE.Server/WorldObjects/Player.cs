@@ -837,7 +837,7 @@ namespace ACE.Server.WorldObjects
             // broadcast jump
             EnqueueBroadcast(new GameMessageVectorUpdate(this));
 
-            if (RecordCast.Enabled)
+            if (MagicState.IsCasting && RecordCast.Enabled)
                 RecordCast.OnJump(jump);
         }
 

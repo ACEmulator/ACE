@@ -735,7 +735,7 @@ namespace ACE.Server.WorldObjects
 
             NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
 
-            if (RecordCast.Enabled)
+            if (MagicState.IsCasting && RecordCast.Enabled)
                 RecordCast.OnSetCombatMode(newCombatMode);
         }
 
