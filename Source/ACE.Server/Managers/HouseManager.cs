@@ -723,7 +723,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Registers a callback to run when the slumlord inventory has been loaded
         /// </summary>
-        private static void RegisterCallback(House house, Action<House> callback)
+        public static void RegisterCallback(House house, Action<House> callback)
         {
             if (!SlumlordCallbacks.TryGetValue(house.SlumLord.Guid.Full, out var callbacks))
             {

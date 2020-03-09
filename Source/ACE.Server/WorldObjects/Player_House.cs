@@ -456,6 +456,16 @@ namespace ACE.Server.WorldObjects
             if (HouseRentTimestamp == null)
                 HouseRentTimestamp = (int)House.GetRentDue(purchaseTime);
 
+            if (!House.SlumLord.InventoryLoaded)
+            {
+                HouseManager.RegisterCallback(House, (house) => HandleHouseOnLogin_Inner());
+            }
+            else
+                HandleHouseOnLogin_Inner();
+        }
+
+        public void HandleHouseOnLogin_Inner()
+        {
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(5.0f);
             actionChain.AddAction(this, () =>
