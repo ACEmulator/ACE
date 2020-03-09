@@ -141,6 +141,9 @@ namespace ACE.Server.WorldObjects
                 OnMoveToState_ServerMethod(moveToState);
             else
                 OnMoveToState_ClientMethod(moveToState);
+
+            if (MagicState.IsCasting && MagicState.PendingTurnRelease && moveToState.RawMotionState.TurnCommand == 0)
+                OnTurnRelease();
         }
 
         public void OnMoveToState_ClientMethod(MoveToState moveToState)
@@ -282,6 +285,7 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.update_object();
 
             // sync ace position?
+            Location.Rotation = PhysicsObj.Position.Frame.Orientation;
 
             // this fixes some differences between client movement (DoMotion/StopMotion) and server movement (apply_raw_movement)
             //
@@ -302,6 +306,9 @@ namespace ACE.Server.WorldObjects
                 }
                 LastMoveToState = null;
             }
+
+            if (MagicState.IsCasting && (MagicState.IsTurning || MagicState.PendingTurnRelease))
+                CheckTurn();
         }
 
         /// <summary>

@@ -245,7 +245,7 @@ namespace ACE.Server.WorldObjects
             var movementData = new MovementData(this, moveToState);
 
             var movementEvent = new GameMessageUpdateMotion(this, movementData);
-            EnqueueBroadcast(false, movementEvent);    // shouldn't need to go to originating player?
+            EnqueueBroadcast(true, movementEvent);    // shouldn't need to go to originating player?
 
             // TODO: use real motion / animation system from physics
             //CurrentMotionCommand = movementData.Invalid.State.ForwardCommand;

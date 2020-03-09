@@ -204,7 +204,7 @@ namespace ACE.Server.WorldObjects
             if (caster == target && spell.IsNegativeRedirectable)
                 return true;
 
-            if (targetCreature != null && spell.NonComponentTargetType == ItemType.Creature && !caster.CanDamage(targetCreature))
+            if (targetCreature != null && caster != targetCreature && spell.NonComponentTargetType == ItemType.Creature && !caster.CanDamage(targetCreature))
                 return true;
 
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
@@ -1296,6 +1296,8 @@ namespace ACE.Server.WorldObjects
 
         public static readonly Quaternion OneEighty = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)Math.PI);
 
+        public static readonly float ProjHeightArc = 5.0f / 6.0f;
+
         /// <summary>
         /// Calculates the spell projectile velocity in global space
         /// </summary>
@@ -1317,7 +1319,8 @@ namespace ACE.Server.WorldObjects
             startPos += Vector3.Transform(origin, strikeSpell ? Location.Rotation * OneEighty : Location.Rotation);
 
             var endPos = crossLandblock ? target.Location.ToGlobal(false) : target.Location.Pos;
-            endPos.Z += target.Height * 0.5f;
+
+            endPos.Z += target.Height * (spellType == ProjectileSpellType.Arc ? ProjHeightArc : ProjHeight);
 
             var dir = Vector3.Normalize(endPos - startPos);
 
@@ -1372,6 +1375,11 @@ namespace ACE.Server.WorldObjects
                     var q = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)angle);
                     sp.Velocity = Vector3.Transform(velocity, q);
                 }
+
+                // set orientation
+                var dir = Vector3.Normalize(sp.Velocity.Value);
+                sp.PhysicsObj.Position.Frame.set_vector_heading(dir);
+                sp.Location.Rotation = sp.PhysicsObj.Position.Frame.Orientation;
 
                 sp.ProjectileSource = this;
                 sp.Caster = caster;
