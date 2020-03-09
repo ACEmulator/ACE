@@ -102,7 +102,7 @@ namespace ACE.Server.WorldObjects
                 // has values similar to Food, ie. UseUserAnimation - MimeEat,
                 // and UseSound - Drink1
 
-                var spell = new Server.Entity.Spell((uint)SpellDID);
+                var spell = new Spell((uint)SpellDID);
 
                 TryCastSpell(spell, player, this, false);
             }

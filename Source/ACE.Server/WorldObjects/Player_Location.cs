@@ -670,7 +670,7 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcastPhysicsState();
         }
 
-        public void SendTeleportedViaMagicMessage(WorldObject itemCaster, Server.Entity.Spell spell)
+        public void SendTeleportedViaMagicMessage(WorldObject itemCaster, Spell spell)
         {
             if (itemCaster == null)
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been teleported.", ChatMessageType.Magic));
