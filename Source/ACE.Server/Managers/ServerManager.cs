@@ -7,6 +7,7 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Managers;
 
 namespace ACE.Server.Managers
 {
@@ -139,11 +140,20 @@ namespace ACE.Server.Managers
             int playerCount;
             while ((playerCount = PlayerManager.GetOnlineCount()) > 0)
             {
-                if (logUpdateTS == DateTime.MinValue || DateTime.UtcNow > logUpdateTS.ToUniversalTime())
-                {
-                    log.Info($"Waiting for {playerCount} player{(playerCount > 1 ? "s" : "")} to log off...");
-                    logUpdateTS = DateTime.UtcNow.AddSeconds(10);
-                }
+                logUpdateTS = LogStatusUpdate(logUpdateTS, $"Waiting for {playerCount} player{(playerCount > 1 ? "s" : "")} to log off...");
+                Thread.Sleep(10);
+            }
+
+            log.Debug("Disconnecting all sessions...");
+
+            // discconnect each session
+            NetworkManager.DisconnectAllSessionsForShutdown();
+
+            logUpdateTS = DateTime.MinValue;
+            int sessionCount;
+            while ((sessionCount = NetworkManager.GetSessionCount()) > 0)
+            {
+                logUpdateTS = LogStatusUpdate(logUpdateTS, $"Waiting for {sessionCount} session{(sessionCount > 1 ? "s" : "")} to disconnect...");
                 Thread.Sleep(10);
             }
 
@@ -159,11 +169,7 @@ namespace ACE.Server.Managers
             int landblockCount;
             while ((landblockCount = LandblockManager.GetLoadedLandblocks().Count) > 0)
             {
-                if (logUpdateTS == DateTime.MinValue || DateTime.UtcNow > logUpdateTS.ToUniversalTime())
-                {
-                    log.Info($"Waiting for {landblockCount} loaded landblock{(landblockCount > 1 ? "s" : "")} to unload...");
-                    logUpdateTS = DateTime.UtcNow.AddSeconds(10);
-                }
+                logUpdateTS = LogStatusUpdate(logUpdateTS, $"Waiting for {landblockCount} loaded landblock{(landblockCount > 1 ? "s" : "")} to unload...");
                 Thread.Sleep(10);
             }
 
@@ -178,11 +184,7 @@ namespace ACE.Server.Managers
             logUpdateTS = DateTime.MinValue;
             while (WorldManager.WorldActive)
             {
-                if (logUpdateTS == DateTime.MinValue || DateTime.UtcNow > logUpdateTS.ToUniversalTime())
-                {
-                    log.Info("Waiting for world to stop...");
-                    logUpdateTS = DateTime.UtcNow.AddSeconds(10);
-                }
+                logUpdateTS = LogStatusUpdate(logUpdateTS, "Waiting for world to stop...");
                 Thread.Sleep(10);
             }
 
@@ -196,11 +198,7 @@ namespace ACE.Server.Managers
             int shardQueueCount;
             while ((shardQueueCount = DatabaseManager.Shard.QueueCount) > 0)
             {
-                if (logUpdateTS == DateTime.MinValue || DateTime.UtcNow > logUpdateTS.ToUniversalTime())
-                {
-                    log.Info($"Waiting for database queue ({shardQueueCount}) to empty...");
-                    logUpdateTS = DateTime.UtcNow.AddSeconds(10);
-                }
+                logUpdateTS = LogStatusUpdate(logUpdateTS, $"Waiting for database queue ({shardQueueCount}) to empty...");
                 Thread.Sleep(10);
             }
 
@@ -209,6 +207,17 @@ namespace ACE.Server.Managers
 
             // System exit
             Environment.Exit(Environment.ExitCode);
+        }
+
+        private static DateTime LogStatusUpdate(DateTime logUpdateTS, string logMessage)
+        {
+            if (logUpdateTS == DateTime.MinValue || DateTime.UtcNow > logUpdateTS.ToUniversalTime())
+            {
+                log.Info(logMessage);
+                logUpdateTS = DateTime.UtcNow.AddSeconds(10);
+            }
+
+            return logUpdateTS;
         }
 
         private static DateTime NotifyPlayersOfPendingShutdown(DateTime lastNoticeTime, DateTime shutdownTime)
