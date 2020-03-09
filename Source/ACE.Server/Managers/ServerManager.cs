@@ -133,9 +133,7 @@ namespace ACE.Server.Managers
             foreach (var player in PlayerManager.GetAllOnline())
                 player.Session.LogOffPlayer(true);
 
-            //log.Info("Waiting for all players to log off...");
-
-            // wait 10 seconds for log-off
+            // Wait for all players to log out
             var logUpdateTS = DateTime.MinValue;
             int playerCount;
             while ((playerCount = PlayerManager.GetOnlineCount()) > 0)
@@ -146,9 +144,10 @@ namespace ACE.Server.Managers
 
             log.Debug("Disconnecting all sessions...");
 
-            // discconnect each session
+            // disconnect each session
             NetworkManager.DisconnectAllSessionsForShutdown();
 
+            // Wait for all sessions to drop out
             logUpdateTS = DateTime.MinValue;
             int sessionCount;
             while ((sessionCount = NetworkManager.GetSessionCount()) > 0)
@@ -163,8 +162,7 @@ namespace ACE.Server.Managers
             // The actual unloading will happen in WorldManager.UpdateGameWorld
             LandblockManager.AddAllActiveLandblocksToDestructionQueue();
 
-            //log.Info("Waiting for all active landblocks to unload...");
-
+            // Wait for all landblocks to unload
             logUpdateTS = DateTime.MinValue;
             int landblockCount;
             while ((landblockCount = LandblockManager.GetLoadedLandblocks().Count) > 0)
@@ -178,8 +176,6 @@ namespace ACE.Server.Managers
             // Disabled thread update loop
             WorldManager.StopWorld();
 
-            //log.Info("Waiting for world to stop...");
-
             // Wait for world to end
             logUpdateTS = DateTime.MinValue;
             while (WorldManager.WorldActive)
@@ -190,8 +186,6 @@ namespace ACE.Server.Managers
 
             log.Info("Saving OfflinePlayers that have unsaved changes...");
             PlayerManager.SaveOfflinePlayersWithChanges();
-
-            //log.Info("Waiting for database queue to empty...");
 
             // Wait for the database queue to empty
             logUpdateTS = DateTime.MinValue;
