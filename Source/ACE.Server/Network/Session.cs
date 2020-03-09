@@ -211,9 +211,9 @@ namespace ACE.Server.Network
 
                 GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, PlayerManager.GetOnlineCount(), (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
                 Network.EnqueueSend(serverNameMessage);
+            }
 
-                State = SessionState.AuthConnected;
-            }        
+            State = SessionState.AuthConnected;
         }
 
         public void Terminate(SessionTerminationReason reason, GameMessage message = null, ServerPacket packet = null, string extraReason = "")
