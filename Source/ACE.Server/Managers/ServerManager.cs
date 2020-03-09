@@ -132,11 +132,20 @@ namespace ACE.Server.Managers
             foreach (var player in PlayerManager.GetAllOnline())
                 player.Session.LogOffPlayer(true);
 
-            log.Info("Waiting for all players to log off...");
+            //log.Info("Waiting for all players to log off...");
 
             // wait 10 seconds for log-off
-            while (PlayerManager.GetOnlineCount() > 0)
+            var logUpdateTS = DateTime.MinValue;
+            int playerCount;
+            while ((playerCount = PlayerManager.GetOnlineCount()) > 0)
+            {
+                if (logUpdateTS == DateTime.MinValue || DateTime.UtcNow > logUpdateTS.ToUniversalTime())
+                {
+                    log.Info($"Waiting for {playerCount} player{(playerCount > 1 ? "s" : "")} to log off...");
+                    logUpdateTS = DateTime.UtcNow.AddSeconds(10);
+                }
                 Thread.Sleep(10);
+            }
 
             log.Debug("Adding all landblocks to destruction queue...");
 
@@ -144,30 +153,56 @@ namespace ACE.Server.Managers
             // The actual unloading will happen in WorldManager.UpdateGameWorld
             LandblockManager.AddAllActiveLandblocksToDestructionQueue();
 
-            log.Info("Waiting for all active landblocks to unload...");
+            //log.Info("Waiting for all active landblocks to unload...");
 
-            while (LandblockManager.GetLoadedLandblocks().Count > 0)
+            logUpdateTS = DateTime.MinValue;
+            int landblockCount;
+            while ((landblockCount = LandblockManager.GetLoadedLandblocks().Count) > 0)
+            {
+                if (logUpdateTS == DateTime.MinValue || DateTime.UtcNow > logUpdateTS.ToUniversalTime())
+                {
+                    log.Info($"Waiting for {landblockCount} loaded landblock{(landblockCount > 1 ? "s" : "")} to unload...");
+                    logUpdateTS = DateTime.UtcNow.AddSeconds(10);
+                }
                 Thread.Sleep(10);
+            }
 
             log.Debug("Stopping world...");
 
             // Disabled thread update loop
             WorldManager.StopWorld();
 
-            log.Info("Waiting for world to stop...");
+            //log.Info("Waiting for world to stop...");
 
             // Wait for world to end
+            logUpdateTS = DateTime.MinValue;
             while (WorldManager.WorldActive)
+            {
+                if (logUpdateTS == DateTime.MinValue || DateTime.UtcNow > logUpdateTS.ToUniversalTime())
+                {
+                    log.Info("Waiting for world to stop...");
+                    logUpdateTS = DateTime.UtcNow.AddSeconds(10);
+                }
                 Thread.Sleep(10);
+            }
 
             log.Info("Saving OfflinePlayers that have unsaved changes...");
             PlayerManager.SaveOfflinePlayersWithChanges();
 
-            log.Info("Waiting for database queue to empty...");
+            //log.Info("Waiting for database queue to empty...");
 
             // Wait for the database queue to empty
-            while (DatabaseManager.Shard.QueueCount > 0)
+            logUpdateTS = DateTime.MinValue;
+            int shardQueueCount;
+            while ((shardQueueCount = DatabaseManager.Shard.QueueCount) > 0)
+            {
+                if (logUpdateTS == DateTime.MinValue || DateTime.UtcNow > logUpdateTS.ToUniversalTime())
+                {
+                    log.Info($"Waiting for database queue ({shardQueueCount}) to empty...");
+                    logUpdateTS = DateTime.UtcNow.AddSeconds(10);
+                }
                 Thread.Sleep(10);
+            }
 
             // Write exit to console/log
             log.Info($"Exiting at {DateTime.UtcNow}");
