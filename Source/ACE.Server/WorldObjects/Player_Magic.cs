@@ -718,7 +718,9 @@ namespace ACE.Server.WorldObjects
                 var stopCompletely = !MagicState.CastMotionDone;
                 //var stopCompletely = true;
 
-                CreateTurnToChain2(target, null, stopCompletely);
+                CreateTurnToChain2(target, null, stopCompletely, MagicState.AlwaysTurn);
+
+                MagicState.AlwaysTurn = false;
             }
         }
 
@@ -1420,7 +1422,10 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddDelayForOneTick();
                 actionChain.AddAction(this, () =>
                 {
-                    if (!MagicState.IsCasting) return;
+                    if (!MagicState.IsCasting)
+                        return;
+
+                    MagicState.AlwaysTurn = true;
 
                     DoCastSpell(MagicState);
                 });
