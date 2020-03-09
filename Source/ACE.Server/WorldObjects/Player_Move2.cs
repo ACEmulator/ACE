@@ -55,7 +55,7 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.update_object();
         }
 
-        public void CreateTurnToChain2(WorldObject target, Action<bool> callback, bool stopCompletely = false)
+        public void CreateTurnToChain2(WorldObject target, Action<bool> callback, bool stopCompletely = false, bool alwaysTurn = false)
         {
             if (IsPlayerMovingTo2)
                 StopExistingMoveToChains2();
@@ -86,10 +86,14 @@ namespace ACE.Server.WorldObjects
             IsPlayerMovingTo2 = true;
             MoveToCallback = callback;
 
+            PhysicsObj.MovementManager.MoveToManager.AlwaysTurn = alwaysTurn;
+
             PhysicsObj.TurnToObject(rotateTarget.PhysicsObj, mvp);
             //PhysicsObj.LastMoveWasAutonomous = false;
 
             PhysicsObj.update_object();
+
+            PhysicsObj.MovementManager.MoveToManager.AlwaysTurn = false;
         }
 
         public void StopExistingMoveToChains2()
