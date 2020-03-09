@@ -733,26 +733,33 @@ namespace ACE.Server.WorldObjects
             return totalValue;
         }
 
-        public uint? GetHouseInstance()
+        public IPlayer GetHouseOwner()
         {
             // if this character owns a house, always use that
             if (HouseInstance != null)
-                return HouseInstance;
+                return this;
 
             // if server is running house_per_char mode (non-default),
             // only use the HouseInstance for the current character
             if (PropertyManager.GetBool("house_per_char").Item)
-                return HouseInstance;
+                return this;
 
-            // else return the HouseInstance for the account
+            // else return the account house owner
             var accountHouseOwner = GetAccountHouseOwner();
 
-            return accountHouseOwner?.HouseInstance;
+            return accountHouseOwner;
+        }
+
+        public uint? GetHouseInstance()
+        {
+            return GetHouseOwner()?.HouseInstance;
         }
 
         public void HandleActionQueryHouse()
         {
-            var houseInstance = GetHouseInstance();
+            var houseOwner = GetHouseOwner();
+
+            var houseInstance = houseOwner?.HouseInstance;
 
             // no house owned - send 0x226 HouseStatus?
             if (houseInstance == null)
@@ -765,23 +772,11 @@ namespace ACE.Server.WorldObjects
             if (House == null)
                 LoadHouse(houseInstance);
 
-            var house = GetHouse(houseInstance);
-            if (house == null)
+            HouseManager.GetHouse(houseInstance.Value, (house) =>
             {
-                Session.Network.EnqueueSend(new GameEventHouseStatus(Session));
-                return;
-            }
-
-            // slumlord inventory callback...
-            var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(1.0f);
-            actionChain.AddAction(this, () =>
-            {
-                // ensure house.Slumlord.InventoryLoaded?
-                var houseData = house.GetHouseData(this);
+                var houseData = house.GetHouseData(houseOwner);
                 Session.Network.EnqueueSend(new GameEventHouseData(Session, houseData));
             });
-            actionChain.EnqueueChain();
         }
 
         public House LoadHouse(uint? houseInstance, bool forceLoad = false)

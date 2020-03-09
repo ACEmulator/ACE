@@ -687,7 +687,7 @@ namespace ACE.Server.Managers
         /// else return a copy of the House biota from the latest info in the db
         ///
         /// <param name="callback">called when the slumlord inventory is fully loaded</param>
-        private static void GetHouse(uint houseGuid, Action<House> callback)
+        public static void GetHouse(uint houseGuid, Action<House> callback)
         {
             var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
 
