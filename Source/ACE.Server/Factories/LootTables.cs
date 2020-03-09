@@ -1926,6 +1926,16 @@ namespace ACE.Server.Factories
             2367    // Gorget
         };
 
+        public static readonly int[] trinketItems =
+{
+            41483,    // Compass
+            41484,    // Goggles
+            41487,    // Mechanical Scarab
+            41486,    // Puzzle Box
+            41485,    // PocketWatch
+            41488     // Top
+        };
+
         public static readonly int[] Helms =
         {
             46,     // Metal Cap
