@@ -8,6 +8,11 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
+        /// <summary>
+        /// Creates a Melee weapon object.
+        /// </summary>
+        /// <param name="profile"></param><param name="isMagical"></param>
+        /// <returns>Returns Melee Weapon WO</returns>
         public static WorldObject CreateMeleeWeapon(TreasureDeath profile, bool isMagical, int weaponType = -1)
         {
             Skill wieldSkillType = Skill.None;
@@ -31,7 +36,13 @@ namespace ACE.Server.Factories
             int eleType = ThreadSafeRandom.Next(0, 4);
             if (weaponType == -1)
                 weaponType = ThreadSafeRandom.Next(0, 3);
-            switch (weaponType)
+
+            // Weapon Types
+            // 0 = Heavy
+            // 1 = Light
+            // 2 = Finesse
+            // default = Two Handed
+            switch (weaponType)                
             {
                 case 0:
                     // Heavy Weapons
@@ -316,46 +327,56 @@ namespace ACE.Server.Factories
             if (wo == null)
                 return null;
 
-            wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, longDescDecoration);
-            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
 
-            wo.SetProperty(PropertyInt.GemCount, gemCount);
-            wo.SetProperty(PropertyInt.GemType, gemType);
+            // Description
+            wo.AppraisalLongDescDecoration = longDescDecoration;
+            wo.LongDesc = wo.Name;
+
+            // GemTypes, Material, Workmanship
+            wo.GemCount = gemCount;
+            wo.GemType = (MaterialType)gemType;
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
-            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
+            wo.ItemWorkmanship = workmanship;
 
-            wo.SetProperty(PropertyInt.Damage, damage);
-            wo.SetProperty(PropertyFloat.DamageVariance, damageVariance);
+            // Weapon Stats
+            wo.Damage = damage;
+            wo.DamageVariance = damageVariance;
+            wo.WeaponDefense = weaponDefense;
+            wo.WeaponOffense = weaponOffense;
+            wo.WeaponMissileDefense = missileD;
+            wo.WeaponMagicDefense = magicD;
 
-            wo.SetProperty(PropertyFloat.WeaponDefense, weaponDefense);
-            wo.SetProperty(PropertyFloat.WeaponOffense, weaponOffense);
-            wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileD);
-            wo.SetProperty(PropertyFloat.WeaponMagicDefense, magicD);
-
+            // Adding Wield Reqs if required
             if (wieldDiff > 0)
             {
-                wo.SetProperty(PropertyInt.WieldDifficulty, wieldDiff);
-                wo.SetProperty(PropertyInt.WieldRequirements, (int)wieldRequirments);
-                wo.SetProperty(PropertyInt.WieldSkillType, (int)wieldSkillType);
+                wo.WieldDifficulty = wieldDiff;
+                wo.WieldRequirements = wieldRequirments;
+                wo.WieldSkillType = (int)wieldSkillType;
+
             }
             else
             {
-                wo.RemoveProperty(PropertyInt.WieldDifficulty);
-                wo.RemoveProperty(PropertyInt.WieldRequirements);
-                wo.RemoveProperty(PropertyInt.WieldSkillType);
+                // If no wield, remove wield reqs
+                wo.WieldDifficulty = null;
+                wo.WieldRequirements = WieldRequirement.Invalid;                
+                wo.WieldSkillType = null;
+
             }
 
+            // Adding Magic Spells
             if (isMagical)
                 wo = AssignMagic(wo, profile);
             else
             {
-                wo.RemoveProperty(PropertyInt.ItemManaCost);
-                wo.RemoveProperty(PropertyInt.ItemMaxMana);
-                wo.RemoveProperty(PropertyInt.ItemCurMana);
-                wo.RemoveProperty(PropertyInt.ItemSpellcraft);
-                wo.RemoveProperty(PropertyInt.ItemDifficulty);
+                // If no spells remove magic properites
+                wo.ItemManaCost = null;
+                wo.ItemMaxMana = null;
+                wo.ItemCurMana = null;
+                wo.ItemSpellcraft = null;
+                wo.ItemDifficulty = null;
+
             }
 
             double materialMod = LootTables.getMaterialValueModifier(wo);
@@ -385,6 +406,11 @@ namespace ACE.Server.Factories
         }
 
         // The percentages for variances need to be fixed
+        /// <summary>
+        /// Gets Melee Weapon Variance
+        /// </summary>
+        /// <param name="category"></param><param name="type"></param>
+        /// <returns>Returns Melee Weapon Variance</returns>
         private static double GetVariance(Skill category, LootWeaponType type)
         {
             double variance = 0;
@@ -662,7 +688,11 @@ namespace ACE.Server.Factories
 
             return variance;
         }
-
+        /// <summary>
+        /// Gets Melee Weapon Index
+        /// </summary>
+        /// <param name="wieldDiff"></param>
+        /// <returns>Melee Weapon Index</returns>
         private static int GetMeleeWieldToIndex(int wieldDiff)
         {
             int index = 0;
@@ -700,7 +730,11 @@ namespace ACE.Server.Factories
 
             return index;
         }
-
+        /// <summary>
+        /// Gets Melee Weapon Max Damage
+        /// </summary>
+        /// <param name="weaponType"></param><param name="wieldDiff"></param><param name="baseWeapon"></param>
+        /// <returns>Melee Weapon Max Damage</returns>
         private static int GetMeleeMaxDamage(Skill weaponType, int wieldDiff, LootWeaponType baseWeapon)
         {
             int damageTable = 0;
