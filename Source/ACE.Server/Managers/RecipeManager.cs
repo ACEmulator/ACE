@@ -418,13 +418,84 @@ namespace ACE.Server.Managers
                     target.ItemDifficulty = (target.ItemDifficulty ?? 0) + target.ItemSpellcraft;
                     break;
 
+                // armatures / trinkets:
                 case MaterialType.Amber:
+
+                    AddImbuedEffect(player, target, ImbuedEffectType.Spellbook);
+
+                    if (IsMinorArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketStamina1);
+                    else if (IsModerateArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketStamina2);
+                    else if (IsMajorArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketStamina3);
+
+                    break;
+
                 case MaterialType.Diamond:
+
+                    AddImbuedEffect(player, target, ImbuedEffectType.Spellbook);
+
+                    if (IsMinorArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketDamageBoost1);
+                    else if (IsModerateArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketDamageBoost2);
+                    else if (IsMajorArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketDamageBoost3);
+
+                    break;
+
                 case MaterialType.GromnieHide:
+
+                    AddImbuedEffect(player, target, ImbuedEffectType.Spellbook);
+
+                    if (IsMinorArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketDamageReduction1);
+                    else if (IsModerateArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketDamageReduction2);
+                    else if (IsMajorArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketDamageReduction3);
+
+                    break;
+
                 case MaterialType.Pyreal:
+
+                    AddImbuedEffect(player, target, ImbuedEffectType.Spellbook);
+
+                    if (IsMinorArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketXPBoost1);
+                    else if (IsModerateArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketXPBoost2);
+                    else if (IsMajorArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketXPBoost3);
+
+                    break;
+
                 case MaterialType.Ruby:
+
+                    AddImbuedEffect(player, target, ImbuedEffectType.Spellbook);
+
+                    if (IsMinorArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketHealth1);
+                    else if (IsModerateArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketHealth2);
+                    else if (IsMajorArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketHealth3);
+
+                    break;
+
                 case MaterialType.Sapphire:
-                    return;
+
+                    AddImbuedEffect(player, target, ImbuedEffectType.Spellbook);
+
+                    if (IsMinorArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketMana1);
+                    else if (IsModerateArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketMana2);
+                    else if (IsMajorArmature(tool))
+                        AddSpell(player, target, SpellId.TrinketMana3);
+
+                    break;
 
                 // magic item tinkering
 
@@ -1316,6 +1387,27 @@ namespace ACE.Server.Managers
         public static bool UseSkillCheck(MaterialType material)
         {
             return material != MaterialType.Ivory && material != MaterialType.Leather && material != MaterialType.Sandstone;
+        }
+
+        // probably a better way to do this eventually...
+        public static bool IsArmature(WorldObject source)
+        {
+            return source.Name.EndsWith("Armature");
+        }
+
+        public static bool IsMinorArmature(WorldObject source)
+        {
+            return IsArmature(source) && source.Name.StartsWith("Minor");
+        }
+
+        public static bool IsModerateArmature(WorldObject source)
+        {
+            return IsArmature(source) && source.Name.StartsWith("Moderate");
+        }
+
+        public static bool IsMajorArmature(WorldObject source)
+        {
+            return IsArmature(source) && source.Name.StartsWith("Major");
         }
     }
 }
