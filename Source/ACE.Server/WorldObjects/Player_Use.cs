@@ -197,7 +197,7 @@ namespace ACE.Server.WorldObjects
                 container.Close(this);
         }
 
-        public CombatPet CurrentActiveCombatPet { get; set; }
+        public Pet CurrentActivePet { get; set; }
 
         public void StartBarber()
         {
