@@ -9,6 +9,7 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.WorldObjects.Entity;
 
@@ -59,6 +60,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (healer.FastTick && !healer.PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            {
+                healer.SendUseDoneEvent(WeenieError.YouCantDoThatWhileInTheAir);
+                return;
+            }
+
             // ensure same PKType, although PK and PKLite players can heal NPKs:
             // https://asheron.fandom.com/wiki/Player_Killer
             // https://asheron.fandom.com/wiki/Player_Killer_Lite
@@ -100,7 +107,7 @@ namespace ACE.Server.WorldObjects
                 DoHealMotion(healer, targetPlayer, true);
         }
 
-        public static readonly float Healing_MaxMove = 3.0f;
+        public static readonly float Healing_MaxMove = 4.0f;
 
         public void DoHealMotion(Player healer, Player target, bool success)
         {

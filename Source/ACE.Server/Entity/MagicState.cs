@@ -107,6 +107,14 @@ namespace ACE.Server.Entity
         public bool CanQueue;
         public CastQueue CastQueue;
 
+        /// <summary>
+        /// By default, MoveToManager waits for the player to be in Ready state
+        /// before beginning a TurnTo. For some motions, such as immmediately after the CastGesture,
+        /// this can produce unnecessary delays.
+        /// This will be set to TRUE only for the first turn after the CastGesture
+        /// </summary>
+        public bool AlwaysTurn;
+
         public MagicState(Player player)
         {
             Player = player;
@@ -125,6 +133,7 @@ namespace ACE.Server.Entity
             PendingTurnRelease = false;
             CanQueue = false;
             CastQueue = null;
+            AlwaysTurn = false;
 
             StartTime = DateTime.UtcNow;
             CastGestureStartTime = DateTime.MinValue;
@@ -156,6 +165,7 @@ namespace ACE.Server.Entity
             Player.TurnTarget = null;
             CanQueue = false;
             CastQueue = null;
+            AlwaysTurn = false;
 
             CastGesture = MotionCommand.Invalid;
             CastGestureStartTime = DateTime.MinValue;

@@ -410,8 +410,7 @@ namespace ACE.Server.WorldObjects
 
             if (distanceTo > maxRange)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"Target is out of range!", ChatMessageType.Magic));
-                SendUseDoneEvent(WeenieError.None);
+                SendUseDoneEvent(WeenieError.MissileOutOfRange);
                 return false;
             }
 
@@ -550,7 +549,7 @@ namespace ACE.Server.WorldObjects
             }
 
             if (FastTick)
-                windupTime = EnqueueMotionAction(castChain, spell.Formula.WindupGestures, CastSpeed);
+                windupTime = EnqueueMotionAction(castChain, spell.Formula.WindupGestures, CastSpeed, MotionStance.Magic);
         }
 
         public void DoCastGesture(Spell spell, bool isWeaponSpell, ActionChain castChain)
@@ -580,6 +579,9 @@ namespace ACE.Server.WorldObjects
                 if (FastTick)
                     PhysicsObj.StopCompletely(false);
             });
+
+            if (MagicState.CastGesture == MotionCommand.Invalid)
+                MagicState.CastGesture = MotionCommand.Ready;
 
             var castTime = 0.0f;
             if (FastTick)
@@ -655,7 +657,8 @@ namespace ACE.Server.WorldObjects
 
                 if (target == null)
                 {
-                    FinishCast(WeenieError.TargetNotAcquired);
+                    SendWeenieError(WeenieError.TargetNotAcquired);
+                    FinishCast();
                     return;
                 }
 
@@ -686,14 +689,14 @@ namespace ACE.Server.WorldObjects
                 // verify spell range
                 if (!VerifySpellRange(target, targetCategory, spell, magicSkill))
                 {
-                    FinishCast(WeenieError.None);
+                    FinishCast();
                     return;
                 }
             }
 
             if (IsDead)
             {
-                FinishCast(WeenieError.None);
+                FinishCast();
                 return;
             }
 
@@ -715,7 +718,9 @@ namespace ACE.Server.WorldObjects
                 var stopCompletely = !MagicState.CastMotionDone;
                 //var stopCompletely = true;
 
-                CreateTurnToChain2(target, null, stopCompletely);
+                CreateTurnToChain2(target, null, stopCompletely, MagicState.AlwaysTurn);
+
+                MagicState.AlwaysTurn = false;
             }
         }
 
@@ -766,8 +771,6 @@ namespace ACE.Server.WorldObjects
             if (pk_error != null)
                 castingPreCheckStatus = CastingPreCheckStatus.InvalidPKStatus;
 
-            var useDone = WeenieError.None;
-
             switch (castingPreCheckStatus)
             {
                 case CastingPreCheckStatus.Success:
@@ -807,8 +810,8 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 default:
-                    useDone = WeenieError.YourSpellFizzled;
                     EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Fizzle, 0.5f));
+                    SendWeenieError(WeenieError.YourSpellFizzled);
                     break;
             }
 
@@ -828,10 +831,10 @@ namespace ACE.Server.WorldObjects
             }
 
             if (finishCast)
-                FinishCast(useDone);
+                FinishCast();
         }
 
-        public void FinishCast(WeenieError useDone)
+        public void FinishCast()
         {
             var hasWindupGestures = MagicState.CastSpellParams?.HasWindupGestures ?? true;
             var castGesture = MagicState.CastGesture;
@@ -860,7 +863,7 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddAction(this, () =>
                 {
                     IsBusy = false;
-                    SendUseDoneEvent(useDone);
+                    SendUseDoneEvent();
 
                     if (queue)
                         HandleCastQueue();
@@ -882,7 +885,7 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddAction(this, () => {
 
                     IsBusy = false;
-                    SendUseDoneEvent(useDone);
+                    SendUseDoneEvent();
 
                     if (queue)
                         HandleCastQueue();
@@ -1419,7 +1422,10 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddDelayForOneTick();
                 actionChain.AddAction(this, () =>
                 {
-                    if (!MagicState.IsCasting) return;
+                    if (!MagicState.IsCasting)
+                        return;
+
+                    MagicState.AlwaysTurn = true;
 
                     DoCastSpell(MagicState);
                 });
