@@ -143,7 +143,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("database-shard-cache-pbrt", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Shard Database, Player Biota Cache - Retention Time (in minutes)")]
         public static void HandleDatabaseShardCachePBRT(Session session, params string[] parameters)
         {
-            if (!(DatabaseManager.Shard._wrappedDatabase is ShardDatabaseWithCaching shardDatabaseWithCaching))
+            if (!(DatabaseManager.Shard.BaseDatabase is ShardDatabaseWithCaching shardDatabaseWithCaching))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, "DatabaseManager is not using ShardDatabaseWithCaching");
 
@@ -172,7 +172,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("database-shard-cache-npbrt", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Shard Database, Non-Player Biota Cache - Retention Time (in minutes)")]
         public static void HandleDatabaseShardCacheNPBRT(Session session, params string[] parameters)
         {
-            if (!(DatabaseManager.Shard._wrappedDatabase is ShardDatabaseWithCaching shardDatabaseWithCaching))
+            if (!(DatabaseManager.Shard.BaseDatabase is ShardDatabaseWithCaching shardDatabaseWithCaching))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, "DatabaseManager is not using ShardDatabaseWithCaching");
 

@@ -12,8 +12,10 @@ namespace ACE.Database
 {
     public class SerializedShardDatabase
     {
-        // todo this is only public so ServerStatus can report cache info... figure out a solution where this isn't public?? or better rename?
-        public readonly ShardDatabase _wrappedDatabase;
+        /// <summary>
+        /// This is the base database that SerializedShardDatabase is a wrapper for.
+        /// </summary>
+        public readonly ShardDatabase BaseDatabase;
 
         private readonly BlockingCollection<Task> _queue = new BlockingCollection<Task>();
 
@@ -21,7 +23,7 @@ namespace ACE.Database
 
         internal SerializedShardDatabase(ShardDatabase shardDatabase)
         {
-            _wrappedDatabase = shardDatabase;
+            BaseDatabase = shardDatabase;
         }
 
         public void Start()
@@ -90,7 +92,7 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.GetMaxGuidFoundInRange(min, max);
+                var result = BaseDatabase.GetMaxGuidFoundInRange(min, max);
                 callback?.Invoke(result);
             }));
         }
@@ -103,37 +105,17 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.GetSequenceGaps(min, limitAvailableIDsReturned);
+                var result = BaseDatabase.GetSequenceGaps(min, limitAvailableIDsReturned);
                 callback?.Invoke(result);
             }));
         }
 
 
-        public int GetBiotaCount()
-        {
-            return _wrappedDatabase.GetBiotaCount();
-        }
-
-        public Biota GetBiota(uint id)
-        {
-            return _wrappedDatabase.GetBiota(id);
-        }
-
-        public List<Biota> GetBiotasByWcid(uint id)
-        {
-            return _wrappedDatabase.GetBiotasByWcid(id);
-        }
-
-        public List<Biota> GetBiotasByType(WeenieType type)
-        {
-            return _wrappedDatabase.GetBiotasByType(type);
-        }
-
         public void SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.SaveBiota(biota, rwLock);
+                var result = BaseDatabase.SaveBiota(biota, rwLock);
                 callback?.Invoke(result);
             }));
         }
@@ -143,7 +125,7 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.SaveBiotasInParallel(biotas);
+                var result = BaseDatabase.SaveBiotasInParallel(biotas);
                 callback?.Invoke(result);
             }));
         }
@@ -152,7 +134,7 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.RemoveBiota(id);
+                var result = BaseDatabase.RemoveBiota(id);
                 callback?.Invoke(result);
             }));
         }
@@ -164,7 +146,7 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var taskStartTime = DateTime.UtcNow;
-                var result = _wrappedDatabase.RemoveBiota(id);
+                var result = BaseDatabase.RemoveBiota(id);
                 var taskCompletedTime = DateTime.UtcNow;
                 callback?.Invoke(result);
                 performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
@@ -178,7 +160,7 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var taskStartTime = DateTime.UtcNow;
-                var result = _wrappedDatabase.RemoveBiotasInParallel(ids);
+                var result = BaseDatabase.RemoveBiotasInParallel(ids);
                 var taskCompletedTime = DateTime.UtcNow;
                 callback?.Invoke(result);
                 performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
@@ -190,7 +172,7 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var c = _wrappedDatabase.GetPossessedBiotasInParallel(id);
+                var c = BaseDatabase.GetPossessedBiotasInParallel(id);
                 callback?.Invoke(c);
             }));
         }
@@ -199,20 +181,10 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var c = _wrappedDatabase.GetInventoryInParallel(parentId, includedNestedItems);
+                var c = BaseDatabase.GetInventoryInParallel(parentId, includedNestedItems);
                 callback?.Invoke(c);
             }));
 
-        }
-
-        public List<Biota> GetStaticObjectsByLandblock(ushort landblockId)
-        {
-            return _wrappedDatabase.GetStaticObjectsByLandblock(landblockId);
-        }
-
-        public List<Biota> GetDynamicObjectsByLandblock(ushort landblockId)
-        {
-            return _wrappedDatabase.GetDynamicObjectsByLandblock(landblockId);
         }
 
 
@@ -220,7 +192,7 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.IsCharacterNameAvailable(name);
+                var result = BaseDatabase.IsCharacterNameAvailable(name);
                 callback?.Invoke(result);
             }));
         }
@@ -229,33 +201,24 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.GetCharacters(accountId, includeDeleted);
+                var result = BaseDatabase.GetCharacters(accountId, includeDeleted);
                 callback?.Invoke(result);
             }));
-        }
-
-        public List<Character> GetCharacters(uint accountId, bool includeDeleted)
-        {
-            return _wrappedDatabase.GetCharacters(accountId, includeDeleted);
-        }
-
-        public Character GetCharacterStubByName(string name)
-        {
-            return _wrappedDatabase.GetCharacterStubByName(name);
-        }
-
-        public Character GetCharacterStubByGuid(uint guid)
-        {
-            return _wrappedDatabase.GetCharacterStubByGuid(guid);
         }
 
         public void SaveCharacter(Character character, ReaderWriterLockSlim rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.SaveCharacter(character, rwLock);
+                var result = BaseDatabase.SaveCharacter(character, rwLock);
                 callback?.Invoke(result);
             }));
+        }
+
+        public void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback)
+        {
+            // TODO
+            throw new NotImplementedException();
         }
 
 
@@ -263,43 +226,9 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.AddCharacterInParallel(biota, biotaLock, possessions, character, characterLock);
+                var result = BaseDatabase.AddCharacterInParallel(biota, biotaLock, possessions, character, characterLock);
                 callback?.Invoke(result);
             }));
-        }
-
-
-        /// <summary>
-        /// This will get all player biotas that are backed by characters that are not deleted.
-        /// </summary>
-        public List<ACE.Entity.Models.Biota> GetAllPlayerBiotasInParallel()
-        {
-            return _wrappedDatabase.GetAllPlayerBiotasInParallel();
-        }
-
-        public List<Biota> GetHousesOwned()
-        {
-            return _wrappedDatabase.GetHousesOwned();
-        }
-
-        public uint? GetAllegianceID(uint monarchID)
-        {
-            return _wrappedDatabase.GetAllegianceID(monarchID);
-        }
-
-
-
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-
-        public void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback)
-        {
-            throw new NotImplementedException();
         }
     }
 }

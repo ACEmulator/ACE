@@ -175,8 +175,5 @@ namespace ACE.Database
 
             return base.RemoveBiota(id);
         }
-
-
-        // TODO CHaracter stuff
     }
 }

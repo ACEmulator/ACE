@@ -345,7 +345,7 @@ namespace ACE.Server.Command.Handlers
                     message += $"Account created on {account.CreateTime.ToLocalTime()} by IP: {(account.CreateIP != null ? new IPAddress(account.CreateIP).ToString() : "N/A")} \n";
                     message += $"Account last logged on at {(account.LastLoginTime.HasValue ? account.LastLoginTime.Value.ToLocalTime().ToString() : "N/A")} by IP: {(account.LastLoginIP != null ? new IPAddress(account.LastLoginIP).ToString() : "N/A")}\n";
                     message += $"Account total times logged on {account.TotalTimesLoggedIn}\n";
-                    var characters = DatabaseManager.Shard.GetCharacters(account.AccountId, true);
+                    var characters = DatabaseManager.Shard.BaseDatabase.GetCharacters(account.AccountId, true);
                     message += $"{characters.Count} Character(s) owned by: {account.AccountName}\n";
                     message += "-------------------\n";
                     foreach (var character in characters.Where(x => !x.IsDeleted && x.DeleteTime == 0))
@@ -2568,7 +2568,7 @@ namespace ACE.Server.Command.Handlers
                         return;
                     }
 
-                    var character = DatabaseManager.Shard.GetCharacterStubByName(oldName);
+                    var character = DatabaseManager.Shard.BaseDatabase.GetCharacterStubByName(oldName);
 
                     character.Name = newName;
                     DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), null);

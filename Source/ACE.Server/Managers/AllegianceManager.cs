@@ -58,8 +58,8 @@ namespace ACE.Server.Managers
                 return Players[monarch.Guid].Allegiance;
 
             // try to load biota
-            var allegianceID = DatabaseManager.Shard.GetAllegianceID(monarch.Guid.Full);
-            var biota = allegianceID != null ? DatabaseManager.Shard.GetBiota(allegianceID.Value) : null;
+            var allegianceID = DatabaseManager.Shard.BaseDatabase.GetAllegianceID(monarch.Guid.Full);
+            var biota = allegianceID != null ? DatabaseManager.Shard.BaseDatabase.GetBiota(allegianceID.Value) : null;
 
             Allegiance allegiance;
 

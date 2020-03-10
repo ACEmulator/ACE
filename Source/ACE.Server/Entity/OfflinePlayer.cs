@@ -34,14 +34,14 @@ namespace ACE.Server.Entity
             Biota = biota;
             Guid = new ObjectGuid(Biota.Id);
 
-            var character = DatabaseManager.Shard.GetCharacterStubByGuid(Guid.Full);
+            var character = DatabaseManager.Shard.BaseDatabase.GetCharacterStubByGuid(Guid.Full);
 
             if (character != null)
                 Account = DatabaseManager.Authentication.GetAccountById(character.AccountId);
         }
 
-        public bool IsDeleted => DatabaseManager.Shard.GetCharacterStubByGuid(Guid.Full).IsDeleted;
-        public bool IsPendingDeletion => DatabaseManager.Shard.GetCharacterStubByGuid(Guid.Full).DeleteTime > 0 && !IsDeleted;
+        public bool IsDeleted => DatabaseManager.Shard.BaseDatabase.GetCharacterStubByGuid(Guid.Full).IsDeleted;
+        public bool IsPendingDeletion => DatabaseManager.Shard.BaseDatabase.GetCharacterStubByGuid(Guid.Full).DeleteTime > 0 && !IsDeleted;
 
         public DateTime LastRequestedDatabaseSave { get; protected set; }
 

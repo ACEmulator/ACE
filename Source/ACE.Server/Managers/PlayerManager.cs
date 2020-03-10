@@ -44,7 +44,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void Initialize()
         {
-            var results = DatabaseManager.Shard.GetAllPlayerBiotasInParallel();
+            var results = DatabaseManager.Shard.BaseDatabase.GetAllPlayerBiotasInParallel();
 
             Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
             {

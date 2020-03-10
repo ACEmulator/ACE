@@ -108,7 +108,7 @@ namespace ACE.Server.Managers
             //foreach (var houseOwner in houseOwners)
                 //AddRentQueue(houseOwner);
 
-            var slumlordBiotas = DatabaseManager.Shard.GetBiotasByType(WeenieType.SlumLord);
+            var slumlordBiotas = DatabaseManager.Shard.BaseDatabase.GetBiotasByType(WeenieType.SlumLord);
 
             foreach (var slumlord in slumlordBiotas)
                 AddRentQueue(slumlord);
@@ -213,7 +213,7 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void QueryMultiHouse()
         {
-            var slumlordBiotas = DatabaseManager.Shard.GetBiotasByType(WeenieType.SlumLord);
+            var slumlordBiotas = DatabaseManager.Shard.BaseDatabase.GetBiotasByType(WeenieType.SlumLord);
 
             var playerHouses = new Dictionary<IPlayer, List<Biota>>();
             var accountHouses = new Dictionary<string, List<Biota>>();
