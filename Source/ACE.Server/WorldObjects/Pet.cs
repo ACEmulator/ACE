@@ -11,7 +11,6 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Physics.Animation;
 
 using Biota = ACE.Database.Models.Shard.Biota;
@@ -103,14 +102,8 @@ namespace ACE.Server.WorldObjects
             }
 
             if (IsPassivePet)
-            {
-                var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(0.25f);
-                actionChain.AddAction(this, () => TryCastSpells());
-                actionChain.EnqueueChain();
-
                 nextSlowTickTime = Time.GetUnixTime();
-            }
+
             return true;
         }
 
@@ -151,13 +144,8 @@ namespace ACE.Server.WorldObjects
             if (dist > MaxDistance)
                 Destroy();
 
-            if (IsMoving) return;
-
-            if (dist > MinDistance)
+            if (!IsMoving && dist > MinDistance)
                 StartFollow();
-
-            if (dist < CastDistance && DateTime.UtcNow > NextCastTime)
-                TryCastSpells();
         }
 
         // if the passive pet is between min-max distance to owner,
@@ -165,8 +153,6 @@ namespace ACE.Server.WorldObjects
 
         private static readonly float MinDistance = 2.0f;
         private static readonly float MaxDistance = 192.0f;
-
-        private static readonly float CastDistance = 96.0f;
 
         private void StartFollow()
         {
@@ -237,34 +223,6 @@ namespace ACE.Server.WorldObjects
 
             PhysicsObj.CachedVelocity = Vector3.Zero;
             IsMoving = false;
-        }
-
-        /// <summary>
-        /// A pet casts spells on its owner every 30 seconds?
-        /// </summary>
-        private static readonly TimeSpan CastInterval = TimeSpan.FromSeconds(30);
-
-        private DateTime NextCastTime;
-
-        /// <summary>
-        /// Passive pet cast spells on its owner
-        /// </summary>
-        public void TryCastSpells()
-        {
-            // deprecated: should use Heartbeat emotes and PetCastSpellOnOwner
-            foreach (var _spell in Biota.BiotaPropertiesSpellBook)
-            {
-                var spell = new Spell(_spell.Spell);
-
-                if (spell.NotFound)
-                {
-                    log.Error($"{Name}.CastSpells(): spell {_spell.Spell} not found");
-                    continue;
-                }
-
-                TryCastSpell(spell, P_PetOwner);
-            }
-            NextCastTime = DateTime.UtcNow + CastInterval;
         }
 
         public static Dictionary<uint, float> PetRadiusCache = new Dictionary<uint, float>();
