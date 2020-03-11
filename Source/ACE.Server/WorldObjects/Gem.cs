@@ -114,6 +114,8 @@ namespace ACE.Server.WorldObjects
 
         public void UseGem(Player player)
         {
+            if (player.IsDead) return;
+
             if (RareUsesTimer)
             {
                 var currentTime = Time.GetUnixTime();
