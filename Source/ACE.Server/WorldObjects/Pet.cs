@@ -88,11 +88,6 @@ namespace ACE.Server.WorldObjects
 
             Name = player.Name + "'s " + Name;
 
-            player.CurrentActivePet = this;
-
-            PetOwner = player.Guid.Full;
-            P_PetOwner = player;
-
             var success = EnterWorld();
 
             if (!success)
@@ -100,6 +95,11 @@ namespace ACE.Server.WorldObjects
                 player.SendTransientError($"Couldn't spawn {Name}");
                 return false;
             }
+
+            player.CurrentActivePet = this;
+
+            PetOwner = player.Guid.Full;
+            P_PetOwner = player;
 
             if (IsPassivePet)
                 nextSlowTickTime = Time.GetUnixTime();
