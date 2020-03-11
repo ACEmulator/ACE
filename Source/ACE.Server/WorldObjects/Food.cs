@@ -1,14 +1,12 @@
 using System;
-
 using log4net;
-
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
-using ACE.Server.Entity.Actions;
-using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Entity;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics;
 
 using Biota = ACE.Database.Models.Shard.Biota;
 
@@ -39,6 +37,14 @@ namespace ACE.Server.WorldObjects
             ObjectDescriptionFlags |= ObjectDescriptionFlag.Food;
         }
 
+        public enum ConsumableBuffType
+        {
+            Spell   = 0,
+            Health  = 2,
+            Stamina = 4,
+            Mana    = 6
+        }
+
         /// <summary>
         /// This is raised by Player.HandleActionUseItem.<para />
         /// The item should be in the players possession.
@@ -50,50 +56,19 @@ namespace ACE.Server.WorldObjects
 
             if (player.IsBusy || player.Teleporting)
             {
-                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YoureTooBusy));
+                player.SendWeenieError(WeenieError.YoureTooBusy);
                 return;
             }
 
-            player.IsBusy = true;
+            if (player.FastTick && !player.PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            {
+                player.SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
+                return;
+            }
 
-            var actionChain = new ActionChain();
-
-            // if something other that NonCombat.Ready,
-            // manually send this swap
-            var prevStance = player.CurrentMotionState.Stance;
-
-            var animTime = 0.0f;
-
-            if (prevStance != MotionStance.NonCombat)
-                animTime = player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, (MotionCommand)prevStance);
-
-            // start the eat/drink motion
             var motionCommand = GetUseSound() == Sound.Eat1 ? MotionCommand.Eat : MotionCommand.Drink;
 
-            animTime += player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, motionCommand);
-
-            // apply consumable
-            actionChain.AddAction(player, () => ApplyConsumable(player));
-
-            // return to ready stance
-            animTime += player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, motionCommand);
-
-            if (prevStance != MotionStance.NonCombat)
-                animTime += player.EnqueueMotion_Force(actionChain, prevStance, MotionCommand.Ready, MotionCommand.NonCombat);
-
-            actionChain.AddAction(player, () => { player.IsBusy = false; });
-
-            actionChain.EnqueueChain();
-
-            player.LastUseTime = animTime;
-        }
-
-        public enum ConsumableBuffType
-        {
-            Spell   = 0,
-            Health  = 2,
-            Stamina = 4,
-            Mana    = 6
+            player.ApplyConsumable(motionCommand, () => ApplyConsumable(player));
         }
 
         /// <summary>
@@ -107,24 +82,24 @@ namespace ACE.Server.WorldObjects
             var buffType = (ConsumableBuffType)BoosterEnum;
             GameMessageSystemChat buffMessage = null;
 
-            // spells
             if (buffType == ConsumableBuffType.Spell)
             {
-                var spellID = SpellDID ?? 0;
+                // spells
+                var spell = new Spell(SpellDID ?? 0);
 
-                var result = player.CreateSingleSpell(spellID);
-
-                if (result)
+                if (spell.NotFound)
                 {
-                    var spell = new Server.Entity.Spell(spellID);
-                    buffMessage = new GameMessageSystemChat($"{Name} casts {spell.Name} on you.", ChatMessageType.Magic);
+                    if (spell._spellBase != null)
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                    else
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid spell id {SpellDID ?? 0}", ChatMessageType.System));
                 }
                 else
-                    buffMessage = new GameMessageSystemChat($"{Name} has invalid spell id {spellID}", ChatMessageType.Broadcast);
+                    TryCastSpell(spell, player);
             }
-            // vitals
             else
             {
+                // vitals
                 var vital = player.GetCreatureVital(BoosterEnum);
 
                 if (vital != null)
@@ -156,7 +131,8 @@ namespace ACE.Server.WorldObjects
             var soundEvent = new GameMessageSound(player.Guid, GetUseSound(), 1.0f);
             player.EnqueueBroadcast(soundEvent);
 
-            player.Session.Network.EnqueueSend(buffMessage);
+            if (buffMessage != null)
+                player.Session.Network.EnqueueSend(buffMessage);
 
             player.TryConsumeFromInventoryWithNetworking(this, 1);
         }
