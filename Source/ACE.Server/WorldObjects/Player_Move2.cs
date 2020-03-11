@@ -60,7 +60,7 @@ namespace ACE.Server.WorldObjects
             if (IsPlayerMovingTo2)
                 StopExistingMoveToChains2();
 
-            var rotateTarget = target.GetCurrentOrWielder(CurrentLandblock);
+            var rotateTarget = target.Wielder ?? target;
 
             if (rotateTarget.Location == null)
             {

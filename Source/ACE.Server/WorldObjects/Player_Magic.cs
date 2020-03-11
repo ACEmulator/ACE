@@ -976,6 +976,10 @@ namespace ACE.Server.WorldObjects
             if (isWeaponSpell)
                 caster = GetEquippedWand();
 
+            // verify after windup, still consumes mana
+            if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(this, target))
+                return;
+
             switch (spell.School)
             {
                 case MagicSchool.WarMagic:
