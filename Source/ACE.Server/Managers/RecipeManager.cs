@@ -1337,7 +1337,7 @@ namespace ACE.Server.Managers
                     break;
             }
 
-            // FIXME: handle all CO fields
+            // TODO: handle other CO fields?
             if (modTarget != null && prop == PropertyDataId.IconUnderlay)
                 player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyDataID(modTarget, PropertyDataId.IconUnderlay, (modTarget.IconUnderlayId ?? 0)));
         }
