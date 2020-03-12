@@ -88,6 +88,9 @@ namespace ACE.Server.WorldObjects
 
             Name = player.Name + "'s " + Name;
 
+            PetOwner = player.Guid.Full;
+            P_PetOwner = player;
+
             var success = EnterWorld();
 
             if (!success)
@@ -97,9 +100,6 @@ namespace ACE.Server.WorldObjects
             }
 
             player.CurrentActivePet = this;
-
-            PetOwner = player.Guid.Full;
-            P_PetOwner = player;
 
             if (IsPassivePet)
                 nextSlowTickTime = Time.GetUnixTime();
