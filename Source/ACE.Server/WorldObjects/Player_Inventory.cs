@@ -856,37 +856,53 @@ namespace ACE.Server.WorldObjects
                             return;
                         }
 
+                        //var questSolve = false;
+                        //var isFromMyCorpse = false;
+                        //var isFromAPlayerCorpse = false;
+                        //var isFromMyHook = false;
+                        //var isFromMyStorage = false;
+
+                        //if (itemRootOwner != this && containerRootOwner == this && item.Quest != null) // We're picking up a quest item
+                        //{
+                        //    if ( itemRootOwner != null && (itemRootOwner.WeenieType == WeenieType.Corpse || itemRootOwner.WeenieType == WeenieType.Hook || itemRootOwner.WeenieType == WeenieType.Storage))
+                        //    {
+                        //        if (itemRootOwner is Corpse && itemRootOwner.VictimId.HasValue && itemRootOwner.VictimId.Value == Guid.Full)
+                        //            isFromMyCorpse = true;
+                        //        if (itemRootOwner is Hook && itemRootOwner.HouseOwner.HasValue && itemRootOwner.HouseOwner.Value == Guid.Full)
+                        //            isFromMyHook = true;
+                        //        if (itemRootOwner is Storage && itemRootOwner.HouseOwner.HasValue && itemRootOwner.HouseOwner.Value == Guid.Full)
+                        //            isFromMyStorage = true;
+                        //    }
+
+                        //    if (!QuestManager.CanSolve(item.Quest) && !isFromMyCorpse && !isFromMyHook && !isFromMyStorage)
+                        //    {
+                        //        QuestManager.HandleSolveError(item.Quest);
+                        //        EnqueuePickupDone(pickupMotion);
+                        //        return;
+                        //    }
+                        //    else
+                        //    {
+                        //        if (!isFromMyCorpse && !isFromMyHook && !isFromMyStorage)
+                        //            questSolve = true;
+                        //    }
+                        //}
+
                         var questSolve = false;
-                        var isFromMyCorpse = false;
-                        var isFromAPlayerCorpse = false;
-                        var isFromMyHook = false;
-                        var isFromMyStorage = false;
-
-                        if (itemRootOwner != this && containerRootOwner == this && item.Quest != null) // We're picking up a quest item
+                        if (!string.IsNullOrWhiteSpace(item.Quest) && item.GeneratorId != null) // We're picking up an item with a quest stamp that can also be a timer/limiter
                         {
-                            if ( itemRootOwner != null && (itemRootOwner.WeenieType == WeenieType.Corpse || itemRootOwner.WeenieType == WeenieType.Hook || itemRootOwner.WeenieType == WeenieType.Storage))
+                            if (QuestManager.CanSolve(item.Quest))
                             {
-                                if (itemRootOwner is Corpse && itemRootOwner.VictimId.HasValue && itemRootOwner.VictimId.Value == Guid.Full)
-                                    isFromMyCorpse = true;
-                                if (itemRootOwner is Hook && itemRootOwner.HouseOwner.HasValue && itemRootOwner.HouseOwner.Value == Guid.Full)
-                                    isFromMyHook = true;
-                                if (itemRootOwner is Storage && itemRootOwner.HouseOwner.HasValue && itemRootOwner.HouseOwner.Value == Guid.Full)
-                                    isFromMyStorage = true;
+                                questSolve = true;
                             }
-
-                            if (!QuestManager.CanSolve(item.Quest) && !isFromMyCorpse && !isFromMyHook && !isFromMyStorage)
+                            else
                             {
                                 QuestManager.HandleSolveError(item.Quest);
                                 EnqueuePickupDone(pickupMotion);
                                 return;
                             }
-                            else
-                            {
-                                if (!isFromMyCorpse && !isFromMyHook && !isFromMyStorage)
-                                    questSolve = true;
-                            }
                         }
 
+                        var isFromAPlayerCorpse = false;
                         if (itemRootOwner is Corpse && itemRootOwner.Level.HasValue)
                             isFromAPlayerCorpse = true;
 
@@ -918,7 +934,7 @@ namespace ACE.Server.WorldObjects
                                 item.NotifyOfEvent(RegenerationType.PickUp);
 
                                 if (questSolve)
-                                    QuestManager.Update(item.Quest);
+                                    QuestManager.Stamp(item.Quest);
 
                                 if (isFromAPlayerCorpse)
                                 {
