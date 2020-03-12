@@ -210,8 +210,6 @@ namespace ACE.Server.Managers
         public static void ShowDialog(Player player, WorldObject source, WorldObject target, float successChance, bool tinkering = false, int numAugs = 0)
         {
             var percent = successChance * 100;
-            var decimalPlaces = 2;
-            var truncated = percent.Truncate(decimalPlaces);
 
             // retail messages:
 
@@ -219,16 +217,15 @@ namespace ACE.Server.Managers
             // You determine that you have a 99 percent chance to succeed.
             // You determine that you have a 38 percent chance to succeed. 5 percent is due to your augmentation.
 
-            var floorMsg = $"You determine that you have a {(int)percent}% chance to succeed.";
+            var floorMsg = $"You determine that you have a {percent.Round()}% chance to succeed.";
             if (numAugs > 0)
                 floorMsg += $"\n{numAugs * 5} percent is due to your augmentation.\n";
 
-            var templateMsg = $"You have a % chance of using {source.NameWithMaterial} on {target.NameWithMaterial}.";
-
-            var truncateMsg = templateMsg.Replace("%", Math.Round(truncated, decimalPlaces) + "%");
-            var exactMsg = templateMsg.Replace("%", percent + "%");
-
             player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, source.Guid, target.Guid, tinkering), floorMsg);
+
+            // todo: add non-default server option for showing exact chance
+
+            var exactMsg = $"You have a {percent}% chance of using {source.NameWithMaterial} on {target.NameWithMaterial}.";
 
             player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
 
@@ -249,7 +246,7 @@ namespace ACE.Server.Managers
 
             var tinkeredCount = target.NumTimesTinkered;
 
-            var materialType = tool.MaterialType.Value;
+            var materialType = tool.MaterialType ?? MaterialType.Unknown;
             var salvageMod = GetMaterialMod(materialType);
 
             var workmanshipMod = 1.0f;
