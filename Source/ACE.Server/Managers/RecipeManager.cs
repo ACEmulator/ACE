@@ -621,11 +621,11 @@ namespace ACE.Server.Managers
             else
                 return false;
 
-            if (IconUnderlay.TryGetValue(effect, out var icon))
+            /*if (IconUnderlay.TryGetValue(effect, out var icon))
             {
                 target.IconUnderlayId = icon;
                 player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyDataID(target, PropertyDataId.IconUnderlay, target.IconUnderlayId.Value));
-            }
+            }*/
 
             return true;
         }
@@ -1313,17 +1313,22 @@ namespace ACE.Server.Managers
             var sourceMod = GetSourceMod((RecipeSourceType)didMod.Source, player, source);
             var targetMod = GetTargetMod((ModificationType)didMod.Index, source, target, player, result);
 
+            WorldObject modTarget = null;
+
             switch (op)
             {
                 case ModificationOperation.SetValue:
+                    modTarget = targetMod;
                     targetMod.SetProperty(prop, value);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
+                    modTarget = target;
                     target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
+                    modTarget = result;
                     result.SetProperty(prop, player.GetProperty(prop) ?? 0);
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? 0}) - {op}");
                     break;
@@ -1331,6 +1336,10 @@ namespace ACE.Server.Managers
                     log.Warn($"RecipeManager.ModifyDataID({source.Name}, {target.Name}): unhandled operation {op}");
                     break;
             }
+
+            // FIXME: handle all CO fields
+            if (modTarget != null && prop == PropertyDataId.IconUnderlay)
+                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyDataID(modTarget, PropertyDataId.IconUnderlay, (modTarget.IconUnderlayId ?? 0)));
         }
 
         public static uint MaterialDualDID = 0x27000000;
