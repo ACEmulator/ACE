@@ -327,18 +327,22 @@ namespace ACE.Server.Managers
         public static void DoTinkering(Player player, WorldObject tool, WorldObject target, Recipe recipe, float chance, bool incItemTinkered)
         {
             var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= chance;
-            var salvageMaterial = GetMaterialName(tool.MaterialType ?? 0);
 
-            if (success)
+            if (tool.MaterialType != null)
             {
-                Tinkering_ModifyItem(player, tool, target, incItemTinkered);
+                var salvageMaterial = GetMaterialName(tool.MaterialType ?? 0);
 
-                // send local broadcast
-                if (incItemTinkered)
-                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
+                if (success)
+                {
+                    Tinkering_ModifyItem(player, tool, target, incItemTinkered);
+
+                    // send local broadcast
+                    if (incItemTinkered)
+                        player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
+                }
+                else if (incItemTinkered)
+                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}. The target is destroyed.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
             }
-            else if (incItemTinkered)
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}. The target is destroyed.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
 
             CreateDestroyItems(player, recipe, tool, target, success, !incItemTinkered);
 
