@@ -15,11 +15,10 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.WorldObjects;
-using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.WorldObjects.Entity;
-using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Factories;
+using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Managers
 {
@@ -38,7 +37,7 @@ namespace ACE.Server.Managers
             return GetNewRecipe(player, source, target);
         }
 
-        public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target)
+        public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target, bool confirmed = false)
         {
             if (player.IsBusy)
             {
@@ -48,9 +47,8 @@ namespace ACE.Server.Managers
 
             if (source == target)
             {
-                var message = new GameMessageSystemChat($"The {source.Name} cannot be combined with itself.", ChatMessageType.Craft);
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {source.Name} cannot be combined with itself.", ChatMessageType.Craft));
                 player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You can't use the {source.Name} on itself."));
-                player.Session.Network.EnqueueSend(message);
                 player.SendUseDoneEvent();
                 return;
             }
@@ -59,8 +57,7 @@ namespace ACE.Server.Managers
 
             if (recipe == null)
             {
-                var message = new GameMessageSystemChat($"The {source.Name} cannot be used on the {target.Name}.", ChatMessageType.Craft);
-                player.Session.Network.EnqueueSend(message);
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {source.Name} cannot be used on the {target.Name}.", ChatMessageType.Craft));
                 player.SendUseDoneEvent();
                 return;
             }
@@ -78,10 +75,23 @@ namespace ACE.Server.Managers
                 return;
             }
 
+            var percentSuccess = GetRecipeChance(player, source, target, recipe);
+
+            if (percentSuccess == null)
+            {
+                player.SendUseDoneEvent();
+                return;
+            }
+
+            var showDialog = HasDifficulty(recipe) && player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog);
+
+            if (showDialog && !confirmed)
+            {
+                ShowDialog(player, source, target, (float)percentSuccess);
+                return;
+            }
+
             ActionChain craftChain = new ActionChain();
-            CreatureSkill skill = null;
-            bool success = true; // assume success, unless there's a skill check
-            double percentSuccess = 1;
 
             var animTime = 0.0f;
 
@@ -97,81 +107,94 @@ namespace ACE.Server.Managers
 
             animTime += player.EnqueueMotion(craftChain, MotionCommand.ClapHands);
 
-            craftChain.AddAction(player, () =>
-            {
-                // re-verify
-                if (!VerifyRequirements(recipe, player, source, target))
-                {
-                    player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
-                    return;
-                }
-
-                if (recipe.Skill > 0 && recipe.Difficulty > 0)
-                {
-                    // there's a skill associated with this
-                    Skill skillId = (Skill)recipe.Skill;
-
-                    // this shouldn't happen, but sanity check for unexpected nulls
-                    skill = player.GetCreatureSkill(skillId);
-
-                    if (skill == null)
-                    {
-                        log.Warn($"RecipeManager.UseObjectOnTarget({player.Name}, {source.Name}, {target.Name}): recipe {recipe.Id} missing skill");
-                        player.SendUseDoneEvent();
-                        player.IsBusy = false;
-                        return;
-                    }
-
-                    // check for pre-MoA skill
-                    // convert into appropriate post-MoA skill
-                    // pre-MoA melee weapons: get highest melee weapons skill
-                    var newSkill = player.ConvertToMoASkill(skill.Skill);
-                    skill = player.GetCreatureSkill(newSkill);
-
-                    //Console.WriteLine("Required skill: " + skill.Skill);
-
-                    if (skill.AdvancementClass < SkillAdvancementClass.Trained)
-                    {
-                        var message = new GameEventWeenieError(player.Session, WeenieError.YouAreNotTrainedInThatTradeSkill);
-                        player.Session.Network.EnqueueSend(message);
-                        player.SendUseDoneEvent(WeenieError.YouAreNotTrainedInThatTradeSkill);
-                        player.IsBusy = false;
-                        return;
-                    }
-
-                    //Console.WriteLine("Skill difficulty: " + recipe.Recipe.Difficulty);
-
-                    percentSuccess = SkillCheck.GetSkillChance(skill.Current, recipe.Difficulty);
-
-                    success = ThreadSafeRandom.Next(0.0f, 1.0f) <= percentSuccess;
-                }
-
-                CreateDestroyItems(player, recipe, source, target, success);
-
-                // this code was intended for dyes, but UpdateObj seems to remove crafting components
-                // from shortcut bar, if they are hotkeyed
-                // more specifity for this, only if relevant properties are modified?
-                var shortcuts = player.GetShortcuts();
-                if (!shortcuts.Select(i => i.ObjectId).Contains(target.Guid.Full))
-                {
-                    var updateObj = new GameMessageUpdateObject(target);
-                    var updateDesc = new GameMessageObjDescEvent(player);
-
-                    if (target.CurrentWieldedLocation != null)
-                        player.EnqueueBroadcast(updateObj, updateDesc);
-                    else
-                        player.Session.Network.EnqueueSend(updateObj);
-                }
-
-                player.SendUseDoneEvent();
-                player.IsBusy = false;
-            });
+            craftChain.AddAction(player, () => HandleRecipe(player, source, target, recipe, (float)percentSuccess));
 
             player.EnqueueMotion(craftChain, MotionCommand.Ready);
+
+            craftChain.AddAction(player, () =>
+            {
+                if (!showDialog)
+                    player.SendUseDoneEvent();
+
+                player.IsBusy = false;
+            });
 
             craftChain.EnqueueChain();
 
             player.NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
+        }
+
+        public static bool HasDifficulty(Recipe recipe)
+        {
+            return recipe.Skill > 0 && recipe.Difficulty > 0;
+        }
+
+        public static float? GetRecipeChance(Player player, WorldObject source, WorldObject target, Recipe recipe)
+        {
+            // only for regular recipes atm, tinkering / imbues handled separately
+            // todo: refactor this more
+            if (!HasDifficulty(recipe))
+                return 1.0f;
+
+            var playerSkill = player.GetCreatureSkill((Skill)recipe.Skill);
+
+            if (playerSkill == null)
+            {
+                // this shouldn't happen, but sanity check for unexpected nulls
+                log.Warn($"RecipeManager.GetRecipeChance({player.Name}, {source.Name}, {target.Name}): recipe {recipe.Id} missing skill");
+                return null;
+            }
+
+            // check for pre-MoA skill
+            // convert into appropriate post-MoA skill
+            // pre-MoA melee weapons: get highest melee weapons skill
+            var newSkill = player.ConvertToMoASkill(playerSkill.Skill);
+
+            playerSkill = player.GetCreatureSkill(newSkill);
+
+            //Console.WriteLine("Required skill: " + skill.Skill);
+
+            if (playerSkill.AdvancementClass < SkillAdvancementClass.Trained)
+            {
+                player.SendWeenieError(WeenieError.YouAreNotTrainedInThatTradeSkill);
+                return null;
+            }
+
+            //Console.WriteLine("Skill difficulty: " + recipe.Recipe.Difficulty);
+
+            var chance = (float)SkillCheck.GetSkillChance(playerSkill.Current, recipe.Difficulty);
+
+            return chance;
+        }
+
+        public static void HandleRecipe(Player player, WorldObject source, WorldObject target, Recipe recipe, float successChance)
+        {
+            // re-verify
+            if (!VerifyRequirements(recipe, player, source, target))
+            {
+                player.SendWeenieError(WeenieError.YouDoNotPassCraftingRequirements);
+                return;
+            }
+
+            var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= successChance;
+
+            CreateDestroyItems(player, recipe, source, target, success);
+
+            // this code was intended for dyes, but UpdateObj seems to remove crafting components
+            // from shortcut bar, if they are hotkeyed
+            // more specifity for this, only if relevant properties are modified?
+            var shortcuts = player.GetShortcuts();
+
+            if (!shortcuts.Select(i => i.ObjectId).Contains(target.Guid.Full))
+            {
+                var updateObj = new GameMessageUpdateObject(target);
+                var updateDesc = new GameMessageObjDescEvent(player);
+
+                if (target.CurrentWieldedLocation != null)
+                    player.EnqueueBroadcast(updateObj, updateDesc);
+                else
+                    player.Session.Network.EnqueueSend(updateObj);
+            }
         }
 
         public static float DoMotion(Player player, MotionCommand motionCommand)
@@ -182,6 +205,34 @@ namespace ACE.Server.Managers
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId);
             var craftAnimationLength = motionTable.GetAnimationLength(motionCommand);
             return craftAnimationLength;
+        }
+
+        public static void ShowDialog(Player player, WorldObject source, WorldObject target, float successChance, bool tinkering = false, int numAugs = 0)
+        {
+            var percent = successChance * 100;
+            var decimalPlaces = 2;
+            var truncated = percent.Truncate(decimalPlaces);
+
+            // retail messages:
+
+            // You determine that you have a 100 percent chance to succeed.
+            // You determine that you have a 99 percent chance to succeed.
+            // You determine that you have a 38 percent chance to succeed. 5 percent is due to your augmentation.
+
+            var floorMsg = $"You determine that you have a {(int)percent}% chance to succeed.";
+            if (numAugs > 0)
+                floorMsg += $"\n{numAugs * 5} percent is due to your augmentation.\n";
+
+            var templateMsg = $"You have a % chance of using {source.NameWithMaterial} on {target.NameWithMaterial}.";
+
+            var truncateMsg = templateMsg.Replace("%", Math.Round(truncated, decimalPlaces) + "%");
+            var exactMsg = templateMsg.Replace("%", percent + "%");
+
+            player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, source.Guid, target.Guid, tinkering), floorMsg);
+
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
+
+            player.SendUseDoneEvent();
         }
 
         public static void HandleTinkering(Player player, WorldObject tool, WorldObject target, bool confirmed = false)
@@ -243,27 +294,9 @@ namespace ACE.Server.Managers
                 // check for player option: 'Use Crafting Chance of Success Dialog'
                 if (player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) && !confirmed)
                 {
-                    var percent = (float)successChance * 100;
-                    var decimalPlaces = 2;
-                    var truncated = percent.Truncate(decimalPlaces);
+                    var numAugs = recipe.SalvageType == 2 ? player.AugmentationBonusImbueChance : 0;
 
-                    var toolMaterial = GetMaterialName(tool.MaterialType ?? 0);
-
-                    // TODO: retail messages
-                    // You determine that you have a 100 percent chance to succeed.
-                    // You determine that you have a 99 percent chance to succeed.
-                    // You determine that you have a 38 percent chance to succeed. 5 percent is due to your augmentation.
-
-                    var templateMsg = $"You have a % chance of using {toolMaterial} {tool.Name} on {target.NameWithMaterial}.";
-                    var floorMsg = templateMsg.Replace("%", (int)percent + "%");
-                    var truncateMsg = templateMsg.Replace("%", Math.Round(truncated, decimalPlaces) + "%");
-                    var exactMsg = templateMsg.Replace("%", percent + "%");
-
-                    player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, tool.Guid, target.Guid), floorMsg);
-
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
-
-                    player.SendUseDoneEvent();
+                    ShowDialog(player, tool, target, (float)successChance, true, numAugs);
                     return;
                 }
             }
