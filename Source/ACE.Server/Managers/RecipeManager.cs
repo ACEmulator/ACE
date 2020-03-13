@@ -452,6 +452,8 @@ namespace ACE.Server.Managers
                     target.ItemDifficulty = (target.ItemDifficulty ?? 0) + target.ItemSpellcraft;
                     break;
 
+                // armatures / trinkets
+                // these are handled in recipe mod
                 case MaterialType.Amber:
                 case MaterialType.Diamond:
                 case MaterialType.GromnieHide:
@@ -478,41 +480,43 @@ namespace ACE.Server.Managers
                     target.ElementalDamageMod += 0.01f;     // + 1% vs. monsters, + 0.25% vs. players
                     break;
 
+                // these are handled in recipe mods already
+
                 case MaterialType.SmokeyQuartz:
-                    AddSpell(player, target, SpellId.CANTRIPCOORDINATION1);
+                    //AddSpell(player, target, SpellId.CANTRIPCOORDINATION1);
                     break;
                 case MaterialType.RoseQuartz:
-                    AddSpell(player, target, SpellId.CANTRIPQUICKNESS1);
+                    //AddSpell(player, target, SpellId.CANTRIPQUICKNESS1);
                     break;
                 case MaterialType.RedJade:
-                    AddSpell(player, target, SpellId.CANTRIPHEALTHGAIN1);
+                    //AddSpell(player, target, SpellId.CANTRIPHEALTHGAIN1);
                     break;
                 case MaterialType.Malachite:
-                    AddSpell(player, target, SpellId.WarriorsVigor);
+                    //AddSpell(player, target, SpellId.WarriorsVigor);
                     break;
                 case MaterialType.LavenderJade:
-                    AddSpell(player, target, SpellId.CANTRIPMANAGAIN1);
+                    //AddSpell(player, target, SpellId.CANTRIPMANAGAIN1);
                     break;
                 case MaterialType.LapisLazuli:
-                    AddSpell(player, target, SpellId.CANTRIPWILLPOWER1);
+                    //AddSpell(player, target, SpellId.CANTRIPWILLPOWER1);
                     break;
                 case MaterialType.Hematite:
-                    AddSpell(player, target, SpellId.WarriorsVitality);
+                    //AddSpell(player, target, SpellId.WarriorsVitality);
                     break;
                 case MaterialType.Citrine:
-                    AddSpell(player, target, SpellId.CANTRIPSTAMINAGAIN1);
+                    //AddSpell(player, target, SpellId.CANTRIPSTAMINAGAIN1);
                     break;
                 case MaterialType.Carnelian:
-                    AddSpell(player, target, SpellId.CANTRIPSTRENGTH1);
+                    //AddSpell(player, target, SpellId.CANTRIPSTRENGTH1);
                     break;
                 case MaterialType.Bloodstone:
-                    AddSpell(player, target, SpellId.CANTRIPENDURANCE1);
+                    //AddSpell(player, target, SpellId.CANTRIPENDURANCE1);
                     break;
                 case MaterialType.Azurite:
-                    AddSpell(player, target, SpellId.WizardsIntellect);
+                    //AddSpell(player, target, SpellId.WizardsIntellect);
                     break;
                 case MaterialType.Agate:
-                    AddSpell(player, target, SpellId.CANTRIPFOCUS1);
+                    //AddSpell(player, target, SpellId.CANTRIPFOCUS1);
                     break;
 
                 // weapon tinkering
