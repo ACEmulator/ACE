@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 using log4net;
 
@@ -325,25 +326,20 @@ namespace ACE.Server.Managers
         {
             var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= chance;
 
-            if (tool.MaterialType != null)
+            var sourceName = Regex.Replace(tool.NameWithMaterial, @" \(\d+\)$", "");
+
+            if (success)
             {
-                var salvageMaterial = GetMaterialName(tool.MaterialType ?? 0);
+                Tinkering_ModifyItem(player, tool, target, incItemTinkered);
 
-                if (success)
-                {
-                    Tinkering_ModifyItem(player, tool, target, incItemTinkered);
-
-                    // send local broadcast
-                    if (incItemTinkered)
-                        player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
-                }
-                else if (incItemTinkered)
-                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}. The target is destroyed.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
+                // send local broadcast
+                if (incItemTinkered)
+                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
             }
+            else if (incItemTinkered)
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {sourceName} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}. The target is destroyed.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
 
-            var sendMsg = !incItemTinkered || tool.MaterialType == null; 
-
-            CreateDestroyItems(player, recipe, tool, target, success, sendMsg);
+            CreateDestroyItems(player, recipe, tool, target, success, !incItemTinkered);
 
             if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) || !UseSkillCheck(tool.MaterialType ?? 0))
                 player.SendUseDoneEvent();
@@ -352,6 +348,8 @@ namespace ACE.Server.Managers
         public static void Tinkering_ModifyItem(Player player, WorldObject tool, WorldObject target, bool incItemTinkered = true)
         {
             var recipe = GetRecipe(player, tool, target);
+
+            if (tool.MaterialType == null) return;
 
             var materialType = tool.MaterialType.Value;
 
@@ -565,7 +563,7 @@ namespace ACE.Server.Managers
                     AddImbuedEffect(player, target, ImbuedEffectType.SlashRending);
                     break;
                 default:
-                    Console.WriteLine($"Unknown material type: {materialType}");
+                    log.Error($"{player.Name}.RecipeManager.Tinkering_ModifyItem({tool.Name} ({tool.Guid}), {target.Name} ({target.Guid})) - Unknown material type: {materialType}");
                     return;
             }
 
