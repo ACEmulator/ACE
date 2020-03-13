@@ -223,12 +223,12 @@ namespace ACE.Server.Managers
 
             player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, source.Guid, target.Guid, tinkering), floorMsg);
 
-            // todo: add non-default server option for showing exact chance
+            if (PropertyManager.GetBool("craft_exact_msg").Item)
+            {
+                var exactMsg = $"You have a {percent}% chance of using {source.NameWithMaterial} on {target.NameWithMaterial}.";
 
-            var exactMsg = $"You have a {percent}% chance of using {source.NameWithMaterial} on {target.NameWithMaterial}.";
-
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
-
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
+            }
             player.SendUseDoneEvent();
         }
 
