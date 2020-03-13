@@ -341,7 +341,9 @@ namespace ACE.Server.Managers
                     player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}. The target is destroyed.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
             }
 
-            CreateDestroyItems(player, recipe, tool, target, success, !incItemTinkered);
+            var sendMsg = !incItemTinkered || tool.MaterialType == null; 
+
+            CreateDestroyItems(player, recipe, tool, target, success, sendMsg);
 
             if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) || !UseSkillCheck(tool.MaterialType ?? 0))
                 player.SendUseDoneEvent();
