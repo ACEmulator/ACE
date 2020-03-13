@@ -247,11 +247,6 @@ namespace ACE.Database
 
         private readonly Dictionary<uint /* source WCID */, Dictionary<uint /* target WCID */, CookBook>> cookbookCache = new Dictionary<uint, Dictionary<uint, CookBook>>();
 
-        public void ClearRecipeCache()
-        {
-            cookbookCache.Clear();
-        }
-
         public override CookBook GetCookbook(WorldDbContext context, uint sourceWeenieClassId, uint targetWeenieClassId)
         {
             var cookbook = base.GetCookbook(context, sourceWeenieClassId, targetWeenieClassId);

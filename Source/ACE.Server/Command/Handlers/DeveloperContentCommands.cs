@@ -2026,7 +2026,7 @@ namespace ACE.Server.Command.Handlers.Processors
             if (mode.HasFlag(CacheType.Recipe))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, "Clearing recipe cache");
-                DatabaseManager.World.ClearRecipeCache();
+                DatabaseManager.World.ClearCookbookCache();
             }
 
             if (mode.HasFlag(CacheType.Spell))
