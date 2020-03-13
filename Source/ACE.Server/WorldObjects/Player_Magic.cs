@@ -724,7 +724,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public Position StartPos;
+        public Physics.Common.Position StartPos { get; set; }
 
         public void DoCastSpell_Inner(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus, bool finishCast = true)
         {
@@ -755,8 +755,8 @@ namespace ACE.Server.WorldObjects
                 TryBurnComponents(spell);
 
             // check windup move distance cap
-            var endPos = new Position(Location);
-            var dist = StartPos.DistanceTo(endPos);
+            var endPos = new Physics.Common.Position(PhysicsObj.Position);
+            var dist = StartPos.Distance(endPos);
 
             bool movedTooFar = false;
 
@@ -935,7 +935,7 @@ namespace ACE.Server.WorldObjects
             DoSpellWords(spell, isWeaponSpell);
 
             var spellChain = new ActionChain();
-            StartPos = new Position(Location);
+            StartPos = new Physics.Common.Position(PhysicsObj.Position);
 
             // do wind-up gestures: fastcast has no windup (creature enchantments)
             DoWindupGestures(spell, isWeaponSpell, spellChain);
@@ -1237,7 +1237,7 @@ namespace ACE.Server.WorldObjects
 
             var spellChain = new ActionChain();
 
-            StartPos = new Position(Location);
+            StartPos = new Physics.Common.Position(PhysicsObj.Position);
 
             // do wind-up gestures: fastcast has no windup (creature enchantments)
             DoWindupGestures(spell, false, spellChain);

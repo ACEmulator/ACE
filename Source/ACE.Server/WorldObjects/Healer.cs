@@ -126,7 +126,7 @@ namespace ACE.Server.WorldObjects
             var motion = new Motion(healer, motionCommand);
             var animLength = MotionTable.GetAnimationLength(healer.MotionTableId, healer.CurrentMotionState.Stance, motionCommand);
 
-            var startPos = new Position(healer.Location);
+            var startPos = new Physics.Common.Position(healer.PhysicsObj.Position);
 
             var actionChain = new ActionChain();
             actionChain.AddAction(healer, () => healer.EnqueueBroadcastMotion(motion));
@@ -134,8 +134,10 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(healer, () =>
             {
                 // check healing move distance cap
-                var endPos = new Position(healer.Location);
-                var dist = startPos.DistanceTo(endPos);
+                var endPos = new Physics.Common.Position(healer.PhysicsObj.Position);
+                var dist = startPos.Distance(endPos);
+
+                //Console.WriteLine($"Dist: {dist}");
 
                 // only PKs affected by these caps?
                 if (dist < Healing_MaxMove || healer.PlayerKillerStatus == PlayerKillerStatus.NPK)
