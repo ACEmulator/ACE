@@ -1182,13 +1182,10 @@ namespace ACE.Server.Managers
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.AddSpell:
-                    if (value != -1)
-                    {
-                        targetMod.Biota.GetOrAddKnownSpell(value, target.BiotaDatabaseLock, target.BiotaPropertySpells, out var added);
-                        if (added)
-                            targetMod.ChangesDetected = true;
-                    }
-                    if (Debug) Console.WriteLine($"{targetMod.Name}.AddSpell({value}) - {op}");
+                    targetMod.Biota.GetOrAddKnownSpell(intMod.Stat, target.BiotaDatabaseLock, target.BiotaPropertySpells, out var added);
+                    if (added)
+                        targetMod.ChangesDetected = true;
+                    if (Debug) Console.WriteLine($"{targetMod.Name}.AddSpell({intMod.Stat}) - {op}");
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyInt({source.Name}, {target.Name}): unhandled operation {op}");
