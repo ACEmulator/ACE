@@ -134,15 +134,22 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("debugcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows debug information about the current magic casting state")]
         public static void HandleDebugCast(Session session, params string[] parameters)
         {
+            session.Network.EnqueueSend(new GameMessageSystemChat(GetDebugCast(session), ChatMessageType.Broadcast));
+        }
+
+        public static string GetDebugCast(Session session)
+        {
             var physicsObj = session.Player.PhysicsObj;
 
             var pendingActions = physicsObj.MovementManager.MoveToManager.PendingActions;
             var currAnim = physicsObj.PartArray.Sequence.CurrAnim;
 
-            session.Network.EnqueueSend(new GameMessageSystemChat(session.Player.MagicState.ToString(), ChatMessageType.Broadcast));
-            session.Network.EnqueueSend(new GameMessageSystemChat($"IsMovingOrAnimating: {physicsObj.IsMovingOrAnimating}", ChatMessageType.Broadcast));
-            session.Network.EnqueueSend(new GameMessageSystemChat($"PendingActions: {pendingActions.Count}", ChatMessageType.Broadcast));
-            session.Network.EnqueueSend(new GameMessageSystemChat($"CurrAnim: {currAnim?.Value.Anim.ID:X8}", ChatMessageType.Broadcast));
+            var str = session.Player.MagicState.ToString();
+            str += $"\nIsMovingOrAnimating: {physicsObj.IsMovingOrAnimating}";
+            str += $"\nPendingActions: {pendingActions.Count}";
+            str += $"\nCurrAnim: {currAnim?.Value.Anim.ID:X8}";
+
+            return str;
         }
 
         [CommandHandler("fixcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Fixes magic casting if locked up for an extended time")]

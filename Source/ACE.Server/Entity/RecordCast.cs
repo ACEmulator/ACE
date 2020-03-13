@@ -5,6 +5,7 @@ using System.Text;
 using log4net;
 
 using ACE.Entity.Enum;
+using ACE.Server.Command.Handlers;
 using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects;
 
@@ -117,7 +118,9 @@ namespace ACE.Server.Entity
 
             var stanceLog = Player.StanceLog.ToString();
 
-            var info = $"[{timestamp}] {Player.Name} used /fixcast after being frozen for 5+ seconds:\n{Buffer}\n{stanceLog}\n===================================================";
+            var debugCast = PlayerCommands.GetDebugCast(Player.Session);
+
+            var info = $"[{timestamp}] {Player.Name} used /fixcast after being frozen for 5+ seconds:\n{debugCast}\n{Buffer}\n{stanceLog}\n===================================================";
 
             File.AppendAllText(DebugFilename, info);
         }
