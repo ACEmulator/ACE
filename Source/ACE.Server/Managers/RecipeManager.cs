@@ -219,7 +219,7 @@ namespace ACE.Server.Managers
 
             var floorMsg = $"You determine that you have a {percent.Round()}% chance to succeed.";
             if (numAugs > 0)
-                floorMsg += $"\n{numAugs * 5} percent is due to your augmentation.\n";
+                floorMsg += $"\n{numAugs * 5}% is due to your augmentation.";
 
             player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, source.Guid, target.Guid, tinkering), floorMsg);
 
