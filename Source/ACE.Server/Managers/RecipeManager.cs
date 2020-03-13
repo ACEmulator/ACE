@@ -1148,7 +1148,7 @@ namespace ACE.Server.Managers
                 log.Warn($"RecipeManager.ModifyBool({source.Name}, {target.Name}): unhandled operation {op}");
                 return;
             }
-            targetMod.SetProperty(prop, value);
+            player.UpdateProperty(targetMod, prop, value);
 
             if (Debug)
                 Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
@@ -1166,19 +1166,19 @@ namespace ACE.Server.Managers
             switch (op)
             {
                 case ModificationOperation.SetValue:
-                    targetMod.SetProperty(prop, value);
+                    player.UpdateProperty(targetMod, prop, value);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.Add:
-                    targetMod.IncProperty(prop, value);
+                    player.UpdateProperty(targetMod, prop, (targetMod.GetProperty(prop) ?? 0) + value);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.IncProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
-                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    player.UpdateProperty(target, prop, sourceMod.GetProperty(prop) ?? 0);
                     if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, player.GetProperty(prop) ?? 0);     // ??
+                    player.UpdateProperty(result, prop, player.GetProperty(prop) ?? 0);     // ??
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.AddSpell:
@@ -1208,19 +1208,19 @@ namespace ACE.Server.Managers
             switch (op)
             {
                 case ModificationOperation.SetValue:
-                    targetMod.SetProperty(prop, value);
+                    player.UpdateProperty(targetMod, prop, value);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.Add:
-                    targetMod.IncProperty(prop, value);
+                    player.UpdateProperty(targetMod, prop, (targetMod.GetProperty(prop) ?? 0) + value);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.IncProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
-                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    player.UpdateProperty(target, prop, sourceMod.GetProperty(prop) ?? 0);
                     if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, player.GetProperty(prop) ?? 0);
+                    player.UpdateProperty(result, prop, player.GetProperty(prop) ?? 0);
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 default:
@@ -1241,15 +1241,15 @@ namespace ACE.Server.Managers
             switch (op)
             {
                 case ModificationOperation.SetValue:
-                    targetMod.SetProperty(prop, value);
+                    player.UpdateProperty(targetMod, prop, value);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
-                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
+                    player.UpdateProperty(target, prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
                     if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? sourceMod.Name}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, player.GetProperty(prop) ?? player.Name);
+                    player.UpdateProperty(result, prop, player.GetProperty(prop) ?? player.Name);
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? player.Name}) - {op}");
                     break;
                 default:
@@ -1270,15 +1270,15 @@ namespace ACE.Server.Managers
             switch (op)
             {
                 case ModificationOperation.SetValue:
-                    targetMod.SetProperty(prop, value);
+                    player.UpdateProperty(targetMod, prop, value);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
-                    target.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));
+                    player.UpdateProperty(target, prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));
                     if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {ModifyInstanceIDRuleSet(prop, sourceMod, targetMod)}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, ModifyInstanceIDRuleSet(prop, player, targetMod));     // ??
+                    player.UpdateProperty(result, prop, ModifyInstanceIDRuleSet(prop, player, targetMod));     // ??
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {ModifyInstanceIDRuleSet(prop, player, targetMod)}) - {op}");
                     break;
                 default:
@@ -1310,33 +1310,24 @@ namespace ACE.Server.Managers
             var sourceMod = GetSourceMod((RecipeSourceType)didMod.Source, player, source);
             var targetMod = GetTargetMod((ModificationType)didMod.Index, source, target, player, result);
 
-            WorldObject modTarget = null;
-
             switch (op)
             {
                 case ModificationOperation.SetValue:
-                    modTarget = targetMod;
-                    targetMod.SetProperty(prop, value);
+                    player.UpdateProperty(targetMod, prop, value);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
-                    modTarget = target;
-                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    player.UpdateProperty(target, prop, sourceMod.GetProperty(prop) ?? 0);
                     if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    modTarget = result;
-                    result.SetProperty(prop, player.GetProperty(prop) ?? 0);
+                    player.UpdateProperty(result, prop, player.GetProperty(prop) ?? 0);
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyDataID({source.Name}, {target.Name}): unhandled operation {op}");
                     break;
             }
-
-            // TODO: handle other CO fields?
-            if (modTarget != null && prop == PropertyDataId.IconUnderlay)
-                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyDataID(modTarget, PropertyDataId.IconUnderlay, (modTarget.IconUnderlayId ?? 0)));
         }
 
         public static uint MaterialDualDID = 0x27000000;
