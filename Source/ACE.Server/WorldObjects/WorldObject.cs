@@ -887,11 +887,8 @@ namespace ACE.Server.WorldObjects
                     item.Destroy();
             }
 
-            if (this is CombatPet combatPet)
-            {
-                if (combatPet.P_PetOwner != null && combatPet.P_PetOwner.CurrentActiveCombatPet == this)
-                    combatPet.P_PetOwner.CurrentActiveCombatPet = null;
-            }
+            if (this is Pet pet && pet.P_PetOwner?.CurrentActivePet == this)
+                pet.P_PetOwner.CurrentActivePet = null;
 
             if (raiseNotifyOfDestructionEvent)
                 NotifyOfEvent(RegenerationType.Destruction);
@@ -1084,14 +1081,6 @@ namespace ACE.Server.WorldObjects
                 return new List<WorldObject>();
             else
                 return new List<WorldObject>() { this };
-        }
-
-        /// <summary>
-        /// Returns the wielder or the current object
-        /// </summary>
-        public WorldObject GetCurrentOrWielder(Landblock landblock)
-        {
-            return WielderId != null ? landblock?.GetObject(WielderId.Value) : this;
         }
     }
 }

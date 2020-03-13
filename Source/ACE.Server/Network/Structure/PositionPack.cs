@@ -58,7 +58,7 @@ namespace ACE.Server.Network.Structure
         {
             var flags = PositionFlags.None;
 
-            if (Velocity.X != 0.0f || Velocity.Y != 0.0f || Velocity.Z != 0.0f)
+            if (Velocity != Vector3.Zero)
                 flags |= PositionFlags.HasVelocity;
 
             if (PlacementID != null)

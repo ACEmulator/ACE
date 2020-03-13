@@ -32,6 +32,7 @@ namespace ACE.Server.Physics.Animation
         public List<MovementNode> PendingActions;
         public PhysicsObj PhysicsObj;
         public WeenieObject WeenieObj;
+        public bool AlwaysTurn;
 
         public MoveToManager()
         {
@@ -516,7 +517,7 @@ namespace ACE.Server.Physics.Animation
                 return;
             }
 
-            if (PhysicsObj.IsAnimating) return;
+            if (PhysicsObj.IsAnimating && !AlwaysTurn) return;
 
             var pendingAction = PendingActions[0];
             var headingDiff = heading_diff(pendingAction.Heading, PhysicsObj.get_heading(), (uint)MotionCommand.TurnRight);

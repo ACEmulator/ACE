@@ -410,8 +410,7 @@ namespace ACE.Server.WorldObjects
 
             if (distanceTo > maxRange)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"Target is out of range!", ChatMessageType.Magic));
-                SendUseDoneEvent(WeenieError.None);
+                SendUseDoneEvent(WeenieError.MissileOutOfRange);
                 return false;
             }
 
@@ -581,6 +580,9 @@ namespace ACE.Server.WorldObjects
                     PhysicsObj.StopCompletely(false);
             });
 
+            if (MagicState.CastGesture == MotionCommand.Invalid)
+                MagicState.CastGesture = MotionCommand.Ready;
+
             var castTime = 0.0f;
             if (FastTick)
                 castTime = EnqueueMotion(castChain, MagicState.CastGesture, CastSpeed, true, null, true);
@@ -716,7 +718,9 @@ namespace ACE.Server.WorldObjects
                 var stopCompletely = !MagicState.CastMotionDone;
                 //var stopCompletely = true;
 
-                CreateTurnToChain2(target, null, stopCompletely);
+                CreateTurnToChain2(target, null, stopCompletely, MagicState.AlwaysTurn);
+
+                MagicState.AlwaysTurn = false;
             }
         }
 
@@ -971,6 +975,10 @@ namespace ACE.Server.WorldObjects
             WorldObject caster = this;
             if (isWeaponSpell)
                 caster = GetEquippedWand();
+
+            // verify after windup, still consumes mana
+            if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(this, target))
+                return;
 
             switch (spell.School)
             {
@@ -1421,7 +1429,10 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddDelayForOneTick();
                 actionChain.AddAction(this, () =>
                 {
-                    if (!MagicState.IsCasting) return;
+                    if (!MagicState.IsCasting)
+                        return;
+
+                    MagicState.AlwaysTurn = true;
 
                     DoCastSpell(MagicState);
                 });

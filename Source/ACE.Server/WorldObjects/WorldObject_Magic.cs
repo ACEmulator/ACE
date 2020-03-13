@@ -50,6 +50,10 @@ namespace ACE.Server.WorldObjects
             if (targetCreature == null)
                 return;*/
 
+            // verify before resist, still consumes source item
+            if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(caster, target))
+                return;
+
             // perform resistance check, if applicable
             var resisted = tryResist ? TryResistSpell(target, spell, caster) : false;
             if (resisted)
@@ -342,11 +346,9 @@ namespace ACE.Server.WorldObjects
             var player = this as Player;
             var creature = this as Creature;
 
-            var spellTarget = spell.BaseRangeConstant > 0 ? target as Creature : creature;
-            var targetPlayer = spellTarget as Player;
+            var spellTarget = !spell.IsSelfTargeted ? target as Creature : creature;
 
-            if (this is Gem || this is Hook)
-                spellTarget = target as Creature;
+            var targetPlayer = spellTarget as Player;
 
             // NonComponentTargetType should be 0 for untargeted spells.
             // Return if the spell type is targeted with no target defined or the target is already dead.
@@ -714,6 +716,50 @@ namespace ACE.Server.WorldObjects
             enchantmentStatus.Success = true;
 
             return spellTarget?.IsDead ?? false;
+        }
+
+        public static bool VerifyDispelPKStatus(WorldObject caster, WorldObject target)
+        {
+            // https://asheron.fandom.com/wiki/Announcements_-_2004/04_-_A_New_Threat
+            // https://asheron.fandom.com/wiki/Dispel_Spells
+
+            // Dispel spells and potions have been revised. All dispels are also now tied to the PK/L timer.
+
+            // The feedback on the suggested dispel timer for PK/L was very mixed. There was no clear majority either for or against.
+            // With that in mind, we've gone ahead with the changes that we feel best improve majority of PK/L combat:
+            // we've decided to implement the PK/L timer on dispels.
+
+            // If you have been in a PK/L action within the last 20 seconds, you will not be able to:
+
+            // - Use a dispel gem.
+            // - Use a dispel potion.
+            // - Use the Awakener or Attenuated Awakener on someone else.
+            // - Cast any dispel spell on yourself.
+            // - Cast any dispel spell on someone else.
+
+            var casterPlayer = caster as Player;
+            var targetPlayer = (target.Wielder ?? target) as Player;
+
+            if (casterPlayer != null && casterPlayer.PKTimerActive)
+            {
+                casterPlayer.SendWeenieError(WeenieError.YouHaveBeenInPKBattleTooRecently);
+                return false;
+            }
+
+            if (targetPlayer != null && targetPlayer.PKTimerActive)
+            {
+                if (casterPlayer != null || caster is Gem || caster is Food)
+                {
+                    if (casterPlayer != null)
+                        casterPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{targetPlayer.Name} has been involved in a player killer battle too recently to do that!", ChatMessageType.Magic));
+                    else
+                        targetPlayer.SendWeenieError(WeenieError.YouHaveBeenInPKBattleTooRecently);
+
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -1318,13 +1364,20 @@ namespace ACE.Server.WorldObjects
             var startPos = strikeSpell ? target.Location.Pos : crossLandblock ? Location.ToGlobal(false) : Location.Pos;
             startPos += Vector3.Transform(origin, strikeSpell ? Location.Rotation * OneEighty : Location.Rotation);
 
-            var endPos = crossLandblock ? target.Location.ToGlobal(false) : target.Location.Pos;
+            var targetLoc = target.Location;
+
+            if (target.PhysicsObj != null)
+            {
+                var targetPos = target.PhysicsObj.Position;
+                targetLoc = new Position(targetPos.ObjCellID, targetPos.Frame.Origin, targetPos.Frame.Orientation);
+            }
+
+            var endPos = crossLandblock ? targetLoc.ToGlobal(false) : targetLoc.Pos;
 
             endPos.Z += target.Height * (spellType == ProjectileSpellType.Arc ? ProjHeightArc : ProjHeight);
 
             var dir = Vector3.Normalize(endPos - startPos);
 
-            // TODO: change to instantaneous velocity
             var targetVelocity = spell.IsTracking ? target.PhysicsObj.CachedVelocity : Vector3.Zero;
 
             var useGravity = spellType == ProjectileSpellType.Arc;

@@ -628,7 +628,9 @@ namespace ACE.Server.Physics.Common
                 RemoveVisibleObject(obj, inverse);
                 DestructionQueue.Remove(obj, out _);
 
-                RemoveKnownPlayer(obj);
+                if (obj.IsPlayer)
+                    RemoveKnownPlayer(obj);
+
                 RemoveVisibleTarget(obj);
             }
             finally
