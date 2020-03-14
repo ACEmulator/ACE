@@ -99,7 +99,7 @@ namespace ACE.Server.Network.Handlers
 
         private static void SendConnectRequest(Session session)
         {
-            // verify: should this happen if server response with connection error?
+            // verify: should this happen if server responds with connection error?
             var connectRequest = new PacketOutboundConnectRequest(
                 Timers.PortalYearTicks,
                 session.Network.ConnectionData.ConnectionCookie,
