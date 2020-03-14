@@ -259,7 +259,10 @@ namespace ACE.Server.Network
 
                 // At this point, if the player was on a landblock, they'll still exist on that landblock until the logout animation completes (~6s).
             }
+        }
 
+        public void DropSessionPost()
+        {
             NetworkManager.RemoveSession(this);
 
             // This is a temp fix to mark the Session.Network portion of the Session as released

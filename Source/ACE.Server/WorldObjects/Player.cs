@@ -491,6 +491,9 @@ namespace ACE.Server.WorldObjects
                     SetPropertiesAtLogOut();
                     SavePlayerToDatabase();
                     PlayerManager.SwitchPlayerFromOnlineToOffline(this);
+
+                    if (Session.PendingTermination != null)
+                        Session.DropSessionPost();
                 });
 
                 // close any open landblock containers (chests / corpses)
