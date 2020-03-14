@@ -4,6 +4,8 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 
+using log4net;
+
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Combat;
@@ -12,6 +14,8 @@ namespace ACE.Server.Physics.Common
 {
     public class ObjCell: PartCell, IEquatable<ObjCell>
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public uint ID;
         public LandDefs.WaterType WaterType;
         public Position Pos;
@@ -344,8 +348,16 @@ namespace ACE.Server.Physics.Common
 
                     var found = false;
 
-                    foreach (var stab in ((EnvCell)visibleCell).VisibleCells.Values)
+                    foreach (var kvp in ((EnvCell)visibleCell).VisibleCells)
                     {
+                        var stab = kvp.Value;
+
+                        if (stab == null)
+                        {
+                            log.Error($"ObjCell.find_cell_list: stab is null for {visibleCell.ID:X8} -> {kvp.Key:X8}");
+                            continue;
+                        }
+
                         if (cell.ID == stab.ID)
                         {
                             found = true;
