@@ -227,11 +227,14 @@ namespace ACE.Server.Network
             {
                 Network.EnqueueSend(message);
             }
-            PendingTermination = new SessionTerminationDetails()
+            if (PendingTermination == null)
             {
-                ExtraReason = extraReason,
-                Reason = reason
-            };
+                PendingTermination = new SessionTerminationDetails()
+                {
+                    ExtraReason = extraReason,
+                    Reason = reason
+                };
+            }
         }
 
         public void DropSession()
@@ -261,6 +264,8 @@ namespace ACE.Server.Network
 
                 // At this point, if the player was on a landblock, they'll still exist on that landblock until the logout animation completes (~6s).
             }
+            else
+                DropSessionPost();
         }
 
         public void DropSessionPost()
