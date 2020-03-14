@@ -117,7 +117,7 @@ namespace ACE.Server.Network.Handlers
         {
             packetLog.DebugFormat("ConnectRequest TS: {0}", Timers.PortalYearTicks);
 
-            if (session.Network.ConnectionData.ServerSeed == null || session.Network.ConnectionData.ClientSeed == null)
+            if (session.State != SessionState.WorldConnected && (session.Network.ConnectionData.ServerSeed == null || session.Network.ConnectionData.ClientSeed == null))
             {
                 // these are null if ConnectionData.DiscardSeeds() is called because of some other error condition.
                 session.Terminate(SessionTerminationReason.BadHandshake, new GameMessageCharacterError(CharacterError.ServerCrash1));
