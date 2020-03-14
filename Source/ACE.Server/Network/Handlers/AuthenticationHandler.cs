@@ -192,6 +192,8 @@ namespace ACE.Server.Network.Handlers
                     }
                 }
 
+                log.Debug($"new client connected: {loginRequest.Account}. setting session properties");
+
                 if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open)
                     log.Info($"client {loginRequest.Account} connected with verified password");
                 else
@@ -209,8 +211,6 @@ namespace ACE.Server.Network.Handlers
 
                 return;
             }
-
-            log.Debug($"new client connected: {loginRequest.Account}. setting session properties");
 
             // TODO: check for account bans
             SendConnectRequest(session);
