@@ -62,8 +62,10 @@ namespace ACE.Server.Network
 
         private bool CheckState(ClientPacket packet)
         {
-            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && State != SessionState.AuthLoginRequest)
-                return false;
+            // if existing session was found in WorldConnected state, it should be pushed through for AccountSelectCallback() to terminate
+
+            //if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && State != SessionState.AuthLoginRequest)
+                //return false;
 
             if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse) && State != SessionState.AuthConnectResponse)
                 return false;
