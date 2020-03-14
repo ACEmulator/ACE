@@ -87,7 +87,6 @@ namespace ACE.Server.Network.Handlers
 
             try
             {
-                log.Debug($"new client connected: {loginRequest.Account}. setting session properties");
                 AccountSelectCallback(account, session, loginRequest);
             }
             catch (Exception ex)
@@ -210,6 +209,8 @@ namespace ACE.Server.Network.Handlers
 
                 return;
             }
+
+            log.Debug($"new client connected: {loginRequest.Account}. setting session properties");
 
             // TODO: check for account bans
             SendConnectRequest(session);
