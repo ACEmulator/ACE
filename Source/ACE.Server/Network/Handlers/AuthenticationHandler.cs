@@ -97,6 +97,21 @@ namespace ACE.Server.Network.Handlers
             }
         }
 
+        private static void SendConnectRequest(Session session)
+        {
+            // verify: should this happen if server response with connection error?
+            var connectRequest = new PacketOutboundConnectRequest(
+                Timers.PortalYearTicks,
+                session.Network.ConnectionData.ConnectionCookie,
+                session.Network.ClientId,
+                session.Network.ConnectionData.ServerSeed,
+                session.Network.ConnectionData.ClientSeed);
+
+            session.Network.ConnectionData.DiscardSeeds();
+
+            session.Network.EnqueueSend(connectRequest);
+        }
+
 
         private static void AccountSelectCallback(Account account, Session session, PacketInboundLoginRequest loginRequest)
         {
@@ -109,25 +124,13 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            var connectRequest = new PacketOutboundConnectRequest(
-                Timers.PortalYearTicks,
-                session.Network.ConnectionData.ConnectionCookie,
-                session.Network.ClientId,
-                session.Network.ConnectionData.ServerSeed,
-                session.Network.ConnectionData.ClientSeed);
-
-            session.Network.ConnectionData.DiscardSeeds();
-
-            session.Network.EnqueueSend(connectRequest);
-
             if (loginRequest.NetAuthType < NetAuthType.AccountPassword)
             {
                 if (loginRequest.Account == "acservertracker:jj9h26hcsggc")
                 {
                     //log.Info($"Incoming ping from a Thwarg-Launcher client... Sending Pong...");
-
+                    SendConnectRequest(session);
                     session.Terminate(SessionTerminationReason.PongSentClosingConnection, new GameMessageCharacterError(CharacterError.ServerCrash1));
-
                     return;
                 }
 
@@ -136,6 +139,7 @@ namespace ACE.Server.Network.Handlers
                 else
                     log.Debug($"client {loginRequest.Account} connected with no Password or GlsTicket included so booting");
 
+                SendConnectRequest(session);
                 session.Terminate(SessionTerminationReason.NotAuthorizedNoPasswordOrGlsTicketIncludedInLoginReq, new GameMessageCharacterError(CharacterError.AccountInvalid));
 
                 return;
@@ -143,6 +147,7 @@ namespace ACE.Server.Network.Handlers
 
             if (account == null)
             {
+                SendConnectRequest(session);
                 session.Terminate(SessionTerminationReason.NotAuthorizedAccountNotFound, new GameMessageCharacterError(CharacterError.AccountDoesntExist));
                 return;
             }
@@ -151,6 +156,7 @@ namespace ACE.Server.Network.Handlers
             {
                 if (NetworkManager.Find(account.AccountName) != null)
                 {
+                    SendConnectRequest(session);
                     session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.Logon));
                     return;
                 }
@@ -165,6 +171,7 @@ namespace ACE.Server.Network.Handlers
                     else
                         log.Debug($"client {loginRequest.Account} connected with non matching password so booting");
 
+                    SendConnectRequest(session);
                     session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageBootAccount(session, " because the password entered for this account was not correct."));
 
                     // TO-DO: temporary lockout of account preventing brute force password discovery
@@ -179,7 +186,10 @@ namespace ACE.Server.Network.Handlers
 
                     if (previouslyConnectedAccount != null)
                     {
+                        // do not send connection request here, or else vials will fill up on new client,
+                        // and it won't try to repeatedly reconnect until previous char is logged out of world
                         previouslyConnectedAccount.Terminate(SessionTerminationReason.AccountLoggedIn, new GameMessageCharacterError(CharacterError.Logon));
+                        return;
                     }
                 }
 
@@ -195,16 +205,19 @@ namespace ACE.Server.Network.Handlers
                 else
                     log.Debug($"client {loginRequest.Account} connected with GlsTicket which is not implemented yet so booting");
 
+                SendConnectRequest(session);
                 session.Terminate(SessionTerminationReason.NotAuthorizedGlsTicketNotImplementedToProcLoginReq, new GameMessageCharacterError(CharacterError.AccountInvalid));
 
                 return;
             }
 
             // TODO: check for account bans
+            SendConnectRequest(session);
 
             account.UpdateLastLogin(session.EndPoint.Address);
 
             session.SetAccount(account.AccountId, account.AccountName, (AccessLevel)account.AccessLevel);
+
             session.State = SessionState.AuthConnectResponse;
         }
 

@@ -133,12 +133,6 @@ namespace ACE.Server.Network.Managers
                                     log.Warn($"Bad handshake from {endPoint}, aborting session.");
                                 }
 
-                                if (session.State == SessionState.WorldConnected)
-                                {
-                                    log.Debug($"Dropping {session.Player?.Name} for new session");
-                                    session.Terminate(SessionTerminationReason.AccountInUse);
-                                }
-
                                 session.ProcessPacket(packet);
                             }
                             else
