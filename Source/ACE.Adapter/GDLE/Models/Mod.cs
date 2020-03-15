@@ -5,7 +5,7 @@ namespace ACE.Adapter.GDLE.Models
     public class Mod
     {
         public List<IntRequirement> IntRequirements { get; set; } = new List<IntRequirement>();
-        public List<DIDRequirement> DIDRquirements { get; set; } = new List<DIDRequirement>();
+        public List<DIDRequirement> DIDRequirements { get; set; } = new List<DIDRequirement>();
         public List<IIDRequirement> IIDRequirements { get; set; } = new List<IIDRequirement>();
         public List<FloatRequirement> FloatRequirements { get; set; } = new List<FloatRequirement>();
         public List<StringRequirement> StringRequirements { get; set; } = new List<StringRequirement>();
