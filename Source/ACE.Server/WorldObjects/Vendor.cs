@@ -461,6 +461,12 @@ namespace ACE.Server.WorldObjects
                     altcost += (uint)Math.Max(1, wo.Value ?? 1);
             }
 
+            if (IsBusy && genlist.Any(i => i.GetProperty(PropertyBool.VendorService) == true))
+            {
+                player.SendWeenieErrorWithString(WeenieErrorWithString._IsTooBusyToAcceptGifts, Name);
+                return;
+            }
+
             // send transaction to player for further processing and.
             player.FinalizeBuyTransaction(this, uqlist, genlist, goldcost, altcost);
         }
