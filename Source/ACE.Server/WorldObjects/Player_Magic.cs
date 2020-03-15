@@ -715,6 +715,13 @@ namespace ACE.Server.WorldObjects
 
             if (FastTick)
             {
+                if (PropertyManager.GetDouble("spellcast_max_angle").Item > 5.0f && IsWithinAngle(target))
+                {
+                    // emulate current gdle TurnTo - doesn't match retail, but some players may prefer this
+                    OnMoveComplete_Magic(WeenieError.None);
+                    return;
+                }
+
                 var stopCompletely = !MagicState.CastMotionDone;
                 //var stopCompletely = true;
 
