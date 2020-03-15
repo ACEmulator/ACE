@@ -348,6 +348,9 @@ namespace ACE.Server.WorldObjects
 
             var spellTarget = !spell.IsSelfTargeted ? target as Creature : creature;
 
+            if (this is Gem || this is Hook)
+                spellTarget = target as Creature;
+
             var targetPlayer = spellTarget as Player;
 
             // NonComponentTargetType should be 0 for untargeted spells.
