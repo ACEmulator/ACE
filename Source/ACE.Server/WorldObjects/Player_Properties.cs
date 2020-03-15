@@ -1100,7 +1100,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns player's augmentation resistance for damage type
         /// </summary>
-        public float GetAugmentationResistance(DamageType damageType)
+        public int GetAugmentationResistance(DamageType damageType)
         {
             switch (damageType)
             {
