@@ -9,6 +9,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
@@ -372,7 +373,9 @@ namespace ACE.Server.WorldObjects
 
             // life spells
             // additive: armor/imperil
-            var bodyArmorMod = ignoreMagicResist ? 0.0f : AttackTarget.EnchantmentManager.GetBodyArmorMod();
+            var bodyArmorMod = AttackTarget.EnchantmentManager.GetBodyArmorMod();
+            if (ignoreMagicResist)
+                bodyArmorMod = IgnoreMagicResistScaled(bodyArmorMod);
 
             // handle armor rending mod here?
             //if (bodyArmorMod > 0)
@@ -394,6 +397,32 @@ namespace ACE.Server.WorldObjects
             return armorMod;
         }
 
+        public int IgnoreMagicArmorScaled(float enchantments)
+        {
+            if (!(this is Player))
+                return 0;
+
+            var scalar = PropertyManager.GetDouble("ignore_magic_armor_pvp_scalar").Item;
+
+            if (scalar != 1.0)
+                return (int)Math.Round(enchantments * (1.0 - scalar));
+            else
+                return 0;
+        }
+
+        public int IgnoreMagicResistScaled(float enchantments)
+        {
+            if (!(this is Player))
+                return 0;
+
+            var scalar = PropertyManager.GetDouble("ignore_magic_resist_pvp_scalar").Item;
+
+            if (scalar != 1.0)
+                return (int)Math.Round(enchantments * (1.0 - scalar));
+            else
+                return 0;
+        }
+
         /// <summary>
         /// Returns the effective AL for 1 piece of armor/clothing
         /// </summary>
@@ -412,12 +441,21 @@ namespace ACE.Server.WorldObjects
 
             // armor level additives
             var target = AttackTarget as Creature;
-            var armorMod = ignoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorMod();
+
+            var armorMod = armor.EnchantmentManager.GetArmorMod();
+
+            if (ignoreMagicArmor)
+                armorMod = IgnoreMagicArmorScaled(armorMod);
+
             // Console.WriteLine("Impen: " + armorMod);
             var effectiveAL = baseArmor + armorMod;
 
             // resistance additives
-            var armorBane = ignoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorModVsType(damageType);
+            var armorBane = armor.EnchantmentManager.GetArmorModVsType(damageType);
+
+            if (ignoreMagicArmor)
+                armorBane = IgnoreMagicArmorScaled(armorBane);
+
             // Console.WriteLine("Bane: " + armorBane);
             var effectiveRL = (float)(resistance + armorBane);
 
