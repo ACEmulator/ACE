@@ -50,6 +50,12 @@ namespace ACE.Server.WorldObjects
 
         public override void HandleActionUseOnTarget(Player healer, WorldObject target)
         {
+            if (healer.GetCreatureSkill(Skill.Healing).AdvancementClass < SkillAdvancementClass.Trained)
+            {
+                healer.SendUseDoneEvent(WeenieError.YouArentTrainedInHealing);
+                return;
+            }
+
             if (healer.IsBusy || healer.Teleporting)
             {
                 healer.SendUseDoneEvent(WeenieError.YoureTooBusy);
