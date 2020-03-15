@@ -922,11 +922,6 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns TRUE if this object has a non-zero velocity
-        /// </summary>
-        public bool IsMoving { get => PhysicsObj != null && (PhysicsObj.Velocity.X != 0 || PhysicsObj.Velocity.Y != 0 || PhysicsObj.Velocity.Z != 0); }
-
-        /// <summary>
         /// Returns TRUE if this object has non-cyclic animations in progress
         /// </summary>
         public bool IsAnimating { get => PhysicsObj != null && PhysicsObj.IsAnimating; }

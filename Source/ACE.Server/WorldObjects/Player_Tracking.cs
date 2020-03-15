@@ -68,6 +68,9 @@ namespace ACE.Server.WorldObjects
                 foreach (var wieldedItem in creature.EquippedObjects.Values)
                     if (IsInChildLocation(wieldedItem))
                         TrackEquippedObject(creature, wieldedItem);
+
+                if (creature.IsMoving)
+                    creature.BroadcastMoveTo(this);
             }
         }
 

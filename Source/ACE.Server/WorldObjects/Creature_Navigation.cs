@@ -6,6 +6,7 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Extensions;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -289,6 +290,15 @@ namespace ACE.Server.WorldObjects
             if (DebugMove)
                 Console.WriteLine($"{Name}.MoveTo({target.Name}, {runRate}) - CurPos: {Location.ToLOCString()} - DestPos: {AttackTarget.Location.ToLOCString()} - TargetDist: {Vector3.Distance(Location.ToGlobal(), AttackTarget.Location.ToGlobal())}");
 
+            var motion = GetMoveToMotion(target, runRate);
+
+            CurrentMotionState = motion;
+
+            EnqueueBroadcastMotion(motion);
+        }
+
+        public Motion GetMoveToMotion(WorldObject target, float runRate)
+        {
             var motion = new Motion(this, target, MovementType.MoveToObject);
             motion.MoveToParameters.MovementParameters |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.Sticky | MovementParams.MoveAway | MovementParams.StopCompletely;
             motion.MoveToParameters.WalkRunThreshold = 1.0f;
@@ -300,9 +310,14 @@ namespace ACE.Server.WorldObjects
             else
                 motion.MoveToParameters.MovementParameters &= ~MovementParams.CanRun;
 
-            CurrentMotionState = motion;
+            return motion;
+        }
 
-            EnqueueBroadcastMotion(motion);
+        public void BroadcastMoveTo(Player player)
+        {
+            var motion = GetMoveToMotion(AttackTarget, RunRate);
+
+            player.Session.Network.EnqueueSend(new GameMessageUpdateMotion(this, motion));
         }
 
         /// <summary>
