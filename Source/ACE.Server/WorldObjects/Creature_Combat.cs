@@ -660,7 +660,11 @@ namespace ACE.Server.WorldObjects
             // impenetrability, brittlemail
             var ignoreMagicArmor = (weapon?.IgnoreMagicArmor ?? false) || (attacker?.IgnoreMagicArmor ?? false);
 
-            var modSL = ignoreMagicArmor ? 0 : shield.EnchantmentManager.GetArmorMod();
+            var modSL = shield.EnchantmentManager.GetArmorMod();
+
+            if (ignoreMagicArmor)
+                modSL = attacker is Player ? IgnoreMagicArmorScaled(modSL) : 0;
+
             var effectiveSL = baseSL + modSL;
 
             // get shield RL against damage type
@@ -668,7 +672,11 @@ namespace ACE.Server.WorldObjects
 
             // shield RL item enchantment additives:
             // banes, lures
-            var modRL = ignoreMagicArmor ? 0 : shield.EnchantmentManager.GetArmorModVsType(damageType);
+            var modRL = shield.EnchantmentManager.GetArmorModVsType(damageType);
+
+            if (ignoreMagicArmor)
+                modRL = attacker is Player ? IgnoreMagicArmorScaled(modRL) : 0;
+
             var effectiveRL = (float)(baseRL + modRL);
 
             // resistance clamp
