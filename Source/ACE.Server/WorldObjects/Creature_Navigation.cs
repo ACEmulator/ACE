@@ -322,7 +322,6 @@ namespace ACE.Server.WorldObjects
             {
                 // move to object
                 motion = GetMoveToMotion(AttackTarget, RunRate);
-
             }
             else
             {
