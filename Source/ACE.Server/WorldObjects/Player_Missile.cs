@@ -88,7 +88,7 @@ namespace ACE.Server.WorldObjects
             var target = CurrentLandblock?.GetObject(targetGuid) as Creature;
             if (target == null || target.Teleporting)
             {
-                log.Warn($"{Name}.HandleActionTargetedMissileAttack({targetGuid:X8}, {AttackHeight}, {accuracyLevel}) - couldn't find creature target guid");
+                //log.Warn($"{Name}.HandleActionTargetedMissileAttack({targetGuid:X8}, {AttackHeight}, {accuracyLevel}) - couldn't find creature target guid");
                 return;
             }
 

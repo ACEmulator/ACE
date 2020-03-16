@@ -1142,7 +1142,7 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
-        public float EnqueueMotion_Force(ActionChain actionChain, MotionStance stance, MotionCommand motionCommand, MotionCommand? prevCommand = null, float speed = 1.0f)
+        public float EnqueueMotion_Force(ActionChain actionChain, MotionStance stance, MotionCommand motionCommand, MotionCommand? prevCommand = null, float speed = 1.0f, float animMod = 1.0f)
         {
             var motion = new Motion(stance, motionCommand, speed);
 
@@ -1167,7 +1167,7 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcastMotion(motion);
             });
 
-            actionChain.AddDelaySeconds(animLength);
+            actionChain.AddDelaySeconds(animLength * animMod);
             return animLength;
         }
 
