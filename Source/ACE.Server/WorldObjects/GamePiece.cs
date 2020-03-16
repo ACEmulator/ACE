@@ -178,5 +178,10 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcastMotion(moveToPosition);
         }
+
+        public override void BroadcastMoveTo(Player player)
+        {
+
+        }
     }
 }
