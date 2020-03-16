@@ -30,7 +30,8 @@ namespace ACE.Server.Network.Structure
                 MovementParams.SetHoldKey |
                 MovementParams.ModifyRawState |
                 MovementParams.ModifyInterpretedState |
-                MovementParams.CancelMoveTo;
+                MovementParams.CancelMoveTo /*|
+                MovementParams.StopCompletely*/;    // this should be default, as per acclient -- investigate
 
             MinDistance = 0.0f;
             FailDistance = float.MaxValue;
