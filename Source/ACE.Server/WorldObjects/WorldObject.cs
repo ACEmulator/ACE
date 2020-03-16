@@ -643,7 +643,7 @@ namespace ACE.Server.WorldObjects
             float healthPercentage = 1f;
 
             if (this is Creature creature)
-                healthPercentage = (float)creature.Health.Current / (float)creature.Health.MaxValue;
+                healthPercentage = (float)creature.Health.Current / creature.Health.MaxValue;
 
             var updateHealth = new GameEventUpdateHealth(examiner, Guid.Full, healthPercentage);
             examiner.Network.EnqueueSend(updateHealth);
