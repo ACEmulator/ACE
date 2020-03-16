@@ -1294,6 +1294,10 @@ namespace ACE.Server.Physics
 
             if (transition.SpherePath.CurCell == null) return SetPositionError.NoCell;
 
+            // custom
+            if (ProjectileTarget != null)
+                handle_all_collisions(transition.CollisionInfo, false, false);
+
             if (!SetPositionInternal(transition))
                 return SetPositionError.GeneralFailure;
 
