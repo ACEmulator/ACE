@@ -1493,7 +1493,12 @@ namespace ACE.Server.WorldObjects
                 sp.SpawnPos = new Position(sp.Location);
 
                 if (!LandblockManager.AddObject(sp) || sp.WorldEntryCollision)
+                {
+                    if (sp.PhysicsObj != null)
+                        sp.PhysicsObj.set_active(false);
+
                     continue;
+                }
 
                 sp.EnqueueBroadcast(new GameMessageScript(sp.Guid, PlayScript.Launch, sp.GetProjectileScriptIntensity(spellType)));
 
