@@ -315,6 +315,9 @@ namespace ACE.Server.WorldObjects
 
         public void BroadcastMoveTo(Player player)
         {
+            // FIXME: return to home
+            if (AttackTarget == null) return;
+
             var motion = GetMoveToMotion(AttackTarget, RunRate);
 
             player.Session.Network.EnqueueSend(new GameMessageUpdateMotion(this, motion));
