@@ -441,9 +441,6 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    if (player != null && srcVital != null && srcVital.Equals("health"))
-                        player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
-
                     // handle cloaks
                     if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health") && boost < 0 && spellTarget.HasCloakEquipped)
                     {
@@ -598,9 +595,6 @@ namespace ACE.Server.WorldObjects
                                 targetMsg = new GameMessageSystemChat($"You gain {destVitalChange} points of {destVital} due to {caster.Name} casting {spell.Name} on you", ChatMessageType.Magic);
                         }
                     }
-
-                    if (player != null && srcVital != null && srcVital.Equals("health"))
-                        player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
 
                     // handle cloaks
                     if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health"))

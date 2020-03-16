@@ -676,8 +676,6 @@ namespace ACE.Server.WorldObjects
 
                     if (!player.SquelchManager.Squelches.Contains(target, ChatMessageType.Magic))
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(attackerMsg, ChatMessageType.Magic));
-
-                    player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
                 }
 
                 if (targetPlayer != null)

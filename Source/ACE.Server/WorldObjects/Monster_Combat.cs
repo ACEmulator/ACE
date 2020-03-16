@@ -309,8 +309,6 @@ namespace ACE.Server.WorldObjects
 
                 source.SendMessage(msg, type);
             }
-
-            source.Session.Network.EnqueueSend(new GameEventUpdateHealth(source.Session, Guid.Full, (float)Health.Current / Health.MaxValue));
         }
 
         /// <summary>
