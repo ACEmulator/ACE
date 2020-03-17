@@ -1555,5 +1555,38 @@ namespace ACE.Server.WorldObjects
                     HandleActionMagicCastUnTargetedSpell(MagicState.CastQueue.SpellId);
             }
         }
+
+        public void DoWindupLog(List<MotionCommand> windupGestures)
+        {
+            if (!RecordCast.Enabled) return;
+
+            foreach (var windupGesture in windupGestures)
+            {
+                if (Physics.Animation.MotionTable.MagicAnims.TryGetValue(windupGesture, out var anim_id))
+                {
+                    if (PhysicsObj.PartArray.Sequence.has_anim(anim_id))
+                        RecordCast.Log($"Windup gesture {windupGesture} found in sequence AnimList");
+                    else
+                        RecordCast.Log($"Windup gesture {windupGesture} NOT found in sequence AnimList");
+                }
+                else
+                    RecordCast.Log($"Windup gesture {windupGesture} not found");
+            }
+        }
+
+        public void DoCastLog(MotionCommand castGesture)
+        {
+            if (!RecordCast.Enabled) return;
+
+            if (Physics.Animation.MotionTable.MagicAnims.TryGetValue(castGesture, out var anim_id))
+            {
+                if (PhysicsObj.PartArray.Sequence.has_anim(anim_id))
+                    RecordCast.Log($"Cast gesture {castGesture} found in sequence AnimList");
+                else
+                    RecordCast.Log($"Cast gesture {castGesture} NOT found in sequence AnimList");
+            }
+            else
+                RecordCast.Log($"Cast gesture {castGesture} not found");
+        }
     }
 }

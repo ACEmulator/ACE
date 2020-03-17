@@ -41,6 +41,11 @@ namespace ACE.Server.Physics.Animation
             PlayerIdleAnims.Add(0x03000B05);    // TwoHandedSwordCombat
         }
 
+        public bool has_anim(uint anim_id)
+        {
+            return AnimList.Any(i => i.Anim.ID == anim_id);
+        }
+
         public bool is_idle_anim()
         {
             return CurrAnim == null || PlayerIdleAnims.Contains(CurrAnim.Value.Anim.ID);
