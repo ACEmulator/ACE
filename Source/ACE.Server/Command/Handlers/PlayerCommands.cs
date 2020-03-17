@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 using log4net;
 
@@ -146,6 +147,12 @@ namespace ACE.Server.Command.Handlers
 
             var str = session.Player.MagicState.ToString();
             str += $"\nIsMovingOrAnimating: {physicsObj.IsMovingOrAnimating}";
+            str += $"\n- IsAnimating: {physicsObj.IsAnimating}";
+            str += $"\n- IsFirstCyclic: {!physicsObj.PartArray.Sequence.is_first_cyclic()}";
+            str += $"\n- CachedVelocity: {physicsObj.CachedVelocity != Vector3.Zero}";
+            str += $"\n- Velocity: {physicsObj.Velocity != Vector3.Zero}";
+            str += $"\n- InterpretedState.HasCommands: {physicsObj.MovementManager.MotionInterpreter.InterpretedState.HasCommands()}";
+            str += $"\n- MoveToManager: {physicsObj.MovementManager.MoveToManager.Initialized}";
             str += $"\nPendingActions: {pendingActions.Count}";
             str += $"\nCurrAnim: {currAnim?.Value.Anim.ID:X8}";
 

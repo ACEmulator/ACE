@@ -203,7 +203,7 @@ namespace ACE.Server.Entity
         {
             var str = $"Player: {Player.Name} ({Player.Guid})\n";
             str += $"IsCasting: {IsCasting}\n";
-            str += $"CastMotionStarted: {CastMotionDone}\n";
+            str += $"CastMotionStarted: {CastGestureStartTime != DateTime.MinValue}\n";
             str += $"CastMotionDone: {CastMotionDone}\n";
             str += $"TurnStarted: {TurnStarted}\n";
             str += $"IsTurning: {IsTurning}\n";
