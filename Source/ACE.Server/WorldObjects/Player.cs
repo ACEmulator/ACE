@@ -344,17 +344,46 @@ namespace ACE.Server.WorldObjects
             if (objectGuid == 0)
             {
                 // Deselect the formerly selected Target
-                selectedTarget = ObjectGuid.Invalid;
-                HealthQueryTarget = null;
+                UpdateSelectedTarget(null);
                 return;
             }
 
-            // Remember the selected Target
-            selectedTarget = new ObjectGuid(objectGuid);
-            HealthQueryTarget = objectGuid;
-            var obj = CurrentLandblock?.GetObject(objectGuid);
-            if (obj != null)
-                obj.QueryHealth(Session);
+            var obj = CurrentLandblock?.GetObject(objectGuid) as Creature;
+
+            if (obj == null)
+            {
+                // Deselect the formerly selected Target
+                UpdateSelectedTarget(null);
+                return;
+            }
+
+            UpdateSelectedTarget(obj);
+
+            obj.QueryHealth(Session);
+        }
+
+        private void UpdateSelectedTarget(Creature target)
+        {
+            if (selectedTarget != null)
+            {
+                var prevSelected = selectedTarget.TryGetWorldObject() as Creature;
+
+                if (prevSelected != null)
+                    prevSelected.OnTargetDeselected(this);
+            }
+
+            if (target != null)
+            {
+                selectedTarget = new WorldObjectInfo(target);
+                HealthQueryTarget = target.Guid.Full;
+
+                target.OnTargetSelected(this);
+            }
+            else
+            {
+                selectedTarget = null;
+                HealthQueryTarget = null;
+            }
         }
 
         public void HandleActionQueryItemMana(uint itemGuid)
