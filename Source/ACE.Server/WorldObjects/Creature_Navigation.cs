@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Physics.Animation;
@@ -313,9 +314,22 @@ namespace ACE.Server.WorldObjects
             return motion;
         }
 
-        public void BroadcastMoveTo(Player player)
+        public virtual void BroadcastMoveTo(Player player)
         {
-            var motion = GetMoveToMotion(AttackTarget, RunRate);
+            Motion motion = null;
+
+            if (AttackTarget != null)
+            {
+                // move to object
+                motion = GetMoveToMotion(AttackTarget, RunRate);
+            }
+            else
+            {
+                // move to position
+                var home = GetPosition(PositionType.Home);
+
+                motion = GetMoveToPosition(home, RunRate, 1.0f);
+            }
 
             player.Session.Network.EnqueueSend(new GameMessageUpdateMotion(this, motion));
         }
@@ -324,6 +338,21 @@ namespace ACE.Server.WorldObjects
         /// Sends a network message for moving a creature to a new position
         /// </summary>
         public void MoveTo(Position position, float runRate = 1.0f, bool setLoc = true, float? walkRunThreshold = null, float? speed = null)
+        {
+            var motion = GetMoveToPosition(position, runRate, walkRunThreshold, speed);
+
+            // todo: use physics MoveToManager
+            // todo: handle landblock updates
+            if (setLoc)
+            {
+                Location = new Position(position);
+                PhysicsObj.SetPositionSimple(new Physics.Common.Position(position), true);
+            }
+
+            EnqueueBroadcastMotion(motion);
+        }
+
+        public Motion GetMoveToPosition(Position position, float runRate = 1.0f, float? walkRunThreshold = null, float? speed = null)
         {
             // TODO: change parameters to accept an optional MoveToParameters
 
@@ -346,15 +375,7 @@ namespace ACE.Server.WorldObjects
             else
                 motion.MoveToParameters.MovementParameters &= ~MovementParams.CanRun;
 
-            // todo: use physics MoveToManager
-            // todo: handle landblock updates
-            if (setLoc)
-            {
-                Location = new Position(position);
-                PhysicsObj.SetPositionSimple(new Physics.Common.Position(position), true);
-            }
-
-            EnqueueBroadcastMotion(motion);
+            return motion;
         }
     }
 }
