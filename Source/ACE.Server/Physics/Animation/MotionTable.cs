@@ -57,10 +57,31 @@ namespace ACE.Server.Physics.Animation
             return GetObjectSequence(motion, currState, sequence, speedMod, ref numAnims, false);
         }
 
+        public int LoopCnt;
+        public uint LastCmd;
+
         public bool GetObjectSequence(uint motion, MotionState currState, Sequence sequence, float speedMod, ref uint numAnims, bool stopModifiers)
         {
             if (PhysicsObj.IsPlayer && PhysicsObj.WeenieObj.WorldObject is Player player && player.MagicState.IsCasting && player.RecordCast.Enabled)
                 player.RecordCast.Log($"GetObjectSequence({(MotionCommand)motion}){(sequence.AnimList.Count > 0 ? $", {string.Join(", ", sequence.AnimList)}" : "")}");
+
+            if (motion == 0x80000049 && LastCmd == 0x41000003)
+                LoopCnt++;
+            else if (motion == 0x41000003 && LastCmd == 0x80000049)
+                LoopCnt++;
+            else
+                LoopCnt = 0;
+
+            LastCmd = motion;
+
+            if (LoopCnt >= 30 && LoopCnt <= 32)
+            {
+                if (PhysicsObj.IsPlayer && PhysicsObj.WeenieObj.WorldObject is Player p2 && p2.MagicState.IsCasting && p2.RecordCast.Enabled)
+                {
+                    var stackTrace = Environment.StackTrace;
+                    p2.RecordCast.Log(stackTrace);
+                }
+            }
 
             numAnims = 0;
             if (currState.Style == 0 || currState.Substate == 0)
