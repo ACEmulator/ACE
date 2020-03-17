@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-
+using log4net;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -12,10 +12,15 @@ namespace ACE.Database.Adapter
 {
     public static class WeenieConverter
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public static ACE.Entity.Models.Weenie ConvertToEntityWeenie(ACE.Database.Models.World.Weenie weenie, bool instantiateEmptyCollections = false)
         {
             var result = new ACE.Entity.Models.Weenie();
-
+            if (result == null)
+            {
+                log.Error($" Ace.Entity.Models.Weenie - Null Weenie = {weenie.ClassId}");
+                return null;
+            }
             result.WeenieClassId = weenie.ClassId;
             result.ClassName = weenie.ClassName;
             result.WeenieType = (WeenieType)weenie.Type;
