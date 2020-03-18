@@ -2287,7 +2287,7 @@ namespace ACE.Server.Command.Handlers
             // Create a dummy treasure profile for passing in tier value
             TreasureDeath profile = new TreasureDeath
             {
-                Tier = 7,
+                Tier = tier,
                 LootQualityMod = 0
             };
 

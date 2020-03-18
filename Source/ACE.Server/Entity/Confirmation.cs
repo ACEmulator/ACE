@@ -101,11 +101,15 @@ namespace ACE.Server.Entity
         public ObjectGuid SourceGuid;
         public ObjectGuid TargetGuid;
 
-        public Confirmation_CraftInteration(ObjectGuid playerGuid, ObjectGuid sourceGuid, ObjectGuid targetGuid)
+        public bool Tinkering;
+
+        public Confirmation_CraftInteration(ObjectGuid playerGuid, ObjectGuid sourceGuid, ObjectGuid targetGuid, bool tinkering = false)
             : base (playerGuid, ConfirmationType.CraftInteraction)
         {
             SourceGuid = sourceGuid;
             TargetGuid = targetGuid;
+
+            Tinkering = tinkering;
         }
 
         public override void ProcessConfirmation(bool response)
@@ -117,7 +121,12 @@ namespace ACE.Server.Entity
             var target = player.FindObject(TargetGuid.Full, Player.SearchLocations.MyInventory | Player.SearchLocations.MyEquippedItems);
 
             if (source != null && target != null)
-                RecipeManager.HandleTinkering(player, source, target, true);
+            {
+                if (!Tinkering)
+                    RecipeManager.UseObjectOnTarget(player, source, target, true);
+                else
+                    RecipeManager.HandleTinkering(player, source, target, true);
+            }
         }
     }
 

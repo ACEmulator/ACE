@@ -502,6 +502,8 @@ namespace ACE.Server.WorldObjects
             // cleans up bugged chars with dangling item set spells
             // from previous bugs
 
+            var allPossessions = GetAllPossessions().ToDictionary(i => i.Guid.Full, i => i);
+
             // this is a legacy method, but is still a decent failsafe to catch any existing issues
 
             // get active item enchantments
@@ -510,14 +512,12 @@ namespace ACE.Server.WorldObjects
             foreach (var enchantment in enchantments)
             {
                 // if this item is not equipped, remove enchantment
-
-                if (!EquippedObjects.TryGetValue(new ObjectGuid(enchantment.CasterObjectId), out var item))
+                if (!allPossessions.TryGetValue(enchantment.CasterObjectId, out var item))
                 {
-                    // this can fail for item sets, so disabling this section
-                    /*var spell = new Spell(enchantment.SpellId, false);
+                    var spell = new Spell(enchantment.SpellId, false);
                     log.Error($"{Name}.AuditItemSpells(): removing spell {spell.Name} from non-equipped item");
 
-                    EnchantmentManager.Dispel(enchantment);*/
+                    EnchantmentManager.Dispel(enchantment);
                     continue;
                 }
 
