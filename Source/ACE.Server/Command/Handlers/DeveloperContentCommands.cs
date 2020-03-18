@@ -2012,6 +2012,8 @@ namespace ACE.Server.Command.Handlers.Processors
             {
                 if (parameters[0].Contains("landblock", StringComparison.OrdinalIgnoreCase))
                     mode = CacheType.Landblock;
+                if (parameters[0].Contains("recipe", StringComparison.OrdinalIgnoreCase))
+                    mode = CacheType.Recipe;
                 if (parameters[0].Contains("spell", StringComparison.OrdinalIgnoreCase))
                     mode = CacheType.Spell;
                 if (parameters[0].Contains("weenie", StringComparison.OrdinalIgnoreCase))
@@ -2022,6 +2024,12 @@ namespace ACE.Server.Command.Handlers.Processors
             {
                 CommandHandlerHelper.WriteOutputInfo(session, "Clearing landblock instance cache");
                 DatabaseManager.World.ClearCachedLandblockInstances();
+            }
+
+            if (mode.HasFlag(CacheType.Recipe))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Clearing recipe cache");
+                DatabaseManager.World.ClearCookbookCache();
             }
 
             if (mode.HasFlag(CacheType.Spell))
@@ -2043,8 +2051,9 @@ namespace ACE.Server.Command.Handlers.Processors
         {
             None      = 0x0,
             Landblock = 0x1,
-            Spell     = 0x2,
-            Weenie    = 0x4,
+            Recipe    = 0x2,
+            Spell     = 0x4,
+            Weenie    = 0x8,
             All       = 0xFFFF
         };
 

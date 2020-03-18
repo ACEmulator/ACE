@@ -1,11 +1,10 @@
-using System;
-
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Entity.Chess;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -143,6 +142,8 @@ namespace ACE.Server.WorldObjects
                 GamePieceState = GamePieceState.MoveToSquare;
         }
 
+        public Motion LastMoveTo;
+
         public void MoveWeenie(Position to, float distanceToObject, bool finalHeading)
         {
             if (MoveSpeed == 0.0f)
@@ -174,7 +175,14 @@ namespace ACE.Server.WorldObjects
             MonsterState = State.Awake;
             IsAwake = true;
 
+            LastMoveTo = moveToPosition;
+
             EnqueueBroadcastMotion(moveToPosition);
+        }
+
+        public override void BroadcastMoveTo(Player player)
+        {
+            player.Session.Network.EnqueueSend(new GameMessageUpdateMotion(this, LastMoveTo));
         }
     }
 }

@@ -79,6 +79,8 @@ namespace ACE.Database
         {
             weenieCache.Clear();
             weenieClassNameToClassIdCache.Clear();
+
+            weenieSpecificCachesPopulated = false;
         }
 
         /// <summary>

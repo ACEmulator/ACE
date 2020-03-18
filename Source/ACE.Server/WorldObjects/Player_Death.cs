@@ -257,6 +257,8 @@ namespace ACE.Server.WorldObjects
 
                     // reset damage history for this player
                     DamageHistory.Reset();
+
+                    OnHealthUpdate();
                 });
 
                 teleportChain.EnqueueChain();

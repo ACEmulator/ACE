@@ -89,6 +89,8 @@ namespace ACE.Server.Entity
             Log.Add(entry);
 
             AddInternal(attacker, amount);
+
+            Creature.OnHealthUpdate();
         }
 
         /// <summary>
@@ -125,6 +127,8 @@ namespace ACE.Server.Entity
 
             // calculate previous missingHealth
             OnHealInternal(healAmount, Creature.Health.Current, Creature.Health.MaxValue);
+
+            Creature.OnHealthUpdate();
         }
 
         /// <summary>

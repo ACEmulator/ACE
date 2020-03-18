@@ -590,7 +590,7 @@ namespace ACE.Server.WorldObjects
             float healthPercentage = 1f;
 
             if (this is Creature creature)
-                healthPercentage = (float)creature.Health.Current / (float)creature.Health.MaxValue;
+                healthPercentage = (float)creature.Health.Current / creature.Health.MaxValue;
 
             var updateHealth = new GameEventUpdateHealth(examiner, Guid.Full, healthPercentage);
             examiner.Network.EnqueueSend(updateHealth);
@@ -867,11 +867,6 @@ namespace ACE.Server.WorldObjects
 
             return pluralName;
         }
-
-        /// <summary>
-        /// Returns TRUE if this object has a non-zero velocity
-        /// </summary>
-        public bool IsMoving { get => PhysicsObj != null && (PhysicsObj.Velocity.X != 0 || PhysicsObj.Velocity.Y != 0 || PhysicsObj.Velocity.Z != 0); }
 
         /// <summary>
         /// Returns TRUE if this object has non-cyclic animations in progress
