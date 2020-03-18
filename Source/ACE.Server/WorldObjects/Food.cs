@@ -1,14 +1,12 @@
 using System;
-
 using log4net;
-
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
-using ACE.Server.Entity.Actions;
-using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Entity;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics;
 
 using Biota = ACE.Database.Models.Shard.Biota;
 
@@ -50,50 +48,19 @@ namespace ACE.Server.WorldObjects
 
             if (player.IsBusy || player.Teleporting)
             {
-                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YoureTooBusy));
+                player.SendWeenieError(WeenieError.YoureTooBusy);
                 return;
             }
 
-            player.IsBusy = true;
+            if (player.FastTick && !player.PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            {
+                player.SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
+                return;
+            }
 
-            var actionChain = new ActionChain();
-
-            // if something other that NonCombat.Ready,
-            // manually send this swap
-            var prevStance = player.CurrentMotionState.Stance;
-
-            var animTime = 0.0f;
-
-            if (prevStance != MotionStance.NonCombat)
-                animTime = player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, (MotionCommand)prevStance);
-
-            // start the eat/drink motion
             var motionCommand = GetUseSound() == Sound.Eat1 ? MotionCommand.Eat : MotionCommand.Drink;
 
-            animTime += player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, motionCommand);
-
-            // apply consumable
-            actionChain.AddAction(player, () => ApplyConsumable(player));
-
-            // return to ready stance
-            animTime += player.EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, motionCommand);
-
-            if (prevStance != MotionStance.NonCombat)
-                animTime += player.EnqueueMotion_Force(actionChain, prevStance, MotionCommand.Ready, MotionCommand.NonCombat);
-
-            actionChain.AddAction(player, () => { player.IsBusy = false; });
-
-            actionChain.EnqueueChain();
-
-            player.LastUseTime = animTime;
-        }
-
-        public enum ConsumableBuffType
-        {
-            Spell   = 0,
-            Health  = 2,
-            Stamina = 4,
-            Mana    = 6
+            player.ApplyConsumable(motionCommand, () => ApplyConsumable(player));
         }
 
         /// <summary>
@@ -104,61 +71,66 @@ namespace ACE.Server.WorldObjects
         {
             if (player.IsDead) return;
 
-            var buffType = (ConsumableBuffType)BoosterEnum;
-            GameMessageSystemChat buffMessage = null;
-
-            // spells
-            if (buffType == ConsumableBuffType.Spell)
+            if (BoosterEnum != PropertyAttribute2nd.Undef)
             {
-                var spellID = SpellDID ?? 0;
-
-                var result = player.CreateSingleSpell(spellID);
-
-                if (result)
-                {
-                    var spell = new Server.Entity.Spell(spellID);
-                    buffMessage = new GameMessageSystemChat($"{Name} casts {spell.Name} on you.", ChatMessageType.Magic);
-                }
-                else
-                    buffMessage = new GameMessageSystemChat($"{Name} has invalid spell id {spellID}", ChatMessageType.Broadcast);
+                BoostVital(player);
             }
-            // vitals
-            else
+
+            if (SpellDID != null)
             {
-                var vital = player.GetCreatureVital(BoosterEnum);
-
-                if (vital != null)
-                {
-                    // only apply to restoration food?
-                    var ratingMod = BoostValue > 0 ? player.GetHealingRatingMod() : 1.0f;
-
-                    var boostValue = (int)Math.Round(BoostValue * ratingMod);
-
-                    var vitalChange = (uint)Math.Abs(player.UpdateVitalDelta(vital, boostValue));
-
-                    if (BoosterEnum == PropertyAttribute2nd.Health)
-                    {
-                        if (BoostValue >= 0)
-                            player.DamageHistory.OnHeal(vitalChange);
-                        else
-                            player.DamageHistory.Add(this, DamageType.Health, vitalChange);
-                    }
-
-                    var verb = BoostValue >= 0 ? "restores" : "takes";
-                    buffMessage = new GameMessageSystemChat($"The {Name} {verb} {vitalChange} points of your {BoosterEnum}.", ChatMessageType.Broadcast);
-                }
-                else
-                {
-                    buffMessage = new GameMessageSystemChat($"{Name} ({Guid}) contains invalid vital {BoosterEnum}", ChatMessageType.Broadcast);
-                }
+                CastSpell(player);
             }
 
             var soundEvent = new GameMessageSound(player.Guid, GetUseSound(), 1.0f);
             player.EnqueueBroadcast(soundEvent);
 
-            player.Session.Network.EnqueueSend(buffMessage);
-
             player.TryConsumeFromInventoryWithNetworking(this, 1);
+        }
+
+        public void BoostVital(Player player)
+        {
+            var vital = player.GetCreatureVital(BoosterEnum);
+
+            if (vital == null)
+            {
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} ({Guid}) contains invalid vital {BoosterEnum}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // only apply to restoration food?
+            var ratingMod = BoostValue > 0 ? player.GetHealingRatingMod() : 1.0f;
+
+            var boostValue = (int)Math.Round(BoostValue * ratingMod);
+
+            var vitalChange = (uint)Math.Abs(player.UpdateVitalDelta(vital, boostValue));
+
+            if (BoosterEnum == PropertyAttribute2nd.Health)
+            {
+                if (BoostValue >= 0)
+                    player.DamageHistory.OnHeal(vitalChange);
+                else
+                    player.DamageHistory.Add(this, DamageType.Health, vitalChange);
+            }
+
+            var verb = BoostValue >= 0 ? "restores" : "takes";
+
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} {verb} {vitalChange} points of your {BoosterEnum}.", ChatMessageType.Broadcast));
+        }
+
+        public void CastSpell(Player player)
+        {
+            var spell = new Spell(SpellDID.Value);
+
+            if (spell.NotFound)
+            {
+                if (spell._spellBase != null)
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                else
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid spell id {SpellDID ?? 0}", ChatMessageType.System));
+
+                return;
+            }
+            TryCastSpell(spell, player);
         }
 
         public Sound GetUseSound()

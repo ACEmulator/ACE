@@ -441,9 +441,6 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    if (player != null && srcVital != null && srcVital.Equals("health"))
-                        player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
-
                     // handle cloaks
                     if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health") && boost < 0 && spellTarget.HasCloakEquipped)
                     {
@@ -598,9 +595,6 @@ namespace ACE.Server.WorldObjects
                                 targetMsg = new GameMessageSystemChat($"You gain {destVitalChange} points of {destVital} due to {caster.Name} casting {spell.Name} on you", ChatMessageType.Magic);
                         }
                     }
-
-                    if (player != null && srcVital != null && srcVital.Equals("health"))
-                        player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
 
                     // handle cloaks
                     if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health"))
@@ -1224,7 +1218,7 @@ namespace ACE.Server.WorldObjects
 
             var spellType = SpellProjectile.GetProjectileSpellType(spell.Id);
 
-            var origins = CalculateProjectileOrigins(spell, spellType);
+            var origins = CalculateProjectileOrigins(spell, spellType, target);
 
             var velocity = CalculateProjectileVelocity(spell, target, spellType, origins[0]);
 
@@ -1233,11 +1227,48 @@ namespace ACE.Server.WorldObjects
 
         public static readonly float ProjHeight = 2.0f / 3.0f;
 
+        public Vector3 CalculatePreOffset(Spell spell, ProjectileSpellType spellType, WorldObject target)
+        {
+            var startFactor = spellType == ProjectileSpellType.Arc ? 1.0f : ProjHeight;
+
+            var preOffset = new Vector3(0, 0, Height * startFactor);
+
+            if (target == null)
+                return preOffset;
+
+            var startPos = new Physics.Common.Position(PhysicsObj.Position);
+            startPos.Frame.Origin.Z += Height * startFactor;
+
+            var endFactor = spellType == ProjectileSpellType.Arc ? ProjHeightArc : ProjHeight;
+
+            var endPos = new Physics.Common.Position(target.PhysicsObj.Position);
+            endPos.Frame.Origin.Z += target.Height * endFactor;
+
+            var globOffset = startPos.GetOffset(endPos);
+
+            // align in x
+            var rotate = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)Math.Atan2(globOffset.X, globOffset.Y));
+
+            var offset = Vector3.Transform(globOffset, rotate);
+
+            var localDir = Vector3.Normalize(offset);
+
+            var radsum = PhysicsObj.GetPhysicsRadius() + GetProjectileRadius(spell);
+
+            var defaultSpawnPos = Vector3.UnitY * radsum;
+
+            var spawnPos = localDir * radsum;
+
+            var spawnOffset = spawnPos - defaultSpawnPos;
+
+            return preOffset + spawnOffset;
+        }
+
         /// <summary>
         /// Returns a list of positions to spawn projectiles for a spell,
         /// in local space relative to the caster
         /// </summary>
-        public List<Vector3> CalculateProjectileOrigins(Spell spell, ProjectileSpellType spellType)
+        public List<Vector3> CalculateProjectileOrigins(Spell spell, ProjectileSpellType spellType, WorldObject target)
         {
             var origins = new List<Vector3>();
 
@@ -1250,14 +1281,22 @@ namespace ACE.Server.WorldObjects
 
             var radsum = PhysicsObj.GetPhysicsRadius() * 2.0f + radius * 2.0f;
 
+            var heightOffset = CalculatePreOffset(spell, spellType, target);
+
+            if (target != null)
+            {
+                var cylDist = GetCylinderDistance(target);
+                //Console.WriteLine($"CylDist: {cylDist}");
+                if (cylDist < 0.6f)
+                    radsum = PhysicsObj.GetPhysicsRadius() + radius;
+            }
+
             if (spell.SpreadAngle == 360)
                 radsum *= 0.6f;
 
             baseOffset.Y += radsum;
 
-            var projHeight = spellType == ProjectileSpellType.Arc ? 1.0f : ProjHeight;
-
-            baseOffset.Z += Height * projHeight;
+            baseOffset += heightOffset;
 
             var anglePerStep = GetSpreadAnglePerStep(spell);
 
@@ -1447,8 +1486,13 @@ namespace ACE.Server.WorldObjects
                 sp.SetProjectilePhysicsState(sp.ProjectileTarget, useGravity);
                 sp.SpawnPos = new Position(sp.Location);
 
-                if (!LandblockManager.AddObject(sp))
+                if (!LandblockManager.AddObject(sp) || sp.WorldEntryCollision)
+                {
+                    if (sp.PhysicsObj != null)
+                        sp.PhysicsObj.set_active(false);
+
                     continue;
+                }
 
                 sp.EnqueueBroadcast(new GameMessageScript(sp.Guid, PlayScript.Launch, sp.GetProjectileScriptIntensity(spellType)));
 

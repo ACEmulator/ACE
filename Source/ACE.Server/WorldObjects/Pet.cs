@@ -139,6 +139,13 @@ namespace ACE.Server.WorldObjects
 
             nextSlowTickTime += slowTickSeconds;
 
+            if (P_PetOwner?.PhysicsObj == null)
+            {
+                log.Error($"{Name} ({Guid}).SlowTick() - P_PetOwner: {P_PetOwner}, P_PetOwner.PhysicsObj: {P_PetOwner?.PhysicsObj}");
+                Destroy();
+                return;
+            }
+
             var dist = GetCylinderDistance(P_PetOwner);
 
             if (dist > MaxDistance)
