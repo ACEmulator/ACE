@@ -354,6 +354,7 @@ namespace ACE.Server.Physics.Common
 
                         if (stab == null)
                         {
+                            log.Error(Environment.StackTrace);
                             log.Error($"ObjCell.find_cell_list: stab is null for {visibleCell.ID:X8} -> {kvp.Key:X8}");
                             continue;
                         }
