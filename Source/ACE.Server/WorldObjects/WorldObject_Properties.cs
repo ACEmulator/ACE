@@ -228,11 +228,6 @@ namespace ACE.Server.WorldObjects
                     ChangesDetected = true;
             }
         }
-        public void IncProperty(PropertyInt property, int value)
-        {
-            var prop = GetProperty(property) ?? 0;
-            SetProperty(property, prop + value);
-        }
         public void SetProperty(PropertyInt64 property, long value)
         {
             if (ephemeralPropertyInt64s.ContainsKey(property))

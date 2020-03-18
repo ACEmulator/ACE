@@ -93,9 +93,9 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                var variance = CycleTime * CycleTimeVariance;
-                var min = CycleTime - variance;
-                var max = CycleTime + variance;
+                var max = CycleTime;
+                var min = max * (1.0f - CycleTimeVariance ?? 0.0f);
+
                 return ThreadSafeRandom.Next((float)min, (float)max);
             }
         }
