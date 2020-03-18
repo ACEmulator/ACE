@@ -348,25 +348,41 @@ namespace ACE.Server.Physics.Common
 
                     var found = false;
 
-                    foreach (var kvp in ((EnvCell)visibleCell).VisibleCells)
+                    if (visibleCell is EnvCell envCell)
                     {
-                        var stab = kvp.Value;
-
-                        if (stab == null)
+                        if (envCell.VisibleCells == null)
                         {
                             log.Error(Environment.StackTrace);
-                            log.Error($"ObjCell.find_cell_list: stab is null for {visibleCell.ID:X8} -> {kvp.Key:X8}");
+                            log.Error($"ObjCell.find_cell_list: visible cells is null for {visibleCell.ID:X8}");
                             continue;
                         }
 
-                        if (cell.ID == stab.ID)
+                        foreach (var kvp in envCell.VisibleCells)
                         {
-                            found = true;
-                            break;
+                            var stab = kvp.Value;
+
+                            if (stab == null)
+                            {
+                                log.Error(Environment.StackTrace);
+                                log.Error($"ObjCell.find_cell_list: stab is null for {visibleCell.ID:X8} -> {kvp.Key:X8}");
+                                continue;
+                            }
+
+                            if (cell.ID == stab.ID)
+                            {
+                                found = true;
+                                break;
+                            }
                         }
+                        if (!found)
+                            cellArray.remove_cell(cell);
                     }
-                    if (!found)
-                        cellArray.remove_cell(cell);
+                    else
+                    {
+                        log.Error(Environment.StackTrace);
+                        log.Error($"ObjCell.find_cell_list: visible cell is not an EnvCell for {visibleCell.ID:X8}");
+                        continue;
+                    }
                 }
             }
         }
