@@ -102,9 +102,9 @@ namespace ACE.Server.Entity
         // creature defender
         public Quadrant Quadrant;
 
-        public bool IgnoreMagicArmor  => Weapon != null ? Weapon.IgnoreMagicArmor : false;      // ignores impen / banes
+        public bool IgnoreMagicArmor =>  (Weapon?.IgnoreMagicArmor ?? false) || (Attacker?.IgnoreMagicArmor ?? false);      // ignores impen / banes
 
-        public bool IgnoreMagicResist => Weapon != null ? Weapon.IgnoreMagicResist : false;     // ignores life armor / prots
+        public bool IgnoreMagicResist => (Weapon?.IgnoreMagicResist ?? false) || (Attacker?.IgnoreMagicResist ?? false);    // ignores life armor / prots
 
         public bool Overpower;
 
@@ -139,7 +139,7 @@ namespace ACE.Server.Entity
 
             var damage = damageEvent.DoCalculateDamage(attacker, defender, damageSource);
 
-            damageEvent.HandleLogging(attacker as Player, defender as Player);
+            damageEvent.HandleLogging(attacker, defender);
 
             return damageEvent;
         }
@@ -244,10 +244,14 @@ namespace ACE.Server.Entity
                 }
             }
 
-            // Armor Rending reduces physical armor too?
+            // armor rending and cleaving
             var armorRendingMod = 1.0f;
             if (Weapon != null && Weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
                 armorRendingMod = WorldObject.GetArmorRendingMod(attackSkill);
+
+            var armorCleavingMod = attacker.GetArmorCleavingMod(Weapon);
+
+            var ignoreArmorMod = Math.Min(armorRendingMod, armorCleavingMod);
 
             // get body part / armor pieces / armor modifier
             if (playerDefender != null)
@@ -259,7 +263,7 @@ namespace ACE.Server.Entity
                 Armor = attacker.GetArmorLayers(playerDefender, BodyPart);
 
                 // get armor modifiers
-                ArmorMod = attacker.GetArmorMod(DamageType, Armor, Weapon, armorRendingMod);
+                ArmorMod = attacker.GetArmorMod(DamageType, Armor, Weapon, ignoreArmorMod);
             }
             else
             {
@@ -274,7 +278,7 @@ namespace ACE.Server.Entity
                 Armor = CreaturePart.GetArmorLayers((CombatBodyPart)BiotaPropertiesBodyPart.Key);
 
                 // get target armor
-                ArmorMod = CreaturePart.GetArmorMod(DamageType, Armor, Weapon, armorRendingMod);
+                ArmorMod = CreaturePart.GetArmorMod(DamageType, Armor, Attacker, Weapon, ignoreArmorMod);
             }
 
             if (Weapon != null && Weapon.HasImbuedEffect(ImbuedEffectType.IgnoreAllArmor))
@@ -285,12 +289,12 @@ namespace ACE.Server.Entity
 
             if (playerDefender != null)
             {
-                ResistanceMod = playerDefender.GetResistanceMod(DamageType, Weapon, WeaponResistanceMod);
+                ResistanceMod = playerDefender.GetResistanceMod(DamageType, Attacker, Weapon, WeaponResistanceMod);
             }
             else
             {
                 var resistanceType = Creature.GetResistanceType(DamageType);
-                ResistanceMod = (float)Math.Max(0.0f, defender.GetResistanceMod(resistanceType, Weapon, WeaponResistanceMod));
+                ResistanceMod = (float)Math.Max(0.0f, defender.GetResistanceMod(resistanceType, Attacker, Weapon, WeaponResistanceMod));
             }
 
             // damage resistance rating
@@ -358,6 +362,10 @@ namespace ACE.Server.Entity
             // TODO: combat maneuvers for player?
             BaseDamageMod = attacker.GetBaseDamageMod(DamageSource);
 
+            // some quest bows can have built-in damage bonus
+            if (Weapon?.WeenieType == WeenieType.MissileLauncher)
+                BaseDamageMod.DamageBonus += Weapon.Damage ?? 0;
+
             if (DamageSource.ItemType == ItemType.MissileWeapon)
                 BaseDamageMod.ElementalBonus = WorldObject.GetMissileElementalDamageBonus(attacker, DamageType);
 
@@ -380,9 +388,6 @@ namespace ACE.Server.Entity
             BaseDamage = ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
 
             DamageType = attacker.GetDamageType(AttackPart, CombatType);
-
-            if (attacker is CombatPet combatPet)
-                DamageType = combatPet.DamageType;
         }
 
         /// <summary>
@@ -431,12 +436,12 @@ namespace ACE.Server.Entity
             CreaturePart = new Creature_BodyPart(defender, BiotaPropertiesBodyPart);
         }
 
-        public void ShowInfo(Player player)
+        public void ShowInfo(Creature creature)
         {
-            var targetInfo = PlayerManager.GetOnlinePlayer(player.DebugDamageTarget);
+            var targetInfo = PlayerManager.GetOnlinePlayer(creature.DebugDamageTarget);
             if (targetInfo == null)
             {
-                player.DebugDamage = Player.DebugDamageType.None;
+                creature.DebugDamage = Creature.DebugDamageType.None;
                 return;
             }
 
@@ -551,14 +556,14 @@ namespace ACE.Server.Entity
             targetInfo.Session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
         }
 
-        public void HandleLogging(Player attacker, Player defender)
+        public void HandleLogging(Creature attacker, Creature defender)
         {
-            if (attacker != null && (attacker.DebugDamage & Player.DebugDamageType.Attacker) != 0)
+            if (attacker != null && (attacker.DebugDamage & Creature.DebugDamageType.Attacker) != 0)
             {
                 ShowInfo(attacker);
                 return;
             }
-            if (defender != null && (defender.DebugDamage & Player.DebugDamageType.Defender) != 0)
+            if (defender != null && (defender.DebugDamage & Creature.DebugDamageType.Defender) != 0)
             {
                 ShowInfo(defender);
                 return;

@@ -2,22 +2,23 @@ using System;
 using System.Numerics;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
 
+using Biota = ACE.Database.Models.Shard.Biota;
+
 namespace ACE.Server.WorldObjects
 {
     public class SpellProjectile : WorldObject
     {
-        public Server.Entity.Spell Spell;
+        public Spell Spell;
         public ProjectileSpellType SpellType { get; set; }
 
         public Position SpawnPos { get; set; }
@@ -58,7 +59,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Perfroms additional set up of the spell projectile based on the spell id or its derived type.
         /// </summary>
-        public void Setup(Server.Entity.Spell spell, ProjectileSpellType spellType)
+        public void Setup(Spell spell, ProjectileSpellType spellType)
         {
             Spell = spell;
             SpellType = spellType;
@@ -75,6 +76,8 @@ namespace ACE.Server.WorldObjects
             // FIXME: use data here
             if (!Spell.Name.Equals("Rolling Death"))
                 Ethereal = false;
+            else if (spellType == ProjectileSpellType.Ring)
+                Ethereal = true;
 
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
                 || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley || SpellType == ProjectileSpellType.Blast
@@ -121,7 +124,7 @@ namespace ACE.Server.WorldObjects
 
         public static ProjectileSpellType GetProjectileSpellType(uint spellID)
         {
-            var spell = new Server.Entity.Spell(spellID);
+            var spell = new Spell(spellID);
 
             if (spell.Wcid == 0)
                 return ProjectileSpellType.Undef;
@@ -197,6 +200,8 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public bool WorldEntryCollision { get; set; }
+
         public void ProjectileImpact()
         {
             //Console.WriteLine($"{Name}.ProjectileImpact()");
@@ -210,8 +215,20 @@ namespace ACE.Server.WorldObjects
 
             PhysicsObj.set_active(false);
 
-            EnqueueBroadcastPhysicsState();
-            EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Explode, GetProjectileScriptIntensity(SpellType)));
+            var broadcaster = PhysicsObj.entering_world ? ProjectileSource : this;
+
+            broadcaster.EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
+            broadcaster.EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Explode, GetProjectileScriptIntensity(SpellType)));
+
+            if (PhysicsObj.entering_world)
+            {
+                // for this path, since the projectile is being set to ethereal before the CO is sent,
+                // setting small velocity to still show the particle effects, but prevent the projectile from continuing
+                // to sail through the target
+
+                Velocity *= 0.05f;
+                WorldEntryCollision = true;
+            }
 
             ActionChain selfDestructChain = new ActionChain();
             selfDestructChain.AddDelaySeconds(5.0);
@@ -358,8 +375,8 @@ namespace ACE.Server.WorldObjects
             if (sourceCreature?.Overpower != null)
                 overpower = Creature.GetOverpower(sourceCreature, target);
 
-            var resisted = source.ResistSpell(target, Spell, caster);
-            if (resisted == true && !overpower)
+            var resisted = source.TryResistSpell(target, Spell, caster, true);
+            if (resisted && !overpower)
                 return null;
 
             CreatureSkill attackSkill = null;
@@ -462,7 +479,10 @@ namespace ACE.Server.WorldObjects
 
                 var weaponResistanceMod = GetWeaponResistanceModifier(sourceCreature, attackSkill, Spell.DamageType);
 
-                var resistanceMod = Math.Max(0.0f, target.GetResistanceMod(resistanceType, null, weaponResistanceMod));
+                // if attacker/weapon has IgnoreMagicResist directly, do not transfer to spell projectile
+                // only pass if SpellProjectile has it directly, such as 2637 - Invoking Aun Tanua
+
+                var resistanceMod = Math.Max(0.0f, target.GetResistanceMod(resistanceType, this, null, weaponResistanceMod));
 
                 finalDamage = baseDamage + damageBonus + warSkillBonus;
 
@@ -643,9 +663,6 @@ namespace ACE.Server.WorldObjects
 
             amount = (uint)Math.Round(damage.Value);    // full amount for debugging
 
-            if (critical)
-                target.EmoteManager.OnReceiveCritical(player);
-
             if (target.IsAlive)
             {
                 string verb = null, plural = null;
@@ -656,6 +673,8 @@ namespace ACE.Server.WorldObjects
                 var sneakMsg = sneakAttackMod > 1.0f ? "Sneak Attack! " : "";
                 var overpowerMsg = overpower ? "Overpower! " : "";
 
+                var nonHealth = Spell.Category == SpellCategory.StaminaLowering || Spell.Category == SpellCategory.ManaLowering;
+
                 if (player != null)
                 {
                     var critProt = critDefended ? " Your target's Critical Protection augmentation allows them to avoid your critical hit!" : "";
@@ -663,7 +682,7 @@ namespace ACE.Server.WorldObjects
                     var attackerMsg = $"{critMsg}{overpowerMsg}{sneakMsg}You {verb} {target.Name} for {amount} points with {Spell.Name}.{critProt}";
 
                     // could these crit / sneak attack?
-                    if (Spell.Category == SpellCategory.StaminaLowering || Spell.Category == SpellCategory.ManaLowering)
+                    if (nonHealth)
                     {
                         var vital = Spell.Category == SpellCategory.StaminaLowering ? "stamina" : "mana";
                         attackerMsg = $"With {Spell.Name} you drain {amount} points of {vital} from {target.Name}.";
@@ -671,8 +690,6 @@ namespace ACE.Server.WorldObjects
 
                     if (!player.SquelchManager.Squelches.Contains(target, ChatMessageType.Magic))
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(attackerMsg, ChatMessageType.Magic));
-
-                    player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
                 }
 
                 if (targetPlayer != null)
@@ -681,7 +698,7 @@ namespace ACE.Server.WorldObjects
 
                     var defenderMsg = $"{critMsg}{overpowerMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points with {Spell.Name}.{critProt}";
 
-                    if (Spell.Category == SpellCategory.StaminaLowering || Spell.Category == SpellCategory.ManaLowering)
+                    if (nonHealth)
                     {
                         var vital = Spell.Category == SpellCategory.StaminaLowering ? "stamina" : "mana";
                         defenderMsg = $"{ProjectileSource.Name} casts {Spell.Name} and drains {amount} points of your {vital}.";
@@ -689,6 +706,17 @@ namespace ACE.Server.WorldObjects
 
                     if (!targetPlayer.SquelchManager.Squelches.Contains(ProjectileSource, ChatMessageType.Magic))
                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat(defenderMsg, ChatMessageType.Magic));
+                }
+
+                if (!nonHealth)
+                {
+                    if (target.HasCloakEquipped)
+                        Cloak.TryProcSpell(target, ProjectileSource, percent);
+
+                    target.EmoteManager.OnDamage(player);
+
+                    if (critical)
+                        target.EmoteManager.OnReceiveCritical(player);
                 }
             }
             else
@@ -704,7 +732,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetProjectilePhysicsState(WorldObject target, bool useGravity)
         {
-            if (useGravity) GravityStatus = true;
+            if (useGravity)
+                GravityStatus = true;
 
             CurrentMotionState = null;
             Placement = null;
@@ -721,6 +750,7 @@ namespace ACE.Server.WorldObjects
             var velocity = Velocity;
             //velocity = Vector3.Transform(velocity, Matrix4x4.Transpose(Matrix4x4.CreateFromQuaternion(rotation)));
             PhysicsObj.Velocity = velocity.Value;
+
             if (target != null)
                 PhysicsObj.ProjectileTarget = target.PhysicsObj;
 

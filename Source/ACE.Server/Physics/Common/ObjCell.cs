@@ -4,6 +4,8 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 
+using log4net;
+
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Combat;
@@ -12,6 +14,8 @@ namespace ACE.Server.Physics.Common
 {
     public class ObjCell: PartCell, IEquatable<ObjCell>
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public uint ID;
         public LandDefs.WaterType WaterType;
         public Position Pos;
@@ -160,9 +164,10 @@ namespace ACE.Server.Physics.Common
                         continue;
 
                     // clip through dynamic non-target objects
-                    if (target != null && !obj.Equals(target) && /*!obj.State.HasFlag(PhysicsState.Static)*/
-                        obj.WeenieObj.IsCreature())
-                        continue;
+                    // now uses ObjectInfo.TargetId in FindObjCollisions / MissileIgnore
+                    //if (target != null && !obj.Equals(target) && /*!obj.State.HasFlag(PhysicsState.Static)*/
+                        //obj.WeenieObj.IsCreature())
+                        //continue;
 
                     var state = obj.FindObjCollisions(transition);
                     if (state != TransitionState.OK)
@@ -344,16 +349,41 @@ namespace ACE.Server.Physics.Common
 
                     var found = false;
 
-                    foreach (var stab in ((EnvCell)visibleCell).VisibleCells.Values)
+                    if (visibleCell is EnvCell envCell)
                     {
-                        if (cell.ID == stab.ID)
+                        if (envCell.VisibleCells == null)
                         {
-                            found = true;
-                            break;
+                            log.Error(Environment.StackTrace);
+                            log.Error($"ObjCell.find_cell_list: visible cells is null for {visibleCell.ID:X8}");
+                            continue;
                         }
+
+                        foreach (var kvp in envCell.VisibleCells)
+                        {
+                            var stab = kvp.Value;
+
+                            if (stab == null)
+                            {
+                                log.Error(Environment.StackTrace);
+                                log.Error($"ObjCell.find_cell_list: stab is null for {visibleCell.ID:X8} -> {kvp.Key:X8}");
+                                continue;
+                            }
+
+                            if (cell.ID == stab.ID)
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found)
+                            cellArray.remove_cell(cell);
                     }
-                    if (!found)
-                        cellArray.remove_cell(cell);
+                    else
+                    {
+                        log.Error(Environment.StackTrace);
+                        log.Error($"ObjCell.find_cell_list: visible cell is not an EnvCell for {visibleCell.ID:X8}");
+                        continue;
+                    }
                 }
             }
         }

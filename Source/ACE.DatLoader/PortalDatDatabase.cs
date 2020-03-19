@@ -19,6 +19,7 @@ namespace ACE.DatLoader
             SkillTable = ReadFromDat<SkillTable>(SkillTable.FILE_ID);
             SpellComponentsTable = ReadFromDat<SpellComponentsTable>(SpellComponentsTable.FILE_ID);
             SpellTable = ReadFromDat<SpellTable>(SpellTable.FILE_ID);
+            TabooTable = ReadFromDat<TabooTable>(TabooTable.FILE_ID);
             XpTable = ReadFromDat<XpTable>(XpTable.FILE_ID);
         }
 
@@ -34,6 +35,7 @@ namespace ACE.DatLoader
         public SkillTable SkillTable { get; }
         public SpellComponentsTable SpellComponentsTable { get; }
         public SpellTable SpellTable { get; }
+        public TabooTable TabooTable { get; }
         public XpTable XpTable { get; }
     }
 }

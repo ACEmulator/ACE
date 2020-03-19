@@ -1,20 +1,27 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Linq;
+using Newtonsoft.Json;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Factories;
 using ACE.Server.WorldObjects;
-using Newtonsoft.Json;
 
 namespace ACE.Server.Managers
 {
     public partial class RecipeManager
     {
         public static Dictionary<uint, Dictionary<uint, uint>> Precursors;
+
+        public static HashSet<int> Trinkets;
+
+        static RecipeManager()
+        {
+            Trinkets = LootTables.trinketItems.ToHashSet();
+        }
 
         public static void ReadJSON()
         {
@@ -39,6 +46,26 @@ namespace ACE.Server.Managers
         public static Recipe GetNewRecipe(Player player, WorldObject source, WorldObject target)
         {
             Recipe recipe = null;
+
+            if (Trinkets.Contains((int)target.WeenieClassId))
+            {
+                // trinkets are ItemType.Jewelry,
+                // so need to be excluded in precursors
+                switch ((WeenieClassName)source.WeenieClassId)
+                {
+                    // allowed
+                    case WeenieClassName.W_MATERIALAMBER_CLASS:
+                    case WeenieClassName.W_MATERIALDIAMOND_CLASS:
+                    case WeenieClassName.W_MATERIALGROMNIEHIDE_CLASS:
+                    case WeenieClassName.W_MATERIALPYREAL_CLASS:
+                    case WeenieClassName.W_MATERIALRUBY_CLASS:
+                    case WeenieClassName.W_MATERIALSAPPHIRE_CLASS:
+                        break;
+
+                    default:
+                        return null;
+                }
+            }
 
             switch ((WeenieClassName)source.WeenieClassId)
             {

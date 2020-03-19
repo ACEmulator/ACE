@@ -92,7 +92,7 @@ namespace ACE.Server.Physics
 
         // this is used by the 1991 branch to determine when physics updates need to be run
         public bool IsMovingOrAnimating => !PartArray.Sequence.is_first_cyclic() || CachedVelocity != Vector3.Zero || Velocity != Vector3.Zero ||
-            MovementManager.MotionInterpreter.InterpretedState.HasCommands();
+            MovementManager.MotionInterpreter.InterpretedState.HasCommands() || MovementManager.MoveToManager.Initialized;
 
         // server
         public Position RequestPos;
@@ -1294,6 +1294,10 @@ namespace ACE.Server.Physics
 
             if (transition.SpherePath.CurCell == null) return SetPositionError.NoCell;
 
+            // custom
+            if (ProjectileTarget != null)
+                handle_all_collisions(transition.CollisionInfo, false, false);
+
             if (!SetPositionInternal(transition))
                 return SetPositionError.GeneralFailure;
 
@@ -2261,7 +2265,19 @@ namespace ACE.Server.Physics
                 foreach (var obj in newlyVisible)
                 {
                     var wo = obj.WeenieObj.WorldObject;
-                    if (wo != null)
+
+                    if (wo == null)
+                        continue;
+
+                    if (wo.Teleporting)
+                    {
+                        // ensure post-teleport position is sent
+                        var actionChain = new ActionChain();
+                        actionChain.AddDelayForOneTick();
+                        actionChain.AddAction(player, () => player.TrackObject(wo));
+                        actionChain.EnqueueChain();
+                    }
+                    else
                         player.TrackObject(wo);
                 }
             }
@@ -2285,7 +2301,16 @@ namespace ACE.Server.Physics
             }
             else
             {
-                player.TrackObject(wo);
+                if (wo.Teleporting)
+                {
+                    // ensure post-teleport position is sent
+                    var actionChain = new ActionChain();
+                    actionChain.AddDelayForOneTick();
+                    actionChain.AddAction(player, () => player.TrackObject(wo));
+                    actionChain.EnqueueChain();
+                }
+                else
+                    player.TrackObject(wo);
             }
         }
 
@@ -2314,7 +2339,7 @@ namespace ACE.Server.Physics
             //Console.WriteLine($"{Name}.enter_cell_server({newCell.ID:X8})");
 
             enter_cell(newCell);
-            RequestPos.ObjCellID = newCell.ID;
+            RequestPos.ObjCellID = newCell.ID;      // document this control flow better
 
             // sync location for initial CO
             if (entering_world)
@@ -3389,6 +3414,16 @@ namespace ACE.Server.Physics
             if (CurCell == null || CurCell.ID != Position.ObjCellID)
             {
                 var newCell = LScape.get_landcell(newPos.ObjCellID);
+
+                if (WeenieObj.WorldObject is Player player && player.LastContact && newCell is LandCell landCell)
+                {
+                    Polygon walkable = null;
+                    if (landCell.find_terrain_poly(newPos.Frame.Origin, ref walkable))
+                    {
+                        ContactPlaneCellID = newPos.ObjCellID;
+                        ContactPlane = walkable.Plane;
+                    }
+                }
                 change_cell_server(newCell);
             }
         }
@@ -4142,6 +4177,11 @@ namespace ACE.Server.Physics
                 Console.WriteLine($"{(MotionCommand)motion.Motion}");
         }
 
+        public bool motions_pending()
+        {
+            return IsAnimating;
+        }
+
         /// <summary>
         /// This is for legacy movement system
         /// </summary>
@@ -4219,6 +4259,8 @@ namespace ACE.Server.Physics
 
                 success &= requestCell >> 16 != 0x18A || CurCell?.ID >> 16 == requestCell >> 16;
             }
+
+            RequestPos.ObjCellID = requestCell;
 
             if (forcePos && success)
                 set_current_pos(RequestPos);

@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 
-using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
@@ -16,8 +14,8 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Structure;
 using ACE.Server.Network.Sequence;
+using ACE.Server.Network.Structure;
 using ACE.Server.Physics;
 
 namespace ACE.Server.WorldObjects
@@ -1067,9 +1065,12 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
-        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, MotionCommand? prevCommand = null, bool castGesture = false)
+        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, MotionCommand? prevCommand = null, bool castGesture = false, bool half = false)
         {
             var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
+
+            if (castGesture)
+                stance = MotionStance.Magic;
 
             var motion = new Motion(stance, motionCommand, speed);
             motion.MotionState.TurnSpeed = 2.25f;  // ??
@@ -1091,32 +1092,48 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcastMotion(motion);
             });
 
+            if (half)
+                animLength *= 0.5f;
+
             actionChain.AddDelaySeconds(animLength);
 
             return animLength;
         }
 
-        public float EnqueueMotionAction(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, bool usePrevCommand = false)
+        public float EnqueueMotionAction(ActionChain actionChain, List<MotionCommand> motionCommands, float speed = 1.0f, MotionStance? useStance = null, bool usePrevCommand = false)
         {
-            var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
+            var stance = useStance ?? CurrentMotionState.Stance;
 
             var motion = new Motion(stance, MotionCommand.Ready, speed);
-            motion.MotionState.AddCommand(this, motionCommand, speed);
+
+            foreach (var motionCommand in motionCommands)
+                motion.MotionState.AddCommand(this, motionCommand, speed);
+
             motion.MotionState.TurnSpeed = 2.25f;  // ??
 
             var animLength = 0.0f;
             if (usePrevCommand)
             {
                 var prevCommand = CurrentMotionState.MotionState.ForwardCommand;
-                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand, motionCommand, speed);
+
+                foreach (var motionCommand in motionCommands)
+                    animLength += Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand, motionCommand, speed);
             }
             else
-                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
+            {
+                foreach (var motionCommand in motionCommands)
+                    animLength += Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
+            }
 
             actionChain.AddAction(this, () =>
             {
                 CurrentMotionState = motion;
-                EnqueueBroadcastMotion(motion);
+                EnqueueBroadcastMotion(motion, null, false);
+
+                ApplyPhysicsMotion(new Motion(stance, MotionCommand.Ready, speed));
+
+                foreach (var motionCommand in motionCommands)
+                    ApplyPhysicsMotion(new Motion(stance, motionCommand, speed));
             });
 
             actionChain.AddDelaySeconds(animLength);
@@ -1124,7 +1141,7 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
-        public float EnqueueMotion_Force(ActionChain actionChain, MotionStance stance, MotionCommand motionCommand, MotionCommand? prevCommand = null, float speed = 1.0f)
+        public float EnqueueMotion_Force(ActionChain actionChain, MotionStance stance, MotionCommand motionCommand, MotionCommand? prevCommand = null, float speed = 1.0f, float animMod = 1.0f)
         {
             var motion = new Motion(stance, motionCommand, speed);
 
@@ -1149,7 +1166,7 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcastMotion(motion);
             });
 
-            actionChain.AddDelaySeconds(animLength);
+            actionChain.AddDelaySeconds(animLength * animMod);
             return animLength;
         }
 

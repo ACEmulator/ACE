@@ -50,7 +50,7 @@ namespace ACE.Server.WorldObjects
             else
                 playerMsg = deathMessage.Victim;
 
-            var msgYourDeath = new GameEventYourDeath(Session, playerMsg);
+            var msgYourDeath = new GameEventVictimNotification(Session, playerMsg);
             Session.Network.EnqueueSend(msgYourDeath);
 
             // broadcast to nearby players
@@ -60,18 +60,15 @@ namespace ACE.Server.WorldObjects
             else
                 nearbyMsg = deathMessage.Broadcast;
 
-            var broadcastMsg = new GameMessageSystemChat(nearbyMsg, ChatMessageType.Broadcast);
+            var broadcastMsg = new GameMessagePlayerKilled(nearbyMsg, Guid, lastDamager?.Guid ?? ObjectGuid.Invalid);
 
             log.Debug("[CORPSE] " + nearbyMsg);
 
             var excludePlayers = new List<Player>();
-            if (lastDamagerObj is Player lastDamagerPlayer)
-                excludePlayers.Add(lastDamagerPlayer);
 
-            var nearbyPlayers = EnqueueBroadcast(excludePlayers, false, broadcastMsg);
+            var nearbyPlayers = EnqueueBroadcast(excludePlayers, true, broadcastMsg);
 
             excludePlayers.AddRange(nearbyPlayers);
-            excludePlayers.Add(this); // exclude self
 
             if (Fellowship != null)
                 Fellowship.OnDeath(this);
@@ -159,6 +156,9 @@ namespace ACE.Server.WorldObjects
             UpdateVital(Health, 0);
             NumDeaths++;
             suicideInProgress = false;
+
+            if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
+                FailCast(false);
 
             // TODO: instead of setting IsBusy here,
             // eventually all of the places that check for states such as IsBusy || Teleporting
@@ -257,6 +257,8 @@ namespace ACE.Server.WorldObjects
 
                     // reset damage history for this player
                     DamageHistory.Reset();
+
+                    OnHealthUpdate();
                 });
 
                 teleportChain.EnqueueChain();
@@ -503,6 +505,7 @@ namespace ACE.Server.WorldObjects
                         Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
 
                         var dropItem = WorldObjectFactory.CreateNewWorldObject(deathItem.WorldObject.WeenieClassId);
+                        dropItem.SetStackSize(1);
 
                         //Console.WriteLine("Dropping " + deathItem.WorldObject.Name + " (stack)");
                         dropItems.Add(dropItem);
@@ -989,7 +992,7 @@ namespace ACE.Server.WorldObjects
         {
             var allPossessions = GetAllPossessions();
 
-            return allPossessions.Where(i => (i.Bonded ?? 0) == (int)BondedStatus.Slippery).ToList();
+            return allPossessions.Where(i => i.Bonded == BondedStatus.Slippery).ToList();
         }
 
         public List<WorldObject> HandleDestroyBonded()
@@ -997,7 +1000,7 @@ namespace ACE.Server.WorldObjects
             var destroyedItems = new List<WorldObject>();
 
             var allPossessions = GetAllPossessions();
-            foreach (var destroyItem in allPossessions.Where(i => (i.Bonded ?? 0) == (int)BondedStatus.Destroy).ToList())
+            foreach (var destroyItem in allPossessions.Where(i => i.Bonded == BondedStatus.Destroy).ToList())
             {
                 TryConsumeFromInventoryWithNetworking(destroyItem, (destroyItem.StackSize ?? 1));
                 destroyedItems.Add(destroyItem);

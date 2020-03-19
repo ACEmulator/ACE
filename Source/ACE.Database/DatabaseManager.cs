@@ -9,7 +9,7 @@ namespace ACE.Database
 
         public static AuthenticationDatabase Authentication { get; } = new AuthenticationDatabase();
 
-        public static WorldDatabase World { get; } = new WorldDatabase();
+        public static WorldDatabaseWithEntityCache World { get; } = new WorldDatabaseWithEntityCache();
 
         private static SerializedShardDatabase serializedShardDb;
 
@@ -20,6 +20,14 @@ namespace ACE.Database
         public static void Initialize(bool autoRetry = true)
         {
             Authentication.Exists(true);
+
+            if (Authentication.GetListofAccountsByAccessLevel(ACE.Entity.Enum.AccessLevel.Admin).Count == 0)
+            {
+                log.Warn("Database does not contain any admin accounts. The next account to be created will automatically be promoted to an Admin account.");
+                AutoPromoteNextAccountToAdmin = true;
+            }
+            else
+                AutoPromoteNextAccountToAdmin = false;
 
             World.Exists(true);
 
@@ -33,6 +41,8 @@ namespace ACE.Database
 
             shardDb.Exists(true);
         }
+
+        public static bool AutoPromoteNextAccountToAdmin { get; set; }
 
         public static void Start()
         {

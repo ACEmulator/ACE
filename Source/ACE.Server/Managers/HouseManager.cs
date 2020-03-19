@@ -611,10 +611,17 @@ namespace ACE.Server.Managers
             return houseData;
         }
 
+        // This function is called from a database callback.
+        // We must add thread safety to prevent AllegianceManager corruption
+        public static void HandlePlayerDelete(uint playerGuid)
+        {
+            WorldManager.EnqueueAction(new ActionEventDelegate(() => DoHandlePlayerDelete(playerGuid)));
+        }
+
         /// <summary>
         /// Called on character delete, evicts from house
         /// </summary>
-        public static void HandlePlayerDelete(uint playerGuid)
+        private static void DoHandlePlayerDelete(uint playerGuid)
         {
             var player = PlayerManager.FindByGuid(playerGuid);
             if (player == null)
@@ -680,7 +687,7 @@ namespace ACE.Server.Managers
         /// else return a copy of the House biota from the latest info in the db
         ///
         /// <param name="callback">called when the slumlord inventory is fully loaded</param>
-        private static void GetHouse(uint houseGuid, Action<House> callback)
+        public static void GetHouse(uint houseGuid, Action<House> callback)
         {
             var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
 
@@ -710,13 +717,13 @@ namespace ACE.Server.Managers
                     callback(house);
             }
             else
-                log.Error($"HouseManager.GetHouse(${houseGuid:X8}): couldn't find house on loaded landblock");
+                log.Error($"HouseManager.GetHouse({houseGuid:X8}): couldn't find house on loaded landblock");
         }
 
         /// <summary>
         /// Registers a callback to run when the slumlord inventory has been loaded
         /// </summary>
-        private static void RegisterCallback(House house, Action<House> callback)
+        public static void RegisterCallback(House house, Action<House> callback)
         {
             if (!SlumlordCallbacks.TryGetValue(house.SlumLord.Guid.Full, out var callbacks))
             {
