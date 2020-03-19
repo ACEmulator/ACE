@@ -292,6 +292,13 @@ namespace ACE.Server.Physics.Common
 
             var visibleCell = GetVisible(position.ObjCellID);
 
+            if (visibleCell == null)
+            {
+                log.Error(Environment.StackTrace);
+                log.Error($"ObjCell.find_cell_list() - GetVisible({position.ObjCellID:X8}) returned null!");
+                return;
+            }
+
             if ((position.ObjCellID & 0xFFFF) >= 0x100)
             {
                 if (path != null)
