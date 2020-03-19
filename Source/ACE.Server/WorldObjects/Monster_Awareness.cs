@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 using ACE.Common;
 using ACE.Common.Extensions;
@@ -36,7 +37,8 @@ namespace ACE.Server.WorldObjects
             MonsterState = State.Awake;
             IsAwake = true;
             //DoAttackStance();
-            EmoteManager.OnAttack(AttackTarget as Creature);
+            EmoteManager.OnWakeUp(AttackTarget as Creature);
+            EmoteManager.OnNewEnemy(AttackTarget as Creature);
             //SelectTargetingTactic();
 
             if (alertNearby)
@@ -59,6 +61,8 @@ namespace ACE.Server.WorldObjects
             IsAwake = false;
             IsMoving = false;
             MonsterState = State.Idle;
+
+            PhysicsObj.CachedVelocity = Vector3.Zero;
         }
 
         public Tolerance Tolerance
@@ -144,10 +148,8 @@ namespace ACE.Server.WorldObjects
                 if (visibleTargets.Count == 0)
                 {
                     if (MonsterState != State.Return)
-                    {
-                        AttackTarget = null;
                         MoveToHome();
-                    }
+
                     return false;
                 }
 
@@ -161,6 +163,8 @@ namespace ACE.Server.WorldObjects
 
                 // Players within the creature's detection sphere are weighted by how close they are to the creature --
                 // the closer you are, the more chance you have to be selected to be attacked.
+
+                var prevAttackTarget = AttackTarget;
 
                 switch (CurrentTargetingTactic)
                 {
@@ -220,6 +224,9 @@ namespace ACE.Server.WorldObjects
                 }
 
                 //Console.WriteLine($"{Name}.FindNextTarget = {AttackTarget.Name}");
+
+                if (AttackTarget != null && AttackTarget != prevAttackTarget)
+                    EmoteManager.OnNewEnemy(AttackTarget);
 
                 return AttackTarget != null;
             }

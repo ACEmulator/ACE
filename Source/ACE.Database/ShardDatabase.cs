@@ -867,11 +867,14 @@ namespace ACE.Database
                     .AsNoTracking()
                     .ToList();
 
-                Parallel.ForEach(results, result =>
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
                     var biota = GetBiota(result.Id);
 
-                    biotas.Add(biota);
+                    if (biota != null)
+                        biotas.Add(biota);
+                    else
+                        log.Error($"ShardDatabase.GetAllPlayerBiotasInParallel() - couldn't find biota for character 0x{result.Id:X8}");
                 });
             }
 

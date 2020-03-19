@@ -1,4 +1,6 @@
 using System;
+using System.Numerics;
+
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
@@ -83,13 +85,24 @@ namespace ACE.Server.WorldObjects
             if (DebugMove)
                 Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - LaunchMissile");
 
+            // get z-angle for aim motion
+            var aimVelocity = GetAimVelocity(AttackTarget);
+
+            var aimLevel = GetAimLevel(aimVelocity);
+
+            // calculate projectile spawn pos and velocity
+            var localOrigin = GetProjectileSpawnOrigin(ammo.WeenieClassId, aimLevel);
+
+            var velocity = CalculateProjectileVelocity(localOrigin, AttackTarget, out Vector3 origin, out Quaternion orientation);
+
+            //Console.WriteLine($"Velocity: {velocity}");
+
             // launch animation
             var actionChain = new ActionChain();
-            var launchTime = EnqueueMotion(actionChain, MotionCommand.AimLevel);
+            var launchTime = EnqueueMotion(actionChain, aimLevel);
             //Console.WriteLine("LaunchTime: " + launchTime);
 
             // launch projectile
-            float targetTime = 0.0f;
             actionChain.AddAction(this, () =>
             {
                 if (IsDead) return;
@@ -101,7 +114,7 @@ namespace ACE.Server.WorldObjects
 
                 if (AttackTarget != null)
                 {
-                    var projectile = LaunchProjectile(weapon, ammo, AttackTarget, out targetTime);
+                    var projectile = LaunchProjectile(weapon, ammo, AttackTarget, origin, orientation, velocity);
                     UpdateAmmoAfterLaunch(ammo);
                 }
             });

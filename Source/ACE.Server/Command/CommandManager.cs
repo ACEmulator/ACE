@@ -48,6 +48,8 @@ namespace ACE.Server.Command
                 }
             }
 
+            if (Program.IsRunningInContainer) return;
+
             var thread = new Thread(new ThreadStart(CommandThread));
             thread.Name = "Command Manager";
             thread.IsBackground = true;

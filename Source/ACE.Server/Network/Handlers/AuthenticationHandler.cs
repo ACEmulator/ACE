@@ -73,6 +73,13 @@ namespace ACE.Server.Network.Handlers
                         if (!System.Enum.IsDefined(typeof(AccessLevel), accessLevel))
                             accessLevel = AccessLevel.Player;
 
+                        if (DatabaseManager.AutoPromoteNextAccountToAdmin)
+                        {
+                            accessLevel = AccessLevel.Admin;
+                            DatabaseManager.AutoPromoteNextAccountToAdmin = false;
+                            log.Warn($"Automatically setting account AccessLevel to Admin for account \"{loginRequest.Account}\" because there are no admin accounts in the current database.");
+                        }
+
                         account = DatabaseManager.Authentication.CreateAccount(loginRequest.Account.ToLower(), loginRequest.Password, accessLevel, session.EndPoint.Address);
                     }
                 }
@@ -158,7 +165,7 @@ namespace ACE.Server.Network.Handlers
                     else
                         log.Debug($"client {loginRequest.Account} connected with non matching password so booting");
 
-                    session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageBootAccount(session, "The password entered for this account was not correct."));
+                    session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageBootAccount(session, " because the password entered for this account was not correct."));
 
                     // TO-DO: temporary lockout of account preventing brute force password discovery
                     // exponential duration of lockout for targeted account

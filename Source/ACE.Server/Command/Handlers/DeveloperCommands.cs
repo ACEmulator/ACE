@@ -8,6 +8,7 @@ using System.Numerics;
 using log4net;
 
 using ACE.Common;
+using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Database.Models.Shard;
@@ -17,12 +18,14 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics.Entity;
+using ACE.Server.Physics.Extensions;
 using ACE.Server.Physics.Managers;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
@@ -181,44 +184,6 @@ namespace ACE.Server.Command.Handlers
         public static void HandleNetStats(Session session, params string[] parameters)
         {
             CommandHandlerHelper.WriteOutputInfo(session, NetworkStatistics.Summary(), ChatMessageType.Broadcast);
-        }
-
-        [CommandHandler("trash_c2s", AccessLevel.Developer, CommandHandlerFlag.None, "Trash (corrupt) the next C2S packet that arrives.")]
-        public static void HandleTrashNextPacketC2S(Session session, params string[] parameters)
-        {
-            CommandHandlerHelper.WriteOutputInfo(session, "The next C2S packet will be synthetically corrupted.", ChatMessageType.Broadcast);
-            NetworkSyntheticTesting.TrashNextPacketC2S = true;
-        }
-
-        [CommandHandler("junk_c2s", AccessLevel.Developer, CommandHandlerFlag.None, "Toggle synthetically junky C2S connection of a 10% payload corruption rate.")]
-        public static void HandleJunkC2S(Session session, params string[] parameters)
-        {
-            NetworkSyntheticTesting.JunkyConnectionC2S = !NetworkSyntheticTesting.JunkyConnectionC2S;
-            var endis = (NetworkSyntheticTesting.JunkyConnectionC2S) ? "enabled" : "disabled";
-            CommandHandlerHelper.WriteOutputInfo(session, $"Junky C2S connection {endis}.", ChatMessageType.Broadcast);
-        }
-
-        [CommandHandler("trash_s2c", AccessLevel.Developer, CommandHandlerFlag.None, "Trash (corrupt) the next S2C packet that is sent.")]
-        public static void HandleTrashNextPacketS2C(Session session, params string[] parameters)
-        {
-            CommandHandlerHelper.WriteOutputInfo(session, "The next S2C packet will be synthetically corrupted.", ChatMessageType.Broadcast);
-            NetworkSyntheticTesting.TrashNextPacketS2C = true;
-        }
-
-        [CommandHandler("junk_s2c", AccessLevel.Developer, CommandHandlerFlag.None, "Toggle synthetically junky S2C connection of a 10% payload corruption rate.")]
-        public static void HandleJunkS2C(Session session, params string[] parameters)
-        {
-            NetworkSyntheticTesting.JunkyConnectionS2C = !NetworkSyntheticTesting.JunkyConnectionS2C;
-            var endis = (NetworkSyntheticTesting.JunkyConnectionS2C) ? "enabled" : "disabled";
-            CommandHandlerHelper.WriteOutputInfo(session, $"Junky S2C connection {endis}.", ChatMessageType.Broadcast);
-        }
-
-
-        [CommandHandler("junk", AccessLevel.Developer, CommandHandlerFlag.None, "Toggle synthetically junky S2C and C2S connections of a 10% payload corruption rate.")]
-        public static void HandleJunk(Session session, params string[] parameters)
-        {
-            HandleJunkC2S(session, parameters);
-            HandleJunkS2C(session, parameters);
         }
 
         /// <summary>
@@ -507,14 +472,6 @@ namespace ACE.Server.Command.Handlers
 
                 CommandHandlerHelper.WriteOutputInfo(session, "Loading landblocks completed. Async landblock resources are likely still loading...");
             });
-        }
-
-        [CommandHandler("cacheallweenies", AccessLevel.Developer, CommandHandlerFlag.None, "Loads and caches all Weenies. This may take 15+ minutes and is very heavy on the database.")]
-        public static void HandleCacheAllWeenies(Session session, params string[] parameters)
-        {
-            CommandHandlerHelper.WriteOutputInfo(session, "Caching Weenies... This may take more than 15 minutes...");
-
-            Task.Run(() => DatabaseManager.World.CacheAllWeenies());
         }
 
 
@@ -2002,37 +1959,37 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("debugdamage", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Toggles the display for player damage info", "/debugdamage <attack|defense|all|on|off>")]
         public static void HandleDebugDamage(Session session, params string[] parameters)
         {
-            // get last appraisal player target
-            var targetPlayer = CommandHandlerHelper.GetLastAppraisedObject(session) as Player;
-            if (targetPlayer == null) return;
+            // get last appraisal creature target
+            var targetCreature = CommandHandlerHelper.GetLastAppraisedObject(session) as Creature;
+            if (targetCreature == null) return;
 
             if (parameters.Length == 0)
             {
                 // toggle
-                if (targetPlayer.DebugDamage == Player.DebugDamageType.None)
-                    targetPlayer.DebugDamage = Player.DebugDamageType.All;
+                if (targetCreature.DebugDamage == Creature.DebugDamageType.None)
+                    targetCreature.DebugDamage = Creature.DebugDamageType.All;
                 else
-                    targetPlayer.DebugDamage = Player.DebugDamageType.None;
+                    targetCreature.DebugDamage = Creature.DebugDamageType.None;
             }
             else
             {
                 var param = parameters[0].ToLower();
                 if (param.Equals("on") || param.Equals("all"))
-                    targetPlayer.DebugDamage = Player.DebugDamageType.All;
+                    targetCreature.DebugDamage = Creature.DebugDamageType.All;
                 else if (param.Equals("off"))
-                    targetPlayer.DebugDamage = Player.DebugDamageType.None;
+                    targetCreature.DebugDamage = Creature.DebugDamageType.None;
                 else if (param.StartsWith("attack"))
-                    targetPlayer.DebugDamage = Player.DebugDamageType.Attacker;
+                    targetCreature.DebugDamage = Creature.DebugDamageType.Attacker;
                 else if (param.StartsWith("defen"))
-                    targetPlayer.DebugDamage = Player.DebugDamageType.Defender;
+                    targetCreature.DebugDamage = Creature.DebugDamageType.Defender;
                 else
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: - unknown {param} ({targetPlayer.Name})", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: - unknown {param} ({targetCreature.Name})", ChatMessageType.Broadcast));
                     return;
                 }
             }
-            session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: - {session.Player.DebugDamage} ({targetPlayer.Name})", ChatMessageType.Broadcast));
-            targetPlayer.DebugDamageTarget = session.Player.Guid;
+            session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: - {targetCreature.DebugDamage} ({targetCreature.Name})", ChatMessageType.Broadcast));
+            targetCreature.DebugDamageTarget = session.Player.Guid;
         }
 
         /// <summary>
@@ -2158,6 +2115,39 @@ namespace ACE.Server.Command.Handlers
                 WorldObject.AdjustDungeon(pos);
 
                 session.Player.Teleport(pos);
+            }
+        }
+
+        /// <summary>
+        /// Shows the dungeon name for the current landblock
+        /// </summary>
+        [CommandHandler("dungeonname", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the dungeon name for the current landblock")]
+        public static void HandleDungeonName(Session session, params string[] parameters)
+        {
+            var landblock = session.Player.Location.Landblock;
+
+            using (var ctx = new WorldDbContext())
+            {
+                var query = from weenie in ctx.Weenie
+                            join wstr in ctx.WeeniePropertiesString on weenie.ClassId equals wstr.ObjectId
+                            join wpos in ctx.WeeniePropertiesPosition on weenie.ClassId equals wpos.ObjectId
+                            where weenie.Type == (int)WeenieType.Portal && wpos.PositionType == (int)PositionType.Destination && wpos.ObjCellId >> 16 == landblock
+                            select wstr;
+
+                var results = query.ToList();
+
+                if (results.Count() == 0)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find dungeon {landblock:X4}", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                foreach (var result in results)
+                {
+                    var name = result.Value.TrimStart("Portal to ").TrimEnd(" Portal");
+
+                    session.Network.EnqueueSend(new GameMessageSystemChat(name, ChatMessageType.Broadcast));
+                }
             }
         }
 
@@ -2294,9 +2284,16 @@ namespace ACE.Server.Command.Handlers
             if (parameters.Length > 1)
                 int.TryParse(parameters[1], out numItems);
 
+            // Create a dummy treasure profile for passing in tier value
+            TreasureDeath profile = new TreasureDeath
+            {
+                Tier = tier,
+                LootQualityMod = 0
+            };
+
             for (var i = 0; i < numItems; i++)
             {
-                var wo = LootGenerationFactory.CreateRandomLootObjects(tier, true);
+                var wo = LootGenerationFactory.CreateRandomLootObjects(profile, true);
                 if (wo != null)
                     session.Player.TryCreateInInventoryWithNetworking(wo);
                 else
@@ -2342,7 +2339,9 @@ namespace ACE.Server.Command.Handlers
             var i = 0;
             foreach (var item in sorted.Inventory)
             {
-                if ((item.WorldObject.Bonded ?? 0) != 0)
+                var bonded = item.WorldObject.Bonded ?? BondedStatus.Normal;
+
+                if (bonded != BondedStatus.Normal)
                     continue;
 
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{++i}. {item.Name} ({item.Category}, AdjustedValue: {item.AdjustedValue})", ChatMessageType.Broadcast));
@@ -2428,9 +2427,14 @@ namespace ACE.Server.Command.Handlers
         public static void HandleAddItemSpell(Session session, params string[] parameters)
         {
             var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
-
-            if (!int.TryParse(parameters[0], out var spellId))
+            if (obj == null)
                 return;
+
+            if (!Enum.TryParse(parameters[0], true, out SpellId spellId))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{parameters[0]} is not a valid spell id", ChatMessageType.Broadcast));
+                return;
+            }
 
             // ensure valid spell id
             var spell = new Spell(spellId);
@@ -2441,9 +2445,38 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            obj.Biota.GetOrAddKnownSpell(spellId, obj.BiotaDatabaseLock, obj.BiotaPropertySpells, out var spellAdded);
+            obj.Biota.GetOrAddKnownSpell((int)spellId, obj.BiotaDatabaseLock, obj.BiotaPropertySpells, out var spellAdded);
 
             var msg = spellAdded ? "added to" : "already on";
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} ({spell.Id}) {msg} {obj.Name}", ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("removeitemspell", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Removes a spell to the last appraised item's spellbook.", "<spell id>")]
+        public static void HandleRemoveItemSpell(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (obj == null)
+                return;
+
+            if (!Enum.TryParse(parameters[0], true, out SpellId spellId))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{parameters[0]} is not a valid spell id", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // ensure valid spell id
+            var spell = new Spell(spellId);
+
+            if (spell.NotFound)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("SpellID is not found", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var spellRemoved = obj.Biota.TryRemoveKnownSpell((int)spellId, out _, obj.BiotaDatabaseLock, obj.BiotaPropertySpells);
+
+            var msg = spellRemoved ? "removed from" : "not found on";
 
             session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} ({spell.Id}) {msg} {obj.Name}", ChatMessageType.Broadcast));
         }
@@ -2482,6 +2515,32 @@ namespace ACE.Server.Command.Handlers
 
                 //session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(levelScale * 100, 2)}% / {Math.Round(levelXPScale * 100, 2)}%", ChatMessageType.Broadcast));
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(levelXPScale * 100, 2)}%", ChatMessageType.Broadcast));
+            }
+        }
+
+        [CommandHandler("fellow-dist", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows distance to each fellowship member")]
+        public static void HandleFellowDist(Session session, params string[] parameters)
+        {
+            var player = session.Player;
+
+            var fellowship = player.Fellowship;
+
+            if (fellowship == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("You must be in a fellowship to use this command.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var fellows = fellowship.GetFellowshipMembers();
+
+            foreach (var fellow in fellows.Values)
+            {
+                var dist2d = session.Player.Location.Distance2D(fellow.Location);
+                var dist3d = session.Player.Location.DistanceTo(fellow.Location);
+
+                var scalar = session.Player.Fellowship.GetDistanceScalar(session.Player, fellow, XpType.Kill);
+
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name} | 2d: {dist2d:N0} | 3d: {dist3d:N0} | Scalar: {scalar:N0}", ChatMessageType.Broadcast));
             }
         }
 
@@ -2546,7 +2605,7 @@ namespace ACE.Server.Command.Handlers
                     {
                         var profile = wo.GeneratorProfiles[activeProfile];
 
-                        msg += $"Active GeneratorProfile id: {activeProfile}\n";
+                        msg += $"Active GeneratorProfile id: {activeProfile} | LinkId: {profile.LinkId}\n";
 
                         msg += $"Probability: {profile.Biota.Probability} | WCID: {profile.Biota.WeenieClassId} | Delay: {profile.Biota.Delay} | Init: {profile.Biota.InitCreate} | Max: {profile.Biota.MaxCreate}\n";
                         msg += $"WhenCreate: {((RegenerationType)profile.Biota.WhenCreate).ToString()} | WhereCreate: {((RegenLocationType)profile.Biota.WhereCreate).ToString()}\n";
@@ -2727,12 +2786,24 @@ namespace ACE.Server.Command.Handlers
         {
             var spell = new Spell(SpellId.QuicknessSelf8);
             session.Player.CreateEnchantment(session.Player, session.Player, spell);
+
+            spell = new Spell(SpellId.SprintSelf8);
+            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+
+            spell = new Spell(SpellId.StrengthSelf8);
+            session.Player.CreateEnchantment(session.Player, session.Player, spell);
         }
 
         [CommandHandler("slow", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void HandleSlow(Session session, params string[] parameters)
         {
             var spell = new Spell(SpellId.SlownessSelf8);
+            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+
+            spell = new Spell(SpellId.LeadenFeetSelf8);
+            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+
+            spell = new Spell(SpellId.WeaknessSelf8);
             session.Player.CreateEnchantment(session.Player, session.Player, spell);
         }
 
@@ -2822,6 +2893,89 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
             wo.EnqueueBroadcast(new GameMessageScript(wo.Guid, (PlayScript)pscript));
+        }
+
+        [CommandHandler("getinfo", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows basic info for the last appraised object.")]
+        public static void HandleGetInfo(Session session, params string[] parameters)
+        {
+            var wo = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (wo != null)
+                session.Network.EnqueueSend(new GameMessageSystemChat($"WeenieClassId: {wo.WeenieClassId}\nWeenieClassName: {wo.WeenieClassName}", ChatMessageType.Broadcast));
+        }
+
+        public static WorldObject LastTestAim;
+
+        [CommandHandler("testaim", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Tests the aim high/low motions, and projectile spawn position")]
+        public static void HandleTestAim(Session session, params string[] parameters)
+        {
+            var motionStr = parameters[0];
+
+            if (!motionStr.StartsWith("Aim", StringComparison.OrdinalIgnoreCase))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Motion must start with Aim!", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (!Enum.TryParse(motionStr, true, out MotionCommand motionCommand))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find MotionCommand {motionStr}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var positive = motionCommand >= MotionCommand.AimHigh15 && motionCommand <= MotionCommand.AimHigh90;
+
+            if (LastTestAim != null)
+                LastTestAim.Destroy();
+
+            var motion = new Motion(session.Player, motionCommand);
+
+            session.Player.EnqueueBroadcastMotion(motion);
+
+            // spawn ethereal arrow w/ no velocity or gravity
+            var localOrigin = session.Player.GetProjectileSpawnOrigin(300, motionCommand);
+
+            var globalOrigin = session.Player.Location.Pos + Vector3.Transform(localOrigin, session.Player.Location.Rotation);
+
+            var wo = WorldObjectFactory.CreateNewWorldObject(300);
+            wo.Ethereal = true;
+            wo.GravityStatus = false;
+
+            var angle = motionCommand.GetAimAngle().ToRadians();
+            var zRotation = Quaternion.CreateFromAxisAngle(Vector3.UnitX, angle);
+
+            wo.Location = new Position(session.Player.Location);
+            wo.Location.Pos = globalOrigin;
+            wo.Location.Rotation *= zRotation;
+
+            session.Player.CurrentLandblock.AddWorldObject(wo);
+
+            LastTestAim = wo;
+        }
+
+        [CommandHandler("reload-landblock", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Reloads the current landblock.")]
+        public static void HandleReloadLandblocks(Session session, params string[] parameters)
+        {
+            var landblock = session.Player.CurrentLandblock;
+
+            var landblockId = landblock.Id.Raw | 0xFFFF;
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Reloading 0x{landblockId:X8}", ChatMessageType.Broadcast));
+
+            // destroy all non-player server objects
+            landblock.DestroyAllNonPlayerObjects();
+
+            // clear landblock cache
+            DatabaseManager.World.ClearCachedInstancesByLandblock(landblock.Id.Landblock);
+
+            // reload landblock
+            var actionChain = new ActionChain();
+            actionChain.AddDelayForOneTick();
+            actionChain.AddAction(session.Player, () =>
+            {
+                landblock.Init(true);
+            });
+            actionChain.EnqueueChain();
         }
     }
 }

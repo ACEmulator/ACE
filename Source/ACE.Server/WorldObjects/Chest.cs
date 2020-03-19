@@ -1,12 +1,16 @@
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
+using System;
+using System.Collections.Generic;
+
+using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
-using System.Collections.Generic;
+
+using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {
@@ -157,9 +161,11 @@ namespace ACE.Server.WorldObjects
 
             if (!ResetMessagePending && !double.IsPositiveInfinity(ChestResetInterval))
             {
+                var resetTimestamp = ResetTimestamp;
+
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(ChestResetInterval);
-                actionChain.AddAction(this, Reset);
+                actionChain.AddAction(this, () => Reset(resetTimestamp));
                 actionChain.EnqueueChain();
 
                 ResetMessagePending = true;
@@ -179,11 +185,14 @@ namespace ACE.Server.WorldObjects
             base.Close(player);
 
             if (ChestRegenOnClose && tryReset)
-                Reset();
+                Reset(ResetTimestamp);
         }
 
-        public override void Reset()
+        public void Reset(double? resetTimestamp)
         {
+            if (resetTimestamp != ResetTimestamp)
+                return;     // already cleared by previous reset
+
             // TODO: if 'ResetInterval' style, do we want to ensure a minimum amount of time for the last viewer?
 
             var player = CurrentLandblock.GetObject(Viewer) as Player;
@@ -204,6 +213,7 @@ namespace ACE.Server.WorldObjects
                     Generator_Regeneration();
             }
 
+            ResetTimestamp = Time.GetUnixTime();
             ResetMessagePending = false;
         }
 

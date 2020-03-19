@@ -1,4 +1,5 @@
 using ACE.Common;
+using ACE.Database.Models.World;
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -12,12 +13,37 @@ namespace ACE.Server.Factories
         {
             uint id = 0;
 
-            if (tier < 1) tier = 1;
-            if (tier > 7) tier = 7;
+            // Adding a spread of Pet Device levels for each tier - Level 200 pets should only be dropping in T8 Loot - HQ 2/29/2020
+            // The spread is from Optim's Data
+            // T5-T8 20/35/30/15% split 
+            // T8- 200,180,150,125
+            // T7- 180,150,125,100
+            // T6- 150,125,100,80
+            // T5- 125,100,80,50
+            // T4- 100,80,50
+            // T3- 80,50
+            // T2- 50
+            // T1- 50
+
+
+            // Tables are already 1-7, so removing them being Tier dependent
+
+            int petLevel = 0;
+            int chance = ThreadSafeRandom.Next(1, 100);
+            if (chance > 80)
+                petLevel = tier - 1;
+            else if (chance > 45)
+                petLevel = tier - 2;
+            else if (chance > 15)
+                petLevel = tier - 3;
+            else
+                petLevel = tier - 4;
+            if (petLevel < 2)
+                petLevel = 1;
 
             int summoningEssenceIndex = ThreadSafeRandom.Next(0, LootTables.SummoningEssencesMatrix.Length - 1);
 
-            id = (uint)LootTables.SummoningEssencesMatrix[summoningEssenceIndex][tier - 1];
+            id = (uint)LootTables.SummoningEssencesMatrix[summoningEssenceIndex][petLevel - 1];
 
             if (id == 0)
                 return null;
@@ -103,7 +129,7 @@ namespace ACE.Server.Factories
                 return null;
             }
 
-            wo = WorldObjectFactory.CreateNewWorldObject(weenie.ClassId);
+            wo = WorldObjectFactory.CreateNewWorldObject(weenie.WeenieClassId);
             return wo;
         }
 
@@ -118,7 +144,7 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Creates Caster (Wand, Staff, Orb)
         /// </summary>
-        public static WorldObject CreateCaster(int tier, bool isMagical, int wield = -1, bool forceWar = false)
+        public static WorldObject CreateCaster(TreasureDeath profile, bool isMagical, int wield = -1, bool forceWar = false)
         {
             // Refactored 11/20/19  - HarliQ
 
@@ -128,7 +154,7 @@ namespace ACE.Server.Factories
             WieldRequirement wieldRequirement = WieldRequirement.RawSkill;
             int subType = 0;
             if (wield == -1)
-                wield = GetWield(tier, 2);
+                wield = GetWield(profile.Tier, 2);
 
             // Getting the caster Weenie needed.
             if (wield == 0)
@@ -137,20 +163,16 @@ namespace ACE.Server.Factories
                 subType = ThreadSafeRandom.Next(0, 3);
                 casterWeenie = LootTables.CasterWeaponsMatrix[wield][subType];
 
-                if (tier > 6)
+                if (profile.Tier > 6)
                 {
                     wieldRequirement = WieldRequirement.Level;
                     wieldSkillType = Skill.Axe;  // Set by examples from PCAP data
 
-                    switch (tier)
+                    wield = profile.Tier switch
                     {
-                        case 7:
-                            wield = 150; // In this instance, used for indicating player level, rather than skill level
-                            break;
-                        default:
-                            wield = 180; // In this instance, used for indicating player level, rather than skill level
-                            break;
-                    }
+                        7 => 150,// In this instance, used for indicating player level, rather than skill level
+                        _ => 180,// In this instance, used for indicating player level, rather than skill level
+                    };
                 }
             }
             else
@@ -185,21 +207,21 @@ namespace ACE.Server.Factories
             wo.ItemSkillLevelLimit = null;
 
             // Setting general traits of weapon
-            wo.ItemWorkmanship = GetWorkmanship(tier);
+            wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
 
-            int materialType = GetMaterialType(wo, tier);
+            int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
             wo.GemCount = ThreadSafeRandom.Next(1, 5);
             wo.GemType = (MaterialType)ThreadSafeRandom.Next(10, 50);
-            wo.Value = GetValue(tier, wo.ItemWorkmanship.Value, LootTables.getMaterialValueModifier(wo), LootTables.getGemMaterialValueModifier(wo));
+            wo.Value = GetValue(profile.Tier, wo.ItemWorkmanship.Value, LootTables.getMaterialValueModifier(wo), LootTables.getGemMaterialValueModifier(wo));
             // Is this right??
             wo.LongDesc = wo.Name;
 
             // Setting Weapon defensive mods 
             wo.WeaponDefense = GetWieldReqMeleeDMod(wield);
-            wo.WeaponMagicDefense = GetMagicMissileDMod(tier);
-            wo.WeaponMissileDefense = GetMagicMissileDMod(tier);
+            wo.WeaponMagicDefense = GetMagicMissileDMod(profile.Tier);
+            wo.WeaponMissileDefense = GetMagicMissileDMod(profile.Tier);
 
             // Setting weapon Offensive Mods
             if (elementalDamageMod > 1.0f)
@@ -220,12 +242,12 @@ namespace ACE.Server.Factories
             }
 
             // Adjusting Properties if weapon has magic (spells)
-            double manaConMod = GetManaCMod(tier);
+            double manaConMod = GetManaCMod(profile.Tier);
             if (manaConMod > 0.0f)
                 wo.ManaConversionMod = manaConMod;
 
             if (isMagical)
-                wo = AssignMagic(wo, tier);
+                wo = AssignMagic(wo, profile);
             else
             {
                 wo.ItemManaCost = null;
@@ -311,7 +333,7 @@ namespace ACE.Server.Factories
                     break;
             }
 
-            elementBonus = elementBonus + 1;
+            elementBonus += 1;
 
             return elementBonus;
         }

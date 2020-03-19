@@ -47,7 +47,7 @@ namespace ACE.Server.Command.Handlers
                     if (session.Player.CloakStatus == CloakStatus.On)
                         return;
 
-                    session.Player.Cloak();
+                    session.Player.HandleCloak();
 
                     session.Player.SetProperty(PropertyInt.CloakStatus, (int)CloakStatus.On);
 

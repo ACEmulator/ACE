@@ -42,9 +42,10 @@ namespace ACE.Server.WorldObjects
         public void AddGeneratorProfiles()
         {
             GeneratorProfiles = new List<GeneratorProfile>();
+            uint i = 0;
 
             foreach (var generator in Biota.BiotaPropertiesGenerator)
-                GeneratorProfiles.Add(new GeneratorProfile(this, generator));
+                GeneratorProfiles.Add(new GeneratorProfile(this, generator, i++));
         }
 
         /// <summary>
@@ -235,8 +236,12 @@ namespace ACE.Server.WorldObjects
                 var probability = profile.Biota.Probability;
 
                 if (probability == -1)
-                    continue;
+                {
+                    if (!profile.MaxObjectsSpawned)
+                        return 1.0f;
 
+                    continue;
+                }
                 if (!profile.MaxObjectsSpawned)
                 {
                     if (lastProbability > probability)
@@ -293,6 +298,7 @@ namespace ACE.Server.WorldObjects
 
             for (var i = 0; i <= index; i++)
             {
+                profile = GeneratorProfiles[i];
                 var probability = profile.Biota.Probability;
 
                 if (probability == -1)
@@ -430,8 +436,8 @@ namespace ACE.Server.WorldObjects
             {
                 if (CurrentCreate >= InitCreate)
                 {
-                    if (CurrentCreate > InitCreate)
-                        log.Debug($"{WeenieClassId} - 0x{Guid}:{Name}.StopConditionsInit(): CurrentCreate({CurrentCreate}) > InitCreate({InitCreate})");
+                    //if (CurrentCreate > InitCreate)
+                        //log.Debug($"{WeenieClassId} - 0x{Guid}:{Name}.StopConditionsInit(): CurrentCreate({CurrentCreate}) > InitCreate({InitCreate})");
 
                     return true;
                 }
@@ -448,8 +454,8 @@ namespace ACE.Server.WorldObjects
             {
                 if (CurrentCreate >= MaxCreate && MaxCreate != 0)
                 {
-                    if (CurrentCreate > MaxCreate && MaxCreate != 0)
-                        log.Debug($"{WeenieClassId} - 0x{Guid}:{Name}.StopConditionsMax(): CurrentCreate({CurrentCreate}) > MaxCreate({MaxCreate})");
+                    //if (CurrentCreate > MaxCreate && MaxCreate != 0)
+                        //log.Debug($"{WeenieClassId} - 0x{Guid}:{Name}.StopConditionsMax(): CurrentCreate({CurrentCreate}) > MaxCreate({MaxCreate})");
 
                     return true;
                 }
@@ -744,7 +750,7 @@ namespace ACE.Server.WorldObjects
                 profile.WhenCreate = profileTemplate.Biota.WhenCreate;
                 profile.WhereCreate = profileTemplate.Biota.WhereCreate;
 
-                GeneratorProfiles.Add(new GeneratorProfile(this, profile));
+                GeneratorProfiles.Add(new GeneratorProfile(this, profile, link.Guid));
                 if (profile.Probability == -1)
                 {
                     InitCreate += profile.InitCreate;

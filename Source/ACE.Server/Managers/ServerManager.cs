@@ -5,6 +5,8 @@ using log4net;
 
 using ACE.Common;
 using ACE.Database;
+using ACE.Entity.Enum;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.Managers
 {
@@ -70,6 +72,14 @@ namespace ACE.Server.Managers
         {
             ShutdownInitiated = false;
             ShutdownTime = DateTime.MinValue;
+        }
+
+        public static void DoShutdownNow()
+        {
+            SetShutdownInterval(0);
+            ShutdownInitiated = true;
+            PlayerManager.BroadcastToAll(new GameMessageSystemChat("Broadcast from System> ATTENTION - This Asheron's Call Server is shutting down NOW!!!!", ChatMessageType.WorldBroadcast));
+            ShutdownServer();
         }
 
         /// <summary>

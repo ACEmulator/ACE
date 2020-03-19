@@ -28,7 +28,7 @@ namespace ACE.Server.Physics.Animation
         {
             IsConstrained = true;
 
-            ConstraintPos = position;
+            ConstraintPos = new Position(position);
             ConstraintDistanceStart = startDistance;
             ConstraintDistanceMax = maxDistance;
             ConstraintPosOffset = position.Distance(PhysicsObj.Position);

@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+
+using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {
@@ -111,13 +113,39 @@ namespace ACE.Server.WorldObjects
             // find all players with this monarch
             var members = AllegianceManager.FindAllPlayers(monarch);
 
-            Monarch.BuildChain(this, members);
+            var patronVassals = BuildPatronVassals(members);
+            
+            Monarch.BuildChain(this, members, patronVassals);
             BuildMembers(Monarch);
 
             //Console.WriteLine("TotalMembers: " + TotalMembers);
             BuildOfficers();
 
             ChatFilters = new Dictionary<ObjectGuid, DateTime>();
+        }
+
+        /// <summary>
+        /// Build a mapping of patron guids => vassal guids
+        /// </summary>
+        public Dictionary<uint, List<IPlayer>> BuildPatronVassals(List<IPlayer> members)
+        {
+            var patronVassals = new Dictionary<uint, List<IPlayer>>();
+
+            foreach (var member in members)
+            {
+                var patronId = member.PatronId;
+
+                if (patronId == null)
+                    continue;
+
+                if (!patronVassals.TryGetValue(patronId.Value, out var vassals))
+                {
+                    vassals = new List<IPlayer>();
+                    patronVassals.Add(patronId.Value, vassals);
+                }
+                vassals.Add(member);
+            }
+            return patronVassals;
         }
 
         /// <summary>

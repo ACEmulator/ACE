@@ -6,16 +6,18 @@ using log4net;
 
 using ACE.Database;
 using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
+
+using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {
@@ -862,6 +864,23 @@ namespace ACE.Server.WorldObjects
         public virtual MotionCommand MotionPickup => MotionCommand.Pickup;
 
         public override bool IsAttunedOrContainsAttuned => base.IsAttunedOrContainsAttuned || Inventory.Values.Any(i => i.IsAttunedOrContainsAttuned);
+
+        public override bool IsStickyAttunedOrContainsStickyAttuned => base.IsStickyAttunedOrContainsStickyAttuned || Inventory.Values.Any(i => i.IsStickyAttunedOrContainsStickyAttuned);
+
+        public override bool IsUniqueOrContainsUnique => base.IsUniqueOrContainsUnique || Inventory.Values.Any(i => i.IsUniqueOrContainsUnique);
+
+        public override List<WorldObject> GetUniqueObjects()
+        {
+            var uniqueObjects = new List<WorldObject>();
+
+            if (Unique != null)
+                uniqueObjects.Add(this);
+
+            foreach (var item in Inventory.Values)
+                uniqueObjects.AddRange(item.GetUniqueObjects());
+
+            return uniqueObjects;
+        }
 
         public override void OnTalk(WorldObject activator)
         {
