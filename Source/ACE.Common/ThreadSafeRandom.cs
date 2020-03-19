@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Threading;
 
 namespace ACE.Common
@@ -27,6 +28,16 @@ namespace ACE.Common
         public static int Next(int min, int max)
         {
             return random.Value.Next(min, max + 1);
+        }
+
+        public static string NextString(string charSelection, int stringLength)
+        {
+            StringBuilder product = new StringBuilder();
+            for (int i = 0; i < stringLength; i++)
+            {
+                product.Append(charSelection[random.Value.Next(0, charSelection.Length)]);
+            }
+            return product.ToString();
         }
     }
 }
