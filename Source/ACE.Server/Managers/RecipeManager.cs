@@ -48,8 +48,8 @@ namespace ACE.Server.Managers
 
             if (source == target)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {source.Name} cannot be combined with itself.", ChatMessageType.Craft));
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You can't use the {source.Name} on itself."));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {source.NameWithMaterial} cannot be combined with itself.", ChatMessageType.Craft));
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You can't use the {source.NameWithMaterial} on itself."));
                 player.SendUseDoneEvent();
                 return;
             }
@@ -58,7 +58,7 @@ namespace ACE.Server.Managers
 
             if (recipe == null)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {source.Name} cannot be used on the {target.Name}.", ChatMessageType.Craft));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {source.NameWithMaterial} cannot be used on the {target.NameWithMaterial}.", ChatMessageType.Craft));
                 player.SendUseDoneEvent();
                 return;
             }
