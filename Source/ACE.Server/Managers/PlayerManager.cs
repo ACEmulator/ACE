@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
+using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
@@ -42,11 +44,21 @@ namespace ACE.Server.Managers
         {
             var results = DatabaseManager.Shard.GetAllPlayerBiotasInParallel();
 
-            foreach (var result in results)
+            Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
             {
                 var offlinePlayer = new OfflinePlayer(result);
-                offlinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
-            }
+
+                lock (offlinePlayers)
+                    offlinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
+            });
+        }
+
+        private static readonly LinkedList<Player> playersPendingLogoff = new LinkedList<Player>();
+
+        public static void AddPlayerToLogoffQueue(Player player)
+        {
+            if (!playersPendingLogoff.Contains(player))
+                playersPendingLogoff.AddLast(player);
         }
 
         public static void Tick()
@@ -54,6 +66,24 @@ namespace ACE.Server.Managers
             // Database Save
             if (lastDatabaseSave + databaseSaveInterval <= DateTime.UtcNow)
                 SaveOfflinePlayersWithChanges();
+
+            var currentUnixTime = Time.GetUnixTime();
+
+            while (playersPendingLogoff.Count > 0)
+            {
+                var first = playersPendingLogoff.First.Value;
+
+                if (first.LogoffTimestamp <= currentUnixTime)
+                {
+                    playersPendingLogoff.RemoveFirst();
+                    first.LogOut_Inner();
+                    first.Session.logOffRequestTime = DateTime.UtcNow;
+                }
+                else
+                {
+                    break;
+                }
+            }
         }
 
         /// <summary>
@@ -556,6 +586,12 @@ namespace ACE.Server.Managers
                 player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, "CONSOLE", message));
         }
 
+        public static void BroadcastToChannelFromEmote(Channel channel, string message)
+        {
+            foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(channel)))
+                player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, "EMOTE", message));
+        }
+
         public static bool GagPlayer(Player issuer, string playerName)
         {
             var player = FindByName(playerName);
@@ -595,7 +631,7 @@ namespace ACE.Server.Managers
         public static void BootAllPlayers()
         {
             foreach (var player in GetAllOnline().Where(p => p.Session.AccessLevel < AccessLevel.Advocate))
-                player.Session.Terminate(SessionTerminationReason.WorldClosed, new GameMessageBootAccount(player.Session, "The world is now closed"), null, "The world is now closed");
+                player.Session.Terminate(SessionTerminationReason.WorldClosed, new GameMessageBootAccount(player.Session, " because the world is now closed"), null, "The world is now closed");
         }
 
         public static void UpdatePKStatusForAllPlayers(string worldType, bool enabled)

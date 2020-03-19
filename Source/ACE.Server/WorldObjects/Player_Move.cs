@@ -36,6 +36,12 @@ namespace ACE.Server.WorldObjects
 
         public void CreateMoveToChain(WorldObject target, Action<bool> callback, float? useRadius = null, bool rotate = true)
         {
+            if (FastTick)
+            {
+                CreateMoveToChain2(target, callback, useRadius, rotate);
+                return;
+            }
+
             var thisMoveToChainNumber = GetNextMoveToChainNumber();
 
             if (target.Location == null)
@@ -212,10 +218,14 @@ namespace ACE.Server.WorldObjects
             switch (status)
             {
                 case WeenieError.None:
+
                     Attack(MeleeTarget, AttackSequence);
                     break;
+
                 default:
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, status));
+                    Session.Network.EnqueueSend(new GameEventAttackDone(Session));
+                    SendWeenieError(status);
+
                     HandleActionCancelAttack();
                     break;
             }

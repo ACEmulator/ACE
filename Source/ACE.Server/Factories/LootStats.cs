@@ -12,25 +12,30 @@ namespace ACE.Server.Factories
         public float CasterCount { get; set; }
         public float MissileWeaponCount { get; set; }
         public float JewelryCount { get; set; }
+        public float JewelryNecklaceCount { get; set; }
+        public float JewelryBraceletCount { get; set; }
+        public float JewelryRingCount { get; set; }
+        public float JewelryTrinketCount { get; set; }
         public float GemCount { get; set; }
+        public float AetheriaCount { get; set; }        
         public float ClothingCount { get; set; }
         public float OtherCount { get; set; }
         public float NullCount { get; set; }
         public int MinItemsCreated { get; set; }
         public int MaxItemsCreated { get; set; }
-        public int SpellComponents { get; set; }
-        public int Food { get; set; }
-        public int Key { get; set; }
-        public int ManaStone { get; set; }
-        public int Misc { get; set; }
-        public int TotalItems { get; set; }
-        public int Scrolls { get; set; }
-        public int PetsCount { get; set; }
-        public int Spirits { get; set; }
-        public int Poitions { get; set; }
-        public int HealingKit { get; set; }
-        public int DinnerWare { get; set; }
-        public int LevelEightComp { get; set; }
+        public float SpellComponents { get; set; }
+        public float Food { get; set; }
+        public float Key { get; set; }
+        public float ManaStone { get; set; }
+        public float Misc { get; set; }
+        public float TotalItems { get; set; }
+        public float Scrolls { get; set; }
+        public float PetsCount { get; set; }
+        public float Spirits { get; set; }
+        public float Poitions { get; set; }
+        public float HealingKit { get; set; }
+        public float DinnerWare { get; set; }
+        public float LevelEightComp { get; set; }
 
         // Tables
         public string MeleeWeapons { get; set; }
@@ -38,6 +43,7 @@ namespace ACE.Server.Factories
         public string CasterWeapons { get; set; }
         public string Armor { get; set; }
         public string Pets { get; set; }
+        public string Aetheria { get; set; }
 
         // Item Stats
         public int ItemMaxMana { get; set; }
@@ -49,6 +55,7 @@ namespace ACE.Server.Factories
         public int MaxAL { get; set; }
         public string MinALItem { get; set; }
         public string MaxALItem { get; set; }
+        
 
         // Pet Stats
         public int PetsTotalRatings { get; set; }

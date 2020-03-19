@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
@@ -157,7 +158,7 @@ namespace ACE.Database
             int playerBiotasPurgedTotal = 0;
             int possessionsPurgedTotal = 0;
 
-            Parallel.ForEach(results, result =>
+            Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
             {
                 PurgeCharacter(result.Id, out var charactersPurgedResult, out var playerBiotasPurgedResult, out var possessionsPurgedResult);
 
@@ -336,7 +337,7 @@ namespace ACE.Database
 
                 var results = query.ToList();
 
-                Parallel.ForEach(results, result =>
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
                     PurgeCharacter(result.id, out var charactersPurged, out var playerBiotasPurged, out var posessionsPurged, "No Player biota counterpart found");
 
@@ -374,7 +375,7 @@ namespace ACE.Database
 
                 var results = query.ToList();
 
-                Parallel.ForEach(results, result =>
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
                     PurgePlayer(result.id, out var charactersPurged, out var playerBiotasPurged, out var posessionsPurged, "No Character record counterpart found");
 
@@ -412,7 +413,7 @@ namespace ACE.Database
 
                 var results = query.ToList();
 
-                Parallel.ForEach(results, result =>
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
                     if (PurgeBiota(result.id, "Parent container not found"))
                         Interlocked.Increment(ref totalNumberOfBiotasPurged);
@@ -442,7 +443,7 @@ namespace ACE.Database
 
                 var results = query.ToList();
 
-                Parallel.ForEach(results, result =>
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
                     if (PurgeBiota(result.id, "Parent wielder not found"))
                         Interlocked.Increment(ref totalNumberOfBiotasPurged);
@@ -461,7 +462,7 @@ namespace ACE.Database
                     .ToList();
 
                 // This is very time consuming
-                Parallel.ForEach(results, result =>
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
                     if (PurgeBiota(result.Id, "No parent Container, parent Wielder, or Location"))
                         Interlocked.Increment(ref totalNumberOfBiotasPurged);

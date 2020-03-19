@@ -2,16 +2,17 @@ using System.Numerics;
 
 using log4net;
 
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+
+using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {
@@ -138,15 +139,23 @@ namespace ACE.Server.WorldObjects
             }
 
             // handle quest initial flagging
-            if (Quest != null && !player.QuestManager.HasQuest(Quest))
+            if (Quest != null)
             {
                 player.QuestManager.Update(Quest);
             }
 
-            if (QuestRestriction != null && !player.QuestManager.HasQuest(QuestRestriction) && !player.IgnorePortalRestrictions)
+            if (QuestRestriction != null && !player.IgnorePortalRestrictions)
             {
-                player.QuestManager.HandleNoQuestError(this);
-                return new ActivationResult(false);
+                var hasQuest = player.QuestManager.HasQuest(QuestRestriction);
+                var canSolve = player.QuestManager.CanSolve(QuestRestriction);
+
+                var success = hasQuest && !canSolve;
+
+                if (!success)
+                {
+                    player.QuestManager.HandlePortalQuestError(QuestRestriction);
+                    return new ActivationResult(false);
+                }
             }
 
             return new ActivationResult(true);

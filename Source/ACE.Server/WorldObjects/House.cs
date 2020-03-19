@@ -1,19 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+
+using Biota = ACE.Database.Models.Shard.Biota;
+using HousePermission = ACE.Database.Models.Shard.HousePermission;
 
 namespace ACE.Server.WorldObjects
 {
@@ -72,7 +76,7 @@ namespace ACE.Server.WorldObjects
         /// Builds a HouseData structure for this house
         /// This is used to populate the info in the House panel
         /// </summary>
-        public HouseData GetHouseData(Player owner)
+        public HouseData GetHouseData(IPlayer owner)
         {
             var houseData = new HouseData();
             houseData.Position = Location;
@@ -313,15 +317,30 @@ namespace ACE.Server.WorldObjects
 
             var housePermissions = Biota.GetHousePermission(BiotaDatabaseLock);
 
+            var deleted = new List<uint>();
+
             foreach (var housePermission in Biota.HousePermission)
             {
                 var player = PlayerManager.FindByGuid(housePermission.PlayerGuid);
                 if (player == null)
                 {
                     Console.WriteLine($"{Name}.BuildGuests(): couldn't find guest {housePermission.PlayerGuid:X8}");
+
+                    // character has been deleted -- automatically remove?
+                    deleted.Add(housePermission.PlayerGuid);
                     continue;
                 }
                 Guests.Add(player.Guid, housePermission.Storage);
+            }
+
+            if (deleted.Count > 0)
+            {
+                foreach (var guid in deleted)
+                    Biota.TryRemoveHousePermission(guid, out var entity, BiotaDatabaseLock);
+
+                ChangesDetected = true;
+
+                SaveBiotaToDatabase();
             }
         }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
@@ -52,6 +53,8 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        private static readonly TimeSpan MaximumTeleportTime = TimeSpan.FromMinutes(5);
+
         /// <summary>
         /// Called every ~5 seconds for Players
         /// </summary>
@@ -77,6 +80,14 @@ namespace ACE.Server.WorldObjects
 
             if (LastRequestedDatabaseSave.AddSeconds(PlayerSaveIntervalSecs) <= DateTime.UtcNow)
                 SavePlayerToDatabase();
+
+            if (Teleporting && DateTime.UtcNow > Time.GetDateTimeFromTimestamp(LastTeleportStartTimestamp ?? 0).Add(MaximumTeleportTime))
+            {
+                if (Session != null)
+                    Session.LogOffPlayer(true);
+                else
+                    LogOut();
+            }
 
             base.Heartbeat(currentUnixTime);
         }
@@ -129,6 +140,9 @@ namespace ACE.Server.WorldObjects
                 OnMoveToState_ServerMethod(moveToState);
             else
                 OnMoveToState_ClientMethod(moveToState);
+
+            if (MagicState.IsCasting && MagicState.PendingTurnRelease && moveToState.RawMotionState.TurnCommand == 0)
+                OnTurnRelease();
         }
 
         public void OnMoveToState_ClientMethod(MoveToState moveToState)
@@ -270,6 +284,7 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.update_object();
 
             // sync ace position?
+            Location.Rotation = PhysicsObj.Position.Frame.Orientation;
 
             // this fixes some differences between client movement (DoMotion/StopMotion) and server movement (apply_raw_movement)
             //
@@ -290,6 +305,9 @@ namespace ACE.Server.WorldObjects
                 }
                 LastMoveToState = null;
             }
+
+            if (MagicState.IsCasting && MagicState.PendingTurnRelease)
+                CheckTurn();
         }
 
         /// <summary>
@@ -357,7 +375,7 @@ namespace ACE.Server.WorldObjects
                             }
 
                             // verify z-pos
-                            if (blockDist == 0 && LastGroundPos != null && newPosition.PositionZ - LastGroundPos.PositionZ > 10 && DateTime.UtcNow - LastJumpTime > TimeSpan.FromSeconds(1))
+                            if (blockDist == 0 && LastGroundPos != null && newPosition.PositionZ - LastGroundPos.PositionZ > 10 && DateTime.UtcNow - LastJumpTime > TimeSpan.FromSeconds(1) && GetCreatureSkill(Skill.Jump).Current < 1000)
                                 verifyContact = true;
                         }
 
@@ -536,7 +554,7 @@ namespace ACE.Server.WorldObjects
                 var rate = item.ManaRate.Value;
 
                 if (LumAugItemManaUsage != 0)
-                    rate *= GetNegativeRatingMod(LumAugItemManaUsage);
+                    rate *= GetNegativeRatingMod(LumAugItemManaUsage * 5);
 
                 if (!item.ItemManaConsumptionTimestamp.HasValue) item.ItemManaConsumptionTimestamp = DateTime.UtcNow;
                 DateTime mostRecentBurn = item.ItemManaConsumptionTimestamp.Value;
