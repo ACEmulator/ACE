@@ -1,3 +1,4 @@
+using System;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Managers;
@@ -122,16 +123,7 @@ namespace ACE.Server.WorldObjects
             {
                 var resistAug = player.GetAugmentationResistance(damageType);
                 if (resistAug > 0)
-                {
-                    // should the existing protMod be converted to additive space first?
-
-                    // +10% protection = 0.90909 mod
-                    // +20% protection = 0.83333 mod
-                    //protMod *= 1.0f / (1.0f + resistAug * 0.1f);
-
-                    var additive = -ModToRating(protMod);
-                    protMod = GetNegativeRatingMod(additive + resistAug * 10);
-                }
+                    protMod = Math.Max(0.0f, protMod - resistAug * 0.1f);
             }
 
             // vulnerability mod becomes either life vuln or weapon resistance mod,
