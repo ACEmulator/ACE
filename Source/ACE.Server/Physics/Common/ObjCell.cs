@@ -4,8 +4,6 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 
-using log4net;
-
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Combat;
@@ -14,8 +12,6 @@ namespace ACE.Server.Physics.Common
 {
     public class ObjCell: PartCell, IEquatable<ObjCell>
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
         public uint ID;
         public LandDefs.WaterType WaterType;
         public Position Pos;
@@ -349,41 +345,19 @@ namespace ACE.Server.Physics.Common
 
                     var found = false;
 
-                    if (visibleCell is EnvCell envCell)
+                    foreach (var stab in ((EnvCell)visibleCell).VisibleCells.Values)
                     {
-                        if (envCell.VisibleCells == null)
-                        {
-                            log.Error(Environment.StackTrace);
-                            log.Error($"ObjCell.find_cell_list: visible cells is null for {visibleCell.ID:X8}");
+                        if (stab == null)
                             continue;
-                        }
 
-                        foreach (var kvp in envCell.VisibleCells)
+                        if (cell.ID == stab.ID)
                         {
-                            var stab = kvp.Value;
-
-                            if (stab == null)
-                            {
-                                log.Error(Environment.StackTrace);
-                                log.Error($"ObjCell.find_cell_list: stab is null for {visibleCell.ID:X8} -> {kvp.Key:X8}");
-                                continue;
-                            }
-
-                            if (cell.ID == stab.ID)
-                            {
-                                found = true;
-                                break;
-                            }
+                            found = true;
+                            break;
                         }
-                        if (!found)
-                            cellArray.remove_cell(cell);
                     }
-                    else
-                    {
-                        log.Error(Environment.StackTrace);
-                        log.Error($"ObjCell.find_cell_list: visible cell is not an EnvCell for {visibleCell.ID:X8}");
-                        continue;
-                    }
+                    if (!found)
+                        cellArray.remove_cell(cell);
                 }
             }
         }
