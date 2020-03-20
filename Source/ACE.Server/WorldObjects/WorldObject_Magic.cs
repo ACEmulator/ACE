@@ -1467,7 +1467,7 @@ namespace ACE.Server.WorldObjects
                     rotate = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)Math.Atan2(-qDir.X, qDir.Y));
                 }
 
-                sp.Location = strikeSpell ? targetLoc : casterLoc;
+                sp.Location = strikeSpell ? new Position(targetLoc) : new Position(casterLoc);
                 sp.Location.Pos += Vector3.Transform(origin, strikeSpell ? rotate * OneEighty : rotate);
 
                 sp.Velocity = velocity;
