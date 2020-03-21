@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 using log4net;
 
@@ -851,7 +852,8 @@ namespace ACE.Server.WorldObjects
             else
             {
                 // set jump velocity
-                PhysicsObj.set_velocity(jump.Velocity, true);
+                var glob_velocity = Vector3.Transform(jump.Velocity, Location.Rotation);
+                PhysicsObj.set_velocity(glob_velocity, true);
             }
 
             // this shouldn't be needed, but without sending this update motion / simulated movement event beforehand,
