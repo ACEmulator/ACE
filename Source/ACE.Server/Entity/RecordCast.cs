@@ -112,13 +112,11 @@ namespace ACE.Server.Entity
             Buffer.Clear();
         }
 
-        public void ShowInfo()
+        public void ShowInfo(string debugCast)
         {
             var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss,fff");
 
             var stanceLog = Player.StanceLog.ToString();
-
-            var debugCast = PlayerCommands.GetDebugCast(Player.Session);
 
             var info = $"[{timestamp}] {Player.Name} used /fixcast after being frozen for 5+ seconds:\n{debugCast}\n{Buffer}\n{stanceLog}\n===================================================";
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 using log4net;
@@ -143,7 +144,7 @@ namespace ACE.Server.Command.Handlers
             var physicsObj = session.Player.PhysicsObj;
 
             var pendingActions = physicsObj.MovementManager.MoveToManager.PendingActions;
-            var currAnim = physicsObj.PartArray.Sequence.CurrAnim;
+            var sequence = physicsObj.PartArray.Sequence;
 
             var str = session.Player.MagicState.ToString();
             str += $"\nIsMovingOrAnimating: {physicsObj.IsMovingOrAnimating}";
@@ -153,8 +154,11 @@ namespace ACE.Server.Command.Handlers
             str += $"\n- Velocity: {physicsObj.Velocity != Vector3.Zero}";
             str += $"\n- InterpretedState.HasCommands: {physicsObj.MovementManager.MotionInterpreter.InterpretedState.HasCommands()}";
             str += $"\n- MoveToManager: {physicsObj.MovementManager.MoveToManager.Initialized}";
+            str += $"\nCurCell: {physicsObj.CurCell?.ID:X8}";
             str += $"\nPendingActions: {pendingActions.Count}";
-            str += $"\nCurrAnim: {currAnim?.Value.Anim.ID:X8}";
+            str += $"\nAnimList: {string.Join(", ", sequence.AnimList.Select(i => i.Anim.ID.ToString("X8")))}";
+            str += $"\nFirstCyclic: {sequence.FirstCyclic?.Value.Anim.ID:X8}";
+            str += $"\nCurrAnim: {sequence.CurrAnim?.Value.Anim.ID:X8}";
 
             return str;
         }
@@ -164,14 +168,32 @@ namespace ACE.Server.Command.Handlers
         {
             var magicState = session.Player.MagicState;
 
-            if (magicState.IsCasting && DateTime.UtcNow - magicState.StartTime > TimeSpan.FromSeconds(5))
+            if (magicState.IsCasting && DateTime.UtcNow - magicState.StartTime > TimeSpan.FromSeconds(0))
             {
-                session.Player.RecordCast.ShowInfo();
+                var debugCast = GetDebugCast(session);
+
+                DebugAnimQueue(session);
+
+                session.Player.RecordCast.ShowInfo(debugCast);
 
                 session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, "Fixed casting state"));
                 session.Player.SendUseDoneEvent();
                 magicState.OnCastDone();
             }
+        }
+
+        public static void DebugAnimQueue(Session session)
+        {
+            session.Player.PhysicsObj.DebugAnim = true;
+
+            for (var i = 0; i < 5; i++)
+            {
+                session.Player.RecordCast.Log($"DebugAnimQueue({i})");
+                session.Player.PhysicsObj.UpdateTime = Physics.Common.PhysicsTimer.CurrentTime - 1.0f;
+                session.Player.PhysicsObj.update_object();
+            }
+
+            session.Player.PhysicsObj.DebugAnim = false;
         }
 
         [CommandHandler("castmeter", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows the fast casting efficiency meter")]

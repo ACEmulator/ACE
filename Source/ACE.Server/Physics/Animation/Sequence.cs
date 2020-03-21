@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using ACE.Entity.Enum;
+
 using ACE.DatLoader.Entity;
+using ACE.Entity.Enum;
 using ACE.Server.Physics.Hooks;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -357,6 +359,9 @@ namespace ACE.Server.Physics.Animation
 
         public void update_internal(float timeElapsed, ref LinkedListNode<AnimSequenceNode> animNode, ref float frameNum, ref AFrame frame)
         {
+            if (HookObj.DebugAnim && HookObj.WeenieObj.WorldObject is Player player)
+                player.RecordCast.Log($"{HookObj.Name}.Sequence.update_internal({timeElapsed}, {animNode.Value.Anim.ID:X8}, {frameNum})");
+
             var currAnim = animNode.Value;
 
             var framerate = currAnim.Framerate;
