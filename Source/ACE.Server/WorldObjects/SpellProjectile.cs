@@ -8,6 +8,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
@@ -76,8 +77,6 @@ namespace ACE.Server.WorldObjects
             // FIXME: use data here
             if (!Spell.Name.Equals("Rolling Death"))
                 Ethereal = false;
-            else if (spellType == ProjectileSpellType.Ring)
-                Ethereal = true;
 
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
                 || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley || SpellType == ProjectileSpellType.Blast
@@ -228,6 +227,11 @@ namespace ACE.Server.WorldObjects
 
                 Velocity *= 0.05f;
                 WorldEntryCollision = true;
+            }
+            else if (PropertyManager.GetBool("spell_projectile_ethereal").Item)
+            {
+                PhysicsObj.Velocity = Vector3.Zero;
+                broadcaster.EnqueueBroadcast(new GameMessageVectorUpdate(this));
             }
 
             ActionChain selfDestructChain = new ActionChain();
