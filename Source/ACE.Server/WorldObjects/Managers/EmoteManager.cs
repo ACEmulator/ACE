@@ -971,8 +971,11 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.PetCastSpellOnOwner:
 
-                    if (creature != null)
-                        creature.CreateCreatureSpell(targetObject.Guid, (uint)emote.SpellId);
+                    if (creature is Pet passivePet && passivePet.P_PetOwner != null)
+                    {
+                        var spell = new Spell((uint)emote.SpellId);
+                        passivePet.TryCastSpell(spell, passivePet.P_PetOwner);
+                    }
                     break;
 
                 case EmoteType.PhysScript:

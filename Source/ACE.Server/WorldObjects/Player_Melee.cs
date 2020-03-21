@@ -51,7 +51,14 @@ namespace ACE.Server.WorldObjects
             //log.Info($"-");
 
             if (CombatMode != CombatMode.Melee)
-                return;
+            {
+                log.Error($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {attackHeight}, {powerLevel}) - CombatMode mismatch {CombatMode}, LastCombatMode {LastCombatMode}");
+
+                if (LastCombatMode == CombatMode.Melee)
+                    CombatMode = CombatMode.Melee;
+                else
+                    return;
+            }
 
             if (IsBusy)
             {
@@ -89,7 +96,7 @@ namespace ACE.Server.WorldObjects
 
             if (target == null)
             {
-                log.Warn($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {AttackHeight}, {powerLevel}) - couldn't find target guid");
+                //log.Debug($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {AttackHeight}, {powerLevel}) - couldn't find target guid");
                 return;
             }
 

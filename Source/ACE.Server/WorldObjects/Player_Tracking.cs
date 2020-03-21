@@ -16,7 +16,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// ObjectId of the currently selected Target (only players and creatures)
         /// </summary>
-        private ObjectGuid selectedTarget = ObjectGuid.Invalid;
+        private WorldObjectInfo selectedTarget { get; set; }
 
         /// <summary>
         /// This dictionary is used to keep track of the last use of any item that implemented shared cooldown.
@@ -68,6 +68,9 @@ namespace ACE.Server.WorldObjects
                 foreach (var wieldedItem in creature.EquippedObjects.Values)
                     if (IsInChildLocation(wieldedItem))
                         TrackEquippedObject(creature, wieldedItem);
+
+                if (creature.IsMoving)
+                    creature.BroadcastMoveTo(this);
             }
         }
 

@@ -13,8 +13,6 @@ using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
-using Spell = ACE.Server.Entity.Spell;
-
 namespace ACE.Server.WorldObjects
 {
     partial class Player
@@ -272,6 +270,7 @@ namespace ACE.Server.WorldObjects
                         if (!spell.NotFound)
                         {
                             var preCastTime = vendor.PreCastMotion(this);
+                            vendor.IsBusy = true;
 
                             var castChain = new ActionChain();
                             castChain.AddDelaySeconds(preCastTime);
@@ -280,6 +279,9 @@ namespace ACE.Server.WorldObjects
                                 vendor.TryCastSpell(spell, this, vendor);
                                 vendor.PostCastMotion();
                             });
+                            castChain.AddDelaySeconds(preCastTime);
+                            castChain.AddAction(vendor, () => vendor.IsBusy = false);
+
                             castChain.EnqueueChain();
                         }
                     }

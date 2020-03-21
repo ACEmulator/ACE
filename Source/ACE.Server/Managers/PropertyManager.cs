@@ -491,6 +491,7 @@ namespace ACE.Server.Managers
                 ("container_opener_name", new Property<bool>(false, "If enabled, when a player tries to open a container that is already in use by someone else, replaces 'someone else' in the message with the actual name of the player")),
                 ("corpse_decay_tick_logging", new Property<bool>(false, "If ENABLED then player corpse ticks will be logged")),
                 ("corpse_destroy_pyreals", new Property<bool>(true, "If FALSE then pyreals will not be completely destroyed on player death")),
+                ("craft_exact_msg", new Property<bool>(false, "If TRUE, and player has crafting chance of success dialog enabled, shows them an additional message in their chat window with exact %")),
                 ("creatures_drop_createlist_wield", new Property<bool>(false, "If FALSE then Wielded items in CreateList will not drop. Retail defaulted to TRUE but there are currently data errors")),
                 ("equipmentsetid_enabled", new Property<bool>(false, "enable this to allow adding EquipmentSetIDs to loot armor")),
                 ("equipmentsetid_name_decoration", new Property<bool>(false, "enable this to add the EquipmentSet name to loot armor name")),
@@ -507,6 +508,7 @@ namespace ACE.Server.Managers
                 ("lifestone_broadcast_death", new Property<bool>(true, "if true, player deaths are additionally broadcast to other players standing near the destination lifestone")),
                 ("log_audit", new Property<bool>(true, "if FALSE then audit channel is not logged")),
                 ("loot_quality_mod", new Property<bool>(true, "if FALSE then the loot quality modifier of a Death Treasure profile does not affect loot generation")),
+                ("npc_hairstyle_fullrange", new Property<bool>(false, "if TRUE, allows generated creatures to use full range of hairstyles. Retail only allowed first nine (0-8) out of 51")),
                 ("override_encounter_spawn_rates", new Property<bool>(false, "if enabled, landblock encounter spawns are overidden by double properties below.")),
                 ("player_config_command", new Property<bool>(false, "If enabled, players can use /config to change their settings via text commands")),
                 ("player_receive_immediate_save", new Property<bool>(false, "if enabled, when the player receives items from an NPC, they will be saved immediately")),
@@ -523,6 +525,7 @@ namespace ACE.Server.Managers
                 ("smite_uses_takedamage", new Property<bool>(false, "if enabled, smite applies damage via TakeDamage")),
                 ("spellcast_recoil_queue", new Property<bool>(false, "if true, players can queue the next spell to cast during recoil animation")),
                 ("suicide_instant_death", new Property<bool>(false, "if enabled, @die command kills player instantly. defaults to disabled, as in retail")),
+                ("taboo_table", new Property<bool>(true, "if enabled, taboo table restricts player names during character creation")),
                 ("tailoring_intermediate_uieffects", new Property<bool>(false, "If true, tailoring intermediate icons retain the magical/elemental highlight of the original item")),
                 ("universal_masteries", new Property<bool>(true, "if TRUE, matches end of retail masteries - players wielding almost any weapon get +5 DR, except if the weapon \"seems tough to master\". " +
                                                                  "if FALSE, players start with mastery of 1 melee and 1 ranged weapon type based on heritage, and can later re-select these 2 masteries")),
@@ -541,26 +544,30 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
             DictOf(
-                ("advocate_fane_auto_bestow_level", new Property<double>(1, "the level that advocates are automatically bestowed by Advocate Fane if advocate_fane_auto_bestow is true")),
+
                 ("minor_cantrip_drop_rate", new Property<double>(1.0, "Modifier for minor cantrip drop rate, 1 being normal")),
                 ("major_cantrip_drop_rate", new Property<double>(1.0, "Modifier for major cantrip drop rate, 1 being normal")),
                 ("epic_cantrip_drop_rate", new Property<double>(1.0, "Modifier for epic cantrip drop rate, 1 being normal")),
                 ("legendary_cantrip_drop_rate", new Property<double>(1.0, "Modifier for legendary cantrip drop rate, 1 being normal")),
+
+                ("advocate_fane_auto_bestow_level", new Property<double>(1, "the level that advocates are automatically bestowed by Advocate Fane if advocate_fane_auto_bestow is true")),
                 ("aetheria_drop_rate", new Property<double>(1.0, "Modifier for Aetheria drop rate, 1 being normal")),
                 ("chess_ai_start_time", new Property<double>(-1.0, "the number of seconds for the chess ai to start. defaults to -1 (disabled)")),
                 ("encounter_delay", new Property<double>(1800, "the number of seconds a generator profile for regions is delayed from returning to free slots")),
                 ("encounter_regen_interval", new Property<double>(600, "the number of seconds a generator for regions at which spawns its next set of objects")),
                 ("equipmentsetid_drop_rate", new Property<double>(1.0, "Modifier for EquipmentSetID drop rate, 1 being normal")),
+                ("ignore_magic_armor_pvp_scalar", new Property<double>(1.0, "Scales the effectiveness of IgnoreMagicArmor (ie. hollow weapons) in pvp battles. 1.0 = full effectiveness / ignore all enchantments on armor (default), 0.5 = half effectiveness / use half enchantments from armor, 0.0 = no effectiveness / use full enchantments from armor")),
+                ("ignore_magic_resist_pvp_scalar", new Property<double>(1.0, "Scales the effectiveness of IgnoreMagicResist (ie. hollow weapons) in pvp battles. 1.0 = full effectiveness / ignore all resistances from life enchantments (default), 0.5 = half effectiveness / use half resistances from life enchantments, 0.0 = no effectiveness / use full resistances from life enchantments")),
                 ("luminance_modifier", new Property<double>(1.0, "scales the amount of luminance received by players")),
                 ("pk_new_character_grace_period", new Property<double>(300, "the number of seconds, in addition to pk_respite_timer, that a player killer is set to non-player killer status after first exiting training academy")),
                 ("pk_respite_timer", new Property<double>(300, "the number of seconds that a player killer is set to non-player killer status after dying to another player killer")),
+                ("quest_mindelta_rate", new Property<double>(1.0, "scales all quest min delta time between solves, 1 being normal")),
                 ("spellcast_max_angle", new Property<double>(5.0, "for advanced player spell casting, the maximum angle to target release a spell projectile. retail seemed to default to a lower 5-20 value here, although some players seem to prefer a higher 45 degree angle")),
                 ("trophy_drop_rate", new Property<double>(1.0, "Modifier for trophies dropped on creature death")),
                 ("vendor_unique_rot_time", new Property<double>(300, "the number of seconds before unique items sold to vendors disappear")),
                 ("vitae_penalty", new Property<double>(0.05, "the amount of vitae penalty a player gets per death")),
                 ("vitae_penalty_max", new Property<double>(0.40, "the maximum vitae penalty a player can have")),
-                ("xp_modifier", new Property<double>(1.0, "scales the amount of xp received by players")),
-                ("quest_mindelta_rate", new Property<double>(1.0, "scales all quest min delta time between solves, 1 being normal"))
+                ("xp_modifier", new Property<double>(1.0, "scales the amount of xp received by players"))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<string>> DefaultStringProperties =

@@ -1722,7 +1722,7 @@ namespace ACE.Server.Factories
             ////Fire Prot
             new int[] { 2618, 2611, 4675, 6082},
             ////Blade Prot
-            new int[] { 2621, 2614, 3957, 6085},
+            new int[] { 2621, 2614, 4678, 6085},
             ////Pierce Prot
             new int[] { 2620, 2613, 3956, 6084},
             ///Shield
@@ -1924,6 +1924,16 @@ namespace ACE.Server.Factories
             622,    // Necklace
             623,    // Heavy Necklace
             2367    // Gorget
+        };
+
+        public static readonly int[] trinketItems =
+{
+            41483,    // Compass
+            41484,    // Goggles
+            41487,    // Mechanical Scarab
+            41486,    // Puzzle Box
+            41485,    // PocketWatch
+            41488     // Top
         };
 
         public static readonly int[] Helms =

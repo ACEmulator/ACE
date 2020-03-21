@@ -31,7 +31,7 @@ namespace ACE.Server.Physics.Animation
         public float StepDownHeight;
         public bool Ethereal;
         public bool StepDown;
-        public int TargetID;
+        public uint TargetID;
 
         public float GetWalkableZ()
         {
@@ -59,6 +59,8 @@ namespace ACE.Server.Physics.Animation
                 if (wobj.IsPKLite())
                     State |= ObjectInfoState.IsPKLite;
             }
+            if (obj.ProjectileTarget != null)
+                TargetID = obj.ProjectileTarget.ID;
         }
 
         public bool IsValidWalkable(Vector3 normal)

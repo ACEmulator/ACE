@@ -12,6 +12,10 @@ namespace ACE.Server.Factories
         public float CasterCount { get; set; }
         public float MissileWeaponCount { get; set; }
         public float JewelryCount { get; set; }
+        public float JewelryNecklaceCount { get; set; }
+        public float JewelryBraceletCount { get; set; }
+        public float JewelryRingCount { get; set; }
+        public float JewelryTrinketCount { get; set; }
         public float GemCount { get; set; }
         public float AetheriaCount { get; set; }        
         public float ClothingCount { get; set; }

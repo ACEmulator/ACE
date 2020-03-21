@@ -1,5 +1,7 @@
+using System;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -101,7 +103,10 @@ namespace ACE.Server.WorldObjects
 
             // hollow weapons also ignore player natural resistances
             if (ignoreMagicResist)
-                return weaponResistanceMod;
+            {
+                if (!(attacker is Player) || !(this is Player) || PropertyManager.GetDouble("ignore_magic_resist_pvp_scalar").Item == 1.0)
+                    return weaponResistanceMod;
+            }
 
             var protMod = EnchantmentManager.GetProtectionResistanceMod(damageType);
             var vulnMod = EnchantmentManager.GetVulnerabilityResistanceMod(damageType);
@@ -113,10 +118,32 @@ namespace ACE.Server.WorldObjects
             if (protMod > naturalResistMod)
                 protMod = naturalResistMod;
 
+            // does this stack with natural resistance?
+            if (this is Player player)
+            {
+                var resistAug = player.GetAugmentationResistance(damageType);
+                if (resistAug > 0)
+                    protMod = Math.Max(0.0f, protMod - resistAug * 0.1f);
+            }
+
             // vulnerability mod becomes either life vuln or weapon resistance mod,
             // whichever is more powerful
             if (vulnMod < weaponResistanceMod)
                 vulnMod = weaponResistanceMod;
+
+            if (ignoreMagicResist)
+            {
+                // convert to additive space
+                var addProt = -ModToRating(protMod);
+                var addVuln = ModToRating(vulnMod);
+
+                // scale
+                addProt = IgnoreMagicResistScaled(addProt);
+                addVuln = IgnoreMagicResistScaled(addVuln);
+
+                protMod = GetNegativeRatingMod(addProt);
+                vulnMod = GetPositiveRatingMod(addVuln);
+            }
 
             return protMod * vulnMod;
         }

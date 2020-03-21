@@ -1097,5 +1097,35 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentAppraisalTarget); else SetProperty(PropertyInstanceId.CurrentAppraisalTarget, value.Value); }
         }
 
+        /// <summary>
+        /// Returns player's augmentation resistance for damage type
+        /// </summary>
+        public int GetAugmentationResistance(DamageType damageType)
+        {
+            switch (damageType)
+            {
+                case DamageType.Slash:
+                    return AugmentationResistanceSlash;
+
+                case DamageType.Pierce:
+                    return AugmentationResistancePierce;
+
+                case DamageType.Bludgeon:
+                    return AugmentationResistanceBlunt;
+
+                case DamageType.Fire:
+                    return AugmentationResistanceFire;
+
+                case DamageType.Cold:
+                    return AugmentationResistanceFrost;
+
+                case DamageType.Acid:
+                    return AugmentationResistanceAcid;
+
+                case DamageType.Electric:
+                    return AugmentationResistanceLightning;
+            }
+            return 0;
+        }
     }
 }

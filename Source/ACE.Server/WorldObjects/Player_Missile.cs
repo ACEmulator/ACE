@@ -43,7 +43,14 @@ namespace ACE.Server.WorldObjects
             //log.Info($"-");
 
             if (CombatMode != CombatMode.Missile)
-                return;
+            {
+                log.Error($"{Name}.HandleActionTargetedMissileAttack({targetGuid:X8}, {attackHeight}, {accuracyLevel}) - CombatMode mismatch {CombatMode}, LastCombatMode: {LastCombatMode}");
+
+                if (LastCombatMode == CombatMode.Missile)
+                    CombatMode = CombatMode.Missile;
+                else
+                    return;
+            }
 
             if (IsBusy)
             {
@@ -81,7 +88,7 @@ namespace ACE.Server.WorldObjects
             var target = CurrentLandblock?.GetObject(targetGuid) as Creature;
             if (target == null || target.Teleporting)
             {
-                log.Warn($"{Name}.HandleActionTargetedMissileAttack({targetGuid:X8}, {AttackHeight}, {accuracyLevel}) - couldn't find creature target guid");
+                //log.Warn($"{Name}.HandleActionTargetedMissileAttack({targetGuid:X8}, {AttackHeight}, {accuracyLevel}) - couldn't find creature target guid");
                 return;
             }
 

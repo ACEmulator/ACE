@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
+
 using log4net;
 
-using ACE.DatLoader.FileTypes;
+using ACE.Common;
 using ACE.DatLoader;
-using ACE.DatLoader.Entity;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -42,6 +44,11 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// A table of players who currently have their targeting reticule on this creature
+        /// </summary>
+        private Dictionary<uint, WorldObjectInfo> selectedTargets;
+
+        /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
         public Creature(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
@@ -62,10 +69,7 @@ namespace ACE.Server.WorldObjects
             CombatMode = CombatMode.NonCombat;
             DamageHistory = new DamageHistory(this);
 
-            if (CreatureType == ACE.Entity.Enum.CreatureType.Human && !(WeenieClassId == 1 || WeenieClassId == 4))
-                GenerateNewFace();
-
-            if (CreatureType == ACE.Entity.Enum.CreatureType.Empyrean || CreatureType == ACE.Entity.Enum.CreatureType.Shadow || CreatureType == ACE.Entity.Enum.CreatureType.Simulacrum)
+            if (!(this is Player))
                 GenerateNewFace();
 
             // If any of the vitals don't exist for this biota, one will be created automatically in the CreatureVital ctor
@@ -111,6 +115,8 @@ namespace ACE.Server.WorldObjects
             SetMonsterState();
 
             CurrentMotionState = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
+
+            selectedTargets = new Dictionary<uint, WorldObjectInfo>();
         }
 
         public void GenerateNewFace()
@@ -119,90 +125,89 @@ namespace ACE.Server.WorldObjects
 
             if (!Heritage.HasValue)
             {
-                if (!String.IsNullOrEmpty(HeritageGroupName))
-                {
-                    HeritageGroup parsed = (HeritageGroup)Enum.Parse(typeof(HeritageGroup), HeritageGroupName.Replace("'", ""), true);
-                    if (parsed != 0)
-                        Heritage = (int)parsed;
-                }
+                if (!string.IsNullOrEmpty(HeritageGroupName) && Enum.TryParse(HeritageGroupName.Replace("'", ""), true, out HeritageGroup heritage))
+                    Heritage = (int)heritage;
             }
 
             if (!Gender.HasValue)
             {
-                if (!String.IsNullOrEmpty(Sex))
-                {
-                    Gender parsed = (Gender)Enum.Parse(typeof(Gender), Sex, true);
-                    if (parsed != 0)
-                        Gender = (int)parsed;
-                }
+                if (!string.IsNullOrEmpty(Sex) && Enum.TryParse(Sex, true, out Gender gender))
+                    Gender = (int)gender;
             }
 
             if (!Heritage.HasValue || !Gender.HasValue)
             {
 #if DEBUG
-                if (!(NpcLooksLikeObject ?? false))
-                    log.Debug($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data missing or unparsable, Cannot randomize face.");
+                //if (!(NpcLooksLikeObject ?? false))
+                    //log.Debug($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data missing or unparsable, Cannot randomize face.");
 #endif
                 return;
             }
 
-            if (!cg.HeritageGroups.ContainsKey((uint)Heritage) || !cg.HeritageGroups[(uint)Heritage].Genders.ContainsKey((int)Gender))
+            if (!cg.HeritageGroups.TryGetValue((uint)Heritage, out var heritageGroup) || !heritageGroup.Genders.TryGetValue((int)Gender, out var sex))
             {
+#if DEBUG
                 log.Debug($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data invalid, Cannot randomize face.");
+#endif
                 return;
             }
 
-            SexCG sex = cg.HeritageGroups[(uint)Heritage].Genders[(int)Gender];
-
             PaletteBaseId = sex.BasePalette;
 
-            Appearance appearance = new Appearance();
+            var appearance = new Appearance
+            {
+                HairStyle = 1,
+                HairColor = 1,
+                HairHue = 1,
 
-            appearance.HairStyle = 1;
-            appearance.HairColor = 1;
-            appearance.HairHue = 1;
+                EyeColor = 1,
+                Eyes = 1,
 
-            appearance.EyeColor = 1;
-            appearance.Eyes = 1;
+                Mouth = 1,
+                Nose = 1,
 
-            appearance.Mouth = 1;
-            appearance.Nose = 1;
-
-            appearance.SkinHue = 1;
+                SkinHue = 1
+            };
 
             // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
-            int size = sex.HairStyleList.Count / 3; // Why divide by 3 you ask? Because AC runtime generated characters didn't have much range in hairstyles.
-            Random rand = new Random();
-            appearance.HairStyle = (uint)rand.Next(size);
+            if (sex.HairStyleList.Count > 1)
+            {
+                if (PropertyManager.GetBool("npc_hairstyle_fullrange").Item)
+                    appearance.HairStyle = (uint)ThreadSafeRandom.Next(0, sex.HairStyleList.Count - 1);
+                else
+                    appearance.HairStyle = (uint)ThreadSafeRandom.Next(0, Math.Min(sex.HairStyleList.Count - 1, 8)); // retail range data compiled by OptimShi
+            }
+            else
+                appearance.HairStyle = 0;
 
-            HairStyleCG hairstyle = sex.HairStyleList[Convert.ToInt32(appearance.HairStyle)];
-            bool isBald = hairstyle.Bald;
+            if (sex.HairStyleList.Count < appearance.HairStyle)
+            {
+                log.Warn($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - HairStyle = {appearance.HairStyle} | HairStyleList.Count = {sex.HairStyleList.Count} - Data invalid, Cannot randomize face.");
+                return;
+            }
 
-            size = sex.HairColorList.Count;
-            appearance.HairColor = (uint)rand.Next(size);
-            appearance.HairHue = rand.NextDouble();
+            var hairstyle = sex.HairStyleList[Convert.ToInt32(appearance.HairStyle)];
 
-            size = sex.EyeColorList.Count;
-            appearance.EyeColor = (uint)rand.Next(size);
-            size = sex.EyeStripList.Count;
-            appearance.Eyes = (uint)rand.Next(size);
+            appearance.HairColor = (uint)ThreadSafeRandom.Next(0, sex.HairColorList.Count - 1);
+            appearance.HairHue = ThreadSafeRandom.Next(0.0f, 1.0f);
 
-            size = sex.MouthStripList.Count;
-            appearance.Mouth = (uint)rand.Next(size);
+            appearance.EyeColor = (uint)ThreadSafeRandom.Next(0, sex.EyeColorList.Count - 1);
+            appearance.Eyes = (uint)ThreadSafeRandom.Next(0, sex.EyeStripList.Count - 1);
 
-            size = sex.NoseStripList.Count;
-            appearance.Nose = (uint)rand.Next(size);
+            appearance.Mouth = (uint)ThreadSafeRandom.Next(0, sex.MouthStripList.Count - 1);
 
-            appearance.SkinHue = rand.NextDouble();
+            appearance.Nose = (uint)ThreadSafeRandom.Next(0, sex.NoseStripList.Count - 1);
+
+            appearance.SkinHue = ThreadSafeRandom.Next(0.0f, 1.0f);
 
             //// Certain races (Undead, Tumeroks, Others?) have multiple body styles available. This is controlled via the "hair style".
             ////if (hairstyle.AlternateSetup > 0)
             ////    character.SetupTableId = hairstyle.AlternateSetup;
 
             if (!EyesTextureDID.HasValue)
-                EyesTextureDID = sex.GetEyeTexture(appearance.Eyes, isBald);
+                EyesTextureDID = sex.GetEyeTexture(appearance.Eyes, hairstyle.Bald);
             if (!DefaultEyesTextureDID.HasValue)
-                DefaultEyesTextureDID = sex.GetDefaultEyeTexture(appearance.Eyes, isBald);
+                DefaultEyesTextureDID = sex.GetDefaultEyeTexture(appearance.Eyes, hairstyle.Bald);
             if (!NoseTextureDID.HasValue)
                 NoseTextureDID = sex.GetNoseTexture(appearance.Nose);
             if (!DefaultNoseTextureDID.HasValue)
@@ -314,6 +319,38 @@ namespace ACE.Server.WorldObjects
                 door.OnCollideObject(this);
             else if (target is Hotspot hotspot)
                 hotspot.OnCollideObject(this);
+        }
+
+        /// <summary>
+        /// Called when a player selects a target
+        /// </summary>
+        public bool OnTargetSelected(Player player)
+        {
+            return selectedTargets.TryAdd(player.Guid.Full, new WorldObjectInfo(player));
+        }
+
+        /// <summary>
+        /// Called when a player deselects a target
+        /// </summary>
+        public bool OnTargetDeselected(Player player)
+        {
+            return selectedTargets.Remove(player.Guid.Full);
+        }
+
+        /// <summary>
+        /// Called when a creature's health changes
+        /// </summary>
+        public void OnHealthUpdate()
+        {
+            foreach (var kvp in selectedTargets)
+            {
+                var player = kvp.Value.TryGetWorldObject() as Player;
+
+                if (player?.Session != null)
+                    QueryHealth(player.Session);
+                else
+                    selectedTargets.Remove(kvp.Key);
+            }
         }
     }
 }

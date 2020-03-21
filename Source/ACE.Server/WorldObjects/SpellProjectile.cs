@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
 {
     public class SpellProjectile : WorldObject
     {
-        public Server.Entity.Spell Spell;
+        public Spell Spell;
         public ProjectileSpellType SpellType { get; set; }
 
         public Position SpawnPos { get; set; }
@@ -59,7 +59,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Perfroms additional set up of the spell projectile based on the spell id or its derived type.
         /// </summary>
-        public void Setup(Server.Entity.Spell spell, ProjectileSpellType spellType)
+        public void Setup(Spell spell, ProjectileSpellType spellType)
         {
             Spell = spell;
             SpellType = spellType;
@@ -124,7 +124,7 @@ namespace ACE.Server.WorldObjects
 
         public static ProjectileSpellType GetProjectileSpellType(uint spellID)
         {
-            var spell = new Server.Entity.Spell(spellID);
+            var spell = new Spell(spellID);
 
             if (spell.Wcid == 0)
                 return ProjectileSpellType.Undef;
@@ -200,6 +200,8 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public bool WorldEntryCollision { get; set; }
+
         public void ProjectileImpact()
         {
             //Console.WriteLine($"{Name}.ProjectileImpact()");
@@ -213,8 +215,20 @@ namespace ACE.Server.WorldObjects
 
             PhysicsObj.set_active(false);
 
-            EnqueueBroadcastPhysicsState();
-            EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Explode, GetProjectileScriptIntensity(SpellType)));
+            var broadcaster = PhysicsObj.entering_world ? ProjectileSource : this;
+
+            broadcaster.EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
+            broadcaster.EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Explode, GetProjectileScriptIntensity(SpellType)));
+
+            if (PhysicsObj.entering_world)
+            {
+                // for this path, since the projectile is being set to ethereal before the CO is sent,
+                // setting small velocity to still show the particle effects, but prevent the projectile from continuing
+                // to sail through the target
+
+                Velocity *= 0.05f;
+                WorldEntryCollision = true;
+            }
 
             ActionChain selfDestructChain = new ActionChain();
             selfDestructChain.AddDelaySeconds(5.0);
@@ -676,8 +690,6 @@ namespace ACE.Server.WorldObjects
 
                     if (!player.SquelchManager.Squelches.Contains(target, ChatMessageType.Magic))
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(attackerMsg, ChatMessageType.Magic));
-
-                    player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
                 }
 
                 if (targetPlayer != null)
