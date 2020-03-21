@@ -168,7 +168,7 @@ namespace ACE.Server.Command.Handlers
         {
             var magicState = session.Player.MagicState;
 
-            if (magicState.IsCasting && DateTime.UtcNow - magicState.StartTime > TimeSpan.FromSeconds(0))
+            if (magicState.IsCasting && DateTime.UtcNow - magicState.StartTime > TimeSpan.FromSeconds(5))
             {
                 var debugCast = GetDebugCast(session);
 
