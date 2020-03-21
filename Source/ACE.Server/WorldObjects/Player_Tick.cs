@@ -408,6 +408,8 @@ namespace ACE.Server.WorldObjects
                             CheckMonsters();
                         }
                     }
+                    else
+                        PhysicsObj.Position.Frame.Orientation = newPosition.Rotation;
                 }
 
                 // double update path: landblock physics update -> updateplayerphysics() -> update_object_server() -> Teleport() -> updateplayerphysics() -> return to end of original branch
