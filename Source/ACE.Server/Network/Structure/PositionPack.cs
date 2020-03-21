@@ -64,10 +64,7 @@ namespace ACE.Server.Network.Structure
             if (PlacementID != null)
                 flags |= PositionFlags.HasPlacementID;
 
-            var player = WorldObject as Player;
-            if (player != null && player.LastContact)
-                flags |= PositionFlags.IsGrounded;
-            else if (WorldObject.PhysicsObj != null && (WorldObject.PhysicsObj.TransientState & TransientStateFlags.Contact) != 0)
+            if (WorldObject.PhysicsObj != null && (WorldObject.PhysicsObj.TransientState & TransientStateFlags.OnWalkable) != 0)
                 flags |= PositionFlags.IsGrounded;
 
             if (Rotation.W == 0.0f)

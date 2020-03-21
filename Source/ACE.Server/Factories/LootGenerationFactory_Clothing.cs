@@ -256,7 +256,7 @@ namespace ACE.Server.Factories
 
             var baseArmorLevel = wo.GetProperty(PropertyInt.ArmorLevel) ?? 0;
 
-            if ((wo.ClothingPriority & (CoverageMask)CoverageMaskHelper.Underwear) == 0)
+            if (((wo.ClothingPriority & (CoverageMask)CoverageMaskHelper.Underwear) == 0) || wo.IsShield)
             {
                 int armorModValue = 0;
 
