@@ -422,7 +422,14 @@ namespace ACE.Server.WorldObjects
                 if (criticalHit)
                     damageBonus = lifeMagicDamage * 0.5f * GetWeaponCritDamageMod(sourceCreature, attackSkill, target);
 
-                finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus * absorbMod;
+                var weaponResistanceMod = GetWeaponResistanceModifier(sourceCreature, attackSkill, Spell.DamageType);
+
+                // if attacker/weapon has IgnoreMagicResist directly, do not transfer to spell projectile
+                // only pass if SpellProjectile has it directly, such as 2637 - Invoking Aun Tanua
+
+                var resistanceMod = Math.Max(0.0f, target.GetResistanceMod(resistanceType, this, null, weaponResistanceMod));
+
+                finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus * resistanceMod * absorbMod;
                 return finalDamage;
             }
             // war/void magic projectiles
