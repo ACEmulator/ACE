@@ -347,6 +347,9 @@ namespace ACE.Server.Physics.Common
 
                     foreach (var stab in ((EnvCell)visibleCell).VisibleCells.Values)
                     {
+                        if (stab == null)
+                            continue;
+
                         if (cell.ID == stab.ID)
                         {
                             found = true;
