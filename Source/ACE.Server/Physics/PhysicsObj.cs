@@ -6,6 +6,7 @@ using System.Numerics;
 using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Combat;
@@ -1294,12 +1295,21 @@ namespace ACE.Server.Physics
 
             if (transition.SpherePath.CurCell == null) return SetPositionError.NoCell;
 
-            // custom
-            if (ProjectileTarget != null)
-                handle_all_collisions(transition.CollisionInfo, false, false);
+            // custom:
+            // test for non-ethereal spell projectile collision on world entry
+            var spellCollide = WeenieObj.WorldObject is SpellProjectile && transition.CollisionInfo.CollideObject.Count > 0 && !PropertyManager.GetBool("spell_projectile_ethereal").Item;
+
+            if (spellCollide)
+            {
+                // send initial CO as ethereal
+                WeenieObj.WorldObject.Ethereal = true;
+            }
 
             if (!SetPositionInternal(transition))
                 return SetPositionError.GeneralFailure;
+
+            if (spellCollide)
+                handle_all_collisions(transition.CollisionInfo, false, false);
 
             return SetPositionError.OK;
         }
