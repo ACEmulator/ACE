@@ -284,5 +284,10 @@ namespace ACE.Server.Entity
 
             return HouseCell.HouseCells.ContainsKey(cell);
         }
+
+        public static Position ACEPosition(this Physics.Common.Position pos)
+        {
+            return new Position(pos.ObjCellID, pos.Frame.Origin, pos.Frame.Orientation);
+        }
     }
 }

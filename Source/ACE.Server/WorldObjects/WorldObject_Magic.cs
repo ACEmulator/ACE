@@ -1391,28 +1391,27 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Vector3 CalculateProjectileVelocity(Spell spell, WorldObject target, ProjectileSpellType spellType, Vector3 origin)
         {
+            var casterLoc = PhysicsObj.Position.ACEPosition();
+
             var speed = GetProjectileSpeed(spell);
 
             if (target == null)
             {
                 // launch along forward vector
-                return Vector3.Transform(Vector3.UnitY, Location.Rotation) * speed;
+                return Vector3.Transform(Vector3.UnitY, casterLoc.Rotation) * speed;
             }
+
+            var targetLoc = target.PhysicsObj.Position.ACEPosition();
 
             var strikeSpell = spellType == ProjectileSpellType.Strike;
 
-            var crossLandblock = !strikeSpell && Location.Landblock != target.Location.Landblock;
+            var crossLandblock = !strikeSpell && casterLoc.Landblock != targetLoc.Landblock;
 
-            var startPos = strikeSpell ? target.Location.Pos : crossLandblock ? Location.ToGlobal(false) : Location.Pos;
-            startPos += Vector3.Transform(origin, strikeSpell ? Location.Rotation * OneEighty : Location.Rotation);
+            var qDir = PhysicsObj.Position.GetOffset(target.PhysicsObj.Position);
+            var rotate = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)Math.Atan2(-qDir.X, qDir.Y));
 
-            var targetLoc = target.Location;
-
-            if (target.PhysicsObj != null)
-            {
-                var targetPos = target.PhysicsObj.Position;
-                targetLoc = new Position(targetPos.ObjCellID, targetPos.Frame.Origin, targetPos.Frame.Orientation);
-            }
+            var startPos = strikeSpell ? targetLoc.Pos : crossLandblock ? casterLoc.ToGlobal(false) : casterLoc.Pos;
+            startPos += Vector3.Transform(origin, strikeSpell ? rotate * OneEighty : rotate);
 
             var endPos = crossLandblock ? targetLoc.ToGlobal(false) : targetLoc.Pos;
 
@@ -1444,6 +1443,9 @@ namespace ACE.Server.WorldObjects
 
             var spellProjectiles = new List<SpellProjectile>();
 
+            var casterLoc = PhysicsObj.Position.ACEPosition();
+            var targetLoc = target?.PhysicsObj.Position.ACEPosition();
+
             for (var i = 0; i < origins.Count; i++)
             {
                 var origin = origins[i];
@@ -1458,8 +1460,15 @@ namespace ACE.Server.WorldObjects
 
                 sp.Setup(spell, spellType);
 
-                sp.Location = strikeSpell ? new Position(target.Location) : new Position(Location);
-                sp.Location.Pos += Vector3.Transform(origin, strikeSpell ? Location.Rotation * OneEighty : Location.Rotation);
+                var rotate = casterLoc.Rotation;
+                if (target != null)
+                {
+                    var qDir = PhysicsObj.Position.GetOffset(target.PhysicsObj.Position);
+                    rotate = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)Math.Atan2(-qDir.X, qDir.Y));
+                }
+
+                sp.Location = strikeSpell ? new Position(targetLoc) : new Position(casterLoc);
+                sp.Location.Pos += Vector3.Transform(origin, strikeSpell ? rotate * OneEighty : rotate);
 
                 sp.Velocity = velocity;
 
