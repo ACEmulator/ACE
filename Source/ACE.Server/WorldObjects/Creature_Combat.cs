@@ -663,7 +663,7 @@ namespace ACE.Server.WorldObjects
             var modSL = shield.EnchantmentManager.GetArmorMod();
 
             if (ignoreMagicArmor)
-                modSL = attacker is Player ? IgnoreMagicArmorScaled(modSL) : 0;
+                modSL = attacker is Player ? (int)Math.Round(IgnoreMagicArmorScaled(modSL)) : 0;
 
             var effectiveSL = baseSL + modSL;
 
@@ -675,7 +675,7 @@ namespace ACE.Server.WorldObjects
             var modRL = shield.EnchantmentManager.GetArmorModVsType(damageType);
 
             if (ignoreMagicArmor)
-                modRL = attacker is Player ? IgnoreMagicArmorScaled(modRL) : 0;
+                modRL = attacker is Player ? IgnoreMagicArmorScaled(modRL) : 0.0f;
 
             var effectiveRL = (float)(baseRL + modRL);
 

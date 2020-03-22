@@ -17,8 +17,8 @@ namespace ACE.Server.Network.GameMessages.Messages
             // instance sequence - ushort
             // vector sequence - ushort
 
-            var velocity = worldObject.PhysicsObj != null ? Vector3.Transform(worldObject.PhysicsObj.Velocity, worldObject.Location.Rotation) : Vector3.Zero;
-            var omega = worldObject.PhysicsObj != null ? worldObject.PhysicsObj.Omega : Vector3.Zero;
+            var velocity = worldObject.PhysicsObj?.Velocity ?? Vector3.Zero;
+            var omega = worldObject.PhysicsObj?.Omega ?? Vector3.Zero;
 
             Writer.WriteGuid(worldObject.Guid);
             Writer.Write(velocity);

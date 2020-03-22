@@ -8,6 +8,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
@@ -76,8 +77,6 @@ namespace ACE.Server.WorldObjects
             // FIXME: use data here
             if (!Spell.Name.Equals("Rolling Death"))
                 Ethereal = false;
-            else if (spellType == ProjectileSpellType.Ring)
-                Ethereal = true;
 
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
                 || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley || SpellType == ProjectileSpellType.Blast
@@ -215,20 +214,23 @@ namespace ACE.Server.WorldObjects
 
             PhysicsObj.set_active(false);
 
-            var broadcaster = PhysicsObj.entering_world ? ProjectileSource : this;
-
-            broadcaster.EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
-            broadcaster.EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Explode, GetProjectileScriptIntensity(SpellType)));
-
             if (PhysicsObj.entering_world)
             {
-                // for this path, since the projectile is being set to ethereal before the CO is sent,
-                // setting small velocity to still show the particle effects, but prevent the projectile from continuing
-                // to sail through the target
-
-                Velocity *= 0.05f;
+                // this path should only happen if spell_projectile_ethereal = false
+                EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Launch, GetProjectileScriptIntensity(SpellType)));
                 WorldEntryCollision = true;
             }
+
+            EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
+            EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Explode, GetProjectileScriptIntensity(SpellType)));
+
+            // this should only be needed for spell_projectile_ethereal = true,
+            // however it can also fix a display issue on client in default mode,
+            // where GameMessageSetState updates projectile to ethereal before it has actually collided on client,
+            // causing a 'ghost' projectile to continue to sail through the target
+
+            PhysicsObj.Velocity = Vector3.Zero;
+            EnqueueBroadcast(new GameMessageVectorUpdate(this));
 
             ActionChain selfDestructChain = new ActionChain();
             selfDestructChain.AddDelaySeconds(5.0);
@@ -422,7 +424,14 @@ namespace ACE.Server.WorldObjects
                 if (criticalHit)
                     damageBonus = lifeMagicDamage * 0.5f * GetWeaponCritDamageMod(sourceCreature, attackSkill, target);
 
-                finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus * absorbMod;
+                var weaponResistanceMod = GetWeaponResistanceModifier(sourceCreature, attackSkill, Spell.DamageType);
+
+                // if attacker/weapon has IgnoreMagicResist directly, do not transfer to spell projectile
+                // only pass if SpellProjectile has it directly, such as 2637 - Invoking Aun Tanua
+
+                var resistanceMod = Math.Max(0.0f, target.GetResistanceMod(resistanceType, this, null, weaponResistanceMod));
+
+                finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus * resistanceMod * absorbMod;
                 return finalDamage;
             }
             // war/void magic projectiles
