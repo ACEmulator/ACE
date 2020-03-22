@@ -397,20 +397,20 @@ namespace ACE.Server.WorldObjects
             return armorMod;
         }
 
-        public int IgnoreMagicArmorScaled(float enchantments)
+        public float IgnoreMagicArmorScaled(float enchantments)
         {
             if (!(this is Player))
-                return 0;
+                return 0.0f;
 
             var scalar = PropertyManager.GetDouble("ignore_magic_armor_pvp_scalar").Item;
 
             if (scalar != 1.0)
-                return (int)Math.Round(enchantments * (1.0 - scalar));
+                return (float)(enchantments * (1.0 - scalar));
             else
-                return 0;
+                return 0.0f;
         }
 
-        public int IgnoreMagicResistScaled(float enchantments)
+        public int IgnoreMagicResistScaled(int enchantments)
         {
             if (!(this is Player))
                 return 0;
@@ -445,7 +445,7 @@ namespace ACE.Server.WorldObjects
             var armorMod = armor.EnchantmentManager.GetArmorMod();
 
             if (ignoreMagicArmor)
-                armorMod = IgnoreMagicArmorScaled(armorMod);
+                armorMod = (int)Math.Round(IgnoreMagicArmorScaled(armorMod));
 
             // Console.WriteLine("Impen: " + armorMod);
             var effectiveAL = baseArmor + armorMod;
