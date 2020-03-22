@@ -18,12 +18,21 @@ namespace ACE.Database.Adapter
             var result = new ACE.Entity.Models.Weenie();
             if (result == null)
             {
-                log.Error($" Ace.Entity.Models.Weenie - Null Weenie = {weenie.ClassId}");
+                log.Error($" Ace.Entity.Models.WeenieConverter - Null Weenie = {weenie.ClassId}");
                 return null;
             }
-            result.WeenieClassId = weenie.ClassId;
-            result.ClassName = weenie.ClassName;
-            result.WeenieType = (WeenieType)weenie.Type;
+            try
+            {
+                result.WeenieClassId = weenie.ClassId;
+                result.ClassName = weenie.ClassName;
+                result.WeenieType = (WeenieType)weenie.Type;
+            }
+
+            catch
+            {
+                log.Error($" Ace.Entity.Models.WeenieConverter - Null WeenieClassID = {weenie.ClassId}, WeenieClassName = {weenie.ClassName}, WennieType = {weenie.Type}");
+            }
+
 
             if (weenie.WeeniePropertiesBool != null && (instantiateEmptyCollections || weenie.WeeniePropertiesBool.Count > 0))
             {
