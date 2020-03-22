@@ -82,8 +82,8 @@ namespace ACE.Server.WorldObjects
                 || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley || SpellType == ProjectileSpellType.Blast
                 || WeenieClassId == 7276 || WeenieClassId == 7277 || WeenieClassId == 7279 || WeenieClassId == 7280)
             {
-                PhysicsObj.DefaultScript = PlayScript.ProjectileCollision;
-                PhysicsObj.DefaultScriptIntensity = 1.0f;
+                DefaultScriptId = (uint)PlayScript.ProjectileCollision;
+                DefaultScriptIntensity = 1.0f;
             }
 
             // Some wall spells don't have scripted collisions
