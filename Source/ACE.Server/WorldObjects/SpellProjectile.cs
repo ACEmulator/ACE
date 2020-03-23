@@ -758,7 +758,7 @@ namespace ACE.Server.WorldObjects
 
             var velocity = Velocity;
             //velocity = Vector3.Transform(velocity, Matrix4x4.Transpose(Matrix4x4.CreateFromQuaternion(rotation)));
-            PhysicsObj.Velocity = velocity.Value;
+            PhysicsObj.Velocity = velocity;
 
             if (target != null)
                 PhysicsObj.ProjectileTarget = target.PhysicsObj;

@@ -636,11 +636,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.Translucency); else SetProperty(PropertyFloat.Translucency, value.Value); }
         }
 
-        public Vector3? Velocity = null;
+        // TODO: sync with physics -- these shouldn't be separate fields
+        public Vector3 Velocity { get; set; }
 
-        public Vector3? Acceleration = null;
+        public Vector3 Acceleration { get; set; }
 
-        public Vector3? Omega = null;
+        public Vector3 Omega { get; set; }
 
         public SetupModel CSetup => DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId);
 
