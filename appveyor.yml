@@ -25,7 +25,7 @@ dotnet_csproj:
   version_prefix: '{version}'
   package_version: '{version}'
   assembly_version: '{version}'
-  file_version: '{version}'
+  file_version: '{trueversion}.{build}'
   informational_version: '{version}'
 environment:
   DOCKER_USER:
