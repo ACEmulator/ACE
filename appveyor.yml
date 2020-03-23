@@ -51,6 +51,8 @@ init:
     set APPVEYOR_BUILD_VERSION=%REVISED_VERSION%
 
     echo APPVEYOR_BUILD_VERSION            is: %APPVEYOR_BUILD_VERSION%
+
+    @echo on
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
