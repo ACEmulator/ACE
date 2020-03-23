@@ -1,2 +1,2 @@
 @echo on
-source\AppVeyor\MySqlInstall.bat
+AppVeyor\MySqlInstall.bat

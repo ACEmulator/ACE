@@ -21,16 +21,16 @@ environment:
     secure: AdN3f5EVMXteNIDrqS8FhSezFUuiZ7F4LU0woD5raBE=
 services: mysql
 before_build:
-- cmd: source\AppVeyor\AppVeyorBeforeCompile.bat
+- cmd: AppVeyor\AppVeyorBeforeCompile.bat
 build:
-  project: source\ACE.sln
+  project: Source\ACE.sln
   verbosity: minimal
 before_package:
-- cmd: source\AppVeyor\AppVeyorBeforePackage.bat
+- cmd: AppVeyor\AppVeyorBeforePackage.bat
 after_build:
-- cmd: source\AppVeyor\AppVeyorAfterCompile.bat
+- cmd: AppVeyor\AppVeyorAfterCompile.bat
 test_script:
-- cmd: source\AppVeyor\AppVeyorTestScript.bat
+- cmd: AppVeyor\AppVeyorTestScript.bat
 artifacts:
 - path: '**\ACETests*.txt'
   name: test logs
@@ -50,4 +50,4 @@ deploy:
   on:
     branch: master
 after_deploy:
-- cmd: source\AppVeyor\AppVeyorAfterDeploy.bat
+- cmd: AppVeyor\AppVeyorAfterDeploy.bat

@@ -1,6 +1,6 @@
 @echo on
-nuget restore source\ACE.sln
-copy Source\AppVeyor\Config.js Source\ACE.Server\Config.js
+nuget restore Source\ACE.sln
+copy AppVeyor\Config.js Source\ACE.Server\Config.js
 
 @echo off
 for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"
