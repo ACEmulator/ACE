@@ -117,7 +117,7 @@ namespace ACE.Server.WorldObjects
             if (WeenieClassId == 1636 || WeenieClassId == 7268 || WeenieClassId == 20979)
             {
                 AlignPath = false;
-                Omega = new Vector3(12.56637f, 0, 0);
+                PhysicsObj.Omega = new Vector3(12.56637f, 0, 0);
             }
         }
 

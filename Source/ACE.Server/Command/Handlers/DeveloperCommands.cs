@@ -3001,7 +3001,6 @@ namespace ACE.Server.Command.Handlers
 
             var velocity = new Vector3(0, 0, 0.5f);
 
-            obj.Velocity = velocity;
             obj.PhysicsObj.Velocity = velocity;
 
             session.Network.EnqueueSend(new GameMessageVectorUpdate(obj));

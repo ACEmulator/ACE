@@ -346,7 +346,6 @@ namespace ACE.Server.WorldObjects
 
             // persist the original creature velocity (only used for falling) to corpse
             corpse.PhysicsObj.Velocity = PhysicsObj.Velocity;
-            corpse.Velocity = PhysicsObj.Velocity;
 
             corpse.EnterWorld();
 

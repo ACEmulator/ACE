@@ -637,11 +637,11 @@ namespace ACE.Server.WorldObjects
         }
 
         // TODO: sync with physics -- these shouldn't be separate fields
-        public Vector3 Velocity { get; set; }
+        public Vector3 Velocity => PhysicsObj?.Velocity ?? Vector3.Zero;
 
-        public Vector3 Acceleration { get; set; }
+        public Vector3 Acceleration => PhysicsObj?.Acceleration ?? Vector3.Zero;
 
-        public Vector3 Omega { get; set; }
+        public Vector3 Omega => PhysicsObj?.Omega ?? Vector3.Zero;
 
         public SetupModel CSetup => DatManager.PortalDat.ReadFromDat<SetupModel>(SetupTableId);
 
