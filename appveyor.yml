@@ -7,51 +7,17 @@ configuration: Release
 platform: x64
 init:
 - cmd: >-
-    @echo off
-
-    echo APPVEYOR_REPO_BRANCH              is: %APPVEYOR_REPO_BRANCH%
-
-    echo APPVEYOR_REPO_COMMIT              is: %APPVEYOR_REPO_COMMIT%
-
-    echo APPVEYOR_PULL_REQUEST_HEAD_COMMIT is: %APPVEYOR_PULL_REQUEST_HEAD_COMMIT%
-
-    echo APPVEYOR_BUILD_NUMBER             is: %APPVEYOR_BUILD_NUMBER%
-
-    echo APPVEYOR_BUILD_VERSION            is: %APPVEYOR_BUILD_VERSION%
-
     for /f "tokens=1,2,3 delims=." %%a in ("%APPVEYOR_BUILD_VERSION%") do set TRUE_VERSION=%%a.%%b&set TRUE_BUILD=%%c
 
     set BUILD_DATETIME=%date:~10,4%%date:~4,2%%date:~7,2%%time:~0,2%%time:~3,2%%time:~6,2%
 
     set COMMIT_ID=%APPVEYOR_REPO_COMMIT:~0,7%
 
-    REM set REVISED_VERSION=%TRUE_VERSION%.%BUILD_DATETIME%-%APPVEYOR_REPO_BRANCH%-%COMMIT_ID%.%TRUE_BUILD%
-
-    REM set REVISED_VERSION=%TRUE_VERSION%.%TRUE_BUILD%.%BUILD_DATETIME%-%APPVEYOR_REPO_BRANCH%-%COMMIT_ID%
-
     set REVISED_VERSION=%TRUE_VERSION%.%TRUE_BUILD%.%APPVEYOR_REPO_BRANCH%-%COMMIT_ID%
-
-    echo TRUE_VERSION                      is: %TRUE_VERSION%
-
-    echo BUILD_DATETIME                    is: %BUILD_DATETIME%
-
-    echo COMMIT_ID                         is: %COMMIT_ID%
-
-    echo TRUE_BUILD                        is: %TRUE_BUILD%
-
-    echo REVISED_VERSION                   is: %REVISED_VERSION%
-
 
     appveyor UpdateBuild -Version "%REVISED_VERSION%"
 
-
-    echo APPVEYOR_BUILD_VERSION            is: %APPVEYOR_BUILD_VERSION%
-
     set APPVEYOR_BUILD_VERSION=%REVISED_VERSION%
-
-    echo APPVEYOR_BUILD_VERSION            is: %APPVEYOR_BUILD_VERSION%
-
-    @echo on
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
