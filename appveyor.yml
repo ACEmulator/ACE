@@ -24,7 +24,7 @@ dotnet_csproj:
   version: '{version}'
   version_prefix: '{version}'
   package_version: '{version}'
-  assembly_version: '{version}'
+  assembly_version: '{trueversion}.{build}'
   file_version: '{trueversion}.{build}'
   informational_version: '{version}'
 environment:
@@ -75,5 +75,7 @@ deploy:
     branch: master
 after_deploy:
 - cmd: AppVeyor\AppVeyorAfterDeploy.bat
+on_success:
+- ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 on_failure:
 - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
