@@ -18,7 +18,11 @@ echo TRUE_BUILD                        is: %TRUE_BUILD%
 echo COMMIT_ID                         is: %COMMIT_ID%
 echo REVISED_VERSION                   is: %REVISED_VERSION%
 
-appveyor UpdateBuild -Version "%REVISED_VERSION%"
+REM appveyor UpdateBuild -Version "%REVISED_VERSION%"
+
+REM echo APPVEYOR_BUILD_VERSION            is: %APPVEYOR_BUILD_VERSION%
+REM set APPVEYOR_BUILD_VERSION=%REVISED_VERSION%
+REM echo APPVEYOR_BUILD_VERSION            is: %APPVEYOR_BUILD_VERSION%
 
 @echo on
 nuget restore Source\ACE.sln
