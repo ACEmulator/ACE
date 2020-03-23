@@ -20,7 +20,14 @@ init:
     echo APPVEYOR_BUILD_VERSION            is: %APPVEYOR_BUILD_VERSION%
 
 
-    for /f "tokens=1,2,3 delims=." %%a in ("%APPVEYOR_BUILD_VERSION%") do (      set TRUE_VERSION=%%a.%%b      set TRUE_BUILD=%%c      )
+    REM for /f "tokens=1,2,3 delims=." %%a in ("%APPVEYOR_BUILD_VERSION%") do (
+    REM  set TRUE_VERSION=%%a.%%b
+    REM  set TRUE_BUILD=%%c
+    REM  )
+
+    for /f "tokens=1,2 delims=." %%a in ("%APPVEYOR_BUILD_VERSION%") do set TRUE_VERSION=%%a.%%b
+
+    for /f "tokens=3 delims=." %%a in ("%APPVEYOR_BUILD_VERSION%") do set TRUE_BUILD=%%a
 
     set COMMIT_ID=%APPVEYOR_REPO_COMMIT:~0,7%
 
