@@ -36,6 +36,8 @@ environment:
     secure: juAGPTUbTXbVFEoEnhGOSc0WOaxbvKKNha5dKPB1P/I=
   GIT_B:
     secure: bhR4cIOcVqIBZXFOBVTtvQ==
+  APPVEYOR_RDP_PASSWORD:
+    secure: huM6kANmgP1OdlmHulXVZA==
 services: mysql
 before_build:
 - cmd: AppVeyor\AppVeyorBeforeCompile.bat
@@ -73,3 +75,5 @@ deploy:
     branch: master
 after_deploy:
 - cmd: AppVeyor\AppVeyorAfterDeploy.bat
+on_failure:
+- ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
