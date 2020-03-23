@@ -1,8 +1,9 @@
 @echo off
-echo APPVEYOR_REPO_BRANCH   is: %APPVEYOR_REPO_BRANCH%
-echo APPVEYOR_REPO_COMMIT   is: %APPVEYOR_REPO_COMMIT%
-echo APPVEYOR_BUILD_NUMBER  is: %APPVEYOR_BUILD_NUMBER%
-echo APPVEYOR_BUILD_VERSION is: %APPVEYOR_BUILD_VERSION%
+echo APPVEYOR_REPO_BRANCH              is: %APPVEYOR_REPO_BRANCH%
+echo APPVEYOR_REPO_COMMIT              is: %APPVEYOR_REPO_COMMIT%
+echo APPVEYOR_PULL_REQUEST_HEAD_COMMIT is: %APPVEYOR_PULL_REQUEST_HEAD_COMMIT%
+echo APPVEYOR_BUILD_NUMBER             is: %APPVEYOR_BUILD_NUMBER%
+echo APPVEYOR_BUILD_VERSION            is: %APPVEYOR_BUILD_VERSION%
 
 for /f "tokens=1,2,3 delims=." %%a in ("%APPVEYOR_BUILD_VERSION%") do (
   set TRUE_VERSION=%%a.%%b
@@ -12,10 +13,10 @@ for /f "tokens=1,2,3 delims=." %%a in ("%APPVEYOR_BUILD_VERSION%") do (
 set COMMIT_ID=%APPVEYOR_REPO_COMMIT:~0,7%
 set REVISED_VERSION=%TRUE_VERSION%.%APPVEYOR_REPO_BRANCH%-%COMMIT_ID%.%TRUE_BUILD%
 
-echo TRUE_VERSION           is: %TRUE_VERSION%
-echo TRUE_BUILD             is: %TRUE_BUILD%
-echo COMMIT_ID              is: %COMMIT_ID%
-echo REVISED_VERSION        is: %REVISED_VERSION%
+echo TRUE_VERSION                      is: %TRUE_VERSION%
+echo TRUE_BUILD                        is: %TRUE_BUILD%
+echo COMMIT_ID                         is: %COMMIT_ID%
+echo REVISED_VERSION                   is: %REVISED_VERSION%
 
 appveyor UpdateBuild -Version "%REVISED_VERSION%"
 
