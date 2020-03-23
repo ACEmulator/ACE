@@ -8,6 +8,6 @@ git config --global user.email "%GIT_A%"
 git config --global user.name "%GIT_B%"
 
 @echo on
-git add -A
-git commit -m "[ci skip] Updating project files with latest version information"
-git push origin master
+REM git add -A
+REM git commit -m "[ci skip] Updating project files with latest version information"
+REM git push origin master
