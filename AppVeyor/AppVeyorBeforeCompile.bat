@@ -4,26 +4,20 @@ echo APPVEYOR_REPO_COMMIT   is: %APPVEYOR_REPO_COMMIT%
 echo APPVEYOR_BUILD_NUMBER  is: %APPVEYOR_BUILD_NUMBER%
 echo APPVEYOR_BUILD_VERSION is: %APPVEYOR_BUILD_VERSION%
 
-setlocal enabledelayedexpansion
-for /f "tokens=1 delims=." %%a in ("%APPVEYOR_BUILD_VERSION%") do (
-  echo %%a
-  set TRUE_BUILD=%%a
+for /f "tokens=1,2,3 delims=." %%a in ("%APPVEYOR_BUILD_VERSION%") do (
+  set TRUE_VERSION=%%a.%%b
+  set TRUE_BUILD=%%c
   )
-endlocal
 
-REM set VER=%APPVEYOR_BUILD_VERSION:~0,3%
-set VER=%APPVEYOR_BUILD_VERSION:%%TRUE_BUILD =%
 set COMMIT_ID=%APPVEYOR_REPO_COMMIT:~0,7%
-REM set NEWVER=%VER%.%APPVEYOR_REPO_BRANCH%-%COMMIT_ID%.%APPVEYOR_BUILD_NUMBER%
-REM set NEWVER=%APPVEYOR_BUILD_VERSION%.%APPVEYOR_REPO_BRANCH%-%COMMIT_ID%.%APPVEYOR_BUILD_NUMBER%
-set NEWVER=%VER%.%APPVEYOR_REPO_BRANCH%-%COMMIT_ID%.%APPVEYOR_BUILD_NUMBER%.%TRUE_BUILD%
+set REVISED_VERSION=%TRUE_VERSION%.%APPVEYOR_REPO_BRANCH%-%COMMIT_ID%.%TRUE_BUILD%
 
-echo VER       is: %VER%
-echo TRUE_BUILD is: %TRUE_BUILD%
-echo COMMIT_ID  is: %COMMIT_ID%
-echo NEWVER     is: %NEWVER%
+echo TRUE_VERSION           is: %TRUE_VERSION%
+echo TRUE_BUILD             is: %TRUE_BUILD%
+echo COMMIT_ID              is: %COMMIT_ID%
+echo REVISED_VERSION        is: %REVISED_VERSION%
 
-REM appveyor UpdateBuild -Version "%NEWVER%"
+appveyor UpdateBuild -Version "%REVISED_VERSION%"
 
 @echo on
 nuget restore Source\ACE.sln
