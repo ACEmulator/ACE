@@ -56,7 +56,7 @@ deploy:
   description: <h1> ACEmulator Server - v$(appveyor_build_version) </h1> <blockquote>The following commit is included in this release:</<blockquote> <h1></h1>$(APPVEYOR_REPO_COMMIT_MESSAGE) <p>$(APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED)<h1><h6>automated server build - $(APPVEYOR_REPO_COMMIT_TIMESTAMP)
   auth_token:
     secure: k8Q9MwG7UgKbocfdJvD4iBwL1K2AsdjZs6B34/vFqkoukW9p3tJ3uRacb1Zmclyp
-  artifact: ACE.Server-v$(appveyor_build_version).zip
+  artifact: AppVeyor\ACE.Server-v$(appveyor_build_version).zip
   draft: true
   prerelease: false
   force_update: true
