@@ -32,6 +32,10 @@ environment:
     secure: qs6SGmd8XeCqWCMGx5+VAg==
   DOCKER_PASS:
     secure: AdN3f5EVMXteNIDrqS8FhSezFUuiZ7F4LU0woD5raBE=
+  GIT_A:
+    secure: juAGPTUbTXbVFEoEnhGOSc0WOaxbvKKNha5dKPB1P/I=
+  GIT_B:
+    secure: bhR4cIOcVqIBZXFOBVTtvQ==
 services: mysql
 before_build:
 - cmd: AppVeyor\AppVeyorBeforeCompile.bat
@@ -49,6 +53,11 @@ artifacts:
   name: test logs
 - path: '**\ACE.Server-*.zip'
   name: release candidate
+before_deploy:
+- ps: >-
+    git config --global credential.helper store
+
+    Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
 deploy:
 - provider: GitHub
   tag: v$(appveyor_build_version)
