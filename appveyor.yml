@@ -21,7 +21,7 @@ init:
 
     for /f "tokens=1,2,3 delims=." %%a in ("%APPVEYOR_BUILD_VERSION%") do set TRUE_VERSION=%%a.%%b&set TRUE_BUILD=%%c
 
-    set BUILD_DATETIME=%date:~10,4%%date:~4,2%%date:~7,2%%time:~0,2%%time:~3,2%%time:~6,2%
+    set BUILD_DATETIME=%date:~10,4%%date:~4,2%%date:~7,2%-%time:~0,2%%time:~3,2%%time:~6,2%
 
     set COMMIT_ID=%APPVEYOR_REPO_COMMIT:~0,7%
 
