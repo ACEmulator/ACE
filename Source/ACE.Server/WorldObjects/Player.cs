@@ -851,9 +851,17 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
+                PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
+
                 // set jump velocity
-                var glob_velocity = Vector3.Transform(jump.Velocity, Location.Rotation);
-                PhysicsObj.set_velocity(glob_velocity, true);
+                //var glob_velocity = Vector3.Transform(jump.Velocity, Location.Rotation);
+                //PhysicsObj.set_velocity(glob_velocity, true);
+
+                // perform jump in physics engine
+                PhysicsObj.TransientState &= ~(Physics.TransientStateFlags.Contact | Physics.TransientStateFlags.WaterContact);
+                PhysicsObj.calc_acceleration();
+                PhysicsObj.set_on_walkable(false);
+                PhysicsObj.set_local_velocity(jump.Velocity, false);
             }
 
             // this shouldn't be needed, but without sending this update motion / simulated movement event beforehand,

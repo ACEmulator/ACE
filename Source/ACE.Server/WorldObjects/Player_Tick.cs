@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Numerics;
 
 using ACE.Common;
 using ACE.Entity.Enum;
@@ -255,7 +256,7 @@ namespace ACE.Server.WorldObjects
                     RequestedLocation = null;
                 }
 
-                if (FastTick && PhysicsObj.IsMovingOrAnimating)
+                if (FastTick && PhysicsObj.IsMovingOrAnimating || PhysicsObj.Velocity != Vector3.Zero)
                     UpdatePlayerPhysics();
 
                 InUpdate = false;
@@ -285,6 +286,8 @@ namespace ACE.Server.WorldObjects
 
             // sync ace position?
             Location.Rotation = PhysicsObj.Position.Frame.Orientation;
+
+            if (!FastTick) return;
 
             // this fixes some differences between client movement (DoMotion/StopMotion) and server movement (apply_raw_movement)
             //
