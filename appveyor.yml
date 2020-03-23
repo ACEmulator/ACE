@@ -5,8 +5,6 @@ skip_tags: true
 image: Visual Studio 2019
 configuration: Release
 platform: x64
-clone_script:
-- cmd: source\AppVeyor\AppVeyorClone.bat
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
