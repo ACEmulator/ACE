@@ -3179,7 +3179,7 @@ namespace ACE.Server.Command.Handlers
             return msg;
         }
 
-        [CommandHandler("movetome", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Moves the last appraised object to the current player location.")]
+        [CommandHandler("movetome", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, "Moves the last appraised object to the current player location.")]
         public static void HandleMoveToMe(Session session, params string[] parameters)
         {
             var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
