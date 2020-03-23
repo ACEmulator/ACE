@@ -230,6 +230,8 @@ namespace ACE.Database
 
                         var result = query.FirstOrDefault();
 
+                        if (result == null) return null;
+
                         weenie = WeenieConverter.ConvertToEntityWeenie(result);
 
                         scrollsBySpellID[spellID] = weenie;
