@@ -287,7 +287,9 @@ namespace ACE.Server.WorldObjects
 
             bool saveCorpse = false;
 
-            if (this is Player player)
+            var player = this as Player;
+
+            if (player != null)
             {
                 corpse.SetPosition(PositionType.Location, corpse.Location);
                 var dropped = player.CalculateDeathItems(corpse);
@@ -343,15 +345,19 @@ namespace ACE.Server.WorldObjects
             corpse.InitPhysicsObj();
 
             // persist the original creature velocity (only used for falling) to corpse
-            corpse.PhysicsObj.Velocity = PhysicsObj.Velocity;
-            corpse.Velocity = PhysicsObj.Velocity;
+            if (player != null && player.FastTick)
+            {
+                // only applies to PKs atm
+                corpse.PhysicsObj.Velocity = PhysicsObj.Velocity;
+                corpse.Velocity = PhysicsObj.Velocity;
+            }
 
             corpse.EnterWorld();
 
-            if (this is Player p)
+            if (player != null)
             {
                 if (corpse.PhysicsObj == null || corpse.PhysicsObj.Position == null)
-                    log.Debug($"[CORPSE] {Name}'s corpse (0x{corpse.Guid}) failed to spawn! Tried at {p.Location.ToLOCString()}");
+                    log.Debug($"[CORPSE] {Name}'s corpse (0x{corpse.Guid}) failed to spawn! Tried at {player.Location.ToLOCString()}");
                 else
                     log.Debug($"[CORPSE] {Name}'s corpse (0x{corpse.Guid}) is located at {corpse.PhysicsObj.Position}");
             }
