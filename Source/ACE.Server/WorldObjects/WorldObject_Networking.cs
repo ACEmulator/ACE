@@ -402,11 +402,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Broadcast position updates to players within range
         /// </summary>
-        public void SendUpdatePosition()
+        /// <param name="adminMove">only used if admin is teleporting a non-player object</param>
+        public void SendUpdatePosition(bool adminMove = false)
         {
             //Console.WriteLine($"{Name}.SendUpdatePosition({Location.ToLOCString()})");
 
-            EnqueueBroadcast(new GameMessageUpdatePosition(this));
+            EnqueueBroadcast(new GameMessageUpdatePosition(this, adminMove));
 
             LastUpdatePosition = DateTime.UtcNow;
         }

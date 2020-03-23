@@ -256,7 +256,9 @@ namespace ACE.Server.WorldObjects
                     corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
             }
 
-            corpse.Location = new Position(Location);
+            // use the physics location for accuracy,
+            // especially while jumping
+            corpse.Location = PhysicsObj.Position.ACEPosition();
 
             corpse.VictimId = Guid.Full;
             corpse.Name = $"{prefix} of {Name}";
@@ -337,6 +339,12 @@ namespace ACE.Server.WorldObjects
 
             if (CanGenerateRare && killer != null)
                 corpse.GenerateRare(killer);
+
+            corpse.InitPhysicsObj();
+
+            // persist the original creature velocity (only used for falling) to corpse
+            corpse.PhysicsObj.Velocity = PhysicsObj.Velocity;
+            corpse.Velocity = PhysicsObj.Velocity;
 
             corpse.EnterWorld();
 
