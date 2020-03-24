@@ -23,6 +23,7 @@ nuget restore Source\ACE.sln
 IF NOT EXIST Source\ACE.Server\Config.js copy AppVeyor\Config.js Source\ACE.Server\Config.js
 
 @echo off
+echo Updating ServerBuildInfo_Properties.cs with build details...
 IF EXIST Source\ACE.Server\ServerBuildInfo_Properties.cs DEL Source\ACE.Server\ServerBuildInfo_Properties.cs
 
 echo. >> Source\ACE.Server\ServerBuildInfo_Properties.cs
