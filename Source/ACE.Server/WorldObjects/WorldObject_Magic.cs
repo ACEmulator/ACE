@@ -74,6 +74,7 @@ namespace ACE.Server.WorldObjects
                 case MagicSchool.WarMagic:
                     WarMagic(target, spell, this);
                     break;
+
                 case MagicSchool.LifeMagic:
                     var targetDeath = LifeMagic(spell, out uint damage, out bool critical, out status, target, caster);
                     if (targetDeath && target is Creature targetCreature)
@@ -82,23 +83,28 @@ namespace ACE.Server.WorldObjects
                         targetCreature.Die();
                     }
                     break;
+
                 case MagicSchool.CreatureEnchantment:
                     status = CreatureMagic(target, spell, caster);
                     break;
+
                 case MagicSchool.ItemEnchantment:
                     status = ItemMagic(target, spell, caster);
                     break;
+
                 case MagicSchool.VoidMagic:
                     VoidMagic(target, spell, this);
                     break;
             }
 
             // send message to player, if applicable
-            var player = this as Player;
-            if (player != null && status.Message != null && !status.Broadcast && showMsg)
-                player.Session.Network.EnqueueSend(status.Message);
-            else if (player != null && status.Message != null && status.Broadcast && showMsg)
-                player.EnqueueBroadcast(status.Message, LocalBroadcastRange, ChatMessageType.Magic);
+            if (this is Player player && status.Message != null && showMsg)
+            {
+                if (status.Broadcast)
+                    player.EnqueueBroadcast(status.Message, LocalBroadcastRange, ChatMessageType.Magic);
+                else
+                    player.Session.Network.EnqueueSend(status.Message);
+            }
 
             // for invisible spell traps,
             // their effects won't be seen if they broadcast from themselves
