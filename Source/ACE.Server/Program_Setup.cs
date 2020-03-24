@@ -294,8 +294,9 @@ namespace ACE.Server
 
                         break;
                     }
-                    catch
+                    catch (MySql.Data.MySqlClient.MySqlException)
                     {
+                        Console.Write(".");
                         Thread.Sleep(5000);
                     }
                 }
@@ -477,25 +478,36 @@ namespace ACE.Server
                 File.Delete(dbFileName);
                 Console.WriteLine("Deleted!");
 
-                var sqlFile = (string)dbFileName;
-                sqlFile = sqlFile.Substring(0, sqlFile.Length - 4);
-
-                Console.Write($"Reading {sqlFile} .... ");
-                var sqlDB = File.ReadAllText(sqlFile);
-                Console.WriteLine("complete!");
-
-                var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password}");
-                var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDB);
-
+                var sqlFile = dbFileName.Substring(0, dbFileName.Length - 4);
                 Console.Write($"Importing {sqlFile} into SQL server at {config.MySql.World.Host}:{config.MySql.World.Port} (This will take a while, please be patient) .... ");
-                try
+                using (var sr = File.OpenText(sqlFile))
                 {
-                    script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
-                    var count = script.Execute();
-                }
-                catch (MySql.Data.MySqlClient.MySqlException)
-                {
+                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password}");
 
+                    var line = string.Empty;
+                    var completeSQLline = string.Empty;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        //do minimal amount of work here
+                        if (line.EndsWith(";"))
+                        {
+                            completeSQLline += line + Environment.NewLine;
+
+                            var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, completeSQLline);
+                            try
+                            {
+                                script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
+                                var count = script.Execute();
+                            }
+                            catch (MySql.Data.MySqlClient.MySqlException)
+                            {
+
+                            }
+                            completeSQLline = string.Empty;
+                        }
+                        else
+                            completeSQLline += line + Environment.NewLine;
+                    }
                 }
                 Console.WriteLine(" complete!");
 

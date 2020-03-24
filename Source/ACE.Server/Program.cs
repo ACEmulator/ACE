@@ -119,6 +119,10 @@ namespace ACE.Server
             }
 
             log.Info("Starting ACEmulator...");
+
+            if (IsRunningInContainer)
+                log.Info("ACEmulator is running in a container...");
+
             var assembly = Assembly.GetExecutingAssembly();
             var fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
             var serverVersion = fileVersionInfo.ProductVersion;
