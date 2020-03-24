@@ -1470,14 +1470,14 @@ namespace ACE.Server.WorldObjects
                 sp.Location = strikeSpell ? new Position(targetLoc) : new Position(casterLoc);
                 sp.Location.Pos += Vector3.Transform(origin, strikeSpell ? rotate * OneEighty : rotate);
 
-                sp.Velocity = velocity;
+                sp.PhysicsObj.Velocity = velocity;
 
                 if (spell.SpreadAngle > 0)
                 {
                     var n = Vector3.Normalize(origin);
                     var angle = Math.Atan2(-n.X, n.Y);
                     var q = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)angle);
-                    sp.Velocity = Vector3.Transform(velocity, q);
+                    sp.PhysicsObj.Velocity = Vector3.Transform(velocity, q);
                 }
 
                 // set orientation

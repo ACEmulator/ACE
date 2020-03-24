@@ -345,12 +345,7 @@ namespace ACE.Server.WorldObjects
             corpse.InitPhysicsObj();
 
             // persist the original creature velocity (only used for falling) to corpse
-            if (player != null && player.FastTick)
-            {
-                // only applies to PKs atm
-                corpse.PhysicsObj.Velocity = PhysicsObj.Velocity;
-                corpse.Velocity = PhysicsObj.Velocity;
-            }
+            corpse.PhysicsObj.Velocity = PhysicsObj.Velocity;
 
             corpse.EnterWorld();
 
