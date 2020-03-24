@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Database.Models.Shard;
@@ -224,30 +225,60 @@ namespace ACE.Database.Adapter
 
             // Properties for all world objects that typically aren't modified over the original Biota
 
-            /*if (biota.PropertiesCreateList != null)
+            // This is a cluster... because there is no key per record, just the record id.
+            // That poses a problem because when we add a new record to be saved, we don't know what the record id is yet.
+            // It's not until we try to save the record a second time that we will then have the database persisted record (with a valid id), and the entity record (that still has a DatabaseRecordId of 0)
+            // We then need to match up the record that was saved with it's entity counterpart
+            var processedSourceCreateList = new HashSet<ACE.Entity.Models.PropertiesCreateList>();
+            var usedTargetCreateList = new HashSet<BiotaPropertiesCreateList>();
+            if (sourceBiota.PropertiesCreateList != null)
             {
-                foreach (var value in biota.PropertiesCreateList)
+                // Process matched up records first
+                foreach (var value in sourceBiota.PropertiesCreateList)
                 {
-                    BiotaPropertiesCreateList existingValue = existingBiota.BiotaPropertiesCreateList.FirstOrDefault(r => r.Id == value.Id);
+                    if (value.DatabaseRecordId == 0)
+                        continue;
+
+                    // Source record should already exist in the target
+                    BiotaPropertiesCreateList existingValue = targetBiota.BiotaPropertiesCreateList.FirstOrDefault(r => r.Id == value.DatabaseRecordId);
+
+                    // If the existingValue was not found, the database was likely modified outside of ACE after our last save
+                    if (existingValue == null)
+                        continue;
+
+                    CopyValueInto(value, existingValue);
+
+                    processedSourceCreateList.Add(value);
+                    usedTargetCreateList.Add(existingValue);
+                }
+                foreach (var value in sourceBiota.PropertiesCreateList)
+                {
+                    if (processedSourceCreateList.Contains(value))
+                        continue;
+
+                    // For simplicity, just find the first unused target
+                    BiotaPropertiesCreateList existingValue = targetBiota.BiotaPropertiesCreateList.FirstOrDefault(r => !usedTargetCreateList.Contains(r));
 
                     if (existingValue == null)
-                        existingBiota.BiotaPropertiesCreateList.Add(value);
-                    else
                     {
-                        existingValue.DestinationType = value.DestinationType;
-                        existingValue.WeenieClassId = value.WeenieClassId;
-                        existingValue.StackSize = value.StackSize;
-                        existingValue.Palette = value.Palette;
-                        existingValue.Shade = value.Shade;
-                        existingValue.TryToBond = value.TryToBond;
+                        existingValue = new BiotaPropertiesCreateList { ObjectId = sourceBiota.Id };
+
+                        targetBiota.BiotaPropertiesCreateList.Add(existingValue);
                     }
+
+                    value.DatabaseRecordId = existingValue.Id;
+
+                    CopyValueInto(value, existingValue);
+
+                    //processedSourceCreateList.Add(value);
+                    usedTargetCreateList.Add(existingValue);
                 }
             }
-            foreach (var value in existingBiota.BiotaPropertiesCreateList)
+            foreach (var value in targetBiota.BiotaPropertiesCreateList)
             {
-                if (biota.PropertiesCreateList == null || !biota.PropertiesCreateList.Any(p => p.Id == value.Id))
+                if (!usedTargetCreateList.Contains(value))
                     context.BiotaPropertiesCreateList.Remove(value);
-            }*/
+            }
 
             /*if (biota.PropertiesEmote != null)
             {
@@ -353,42 +384,60 @@ namespace ACE.Database.Adapter
                     context.BiotaPropertiesEventFilter.Remove(value);
             }
 
-            /*if (biota.PropertiesGenerator != null)
+            // This is a cluster... because there is no key per record, just the record id.
+            // That poses a problem because when we add a new record to be saved, we don't know what the record id is yet.
+            // It's not until we try to save the record a second time that we will then have the database persisted record (with a valid id), and the entity record (that still has a DatabaseRecordId of 0)
+            // We then need to match up the record that was saved with it's entity counterpart
+            var processedSourceGenerators = new HashSet<ACE.Entity.Models.PropertiesGenerator>();
+            var usedTargetGenerators = new HashSet<BiotaPropertiesGenerator>();
+            if (sourceBiota.PropertiesGenerator != null)
             {
-                foreach (var value in biota.PropertiesGenerator)
+                // Process matched up records first
+                foreach (var value in sourceBiota.PropertiesGenerator)
                 {
-                    BiotaPropertiesGenerator existingValue = existingBiota.BiotaPropertiesGenerator.FirstOrDefault(r => r.Id == value.Id);
+                    if (value.DatabaseRecordId == 0)
+                        continue;
+
+                    // Source record should already exist in the target
+                    BiotaPropertiesGenerator existingValue = targetBiota.BiotaPropertiesGenerator.FirstOrDefault(r => r.Id == value.DatabaseRecordId);
+
+                    // If the existingValue was not found, the database was likely modified outside of ACE after our last save
+                    if (existingValue == null)
+                        continue;
+
+                    CopyValueInto(value, existingValue);
+
+                    processedSourceGenerators.Add(value);
+                    usedTargetGenerators.Add(existingValue);
+                }
+                foreach (var value in sourceBiota.PropertiesGenerator)
+                {
+                    if (processedSourceGenerators.Contains(value))
+                        continue;
+
+                    // For simplicity, just find the first unused target
+                    BiotaPropertiesGenerator existingValue = targetBiota.BiotaPropertiesGenerator.FirstOrDefault(r => !usedTargetGenerators.Contains(r));
 
                     if (existingValue == null)
-                        existingBiota.BiotaPropertiesGenerator.Add(value);
-                    else
                     {
-                        existingValue.Probability = value.Probability;
-                        existingValue.WeenieClassId = value.WeenieClassId;
-                        existingValue.Delay = value.Delay;
-                        existingValue.InitCreate = value.InitCreate;
-                        existingValue.MaxCreate = value.MaxCreate;
-                        existingValue.WhenCreate = value.WhenCreate;
-                        existingValue.WhereCreate = value.WhereCreate;
-                        existingValue.StackSize = value.StackSize;
-                        existingValue.PaletteId = value.PaletteId;
-                        existingValue.Shade = value.Shade;
-                        existingValue.ObjCellId = value.ObjCellId;
-                        existingValue.OriginX = value.OriginX;
-                        existingValue.OriginY = value.OriginY;
-                        existingValue.OriginZ = value.OriginZ;
-                        existingValue.AnglesW = value.AnglesW;
-                        existingValue.AnglesX = value.AnglesX;
-                        existingValue.AnglesY = value.AnglesY;
-                        existingValue.AnglesZ = value.AnglesZ;
+                        existingValue = new BiotaPropertiesGenerator { ObjectId = sourceBiota.Id };
+
+                        targetBiota.BiotaPropertiesGenerator.Add(existingValue);
                     }
+
+                    value.DatabaseRecordId = existingValue.Id;
+
+                    CopyValueInto(value, existingValue);
+
+                    //processedSourceGenerators.Add(value);
+                    usedTargetGenerators.Add(existingValue);
                 }
             }
-            foreach (var value in existingBiota.BiotaPropertiesGenerator)
+            foreach (var value in targetBiota.BiotaPropertiesGenerator)
             {
-                if (biota.PropertiesGenerator == null || !biota.PropertiesGenerator.Any(p => p.Id == value.Id))
+                if (!usedTargetGenerators.Contains(value))
                     context.BiotaPropertiesGenerator.Remove(value);
-            }*/
+            }
 
 
             // Properties for creatures
@@ -652,6 +701,40 @@ namespace ACE.Database.Adapter
                 if (sourceBiota.HousePermissions == null || !sourceBiota.HousePermissions.ContainsKey(value.PlayerGuid))
                     context.HousePermission.Remove(value);
             }
+        }
+
+        private static void CopyValueInto(ACE.Entity.Models.PropertiesCreateList value, ACE.Database.Models.Shard.BiotaPropertiesCreateList existingValue)
+        {
+            existingValue.DestinationType = (sbyte)value.DestinationType;
+            existingValue.WeenieClassId = value.WeenieClassId;
+            existingValue.StackSize = value.StackSize;
+            existingValue.Palette = value.Palette;
+            existingValue.Shade = value.Shade;
+            existingValue.TryToBond = value.TryToBond;
+        }
+
+        // todo emote
+
+        private static void CopyValueInto(ACE.Entity.Models.PropertiesGenerator value, ACE.Database.Models.Shard.BiotaPropertiesGenerator existingValue)
+        {
+            existingValue.Probability = value.Probability;
+            existingValue.WeenieClassId = value.WeenieClassId;
+            existingValue.Delay = value.Delay;
+            existingValue.InitCreate = value.InitCreate;
+            existingValue.MaxCreate = value.MaxCreate;
+            existingValue.WhenCreate = (uint)value.WhenCreate;
+            existingValue.WhereCreate = (uint)value.WhereCreate;
+            existingValue.StackSize = value.StackSize;
+            existingValue.PaletteId = value.PaletteId;
+            existingValue.Shade = value.Shade;
+            existingValue.ObjCellId = value.ObjCellId;
+            existingValue.OriginX = value.OriginX;
+            existingValue.OriginY = value.OriginY;
+            existingValue.OriginZ = value.OriginZ;
+            existingValue.AnglesW = value.AnglesW;
+            existingValue.AnglesX = value.AnglesX;
+            existingValue.AnglesY = value.AnglesY;
+            existingValue.AnglesZ = value.AnglesZ;
         }
     }
 }

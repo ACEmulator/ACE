@@ -157,6 +157,8 @@ namespace ACE.Database.Adapter
                 {
                     var newEntity = new PropertiesCreateList
                     {
+                        DatabaseRecordId = record.Id,
+
                         DestinationType = (DestinationType)record.DestinationType,
                         WeenieClassId = record.WeenieClassId,
                         StackSize = record.StackSize,
@@ -254,6 +256,8 @@ namespace ACE.Database.Adapter
                 {
                     var newEntity = new PropertiesGenerator
                     {
+                        DatabaseRecordId = record.Id,
+
                         Probability = record.Probability,
                         WeenieClassId = record.WeenieClassId,
                         Delay = record.Delay,
@@ -574,6 +578,8 @@ namespace ACE.Database.Adapter
                 {
                     var entity = new BiotaPropertiesCreateList
                     {
+                        Id = value.DatabaseRecordId,
+
                         ObjectId = biota.Id,
                         DestinationType = (sbyte)value.DestinationType,
                         WeenieClassId = value.WeenieClassId,
@@ -684,6 +690,8 @@ namespace ACE.Database.Adapter
                 {
                     var entity = new BiotaPropertiesGenerator
                     {
+                        Id = value.DatabaseRecordId,
+
                         ObjectId = biota.Id,
                         Probability = value.Probability,
                         WeenieClassId = value.WeenieClassId,
