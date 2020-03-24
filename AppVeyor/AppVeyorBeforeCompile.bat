@@ -24,27 +24,27 @@ IF NOT EXIST Source\ACE.Server\Config.js copy AppVeyor\Config.js Source\ACE.Serv
 
 @echo off
 echo Updating ServerBuildInfo_Properties.cs with build details...
-IF EXIST Source\ACE.Server\ServerBuildInfo_Properties.cs DEL Source\ACE.Server\ServerBuildInfo_Properties.cs
+IF EXIST Source\ACE.Server\ServerBuildInfo_Dynamic.cs DEL Source\ACE.Server\ServerBuildInfo_Dynamic.cs
 
-echo. >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo namespace ACE.Server >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo { >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo     public static partial class ServerBuildInfo >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo     { >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo         public static string Branch = "%APPVEYOR_REPO_BRANCH%"; >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo         public static string Commit = "%APPVEYOR_REPO_COMMIT%"; >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo. >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo         public static string Version = "%TRUE_VERSION%"; >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo         public static string Build   = "%TRUE_BUILD%"; >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo. >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo         public static int BuildYear   = %BUILD_DATETIME:~0,4%; >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo         public static int BuildMonth  = %BUILD_DATETIME:~4,2%; >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo         public static int BuildDay    = %BUILD_DATETIME:~6,2%; >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo         public static int BuildHour   = %BUILD_DATETIME:~8,2%; >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo         public static int BuildMinute = %BUILD_DATETIME:~10,2%; >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo         public static int BuildSecond = %BUILD_DATETIME:~12,2%; >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo     } >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo } >> Source\ACE.Server\ServerBuildInfo_Properties.cs
-echo. >> Source\ACE.Server\ServerBuildInfo_Properties.cs
+echo. >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo namespace ACE.Server >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo { >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo     public static partial class ServerBuildInfo >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo     { >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static string Branch = "%APPVEYOR_REPO_BRANCH%"; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static string Commit = "%APPVEYOR_REPO_COMMIT%"; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo. >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static string Version = "%TRUE_VERSION%"; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static string Build   = "%TRUE_BUILD%"; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo. >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static int BuildYear   = %BUILD_DATETIME:~0,4%; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static int BuildMonth  = %BUILD_DATETIME:~4,2%; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static int BuildDay    = %BUILD_DATETIME:~6,2%; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static int BuildHour   = %BUILD_DATETIME:~8,2%; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static int BuildMinute = %BUILD_DATETIME:~10,2%; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static int BuildSecond = %BUILD_DATETIME:~12,2%; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo     } >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo } >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo. >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
 
 @echo on
