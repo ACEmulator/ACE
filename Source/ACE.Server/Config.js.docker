@@ -138,21 +138,21 @@
   },
   "MySql": {
     "Authentication": {
-      "Host": "host.docker.internal",
+      "Host": "ace-db",
       "Port": 3306,
       "Database": "ace_auth",
       "Username": "acedockeruser",
       "Password": "2020acEmulator2017"
     },
     "Shard": {
-      "Host": "host.docker.internal",
+      "Host": "ace-db",
       "Port": 3306,
       "Database": "ace_shard",
       "Username": "acedockeruser",
       "Password": "2020acEmulator2017"
     },
     "World": {
-      "Host": "host.docker.internal",
+      "Host": "ace-db",
       "Port": 3306,
       "Database": "ace_world",
       "Username": "acedockeruser",
