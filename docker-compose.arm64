@@ -2,12 +2,12 @@ version: '3'
 services:
 
   ace-db:
-    image: mysql:latest
+    image: linuxserver/mariadb:latest
     container_name: ace-db
     env_file:
       - docker.env
     volumes:
-      - C:\ACE\db-data:/var/lib/mysql
+      - /home/ubuntu/ace/db-data:/config
     ports:
       - "3306:3306"
     restart: unless-stopped
@@ -16,19 +16,18 @@ services:
 
   ace-server:
     build: .
-    image: acemulator/ace:latest
+    image: acemulator/ace:latest-arm64
     depends_on:
       - db
     container_name: ace-server
     env_file:
       - docker.env
     volumes:
-      - C:\ACE\Config:/ace/Config
-      - C:\ACE\Content:/ace/Content
-      - C:\ACE\Dats:/ace/Dats
-      - C:\ACE\Logs:/ace/Logs
+      - /home/ubuntu/ace/Config:/ace/Config
+      - /home/ubuntu/ace/Content:/ace/Content
+      - /home/ubuntu/ace/Dats:/ace/Dats
+      - /home/ubuntu/ace/Logs:/ace/Logs
     ports:
       - "9000-9001:9000-9001/udp"
     #restart: unless-stopped
     restart: on-failure
-
