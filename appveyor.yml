@@ -15,9 +15,9 @@ init:
 
     set REVISED_VERSION=%TRUE_VERSION%.%TRUE_BUILD%.%BUILD_DATETIME%-%APPVEYOR_REPO_BRANCH%-%COMMIT_ID%
 
-    appveyor UpdateBuild -Version "%REVISED_VERSION%"
+    REM appveyor UpdateBuild -Version "%REVISED_VERSION%"
 
-    set APPVEYOR_BUILD_VERSION=%REVISED_VERSION%
+    REM set APPVEYOR_BUILD_VERSION=%REVISED_VERSION%
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
