@@ -365,6 +365,7 @@ namespace ACE.Server.WorldObjects
             switch (spell.MetaSpellType)
             {
                 case SpellType.Boost:
+                case SpellType.FellowBoost:
 
                     // handle negatives?
                     int minBoostValue = Math.Min(spell.Boost, spell.MaxBoost);
@@ -666,6 +667,7 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case SpellType.Dispel:
+                case SpellType.FellowDispel:
 
                     var removeSpells = target.EnchantmentManager.SelectDispel(spell);
 
@@ -694,6 +696,8 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case SpellType.Enchantment:
+                case SpellType.FellowEnchantment:
+
                     damage = 0;
                     if (itemCaster != null)
                         enchantmentStatus = CreateEnchantment(target, itemCaster, spell, equip);
