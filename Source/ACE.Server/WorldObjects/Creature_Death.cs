@@ -259,7 +259,9 @@ namespace ACE.Server.WorldObjects
                     corpse.Biota.PropertiesTextureMap.Add(new PropertiesTextureMap { PartIndex = textureChange.PartIndex, OldTexture = textureChange.OldTexture, NewTexture = textureChange.NewTexture });
             }
 
-            corpse.Location = new Position(Location);
+            // use the physics location for accuracy,
+            // especially while jumping
+            corpse.Location = PhysicsObj.Position.ACEPosition();
 
             corpse.VictimId = Guid.Full;
             corpse.Name = $"{prefix} of {Name}";
@@ -288,7 +290,9 @@ namespace ACE.Server.WorldObjects
 
             bool saveCorpse = false;
 
-            if (this is Player player)
+            var player = this as Player;
+
+            if (player != null)
             {
                 corpse.SetPosition(PositionType.Location, corpse.Location);
                 var dropped = player.CalculateDeathItems(corpse);
@@ -341,18 +345,28 @@ namespace ACE.Server.WorldObjects
             if (CanGenerateRare && killer != null)
                 corpse.GenerateRare(killer);
 
+            corpse.InitPhysicsObj();
+
+            // persist the original creature velocity (only used for falling) to corpse
+            corpse.PhysicsObj.Velocity = PhysicsObj.Velocity;
+
             corpse.EnterWorld();
 
-            if (this is Player p)
+            if (player != null)
             {
                 if (corpse.PhysicsObj == null || corpse.PhysicsObj.Position == null)
-                    log.Debug($"[CORPSE] {Name}'s corpse (0x{corpse.Guid}) failed to spawn! Tried at {p.Location.ToLOCString()}");
+                    log.Debug($"[CORPSE] {Name}'s corpse (0x{corpse.Guid}) failed to spawn! Tried at {player.Location.ToLOCString()}");
                 else
                     log.Debug($"[CORPSE] {Name}'s corpse (0x{corpse.Guid}) is located at {corpse.PhysicsObj.Position}");
             }
 
             if (saveCorpse)
+            {
                 corpse.SaveBiotaToDatabase();
+
+                foreach (var item in corpse.Inventory.Values)
+                    item.SaveBiotaToDatabase();
+            }
         }
 
         public bool CanGenerateRare

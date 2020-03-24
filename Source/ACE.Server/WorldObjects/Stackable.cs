@@ -61,5 +61,10 @@ namespace ACE.Server.WorldObjects
                 Value = (StackUnitValue ?? 0) * (StackSize ?? 1);
             }
         }
+
+        public override void ActOnUse(WorldObject wo)
+        {
+            // Do nothing
+        }
     }
 }

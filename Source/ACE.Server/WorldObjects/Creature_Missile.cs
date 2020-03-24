@@ -100,9 +100,7 @@ namespace ACE.Server.WorldObjects
             proj.Location.Pos = origin;
             proj.Location.Rotation = orientation;
 
-            proj.Velocity = velocity;
-
-            SetProjectilePhysicsState(proj, target);
+            SetProjectilePhysicsState(proj, target, velocity);
 
             var success = LandblockManager.AddObject(proj);
 
@@ -293,7 +291,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sets the physics state for a launched projectile
         /// </summary>
-        public void SetProjectilePhysicsState(WorldObject obj, WorldObject target)
+        public void SetProjectilePhysicsState(WorldObject obj, WorldObject target, Vector3 velocity)
         {
             obj.InitPhysicsObj();
 
@@ -311,9 +309,7 @@ namespace ACE.Server.WorldObjects
             obj.Placement = ACE.Entity.Enum.Placement.MissileFlight;
             obj.CurrentMotionState = null;
 
-            var velocity = obj.Velocity;
-
-            obj.PhysicsObj.Velocity = velocity.Value;
+            obj.PhysicsObj.Velocity = velocity;
             obj.PhysicsObj.ProjectileTarget = target.PhysicsObj;
 
             obj.PhysicsObj.set_active(true);
