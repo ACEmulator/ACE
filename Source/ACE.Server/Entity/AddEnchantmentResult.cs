@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using ACE.Database.Models.Shard;
 using ACE.Server.WorldObjects;
@@ -47,7 +48,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public BiotaPropertiesEnchantmentRegistry RefreshCaster { get; set; }
 
-        public ushort TopLayerId;
+        public ushort TopLayerId { get; set; }
 
         public ushort NextLayerId => (ushort)(TopLayerId + 1);
 
@@ -66,7 +67,7 @@ namespace ACE.Server.Entity
 
             var powerLevel = spell.Power;
 
-            foreach (var entry in entries)
+            foreach (var entry in entries.OrderByDescending(i => i.PowerLevel))
             {
                 if (powerLevel > entry.PowerLevel)
                 {
