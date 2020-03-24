@@ -38,6 +38,8 @@ environment:
     secure: bhR4cIOcVqIBZXFOBVTtvQ==
   APPVEYOR_RDP_PASSWORD:
     secure: huM6kANmgP1OdlmHulXVZA==
+  access_token:
+    secure: k8Q9MwG7UgKbocfdJvD4iBwL1K2AsdjZs6B34/vFqkoukW9p3tJ3uRacb1Zmclyp
 services: mysql
 before_build:
 - cmd: AppVeyor\AppVeyorBeforeCompile.bat
