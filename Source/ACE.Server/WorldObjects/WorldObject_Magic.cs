@@ -35,21 +35,29 @@ namespace ACE.Server.WorldObjects
             // verify spell exists in database
             if (spell._spell == null)
             {
-                var targetPlayer = target as Player;
-                if (targetPlayer != null)
+                if (target is Player targetPlayer)
                     targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
 
                 return;
             }
 
-            //if (!spell.IsSelfTargeted && target == null && spell.School != MagicSchool.WarMagic)
-                //return;
+            if (spell.Flags.HasFlag(SpellFlags.FellowshipSpell))
+            {
+                var targetPlayer = target as Player;
+                if (targetPlayer == null || targetPlayer.Fellowship == null)
+                    return;
 
-            // spells only castable on creatures?
-            /*var targetCreature = target as Creature;
-            if (targetCreature == null)
-                return;*/
+                var fellows = targetPlayer.Fellowship.GetFellowshipMembers();
 
+                foreach (var fellow in fellows.Values)
+                    TryCastSpell_Inner(spell, fellow, caster, tryResist, showMsg);
+            }
+            else
+                TryCastSpell_Inner(spell, target, caster, tryResist, showMsg);
+        }
+
+        public void TryCastSpell_Inner(Spell spell, WorldObject target, WorldObject caster = null, bool tryResist = true, bool showMsg = true)
+        {
             // verify before resist, still consumes source item
             if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(caster, target))
                 return;
