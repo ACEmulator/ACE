@@ -1481,7 +1481,7 @@ namespace ACE.Server.WorldObjects
                 }
 
                 // set orientation
-                var dir = Vector3.Normalize(sp.Velocity.Value);
+                var dir = Vector3.Normalize(sp.Velocity);
                 sp.PhysicsObj.Position.Frame.set_vector_heading(dir);
                 sp.Location.Rotation = sp.PhysicsObj.Position.Frame.Orientation;
 

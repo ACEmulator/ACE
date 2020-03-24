@@ -313,7 +313,7 @@ namespace ACE.Server.WorldObjects
 
             var velocity = obj.Velocity;
 
-            obj.PhysicsObj.Velocity = velocity.Value;
+            obj.PhysicsObj.Velocity = velocity;
             obj.PhysicsObj.ProjectileTarget = target.PhysicsObj;
 
             obj.PhysicsObj.set_active(true);
