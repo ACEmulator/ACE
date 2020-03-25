@@ -940,7 +940,7 @@ namespace ACE.Server.WorldObjects
                                 item.NotifyOfEvent(RegenerationType.PickUp);
 
                                 if (questSolve)
-                                    QuestManager.Stamp(item.Quest);
+                                    QuestManager.Update(item.Quest);
 
                                 if (isFromAPlayerCorpse)
                                 {
