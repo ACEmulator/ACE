@@ -1397,7 +1397,12 @@ namespace ACE.Server.WorldObjects
             if (spell.SpreadAngle == 0.0f || spell.NumProjectiles == 1)
                 return 0.0f;
 
-            return spell.SpreadAngle / (spell.NumProjectiles - 1);
+            var numProjectiles = spell.NumProjectiles;
+
+            if (numProjectiles % 2 == 1)
+                numProjectiles--;
+
+            return spell.SpreadAngle / numProjectiles;
         }
 
         public static readonly Quaternion OneEighty = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)Math.PI);
