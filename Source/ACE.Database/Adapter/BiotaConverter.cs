@@ -179,6 +179,8 @@ namespace ACE.Database.Adapter
                 {
                     var newEntity = new PropertiesEmote
                     {
+                        DatabaseRecordId = record.Id,
+
                         Category = (EmoteCategory)record.Category,
                         Probability = record.Probability,
                         WeenieClassId = record.WeenieClassId,
@@ -194,6 +196,8 @@ namespace ACE.Database.Adapter
                     {
                         var newEntity2 = new PropertiesEmoteAction
                         {
+                            DatabaseRecordId = record.Id,
+
                             Type = record2.Type,
                             Delay = record2.Delay,
                             Extent = record2.Extent,
@@ -599,6 +603,8 @@ namespace ACE.Database.Adapter
                 {
                     var entity = new BiotaPropertiesEmote
                     {
+                        Id = value.DatabaseRecordId,
+
                         ObjectId = biota.Id,
                         Category = (uint)value.Category,
                         Probability = value.Probability,
@@ -615,6 +621,8 @@ namespace ACE.Database.Adapter
                     {
                         var entity2 = new BiotaPropertiesEmoteAction
                         {
+                            Id = value.DatabaseRecordId,
+
                             // EmoteId is a foreign key to Emote.Id.
                             // If we don't set this to a non-zero number, EF will not auto-set this for us when we add this biota to the database.
                             // We set it to uint.MaxValue instead of 1 because 1 is more likely to be a valid foreign key. We don't want to enter a valid foreign key.
