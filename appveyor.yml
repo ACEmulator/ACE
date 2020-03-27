@@ -1,4 +1,4 @@
-version: 1.1.{build}
+version: 1.2.{build}
 pull_requests:
   do_not_increment_build_number: true
 skip_tags: true
@@ -24,8 +24,8 @@ dotnet_csproj:
   version: '{version}'
   version_prefix: '{version}'
   package_version: '{version}'
-  assembly_version: '{trueversion}.{build}'
-  file_version: '{trueversion}.{build}'
+  assembly_version: '{version}'
+  file_version: '{version}'
   informational_version: '{version}'
 environment:
   DOCKER_USER:
@@ -38,6 +38,8 @@ environment:
     secure: bhR4cIOcVqIBZXFOBVTtvQ==
   APPVEYOR_RDP_PASSWORD:
     secure: huM6kANmgP1OdlmHulXVZA==
+  access_token:
+    secure: k8Q9MwG7UgKbocfdJvD4iBwL1K2AsdjZs6B34/vFqkoukW9p3tJ3uRacb1Zmclyp
 services: mysql
 before_build:
 - cmd: AppVeyor\AppVeyorBeforeCompile.bat
@@ -64,7 +66,7 @@ deploy:
 - provider: GitHub
   tag: v$(appveyor_build_version)
   release: ACEmulator Server - v$(appveyor_build_version)
-  description: <h1> ACEmulator Server - v$(appveyor_build_version) </h1> <blockquote>The following commit is included in this release:</<blockquote> <h1></h1>$(APPVEYOR_REPO_COMMIT_MESSAGE) <p>$(APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED)<h1><h6>automated server build - $(APPVEYOR_REPO_COMMIT_TIMESTAMP)
+  description: <h1> ACEmulator Server - v$(appveyor_build_version) </h1> <blockquote>The following changes are included in this release:</<blockquote> <h1></h1>$(APPVEYOR_REPO_COMMIT_MESSAGE) <p>$(APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED)<p><a href="https://github.com/ACEmulator/ACE/compare/v1.0.XXXX...v1.1.XXXX">Click here to see the detailed changes</a></p><h1><h6>automated server build - $(APPVEYOR_REPO_COMMIT_TIMESTAMP)
   auth_token:
     secure: k8Q9MwG7UgKbocfdJvD4iBwL1K2AsdjZs6B34/vFqkoukW9p3tJ3uRacb1Zmclyp
   artifact: AppVeyor\ACE.Server-v$(appveyor_build_version).zip
