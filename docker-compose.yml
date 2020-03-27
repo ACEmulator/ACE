@@ -18,7 +18,7 @@ services:
     build: .
     image: acemulator/ace:latest
     depends_on:
-      - db
+      - ace-db
     container_name: ace-server
     env_file:
       - docker.env

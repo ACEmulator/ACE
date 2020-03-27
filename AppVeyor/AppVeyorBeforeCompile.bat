@@ -20,32 +20,31 @@ REM echo APPVEYOR_BUILD_VERSION            is: %APPVEYOR_BUILD_VERSION%
 
 @echo on
 nuget restore Source\ACE.sln
-copy AppVeyor\Config.js Source\ACE.Server\Config.js
+IF NOT EXIST Source\ACE.Server\Config.js copy AppVeyor\Config.js Source\ACE.Server\Config.js
 
 @echo off
-for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"
-set "YY=%dt:~2,2%" & set "YYYY=%dt:~0,4%" & set "MM=%dt:~4,2%" & set "DD=%dt:~6,2%"
-set "HH=%dt:~8,2%" & set "Min=%dt:~10,2%" & set "Sec=%dt:~12,2%"
+echo Updating ServerBuildInfo_Properties.cs with build details...
+IF EXIST Source\ACE.Server\ServerBuildInfo_Dynamic.cs DEL Source\ACE.Server\ServerBuildInfo_Dynamic.cs
 
-IF EXIST Source\ACE.Server\VersionConstant.cs DEL Source\ACE.Server\VersionConstant.cs
+echo. >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo namespace ACE.Server >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo { >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo     public static partial class ServerBuildInfo >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo     { >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static string Branch = "%APPVEYOR_REPO_BRANCH%"; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static string Commit = "%APPVEYOR_REPO_COMMIT%"; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo. >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static string Version = "%TRUE_VERSION%"; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static string Build   = "%TRUE_BUILD%"; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo. >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static int BuildYear   = %BUILD_DATETIME:~0,4%; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static int BuildMonth  = %BUILD_DATETIME:~4,2%; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static int BuildDay    = %BUILD_DATETIME:~6,2%; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static int BuildHour   = %BUILD_DATETIME:~8,2%; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static int BuildMinute = %BUILD_DATETIME:~10,2%; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo         public static int BuildSecond = %BUILD_DATETIME:~12,2%; >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo     } >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo } >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
+echo. >> Source\ACE.Server\ServerBuildInfo_Dynamic.cs
 
-echo. >> Source\ACE.Server\VersionConstant.cs
-echo using System; >> Source\ACE.Server\VersionConstant.cs
-echo using System.Collections.Generic; >> Source\ACE.Server\VersionConstant.cs
-echo using System.Text; >> Source\ACE.Server\VersionConstant.cs
-echo. >> Source\ACE.Server\VersionConstant.cs
-echo namespace ACE.Server >> Source\ACE.Server\VersionConstant.cs
-echo { >> Source\ACE.Server\VersionConstant.cs
-echo     public static partial class VersionConstant >> Source\ACE.Server\VersionConstant.cs
-echo     { >> Source\ACE.Server\VersionConstant.cs
-echo         public static DateTime CompilationTimestampUtc >> Source\ACE.Server\VersionConstant.cs
-echo         { >> Source\ACE.Server\VersionConstant.cs
-echo             get >> Source\ACE.Server\VersionConstant.cs
-echo             { >> Source\ACE.Server\VersionConstant.cs
-echo                 return new DateTime(%YYYY%, %MM%, %DD%, %HH%, %Min%, %Sec%, DateTimeKind.Utc); >> Source\ACE.Server\VersionConstant.cs
-echo             } >> Source\ACE.Server\VersionConstant.cs
-echo         } >> Source\ACE.Server\VersionConstant.cs
-echo     } >> Source\ACE.Server\VersionConstant.cs
-echo } >> Source\ACE.Server\VersionConstant.cs
-echo. >> Source\ACE.Server\VersionConstant.cs
 @echo on

@@ -887,24 +887,30 @@ namespace ACE.Server.WorldObjects
                         //    }
                         //}
 
-                        var questSolve = false;
-                        if (!string.IsNullOrWhiteSpace(item.Quest) && item.GeneratorId != null) // We're picking up an item with a quest stamp that can also be a timer/limiter
-                        {
-                            if (QuestManager.CanSolve(item.Quest))
-                            {
-                                questSolve = true;
-                            }
-                            else
-                            {
-                                QuestManager.HandleSolveError(item.Quest);
-                                EnqueuePickupDone(pickupMotion);
-                                return;
-                            }
-                        }
+                        var itemFoundOnCorpse = itemRootOwner is Corpse;
 
                         var isFromAPlayerCorpse = false;
-                        if (itemRootOwner is Corpse && itemRootOwner.Level.HasValue)
+                        if (itemFoundOnCorpse && itemRootOwner.Level > 0)
                             isFromAPlayerCorpse = true;
+
+                        var questSolve = false;
+                        if (item.Quest != null) // We're picking up an item with a quest stamp that can also be a timer/limiter
+                        {
+                            var itemFoundOnMyCorpse = itemFoundOnCorpse && (itemRootOwner.VictimId == Guid.Full);
+                            if (item.GeneratorId != null || (itemFoundOnCorpse && !itemFoundOnMyCorpse)) // item is controlled by a generator or is on a corpse that is not my own
+                            {
+                                if (QuestManager.CanSolve(item.Quest))
+                                {
+                                    questSolve = true;
+                                }
+                                else
+                                {
+                                    QuestManager.HandleSolveError(item.Quest);
+                                    EnqueuePickupDone(pickupMotion);
+                                    return;
+                                }
+                            }
+                        }
 
                         if (DoHandleActionPutItemInContainer(item, itemRootOwner, itemWasEquipped, container, containerRootOwner, placement))
                         {
@@ -934,7 +940,7 @@ namespace ACE.Server.WorldObjects
                                 item.NotifyOfEvent(RegenerationType.PickUp);
 
                                 if (questSolve)
-                                    QuestManager.Stamp(item.Quest);
+                                    QuestManager.Update(item.Quest);
 
                                 if (isFromAPlayerCorpse)
                                 {
