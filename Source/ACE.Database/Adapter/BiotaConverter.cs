@@ -196,8 +196,6 @@ namespace ACE.Database.Adapter
                     {
                         var newEntity2 = new PropertiesEmoteAction
                         {
-                            DatabaseRecordId = record.Id,
-
                             Type = record2.Type,
                             Delay = record2.Delay,
                             Extent = record2.Extent,
