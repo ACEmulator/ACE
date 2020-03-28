@@ -43,14 +43,14 @@ namespace ACE.Server.WorldObjects
 
             // This is a temporary fix for objects that were loaded with this PR when EncumbranceVal was not treated as ephemeral. 2020-03-28
             // This can be removed later.
-            if (Biota.PropertiesInt.ContainsKey(PropertyInt.EncumbranceCapacity))
+            if (Biota.PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal))
             {
                 var weenie = DatabaseManager.World.GetCachedWeenie(biota.WeenieClassId);
 
-                if (weenie.PropertiesInt.ContainsKey(PropertyInt.EncumbranceCapacity))
-                    biota.PropertiesInt[PropertyInt.EncumbranceCapacity] = weenie.PropertiesInt[PropertyInt.EncumbranceCapacity];
+                if (weenie.PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal))
+                    biota.PropertiesInt[PropertyInt.EncumbranceVal] = weenie.PropertiesInt[PropertyInt.EncumbranceVal];
                 else
-                    biota.PropertiesInt.Remove(PropertyInt.EncumbranceCapacity);
+                    biota.PropertiesInt.Remove(PropertyInt.EncumbranceVal);
 
                 ChangesDetected = true;
             }
