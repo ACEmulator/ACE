@@ -151,7 +151,8 @@ namespace ACE.Server.WorldObjects
         }
         public void SetProperty(PropertyInt property, int value)
         {
-            if (EphemeralProperties.PropertiesInt.Contains(property))
+            // PropertyInt.EncumbranceVal and PropertyInt.Value are sometimes treated as ephemeral, so this extra check is needed
+            if (EphemeralProperties.PropertiesInt.Contains(property) || (ephemeralPropertyInts != null && ephemeralPropertyInts.ContainsKey(property)))
             {
                 if (ephemeralPropertyInts == null)
                     ephemeralPropertyInts = new Dictionary<PropertyInt, int?>();

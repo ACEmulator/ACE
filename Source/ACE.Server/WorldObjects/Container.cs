@@ -41,6 +41,34 @@ namespace ACE.Server.WorldObjects
             if (Biota.TryRemoveProperty(PropertyBool.Open, BiotaDatabaseLock))
                 ChangesDetected = true;
 
+            // This is a temporary fix for objects that were loaded with this PR when EncumbranceVal was not treated as ephemeral. 2020-03-28
+            // This can be removed later.
+            if (Biota.PropertiesInt.ContainsKey(PropertyInt.EncumbranceCapacity))
+            {
+                var weenie = DatabaseManager.World.GetCachedWeenie(biota.WeenieClassId);
+
+                if (weenie.PropertiesInt.ContainsKey(PropertyInt.EncumbranceCapacity))
+                    biota.PropertiesInt[PropertyInt.EncumbranceCapacity] = weenie.PropertiesInt[PropertyInt.EncumbranceCapacity];
+                else
+                    biota.PropertiesInt.Remove(PropertyInt.EncumbranceCapacity);
+
+                ChangesDetected = true;
+            }
+
+            // This is a temporary fix for objects that were loaded with this PR when Value was not treated as ephemeral. 2020-03-28
+            // This can be removed later.
+            if (!(this is Creature) && Biota.PropertiesInt.ContainsKey(PropertyInt.Value))
+            {
+                var weenie = DatabaseManager.World.GetCachedWeenie(biota.WeenieClassId);
+
+                if (weenie.PropertiesInt.ContainsKey(PropertyInt.Value))
+                    biota.PropertiesInt[PropertyInt.Value] = weenie.PropertiesInt[PropertyInt.Value];
+                else
+                    biota.PropertiesInt.Remove(PropertyInt.Value);
+
+                ChangesDetected = true;
+            }
+
             InitializePropertyDictionaries();
             SetEphemeralValues();
 
