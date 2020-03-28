@@ -47,12 +47,19 @@ namespace ACE.Server.WorldObjects
             {
                 var weenie = DatabaseManager.World.GetCachedWeenie(biota.WeenieClassId);
 
-                if (weenie.PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal))
-                    biota.PropertiesInt[PropertyInt.EncumbranceVal] = weenie.PropertiesInt[PropertyInt.EncumbranceVal];
+                if (weenie != null && weenie.PropertiesInt.TryGetValue(PropertyInt.EncumbranceVal, out var value))
+                {
+                    if (biota.PropertiesInt[PropertyInt.EncumbranceVal] != value)
+                    {
+                        biota.PropertiesInt[PropertyInt.EncumbranceVal] = value;
+                        ChangesDetected = true;
+                    }
+                }
                 else
+                {
                     biota.PropertiesInt.Remove(PropertyInt.EncumbranceVal);
-
-                ChangesDetected = true;
+                    ChangesDetected = true;
+                }
             }
 
             // This is a temporary fix for objects that were loaded with this PR when Value was not treated as ephemeral. 2020-03-28
@@ -61,12 +68,19 @@ namespace ACE.Server.WorldObjects
             {
                 var weenie = DatabaseManager.World.GetCachedWeenie(biota.WeenieClassId);
 
-                if (weenie.PropertiesInt.ContainsKey(PropertyInt.Value))
-                    biota.PropertiesInt[PropertyInt.Value] = weenie.PropertiesInt[PropertyInt.Value];
+                if (weenie != null && weenie.PropertiesInt.TryGetValue(PropertyInt.Value, out var value))
+                {
+                    if (biota.PropertiesInt[PropertyInt.Value] != value)
+                    {
+                        biota.PropertiesInt[PropertyInt.Value] = value;
+                        ChangesDetected = true;
+                    }
+                }
                 else
+                {
                     biota.PropertiesInt.Remove(PropertyInt.Value);
-
-                ChangesDetected = true;
+                    ChangesDetected = true;
+                }
             }
 
             InitializePropertyDictionaries();
