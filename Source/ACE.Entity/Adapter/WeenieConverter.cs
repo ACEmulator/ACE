@@ -10,7 +10,7 @@ namespace ACE.Entity.Adapter
 {
     public static class WeenieConverter
     {
-        public static Biota ConvertToBiota(this Weenie weenie, uint id, bool instantiateEmptyCollections = false)
+        public static Biota ConvertToBiota(this Weenie weenie, uint id, bool instantiateEmptyCollections = false, bool referenceWeenieCollectionsForCommonProperties = false)
         {
             var result = new Biota();
 
@@ -74,31 +74,41 @@ namespace ACE.Entity.Adapter
 
             // Properties for all world objects that typically aren't modified over the original weenie
 
-            if (weenie.PropertiesCreateList != null && (instantiateEmptyCollections || weenie.PropertiesCreateList.Count > 0))
+            if (referenceWeenieCollectionsForCommonProperties)
             {
-                result.PropertiesCreateList = new Collection<PropertiesCreateList>();
-
-                foreach (var record in weenie.PropertiesCreateList)
-                    result.PropertiesCreateList.Add(record.Clone());
+                result.PropertiesCreateList = weenie.PropertiesCreateList;
+                result.PropertiesEmote = weenie.PropertiesEmote;
+                result.PropertiesEventFilter = weenie.PropertiesEventFilter;
+                result.PropertiesGenerator = weenie.PropertiesGenerator;
             }
-
-            if (weenie.PropertiesEmote != null && (instantiateEmptyCollections || weenie.PropertiesEmote.Count > 0))
+            else
             {
-                result.PropertiesEmote = new Collection<PropertiesEmote>();
+                if (weenie.PropertiesCreateList != null && (instantiateEmptyCollections || weenie.PropertiesCreateList.Count > 0))
+                {
+                    result.PropertiesCreateList = new Collection<PropertiesCreateList>();
 
-                foreach (var record in weenie.PropertiesEmote)
-                    result.PropertiesEmote.Add(record.Clone());
-            }
+                    foreach (var record in weenie.PropertiesCreateList)
+                        result.PropertiesCreateList.Add(record.Clone());
+                }
 
-            if (weenie.PropertiesEventFilter != null && (instantiateEmptyCollections || weenie.PropertiesEventFilter.Count > 0))
-                result.PropertiesEventFilter = new HashSet<int>(weenie.PropertiesEventFilter);
+                if (weenie.PropertiesEmote != null && (instantiateEmptyCollections || weenie.PropertiesEmote.Count > 0))
+                {
+                    result.PropertiesEmote = new Collection<PropertiesEmote>();
 
-            if (weenie.PropertiesGenerator != null && (instantiateEmptyCollections || weenie.PropertiesGenerator.Count > 0))
-            {
-                result.PropertiesGenerator = new List<PropertiesGenerator>();
+                    foreach (var record in weenie.PropertiesEmote)
+                        result.PropertiesEmote.Add(record.Clone());
+                }
 
-                foreach (var record in weenie.PropertiesGenerator)
-                    result.PropertiesGenerator.Add(record.Clone());
+                if (weenie.PropertiesEventFilter != null && (instantiateEmptyCollections || weenie.PropertiesEventFilter.Count > 0))
+                    result.PropertiesEventFilter = new HashSet<int>(weenie.PropertiesEventFilter);
+
+                if (weenie.PropertiesGenerator != null && (instantiateEmptyCollections || weenie.PropertiesGenerator.Count > 0))
+                {
+                    result.PropertiesGenerator = new List<PropertiesGenerator>();
+
+                    foreach (var record in weenie.PropertiesGenerator)
+                        result.PropertiesGenerator.Add(record.Clone());
+                }
             }
 
 
