@@ -71,7 +71,7 @@ namespace ACE.Database
         }
 
 
-        public override Biota GetBiota(ShardDbContext context, uint id)
+        public override Biota GetBiota(ShardDbContext context, uint id, bool doNotAddToCache = false)
         {
             TryPerformMaintenance();
 
@@ -84,13 +84,13 @@ namespace ACE.Database
 
             var biota = base.GetBiota(context, id);
 
-            if (biota != null)
+            if (biota != null && !doNotAddToCache)
                 TryAddToCache(context, biota);
 
             return biota;
         }
 
-        public override Biota GetBiota(uint id)
+        public override Biota GetBiota(uint id, bool doNotAddToCache = false)
         {
             if (ObjectGuid.IsPlayer(id))
             {
@@ -98,7 +98,7 @@ namespace ACE.Database
                 {
                     var context = new ShardDbContext();
 
-                    var biota = GetBiota(context, id); // This will add the result into the caches
+                    var biota = GetBiota(context, id, doNotAddToCache); // This will add the result into the caches
 
                     return biota;
                 }
@@ -107,12 +107,12 @@ namespace ACE.Database
             {
                 var context = new ShardDbContext();
 
-                var biota = GetBiota(context, id); // This will add the result into the caches
+                var biota = GetBiota(context, id, doNotAddToCache); // This will add the result into the caches
 
                 return biota;
             }
 
-            return base.GetBiota(id);
+            return base.GetBiota(id, doNotAddToCache);
         }
 
         public override bool SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)
