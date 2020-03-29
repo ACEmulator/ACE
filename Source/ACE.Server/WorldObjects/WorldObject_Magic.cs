@@ -665,10 +665,7 @@ namespace ACE.Server.WorldObjects
                             //player.Fellowship.OnVitalUpdate(player);
                     }
 
-                    var lifeProjectiles = CreateSpellProjectiles(spell, target, itemCaster);
-
-                    foreach (var lifeProjectile in lifeProjectiles)
-                        lifeProjectile.LifeProjectileDamage = damage;
+                    var lifeProjectiles = CreateSpellProjectiles(spell, target, itemCaster, damage);
 
                     if (caster.Health.Current <= 0)
                     {
@@ -1226,7 +1223,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Creates and launches the projectiles for a spell
         /// </summary>
-        public List<SpellProjectile> CreateSpellProjectiles(Spell spell, WorldObject target, WorldObject caster)
+        public List<SpellProjectile> CreateSpellProjectiles(Spell spell, WorldObject target, WorldObject caster, uint lifeProjectileDamage = 0)
         {
             if (spell.NumProjectiles == 0)
             {
@@ -1240,7 +1237,7 @@ namespace ACE.Server.WorldObjects
 
             var velocity = CalculateProjectileVelocity(spell, target, spellType, origins[0]);
 
-            return LaunchSpellProjectiles(spell, target, spellType, caster, origins, velocity);
+            return LaunchSpellProjectiles(spell, target, spellType, caster, origins, velocity, lifeProjectileDamage);
         }
 
         public static readonly float ProjHeight = 2.0f / 3.0f;
@@ -1458,7 +1455,7 @@ namespace ACE.Server.WorldObjects
                 return dir * speed;
         }
 
-        public List<SpellProjectile> LaunchSpellProjectiles(Spell spell, WorldObject target, ProjectileSpellType spellType, WorldObject caster, List<Vector3> origins, Vector3 velocity)
+        public List<SpellProjectile> LaunchSpellProjectiles(Spell spell, WorldObject target, ProjectileSpellType spellType, WorldObject caster, List<Vector3> origins, Vector3 velocity, uint lifeProjectileDamage = 0)
         {
             var useGravity = spellType == ProjectileSpellType.Arc;
 
@@ -1517,6 +1514,8 @@ namespace ACE.Server.WorldObjects
 
                 sp.SetProjectilePhysicsState(sp.ProjectileTarget, useGravity);
                 sp.SpawnPos = new Position(sp.Location);
+
+                sp.LifeProjectileDamage = lifeProjectileDamage;
 
                 if (!LandblockManager.AddObject(sp) || sp.WorldEntryCollision)
                 {
