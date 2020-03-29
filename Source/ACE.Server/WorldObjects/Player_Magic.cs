@@ -365,7 +365,7 @@ namespace ACE.Server.WorldObjects
 
         public bool VerifyBusy()
         {
-            if (IsBusy || Teleporting)
+            if (IsBusy || Teleporting || suicideInProgress)
             {
                 SendUseDoneEvent(WeenieError.YoureTooBusy);
                 return false;
