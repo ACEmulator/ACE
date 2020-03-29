@@ -1865,7 +1865,7 @@ namespace ACE.Server.WorldObjects
         {
             if (_maxSpellLevel == null)
             {
-                _maxSpellLevel = Biota.PropertiesSpellBook.Count > 0 ?
+                _maxSpellLevel = Biota.PropertiesSpellBook != null && Biota.PropertiesSpellBook.Count > 0 ?
                     Biota.PropertiesSpellBook.Keys.Select(i => new Spell(i)).Max(i => i.Formula.Level) : 0;
             }
             return _maxSpellLevel.Value;
