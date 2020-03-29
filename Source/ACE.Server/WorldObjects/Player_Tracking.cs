@@ -6,6 +6,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics.Common;
 
@@ -41,7 +42,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<WorldObject> GetKnownObjects()
         {
-            return ObjMaint.GetKnownObjectsValuesWhere(wo => wo != null).Select(o => o.WeenieObj.WorldObject).ToList();
+            return ObjMaint.GetKnownObjectsValuesWhere(i => i?.WeenieObj.WorldObject != null).Select(o => o.WeenieObj.WorldObject).ToList();
         }
 
         /// <summary>
@@ -235,23 +236,36 @@ namespace ACE.Server.WorldObjects
             // a DO and then a CO is the only thing that fixes this issue (/objsend can help with this)
             // this part probably deviates from retail a bit, but is the equivalent automated fix
 
+            var fixLevel = PropertyManager.GetLong("teleport_visibility_fix").Item;
+
+            // disabled by default
+            if (fixLevel < 1) return;
+
             if (Location.Cell == newPosition.Cell)
                 return;
 
-            var knownPlayers = PhysicsObj.ObjMaint.GetKnownPlayersValues();
+            var knownObjs = GetKnownObjects();
 
-            foreach (var knownPlayer in knownPlayers)
+            if (fixLevel == 1)
             {
-                var player = knownPlayer.WeenieObj.WorldObject as Player;
+                // filter to players only
+                knownObjs = knownObjs.Where(i => i is Player).ToList();
+            }
+            else if (fixLevel == 2)
+            {
+                // filter to creatures only
+                knownObjs = knownObjs.Where(i => i is Creature).ToList();
+            }
 
-                if (player == null)
-                    continue;
+            foreach (var knownObj in knownObjs)
+            {
+                knownObj.PhysicsObj.ObjMaint.RemoveObject(PhysicsObj);
 
-                player.ObjMaint.RemoveObject(PhysicsObj);
-                player.RemoveTrackedObject(this, false);
+                if (knownObj is Player knownPlayer)
+                    knownPlayer.RemoveTrackedObject(this, false);
 
-                ObjMaint.RemoveObject(knownPlayer);
-                RemoveTrackedObject(player, false);
+                ObjMaint.RemoveObject(knownObj.PhysicsObj);
+                RemoveTrackedObject(knownObj, false);
             }
         }
     }
