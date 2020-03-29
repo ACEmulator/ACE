@@ -2773,6 +2773,8 @@ namespace ACE.Server.Physics
 
             if (isVisible)
             {
+                var prevKnown = ObjMaint.KnownObjectsContainsKey(obj.ID);
+
                 var newlyVisible = ObjMaint.AddVisibleObject(obj);
 
                 if (newlyVisible)
@@ -2781,7 +2783,7 @@ namespace ACE.Server.Physics
                     ObjMaint.RemoveObjectToBeDestroyed(obj);
                 }
 
-                return newlyVisible;
+                return !prevKnown && newlyVisible;
             }
             else
             {

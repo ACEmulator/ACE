@@ -112,6 +112,19 @@ namespace ACE.Server.Physics.Common
             }
         }
 
+        public bool KnownObjectsContainsKey(uint guid)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return KnownObjects.ContainsKey(guid);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
         public bool KnownObjectsContainsValue(PhysicsObj value)
         {
             rwLock.EnterReadLock();

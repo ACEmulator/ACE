@@ -57,6 +57,8 @@ namespace ACE.Server.WorldObjects
         public static readonly float MaxRadarRange_Indoors = 25.0f;
         public static readonly float MaxRadarRange_Outdoors = 75.0f;
 
+        public DateTime PrevObjSend;
+
         public float CurrentRadarRange => Location.Indoors ? MaxRadarRange_Indoors : MaxRadarRange_Outdoors;
 
         /// <summary>
