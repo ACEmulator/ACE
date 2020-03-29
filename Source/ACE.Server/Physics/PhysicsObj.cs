@@ -4211,6 +4211,24 @@ namespace ACE.Server.Physics
             if ((TransientState & TransientStateFlags.Contact) != 0)
                 CachedVelocity = Vector3.Zero;
 
+            if (wo != null && wo.Teleporting)
+            {
+                //Console.WriteLine($"*** SETTING TELEPORT ***");
+
+                var setPosition = new SetPosition();
+                setPosition.Pos = RequestPos;
+                setPosition.Flags = SetPositionFlags.SendPositionEvent | SetPositionFlags.Slide | SetPositionFlags.Placement | SetPositionFlags.Teleport;
+
+                SetPosition(setPosition);
+
+                // hack...
+                if (!TransientState.HasFlag(TransientStateFlags.OnWalkable))
+                {
+                    //Console.WriteLine($"Setting velocity");
+                    Velocity = new Vector3(0, 0, -PhysicsGlobals.EPSILON);
+                }
+            }
+
             UpdateTime = PhysicsTimer.CurrentTime;
 
             return success;
