@@ -81,6 +81,9 @@ namespace ACE.Server.WorldObjects
             // there were probably other criteria used to select these spells (emote responses, monster ai responses)
             // for now, 2.0 base just becomes a 2% chance
 
+            if (Biota.PropertiesSpellBook == null)
+                return null;
+
             // We don't use thread safety here. Monster spell books aren't mutated cross-threads.
             // This reduces memory consumption by not cloning the spell book every single TryRollSpell()
             //foreach (var spell in Biota.CloneSpells(BiotaDatabaseLock)) // Thread-safe
