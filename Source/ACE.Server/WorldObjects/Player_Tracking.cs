@@ -216,7 +216,7 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
         }
 
-        public void HandlePreTeleportVisibility()
+        public void HandlePreTeleportVisibility(ACE.Entity.Position newPosition)
         {
             // repro steps without this function:
 
@@ -234,6 +234,9 @@ namespace ACE.Server.WorldObjects
             // even resending the CO does nothing, as player 1's client does indeed know about player 2
             // a DO and then a CO is the only thing that fixes this issue (/objsend can help with this)
             // this part probably deviates from retail a bit, but is the equivalent automated fix
+
+            if (Location.Cell == newPosition.Cell)
+                return;
 
             var knownPlayers = PhysicsObj.ObjMaint.GetKnownPlayersValues();
 
