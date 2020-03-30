@@ -1,5 +1,7 @@
 using System;
 
+using log4net;
+
 using ACE.DatLoader.Entity;
 using ACE.Server.Physics.Common;
 
@@ -7,6 +9,8 @@ namespace ACE.Server.Physics.Animation
 {
     public class AnimSequenceNode
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public Animation Anim;
         public float Framerate;
         public int LowFrame;
@@ -90,6 +94,14 @@ namespace ACE.Server.Physics.Animation
                 LowFrame = HighFrame;
                 HighFrame = swap;
             }
+
+            if (multiplier == 0.0f)
+            {
+                log.Warn($"Warning: AnimSequenceNode.multiply_framerate({multiplier})");
+                log.Warn($"AnimID: {Anim.ID:X8}, HighFrame: {HighFrame}, LowFrame: {LowFrame}, Framerate: {Framerate}");
+                log.Warn(Environment.StackTrace);
+            }
+
             Framerate *= multiplier;
         }
 
