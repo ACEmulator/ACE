@@ -57,7 +57,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (player.IsBusy)
+            if (player.IsBusy || player.Teleporting || player.suicideInProgress)
             {
                 player.SendWeenieError(WeenieError.YoureTooBusy);
                 return;

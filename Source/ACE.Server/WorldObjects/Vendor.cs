@@ -210,7 +210,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (item.Palette > 0)
                         wo.PaletteTemplate = item.Palette;
-                    if (item.Shade > 0)
+                    if (item.Shade >= 0)
                         wo.Shade = item.Shade;
                     wo.ContainerId = Guid.Full;
                     wo.CalculateObjDesc(); // i don't like firing this but this triggers proper icons, the way vendors load inventory feels off to me in this method.
@@ -459,6 +459,12 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                     altcost += (uint)Math.Max(1, wo.Value ?? 1);
+            }
+
+            if (IsBusy && genlist.Any(i => i.GetProperty(PropertyBool.VendorService) == true))
+            {
+                player.SendWeenieErrorWithString(WeenieErrorWithString._IsTooBusyToAcceptGifts, Name);
+                return;
             }
 
             // send transaction to player for further processing and.

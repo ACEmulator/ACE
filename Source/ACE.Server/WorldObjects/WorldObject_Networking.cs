@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 
-using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
@@ -13,11 +12,12 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Structure;
 using ACE.Server.Network.Sequence;
+using ACE.Server.Network.Structure;
 using ACE.Server.Physics;
 
 namespace ACE.Server.WorldObjects
@@ -297,6 +297,9 @@ namespace ACE.Server.WorldObjects
                 physicsState &= ~PhysicsState.Cloaked;
             }
 
+            if (this is SpellProjectile && PropertyManager.GetBool("spell_projectile_ethereal").Item)
+                physicsState |= PhysicsState.Ethereal;
+
             writer.Write((uint)physicsState);
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
@@ -362,17 +365,17 @@ namespace ACE.Server.WorldObjects
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) != 0)
             {
-                writer.Write(Velocity.Value);
+                writer.Write(Velocity);
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Acceleration) != 0)
             {
-                writer.Write(Acceleration.Value);
+                writer.Write(Acceleration);
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Omega) != 0)
             {
-                writer.Write(Omega.Value);
+                writer.Write(Omega);
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScript) != 0)
@@ -400,11 +403,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Broadcast position updates to players within range
         /// </summary>
-        public void SendUpdatePosition()
+        /// <param name="adminMove">only used if admin is teleporting a non-player object</param>
+        public void SendUpdatePosition(bool adminMove = false)
         {
             //Console.WriteLine($"{Name}.SendUpdatePosition({Location.ToLOCString()})");
 
-            EnqueueBroadcast(new GameMessageUpdatePosition(this));
+            EnqueueBroadcast(new GameMessageUpdatePosition(this, adminMove));
 
             LastUpdatePosition = DateTime.UtcNow;
         }
@@ -475,13 +479,13 @@ namespace ACE.Server.WorldObjects
             if ((Translucency != null) && (Math.Abs(Translucency ?? 0) >= 0.001))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Translucency;
 
-            if (Velocity != null)
+            if (Velocity != Vector3.Zero)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Velocity;
 
-            if (Acceleration != null)
+            if (Acceleration != Vector3.Zero)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Acceleration;
 
-            if (Omega != null)
+            if (Omega != Vector3.Zero)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Omega;
 
             if (DefaultScriptId != null)
@@ -1071,6 +1075,9 @@ namespace ACE.Server.WorldObjects
         {
             var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
 
+            if (castGesture)
+                stance = MotionStance.Magic;
+
             var motion = new Motion(stance, motionCommand, speed);
             motion.MotionState.TurnSpeed = 2.25f;  // ??
 
@@ -1099,9 +1106,9 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
-        public float EnqueueMotionAction(ActionChain actionChain, List<MotionCommand> motionCommands, float speed = 1.0f, bool useStance = true, bool usePrevCommand = false)
+        public float EnqueueMotionAction(ActionChain actionChain, List<MotionCommand> motionCommands, float speed = 1.0f, MotionStance? useStance = null, bool usePrevCommand = false)
         {
-            var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
+            var stance = useStance ?? CurrentMotionState.Stance;
 
             var motion = new Motion(stance, MotionCommand.Ready, speed);
 
@@ -1127,7 +1134,12 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(this, () =>
             {
                 CurrentMotionState = motion;
-                EnqueueBroadcastMotion(motion);
+                EnqueueBroadcastMotion(motion, null, false);
+
+                ApplyPhysicsMotion(new Motion(stance, MotionCommand.Ready, speed));
+
+                foreach (var motionCommand in motionCommands)
+                    ApplyPhysicsMotion(new Motion(stance, motionCommand, speed));
             });
 
             actionChain.AddDelaySeconds(animLength);
@@ -1135,7 +1147,7 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
-        public float EnqueueMotion_Force(ActionChain actionChain, MotionStance stance, MotionCommand motionCommand, MotionCommand? prevCommand = null, float speed = 1.0f)
+        public float EnqueueMotion_Force(ActionChain actionChain, MotionStance stance, MotionCommand motionCommand, MotionCommand? prevCommand = null, float speed = 1.0f, float animMod = 1.0f)
         {
             var motion = new Motion(stance, motionCommand, speed);
 
@@ -1160,7 +1172,7 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcastMotion(motion);
             });
 
-            actionChain.AddDelaySeconds(animLength);
+            actionChain.AddDelaySeconds(animLength * animMod);
             return animLength;
         }
 

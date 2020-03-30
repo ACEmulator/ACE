@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
+
 using log4net;
 
 using ACE.Common;
-using ACE.DatLoader.FileTypes;
 using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -40,6 +42,11 @@ namespace ACE.Server.WorldObjects
                 return _questManager;
             }
         }
+
+        /// <summary>
+        /// A table of players who currently have their targeting reticule on this creature
+        /// </summary>
+        private Dictionary<uint, WorldObjectInfo> selectedTargets;
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -108,6 +115,8 @@ namespace ACE.Server.WorldObjects
             SetMonsterState();
 
             CurrentMotionState = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
+
+            selectedTargets = new Dictionary<uint, WorldObjectInfo>();
         }
 
         public void GenerateNewFace()
@@ -129,8 +138,8 @@ namespace ACE.Server.WorldObjects
             if (!Heritage.HasValue || !Gender.HasValue)
             {
 #if DEBUG
-                if (!(NpcLooksLikeObject ?? false))
-                    log.Debug($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data missing or unparsable, Cannot randomize face.");
+                //if (!(NpcLooksLikeObject ?? false))
+                    //log.Debug($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data missing or unparsable, Cannot randomize face.");
 #endif
                 return;
             }
@@ -310,6 +319,38 @@ namespace ACE.Server.WorldObjects
                 door.OnCollideObject(this);
             else if (target is Hotspot hotspot)
                 hotspot.OnCollideObject(this);
+        }
+
+        /// <summary>
+        /// Called when a player selects a target
+        /// </summary>
+        public bool OnTargetSelected(Player player)
+        {
+            return selectedTargets.TryAdd(player.Guid.Full, new WorldObjectInfo(player));
+        }
+
+        /// <summary>
+        /// Called when a player deselects a target
+        /// </summary>
+        public bool OnTargetDeselected(Player player)
+        {
+            return selectedTargets.Remove(player.Guid.Full);
+        }
+
+        /// <summary>
+        /// Called when a creature's health changes
+        /// </summary>
+        public void OnHealthUpdate()
+        {
+            foreach (var kvp in selectedTargets)
+            {
+                var player = kvp.Value.TryGetWorldObject() as Player;
+
+                if (player?.Session != null)
+                    QueryHealth(player.Session);
+                else
+                    selectedTargets.Remove(kvp.Key);
+            }
         }
     }
 }

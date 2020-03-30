@@ -1,7 +1,7 @@
 version: '3'
 services:
 
-  db:
+  ace-db:
     image: mysql:latest
     container_name: ace-db
     env_file:
@@ -14,11 +14,11 @@ services:
     healthcheck:
         test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
 
-  ace:
+  ace-server:
     build: .
     image: acemulator/ace:latest
     depends_on:
-      - db
+      - ace-db
     container_name: ace-server
     env_file:
       - docker.env

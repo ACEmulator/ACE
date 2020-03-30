@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 
+using log4net;
+
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -8,6 +10,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -21,6 +24,14 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     public class PetDevice : WorldObject
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public int? PetClass
+        {
+            get => GetProperty(PropertyInt.PetClass);
+            set { if (value.HasValue) SetProperty(PropertyInt.PetClass, value.Value); else RemoveProperty(PropertyInt.PetClass); }
+        }
+
         public int? GearDamage
         {
             get => GetProperty(PropertyInt.GearDamage);
@@ -88,10 +99,9 @@ namespace ACE.Server.WorldObjects
             // Good PCAP example of using a PetDevice to summon a pet:
             // Asherons-Call-packets-includes-3-towers\pkt_2017-1-30_1485823896_log.pcap lines 27837 - 27843
 
-            // swap this over to PetClass once all the servers have updated
-            if (!PetDeviceToPetMapping.TryGetValue(WeenieClassId, out var petData))
+            if (PetClass == null)
             {
-                Console.WriteLine($"PetDevice.UseItem(): couldn't find a matching pet for essence wcid {WeenieClassId}");
+                log.Error($"{activator.Name}.ActOnUse({Name}) - PetClass is null for PetDevice {WeenieClassId}");
                 return;
             }
 
@@ -101,15 +111,18 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var wcid = petData.Item1;
-            var damageType = petData.Item2;
+            var wcid = (uint)PetClass;
 
-            if (SummonCreature(player, wcid, damageType))
+            if (SummonCreature(player, wcid))
             {
-                // decrease remaining uses
-                Structure--;
+                // CombatPet devices should always have structure
+                if (Structure != null)
+                {
+                    // decrease remaining uses
+                    Structure--;
 
-                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, Structure.Value));
+                    player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, Structure.Value));
+                }
             }
             else
             {
@@ -135,26 +148,26 @@ namespace ACE.Server.WorldObjects
             return new ActivationResult(true);
         }
 
-        public bool SummonCreature(Player player, uint wcid, DamageType damageType)
+        public bool SummonCreature(Player player, uint wcid)
         {
-            // since we are instantiating regular creatures instead of actual CombatPet weenies atm,
-            // bypassing CreateNewWorldObject() here...
-            //var combatPet = WorldObjectFactory.CreateNewWorldObject(wcid) as CombatPet;
-            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
-            if (weenie == null)
+            var wo = WorldObjectFactory.CreateNewWorldObject(wcid);
+
+            if (wo == null)
             {
-                Console.WriteLine($"Couldn't find pet wcid #{wcid}");
+                log.Error($"{player.Name}.SummonCreature({wcid}) - couldn't find wcid for PetDevice {WeenieClassId} - {WeenieClassName}");
                 return false;
             }
 
-            var combatPet = new CombatPet(weenie, GuidManager.NewDynamicGuid());
-            if (combatPet == null)
+            var pet = wo as Pet;
+
+            if (pet == null)
             {
-                Console.WriteLine($"PetDevice.UseItem(): failed to create pet for wcid {wcid}");
+                log.Error($"{player.Name}.SummonCreature({wcid}) - PetDevice {WeenieClassId} - {WeenieClassName} tried to summon {wo.WeenieClassId} - {wo.WeenieClassName} of unknown type {wo.WeenieType}");
                 return false;
             }
-            combatPet.Init(player, damageType, this);
-            return true;
+            var success = pet.Init(player, this);
+
+            return success;
         }
 
         /// <summary>

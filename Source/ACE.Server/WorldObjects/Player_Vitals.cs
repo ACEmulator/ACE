@@ -163,19 +163,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleTargetVitals()
         {
-            if (selectedTarget == ObjectGuid.Invalid)
-                return;
+            var target = selectedTarget?.TryGetWorldObject() as Creature;
 
-            var target = CurrentLandblock?.GetObject(selectedTarget) as Creature;
-            if (target == null)
-                return;
-
-            if (target.Health.Current <= 0)
+            if (target == null || target.Health.Current <= 0)
                 return;
 
             var healthPercent = (float)target.Health.Current / target.Health.MaxValue;
 
-            Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, selectedTarget.Full, healthPercent));
+            Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, target.Guid.Full, healthPercent));
         }
 
         /// <summary>

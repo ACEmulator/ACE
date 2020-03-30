@@ -109,7 +109,9 @@ namespace ACE.Server.Entity
         {
             get
             {
-                if (Generator is Chest || Generator.RegenerationInterval == 0)
+                // TODO: investigate this logic - why is the RegenerationInterval bit needed here?
+
+                if (Generator is Chest || !(Generator is PressurePlate) && Generator.RegenerationInterval == 0)
                     return 0;
 
                 return Biota.Delay ?? Generator.GeneratorProfiles[0].Biota.Delay ?? 0.0f;
@@ -258,10 +260,10 @@ namespace ACE.Server.Entity
                 if (Biota.PaletteId.HasValue && Biota.PaletteId > 0)
                     wo.PaletteBaseId = Biota.PaletteId;
 
-                if (Biota.Shade.HasValue && Biota.Shade > 0)
+                if (Biota.Shade.HasValue && Biota.Shade >= 0)
                     wo.Shade = Biota.Shade;
 
-                if ((Biota.Shade.HasValue && Biota.Shade > 0) || (Biota.PaletteId.HasValue && Biota.PaletteId > 0))
+                if ((Biota.Shade.HasValue && Biota.Shade >= 0) || (Biota.PaletteId.HasValue && Biota.PaletteId > 0))
                     wo.CalculateObjDesc(); // to update icon
 
                 if (Biota.StackSize.HasValue && Biota.StackSize > 0)

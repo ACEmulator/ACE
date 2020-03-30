@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Numerics;
 
 using ACE.Common;
 using ACE.Entity.Enum;
@@ -255,7 +256,7 @@ namespace ACE.Server.WorldObjects
                     RequestedLocation = null;
                 }
 
-                if (FastTick && PhysicsObj.IsMovingOrAnimating)
+                if (FastTick && PhysicsObj.IsMovingOrAnimating || PhysicsObj.Velocity != Vector3.Zero)
                     UpdatePlayerPhysics();
 
                 InUpdate = false;
@@ -286,6 +287,8 @@ namespace ACE.Server.WorldObjects
             // sync ace position?
             Location.Rotation = PhysicsObj.Position.Frame.Orientation;
 
+            if (!FastTick) return;
+
             // this fixes some differences between client movement (DoMotion/StopMotion) and server movement (apply_raw_movement)
             //
             // scenario: start casting a self-spell, and then immediately start holding the run forward key during the windup
@@ -306,7 +309,7 @@ namespace ACE.Server.WorldObjects
                 LastMoveToState = null;
             }
 
-            if (MagicState.IsCasting && (MagicState.IsTurning || MagicState.PendingTurnRelease))
+            if (MagicState.IsCasting && MagicState.PendingTurnRelease)
                 CheckTurn();
         }
 
@@ -408,6 +411,8 @@ namespace ACE.Server.WorldObjects
                             CheckMonsters();
                         }
                     }
+                    else
+                        PhysicsObj.Position.Frame.Orientation = newPosition.Rotation;
                 }
 
                 // double update path: landblock physics update -> updateplayerphysics() -> update_object_server() -> Teleport() -> updateplayerphysics() -> return to end of original branch

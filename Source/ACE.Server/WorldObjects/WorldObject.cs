@@ -127,6 +127,8 @@ namespace ACE.Server.WorldObjects
             InitializeHeartbeats();
         }
 
+        public bool BumpVelocity { get; set; }
+
         /// <summary>
         /// Initializes a new default physics object
         /// </summary>
@@ -169,6 +171,9 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.State = defaultState;
 
             //if (creature != null) AllowEdgeSlide = true;
+
+            if (BumpVelocity)
+                PhysicsObj.Velocity = new Vector3(0, 0, 0.5f);
         }
 
         public bool AddPhysicsObj()
@@ -643,7 +648,7 @@ namespace ACE.Server.WorldObjects
             float healthPercentage = 1f;
 
             if (this is Creature creature)
-                healthPercentage = (float)creature.Health.Current / (float)creature.Health.MaxValue;
+                healthPercentage = (float)creature.Health.Current / creature.Health.MaxValue;
 
             var updateHealth = new GameEventUpdateHealth(examiner, Guid.Full, healthPercentage);
             examiner.Network.EnqueueSend(updateHealth);
@@ -887,11 +892,8 @@ namespace ACE.Server.WorldObjects
                     item.Destroy();
             }
 
-            if (this is CombatPet combatPet)
-            {
-                if (combatPet.P_PetOwner != null && combatPet.P_PetOwner.CurrentActiveCombatPet == this)
-                    combatPet.P_PetOwner.CurrentActiveCombatPet = null;
-            }
+            if (this is Pet pet && pet.P_PetOwner?.CurrentActivePet == this)
+                pet.P_PetOwner.CurrentActivePet = null;
 
             if (raiseNotifyOfDestructionEvent)
                 NotifyOfEvent(RegenerationType.Destruction);
@@ -923,11 +925,6 @@ namespace ACE.Server.WorldObjects
 
             return pluralName;
         }
-
-        /// <summary>
-        /// Returns TRUE if this object has a non-zero velocity
-        /// </summary>
-        public bool IsMoving { get => PhysicsObj != null && (PhysicsObj.Velocity.X != 0 || PhysicsObj.Velocity.Y != 0 || PhysicsObj.Velocity.Z != 0); }
 
         /// <summary>
         /// Returns TRUE if this object has non-cyclic animations in progress
@@ -1084,14 +1081,6 @@ namespace ACE.Server.WorldObjects
                 return new List<WorldObject>();
             else
                 return new List<WorldObject>() { this };
-        }
-
-        /// <summary>
-        /// Returns the wielder or the current object
-        /// </summary>
-        public WorldObject GetCurrentOrWielder(Landblock landblock)
-        {
-            return WielderId != null ? landblock?.GetObject(WielderId.Value) : this;
         }
     }
 }

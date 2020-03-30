@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 using log4net;
 
@@ -55,6 +56,8 @@ namespace ACE.Server.WorldObjects
 
         public static readonly float MaxRadarRange_Indoors = 25.0f;
         public static readonly float MaxRadarRange_Outdoors = 75.0f;
+
+        public DateTime PrevObjSend;
 
         public float CurrentRadarRange => Location.Indoors ? MaxRadarRange_Indoors : MaxRadarRange_Outdoors;
 
@@ -344,17 +347,46 @@ namespace ACE.Server.WorldObjects
             if (objectGuid == 0)
             {
                 // Deselect the formerly selected Target
-                selectedTarget = ObjectGuid.Invalid;
-                HealthQueryTarget = null;
+                UpdateSelectedTarget(null);
                 return;
             }
 
-            // Remember the selected Target
-            selectedTarget = new ObjectGuid(objectGuid);
-            HealthQueryTarget = objectGuid;
-            var obj = CurrentLandblock?.GetObject(objectGuid);
-            if (obj != null)
-                obj.QueryHealth(Session);
+            var obj = CurrentLandblock?.GetObject(objectGuid) as Creature;
+
+            if (obj == null)
+            {
+                // Deselect the formerly selected Target
+                UpdateSelectedTarget(null);
+                return;
+            }
+
+            UpdateSelectedTarget(obj);
+
+            obj.QueryHealth(Session);
+        }
+
+        private void UpdateSelectedTarget(Creature target)
+        {
+            if (selectedTarget != null)
+            {
+                var prevSelected = selectedTarget.TryGetWorldObject() as Creature;
+
+                if (prevSelected != null)
+                    prevSelected.OnTargetDeselected(this);
+            }
+
+            if (target != null)
+            {
+                selectedTarget = new WorldObjectInfo(target);
+                HealthQueryTarget = target.Guid.Full;
+
+                target.OnTargetSelected(this);
+            }
+            else
+            {
+                selectedTarget = null;
+                HealthQueryTarget = null;
+            }
         }
 
         public void HandleActionQueryItemMana(uint itemGuid)
@@ -461,8 +493,8 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(general, trade, lfg, roleplay);
             }
 
-            if (CurrentActiveCombatPet != null)
-                CurrentActiveCombatPet.Destroy();
+            if (CurrentActivePet != null)
+                CurrentActivePet.Destroy();
 
             if (CurrentLandblock != null)
             {
@@ -821,8 +853,17 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
+                PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
+
                 // set jump velocity
-                PhysicsObj.set_velocity(jump.Velocity, true);
+                //var glob_velocity = Vector3.Transform(jump.Velocity, Location.Rotation);
+                //PhysicsObj.set_velocity(glob_velocity, true);
+
+                // perform jump in physics engine
+                PhysicsObj.TransientState &= ~(Physics.TransientStateFlags.Contact | Physics.TransientStateFlags.WaterContact);
+                PhysicsObj.calc_acceleration();
+                PhysicsObj.set_on_walkable(false);
+                PhysicsObj.set_local_velocity(jump.Velocity, false);
             }
 
             // this shouldn't be needed, but without sending this update motion / simulated movement event beforehand,
@@ -837,7 +878,7 @@ namespace ACE.Server.WorldObjects
             // broadcast jump
             EnqueueBroadcast(new GameMessageVectorUpdate(this));
 
-            if (RecordCast.Enabled)
+            if (MagicState.IsCasting && RecordCast.Enabled)
                 RecordCast.OnJump(jump);
         }
 
@@ -986,22 +1027,29 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast), LocalBroadcastRange);
 
             // perform pk lite entry motion / effect
-            var motion = new Motion(MotionStance.NonCombat, MotionCommand.EnterPKLite);
-            EnqueueBroadcastMotion(motion);
 
-            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var animLength = motionTable.GetAnimationLength(MotionStance.NonCombat, MotionCommand.EnterPKLite);
+            IsBusy = true;
+
+            var prevStance = CurrentMotionState.Stance;
 
             var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(animLength);
-            IsBusy = true;
+
+            var animTime = 0.0f;
+
+            animTime += EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.EnterPKLite);
+
             actionChain.AddAction(this, () =>
             {
-                IsBusy = false;
                 UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite, true);
 
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNowPKLite));
             });
+
+            // return to previous stance, if applicable
+            if (prevStance != MotionStance.NonCombat)
+                animTime += EnqueueMotion_Force(actionChain, prevStance, MotionCommand.Ready, MotionCommand.NonCombat);
+
+            actionChain.AddAction(this, () => IsBusy = false);
 
             actionChain.EnqueueChain();
         }

@@ -1,10 +1,8 @@
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build
 WORKDIR /Source
 
-# copy csproj and restore as distinct layers (credit: https://code-maze.com/aspnetcore-app-dockerfiles/)
+# copy csproj and restore as distinct layers
 COPY ./Source/*.sln ./
-#COPY ./Source/*/*.csproj ./
-#RUN for file in $(ls *.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${file%.*}/; done
 COPY ./Source/ACE.Adapter/*.csproj ./ACE.Adapter/
 COPY ./Source/ACE.Common/*.csproj ./ACE.Common/
 COPY ./Source/ACE.Database/*.csproj ./ACE.Database/

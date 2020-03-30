@@ -76,7 +76,7 @@ namespace ACE.Server.WorldObjects
         /// Builds a HouseData structure for this house
         /// This is used to populate the info in the House panel
         /// </summary>
-        public HouseData GetHouseData(Player owner)
+        public HouseData GetHouseData(IPlayer owner)
         {
             var houseData = new HouseData();
             houseData.Position = Location;

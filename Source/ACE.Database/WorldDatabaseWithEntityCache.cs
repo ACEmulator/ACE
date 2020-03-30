@@ -79,6 +79,8 @@ namespace ACE.Database
         {
             weenieCache.Clear();
             weenieClassNameToClassIdCache.Clear();
+
+            weenieSpecificCachesPopulated = false;
         }
 
         /// <summary>
@@ -227,6 +229,8 @@ namespace ACE.Database
                                     select weenieRecord;
 
                         var result = query.FirstOrDefault();
+
+                        if (result == null) return null;
 
                         weenie = WeenieConverter.ConvertToEntityWeenie(result);
 

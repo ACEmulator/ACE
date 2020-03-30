@@ -55,7 +55,7 @@ namespace ACE.Server.WorldObjects
 
         public bool TooBusyToRecall
         {
-            get => IsBusy || Teleporting;
+            get => IsBusy || Teleporting || suicideInProgress;
         }
 
         public void HandleActionTeleToHouse()
@@ -615,6 +615,8 @@ namespace ACE.Server.WorldObjects
 
             if (UnderLifestoneProtection)
                 LifestoneProtectionDispel();
+
+            HandlePreTeleportVisibility(newPosition);
 
             UpdatePlayerPosition(new Position(newPosition), true);
         }

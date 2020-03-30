@@ -188,9 +188,6 @@ namespace ACE.Server.WorldObjects
                     target.EmoteManager.OnReceiveCritical(this);
             }
 
-            if (damageEvent.Damage > 0.0f)
-                Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
-
             if (targetPlayer == null)
                 OnAttackMonster(target);
 
@@ -735,7 +732,7 @@ namespace ACE.Server.WorldObjects
 
             NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
 
-            if (RecordCast.Enabled)
+            if (MagicState.IsCasting && RecordCast.Enabled)
                 RecordCast.OnSetCombatMode(newCombatMode);
         }
 

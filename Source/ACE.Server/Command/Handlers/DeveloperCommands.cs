@@ -2287,7 +2287,7 @@ namespace ACE.Server.Command.Handlers
             // Create a dummy treasure profile for passing in tier value
             TreasureDeath profile = new TreasureDeath
             {
-                Tier = 7,
+                Tier = tier,
                 LootQualityMod = 0
             };
 
@@ -2976,6 +2976,34 @@ namespace ACE.Server.Command.Handlers
                 landblock.Init(true);
             });
             actionChain.EnqueueChain();
+        }
+
+        [CommandHandler("showvelocity", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the velocity of the last appraised object.")]
+        public static void HandleShowVelocity(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (obj?.PhysicsObj == null)
+                return;
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Velocity: {obj.Velocity}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Physics.Velocity: {obj.PhysicsObj.Velocity}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"CachedVelocity: {obj.PhysicsObj.CachedVelocity}", ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("bumpvelocity", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Bumps the velocity of the last appraised object.")]
+        public static void HandleBumpVelocity(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (obj?.PhysicsObj == null)
+                return;
+
+            var velocity = new Vector3(0, 0, 0.5f);
+
+            obj.PhysicsObj.Velocity = velocity;
+
+            session.Network.EnqueueSend(new GameMessageVectorUpdate(obj));
         }
     }
 }

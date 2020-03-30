@@ -343,6 +343,8 @@ namespace ACE.Server.Network
             #endregion
         }
 
+        const uint MaxNumNakSeqIds = 115; //464 + header = 484;  (464 - 4) / 4
+
         /// <summary>
         /// request retransmission of lost sequences
         /// </summary>
@@ -353,14 +355,24 @@ namespace ACE.Server.Network
             List<uint> needSeq = new List<uint>();
             needSeq.Add(desiredSeq);
             uint bottom = desiredSeq + 1;
-            if (rcvdSeq - bottom > CryptoSystem.MaximumEffortLevel)
+            if (rcvdSeq < bottom || rcvdSeq - bottom > CryptoSystem.MaximumEffortLevel)
             {
                 session.Terminate(SessionTerminationReason.AbnormalSequenceReceived);
                 return;
             }
+            uint seqIdCount = 1;
             for (uint a = bottom; a < rcvdSeq; a++)
+            {
                 if (!outOfOrderPackets.ContainsKey(a))
+                {
                     needSeq.Add(a);
+                    seqIdCount++;
+                    if (seqIdCount >= MaxNumNakSeqIds)
+                    {
+                        break;
+                    }
+                }
+            }
 
             ServerPacket reqPacket = new ServerPacket();
             byte[] reqData = new byte[4 + (needSeq.Count * 4)];
@@ -648,8 +660,10 @@ namespace ACE.Server.Network
                 if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && ConnectionData.PacketSequence.CurrentValue == 0)
                     ConnectionData.PacketSequence = new Sequence.UIntSequence(1);
 
+                bool isNak = packet.Header.Flags.HasFlag(PacketHeaderFlags.RequestRetransmit);
+
                 // If we are only ACKing, then we don't seem to have to increment the sequence
-                if (packet.Header.Flags == PacketHeaderFlags.AckSequence || packet.Header.Flags.HasFlag(PacketHeaderFlags.RequestRetransmit))
+                if (packet.Header.Flags == PacketHeaderFlags.AckSequence || isNak)
                     packet.Header.Sequence = ConnectionData.PacketSequence.CurrentValue;
                 else
                     packet.Header.Sequence = ConnectionData.PacketSequence.NextValue;
@@ -657,7 +671,7 @@ namespace ACE.Server.Network
                 packet.Header.Iteration = 0x14;
                 packet.Header.Time = (ushort)Timers.PortalYearTicks;
 
-                if (packet.Header.Sequence >= 2u)
+                if (packet.Header.Sequence >= 2u && !isNak)
                     cachedPackets.TryAdd(packet.Header.Sequence, packet);
 
                 SendPacket(packet);

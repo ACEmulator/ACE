@@ -1,5 +1,7 @@
+using System;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -101,7 +103,10 @@ namespace ACE.Server.WorldObjects
 
             // hollow weapons also ignore player natural resistances
             if (ignoreMagicResist)
-                return weaponResistanceMod;
+            {
+                if (!(attacker is Player) || !(this is Player) || PropertyManager.GetDouble("ignore_magic_resist_pvp_scalar").Item == 1.0)
+                    return weaponResistanceMod;
+            }
 
             var protMod = EnchantmentManager.GetProtectionResistanceMod(damageType);
             var vulnMod = EnchantmentManager.GetVulnerabilityResistanceMod(damageType);
@@ -119,11 +124,8 @@ namespace ACE.Server.WorldObjects
                 var resistAug = player.GetAugmentationResistance(damageType);
                 if (resistAug > 0)
                 {
-                    // should the existing protMod be converted to additive space first?
-
-                    // +10% protection = 0.90909 mod
-                    // +20% protection = 0.83333 mod
-                    protMod *= 1.0f / (1.0f + resistAug * 0.1f);
+                    var augFactor = Math.Min(1.0f, resistAug * 0.1f);
+                    protMod *= 1.0f - augFactor;
                 }
             }
 
@@ -131,6 +133,20 @@ namespace ACE.Server.WorldObjects
             // whichever is more powerful
             if (vulnMod < weaponResistanceMod)
                 vulnMod = weaponResistanceMod;
+
+            if (ignoreMagicResist)
+            {
+                // convert to additive space
+                var addProt = -ModToRating(protMod);
+                var addVuln = ModToRating(vulnMod);
+
+                // scale
+                addProt = IgnoreMagicResistScaled(addProt);
+                addVuln = IgnoreMagicResistScaled(addVuln);
+
+                protMod = GetNegativeRatingMod(addProt);
+                vulnMod = GetPositiveRatingMod(addVuln);
+            }
 
             return protMod * vulnMod;
         }

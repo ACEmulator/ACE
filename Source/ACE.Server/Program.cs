@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -119,10 +118,11 @@ namespace ACE.Server
             }
 
             log.Info("Starting ACEmulator...");
-            var assembly = Assembly.GetExecutingAssembly();
-            var fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
-            var serverVersion = fileVersionInfo.ProductVersion;
-            Console.Title = @$"ACEmulator - v{serverVersion}";
+
+            if (IsRunningInContainer)
+                log.Info("ACEmulator is running in a container...");
+
+            Console.Title = @$"ACEmulator - v{ServerBuildInfo.FullVersion}";
 
             var configFile = Path.Combine(exeLocation, "Config.js");
             var configConfigContainer = Path.Combine(containerConfigDirectory, "Config.js");

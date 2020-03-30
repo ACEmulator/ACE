@@ -112,6 +112,19 @@ namespace ACE.Server.Physics.Common
             }
         }
 
+        public bool KnownObjectsContainsKey(uint guid)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return KnownObjects.ContainsKey(guid);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
         public bool KnownObjectsContainsValue(PhysicsObj value)
         {
             rwLock.EnterReadLock();
@@ -628,7 +641,9 @@ namespace ACE.Server.Physics.Common
                 RemoveVisibleObject(obj, inverse);
                 DestructionQueue.Remove(obj, out _);
 
-                RemoveKnownPlayer(obj);
+                if (obj.IsPlayer)
+                    RemoveKnownPlayer(obj);
+
                 RemoveVisibleTarget(obj);
             }
             finally

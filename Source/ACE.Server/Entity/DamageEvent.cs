@@ -388,9 +388,6 @@ namespace ACE.Server.Entity
             BaseDamage = ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
 
             DamageType = attacker.GetDamageType(AttackPart, CombatType);
-
-            if (attacker is CombatPet combatPet)
-                DamageType = combatPet.DamageType;
         }
 
         /// <summary>
