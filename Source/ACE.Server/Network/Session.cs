@@ -175,6 +175,8 @@ namespace ACE.Server.Network
         /// </summary>
         public void LogOffPlayer(bool forceImmediate = false)
         {
+            if (Player == null) return;
+
             if (logOffRequestTime == DateTime.MinValue)
             {
                 var result = Player.LogOut(false, forceImmediate);
