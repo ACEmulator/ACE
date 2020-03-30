@@ -265,7 +265,7 @@ namespace ACE.Server.WorldObjects
             }));
         }
 
-        private bool suicideInProgress;
+        public bool suicideInProgress;
 
         /// <summary>
         /// Called when player uses the /die command

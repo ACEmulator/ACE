@@ -82,8 +82,8 @@ namespace ACE.Server.WorldObjects
                 || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley || SpellType == ProjectileSpellType.Blast
                 || WeenieClassId == 7276 || WeenieClassId == 7277 || WeenieClassId == 7279 || WeenieClassId == 7280)
             {
-                PhysicsObj.DefaultScript = PlayScript.ProjectileCollision;
-                PhysicsObj.DefaultScriptIntensity = 1.0f;
+                DefaultScriptId = (uint)PlayScript.ProjectileCollision;
+                DefaultScriptIntensity = 1.0f;
             }
 
             // Some wall spells don't have scripted collisions
@@ -117,7 +117,7 @@ namespace ACE.Server.WorldObjects
             if (WeenieClassId == 1636 || WeenieClassId == 7268 || WeenieClassId == 20979)
             {
                 AlignPath = false;
-                Omega = new Vector3(12.56637f, 0, 0);
+                PhysicsObj.Omega = new Vector3(12.56637f, 0, 0);
             }
         }
 
@@ -214,25 +214,23 @@ namespace ACE.Server.WorldObjects
 
             PhysicsObj.set_active(false);
 
-            var broadcaster = PhysicsObj.entering_world ? ProjectileSource : this;
-
-            broadcaster.EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
-            broadcaster.EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Explode, GetProjectileScriptIntensity(SpellType)));
-
             if (PhysicsObj.entering_world)
             {
-                // for this path, since the projectile is being set to ethereal before the CO is sent,
-                // setting small velocity to still show the particle effects, but prevent the projectile from continuing
-                // to sail through the target
-
-                Velocity *= 0.05f;
+                // this path should only happen if spell_projectile_ethereal = false
+                EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Launch, GetProjectileScriptIntensity(SpellType)));
                 WorldEntryCollision = true;
             }
-            else if (PropertyManager.GetBool("spell_projectile_ethereal").Item)
-            {
-                PhysicsObj.Velocity = Vector3.Zero;
-                broadcaster.EnqueueBroadcast(new GameMessageVectorUpdate(this));
-            }
+
+            EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
+            EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Explode, GetProjectileScriptIntensity(SpellType)));
+
+            // this should only be needed for spell_projectile_ethereal = true,
+            // however it can also fix a display issue on client in default mode,
+            // where GameMessageSetState updates projectile to ethereal before it has actually collided on client,
+            // causing a 'ghost' projectile to continue to sail through the target
+
+            PhysicsObj.Velocity = Vector3.Zero;
+            EnqueueBroadcast(new GameMessageVectorUpdate(this));
 
             ActionChain selfDestructChain = new ActionChain();
             selfDestructChain.AddDelaySeconds(5.0);
@@ -760,7 +758,7 @@ namespace ACE.Server.WorldObjects
 
             var velocity = Velocity;
             //velocity = Vector3.Transform(velocity, Matrix4x4.Transpose(Matrix4x4.CreateFromQuaternion(rotation)));
-            PhysicsObj.Velocity = velocity.Value;
+            PhysicsObj.Velocity = velocity;
 
             if (target != null)
                 PhysicsObj.ProjectileTarget = target.PhysicsObj;

@@ -123,7 +123,10 @@ namespace ACE.Server.WorldObjects
             {
                 var resistAug = player.GetAugmentationResistance(damageType);
                 if (resistAug > 0)
-                    protMod = Math.Max(0.0f, protMod - resistAug * 0.1f);
+                {
+                    var augFactor = Math.Min(1.0f, resistAug * 0.1f);
+                    protMod *= 1.0f - augFactor;
+                }
             }
 
             // vulnerability mod becomes either life vuln or weapon resistance mod,

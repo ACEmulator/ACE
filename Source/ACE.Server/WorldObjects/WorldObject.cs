@@ -127,6 +127,8 @@ namespace ACE.Server.WorldObjects
             InitializeHeartbeats();
         }
 
+        public bool BumpVelocity { get; set; }
+
         /// <summary>
         /// Initializes a new default physics object
         /// </summary>
@@ -169,6 +171,9 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.State = defaultState;
 
             //if (creature != null) AllowEdgeSlide = true;
+
+            if (BumpVelocity)
+                PhysicsObj.Velocity = new Vector3(0, 0, 0.5f);
         }
 
         public bool AddPhysicsObj()

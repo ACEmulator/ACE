@@ -47,6 +47,10 @@ namespace ACE.Server.WorldObjects
         public Corpse(Biota biota) : base(biota)
         {
             SetEphemeralValues();
+
+            // for player corpses restored from database,
+            // ensure any floating corpses fall to the ground
+            BumpVelocity = true;
         }
 
         private void SetEphemeralValues()

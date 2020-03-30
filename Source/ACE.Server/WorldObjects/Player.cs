@@ -57,6 +57,8 @@ namespace ACE.Server.WorldObjects
         public static readonly float MaxRadarRange_Indoors = 25.0f;
         public static readonly float MaxRadarRange_Outdoors = 75.0f;
 
+        public DateTime PrevObjSend;
+
         public float CurrentRadarRange => Location.Indoors ? MaxRadarRange_Indoors : MaxRadarRange_Outdoors;
 
         /// <summary>
@@ -851,9 +853,17 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
+                PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
+
                 // set jump velocity
-                var glob_velocity = Vector3.Transform(jump.Velocity, Location.Rotation);
-                PhysicsObj.set_velocity(glob_velocity, true);
+                //var glob_velocity = Vector3.Transform(jump.Velocity, Location.Rotation);
+                //PhysicsObj.set_velocity(glob_velocity, true);
+
+                // perform jump in physics engine
+                PhysicsObj.TransientState &= ~(Physics.TransientStateFlags.Contact | Physics.TransientStateFlags.WaterContact);
+                PhysicsObj.calc_acceleration();
+                PhysicsObj.set_on_walkable(false);
+                PhysicsObj.set_local_velocity(jump.Velocity, false);
             }
 
             // this shouldn't be needed, but without sending this update motion / simulated movement event beforehand,
@@ -1017,22 +1027,29 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast), LocalBroadcastRange);
 
             // perform pk lite entry motion / effect
-            var motion = new Motion(MotionStance.NonCombat, MotionCommand.EnterPKLite);
-            EnqueueBroadcastMotion(motion);
 
-            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var animLength = motionTable.GetAnimationLength(MotionStance.NonCombat, MotionCommand.EnterPKLite);
+            IsBusy = true;
+
+            var prevStance = CurrentMotionState.Stance;
 
             var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(animLength);
-            IsBusy = true;
+
+            var animTime = 0.0f;
+
+            animTime += EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.EnterPKLite);
+
             actionChain.AddAction(this, () =>
             {
-                IsBusy = false;
                 UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite, true);
 
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNowPKLite));
             });
+
+            // return to previous stance, if applicable
+            if (prevStance != MotionStance.NonCombat)
+                animTime += EnqueueMotion_Force(actionChain, prevStance, MotionCommand.Ready, MotionCommand.NonCombat);
+
+            actionChain.AddAction(this, () => IsBusy = false);
 
             actionChain.EnqueueChain();
         }

@@ -6,6 +6,7 @@ using System.Numerics;
 using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Combat;
@@ -1296,12 +1297,21 @@ namespace ACE.Server.Physics
 
             if (transition.SpherePath.CurCell == null) return SetPositionError.NoCell;
 
-            // custom
-            if (ProjectileTarget != null)
-                handle_all_collisions(transition.CollisionInfo, false, false);
+            // custom:
+            // test for non-ethereal spell projectile collision on world entry
+            var spellCollide = WeenieObj.WorldObject is SpellProjectile && transition.CollisionInfo.CollideObject.Count > 0 && !PropertyManager.GetBool("spell_projectile_ethereal").Item;
+
+            if (spellCollide)
+            {
+                // send initial CO as ethereal
+                WeenieObj.WorldObject.Ethereal = true;
+            }
 
             if (!SetPositionInternal(transition))
                 return SetPositionError.GeneralFailure;
+
+            if (spellCollide)
+                handle_all_collisions(transition.CollisionInfo, false, false);
 
             return SetPositionError.OK;
         }
@@ -2765,6 +2775,8 @@ namespace ACE.Server.Physics
 
             if (isVisible)
             {
+                var prevKnown = ObjMaint.KnownObjectsContainsKey(obj.ID);
+
                 var newlyVisible = ObjMaint.AddVisibleObject(obj);
 
                 if (newlyVisible)
@@ -2773,7 +2785,7 @@ namespace ACE.Server.Physics
                     ObjMaint.RemoveObjectToBeDestroyed(obj);
                 }
 
-                return newlyVisible;
+                return !prevKnown && newlyVisible;
             }
             else
             {
@@ -4202,6 +4214,24 @@ namespace ACE.Server.Physics
             // temp for players
             if ((TransientState & TransientStateFlags.Contact) != 0)
                 CachedVelocity = Vector3.Zero;
+
+            if (wo != null && wo.Teleporting)
+            {
+                //Console.WriteLine($"*** SETTING TELEPORT ***");
+
+                var setPosition = new SetPosition();
+                setPosition.Pos = RequestPos;
+                setPosition.Flags = SetPositionFlags.SendPositionEvent | SetPositionFlags.Slide | SetPositionFlags.Placement | SetPositionFlags.Teleport;
+
+                SetPosition(setPosition);
+
+                // hack...
+                if (!TransientState.HasFlag(TransientStateFlags.OnWalkable))
+                {
+                    //Console.WriteLine($"Setting velocity");
+                    Velocity = new Vector3(0, 0, -PhysicsGlobals.EPSILON);
+                }
+            }
 
             UpdateTime = PhysicsTimer.CurrentTime;
 

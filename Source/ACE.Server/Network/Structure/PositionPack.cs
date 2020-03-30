@@ -33,7 +33,7 @@ namespace ACE.Server.Network.Structure
 
         public PositionPack() { }
 
-        public PositionPack(WorldObject wo)
+        public PositionPack(WorldObject wo, bool adminMove = false)
         {
             WorldObject = wo;
 
@@ -45,7 +45,12 @@ namespace ACE.Server.Network.Structure
             // note that this constructor increments the wo position sequence
             InstanceSequence = wo.Sequences.GetCurrentSequence(SequenceType.ObjectInstance);
             PositionSequence = wo.Sequences.GetNextSequence(SequenceType.ObjectPosition);
-            TeleportSequence = wo.Sequences.GetCurrentSequence(SequenceType.ObjectTeleport);
+
+            if (adminMove)
+                TeleportSequence = wo.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+            else
+                TeleportSequence = wo.Sequences.GetCurrentSequence(SequenceType.ObjectTeleport);
+
             ForcePositionSequence = wo.Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition);
 
             Flags = BuildFlags();

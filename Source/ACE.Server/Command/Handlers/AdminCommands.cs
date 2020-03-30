@@ -1,12 +1,13 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Net;
 using System.Threading;
 
 using log4net;
 
+using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;
@@ -18,9 +19,9 @@ using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
+using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
-using ACE.Server.Network.Enum;
 using ACE.Server.WorldObjects.Entity;
 
 using Biota = ACE.Database.Models.Shard.Biota;
@@ -2015,7 +2016,8 @@ namespace ACE.Server.Command.Handlers
             }
 
             // determine the vital type
-            if (!Enum.TryParse(parameters[0], out PropertyAttribute2nd vitalAttr)) {
+            if (!Enum.TryParse(parameters[0], out PropertyAttribute2nd vitalAttr))
+            {
                 ChatPacket.SendServerMessage(session, "Invalid vital type, valid values are: Health,Stamina,Mana", ChatMessageType.Broadcast);
                 return;
             }
@@ -2297,7 +2299,7 @@ namespace ACE.Server.Command.Handlers
 
                     if (wearable.Palette > 0)
                         worldObject.PaletteTemplate = wearable.Palette;
-                    if (wearable.Shade > 0)
+                    if (wearable.Shade >= 0)
                         worldObject.Shade = wearable.Shade;
 
                     player.TryEquipObjectWithNetworking(worldObject, worldObject.ValidLocations ?? 0);
@@ -2319,7 +2321,7 @@ namespace ACE.Server.Command.Handlers
 
                     if (containable.Palette > 0)
                         worldObject.PaletteTemplate = containable.Palette;
-                    if (containable.Shade > 0)
+                    if (containable.Shade >= 0)
                         worldObject.Shade = containable.Shade;
                     player.TryAddToInventory(worldObject);
                 }
@@ -3050,7 +3052,7 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
             }
         }
-      
+
         // cm <material type> <quantity> <ave. workmanship>
         [CommandHandler("cm", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
         public static void HandleCM(Session session, params string[] parameters)
@@ -3175,6 +3177,51 @@ namespace ACE.Server.Command.Handlers
             msg += "Clear resets to default.\nAll options ending with Fog are continuous.\nAll options ending with Fog2 are continuous and blank radar.\nAll options ending with Sound play once and do not repeat.";
 
             return msg;
+        }
+
+        [CommandHandler("movetome", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, "Moves the last appraised object to the current player location.")]
+        public static void HandleMoveToMe(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (obj == null)
+                return;
+
+            if (obj.CurrentLandblock == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}) is not a landblock object", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (obj is Player)
+            {
+                HandleTeleToMe(session, new string[] { obj.Name });
+                return;
+            }
+
+            var prevLoc = obj.Location;
+            var newLoc = new Position(session.Player.Location);
+            newLoc.Rotation = prevLoc.Rotation;     // keep previous rotation
+
+            var setPos = new Physics.Common.SetPosition(newLoc.PhysPosition(), Physics.Common.SetPositionFlags.Teleport | Physics.Common.SetPositionFlags.Slide);
+            var result = obj.PhysicsObj.SetPosition(setPos);
+
+            if (result != Physics.Common.SetPositionError.OK)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Failed to move {obj.Name} ({obj.Guid}) to current location: {result}", ChatMessageType.Broadcast));
+                return;
+
+            }
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Moving {obj.Name} ({obj.Guid}) to current location", ChatMessageType.Broadcast));
+
+            obj.Location = obj.PhysicsObj.Position.ACEPosition();
+
+            if (prevLoc.Landblock != obj.Location.Landblock)
+            {
+                LandblockManager.RelocateObjectForPhysics(obj, true);
+            }
+
+            obj.SendUpdatePosition(true);
         }
     }
 }

@@ -35,21 +35,29 @@ namespace ACE.Server.WorldObjects
             // verify spell exists in database
             if (spell._spell == null)
             {
-                var targetPlayer = target as Player;
-                if (targetPlayer != null)
+                if (target is Player targetPlayer)
                     targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
 
                 return;
             }
 
-            //if (!spell.IsSelfTargeted && target == null && spell.School != MagicSchool.WarMagic)
-                //return;
+            if (spell.Flags.HasFlag(SpellFlags.FellowshipSpell))
+            {
+                var targetPlayer = target as Player;
+                if (targetPlayer == null || targetPlayer.Fellowship == null)
+                    return;
 
-            // spells only castable on creatures?
-            /*var targetCreature = target as Creature;
-            if (targetCreature == null)
-                return;*/
+                var fellows = targetPlayer.Fellowship.GetFellowshipMembers();
 
+                foreach (var fellow in fellows.Values)
+                    TryCastSpell_Inner(spell, fellow, caster, tryResist, showMsg);
+            }
+            else
+                TryCastSpell_Inner(spell, target, caster, tryResist, showMsg);
+        }
+
+        public void TryCastSpell_Inner(Spell spell, WorldObject target, WorldObject caster = null, bool tryResist = true, bool showMsg = true)
+        {
             // verify before resist, still consumes source item
             if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(caster, target))
                 return;
@@ -66,6 +74,7 @@ namespace ACE.Server.WorldObjects
                 case MagicSchool.WarMagic:
                     WarMagic(target, spell, this);
                     break;
+
                 case MagicSchool.LifeMagic:
                     var targetDeath = LifeMagic(spell, out uint damage, out bool critical, out status, target, caster);
                     if (targetDeath && target is Creature targetCreature)
@@ -74,23 +83,28 @@ namespace ACE.Server.WorldObjects
                         targetCreature.Die();
                     }
                     break;
+
                 case MagicSchool.CreatureEnchantment:
                     status = CreatureMagic(target, spell, caster);
                     break;
+
                 case MagicSchool.ItemEnchantment:
                     status = ItemMagic(target, spell, caster);
                     break;
+
                 case MagicSchool.VoidMagic:
                     VoidMagic(target, spell, this);
                     break;
             }
 
             // send message to player, if applicable
-            var player = this as Player;
-            if (player != null && status.Message != null && !status.Broadcast && showMsg)
-                player.Session.Network.EnqueueSend(status.Message);
-            else if (player != null && status.Message != null && status.Broadcast && showMsg)
-                player.EnqueueBroadcast(status.Message, LocalBroadcastRange, ChatMessageType.Magic);
+            if (this is Player player && status.Message != null && showMsg)
+            {
+                if (status.Broadcast)
+                    player.EnqueueBroadcast(status.Message, LocalBroadcastRange, ChatMessageType.Magic);
+                else
+                    player.Session.Network.EnqueueSend(status.Message);
+            }
 
             // for invisible spell traps,
             // their effects won't be seen if they broadcast from themselves
@@ -365,6 +379,7 @@ namespace ACE.Server.WorldObjects
             switch (spell.MetaSpellType)
             {
                 case SpellType.Boost:
+                case SpellType.FellowBoost:
 
                     // handle negatives?
                     int minBoostValue = Math.Min(spell.Boost, spell.MaxBoost);
@@ -650,10 +665,7 @@ namespace ACE.Server.WorldObjects
                             //player.Fellowship.OnVitalUpdate(player);
                     }
 
-                    var lifeProjectiles = CreateSpellProjectiles(spell, target, itemCaster);
-
-                    foreach (var lifeProjectile in lifeProjectiles)
-                        lifeProjectile.LifeProjectileDamage = damage;
+                    var lifeProjectiles = CreateSpellProjectiles(spell, target, itemCaster, damage);
 
                     if (caster.Health.Current <= 0)
                     {
@@ -666,6 +678,7 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case SpellType.Dispel:
+                case SpellType.FellowDispel:
 
                     var removeSpells = target.EnchantmentManager.SelectDispel(spell);
 
@@ -694,6 +707,8 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case SpellType.Enchantment:
+                case SpellType.FellowEnchantment:
+
                     damage = 0;
                     if (itemCaster != null)
                         enchantmentStatus = CreateEnchantment(target, itemCaster, spell, equip);
@@ -1208,7 +1223,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Creates and launches the projectiles for a spell
         /// </summary>
-        public List<SpellProjectile> CreateSpellProjectiles(Spell spell, WorldObject target, WorldObject caster)
+        public List<SpellProjectile> CreateSpellProjectiles(Spell spell, WorldObject target, WorldObject caster, uint lifeProjectileDamage = 0)
         {
             if (spell.NumProjectiles == 0)
             {
@@ -1222,7 +1237,7 @@ namespace ACE.Server.WorldObjects
 
             var velocity = CalculateProjectileVelocity(spell, target, spellType, origins[0]);
 
-            return LaunchSpellProjectiles(spell, target, spellType, caster, origins, velocity);
+            return LaunchSpellProjectiles(spell, target, spellType, caster, origins, velocity, lifeProjectileDamage);
         }
 
         public static readonly float ProjHeight = 2.0f / 3.0f;
@@ -1379,7 +1394,12 @@ namespace ACE.Server.WorldObjects
             if (spell.SpreadAngle == 0.0f || spell.NumProjectiles == 1)
                 return 0.0f;
 
-            return spell.SpreadAngle / (spell.NumProjectiles - 1);
+            var numProjectiles = spell.NumProjectiles;
+
+            if (numProjectiles % 2 == 1)
+                numProjectiles--;
+
+            return spell.SpreadAngle / numProjectiles;
         }
 
         public static readonly Quaternion OneEighty = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)Math.PI);
@@ -1391,28 +1411,27 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Vector3 CalculateProjectileVelocity(Spell spell, WorldObject target, ProjectileSpellType spellType, Vector3 origin)
         {
+            var casterLoc = PhysicsObj.Position.ACEPosition();
+
             var speed = GetProjectileSpeed(spell);
 
             if (target == null)
             {
                 // launch along forward vector
-                return Vector3.Transform(Vector3.UnitY, Location.Rotation) * speed;
+                return Vector3.Transform(Vector3.UnitY, casterLoc.Rotation) * speed;
             }
+
+            var targetLoc = target.PhysicsObj.Position.ACEPosition();
 
             var strikeSpell = spellType == ProjectileSpellType.Strike;
 
-            var crossLandblock = !strikeSpell && Location.Landblock != target.Location.Landblock;
+            var crossLandblock = !strikeSpell && casterLoc.Landblock != targetLoc.Landblock;
 
-            var startPos = strikeSpell ? target.Location.Pos : crossLandblock ? Location.ToGlobal(false) : Location.Pos;
-            startPos += Vector3.Transform(origin, strikeSpell ? Location.Rotation * OneEighty : Location.Rotation);
+            var qDir = PhysicsObj.Position.GetOffset(target.PhysicsObj.Position);
+            var rotate = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)Math.Atan2(-qDir.X, qDir.Y));
 
-            var targetLoc = target.Location;
-
-            if (target.PhysicsObj != null)
-            {
-                var targetPos = target.PhysicsObj.Position;
-                targetLoc = new Position(targetPos.ObjCellID, targetPos.Frame.Origin, targetPos.Frame.Orientation);
-            }
+            var startPos = strikeSpell ? targetLoc.Pos : crossLandblock ? casterLoc.ToGlobal(false) : casterLoc.Pos;
+            startPos += Vector3.Transform(origin, strikeSpell ? rotate * OneEighty : rotate);
 
             var endPos = crossLandblock ? targetLoc.ToGlobal(false) : targetLoc.Pos;
 
@@ -1436,13 +1455,16 @@ namespace ACE.Server.WorldObjects
                 return dir * speed;
         }
 
-        public List<SpellProjectile> LaunchSpellProjectiles(Spell spell, WorldObject target, ProjectileSpellType spellType, WorldObject caster, List<Vector3> origins, Vector3 velocity)
+        public List<SpellProjectile> LaunchSpellProjectiles(Spell spell, WorldObject target, ProjectileSpellType spellType, WorldObject caster, List<Vector3> origins, Vector3 velocity, uint lifeProjectileDamage = 0)
         {
             var useGravity = spellType == ProjectileSpellType.Arc;
 
             var strikeSpell = target != null && spellType == ProjectileSpellType.Strike;
 
             var spellProjectiles = new List<SpellProjectile>();
+
+            var casterLoc = PhysicsObj.Position.ACEPosition();
+            var targetLoc = target?.PhysicsObj.Position.ACEPosition();
 
             for (var i = 0; i < origins.Count; i++)
             {
@@ -1458,21 +1480,28 @@ namespace ACE.Server.WorldObjects
 
                 sp.Setup(spell, spellType);
 
-                sp.Location = strikeSpell ? new Position(target.Location) : new Position(Location);
-                sp.Location.Pos += Vector3.Transform(origin, strikeSpell ? Location.Rotation * OneEighty : Location.Rotation);
+                var rotate = casterLoc.Rotation;
+                if (target != null)
+                {
+                    var qDir = PhysicsObj.Position.GetOffset(target.PhysicsObj.Position);
+                    rotate = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)Math.Atan2(-qDir.X, qDir.Y));
+                }
 
-                sp.Velocity = velocity;
+                sp.Location = strikeSpell ? new Position(targetLoc) : new Position(casterLoc);
+                sp.Location.Pos += Vector3.Transform(origin, strikeSpell ? rotate * OneEighty : rotate);
+
+                sp.PhysicsObj.Velocity = velocity;
 
                 if (spell.SpreadAngle > 0)
                 {
                     var n = Vector3.Normalize(origin);
                     var angle = Math.Atan2(-n.X, n.Y);
                     var q = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)angle);
-                    sp.Velocity = Vector3.Transform(velocity, q);
+                    sp.PhysicsObj.Velocity = Vector3.Transform(velocity, q);
                 }
 
                 // set orientation
-                var dir = Vector3.Normalize(sp.Velocity.Value);
+                var dir = Vector3.Normalize(sp.Velocity);
                 sp.PhysicsObj.Position.Frame.set_vector_heading(dir);
                 sp.Location.Rotation = sp.PhysicsObj.Position.Frame.Orientation;
 
@@ -1485,6 +1514,8 @@ namespace ACE.Server.WorldObjects
 
                 sp.SetProjectilePhysicsState(sp.ProjectileTarget, useGravity);
                 sp.SpawnPos = new Position(sp.Location);
+
+                sp.LifeProjectileDamage = lifeProjectileDamage;
 
                 if (!LandblockManager.AddObject(sp) || sp.WorldEntryCollision)
                 {

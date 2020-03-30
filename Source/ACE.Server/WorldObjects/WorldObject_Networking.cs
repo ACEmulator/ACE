@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
@@ -364,17 +365,17 @@ namespace ACE.Server.WorldObjects
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) != 0)
             {
-                writer.Write(Velocity.Value);
+                writer.Write(Velocity);
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Acceleration) != 0)
             {
-                writer.Write(Acceleration.Value);
+                writer.Write(Acceleration);
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Omega) != 0)
             {
-                writer.Write(Omega.Value);
+                writer.Write(Omega);
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScript) != 0)
@@ -402,11 +403,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Broadcast position updates to players within range
         /// </summary>
-        public void SendUpdatePosition()
+        /// <param name="adminMove">only used if admin is teleporting a non-player object</param>
+        public void SendUpdatePosition(bool adminMove = false)
         {
             //Console.WriteLine($"{Name}.SendUpdatePosition({Location.ToLOCString()})");
 
-            EnqueueBroadcast(new GameMessageUpdatePosition(this));
+            EnqueueBroadcast(new GameMessageUpdatePosition(this, adminMove));
 
             LastUpdatePosition = DateTime.UtcNow;
         }
@@ -477,13 +479,13 @@ namespace ACE.Server.WorldObjects
             if ((Translucency != null) && (Math.Abs(Translucency ?? 0) >= 0.001))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Translucency;
 
-            if (Velocity != null)
+            if (Velocity != Vector3.Zero)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Velocity;
 
-            if (Acceleration != null)
+            if (Acceleration != Vector3.Zero)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Acceleration;
 
-            if (Omega != null)
+            if (Omega != Vector3.Zero)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Omega;
 
             if (DefaultScriptId != null)
