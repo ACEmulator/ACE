@@ -155,6 +155,9 @@ namespace ACE.Server.Physics.Animation
         public void SetPhysicsObject(PhysicsObj obj)
         {
             PhysicsObj = obj;
+
+            if (Table != null)
+                Table.PhysicsObj = obj;
         }
 
         public void UseTime()

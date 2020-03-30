@@ -1096,6 +1096,9 @@ namespace ACE.Server.WorldObjects
 
                 CurrentMotionState = motion;
                 EnqueueBroadcastMotion(motion);
+
+                if (castGesture && this is Player _player)
+                    _player.DoCastLog(motionCommand);
             });
 
             if (half)
@@ -1140,6 +1143,10 @@ namespace ACE.Server.WorldObjects
 
                 foreach (var motionCommand in motionCommands)
                     ApplyPhysicsMotion(new Motion(stance, motionCommand, speed));
+
+                // only called by magic windup in fast tick mode currently
+                if (this is Player player)
+                    player.DoWindupLog(motionCommands);
             });
 
             actionChain.AddDelaySeconds(animLength);

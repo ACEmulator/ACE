@@ -736,6 +736,8 @@ namespace ACE.Server.WorldObjects
                 RecordCast.OnSetCombatMode(newCombatMode);
         }
 
+        public StanceLog StanceLog = new StanceLog();
+
         public override bool CanDamage(Creature target)
         {
             return target.Attackable && !target.Teleporting && !(target is CombatPet);

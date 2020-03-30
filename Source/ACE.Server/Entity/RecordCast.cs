@@ -2,19 +2,47 @@ using System;
 using System.IO;
 using System.Text;
 
+using log4net;
+
 using ACE.Entity.Enum;
+using ACE.Server.Command.Handlers;
 using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
+    public enum RecordCastMode
+    {
+        Disabled,
+        Enabled,
+        LogError
+    };
+
     public class RecordCast
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public Player Player;
 
-        public bool Enabled;
+        public static RecordCastMode DefaultMode = RecordCastMode.LogError;
+
+        public RecordCastMode Mode = DefaultMode;
+
+        public bool Enabled
+        {
+            get => Mode != RecordCastMode.Disabled;
+            set
+            {
+                if (value)
+                    Mode = RecordCastMode.Enabled;
+                else
+                    Mode = DefaultMode;
+            }
+        }
 
         public string Filename => $"{Player.Name}Cast.log";
+
+        public string DebugFilename => $"{Player.Name}-FixCast.log";
 
         public StringBuilder Buffer = new StringBuilder();
 
@@ -68,18 +96,31 @@ namespace ACE.Server.Entity
 
         public void Output(string line)
         {
-            var timestamp = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss,fff");
+            var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss,fff");
 
             var timestamp_line = $"[{timestamp}] {line}";
 
             Buffer.AppendLine(timestamp_line);
-            Console.WriteLine(timestamp_line);
+            //Console.WriteLine(timestamp_line);
         }
 
         public void Flush()
         {
-            File.AppendAllText(Filename, Buffer.ToString());
+            if (Mode == RecordCastMode.Enabled)
+                File.AppendAllText(Filename, Buffer.ToString());
+
             Buffer.Clear();
+        }
+
+        public void ShowInfo(string debugCast)
+        {
+            var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss,fff");
+
+            var stanceLog = Player.StanceLog.ToString();
+
+            var info = $"[{timestamp}] {Player.Name} used /fixcast after being frozen for 5+ seconds:\n{debugCast}\n{Buffer}\n{stanceLog}\n===================================================";
+
+            File.AppendAllText(DebugFilename, info);
         }
     }
 }

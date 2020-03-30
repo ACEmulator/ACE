@@ -1434,6 +1434,9 @@ namespace ACE.Server.WorldObjects
 
         public void HandleMotionDone_Magic(uint motionID, bool success)
         {
+            if (RecordCast.Enabled)
+                RecordCast.Log($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success})");
+
             //Console.WriteLine($"HandleMotionDone_Magic({(MotionCommand)motionID}, {success})");
 
             if (!FastTick || !MagicState.IsCasting) return;
@@ -1462,6 +1465,9 @@ namespace ACE.Server.WorldObjects
 
         public void OnMoveComplete_Magic(WeenieError status)
         {
+            if (RecordCast.Enabled)
+                RecordCast.Log($"{Name}.OnMoveComplete_Magic({status})");
+
             //Console.WriteLine($"OnMoveComplete_Magic({status})");
 
             if (!FastTick || !MagicState.IsCasting || !MagicState.TurnStarted)
@@ -1470,9 +1476,6 @@ namespace ACE.Server.WorldObjects
             // this occurs after the player is done turning
             // before the windup, or after the first half of the cast motion
             // either completed or cancelled
-
-            if (RecordCast.Enabled)
-                RecordCast.Log($"{Name}.OnMoveComplete_Magic({status}) - DoCastSpell");
 
             MagicState.IsTurning = false;
 
@@ -1485,9 +1488,19 @@ namespace ACE.Server.WorldObjects
                 if (!MagicState.IsCasting) return;
 
                 if (!MagicState.CastMotionDone)
+                {
+                    if (RecordCast.Enabled)
+                        RecordCast.Log($"{Name}.OnMoveComplete_Magic({status}) - DoWindup");
+
                     DoWindup(MagicState.WindupParams, checkAngle);
+                }
                 else
+                {
+                    if (RecordCast.Enabled)
+                        RecordCast.Log($"{Name}.OnMoveComplete_Magic({status}) - DoCastSpell");
+
                     DoCastSpell(MagicState, checkAngle);
+                }
             });
             actionChain.EnqueueChain();
         }
@@ -1541,6 +1554,39 @@ namespace ACE.Server.WorldObjects
                 else
                     HandleActionMagicCastUnTargetedSpell(MagicState.CastQueue.SpellId);
             }
+        }
+
+        public void DoWindupLog(List<MotionCommand> windupGestures)
+        {
+            if (!RecordCast.Enabled) return;
+
+            foreach (var windupGesture in windupGestures)
+            {
+                if (Physics.Animation.MotionTable.MagicAnims.TryGetValue(windupGesture, out var anim_id))
+                {
+                    if (PhysicsObj.PartArray.Sequence.has_anim(anim_id))
+                        RecordCast.Log($"Windup gesture {windupGesture} found in sequence AnimList");
+                    else
+                        RecordCast.Log($"Windup gesture {windupGesture} NOT found in sequence AnimList");
+                }
+                else
+                    RecordCast.Log($"Windup gesture {windupGesture} not found");
+            }
+        }
+
+        public void DoCastLog(MotionCommand castGesture)
+        {
+            if (!RecordCast.Enabled) return;
+
+            if (Physics.Animation.MotionTable.MagicAnims.TryGetValue(castGesture, out var anim_id))
+            {
+                if (PhysicsObj.PartArray.Sequence.has_anim(anim_id))
+                    RecordCast.Log($"Cast gesture {castGesture} found in sequence AnimList");
+                else
+                    RecordCast.Log($"Cast gesture {castGesture} NOT found in sequence AnimList");
+            }
+            else
+                RecordCast.Log($"Cast gesture {castGesture} not found");
         }
     }
 }

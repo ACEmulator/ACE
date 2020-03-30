@@ -5,6 +5,7 @@ using System.Numerics;
 using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -131,7 +132,7 @@ namespace ACE.Server.WorldObjects
             if (DebugPlayerMoveToStatePhysics)
                 Console.WriteLine(moveToState.RawMotionState);
 
-            if (RecordCast.Enabled)
+            if (RecordCast.Mode == RecordCastMode.Enabled)
                 RecordCast.OnMoveToState(moveToState);
 
             if (!PhysicsObj.IsMovingOrAnimating)
@@ -424,7 +425,7 @@ namespace ACE.Server.WorldObjects
 
                 Location = newPosition;
 
-                if (RecordCast.Enabled)
+                if (RecordCast.Mode == RecordCastMode.Enabled)
                     RecordCast.Log($"CurPos: {Location.ToLOCString()}");
 
                 if (RequestedLocationBroadcast || DateTime.UtcNow - LastUpdatePosition >= MoveToState_UpdatePosition_Threshold)

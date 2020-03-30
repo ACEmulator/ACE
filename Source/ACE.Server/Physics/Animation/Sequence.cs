@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using ACE.Entity.Enum;
+
 using ACE.DatLoader.Entity;
+using ACE.Entity.Enum;
 using ACE.Server.Physics.Hooks;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -39,6 +41,11 @@ namespace ACE.Server.Physics.Animation
             PlayerIdleAnims.Add(0x030008DF);    // ThrownShieldCombat
             PlayerIdleAnims.Add(0x0300049E);    // ThrownWeaponCombat
             PlayerIdleAnims.Add(0x03000B05);    // TwoHandedSwordCombat
+        }
+
+        public bool has_anim(uint anim_id)
+        {
+            return AnimList.Any(i => i.Anim.ID == anim_id);
         }
 
         public bool is_idle_anim()
@@ -144,6 +151,11 @@ namespace ACE.Server.Physics.Animation
 
         public void advance_to_next_animation(float timeElapsed, ref LinkedListNode<AnimSequenceNode> animNode, ref float frameNum, ref AFrame frame)
         {
+            if (HookObj.DebugAnim && HookObj.WeenieObj.WorldObject is Player player)
+            {
+                player.RecordCast.Log($"{HookObj.Name}.Sequence.advance_to_next_animation({timeElapsed}, {animNode.Value.Anim.ID:X8}, {frameNum})");
+            }
+
             var currAnim = animNode.Value;
 
             if (timeElapsed >= 0.0f)
@@ -362,6 +374,12 @@ namespace ACE.Server.Physics.Animation
             frameNum += frametime;
             var frameTimeElapsed = 0.0f;
             var animDone = false;
+
+            if (HookObj.DebugAnim && HookObj.WeenieObj.WorldObject is Player player)
+            {
+                player.RecordCast.Log($"{HookObj.Name}.Sequence.update_internal({timeElapsed}, {animNode.Value.Anim.ID:X8}, {frameNum}, {frametime})");
+                player.RecordCast.Log($"{animNode.Value.ToStringDetail()}");
+            }
 
             if (frametime > 0.0f)
             {

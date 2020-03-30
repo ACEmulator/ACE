@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 using log4net;
 
@@ -134,15 +136,31 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("debugcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows debug information about the current magic casting state")]
         public static void HandleDebugCast(Session session, params string[] parameters)
         {
+            session.Network.EnqueueSend(new GameMessageSystemChat(GetDebugCast(session), ChatMessageType.Broadcast));
+        }
+
+        public static string GetDebugCast(Session session)
+        {
             var physicsObj = session.Player.PhysicsObj;
 
             var pendingActions = physicsObj.MovementManager.MoveToManager.PendingActions;
-            var currAnim = physicsObj.PartArray.Sequence.CurrAnim;
+            var sequence = physicsObj.PartArray.Sequence;
 
-            session.Network.EnqueueSend(new GameMessageSystemChat(session.Player.MagicState.ToString(), ChatMessageType.Broadcast));
-            session.Network.EnqueueSend(new GameMessageSystemChat($"IsMovingOrAnimating: {physicsObj.IsMovingOrAnimating}", ChatMessageType.Broadcast));
-            session.Network.EnqueueSend(new GameMessageSystemChat($"PendingActions: {pendingActions.Count}", ChatMessageType.Broadcast));
-            session.Network.EnqueueSend(new GameMessageSystemChat($"CurrAnim: {currAnim?.Value.Anim.ID:X8}", ChatMessageType.Broadcast));
+            var str = session.Player.MagicState.ToString();
+            str += $"\nIsMovingOrAnimating: {physicsObj.IsMovingOrAnimating}";
+            str += $"\n- IsAnimating: {physicsObj.IsAnimating}";
+            str += $"\n- IsFirstCyclic: {!physicsObj.PartArray.Sequence.is_first_cyclic()}";
+            str += $"\n- CachedVelocity: {physicsObj.CachedVelocity != Vector3.Zero}";
+            str += $"\n- Velocity: {physicsObj.Velocity != Vector3.Zero}";
+            str += $"\n- InterpretedState.HasCommands: {physicsObj.MovementManager.MotionInterpreter.InterpretedState.HasCommands()}";
+            str += $"\n- MoveToManager: {physicsObj.MovementManager.MoveToManager.Initialized}";
+            str += $"\nCurCell: {physicsObj.CurCell?.ID:X8}";
+            str += $"\nPendingActions: {pendingActions.Count}";
+            str += $"\nAnimList: {string.Join(", ", sequence.AnimList.Select(i => i.Anim.ID.ToString("X8")))}";
+            str += $"\nFirstCyclic: {sequence.FirstCyclic?.Value.Anim.ID:X8}";
+            str += $"\nCurrAnim: {sequence.CurrAnim?.Value.Anim.ID:X8}";
+
+            return str;
         }
 
         [CommandHandler("fixcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Fixes magic casting if locked up for an extended time")]
@@ -152,10 +170,30 @@ namespace ACE.Server.Command.Handlers
 
             if (magicState.IsCasting && DateTime.UtcNow - magicState.StartTime > TimeSpan.FromSeconds(5))
             {
+                var debugCast = GetDebugCast(session);
+
+                DebugAnimQueue(session);
+
+                session.Player.RecordCast.ShowInfo(debugCast);
+
                 session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, "Fixed casting state"));
                 session.Player.SendUseDoneEvent();
                 magicState.OnCastDone();
             }
+        }
+
+        public static void DebugAnimQueue(Session session)
+        {
+            session.Player.PhysicsObj.DebugAnim = true;
+
+            for (var i = 0; i < 5; i++)
+            {
+                session.Player.RecordCast.Log($"DebugAnimQueue({i})");
+                session.Player.PhysicsObj.UpdateTime = Physics.Common.PhysicsTimer.CurrentTime - 1.0f;
+                session.Player.PhysicsObj.update_object();
+            }
+
+            session.Player.PhysicsObj.DebugAnim = false;
         }
 
         [CommandHandler("castmeter", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows the fast casting efficiency meter")]
@@ -315,6 +353,12 @@ namespace ACE.Server.Command.Handlers
             // update client
             session.Network.EnqueueSend(new GameEventPlayerDescription(session));
         }
+
+        /*[CommandHandler("debugstance", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Debug logs the most recent stance history")]
+        public static void HandleDebugStance(Session session, params string[] parameters)
+        {
+            session.Player.StanceLog.Show();
+        }*/
 
         /// <summary>
         /// Force resend of all visible objects known to this player. Can fix rare cases of invisible object bugs.

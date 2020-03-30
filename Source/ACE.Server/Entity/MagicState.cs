@@ -145,7 +145,9 @@ namespace ACE.Server.Entity
 
             if (Player.RecordCast.Enabled)
             {
-                Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Cast #: {CastNum}", ChatMessageType.Broadcast));
+                if (Player.RecordCast.Mode == RecordCastMode.Enabled)
+                    Player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Cast #: {CastNum}", ChatMessageType.Broadcast));
+
                 Player.RecordCast.Log($"MagicState.OnCastStart({CastNum})");
                 Player.RecordCast.Log($"Player Location: {Player.Location.ToLOCString()}");
             }
@@ -174,7 +176,7 @@ namespace ACE.Server.Entity
             {
                 Player.RecordCast.Log($"MagicState.OnCastDone()");
                 Player.RecordCast.Log($"Player Location: {Player.Location.ToLOCString()}");
-                if (CastSpellParams?.Target != null)
+                if (CastSpellParams?.Target?.Location != null)
                     Player.RecordCast.Log($"Target Location: {CastSpellParams.Target.Location.ToLOCString()}");
                 Player.RecordCast.Log("================================================================================");
                 Player.RecordCast.Flush();
@@ -188,7 +190,7 @@ namespace ACE.Server.Entity
         {
             CastSpellParams = new CastSpellParams(spell, isWeaponSpell, magicSkill, manaUsed, target, status);
 
-            if (Player.RecordCast.Enabled && CastSpellParams.Target != null)
+            if (Player.RecordCast.Enabled && CastSpellParams.Target?.Location != null)
                 Player.RecordCast.Log($"Target Location: {CastSpellParams.Target.Location.ToLOCString()}");
         }
 
@@ -201,7 +203,7 @@ namespace ACE.Server.Entity
         {
             var str = $"Player: {Player.Name} ({Player.Guid})\n";
             str += $"IsCasting: {IsCasting}\n";
-            str += $"CastMotionStarted: {CastMotionDone}\n";
+            str += $"CastMotionStarted: {CastGestureStartTime != DateTime.MinValue}\n";
             str += $"CastMotionDone: {CastMotionDone}\n";
             str += $"TurnStarted: {TurnStarted}\n";
             str += $"IsTurning: {IsTurning}\n";

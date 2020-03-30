@@ -6,12 +6,14 @@ using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation.Internal;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Physics.Animation
 {
     public class MotionTable
     {
         public uint ID;
+        public PhysicsObj PhysicsObj;
         public Dictionary<uint, uint> StyleDefaults;
         public Dictionary<uint, MotionData> Cycles;
         public Dictionary<uint, MotionData> Modifiers;
@@ -55,8 +57,84 @@ namespace ACE.Server.Physics.Animation
             return GetObjectSequence(motion, currState, sequence, speedMod, ref numAnims, false);
         }
 
+        public int LoopCnt;
+        public uint LastCmd;
+
+        public static Dictionary<MotionCommand, uint> MagicAnims = new Dictionary<MotionCommand, uint>()
+        {
+            { MotionCommand.MagicPowerUp01, 0x030005A0 },
+            { MotionCommand.MagicPowerUp02, 0x030005A0 },
+            { MotionCommand.MagicPowerUp03, 0x030005A0 },
+            { MotionCommand.MagicPowerUp04, 0x030005A0 },
+            { MotionCommand.MagicPowerUp05, 0x030005A0 },
+            { MotionCommand.MagicPowerUp06, 0x030005A0 },
+            { MotionCommand.MagicPowerUp07, 0x030005A0 },
+            { MotionCommand.MagicPowerUp08, 0x030005A0 },
+            { MotionCommand.MagicPowerUp09, 0x030005A0 },
+            { MotionCommand.MagicPowerUp10, 0x030005A0 },
+            { MotionCommand.MagicPowerUp01Purple, 0x03000848 },
+            { MotionCommand.MagicPowerUp02Purple, 0x03000848 },
+            { MotionCommand.MagicPowerUp03Purple, 0x03000848 },
+            { MotionCommand.MagicPowerUp04Purple, 0x03000848 },
+            { MotionCommand.MagicPowerUp05Purple, 0x03000848 },
+            { MotionCommand.MagicPowerUp06Purple, 0x03000848 },
+            { MotionCommand.MagicPowerUp07Purple, 0x03000848 },
+            { MotionCommand.MagicPowerUp08Purple, 0x03000848 },
+            { MotionCommand.MagicPowerUp09Purple, 0x03000848 },
+            { MotionCommand.MagicPowerUp10Purple, 0x03000848 },
+            { MotionCommand.MagicBlast, 0x0300059B },
+            { MotionCommand.MagicSelfHead, 0x0300059A },
+            { MotionCommand.MagicSelfHeart, 0x0300059F },
+            { MotionCommand.MagicBonus, 0x030005A3 },
+            { MotionCommand.MagicClap, 0x030005A1 },
+            { MotionCommand.MagicHarm, 0x0300059E },
+            { MotionCommand.MagicHeal, 0x030005A5 },
+            { MotionCommand.MagicThrowMissile, 0x0300059D },
+            { MotionCommand.MagicRecoilMissile, 0x0300059C },
+            { MotionCommand.MagicPenalty, 0x030005A4 },
+            { MotionCommand.MagicTransfer, 0x030005A2 },
+            { MotionCommand.MagicVision, 0x030005A7 },
+            { MotionCommand.MagicEnchantItem, 0x03000599 },
+            { MotionCommand.MagicPortal, 0x03000596 },
+            { MotionCommand.MagicPray, 0x03000597 },
+            { MotionCommand.CastSpell, 0x0300078E },
+            { MotionCommand.UseMagicStaff, 0x03000594 },
+            { MotionCommand.UseMagicWand, 0x03000592 },
+        };
+
         public bool GetObjectSequence(uint motion, MotionState currState, Sequence sequence, float speedMod, ref uint numAnims, bool stopModifiers)
         {
+            var details = false;
+
+            Player player = null;
+
+            if (PhysicsObj.IsPlayer && PhysicsObj.WeenieObj.WorldObject is Player _player && _player.MagicState.IsCasting && _player.RecordCast.Enabled)
+            {
+                player = _player;
+
+                player.RecordCast.Log($"GetObjectSequence({(MotionCommand)motion}){(sequence.AnimList.Count > 0 ? $", {string.Join(", ", sequence.AnimList)}" : "")}");
+                if (MagicAnims.ContainsKey((MotionCommand)motion))
+                    details = true;
+            }
+
+            if (motion == 0x80000049 && LastCmd == 0x41000003)
+                LoopCnt++;
+            else if (motion == 0x41000003 && LastCmd == 0x80000049)
+                LoopCnt++;
+            else
+                LoopCnt = 0;
+
+            LastCmd = motion;
+
+            if (LoopCnt >= 30 && LoopCnt <= 32)
+            {
+                if (player != null)
+                {
+                    var stackTrace = Environment.StackTrace;
+                    player.RecordCast.Log(stackTrace);
+                }
+            }
+
             numAnims = 0;
             if (currState.Style == 0 || currState.Substate == 0)
                 return false;
@@ -133,6 +211,10 @@ namespace ACE.Server.Physics.Animation
                             subtract_motion(sequence, motionData, currState.SubstateMod);
                             combine_motion(sequence, motionData, speedMod);
                             currState.SubstateMod = speedMod;
+
+                            if (details)
+                                player.RecordCast.Log($"hit alt path for substate {(MotionCommand)motion}");
+
                             return true;
                         }
 
@@ -177,12 +259,17 @@ namespace ACE.Server.Physics.Animation
                         currState.Substate = motion;
                         re_modify(sequence, currState);
 
+                        if (details)
+                            player.RecordCast.Log($"hit expected path for substate {(MotionCommand)motion}");
+
                         numAnims = (uint)((motionData == null ? 0 : motionData.Anims.Count) + (link == null ? 0 : link.Anims.Count) +
                             (motionData_ == null ? 0 : motionData_.Anims.Count) - 1);
 
                         return true;
                     }
                 }
+                if (details)
+                    player.RecordCast.Log($"hit no path for substate {(MotionCommand)motion}");
             }
             if ((motion & (uint)CommandMask.Action) != 0)
             {
@@ -202,6 +289,10 @@ namespace ACE.Server.Physics.Animation
                         re_modify(sequence, currState);
 
                         numAnims = (uint)link.Anims.Count;
+
+                        if (details)
+                            player.RecordCast.Log($"hit expected path for action {(MotionCommand)motion}");
+
                         return true;
                     }
                     else
@@ -223,11 +314,17 @@ namespace ACE.Server.Physics.Animation
                                 add_motion(sequence, cycles, currState.SubstateMod);
                                 re_modify(sequence, currState);
                                 numAnims = (uint)(motionData.Anims.Count + link.Anims.Count + (motionData_ == null ? 0 : motionData.Anims.Count));
+
+                                if (details)
+                                    player.RecordCast.Log($"hit alt path for action {(MotionCommand)motion}");
+
                                 return true;
                             }
                         }
                     }
                 }
+                if (details)
+                    player.RecordCast.Log($"hit no path for action {(MotionCommand)motion}");
             }
             if ((motion & (uint)CommandMask.Modifier) != 0)
             {

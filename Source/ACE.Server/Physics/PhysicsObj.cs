@@ -86,6 +86,8 @@ namespace ACE.Server.Physics
         public bool DatObject = false;
         public int Order = 1;
 
+        public bool DebugAnim;
+
         /// <summary>
         /// This is managed by MovementManager.MotionInterpreter, and should not be updated anywhere else.
         /// </summary>
