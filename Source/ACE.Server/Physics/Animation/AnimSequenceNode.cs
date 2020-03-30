@@ -116,5 +116,10 @@ namespace ACE.Server.Physics.Animation
         {
             return $"{Anim.ID:X8}";
         }
+
+        public string ToStringDetail()
+        {
+            return $"AnimID: {Anim.ID:X8}, Framerate: {Framerate}, LowFrame: {LowFrame}, HighFrame: {HighFrame}";
+        }
     }
 }

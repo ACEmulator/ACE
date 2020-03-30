@@ -151,6 +151,11 @@ namespace ACE.Server.Physics.Animation
 
         public void advance_to_next_animation(float timeElapsed, ref LinkedListNode<AnimSequenceNode> animNode, ref float frameNum, ref AFrame frame)
         {
+            if (HookObj.DebugAnim && HookObj.WeenieObj.WorldObject is Player player)
+            {
+                player.RecordCast.Log($"{HookObj.Name}.Sequence.advance_to_next_animation({timeElapsed}, {animNode.Value.Anim.ID:X8}, {frameNum})");
+            }
+
             var currAnim = animNode.Value;
 
             if (timeElapsed >= 0.0f)
@@ -359,9 +364,6 @@ namespace ACE.Server.Physics.Animation
 
         public void update_internal(float timeElapsed, ref LinkedListNode<AnimSequenceNode> animNode, ref float frameNum, ref AFrame frame)
         {
-            if (HookObj.DebugAnim && HookObj.WeenieObj.WorldObject is Player player)
-                player.RecordCast.Log($"{HookObj.Name}.Sequence.update_internal({timeElapsed}, {animNode.Value.Anim.ID:X8}, {frameNum})");
-
             var currAnim = animNode.Value;
 
             var framerate = currAnim.Framerate;
@@ -372,6 +374,12 @@ namespace ACE.Server.Physics.Animation
             frameNum += frametime;
             var frameTimeElapsed = 0.0f;
             var animDone = false;
+
+            if (HookObj.DebugAnim && HookObj.WeenieObj.WorldObject is Player player)
+            {
+                player.RecordCast.Log($"{HookObj.Name}.Sequence.update_internal({timeElapsed}, {animNode.Value.Anim.ID:X8}, {frameNum}, {frametime})");
+                player.RecordCast.Log($"{animNode.Value.ToStringDetail()}");
+            }
 
             if (frametime > 0.0f)
             {
