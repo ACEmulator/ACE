@@ -770,7 +770,10 @@ namespace ACE.Server.WorldObjects
             else
             {
                 caster = GetEquippedWand();     // TODO: persist this from the beginning, since this is done with delay
-                caster.ItemCurMana -= (int)manaUsed;
+                if (caster != null)
+                    caster.ItemCurMana -= (int)manaUsed;
+                else
+                    castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
             }
 
             // consume spell components
