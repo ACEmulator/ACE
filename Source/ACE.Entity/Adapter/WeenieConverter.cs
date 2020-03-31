@@ -36,7 +36,7 @@ namespace ACE.Entity.Adapter
 
             if (weenie.PropertiesPosition != null && (instantiateEmptyCollections || weenie.PropertiesPosition.Count > 0))
             {
-                result.PropertiesPosition = new Dictionary<PositionType, PropertiesPosition>();
+                result.PropertiesPosition = new Dictionary<PositionType, PropertiesPosition>(weenie.PropertiesPosition.Count);
 
                 foreach (var kvp in weenie.PropertiesPosition)
                     result.PropertiesPosition.Add(kvp.Key, kvp.Value.Clone());
@@ -49,7 +49,7 @@ namespace ACE.Entity.Adapter
 
             if (weenie.PropertiesAnimPart != null && (instantiateEmptyCollections || weenie.PropertiesAnimPart.Count > 0))
             {
-                result.PropertiesAnimPart = new List<PropertiesAnimPart>();
+                result.PropertiesAnimPart = new List<PropertiesAnimPart>(weenie.PropertiesAnimPart.Count);
 
                 foreach (var record in weenie.PropertiesAnimPart)
                     result.PropertiesAnimPart.Add(record.Clone());
@@ -65,7 +65,7 @@ namespace ACE.Entity.Adapter
 
             if (weenie.PropertiesTextureMap != null && (instantiateEmptyCollections || weenie.PropertiesTextureMap.Count > 0))
             {
-                result.PropertiesTextureMap = new List<PropertiesTextureMap>();
+                result.PropertiesTextureMap = new List<PropertiesTextureMap>(weenie.PropertiesTextureMap.Count);
 
                 foreach (var record in weenie.PropertiesTextureMap)
                     result.PropertiesTextureMap.Add(record.Clone());
@@ -104,7 +104,7 @@ namespace ACE.Entity.Adapter
 
                 if (weenie.PropertiesGenerator != null && (instantiateEmptyCollections || weenie.PropertiesGenerator.Count > 0))
                 {
-                    result.PropertiesGenerator = new List<PropertiesGenerator>();
+                    result.PropertiesGenerator = new List<PropertiesGenerator>(weenie.PropertiesGenerator.Count);
 
                     foreach (var record in weenie.PropertiesGenerator)
                         result.PropertiesGenerator.Add(record.Clone());
@@ -116,7 +116,7 @@ namespace ACE.Entity.Adapter
 
             if (weenie.PropertiesAttribute != null && (instantiateEmptyCollections || weenie.PropertiesAttribute.Count > 0))
             {
-                result.PropertiesAttribute = new Dictionary<PropertyAttribute, PropertiesAttribute>();
+                result.PropertiesAttribute = new Dictionary<PropertyAttribute, PropertiesAttribute>(weenie.PropertiesAttribute.Count);
 
                 foreach (var kvp in weenie.PropertiesAttribute)
                     result.PropertiesAttribute.Add(kvp.Key, kvp.Value.Clone());
@@ -124,7 +124,7 @@ namespace ACE.Entity.Adapter
 
             if (weenie.PropertiesAttribute2nd != null && (instantiateEmptyCollections || weenie.PropertiesAttribute2nd.Count > 0))
             {
-                result.PropertiesAttribute2nd = new Dictionary<PropertyAttribute2nd, PropertiesAttribute2nd>();
+                result.PropertiesAttribute2nd = new Dictionary<PropertyAttribute2nd, PropertiesAttribute2nd>(weenie.PropertiesAttribute2nd.Count);
 
                 foreach (var kvp in weenie.PropertiesAttribute2nd)
                     result.PropertiesAttribute2nd.Add(kvp.Key, kvp.Value.Clone());
@@ -132,7 +132,7 @@ namespace ACE.Entity.Adapter
 
             if (weenie.PropertiesBodyPart != null && (instantiateEmptyCollections || weenie.PropertiesBodyPart.Count > 0))
             {
-                result.PropertiesBodyPart = new Dictionary<CombatBodyPart, PropertiesBodyPart>();
+                result.PropertiesBodyPart = new Dictionary<CombatBodyPart, PropertiesBodyPart>(weenie.PropertiesBodyPart.Count);
 
                 foreach (var kvp in weenie.PropertiesBodyPart)
                     result.PropertiesBodyPart.Add(kvp.Key, kvp.Value.Clone());
@@ -140,7 +140,7 @@ namespace ACE.Entity.Adapter
 
             if (weenie.PropertiesSkill != null && (instantiateEmptyCollections || weenie.PropertiesSkill.Count > 0))
             {
-                result.PropertiesSkill = new Dictionary<Skill, PropertiesSkill>();
+                result.PropertiesSkill = new Dictionary<Skill, PropertiesSkill>(weenie.PropertiesSkill.Count);
 
                 foreach (var kvp in weenie.PropertiesSkill)
                     result.PropertiesSkill.Add(kvp.Key, kvp.Value.Clone());
