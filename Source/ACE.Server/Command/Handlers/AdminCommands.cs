@@ -2301,7 +2301,7 @@ namespace ACE.Server.Command.Handlers
 
                     if (wearable.Palette > 0)
                         worldObject.PaletteTemplate = wearable.Palette;
-                    if (wearable.Shade > 0)
+                    if (wearable.Shade >= 0)
                         worldObject.Shade = wearable.Shade;
 
                     player.TryEquipObjectWithNetworking(worldObject, worldObject.ValidLocations ?? 0);
@@ -2323,7 +2323,7 @@ namespace ACE.Server.Command.Handlers
 
                     if (containable.Palette > 0)
                         worldObject.PaletteTemplate = containable.Palette;
-                    if (containable.Shade > 0)
+                    if (containable.Shade >= 0)
                         worldObject.Shade = containable.Shade;
                     player.TryAddToInventory(worldObject);
                 }

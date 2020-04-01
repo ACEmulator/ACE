@@ -52,7 +52,7 @@ namespace ACE.Server.WorldObjects
                     return;
             }
 
-            if (IsBusy)
+            if (IsBusy || Teleporting || suicideInProgress)
             {
                 SendWeenieError(WeenieError.YoureTooBusy);
                 return;
@@ -94,13 +94,6 @@ namespace ACE.Server.WorldObjects
 
             if (Attacking || MissileTarget != null && MissileTarget.IsAlive)
                 return;
-
-            // perform verifications
-            if (IsBusy || Teleporting)
-            {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
-                return;
-            }
 
             if (!CanDamage(target))
                 return;     // werror?
@@ -150,7 +143,7 @@ namespace ACE.Server.WorldObjects
             }
 
             var creature = target as Creature;
-            if (!IsAlive || IsBusy || MissileTarget == null || creature == null || !creature.IsAlive)
+            if (!IsAlive || IsBusy || MissileTarget == null || creature == null || !creature.IsAlive || suicideInProgress)
             {
                 OnAttackDone();
                 return;

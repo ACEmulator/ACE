@@ -692,6 +692,13 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.HandleActionPutItemInContainer({itemGuid:X8}, {containerGuid:X8}, {placement})");
 
+            if (suicideInProgress)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                return;
+            }
+
             if (IsBusy)
             {
                 if (PickupState != PickupState.Return || NextPickup != null)
@@ -1074,7 +1081,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionDropItem(uint itemGuid)
         {
-            if (IsBusy)
+            if (IsBusy || Teleporting || suicideInProgress)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
@@ -2263,7 +2270,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionGiveObjectRequest(uint targetGuid, uint itemGuid, int amount)
         {
-            if (IsBusy)
+            if (IsBusy || Teleporting || suicideInProgress)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));

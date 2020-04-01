@@ -13,7 +13,10 @@ namespace ACE.Server.Network.GameAction.Actions
             session.Player.OnTeleportComplete();
 
             if (!session.Player.FirstEnterWorldDone)
+            {
                 session.Player.FirstEnterWorldDone = true;
+                session.Player.SendPropertyUpdatesAndOverrides();
+            }
         }
     }
 }

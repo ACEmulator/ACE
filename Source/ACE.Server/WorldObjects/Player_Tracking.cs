@@ -6,6 +6,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics.Common;
 
@@ -41,7 +42,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<WorldObject> GetKnownObjects()
         {
-            return ObjMaint.GetKnownObjectsValuesWhere(wo => wo != null).Select(o => o.WeenieObj.WorldObject).ToList();
+            return ObjMaint.GetKnownObjectsValuesWhere(i => i?.WeenieObj.WorldObject != null).Select(o => o.WeenieObj.WorldObject).ToList();
         }
 
         /// <summary>
@@ -214,6 +215,58 @@ namespace ACE.Server.WorldObjects
             });
 
             actionChain.EnqueueChain();
+        }
+
+        public void HandlePreTeleportVisibility(ACE.Entity.Position newPosition)
+        {
+            // repro steps without this function:
+
+            // - /teleloc 0x8A0201C2 [59.822445 -59.574703 0.005000] 0.999998 0.000000 0.000000 -0.002014 for 2 players
+            // - click minimap to teleport player 1 elsewhere in world
+            // - /teleto <player 1 name> for player 2
+            // - use facility hub portal gem for player 2 (49563)
+            // - player 2 runs down the stairs, into the room with the torch
+            // - player 1 waits 25s+ -- /knownplayers from player 1 to confirm once player 2 has exited the destruction queue
+            // - player 1 uses facility hub portal gem, runs to player 2
+            // - expected: consistent visibility for both players on each others screens
+            // - actual: player 2's dot will be on radar for player 1, but they will be invisible in 3d game world, floating weapon if they are wielding
+
+            // after analyzing this bug from many different perspectives, i believe this is some kind of odd client bug
+            // even resending the CO does nothing, as player 1's client does indeed know about player 2
+            // a DO and then a CO is the only thing that fixes this issue (/objsend can help with this)
+            // this part probably deviates from retail a bit, but is the equivalent automated fix
+
+            var fixLevel = PropertyManager.GetLong("teleport_visibility_fix").Item;
+
+            // disabled by default
+            if (fixLevel < 1) return;
+
+            if (Location.Cell == newPosition.Cell)
+                return;
+
+            var knownObjs = GetKnownObjects();
+
+            if (fixLevel == 1)
+            {
+                // filter to players only
+                knownObjs = knownObjs.Where(i => i is Player).ToList();
+            }
+            else if (fixLevel == 2)
+            {
+                // filter to creatures only
+                knownObjs = knownObjs.Where(i => i is Creature).ToList();
+            }
+
+            foreach (var knownObj in knownObjs)
+            {
+                knownObj.PhysicsObj.ObjMaint.RemoveObject(PhysicsObj);
+
+                if (knownObj is Player knownPlayer)
+                    knownPlayer.RemoveTrackedObject(this, false);
+
+                ObjMaint.RemoveObject(knownObj.PhysicsObj);
+                RemoveTrackedObject(knownObj, false);
+            }
         }
     }
 }
