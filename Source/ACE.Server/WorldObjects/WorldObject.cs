@@ -41,6 +41,12 @@ namespace ACE.Server.WorldObjects
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
+        /// If this object was created from a weenie (and not a database biota), this is the source.
+        /// You should never manipulate these values. You should only reference these values in extreme cases.
+        /// </summary>
+        public Weenie Weenie { get; }
+
+        /// <summary>
         /// This is object property overrides that should have come from the shard db (or init to defaults of object is new to this instance).
         /// You should not manipulate these values directly. To manipulate this use the exposed SetProperty and RemoveProperty functions instead.
         /// </summary>
@@ -97,6 +103,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected WorldObject(Weenie weenie, ObjectGuid guid)
         {
+            Weenie = weenie;
             Biota = ACE.Entity.Adapter.WeenieConverter.ConvertToBiota(weenie, guid.Full, false, true);
             Guid = guid;
 
