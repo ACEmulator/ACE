@@ -659,8 +659,7 @@ namespace ACE.Server.WorldObjects
             // thrown weapons
             if (ProjectileTarget == null) return;
 
-            var proj = new Projectile(this);
-            proj.OnCollideObject(target);
+            ProjectileCollisionHelper.OnCollideObject(this, target);
         }
 
         public virtual void OnCollideObjectEnd(WorldObject target)
@@ -673,8 +672,7 @@ namespace ACE.Server.WorldObjects
             // thrown weapons
             if (ProjectileTarget == null) return;
 
-            var proj = new Projectile(this);
-            proj.OnCollideEnvironment();
+            ProjectileCollisionHelper.OnCollideEnvironment(this);
         }
 
         public void ApplyVisualEffects(PlayScript effect, float speed = 1)
