@@ -196,6 +196,8 @@ namespace ACE.Database.Adapter
                     {
                         var newEntity2 = new PropertiesEmoteAction
                         {
+                            DatabaseRecordId = record2.Id,
+
                             Type = record2.Type,
                             Delay = record2.Delay,
                             Extent = record2.Extent,
@@ -473,7 +475,7 @@ namespace ACE.Database.Adapter
             return result;
         }
 
-        public static ACE.Database.Models.Shard.Biota ConvertFromEntityBiota(ACE.Entity.Models.Biota biota)
+        public static ACE.Database.Models.Shard.Biota ConvertFromEntityBiota(ACE.Entity.Models.Biota biota, bool includeDatabaseRecordIds = false)
         {
             var result = new ACE.Database.Models.Shard.Biota();
 
@@ -580,8 +582,6 @@ namespace ACE.Database.Adapter
                 {
                     var entity = new BiotaPropertiesCreateList
                     {
-                        Id = value.DatabaseRecordId,
-
                         ObjectId = biota.Id,
                         DestinationType = (sbyte)value.DestinationType,
                         WeenieClassId = value.WeenieClassId,
@@ -590,6 +590,9 @@ namespace ACE.Database.Adapter
                         Shade = value.Shade,
                         TryToBond = value.TryToBond
                     };
+
+                    if (includeDatabaseRecordIds)
+                        entity.Id = value.DatabaseRecordId;
 
                     result.BiotaPropertiesCreateList.Add(entity);
                 }
@@ -601,8 +604,6 @@ namespace ACE.Database.Adapter
                 {
                     var entity = new BiotaPropertiesEmote
                     {
-                        Id = value.DatabaseRecordId,
-
                         ObjectId = biota.Id,
                         Category = (uint)value.Category,
                         Probability = value.Probability,
@@ -615,12 +616,13 @@ namespace ACE.Database.Adapter
                         MaxHealth = value.MaxHealth,
                     };
 
+                    if (includeDatabaseRecordIds)
+                        entity.Id = value.DatabaseRecordId;
+
                     foreach (var value2 in value.PropertiesEmoteAction)
                     {
                         var entity2 = new BiotaPropertiesEmoteAction
                         {
-                            Id = value.DatabaseRecordId,
-
                             // EmoteId is a foreign key to Emote.Id.
                             // If we don't set this to a non-zero number, EF will not auto-set this for us when we add this biota to the database.
                             // We set it to uint.MaxValue instead of 1 because 1 is more likely to be a valid foreign key. We don't want to enter a valid foreign key.
@@ -673,6 +675,9 @@ namespace ACE.Database.Adapter
                             AnglesZ = value2.AnglesZ,
                         };
 
+                        if (includeDatabaseRecordIds)
+                            entity2.Id = value2.DatabaseRecordId;
+
                         entity.BiotaPropertiesEmoteAction.Add(entity2);
                     }
 
@@ -696,8 +701,6 @@ namespace ACE.Database.Adapter
                 {
                     var entity = new BiotaPropertiesGenerator
                     {
-                        Id = value.DatabaseRecordId,
-
                         ObjectId = biota.Id,
                         Probability = value.Probability,
                         WeenieClassId = value.WeenieClassId,
@@ -718,6 +721,9 @@ namespace ACE.Database.Adapter
                         AnglesY = value.AnglesY,
                         AnglesZ = value.AnglesZ,
                     };
+
+                    if (includeDatabaseRecordIds)
+                        entity.Id = value.DatabaseRecordId;
 
                     result.BiotaPropertiesGenerator.Add(entity);
                 }
