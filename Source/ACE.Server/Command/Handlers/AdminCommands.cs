@@ -1084,7 +1084,6 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-
         // teleplayerloc <player name> cell x y z [qx qy qz qw]
         [CommandHandler("teleplayerloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 4,
             "Teleports a player to the specified location.",
@@ -1095,7 +1094,6 @@ namespace ACE.Server.Command.Handlers
             "Example: @teleplayerloc <player name> 7F0401AD 12.319900 - 28.482000 0.005000")]
         public static void HandleTeleportPlayerLOC(Session session, params string[] parameters)
         {
-
             var playerName = string.Join(" ", parameters[0]);
             var player = PlayerManager.GetOnlinePlayer(playerName);
             if (player == null)
@@ -1138,9 +1136,7 @@ namespace ACE.Server.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Example: @teleplayerloc <player name> 0x7F0401AD 12.319900 -28.482000 0.005000 -0.338946 0.000000 0.000000 -0.940806", ChatMessageType.Broadcast);
                 ChatPacket.SendServerMessage(session, "Example: @teleplayerloc <player name> 7F0401AD 12.319900 -28.482000 0.005000", ChatMessageType.Broadcast);
             }
-
         }
-
 
         // time
         [CommandHandler("time", AccessLevel.Envoy, CommandHandlerFlag.None, 0,
