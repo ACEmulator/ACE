@@ -1084,6 +1084,64 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
+
+        // teleplayerloc <player name> cell x y z [qx qy qz qw]
+        [CommandHandler("teleplayerloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 4,
+            "Teleports a player to the specified location.",
+            "cell [x y z] (qw qx qy qz)\n" +
+            "@teleplayerloc follows the same number order as displayed from @loc output\n" +
+            "Example: @teleplayerloc <player name> 0x7F0401AD [12.319900 -28.482000 0.005000] -0.338946 0.000000 0.000000 -0.940806\n" +
+            "Example: @teleplayerloc <player name> 0x7F0401AD 12.319900 -28.482000 0.005000 -0.338946 0.000000 0.000000 -0.940806\n" +
+            "Example: @teleplayerloc <player name> 7F0401AD 12.319900 - 28.482000 0.005000")]
+        public static void HandleTeleportPlayerLOC(Session session, params string[] parameters)
+        {
+
+            var playerName = string.Join(" ", parameters[0]);
+            var player = PlayerManager.GetOnlinePlayer(playerName);
+            if (player == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
+                return;
+            }
+            var currentPos = new Position(player.Location);
+
+            try
+            {
+                uint cell;
+
+                if (parameters[1].StartsWith("0x"))
+                {
+                    string strippedcell = parameters[1].Substring(2);
+                    cell = (uint)int.Parse(strippedcell, System.Globalization.NumberStyles.HexNumber);
+                }
+                else
+                    cell = (uint)int.Parse(parameters[1], System.Globalization.NumberStyles.HexNumber);
+
+                var positionData = new float[8];
+                for (uint i = 1u; i < 8u; i++)
+                {
+                    if (!float.TryParse(parameters[i + 1].Trim(new Char[] { ' ', '[', ']' }), out var position))
+                        return;
+
+                    positionData[i] = position;
+                }
+                player.Teleport(new Position(cell, positionData[1], positionData[2], positionData[3], positionData[5], positionData[6], positionData[7], positionData[4]));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has teleported you to {parameters[1]} {parameters[2]} {parameters[3]} {parameters[4]} {parameters[5]} {parameters[6]} {parameters[7]} {parameters[8]}", ChatMessageType.Magic));
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has teleported {player.Name} to {parameters[1]} {parameters[2]} {parameters[3]} {parameters[4]} {parameters[5]} {parameters[6]} {parameters[7]} {parameters[8]}");
+            }
+            catch (Exception)
+            {
+                ChatPacket.SendServerMessage(session, "Invalid arguments for @teleplayerloc", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "Hint: @teleplayerloc follows the same number order as displayed from @loc output", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "Usage: @teleplayerloc <player name> cell [x y z] (qw qx qy qz)", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "Example: @teleplayerloc <player name> 0x7F0401AD [12.319900 -28.482000 0.005000] -0.338946 0.000000 0.000000 -0.940806", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "Example: @teleplayerloc <player name> 0x7F0401AD 12.319900 -28.482000 0.005000 -0.338946 0.000000 0.000000 -0.940806", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, "Example: @teleplayerloc <player name> 7F0401AD 12.319900 -28.482000 0.005000", ChatMessageType.Broadcast);
+            }
+
+        }
+
+
         // time
         [CommandHandler("time", AccessLevel.Envoy, CommandHandlerFlag.None, 0,
             "Displays the server's current game time.")]
