@@ -351,9 +351,27 @@ namespace ACE.Server.WorldObjects
                 var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
                 ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics, elapsedSeconds);
                 if (elapsedSeconds >= 1) // Yea, that ain't good....
+                {
                     log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
+
+                    // Destroy laggy projectiles
+                    if (this is SpellProjectile spellProjectile)
+                    {
+                        PhysicsObj.set_active(false);
+                        spellProjectile.ProjectileImpact();
+                    }
+                }
                 else if (elapsedSeconds >= 0.010)
+                {
                     log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
+
+                    // Destroy laggy projectiles
+                    if (this is SpellProjectile spellProjectile)
+                    {
+                        PhysicsObj.set_active(false);
+                        spellProjectile.ProjectileImpact();
+                    }
+                }
             }
         }
     }
