@@ -218,6 +218,8 @@ namespace ACE.Server.WorldObjects
             return (int)timeToExpiration.TotalSeconds;
         }
 
+        private int slowUpdateObjectPhysicsHits;
+
         /// <summary>
         /// Handles calling the physics engine for non-player objects
         /// </summary>
@@ -352,10 +354,11 @@ namespace ACE.Server.WorldObjects
                 ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics, elapsedSeconds);
                 if (elapsedSeconds >= 0.100) // Yea, that ain't good....
                 {
+                    slowUpdateObjectPhysicsHits++;
                     log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
 
                     // Destroy laggy projectiles
-                    if (this is SpellProjectile spellProjectile)
+                    if (slowUpdateObjectPhysicsHits >= 5 && this is SpellProjectile spellProjectile)
                     {
                         PhysicsObj.set_active(false);
                         spellProjectile.ProjectileImpact();
@@ -363,8 +366,10 @@ namespace ACE.Server.WorldObjects
                 }
                 else if (elapsedSeconds >= 0.010)
                 {
+                    slowUpdateObjectPhysicsHits++;
+
                     // Destroy laggy projectiles
-                    if (this is SpellProjectile spellProjectile)
+                    if (slowUpdateObjectPhysicsHits >= 5 && this is SpellProjectile spellProjectile)
                     {
                         PhysicsObj.set_active(false);
                         spellProjectile.ProjectileImpact();
