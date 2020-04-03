@@ -157,6 +157,8 @@ namespace ACE.Database.Adapter
                 {
                     var newEntity = new PropertiesCreateList
                     {
+                        DatabaseRecordId = record.Id,
+
                         DestinationType = (DestinationType)record.DestinationType,
                         WeenieClassId = record.WeenieClassId,
                         StackSize = record.StackSize,
@@ -177,6 +179,8 @@ namespace ACE.Database.Adapter
                 {
                     var newEntity = new PropertiesEmote
                     {
+                        DatabaseRecordId = record.Id,
+
                         Category = (EmoteCategory)record.Category,
                         Probability = record.Probability,
                         WeenieClassId = record.WeenieClassId,
@@ -254,6 +258,8 @@ namespace ACE.Database.Adapter
                 {
                     var newEntity = new PropertiesGenerator
                     {
+                        DatabaseRecordId = record.Id,
+
                         Probability = record.Probability,
                         WeenieClassId = record.WeenieClassId,
                         Delay = record.Delay,
@@ -476,7 +482,6 @@ namespace ACE.Database.Adapter
             result.WeenieType = (int)biota.WeenieType;
 
 
-            /* Switch to this code when Step 3 is implemented
             if (biota.PropertiesBool != null)
             {
                 foreach (var kvp in biota.PropertiesBool)
@@ -511,71 +516,8 @@ namespace ACE.Database.Adapter
             {
                 foreach (var kvp in biota.PropertiesString)
                     result.SetProperty(kvp.Key, kvp.Value);
-            }*/
-            if (biota.PropertiesBool != null)
-            {
-                foreach (var kvp in biota.PropertiesBool)
-                {
-                    var entity = new BiotaPropertiesBool { ObjectId = biota.Id, Type = (ushort)kvp.Key, Value = kvp.Value };
-
-                    result.BiotaPropertiesBool.Add(entity);
-                }
             }
-            if (biota.PropertiesDID != null)
-            {
-                foreach (var kvp in biota.PropertiesDID)
-                {
-                    var entity = new BiotaPropertiesDID { ObjectId = biota.Id, Type = (ushort)kvp.Key, Value = kvp.Value };
-
-                    result.BiotaPropertiesDID.Add(entity);
-                }
-            }
-            if (biota.PropertiesFloat != null)
-            {
-                foreach (var kvp in biota.PropertiesFloat)
-                {
-                    var entity = new BiotaPropertiesFloat { ObjectId = biota.Id, Type = (ushort)kvp.Key, Value = kvp.Value };
-
-                    result.BiotaPropertiesFloat.Add(entity);
-                }
-            }
-            if (biota.PropertiesIID != null)
-            {
-                foreach (var kvp in biota.PropertiesIID)
-                {
-                    var entity = new BiotaPropertiesIID { ObjectId = biota.Id, Type = (ushort)kvp.Key, Value = kvp.Value };
-
-                    result.BiotaPropertiesIID.Add(entity);
-                }
-            }
-            if (biota.PropertiesInt != null)
-            {
-                foreach (var kvp in biota.PropertiesInt)
-                {
-                    var entity = new BiotaPropertiesInt { ObjectId = biota.Id, Type = (ushort)kvp.Key, Value = kvp.Value };
-
-                    result.BiotaPropertiesInt.Add(entity);
-                }
-            }
-            if (biota.PropertiesInt64 != null)
-            {
-                foreach (var kvp in biota.PropertiesInt64)
-                {
-                    var entity = new BiotaPropertiesInt64 { ObjectId = biota.Id, Type = (ushort)kvp.Key, Value = kvp.Value };
-
-                    result.BiotaPropertiesInt64.Add(entity);
-                }
-            }
-            if (biota.PropertiesString != null)
-            {
-                foreach (var kvp in biota.PropertiesString)
-                {
-                    var entity = new BiotaPropertiesString { ObjectId = biota.Id, Type = (ushort)kvp.Key, Value = kvp.Value };
-
-                    result.BiotaPropertiesString.Add(entity);
-                }
-            }
-
+ 
 
             if (biota.PropertiesPosition != null)
             {
@@ -638,6 +580,8 @@ namespace ACE.Database.Adapter
                 {
                     var entity = new BiotaPropertiesCreateList
                     {
+                        Id = value.DatabaseRecordId,
+
                         ObjectId = biota.Id,
                         DestinationType = (sbyte)value.DestinationType,
                         WeenieClassId = value.WeenieClassId,
@@ -657,6 +601,8 @@ namespace ACE.Database.Adapter
                 {
                     var entity = new BiotaPropertiesEmote
                     {
+                        Id = value.DatabaseRecordId,
+
                         ObjectId = biota.Id,
                         Category = (uint)value.Category,
                         Probability = value.Probability,
@@ -673,6 +619,8 @@ namespace ACE.Database.Adapter
                     {
                         var entity2 = new BiotaPropertiesEmoteAction
                         {
+                            Id = value.DatabaseRecordId,
+
                             // EmoteId is a foreign key to Emote.Id.
                             // If we don't set this to a non-zero number, EF will not auto-set this for us when we add this biota to the database.
                             // We set it to uint.MaxValue instead of 1 because 1 is more likely to be a valid foreign key. We don't want to enter a valid foreign key.
@@ -748,6 +696,8 @@ namespace ACE.Database.Adapter
                 {
                     var entity = new BiotaPropertiesGenerator
                     {
+                        Id = value.DatabaseRecordId,
+
                         ObjectId = biota.Id,
                         Probability = value.Probability,
                         WeenieClassId = value.WeenieClassId,

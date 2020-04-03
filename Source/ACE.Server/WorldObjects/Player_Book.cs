@@ -6,7 +6,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public void ReadBookPage(uint bookGuid, uint pageNum)
+        public void ReadBookPage(uint bookGuid, int pageNum)
         {
             // This is completely unused. 
 
@@ -22,16 +22,7 @@ namespace ACE.Server.WorldObjects
 
                 if (page != null)
                 {
-                    var pd = new PageData();
-
-                    pd.AuthorAccount = page.AuthorAccount;
-                    pd.AuthorID = page.AuthorId;
-                    pd.AuthorName = page.AuthorName;
-                    pd.IgnoreAuthor = page.IgnoreAuthor;
-                    pd.PageIdx = page.PageId;
-                    pd.PageText = page.PageText;
-
-                    var pdr = new GameEventBookPageDataResponse(Session, book.Guid.Full, pd);
+                    var pdr = new GameEventBookPageDataResponse(Session, book.Guid.Full, pageNum, page);
 
                     Session.Network.EnqueueSend(pdr);
                 }
@@ -44,13 +35,13 @@ namespace ACE.Server.WorldObjects
             var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory | SearchLocations.LastUsedHook, out var container, out var rootOwner, out var wasEquipped) as Book;
             if (book == null) return;
 
-            var page = book.AddPage(Guid.Full, Name, Session.Account, book.IgnoreAuthor ?? false, "");
+            var page = book.AddPage(Guid.Full, Name, Session.Account, book.IgnoreAuthor ?? false, "", out var index);
 
             if (page != null)
-                Session.Network.EnqueueSend(new GameEventBookAddPageResponse(Session, bookGuid, page.PageId, true));
+                Session.Network.EnqueueSend(new GameEventBookAddPageResponse(Session, bookGuid, index, true));
         }
 
-        public void HandleActionBookModifyPage(uint bookGuid, uint pageId, string pageText)
+        public void HandleActionBookModifyPage(uint bookGuid, int pageId, string pageText)
         {
             // find inventory book
             var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory | SearchLocations.LastUsedHook, out var container, out var rootOwner, out var wasEquipped) as Book;
@@ -61,7 +52,7 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameEventBookModifyPageResponse(Session, bookGuid, pageId, true));
         }
 
-        public void HandleActionBookDeletePage(uint bookGuid, uint pageId)
+        public void HandleActionBookDeletePage(uint bookGuid, int pageId)
         {
             // find inventory book
             var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory | SearchLocations.LastUsedHook, out var container, out var rootOwner, out var wasEquipped) as Book;

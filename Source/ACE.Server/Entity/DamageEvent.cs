@@ -5,8 +5,8 @@ using System.Linq;
 using log4net;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
@@ -97,7 +97,7 @@ namespace ACE.Server.Entity
 
         // creature attacker
         public MotionCommand? AttackMotion;
-        public BiotaPropertiesBodyPart AttackPart;      // the body part this monster is attacking with
+        public KeyValuePair<CombatBodyPart, PropertiesBodyPart> AttackPart;      // the body part this monster is attacking with
 
         // creature defender
         public Quadrant Quadrant;
@@ -114,7 +114,7 @@ namespace ACE.Server.Entity
         public List<WorldObject> Armor;
 
         // creature defender
-        public BiotaPropertiesBodyPart BiotaPropertiesBodyPart;
+        public KeyValuePair<CombatBodyPart, PropertiesBodyPart> PropertiesBodyPart;
         public Creature_BodyPart CreaturePart;
 
         public float Damage;
@@ -275,7 +275,7 @@ namespace ACE.Server.Entity
                 if (Evaded)
                     return 0.0f;
 
-                Armor = CreaturePart.GetArmorLayers((CombatBodyPart)BiotaPropertiesBodyPart.Key);
+                Armor = CreaturePart.GetArmorLayers(PropertiesBodyPart.Key);
 
                 // get target armor
                 ArmorMod = CreaturePart.GetArmorMod(DamageType, Armor, Attacker, Weapon, ignoreArmorMod);
@@ -378,16 +378,16 @@ namespace ACE.Server.Entity
         public void GetBaseDamage(Creature attacker, MotionCommand motionCommand)
         {
             AttackPart = attacker.GetAttackPart(motionCommand);
-            if (AttackPart == null)
+            if (AttackPart.Value == null)
             {
                 GeneralFailure = true;
                 return;
             }
 
-            BaseDamageMod = attacker.GetBaseDamage(AttackPart);
+            BaseDamageMod = attacker.GetBaseDamage(AttackPart.Value);
             BaseDamage = ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
 
-            DamageType = attacker.GetDamageType(AttackPart, CombatType);
+            DamageType = attacker.GetDamageType(AttackPart.Value, CombatType);
         }
 
         /// <summary>
@@ -422,7 +422,8 @@ namespace ACE.Server.Entity
 
             //Console.WriteLine($"AttackHeight: {AttackHeight}, Quadrant: {quadrant & FrontBack}{quadrant & LeftRight}, AttackPart: {bodyPart}");
 
-            BiotaPropertiesBodyPart = Defender.Biota.BiotaPropertiesBodyPart.FirstOrDefault(i => i.Key == (ushort)bodyPart);
+            defender.Biota.PropertiesBodyPart.TryGetValue(bodyPart, out var value);
+            PropertiesBodyPart = new KeyValuePair<CombatBodyPart, PropertiesBodyPart>(bodyPart, value);
 
             // select random body part @ current attack height
             /*BiotaPropertiesBodyPart = BodyParts.GetBodyPart(defender, attackHeight);
@@ -433,7 +434,7 @@ namespace ACE.Server.Entity
                 return;
             }*/
 
-            CreaturePart = new Creature_BodyPart(defender, BiotaPropertiesBodyPart);
+            CreaturePart = new Creature_BodyPart(defender, PropertiesBodyPart);
         }
 
         public void ShowInfo(Creature creature)
@@ -478,8 +479,8 @@ namespace ACE.Server.Entity
             {
                 if (AttackMotion != null)
                     info += $"AttackMotion: {AttackMotion}\n";
-                if (AttackPart != null)
-                    info += $"AttackPart: {(CombatBodyPart)AttackPart.Key}\n";
+                if (AttackPart.Value != null)
+                    info += $"AttackPart: {AttackPart.Key}\n";
             }
 
             // base damage
@@ -529,8 +530,8 @@ namespace ACE.Server.Entity
             if (CreaturePart != null)
             {
                 // creature body part
-                info += $"BodyPart: {(CombatBodyPart)BiotaPropertiesBodyPart.Key}\n";
-                info += $"BaseArmor: {CreaturePart.Biota.BaseArmor}\n";
+                info += $"BodyPart: {PropertiesBodyPart.Key}\n";
+                info += $"BaseArmor: {CreaturePart.Biota.Value.BaseArmor}\n";
             }
 
             // damage mitigation

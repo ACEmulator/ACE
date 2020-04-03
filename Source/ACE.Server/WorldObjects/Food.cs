@@ -8,8 +8,6 @@ using ACE.Server.Entity;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class Food : Stackable

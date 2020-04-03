@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -11,8 +10,6 @@ using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-
-using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {
@@ -35,12 +32,11 @@ namespace ACE.Server.WorldObjects
 
         public Dictionary<ObjectGuid, AllegianceNode> Officers;
 
-        public List<BiotaPropertiesAllegiance> BiotaPropertiesAllegiance => Biota.GetAllegiance(BiotaDatabaseLock);
-
         /// <summary>
         /// Approved vassals for adding to locked allegiances
         /// </summary>
-        public List<BiotaPropertiesAllegiance> ApprovedVassals => BiotaPropertiesAllegiance.Where(i => i.ApprovedVassal).ToList();
+        // TODO now that the new biota model uses a dictionary for this, see if we can remove this duplicate dictionary
+        public Dictionary<uint, PropertiesAllegiance> ApprovedVassals => Biota.PropertiesAllegiance.GetApprovedVassals(BiotaDatabaseLock);
 
         /// <summary>
         /// Handles booting players from allegiance chat
@@ -51,7 +47,8 @@ namespace ACE.Server.WorldObjects
         /// A list of players who are banned from joining.
         /// </summary>
         //public HashSet<ObjectGuid> BanList { get; set; }
-        public List<BiotaPropertiesAllegiance> BanList => BiotaPropertiesAllegiance.Where(i => i.Banned).ToList();
+        // TODO now that the new biota model uses a dictionary for this, see if we can remove this duplicate dictionary
+        public Dictionary<uint, PropertiesAllegiance> BanList => Biota.PropertiesAllegiance.GetBanList(BiotaDatabaseLock);
 
         /// <summary>
         /// Returns the list of allegiance members who are currently online
@@ -368,12 +365,12 @@ namespace ACE.Server.WorldObjects
 
         public void AddBan(uint playerGuid)
         {
-            var entity = BiotaPropertiesAllegiance.FirstOrDefault(i => i.CharacterId == playerGuid);
+            var entity = Biota.PropertiesAllegiance.GetFirstOrDefaultByCharacterId(playerGuid, BiotaDatabaseLock);
 
             if (entity == null)
-                Biota.AddOrUpdateAllegiance(playerGuid, true, false, BiotaDatabaseLock);
+                Biota.PropertiesAllegiance.AddOrUpdateAllegiance(playerGuid, true, false, BiotaDatabaseLock);
             else
-                Biota.AddOrUpdateAllegiance(playerGuid, true, entity.ApprovedVassal, BiotaDatabaseLock);
+                Biota.PropertiesAllegiance.AddOrUpdateAllegiance(playerGuid, true, entity.ApprovedVassal, BiotaDatabaseLock);
 
             // ChangesDetected = true doesn't work here,
             // since the Allegiance WO is not associated with a landblock
@@ -383,19 +380,19 @@ namespace ACE.Server.WorldObjects
 
         public bool RemoveBan(uint playerGuid)
         {
-            var entity = BiotaPropertiesAllegiance.FirstOrDefault(i => i.CharacterId == playerGuid);
+            var entity = Biota.PropertiesAllegiance.GetFirstOrDefaultByCharacterId(playerGuid, BiotaDatabaseLock);
 
             if (entity == null)
                 return false;
 
             if (entity.ApprovedVassal)
             {
-                Biota.AddOrUpdateAllegiance(playerGuid, false, true, BiotaDatabaseLock);
+                Biota.PropertiesAllegiance.AddOrUpdateAllegiance(playerGuid, false, true, BiotaDatabaseLock);
                 SaveBiotaToDatabase();
                 return true;
             }
 
-            var removed = Biota.TryRemoveAllegiance(playerGuid, out _, BiotaDatabaseLock);
+            var removed = Biota.PropertiesAllegiance.TryRemoveAllegiance(playerGuid, BiotaDatabaseLock);
 
             if (removed)
                 SaveBiotaToDatabase();
@@ -405,17 +402,17 @@ namespace ACE.Server.WorldObjects
 
         public bool IsBanned(uint playerGuid)
         {
-            return BanList.Any(i => i.CharacterId == playerGuid);
+            return BanList.ContainsKey(playerGuid);
         }
 
         public void AddApprovedVassal(uint playerGuid)
         {
-            var entity = BiotaPropertiesAllegiance.FirstOrDefault(i => i.CharacterId == playerGuid);
+            var entity = Biota.PropertiesAllegiance.GetFirstOrDefaultByCharacterId(playerGuid, BiotaDatabaseLock);
 
             if (entity == null)
-                Biota.AddOrUpdateAllegiance(playerGuid, false, true, BiotaDatabaseLock);
+                Biota.PropertiesAllegiance.AddOrUpdateAllegiance(playerGuid, false, true, BiotaDatabaseLock);
             else
-                Biota.AddOrUpdateAllegiance(playerGuid, entity.Banned, true, BiotaDatabaseLock);
+                Biota.PropertiesAllegiance.AddOrUpdateAllegiance(playerGuid, entity.Banned, true, BiotaDatabaseLock);
 
             // ChangesDetected = true doesn't work here,
             // since the Allegiance WO is not associated with a landblock
@@ -425,19 +422,19 @@ namespace ACE.Server.WorldObjects
 
         public bool RemoveApprovedVassal(uint playerGuid)
         {
-            var entity = BiotaPropertiesAllegiance.FirstOrDefault(i => i.CharacterId == playerGuid);
+            var entity = Biota.PropertiesAllegiance.GetFirstOrDefaultByCharacterId(playerGuid, BiotaDatabaseLock);
 
             if (entity == null)
                 return false;
 
             if (entity.Banned)
             {
-                Biota.AddOrUpdateAllegiance(playerGuid, true, false, BiotaDatabaseLock);
+                Biota.PropertiesAllegiance.AddOrUpdateAllegiance(playerGuid, true, false, BiotaDatabaseLock);
                 SaveBiotaToDatabase();
                 return true;
             }
 
-            var removed = Biota.TryRemoveAllegiance(playerGuid, out _, BiotaDatabaseLock);
+            var removed = Biota.PropertiesAllegiance.TryRemoveAllegiance(playerGuid, BiotaDatabaseLock);
 
             if (removed)
                 SaveBiotaToDatabase();
@@ -447,7 +444,7 @@ namespace ACE.Server.WorldObjects
 
         public bool HasApprovedVassal(uint playerGuid)
         {
-            return ApprovedVassals.Any(i => i.CharacterId == playerGuid);
+            return ApprovedVassals.ContainsKey(playerGuid);
         }
     }
 }
