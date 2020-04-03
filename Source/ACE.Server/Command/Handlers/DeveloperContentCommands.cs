@@ -1529,9 +1529,6 @@ namespace ACE.Server.Command.Handlers.Processors
                         foreach (var record in wo.Weenie.PropertiesGenerator)
                             wo.Biota.PropertiesGenerator.Add(record.Clone());
                     }
-
-                    foreach (var profile in wo.Biota.PropertiesGenerator)
-                        profile.Delay = (float) PropertyManager.GetDouble("encounter_delay").Item;
                 }
             }
 
