@@ -4,8 +4,6 @@ using ACE.Entity;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class Key : WorldObject

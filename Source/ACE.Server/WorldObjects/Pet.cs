@@ -13,8 +13,6 @@ using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Physics.Animation;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     /// <summary>

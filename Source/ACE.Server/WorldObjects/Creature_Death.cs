@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
@@ -244,16 +245,18 @@ namespace ACE.Server.WorldObjects
                 // Pull and save objdesc for correct corpse apperance at time of death
                 var objDesc = CalculateObjDesc();
 
-                byte i = 0;
-                foreach (var animPartChange in objDesc.AnimPartChanges)
-                    corpse.Biota.BiotaPropertiesAnimPart.Add(new Database.Models.Shard.BiotaPropertiesAnimPart { ObjectId = corpse.Guid.Full, AnimationId = animPartChange.PartID, Index = animPartChange.PartIndex, Order = i++ });
+                if (corpse.Biota.PropertiesAnimPart == null)
+                    corpse.Biota.PropertiesAnimPart = new List<PropertiesAnimPart>();
+                corpse.Biota.PropertiesAnimPart.Add(objDesc.AnimPartChanges, BiotaDatabaseLock);
 
-                foreach (var subPalette in objDesc.SubPalettes)
-                    corpse.Biota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
+                if (corpse.Biota.PropertiesPalette == null)
+                    corpse.Biota.PropertiesPalette = new Collection<PropertiesPalette>();
+                corpse.Biota.PropertiesPalette.Add(objDesc.SubPalettes, BiotaDatabaseLock);
 
-                i = 0;
+                if (corpse.Biota.PropertiesTextureMap == null)
+                    corpse.Biota.PropertiesTextureMap = new List<PropertiesTextureMap>();
                 foreach (var textureChange in objDesc.TextureChanges)
-                    corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
+                    corpse.Biota.PropertiesTextureMap.Add(new PropertiesTextureMap { PartIndex = textureChange.PartIndex, OldTexture = textureChange.OldTexture, NewTexture = textureChange.NewTexture });
             }
 
             // use the physics location for accuracy,
@@ -395,21 +398,24 @@ namespace ACE.Server.WorldObjects
             }
 
             // contain and non-wielded treasure create
-            var createList = Biota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Contain) != 0 ||
-                (i.DestinationType & (int)DestinationType.Treasure) != 0 && (i.DestinationType & (int)DestinationType.Wield) == 0).ToList();
-
-            var selected = CreateListSelect(createList);
-
-            foreach (var item in selected)
+            if (Biota.PropertiesCreateList != null)
             {
-                var wo = WorldObjectFactory.CreateNewWorldObject(item);
+                var createList = Biota.PropertiesCreateList.Where(i => (i.DestinationType & DestinationType.Contain) != 0 ||
+                                (i.DestinationType & DestinationType.Treasure) != 0 && (i.DestinationType & DestinationType.Wield) == 0).ToList();
 
-                if (wo != null)
+                var selected = CreateListSelect(createList);
+
+                foreach (var item in selected)
                 {
-                    if (corpse != null)
-                        corpse.TryAddToInventory(wo);
-                    else
-                        droppedItems.Add(wo);
+                    var wo = WorldObjectFactory.CreateNewWorldObject(item);
+
+                    if (wo != null)
+                    {
+                        if (corpse != null)
+                            corpse.TryAddToInventory(wo);
+                        else
+                            droppedItems.Add(wo);
+                    }
                 }
             }
 
@@ -450,12 +456,12 @@ namespace ACE.Server.WorldObjects
                 log.Debug($"[LOOT][LEGENDARY] {Name} ({Guid}) generated item with {legendaryCantrips.Count} legendar{(legendaryCantrips.Count > 1 ? "ies" : "y")} - {wo.Name} ({wo.Guid}) - {GetSpellList(legendaryCantrips)} - killed by {killer?.Name} ({killer?.Guid})");
         }
 
-        public static string GetSpellList(List<BiotaPropertiesSpellBook> spellbook)
+        public static string GetSpellList(Dictionary<int, float> spellTable)
         {
             var spells = new List<Server.Entity.Spell>();
 
-            foreach (var spell in spellbook)
-                spells.Add(new Server.Entity.Spell(spell.Spell, false));
+            foreach (var kvp in spellTable)
+                spells.Add(new Server.Entity.Spell(kvp.Key, false));
 
             return string.Join(", ", spells.Select(i => i.Name));
         }

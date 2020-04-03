@@ -15,8 +15,6 @@ using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Managers;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     /// <summary>
@@ -202,7 +200,7 @@ namespace ACE.Server.WorldObjects
             if (inventoryloaded)
                 return;
 
-            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Shop))
+            foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Shop))
             {
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 
@@ -210,7 +208,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (item.Palette > 0)
                         wo.PaletteTemplate = item.Palette;
-                    if (item.Shade > 0)
+                    if (item.Shade >= 0)
                         wo.Shade = item.Shade;
                     wo.ContainerId = Guid.Full;
                     wo.CalculateObjDesc(); // i don't like firing this but this triggers proper icons, the way vendors load inventory feels off to me in this method.

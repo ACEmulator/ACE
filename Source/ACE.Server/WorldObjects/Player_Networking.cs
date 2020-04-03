@@ -52,7 +52,11 @@ namespace ACE.Server.WorldObjects
             SendSelf();
 
             // Update or override certain properties sent to client.
-            SendPropertyUpdatesAndOverrides();
+
+            // bugged: do not send this here, or else a freshly loaded acclient will overrwrite the values
+            // wait until first enter world is completed
+
+            //SendPropertyUpdatesAndOverrides();
 
             // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
             UpdateChatChannels();
@@ -117,7 +121,7 @@ namespace ACE.Server.WorldObjects
             SendContractTrackerTable();
         }
 
-        private void SendPropertyUpdatesAndOverrides()
+        public void SendPropertyUpdatesAndOverrides()
         {
             if (!PropertyManager.GetBool("require_spell_comps").Item)
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyBool(this, PropertyBool.SpellComponentsRequired, false));

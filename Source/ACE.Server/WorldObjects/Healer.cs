@@ -13,8 +13,6 @@ using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.WorldObjects.Entity;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class Healer : WorldObject
@@ -56,7 +54,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (healer.IsBusy || healer.Teleporting)
+            if (healer.IsBusy || healer.Teleporting || healer.suicideInProgress)
             {
                 healer.SendUseDoneEvent(WeenieError.YoureTooBusy);
                 return;
@@ -119,7 +117,7 @@ namespace ACE.Server.WorldObjects
 
         public void DoHealMotion(Player healer, Player target, bool success)
         {
-            if (!success || target.IsDead || target.Teleporting)
+            if (!success || target.IsDead || target.Teleporting || target.suicideInProgress)
             {
                 healer.SendUseDoneEvent();
                 return;

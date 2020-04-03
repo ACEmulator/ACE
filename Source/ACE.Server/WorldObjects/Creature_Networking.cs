@@ -7,6 +7,7 @@ using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
@@ -127,16 +128,13 @@ namespace ACE.Server.WorldObjects
             if (eo.Count == 0)
             {
                 // Check if there is any defined ObjDesc in the Biota and, if so, apply them
-                if (Biota.BiotaPropertiesAnimPart.Count > 0 || Biota.BiotaPropertiesPalette.Count > 0 || Biota.BiotaPropertiesTextureMap.Count > 0)
+                if (Biota.PropertiesAnimPart.GetCount(BiotaDatabaseLock) > 0 || Biota.PropertiesPalette.GetCount(BiotaDatabaseLock) > 0 || Biota.PropertiesTextureMap.GetCount(BiotaDatabaseLock) > 0)
                 {
-                    foreach (var animPart in Biota.BiotaPropertiesAnimPart.OrderBy(b => b.Order))
-                        objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = animPart.Index, PartID = animPart.AnimationId });
+                    Biota.PropertiesAnimPart.CopyTo(objDesc.AnimPartChanges, BiotaDatabaseLock);
 
-                    foreach (var subPalette in Biota.BiotaPropertiesPalette)
-                        objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = subPalette.SubPaletteId, Offset = subPalette.Offset, NumColors = subPalette.Length });
+                    Biota.PropertiesPalette.CopyTo(objDesc.SubPalettes, BiotaDatabaseLock);
 
-                    foreach (var textureMap in Biota.BiotaPropertiesTextureMap.OrderBy(b => b.Order))
-                        objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = textureMap.Index, OldTexture = textureMap.OldId, NewTexture = textureMap.NewId });
+                    Biota.PropertiesTextureMap.CopyTo(objDesc.TextureChanges, BiotaDatabaseLock);
 
                     return objDesc;
                 }
@@ -160,8 +158,8 @@ namespace ACE.Server.WorldObjects
                         objDesc = AddSetupAsClothingBase(objDesc, w);
                         // Add any potentially added parts back into the coverage list
                         foreach(var a in objDesc.AnimPartChanges)
-                            if (!coverage.Contains(a.PartIndex))
-                                coverage.Add(a.PartIndex);
+                            if (!coverage.Contains(a.Index))
+                                coverage.Add(a.Index);
                         continue;
                     }
 
@@ -175,10 +173,10 @@ namespace ACE.Server.WorldObjects
                             byte partNum = (byte)t.Index;
                             coverage.Add(partNum);
 
-                            objDesc.AddAnimPartChange(new ACE.Entity.AnimationPartChange { PartIndex = (byte)t.Index, PartID = t.ModelId });
+                            objDesc.AddAnimPartChange(new PropertiesAnimPart { Index = (byte)t.Index, AnimationId = t.ModelId });
 
                             foreach (CloTextureEffect t1 in t.CloTextureEffects)
-                                objDesc.AddTextureChange(new ACE.Entity.TextureMapChange { PartIndex = (byte)t.Index, OldTexture = t1.OldTexture, NewTexture = t1.NewTexture });
+                                objDesc.AddTextureChange(new PropertiesTextureMap { PartIndex = (byte)t.Index, OldTexture = t1.OldTexture, NewTexture = t1.NewTexture });
                         }
 
                         if (item.ClothingSubPalEffects.Count > 0)
@@ -209,9 +207,9 @@ namespace ACE.Server.WorldObjects
 
                                 for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
                                 {
-                                    uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
-                                    uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
-                                    objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = itemPal, Offset = palOffset, NumColors = numColors });
+                                    ushort palOffset = (ushort)(itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8);
+                                    ushort numColors = (ushort)(itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8);
+                                    objDesc.SubPalettes.Add(new PropertiesPalette { SubPaletteId = itemPal, Offset = palOffset, Length = numColors });
                                 }
                             }
                         }
@@ -227,7 +225,7 @@ namespace ACE.Server.WorldObjects
                 for (byte i = 0; i < baseSetup.Parts.Count; i++)
                 {
                     if (!coverage.Contains(i) && i != 0x10) // Don't add body parts for those that are already covered. Also don't add the head, that was already covered by AddCharacterBaseModelData()
-                        objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = i, PartID = baseSetup.Parts[i] });
+                        objDesc.AnimPartChanges.Add(new PropertiesAnimPart { Index = i, AnimationId = baseSetup.Parts[i] });
                     //AddModel(i, baseSetup.Parts[i]);
                 }
             }
@@ -247,7 +245,7 @@ namespace ACE.Server.WorldObjects
             for (var i = 0; i < wo.CSetup.Parts.Count; i++)
             {
                 if(wo.CSetup.Parts[i] != 0x010001EC || i != 16) // This is essentially a "null" part, so do not add it for the head
-                    objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = (byte)i, PartID = wo.CSetup.Parts[i] });
+                    objDesc.AnimPartChanges.Add(new PropertiesAnimPart { Index = (byte)i, AnimationId = wo.CSetup.Parts[i] });
             }
 
             return objDesc;

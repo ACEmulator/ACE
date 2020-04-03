@@ -1,3 +1,4 @@
+using System;
 
 using log4net;
 
@@ -35,7 +36,8 @@ namespace ACE.Database
             if (playerWeenieLoadTest == null)
                 log.Fatal("Database does not contain the weenie for human (1). Characters cannot be created or logged into until the missing weenie is restored.");
 
-            var shardDb = new ShardDatabase();
+            // By default, we hold on to player biotas a little bit longer to help with offline updates like pass-up xp, allegiance updates, etc...
+            var shardDb = new ShardDatabaseWithCaching(TimeSpan.FromMinutes(31), TimeSpan.FromMinutes(11));
             serializedShardDb = new SerializedShardDatabase(shardDb);
             Shard = serializedShardDb;
 

@@ -202,7 +202,7 @@ namespace ACE.Server.WorldObjects
 
             // eye level -> target point
             var origin = crossLandblock ? Location.ToGlobal(false) : Location.Pos;
-            origin.Z += target.Height * ProjSpawnHeight;
+            origin.Z += Height * ProjSpawnHeight;
 
             var dest = crossLandblock ? target.Location.ToGlobal(false) : target.Location.Pos;
             dest.Z += target.Height / GetAimHeight(target);

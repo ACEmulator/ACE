@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Database.Models.Shard;
@@ -14,8 +15,7 @@ namespace ACE.Database.Adapter
             targetBiota.WeenieClassId = sourceBiota.WeenieClassId;
             targetBiota.WeenieType = (int)sourceBiota.WeenieType;
 
-            throw new NotImplementedException();
-            /* Uncomment this when new biota model is used
+
             if (sourceBiota.PropertiesBool != null)
             {
                 foreach (var kvp in sourceBiota.PropertiesBool)
@@ -91,7 +91,7 @@ namespace ACE.Database.Adapter
             {
                 if (sourceBiota.PropertiesString == null || !sourceBiota.PropertiesString.ContainsKey((PropertyString)value.Type))
                     context.BiotaPropertiesString.Remove(value);
-            }*/
+            }
 
 
             if (sourceBiota.PropertiesPosition != null)
@@ -225,114 +225,134 @@ namespace ACE.Database.Adapter
 
             // Properties for all world objects that typically aren't modified over the original Biota
 
-            /*if (biota.PropertiesCreateList != null)
+            // This is a cluster... because there is no key per record, just the record id.
+            // That poses a problem because when we add a new record to be saved, we don't know what the record id is yet.
+            // It's not until we try to save the record a second time that we will then have the database persisted record (with a valid id), and the entity record (that still has a DatabaseRecordId of 0)
+            // We then need to match up the record that was saved with it's entity counterpart
+            var processedSourceCreateList = new HashSet<ACE.Entity.Models.PropertiesCreateList>();
+            var usedTargetCreateList = new HashSet<BiotaPropertiesCreateList>();
+            if (sourceBiota.PropertiesCreateList != null)
             {
-                foreach (var value in biota.PropertiesCreateList)
+                // Process matched up records first
+                foreach (var value in sourceBiota.PropertiesCreateList)
                 {
-                    BiotaPropertiesCreateList existingValue = existingBiota.BiotaPropertiesCreateList.FirstOrDefault(r => r.Id == value.Id);
+                    if (value.DatabaseRecordId == 0)
+                        continue;
+
+                    // Source record should already exist in the target
+                    BiotaPropertiesCreateList existingValue = targetBiota.BiotaPropertiesCreateList.FirstOrDefault(r => r.Id == value.DatabaseRecordId);
+
+                    // If the existingValue was not found, the database was likely modified outside of ACE after our last save
+                    if (existingValue == null)
+                        continue;
+
+                    CopyValueInto(value, existingValue);
+
+                    processedSourceCreateList.Add(value);
+                    usedTargetCreateList.Add(existingValue);
+                }
+                foreach (var value in sourceBiota.PropertiesCreateList)
+                {
+                    if (processedSourceCreateList.Contains(value))
+                        continue;
+
+                    // For simplicity, just find the first unused target
+                    BiotaPropertiesCreateList existingValue = targetBiota.BiotaPropertiesCreateList.FirstOrDefault(r => !usedTargetCreateList.Contains(r));
 
                     if (existingValue == null)
-                        existingBiota.BiotaPropertiesCreateList.Add(value);
-                    else
                     {
-                        existingValue.DestinationType = value.DestinationType;
-                        existingValue.WeenieClassId = value.WeenieClassId;
-                        existingValue.StackSize = value.StackSize;
-                        existingValue.Palette = value.Palette;
-                        existingValue.Shade = value.Shade;
-                        existingValue.TryToBond = value.TryToBond;
+                        existingValue = new BiotaPropertiesCreateList { ObjectId = sourceBiota.Id };
+
+                        targetBiota.BiotaPropertiesCreateList.Add(existingValue);
                     }
+
+                    value.DatabaseRecordId = existingValue.Id;
+
+                    CopyValueInto(value, existingValue);
+
+                    //processedSourceCreateList.Add(value);
+                    usedTargetCreateList.Add(existingValue);
                 }
             }
-            foreach (var value in existingBiota.BiotaPropertiesCreateList)
+            foreach (var value in targetBiota.BiotaPropertiesCreateList)
             {
-                if (biota.PropertiesCreateList == null || !biota.PropertiesCreateList.Any(p => p.Id == value.Id))
+                if (!usedTargetCreateList.Contains(value))
                     context.BiotaPropertiesCreateList.Remove(value);
-            }*/
+            }
 
-            /*if (biota.PropertiesEmote != null)
+            // This is a cluster... because there is no key per record, just the record id.
+            // That poses a problem because when we add a new record to be saved, we don't know what the record id is yet.
+            // It's not until we try to save the record a second time that we will then have the database persisted record (with a valid id), and the entity record (that still has a DatabaseRecordId of 0)
+            // We then need to match up the record that was saved with it's entity counterpart
+            var emoteMap = new Dictionary<ACE.Entity.Models.PropertiesEmote, BiotaPropertiesEmote>();
+            if (sourceBiota.PropertiesEmote != null)
             {
-                foreach (var value in biota.PropertiesEmote)
+                // Process matched up records first
+                foreach (var value in sourceBiota.PropertiesEmote)
                 {
-                    BiotaPropertiesEmote existingValue = existingBiota.BiotaPropertiesEmote.FirstOrDefault(r => r.Id == value.Id);
+                    if (value.DatabaseRecordId == 0)
+                        continue;
+
+                    // Source record should already exist in the target
+                    BiotaPropertiesEmote existingValue = targetBiota.BiotaPropertiesEmote.FirstOrDefault(r => r.Id == value.DatabaseRecordId);
+
+                    // If the existingValue was not found, the database was likely modified outside of ACE after our last save
+                    if (existingValue == null)
+                        continue;
+
+                    CopyValueInto(value, existingValue);
+
+                    emoteMap[value] = existingValue;
+                }
+                foreach (var value in sourceBiota.PropertiesEmote)
+                {
+                    if (emoteMap.Keys.Contains(value))
+                        continue;
+
+                    // For simplicity, just find the first unused target
+                    BiotaPropertiesEmote existingValue = targetBiota.BiotaPropertiesEmote.FirstOrDefault(r => !emoteMap.Values.Contains(r));
 
                     if (existingValue == null)
-                        existingBiota.BiotaPropertiesEmote.Add(value);
-                    else
                     {
-                        existingValue.Category = value.Category;
-                        existingValue.Probability = value.Probability;
-                        existingValue.WeenieClassId = value.WeenieClassId;
-                        existingValue.Style = value.Style;
-                        existingValue.Substyle = value.Substyle;
-                        existingValue.Quest = value.Quest;
-                        existingValue.VendorType = value.VendorType;
-                        existingValue.MinHealth = value.MinHealth;
-                        existingValue.MaxHealth = value.MaxHealth;
+                        existingValue = new BiotaPropertiesEmote { ObjectId = sourceBiota.Id };
 
-                        foreach (var value2 in value.PropertiesEmoteAction)
-                        {
-                            BiotaPropertiesEmoteAction existingValue2 = existingValue.BiotaPropertiesEmoteAction.FirstOrDefault(r => r.Id == value2.Id);
-
-                            if (existingValue2 == null)
-                                existingValue.BiotaPropertiesEmoteAction.Add(value2);
-                            else
-                            {
-                                //existingValue2.EmoteId = value2.EmoteId;
-                                existingValue2.Order = (uint)value.PropertiesEmoteAction.IndexOf(value2);
-                                existingValue2.Type = value2.Type;
-                                existingValue2.Delay = value2.Delay;
-                                existingValue2.Extent = value2.Extent;
-                                existingValue2.Motion = value2.Motion;
-                                existingValue2.Message = value2.Message;
-                                existingValue2.TestString = value2.TestString;
-                                existingValue2.Min = value2.Min;
-                                existingValue2.Max = value2.Max;
-                                existingValue2.Min64 = value2.Min64;
-                                existingValue2.Max64 = value2.Max64;
-                                existingValue2.MinDbl = value2.MinDbl;
-                                existingValue2.MaxDbl = value2.MaxDbl;
-                                existingValue2.Stat = value2.Stat;
-                                existingValue2.Display = value2.Display;
-                                existingValue2.Amount = value2.Amount;
-                                existingValue2.Amount64 = value2.Amount64;
-                                existingValue2.HeroXP64 = value2.HeroXP64;
-                                existingValue2.Percent = value2.Percent;
-                                existingValue2.SpellId = value2.SpellId;
-                                existingValue2.WealthRating = value2.WealthRating;
-                                existingValue2.TreasureClass = value2.TreasureClass;
-                                existingValue2.TreasureType = value2.TreasureType;
-                                existingValue2.PScript = value2.PScript;
-                                existingValue2.Sound = value2.Sound;
-                                existingValue2.DestinationType = value2.DestinationType;
-                                existingValue2.WeenieClassId = value2.WeenieClassId;
-                                existingValue2.StackSize = value2.StackSize;
-                                existingValue2.Palette = value2.Palette;
-                                existingValue2.Shade = value2.Shade;
-                                existingValue2.TryToBond = value2.TryToBond;
-                                existingValue2.ObjCellId = value2.ObjCellId;
-                                existingValue2.OriginX = value2.OriginX;
-                                existingValue2.OriginY = value2.OriginY;
-                                existingValue2.OriginZ = value2.OriginZ;
-                                existingValue2.AnglesW = value2.AnglesW;
-                                existingValue2.AnglesX = value2.AnglesX;
-                                existingValue2.AnglesY = value2.AnglesY;
-                                existingValue2.AnglesZ = value2.AnglesZ;
-                            }
-                        }
-                        foreach (var value2 in value.PropertiesEmoteAction)
-                        {
-                            if (!existingValue.BiotaPropertiesEmoteAction.Any(p => p.Id == value2.Id))
-                                context.BiotaPropertiesEmoteAction.Remove(value2);
-                        }
+                        targetBiota.BiotaPropertiesEmote.Add(existingValue);
                     }
+
+                    value.DatabaseRecordId = existingValue.Id;
+
+                    CopyValueInto(value, existingValue);
+
+                    emoteMap[value] = existingValue;
                 }
             }
-            foreach (var value in existingBiota.BiotaPropertiesEmote)
+            foreach (var value in targetBiota.BiotaPropertiesEmote)
             {
-                if (biota.PropertiesEmote == null || !biota.PropertiesEmote.Any(p => p.Id == value.Id))
+                if (!emoteMap.Values.Contains(value))
                     context.BiotaPropertiesEmote.Remove(value);
-            }*/
+            }
+            // Now process the emote actions
+            foreach (var kvp in emoteMap)
+            {
+                for (int i = 0; i < kvp.Key.PropertiesEmoteAction.Count; i++)
+                {
+                    BiotaPropertiesEmoteAction existingValue = kvp.Value.BiotaPropertiesEmoteAction.FirstOrDefault(r => r.Order == i);
+
+                    if (existingValue == null)
+                    {
+                        existingValue = new BiotaPropertiesEmoteAction { EmoteId = kvp.Value.Id };
+
+                        kvp.Value.BiotaPropertiesEmoteAction.Add(existingValue);
+                    }
+
+                    CopyValueInto(kvp.Key.PropertiesEmoteAction[i], existingValue, (uint)i);
+                }
+                foreach (var value in kvp.Value.BiotaPropertiesEmoteAction)
+                {
+                    if (value.Order >= kvp.Key.PropertiesEmoteAction.Count)
+                        context.BiotaPropertiesEmoteAction.Remove(value);
+                }
+            }
 
             if (sourceBiota.PropertiesEventFilter != null)
             {
@@ -354,42 +374,60 @@ namespace ACE.Database.Adapter
                     context.BiotaPropertiesEventFilter.Remove(value);
             }
 
-            /*if (biota.PropertiesGenerator != null)
+            // This is a cluster... because there is no key per record, just the record id.
+            // That poses a problem because when we add a new record to be saved, we don't know what the record id is yet.
+            // It's not until we try to save the record a second time that we will then have the database persisted record (with a valid id), and the entity record (that still has a DatabaseRecordId of 0)
+            // We then need to match up the record that was saved with it's entity counterpart
+            var processedSourceGenerators = new HashSet<ACE.Entity.Models.PropertiesGenerator>();
+            var usedTargetGenerators = new HashSet<BiotaPropertiesGenerator>();
+            if (sourceBiota.PropertiesGenerator != null)
             {
-                foreach (var value in biota.PropertiesGenerator)
+                // Process matched up records first
+                foreach (var value in sourceBiota.PropertiesGenerator)
                 {
-                    BiotaPropertiesGenerator existingValue = existingBiota.BiotaPropertiesGenerator.FirstOrDefault(r => r.Id == value.Id);
+                    if (value.DatabaseRecordId == 0)
+                        continue;
+
+                    // Source record should already exist in the target
+                    BiotaPropertiesGenerator existingValue = targetBiota.BiotaPropertiesGenerator.FirstOrDefault(r => r.Id == value.DatabaseRecordId);
+
+                    // If the existingValue was not found, the database was likely modified outside of ACE after our last save
+                    if (existingValue == null)
+                        continue;
+
+                    CopyValueInto(value, existingValue);
+
+                    processedSourceGenerators.Add(value);
+                    usedTargetGenerators.Add(existingValue);
+                }
+                foreach (var value in sourceBiota.PropertiesGenerator)
+                {
+                    if (processedSourceGenerators.Contains(value))
+                        continue;
+
+                    // For simplicity, just find the first unused target
+                    BiotaPropertiesGenerator existingValue = targetBiota.BiotaPropertiesGenerator.FirstOrDefault(r => !usedTargetGenerators.Contains(r));
 
                     if (existingValue == null)
-                        existingBiota.BiotaPropertiesGenerator.Add(value);
-                    else
                     {
-                        existingValue.Probability = value.Probability;
-                        existingValue.WeenieClassId = value.WeenieClassId;
-                        existingValue.Delay = value.Delay;
-                        existingValue.InitCreate = value.InitCreate;
-                        existingValue.MaxCreate = value.MaxCreate;
-                        existingValue.WhenCreate = value.WhenCreate;
-                        existingValue.WhereCreate = value.WhereCreate;
-                        existingValue.StackSize = value.StackSize;
-                        existingValue.PaletteId = value.PaletteId;
-                        existingValue.Shade = value.Shade;
-                        existingValue.ObjCellId = value.ObjCellId;
-                        existingValue.OriginX = value.OriginX;
-                        existingValue.OriginY = value.OriginY;
-                        existingValue.OriginZ = value.OriginZ;
-                        existingValue.AnglesW = value.AnglesW;
-                        existingValue.AnglesX = value.AnglesX;
-                        existingValue.AnglesY = value.AnglesY;
-                        existingValue.AnglesZ = value.AnglesZ;
+                        existingValue = new BiotaPropertiesGenerator { ObjectId = sourceBiota.Id };
+
+                        targetBiota.BiotaPropertiesGenerator.Add(existingValue);
                     }
+
+                    value.DatabaseRecordId = existingValue.Id;
+
+                    CopyValueInto(value, existingValue);
+
+                    //processedSourceGenerators.Add(value);
+                    usedTargetGenerators.Add(existingValue);
                 }
             }
-            foreach (var value in existingBiota.BiotaPropertiesGenerator)
+            foreach (var value in targetBiota.BiotaPropertiesGenerator)
             {
-                if (biota.PropertiesGenerator == null || !biota.PropertiesGenerator.Any(p => p.Id == value.Id))
+                if (!usedTargetGenerators.Contains(value))
                     context.BiotaPropertiesGenerator.Remove(value);
-            }*/
+            }
 
 
             // Properties for creatures
@@ -653,6 +691,95 @@ namespace ACE.Database.Adapter
                 if (sourceBiota.HousePermissions == null || !sourceBiota.HousePermissions.ContainsKey(value.PlayerGuid))
                     context.HousePermission.Remove(value);
             }
+        }
+
+        private static void CopyValueInto(ACE.Entity.Models.PropertiesCreateList value, ACE.Database.Models.Shard.BiotaPropertiesCreateList existingValue)
+        {
+            existingValue.DestinationType = (sbyte)value.DestinationType;
+            existingValue.WeenieClassId = value.WeenieClassId;
+            existingValue.StackSize = value.StackSize;
+            existingValue.Palette = value.Palette;
+            existingValue.Shade = value.Shade;
+            existingValue.TryToBond = value.TryToBond;
+        }
+
+        private static void CopyValueInto(ACE.Entity.Models.PropertiesEmote value, ACE.Database.Models.Shard.BiotaPropertiesEmote existingValue)
+        {
+            existingValue.Category = (uint)value.Category;
+            existingValue.Probability = value.Probability;
+            existingValue.WeenieClassId = value.WeenieClassId;
+            existingValue.Style = (uint?)value.Style;
+            existingValue.Substyle = (uint?)value.Substyle;
+            existingValue.Quest = value.Quest;
+            existingValue.VendorType = (int?)value.VendorType;
+            existingValue.MinHealth = value.MinHealth;
+            existingValue.MaxHealth = value.MaxHealth;
+        }
+
+        private static void CopyValueInto(ACE.Entity.Models.PropertiesEmoteAction value, ACE.Database.Models.Shard.BiotaPropertiesEmoteAction existingValue, uint order)
+        {
+            //existingValue.EmoteId = value.EmoteId;
+            existingValue.Order = order;
+            existingValue.Type = value.Type;
+            existingValue.Delay = value.Delay;
+            existingValue.Extent = value.Extent;
+            existingValue.Motion = (int?)value.Motion;
+            existingValue.Message = value.Message;
+            existingValue.TestString = value.TestString;
+            existingValue.Min = value.Min;
+            existingValue.Max = value.Max;
+            existingValue.Min64 = value.Min64;
+            existingValue.Max64 = value.Max64;
+            existingValue.MinDbl = value.MinDbl;
+            existingValue.MaxDbl = value.MaxDbl;
+            existingValue.Stat = value.Stat;
+            existingValue.Display = value.Display;
+            existingValue.Amount = value.Amount;
+            existingValue.Amount64 = value.Amount64;
+            existingValue.HeroXP64 = value.HeroXP64;
+            existingValue.Percent = value.Percent;
+            existingValue.SpellId = value.SpellId;
+            existingValue.WealthRating = value.WealthRating;
+            existingValue.TreasureClass = value.TreasureClass;
+            existingValue.TreasureType = value.TreasureType;
+            existingValue.PScript = (int?)value.PScript;
+            existingValue.Sound = (int?)value.Sound;
+            existingValue.DestinationType = value.DestinationType;
+            existingValue.WeenieClassId = value.WeenieClassId;
+            existingValue.StackSize = value.StackSize;
+            existingValue.Palette = value.Palette;
+            existingValue.Shade = value.Shade;
+            existingValue.TryToBond = value.TryToBond;
+            existingValue.ObjCellId = value.ObjCellId;
+            existingValue.OriginX = value.OriginX;
+            existingValue.OriginY = value.OriginY;
+            existingValue.OriginZ = value.OriginZ;
+            existingValue.AnglesW = value.AnglesW;
+            existingValue.AnglesX = value.AnglesX;
+            existingValue.AnglesY = value.AnglesY;
+            existingValue.AnglesZ = value.AnglesZ;
+        }
+
+        private static void CopyValueInto(ACE.Entity.Models.PropertiesGenerator value, ACE.Database.Models.Shard.BiotaPropertiesGenerator existingValue)
+        {
+            existingValue.Probability = value.Probability;
+            existingValue.WeenieClassId = value.WeenieClassId;
+            existingValue.Delay = value.Delay;
+            existingValue.InitCreate = value.InitCreate;
+            existingValue.MaxCreate = value.MaxCreate;
+            existingValue.WhenCreate = (uint)value.WhenCreate;
+            existingValue.WhereCreate = (uint)value.WhereCreate;
+            existingValue.StackSize = value.StackSize;
+            existingValue.PaletteId = value.PaletteId;
+            existingValue.Shade = value.Shade;
+            existingValue.ObjCellId = value.ObjCellId;
+            existingValue.OriginX = value.OriginX;
+            existingValue.OriginY = value.OriginY;
+            existingValue.OriginZ = value.OriginZ;
+            existingValue.AnglesW = value.AnglesW;
+            existingValue.AnglesX = value.AnglesX;
+            existingValue.AnglesY = value.AnglesY;
+            existingValue.AnglesZ = value.AnglesZ;
         }
     }
 }

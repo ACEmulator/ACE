@@ -4,7 +4,6 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -16,13 +15,11 @@ using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-using HousePermission = ACE.Database.Models.Shard.HousePermission;
-
 namespace ACE.Server.WorldObjects
 {
     public class House : WorldObject
     {
+        // TODO now that the new biota model uses a dictionary for this, see if we can remove this duplicate dictionary
         public Dictionary<ObjectGuid, bool> Guests;
 
         public static int MaxGuests = 128;
@@ -52,6 +49,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public House(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
         }
 
@@ -60,7 +58,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public House(Biota biota) : base(biota)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
+        }
+
+        private void InitializePropertyDictionaries()
+        {
+            if (Biota.HousePermissions == null)
+                Biota.HousePermissions = new Dictionary<uint, bool>();
         }
 
         private void SetEphemeralValues()
@@ -109,24 +114,31 @@ namespace ACE.Server.WorldObjects
         {
             var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
 
-            var biota = DatabaseManager.Shard.GetBiota(houseGuid);
+            var biota = DatabaseManager.Shard.BaseDatabase.GetBiota(houseGuid);
             var instances = DatabaseManager.World.GetCachedInstancesByLandblock(landblock);
 
             if (biota == null)
             {
                 if (instances != null)
                 {
-                    var houseInstance = instances.Where(h => h.Guid == houseGuid).FirstOrDefault();
+                    var houseInstance = instances.FirstOrDefault(h => h.Guid == houseGuid);
 
                     if (houseInstance != null)
-                        biota = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(houseInstance.WeenieClassId), new ObjectGuid(houseInstance.Guid)).Biota;
+                    {
+                        var weenie = DatabaseManager.World.GetCachedWeenie(houseInstance.WeenieClassId);
+                        var objectGuid = new ObjectGuid(houseInstance.Guid);
+
+                        var newWorldObject = WorldObjectFactory.CreateWorldObject(weenie, objectGuid);
+
+                        biota = ACE.Database.Adapter.BiotaConverter.ConvertFromEntityBiota(newWorldObject.Biota);
+                    }
                 }
             }
 
-            var linkedHouses = WorldObjectFactory.CreateNewWorldObjects(instances, new List<Biota>() { biota }, biota.WeenieClassId);
+            var linkedHouses = WorldObjectFactory.CreateNewWorldObjects(instances, new List<ACE.Database.Models.Shard.Biota> { biota }, biota.WeenieClassId);
 
             foreach (var linkedHouse in linkedHouses)
-                linkedHouse.ActivateLinks(instances, new List<Biota>() { biota }, linkedHouses[0]);
+                linkedHouse.ActivateLinks(instances, new List<ACE.Database.Models.Shard.Biota> { biota }, linkedHouses[0]);
 
             var house = (House)linkedHouses[0];
 
@@ -142,7 +154,7 @@ namespace ACE.Server.WorldObjects
             }
 
             var slumlordGuid = house.SlumLord.Guid.Full;
-            var slumlordBiota = DatabaseManager.Shard.GetBiota(slumlordGuid);
+            var slumlordBiota = DatabaseManager.Shard.BaseDatabase.GetBiota(slumlordGuid);
             if (slumlordBiota != null)
             {
                 var slumlord = WorldObjectFactory.CreateWorldObject(slumlordBiota);
@@ -201,7 +213,7 @@ namespace ACE.Server.WorldObjects
             var house = this;
             if (CurrentLandblock != null && CurrentLandblock.HasDungeon && HouseType != HouseType.Apartment)
             {
-                var biota = DatabaseManager.Shard.GetBiotasByWcid(WeenieClassId).Where(bio => bio.BiotaPropertiesPosition.Count > 0).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location.Landblock);
+                var biota = DatabaseManager.Shard.BaseDatabase.GetBiotasByWcid(WeenieClassId).Where(bio => bio.BiotaPropertiesPosition.Count > 0).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location.Landblock);
                 if (biota != null)
                 {
                     house = WorldObjectFactory.CreateWorldObject(biota) as House;
@@ -315,28 +327,28 @@ namespace ACE.Server.WorldObjects
         {
             Guests = new Dictionary<ObjectGuid, bool>();
 
-            var housePermissions = Biota.GetHousePermission(BiotaDatabaseLock);
+            var housePermissions = Biota.CloneHousePermissions(BiotaDatabaseLock);
 
             var deleted = new List<uint>();
 
-            foreach (var housePermission in Biota.HousePermission)
+            foreach (var kvp in housePermissions)
             {
-                var player = PlayerManager.FindByGuid(housePermission.PlayerGuid);
+                var player = PlayerManager.FindByGuid(kvp.Key);
                 if (player == null)
                 {
-                    Console.WriteLine($"{Name}.BuildGuests(): couldn't find guest {housePermission.PlayerGuid:X8}");
+                    Console.WriteLine($"{Name}.BuildGuests(): couldn't find guest {kvp.Key:X8}");
 
                     // character has been deleted -- automatically remove?
-                    deleted.Add(housePermission.PlayerGuid);
+                    deleted.Add(kvp.Key);
                     continue;
                 }
-                Guests.Add(player.Guid, housePermission.Storage);
+                Guests.Add(player.Guid, kvp.Value);
             }
 
             if (deleted.Count > 0)
             {
                 foreach (var guid in deleted)
-                    Biota.TryRemoveHousePermission(guid, out var entity, BiotaDatabaseLock);
+                    Biota.RemoveHouseGuest(guid, BiotaDatabaseLock);
 
                 ChangesDetected = true;
 
@@ -346,12 +358,7 @@ namespace ACE.Server.WorldObjects
 
         public void AddGuest(IPlayer guest, bool storage)
         {
-            var housePermission = new HousePermission();
-            housePermission.HouseId = Guid.Full;
-            housePermission.PlayerGuid = guest.Guid.Full;
-            housePermission.Storage = storage;
-
-            Biota.AddHousePermission(housePermission, BiotaDatabaseLock);
+            Biota.AddOrUpdateHouseGuest(guest.Guid.Full, storage, BiotaDatabaseLock);
             ChangesDetected = true;
 
             BuildGuests();
@@ -363,12 +370,19 @@ namespace ACE.Server.WorldObjects
 
         public void ModifyGuest(IPlayer guest, bool storage)
         {
-            var existing = FindGuest(guest);
+            var existingStorage = Biota.GetHouseGuestStoragePermission(guest.Guid.Full, BiotaDatabaseLock);
 
-            if (existing == null || existing.Storage == storage)
+            if (existingStorage == null)
+            {
+                Console.WriteLine($"{Name}.FindGuest({guest.Guid}): couldn't find {guest.Name}");
+
+                return;
+            }
+
+            if (existingStorage == storage)
                 return;
 
-            existing.Storage = storage;
+            Biota.AddOrUpdateHouseGuest(guest.Guid.Full, storage, BiotaDatabaseLock);
             ChangesDetected = true;
 
             BuildGuests();
@@ -380,7 +394,9 @@ namespace ACE.Server.WorldObjects
 
         public void RemoveGuest(IPlayer guest)
         {
-            Biota.TryRemoveHousePermission(guest.Guid.Full, out var entity, BiotaDatabaseLock);
+            if (!Biota.RemoveHouseGuest(guest.Guid.Full, BiotaDatabaseLock))
+                return;
+
             ChangesDetected = true;
 
             BuildGuests();
@@ -402,18 +418,6 @@ namespace ACE.Server.WorldObjects
                 }
                 RemoveGuest(player);
             }
-        }
-
-        public HousePermission FindGuest(IPlayer guest)
-        {
-            var housePermissions = Biota.GetHousePermission(BiotaDatabaseLock);
-
-            var existing = housePermissions.FirstOrDefault(i => i.PlayerGuid == guest.Guid.Full);
-
-            if (existing == null)
-                Console.WriteLine($"{Name}.FindGuest({guest.Guid}): couldn't find {guest.Name}");
-
-            return existing;
         }
 
         /// <summary>
@@ -536,7 +540,7 @@ namespace ACE.Server.WorldObjects
                     return Guid;
                 }
 
-                var biota = DatabaseManager.Shard.GetBiotasByWcid(WeenieClassId).Where(bio => bio.BiotaPropertiesPosition.Count > 0).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location?.Landblock);
+                var biota = DatabaseManager.Shard.BaseDatabase.GetBiotasByWcid(WeenieClassId).Where(bio => bio.BiotaPropertiesPosition.Count > 0).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location?.Landblock);
                 if (biota == null)
                 {
                     var instance = DatabaseManager.World.GetLandblockInstancesByWcid(WeenieClassId).FirstOrDefault(w => w.ObjCellId >> 16 != Location?.Landblock);
