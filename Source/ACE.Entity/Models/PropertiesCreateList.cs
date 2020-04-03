@@ -6,6 +6,11 @@ namespace ACE.Entity.Models
 {
     public class PropertiesCreateList
     {
+        /// <summary>
+        /// This is only used to tie this property back to a specific database row
+        /// </summary>
+        public uint DatabaseRecordId { get; set; }
+
         public DestinationType DestinationType { get; set; }
         public uint WeenieClassId { get; set; }
         public int StackSize { get; set; }

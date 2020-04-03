@@ -17,8 +17,6 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Managers;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     partial class Player
@@ -748,27 +746,27 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public static void HandleNoLogLandblock(Biota biota)
         {
-            if (biota.WeenieType == (int)WeenieType.Sentinel || biota.WeenieType == (int)WeenieType.Admin) return;
+            if (biota.WeenieType == WeenieType.Sentinel || biota.WeenieType == WeenieType.Admin) return;
 
-            var location = biota.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (ushort)PositionType.Location);
-            if (location == null) return;
+            if (!biota.PropertiesPosition.TryGetValue(PositionType.Location, out var location))
+                return;
 
             var landblock = (ushort)(location.ObjCellId >> 16);
 
             if (!NoLog_Landblocks.Contains(landblock))
                 return;
 
-            var lifestone = biota.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (ushort)PositionType.Sanctuary);
-            if (lifestone == null) return;
+            if (!biota.PropertiesPosition.TryGetValue(PositionType.Sanctuary, out var lifestone))
+                return;
 
             location.ObjCellId = lifestone.ObjCellId;
-            location.OriginX = lifestone.OriginX;
-            location.OriginY = lifestone.OriginY;
-            location.OriginZ = lifestone.OriginZ;
-            location.AnglesX = lifestone.AnglesX;
-            location.AnglesY = lifestone.AnglesY;
-            location.AnglesZ = lifestone.AnglesZ;
-            location.AnglesW = lifestone.AnglesW;
+            location.PositionX = lifestone.PositionX;
+            location.PositionY = lifestone.PositionY;
+            location.PositionZ = lifestone.PositionZ;
+            location.RotationX = lifestone.RotationX;
+            location.RotationY = lifestone.RotationY;
+            location.RotationZ = lifestone.RotationZ;
+            location.RotationW = lifestone.RotationW;
         }
     }
 }

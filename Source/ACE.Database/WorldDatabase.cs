@@ -16,7 +16,7 @@ using ACE.Entity.Enum.Properties;
 
 namespace ACE.Database
 {
-    public class WorldDatabase 
+    public class WorldDatabase
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -194,9 +194,9 @@ namespace ACE.Database
             using (var context = new WorldDbContext())
             {
                 var query = from weenie in context.Weenie
-                    join winst in context.LandblockInstance on weenie.ClassId equals winst.WeenieClassId
-                    where weenie.Type == (int)WeenieType.SlumLord
-                    select new HouseListResults(weenie, winst);
+                            join winst in context.LandblockInstance on weenie.ClassId equals winst.WeenieClassId
+                            where weenie.Type == (int)WeenieType.SlumLord
+                            select new HouseListResults(weenie, winst);
 
                 return query.ToList();
             }

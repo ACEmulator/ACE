@@ -1,9 +1,10 @@
 using System;
 using System.Threading;
+
 using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -48,7 +49,10 @@ namespace ACE.Server.WorldObjects
         {
             // Make sure all of our positions in the biota are up to date with our current cached values.
             foreach (var kvp in positionCache)
-                Biota.SetPosition(kvp.Key, kvp.Value, BiotaDatabaseLock, out _);
+            {
+                if (kvp.Value != null)
+                    Biota.SetPosition(kvp.Key, kvp.Value, BiotaDatabaseLock);
+            }
 
             LastRequestedDatabaseSave = DateTime.UtcNow;
             ChangesDetected = false;
@@ -89,7 +93,7 @@ namespace ACE.Server.WorldObjects
             ChangesDetected = true;
 
             if (enqueueRemove)
-                DatabaseManager.Shard.RemoveBiota(Biota, BiotaDatabaseLock, null);
+                DatabaseManager.Shard.RemoveBiota(Biota.Id, null);
         }
 
         /// <summary>

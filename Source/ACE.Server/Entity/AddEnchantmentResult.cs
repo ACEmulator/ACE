@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Database.Models.Shard;
+using ACE.Entity.Models;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Managers;
 
@@ -18,7 +18,7 @@ namespace ACE.Server.Entity
         ///  The resulting enchantment that was added or refreshed
         ///  This is set in EnchantmentManager.Add()
         /// </summary>
-        public BiotaPropertiesEnchantmentRegistry Enchantment;
+        public PropertiesEnchantmentRegistry Enchantment;
 
         /// <summary>
         /// Determines how this enchantment relates
@@ -30,9 +30,9 @@ namespace ACE.Server.Entity
         /// <summary>
         /// A list of existing enchantments in this stack 
         /// </summary>
-        public List<BiotaPropertiesEnchantmentRegistry> Surpass;
-        public List<BiotaPropertiesEnchantmentRegistry> Refresh;
-        public List<BiotaPropertiesEnchantmentRegistry> Surpassed;
+        public List<PropertiesEnchantmentRegistry> Surpass;
+        public List<PropertiesEnchantmentRegistry> Refresh;
+        public List<PropertiesEnchantmentRegistry> Surpassed;
 
         /// <summary>
         /// The most powerful spells in this stack,
@@ -46,7 +46,7 @@ namespace ACE.Server.Entity
         /// This handles situations where the same spell can come
         /// from both a creature and item source
         /// </summary>
-        public BiotaPropertiesEnchantmentRegistry RefreshCaster { get; set; }
+        public PropertiesEnchantmentRegistry RefreshCaster { get; set; }
 
         public ushort TopLayerId { get; set; }
 
@@ -59,11 +59,11 @@ namespace ACE.Server.Entity
             StackType = stackType;
         }
 
-        public void BuildStack(List<BiotaPropertiesEnchantmentRegistry> entries, Spell spell, WorldObject caster)
+        public void BuildStack(List<PropertiesEnchantmentRegistry> entries, Spell spell, WorldObject caster)
         {
-            Surpass = new List<BiotaPropertiesEnchantmentRegistry>();
-            Refresh = new List<BiotaPropertiesEnchantmentRegistry>();
-            Surpassed = new List<BiotaPropertiesEnchantmentRegistry>();
+            Surpass = new List<PropertiesEnchantmentRegistry>();
+            Refresh = new List<PropertiesEnchantmentRegistry>();
+            Surpassed = new List<PropertiesEnchantmentRegistry>();
 
             var powerLevel = spell.Power;
 

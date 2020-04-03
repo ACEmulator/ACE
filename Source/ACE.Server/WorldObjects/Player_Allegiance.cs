@@ -947,11 +947,11 @@ namespace ACE.Server.WorldObjects
                 var list = "Approved vassals:";
                 foreach (var entity in Allegiance.ApprovedVassals)
                 {
-                    var approvedVassal = PlayerManager.FindByGuid(entity.CharacterId);
+                    var approvedVassal = PlayerManager.FindByGuid(entity.Key);
                     if (approvedVassal == null)
                     {
                         // automatically remove?
-                        log.Warn($"{Name}.HandleActionDoAllegianceLockAction({action}): couldn't find approved vassal {entity.CharacterId:X8}");
+                        log.Warn($"{Name}.HandleActionDoAllegianceLockAction({action}): couldn't find approved vassal {entity.Key:X8}");
                         continue;
                     }
 
@@ -971,7 +971,7 @@ namespace ACE.Server.WorldObjects
             if (action == AllegianceLockAction.ClearApproved)
             {
                 foreach (var entity in Allegiance.ApprovedVassals)
-                    Allegiance.RemoveApprovedVassal(entity.CharacterId);
+                    Allegiance.RemoveApprovedVassal(entity.Key);
 
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"The approved vassals list has been cleared.", ChatMessageType.Broadcast));
                 return;
@@ -1264,12 +1264,12 @@ namespace ACE.Server.WorldObjects
             var list = "Allegiance ban list:";
             foreach (var entity in banList)
             {
-                var player = PlayerManager.FindByGuid(entity.CharacterId);
+                var player = PlayerManager.FindByGuid(entity.Key);
 
                 if (player == null)
                 {
                     // automatically remove?
-                    log.Warn($"{Name}.HandleActionListAllegianceBans(): couldn't find banned player {entity.CharacterId:X8}");
+                    log.Warn($"{Name}.HandleActionListAllegianceBans(): couldn't find banned player {entity.Key:X8}");
                     continue;
                 }
 

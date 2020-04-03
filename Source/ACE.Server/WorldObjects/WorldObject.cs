@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -9,7 +10,6 @@ using log4net;
 using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -28,7 +28,6 @@ using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Util;
 using ACE.Server.WorldObjects.Managers;
 
-using Biota = ACE.Database.Models.Shard.Biota;
 using Landblock = ACE.Server.Entity.Landblock;
 using Position = ACE.Entity.Position;
 
@@ -98,8 +97,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected WorldObject(Weenie weenie, ObjectGuid guid)
         {
-            var newBiota = ACE.Entity.Adapter.WeenieConverter.ConvertToBiota(weenie, guid.Full);
-            Biota = ACE.Database.Adapter.BiotaConverter.ConvertFromEntityBiota(newBiota);
+            Biota = ACE.Entity.Adapter.WeenieConverter.ConvertToBiota(weenie, guid.Full);
             Guid = guid;
 
             InitializePropertyDictionaries();
@@ -228,63 +226,12 @@ namespace ACE.Server.WorldObjects
 
         private void InitializePropertyDictionaries()
         {
-            foreach (var x in Biota.BiotaPropertiesBool)
-                biotaPropertyBools[(PropertyBool)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesDID)
-                biotaPropertyDataIds[(PropertyDataId)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesFloat)
-                biotaPropertyFloats[(PropertyFloat)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesIID)
-                biotaPropertyInstanceIds[(PropertyInstanceId)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesInt)
-                biotaPropertyInts[(PropertyInt)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesInt64)
-                biotaPropertyInt64s[(PropertyInt64)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesString)
-                biotaPropertyStrings[(PropertyString)x.Type] = x;
-
-            foreach (var x in EphemeralProperties.PropertiesBool.ToList())
-                ephemeralPropertyBools.TryAdd((PropertyBool)x, null);
-            foreach (var x in EphemeralProperties.PropertiesDataId.ToList())
-                ephemeralPropertyDataIds.TryAdd((PropertyDataId)x, null);
-            foreach (var x in EphemeralProperties.PropertiesDouble.ToList())
-                ephemeralPropertyFloats.TryAdd((PropertyFloat)x, null);
-            foreach (var x in EphemeralProperties.PropertiesInstanceId.ToList())
-                ephemeralPropertyInstanceIds.TryAdd((PropertyInstanceId)x, null);
-            foreach (var x in EphemeralProperties.PropertiesInt.ToList())
-                ephemeralPropertyInts.TryAdd((PropertyInt)x, null);
-            foreach (var x in EphemeralProperties.PropertiesInt64.ToList())
-                ephemeralPropertyInt64s.TryAdd((PropertyInt64)x, null);
-            foreach (var x in EphemeralProperties.PropertiesString.ToList())
-                ephemeralPropertyStrings.TryAdd((PropertyString)x, null);
-
-            foreach (var x in Biota.BiotaPropertiesSpellBook)
-                BiotaPropertySpells[x.Spell] = x;
+            if (Biota.PropertiesEnchantmentRegistry == null)
+                Biota.PropertiesEnchantmentRegistry = new Collection<PropertiesEnchantmentRegistry>();
         }
 
         private void SetEphemeralValues()
         { 
-            foreach (var x in Biota.BiotaPropertiesBool.Where(i => EphemeralProperties.PropertiesBool.Contains(i.Type)).ToList())
-                ephemeralPropertyBools[(PropertyBool)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesDID.Where(i => EphemeralProperties.PropertiesDataId.Contains(i.Type)).ToList())
-                ephemeralPropertyDataIds[(PropertyDataId)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesFloat.Where(i => EphemeralProperties.PropertiesDouble.Contains(i.Type)).ToList())
-                ephemeralPropertyFloats[(PropertyFloat)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesIID.Where(i => EphemeralProperties.PropertiesInstanceId.Contains(i.Type)).ToList())
-                ephemeralPropertyInstanceIds[(PropertyInstanceId)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesInt.Where(i => EphemeralProperties.PropertiesInt.Contains(i.Type)).ToList())
-                ephemeralPropertyInts[(PropertyInt)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesInt64.Where(i => EphemeralProperties.PropertiesInt64.Contains(i.Type)).ToList())
-                ephemeralPropertyInt64s[(PropertyInt64)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesString.Where(i => EphemeralProperties.PropertiesString.Contains(i.Type)).ToList())
-                ephemeralPropertyStrings[(PropertyString)x.Type] = x.Value;
-
-            foreach (var x in EphemeralProperties.PositionTypes.ToList())
-                ephemeralPositions.TryAdd((PositionType)x, null);
-
-            foreach (var x in Biota.BiotaPropertiesPosition.Where(i => EphemeralProperties.PositionTypes.Contains(i.PositionType)).ToList())
-                ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);
-
             ObjectDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
             EmoteManager = new EmoteManager(this);
@@ -302,7 +249,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool Teleporting { get; set; } = false;
 
-        public bool HasGiveOrRefuseEmoteForItem(WorldObject item, out BiotaPropertiesEmote emote)
+        public bool HasGiveOrRefuseEmoteForItem(WorldObject item, out PropertiesEmote emote)
         {
             // NPC refuses this item, with a custom response
             var refuseItem = EmoteManager.GetEmoteSet(EmoteCategory.Refuse, null, null, item.WeenieClassId);

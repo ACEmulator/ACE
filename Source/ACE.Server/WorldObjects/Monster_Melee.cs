@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
@@ -321,7 +321,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns base damage range for next monster attack
         /// </summary>
-        public BaseDamageMod GetBaseDamage(BiotaPropertiesBodyPart attackPart)
+        public BaseDamageMod GetBaseDamage(PropertiesBodyPart attackPart)
         {
             if (CurrentAttack == CombatType.Missile && GetMissileAmmo() != null)
                 return GetMissileDamage();
@@ -528,24 +528,24 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the monster body part performing the next attack
         /// </summary>
-        public BiotaPropertiesBodyPart GetAttackPart(MotionCommand motionCommand)
+        public KeyValuePair<CombatBodyPart, PropertiesBodyPart> GetAttackPart(MotionCommand motionCommand)
         {
-            List<BiotaPropertiesBodyPart> parts = null;
+            List<KeyValuePair<CombatBodyPart, PropertiesBodyPart>> parts = null;
             var attackHeight = (uint)AttackHeight;
 
             if (motionCommand >= MotionCommand.SpecialAttack1 && motionCommand <= MotionCommand.SpecialAttack3)
                 //parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH == 0).ToList();
-                parts = Biota.BiotaPropertiesBodyPart.Where(b => b.Key == (int)CombatBodyPart.Breath).ToList();  // always use Breath?
+                parts = Biota.PropertiesBodyPart.Where(b => b.Key == CombatBodyPart.Breath).ToList(); // always use Breath?
 
             if (parts == null)
                 //parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH != 0).ToList();
-                parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.Key != (int)CombatBodyPart.Breath).ToList();
+                parts = Biota.PropertiesBodyPart.Where(b => b.Value.DVal != 0 && b.Key != CombatBodyPart.Breath).ToList();
 
             if (parts.Count == 0)
             {
                 log.Warn($"{Name} ({Guid}.GetAttackPart({motionCommand}) failed");
                 log.Warn($"CombatTable: {CombatTableDID:X8}, MotionTable: {MotionTableId:X8}, CurrentStance: {CurrentMotionState.Stance}, AttackHeight: {AttackHeight}, AttackType: {AttackType}");
-                return null;
+                return new KeyValuePair<CombatBodyPart, PropertiesBodyPart>();
             }
 
             var part = parts[ThreadSafeRandom.Next(0, parts.Count - 1)];

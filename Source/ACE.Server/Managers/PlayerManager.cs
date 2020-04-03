@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using log4net;
+
 using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
@@ -18,7 +20,7 @@ using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 
-using log4net;
+using Biota = ACE.Entity.Models.Biota;
 
 namespace ACE.Server.Managers
 {
@@ -42,7 +44,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void Initialize()
         {
-            var results = DatabaseManager.Shard.GetAllPlayerBiotasInParallel();
+            var results = DatabaseManager.Shard.BaseDatabase.GetAllPlayerBiotasInParallel();
 
             Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
             {

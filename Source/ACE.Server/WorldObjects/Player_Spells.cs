@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
@@ -19,7 +21,7 @@ namespace ACE.Server.WorldObjects
     {
         public bool SpellIsKnown(uint spellId)
         {
-            return Biota.SpellIsKnown((int)spellId, BiotaDatabaseLock, BiotaPropertySpells);
+            return Biota.SpellIsKnown((int)spellId, BiotaDatabaseLock);
         }
 
         /// <summary>
@@ -27,7 +29,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool AddKnownSpell(uint spellId)
         {
-            Biota.GetOrAddKnownSpell((int)spellId, BiotaDatabaseLock, BiotaPropertySpells, out var spellAdded);
+            Biota.GetOrAddKnownSpell((int)spellId, BiotaDatabaseLock, out var spellAdded);
 
             if (spellAdded)
                 ChangesDetected = true;
@@ -40,7 +42,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool RemoveKnownSpell(uint spellId)
         {
-            return Biota.TryRemoveKnownSpell((int)spellId, out _, BiotaDatabaseLock, BiotaPropertySpells);
+            return Biota.TryRemoveKnownSpell((int)spellId, BiotaDatabaseLock);
         }
 
         public void LearnSpellWithNetworking(uint spellId, bool uiOutput = true)
@@ -103,7 +105,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionMagicRemoveSpellId(uint spellId)
         {
-            if (!Biota.TryRemoveKnownSpell((int)spellId, BiotaDatabaseLock, BiotaPropertySpells))
+            if (!Biota.TryRemoveKnownSpell((int)spellId, BiotaDatabaseLock))
             {
                 log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
                 return;
@@ -507,7 +509,7 @@ namespace ACE.Server.WorldObjects
             // this is a legacy method, but is still a decent failsafe to catch any existing issues
 
             // get active item enchantments
-            var enchantments = Biota.GetEnchantments(BiotaDatabaseLock).Where(i => i.Duration == -1 && i.SpellId != (int)SpellId.Vitae).ToList();
+            var enchantments = Biota.PropertiesEnchantmentRegistry.Clone(BiotaDatabaseLock).Where(i => i.Duration == -1 && i.SpellId != (int)SpellId.Vitae).ToList();
 
             foreach (var enchantment in enchantments)
             {
@@ -540,7 +542,7 @@ namespace ACE.Server.WorldObjects
                 // remove any item set spells that shouldn't be active
                 foreach (var inactiveSpell in inactiveSpells)
                 {
-                    var removeSpells = enchantments.Where(i => i.SpellSetId == (uint)item.EquipmentSetId && i.SpellId == inactiveSpell.Id).ToList();
+                    var removeSpells = enchantments.Where(i => i.SpellSetId == item.EquipmentSetId && i.SpellId == inactiveSpell.Id).ToList();
 
                     foreach (var removeSpell in removeSpells)
                     {

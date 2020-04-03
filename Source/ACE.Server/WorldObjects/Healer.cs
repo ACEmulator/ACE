@@ -13,8 +13,6 @@ using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.WorldObjects.Entity;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class Healer : WorldObject

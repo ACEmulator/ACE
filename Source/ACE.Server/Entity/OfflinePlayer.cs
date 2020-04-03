@@ -1,12 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 
 using ACE.Database;
 using ACE.Database.Models.Auth;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
@@ -35,34 +34,14 @@ namespace ACE.Server.Entity
             Biota = biota;
             Guid = new ObjectGuid(Biota.Id);
 
-            InitializePropertyDictionaries();
-
-            var character = DatabaseManager.Shard.GetCharacterByGuid(Guid.Full);
+            var character = DatabaseManager.Shard.BaseDatabase.GetCharacterStubByGuid(Guid.Full);
 
             if (character != null)
                 Account = DatabaseManager.Authentication.GetAccountById(character.AccountId);
         }
 
-        private void InitializePropertyDictionaries()
-        {
-            foreach (var x in Biota.BiotaPropertiesBool)
-                biotaPropertyBools[(PropertyBool)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesDID)
-                biotaPropertyDataIds[(PropertyDataId)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesFloat)
-                biotaPropertyFloats[(PropertyFloat)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesIID)
-                biotaPropertyInstanceIds[(PropertyInstanceId)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesInt)
-                biotaPropertyInts[(PropertyInt)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesInt64)
-                biotaPropertyInt64s[(PropertyInt64)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesString)
-                biotaPropertyStrings[(PropertyString)x.Type] = x;
-        }
-
-        public bool IsDeleted => DatabaseManager.Shard.GetCharacterByGuid(Guid.Full).IsDeleted;
-        public bool IsPendingDeletion => DatabaseManager.Shard.GetCharacterByGuid(Guid.Full).DeleteTime > 0 && !IsDeleted;
+        public bool IsDeleted => DatabaseManager.Shard.BaseDatabase.GetCharacterStubByGuid(Guid.Full).IsDeleted;
+        public bool IsPendingDeletion => DatabaseManager.Shard.BaseDatabase.GetCharacterStubByGuid(Guid.Full).DeleteTime > 0 && !IsDeleted;
 
         public DateTime LastRequestedDatabaseSave { get; protected set; }
 
@@ -85,198 +64,109 @@ namespace ACE.Server.Entity
         }
 
 
-        // These dictionaries should ONLY be referenced by SetEphemeralValues, GetProperty, SetProperty and RemoveProperty functions.
-        // They should NOT be accessed directly to get property values.
-        private readonly Dictionary<PropertyBool, BiotaPropertiesBool> biotaPropertyBools = new Dictionary<PropertyBool, BiotaPropertiesBool>();
-        private readonly Dictionary<PropertyDataId, BiotaPropertiesDID> biotaPropertyDataIds = new Dictionary<PropertyDataId, BiotaPropertiesDID>();
-        private readonly Dictionary<PropertyFloat, BiotaPropertiesFloat> biotaPropertyFloats = new Dictionary<PropertyFloat, BiotaPropertiesFloat>();
-        private readonly Dictionary<PropertyInstanceId, BiotaPropertiesIID> biotaPropertyInstanceIds = new Dictionary<PropertyInstanceId, BiotaPropertiesIID>();
-        private readonly Dictionary<PropertyInt, BiotaPropertiesInt> biotaPropertyInts = new Dictionary<PropertyInt, BiotaPropertiesInt>();
-        private readonly Dictionary<PropertyInt64, BiotaPropertiesInt64> biotaPropertyInt64s = new Dictionary<PropertyInt64, BiotaPropertiesInt64>();
-        private readonly Dictionary<PropertyString, BiotaPropertiesString> biotaPropertyStrings = new Dictionary<PropertyString, BiotaPropertiesString>();
-
         #region GetProperty Functions
         public bool? GetProperty(PropertyBool property)
         {
-            BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                if (biotaPropertyBools.TryGetValue(property, out var record))
-                    return record.Value;
-                return null;
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
-            }
+            return Biota.GetProperty(property, BiotaDatabaseLock);
         }
         public uint? GetProperty(PropertyDataId property)
         {
-            BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                if (biotaPropertyDataIds.TryGetValue(property, out var record))
-                    return record.Value;
-                return null;
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
-            }
+            return Biota.GetProperty(property, BiotaDatabaseLock);
         }
         public double? GetProperty(PropertyFloat property)
         {
-            BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                if (biotaPropertyFloats.TryGetValue(property, out var record))
-                    return record.Value;
-                return null;
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
-            }
+            return Biota.GetProperty(property, BiotaDatabaseLock);
         }
         public uint? GetProperty(PropertyInstanceId property)
         {
-            BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                if (biotaPropertyInstanceIds.TryGetValue(property, out var record))
-                    return record.Value;
-                return null;
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
-            }
+            return Biota.GetProperty(property, BiotaDatabaseLock);
         }
         public int? GetProperty(PropertyInt property)
         {
-            BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                if (biotaPropertyInts.TryGetValue(property, out var record))
-                    return record.Value;
-                return null;
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
-            }
+            return Biota.GetProperty(property, BiotaDatabaseLock);
         }
         public long? GetProperty(PropertyInt64 property)
         {
-            BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                if (biotaPropertyInt64s.TryGetValue(property, out var record))
-                    return record.Value;
-                return null;
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
-            }
+            return Biota.GetProperty(property, BiotaDatabaseLock);
         }
         public string GetProperty(PropertyString property)
         {
-            BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                if (biotaPropertyStrings.TryGetValue(property, out var record))
-                    return record.Value;
-                return null;
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
-            }
+            return Biota.GetProperty(property, BiotaDatabaseLock);
         }
         #endregion
 
         #region SetProperty Functions
         public void SetProperty(PropertyBool property, bool value)
         {
-            Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyBools, out var biotaChanged);
-            if (biotaChanged)
-                ChangesDetected = true;
+            Biota.SetProperty(property, value, BiotaDatabaseLock);
+            ChangesDetected = true;
         }
         public void SetProperty(PropertyDataId property, uint value)
         {
-            Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyDataIds, out var biotaChanged);
-            if (biotaChanged)
-                ChangesDetected = true;
+            Biota.SetProperty(property, value, BiotaDatabaseLock);
+            ChangesDetected = true;
         }
         public void SetProperty(PropertyFloat property, double value)
         {
-            Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyFloats, out var biotaChanged);
-            if (biotaChanged)
-                ChangesDetected = true;
+            Biota.SetProperty(property, value, BiotaDatabaseLock);
+            ChangesDetected = true;
         }
         public void SetProperty(PropertyInstanceId property, uint value)
         {
-            Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyInstanceIds, out var biotaChanged);
-            if (biotaChanged)
-                ChangesDetected = true;
+            Biota.SetProperty(property, value, BiotaDatabaseLock);
+            ChangesDetected = true;
         }
         public void SetProperty(PropertyInt property, int value)
         {
-            Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyInts, out var biotaChanged);
-            if (biotaChanged)
-                ChangesDetected = true;
+            Biota.SetProperty(property, value, BiotaDatabaseLock);
+            ChangesDetected = true;
         }
         public void SetProperty(PropertyInt64 property, long value)
         {
-            Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyInt64s, out var biotaChanged);
-            if (biotaChanged)
-                ChangesDetected = true;
+            Biota.SetProperty(property, value, BiotaDatabaseLock);
+            ChangesDetected = true;
         }
         public void SetProperty(PropertyString property, string value)
         {
-            Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyStrings, out var biotaChanged);
-            if (biotaChanged)
-                ChangesDetected = true;
+            Biota.SetProperty(property, value, BiotaDatabaseLock);
+            ChangesDetected = true;
         }
         #endregion
 
         #region RemoveProperty Functions
         public void RemoveProperty(PropertyBool property)
         {
-            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock, biotaPropertyBools))
+            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock))
                 ChangesDetected = true;
         }
         public void RemoveProperty(PropertyDataId property)
         {
-            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock, biotaPropertyDataIds))
+            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock))
                 ChangesDetected = true;
         }
         public void RemoveProperty(PropertyFloat property)
         {
-            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock, biotaPropertyFloats))
+            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock))
                 ChangesDetected = true;
         }
         public void RemoveProperty(PropertyInstanceId property)
         {
-            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock, biotaPropertyInstanceIds))
+            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock))
                 ChangesDetected = true;
         }
-
         public void RemoveProperty(PropertyInt property)
         {
-            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock, biotaPropertyInts))
+            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock))
                 ChangesDetected = true;
         }
-
         public void RemoveProperty(PropertyInt64 property)
         {
-            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock, biotaPropertyInt64s))
+            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock))
                 ChangesDetected = true;
         }
         public void RemoveProperty(PropertyString property)
         {
-            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock, biotaPropertyStrings))
+            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock))
                 ChangesDetected = true;
         }
         #endregion

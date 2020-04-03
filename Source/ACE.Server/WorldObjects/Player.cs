@@ -24,7 +24,6 @@ using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects.Managers;
 
-using Biota = ACE.Database.Models.Shard.Biota;
 using Character = ACE.Database.Models.Shard.Character;
 using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
 
@@ -88,7 +87,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public Player(Biota biota, IEnumerable<Biota> inventory, IEnumerable<Biota> wieldedItems, Character character, Session session) : base(biota)
+        public Player(Biota biota, IEnumerable<ACE.Database.Models.Shard.Biota> inventory, IEnumerable<ACE.Database.Models.Shard.Biota> wieldedItems, Character character, Session session) : base(biota)
         {
             Character = character;
             Session = session;
