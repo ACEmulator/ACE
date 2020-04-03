@@ -444,7 +444,7 @@ namespace ACE.Server.WorldObjects
                 {
                     var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
                     ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Player_Tick_UpdateObjectPhysics, elapsedSeconds);
-                    if (elapsedSeconds >= 0.050) // Yea, that ain't good....
+                    if (elapsedSeconds >= 0.100) // Yea, that ain't good....
                         log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
                     else if (elapsedSeconds >= 0.010)
                         log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
