@@ -117,55 +117,67 @@ namespace ACE.Database
 
         public override bool SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)
         {
+            log.Debug("[DATABASE] SaveBiota() override 1");
             if (BiotaCache.TryGetValue(biota.Id, out var value))
             {
+                log.Debug("[DATABASE] SaveBiota() override 2");
                 value.LastSeen = DateTime.UtcNow;
 
                 rwLock.EnterReadLock();
                 try
                 {
+                    log.Debug("[DATABASE] SaveBiota() override 3");
                     ACE.Database.Adapter.BiotaUpdater.UpdateDatabaseBiota(value.Context, biota, value.CachedObject);
                 }
                 finally
                 {
+                    log.Debug("[DATABASE] SaveBiota() override 4");
                     rwLock.ExitReadLock();
                 }
 
+                log.Debug("[DATABASE] SaveBiota() override 5");
                 return DoSaveBiota(value.Context, value.CachedObject);
             }
 
             // Biota does not exist in the cache
 
             var context = new ShardDbContext();
-
+            log.Debug("[DATABASE] SaveBiota() override 6");
             var existingBiota = GetBiota(context, biota.Id);
-
+            log.Debug("[DATABASE] SaveBiota() override 7");
             rwLock.EnterReadLock();
             try
             {
                 if (existingBiota == null)
                 {
+                    log.Debug("[DATABASE] SaveBiota() override 8");
                     existingBiota = ACE.Database.Adapter.BiotaConverter.ConvertFromEntityBiota(biota);
-
+                    log.Debug("[DATABASE] SaveBiota() override 9");
                     context.Biota.Add(existingBiota);
+                    log.Debug("[DATABASE] SaveBiota() override 10");
                 }
                 else
                 {
+                    log.Debug("[DATABASE] SaveBiota() override 11");
                     ACE.Database.Adapter.BiotaUpdater.UpdateDatabaseBiota(context, biota, existingBiota);
+                    log.Debug("[DATABASE] SaveBiota() override 12");
                 }
             }
             finally
             {
+                log.Debug("[DATABASE] SaveBiota() override 13");
                 rwLock.ExitReadLock();
             }
 
+            log.Debug("[DATABASE] SaveBiota() override 14");
             if (DoSaveBiota(context, existingBiota))
             {
+                log.Debug("[DATABASE] SaveBiota() override 15");
                 TryAddToCache(context, existingBiota);
-
+                log.Debug("[DATABASE] SaveBiota() override 16");
                 return true;
             }
-
+            log.Debug("[DATABASE] SaveBiota() override 17");
             return false;
         }
 

@@ -313,29 +313,34 @@ namespace ACE.Database
 
         public virtual bool SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)
         {
+            log.Debug("[DATABASE] SaveBiota() base 1");
             using (var context = new ShardDbContext())
             {
                 var existingBiota = GetBiota(context, biota.Id);
-
+                log.Debug("[DATABASE] SaveBiota() base 2");
                 rwLock.EnterReadLock();
                 try
                 {
+                    log.Debug("[DATABASE] SaveBiota() base 3");
                     if (existingBiota == null)
                     {
                         existingBiota = ACE.Database.Adapter.BiotaConverter.ConvertFromEntityBiota(biota);
-
+                        log.Debug("[DATABASE] SaveBiota() base 4");
                         context.Biota.Add(existingBiota);
+                        log.Debug("[DATABASE] SaveBiota() base 5");
                     }
                     else
                     {
                         ACE.Database.Adapter.BiotaUpdater.UpdateDatabaseBiota(context, biota, existingBiota);
+                        log.Debug("[DATABASE] SaveBiota() base 6");
                     }
                 }
                 finally
                 {
+                    log.Debug("[DATABASE] SaveBiota() base 7");
                     rwLock.ExitReadLock();
                 }
-
+                log.Debug("[DATABASE] SaveBiota() base 8");
                 return DoSaveBiota(context, existingBiota);
             }
         }
@@ -343,13 +348,13 @@ namespace ACE.Database
         public bool SaveBiotasInParallel(IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> biotas)
         {
             var result = true;
-
+            log.Debug("[DATABASE] SaveBiotasInParallel() start");
             Parallel.ForEach(biotas, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, biota =>
             {
                 if (!SaveBiota(biota.biota, biota.rwLock))
                     result = false;
             });
-
+            log.Debug("[DATABASE] SaveBiotasInParallel() stop");
             return result;
         }
 
