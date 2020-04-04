@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 
+using log4net;
+
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 
@@ -11,6 +13,8 @@ namespace ACE.Database
 {
     public class ShardDatabaseWithCaching : ShardDatabase
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public TimeSpan PlayerBiotaRetentionTime { get; set; }
         public TimeSpan NonPlayerBiotaRetentionTime { get; set; }
 
@@ -136,6 +140,8 @@ namespace ACE.Database
 
         public override bool SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)
         {
+            var name = biota.PropertiesString != null && biota.PropertiesString.ContainsKey(ACE.Entity.Enum.Properties.PropertyString.Name) ? biota.PropertiesString[ACE.Entity.Enum.Properties.PropertyString.Name] : "";
+
             CacheObject<Biota> cachedBiota;
 
             lock (biotaCacheMutex)
@@ -145,13 +151,17 @@ namespace ACE.Database
             {
                 cachedBiota.LastSeen = DateTime.UtcNow;
 
+                log.Debug($"[DATABASE] SaveBiota override 1, id 0x{biota.Id:X8}:{name}");
+
                 rwLock.EnterReadLock();
                 try
                 {
+                    log.Debug($"[DATABASE] SaveBiota override 2, id 0x{biota.Id:X8}:{name}");
                     ACE.Database.Adapter.BiotaUpdater.UpdateDatabaseBiota(cachedBiota.Context, biota, cachedBiota.CachedObject);
                 }
                 finally
                 {
+                    log.Debug($"[DATABASE] SaveBiota override 3, id 0x{biota.Id:X8}:{name}");
                     rwLock.ExitReadLock();
                 }
 
