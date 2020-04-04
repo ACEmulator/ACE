@@ -565,24 +565,32 @@ namespace ACE.Database
 
         public List<Character> GetCharacters(uint accountId, bool includeDeleted)
         {
-            var context = new ShardDbContext();
+            try
+            {
+                var context = new ShardDbContext();
 
-            var results = context.Character
-                .Include(r => r.CharacterPropertiesContractRegistry)
-                .Include(r => r.CharacterPropertiesFillCompBook)
-                .Include(r => r.CharacterPropertiesFriendList)
-                .Include(r => r.CharacterPropertiesQuestRegistry)
-                .Include(r => r.CharacterPropertiesShortcutBar)
-                .Include(r => r.CharacterPropertiesSpellBar)
-                .Include(r => r.CharacterPropertiesSquelch)
-                .Include(r => r.CharacterPropertiesTitleBook)
-                .Where(r => r.AccountId == accountId && (includeDeleted || !r.IsDeleted))
-                .ToList();
+                var results = context.Character
+                    .Include(r => r.CharacterPropertiesContractRegistry)
+                    .Include(r => r.CharacterPropertiesFillCompBook)
+                    .Include(r => r.CharacterPropertiesFriendList)
+                    .Include(r => r.CharacterPropertiesQuestRegistry)
+                    .Include(r => r.CharacterPropertiesShortcutBar)
+                    .Include(r => r.CharacterPropertiesSpellBar)
+                    .Include(r => r.CharacterPropertiesSquelch)
+                    .Include(r => r.CharacterPropertiesTitleBook)
+                    .Where(r => r.AccountId == accountId && (includeDeleted || !r.IsDeleted))
+                    .ToList();
 
-            foreach (var result in results)
-                CharacterContexts.Add(result, context);
+                foreach (var result in results)
+                    CharacterContexts.Add(result, context);
 
-            return results;
+                return results;
+            }
+            catch (Exception ex)
+            {
+                log.Error($"[DATABASE] GetCharacters for accountId {accountId} failed with exception: {ex}");
+                throw;
+            }
         }
 
         public Character GetCharacterStubByName(string name) // When searching by name, only non-deleted characters matter
