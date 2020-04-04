@@ -8,10 +8,14 @@ using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 
+using log4net;
+
 namespace ACE.Database
 {
     public class SerializedShardDatabase
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// This is the base database that SerializedShardDatabase is a wrapper for.
         /// </summary>
@@ -92,8 +96,11 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
+                log.Debug("Start GetMaxGuidFoundInRange()");
                 var result = BaseDatabase.GetMaxGuidFoundInRange(min, max);
+                log.Debug("Callback Start GetMaxGuidFoundInRange()");
                 callback?.Invoke(result);
+                log.Debug("Return GetMaxGuidFoundInRange()");
             }));
         }
 
@@ -105,8 +112,11 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
+                log.Debug("Start GetSequenceGaps()");
                 var result = BaseDatabase.GetSequenceGaps(min, limitAvailableIDsReturned);
+                log.Debug("Callback Start GetMaxGuidFoundInRange()");
                 callback?.Invoke(result);
+                log.Debug("Return GetSequenceGaps()");
             }));
         }
 
@@ -115,8 +125,11 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
+                log.Debug("Start SaveBiota()");
                 var result = BaseDatabase.SaveBiota(biota, rwLock);
+                log.Debug("Callback Start SaveBiota()");
                 callback?.Invoke(result);
+                log.Debug("Return SaveBiota()");
             }));
         }
 
@@ -125,8 +138,11 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
+                log.Debug("Start SaveBiotasInParallel()");
                 var result = BaseDatabase.SaveBiotasInParallel(biotas);
+                log.Debug("Callback Start SaveBiotasInParallel()");
                 callback?.Invoke(result);
+                log.Debug("Return SaveBiotasInParallel()");
             }));
         }
 
@@ -134,8 +150,11 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
+                log.Debug("Start RemoveBiota() a");
                 var result = BaseDatabase.RemoveBiota(id);
+                log.Debug("Callback Start RemoveBiota() a");
                 callback?.Invoke(result);
+                log.Debug("Return RemoveBiota() a");
             }));
         }
 
@@ -145,11 +164,15 @@ namespace ACE.Database
 
             _queue.Add(new Task(() =>
             {
+                log.Debug("Start RemoveBiota() b");
                 var taskStartTime = DateTime.UtcNow;
                 var result = BaseDatabase.RemoveBiota(id);
                 var taskCompletedTime = DateTime.UtcNow;
+                log.Debug("Callback 1 Start RemoveBiota() b");
                 callback?.Invoke(result);
+                log.Debug("Callback 2 Start RemoveBiota() b");
                 performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
+                log.Debug("Return RemoveBiota() b");
             }));
         }
 
@@ -159,11 +182,15 @@ namespace ACE.Database
 
             _queue.Add(new Task(() =>
             {
+                log.Debug("Start RemoveBiotasInParallel()");
                 var taskStartTime = DateTime.UtcNow;
                 var result = BaseDatabase.RemoveBiotasInParallel(ids);
                 var taskCompletedTime = DateTime.UtcNow;
+                log.Debug("Callback 1 Start RemoveBiotasInParallel()");
                 callback?.Invoke(result);
+                log.Debug("Callback 2 Start RemoveBiotasInParallel()");
                 performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
+                log.Debug("Return RemoveBiotasInParallel()");
             }));
         }
 
@@ -172,8 +199,11 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
+                log.Debug("Start GetPossessedBiotasInParallel()");
                 var c = BaseDatabase.GetPossessedBiotasInParallel(id);
+                log.Debug("Callback Start GetPossessedBiotasInParallel()");
                 callback?.Invoke(c);
+                log.Debug("Return GetPossessedBiotasInParallel()");
             }));
         }
 
@@ -181,8 +211,11 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
+                log.Debug("Start GetInventoryInParallel()");
                 var c = BaseDatabase.GetInventoryInParallel(parentId, includedNestedItems);
+                log.Debug("Callback Start GetInventoryInParallel()");
                 callback?.Invoke(c);
+                log.Debug("Return GetInventoryInParallel()");
             }));
 
         }
@@ -192,8 +225,11 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
+                log.Debug("Start IsCharacterNameAvailable()");
                 var result = BaseDatabase.IsCharacterNameAvailable(name);
+                log.Debug("Callback Start IsCharacterNameAvailable()");
                 callback?.Invoke(result);
+                log.Debug("Return IsCharacterNameAvailable()");
             }));
         }
 
@@ -201,8 +237,11 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
+                log.Debug("Start GetCharacters()");
                 var result = BaseDatabase.GetCharacters(accountId, includeDeleted);
+                log.Debug("Callback Start GetCharacters()");
                 callback?.Invoke(result);
+                log.Debug("Return GetCharacters()");
             }));
         }
 
@@ -210,8 +249,11 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
+                log.Debug("Start SaveCharacter()");
                 var result = BaseDatabase.SaveCharacter(character, rwLock);
+                log.Debug("Callback Start SaveCharacter()");
                 callback?.Invoke(result);
+                log.Debug("Return SaveCharacter()");
             }));
         }
 
@@ -226,8 +268,11 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
+                log.Debug("Start AddCharacterInParallel()");
                 var result = BaseDatabase.AddCharacterInParallel(biota, biotaLock, possessions, character, characterLock);
+                log.Debug("Callback Start AddCharacterInParallel()");
                 callback?.Invoke(result);
+                log.Debug("Return AddCharacterInParallel()");
             }));
         }
     }
