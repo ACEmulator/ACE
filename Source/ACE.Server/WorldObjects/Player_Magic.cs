@@ -1055,14 +1055,14 @@ namespace ACE.Server.WorldObjects
                         if (targetPlayer == null)
                             OnAttackMonster(targetCreature);
 
+                        if (TryResistSpell(target, spell, caster))
+                            break;
+
                         if (targetCreature != null && targetCreature.NonProjectileMagicImmune)
                         {
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetCreature.Name} with {spell.Name}", ChatMessageType.Magic));
                             break;
                         }
-
-                        if (TryResistSpell(target, spell, caster))
-                            break;
                     }
 
                     targetDeath = LifeMagic(spell, out uint damage, out bool critical, out enchantmentStatus, target, caster);
