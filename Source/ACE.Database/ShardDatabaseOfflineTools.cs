@@ -811,5 +811,39 @@ namespace ACE.Database
             using (var context = new ShardDbContext())
                 PurgeOrphanedBiotasInParallel(context, out numberOfBiotasPurged);
         }
+
+        /// <summary>
+        /// This is temporary and can be removed in the near future, 2020-04-05 Mag-nus
+        /// </summary>
+        public static void FixAnimPartAndTextureMapFromPR2731(out int numberOfRecordsFixed)
+        {
+            numberOfRecordsFixed = 0;
+
+            using (var context = new ShardDbContext())
+            {
+                // BiotaPropertiesAnimPart
+                var animPartNullRecords = context.BiotaPropertiesAnimPart.Where(r => r.Order == null).Select(r => r.ObjectId).ToList();
+
+                var animPartRecordsToRemove = context.BiotaPropertiesAnimPart.Where(r => animPartNullRecords.Contains(r.ObjectId) && r.Order != null).ToList();
+
+                numberOfRecordsFixed += animPartRecordsToRemove.Count;
+
+                foreach (var recordToRemove in animPartRecordsToRemove)
+                    context.BiotaPropertiesAnimPart.Remove(recordToRemove);
+
+                // BiotaPropertiesTextureMap
+                var textureMapNullRecords = context.BiotaPropertiesTextureMap.Where(r => r.Order == null).Select(r => r.ObjectId).ToList();
+
+                var textureMapRecordsToRemove = context.BiotaPropertiesTextureMap.Where(r => textureMapNullRecords.Contains(r.ObjectId) && r.Order != null).ToList();
+
+                numberOfRecordsFixed += textureMapRecordsToRemove.Count;
+
+                foreach (var recordToRemove in textureMapRecordsToRemove)
+                    context.BiotaPropertiesTextureMap.Remove(recordToRemove);
+
+                // Save
+                context.SaveChanges();
+            }
+        }
     }
 }

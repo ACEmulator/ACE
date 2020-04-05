@@ -3045,7 +3045,7 @@ namespace ACE.Server.Command.Handlers
             var item = CommandHandlerHelper.GetLastAppraisedObject(session);
             if (item == null) return;
 
-            var enchantments = item.EnchantmentManager.GetEnchantments_TopLayer(item.Biota.PropertiesEnchantmentRegistry.Clone(item.BiotaDatabaseLock));
+            var enchantments = item.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(item.BiotaDatabaseLock);
 
             foreach (var enchantment in enchantments)
             {

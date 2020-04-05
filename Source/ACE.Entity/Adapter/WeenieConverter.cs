@@ -10,7 +10,7 @@ namespace ACE.Entity.Adapter
 {
     public static class WeenieConverter
     {
-        public static Biota ConvertToBiota(this Weenie weenie, uint id, bool instantiateEmptyCollections = false)
+        public static Biota ConvertToBiota(this Weenie weenie, uint id, bool instantiateEmptyCollections = false, bool referenceWeenieCollectionsForCommonProperties = false)
         {
             var result = new Biota();
 
@@ -36,7 +36,7 @@ namespace ACE.Entity.Adapter
 
             if (weenie.PropertiesPosition != null && (instantiateEmptyCollections || weenie.PropertiesPosition.Count > 0))
             {
-                result.PropertiesPosition = new Dictionary<PositionType, PropertiesPosition>();
+                result.PropertiesPosition = new Dictionary<PositionType, PropertiesPosition>(weenie.PropertiesPosition.Count);
 
                 foreach (var kvp in weenie.PropertiesPosition)
                     result.PropertiesPosition.Add(kvp.Key, kvp.Value.Clone());
@@ -49,7 +49,7 @@ namespace ACE.Entity.Adapter
 
             if (weenie.PropertiesAnimPart != null && (instantiateEmptyCollections || weenie.PropertiesAnimPart.Count > 0))
             {
-                result.PropertiesAnimPart = new List<PropertiesAnimPart>();
+                result.PropertiesAnimPart = new List<PropertiesAnimPart>(weenie.PropertiesAnimPart.Count);
 
                 foreach (var record in weenie.PropertiesAnimPart)
                     result.PropertiesAnimPart.Add(record.Clone());
@@ -65,7 +65,7 @@ namespace ACE.Entity.Adapter
 
             if (weenie.PropertiesTextureMap != null && (instantiateEmptyCollections || weenie.PropertiesTextureMap.Count > 0))
             {
-                result.PropertiesTextureMap = new List<PropertiesTextureMap>();
+                result.PropertiesTextureMap = new List<PropertiesTextureMap>(weenie.PropertiesTextureMap.Count);
 
                 foreach (var record in weenie.PropertiesTextureMap)
                     result.PropertiesTextureMap.Add(record.Clone());
@@ -74,31 +74,41 @@ namespace ACE.Entity.Adapter
 
             // Properties for all world objects that typically aren't modified over the original weenie
 
-            if (weenie.PropertiesCreateList != null && (instantiateEmptyCollections || weenie.PropertiesCreateList.Count > 0))
+            if (referenceWeenieCollectionsForCommonProperties)
             {
-                result.PropertiesCreateList = new Collection<PropertiesCreateList>();
-
-                foreach (var record in weenie.PropertiesCreateList)
-                    result.PropertiesCreateList.Add(record.Clone());
+                result.PropertiesCreateList = weenie.PropertiesCreateList;
+                result.PropertiesEmote = weenie.PropertiesEmote;
+                result.PropertiesEventFilter = weenie.PropertiesEventFilter;
+                result.PropertiesGenerator = weenie.PropertiesGenerator;
             }
-
-            if (weenie.PropertiesEmote != null && (instantiateEmptyCollections || weenie.PropertiesEmote.Count > 0))
+            else
             {
-                result.PropertiesEmote = new Collection<PropertiesEmote>();
+                if (weenie.PropertiesCreateList != null && (instantiateEmptyCollections || weenie.PropertiesCreateList.Count > 0))
+                {
+                    result.PropertiesCreateList = new Collection<PropertiesCreateList>();
 
-                foreach (var record in weenie.PropertiesEmote)
-                    result.PropertiesEmote.Add(record.Clone());
-            }
+                    foreach (var record in weenie.PropertiesCreateList)
+                        result.PropertiesCreateList.Add(record.Clone());
+                }
 
-            if (weenie.PropertiesEventFilter != null && (instantiateEmptyCollections || weenie.PropertiesEventFilter.Count > 0))
-                result.PropertiesEventFilter = new HashSet<int>(weenie.PropertiesEventFilter);
+                if (weenie.PropertiesEmote != null && (instantiateEmptyCollections || weenie.PropertiesEmote.Count > 0))
+                {
+                    result.PropertiesEmote = new Collection<PropertiesEmote>();
 
-            if (weenie.PropertiesGenerator != null && (instantiateEmptyCollections || weenie.PropertiesGenerator.Count > 0))
-            {
-                result.PropertiesGenerator = new List<PropertiesGenerator>();
+                    foreach (var record in weenie.PropertiesEmote)
+                        result.PropertiesEmote.Add(record.Clone());
+                }
 
-                foreach (var record in weenie.PropertiesGenerator)
-                    result.PropertiesGenerator.Add(record.Clone());
+                if (weenie.PropertiesEventFilter != null && (instantiateEmptyCollections || weenie.PropertiesEventFilter.Count > 0))
+                    result.PropertiesEventFilter = new HashSet<int>(weenie.PropertiesEventFilter);
+
+                if (weenie.PropertiesGenerator != null && (instantiateEmptyCollections || weenie.PropertiesGenerator.Count > 0))
+                {
+                    result.PropertiesGenerator = new List<PropertiesGenerator>(weenie.PropertiesGenerator.Count);
+
+                    foreach (var record in weenie.PropertiesGenerator)
+                        result.PropertiesGenerator.Add(record.Clone());
+                }
             }
 
 
@@ -106,7 +116,7 @@ namespace ACE.Entity.Adapter
 
             if (weenie.PropertiesAttribute != null && (instantiateEmptyCollections || weenie.PropertiesAttribute.Count > 0))
             {
-                result.PropertiesAttribute = new Dictionary<PropertyAttribute, PropertiesAttribute>();
+                result.PropertiesAttribute = new Dictionary<PropertyAttribute, PropertiesAttribute>(weenie.PropertiesAttribute.Count);
 
                 foreach (var kvp in weenie.PropertiesAttribute)
                     result.PropertiesAttribute.Add(kvp.Key, kvp.Value.Clone());
@@ -114,7 +124,7 @@ namespace ACE.Entity.Adapter
 
             if (weenie.PropertiesAttribute2nd != null && (instantiateEmptyCollections || weenie.PropertiesAttribute2nd.Count > 0))
             {
-                result.PropertiesAttribute2nd = new Dictionary<PropertyAttribute2nd, PropertiesAttribute2nd>();
+                result.PropertiesAttribute2nd = new Dictionary<PropertyAttribute2nd, PropertiesAttribute2nd>(weenie.PropertiesAttribute2nd.Count);
 
                 foreach (var kvp in weenie.PropertiesAttribute2nd)
                     result.PropertiesAttribute2nd.Add(kvp.Key, kvp.Value.Clone());
@@ -122,7 +132,7 @@ namespace ACE.Entity.Adapter
 
             if (weenie.PropertiesBodyPart != null && (instantiateEmptyCollections || weenie.PropertiesBodyPart.Count > 0))
             {
-                result.PropertiesBodyPart = new Dictionary<CombatBodyPart, PropertiesBodyPart>();
+                result.PropertiesBodyPart = new Dictionary<CombatBodyPart, PropertiesBodyPart>(weenie.PropertiesBodyPart.Count);
 
                 foreach (var kvp in weenie.PropertiesBodyPart)
                     result.PropertiesBodyPart.Add(kvp.Key, kvp.Value.Clone());
@@ -130,7 +140,7 @@ namespace ACE.Entity.Adapter
 
             if (weenie.PropertiesSkill != null && (instantiateEmptyCollections || weenie.PropertiesSkill.Count > 0))
             {
-                result.PropertiesSkill = new Dictionary<Skill, PropertiesSkill>();
+                result.PropertiesSkill = new Dictionary<Skill, PropertiesSkill>(weenie.PropertiesSkill.Count);
 
                 foreach (var kvp in weenie.PropertiesSkill)
                     result.PropertiesSkill.Add(kvp.Key, kvp.Value.Clone());

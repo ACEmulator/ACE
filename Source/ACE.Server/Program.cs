@@ -163,6 +163,10 @@ namespace ACE.Server
                 log.Info($"Purged {numberOfBiotasPurged:N0} biotas.");
             }
 
+            // This is temporary and can be removed in the near future, 2020-04-05 Mag-nus
+            ShardDatabaseOfflineTools.FixAnimPartAndTextureMapFromPR2731(out var numberOfRecordsFixed);
+            log.Info($"Fixed {numberOfRecordsFixed:N0} AnimPart and TextureMap records.");
+
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();
 

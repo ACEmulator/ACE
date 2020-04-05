@@ -116,37 +116,11 @@ namespace ACE.Server.WorldObjects.Managers
         }
 
         /// <summary>
-        /// Returns the top layers in each spell category
-        /// </summary>
-        public List<PropertiesEnchantmentRegistry> GetEnchantments_TopLayer(List<PropertiesEnchantmentRegistry> enchantments)
-        {
-            var results = from e in enchantments
-                group e by e.SpellCategory
-                into categories
-                //select categories.OrderByDescending(c => c.LayerId).First();
-                select categories.OrderByDescending(c => c.PowerLevel).ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId)).First();
-
-            return results.ToList();
-        }
-
-        // this ensures level 8 item self spells always take precedence over level 8 item other spells
-
-        public static HashSet<int> Level8AuraSelfSpells = new HashSet<int>()
-        {
-            (int)SpellId.BloodDrinkerSelf8,
-            (int)SpellId.DefenderSelf8,
-            (int)SpellId.HeartSeekerSelf8,
-            (int)SpellId.SpiritDrinkerSelf8,
-            (int)SpellId.SwiftKillerSelf8,
-            (int)SpellId.HermeticLinkSelf8,
-        };
-
-        /// <summary>
         /// Returns the top layers in each spell category for a StatMod type
         /// </summary>
         public List<PropertiesEnchantmentRegistry> GetEnchantments_TopLayer(EnchantmentTypeFlags statModType)
         {
-            return GetEnchantments_TopLayer(WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsByStatModType(statModType, WorldObject.BiotaDatabaseLock));
+            return WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayerByStatModType(statModType, WorldObject.BiotaDatabaseLock);
         }
 
         /// <summary>
@@ -154,7 +128,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public List<PropertiesEnchantmentRegistry> GetEnchantments_TopLayer(EnchantmentTypeFlags statModType, uint statModKey)
         {
-            return GetEnchantments_TopLayer(WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsByStatModType(statModType, WorldObject.BiotaDatabaseLock).Where(e => e.StatModKey == statModKey).ToList());
+            return WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayerByStatModType(statModType, statModKey, WorldObject.BiotaDatabaseLock);
         }
 
         /// <summary>
@@ -1176,8 +1150,8 @@ namespace ACE.Server.WorldObjects.Managers
         {
             var expired = new List<PropertiesEnchantmentRegistry>();
 
-            var enchantments = WorldObject.Biota.PropertiesEnchantmentRegistry.Clone(WorldObject.BiotaDatabaseLock);
-            HeartBeat_DamageOverTime(GetEnchantments_TopLayer(enchantments));
+            var enchantments = WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(WorldObject.BiotaDatabaseLock);
+            HeartBeat_DamageOverTime(enchantments);
 
             foreach (var enchantment in enchantments)
             {
