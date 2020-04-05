@@ -100,7 +100,7 @@ namespace ACE.Database.Adapter
             {
                 result.PropertiesAnimPart = new List<PropertiesAnimPart>(biota.BiotaPropertiesAnimPart.Count);
 
-                foreach (var record in biota.BiotaPropertiesAnimPart)
+                foreach (var record in biota.BiotaPropertiesAnimPart.OrderBy(r => r.Order))
                 {
                     var newEntity = new PropertiesAnimPart
                     {
@@ -133,7 +133,7 @@ namespace ACE.Database.Adapter
             {
                 result.PropertiesTextureMap = new List<PropertiesTextureMap>(biota.BiotaPropertiesTextureMap.Count);
 
-                foreach (var record in biota.BiotaPropertiesTextureMap)
+                foreach (var record in biota.BiotaPropertiesTextureMap.OrderBy(r => r.Order))
                 {
                     var newEntity = new PropertiesTextureMap
                     {
