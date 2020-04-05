@@ -200,7 +200,7 @@ namespace ACE.Entity.Models
                 if (biota.PropertiesBool == null)
                     biota.PropertiesBool = new Dictionary<PropertyBool, bool>();
 
-                changed = biota.PropertiesBool[property] != value;
+                changed = (!biota.PropertiesBool.TryGetValue(property, out var existing) || value != existing);
 
                 if (changed)
                     biota.PropertiesBool[property] = value;
@@ -219,7 +219,7 @@ namespace ACE.Entity.Models
                 if (biota.PropertiesDID == null)
                     biota.PropertiesDID = new Dictionary<PropertyDataId, uint>();
 
-                changed = biota.PropertiesDID[property] != value;
+                changed = (!biota.PropertiesDID.TryGetValue(property, out var existing) || value != existing);
 
                 if (changed)
                     biota.PropertiesDID[property] = value;
@@ -238,7 +238,7 @@ namespace ACE.Entity.Models
                 if (biota.PropertiesFloat == null)
                     biota.PropertiesFloat = new Dictionary<PropertyFloat, double>();
 
-                changed = biota.PropertiesFloat[property] != value;
+                changed = (!biota.PropertiesFloat.TryGetValue(property, out var existing) || value != existing);
 
                 if (changed)
                     biota.PropertiesFloat[property] = value;
@@ -257,7 +257,7 @@ namespace ACE.Entity.Models
                 if (biota.PropertiesIID == null)
                     biota.PropertiesIID = new Dictionary<PropertyInstanceId, uint>();
 
-                changed = biota.PropertiesIID[property] != value;
+                changed = (!biota.PropertiesIID.TryGetValue(property, out var existing) || value != existing);
 
                 if (changed)
                     biota.PropertiesIID[property] = value;
@@ -276,7 +276,7 @@ namespace ACE.Entity.Models
                 if (biota.PropertiesInt == null)
                     biota.PropertiesInt = new Dictionary<PropertyInt, int>();
 
-                changed = biota.PropertiesInt[property] != value;
+                changed = (!biota.PropertiesInt.TryGetValue(property, out var existing) || value != existing);
 
                 if (changed)
                     biota.PropertiesInt[property] = value;
@@ -295,7 +295,7 @@ namespace ACE.Entity.Models
                 if (biota.PropertiesInt64 == null)
                     biota.PropertiesInt64 = new Dictionary<PropertyInt64, long>();
 
-                changed = biota.PropertiesInt64[property] != value;
+                changed = (!biota.PropertiesInt64.TryGetValue(property, out var existing) || value != existing);
 
                 if (changed)
                     biota.PropertiesInt64[property] = value;
@@ -314,7 +314,7 @@ namespace ACE.Entity.Models
                 if (biota.PropertiesString == null)
                     biota.PropertiesString = new Dictionary<PropertyString, string>();
 
-                changed = biota.PropertiesString[property] != value;
+                changed = (!biota.PropertiesString.TryGetValue(property, out var existing) || value != existing);
 
                 if (changed)
                     biota.PropertiesString[property] = value;
