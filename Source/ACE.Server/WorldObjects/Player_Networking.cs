@@ -77,6 +77,7 @@ namespace ACE.Server.WorldObjects
                 SquelchManager.SendSquelchDB();
 
             AuditItemSpells();
+            AuditEquippedItems();
 
             HandleMissingXp();
             HandleSkillCreditRefund();
