@@ -1,8 +1,8 @@
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading;
-
-using log4net;
 
 using ACE.Database.Models.Shard;
 using ACE.Entity;
@@ -11,9 +11,6 @@ namespace ACE.Database
 {
     public class ShardDatabaseWithCaching : ShardDatabase
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-
         public TimeSpan PlayerBiotaRetentionTime { get; set; }
         public TimeSpan NonPlayerBiotaRetentionTime { get; set; }
 
@@ -24,62 +21,84 @@ namespace ACE.Database
         }
 
 
-        public class CacheObject<T>
+        private class CacheObject<T>
         {
             public DateTime LastSeen;
             public ShardDbContext Context;
             public T CachedObject;
         }
 
-        public readonly ConcurrentDictionary<uint, CacheObject<Biota>> BiotaCache = new ConcurrentDictionary<uint, CacheObject<Biota>>();
+        private readonly object biotaCacheMutex = new object();
+
+        private readonly Dictionary<uint, CacheObject<Biota>> biotaCache = new Dictionary<uint, CacheObject<Biota>>();
 
         private static readonly TimeSpan MaintenanceInterval = TimeSpan.FromMinutes(1);
 
         private DateTime lastMaintenanceInterval;
 
+        /// <summary>
+        /// Make sure this is called from within a lock(biotaCacheMutex)
+        /// </summary>
         private void TryPerformMaintenance()
         {
             if (lastMaintenanceInterval + MaintenanceInterval > DateTime.UtcNow)
                 return;
 
-            foreach (var kvp in BiotaCache)
+            var removals = new Collection<uint>();
+
+            foreach (var kvp in biotaCache)
             {
                 if (ObjectGuid.IsPlayer(kvp.Key))
                 {
                     if (kvp.Value.LastSeen + PlayerBiotaRetentionTime < DateTime.UtcNow)
-                        BiotaCache.TryRemove(kvp.Key, out _);
+                        removals.Add(kvp.Key);
                 }
                 else
                 {
                     if (kvp.Value.LastSeen + NonPlayerBiotaRetentionTime < DateTime.UtcNow)
-                        BiotaCache.TryRemove(kvp.Key, out _);
+                        removals.Add(kvp.Key);
                 }
             }
+
+            foreach (var removal in removals)
+                biotaCache.Remove(removal);
 
             lastMaintenanceInterval = DateTime.UtcNow;
         }
 
         private void TryAddToCache(ShardDbContext context, Biota biota)
         {
-            if (ObjectGuid.IsPlayer(biota.Id))
+            lock (biotaCacheMutex)
             {
-                if (PlayerBiotaRetentionTime > TimeSpan.Zero)
-                    BiotaCache[biota.Id] = new CacheObject<Biota> { LastSeen = DateTime.UtcNow, Context = context, CachedObject = biota };
+                if (ObjectGuid.IsPlayer(biota.Id))
+                {
+                    if (PlayerBiotaRetentionTime > TimeSpan.Zero)
+                        biotaCache[biota.Id] = new CacheObject<Biota> {LastSeen = DateTime.UtcNow, Context = context, CachedObject = biota};
+                }
+                else if (NonPlayerBiotaRetentionTime > TimeSpan.Zero)
+                    biotaCache[biota.Id] = new CacheObject<Biota> {LastSeen = DateTime.UtcNow, Context = context, CachedObject = biota};
             }
-            else if (NonPlayerBiotaRetentionTime > TimeSpan.Zero)
-                BiotaCache[biota.Id] = new CacheObject<Biota> { LastSeen = DateTime.UtcNow, Context = context, CachedObject = biota };
+        }
+
+        public List<uint> GetBiotaCacheKeys()
+        {
+            lock (biotaCacheMutex)
+                return biotaCache.Keys.ToList();
         }
 
 
         public override Biota GetBiota(ShardDbContext context, uint id, bool doNotAddToCache = false)
         {
-            TryPerformMaintenance();
-
-            if (BiotaCache.TryGetValue(id, out var value))
+            lock (biotaCacheMutex)
             {
-                value.LastSeen = DateTime.UtcNow;
+                TryPerformMaintenance();
 
-                return value.CachedObject;
+                if (biotaCache.TryGetValue(id, out var cachedBiota))
+                {
+                    cachedBiota.LastSeen = DateTime.UtcNow;
+
+                    return cachedBiota.CachedObject;
+                }
             }
 
             var biota = base.GetBiota(context, id);
@@ -117,28 +136,33 @@ namespace ACE.Database
 
         public override bool SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)
         {
-            if (BiotaCache.TryGetValue(biota.Id, out var value))
+            CacheObject<Biota> cachedBiota;
+
+            lock (biotaCacheMutex)
+                biotaCache.TryGetValue(biota.Id, out cachedBiota);
+
+            if (cachedBiota != null)
             {
-                value.LastSeen = DateTime.UtcNow;
+                cachedBiota.LastSeen = DateTime.UtcNow;
 
                 rwLock.EnterReadLock();
                 try
                 {
-                    ACE.Database.Adapter.BiotaUpdater.UpdateDatabaseBiota(value.Context, biota, value.CachedObject);
+                    ACE.Database.Adapter.BiotaUpdater.UpdateDatabaseBiota(cachedBiota.Context, biota, cachedBiota.CachedObject);
                 }
                 finally
                 {
                     rwLock.ExitReadLock();
                 }
 
-                return DoSaveBiota(value.Context, value.CachedObject);
+                return DoSaveBiota(cachedBiota.Context, cachedBiota.CachedObject);
             }
 
             // Biota does not exist in the cache
 
             var context = new ShardDbContext();
 
-            var existingBiota = GetBiota(context, biota.Id);
+            var existingBiota = base.GetBiota(context, biota.Id);
 
             rwLock.EnterReadLock();
             try
@@ -171,7 +195,8 @@ namespace ACE.Database
 
         public override bool RemoveBiota(uint id)
         {
-            BiotaCache.TryRemove(id, out _);
+            lock (biotaCacheMutex)
+                biotaCache.Remove(id);
 
             return base.RemoveBiota(id);
         }

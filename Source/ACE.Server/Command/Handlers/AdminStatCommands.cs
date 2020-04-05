@@ -112,7 +112,7 @@ namespace ACE.Server.Command.Handlers
             sb.Append($"Shard DB Counts - Biotas: {DatabaseManager.Shard.BaseDatabase.GetBiotaCount():N0}{'\n'}");
             if (DatabaseManager.Shard.BaseDatabase is ShardDatabaseWithCaching shardDatabaseWithCaching)
             {
-                var biotaIds = shardDatabaseWithCaching.BiotaCache.Keys.ToList();
+                var biotaIds = shardDatabaseWithCaching.GetBiotaCacheKeys();
                 var playerBiotaIds = biotaIds.Count(id => ObjectGuid.IsPlayer(id));
                 var nonPlayerBiotaIds = biotaIds.Count - playerBiotaIds;
                 sb.Append($"Shard DB Cache Counts - Player Biotas: {playerBiotaIds} ~ {shardDatabaseWithCaching.PlayerBiotaRetentionTime.TotalMinutes:N0} m, Non Players {nonPlayerBiotaIds} ~ {shardDatabaseWithCaching.NonPlayerBiotaRetentionTime.TotalMinutes:N0} m{'\n'}");
