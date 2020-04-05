@@ -123,7 +123,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Launches a missile attack from player to target
         /// </summary>
-        public void LaunchMissile(WorldObject target, int attackSequence)
+        public void LaunchMissile(WorldObject target, int attackSequence, bool subsequent = false)
         {
             if (AttackSequence != attackSequence)
                 return;
@@ -155,7 +155,7 @@ namespace ACE.Server.WorldObjects
                 SendWeenieError(WeenieError.MissileOutOfRange);
 
                 // this prevents the accuracy bar from refilling when 'repeat attacks' is enabled
-                OnAttackDone(WeenieError.MissileOutOfRange);
+                OnAttackDone();
 
                 return;
             }
@@ -163,6 +163,13 @@ namespace ACE.Server.WorldObjects
             // launch animation
             // point of no return beyond this point -- cannot be cancelled
             Attacking = true;
+
+            if (subsequent)
+            {
+                // client shows hourglass, until attack done is received
+                // retail only did this for subsequent attacks w/ repeat attacks on
+                Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
+            }
 
             var projectileSpeed = GetProjectileSpeed();
 
@@ -233,9 +240,9 @@ namespace ACE.Server.WorldObjects
             {
                 Attacking = false;
 
-                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && !IsBusy)
+                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && !IsBusy && !AttackCancelled)
                 {
-                    Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
+                    // client starts refilling accuracy bar
                     Session.Network.EnqueueSend(new GameEventAttackDone(Session));
 
                     AccuracyLevel = AttackQueue.Fetch();
@@ -248,7 +255,7 @@ namespace ACE.Server.WorldObjects
                     nextAttack.AddDelaySeconds(nextRefillTime);
 
                     // perform next attack
-                    nextAttack.AddAction(this, () => { LaunchMissile(target, attackSequence); });
+                    nextAttack.AddAction(this, () => { LaunchMissile(target, attackSequence, true); });
                     nextAttack.EnqueueChain();
                 }
                 else
