@@ -298,13 +298,21 @@ namespace ACE.Server.WorldObjects
             var gravity = useGravity ? -PhysicsGlobals.Gravity : 0.00001f;
 
             var targetVelocity = target.PhysicsObj.CachedVelocity;
+
             if (!targetVelocity.Equals(Vector3.Zero))
             {
-                // use movement quartic solver
-                var numSolutions = Trajectory.solve_ballistic_arc(origin, speed, dest, targetVelocity, gravity, out s0, out _, out time);
+                if (this is Player player && !player.GetCharacterOption(CharacterOption.LeadMissileTargets))
+                {
+                    // fall through
+                }
+                else
+                {
+                    // use movement quartic solver
+                    var numSolutions = Trajectory.solve_ballistic_arc(origin, speed, dest, targetVelocity, gravity, out s0, out _, out time);
 
-                if (numSolutions > 0)
-                    return s0;
+                    if (numSolutions > 0)
+                        return s0;
+                }
             }
 
             // use stationary solver
