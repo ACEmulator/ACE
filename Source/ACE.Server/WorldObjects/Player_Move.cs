@@ -225,7 +225,7 @@ namespace ACE.Server.WorldObjects
                 default:
 
                     SendWeenieError(status);
-                    HandleActionCancelAttack();
+                    HandleActionCancelAttack(status);
 
                     break;
             }

@@ -195,11 +195,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// called when client sends the 'Cancel attack' network message
         /// </summary>
-        public void HandleActionCancelAttack()
+        public void HandleActionCancelAttack(WeenieError error = WeenieError.None)
         {
             //Console.WriteLine($"{Name}.HandleActionCancelAttack()");
 
-            OnAttackDone();
+            OnAttackDone(error);
 
             PhysicsObj.cancel_moveto();
         }
