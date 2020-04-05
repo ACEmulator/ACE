@@ -295,6 +295,8 @@ namespace ACE.Server.WorldObjects
 
             var SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);
 
+            SightObj.State |= PhysicsState.Missile;
+
             var startPos = new Physics.Common.Position(PhysicsObj.Position);
             var targetPos = new Physics.Common.Position(wo.PhysicsObj.Position);
 
@@ -330,6 +332,8 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             var SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);
+
+            SightObj.State |= PhysicsState.Missile;
 
             var startPos = new Physics.Common.Position(PhysicsObj.Position);
             var targetPos = new Physics.Common.Position(pos);
