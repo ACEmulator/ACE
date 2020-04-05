@@ -176,14 +176,16 @@ namespace ACE.Server.WorldObjects
                         if (success)
                             Attack(target, attackSequence);
                         else
-                            Session.Network.EnqueueSend(new GameEventAttackDone(Session));
+                            OnAttackDone();
                     });
                 }
             }
         }
 
-        public void OnAttackDone()
+        public void OnAttackDone(WeenieError error = WeenieError.None)
         {
+            Session.Network.EnqueueSend(new GameEventAttackDone(Session, error));
+
             MeleeTarget = null;
             MissileTarget = null;
 
@@ -304,7 +306,6 @@ namespace ACE.Server.WorldObjects
 
             actionChain.AddAction(this, () =>
             {
-                Session.Network.EnqueueSend(new GameEventAttackDone(Session));
                 Attacking = false;
 
                 // powerbar refill timing
@@ -328,9 +329,7 @@ namespace ACE.Server.WorldObjects
                     nextAttack.EnqueueChain();
                 }
                 else
-                {
                     OnAttackDone();
-                }
             });
 
             actionChain.EnqueueChain();
