@@ -1518,8 +1518,17 @@ namespace ACE.Server.Command.Handlers.Processors
 
                 if (wo.Biota.PropertiesGenerator != null)
                 {
-                    foreach (var profile in wo.Biota.PropertiesGenerator)
-                        profile.Delay = (float) PropertyManager.GetDouble("encounter_delay").Item;
+                    // While this may be ugly, it's done for performance reasons.
+                    // Common weenie properties are not cloned into the bota on creation. Instead, the biota references simply point to the weenie collections.
+                    // The problem here is that we want to update one of those common collection properties. If the biota is referencing the weenie collection,
+                    // then we'll end up updating the global weenie (from the cache), instead of just this specific biota.
+                    if (wo.Biota.PropertiesGenerator == wo.Weenie.PropertiesGenerator)
+                    {
+                        wo.Biota.PropertiesGenerator = new List<ACE.Entity.Models.PropertiesGenerator>(wo.Weenie.PropertiesGenerator.Count);
+
+                        foreach (var record in wo.Weenie.PropertiesGenerator)
+                            wo.Biota.PropertiesGenerator.Add(record.Clone());
+                    }
                 }
             }
 

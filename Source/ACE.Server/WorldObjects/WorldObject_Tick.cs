@@ -218,6 +218,8 @@ namespace ACE.Server.WorldObjects
             return (int)timeToExpiration.TotalSeconds;
         }
 
+        private int slowUpdateObjectPhysicsHits;
+
         /// <summary>
         /// Handles calling the physics engine for non-player objects
         /// </summary>
@@ -350,10 +352,33 @@ namespace ACE.Server.WorldObjects
             {
                 var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
                 ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics, elapsedSeconds);
-                if (elapsedSeconds >= 1) // Yea, that ain't good....
+                if (elapsedSeconds >= 0.100) // Yea, that ain't good....
+                {
+                    slowUpdateObjectPhysicsHits++;
                     log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
+
+                    // Destroy laggy projectiles
+                    if (slowUpdateObjectPhysicsHits >= 5 && this is SpellProjectile spellProjectile)
+                    {
+                        PhysicsObj.set_active(false);
+                        spellProjectile.ProjectileImpact();
+                    }
+                }
                 else if (elapsedSeconds >= 0.010)
-                    log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
+                {
+                    slowUpdateObjectPhysicsHits++;
+
+                    // Destroy laggy projectiles
+                    if (slowUpdateObjectPhysicsHits >= 5 && this is SpellProjectile spellProjectile)
+                    {
+                        PhysicsObj.set_active(false);
+                        spellProjectile.ProjectileImpact();
+
+                        log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}. SpellProjectile destroyed.");
+                    }
+                    else
+                        log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
+                }
             }
         }
     }

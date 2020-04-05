@@ -98,38 +98,45 @@ namespace ACE.Server.Entity
         #region SetProperty Functions
         public void SetProperty(PropertyBool property, bool value)
         {
-            Biota.SetProperty(property, value, BiotaDatabaseLock);
-            ChangesDetected = true;
+            Biota.SetProperty(property, value, BiotaDatabaseLock, out var changed);
+            if (changed)
+                ChangesDetected = true;
         }
         public void SetProperty(PropertyDataId property, uint value)
         {
-            Biota.SetProperty(property, value, BiotaDatabaseLock);
-            ChangesDetected = true;
+            Biota.SetProperty(property, value, BiotaDatabaseLock, out var changed);
+            if (changed)
+                ChangesDetected = true;
         }
         public void SetProperty(PropertyFloat property, double value)
         {
-            Biota.SetProperty(property, value, BiotaDatabaseLock);
-            ChangesDetected = true;
+            Biota.SetProperty(property, value, BiotaDatabaseLock, out var changed);
+            if (changed)
+                ChangesDetected = true;
         }
         public void SetProperty(PropertyInstanceId property, uint value)
         {
-            Biota.SetProperty(property, value, BiotaDatabaseLock);
-            ChangesDetected = true;
+            Biota.SetProperty(property, value, BiotaDatabaseLock, out var changed);
+            if (changed)
+                ChangesDetected = true;
         }
         public void SetProperty(PropertyInt property, int value)
         {
-            Biota.SetProperty(property, value, BiotaDatabaseLock);
-            ChangesDetected = true;
+            Biota.SetProperty(property, value, BiotaDatabaseLock, out var changed);
+            if (changed)
+                ChangesDetected = true;
         }
         public void SetProperty(PropertyInt64 property, long value)
         {
-            Biota.SetProperty(property, value, BiotaDatabaseLock);
-            ChangesDetected = true;
+            Biota.SetProperty(property, value, BiotaDatabaseLock, out var changed);
+            if (changed)
+                ChangesDetected = true;
         }
         public void SetProperty(PropertyString property, string value)
         {
-            Biota.SetProperty(property, value, BiotaDatabaseLock);
-            ChangesDetected = true;
+            Biota.SetProperty(property, value, BiotaDatabaseLock, out var changed);
+            if (changed)
+                ChangesDetected = true;
         }
         #endregion
 
