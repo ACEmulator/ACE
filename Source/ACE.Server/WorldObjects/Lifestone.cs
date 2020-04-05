@@ -1,8 +1,9 @@
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
+using System;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -64,6 +65,8 @@ namespace ACE.Server.WorldObjects
                 {
                     player.Sanctuary = new Position(player.Location);
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Magic));
+                    var newStamina = (uint)Math.Round(player.Stamina.Current / 2f);
+                    player.UpdateVital(player.Stamina, newStamina);
                 }
                 else
                     player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));

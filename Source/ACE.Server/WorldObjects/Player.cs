@@ -1,19 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Numerics;
 
 using log4net;
 
 using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Auth;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
@@ -25,6 +24,7 @@ using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects.Managers;
 
+using Character = ACE.Database.Models.Shard.Character;
 using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
 
 namespace ACE.Server.WorldObjects
@@ -39,18 +39,26 @@ namespace ACE.Server.WorldObjects
 
         public Session Session { get; }
 
-        public QuestManager QuestManager;
-
         public ContractManager ContractManager;
 
         public bool LastContact = true;
         public bool IsJumping = false;
 
+        public DateTime LastJumpTime;
+
+        public ACE.Entity.Position LastGroundPos;
+        public ACE.Entity.Position SnapPos;
+
         public ConfirmationManager ConfirmationManager;
 
         public SquelchManager SquelchManager;
 
-        public float CurrentRadarRange => Location.Indoors ? 25.0f : 75.0f;
+        public static readonly float MaxRadarRange_Indoors = 25.0f;
+        public static readonly float MaxRadarRange_Outdoors = 75.0f;
+
+        public DateTime PrevObjSend;
+
+        public float CurrentRadarRange => Location.Indoors ? MaxRadarRange_Indoors : MaxRadarRange_Outdoors;
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -79,7 +87,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public Player(Biota biota, IEnumerable<Biota> inventory, IEnumerable<Biota> wieldedItems, Character character, Session session) : base(biota)
+        public Player(Biota biota, IEnumerable<ACE.Database.Models.Shard.Biota> inventory, IEnumerable<ACE.Database.Models.Shard.Biota> wieldedItems, Character character, Session session) : base(biota)
         {
             Character = character;
             Session = session;
@@ -110,6 +118,8 @@ namespace ACE.Server.WorldObjects
             // This should be handled automatically...
             //PositionFlags |= PositionFlags.OrientationHasNoX | PositionFlags.OrientationHasNoY | PositionFlags.IsGrounded | PositionFlags.HasPlacementID;
 
+            FirstEnterWorldDone = false;
+
             SetStance(MotionStance.NonCombat, false);
 
             // radius for object updates
@@ -139,7 +149,7 @@ namespace ACE.Server.WorldObjects
 
             CombatTable = DatManager.PortalDat.ReadFromDat<CombatManeuverTable>(CombatTableDID.Value);
 
-            QuestManager = new QuestManager(this);
+            _questManager = new QuestManager(this);
 
             ContractManager = new ContractManager(this);
 
@@ -150,6 +160,10 @@ namespace ACE.Server.WorldObjects
             SquelchManager = new SquelchManager(this);
 
             MagicState = new MagicState(this);
+
+            RecordCast = new RecordCast(this);
+
+            AttackQueue = new AttackQueue(this);
 
             return; // todo
 
@@ -192,35 +206,63 @@ namespace ACE.Server.WorldObjects
 
         public MotionStance stance = MotionStance.NonCombat;
 
-        public void ExamineObject(uint objectGuid)
+        /// <summary>
+        /// Called when player presses the 'e' key to appraise an object
+        /// </summary>
+        public void HandleActionIdentifyObject(uint objectGuid)
         {
-            // TODO: Throttle this request?. The live servers did this, likely for a very good reason, so we should, too.
+            //Console.WriteLine($"{Name}.HandleActionIdentifyObject({objectGuid:X8})");
 
             if (objectGuid == 0)
             {
                 // Deselect the formerly selected Target
-                // selectedTarget = ObjectGuid.Invalid;
+                //selectedTarget = ObjectGuid.Invalid;
                 RequestedAppraisalTarget = null;
                 CurrentAppraisalTarget = null;
                 return;
             }
 
             var wo = FindObject(objectGuid, SearchLocations.Everywhere, out _, out _, out _);
+
             if (wo == null)
             {
-                log.Debug($"{Name}.ExamineObject({objectGuid:X8}): couldn't find object");
+                log.Debug($"{Name}.HandleActionIdentifyObject({objectGuid:X8}): couldn't find object");
                 Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, objectGuid));
                 return;
             }
 
+            var currentTime = Time.GetUnixTime();
+
+            // compare with previously requested appraisal target
+            if (objectGuid == RequestedAppraisalTarget)
+            {
+                if (objectGuid == CurrentAppraisalTarget)
+                {
+                    // continued success, rng roll no longer needed
+                    Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, wo, true));
+                    OnAppraisal(wo, true);
+                    return;
+                }
+
+                if (currentTime < AppraisalRequestedTimestamp + 5.0f)
+                {
+                    // rate limit for unsuccessful appraisal spam
+                    Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, wo, false));
+                    OnAppraisal(wo, false);
+                    return;
+                }
+            }
+
             RequestedAppraisalTarget = objectGuid;
-            CurrentAppraisalTarget = objectGuid;
+            AppraisalRequestedTimestamp = currentTime;
 
             Examine(wo);
         }
 
         public void Examine(WorldObject obj)
         {
+            //Console.WriteLine($"{Name}.Examine({obj.Name})");
+
             var success = true;
             var creature = obj as Creature;
             Player player = null;
@@ -251,13 +293,21 @@ namespace ACE.Server.WorldObjects
             if (creature is Pet || creature is CombatPet)
                 success = true;
 
+            if (success)
+                CurrentAppraisalTarget = obj.Guid.Full;
+
             Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, obj, success));
 
-            if (!success && player != null && !player.SquelchManager.Squelches.Contains(this, ChatMessageType.Appraisal))
+            OnAppraisal(obj, success);
+        }
+
+        public void OnAppraisal(WorldObject obj, bool success)
+        {
+            if (!success && obj is Player player && !player.SquelchManager.Squelches.Contains(this, ChatMessageType.Appraisal))
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} tried and failed to assess you!", ChatMessageType.Appraisal));
 
             // pooky logic - handle monsters attacking on appraisal
-            if (creature != null && creature.MonsterState == State.Idle)
+            if (obj is Creature creature && creature.MonsterState == State.Idle)
             {
                 if (creature.Tolerance.HasFlag(Tolerance.Appraise))
                 {
@@ -296,17 +346,46 @@ namespace ACE.Server.WorldObjects
             if (objectGuid == 0)
             {
                 // Deselect the formerly selected Target
-                selectedTarget = ObjectGuid.Invalid;
-                HealthQueryTarget = null;
+                UpdateSelectedTarget(null);
                 return;
             }
 
-            // Remember the selected Target
-            selectedTarget = new ObjectGuid(objectGuid);
-            HealthQueryTarget = objectGuid;
-            var obj = CurrentLandblock?.GetObject(objectGuid);
-            if (obj != null)
-                obj.QueryHealth(Session);
+            var obj = CurrentLandblock?.GetObject(objectGuid) as Creature;
+
+            if (obj == null)
+            {
+                // Deselect the formerly selected Target
+                UpdateSelectedTarget(null);
+                return;
+            }
+
+            UpdateSelectedTarget(obj);
+
+            obj.QueryHealth(Session);
+        }
+
+        private void UpdateSelectedTarget(Creature target)
+        {
+            if (selectedTarget != null)
+            {
+                var prevSelected = selectedTarget.TryGetWorldObject() as Creature;
+
+                if (prevSelected != null)
+                    prevSelected.OnTargetDeselected(this);
+            }
+
+            if (target != null)
+            {
+                selectedTarget = new WorldObjectInfo(target);
+                HealthQueryTarget = target.Guid.Full;
+
+                target.OnTargetSelected(this);
+            }
+            else
+            {
+                selectedTarget = null;
+                HealthQueryTarget = null;
+            }
         }
 
         public void HandleActionQueryItemMana(uint itemGuid)
@@ -373,16 +452,13 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
                 Session.Network.EnqueueSend(new GameMessageSystemChat("Logging out in 20s...", ChatMessageType.Magic));
 
-                PKLogout = true;
-
-                var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(20.0f);
-                actionChain.AddAction(this, () =>
+                if (!PKLogout)
                 {
-                    LogOut_Inner(clientSessionTerminatedAbruptly);
-                    Session.logOffRequestTime = DateTime.UtcNow;
-                });
-                actionChain.EnqueueChain();
+                    PKLogout = true;
+
+                    LogoffTimestamp = Time.GetFutureUnixTime(PropertyManager.GetLong("pk_timer").Item);
+                    PlayerManager.AddPlayerToLogoffQueue(this);
+                }
                 return false;
             }
 
@@ -416,8 +492,8 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(general, trade, lfg, roleplay);
             }
 
-            if (CurrentActiveCombatPet != null)
-                CurrentActiveCombatPet.Destroy();
+            if (CurrentActivePet != null)
+                CurrentActivePet.Destroy();
 
             if (CurrentLandblock != null)
             {
@@ -435,6 +511,13 @@ namespace ACE.Server.WorldObjects
                 // remove the player from landblock management -- after the animation has run
                 logoutChain.AddAction(this, () =>
                 {
+                    if (CurrentLandblock == null)
+                    {
+                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner.logoutChain: CurrentLandblock is null, unable to remove from a landblock...");
+                        if (Location != null)
+                            log.Debug($"0x{Guid}:{Name}.LogOut_Inner.logoutChain: Location is not null, Location = {Location.ToLOCString()}");
+                    }
+
                     CurrentLandblock?.RemoveWorldObject(Guid, false);
                     SetPropertiesAtLogOut();
                     SavePlayerToDatabase();
@@ -454,6 +537,21 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
+                log.Debug($"0x{Guid}:{Name}.LogOut_Inner: CurrentLandblock is null");
+                if (Location != null)
+                {
+                    log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Location is not null, Location = {Location.ToLOCString()}");
+                    var validLoadedLandblock = LandblockManager.GetLandblock(Location.LandblockId, false);
+                    if (validLoadedLandblock.GetObject(Guid.Full) != null)
+                    {
+                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Player is still on landblock, removing...");
+                        validLoadedLandblock.RemoveWorldObject(Guid, false);
+                    }
+                    else
+                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Player is not found on the landblock Location references.");
+                }
+                else
+                    log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Location is null");
                 SetPropertiesAtLogOut();
                 SavePlayerToDatabase();
                 PlayerManager.SwitchPlayerFromOnlineToOffline(this);
@@ -700,6 +798,7 @@ namespace ACE.Server.WorldObjects
         public void HandleActionJump(JumpPack jump)
         {
             StartJump = new ACE.Entity.Position(Location);
+            //Console.WriteLine($"JumpPack: Velocity: {jump.Velocity}, Extent: {jump.Extent}");
 
             var strength = Strength.Current;
             var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity);
@@ -727,6 +826,7 @@ namespace ACE.Server.WorldObjects
             }*/
 
             IsJumping = true;
+            LastJumpTime = DateTime.UtcNow;
 
             UpdateVitalDelta(Stamina, -staminaCost);
 
@@ -734,9 +834,36 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine($"Jump velocity: {jump.Velocity}");
 
-            // set jump velocity
             // TODO: have server verify / scale magnitude
-            PhysicsObj.set_velocity(jump.Velocity, true);
+            if (FastTick)
+            {
+                if (!PhysicsObj.IsMovingOrAnimating)
+                    //PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime - Physics.PhysicsGlobals.MinQuantum;
+                    PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
+
+                // perform jump in physics engine
+                PhysicsObj.TransientState &= ~(Physics.TransientStateFlags.Contact | Physics.TransientStateFlags.WaterContact);
+                PhysicsObj.calc_acceleration();
+                PhysicsObj.set_on_walkable(false);
+                PhysicsObj.set_local_velocity(jump.Velocity, false);
+
+                if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
+                    FailCast();
+            }
+            else
+            {
+                PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
+
+                // set jump velocity
+                //var glob_velocity = Vector3.Transform(jump.Velocity, Location.Rotation);
+                //PhysicsObj.set_velocity(glob_velocity, true);
+
+                // perform jump in physics engine
+                PhysicsObj.TransientState &= ~(Physics.TransientStateFlags.Contact | Physics.TransientStateFlags.WaterContact);
+                PhysicsObj.calc_acceleration();
+                PhysicsObj.set_on_walkable(false);
+                PhysicsObj.set_local_velocity(jump.Velocity, false);
+            }
 
             // this shouldn't be needed, but without sending this update motion / simulated movement event beforehand,
             // running forward and then performing a charged jump does an uncharged shallow arc jump instead
@@ -749,6 +876,9 @@ namespace ACE.Server.WorldObjects
 
             // broadcast jump
             EnqueueBroadcast(new GameMessageVectorUpdate(this));
+
+            if (MagicState.IsCasting && RecordCast.Enabled)
+                RecordCast.OnJump(jump);
         }
 
         /// <summary>
@@ -896,22 +1026,29 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast), LocalBroadcastRange);
 
             // perform pk lite entry motion / effect
-            var motion = new Motion(MotionStance.NonCombat, MotionCommand.EnterPKLite);
-            EnqueueBroadcastMotion(motion);
 
-            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var animLength = motionTable.GetAnimationLength(MotionStance.NonCombat, MotionCommand.EnterPKLite);
+            IsBusy = true;
+
+            var prevStance = CurrentMotionState.Stance;
 
             var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(animLength);
-            IsBusy = true;
+
+            var animTime = 0.0f;
+
+            animTime += EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.EnterPKLite);
+
             actionChain.AddAction(this, () =>
             {
-                IsBusy = false;
                 UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite, true);
 
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNowPKLite));
             });
+
+            // return to previous stance, if applicable
+            if (prevStance != MotionStance.NonCombat)
+                animTime += EnqueueMotion_Force(actionChain, prevStance, MotionCommand.Ready, MotionCommand.NonCombat);
+
+            actionChain.AddAction(this, () => IsBusy = false);
 
             actionChain.EnqueueChain();
         }

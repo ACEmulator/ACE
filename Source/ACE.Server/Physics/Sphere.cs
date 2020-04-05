@@ -1,7 +1,9 @@
 using System;
 using System.Numerics;
+
+using ACE.Entity.Enum;
+
 using ACE.Server.Physics.Animation;
-using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
 
@@ -58,65 +60,78 @@ namespace ACE.Server.Physics
             Radius = sphere.Radius;
         }
 
-        public static int Attack(Position targetPos, float targetRadius, float targetHeight, Position attackPos, Vector2 left, Vector2 right, float attackRadius, float attackHeight)
+        public static readonly float ThresholdMed = 1.0f / 3.0f;
+        public static readonly float ThresholdHigh = 2.0f / 3.0f;
+
+        public static Quadrant Attack(Position targetPos, float targetRadius, float targetHeight, Position attackPos, Vector2 left, Vector2 right, float attackRadius, float attackHeight)
         {
             var center = attackPos.LocalToLocal(targetPos, Vector3.Zero);
+
             if (attackHeight < 0.0f || attackHeight > targetHeight)
-                return 0;
+                return Quadrant.None;
+
             var radsum = targetRadius + attackRadius;
+
             var distSq = center.LengthSquared2D();
             if (distSq > radsum * radsum)
-                return 0;
+                return Quadrant.None;
 
             var hitLoc = targetPos.LocalToLocal(attackPos, Vector3.Zero);
-            var quadrant = 8;
-            int quadmod, quadbit;
-            if (hitLoc.X > 0.0f)
-                quadrant = 16;
-            if (hitLoc.Y > 0.0f)
-                quadmod = quadrant | 0x20;
+
+            var quadrant = hitLoc.X <= 0.0f ? Quadrant.Left : Quadrant.Right;
+
+            quadrant |= hitLoc.Y > 0.0f ? Quadrant.Front : Quadrant.Back;
+
+            if (attackHeight < targetHeight * ThresholdMed)
+                quadrant |= Quadrant.Low;
+            else if (attackHeight < targetHeight * ThresholdHigh)
+                quadrant |= Quadrant.Medium;
             else
-                quadmod = quadrant | 0x40;
-            if (targetHeight * 0.333333f <= attackHeight)
-            {
-                if (targetHeight * 0.666667f <= attackHeight)
-                    quadbit = quadmod | 1;
-                else
-                    quadbit = quadmod | 2;
-            }
-            else
-                quadbit = quadmod | 4;
-            var attackhta = center.Y * left.X - center.X * left.Y;
-            var rightDist = center.X * right.Y - center.Y * right.X;
-            if (attackhta <= 0.0f && rightDist <= 0.0f)
-                return quadbit;
+                quadrant |= Quadrant.High;
+
+            // 2d cross product?
+            var attack_ht = center.Y * left.X - center.X * left.Y;
+            var right_dist = center.X * right.Y - center.Y * right.X;
+
+            if (attack_ht <= 0.0f && right_dist <= 0.0f)
+                return quadrant;
+
             if (left.X * right.Y - left.Y * right.X >= 0.0f)
             {
-                if (rightDist * attackhta <= 0.0f || attackhta <= targetRadius)
-                    return quadbit;
-            }
-            else if (attackhta <= 0.0f)
-            {
-                // drop down
-            }
-            else if (rightDist >= 0.0f)
-            {
-                if (targetRadius * targetRadius >= distSq)
-                    return quadbit;
+                if (right_dist * attack_ht <= 0.0f || attack_ht <= targetRadius || right_dist <= targetRadius)
+                    return quadrant;
                 else
-                    return 0;
+                    return Quadrant.None;
             }
-            else if (attackhta >= 0.0f)
+
+            if (attack_ht < 0.0f)
             {
-                if (attackhta <= targetRadius)
-                    return quadbit;
+                if (right_dist <= targetRadius)
+                    return quadrant;
                 else
-                    return 0;
+                    return Quadrant.None;
             }
-            if (rightDist >= targetRadius)
-                return 0;
+
+            if (right_dist >= 0.0f)
+            {
+                if (distSq <= targetRadius * targetRadius)
+                    return quadrant;
+                else
+                    return Quadrant.None;
+            }
+
+            if (attack_ht < 0.0f)
+            {
+                if (right_dist <= targetRadius)
+                    return quadrant;
+                else
+                    return Quadrant.None;
+            }
+
+            if (attack_ht <= targetRadius)
+                return quadrant;
             else
-                return quadbit;
+                return Quadrant.None;
         }
 
         /// <summary>
@@ -220,7 +235,8 @@ namespace ACE.Server.Physics
         public TransitionState IntersectsSphere(Position position, float scale, Transition transition, bool isCreature)
         {
             var globPos = transition.SpherePath.CheckPos.LocalToGlobal(position, Center * scale);
-            return new Sphere(globPos, Radius * scale).IntersectsSphere(transition, isCreature);
+            var sphere = new Sphere(globPos, Radius * scale);
+            return sphere.IntersectsSphere(transition, isCreature);
         }
 
         /// <summary>
@@ -247,7 +263,7 @@ namespace ACE.Server.Physics
 
             if (transition.SpherePath.ObstructionEthereal || transition.SpherePath.InsertType == InsertType.Placement)
             {
-                if (disp.LengthSquared() <= radsum)
+                if (disp.LengthSquared() <= radsum * radsum)
                     return TransitionState.Collided;
 
                 if (transition.SpherePath.NumSphere > 1)

@@ -1,6 +1,9 @@
 using System;
+using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 using log4net;
 using log4net.Config;
@@ -14,7 +17,7 @@ using ACE.Server.Network.Managers;
 
 namespace ACE.Server
 {
-    class Program
+    partial class Program
     {
         /// <summary>
         /// The timeBeginPeriod function sets the minimum timer resolution for an application or device driver. Used to manipulate the timer frequency.
@@ -33,16 +36,69 @@ namespace ACE.Server
 
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public static readonly bool IsRunningInContainer = Convert.ToBoolean(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"));
+
         public static void Main(string[] args)
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
+            // Typically, you wouldn't force the current culture on an entire application unless you know sure your application is used in a specific region (which ACE is not)
+            // We do this because almost all of the client/user input/output code does not take culture into account, and assumes en-US formatting.
+            // Without this, many commands that require special characters like , and . will break
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
             // Init our text encoding options. This will allow us to use more than standard ANSI text, which the client also supports.
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
+            // Look for the log4net.config first in the current environment directory, then in the ExecutingAssembly location
+            var exeLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var containerConfigDirectory = "/ace/Config";
+            var log4netConfig = Path.Combine(exeLocation, "log4net.config");
+            var log4netConfigExample = Path.Combine(exeLocation, "log4net.config.example");
+            var log4netConfigContainer = Path.Combine(containerConfigDirectory, "log4net.config");
+
+            if (IsRunningInContainer && File.Exists(log4netConfigContainer))
+                File.Copy(log4netConfigContainer, log4netConfig, true);
+
+            var log4netFileInfo = new FileInfo("log4net.config");
+            if (!log4netFileInfo.Exists)
+                log4netFileInfo = new FileInfo(log4netConfig);
+
+            if (!log4netFileInfo.Exists)
+            {
+                var exampleFile = new FileInfo(log4netConfigExample);
+                if (!exampleFile.Exists)
+                {
+                    Console.WriteLine("log4net Configuration file is missing.  Please copy the file log4net.config.example to log4net.config and edit it to match your needs before running ACE.");
+                    throw new Exception("missing log4net configuration file");
+                }
+                else
+                {
+                    if (!IsRunningInContainer)
+                    {
+                        Console.WriteLine("log4net Configuration file is missing,  cloning from example file.");
+                        File.Copy(log4netConfigExample, log4netConfig);
+                    }
+                    else
+                    {                        
+                        if (!File.Exists(log4netConfigContainer))
+                        {
+                            Console.WriteLine("log4net Configuration file is missing, ACEmulator is running in a container,  cloning from docker file.");
+                            var log4netConfigDocker = Path.Combine(exeLocation, "log4net.config.docker");
+                            File.Copy(log4netConfigDocker, log4netConfig);
+                            File.Copy(log4netConfigDocker, log4netConfigContainer);
+                        }
+                        else
+                        {
+                            File.Copy(log4netConfigContainer, log4netConfig);
+                        }
+
+                    }
+                }
+            }
+
             var logRepository = LogManager.GetRepository(System.Reflection.Assembly.GetEntryAssembly());
-            XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
+            XmlConfigurator.Configure(logRepository, log4netFileInfo);
 
             if (Environment.ProcessorCount < 2)
                 log.Warn("Only one vCPU was detected. ACE may run with limited performance. You should increase your vCPU count for anything more than a single player server.");
@@ -62,7 +118,33 @@ namespace ACE.Server
             }
 
             log.Info("Starting ACEmulator...");
-            Console.Title = @"ACEmulator";
+
+            if (IsRunningInContainer)
+                log.Info("ACEmulator is running in a container...");
+
+            Console.Title = @$"ACEmulator - v{ServerBuildInfo.FullVersion}";
+
+            var configFile = Path.Combine(exeLocation, "Config.js");
+            var configConfigContainer = Path.Combine(containerConfigDirectory, "Config.js");
+
+            if (IsRunningInContainer && File.Exists(configConfigContainer))
+                File.Copy(configConfigContainer, configFile, true);
+
+            if (!File.Exists(configFile))
+            {
+                if (!IsRunningInContainer)
+                    DoOutOfBoxSetup(configFile);
+                else
+                {
+                    if (!File.Exists(configConfigContainer))
+                    {
+                        DoOutOfBoxSetup(configFile);
+                        File.Copy(configFile, configConfigContainer);
+                    }
+                    else
+                        File.Copy(configConfigContainer, configFile);
+                }
+            }
 
             log.Info("Initializing ConfigManager...");
             ConfigManager.Initialize();
@@ -109,25 +191,26 @@ namespace ACE.Server
             {
                 log.Info("Precaching Weenies...");
                 DatabaseManager.World.CacheAllWeeniesInParallel();
+                log.Info("Precaching Cookbooks...");
+                DatabaseManager.World.CacheAllCookbooksInParallel();
+                log.Info("Precaching Events...");
+                DatabaseManager.World.GetAllEvents();
                 log.Info("Precaching House Portals...");
                 DatabaseManager.World.CacheAllHousePortals();
                 log.Info("Precaching Points Of Interest...");
                 DatabaseManager.World.CacheAllPointsOfInterest();
                 log.Info("Precaching Spells...");
                 DatabaseManager.World.CacheAllSpells();
-                log.Info("Precaching Events...");
-                DatabaseManager.World.GetAllEvents();
-                log.Info("Precaching Death Treasures...");
-                DatabaseManager.World.CacheAllDeathTreasures();
-                log.Info("Precaching Wielded Treasures...");
-                DatabaseManager.World.CacheAllWieldedTreasuresInParallel();
-                log.Info("Precaching Treasure Materials...");
+                log.Info("Precaching Treasures - Death...");
+                DatabaseManager.World.CacheAllTreasuresDeath();
+                log.Info("Precaching Treasures - Material Base...");
                 DatabaseManager.World.CacheAllTreasuresMaterialBaseInParallel();
+                log.Info("Precaching Treasures - Material Groups...");
                 DatabaseManager.World.CacheAllTreasuresMaterialGroupsInParallel();
-                log.Info("Precaching Treasure Colors...");
+                log.Info("Precaching Treasures - Material Colors...");
                 DatabaseManager.World.CacheAllTreasuresMaterialColorInParallel();
-                log.Info("Precaching Cookbooks...");
-                DatabaseManager.World.CacheAllCookbooksInParallel();
+                log.Info("Precaching Treasures - Wielded...");
+                DatabaseManager.World.CacheAllTreasuresWieldedInParallel();
             }
             else
                 log.Info("Precaching World Database Disabled...");
@@ -150,6 +233,11 @@ namespace ACE.Server
             log.Info("Initializing EventManager...");
             EventManager.Initialize();
 
+            // Free up memory before the server goes online. This can free up 6 GB+ on larger servers.
+            log.Info("Forcing .net garbage collection...");
+            for (int i = 0 ; i < 10 ; i++)
+                GC.Collect();
+
             // This should be last
             log.Info("Initializing CommandManager...");
             CommandManager.Initialize();
@@ -167,23 +255,31 @@ namespace ACE.Server
 
         private static void OnProcessExit(object sender, EventArgs e)
         {
-            if (!ServerManager.ShutdownInitiated)
-                log.Warn("Unsafe server shutdown detected! Data loss is possible!");
-
-            PropertyManager.StopUpdating();
-            DatabaseManager.Stop();
-
-            // Do system specific cleanup here
-            try
+            if (!IsRunningInContainer)
             {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                if (!ServerManager.ShutdownInitiated)
+                    log.Warn("Unsafe server shutdown detected! Data loss is possible!");
+
+                PropertyManager.StopUpdating();
+                DatabaseManager.Stop();
+
+                // Do system specific cleanup here
+                try
                 {
-                    MM_EndPeriod(1);
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        MM_EndPeriod(1);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.Error(ex.ToString());
                 }
             }
-            catch (Exception ex)
+            else
             {
-                log.Error(ex.ToString());
+                ServerManager.DoShutdownNow();
+                DatabaseManager.Stop();
             }
         }
     }

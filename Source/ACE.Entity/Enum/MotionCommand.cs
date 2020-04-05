@@ -113,7 +113,7 @@ namespace ACE.Entity.Enum
         AttackLow3                            = 0x1000006a,
         HeadThrow                             = 0x1000006b,
         FistSlam                              = 0x1000006c,
-        BreatheFlame                         = 0x1000006d,
+        BreatheFlame                          = 0x1000006d,
         SpinAttack                            = 0x1000006e,
         MagicPowerUp01                        = 0x1000006f,
         MagicPowerUp02                        = 0x10000070,
@@ -421,12 +421,152 @@ namespace ACE.Entity.Enum
 
     public static class MotionCommandHelper
     {
-        public static MotionCommand GetMotion(int motionCommand)
+        public static MotionCommand GetMotion(MotionCommand motionCommand)
         {
-            if (motionCommand == 0x10000162)
+            if ((int)motionCommand == 0x10000162)
                 return MotionCommand.Fishing;
 
             return (MotionCommand)motionCommand;
+        }
+
+        public static bool IsMultiStrike(this MotionCommand motionCommand)
+        {
+            return motionCommand >= MotionCommand.DoubleSlashLow && motionCommand <= MotionCommand.TripleThrustHigh ||
+                   motionCommand >= MotionCommand.OffhandDoubleSlashLow && motionCommand <= MotionCommand.OffhandTripleThrustHigh;
+        }
+
+        public static MotionCommand ReduceMultiStrike(this MotionCommand motionCommand)
+        {
+            if (!motionCommand.IsMultiStrike())
+                return MotionCommand.Invalid;
+
+            switch (motionCommand)
+            {
+                case MotionCommand.DoubleSlashLow:
+                case MotionCommand.TripleSlashLow:
+                    return MotionCommand.SlashLow;
+
+                case MotionCommand.DoubleSlashMed:
+                case MotionCommand.TripleSlashMed:
+                    return MotionCommand.SlashMed;
+
+                case MotionCommand.DoubleSlashHigh:
+                case MotionCommand.TripleSlashHigh:
+                    return MotionCommand.SlashHigh;
+
+                case MotionCommand.DoubleThrustLow:
+                case MotionCommand.TripleThrustLow:
+                    return MotionCommand.ThrustLow;
+
+                case MotionCommand.DoubleThrustMed:
+                case MotionCommand.TripleThrustMed:
+                    return MotionCommand.ThrustMed;
+
+                case MotionCommand.DoubleThrustHigh:
+                case MotionCommand.TripleThrustHigh:
+                    return MotionCommand.ThrustHigh;
+
+                case MotionCommand.OffhandDoubleSlashLow:
+                case MotionCommand.OffhandTripleSlashLow:
+                    return MotionCommand.SlashLow;
+
+                case MotionCommand.OffhandDoubleSlashMed:
+                case MotionCommand.OffhandTripleSlashMed:
+                    return MotionCommand.SlashMed;
+
+                case MotionCommand.OffhandDoubleSlashHigh:
+                case MotionCommand.OffhandTripleSlashHigh:
+                    return MotionCommand.SlashHigh;
+
+                case MotionCommand.OffhandDoubleThrustLow:
+                case MotionCommand.OffhandTripleThrustLow:
+                    return MotionCommand.ThrustLow;
+
+                case MotionCommand.OffhandDoubleThrustMed:
+                case MotionCommand.OffhandTripleThrustMed:
+                    return MotionCommand.ThrustMed;
+
+                case MotionCommand.OffhandDoubleThrustHigh:
+                case MotionCommand.OffhandTripleThrustHigh:
+                    return MotionCommand.ThrustHigh;
+
+                default:
+                    return MotionCommand.Invalid;
+            }
+        }
+
+        public static bool IsSubsequent(this MotionCommand motionCommand)
+        {
+            return motionCommand >= MotionCommand.AttackHigh2 && motionCommand <= MotionCommand.AttackLow3 ||
+                   motionCommand >= MotionCommand.AttackHigh4 && motionCommand <= MotionCommand.AttackLow6;
+        }
+
+        public static MotionCommand ReduceSubsequent(this MotionCommand motionCommand)
+        {
+            if (!motionCommand.IsSubsequent())
+                return MotionCommand.Invalid;
+
+            switch (motionCommand)
+            {
+                case MotionCommand.AttackLow2:
+                case MotionCommand.AttackLow3:
+                case MotionCommand.AttackLow4:
+                case MotionCommand.AttackLow5:
+                case MotionCommand.AttackLow6:
+                    return MotionCommand.AttackLow1;
+
+                case MotionCommand.AttackMed2:
+                case MotionCommand.AttackMed3:
+                case MotionCommand.AttackMed4:
+                case MotionCommand.AttackMed5:
+                case MotionCommand.AttackMed6:
+                    return MotionCommand.AttackMed1;
+
+                case MotionCommand.AttackHigh2:
+                case MotionCommand.AttackHigh3:
+                case MotionCommand.AttackHigh4:
+                case MotionCommand.AttackHigh5:
+                case MotionCommand.AttackHigh6:
+                    return MotionCommand.AttackHigh1;
+
+                default:
+                    return MotionCommand.Invalid;
+            }
+        }
+
+        public static float GetAimAngle(this MotionCommand motion)
+        {
+            switch (motion)
+            {
+                default:
+                    return 0.0f;
+
+                case MotionCommand.AimHigh15:
+                    return 15.0f;
+                case MotionCommand.AimHigh30:
+                    return 30.0f;
+                case MotionCommand.AimHigh45:
+                    return 45.0f;
+                case MotionCommand.AimHigh60:
+                    return 60.0f;
+                case MotionCommand.AimHigh75:
+                    return 75.0f;
+                case MotionCommand.AimHigh90:
+                    return 90.0f;
+
+                case MotionCommand.AimLow15:
+                    return -15.0f;
+                case MotionCommand.AimLow30:
+                    return -30.0f;
+                case MotionCommand.AimLow45:
+                    return -45.0f;
+                case MotionCommand.AimLow60:
+                    return -60.0f;
+                case MotionCommand.AimLow75:
+                    return -75.0f;
+                case MotionCommand.AimLow90:
+                    return -90.0f;
+            }
         }
     }
 }

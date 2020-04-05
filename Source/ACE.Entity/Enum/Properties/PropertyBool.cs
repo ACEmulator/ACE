@@ -139,6 +139,7 @@ namespace ACE.Entity.Enum.Properties
         [SendOnLogin]
         ActdReceivedItems                = 104,
         Unknown105                       = 105,
+        [Ephemeral]
         FirstEnterWorldDone              = 106,
         RecallsDisabled                  = 107,
         RareUsesTimer                    = 108,
@@ -173,6 +174,8 @@ namespace ACE.Entity.Enum.Properties
         LinkedPortalTwoSummon            = 9002,
         [ServerOnly]
         HouseEvicted                     = 9003,
+        [ServerOnly]
+        UntrainedSkills                  = 9004,
     }
 
     public static class PropertyBoolExtensions

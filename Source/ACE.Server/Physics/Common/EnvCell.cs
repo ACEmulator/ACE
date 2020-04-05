@@ -62,10 +62,14 @@ namespace ACE.Server.Physics.Common
             SeenOutside = envCell.SeenOutside;
 
             EnvironmentID = envCell.EnvironmentId;
-            Environment = DBObj.GetEnvironment(EnvironmentID);
+
+            if (EnvironmentID != 0)
+                Environment = DBObj.GetEnvironment(EnvironmentID);
+
             CellStructureID = envCell.CellStructure;    // environment can contain multiple?
-            if (Environment.Cells != null && Environment.Cells.ContainsKey(CellStructureID))
-                CellStructure = new CellStruct(Environment.Cells[CellStructureID]);
+
+            if (Environment?.Cells != null && Environment.Cells.TryGetValue(CellStructureID, out var cellStruct))
+                CellStructure = new CellStruct(cellStruct);
 
             NumSurfaces = envCell.Surfaces.Count;
         }
@@ -301,7 +305,7 @@ namespace ACE.Server.Physics.Common
                 }
             }
             if (checkOutside)
-                LandCell.add_all_outside_cells(numParts, parts, cellArray);
+                LandCell.add_all_outside_cells(numParts, parts, cellArray, ID);
         }
 
         public override void find_transit_cells(Position position, int numSphere, List<Sphere> spheres, CellArray cellArray, SpherePath path)

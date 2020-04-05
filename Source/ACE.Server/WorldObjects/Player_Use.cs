@@ -79,6 +79,31 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsTrading)
+            {
+                if (ItemsInTradeWindow.Contains(sourceItem.Guid))
+                {
+                    SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
+                    //SendWeenieError(WeenieError.TradeItemBeingTraded);
+                    return;
+                }
+                if (ItemsInTradeWindow.Contains(target.Guid))
+                {
+                    SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
+                    //SendWeenieError(WeenieError.TradeItemBeingTraded);
+                    return;
+                }
+            }
+
+            // re-verify client checks
+            if (((sourceItem.TargetType ?? ItemType.None) & target.ItemType) == ItemType.None)
+            {
+                // ItemHolder::TargetCompatibleWithObject
+                SendTransientError($"Cannot use the {sourceItem.Name} with the {target.Name}");
+                SendUseDoneEvent();
+                return;
+            }
+
             sourceItem.HandleActionUseOnTarget(this, target);
         }
 
@@ -97,6 +122,13 @@ namespace ACE.Server.WorldObjects
             StopExistingMoveToChains();
 
             var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock);
+
+            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            {
+                SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
+                //SendWeenieError(WeenieError.TradeItemBeingTraded);
+                return;
+            }
 
             if (item != null)
             {
@@ -165,12 +197,52 @@ namespace ACE.Server.WorldObjects
                 container.Close(this);
         }
 
-        public CombatPet CurrentActiveCombatPet { get; set; }
+        public Pet CurrentActivePet { get; set; }
 
         public void StartBarber()
         {
             BarberActive = true;
             Session.Network.EnqueueSend(new GameEventStartBarber(Session));
+        }
+
+        public void ApplyConsumable(MotionCommand useMotion, Action action, float animMod = 1.0f)
+        {
+            IsBusy = true;
+
+            var actionChain = new ActionChain();
+
+            // if something other that NonCombat.Ready,
+            // manually send this swap
+            var prevStance = CurrentMotionState.Stance;
+
+            var animTime = 0.0f;
+
+            if (prevStance != MotionStance.NonCombat)
+                animTime = EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, (MotionCommand)prevStance);
+
+            // start the eat/drink motion
+            var useAnimTime = EnqueueMotion_Force(actionChain, MotionStance.NonCombat, useMotion, null, 1.0f, animMod);
+            animTime += useAnimTime;
+
+            // apply consumable
+            actionChain.AddAction(this, action);
+
+            if (animMod == 1.0f)
+            {
+                // return to ready stance
+                animTime += EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, useMotion);
+            }
+            else
+                actionChain.AddDelaySeconds(useAnimTime * (1.0f - animMod));
+
+            if (prevStance != MotionStance.NonCombat)
+                animTime += EnqueueMotion_Force(actionChain, prevStance, MotionCommand.Ready, MotionCommand.NonCombat);
+
+            actionChain.AddAction(this, () => { IsBusy = false; });
+
+            actionChain.EnqueueChain();
+
+            LastUseTime = animTime;
         }
     }
 }

@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -56,10 +58,19 @@ namespace ACE.Server.Managers
                 return Players[monarch.Guid].Allegiance;
 
             // try to load biota
-            var allegianceID = DatabaseManager.Shard.GetAllegianceID(monarch.Guid.Full);
-            var biota = allegianceID != null ? DatabaseManager.Shard.GetBiota(allegianceID.Value) : null;
+            var allegianceID = DatabaseManager.Shard.BaseDatabase.GetAllegianceID(monarch.Guid.Full);
+            var biota = allegianceID != null ? DatabaseManager.Shard.BaseDatabase.GetBiota(allegianceID.Value) : null;
 
-            var allegiance = biota != null ? new Allegiance(biota) : new Allegiance(monarch.Guid);
+            Allegiance allegiance;
+
+            if (biota != null)
+            {
+                var entityBiota = ACE.Database.Adapter.BiotaConverter.ConvertToEntityBiota(biota);
+
+                allegiance = new Allegiance(entityBiota);
+            }
+            else
+                allegiance = new Allegiance(monarch.Guid);
 
             if (allegiance.TotalMembers == 1)
                 return null;
@@ -381,7 +392,14 @@ namespace ACE.Server.Managers
             return allegiance;
         }
 
+        // This function is called from a database callback.
+        // We must add thread safety to prevent AllegianceManager corruption
         public static void HandlePlayerDelete(uint playerGuid)
+        {
+            WorldManager.EnqueueAction(new ActionEventDelegate(() => DoHandlePlayerDelete(playerGuid)));
+        }
+
+        private static void DoHandlePlayerDelete(uint playerGuid)
         {
             var player = PlayerManager.FindByGuid(playerGuid);
             if (player == null)

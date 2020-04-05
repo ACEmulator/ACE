@@ -1,17 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using Newtonsoft.Json;
+
 using ACE.Adapter.Enum;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace ACE.Adapter.Lifestoned
 {
     public static class LifestonedConverter
     {
+        /// <summary>
+        /// Converts LSD weenie to ACE weenie
+        /// </summary>
         public static bool TryConvert(global::Lifestoned.DataModel.Gdle.Weenie input, out Weenie result, bool correctForEnumShift = false)
         {
             if (input.WeenieId == 0)
@@ -273,11 +277,11 @@ namespace ACE.Adapter.Lifestoned
                                 // Fix MotionCommand ENUM shift post 16PY data
                                 if (correctForEnumShift && efAction.Motion.HasValue)
                                 {
-                                    var oldMotion = (ACE.Entity.Enum.MotionCommand)efAction.Motion;
+                                    var oldMotion = (MotionCommand)efAction.Motion;
                                     var index = efAction.Motion.Value & 0xFFFF;
                                     if (index >= 0x115)
                                     {
-                                        var newMotion = (ACE.Entity.Enum.MotionCommand)efAction.Motion + 3;
+                                        var newMotion = (MotionCommand)efAction.Motion + 3;
                                         efAction.Motion += 3;
                                     }
                                 }
@@ -469,6 +473,9 @@ namespace ACE.Adapter.Lifestoned
             }
         }
 
+        /// <summary>
+        /// Converts ACE weenie to LSD weenie
+        /// </summary>
         public static bool TryConvert(Weenie input, out global::Lifestoned.DataModel.Gdle.Weenie result, bool correctForEnumShift = false)
         {
             if (input.ClassId == 0)
@@ -1106,13 +1113,15 @@ namespace ACE.Adapter.Lifestoned
             //SerializerSettings.Converters.Add(new JavaScriptDateTimeConverter());
             SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
             SerializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
+
+            SerializerSettings.Formatting = Formatting.Indented;
         }
 
-        public static bool TryConvertACEWeenieToLSDJSON(Weenie weenie, out string result)
+        public static bool TryConvertACEWeenieToLSDJSON(Weenie weenie, out string result, out global::Lifestoned.DataModel.Gdle.Weenie lsdWeenie)
         {
             try
             {
-                if (TryConvert(weenie, out var lsdWeenie))
+                if (TryConvert(weenie, out lsdWeenie))
                 {
                     try
                     {
@@ -1131,6 +1140,7 @@ namespace ACE.Adapter.Lifestoned
             }
             catch
             {
+                lsdWeenie = null;
                 result = null;
                 return false;
             }

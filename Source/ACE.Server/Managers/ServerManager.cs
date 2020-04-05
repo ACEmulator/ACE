@@ -5,6 +5,8 @@ using log4net;
 
 using ACE.Common;
 using ACE.Database;
+using ACE.Entity.Enum;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.Managers
 {
@@ -72,6 +74,14 @@ namespace ACE.Server.Managers
             ShutdownTime = DateTime.MinValue;
         }
 
+        public static void DoShutdownNow()
+        {
+            SetShutdownInterval(0);
+            ShutdownInitiated = true;
+            PlayerManager.BroadcastToAll(new GameMessageSystemChat("Broadcast from System> ATTENTION - This Asheron's Call Server is shutting down NOW!!!!", ChatMessageType.WorldBroadcast));
+            ShutdownServer();
+        }
+
         /// <summary>
         /// Threaded task created when performing a server shutdown
         /// </summary>
@@ -118,7 +128,7 @@ namespace ACE.Server.Managers
             log.Info("Waiting for all players to log off...");
 
             // wait 10 seconds for log-off
-            while (PlayerManager.GetAllOnline().Count > 0)
+            while (PlayerManager.GetOnlineCount() > 0)
                 Thread.Sleep(10);
 
             log.Debug("Adding all landblocks to destruction queue...");

@@ -1,12 +1,10 @@
-using System;
-
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Entity.Chess;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -49,7 +47,7 @@ namespace ACE.Server.WorldObjects
             killChain.AddDelaySeconds(5);
             killChain.AddAction(this, () =>
             {
-                ApplyVisualEffects(global::ACE.Entity.Enum.PlayScript.Destroy);
+                ApplyVisualEffects(PlayScript.Destroy);
             });
             killChain.AddDelaySeconds(1);
             killChain.AddAction(this, () => Destroy());
@@ -144,6 +142,8 @@ namespace ACE.Server.WorldObjects
                 GamePieceState = GamePieceState.MoveToSquare;
         }
 
+        public Motion LastMoveTo;
+
         public void MoveWeenie(Position to, float distanceToObject, bool finalHeading)
         {
             if (MoveSpeed == 0.0f)
@@ -162,15 +162,6 @@ namespace ACE.Server.WorldObjects
 
             SetWalkRunThreshold(moveToPosition, to);
 
-            if (!InitSticky)
-            {
-                PhysicsObj.add_moveto_listener(OnMoveComplete);
-
-                PhysicsObj.add_sticky_listener(OnSticky);
-                PhysicsObj.add_unsticky_listener(OnUnsticky);
-                InitSticky = true;
-            }
-
             var mvp = GetMovementParameters();
             mvp.CanWalk = true;
             mvp.StopCompletely = true;
@@ -184,7 +175,14 @@ namespace ACE.Server.WorldObjects
             MonsterState = State.Awake;
             IsAwake = true;
 
+            LastMoveTo = moveToPosition;
+
             EnqueueBroadcastMotion(moveToPosition);
+        }
+
+        public override void BroadcastMoveTo(Player player)
+        {
+            player.Session.Network.EnqueueSend(new GameMessageUpdateMotion(this, LastMoveTo));
         }
     }
 }

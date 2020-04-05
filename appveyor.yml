@@ -1,22 +1,79 @@
-version: 0.0.{build}
+version: 1.2.{build}
 pull_requests:
   do_not_increment_build_number: true
-image: Visual Studio 2017
+skip_tags: true
+image: Visual Studio 2019
+configuration: Release
 platform: x64
+init:
+- cmd: >-
+    for /f "tokens=1,2,3 delims=." %%a in ("%APPVEYOR_BUILD_VERSION%") do set TRUE_VERSION=%%a.%%b& set TRUE_BUILD=%%c
+
+    for /f %%a in ('powershell -Command "Get-Date -format yyyyMMddHHmmss"') do set BUILD_DATETIME=%%a
+
+    set COMMIT_ID=%APPVEYOR_REPO_COMMIT:~0,7%
+
+    set REVISED_VERSION=%TRUE_VERSION%.%TRUE_BUILD%.%BUILD_DATETIME%-%APPVEYOR_REPO_BRANCH%-%COMMIT_ID%
+
+    REM appveyor UpdateBuild -Version "%REVISED_VERSION%"
+
+    REM set APPVEYOR_BUILD_VERSION=%REVISED_VERSION%
+dotnet_csproj:
+  patch: true
+  file: '**\*.csproj'
+  version: '{version}'
+  version_prefix: '{version}'
+  package_version: '{version}'
+  assembly_version: '{version}'
+  file_version: '{version}'
+  informational_version: '{version}'
+environment:
+  DOCKER_USER:
+    secure: qs6SGmd8XeCqWCMGx5+VAg==
+  DOCKER_PASS:
+    secure: AdN3f5EVMXteNIDrqS8FhSezFUuiZ7F4LU0woD5raBE=
+  GIT_A:
+    secure: juAGPTUbTXbVFEoEnhGOSc0WOaxbvKKNha5dKPB1P/I=
+  GIT_B:
+    secure: bhR4cIOcVqIBZXFOBVTtvQ==
+  APPVEYOR_RDP_PASSWORD:
+    secure: huM6kANmgP1OdlmHulXVZA==
+  access_token:
+    secure: k8Q9MwG7UgKbocfdJvD4iBwL1K2AsdjZs6B34/vFqkoukW9p3tJ3uRacb1Zmclyp
 services: mysql
 before_build:
-- cmd: source\AppVeyor\AppVeyorBeforeCompile.bat
+- cmd: AppVeyor\AppVeyorBeforeCompile.bat
 build:
-  project: source\ACE.sln
+  project: Source\ACE.sln
   verbosity: minimal
+before_package:
+- cmd: AppVeyor\AppVeyorBeforePackage.bat
 after_build:
-- cmd: source\AppVeyor\AppVeyorAfterCompile.bat
+- cmd: AppVeyor\AppVeyorAfterCompile.bat
 test_script:
-- cmd: >-
-    dotnet test --diag ACETests-Server.txt --no-build "Source\ACE.Server.Tests" --test-adapter-path:. --logger:Appveyor
-
-    dotnet test --diag ACETests-Database.txt --no-build "Source\ACE.Database.Tests" --test-adapter-path:. --logger:Appveyor
+- cmd: AppVeyor\AppVeyorTestScript.bat
 artifacts:
 - path: '**\ACETests*.txt'
   name: test logs
-  type: zip
+- path: '**\ACE.Server-*.zip'
+  name: release candidate
+before_deploy:
+- ps: >-
+    git config --global credential.helper store
+
+    Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
+deploy:
+- provider: GitHub
+  tag: v$(appveyor_build_version)
+  release: ACEmulator Server - v$(appveyor_build_version)
+  description: <h1> ACEmulator Server - v$(appveyor_build_version) </h1> <blockquote>The following changes are included in this release:</<blockquote> <h1></h1>$(APPVEYOR_REPO_COMMIT_MESSAGE) <p>$(APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED)<p><a href="https://github.com/ACEmulator/ACE/compare/v1.0.XXXX...v1.1.XXXX">Click here to see the detailed changes</a></p><h1><h6>automated server build - $(APPVEYOR_REPO_COMMIT_TIMESTAMP)
+  auth_token:
+    secure: k8Q9MwG7UgKbocfdJvD4iBwL1K2AsdjZs6B34/vFqkoukW9p3tJ3uRacb1Zmclyp
+  artifact: AppVeyor\ACE.Server-v$(appveyor_build_version).zip
+  draft: true
+  prerelease: false
+  force_update: true
+  on:
+    branch: master
+after_deploy:
+- cmd: AppVeyor\AppVeyorAfterDeploy.bat

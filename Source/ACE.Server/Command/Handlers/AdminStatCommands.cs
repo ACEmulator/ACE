@@ -7,6 +7,7 @@ using log4net;
 
 using ACE.Database;
 using ACE.DatLoader;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network;
@@ -57,8 +58,8 @@ namespace ACE.Server.Command.Handlers
             // todo, add actual system memory used/avail
             sb.Append($"{(proc.PrivateMemorySize64 >> 20):N0} MB used{'\n'}");  // sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used, xxxx / yyyy MB physical mem free.{'\n'}");
 
-            sb.Append($"{NetworkManager.GetSessionCount():N0} connections, {NetworkManager.GetUniqueSessionEndpointCount():N0} unique connections, {PlayerManager.GetAllOnline().Count:N0} players online{'\n'}");
-            sb.Append($"Total Accounts Created: {DatabaseManager.Authentication.GetAccountCount():N0}, Total Characters Created: {(PlayerManager.GetAllOffline().Count + PlayerManager.GetAllOnline().Count):N0}{'\n'}");
+            sb.Append($"{NetworkManager.GetSessionCount():N0} connections, {NetworkManager.GetUniqueSessionEndpointCount():N0} unique connections, {PlayerManager.GetOnlineCount():N0} players online{'\n'}");
+            sb.Append($"Total Accounts Created: {DatabaseManager.Authentication.GetAccountCount():N0}, Total Characters Created: {(PlayerManager.GetOfflineCount() + PlayerManager.GetOnlineCount()):N0}{'\n'}");
 
             // 330 active objects, 1931 total objects(16777216 buckets.)
 
@@ -108,7 +109,14 @@ namespace ACE.Server.Command.Handlers
             sb.Append($"Total Server Objects: {ServerObjectManager.ServerObjects.Count:N0}{'\n'}");
 
             sb.Append($"World DB Cache Counts - Weenies: {DatabaseManager.World.GetWeenieCacheCount():N0}, LandblockInstances: {DatabaseManager.World.GetLandblockInstancesCacheCount():N0}, PointsOfInterest: {DatabaseManager.World.GetPointsOfInterestCacheCount():N0}, Cookbooks: {DatabaseManager.World.GetCookbookCacheCount():N0}, Spells: {DatabaseManager.World.GetSpellCacheCount():N0}, Encounters: {DatabaseManager.World.GetEncounterCacheCount():N0}, Events: {DatabaseManager.World.GetEventsCacheCount():N0}{'\n'}");
-            sb.Append($"Shard DB Counts - Biotas: {DatabaseManager.Shard.GetBiotaCount():N0}{'\n'}");
+            sb.Append($"Shard DB Counts - Biotas: {DatabaseManager.Shard.BaseDatabase.GetBiotaCount():N0}{'\n'}");
+            if (DatabaseManager.Shard.BaseDatabase is ShardDatabaseWithCaching shardDatabaseWithCaching)
+            {
+                var biotaIds = shardDatabaseWithCaching.BiotaCache.Keys.ToList();
+                var playerBiotaIds = biotaIds.Count(id => ObjectGuid.IsPlayer(id));
+                var nonPlayerBiotaIds = biotaIds.Count - playerBiotaIds;
+                sb.Append($"Shard DB Cache Counts - Player Biotas: {playerBiotaIds} ~ {shardDatabaseWithCaching.PlayerBiotaRetentionTime.TotalMinutes:N0} m, Non Players {nonPlayerBiotaIds} ~ {shardDatabaseWithCaching.NonPlayerBiotaRetentionTime.TotalMinutes:N0} m{'\n'}");
+            }
 
             sb.Append(GuidManager.GetDynamicGuidDebugInfo() + '\n');
 

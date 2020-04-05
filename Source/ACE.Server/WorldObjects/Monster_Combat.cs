@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
+using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -182,6 +183,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             PhysicsObj.update_object();
+            UpdatePosition_SyncLocation();
 
             return !PhysicsObj.IsAnimating;
         }
@@ -196,6 +198,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             PhysicsObj.update_object();
+            UpdatePosition_SyncLocation();
 
             return !PhysicsObj.IsAnimating;
         }
@@ -239,7 +242,7 @@ namespace ACE.Server.WorldObjects
             MaxRange = 0.0f;
         }
 
-        public DamageType GetDamageType(BiotaPropertiesBodyPart attackPart, CombatType? combatType = null)
+        public DamageType GetDamageType(PropertiesBodyPart attackPart, CombatType? combatType = null)
         {
             var weapon = GetEquippedWeapon();
 
@@ -247,7 +250,7 @@ namespace ACE.Server.WorldObjects
                 return GetDamageType(false, combatType);
             else
             {
-                var damageType = (DamageType)attackPart.DType;
+                var damageType = attackPart.DType;
 
                 if (damageType.IsMultiDamage())
                     damageType = damageType.SelectDamageType();
@@ -268,7 +271,7 @@ namespace ACE.Server.WorldObjects
             // splatter effects
             var hitSound = new GameMessageSound(Guid, Sound.HitFlesh1, 0.5f);
             //var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + playerSource.GetSplatterHeight() + playerSource.GetSplatterDir(this));
-            var splatter = new GameMessageScript(Guid, damageType == DamageType.Nether ? ACE.Entity.Enum.PlayScript.HealthDownVoid : ACE.Entity.Enum.PlayScript.DirtyFightingDamageOverTime);
+            var splatter = new GameMessageScript(Guid, damageType == DamageType.Nether ? PlayScript.HealthDownVoid : PlayScript.DirtyFightingDamageOverTime);
             EnqueueBroadcast(hitSound, splatter);
 
             if (Health.Current <= 0) return;
@@ -306,8 +309,6 @@ namespace ACE.Server.WorldObjects
 
                 source.SendMessage(msg, type);
             }
-
-            source.Session.Network.EnqueueSend(new GameEventUpdateHealth(source.Session, Guid.Full, (float)Health.Current / Health.MaxValue));
         }
 
         /// <summary>
@@ -347,6 +348,26 @@ namespace ACE.Server.WorldObjects
             }
             var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + GetSplatterDir(target));
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, splatter));
+        }
+
+        public CombatStyle AiAllowedCombatStyle
+        {
+            get => (CombatStyle)(GetProperty(PropertyInt.AiAllowedCombatStyle) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.AiAllowedCombatStyle); else SetProperty(PropertyInt.AiAllowedCombatStyle, (int)value); }
+        }
+
+        private static readonly Dictionary<uint, BodyPartTable> BPTableCache = new Dictionary<uint, BodyPartTable>();
+
+        public static BodyPartTable GetBodyParts(uint wcid)
+        {
+            if (!BPTableCache.TryGetValue(wcid, out var bpTable))
+            {
+                var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+
+                bpTable = new BodyPartTable(weenie);
+                BPTableCache[wcid] = bpTable;
+            }
+            return bpTable;
         }
     }
 }

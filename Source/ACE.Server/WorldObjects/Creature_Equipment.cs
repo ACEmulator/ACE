@@ -4,11 +4,11 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
@@ -30,7 +30,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The only time this should be used is to populate EquippedObjects from the ctor.
         /// </summary>
-        protected void AddBiotasToEquippedObjects(IEnumerable<Biota> wieldedItems)
+        protected void AddBiotasToEquippedObjects(IEnumerable<ACE.Database.Models.Shard.Biota> wieldedItems)
         {
             foreach (var biota in wieldedItems)
             {
@@ -209,8 +209,8 @@ namespace ACE.Server.WorldObjects
         private void TryActivateItemSpells(WorldObject item)
         {
             // check activation requirements?
-            foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
-                CreateItemSpell(item, (uint)spell.Spell);
+            foreach (var spell in item.Biota.GetKnownSpellsIds(BiotaDatabaseLock))
+                CreateItemSpell(item, (uint)spell);
         }
 
         /// <summary>
@@ -278,7 +278,7 @@ namespace ACE.Server.WorldObjects
         /// It does not add it to inventory as you could be unwielding to the ground or a chest.<para />
         /// It will also decrease the EncumbranceVal and Value.
         /// </summary>
-        private bool TryDequipObject(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation)
+        public bool TryDequipObject(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation)
         {
             if (!EquippedObjects.Remove(objectGuid, out worldObject))
             {
@@ -317,8 +317,8 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             // remove item spells
-            foreach (var spell in worldObject.Biota.BiotaPropertiesSpellBook)
-                RemoveItemSpell(worldObject, (uint)spell.Spell, true);
+            foreach (var spell in worldObject.Biota.GetKnownSpellsIds(BiotaDatabaseLock))
+                RemoveItemSpell(worldObject, (uint)spell, true);
 
             return true;
         }
@@ -337,6 +337,18 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcast(false, new GameMessageSound(Guid, Sound.UnwieldObject));
 
             EnqueueBroadcast(new GameMessageObjDescEvent(this));
+
+            // If item has any spells, remove them from the registry on unequip
+            if (worldObject.Biota.PropertiesSpellBook != null)
+            {
+                foreach (var spell in worldObject.Biota.PropertiesSpellBook)
+                {
+                    if (worldObject.HasProcSpell((uint)spell.Key))
+                        continue;
+
+                    RemoveItemSpell(worldObject, (uint)spell.Key, true);
+                }
+            }
 
             if (!droppingToLandscape)
             {
@@ -499,7 +511,10 @@ namespace ACE.Server.WorldObjects
 
         public void GenerateWieldList()
         {
-            var wielded = Biota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Wield) != 0).ToList();
+            if (Biota.PropertiesCreateList == null)
+                return;
+
+            var wielded = Biota.PropertiesCreateList.Where(i => (i.DestinationType & DestinationType.Wield) != 0).ToList();
 
             var items = CreateListSelect(wielded);
 
@@ -519,7 +534,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public static List<BiotaPropertiesCreateList> CreateListSelect(List<BiotaPropertiesCreateList> createList)
+        public static List<PropertiesCreateList> CreateListSelect(List<PropertiesCreateList> createList)
         {
             var trophy_drop_rate = PropertyManager.GetDouble("trophy_drop_rate").Item;
             if (trophy_drop_rate != 1.0)
@@ -529,7 +544,7 @@ namespace ACE.Server.WorldObjects
             var totalProbability = 0.0f;
             var rngSelected = false;
 
-            var results = new List<BiotaPropertiesCreateList>();
+            var results = new List<PropertiesCreateList>();
 
             foreach (var item in createList)
             {
@@ -564,7 +579,7 @@ namespace ACE.Server.WorldObjects
             return results;
         }
 
-        public static List<BiotaPropertiesCreateList> CreateListSelect(List<BiotaPropertiesCreateList> _createList, float dropRateMod)
+        public static List<PropertiesCreateList> CreateListSelect(List<PropertiesCreateList> _createList, float dropRateMod)
         {
             var createList = new CreateList(_createList);
             CreateListSetModifier modifier = null;
@@ -573,7 +588,7 @@ namespace ACE.Server.WorldObjects
             var totalProbability = 0.0f;
             var rngSelected = false;
 
-            var results = new List<BiotaPropertiesCreateList>();
+            var results = new List<PropertiesCreateList>();
 
             for (var i = 0; i < _createList.Count; i++)
             {

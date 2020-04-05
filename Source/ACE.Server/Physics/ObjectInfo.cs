@@ -31,7 +31,7 @@ namespace ACE.Server.Physics.Animation
         public float StepDownHeight;
         public bool Ethereal;
         public bool StepDown;
-        public int TargetID;
+        public uint TargetID;
 
         public float GetWalkableZ()
         {
@@ -46,7 +46,7 @@ namespace ACE.Server.Physics.Animation
             StepUpHeight = Object.GetStepUpHeight();
             StepDownHeight = Object.GetStepDownHeight();
             Ethereal = Object.State.HasFlag(PhysicsState.Ethereal);
-            StepDown = Object.State.HasFlag(PhysicsState.Missile);
+            StepDown = !Object.State.HasFlag(PhysicsState.Missile);
             var wobj = Object.WeenieObj;
             if (wobj != null)
             {
@@ -59,6 +59,8 @@ namespace ACE.Server.Physics.Animation
                 if (wobj.IsPKLite())
                     State |= ObjectInfoState.IsPKLite;
             }
+            if (obj.ProjectileTarget != null)
+                TargetID = obj.ProjectileTarget.ID;
         }
 
         public bool IsValidWalkable(Vector3 normal)

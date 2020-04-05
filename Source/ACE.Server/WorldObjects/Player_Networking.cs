@@ -24,7 +24,8 @@ namespace ACE.Server.WorldObjects
             // Save the the LoginTimestamp
             var lastLoginTimestamp = Time.GetUnixTime();
 
-            SetProperty(PropertyInt.LoginTimestamp, (int)lastLoginTimestamp);
+            LoginTimestamp = lastLoginTimestamp;
+            LastTeleportStartTimestamp = lastLoginTimestamp;
 
             Character.LastLoginTimestamp = lastLoginTimestamp;
             Character.TotalLogins++;
@@ -40,11 +41,22 @@ namespace ACE.Server.WorldObjects
             else
                 AllegianceRank = null;
 
+            if (!Account15Days)
+            {
+                var accountTimeSpan = DateTime.UtcNow - Account.CreateTime;
+                if (accountTimeSpan.TotalDays >= 15)
+                    Account15Days = true;
+            }
+
             // SendSelf will trigger the entrance into portal space
             SendSelf();
 
             // Update or override certain properties sent to client.
-            SendPropertyUpdatesAndOverrides();
+
+            // bugged: do not send this here, or else a freshly loaded acclient will overrwrite the values
+            // wait until first enter world is completed
+
+            //SendPropertyUpdatesAndOverrides();
 
             // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
             UpdateChatChannels();
@@ -65,6 +77,9 @@ namespace ACE.Server.WorldObjects
                 SquelchManager.SendSquelchDB();
 
             AuditItemSpells();
+
+            HandleMissingXp();
+            HandleSkillCreditRefund();
 
             if (PlayerKillerStatus == PlayerKillerStatus.PKLite && !PropertyManager.GetBool("pkl_server").Item)
             {
@@ -106,7 +121,7 @@ namespace ACE.Server.WorldObjects
             SendContractTrackerTable();
         }
 
-        private void SendPropertyUpdatesAndOverrides()
+        public void SendPropertyUpdatesAndOverrides()
         {
             if (!PropertyManager.GetBool("require_spell_comps").Item)
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyBool(this, PropertyBool.SpellComponentsRequired, false));
@@ -178,14 +193,14 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Records where the client thinks we are, for use by physics engine later
         /// </summary>
-        public void SetRequestedLocation(Position pos)
+        public void SetRequestedLocation(Position pos, bool broadcast = true)
         {
             RequestedLocation = pos;
+            RequestedLocationBroadcast = broadcast;
         }
 
-        //public DateTime LastSoulEmote;
-
-        //private static TimeSpan SoulEmoteTime = TimeSpan.FromSeconds(2);
+        public MotionCommand LastSoulEmote;
+        public DateTime LastSoulEmoteEndTime;
 
         public void BroadcastMovement(MoveToState moveToState)
         {
@@ -213,19 +228,28 @@ namespace ACE.Server.WorldObjects
                     CurrentMotionState.SetForwardCommand(state.Commands[0].MotionCommand);
             }
 
-            /*if (state.HasSoulEmote())
+            if (state.HasSoulEmote(false))
             {
                 // prevent soul emote spam / bug where client sends multiples
-                var elapsed = DateTime.UtcNow - LastSoulEmote;
-                if (elapsed < SoulEmoteTime) return;
+                var soulEmote = state.Commands[0].MotionCommand;
+                if (soulEmote == LastSoulEmote && DateTime.UtcNow < LastSoulEmoteEndTime)
+                {
+                    state.Commands.Clear();
+                    state.CommandListLength = 0;
+                }
+                else
+                {
+                    var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, soulEmote, state.Commands[0].Speed);
 
-                LastSoulEmote = DateTime.UtcNow;
-            }*/
+                    LastSoulEmote = soulEmote;
+                    LastSoulEmoteEndTime = DateTime.UtcNow + TimeSpan.FromSeconds(animLength);
+                }
+            }
 
             var movementData = new MovementData(this, moveToState);
 
             var movementEvent = new GameMessageUpdateMotion(this, movementData);
-            EnqueueBroadcast(false, movementEvent);    // shouldn't need to go to originating player?
+            EnqueueBroadcast(true, movementEvent);    // shouldn't need to go to originating player?
 
             // TODO: use real motion / animation system from physics
             //CurrentMotionCommand = movementData.Invalid.State.ForwardCommand;

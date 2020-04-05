@@ -89,6 +89,8 @@ namespace ACE.Server.Entity
             Log.Add(entry);
 
             AddInternal(attacker, amount);
+
+            Creature.OnHealthUpdate();
         }
 
         /// <summary>
@@ -107,7 +109,10 @@ namespace ACE.Server.Entity
         /// </summary>
         private void AddInternal(ObjectGuid attacker, uint amount)
         {
-            TotalDamage[attacker].TotalDamage += amount;
+            // todo: investigate, this shouldn't happen?
+            // key 0 from BuildTotalDamage()
+            if (TotalDamage.ContainsKey(attacker))      
+                TotalDamage[attacker].TotalDamage += amount;
         }
 
         /// <summary>
@@ -122,6 +127,8 @@ namespace ACE.Server.Entity
 
             // calculate previous missingHealth
             OnHealInternal(healAmount, Creature.Health.Current, Creature.Health.MaxValue);
+
+            Creature.OnHealthUpdate();
         }
 
         /// <summary>

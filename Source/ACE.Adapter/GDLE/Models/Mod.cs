@@ -1,55 +1,27 @@
 using System.Collections.Generic;
 
-using Newtonsoft.Json;
-
 namespace ACE.Adapter.GDLE.Models
 {
     public class Mod
     {
-        [JsonProperty("ModificationScriptId")]
-        public int ModificationScriptId { get; set; }
+        public List<IntRequirement> IntRequirements { get; set; } = new List<IntRequirement>();
+        public List<DIDRequirement> DIDRequirements { get; set; } = new List<DIDRequirement>();
+        public List<IIDRequirement> IIDRequirements { get; set; } = new List<IIDRequirement>();
+        public List<FloatRequirement> FloatRequirements { get; set; } = new List<FloatRequirement>();
+        public List<StringRequirement> StringRequirements { get; set; } = new List<StringRequirement>();
+        public List<BoolRequirement> BoolRequirements { get; set; } = new List<BoolRequirement>();
 
-        [JsonProperty("ModifyHealth")]
         public int ModifyHealth { get; set; }
-
-        [JsonProperty("ModifyMana")]
+        public int ModifyStamina { get; set; }
         public int ModifyMana { get; set; }
 
-        [JsonProperty("ModifyStamina")]
-        public int ModifyStamina { get; set; }
-
-        [JsonProperty("RequiresHealth")]
         public int RequiresHealth { get; set; }
-
-        [JsonProperty("RequiresMana")]
+        public int RequiresStamina { get; set; }
         public int RequiresMana { get; set; }
 
-        [JsonProperty("RequiresStamina")]
-        public int RequiresStamina { get; set; }
-
-        [JsonProperty("Unknown10")]
-        public int Unknown10 { get; set; }
-
-        [JsonProperty("Unknown7")]
         public bool Unknown7 { get; set; }
-
-        [JsonProperty("Unknown9")]
+        public int ModificationScriptId { get; set; }
         public int Unknown9 { get; set; }
-
-
-        [JsonProperty("DIDRequirements", NullValueHandling = NullValueHandling.Ignore)]
-        public List<DoubleRequirement> DidRequirements { get; set; }
-
-        [JsonProperty("FloatRequirements", NullValueHandling = NullValueHandling.Ignore)]
-        public List<DoubleRequirement> FloatRequirements { get; set; }
-
-        [JsonProperty("StringRequirements", NullValueHandling = NullValueHandling.Ignore)]
-        public List<StringRequirement> StringRequirements { get; set; }
-
-        [JsonProperty("BoolRequirements", NullValueHandling = NullValueHandling.Ignore)]
-        public List<DoubleRequirement> BoolRequirements { get; set; }
-
-        [JsonProperty("IntRequirements", NullValueHandling = NullValueHandling.Ignore)]
-        public List<DoubleRequirement> IntRequirements { get; set; }
+        public int Unknown10 { get; set; }
     }
 }

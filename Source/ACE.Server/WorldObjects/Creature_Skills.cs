@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
 
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
@@ -14,20 +15,34 @@ namespace ACE.Server.WorldObjects
         /// This will get a CreatureSkill wrapper around the BiotaPropertiesSkill record for this player.
         /// If the skill doesn't exist for this Biota, one will be created with a status of Untrained.
         /// </summary>
-        public CreatureSkill GetCreatureSkill(Skill skill)
+        /// <param name="add">If the skill doesn't exist for this biota, adds it</param>
+        public CreatureSkill GetCreatureSkill(Skill skill, bool add = true)
         {
             if (Skills.TryGetValue(skill, out var value))
                 return value;
 
-            var biotaPropertiesSkill = Biota.GetOrAddSkill((ushort)skill, BiotaDatabaseLock, out var skillAdded);
-
-            if (skillAdded)
+            PropertiesSkill propertiesSkill;
+            if (add)
             {
-                biotaPropertiesSkill.SAC = (uint)SkillAdvancementClass.Untrained;
-                ChangesDetected = true;
-            }
+                propertiesSkill = Biota.GetOrAddSkill(skill, BiotaDatabaseLock, out var skillAdded);
 
-            Skills[skill] = new CreatureSkill(this, biotaPropertiesSkill);
+                if (skillAdded)
+                {
+                    propertiesSkill.SAC = SkillAdvancementClass.Untrained;
+                    ChangesDetected = true;
+                }
+
+                Skills[skill] = new CreatureSkill(this, skill, propertiesSkill);
+            }
+            else
+            {
+                propertiesSkill = Biota.GetSkill(skill, BiotaDatabaseLock);
+
+                if (propertiesSkill != null)
+                    Skills[skill] = new CreatureSkill(this, skill, propertiesSkill);
+                else
+                    return null;
+            }
 
             return Skills[skill];
         }

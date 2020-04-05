@@ -1,45 +1,34 @@
 using System;
-using System.Linq;
 
-using ACE.Database.Models.Shard;
+using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 
 namespace ACE.Server.WorldObjects.Entity
 {
     public class CreatureAttribute
     {
         private readonly Creature creature;
-        //public readonly Ability Ability;
+
         public readonly PropertyAttribute Attribute;
 
-        // This is the underlying database record
-        private readonly BiotaPropertiesAttribute biotaPropertiesAttribute;
+        // the underlying database record
+        private readonly PropertiesAttribute propertiesAttribute;
 
         /// <summary>
-        /// If the creatures biota does not contain this attribute, a new record will be created.
+        /// If the creature's biota does not contain this attribute, a new record will be created.
         /// </summary>
         public CreatureAttribute(Creature creature, PropertyAttribute attribute)
         {
             this.creature = creature;
             Attribute = attribute;
 
-            biotaPropertiesAttribute = creature.Biota.BiotaPropertiesAttribute.FirstOrDefault(x => x.Type == (uint)Attribute);
-
-            if (biotaPropertiesAttribute == null)
+            if (!creature.Biota.PropertiesAttribute.TryGetValue(attribute, out propertiesAttribute))
             {
-                biotaPropertiesAttribute = new BiotaPropertiesAttribute { ObjectId = creature.Biota.Id, Type = (ushort)Attribute };
-                creature.Biota.BiotaPropertiesAttribute.Add(biotaPropertiesAttribute);
+                propertiesAttribute = new PropertiesAttribute();
+                creature.Biota.PropertiesAttribute[attribute] = propertiesAttribute;
             }
-        }
-
-        /// <summary>
-        /// Total Experience Spent on an attribute
-        /// </summary>
-        public uint ExperienceSpent
-        {
-            get => biotaPropertiesAttribute.CPSpent;
-            set => biotaPropertiesAttribute.CPSpent = value;
         }
 
         /// <summary>
@@ -47,17 +36,54 @@ namespace ACE.Server.WorldObjects.Entity
         /// </summary>
         public uint StartingValue
         {
-            get => biotaPropertiesAttribute.InitLevel;
-            set => biotaPropertiesAttribute.InitLevel = value;
+            get => propertiesAttribute.InitLevel;
+            set => propertiesAttribute.InitLevel = value;
         }
 
         /// <summary>
-        /// Returns the Current Rank for a Creature's attribute
+        /// Total Experience Spent on an attribute
+        /// </summary>
+        public uint ExperienceSpent
+        {
+            get => propertiesAttribute.CPSpent;
+            set => propertiesAttribute.CPSpent = value;
+        }
+
+        /// <summary>
+        /// Returns the amount of attribute experience remaining
+        /// until max rank is reached
+        /// </summary>
+        public uint ExperienceLeft
+        {
+            get
+            {
+                var attributeXPTable = DatManager.PortalDat.XpTable.AttributeXpList;
+
+                return attributeXPTable[attributeXPTable.Count - 1] - ExperienceSpent;
+            }
+        }
+
+        /// <summary>
+        /// The number of levels an attribute has been raised,
+        /// derived from ExperienceSpent
         /// </summary>
         public uint Ranks
         {
-            get => biotaPropertiesAttribute.LevelFromCP;
-            set => biotaPropertiesAttribute.LevelFromCP = value;
+            get => propertiesAttribute.LevelFromCP;
+            set => propertiesAttribute.LevelFromCP = value;
+        }
+
+        /// <summary>
+        /// Returns TRUE if this attribute has been raised the maximum # of times
+        /// </summary>
+        public bool IsMaxRank
+        {
+            get
+            {
+                var attributeXPTable = DatManager.PortalDat.XpTable.AttributeXpList;
+
+                return Ranks >= (attributeXPTable.Count - 1);
+            }
         }
 
         /// <summary>

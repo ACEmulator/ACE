@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -93,9 +91,9 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                var variance = CycleTime * CycleTimeVariance;
-                var min = CycleTime - variance;
-                var max = CycleTime + variance;
+                var max = CycleTime;
+                var min = max * (1.0f - CycleTimeVariance ?? 0.0f);
+
                 return ThreadSafeRandom.Next((float)min, (float)max);
             }
         }
@@ -174,8 +172,11 @@ namespace ACE.Server.WorldObjects
             switch (DamageType)
             {
                 default:
+
                     if (creature.Invincible) return;
-                    amount *= (float)creature.GetLifeResistance(DamageType);
+
+                    if (!IgnoreMagicResist)
+                        amount *= (float)creature.GetLifeResistance(DamageType);
 
                     if (player != null)
                         iAmount = player.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
@@ -184,14 +185,17 @@ namespace ACE.Server.WorldObjects
 
                     if (creature.IsDead && Creatures.Contains(creature.Guid))
                         Creatures.Remove(creature.Guid);
+
                     break;
 
                 case DamageType.Mana:
                     iAmount = creature.UpdateVitalDelta(creature.Mana, -iAmount);
                     break;
+
                 case DamageType.Stamina:
                     iAmount = creature.UpdateVitalDelta(creature.Stamina, -iAmount);
                     break;
+
                 case DamageType.Health:
                     iAmount = creature.UpdateVitalDelta(creature.Health, -iAmount);
 

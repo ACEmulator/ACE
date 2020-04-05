@@ -74,7 +74,7 @@ namespace ACE.Server.Command.Handlers
             }
             else
             {
-                var character = DatabaseManager.Shard.GetCharacterByName(foundPlayer.Name);
+                var character = DatabaseManager.Shard.BaseDatabase.GetCharacterStubByName(foundPlayer.Name);
 
                 character.DeleteTime = (ulong)Time.GetUnixTime();                
                 character.IsDeleted = true;

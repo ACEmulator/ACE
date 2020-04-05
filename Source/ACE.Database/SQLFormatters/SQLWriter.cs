@@ -109,6 +109,8 @@ namespace ACE.Database.SQLFormatters
             switch (property)
             {
                 case PropertyInt.ActivationCreateClass:
+                case PropertyInt.AttackersClass:
+                case PropertyInt.PetClass:
                     if (WeenieNames != null)
                     {
                         WeenieNames.TryGetValue((uint) value, out var propertyValueDescription);
@@ -266,7 +268,7 @@ namespace ACE.Database.SQLFormatters
             treasure += $"{WeenieNames[item.WeenieClassId]} ({item.WeenieClassId})";
             if (item.PaletteId > 0)
                 treasure += $" | Palette: {Enum.GetName(typeof(PaletteTemplate), item.PaletteId)} ({item.PaletteId})";
-            if (item.Shade > 0)
+            if (item.Shade >= 0)
                 treasure += $" | Shade: {item.Shade}";
             treasure += $" | Probability: {item.Probability * 100}%";
 

@@ -81,7 +81,7 @@ namespace ACE.Server.Entity
                 Formula = new SpellFormula(this, _formula);
 
             if (loadDB && (_spell == null || _spellBase == null))
-                log.Error($"Spell.Init(spellID = {spellID}, loadDB = {loadDB}) failed! {(_spell == null ? "_spell was null" : "")} {(_spellBase == null ? "_spellBase was null" : "")}");
+                log.Debug($"Spell.Init(spellID = {spellID}, loadDB = {loadDB}) failed! {(_spell == null ? "_spell was null" : "")} {(_spellBase == null ? "_spellBase was null" : "")}");
         }
 
         /// <summary>
@@ -128,6 +128,8 @@ namespace ACE.Server.Entity
         public bool IsProjectile => NumProjectiles > 0;
 
         public bool IsSelfTargeted => Flags.HasFlag(SpellFlags.SelfTargeted);
+
+        public bool IsTracking => !Flags.HasFlag(SpellFlags.NonTrackingProjectile);
 
         public List<uint> TryBurnComponents(Player player)
         {

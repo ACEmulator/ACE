@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using ACE.Entity;
+
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
@@ -41,6 +41,8 @@ namespace ACE.Server.WorldObjects
                 return PowerAccuracy.High;
         }
 
+        public AttackQueue AttackQueue;
+
         /// <summary>
         /// Called when a player first initiates a melee attack
         /// </summary>
@@ -49,11 +51,30 @@ namespace ACE.Server.WorldObjects
             //log.Info($"-");
 
             if (CombatMode != CombatMode.Melee)
+            {
+                log.Error($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {attackHeight}, {powerLevel}) - CombatMode mismatch {CombatMode}, LastCombatMode {LastCombatMode}");
+
+                if (LastCombatMode == CombatMode.Melee)
+                    CombatMode = CombatMode.Melee;
+                else
+                    return;
+            }
+
+            if (IsBusy || Teleporting || suicideInProgress)
+            {
+                SendWeenieError(WeenieError.YoureTooBusy);
                 return;
+            }
+
+            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            {
+                SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
+                return;
+            }
 
             if (PKLogout)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                SendWeenieError(WeenieError.YouHaveBeenInPKBattleTooRecently);
                 return;
             }
 
@@ -61,7 +82,10 @@ namespace ACE.Server.WorldObjects
             powerLevel = Math.Clamp(powerLevel, 0.0f, 1.0f);
 
             AttackHeight = (AttackHeight)attackHeight;
-            PowerLevel = powerLevel;
+            AttackQueue.Add(powerLevel);
+
+            if (MeleeTarget == null)
+                PowerLevel = AttackQueue.Fetch();
 
             // already in melee loop?
             if (Attacking || MeleeTarget != null && MeleeTarget.IsAlive)
@@ -72,7 +96,7 @@ namespace ACE.Server.WorldObjects
 
             if (target == null)
             {
-                log.Warn($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {AttackHeight}, {powerLevel}) - couldn't find target guid");
+                //log.Debug($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {AttackHeight}, {powerLevel}) - couldn't find target guid");
                 return;
             }
 
@@ -83,14 +107,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // perform verifications
-            if (IsBusy || Teleporting)
-            {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
-                return;
-            }
-
-            if (target.Teleporting)
+            if (!CanDamage(creatureTarget) || !creatureTarget.IsAlive)
                 return;     // werror?
 
             //log.Info($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {attackHeight}, {powerLevel})");
@@ -98,19 +115,45 @@ namespace ACE.Server.WorldObjects
             MeleeTarget = creatureTarget;
             AttackTarget = MeleeTarget;
 
+            // reset PrevMotionCommand / DualWieldAlternate each time button is clicked
+            PrevMotionCommand = MotionCommand.Invalid;
+            DualWieldAlternate = false;
+
             var attackSequence = ++AttackSequence;
 
-            if (IsStickyDistance(target) && IsDirectVisible(target))
+            if (NextRefillTime > DateTime.UtcNow)
+            {
+                var delayTime = (float)(NextRefillTime - DateTime.UtcNow).TotalSeconds;
+
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(delayTime);
+                actionChain.AddAction(this, () =>
+                {
+                    if (!creatureTarget.IsAlive) return;
+
+                    HandleActionTargetedMeleeAttack_Inner(target, attackSequence);
+                });
+                actionChain.EnqueueChain();
+            }
+            else
+                HandleActionTargetedMeleeAttack_Inner(target, attackSequence);
+        }
+
+        public static readonly float MeleeDistance  = 0.6f;
+        public static readonly float StickyDistance = 4.0f;
+        public static readonly float RepeatDistance = 16.0f;
+
+        public void HandleActionTargetedMeleeAttack_Inner(WorldObject target, int attackSequence)
+        {
+            var dist = GetCylinderDistance(target);
+
+            if (dist <= MeleeDistance || dist <= StickyDistance && IsMeleeVisible(target))
             {
                 // sticky melee
                 var rotateTime = Rotate(target);
 
-                var delayTime = rotateTime;
-                if (NextRefillTime > DateTime.UtcNow.AddSeconds(delayTime))
-                    delayTime = (float)(NextRefillTime - DateTime.UtcNow).TotalSeconds;
-
                 var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(delayTime);
+                actionChain.AddDelaySeconds(rotateTime);
                 actionChain.AddAction(this, () => Attack(target, attackSequence));
                 actionChain.EnqueueChain();
             }
@@ -130,13 +173,21 @@ namespace ACE.Server.WorldObjects
 
                     CreateMoveToChain(target, (success) =>
                     {
-                        log.Info($"{Name}.CreateMoveToChain({target.Name}) complete - {success}");
-
                         if (success)
                             Attack(target, attackSequence);
+                        else
+                            Session.Network.EnqueueSend(new GameEventAttackDone(Session));
                     });
                 }
             }
+        }
+
+        public void OnAttackDone()
+        {
+            MeleeTarget = null;
+            MissileTarget = null;
+
+            AttackQueue.Clear();
         }
 
         /// <summary>
@@ -146,8 +197,7 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.HandleActionCancelAttack()");
 
-            MeleeTarget = null;
-            MissileTarget = null;
+            OnAttackDone();
 
             PhysicsObj.cancel_moveto();
         }
@@ -159,16 +209,28 @@ namespace ACE.Server.WorldObjects
         {
             //log.Info($"{Name}.Attack({target.Name}, {attackSequence})");
 
-            if (CombatMode != CombatMode.Melee || MeleeTarget == null || !IsAlive || AttackSequence != attackSequence)
+            if (AttackSequence != attackSequence)
                 return;
+
+            if (CombatMode != CombatMode.Melee || MeleeTarget == null || IsBusy || !IsAlive || suicideInProgress)
+            {
+                OnAttackDone();
+                return;
+            }
 
             var creature = target as Creature;
             if (creature == null || !creature.IsAlive)
+            {
+                OnAttackDone();
                 return;
+            }
 
             var animLength = DoSwingMotion(target, out var attackFrames);
             if (animLength == 0)
+            {
+                OnAttackDone();
                 return;
+            }
 
             // point of no return beyond this point -- cannot be cancelled
             Attacking = true;
@@ -210,6 +272,7 @@ namespace ACE.Server.WorldObjects
                     if (IsDead)
                     {
                         Attacking = false;
+                        OnAttackDone();
                         return;
                     }
 
@@ -244,16 +307,20 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventAttackDone(Session));
                 Attacking = false;
 
-                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
+                // powerbar refill timing
+                var refillMod = IsDualWieldAttack ? 0.8f : 1.0f;    // dual wield powerbar refills 20% faster
+
+                PowerLevel = AttackQueue.Fetch();
+
+                var nextRefillTime = PowerLevel * refillMod;
+                NextRefillTime = DateTime.UtcNow.AddSeconds(nextRefillTime);
+
+                var dist = GetCylinderDistance(target);
+
+                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && (dist <= MeleeDistance || dist <= StickyDistance && IsMeleeVisible(target)))
                 {
                     Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
                     Session.Network.EnqueueSend(new GameEventAttackDone(Session));
-
-                    // powerbar refill timing
-                    var refillMod = IsDualWieldAttack ? 0.8f : 1.0f;    // dual wield powerbar refills 20% faster
-
-                    var nextRefillTime = PowerLevel * refillMod;
-                    NextRefillTime = DateTime.UtcNow.AddSeconds(nextRefillTime);
 
                     var nextAttack = new ActionChain();
                     nextAttack.AddDelaySeconds(nextRefillTime);
@@ -261,7 +328,9 @@ namespace ACE.Server.WorldObjects
                     nextAttack.EnqueueChain();
                 }
                 else
-                    MeleeTarget = null;
+                {
+                    OnAttackDone();
+                }
             });
 
             actionChain.EnqueueChain();
@@ -296,18 +365,22 @@ namespace ACE.Server.WorldObjects
             CurrentMotionState = motion;
 
             EnqueueBroadcastMotion(motion);
+
+            if (FastTick)
+                PhysicsObj.stick_to_object(target.Guid.Full);
+
             return animLength;
         }
 
-        private static readonly float KickThreshold = 0.75f;
+        public static readonly float KickThreshold = 0.75f;
 
-        public AttackType AttackType { get; set; }
+        public MotionCommand PrevMotionCommand;
 
         /// <summary>
         /// Returns the melee swing animation - based on weapon,
         /// current stance, power bar, and attack height
         /// </summary>
-        public override MotionCommand GetSwingAnimation()
+        public MotionCommand GetSwingAnimation()
         {
             if (IsDualWieldAttack)
                 DualWieldAlternate = !DualWieldAlternate;
@@ -325,19 +398,12 @@ namespace ACE.Server.WorldObjects
                 AttackType = PowerLevel > KickThreshold ? AttackType.Kick : AttackType.Punch;
             }
 
-            var motion = CombatTable.GetMotion(CurrentMotionState.Stance, AttackHeight.Value, AttackType);
+            var motion = CombatTable.GetMotion(CurrentMotionState.Stance, AttackHeight.Value, AttackType, PrevMotionCommand);
+            PrevMotionCommand = motion;
 
             //Console.WriteLine($"{motion}");
 
             return motion;
-        }
-
-        public bool IsStickyDistance(WorldObject target)
-        {
-            var cylDist = (float)Physics.Common.Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
-                target.PhysicsObj.GetRadius(), target.PhysicsObj.GetHeight(), target.PhysicsObj.Position);
-
-            return cylDist <= 4.0f;
         }
     }
 }

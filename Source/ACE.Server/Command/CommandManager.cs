@@ -16,6 +16,8 @@ namespace ACE.Server.Command
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public static readonly bool NonInteractiveConsole = Convert.ToBoolean(Environment.GetEnvironmentVariable("ACE_NONINTERACTIVE_CONSOLE"));
+
         private static Dictionary<string, CommandHandlerInfo> commandHandlers;
 
         public static IEnumerable<CommandHandlerInfo> GetCommands()
@@ -47,6 +49,8 @@ namespace ACE.Server.Command
                     }
                 }
             }
+
+            if (Program.IsRunningInContainer && NonInteractiveConsole) return;
 
             var thread = new Thread(new ThreadStart(CommandThread));
             thread.Name = "Command Manager";

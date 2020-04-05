@@ -1,10 +1,12 @@
 using System;
 using System.Diagnostics;
+using System.Numerics;
 
 using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Physics;
@@ -96,13 +98,8 @@ namespace ACE.Server.WorldObjects
             if (EnchantmentManager.HasEnchantments)
                 EnchantmentManager.HeartBeat(CachedHeartbeatInterval);
 
-            if (RemainingLifespan != null)
-            {
-                RemainingLifespan -= (int)CachedHeartbeatInterval;
-
-                if (RemainingLifespan <= 0)
-                    DeleteObject();
-            }
+            if (IsLifespanSpent)
+                DeleteObject();
 
             SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
             NextHeartbeatTime = currentUnixTime + CachedHeartbeatInterval;
@@ -197,95 +194,6 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public uint prevCell;
-        public bool InUpdate;
-
-        /// <summary>
-        /// Used by physics engine to actually update a player position
-        /// Automatically notifies clients of updated position
-        /// </summary>
-        /// <param name="newPosition">The new position being requested, before verification through physics engine</param>
-        /// <returns>TRUE if object moves to a different landblock</returns>
-        public bool UpdatePlayerPhysics(ACE.Entity.Position newPosition, bool forceUpdate = false)
-        {
-            //Console.WriteLine($"{Name}.UpdatePlayerPhysics({newPosition}, {forceUpdate}, {Teleporting})");
-
-            var player = this as Player;
-
-            // only handles player movement
-            if (player == null) return false;
-
-            // possible bug: while teleporting, client can still send AutoPos packets from old landblock
-            if (Teleporting && !forceUpdate) return false;
-
-            try
-            {
-                if (!forceUpdate) // This is needed beacuse this function might be called recursively
-                    stopwatch.Restart();
-
-                var success = true;
-
-                if (PhysicsObj != null)
-                {
-                    var distSq = Location.SquaredDistanceTo(newPosition);
-
-                    if (distSq > PhysicsGlobals.EpsilonSq)
-                    {
-                        var curCell = LScape.get_landcell(newPosition.Cell);
-                        if (curCell != null)
-                        {
-                            //if (PhysicsObj.CurCell == null || curCell.ID != PhysicsObj.CurCell.ID)
-                            //PhysicsObj.change_cell_server(curCell);
-
-                            PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell, Location.LandblockId.Raw);
-                            success = PhysicsObj.update_object_server();
-
-                            if (PhysicsObj.CurCell == null)
-                                PhysicsObj.CurCell = curCell;
-
-                            player.CheckMonsters();
-
-                            if (curCell.ID != prevCell)
-                            {
-                                //prevCell = curCell.ID;
-                                //Console.WriteLine("Player cell: " + curCell.ID.ToString("X8"));
-                                //var envCell = curCell as Physics.Common.EnvCell;
-                                //var seenOutside = envCell != null ? envCell.SeenOutside : true;
-                                //Console.WriteLine($"CurCell: {curCell.ID:X8}, SeenOutside: {seenOutside}");
-                            }
-                        }
-                    }
-                }
-
-                // double update path: landblock physics update -> updateplayerphysics() -> update_object_server() -> Teleport() -> updateplayerphysics() -> return to end of original branch
-                if (Teleporting && !forceUpdate) return true;
-
-                if (!success) return false;
-
-                var landblockUpdate = Location.Cell >> 16 != newPosition.Cell >> 16;
-                Location = newPosition;
-
-                SendUpdatePosition();
-
-                if (!InUpdate)
-                    LandblockManager.RelocateObjectForPhysics(this, true);
-
-                return landblockUpdate;
-            }
-            finally
-            {
-                if (!forceUpdate) // This is needed beacuse this function might be called recursively
-                {
-                    var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
-                    ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdatePlayerPhysics, elapsedSeconds);
-                    if (elapsedSeconds >= 1) // Yea, that ain't good....
-                        log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
-                    else if (elapsedSeconds >= 0.010)
-                        log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
-                }
-            }
-        }
-
         public double lastDist;
 
         public static double ProjectileTimeout = 30.0f;
@@ -296,10 +204,26 @@ namespace ACE.Server.WorldObjects
 
         public static double UpdateRate_Creature = 0.2f;
 
+        public bool IsLifespanSpent => Lifespan != null && GetRemainingLifespan() <= 0;
+
+        public int GetRemainingLifespan()
+        {
+            if (Lifespan == null) return int.MaxValue;
+
+            var creationTimestamp = CreationTimestamp ?? 0;
+            var lifespan = Lifespan ?? 0;
+            var expirationTimestamp = Time.GetDateTimeFromTimestamp(creationTimestamp).AddSeconds(lifespan);
+            var timeToExpiration = expirationTimestamp - DateTime.UtcNow;
+
+            return (int)timeToExpiration.TotalSeconds;
+        }
+
+        private int slowUpdateObjectPhysicsHits;
+
         /// <summary>
         /// Handles calling the physics engine for non-player objects
         /// </summary>
-        public bool UpdateObjectPhysics()
+        public virtual bool UpdateObjectPhysics()
         {
             // TODO: Almost all of the CPU time is spent between this note and the first Try block. Mag-nus 2019-10-21
             // TODO: In the future we should look at improving the way UpdateObjectPhysics() is called from Landblock
@@ -310,6 +234,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             bool isDying = false;
+            bool cachedVelocityFix = false;
 
             if (this is Creature creature)
             {
@@ -327,6 +252,9 @@ namespace ACE.Server.WorldObjects
 
                 if (!runUpdate)
                     return false;
+
+                if (creature.IsMonster && !creature.IsAwake)
+                    cachedVelocityFix = true;
             }
             else
             {
@@ -402,7 +330,7 @@ namespace ACE.Server.WorldObjects
                 //Console.WriteLine("Dist: " + dist);
                 //Console.WriteLine("Velocity: " + PhysicsObj.Velocity);
 
-                if (this is SpellProjectile spellProjectile && spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Ring)
+                if (this is SpellProjectile spellProjectile && spellProjectile.SpellType == ProjectileSpellType.Ring)
                 {
                     var dist = spellProjectile.SpawnPos.DistanceTo(Location);
                     var maxRange = spellProjectile.Spell.BaseRangeConstant;
@@ -415,16 +343,42 @@ namespace ACE.Server.WorldObjects
                     }
                 }
 
+                if (cachedVelocityFix)
+                    PhysicsObj.CachedVelocity = Vector3.Zero;
+
                 return landblockUpdate;
             }
             finally
             {
                 var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
                 ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics, elapsedSeconds);
-                if (elapsedSeconds >= 1) // Yea, that ain't good....
+                if (elapsedSeconds >= 0.100) // Yea, that ain't good....
+                {
+                    slowUpdateObjectPhysicsHits++;
                     log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
+
+                    // Destroy laggy projectiles
+                    if (slowUpdateObjectPhysicsHits >= 5 && this is SpellProjectile spellProjectile)
+                    {
+                        PhysicsObj.set_active(false);
+                        spellProjectile.ProjectileImpact();
+                    }
+                }
                 else if (elapsedSeconds >= 0.010)
-                    log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
+                {
+                    slowUpdateObjectPhysicsHits++;
+
+                    // Destroy laggy projectiles
+                    if (slowUpdateObjectPhysicsHits >= 5 && this is SpellProjectile spellProjectile)
+                    {
+                        PhysicsObj.set_active(false);
+                        spellProjectile.ProjectileImpact();
+
+                        log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}. SpellProjectile destroyed.");
+                    }
+                    else
+                        log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
+                }
             }
         }
     }

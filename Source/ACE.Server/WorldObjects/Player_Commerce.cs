@@ -1,18 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Database;
-using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-
-using Spell = ACE.Server.Entity.Spell;
 
 namespace ACE.Server.WorldObjects
 {
@@ -195,6 +194,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsTrading)
+            {
+                SendUseDoneEvent(WeenieError.CantDoThatTradeInProgress);
+                return;
+            }
+
             var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
 
             if (vendor != null)
@@ -265,6 +270,7 @@ namespace ACE.Server.WorldObjects
                         if (!spell.NotFound)
                         {
                             var preCastTime = vendor.PreCastMotion(this);
+                            vendor.IsBusy = true;
 
                             var castChain = new ActionChain();
                             castChain.AddDelaySeconds(preCastTime);
@@ -273,6 +279,9 @@ namespace ACE.Server.WorldObjects
                                 vendor.TryCastSpell(spell, this, vendor);
                                 vendor.PostCastMotion();
                             });
+                            castChain.AddDelaySeconds(preCastTime);
+                            castChain.AddAction(vendor, () => vendor.IsBusy = false);
+
                             castChain.EnqueueChain();
                         }
                     }
@@ -376,6 +385,14 @@ namespace ACE.Server.WorldObjects
                 {
                     var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} has no value and cannot be sold.")); // retail message did not include item name, leaving in that for now.
+
+                    continue;
+                }
+
+                if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+                {
+                    var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot sell that! The {itemName} is currently being traded.")); // custom message?
 
                     continue;
                 }

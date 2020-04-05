@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using ACE.Database;
-using ACE.Database.Models.World;
+using ACE.Entity.Models;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.GameEvent.Events

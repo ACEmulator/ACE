@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 
+using ACE.Common;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 
@@ -38,13 +40,13 @@ namespace ACE.DatLoader.FileTypes
                     attackHeights.Table.Add(maneuver.AttackHeight, attackTypes);
                 }
 
-                if (!attackTypes.Table.TryGetValue(maneuver.AttackType, out var minSkillLevels))
+                if (!attackTypes.Table.TryGetValue(maneuver.AttackType, out var motionCommands))
                 {
-                    minSkillLevels = new MinSkillLevels();
-                    attackTypes.Table.Add(maneuver.AttackType, minSkillLevels);
+                    motionCommands = new List<MotionCommand>();
+                    attackTypes.Table.Add(maneuver.AttackType, motionCommands);
                 }
 
-                minSkillLevels.Table[maneuver.MinSkillLevel] = maneuver.Motion;
+                motionCommands.Add(maneuver.Motion);
             }
         }
 
@@ -55,17 +57,12 @@ namespace ACE.DatLoader.FileTypes
 
         public class AttackTypes
         {
-            public Dictionary<AttackType, MinSkillLevels> Table = new Dictionary<AttackType, MinSkillLevels>();
+            // technically there is another MinSkillLevels here in the data,
+            // but every MinSkillLevel in the client dats are always 0
+            public Dictionary<AttackType, List<MotionCommand>> Table = new Dictionary<AttackType, List<MotionCommand>>();
         }
 
-        public class MinSkillLevels
-        {
-            public SortedDictionary<uint, MotionCommand> Table = new SortedDictionary<uint, MotionCommand>(ReverseComparer);
-        }
-
-        public static ReverseComparer ReverseComparer = new ReverseComparer();
-
-        public MotionCommand GetMotion(MotionStance stance, AttackHeight attackHeight, AttackType attackType, uint minSkillLevel = 0)
+        public MotionCommand GetMotion(MotionStance stance, AttackHeight attackHeight, AttackType attackType, MotionCommand prevMotion)
         {
             if (!Stances.TryGetValue(stance, out var attackHeights))
                 return MotionCommand.Invalid;
@@ -73,26 +70,55 @@ namespace ACE.DatLoader.FileTypes
             if (!attackHeights.Table.TryGetValue(attackHeight, out var attackTypes))
                 return MotionCommand.Invalid;
 
-            if (!attackTypes.Table.TryGetValue(attackType, out var minSkillLevels))
+            if (!attackTypes.Table.TryGetValue(attackType, out var maneuvers))
                 return MotionCommand.Invalid;
 
-            foreach (var kvp in minSkillLevels.Table)
+            if (maneuvers.Count == 1)
+                return maneuvers[0];
+
+            /*Console.WriteLine($"CombatManeuverTable({Id:X8}).GetMotion({stance}, {attackHeight}, {attackType}) - found {maneuvers.Count} maneuvers");
+            foreach (var maneuver in maneuvers)
+                Console.WriteLine(maneuver);*/
+
+            // CombatManeuverTable(30000000).GetMotion(SwordCombat, Medium, Slash) - found 2 maneuvers
+            // SlashMed
+            // BackhandMed
+
+            // rng, or alternate?
+            for (var i = 0; i < maneuvers.Count; i++)
             {
-                if (kvp.Key > minSkillLevel)
-                    continue;
+                var maneuver = maneuvers[i];
 
-                return kvp.Value;
+                if (maneuver == prevMotion)
+                {
+                    if (i < maneuvers.Count - 1)
+                        return maneuvers[i + 1];
+                    else
+                        return maneuvers[0];
+                }
             }
-
-            return MotionCommand.Invalid;
+            return maneuvers[0];
         }
-    }
 
-    public class ReverseComparer : IComparer<uint>
-    {
-        public int Compare(uint a, uint b)
+        public void ShowCombatTable()
         {
-            return b.CompareTo(a);
+            foreach (var stance in Stances)
+            {
+                Console.WriteLine($"- {stance.Key}");
+
+                foreach (var attackHeight in stance.Value.Table)
+                {
+                    Console.WriteLine($"  - {attackHeight.Key}");
+
+                    foreach (var attackType in attackHeight.Value.Table)
+                    {
+                        Console.WriteLine($"    - {attackType.Key}");
+
+                        foreach (var motion in attackType.Value)
+                            Console.WriteLine($"      - {motion}");
+                    }
+                }
+            }
         }
     }
 }

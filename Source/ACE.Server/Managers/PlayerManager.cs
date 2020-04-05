@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
+using log4net;
+
+using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
@@ -16,7 +20,7 @@ using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 
-using log4net;
+using Biota = ACE.Entity.Models.Biota;
 
 namespace ACE.Server.Managers
 {
@@ -40,13 +44,23 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void Initialize()
         {
-            var results = DatabaseManager.Shard.GetAllPlayerBiotasInParallel();
+            var results = DatabaseManager.Shard.BaseDatabase.GetAllPlayerBiotasInParallel();
 
-            foreach (var result in results)
+            Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
             {
                 var offlinePlayer = new OfflinePlayer(result);
-                offlinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
-            }
+
+                lock (offlinePlayers)
+                    offlinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
+            });
+        }
+
+        private static readonly LinkedList<Player> playersPendingLogoff = new LinkedList<Player>();
+
+        public static void AddPlayerToLogoffQueue(Player player)
+        {
+            if (!playersPendingLogoff.Contains(player))
+                playersPendingLogoff.AddLast(player);
         }
 
         public static void Tick()
@@ -54,6 +68,24 @@ namespace ACE.Server.Managers
             // Database Save
             if (lastDatabaseSave + databaseSaveInterval <= DateTime.UtcNow)
                 SaveOfflinePlayersWithChanges();
+
+            var currentUnixTime = Time.GetUnixTime();
+
+            while (playersPendingLogoff.Count > 0)
+            {
+                var first = playersPendingLogoff.First.Value;
+
+                if (first.LogoffTimestamp <= currentUnixTime)
+                {
+                    playersPendingLogoff.RemoveFirst();
+                    first.LogOut_Inner();
+                    first.Session.logOffRequestTime = DateTime.UtcNow;
+                }
+                else
+                {
+                    break;
+                }
+            }
         }
 
         /// <summary>
@@ -167,6 +199,19 @@ namespace ACE.Server.Managers
             return allPlayers;
         }
 
+        public static int GetOfflineCount()
+        {
+            playersLock.EnterReadLock();
+            try
+            {
+                return offlinePlayers.Count;
+            }
+            finally
+            {
+                playersLock.ExitReadLock();
+            }
+        }
+
         public static List<OfflinePlayer> GetAllOffline()
         {
             var results = new List<OfflinePlayer>();
@@ -183,6 +228,19 @@ namespace ACE.Server.Managers
             }
 
             return results;
+        }
+
+        public static int GetOnlineCount()
+        {
+            playersLock.EnterReadLock();
+            try
+            {
+                return onlinePlayers.Count;
+            }
+            finally
+            {
+                playersLock.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -530,6 +588,12 @@ namespace ACE.Server.Managers
                 player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, "CONSOLE", message));
         }
 
+        public static void BroadcastToChannelFromEmote(Channel channel, string message)
+        {
+            foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(channel)))
+                player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, "EMOTE", message));
+        }
+
         public static bool GagPlayer(Player issuer, string playerName)
         {
             var player = FindByName(playerName);
@@ -569,7 +633,7 @@ namespace ACE.Server.Managers
         public static void BootAllPlayers()
         {
             foreach (var player in GetAllOnline().Where(p => p.Session.AccessLevel < AccessLevel.Advocate))
-                player.Session.Terminate(SessionTerminationReason.WorldClosed, new GameMessageBootAccount(player.Session, "The world is now closed"), null, "The world is now closed");
+                player.Session.Terminate(SessionTerminationReason.WorldClosed, new GameMessageBootAccount(player.Session, " because the world is now closed"), null, "The world is now closed");
         }
 
         public static void UpdatePKStatusForAllPlayers(string worldType, bool enabled)

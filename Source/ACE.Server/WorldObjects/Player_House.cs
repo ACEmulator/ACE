@@ -2,18 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
 using ACE.Common;
-using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.WorldObjects
 {
@@ -83,14 +84,27 @@ namespace ACE.Server.WorldObjects
             var verified = VerifyPurchase(slumlord, item_ids);
             if (!verified)
             {
-                Console.WriteLine($"{Name} tried to purchase house {slumlord.Guid} without the required items!");
+                log.Error($"{Name} tried to purchase house {slumlord.Guid} without the required items!");
                 return;
             }
 
             Console.WriteLine("\nInventory check passed!");
 
-            // TODO: consume items for house purchase
-            ConsumeItemsForPurchase(item_ids);
+            // get the list of items / amounts to consume for purchase
+            var houseProfile = slumlord.GetHouseProfile();
+            var items = GetInventoryItems(item_ids);
+
+            var consumeItems = GetConsumeItems(houseProfile.Buy, items);
+
+            if (!TryConsumePurchaseItems(consumeItems))
+            {
+                var item_id_list = string.Join(", ", item_ids.Select(i => i.ToString("X8")));
+                var consumeItemsList = string.Join(", ", consumeItems.Select(i => $"{i.Name} ({i.Guid}) x{i.Value}"));
+
+                log.Error($"{Name}.HandleActionBuyHouse({slumlord_id:X8}, {item_id_list}) - TryConsumePurchaseItems failed with {consumeItemsList}");
+
+                return;
+            }
 
             SetHouseOwner(slumlord);
 
@@ -144,7 +158,7 @@ namespace ACE.Server.WorldObjects
 
             if (slumlord.IsRentPaid())
             {
-                //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.HouseRentFailed));  // WeenieError.HouseRentFailed = blank message
+                //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.HouseRentFailed));  // WeenieError.HouseRentFailed == blank message
                 Session.Network.EnqueueSend(new GameMessageSystemChat("The maintenance has already been paid for this period.\nYou may not prepay next period's maintenance.", ChatMessageType.Broadcast));
                 return;
             }
@@ -166,20 +180,35 @@ namespace ACE.Server.WorldObjects
             else
                 log.Error($"{Name}.HandleActionRentHouse({slumlord_id:X8}): couldn't find house owner {slumlord.HouseOwner}");
 
+            // filter to items found in player's inventory
+            var items = GetInventoryItems(item_ids);
 
-            // move items from player inventory to slumlord 'inventory'
-            foreach (var item_id in item_ids)
+            // get the list of items / amounts to consume for rent remaining
+            var houseProfile = slumlord.GetHouseProfile();
+            var consumeItems = GetConsumeItems(houseProfile.Rent, items);
+
+            if (IsTrading)
             {
-                var item = FindObject(item_id, SearchLocations.MyInventory);
-                if (item == null)
+                foreach (var item in consumeItems.ToList())
                 {
-                    Console.WriteLine($"{Name}.HandleActionRentHouse({slumlord_id:X8}, {string.Join(", ", item_ids.Select(i => i.ToString("X8")))}): couldn't find {item_id:X8}");
-                    continue;
+                    if (ItemsInTradeWindow.Contains(item.Guid))
+                        consumeItems.Remove(item);
                 }
-                DoHandleActionPutItemInContainer(item, this, false, slumlord, slumlord, 0);
             }
 
+            if (consumeItems.Count == 0)
+                return;
+
+            foreach (var consumeItem in consumeItems)
+                TryConsumeItemForRent(slumlord, consumeItem);
+
             slumlord.MergeAllStackables();
+
+            // force save to database
+            slumlord.SaveBiotaToDatabase();
+
+            foreach (var item in slumlord.Inventory.Values)
+                item.SaveBiotaToDatabase();
 
             slumlord.ActOnUse(this);
 
@@ -188,6 +217,152 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessageSystemChat($"Maintenance {(slumlord.IsRentPaid() ? "" : "partially ")}paid.", ChatMessageType.Broadcast));
         }
 
+        /// <summary>
+        /// Returns the WorldObjects for item_ids that are in the player's inventory
+        /// </summary>
+        public List<WorldObject> GetInventoryItems(List<uint> item_ids)
+        {
+            var inventoryItems = new List<WorldObject>();
+
+            foreach (var item_id in item_ids)
+            {
+                var item = FindObject(item_id, SearchLocations.MyInventory);
+
+                if (item != null)
+                    inventoryItems.Add(item);
+                else
+                    log.Error($"{Name}.GetInventoryItems() - couldn't find {item_id:X8}");
+            }
+
+            return inventoryItems;
+        }
+
+        /// <summary>
+        /// Returns the amount of items to consume for a house purchase / maintenance payment
+        /// </summary>
+        public List<WorldObjectInfo<int>> GetConsumeItems(List<HousePayment> houseItems, List<WorldObject> playerItems)
+        {
+            var consumeItems = new List<WorldObjectInfo<int>>();
+
+            foreach (var houseItem in houseItems)
+            {
+                consumeItems.AddRange(houseItem.GetConsumeItems(playerItems));
+            }
+
+            return consumeItems;
+        }
+
+        /// <summary>
+        /// Moves or splits an item from player inventory => slumlord inventory
+        /// </summary>
+        public bool TryConsumeItemForRent(SlumLord slumlord, WorldObjectInfo<int> itemInfo)
+        {
+            var item = itemInfo.TryGetWorldObject();
+            if (item == null)
+            {
+                log.Error($"{Name}.TryConsumeItemForRent({itemInfo.Guid:X8}) - couldn't get item");
+                return false;
+            }
+
+            var amount = itemInfo.Value;
+            var stackSize = item.StackSize ?? 1;
+
+            if (amount > stackSize)
+            {
+                log.Error($"{Name}.TryConsumeItemForRent({item.Name} ({item.Guid}) - amount {amount} > stacksize {stackSize}");
+                return false;
+            }
+
+            var success = false;
+
+            if (amount == stackSize)
+                success = TryMoveItemForRent(slumlord, item);
+            else
+                success = TrySplitItemForRent(slumlord, item, amount);
+
+            return success;
+        }
+
+        /// <summary>
+        /// Moves an item from player inventory => slumlord inventory
+        /// </summary>
+        public bool TryMoveItemForRent(SlumLord slumlord, WorldObject item)
+        {
+            // verify slumlord can add item to inventory
+            if (!slumlord.CanAddToInventory(item))
+            {
+                log.Error($"{Name}.TryMoveItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}) ) - CanAddToInventory failed!");
+                return false;
+            }
+
+            // remove entire item from player's inventory
+            if (!TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.SpendItem))
+            {
+                log.Error($"{Name}.TryMoveItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}) ) - TryRemoveFromInventoryWithNetworking failed!");
+                return false;
+            }
+
+            // add to slumlord inventory
+            if (!slumlord.TryAddToInventory(item))
+            {
+                log.Error($"{Name}.TryMoveItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}) ) - TryAddToInventory failed!");
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Splits an item from player inventory => slumlord inventory
+        /// </summary>
+        public bool TrySplitItemForRent(SlumLord slumlord, WorldObject item, int amount)
+        {
+            // create a new item w/ stacksize = amount for the slumlord's inventory
+            var newItem = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+            newItem.SetStackSize(amount);
+
+            // verify it can be added to slumlord's inventory
+            if (!slumlord.CanAddToInventory(newItem))
+            {
+                log.Error($"{Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - CanAddToInventory failed for split item {newItem.Name} ({newItem.Guid})!");
+                return false;
+            }
+
+            // fetch container for AdjustStack
+            if (GetInventoryItem(item.Guid, out var container) == null)
+            {
+                log.Error($"{Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - GetInventoryItem failed!");
+                return false;
+            }
+
+            // subtract amount from player's item stacksize
+            if (!AdjustStack(item, -amount, container, this))
+            {
+                log.Error($"{Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - failed to adjust stack!");
+                return false;
+            }
+
+            // force save of new player stack
+            item.SaveBiotaToDatabase();
+
+            // send network updates
+            Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+            if (item.WeenieType == WeenieType.Coin)
+                UpdateCoinValue();
+
+            if (!slumlord.TryAddToInventory(newItem))
+            {
+                log.Error($"{Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - TryAddToInventory failed for split item {newItem.Name} ({newItem.Guid})!");
+                return false;
+            }
+
+            // force save of new slumlord stack
+            newItem.SaveBiotaToDatabase();
+
+            return true;
+        }
+        
         public void HandleActionAbandonHouse()
         {
             Console.WriteLine($"\n{Name}.HandleActionAbandonHouse()");
@@ -281,6 +456,16 @@ namespace ACE.Server.WorldObjects
             if (HouseRentTimestamp == null)
                 HouseRentTimestamp = (int)House.GetRentDue(purchaseTime);
 
+            if (!House.SlumLord.InventoryLoaded)
+            {
+                HouseManager.RegisterCallback(House, (house) => HandleHouseOnLogin_Inner());
+            }
+            else
+                HandleHouseOnLogin_Inner();
+        }
+
+        public void HandleHouseOnLogin_Inner()
+        {
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(5.0f);
             actionChain.AddAction(this, () =>
@@ -376,20 +561,40 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Removes verified items from inventory for house purchase
         /// </summary>
-        public void ConsumeItemsForPurchase(List<uint> item_ids)
+        public bool TryConsumePurchaseItems(List<WorldObjectInfo<int>> purchaseItems)
         {
-            // TODO: return change?
-            // TODO: it would probably be better to consume items from inventory here...
-            foreach (var item_id in item_ids)
+            foreach (var purchaseItem in purchaseItems)
             {
-                var item = FindObject(item_id, SearchLocations.MyInventory);
+                var item = FindObject(purchaseItem.Guid.Full, SearchLocations.MyInventory);
+
                 if (item == null)
                 {
-                    Console.WriteLine($"{Name}.ConsumeItemsForHousePurchase(): couldn't find {item_id:X8}");
-                    continue;
+                    // this should never happen, due to previous verifications
+                    log.Error($"{Name}.ConsumeItemsForHousePurchase(): couldn't find {purchaseItem.Guid}!");
+                    return false;
                 }
-                TryConsumeFromInventoryWithNetworking(item);
+
+                var amount = purchaseItem.Value;
+                var stackSize = item.StackSize ?? 1;
+
+                if (amount > stackSize)
+                {
+                    // this should also never happen, due to previous checks
+                    log.Error($"{Name}.ConsumeItemsForHousePurchase(): {item.Name} ({item.Guid}) amount({amount}) > stackSize({stackSize})!");
+                    return false;
+                }
+
+                if (!TryConsumeFromInventoryWithNetworking(item, amount))
+                {
+                    // all of these things should never happen, just being absolutely certain...
+                    log.Error($"{Name}.ConsumeItemsForHousePurchase(): TryConsumeFromInventoryWithNetworking({item.Name} ({item.Guid}), {amount}) failed!");
+                    return false;
+                }
+
+                // force save partial stack reductions
+                item.SaveBiotaToDatabase();
             }
+            return true;
         }
 
         /// <summary>
@@ -422,6 +627,13 @@ namespace ACE.Server.WorldObjects
                 }
                 var stackStr = item.StackSize != null && item.StackSize > 1 ? item.StackSize.ToString() + " " : "";
                 Console.WriteLine($"{stackStr}{item.Name} ({item.Guid})");
+
+                if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+                {
+                    Console.WriteLine($"{stackStr}{item.Name} ({item.Guid}) is currently being traded, skipping.");
+                    continue;
+                }
+
                 sentItems.Add(item);
             }
             Console.WriteLine();
@@ -531,26 +743,33 @@ namespace ACE.Server.WorldObjects
             return totalValue;
         }
 
-        public uint? GetHouseInstance()
+        public IPlayer GetHouseOwner()
         {
             // if this character owns a house, always use that
             if (HouseInstance != null)
-                return HouseInstance;
+                return this;
 
             // if server is running house_per_char mode (non-default),
             // only use the HouseInstance for the current character
             if (PropertyManager.GetBool("house_per_char").Item)
-                return HouseInstance;
+                return this;
 
-            // else return the HouseInstance for the account
+            // else return the account house owner
             var accountHouseOwner = GetAccountHouseOwner();
 
-            return accountHouseOwner?.HouseInstance;
+            return accountHouseOwner;
+        }
+
+        public uint? GetHouseInstance()
+        {
+            return GetHouseOwner()?.HouseInstance;
         }
 
         public void HandleActionQueryHouse()
         {
-            var houseInstance = GetHouseInstance();
+            var houseOwner = GetHouseOwner();
+
+            var houseInstance = houseOwner?.HouseInstance;
 
             // no house owned - send 0x226 HouseStatus?
             if (houseInstance == null)
@@ -563,23 +782,11 @@ namespace ACE.Server.WorldObjects
             if (House == null)
                 LoadHouse(houseInstance);
 
-            var house = GetHouse(houseInstance);
-            if (house == null)
+            HouseManager.GetHouse(houseInstance.Value, (house) =>
             {
-                Session.Network.EnqueueSend(new GameEventHouseStatus(Session));
-                return;
-            }
-
-            // slumlord inventory callback...
-            var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(1.0f);
-            actionChain.AddAction(this, () =>
-            {
-                // ensure house.Slumlord.InventoryLoaded?
-                var houseData = house.GetHouseData(this);
+                var houseData = house.GetHouseData(houseOwner);
                 Session.Network.EnqueueSend(new GameEventHouseData(Session, houseData));
             });
-            actionChain.EnqueueChain();
         }
 
         public House LoadHouse(uint? houseInstance, bool forceLoad = false)
@@ -794,7 +1001,7 @@ namespace ACE.Server.WorldObjects
             }
 
             house.OpenStatus = openStatus;
-            house.Biota.SetProperty(PropertyBool.Open, house.OpenStatus, house.BiotaDatabaseLock, out _);
+            house.Biota.SetProperty(PropertyBool.Open, house.OpenStatus, house.BiotaDatabaseLock);
             house.ChangesDetected = true;
             house.UpdateRestrictionDB();
 
@@ -1076,14 +1283,14 @@ namespace ACE.Server.WorldObjects
 
                 if (rootHouse.HouseOwner != null && !rootHouse.HasPermission(this, false))
                 {
-                    if (!rootHouse.IsOpen || (rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.IsDungeon))
+                    if (!rootHouse.IsOpen || (rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.HasDungeon))
                     {
                         Teleport(rootHouse.BootSpot.Location);
                         return true;
                     }
                 }
 
-                if (rootHouse.HouseOwner == null && rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.IsDungeon)
+                if (rootHouse.HouseOwner == null && rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.HasDungeon)
                 {
                     Teleport(rootHouse.BootSpot.Location);
                     return true;

@@ -260,7 +260,7 @@ namespace ACE.Server.Physics.Animation
             else
             {
                 SpherePath.AddOffsetToCheckPos(collideNormal * -angle);
-                CollisionInfo.SetCollisionNormal(collideNormal * angle);    // verify
+                CollisionInfo.SetCollisionNormal(-collideNormal);
             }
             return TransitionState.Adjusted;
         }
@@ -841,7 +841,7 @@ namespace ACE.Server.Physics.Animation
                         else
                         {
                             if (CollisionInfo.ContactPlaneValid || (ObjectInfo.State & ObjectInfoState.Contact) == 0 ||
-                                SpherePath.StepDown || SpherePath.CheckCell == null || ObjectInfo.StepDown)
+                                SpherePath.StepDown || SpherePath.CheckCell == null || !ObjectInfo.StepDown)
                             {
                                 return TransitionState.OK;
                             }
@@ -969,7 +969,11 @@ namespace ACE.Server.Physics.Animation
                 case TransitionState.Collided:
                 case TransitionState.Adjusted:
                 case TransitionState.Slid:
-                    if (SpherePath.PlacementAllowsSliding) CollisionInfo.Init();
+
+                    // added target id
+                    if (SpherePath.PlacementAllowsSliding && ObjectInfo.TargetID == 0)
+                        CollisionInfo.Init();
+
                     break;
             }
             return transitionState;

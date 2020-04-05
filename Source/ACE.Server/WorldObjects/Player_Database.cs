@@ -1,10 +1,12 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Threading;
+
+using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
@@ -43,6 +45,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetPropertiesAtLogOut()
         {
+            LogoffTimestamp = Time.GetUnixTime();
             // These properties are used with offline players to determine passup rates
             SetProperty(PropertyInt.CurrentLoyaltyAtLastLogoff, (int)GetCreatureSkill(Skill.Loyalty).Current);
             SetProperty(PropertyInt.CurrentLeadershipAtLastLogoff, (int)GetCreatureSkill(Skill.Leadership).Current);

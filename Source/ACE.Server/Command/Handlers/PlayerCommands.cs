@@ -25,7 +25,7 @@ namespace ACE.Server.Command.Handlers
             "")]
         public static void HandlePop(Session session, params string[] parameters)
         {
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Current world population: {PlayerManager.GetAllOnline().Count.ToString()}\n", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Current world population: {PlayerManager.GetOnlineCount().ToString()}\n", ChatMessageType.Broadcast));
         }
 
         // quest info (uses GDLe formatting to match plugin expectations)
@@ -131,7 +131,7 @@ namespace ACE.Server.Command.Handlers
             Console.WriteLine("OK");
         }
 
-        [CommandHandler("debugcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("debugcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows debug information about the current magic casting state")]
         public static void HandleDebugCast(Session session, params string[] parameters)
         {
             var physicsObj = session.Player.PhysicsObj;
@@ -140,11 +140,12 @@ namespace ACE.Server.Command.Handlers
             var currAnim = physicsObj.PartArray.Sequence.CurrAnim;
 
             session.Network.EnqueueSend(new GameMessageSystemChat(session.Player.MagicState.ToString(), ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"IsMovingOrAnimating: {physicsObj.IsMovingOrAnimating}", ChatMessageType.Broadcast));
             session.Network.EnqueueSend(new GameMessageSystemChat($"PendingActions: {pendingActions.Count}", ChatMessageType.Broadcast));
             session.Network.EnqueueSend(new GameMessageSystemChat($"CurrAnim: {currAnim?.Value.Anim.ID:X8}", ChatMessageType.Broadcast));
         }
 
-        [CommandHandler("fixcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld)]
+        [CommandHandler("fixcast", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Fixes magic casting if locked up for an extended time")]
         public static void HandleFixCast(Session session, params string[] parameters)
         {
             var magicState = session.Player.MagicState;
@@ -155,6 +156,23 @@ namespace ACE.Server.Command.Handlers
                 session.Player.SendUseDoneEvent();
                 magicState.OnCastDone();
             }
+        }
+
+        [CommandHandler("castmeter", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows the fast casting efficiency meter")]
+        public static void HandleCastMeter(Session session, params string[] parameters)
+        {
+            if (parameters.Length == 0)
+            {
+                session.Player.MagicState.CastMeter = !session.Player.MagicState.CastMeter;
+            }
+            else
+            {
+                if (parameters[0].Equals("on", StringComparison.OrdinalIgnoreCase))
+                    session.Player.MagicState.CastMeter = true;
+                else
+                    session.Player.MagicState.CastMeter = false;
+            }
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Cast efficiency meter {(session.Player.MagicState.CastMeter ? "enabled" : "disabled")}", ChatMessageType.Broadcast));
         }
 
         private static List<string> configList = new List<string>()
@@ -296,6 +314,34 @@ namespace ACE.Server.Command.Handlers
 
             // update client
             session.Network.EnqueueSend(new GameEventPlayerDescription(session));
+        }
+
+        /// <summary>
+        /// Force resend of all visible objects known to this player. Can fix rare cases of invisible object bugs.
+        /// Can only be used once every 5 mins max.
+        /// </summary>
+        [CommandHandler("objsend", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Force resend of all visible objects known to this player. Can fix rare cases of invisible object bugs. Can only be used once every 5 mins max.")]
+        public static void HandleObjSend(Session session, params string[] parameters)
+        {
+            // a good repro spot for this is the first room after the door in facility hub
+            // in the portal drop / staircase room, the VisibleCells do not have the room after the door
+            // however, the room after the door *does* have the portal drop / staircase room in its VisibleCells (the inverse relationship is imbalanced)
+            // not sure how to fix this atm, seems like it triggers a client bug..
+
+            if (DateTime.UtcNow - session.Player.PrevObjSend < TimeSpan.FromMinutes(5))
+            {
+                session.Player.SendTransientError("You have used this command too recently!");
+                return;
+            }
+
+            var knownObjs = session.Player.GetKnownObjects();
+
+            foreach (var knownObj in knownObjs)
+            {
+                session.Player.RemoveTrackedObject(knownObj, false);
+                session.Player.TrackObject(knownObj);
+            }
+            session.Player.PrevObjSend = DateTime.UtcNow;
         }
     }
 }

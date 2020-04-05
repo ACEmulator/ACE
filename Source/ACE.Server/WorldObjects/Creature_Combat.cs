@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 using ACE.Common;
-using ACE.DatLoader.Entity;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -16,14 +14,28 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        public CombatMode CombatMode { get; private set; }
+        public enum DebugDamageType
+        {
+            None     = 0x0,
+            Attacker = 0x1,
+            Defender = 0x2,
+            All      = Attacker | Defender
+        };
+
+        public DebugDamageType DebugDamage;
+
+        public ObjectGuid DebugDamageTarget;
 
         /// <summary>
         /// The list of combat maneuvers performable by this creature
         /// </summary>
         public DatLoader.FileTypes.CombatManeuverTable CombatTable { get; set; }
 
-        public DamageHistory DamageHistory;
+        public CombatMode CombatMode { get; protected set; }
+
+        public AttackType AttackType { get; set; }
+
+        public DamageHistory DamageHistory { get; private set; }
 
         /// <summary>
         /// Handles queueing up multiple animation sequences between packets
@@ -122,13 +134,15 @@ namespace ACE.Server.WorldObjects
 
             float peace1 = 0.0f, unarmed = 0.0f, peace2 = 0.0f;
 
+            // this is now handled as a proper 2-step process in HandleActionChangeCombatMode / NextUseTime
+
             // FIXME: just call generic method to switch to HandCombat first
             peace1 = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.NonCombat);
-            if (CurrentMotionState.Stance != MotionStance.HandCombat && combatStance != MotionStance.HandCombat)
+            /*if (CurrentMotionState.Stance != MotionStance.HandCombat && combatStance != MotionStance.HandCombat)
             {
                 unarmed = MotionTable.GetAnimationLength(MotionTableId, MotionStance.NonCombat, MotionCommand.Ready, MotionCommand.HandCombat);
                 peace2 = MotionTable.GetAnimationLength(MotionTableId, MotionStance.HandCombat, MotionCommand.Ready, MotionCommand.NonCombat);
-            }
+            }*/
 
             SetStance(MotionStance.NonCombat, false);
 
@@ -447,6 +461,9 @@ namespace ACE.Server.WorldObjects
         public virtual uint GetEffectiveAttackSkill()
         {
             var attackSkill = GetCreatureSkill(GetCurrentAttackSkill()).Current;
+
+            // TODO: don't use for bow?
+            // https://asheron.fandom.com/wiki/Developer_Chat_-_2002/09/23
             var offenseMod = GetWeaponOffenseModifier(this);
 
             // monsters don't use accuracy mod?
@@ -540,22 +557,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public string GetSplatterDir(WorldObject target)
         {
-            var sourcePos = new Vector3(Location.PositionX, Location.PositionY, 0);
-            var targetPos = new Vector3(target.Location.PositionX, target.Location.PositionY, 0);
-            var targetDir = new AFrame(target.Location.Pos, target.Location.Rotation).get_vector_heading();
+            var quadrant = GetRelativeDir(target);
 
-            targetDir.Z = 0;
-            targetDir = Vector3.Normalize(targetDir);
+            var splatterDir = quadrant.HasFlag(Quadrant.Left) ? "Left" : "Right";
+            splatterDir += quadrant.HasFlag(Quadrant.Front) ? "Front" : "Back";
 
-            var sourceToTarget = Vector3.Normalize(sourcePos - targetPos);
-
-            var dir = Vector3.Dot(sourceToTarget, targetDir);
-            var angle = Vector3.Cross(sourceToTarget, targetDir);
-
-            var frontBack = dir >= 0 ? "Front" : "Back";
-            var leftRight = angle.Z <= 0 ? "Left" : "Right";
-
-            return leftRight + frontBack;
+            return splatterDir;
         }
 
         public double GetLifeResistance(DamageType damageType)
@@ -651,9 +658,13 @@ namespace ACE.Server.WorldObjects
 
             // shield AL item enchantment additives:
             // impenetrability, brittlemail
-            var ignoreMagicArmor = weapon != null ? weapon.IgnoreMagicArmor : false;
+            var ignoreMagicArmor = (weapon?.IgnoreMagicArmor ?? false) || (attacker?.IgnoreMagicArmor ?? false);
 
-            var modSL = ignoreMagicArmor ? 0 : shield.EnchantmentManager.GetArmorMod();
+            var modSL = shield.EnchantmentManager.GetArmorMod();
+
+            if (ignoreMagicArmor)
+                modSL = attacker is Player ? (int)Math.Round(IgnoreMagicArmorScaled(modSL)) : 0;
+
             var effectiveSL = baseSL + modSL;
 
             // get shield RL against damage type
@@ -661,7 +672,11 @@ namespace ACE.Server.WorldObjects
 
             // shield RL item enchantment additives:
             // banes, lures
-            var modRL = ignoreMagicArmor ? 0 : shield.EnchantmentManager.GetArmorModVsType(damageType);
+            var modRL = shield.EnchantmentManager.GetArmorModVsType(damageType);
+
+            if (ignoreMagicArmor)
+                modRL = attacker is Player ? IgnoreMagicArmorScaled(modRL) : 0.0f;
+
             var effectiveRL = (float)(baseRL + modRL);
 
             // resistance clamp
@@ -683,6 +698,11 @@ namespace ACE.Server.WorldObjects
                 shieldCap = (uint)Math.Round(shieldCap / 2.0f);
 
             effectiveLevel = Math.Min(effectiveLevel, shieldCap);
+
+            var ignoreShieldMod = attacker.GetIgnoreShieldMod(weapon);
+            //Console.WriteLine($"IgnoreShieldMod: {ignoreShieldMod}");
+
+            effectiveLevel *= ignoreShieldMod;
 
             // SL is multiplied by existing AL
             var shieldMod = SkillFormula.CalcArmorMod(effectiveLevel);
@@ -881,7 +901,7 @@ namespace ACE.Server.WorldObjects
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
             target.EnchantmentManager.Add(spell, this);
-            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDefenseDebuff));
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingDefenseDebuff));
 
             FightDirty_SendMessage(target, spell);
         }
@@ -902,7 +922,7 @@ namespace ACE.Server.WorldObjects
             target.EnchantmentManager.Add(spell, this);
 
             // only send if not already applied?
-            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDamageOverTime));
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingDamageOverTime));
 
             FightDirty_SendMessage(target, spell);
         }
@@ -921,7 +941,7 @@ namespace ACE.Server.WorldObjects
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
             target.EnchantmentManager.Add(spell, this);
-            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingAttackDebuff));
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingAttackDebuff));
 
             FightDirty_SendMessage(target, spell);
 
@@ -933,7 +953,7 @@ namespace ACE.Server.WorldObjects
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
             target.EnchantmentManager.Add(spell, this);
-            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingHealDebuff));
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingHealDebuff));
 
             FightDirty_SendMessage(target, spell);
         }
@@ -995,14 +1015,6 @@ namespace ACE.Server.WorldObjects
                 default:
                     return ResistanceType.Undef;
             }
-        }
-
-        /// <summary>
-        /// Returns the current attack maneuver for a non-player creature
-        /// </summary>
-        public virtual AttackType GetAttackType(WorldObject weapon, CombatManeuver combatManeuver)
-        {
-            return combatManeuver != null ? combatManeuver.AttackType : AttackType.Undef;
         }
 
         public virtual bool CanDamage(Creature target)
@@ -1235,5 +1247,16 @@ namespace ACE.Server.WorldObjects
         {
             return EquippedObjects.Values.Count(i => i.GetImbuedEffects().HasFlag(imbuedEffectType));
         }
+
+        /// <summary>
+        /// Returns the cloak the creature has equipped,
+        /// or 'null' if no cloak is equipped
+        /// </summary>
+        public WorldObject EquippedCloak => EquippedObjects.Values.FirstOrDefault(i => i.ValidLocations == EquipMask.Cloak);
+
+        /// <summary>
+        /// Returns TRUE if creature has cloak equipped
+        /// </summary>
+        public bool HasCloakEquipped => EquippedCloak != null;
     }
 }

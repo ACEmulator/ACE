@@ -1,9 +1,9 @@
 using System;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -88,8 +88,8 @@ namespace ACE.Server.WorldObjects
             fromAttr.StartingValue -= amount;
             toAttr.StartingValue += amount;
 
-            var updateFrom = new GameMessagePrivateUpdateAttribute(player, TransferFromAttribute, fromAttr.Ranks, fromAttr.StartingValue, fromAttr.ExperienceSpent);
-            var updateTo = new GameMessagePrivateUpdateAttribute(player, TransferToAttribute, toAttr.Ranks, toAttr.StartingValue, toAttr.ExperienceSpent);
+            var updateFrom = new GameMessagePrivateUpdateAttribute(player, fromAttr);
+            var updateTo = new GameMessagePrivateUpdateAttribute(player, toAttr);
 
             var msgFrom = new GameMessageSystemChat($"Your base {TransferFromAttribute} is now {fromAttr.Base}!", ChatMessageType.Broadcast);
             var msgTo = new GameMessageSystemChat($"Your base {TransferToAttribute} is now {toAttr.Base}!", ChatMessageType.Broadcast);

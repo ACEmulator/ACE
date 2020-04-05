@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
@@ -21,12 +20,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns TRUE if monster is a spell caster
         /// </summary>
-        public bool IsCaster { get => Biota.BiotaPropertiesSpellBook.Count > 0; }
+        public bool IsCaster { get => Biota.HasKnownSpell(BiotaDatabaseLock); }
 
         /// <summary>
         /// The next spell the monster will attempt to cast
         /// </summary>
-        public BiotaPropertiesSpellBook CurrentSpell { get; set; }
+        public KeyValuePair<int, float> CurrentSpell { get; set; }
 
         /// <summary>
         /// The delay after casting a magic spell
@@ -59,9 +58,9 @@ namespace ACE.Server.WorldObjects
         {
             var probabilities = new List<float>();
 
-            foreach (var spell in Biota.BiotaPropertiesSpellBook)
+            foreach (var spell in Biota.GetKnownSpellsProbabilities(BiotaDatabaseLock))
             {
-                var probability = spell.Probability > 2.0f ? spell.Probability - 2.0f : spell.Probability / 100.0f;
+                var probability = spell > 2.0f ? spell - 2.0f : spell / 100.0f;
 
                 probabilities.Add(probability);
             }
@@ -71,7 +70,7 @@ namespace ACE.Server.WorldObjects
 
         public Spell TryRollSpell()
         {
-            CurrentSpell = null;
+            CurrentSpell = new KeyValuePair<int, float>();
 
             //Console.WriteLine($"{Name}.TryRollSpell(), probability={GetProbabilityAny()}");
 
@@ -81,17 +80,25 @@ namespace ACE.Server.WorldObjects
             // much less common, some monsters will have spells with just base 2.0 probability
             // there were probably other criteria used to select these spells (emote responses, monster ai responses)
             // for now, 2.0 base just becomes a 2% chance
-            foreach (var spell in Biota.BiotaPropertiesSpellBook)
+
+            if (Biota.PropertiesSpellBook == null)
+                return null;
+
+            // We don't use thread safety here. Monster spell books aren't mutated cross-threads.
+            // This reduces memory consumption by not cloning the spell book every single TryRollSpell()
+            //foreach (var spell in Biota.CloneSpells(BiotaDatabaseLock)) // Thread-safe
+            foreach (var spell in Biota.PropertiesSpellBook) // Not thread-safe
             {
-                var probability = spell.Probability > 2.0f ? spell.Probability - 2.0f : spell.Probability / 100.0f;
+                var probability = spell.Value > 2.0f ? spell.Value - 2.0f : spell.Value / 100.0f;
 
                 var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
                 if (rng < probability)
                 {
                     CurrentSpell = spell;
-                    return new Spell(spell.Spell);
+                    return new Spell(spell.Key);
                 }
             }
+
             return null;
         }
 
@@ -182,9 +189,6 @@ namespace ACE.Server.WorldObjects
         {
             if (AttackTarget == null) return;
 
-            bool? resisted;
-            //var spell = GetCurrentSpell();
-
             var targetSelf = spell.Flags.HasFlag(SpellFlags.SelfTargeted);
             var untargeted = spell.NonComponentTargetType == ItemType.None;
 
@@ -194,24 +198,18 @@ namespace ACE.Server.WorldObjects
             else if (targetSelf)
                 target = this;
 
+            // try to resist spell, if applicable
+            if (TryResistSpell(target, spell))
+                return;
+
             switch (spell.School)
             {
                 case MagicSchool.WarMagic:
 
-                    WarMagic(target, spell);
+                    WarMagic(target, spell, this);
                     break;
 
                 case MagicSchool.LifeMagic:
-
-                    // todo: investigate calling TryResistSpell
-                    if (spell.IsHarmful && spell.IsResistable)
-                    {
-                        resisted = ResistSpell(target, spell);
-                        if (resisted == null)
-                            log.Error("Something went wrong with the Magic resistance check");
-                        if (resisted ?? true)
-                            break;
-                    }
 
                     var targetDeath = LifeMagic(spell, out uint damage, out bool critical, out var msg, target);
                     if (targetDeath && target is Creature targetCreature)
@@ -226,15 +224,6 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.CreatureEnchantment:
 
-                    if (spell.IsHarmful && spell.IsResistable)
-                    {
-                        resisted = ResistSpell(target, spell);
-                        if (resisted == null)
-                            log.Error("Something went wrong with the Magic resistance check");
-                        if (resisted ?? true)
-                            break;
-                    }
-
                     CreatureMagic(target, spell);
 
                     if (target != null)
@@ -244,17 +233,11 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.VoidMagic:
 
-                    if (spell.NumProjectiles == 0 && spell.IsHarmful && spell.IsResistable)
-                    {
-                        resisted = ResistSpell(target, spell);
-                        if (resisted == null)
-                            log.Error("Something went wrong with the Magic resistance check");
-                        if (resisted ?? true)
-                            break;
-                    }
-                    VoidMagic(target, spell);
+                    VoidMagic(target, spell, this);
+
                     if (spell.NumProjectiles == 0 && target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
                     break;
             }
         }
@@ -279,7 +262,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Spell GetCurrentSpell()
         {
-            return new Spell(CurrentSpell.Spell);
+            return new Spell(CurrentSpell.Key);
         }
 
         public bool UseMana()

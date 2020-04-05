@@ -35,6 +35,12 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt.WeaponType); else SetProperty(PropertyInt.WeaponType, (int)value); }
         }
 
+        public bool AutoWieldLeft
+        {
+            get => GetProperty(PropertyBool.AutowieldLeft) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.AutowieldLeft); else SetProperty(PropertyBool.AutowieldLeft, value); }
+        }
+
         /// <summary>
         /// Returns TRUE if this weapon cleaves
         /// </summary>
@@ -56,15 +62,15 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the primary weapon equipped by a player
+        /// Returns the primary weapon equipped by a creature
         /// (melee, missile, or wand)
         /// </summary>
-        private static WorldObject GetWeapon(Player wielder)
+        private static WorldObject GetWeapon(Creature wielder, bool forceMainHand = false)
         {
             if (wielder == null)
                 return null;
 
-            WorldObject weapon = wielder.GetEquippedWeapon();
+            WorldObject weapon = wielder.GetEquippedWeapon(forceMainHand);
 
             if (weapon == null)
                 weapon = wielder.GetEquippedWand();
@@ -79,22 +85,37 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public static float GetWeaponMeleeDefenseModifier(Creature wielder)
         {
-            WorldObject weapon = GetWeapon(wielder as Player);
+            // creatures only receive defense bonus in combat mode
+            if (wielder == null || wielder.CombatMode == CombatMode.NonCombat)
+                return defaultModifier;
 
+            var mainhand = GetWeapon(wielder, true);
+            var offhand = wielder.GetDualWieldWeapon();
+
+            if (offhand == null)
+            {
+                return GetWeaponMeleeDefenseModifier(wielder, mainhand);
+            }
+            else
+            {
+                var mainhand_defenseMod = GetWeaponMeleeDefenseModifier(wielder, mainhand);
+                var offhand_defenseMod = GetWeaponMeleeDefenseModifier(wielder, offhand);
+
+                return Math.Max(mainhand_defenseMod, offhand_defenseMod);
+            }
+        }
+
+        private static float GetWeaponMeleeDefenseModifier(Creature wielder, WorldObject weapon)
+        {
             if (weapon == null)
                 return defaultModifier;
 
-            if (wielder.CombatMode != CombatMode.NonCombat)
-            {
-                var defenseMod = (float)(weapon.WeaponDefense ?? defaultModifier) + weapon.EnchantmentManager.GetDefenseMod();
+            var defenseMod = (float)(weapon.WeaponDefense ?? defaultModifier) + weapon.EnchantmentManager.GetDefenseMod();
 
-                if (weapon.IsEnchantable)
-                    defenseMod += wielder.EnchantmentManager.GetDefenseMod();
+            if (weapon.IsEnchantable)
+                defenseMod += wielder.EnchantmentManager.GetDefenseMod();
 
-                return defenseMod;
-            }
-
-            return defaultModifier;
+            return defenseMod;
         }
 
         /// <summary>
@@ -130,22 +151,37 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public static float GetWeaponOffenseModifier(Creature wielder)
         {
-            WorldObject weapon = GetWeapon(wielder as Player);
+            // creatures only receive offense bonus in combat mode
+            if (wielder == null || wielder.CombatMode == CombatMode.NonCombat)
+                return defaultModifier;
 
+            var mainhand = GetWeapon(wielder, true);
+            var offhand = wielder.GetDualWieldWeapon();
+
+            if (offhand == null)
+            {
+                return GetWeaponOffenseModifier(wielder, mainhand);
+            }
+            else
+            {
+                var mainhand_attackMod = GetWeaponOffenseModifier(wielder, mainhand);
+                var offhand_attackMod = GetWeaponOffenseModifier(wielder, offhand);
+
+                return Math.Max(mainhand_attackMod, offhand_attackMod);
+            }
+        }
+
+        private static float GetWeaponOffenseModifier(Creature wielder, WorldObject weapon)
+        {
             if (weapon == null)
                 return defaultModifier;
 
-            if (wielder.CombatMode != CombatMode.NonCombat)
-            {
-                var offenseMod = (float)(weapon.WeaponOffense ?? defaultModifier) + weapon.EnchantmentManager.GetAttackMod();
+            var offenseMod = (float)(weapon.WeaponOffense ?? defaultModifier) + weapon.EnchantmentManager.GetAttackMod();
 
-                if (weapon.IsEnchantable)
-                    offenseMod += wielder.EnchantmentManager.GetAttackMod();
+            if (weapon.IsEnchantable)
+                offenseMod += wielder.EnchantmentManager.GetAttackMod();
 
-                return offenseMod;
-            }
-
-            return defaultModifier;
+            return offenseMod;
         }
 
         /// <summary>
@@ -158,7 +194,27 @@ namespace ACE.Server.WorldObjects
             if (weapon == null)
                 return defaultModifier;
 
-            return defaultModifier + (float)(weapon.ManaConversionMod ?? 0.0f) * wielder.EnchantmentManager.GetManaConvMod();
+            if (wielder.CombatMode != CombatMode.NonCombat)
+            {
+                // hermetic link / void
+
+                // base mod starts at 0
+                var baseMod = (float)(weapon.ManaConversionMod ?? 0.0f);
+
+                // enchantments are multiplicative, so they are only effective if there is a base mod
+                var manaConvMod = weapon.EnchantmentManager.GetManaConvMod();
+
+                var auraManaConvMod = 1.0f;
+
+                if (weapon.IsEnchantable)
+                    auraManaConvMod = wielder?.EnchantmentManager.GetManaConvMod() ?? 1.0f;
+
+                var enchantmentMod = manaConvMod * auraManaConvMod;
+
+                return 1.0f + baseMod * enchantmentMod;
+            }
+
+            return defaultModifier;
         }
 
         private const uint defaultSpeed = 40;   // TODO: find default speed
@@ -194,21 +250,19 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public static float GetWeaponCriticalChance(Creature wielder, CreatureSkill skill, Creature target)
         {
-            WorldObject weapon = GetWeapon(wielder as Player);
+            WorldObject weapon = GetWeapon(wielder);
 
-            if (weapon == null)
-                return defaultPhysicalCritFrequency;
+            var critRate = (float)(weapon?.CriticalFrequency ?? defaultPhysicalCritFrequency);
 
-            var critRate = (float)(weapon.CriticalFrequency ?? defaultPhysicalCritFrequency);
-
-            if (weapon.HasImbuedEffect(ImbuedEffectType.CriticalStrike))
+            if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.CriticalStrike))
             {
                 var criticalStrikeBonus = GetCriticalStrikeMod(skill);
 
                 critRate = Math.Max(critRate, criticalStrikeBonus);
             }
 
-            critRate += wielder.GetCritRating() * 0.01f;
+            if (wielder != null)
+                critRate += wielder.GetCritRating() * 0.01f;
 
             // mitigation
             var critResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritResistRating());
@@ -261,21 +315,19 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public static float GetWeaponCritDamageMod(Creature wielder, CreatureSkill skill, Creature target)
         {
-            WorldObject weapon = GetWeapon(wielder as Player);
+            WorldObject weapon = GetWeapon(wielder);
 
-            if (weapon == null)
-                return defaultCritDamageMultiplier;     // 1.0 would be normal crit damage here
+            var critDamageMod = (float)(weapon?.GetProperty(PropertyFloat.CriticalMultiplier) ?? defaultCritDamageMultiplier);
 
-            var critDamageMod = (float)(weapon.GetProperty(PropertyFloat.CriticalMultiplier) ?? defaultCritDamageMultiplier);
-
-            if (weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
+            if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
             {
                 var cripplingBlowMod = GetCripplingBlowMod(skill);
 
                 critDamageMod = Math.Max(critDamageMod, cripplingBlowMod); 
             }
 
-            critDamageMod += wielder.GetCritDamageRating() * 0.01f;
+            if (wielder != null)
+                critDamageMod += wielder.GetCritDamageRating() * 0.01f;
 
             // mitigation
             var critDamageResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritDamageResistRating());
@@ -312,7 +364,7 @@ namespace ACE.Server.WorldObjects
             if (modifier > 1.0f && wielder is Player && target is Player)
                 modifier = 1.0f + (modifier - 1.0f) * ElementalDamageBonusPvPReduction;
 
-            return (float)(elementalDamageMod + enchantments);
+            return modifier;
         }
 
         /// <summary>
@@ -682,6 +734,50 @@ namespace ACE.Server.WorldObjects
             return armorRendingMod;
         }
 
+        /// <summary>
+        /// Armor Cleaving
+        /// </summary>
+        public double? IgnoreArmor
+        {
+            get => GetProperty(PropertyFloat.IgnoreArmor);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.IgnoreArmor); else SetProperty(PropertyFloat.IgnoreArmor, value.Value); }
+        }
+
+        public float GetArmorCleavingMod(WorldObject weapon)
+        {
+            // investigate: should this value be on creatures directly?
+            var creatureMod = GetArmorCleavingMod();
+            var weaponMod = weapon != null ? weapon.GetArmorCleavingMod() : 1.0f;
+
+            return Math.Min(creatureMod, weaponMod);
+        }
+
+        public float GetArmorCleavingMod()
+        {
+            if (IgnoreArmor == null)
+                return 1.0f;
+
+            // FIXME: data
+            var maxSpellLevel = GetMaxSpellLevel();
+
+            // thanks to moro for this formula
+            return 1.0f - (0.1f + maxSpellLevel * 0.05f);
+        }
+
+        public double? IgnoreShield
+        {
+            get => GetProperty(PropertyFloat.IgnoreShield);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.IgnoreShield); else SetProperty(PropertyFloat.IgnoreShield, value.Value); }
+        }
+
+        public float GetIgnoreShieldMod(WorldObject weapon)
+        {
+            var creatureMod = IgnoreShield ?? 0.0f;
+            var weaponMod = weapon?.IgnoreShield ?? 0.0f;
+
+            return 1.0f - (float)Math.Max(creatureMod, weaponMod);
+        }
+
         public static int GetBaseSkillImbued(CreatureSkill skill)
         {
             switch (GetImbuedSkillType(skill))
@@ -738,6 +834,7 @@ namespace ACE.Server.WorldObjects
 
                 case Skill.WarMagic:
                 case Skill.VoidMagic:
+                case Skill.LifeMagic:   // Martyr's Hecatomb
 
                     return ImbuedSkillType.Magic;
 
@@ -940,7 +1037,8 @@ namespace ACE.Server.WorldObjects
                     else
                         attackType = AttackType.Thrust;
                 }
-                else if (attackType.HasFlag(AttackType.DoubleThrust | AttackType.DoubleSlash))
+                else if (attackType.HasFlag(AttackType.DoubleThrust | AttackType.DoubleSlash) ||
+                    attackType.HasFlag(AttackType.Thrust | AttackType.DoubleSlash))     // FIXME data
                 {
                     if (powerLevel >= ThrustThreshold)
                         attackType = AttackType.DoubleSlash;

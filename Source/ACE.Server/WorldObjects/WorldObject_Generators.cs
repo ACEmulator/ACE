@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Common;
-using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
-using ACE.Server.Factories;
 using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
@@ -25,7 +24,7 @@ namespace ACE.Server.WorldObjects
         /// Returns TRUE if this object is a generator
         /// (spawns other world objects)
         /// </summary>
-        public bool IsGenerator { get => GeneratorProfiles.Count > 0; }
+        public bool IsGenerator { get => GeneratorProfiles != null && GeneratorProfiles.Count > 0; }
        
         //public List<string> History = new List<string>();
 
@@ -42,9 +41,13 @@ namespace ACE.Server.WorldObjects
         public void AddGeneratorProfiles()
         {
             GeneratorProfiles = new List<GeneratorProfile>();
+            uint i = 0;
 
-            foreach (var generator in Biota.BiotaPropertiesGenerator)
-                GeneratorProfiles.Add(new GeneratorProfile(this, generator));
+            if (Biota.PropertiesGenerator != null)
+            {
+                foreach (var generator in Biota.PropertiesGenerator)
+                    GeneratorProfiles.Add(new GeneratorProfile(this, generator, i++));
+            }
         }
 
         /// <summary>
@@ -235,8 +238,12 @@ namespace ACE.Server.WorldObjects
                 var probability = profile.Biota.Probability;
 
                 if (probability == -1)
-                    continue;
+                {
+                    if (!profile.MaxObjectsSpawned)
+                        return 1.0f;
 
+                    continue;
+                }
                 if (!profile.MaxObjectsSpawned)
                 {
                     if (lastProbability > probability)
@@ -293,6 +300,7 @@ namespace ACE.Server.WorldObjects
 
             for (var i = 0; i <= index; i++)
             {
+                profile = GeneratorProfiles[i];
                 var probability = profile.Biota.Probability;
 
                 if (probability == -1)
@@ -430,8 +438,8 @@ namespace ACE.Server.WorldObjects
             {
                 if (CurrentCreate >= InitCreate)
                 {
-                    if (CurrentCreate > InitCreate)
-                        log.Debug($"{WeenieClassId} - 0x{Guid}:{Name}.StopConditionsInit(): CurrentCreate({CurrentCreate}) > InitCreate({InitCreate})");
+                    //if (CurrentCreate > InitCreate)
+                        //log.Debug($"{WeenieClassId} - 0x{Guid}:{Name}.StopConditionsInit(): CurrentCreate({CurrentCreate}) > InitCreate({InitCreate})");
 
                     return true;
                 }
@@ -448,8 +456,8 @@ namespace ACE.Server.WorldObjects
             {
                 if (CurrentCreate >= MaxCreate && MaxCreate != 0)
                 {
-                    if (CurrentCreate > MaxCreate && MaxCreate != 0)
-                        log.Debug($"{WeenieClassId} - 0x{Guid}:{Name}.StopConditionsMax(): CurrentCreate({CurrentCreate}) > MaxCreate({MaxCreate})");
+                    //if (CurrentCreate > MaxCreate && MaxCreate != 0)
+                        //log.Debug($"{WeenieClassId} - 0x{Guid}:{Name}.StopConditionsMax(): CurrentCreate({CurrentCreate}) > MaxCreate({MaxCreate})");
 
                     return true;
                 }
@@ -701,9 +709,9 @@ namespace ACE.Server.WorldObjects
                     removeQueueTotal += generator.RemoveQueue.Count;
                 }
 
-                if (Generator.GeneratorId.HasValue && Generator.GeneratorId > 0) // Generator is controlled by another generator.
+                if (Generator.GeneratorId > 0) // Generator is controlled by another generator.
                 {
-                    if (Generator is GenericObject && Generator.Visibility && Generator.InitCreate > 0 && (Generator.CurrentCreate - removeQueueTotal) == 0) // Parent generator is basic generator, not visible to players
+                    if (!(Generator is Container) && Generator.InitCreate > 0 && (Generator.CurrentCreate - removeQueueTotal) == 0) // Parent generator is non-container (Container, Corpse, Chest, Slumlord, Storage, Hook, Creature) generator
                         Generator.Destroy(); // Generator's complete spawn count has been wiped out
                 }
             }
@@ -727,7 +735,7 @@ namespace ACE.Server.WorldObjects
 
             foreach (var link in LinkedInstances)
             {
-                var profile = new BiotaPropertiesGenerator();
+                var profile = new PropertiesGenerator();
                 profile.WeenieClassId = link.WeenieClassId;
                 profile.ObjCellId = link.ObjCellId;
                 profile.OriginX = link.OriginX;
@@ -744,7 +752,7 @@ namespace ACE.Server.WorldObjects
                 profile.WhenCreate = profileTemplate.Biota.WhenCreate;
                 profile.WhereCreate = profileTemplate.Biota.WhereCreate;
 
-                GeneratorProfiles.Add(new GeneratorProfile(this, profile));
+                GeneratorProfiles.Add(new GeneratorProfile(this, profile, link.Guid));
                 if (profile.Probability == -1)
                 {
                     InitCreate += profile.InitCreate;

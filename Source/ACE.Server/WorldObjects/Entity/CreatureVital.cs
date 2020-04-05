@@ -1,10 +1,10 @@
 using System;
-using System.Linq;
 
 using ACE.Common.Extensions;
-using ACE.Database.Models.Shard;
+using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects.Entity
@@ -12,27 +12,24 @@ namespace ACE.Server.WorldObjects.Entity
     public class CreatureVital
     {
         private readonly Creature creature;
-        //public readonly Ability Ability;
-        //public readonly PropertyAttribute Attribute;
+
         public readonly PropertyAttribute2nd Vital;
 
-        // This is the underlying database record
-        private readonly BiotaPropertiesAttribute2nd biotaPropertiesAttribute2nd;
+        // the underlying database record
+        private readonly PropertiesAttribute2nd propertiesAttribute2nd;
 
         /// <summary>
-        /// If the creatures biota does not contain this vital, a new record will be created.
+        /// If the creature's biota does not contain this vital, a new record will be created.
         /// </summary>
         public CreatureVital(Creature creature, PropertyAttribute2nd vital)
         {
             this.creature = creature;
             Vital = vital;
 
-            biotaPropertiesAttribute2nd = creature.Biota.BiotaPropertiesAttribute2nd.FirstOrDefault(x => x.Type == (uint)Vital);
-
-            if (biotaPropertiesAttribute2nd == null)
+            if (!creature.Biota.PropertiesAttribute2nd.TryGetValue(vital, out propertiesAttribute2nd))
             {
-                biotaPropertiesAttribute2nd = new BiotaPropertiesAttribute2nd { ObjectId = creature.Biota.Id, Type = (ushort)Vital };
-                creature.Biota.BiotaPropertiesAttribute2nd.Add(biotaPropertiesAttribute2nd);
+                propertiesAttribute2nd = new PropertiesAttribute2nd();
+                creature.Biota.PropertiesAttribute2nd[vital] = propertiesAttribute2nd;
             }
 
             switch (Vital)
@@ -49,29 +46,60 @@ namespace ACE.Server.WorldObjects.Entity
             }
         }
 
+        public uint StartingValue
+        {
+            get => propertiesAttribute2nd.InitLevel;
+            set => propertiesAttribute2nd.InitLevel = value;
+        }
+
         /// <summary>
-        /// Total Experience Spent on an attribute
+        /// Total Experience Spent on this vital
         /// </summary>
         public uint ExperienceSpent
         {
-            get => biotaPropertiesAttribute2nd.CPSpent;
-            set => biotaPropertiesAttribute2nd.CPSpent = value;
-        }
-
-        public uint StartingValue
-        {
-            get => biotaPropertiesAttribute2nd.InitLevel;
-            set => biotaPropertiesAttribute2nd.InitLevel = value;
-        }
-
-        public uint Ranks
-        {
-            get => biotaPropertiesAttribute2nd.LevelFromCP;
-            set => biotaPropertiesAttribute2nd.LevelFromCP = value;
+            get => propertiesAttribute2nd.CPSpent;
+            set => propertiesAttribute2nd.CPSpent = value;
         }
 
         /// <summary>
-        /// Returns the adjusted Value depending on the current attribute formula
+        /// Returns the amount of vital experience remaining
+        /// until max rank is reached
+        /// </summary>
+        public uint ExperienceLeft
+        {
+            get
+            {
+                var vitalXPTable = DatManager.PortalDat.XpTable.VitalXpList;
+
+                return vitalXPTable[vitalXPTable.Count - 1] - ExperienceSpent;
+            }
+        }
+
+        /// <summary>
+        /// The number of levels a vital has been raised,
+        /// derived from ExperienceSpent
+        /// </summary>
+        public uint Ranks
+        {
+            get => propertiesAttribute2nd.LevelFromCP;
+            set => propertiesAttribute2nd.LevelFromCP = value;
+        }
+
+        /// <summary>
+        /// Returns TRUE if this vital has been raised the maximum # of times
+        /// </summary>
+        public bool IsMaxRank
+        {
+            get
+            {
+                var vitalXPTable = DatManager.PortalDat.XpTable.VitalXpList;
+
+                return Ranks >= (vitalXPTable.Count - 1);
+            }
+        }
+
+        /// <summary>
+        /// Returns the adjusted Value depending on the base attribute formula
         /// </summary>
         public uint Base
         {
@@ -85,8 +113,8 @@ namespace ACE.Server.WorldObjects.Entity
 
         public uint Current
         {
-            get => biotaPropertiesAttribute2nd.CurrentLevel;
-            set => biotaPropertiesAttribute2nd.CurrentLevel = value;
+            get => propertiesAttribute2nd.CurrentLevel;
+            set => propertiesAttribute2nd.CurrentLevel = value;
         }
 
         public uint MaxValue
@@ -102,16 +130,21 @@ namespace ACE.Server.WorldObjects.Entity
 
                 var fTotal = total * multiplier;
 
+                var additives = 0.0f;
+
                 if (creature is Player player)
                 {
                     var vitae = player.Vitae;
 
                     if (vitae != 1.0f)
                         fTotal *= vitae;
+
+                    // everything beyond this point does not get scaled by vitae
+                    if (Vital == PropertyAttribute2nd.MaxHealth)
+                        additives += player.Enlightenment * 2;
                 }
 
-                // then additives
-                var additives = creature.EnchantmentManager.GetVitalMod_Additives(this);
+                additives += creature.EnchantmentManager.GetVitalMod_Additives(this);
 
                 total = (uint)(fTotal + additives).Round();
 
@@ -120,6 +153,8 @@ namespace ACE.Server.WorldObjects.Entity
         }
 
         public uint Missing => MaxValue - Current;
+
+        public float Percent => (float)Current / MaxValue;
 
         public ModifierType ModifierType
         {

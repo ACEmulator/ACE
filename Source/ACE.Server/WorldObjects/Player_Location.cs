@@ -5,16 +5,14 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Managers;
@@ -55,7 +53,7 @@ namespace ACE.Server.WorldObjects
 
         public bool TooBusyToRecall
         {
-            get => IsBusy || Teleporting;
+            get => IsBusy || Teleporting || suicideInProgress;
         }
 
         public void HandleActionTeleToHouse()
@@ -595,6 +593,7 @@ namespace ACE.Server.WorldObjects
 
             Teleporting = true;
             LastTeleportTime = DateTime.UtcNow;
+            LastTeleportStartTimestamp = Time.GetUnixTime();
 
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
 
@@ -615,13 +614,15 @@ namespace ACE.Server.WorldObjects
             if (UnderLifestoneProtection)
                 LifestoneProtectionDispel();
 
-            UpdatePlayerPhysics(new Position(newPosition), true);
+            HandlePreTeleportVisibility(newPosition);
+
+            UpdatePlayerPosition(new Position(newPosition), true);
         }
 
         public void DoPreTeleportHide()
         {
             if (Teleporting) return;
-            PlayParticleEffect(ACE.Entity.Enum.PlayScript.Hide, Guid);
+            PlayParticleEffect(PlayScript.Hide, Guid);
         }
 
         public void DoTeleportPhysicsStateChanges()
@@ -669,7 +670,7 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcastPhysicsState();
         }
 
-        public void SendTeleportedViaMagicMessage(WorldObject itemCaster, Server.Entity.Spell spell)
+        public void SendTeleportedViaMagicMessage(WorldObject itemCaster, Spell spell)
         {
             if (itemCaster == null)
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been teleported.", ChatMessageType.Magic));
@@ -745,27 +746,27 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public static void HandleNoLogLandblock(Biota biota)
         {
-            if (biota.WeenieType == (int)WeenieType.Sentinel || biota.WeenieType == (int)WeenieType.Admin) return;
+            if (biota.WeenieType == WeenieType.Sentinel || biota.WeenieType == WeenieType.Admin) return;
 
-            var location = biota.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (ushort)PositionType.Location);
-            if (location == null) return;
+            if (!biota.PropertiesPosition.TryGetValue(PositionType.Location, out var location))
+                return;
 
             var landblock = (ushort)(location.ObjCellId >> 16);
 
             if (!NoLog_Landblocks.Contains(landblock))
                 return;
 
-            var lifestone = biota.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (ushort)PositionType.Sanctuary);
-            if (lifestone == null) return;
+            if (!biota.PropertiesPosition.TryGetValue(PositionType.Sanctuary, out var lifestone))
+                return;
 
             location.ObjCellId = lifestone.ObjCellId;
-            location.OriginX = lifestone.OriginX;
-            location.OriginY = lifestone.OriginY;
-            location.OriginZ = lifestone.OriginZ;
-            location.AnglesX = lifestone.AnglesX;
-            location.AnglesY = lifestone.AnglesY;
-            location.AnglesZ = lifestone.AnglesZ;
-            location.AnglesW = lifestone.AnglesW;
+            location.PositionX = lifestone.PositionX;
+            location.PositionY = lifestone.PositionY;
+            location.PositionZ = lifestone.PositionZ;
+            location.RotationX = lifestone.RotationX;
+            location.RotationY = lifestone.RotationY;
+            location.RotationZ = lifestone.RotationZ;
+            location.RotationW = lifestone.RotationW;
         }
     }
 }

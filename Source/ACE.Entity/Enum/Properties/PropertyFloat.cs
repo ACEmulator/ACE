@@ -69,6 +69,7 @@ namespace ACE.Entity.Enum.Properties
         ReleasedTimestamp              = 56,
         MinHomeRadius                  = 57,
         Facing                         = 58,
+        [Ephemeral]
         ResetTimestamp                 = 59,
         LogoffTimestamp                = 60,
         EconRecoveryInterval           = 61,
@@ -147,6 +148,7 @@ namespace ACE.Entity.Enum.Properties
         TradeTimestamp                 = 129,
         AiTargetedDetectionRadius      = 130,
         EmotePriority                  = 131,
+        [Ephemeral]
         LastTeleportStartTimestamp     = 132,
         EventSpamTimestamp             = 133,
         EventSpamRate                  = 134,
@@ -157,6 +159,7 @@ namespace ACE.Entity.Enum.Properties
         AllegianceInfoSpamTimestamp    = 139,
         AllegianceInfoSpamRate         = 140,
         NextSpellcastTimestamp         = 141,
+        [Ephemeral]
         AppraisalRequestedTimestamp    = 142,
         AppraisalHeartbeatDueTimestamp = 143,
         ManaConversionMod              = 144,
