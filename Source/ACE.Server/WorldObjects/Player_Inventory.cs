@@ -2891,7 +2891,7 @@ namespace ACE.Server.WorldObjects
 
         public void AuditEquippedItems()
         {
-            // fixes any invisible where CurrentWieldedLocation is None
+            // fixes any 'invisible' equipped items, where CurrentWieldedLocation is None
             // not sure how items could have gotten into this state, possibly from legacy bugs
 
             var dequipItems = EquippedObjects.Values.Where(i => i.CurrentWieldedLocation == EquipMask.None);
