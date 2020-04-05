@@ -545,9 +545,11 @@ namespace ACE.Database.Adapter
 
             if (biota.PropertiesAnimPart != null)
             {
-                foreach (var value in biota.PropertiesAnimPart)
+                for (int i = 0; i < biota.PropertiesAnimPart.Count; i++)
                 {
-                    var entity = new BiotaPropertiesAnimPart { ObjectId = biota.Id, Index = value.Index, AnimationId = value.AnimationId, Order = (byte)biota.PropertiesAnimPart.IndexOf(value) };
+                    var value = biota.PropertiesAnimPart[i];
+
+                    var entity = new BiotaPropertiesAnimPart { ObjectId = biota.Id, Index = value.Index, AnimationId = value.AnimationId, Order = (byte)i };
 
                     result.BiotaPropertiesAnimPart.Add(entity);
                 }
@@ -565,9 +567,11 @@ namespace ACE.Database.Adapter
 
             if (biota.PropertiesTextureMap != null)
             {
-                foreach (var value in biota.PropertiesTextureMap)
+                for (int i = 0; i < biota.PropertiesTextureMap.Count ; i++)
                 {
-                    var entity = new BiotaPropertiesTextureMap { ObjectId = biota.Id, Index = value.PartIndex, OldId = value.OldTexture, NewId = value.NewTexture, Order = (byte)biota.PropertiesTextureMap.IndexOf(value) };
+                    var value = biota.PropertiesTextureMap[i];
+
+                    var entity = new BiotaPropertiesTextureMap { ObjectId = biota.Id, Index = value.PartIndex, OldId = value.OldTexture, NewId = value.NewTexture, Order = (byte)i };
 
                     result.BiotaPropertiesTextureMap.Add(entity);
                 }
