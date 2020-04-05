@@ -50,7 +50,11 @@ namespace ACE.Server.Command
                 }
             }
 
-            if (Program.IsRunningInContainer && NonInteractiveConsole) return;
+            if (NonInteractiveConsole)
+            {
+                log.Info("ACEmulator command prompt disabled - Environment.GetEnvironmentVariable(ACE_NONINTERACTIVE_CONSOLE) was true");
+                return;
+            }
 
             var thread = new Thread(new ThreadStart(CommandThread));
             thread.Name = "Command Manager";

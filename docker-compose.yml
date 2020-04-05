@@ -7,9 +7,9 @@ services:
     env_file:
       - docker.env
     volumes:
-      - C:\ACE\db-data:/var/lib/mysql
+      - ./db-data:/var/lib/mysql
     ports:
-      - "3306:3306"
+      - "3306:3306/tcp"
     restart: unless-stopped
     healthcheck:
         test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
@@ -23,10 +23,10 @@ services:
     env_file:
       - docker.env
     volumes:
-      - C:\ACE\Config:/ace/Config
-      - C:\ACE\Content:/ace/Content
-      - C:\ACE\Dats:/ace/Dats
-      - C:\ACE\Logs:/ace/Logs
+      - ./Config:/ace/Config
+      - ./Content:/ace/Content
+      - ./Dats:/ace/Dats
+      - ./Logs:/ace/Logs
     ports:
       - "9000-9001:9000-9001/udp"
     #restart: unless-stopped
