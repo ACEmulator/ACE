@@ -281,19 +281,21 @@ namespace ACE.Server.WorldObjects
         public void EquipInventoryItems(bool weaponsOnly = false)
         {
             var items = weaponsOnly ? SelectWieldedWeapons() : SelectWieldedTreasure();
-            if (items != null)
-            {
-                foreach (var item in items)
-                {
-                    //Console.WriteLine($"{Name} equipping {item.Name}");
 
-                    if (item.ValidLocations != null)
-                    {
-                        TryRemoveFromInventory(item.Guid);
-                        var result = TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0);
-                        //Console.WriteLine($"{Name} tried to equip {item.Name}, result={result}");
-                    }
-                }
+            if (items == null) return;
+
+            foreach (var item in items)
+            {
+                if (item.ValidLocations == null)
+                    continue;
+
+                //Console.WriteLine($"{Name} equipping {item.Name}");
+
+                if (!TryRemoveFromInventory(item.Guid))
+                    continue;
+
+                if (!TryWieldObject(item, item.ValidLocations ?? 0))
+                    TryAddToInventory(item);
             }
         }
     }
