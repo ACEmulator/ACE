@@ -8,7 +8,7 @@ namespace ACE.Server.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             uint bookGuid = message.Payload.ReadUInt32();
-            uint page = message.Payload.ReadUInt32();    // 0-based
+            int page = message.Payload.ReadInt32();    // 0-based
 
             //Console.WriteLine($"0xAD - BookDeletePage({bookGuid:X8}, {page + 1})");
 

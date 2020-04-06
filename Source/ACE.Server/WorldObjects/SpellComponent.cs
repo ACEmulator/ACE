@@ -6,8 +6,6 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Models;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class SpellComponent : Stackable

@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
 
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
@@ -20,25 +21,25 @@ namespace ACE.Server.WorldObjects
             if (Skills.TryGetValue(skill, out var value))
                 return value;
 
-            BiotaPropertiesSkill biotaPropertiesSkill = null;
+            PropertiesSkill propertiesSkill;
             if (add)
             {
-                biotaPropertiesSkill = Biota.GetOrAddSkill((ushort)skill, BiotaDatabaseLock, out var skillAdded);
+                propertiesSkill = Biota.GetOrAddSkill(skill, BiotaDatabaseLock, out var skillAdded);
 
                 if (skillAdded)
                 {
-                    biotaPropertiesSkill.SAC = (uint)SkillAdvancementClass.Untrained;
+                    propertiesSkill.SAC = SkillAdvancementClass.Untrained;
                     ChangesDetected = true;
                 }
 
-                Skills[skill] = new CreatureSkill(this, biotaPropertiesSkill);
+                Skills[skill] = new CreatureSkill(this, skill, propertiesSkill);
             }
             else
             {
-                biotaPropertiesSkill = Biota.GetSkill((ushort)skill, BiotaDatabaseLock);
+                propertiesSkill = Biota.GetSkill(skill, BiotaDatabaseLock);
 
-                if (biotaPropertiesSkill != null)
-                    Skills[skill] = new CreatureSkill(this, biotaPropertiesSkill);
+                if (propertiesSkill != null)
+                    Skills[skill] = new CreatureSkill(this, skill, propertiesSkill);
                 else
                     return null;
             }

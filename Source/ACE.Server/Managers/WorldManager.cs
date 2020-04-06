@@ -9,8 +9,8 @@ using ACE.Common;
 using ACE.Common.Performance;
 using ACE.Database;
 using ACE.Database.Entity;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
@@ -21,6 +21,7 @@ using ACE.Server.Network.Managers;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
 
+using Character = ACE.Database.Models.Shard.Character;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Managers
@@ -120,36 +121,36 @@ namespace ACE.Server.Managers
             {
                 if (session.AccessLevel <= AccessLevel.Advocate) // check for elevated characters
                 {
-                    if (playerBiota.WeenieType == (int)WeenieType.Admin || playerBiota.WeenieType == (int)WeenieType.Sentinel) // Downgrade weenie
+                    if (playerBiota.WeenieType == WeenieType.Admin || playerBiota.WeenieType == WeenieType.Sentinel) // Downgrade weenie
                     {
                         character.IsPlussed = false;
-                        playerBiota.WeenieType = (int)WeenieType.Creature;
+                        playerBiota.WeenieType = WeenieType.Creature;
                         stripAdminProperties = true;
                     }
                 }
                 else if (session.AccessLevel >= AccessLevel.Sentinel && session.AccessLevel <= AccessLevel.Envoy)
                 {
-                    if (playerBiota.WeenieType == (int)WeenieType.Creature || playerBiota.WeenieType == (int)WeenieType.Admin) // Up/downgrade weenie
+                    if (playerBiota.WeenieType == WeenieType.Creature || playerBiota.WeenieType == WeenieType.Admin) // Up/downgrade weenie
                     {
                         character.IsPlussed = true;
-                        playerBiota.WeenieType = (int)WeenieType.Sentinel;
+                        playerBiota.WeenieType = WeenieType.Sentinel;
                         addSentinelProperties = true;
                     }
                 }
                 else // Developers and Admins
                 {
-                    if (playerBiota.WeenieType == (int)WeenieType.Creature || playerBiota.WeenieType == (int)WeenieType.Sentinel) // Up/downgrade weenie
+                    if (playerBiota.WeenieType == WeenieType.Creature || playerBiota.WeenieType == WeenieType.Sentinel) // Up/downgrade weenie
                     {
                         character.IsPlussed = true;
-                        playerBiota.WeenieType = (int)WeenieType.Admin;
+                        playerBiota.WeenieType = WeenieType.Admin;
                         addAdminProperties = true;
                     }
                 }
             }
 
-            if (playerBiota.WeenieType == (int)WeenieType.Admin)
+            if (playerBiota.WeenieType == WeenieType.Admin)
                 player = new Admin(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
-            else if (playerBiota.WeenieType == (int)WeenieType.Sentinel)
+            else if (playerBiota.WeenieType == WeenieType.Sentinel)
                 player = new Sentinel(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
             else
                 player = new Player(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);

@@ -1,11 +1,12 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Threading;
+
 using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects

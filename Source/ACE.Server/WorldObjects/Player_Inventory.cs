@@ -7,6 +7,7 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
@@ -276,15 +277,15 @@ namespace ACE.Server.WorldObjects
                     return true;
                 }
 
-                foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
+                foreach (var spell in item.Biota.GetKnownSpellsIds(BiotaDatabaseLock))
                 {
-                    if (item.HasProcSpell((uint)spell.Spell))
+                    if (item.HasProcSpell((uint)spell))
                         continue;
 
-                    if (spell.Spell == item.SpellDID)
+                    if (spell == item.SpellDID)
                         continue;
 
-                    var enchantmentStatus = CreateItemSpell(item, (uint)spell.Spell);
+                    var enchantmentStatus = CreateItemSpell(item, (uint)spell);
                     if (enchantmentStatus.Success)
                         item.IsAffecting = true;
                 }
@@ -2460,7 +2461,7 @@ namespace ACE.Server.WorldObjects
 
             if (target.HasGiveOrRefuseEmoteForItem(item, out var emoteResult) || acceptAll)
             {
-                if (acceptAll || emoteResult.Category == (uint)EmoteCategory.Give)
+                if (acceptAll || emoteResult.Category == EmoteCategory.Give)
                 {
                     var isStackable = item is Stackable;
 
@@ -2500,7 +2501,7 @@ namespace ACE.Server.WorldObjects
                         }
                     }
                 }
-                else if (emoteResult.Category == (uint)EmoteCategory.Refuse)
+                else if (emoteResult.Category == EmoteCategory.Refuse)
                 {
                     // Item rejected by npc
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"You allow {target.Name} to examine your {item.NameWithMaterial}.", ChatMessageType.Broadcast));
@@ -2886,6 +2887,20 @@ namespace ACE.Server.WorldObjects
                 }
             }
             return true;
+        }
+
+        public void AuditEquippedItems()
+        {
+            // fixes any 'invisible' equipped items, where CurrentWieldedLocation is None
+            // not sure how items could have gotten into this state, possibly from legacy bugs
+
+            var dequipItems = EquippedObjects.Values.Where(i => i.CurrentWieldedLocation == EquipMask.None);
+
+            foreach (var dequipItem in dequipItems)
+            {
+                log.Warn($"{Name}.AuditEquippedItems() - dequipping {dequipItem.Name} ({dequipItem.Guid})");
+                HandleActionPutItemInContainer(dequipItem.Guid.Full, Guid.Full);
+            }
         }
     }
 }

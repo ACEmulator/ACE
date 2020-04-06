@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using log4net;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Factories;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects;
@@ -31,7 +31,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The biota with all the generator profile info
         /// </summary>
-        public BiotaPropertiesGenerator Biota;
+        public PropertiesGenerator Biota;
 
         /// <summary>
         /// A list of objects that have been spawned by this generator
@@ -129,7 +129,7 @@ namespace ACE.Server.Entity
         /// Constructs a new active generator profile
         /// from a biota generator
         /// </summary>
-        public GeneratorProfile(WorldObject generator, BiotaPropertiesGenerator biota, uint profileId)
+        public GeneratorProfile(WorldObject generator, PropertiesGenerator biota, uint profileId)
         {
             Generator = generator;
             Biota = biota;

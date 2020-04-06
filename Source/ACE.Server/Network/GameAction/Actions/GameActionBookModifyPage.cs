@@ -9,7 +9,7 @@ namespace ACE.Server.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             var bookGuid = message.Payload.ReadUInt32();
-            var page = message.Payload.ReadUInt32();    // 0-based
+            var page = message.Payload.ReadInt32();    // 0-based
             var text = message.Payload.ReadString16L();
 
             //Console.WriteLine($"0xAB - BookModifyPage({bookGuid:X8}, {page + 1}, {text})");

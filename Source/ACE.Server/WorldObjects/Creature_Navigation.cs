@@ -230,6 +230,7 @@ namespace ACE.Server.WorldObjects
             {
                 var targetDir = position.GetCurrentDir();
                 Location.Rotate(targetDir);
+                PhysicsObj.Position.Frame.Orientation = Location.Rotation;
             });
             actionChain.EnqueueChain();
 
