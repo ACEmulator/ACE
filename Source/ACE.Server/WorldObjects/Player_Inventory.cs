@@ -2888,5 +2888,19 @@ namespace ACE.Server.WorldObjects
             }
             return true;
         }
+
+        public void AuditEquippedItems()
+        {
+            // fixes any 'invisible' equipped items, where CurrentWieldedLocation is None
+            // not sure how items could have gotten into this state, possibly from legacy bugs
+
+            var dequipItems = EquippedObjects.Values.Where(i => i.CurrentWieldedLocation == EquipMask.None);
+
+            foreach (var dequipItem in dequipItems)
+            {
+                log.Warn($"{Name}.AuditEquippedItems() - dequipping {dequipItem.Name} ({dequipItem.Guid})");
+                HandleActionPutItemInContainer(dequipItem.Guid.Full, Guid.Full);
+            }
+        }
     }
 }

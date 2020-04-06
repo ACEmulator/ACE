@@ -192,7 +192,7 @@ namespace ACE.Entity.Models
         // Bool, DID, Float, IID, Int, Int64, String, Position
         // =====================================
 
-        public static void SetProperty(this Biota biota, PropertyBool property, bool value, ReaderWriterLockSlim rwLock)
+        public static void SetProperty(this Biota biota, PropertyBool property, bool value, ReaderWriterLockSlim rwLock, out bool changed)
         {
             rwLock.EnterWriteLock();
             try
@@ -200,7 +200,10 @@ namespace ACE.Entity.Models
                 if (biota.PropertiesBool == null)
                     biota.PropertiesBool = new Dictionary<PropertyBool, bool>();
 
-                biota.PropertiesBool[property] = value;
+                changed = (!biota.PropertiesBool.TryGetValue(property, out var existing) || value != existing);
+
+                if (changed)
+                    biota.PropertiesBool[property] = value;
             }
             finally
             {
@@ -208,7 +211,7 @@ namespace ACE.Entity.Models
             }
         }
 
-        public static void SetProperty(this Biota biota, PropertyDataId property, uint value, ReaderWriterLockSlim rwLock)
+        public static void SetProperty(this Biota biota, PropertyDataId property, uint value, ReaderWriterLockSlim rwLock, out bool changed)
         {
             rwLock.EnterWriteLock();
             try
@@ -216,7 +219,10 @@ namespace ACE.Entity.Models
                 if (biota.PropertiesDID == null)
                     biota.PropertiesDID = new Dictionary<PropertyDataId, uint>();
 
-                biota.PropertiesDID[property] = value;
+                changed = (!biota.PropertiesDID.TryGetValue(property, out var existing) || value != existing);
+
+                if (changed)
+                    biota.PropertiesDID[property] = value;
             }
             finally
             {
@@ -224,7 +230,7 @@ namespace ACE.Entity.Models
             }
         }
 
-        public static void SetProperty(this Biota biota, PropertyFloat property, double value, ReaderWriterLockSlim rwLock)
+        public static void SetProperty(this Biota biota, PropertyFloat property, double value, ReaderWriterLockSlim rwLock, out bool changed)
         {
             rwLock.EnterWriteLock();
             try
@@ -232,7 +238,10 @@ namespace ACE.Entity.Models
                 if (biota.PropertiesFloat == null)
                     biota.PropertiesFloat = new Dictionary<PropertyFloat, double>();
 
-                biota.PropertiesFloat[property] = value;
+                changed = (!biota.PropertiesFloat.TryGetValue(property, out var existing) || value != existing);
+
+                if (changed)
+                    biota.PropertiesFloat[property] = value;
             }
             finally
             {
@@ -240,7 +249,7 @@ namespace ACE.Entity.Models
             }
         }
 
-        public static void SetProperty(this Biota biota, PropertyInstanceId property, uint value, ReaderWriterLockSlim rwLock)
+        public static void SetProperty(this Biota biota, PropertyInstanceId property, uint value, ReaderWriterLockSlim rwLock, out bool changed)
         {
             rwLock.EnterWriteLock();
             try
@@ -248,7 +257,10 @@ namespace ACE.Entity.Models
                 if (biota.PropertiesIID == null)
                     biota.PropertiesIID = new Dictionary<PropertyInstanceId, uint>();
 
-                biota.PropertiesIID[property] = value;
+                changed = (!biota.PropertiesIID.TryGetValue(property, out var existing) || value != existing);
+
+                if (changed)
+                    biota.PropertiesIID[property] = value;
             }
             finally
             {
@@ -256,7 +268,7 @@ namespace ACE.Entity.Models
             }
         }
 
-        public static void SetProperty(this Biota biota, PropertyInt property, int value, ReaderWriterLockSlim rwLock)
+        public static void SetProperty(this Biota biota, PropertyInt property, int value, ReaderWriterLockSlim rwLock, out bool changed)
         {
             rwLock.EnterWriteLock();
             try
@@ -264,7 +276,10 @@ namespace ACE.Entity.Models
                 if (biota.PropertiesInt == null)
                     biota.PropertiesInt = new Dictionary<PropertyInt, int>();
 
-                biota.PropertiesInt[property] = value;
+                changed = (!biota.PropertiesInt.TryGetValue(property, out var existing) || value != existing);
+
+                if (changed)
+                    biota.PropertiesInt[property] = value;
             }
             finally
             {
@@ -272,7 +287,7 @@ namespace ACE.Entity.Models
             }
         }
 
-        public static void SetProperty(this Biota biota, PropertyInt64 property, long value, ReaderWriterLockSlim rwLock)
+        public static void SetProperty(this Biota biota, PropertyInt64 property, long value, ReaderWriterLockSlim rwLock, out bool changed)
         {
             rwLock.EnterWriteLock();
             try
@@ -280,7 +295,10 @@ namespace ACE.Entity.Models
                 if (biota.PropertiesInt64 == null)
                     biota.PropertiesInt64 = new Dictionary<PropertyInt64, long>();
 
-                biota.PropertiesInt64[property] = value;
+                changed = (!biota.PropertiesInt64.TryGetValue(property, out var existing) || value != existing);
+
+                if (changed)
+                    biota.PropertiesInt64[property] = value;
             }
             finally
             {
@@ -288,7 +306,7 @@ namespace ACE.Entity.Models
             }
         }
 
-        public static void SetProperty(this Biota biota, PropertyString property, string value, ReaderWriterLockSlim rwLock)
+        public static void SetProperty(this Biota biota, PropertyString property, string value, ReaderWriterLockSlim rwLock, out bool changed)
         {
             rwLock.EnterWriteLock();
             try
@@ -296,7 +314,10 @@ namespace ACE.Entity.Models
                 if (biota.PropertiesString == null)
                     biota.PropertiesString = new Dictionary<PropertyString, string>();
 
-                biota.PropertiesString[property] = value;
+                changed = (!biota.PropertiesString.TryGetValue(property, out var existing) || value != existing);
+
+                if (changed)
+                    biota.PropertiesString[property] = value;
             }
             finally
             {

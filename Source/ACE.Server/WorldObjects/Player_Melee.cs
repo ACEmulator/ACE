@@ -182,7 +182,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void OnAttackDone()
+        public void OnAttackDone(WeenieError error = WeenieError.None)
         {
             // this function is called at the very end of an attack sequence,
             // and not between the repeat attacks
@@ -206,7 +206,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// called when client sends the 'Cancel attack' network message
         /// </summary>
-        public void HandleActionCancelAttack()
+        public void HandleActionCancelAttack(WeenieError error = WeenieError.None)
         {
             //Console.WriteLine($"{Name}.HandleActionCancelAttack()");
 

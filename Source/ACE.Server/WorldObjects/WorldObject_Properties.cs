@@ -98,8 +98,10 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                Biota.SetProperty(property, value, BiotaDatabaseLock);
-                ChangesDetected = true;
+                Biota.SetProperty(property, value, BiotaDatabaseLock, out var changed);
+
+                if (changed)
+                    ChangesDetected = true;
             }
         }
         public void SetProperty(PropertyDataId property, uint value)
@@ -112,8 +114,10 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                Biota.SetProperty(property, value, BiotaDatabaseLock);
-                ChangesDetected = true;
+                Biota.SetProperty(property, value, BiotaDatabaseLock, out var changed);
+
+                if (changed)
+                    ChangesDetected = true;
             }
         }
         public void SetProperty(PropertyFloat property, double value)
@@ -126,8 +130,10 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                Biota.SetProperty(property, value, BiotaDatabaseLock);
-                ChangesDetected = true;
+                Biota.SetProperty(property, value, BiotaDatabaseLock, out var changed);
+
+                if (changed)
+                    ChangesDetected = true;
             }
         }
         public void IncProperty(PropertyFloat property, double value)
@@ -145,8 +151,10 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                Biota.SetProperty(property, value, BiotaDatabaseLock);
-                ChangesDetected = true;
+                Biota.SetProperty(property, value, BiotaDatabaseLock, out var changed);
+
+                if (changed)
+                    ChangesDetected = true;
             }
         }
         public void SetProperty(PropertyInt property, int value)
@@ -160,8 +168,10 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                Biota.SetProperty(property, value, BiotaDatabaseLock);
-                ChangesDetected = true;
+                Biota.SetProperty(property, value, BiotaDatabaseLock, out var changed);
+
+                if (changed)
+                    ChangesDetected = true;
             }
         }
         public void SetProperty(PropertyInt64 property, long value)
@@ -174,8 +184,10 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                Biota.SetProperty(property, value, BiotaDatabaseLock);
-                ChangesDetected = true;
+                Biota.SetProperty(property, value, BiotaDatabaseLock, out var changed);
+
+                if (changed)
+                    ChangesDetected = true;
             }
         }
         public void SetProperty(PropertyString property, string value)
@@ -188,8 +200,10 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                Biota.SetProperty(property, value, BiotaDatabaseLock);
-                ChangesDetected = true;
+                Biota.SetProperty(property, value, BiotaDatabaseLock, out var changed);
+
+                if (changed)
+                    ChangesDetected = true;
             }
         }
         #endregion

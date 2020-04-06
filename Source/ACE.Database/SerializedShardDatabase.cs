@@ -4,6 +4,8 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
+using log4net;
+
 using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
@@ -12,6 +14,8 @@ namespace ACE.Database
 {
     public class SerializedShardDatabase
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// This is the base database that SerializedShardDatabase is a wrapper for.
         /// </summary>
@@ -52,9 +56,10 @@ namespace ACE.Database
                         t.Start();
                         t.Wait();
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        // log eventually, perhaps add failure callbacks?
+                        log.Error($"[DATABASE] DoWork task failed with exception: {ex}");
+                        // perhaps add failure callbacks?
                         // swallow for now.  can't block other db work because 1 fails.
                     }
                 }

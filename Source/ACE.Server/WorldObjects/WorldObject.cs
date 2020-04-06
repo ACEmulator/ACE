@@ -41,6 +41,12 @@ namespace ACE.Server.WorldObjects
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
+        /// If this object was created from a weenie (and not a database biota), this is the source.
+        /// You should never manipulate these values. You should only reference these values in extreme cases.
+        /// </summary>
+        public Weenie Weenie { get; }
+
+        /// <summary>
         /// This is object property overrides that should have come from the shard db (or init to defaults of object is new to this instance).
         /// You should not manipulate these values directly. To manipulate this use the exposed SetProperty and RemoveProperty functions instead.
         /// </summary>
@@ -97,7 +103,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected WorldObject(Weenie weenie, ObjectGuid guid)
         {
-            Biota = ACE.Entity.Adapter.WeenieConverter.ConvertToBiota(weenie, guid.Full);
+            Weenie = weenie;
+            Biota = ACE.Entity.Adapter.WeenieConverter.ConvertToBiota(weenie, guid.Full, false, true);
             Guid = guid;
 
             InitializePropertyDictionaries();
@@ -295,6 +302,8 @@ namespace ACE.Server.WorldObjects
 
             var SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);
 
+            SightObj.State |= PhysicsState.Missile;
+
             var startPos = new Physics.Common.Position(PhysicsObj.Position);
             var targetPos = new Physics.Common.Position(wo.PhysicsObj.Position);
 
@@ -330,6 +339,8 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             var SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);
+
+            SightObj.State |= PhysicsState.Missile;
 
             var startPos = new Physics.Common.Position(PhysicsObj.Position);
             var targetPos = new Physics.Common.Position(pos);
@@ -652,8 +663,7 @@ namespace ACE.Server.WorldObjects
             // thrown weapons
             if (ProjectileTarget == null) return;
 
-            var proj = new Projectile(this);
-            proj.OnCollideObject(target);
+            ProjectileCollisionHelper.OnCollideObject(this, target);
         }
 
         public virtual void OnCollideObjectEnd(WorldObject target)
@@ -666,8 +676,7 @@ namespace ACE.Server.WorldObjects
             // thrown weapons
             if (ProjectileTarget == null) return;
 
-            var proj = new Projectile(this);
-            proj.OnCollideEnvironment();
+            ProjectileCollisionHelper.OnCollideEnvironment(this);
         }
 
         public void ApplyVisualEffects(PlayScript effect, float speed = 1)

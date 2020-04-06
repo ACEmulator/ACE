@@ -171,7 +171,7 @@ namespace ACE.Database.Adapter
             }
             foreach (var value in targetBiota.BiotaPropertiesAnimPart)
             {
-                if (sourceBiota.PropertiesAnimPart == null || value.Order >= sourceBiota.PropertiesAnimPart.Count)
+                if (sourceBiota.PropertiesAnimPart == null || value.Order == null || value.Order >= sourceBiota.PropertiesAnimPart.Count)
                     context.BiotaPropertiesAnimPart.Remove(value);
             }
 
@@ -183,7 +183,7 @@ namespace ACE.Database.Adapter
 
                     if (existingValue == null)
                     {
-                        existingValue = new BiotaPropertiesPalette { ObjectId = sourceBiota.Id, SubPaletteId = value.SubPaletteId, Offset =value.Offset, Length = value.Length };
+                        existingValue = new BiotaPropertiesPalette { ObjectId = sourceBiota.Id, SubPaletteId = value.SubPaletteId, Offset = value.Offset, Length = value.Length };
 
                         targetBiota.BiotaPropertiesPalette.Add(existingValue);
                     }
@@ -218,7 +218,7 @@ namespace ACE.Database.Adapter
             }
             foreach (var value in targetBiota.BiotaPropertiesTextureMap)
             {
-                if (sourceBiota.PropertiesTextureMap == null || value.Order >= sourceBiota.PropertiesTextureMap.Count)
+                if (sourceBiota.PropertiesTextureMap == null || value.Order == null || value.Order >= sourceBiota.PropertiesTextureMap.Count)
                     context.BiotaPropertiesTextureMap.Remove(value);
             }
 
