@@ -7,15 +7,17 @@ services:
     env_file:
       - docker.env
     volumes:
-      - /home/ubuntu/ace/db-data:/config
+      - ./db-data:/config
     ports:
-      - "3306:3306"
+      - "3306:3306/tcp"
     restart: unless-stopped
     healthcheck:
         test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
 
   ace-server:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.arm64
     image: acemulator/ace:latest-arm64
     depends_on:
       - ace-db
@@ -23,10 +25,10 @@ services:
     env_file:
       - docker.env
     volumes:
-      - /home/ubuntu/ace/Config:/ace/Config
-      - /home/ubuntu/ace/Content:/ace/Content
-      - /home/ubuntu/ace/Dats:/ace/Dats
-      - /home/ubuntu/ace/Logs:/ace/Logs
+      - ./Config:/ace/Config
+      - ./Content:/ace/Content
+      - ./Dats:/ace/Dats
+      - ./Logs:/ace/Logs
     ports:
       - "9000-9001:9000-9001/udp"
     #restart: unless-stopped
