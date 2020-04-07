@@ -54,20 +54,5 @@ namespace ACE.Entity.Models
                 rwLock.ExitReadLock();
             }
         }
-
-
-        public static void Add(this IList<PropertiesAnimPart> value, IList<PropertiesAnimPart> entries, ReaderWriterLockSlim rwLock)
-        {
-            rwLock.EnterWriteLock();
-            try
-            {
-                foreach (var entry in entries)
-                    value.Add(entry);
-            }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
-        }
     }
 }
