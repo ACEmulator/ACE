@@ -502,6 +502,18 @@ namespace ACE.Server.Physics.Common
                     obj.add_obj_to_cell(cell, position.Frame);
                     add_static_object(obj);
                 }
+
+                if (Info.RestrictionTables != null)
+                {
+                    foreach (var kvp in Info.RestrictionTables)
+                    {
+                        var lcoord = LandDefs.gid_to_lcoord(kvp.Key).Value;
+
+                        var idx = ((int)lcoord.Y & 7) + ((int)lcoord.X & 7) * SideCellCount;
+
+                        LandCells[idx].RestrictionObj = kvp.Value;
+                    }
+                }
             }
             if (UseSceneFiles)
                 get_land_scenes();
