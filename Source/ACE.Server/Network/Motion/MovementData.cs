@@ -128,7 +128,7 @@ namespace ACE.Server.Network.Structure
                 if (rawState.SidestepCommand == MotionCommand.SideStepLeft)
                     interpState.SidestepSpeed *= -1;
 
-                Math.Clamp(interpState.SidestepSpeed, -3, 3);
+                interpState.SidestepSpeed = Math.Clamp(interpState.SidestepSpeed, -3, 3);
             }
 
             // rotate
