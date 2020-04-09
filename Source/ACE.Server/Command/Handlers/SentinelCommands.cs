@@ -266,16 +266,16 @@ namespace ACE.Server.Command.Handlers
 
             if (parameters.Length > 1)
             {
-                var x = "";
+                var parametersAfterBootType = "";
                 for (var i = 1; i < parameters.Length; i++)
                 {
-                    x += parameters[i] + " ";
+                    parametersAfterBootType += parameters[i] + " ";
                 }
-                x=x.Trim();
-                var y = x.Split(",");
-                whomToBoot = y[0].Trim();
-                if (y.Length > 1)
-                    specifiedReason = x.Replace($"{whomToBoot},", "").Trim();
+                parametersAfterBootType = parametersAfterBootType.Trim();
+                var completeBootNamePlusCommaSeperatedReason = parametersAfterBootType.Split(",");
+                whomToBoot = completeBootNamePlusCommaSeperatedReason[0].Trim();
+                if (completeBootNamePlusCommaSeperatedReason.Length > 1)
+                    specifiedReason = parametersAfterBootType.Replace($"{whomToBoot},", "").Trim();
             }
 
             string whatToBoot = null;
