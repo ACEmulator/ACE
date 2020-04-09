@@ -260,10 +260,10 @@ namespace ACE.Server.Entity
                 if (Biota.PaletteId.HasValue && Biota.PaletteId > 0)
                     wo.PaletteBaseId = Biota.PaletteId;
 
-                if (Biota.Shade.HasValue && Biota.Shade >= 0)
+                if (Biota.Shade.HasValue && Biota.Shade > 0)
                     wo.Shade = Biota.Shade;
 
-                if ((Biota.Shade.HasValue && Biota.Shade >= 0) || (Biota.PaletteId.HasValue && Biota.PaletteId > 0))
+                if ((Biota.Shade.HasValue && Biota.Shade > 0) || (Biota.PaletteId.HasValue && Biota.PaletteId > 0))
                     wo.CalculateObjDesc(); // to update icon
 
                 if (Biota.StackSize.HasValue && Biota.StackSize > 0)
