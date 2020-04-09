@@ -66,7 +66,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (healer.FastTick && !healer.PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            if (healer.IsJumping)
             {
                 healer.SendUseDoneEvent(WeenieError.YouCantDoThatWhileInTheAir);
                 return;

@@ -20,6 +20,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
+using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects.Managers;
@@ -42,7 +43,7 @@ namespace ACE.Server.WorldObjects
         public ContractManager ContractManager;
 
         public bool LastContact = true;
-        public bool IsJumping = false;
+        public bool IsJumping => !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable);
 
         public DateTime LastJumpTime;
 
@@ -825,12 +826,9 @@ namespace ACE.Server.WorldObjects
                 jump.Velocity.Z = velocityZ;
             }*/
 
-            IsJumping = true;
             LastJumpTime = DateTime.UtcNow;
 
             UpdateVitalDelta(Stamina, -staminaCost);
-
-            IsJumping = false;
 
             //Console.WriteLine($"Jump velocity: {jump.Velocity}");
 

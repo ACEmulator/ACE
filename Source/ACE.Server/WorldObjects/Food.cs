@@ -50,7 +50,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (player.FastTick && !player.PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            if (player.IsJumping)
             {
                 player.SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
                 return;
