@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -292,7 +293,7 @@ namespace ACE.Server.Command.Handlers
                     break;
                 case "iid":
                     whatToBoot = "instance id";
-                    if (!whomToBoot.StartsWith("0x"))
+                    if (!whomToBoot.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
                     {
                         CommandHandlerHelper.WriteOutputInfo(session, $"That is not a valid Instance ID (IID). IIDs must be between 0x{ObjectGuid.PlayerMin:X8} and 0x{ObjectGuid.PlayerMax:X8}", ChatMessageType.Broadcast);
                         return;
