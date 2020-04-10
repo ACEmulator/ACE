@@ -265,10 +265,19 @@ namespace ACE.Server.WorldObjects
                 if (defenseSkill.AdvancementClass >= SkillAdvancementClass.Trained)
                 {
                     var enduranceBase = Endurance.Base;
+
                     // TODO: find exact formula / where it caps out at 75%
-                    var enduranceCap = 400;
-                    var effective = Math.Min(enduranceBase, enduranceCap);
-                    var noStaminaUseChance = effective / enduranceCap * 0.75f;
+
+                    // more literal / linear formula
+                    //var noStaminaUseChance = (enduranceBase - 50) / 320.0f;
+
+                    // gdle curve-based formula, caps at 300 instead of 290
+                    var noStaminaUseChance = (enduranceBase * enduranceBase * 0.000005f) + (enduranceBase * 0.00124f) - 0.07f;
+
+                    noStaminaUseChance = Math.Clamp(noStaminaUseChance, 0.0f, 0.75f);
+
+                    //Console.WriteLine($"NoStaminaUseChance: {noStaminaUseChance}");
+
                     if (noStaminaUseChance < ThreadSafeRandom.Next(0.0f, 1.0f))
                         UpdateVitalDelta(Stamina, -1);
                 }
