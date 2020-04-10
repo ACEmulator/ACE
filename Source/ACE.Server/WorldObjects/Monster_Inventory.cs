@@ -160,6 +160,7 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.SelectWieldedWeapons()");
 
+            // todo: further optimize to only do 1 iteration
             var meleeWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.MeleeWeapon);
             var missileWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.MissileLauncher);
             var casterWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.Caster);
