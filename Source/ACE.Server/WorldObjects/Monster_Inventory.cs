@@ -183,7 +183,6 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.SelectWieldedWeapons()");
 
-            // todo: further optimize to only do 1 iteration
             var allWeapons = new List<WorldObject>();
             var ammo = new List<WorldObject>();
 
