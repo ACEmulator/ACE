@@ -318,12 +318,9 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                // this seems kind of odd,
-                // but if the player is in non-combat mode,
-                // they don't lose a point of stamina from evades
+                // if the player is in non-combat mode, no stamina is consumed on evade
                 // reference: https://youtu.be/uFoQVgmSggo?t=145
-
-                // is this still true if the defense skill is untrained?
+                // from the dm guide, page 147: "if you are not in Combat mode, you lose no Stamina when an attack is thrown at you"
 
                 //UpdateVitalDelta(Stamina, -1);
             }
@@ -479,12 +476,9 @@ namespace ACE.Server.WorldObjects
             // update stamina
             if (CombatMode != CombatMode.NonCombat)
             {
-                // this seems kind of odd,
-                // but if the player is in non-combat mode,
-                // they don't lose a point of stamina from physical hits
+                // if the player is in non-combat mode, no stamina is consumed on evade
                 // reference: https://youtu.be/uFoQVgmSggo?t=145
-
-                // is this still true if the defense skill is untrained?
+                // from the dm guide, page 147: "if you are not in Combat mode, you lose no Stamina when an attack is thrown at you"
 
                 UpdateVitalDelta(Stamina, -1);
             }
