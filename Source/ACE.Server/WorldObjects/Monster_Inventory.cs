@@ -156,20 +156,38 @@ namespace ACE.Server.WorldObjects
             return ((uint)a.ArmorLevel).CompareTo((uint)b.ArmorLevel);
         }
 
+        public void GetMonsterInventory(List<WorldObject> allWeapons, List<WorldObject> ammo)
+        {
+            // similar to GetInventoryItemsOfTypeWeenieType, optimized for this particular scenario
+            foreach (var item in Inventory.Values)
+            {
+                switch (item.WeenieType)
+                {
+                    case WeenieType.MeleeWeapon:
+                    case WeenieType.MissileLauncher:
+                    case WeenieType.Missile:
+                    case WeenieType.Caster:
+
+                        allWeapons.Add(item);
+                        break;
+
+                    case WeenieType.Ammunition:
+
+                        ammo.Add(item);
+                        break;
+                }
+            }
+        }
+
         public List<WorldObject> SelectWieldedWeapons()
         {
             //Console.WriteLine($"{Name}.SelectWieldedWeapons()");
 
             // todo: further optimize to only do 1 iteration
-            var meleeWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.MeleeWeapon);
-            var missileWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.MissileLauncher);
-            var casterWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.Caster);
-            var missiles = GetInventoryItemsOfTypeWeenieType(WeenieType.Missile);
-            missileWeapons.AddRange(missiles);
-            var ammo = GetInventoryItemsOfTypeWeenieType(WeenieType.Ammunition);
+            var allWeapons = new List<WorldObject>();
+            var ammo = new List<WorldObject>();
 
-            var allWeapons = meleeWeapons.Concat(missileWeapons).Concat(casterWeapons).ToList();
-            //var allWeapons = missileWeapons;
+            GetMonsterInventory(allWeapons, ammo);
 
             if (allWeapons.Count == 0) return new List<WorldObject>();
 
@@ -209,7 +227,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (weapon.WeenieType == WeenieType.MeleeWeapon && !weapon.IsTwoHanded)
                     {
-                        var dualWield = meleeWeapons.FirstOrDefault(i => i.AutoWieldLeft);
+                        var dualWield = allWeapons.FirstOrDefault(i => i.AutoWieldLeft);
                         if (dualWield != null)
                             return new List<WorldObject> { weapon, dualWield };
                     }
