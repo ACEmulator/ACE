@@ -162,11 +162,12 @@ namespace ACE.Server.WorldObjects
 
             var meleeWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.MeleeWeapon);
             var missileWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.MissileLauncher);
+            var casterWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.Caster);
             var missiles = GetInventoryItemsOfTypeWeenieType(WeenieType.Missile);
             missileWeapons.AddRange(missiles);
             var ammo = GetInventoryItemsOfTypeWeenieType(WeenieType.Ammunition);
 
-            var allWeapons = meleeWeapons.Concat(missileWeapons).ToList();
+            var allWeapons = meleeWeapons.Concat(missileWeapons).Concat(casterWeapons).ToList();
             //var allWeapons = missileWeapons;
 
             if (allWeapons.Count == 0) return new List<WorldObject>();
