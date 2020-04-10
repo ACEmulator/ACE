@@ -264,7 +264,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (defenseSkill.AdvancementClass >= SkillAdvancementClass.Trained)
                 {
-                    var enduranceBase = Endurance.Base;
+                    var enduranceBase = (int)Endurance.Base;
 
                     // TODO: find exact formula / where it caps out at 75%
 
@@ -492,24 +492,31 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public int GetHeldItemBurden()
         {
-            // get main hand item
-            var weapon = GetEquippedWeapon();
+            var mainhand = GetEquippedMainHand();
+            var offhand = GetEquippedOffHand();
 
-            // get off-hand item
-            var shield = GetEquippedShield();
+            var mainhandBurden = mainhand?.EncumbranceVal ?? 0;
+            var offhandBurden = offhand?.EncumbranceVal ?? 0;
 
-            var weaponBurden = weapon != null ? (weapon.EncumbranceVal ?? 0) : 0;
-            var shieldBurden = shield != null ? (shield.EncumbranceVal ?? 0) : 0;
-
-            return weaponBurden + shieldBurden;
+            return mainhandBurden + offhandBurden;
         }
 
         public float GetStaminaMod()
         {
-            var endurance = Endurance.Base;
+            var endurance = (int)Endurance.Base;
 
-            var staminaMod = 1.0f - (endurance - 100.0f) / 600.0f;   // guesstimated formula: 50% reduction at 400 base endurance
+            // more literal / linear formula
+            var staminaMod = 1.0f - (endurance - 50) / 480.0f;
+
+            // gdle curve-based formula, caps at 300 instead of 290
+            //var staminaMod = (endurance * endurance * -0.000003175f) - (endurance * 0.0008889f) + 1.052f;
+
             staminaMod = Math.Clamp(staminaMod, 0.5f, 1.0f);
+
+            // this is also specific to gdle,
+            // additive luck which can send the base stamina way over 1.0
+            /*var luck = ThreadSafeRandom.Next(0.0f, 1.0f);
+            staminaMod += luck;*/
 
             return staminaMod;
         }
