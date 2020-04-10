@@ -27,6 +27,9 @@ namespace ACE.Server.Physics.Collision
         public bool CollidedWithEnvironment;
         public int FramesStationaryFall;
 
+        // custom for server
+        public bool VerifiedRestrictions;
+
         public CollisionInfo()
         {
             Init();

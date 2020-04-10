@@ -522,15 +522,17 @@ namespace ACE.Server.WorldObjects
             {
                 var wo = WorldObjectFactory.CreateNewWorldObject(item);
 
-                if (wo == null) continue;
+                if (wo != null)
+                    TryAddToInventory(wo);
 
-                var equipped = false;
+                // handled in EquipInventoryItems()
+                /*var equipped = false;
 
                 if (wo.ValidLocations != null)
                     equipped = TryWieldObject(wo, (EquipMask)wo.ValidLocations);
 
-                if (!equipped)
-                    TryAddToInventory(wo);
+                if (!equipped)*/
+                    
             }
         }
 
@@ -653,7 +655,18 @@ namespace ACE.Server.WorldObjects
             var wieldedTreasure = GenerateWieldedTreasureSets(table);
 
             foreach (var item in wieldedTreasure)
+            {
                 TryAddToInventory(item);
+
+                // handled in EquipInventoryItems()
+
+                /*var equipped = false;
+
+                if (item.ValidLocations != null)
+                    equipped = TryWieldObject(item, (EquipMask)item.ValidLocations);
+
+                if (!equipped)*/
+            }
         }
     }
 }

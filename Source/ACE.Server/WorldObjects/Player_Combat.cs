@@ -31,6 +31,7 @@ namespace ACE.Server.WorldObjects
     {
         public int AttackSequence;
         public bool Attacking;
+        public bool AttackCancelled;
 
         public DateTime NextRefillTime;
 
