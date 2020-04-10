@@ -243,6 +243,38 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns a modifier to the player's defense skill, based on current motion state
+        /// </summary>
+        /// <returns></returns>
+        public float GetDefenseStanceMod()
+        {
+            if (IsJumping)
+                return 0.5f;
+
+            if (IsLoggingOut)
+                return 0.8f;
+
+            if (CombatMode != CombatMode.NonCombat)
+                return 1.0f;
+
+            var forwardCommand = CurrentMovementData.MovementType == MovementType.Invalid && CurrentMovementData.Invalid != null ?
+                CurrentMovementData.Invalid.State.ForwardCommand : MotionCommand.Invalid;
+
+            switch (forwardCommand)
+            {
+                // TODO: verify multipliers
+                case MotionCommand.Crouch:
+                    return 0.4f;
+                case MotionCommand.Sitting:
+                    return 0.3f;
+                case MotionCommand.Sleeping:
+                    return 0.2f;
+                default:
+                    return 1.0f;
+            }
+        }
+
+        /// <summary>
         /// Called when player successfully avoids an attack
         /// </summary>
         public override void OnEvade(WorldObject attacker, CombatType attackType)
@@ -285,7 +317,16 @@ namespace ACE.Server.WorldObjects
                     UpdateVitalDelta(Stamina, -1);
             }
             else
-                UpdateVitalDelta(Stamina, -1);
+            {
+                // this seems kind of odd,
+                // but if the player is in non-combat mode,
+                // they don't lose a point of stamina from evades
+                // reference: https://youtu.be/uFoQVgmSggo?t=145
+
+                // is this still true if the defense skill is untrained?
+
+                //UpdateVitalDelta(Stamina, -1);
+            }
 
             if (!SquelchManager.Squelches.Contains(attacker, ChatMessageType.CombatEnemy))
                 Session.Network.EnqueueSend(new GameEventEvasionDefenderNotification(Session, attacker.Name));
@@ -374,7 +415,7 @@ namespace ACE.Server.WorldObjects
             var damageTaken = (uint)-UpdateVitalDelta(Health, (int)-amount);
 
             // update stamina
-            UpdateVitalDelta(Stamina, -1);
+            //UpdateVitalDelta(Stamina, -1);
 
             //if (Fellowship != null)
                 //Fellowship.OnVitalUpdate(this);
@@ -436,7 +477,17 @@ namespace ACE.Server.WorldObjects
             DamageHistory.Add(source, damageType, damageTaken);
 
             // update stamina
-            UpdateVitalDelta(Stamina, -1);
+            if (CombatMode != CombatMode.NonCombat)
+            {
+                // this seems kind of odd,
+                // but if the player is in non-combat mode,
+                // they don't lose a point of stamina from physical hits
+                // reference: https://youtu.be/uFoQVgmSggo?t=145
+
+                // is this still true if the defense skill is untrained?
+
+                UpdateVitalDelta(Stamina, -1);
+            }
 
             //if (Fellowship != null)
                 //Fellowship.OnVitalUpdate(this);
