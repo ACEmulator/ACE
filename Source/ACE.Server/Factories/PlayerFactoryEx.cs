@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using ACE.Database.Models.World;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
@@ -450,7 +450,7 @@ namespace ACE.Server.Factories
             AddCommonInventory(player, RelicAlduressa);
 
             // Create a dummy treasure profile for passing in tier value
-            TreasureDeath profile = new TreasureDeath
+            var profile = new Database.Models.World.TreasureDeath
             {
                 Tier = 7,
                 LootQualityMod = 0
@@ -501,7 +501,7 @@ namespace ACE.Server.Factories
             AddCommonInventory(player, NobleRelic);
 
             // Create a dummy treasure profile for passing in tier value
-            TreasureDeath profile = new TreasureDeath
+            var profile = new Database.Models.World.TreasureDeath
             {
                 Tier = 7,
                 LootQualityMod = 0
@@ -553,7 +553,7 @@ namespace ACE.Server.Factories
             AddCommonInventory(player, AncientRelic);
 
             // Create a dummy treasure profile for passing in tier value
-            TreasureDeath profile = new TreasureDeath
+            var profile = new Database.Models.World.TreasureDeath
             {
                 Tier = 7,
                 LootQualityMod = 0

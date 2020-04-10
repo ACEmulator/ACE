@@ -4,13 +4,12 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -243,7 +242,7 @@ namespace ACE.Server.WorldObjects
             MaxRange = 0.0f;
         }
 
-        public DamageType GetDamageType(BiotaPropertiesBodyPart attackPart, CombatType? combatType = null)
+        public DamageType GetDamageType(PropertiesBodyPart attackPart, CombatType? combatType = null)
         {
             var weapon = GetEquippedWeapon();
 
@@ -251,7 +250,7 @@ namespace ACE.Server.WorldObjects
                 return GetDamageType(false, combatType);
             else
             {
-                var damageType = (DamageType)attackPart.DType;
+                var damageType = attackPart.DType;
 
                 if (damageType.IsMultiDamage())
                     damageType = damageType.SelectDamageType();
@@ -310,8 +309,6 @@ namespace ACE.Server.WorldObjects
 
                 source.SendMessage(msg, type);
             }
-
-            source.Session.Network.EnqueueSend(new GameEventUpdateHealth(source.Session, Guid.Full, (float)Health.Current / Health.MaxValue));
         }
 
         /// <summary>

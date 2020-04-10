@@ -1,14 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Linq;
+using Newtonsoft.Json;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Factories;
 using ACE.Server.WorldObjects;
-using Newtonsoft.Json;
 
 namespace ACE.Server.Managers
 {
@@ -226,7 +226,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALCARNELIAN_CLASS:
 
                     // ensure item is generic (jewelry), and has workmanship
-                    if (target.WeenieType != WeenieType.Generic || target.Workmanship == null)
+                    if (target.WeenieType != WeenieType.Generic || target.Workmanship == null || target.ValidLocations == EquipMask.TrinketOne)
                         return null;
 
                     recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);

@@ -52,7 +52,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Flag indicates monster is moving towards target
         /// </summary>
-        public new bool IsMoving = false;
+        public bool IsMoving = false;
 
         /// <summary>
         /// The last time a movement tick was processed
@@ -105,6 +105,9 @@ namespace ACE.Server.WorldObjects
                 PhysicsObj.TurnToObject(AttackTarget.PhysicsObj, mvp);
             else
                 PhysicsObj.MoveToObject(AttackTarget.PhysicsObj, mvp);
+
+            // prevent initial snap
+            PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
         }
 
         /// <summary>

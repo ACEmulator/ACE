@@ -22,43 +22,43 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesBool != null && (instantiateEmptyCollections || biota.BiotaPropertiesBool.Count > 0))
             {
-                result.PropertiesBool = new Dictionary<PropertyBool, bool>();
+                result.PropertiesBool = new Dictionary<PropertyBool, bool>(biota.BiotaPropertiesBool.Count);
                 foreach (var value in biota.BiotaPropertiesBool)
                     result.PropertiesBool[(PropertyBool)value.Type] = value.Value;
             }
             if (biota.BiotaPropertiesDID != null && (instantiateEmptyCollections || biota.BiotaPropertiesDID.Count > 0))
             {
-                result.PropertiesDID = new Dictionary<PropertyDataId, uint>();
+                result.PropertiesDID = new Dictionary<PropertyDataId, uint>(biota.BiotaPropertiesDID.Count);
                 foreach (var value in biota.BiotaPropertiesDID)
                     result.PropertiesDID[(PropertyDataId)value.Type] = value.Value;
             }
             if (biota.BiotaPropertiesFloat != null && (instantiateEmptyCollections || biota.BiotaPropertiesFloat.Count > 0))
             {
-                result.PropertiesFloat = new Dictionary<PropertyFloat, double>();
+                result.PropertiesFloat = new Dictionary<PropertyFloat, double>(biota.BiotaPropertiesFloat.Count);
                 foreach (var value in biota.BiotaPropertiesFloat)
                     result.PropertiesFloat[(PropertyFloat)value.Type] = value.Value;
             }
             if (biota.BiotaPropertiesIID != null && (instantiateEmptyCollections || biota.BiotaPropertiesIID.Count > 0))
             {
-                result.PropertiesIID = new Dictionary<PropertyInstanceId, uint>();
+                result.PropertiesIID = new Dictionary<PropertyInstanceId, uint>(biota.BiotaPropertiesIID.Count);
                 foreach (var value in biota.BiotaPropertiesIID)
                     result.PropertiesIID[(PropertyInstanceId)value.Type] = value.Value;
             }
             if (biota.BiotaPropertiesInt != null && (instantiateEmptyCollections || biota.BiotaPropertiesInt.Count > 0))
             {
-                result.PropertiesInt = new Dictionary<PropertyInt, int>();
+                result.PropertiesInt = new Dictionary<PropertyInt, int>(biota.BiotaPropertiesInt.Count);
                 foreach (var value in biota.BiotaPropertiesInt)
                     result.PropertiesInt[(PropertyInt)value.Type] = value.Value;
             }
             if (biota.BiotaPropertiesInt64 != null && (instantiateEmptyCollections || biota.BiotaPropertiesInt64.Count > 0))
             {
-                result.PropertiesInt64 = new Dictionary<PropertyInt64, long>();
+                result.PropertiesInt64 = new Dictionary<PropertyInt64, long>(biota.BiotaPropertiesInt64.Count);
                 foreach (var value in biota.BiotaPropertiesInt64)
                     result.PropertiesInt64[(PropertyInt64)value.Type] = value.Value;
             }
             if (biota.BiotaPropertiesString != null && (instantiateEmptyCollections || biota.BiotaPropertiesString.Count > 0))
             {
-                result.PropertiesString = new Dictionary<PropertyString, string>();
+                result.PropertiesString = new Dictionary<PropertyString, string>(biota.BiotaPropertiesString.Count);
                 foreach (var value in biota.BiotaPropertiesString)
                     result.PropertiesString[(PropertyString)value.Type] = value.Value;
             }
@@ -66,7 +66,7 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesPosition != null && (instantiateEmptyCollections || biota.BiotaPropertiesPosition.Count > 0))
             {
-                result.PropertiesPosition = new Dictionary<PositionType, PropertiesPosition>();
+                result.PropertiesPosition = new Dictionary<PositionType, PropertiesPosition>(biota.BiotaPropertiesPosition.Count);
 
                 foreach (var record in biota.BiotaPropertiesPosition)
                 {
@@ -90,7 +90,7 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesSpellBook != null && (instantiateEmptyCollections || biota.BiotaPropertiesSpellBook.Count > 0))
             {
-                result.PropertiesSpellBook = new Dictionary<int, float>();
+                result.PropertiesSpellBook = new Dictionary<int, float>(biota.BiotaPropertiesSpellBook.Count);
                 foreach (var value in biota.BiotaPropertiesSpellBook)
                     result.PropertiesSpellBook[value.Spell] = value.Probability;
             }
@@ -98,9 +98,9 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesAnimPart != null && (instantiateEmptyCollections || biota.BiotaPropertiesAnimPart.Count > 0))
             {
-                result.PropertiesAnimPart = new List<PropertiesAnimPart>();
+                result.PropertiesAnimPart = new List<PropertiesAnimPart>(biota.BiotaPropertiesAnimPart.Count);
 
-                foreach (var record in biota.BiotaPropertiesAnimPart)
+                foreach (var record in biota.BiotaPropertiesAnimPart.OrderBy(r => r.Order))
                 {
                     var newEntity = new PropertiesAnimPart
                     {
@@ -131,9 +131,9 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesTextureMap != null && (instantiateEmptyCollections || biota.BiotaPropertiesTextureMap.Count > 0))
             {
-                result.PropertiesTextureMap = new List<PropertiesTextureMap>();
+                result.PropertiesTextureMap = new List<PropertiesTextureMap>(biota.BiotaPropertiesTextureMap.Count);
 
-                foreach (var record in biota.BiotaPropertiesTextureMap)
+                foreach (var record in biota.BiotaPropertiesTextureMap.OrderBy(r => r.Order))
                 {
                     var newEntity = new PropertiesTextureMap
                     {
@@ -157,6 +157,8 @@ namespace ACE.Database.Adapter
                 {
                     var newEntity = new PropertiesCreateList
                     {
+                        DatabaseRecordId = record.Id,
+
                         DestinationType = (DestinationType)record.DestinationType,
                         WeenieClassId = record.WeenieClassId,
                         StackSize = record.StackSize,
@@ -177,6 +179,8 @@ namespace ACE.Database.Adapter
                 {
                     var newEntity = new PropertiesEmote
                     {
+                        DatabaseRecordId = record.Id,
+
                         Category = (EmoteCategory)record.Category,
                         Probability = record.Probability,
                         WeenieClassId = record.WeenieClassId,
@@ -192,6 +196,8 @@ namespace ACE.Database.Adapter
                     {
                         var newEntity2 = new PropertiesEmoteAction
                         {
+                            DatabaseRecordId = record2.Id,
+
                             Type = record2.Type,
                             Delay = record2.Delay,
                             Extent = record2.Extent,
@@ -248,12 +254,14 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesGenerator != null && (instantiateEmptyCollections || biota.BiotaPropertiesGenerator.Count > 0))
             {
-                result.PropertiesGenerator = new List<PropertiesGenerator>();
+                result.PropertiesGenerator = new List<PropertiesGenerator>(biota.BiotaPropertiesGenerator.Count);
 
                 foreach (var record in biota.BiotaPropertiesGenerator) // TODO do we have the correct order?
                 {
                     var newEntity = new PropertiesGenerator
                     {
+                        DatabaseRecordId = record.Id,
+
                         Probability = record.Probability,
                         WeenieClassId = record.WeenieClassId,
                         Delay = record.Delay,
@@ -283,7 +291,7 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesAttribute != null && (instantiateEmptyCollections || biota.BiotaPropertiesAttribute.Count > 0))
             {
-                result.PropertiesAttribute = new Dictionary<PropertyAttribute, PropertiesAttribute>();
+                result.PropertiesAttribute = new Dictionary<PropertyAttribute, PropertiesAttribute>(biota.BiotaPropertiesAttribute.Count);
 
                 foreach (var record in biota.BiotaPropertiesAttribute)
                 {
@@ -300,7 +308,7 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesAttribute2nd != null && (instantiateEmptyCollections || biota.BiotaPropertiesAttribute2nd.Count > 0))
             {
-                result.PropertiesAttribute2nd = new Dictionary<PropertyAttribute2nd, PropertiesAttribute2nd>();
+                result.PropertiesAttribute2nd = new Dictionary<PropertyAttribute2nd, PropertiesAttribute2nd>(biota.BiotaPropertiesAttribute2nd.Count);
 
                 foreach (var record in biota.BiotaPropertiesAttribute2nd)
                 {
@@ -318,7 +326,7 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesBodyPart != null && (instantiateEmptyCollections || biota.BiotaPropertiesBodyPart.Count > 0))
             {
-                result.PropertiesBodyPart = new Dictionary<CombatBodyPart, PropertiesBodyPart>();
+                result.PropertiesBodyPart = new Dictionary<CombatBodyPart, PropertiesBodyPart>(biota.BiotaPropertiesBodyPart.Count);
 
                 foreach (var record in biota.BiotaPropertiesBodyPart)
                 {
@@ -357,7 +365,7 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesSkill != null && (instantiateEmptyCollections || biota.BiotaPropertiesSkill.Count > 0))
             {
-                result.PropertiesSkill = new Dictionary<Skill, PropertiesSkill>();
+                result.PropertiesSkill = new Dictionary<Skill, PropertiesSkill>(biota.BiotaPropertiesSkill.Count);
 
                 foreach (var record in biota.BiotaPropertiesSkill)
                 {
@@ -389,7 +397,7 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesBookPageData != null && (instantiateEmptyCollections || biota.BiotaPropertiesBookPageData.Count > 0))
             {
-                result.PropertiesBookPageData = new List<PropertiesBookPageData>();
+                result.PropertiesBookPageData = new List<PropertiesBookPageData>(biota.BiotaPropertiesBookPageData.Count);
 
                 foreach (var record in biota.BiotaPropertiesBookPageData.OrderBy(r => r.PageId))
                 {
@@ -411,18 +419,17 @@ namespace ACE.Database.Adapter
 
             if (biota.BiotaPropertiesAllegiance != null && (instantiateEmptyCollections || biota.BiotaPropertiesAllegiance.Count > 0))
             {
-                result.PropertiesAllegiance = new Collection<PropertiesAllegiance>();
+                result.PropertiesAllegiance = new Dictionary<uint, PropertiesAllegiance>(biota.BiotaPropertiesAllegiance.Count);
 
                 foreach (var record in biota.BiotaPropertiesAllegiance)
                 {
                     var newEntity = new PropertiesAllegiance
                     {
-                        CharacterId = record.CharacterId,
                         Banned = record.Banned,
                         ApprovedVassal = record.ApprovedVassal,
                     };
 
-                    result.PropertiesAllegiance.Add(newEntity);
+                    result.PropertiesAllegiance[record.CharacterId] = newEntity;
                 }
             }
 
@@ -458,32 +465,25 @@ namespace ACE.Database.Adapter
 
             if (biota.HousePermission != null && (instantiateEmptyCollections || biota.HousePermission.Count > 0))
             {
-                result.HousePermissions = new Collection<ACE.Entity.Models.HousePermission>();
+                result.HousePermissions = new Dictionary<uint, bool>(biota.HousePermission.Count);
 
                 foreach (var record in biota.HousePermission)
-                {
-                    var newEntity = new ACE.Entity.Models.HousePermission
-                    {
-                        PlayerGuid = record.PlayerGuid,
-                        Storage = record.Storage,
-                    };
-
-                    result.HousePermissions.Add(newEntity);
-                }
+                    result.HousePermissions[record.PlayerGuid] = record.Storage;
             }
 
 
             return result;
         }
 
-        public static ACE.Database.Models.Shard.Biota ConvertFromEntityBiota(ACE.Entity.Models.Biota biota)
+        public static ACE.Database.Models.Shard.Biota ConvertFromEntityBiota(ACE.Entity.Models.Biota biota, bool includeDatabaseRecordIds = false)
         {
             var result = new ACE.Database.Models.Shard.Biota();
 
             result.Id = biota.Id;
             result.WeenieClassId = biota.WeenieClassId;
             result.WeenieType = (int)biota.WeenieType;
-            throw new NotImplementedException(); /* Uncomment this code when Step 3 is implemented
+
+
             if (biota.PropertiesBool != null)
             {
                 foreach (var kvp in biota.PropertiesBool)
@@ -518,8 +518,8 @@ namespace ACE.Database.Adapter
             {
                 foreach (var kvp in biota.PropertiesString)
                     result.SetProperty(kvp.Key, kvp.Value);
-            }*/
-
+            }
+ 
 
             if (biota.PropertiesPosition != null)
             {
@@ -545,9 +545,11 @@ namespace ACE.Database.Adapter
 
             if (biota.PropertiesAnimPart != null)
             {
-                foreach (var value in biota.PropertiesAnimPart)
+                for (int i = 0; i < biota.PropertiesAnimPart.Count; i++)
                 {
-                    var entity = new BiotaPropertiesAnimPart { ObjectId = biota.Id, Index = value.Index, AnimationId = value.AnimationId, Order = (byte)biota.PropertiesAnimPart.IndexOf(value) };
+                    var value = biota.PropertiesAnimPart[i];
+
+                    var entity = new BiotaPropertiesAnimPart { ObjectId = biota.Id, Index = value.Index, AnimationId = value.AnimationId, Order = (byte)i };
 
                     result.BiotaPropertiesAnimPart.Add(entity);
                 }
@@ -565,9 +567,11 @@ namespace ACE.Database.Adapter
 
             if (biota.PropertiesTextureMap != null)
             {
-                foreach (var value in biota.PropertiesTextureMap)
+                for (int i = 0; i < biota.PropertiesTextureMap.Count ; i++)
                 {
-                    var entity = new BiotaPropertiesTextureMap { ObjectId = biota.Id, Index = value.PartIndex, OldId = value.OldTexture, NewId = value.NewTexture, Order = (byte)biota.PropertiesTextureMap.IndexOf(value) };
+                    var value = biota.PropertiesTextureMap[i];
+
+                    var entity = new BiotaPropertiesTextureMap { ObjectId = biota.Id, Index = value.PartIndex, OldId = value.OldTexture, NewId = value.NewTexture, Order = (byte)i };
 
                     result.BiotaPropertiesTextureMap.Add(entity);
                 }
@@ -591,6 +595,9 @@ namespace ACE.Database.Adapter
                         TryToBond = value.TryToBond
                     };
 
+                    if (includeDatabaseRecordIds)
+                        entity.Id = value.DatabaseRecordId;
+
                     result.BiotaPropertiesCreateList.Add(entity);
                 }
             }
@@ -612,6 +619,9 @@ namespace ACE.Database.Adapter
                         MinHealth = value.MinHealth,
                         MaxHealth = value.MaxHealth,
                     };
+
+                    if (includeDatabaseRecordIds)
+                        entity.Id = value.DatabaseRecordId;
 
                     foreach (var value2 in value.PropertiesEmoteAction)
                     {
@@ -669,6 +679,9 @@ namespace ACE.Database.Adapter
                             AnglesZ = value2.AnglesZ,
                         };
 
+                        if (includeDatabaseRecordIds)
+                            entity2.Id = value2.DatabaseRecordId;
+
                         entity.BiotaPropertiesEmoteAction.Add(entity2);
                     }
 
@@ -712,6 +725,9 @@ namespace ACE.Database.Adapter
                         AnglesY = value.AnglesY,
                         AnglesZ = value.AnglesZ,
                     };
+
+                    if (includeDatabaseRecordIds)
+                        entity.Id = value.DatabaseRecordId;
 
                     result.BiotaPropertiesGenerator.Add(entity);
                 }
@@ -837,9 +853,9 @@ namespace ACE.Database.Adapter
 
             if (biota.PropertiesAllegiance != null)
             {
-                foreach (var value in biota.PropertiesAllegiance)
+                foreach (var kvp in biota.PropertiesAllegiance)
                 {
-                    var entity = new BiotaPropertiesAllegiance { AllegianceId = biota.Id, CharacterId = value.CharacterId, Banned = value.Banned, ApprovedVassal = value.ApprovedVassal };
+                    var entity = new BiotaPropertiesAllegiance { AllegianceId = biota.Id, CharacterId = kvp.Key, Banned = kvp.Value.Banned, ApprovedVassal = kvp.Value.ApprovedVassal };
 
                     result.BiotaPropertiesAllegiance.Add(entity);
                 }
@@ -876,9 +892,9 @@ namespace ACE.Database.Adapter
 
             if (biota.HousePermissions != null)
             {
-                foreach (var value in biota.HousePermissions)
+                foreach (var kvp in biota.HousePermissions)
                 {
-                    var entity = new ACE.Database.Models.Shard.HousePermission { HouseId = biota.Id, PlayerGuid = value.PlayerGuid, Storage = value.Storage };
+                    var entity = new ACE.Database.Models.Shard.HousePermission { HouseId = biota.Id, PlayerGuid = kvp.Key, Storage = kvp.Value };
 
                     result.HousePermission.Add(entity);
                 }

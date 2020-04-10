@@ -4,17 +4,16 @@ using System.Linq;
 
 using log4net;
 
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
+using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Managers;
-using ACE.Database;
 
 namespace ACE.Server.WorldObjects
 {
@@ -28,7 +27,7 @@ namespace ACE.Server.WorldObjects
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static readonly uint CoinStackWCID = DatabaseManager.World.GetCachedWeenie("coinstack").ClassId;
+        public static readonly uint CoinStackWCID = DatabaseManager.World.GetCachedWeenie("coinstack").WeenieClassId;
 
         public readonly Dictionary<ObjectGuid, WorldObject> DefaultItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
 
@@ -201,7 +200,7 @@ namespace ACE.Server.WorldObjects
             if (inventoryloaded)
                 return;
 
-            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Shop))
+            foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Shop))
             {
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 
@@ -209,7 +208,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (item.Palette > 0)
                         wo.PaletteTemplate = item.Palette;
-                    if (item.Shade > 0)
+                    if (item.Shade >= 0)
                         wo.Shade = item.Shade;
                     wo.ContainerId = Guid.Full;
                     wo.CalculateObjDesc(); // i don't like firing this but this triggers proper icons, the way vendors load inventory feels off to me in this method.
@@ -457,7 +456,13 @@ namespace ACE.Server.WorldObjects
                     goldcost += Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (wo.Value ?? 0)) - 0.1));
                 }
                 else
-                    altcost += (uint)(wo.Value ?? 1);
+                    altcost += (uint)Math.Max(1, wo.Value ?? 1);
+            }
+
+            if (IsBusy && genlist.Any(i => i.GetProperty(PropertyBool.VendorService) == true))
+            {
+                player.SendWeenieErrorWithString(WeenieErrorWithString._IsTooBusyToAcceptGifts, Name);
+                return;
             }
 
             // send transaction to player for further processing and.

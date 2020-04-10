@@ -16,14 +16,14 @@ namespace ACE.Server.WorldObjects
         {
             var items = new List<WorldObject>();
 
-            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)type))
+            foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == type))
             {
                 var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 
                 if (item.Palette > 0)
                     wo.PaletteTemplate = item.Palette;
 
-                if (item.Shade > 0)
+                if (item.Shade >= 0)
                     wo.Shade = item.Shade;
 
                 if (item.StackSize > 0)
@@ -79,7 +79,7 @@ namespace ACE.Server.WorldObjects
             if (item.PaletteId > 0)
                 wo.PaletteTemplate = (int)item.PaletteId;
 
-            if (item.Shade > 0)
+            if (item.Shade >= 0)
                 wo.Shade = item.Shade;
 
             if (item.StackSize > 0)

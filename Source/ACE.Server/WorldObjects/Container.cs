@@ -5,11 +5,10 @@ using System.Linq;
 using log4net;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -28,6 +27,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Container(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
 
             InventoryLoaded = true;
@@ -38,9 +38,52 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Container(Biota biota) : base(biota)
         {
-            if (Biota.TryRemoveProperty(PropertyBool.Open, out _, BiotaDatabaseLock))
+            if (Biota.TryRemoveProperty(PropertyBool.Open, BiotaDatabaseLock))
                 ChangesDetected = true;
 
+            // This is a temporary fix for objects that were loaded with this PR when EncumbranceVal was not treated as ephemeral. 2020-03-28
+            // This can be removed later.
+            if (Biota.PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal))
+            {
+                var weenie = DatabaseManager.World.GetCachedWeenie(biota.WeenieClassId);
+
+                if (weenie != null && weenie.PropertiesInt.TryGetValue(PropertyInt.EncumbranceVal, out var value))
+                {
+                    if (biota.PropertiesInt[PropertyInt.EncumbranceVal] != value)
+                    {
+                        biota.PropertiesInt[PropertyInt.EncumbranceVal] = value;
+                        ChangesDetected = true;
+                    }
+                }
+                else
+                {
+                    biota.PropertiesInt.Remove(PropertyInt.EncumbranceVal);
+                    ChangesDetected = true;
+                }
+            }
+
+            // This is a temporary fix for objects that were loaded with this PR when Value was not treated as ephemeral. 2020-03-28
+            // This can be removed later.
+            if (!(this is Creature) && Biota.PropertiesInt.ContainsKey(PropertyInt.Value))
+            {
+                var weenie = DatabaseManager.World.GetCachedWeenie(biota.WeenieClassId);
+
+                if (weenie != null && weenie.PropertiesInt.TryGetValue(PropertyInt.Value, out var value))
+                {
+                    if (biota.PropertiesInt[PropertyInt.Value] != value)
+                    {
+                        biota.PropertiesInt[PropertyInt.Value] = value;
+                        ChangesDetected = true;
+                    }
+                }
+                else
+                {
+                    biota.PropertiesInt.Remove(PropertyInt.Value);
+                    ChangesDetected = true;
+                }
+            }
+
+            InitializePropertyDictionaries();
             SetEphemeralValues();
 
             // A player has their possessions passed via the ctor. All other world objects must load their own inventory
@@ -51,6 +94,12 @@ namespace ACE.Server.WorldObjects
                     EnqueueAction(new ActionEventDelegate(() => SortBiotasIntoInventory(biotas)));
                 });
             }
+        }
+
+        private void InitializePropertyDictionaries()
+        {
+            if (ephemeralPropertyInts == null)
+                ephemeralPropertyInts = new Dictionary<PropertyInt, int?>();
         }
 
         private void SetEphemeralValues()
@@ -87,7 +136,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The only time this should be used is to populate Inventory from the ctor.
         /// </summary>
-        protected void SortBiotasIntoInventory(IEnumerable<Biota> biotas)
+        protected void SortBiotasIntoInventory(IEnumerable<ACE.Database.Models.Shard.Biota> biotas)
         {
             var worldObjects = new List<WorldObject>();
 
@@ -782,7 +831,10 @@ namespace ACE.Server.WorldObjects
 
         private void GenerateContainList()
         {
-            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (sbyte)DestinationType.Contain || x.DestinationType == (sbyte)DestinationType.ContainTreasure))
+            if (Biota.PropertiesCreateList == null)
+                return;
+
+            foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Contain || x.DestinationType == DestinationType.ContainTreasure))
             {
                 var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 
@@ -791,7 +843,7 @@ namespace ACE.Server.WorldObjects
 
                 if (item.Palette > 0)
                     wo.PaletteTemplate = item.Palette;
-                if (item.Shade > 0)
+                if (item.Shade >= 0)
                     wo.Shade = item.Shade;
                 if (item.StackSize > 1)
                     wo.SetStackSize(item.StackSize);

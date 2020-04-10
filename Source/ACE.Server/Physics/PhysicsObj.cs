@@ -6,6 +6,7 @@ using System.Numerics;
 using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Combat;
@@ -91,8 +92,8 @@ namespace ACE.Server.Physics
         public bool IsAnimating;
 
         // this is used by the 1991 branch to determine when physics updates need to be run
-        public bool IsMovingOrAnimating => !PartArray.Sequence.is_first_cyclic() || CachedVelocity != Vector3.Zero || Velocity != Vector3.Zero ||
-            MovementManager.MotionInterpreter.InterpretedState.HasCommands();
+        public bool IsMovingOrAnimating => IsAnimating || !PartArray.Sequence.is_first_cyclic() || CachedVelocity != Vector3.Zero || Velocity != Vector3.Zero ||
+            MovementManager.MotionInterpreter.InterpretedState.HasCommands() || MovementManager.MoveToManager.Initialized;
 
         // server
         public Position RequestPos;
@@ -1294,8 +1295,21 @@ namespace ACE.Server.Physics
 
             if (transition.SpherePath.CurCell == null) return SetPositionError.NoCell;
 
+            // custom:
+            // test for non-ethereal spell projectile collision on world entry
+            var spellCollide = WeenieObj.WorldObject is SpellProjectile && transition.CollisionInfo.CollideObject.Count > 0 && !PropertyManager.GetBool("spell_projectile_ethereal").Item;
+
+            if (spellCollide)
+            {
+                // send initial CO as ethereal
+                WeenieObj.WorldObject.Ethereal = true;
+            }
+
             if (!SetPositionInternal(transition))
                 return SetPositionError.GeneralFailure;
+
+            if (spellCollide)
+                handle_all_collisions(transition.CollisionInfo, false, false);
 
             return SetPositionError.OK;
         }
@@ -2261,7 +2275,19 @@ namespace ACE.Server.Physics
                 foreach (var obj in newlyVisible)
                 {
                     var wo = obj.WeenieObj.WorldObject;
-                    if (wo != null)
+
+                    if (wo == null)
+                        continue;
+
+                    if (wo.Teleporting)
+                    {
+                        // ensure post-teleport position is sent
+                        var actionChain = new ActionChain();
+                        actionChain.AddDelayForOneTick();
+                        actionChain.AddAction(player, () => player.TrackObject(wo));
+                        actionChain.EnqueueChain();
+                    }
+                    else
                         player.TrackObject(wo);
                 }
             }
@@ -2285,7 +2311,16 @@ namespace ACE.Server.Physics
             }
             else
             {
-                player.TrackObject(wo);
+                if (wo.Teleporting)
+                {
+                    // ensure post-teleport position is sent
+                    var actionChain = new ActionChain();
+                    actionChain.AddDelayForOneTick();
+                    actionChain.AddAction(player, () => player.TrackObject(wo));
+                    actionChain.EnqueueChain();
+                }
+                else
+                    player.TrackObject(wo);
             }
         }
 
@@ -2738,6 +2773,8 @@ namespace ACE.Server.Physics
 
             if (isVisible)
             {
+                var prevKnown = ObjMaint.KnownObjectsContainsKey(obj.ID);
+
                 var newlyVisible = ObjMaint.AddVisibleObject(obj);
 
                 if (newlyVisible)
@@ -2746,7 +2783,7 @@ namespace ACE.Server.Physics
                     ObjMaint.RemoveObjectToBeDestroyed(obj);
                 }
 
-                return newlyVisible;
+                return !prevKnown && newlyVisible;
             }
             else
             {
@@ -4152,6 +4189,11 @@ namespace ACE.Server.Physics
                 Console.WriteLine($"{(MotionCommand)motion.Motion}");
         }
 
+        public bool motions_pending()
+        {
+            return IsAnimating;
+        }
+
         /// <summary>
         /// This is for legacy movement system
         /// </summary>
@@ -4170,6 +4212,24 @@ namespace ACE.Server.Physics
             // temp for players
             if ((TransientState & TransientStateFlags.Contact) != 0)
                 CachedVelocity = Vector3.Zero;
+
+            if (wo != null && wo.Teleporting)
+            {
+                //Console.WriteLine($"*** SETTING TELEPORT ***");
+
+                var setPosition = new SetPosition();
+                setPosition.Pos = RequestPos;
+                setPosition.Flags = SetPositionFlags.SendPositionEvent | SetPositionFlags.Slide | SetPositionFlags.Placement | SetPositionFlags.Teleport;
+
+                SetPosition(setPosition);
+
+                // hack...
+                if (!TransientState.HasFlag(TransientStateFlags.OnWalkable))
+                {
+                    //Console.WriteLine($"Setting velocity");
+                    Velocity = new Vector3(0, 0, -PhysicsGlobals.EPSILON);
+                }
+            }
 
             UpdateTime = PhysicsTimer.CurrentTime;
 

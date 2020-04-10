@@ -2,13 +2,13 @@ using System;
 using System.Numerics;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
@@ -17,7 +17,7 @@ namespace ACE.Server.WorldObjects
 {
     public class SpellProjectile : WorldObject
     {
-        public Server.Entity.Spell Spell;
+        public Spell Spell;
         public ProjectileSpellType SpellType { get; set; }
 
         public Position SpawnPos { get; set; }
@@ -58,7 +58,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Perfroms additional set up of the spell projectile based on the spell id or its derived type.
         /// </summary>
-        public void Setup(Server.Entity.Spell spell, ProjectileSpellType spellType)
+        public void Setup(Spell spell, ProjectileSpellType spellType)
         {
             Spell = spell;
             SpellType = spellType;
@@ -75,15 +75,13 @@ namespace ACE.Server.WorldObjects
             // FIXME: use data here
             if (!Spell.Name.Equals("Rolling Death"))
                 Ethereal = false;
-            else if (spellType == ProjectileSpellType.Ring)
-                Ethereal = true;
 
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
                 || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley || SpellType == ProjectileSpellType.Blast
                 || WeenieClassId == 7276 || WeenieClassId == 7277 || WeenieClassId == 7279 || WeenieClassId == 7280)
             {
-                PhysicsObj.DefaultScript = PlayScript.ProjectileCollision;
-                PhysicsObj.DefaultScriptIntensity = 1.0f;
+                DefaultScriptId = (uint)PlayScript.ProjectileCollision;
+                DefaultScriptIntensity = 1.0f;
             }
 
             // Some wall spells don't have scripted collisions
@@ -117,13 +115,13 @@ namespace ACE.Server.WorldObjects
             if (WeenieClassId == 1636 || WeenieClassId == 7268 || WeenieClassId == 20979)
             {
                 AlignPath = false;
-                Omega = new Vector3(12.56637f, 0, 0);
+                PhysicsObj.Omega = new Vector3(12.56637f, 0, 0);
             }
         }
 
         public static ProjectileSpellType GetProjectileSpellType(uint spellID)
         {
-            var spell = new Server.Entity.Spell(spellID);
+            var spell = new Spell(spellID);
 
             if (spell.Wcid == 0)
                 return ProjectileSpellType.Undef;
@@ -199,6 +197,8 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public bool WorldEntryCollision { get; set; }
+
         public void ProjectileImpact()
         {
             //Console.WriteLine($"{Name}.ProjectileImpact()");
@@ -212,8 +212,23 @@ namespace ACE.Server.WorldObjects
 
             PhysicsObj.set_active(false);
 
-            EnqueueBroadcastPhysicsState();
+            if (PhysicsObj.entering_world)
+            {
+                // this path should only happen if spell_projectile_ethereal = false
+                EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Launch, GetProjectileScriptIntensity(SpellType)));
+                WorldEntryCollision = true;
+            }
+
+            EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
             EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Explode, GetProjectileScriptIntensity(SpellType)));
+
+            // this should only be needed for spell_projectile_ethereal = true,
+            // however it can also fix a display issue on client in default mode,
+            // where GameMessageSetState updates projectile to ethereal before it has actually collided on client,
+            // causing a 'ghost' projectile to continue to sail through the target
+
+            PhysicsObj.Velocity = Vector3.Zero;
+            EnqueueBroadcast(new GameMessageVectorUpdate(this));
 
             ActionChain selfDestructChain = new ActionChain();
             selfDestructChain.AddDelaySeconds(5.0);
@@ -407,7 +422,14 @@ namespace ACE.Server.WorldObjects
                 if (criticalHit)
                     damageBonus = lifeMagicDamage * 0.5f * GetWeaponCritDamageMod(sourceCreature, attackSkill, target);
 
-                finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus * absorbMod;
+                var weaponResistanceMod = GetWeaponResistanceModifier(sourceCreature, attackSkill, Spell.DamageType);
+
+                // if attacker/weapon has IgnoreMagicResist directly, do not transfer to spell projectile
+                // only pass if SpellProjectile has it directly, such as 2637 - Invoking Aun Tanua
+
+                var resistanceMod = Math.Max(0.0f, target.GetResistanceMod(resistanceType, this, null, weaponResistanceMod));
+
+                finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus * resistanceMod * absorbMod;
                 return finalDamage;
             }
             // war/void magic projectiles
@@ -675,8 +697,6 @@ namespace ACE.Server.WorldObjects
 
                     if (!player.SquelchManager.Squelches.Contains(target, ChatMessageType.Magic))
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(attackerMsg, ChatMessageType.Magic));
-
-                    player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
                 }
 
                 if (targetPlayer != null)
@@ -736,7 +756,7 @@ namespace ACE.Server.WorldObjects
 
             var velocity = Velocity;
             //velocity = Vector3.Transform(velocity, Matrix4x4.Transpose(Matrix4x4.CreateFromQuaternion(rotation)));
-            PhysicsObj.Velocity = velocity.Value;
+            PhysicsObj.Velocity = velocity;
 
             if (target != null)
                 PhysicsObj.ProjectileTarget = target.PhysicsObj;

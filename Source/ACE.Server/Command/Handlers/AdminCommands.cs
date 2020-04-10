@@ -1,26 +1,26 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Net;
 using System.Threading;
 
 using log4net;
 
+using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.Auth;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
+using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
-using ACE.Server.Network.Enum;
 using ACE.Server.WorldObjects.Entity;
 
 using Position = ACE.Entity.Position;
@@ -346,7 +346,7 @@ namespace ACE.Server.Command.Handlers
                     message += $"Account created on {account.CreateTime.ToLocalTime()} by IP: {(account.CreateIP != null ? new IPAddress(account.CreateIP).ToString() : "N/A")} \n";
                     message += $"Account last logged on at {(account.LastLoginTime.HasValue ? account.LastLoginTime.Value.ToLocalTime().ToString() : "N/A")} by IP: {(account.LastLoginIP != null ? new IPAddress(account.LastLoginIP).ToString() : "N/A")}\n";
                     message += $"Account total times logged on {account.TotalTimesLoggedIn}\n";
-                    var characters = DatabaseManager.Shard.GetCharacters(account.AccountId, true);
+                    var characters = DatabaseManager.Shard.BaseDatabase.GetCharacters(account.AccountId, true);
                     message += $"{characters.Count} Character(s) owned by: {account.AccountName}\n";
                     message += "-------------------\n";
                     foreach (var character in characters.Where(x => !x.IsDeleted && x.DeleteTime == 0))
@@ -1125,10 +1125,10 @@ namespace ACE.Server.Command.Handlers
                     return;
 
                 var msg = "";
-                if (wo is Creature creature && wo.Biota.BiotaPropertiesCreateList.Count > 0)
+                if (wo is Creature creature && wo.Biota.PropertiesCreateList != null && wo.Biota.PropertiesCreateList.Count > 0)
                 {
-                    var createList = creature.Biota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Contain) != 0 ||
-                        (i.DestinationType & (int)DestinationType.Treasure) != 0 && (i.DestinationType & (int)DestinationType.Wield) == 0).ToList();
+                    var createList = creature.Biota.PropertiesCreateList.Where(i => (i.DestinationType & DestinationType.Contain) != 0 ||
+                        (i.DestinationType & DestinationType.Treasure) != 0 && (i.DestinationType & DestinationType.Wield) == 0).ToList();
 
                     var wieldedTreasure = creature.Inventory.Values.Concat(creature.EquippedObjects.Values).Where(i => i.DestinationType.HasFlag(DestinationType.Treasure)).ToList();
 
@@ -1726,9 +1726,7 @@ namespace ACE.Server.Command.Handlers
         {
             // @god - Sets your own stats to a godly level.
             // need to save stats so that we can return with /ungod
-            var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
-            biotas.Add((session.Player.Biota, session.Player.BiotaDatabaseLock));
-            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => DoGodMode(result, session));
+            DatabaseManager.Shard.SaveBiota(session.Player.Biota, session.Player.BiotaDatabaseLock, result => DoGodMode(result, session));
         }
 
         private static void DoGodMode(bool playerSaved, Session session, bool exceptionReturn = false)
@@ -1740,7 +1738,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            Biota biota = session.Player.Biota;
+            var biota = session.Player.Biota;
 
             string godString = session.Player.GodState;
 
@@ -1768,11 +1766,13 @@ namespace ACE.Server.Command.Handlers
 
                 // need all attributes
                 // 1 through 6 str, end, coord, quick, focus, self
-                foreach (var att in biota.BiotaPropertiesAttribute)
+                foreach (var kvp in biota.PropertiesAttribute)
                 {
-                    if (att.Type > 0 && att.Type <= 6)
+                    var att = kvp.Value;
+
+                    if (kvp.Key > 0 && (int)kvp.Key <= 6)
                     {
-                        returnState += $"{att.Type}=";
+                        returnState += $"{(int)kvp.Key}=";
                         returnState += $"{att.InitLevel}=";
                         returnState += $"{att.LevelFromCP}=";
                         returnState += $"{att.CPSpent}=";
@@ -1781,11 +1781,13 @@ namespace ACE.Server.Command.Handlers
 
                 // need all vitals
                 // 1, 3, 5 H,S,M (2,4,6 are current values and are not stored since they will be maxed entering/exiting godmode)
-                foreach (var attSec in biota.BiotaPropertiesAttribute2nd)
+                foreach (var kvp in biota.PropertiesAttribute2nd)
                 {
-                    if (attSec.Type == 1 || attSec.Type == 3 || attSec.Type == 5)
+                    var attSec = kvp.Value;
+
+                    if ((int)kvp.Key == 1 || (int)kvp.Key == 3 || (int)kvp.Key == 5)
                     {
-                        returnState += $"{attSec.Type}=";
+                        returnState += $"{(int)kvp.Key}=";
                         returnState += $"{attSec.InitLevel}=";
                         returnState += $"{attSec.LevelFromCP}=";
                         returnState += $"{attSec.CPSpent}=";
@@ -1794,11 +1796,13 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 // need all skills
-                foreach (var sk in biota.BiotaPropertiesSkill)
+                foreach (var kvp in biota.PropertiesSkill)
                 {
-                    if (SkillHelper.ValidSkills.Contains((Skill)sk.Type))
+                    var sk = kvp.Value;
+
+                    if (SkillHelper.ValidSkills.Contains(kvp.Key))
                     {
-                        returnState += $"{sk.Type}=";
+                        returnState += $"{(int)kvp.Key}=";
                         returnState += $"{sk.LevelFromPP}=";
                         returnState += $"{sk.SAC}=";
                         returnState += $"{sk.PP}=";
@@ -2014,7 +2018,8 @@ namespace ACE.Server.Command.Handlers
             }
 
             // determine the vital type
-            if (!Enum.TryParse(parameters[0], out PropertyAttribute2nd vitalAttr)) {
+            if (!Enum.TryParse(parameters[0], out PropertyAttribute2nd vitalAttr))
+            {
                 ChatPacket.SendServerMessage(session, "Invalid vital type, valid values are: Health,Stamina,Mana", ChatMessageType.Broadcast);
                 return;
             }
@@ -2241,11 +2246,11 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            if (weenie.Type != (int)WeenieType.Creature && weenie.Type != (int)WeenieType.Cow
-                && weenie.Type != (int)WeenieType.Admin && weenie.Type != (int)WeenieType.Sentinel && weenie.Type != (int)WeenieType.Vendor
-                && weenie.Type != (int)WeenieType.Pet && weenie.Type != (int)WeenieType.CombatPet)
+            if (weenie.WeenieType != WeenieType.Creature && weenie.WeenieType != WeenieType.Cow
+                && weenie.WeenieType != WeenieType.Admin && weenie.WeenieType != WeenieType.Sentinel && weenie.WeenieType != WeenieType.Vendor
+                && weenie.WeenieType != WeenieType.Pet && weenie.WeenieType != WeenieType.CombatPet)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Weenie {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription}) is of WeenieType.{Enum.GetName(typeof(WeenieType), weenie.Type)} ({weenie.Type}), unable to morph because that is not allowed.", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Weenie {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription}) is of WeenieType.{Enum.GetName(typeof(WeenieType), weenie.WeenieType)} ({weenie.WeenieType}), unable to morph because that is not allowed.", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -2255,7 +2260,7 @@ namespace ACE.Server.Command.Handlers
 
             var player = new Player(weenie, guid, session.AccountId);
 
-            player.Biota.WeenieType = (int)session.Player.WeenieType;
+            player.Biota.WeenieType = session.Player.WeenieType;
 
             var name = string.Join(' ', parameters.Skip(1));
             if (parameters.Length > 1)
@@ -2281,7 +2286,7 @@ namespace ACE.Server.Command.Handlers
                 player.Character.CharacterOptions2 = session.Player.Character.CharacterOptions2;
 
                 //var wearables = weenie.GetCreateList((sbyte)DestinationType.Wield);
-                var wearables = weenie.WeeniePropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Wield || x.DestinationType == (int)DestinationType.WieldTreasure).ToList();
+                var wearables = weenie.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Wield || x.DestinationType == DestinationType.WieldTreasure).ToList();
                 foreach (var wearable in wearables)
                 {
                     var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(wearable.WeenieClassId);
@@ -2296,14 +2301,14 @@ namespace ACE.Server.Command.Handlers
 
                     if (wearable.Palette > 0)
                         worldObject.PaletteTemplate = wearable.Palette;
-                    if (wearable.Shade > 0)
+                    if (wearable.Shade >= 0)
                         worldObject.Shade = wearable.Shade;
 
                     player.TryEquipObjectWithNetworking(worldObject, worldObject.ValidLocations ?? 0);
                 }
 
-                var containables = weenie.WeeniePropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Shop
-                || x.DestinationType == (int)DestinationType.Treasure || x.DestinationType == (int)DestinationType.ContainTreasure || x.DestinationType == (int)DestinationType.ShopTreasure).ToList();
+                var containables = weenie.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Contain || x.DestinationType == DestinationType.Shop
+                || x.DestinationType == DestinationType.Treasure || x.DestinationType == DestinationType.ContainTreasure || x.DestinationType == DestinationType.ShopTreasure).ToList();
                 foreach (var containable in containables)
                 {
                     var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(containable.WeenieClassId);
@@ -2318,7 +2323,7 @@ namespace ACE.Server.Command.Handlers
 
                     if (containable.Palette > 0)
                         worldObject.PaletteTemplate = containable.Palette;
-                    if (containable.Shade > 0)
+                    if (containable.Shade >= 0)
                         worldObject.Shade = containable.Shade;
                     player.TryAddToInventory(worldObject);
                 }
@@ -2565,7 +2570,7 @@ namespace ACE.Server.Command.Handlers
                         return;
                     }
 
-                    var character = DatabaseManager.Shard.GetCharacterByName(oldName);
+                    var character = DatabaseManager.Shard.BaseDatabase.GetCharacterStubByName(oldName);
 
                     character.Name = newName;
                     DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), null);
@@ -3040,7 +3045,7 @@ namespace ACE.Server.Command.Handlers
             var item = CommandHandlerHelper.GetLastAppraisedObject(session);
             if (item == null) return;
 
-            var enchantments = item.EnchantmentManager.GetEnchantments_TopLayer(item.Biota.GetEnchantments(item.BiotaDatabaseLock));
+            var enchantments = item.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(item.BiotaDatabaseLock);
 
             foreach (var enchantment in enchantments)
             {
@@ -3049,7 +3054,7 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
             }
         }
-      
+
         // cm <material type> <quantity> <ave. workmanship>
         [CommandHandler("cm", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
         public static void HandleCM(Session session, params string[] parameters)
@@ -3174,6 +3179,51 @@ namespace ACE.Server.Command.Handlers
             msg += "Clear resets to default.\nAll options ending with Fog are continuous.\nAll options ending with Fog2 are continuous and blank radar.\nAll options ending with Sound play once and do not repeat.";
 
             return msg;
+        }
+
+        [CommandHandler("movetome", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, "Moves the last appraised object to the current player location.")]
+        public static void HandleMoveToMe(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (obj == null)
+                return;
+
+            if (obj.CurrentLandblock == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}) is not a landblock object", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (obj is Player)
+            {
+                HandleTeleToMe(session, new string[] { obj.Name });
+                return;
+            }
+
+            var prevLoc = obj.Location;
+            var newLoc = new Position(session.Player.Location);
+            newLoc.Rotation = prevLoc.Rotation;     // keep previous rotation
+
+            var setPos = new Physics.Common.SetPosition(newLoc.PhysPosition(), Physics.Common.SetPositionFlags.Teleport | Physics.Common.SetPositionFlags.Slide);
+            var result = obj.PhysicsObj.SetPosition(setPos);
+
+            if (result != Physics.Common.SetPositionError.OK)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Failed to move {obj.Name} ({obj.Guid}) to current location: {result}", ChatMessageType.Broadcast));
+                return;
+
+            }
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Moving {obj.Name} ({obj.Guid}) to current location", ChatMessageType.Broadcast));
+
+            obj.Location = obj.PhysicsObj.Position.ACEPosition();
+
+            if (prevLoc.Landblock != obj.Location.Landblock)
+            {
+                LandblockManager.RelocateObjectForPhysics(obj, true);
+            }
+
+            obj.SendUpdatePosition(true);
         }
     }
 }

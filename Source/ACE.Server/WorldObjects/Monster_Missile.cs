@@ -85,15 +85,17 @@ namespace ACE.Server.WorldObjects
             if (DebugMove)
                 Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - LaunchMissile");
 
+            var projectileSpeed = GetProjectileSpeed();
+
             // get z-angle for aim motion
-            var aimVelocity = GetAimVelocity(AttackTarget);
+            var aimVelocity = GetAimVelocity(AttackTarget, projectileSpeed);
 
             var aimLevel = GetAimLevel(aimVelocity);
 
             // calculate projectile spawn pos and velocity
             var localOrigin = GetProjectileSpawnOrigin(ammo.WeenieClassId, aimLevel);
 
-            var velocity = CalculateProjectileVelocity(localOrigin, AttackTarget, out Vector3 origin, out Quaternion orientation);
+            var velocity = CalculateProjectileVelocity(localOrigin, AttackTarget, projectileSpeed, out Vector3 origin, out Quaternion orientation);
 
             //Console.WriteLine($"Velocity: {velocity}");
 

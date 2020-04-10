@@ -809,7 +809,7 @@ namespace ACE.Server.Command.Handlers.Processors
             DatabaseManager.World.ClearCachedWeenie(wcid);
 
             // load weenie from database
-            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+            var weenie = DatabaseManager.World.GetWeenie(wcid);
 
             if (weenie == null)
             {
@@ -836,7 +836,7 @@ namespace ACE.Server.Command.Handlers.Processors
             DatabaseManager.World.ClearCookbookCache();
 
             // load cookbooks + recipe from database
-            var cookbooks = DatabaseManager.World.GetCachedCookbooks(recipeId);
+            var cookbooks = DatabaseManager.World.GetCookbooksByRecipeId(recipeId);
 
             if (cookbooks == null || cookbooks.Count == 0)
             {
@@ -1089,9 +1089,9 @@ namespace ACE.Server.Command.Handlers.Processors
             }
 
             if (uint.TryParse(param, out var wcid))
-                weenie = DatabaseManager.World.GetCachedWeenie(wcid);   // wcid
+                weenie = DatabaseManager.World.GetWeenie(wcid);   // wcid
             else
-                weenie = DatabaseManager.World.GetCachedWeenie(param);  // classname
+                weenie = DatabaseManager.World.GetWeenie(param);  // classname
 
             if (weenie == null)
             {
@@ -1164,7 +1164,9 @@ namespace ACE.Server.Command.Handlers.Processors
             }
 
             // create and spawn object
-            var wo = WorldObjectFactory.CreateWorldObject(weenie, new ObjectGuid(nextStaticGuid));
+            var entityWeenie = ACE.Database.Adapter.WeenieConverter.ConvertToEntityWeenie(weenie);
+
+            var wo = WorldObjectFactory.CreateWorldObject(entityWeenie, new ObjectGuid(nextStaticGuid));
 
             if (wo == null)
             {
@@ -1425,9 +1427,9 @@ namespace ACE.Server.Command.Handlers.Processors
             Weenie weenie = null;
 
             if (uint.TryParse(param, out var wcid))
-                weenie = DatabaseManager.World.GetCachedWeenie(wcid);   // wcid
+                weenie = DatabaseManager.World.GetWeenie(wcid);   // wcid
             else
-                weenie = DatabaseManager.World.GetCachedWeenie(param);  // classname
+                weenie = DatabaseManager.World.GetWeenie(param);  // classname
 
             if (weenie == null)
             {
@@ -1514,8 +1516,20 @@ namespace ACE.Server.Command.Handlers.Processors
 
                 wo.ReinitializeHeartbeats();
 
-                foreach (var profile in wo.Biota.BiotaPropertiesGenerator)
-                    profile.Delay = (float)PropertyManager.GetDouble("encounter_delay").Item;
+                if (wo.Biota.PropertiesGenerator != null)
+                {
+                    // While this may be ugly, it's done for performance reasons.
+                    // Common weenie properties are not cloned into the bota on creation. Instead, the biota references simply point to the weenie collections.
+                    // The problem here is that we want to update one of those common collection properties. If the biota is referencing the weenie collection,
+                    // then we'll end up updating the global weenie (from the cache), instead of just this specific biota.
+                    if (wo.Biota.PropertiesGenerator == wo.Weenie.PropertiesGenerator)
+                    {
+                        wo.Biota.PropertiesGenerator = new List<ACE.Entity.Models.PropertiesGenerator>(wo.Weenie.PropertiesGenerator.Count);
+
+                        foreach (var record in wo.Weenie.PropertiesGenerator)
+                            wo.Biota.PropertiesGenerator.Add(record.Clone());
+                    }
+                }
             }
 
             wo.EnterWorld();
@@ -1568,9 +1582,9 @@ namespace ACE.Server.Command.Handlers.Processors
             Weenie weenie = null;
 
             if (uint.TryParse(param, out var wcid))
-                weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+                weenie = DatabaseManager.World.GetWeenie(wcid);
             else
-                weenie = DatabaseManager.World.GetCachedWeenie(param);
+                weenie = DatabaseManager.World.GetWeenie(param);
 
             if (weenie == null)
             {
@@ -1615,7 +1629,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            var cookbooks = DatabaseManager.World.GetCachedCookbooks(recipeId);
+            var cookbooks = DatabaseManager.World.GetCookbooksByRecipeId(recipeId);
             if (cookbooks == null)
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find recipe id {recipeId}");
@@ -1780,9 +1794,9 @@ namespace ACE.Server.Command.Handlers.Processors
             Weenie weenie = null;
 
             if (uint.TryParse(param, out var wcid))
-                weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+                weenie = DatabaseManager.World.GetWeenie(wcid);
             else
-                weenie = DatabaseManager.World.GetCachedWeenie(param);
+                weenie = DatabaseManager.World.GetWeenie(param);
 
             if (weenie == null)
             {
@@ -1839,7 +1853,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            var cookbooks = DatabaseManager.World.GetCachedCookbooks(recipeId);
+            var cookbooks = DatabaseManager.World.GetCookbooksByRecipeId(recipeId);
             if (cookbooks == null)
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find recipe id {recipeId}");
@@ -2007,6 +2021,8 @@ namespace ACE.Server.Command.Handlers.Processors
             {
                 if (parameters[0].Contains("landblock", StringComparison.OrdinalIgnoreCase))
                     mode = CacheType.Landblock;
+                if (parameters[0].Contains("recipe", StringComparison.OrdinalIgnoreCase))
+                    mode = CacheType.Recipe;
                 if (parameters[0].Contains("spell", StringComparison.OrdinalIgnoreCase))
                     mode = CacheType.Spell;
                 if (parameters[0].Contains("weenie", StringComparison.OrdinalIgnoreCase))
@@ -2017,6 +2033,12 @@ namespace ACE.Server.Command.Handlers.Processors
             {
                 CommandHandlerHelper.WriteOutputInfo(session, "Clearing landblock instance cache");
                 DatabaseManager.World.ClearCachedLandblockInstances();
+            }
+
+            if (mode.HasFlag(CacheType.Recipe))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Clearing recipe cache");
+                DatabaseManager.World.ClearCookbookCache();
             }
 
             if (mode.HasFlag(CacheType.Spell))
@@ -2038,8 +2060,9 @@ namespace ACE.Server.Command.Handlers.Processors
         {
             None      = 0x0,
             Landblock = 0x1,
-            Spell     = 0x2,
-            Weenie    = 0x4,
+            Recipe    = 0x2,
+            Spell     = 0x4,
+            Weenie    = 0x8,
             All       = 0xFFFF
         };
 

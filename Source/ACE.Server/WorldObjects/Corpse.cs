@@ -1,16 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using log4net;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -46,6 +44,10 @@ namespace ACE.Server.WorldObjects
         public Corpse(Biota biota) : base(biota)
         {
             SetEphemeralValues();
+
+            // for player corpses restored from database,
+            // ensure any floating corpses fall to the ground
+            BumpVelocity = true;
         }
 
         private void SetEphemeralValues()
@@ -76,21 +78,18 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override ObjDesc CalculateObjDesc()
         {
-            if (Biota.BiotaPropertiesAnimPart.Count == 0 && Biota.BiotaPropertiesPalette.Count == 0 && Biota.BiotaPropertiesTextureMap.Count == 0)
+            if (Biota.PropertiesAnimPart.GetCount(BiotaDatabaseLock) == 0 && Biota.PropertiesPalette.GetCount(BiotaDatabaseLock) == 0 && Biota.PropertiesTextureMap.GetCount(BiotaDatabaseLock) == 0)
                 return base.CalculateObjDesc(); // No Saved ObjDesc, let base handle it.
 
             var objDesc = new ObjDesc();
 
             AddBaseModelData(objDesc);
 
-            foreach (var animPart in Biota.BiotaPropertiesAnimPart.OrderBy(b => b.Order))
-                objDesc.AnimPartChanges.Add(new AnimationPartChange { PartIndex = animPart.Index, PartID = animPart.AnimationId });
+            Biota.PropertiesAnimPart.CopyTo(objDesc.AnimPartChanges, BiotaDatabaseLock);
 
-            foreach (var subPalette in Biota.BiotaPropertiesPalette)
-                objDesc.SubPalettes.Add(new SubPalette { SubID = subPalette.SubPaletteId, Offset = subPalette.Offset, NumColors = subPalette.Length });
+            Biota.PropertiesPalette.CopyTo(objDesc.SubPalettes, BiotaDatabaseLock);
 
-            foreach (var textureMap in Biota.BiotaPropertiesTextureMap.OrderBy(b => b.Order))
-                objDesc.TextureChanges.Add(new TextureMapChange { PartIndex = textureMap.Index, OldTexture = textureMap.OldId, NewTexture = textureMap.NewId });
+            Biota.PropertiesTextureMap.CopyTo(objDesc.TextureChanges, BiotaDatabaseLock);
 
             return objDesc;
         }

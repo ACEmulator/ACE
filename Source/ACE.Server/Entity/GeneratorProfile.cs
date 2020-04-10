@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using log4net;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Factories;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects;
@@ -31,7 +31,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The biota with all the generator profile info
         /// </summary>
-        public BiotaPropertiesGenerator Biota;
+        public PropertiesGenerator Biota;
 
         /// <summary>
         /// A list of objects that have been spawned by this generator
@@ -109,7 +109,9 @@ namespace ACE.Server.Entity
         {
             get
             {
-                if (Generator is Chest || Generator.RegenerationInterval == 0)
+                // TODO: investigate this logic - why is the RegenerationInterval bit needed here?
+
+                if (Generator is Chest || !(Generator is PressurePlate) && Generator.RegenerationInterval == 0)
                     return 0;
 
                 return Biota.Delay ?? Generator.GeneratorProfiles[0].Biota.Delay ?? 0.0f;
@@ -127,7 +129,7 @@ namespace ACE.Server.Entity
         /// Constructs a new active generator profile
         /// from a biota generator
         /// </summary>
-        public GeneratorProfile(WorldObject generator, BiotaPropertiesGenerator biota, uint profileId)
+        public GeneratorProfile(WorldObject generator, PropertiesGenerator biota, uint profileId)
         {
             Generator = generator;
             Biota = biota;
@@ -258,10 +260,10 @@ namespace ACE.Server.Entity
                 if (Biota.PaletteId.HasValue && Biota.PaletteId > 0)
                     wo.PaletteBaseId = Biota.PaletteId;
 
-                if (Biota.Shade.HasValue && Biota.Shade > 0)
+                if (Biota.Shade.HasValue && Biota.Shade >= 0)
                     wo.Shade = Biota.Shade;
 
-                if ((Biota.Shade.HasValue && Biota.Shade > 0) || (Biota.PaletteId.HasValue && Biota.PaletteId > 0))
+                if ((Biota.Shade.HasValue && Biota.Shade >= 0) || (Biota.PaletteId.HasValue && Biota.PaletteId > 0))
                     wo.CalculateObjDesc(); // to update icon
 
                 if (Biota.StackSize.HasValue && Biota.StackSize > 0)

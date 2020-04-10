@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 using ACE.Common;
-using ACE.DatLoader.Entity;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -16,12 +14,24 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
+        public enum DebugDamageType
+        {
+            None     = 0x0,
+            Attacker = 0x1,
+            Defender = 0x2,
+            All      = Attacker | Defender
+        };
+
+        public DebugDamageType DebugDamage;
+
+        public ObjectGuid DebugDamageTarget;
+
         /// <summary>
         /// The list of combat maneuvers performable by this creature
         /// </summary>
         public DatLoader.FileTypes.CombatManeuverTable CombatTable { get; set; }
 
-        public CombatMode CombatMode { get; private set; }
+        public CombatMode CombatMode { get; protected set; }
 
         public AttackType AttackType { get; set; }
 
@@ -650,7 +660,11 @@ namespace ACE.Server.WorldObjects
             // impenetrability, brittlemail
             var ignoreMagicArmor = (weapon?.IgnoreMagicArmor ?? false) || (attacker?.IgnoreMagicArmor ?? false);
 
-            var modSL = ignoreMagicArmor ? 0 : shield.EnchantmentManager.GetArmorMod();
+            var modSL = shield.EnchantmentManager.GetArmorMod();
+
+            if (ignoreMagicArmor)
+                modSL = attacker is Player ? (int)Math.Round(IgnoreMagicArmorScaled(modSL)) : 0;
+
             var effectiveSL = baseSL + modSL;
 
             // get shield RL against damage type
@@ -658,7 +672,11 @@ namespace ACE.Server.WorldObjects
 
             // shield RL item enchantment additives:
             // banes, lures
-            var modRL = ignoreMagicArmor ? 0 : shield.EnchantmentManager.GetArmorModVsType(damageType);
+            var modRL = shield.EnchantmentManager.GetArmorModVsType(damageType);
+
+            if (ignoreMagicArmor)
+                modRL = attacker is Player ? IgnoreMagicArmorScaled(modRL) : 0.0f;
+
             var effectiveRL = (float)(baseRL + modRL);
 
             // resistance clamp

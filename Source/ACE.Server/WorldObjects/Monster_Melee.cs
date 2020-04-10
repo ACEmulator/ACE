@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
@@ -320,7 +321,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns base damage range for next monster attack
         /// </summary>
-        public BaseDamageMod GetBaseDamage(BiotaPropertiesBodyPart attackPart)
+        public BaseDamageMod GetBaseDamage(PropertiesBodyPart attackPart)
         {
             if (CurrentAttack == CombatType.Missile && GetMissileAmmo() != null)
                 return GetMissileDamage();
@@ -372,7 +373,9 @@ namespace ACE.Server.WorldObjects
 
             // life spells
             // additive: armor/imperil
-            var bodyArmorMod = ignoreMagicResist ? 0.0f : AttackTarget.EnchantmentManager.GetBodyArmorMod();
+            var bodyArmorMod = AttackTarget.EnchantmentManager.GetBodyArmorMod();
+            if (ignoreMagicResist)
+                bodyArmorMod = IgnoreMagicResistScaled(bodyArmorMod);
 
             // handle armor rending mod here?
             //if (bodyArmorMod > 0)
@@ -394,6 +397,32 @@ namespace ACE.Server.WorldObjects
             return armorMod;
         }
 
+        public float IgnoreMagicArmorScaled(float enchantments)
+        {
+            if (!(this is Player))
+                return 0.0f;
+
+            var scalar = PropertyManager.GetDouble("ignore_magic_armor_pvp_scalar").Item;
+
+            if (scalar != 1.0)
+                return (float)(enchantments * (1.0 - scalar));
+            else
+                return 0.0f;
+        }
+
+        public int IgnoreMagicResistScaled(int enchantments)
+        {
+            if (!(this is Player))
+                return 0;
+
+            var scalar = PropertyManager.GetDouble("ignore_magic_resist_pvp_scalar").Item;
+
+            if (scalar != 1.0)
+                return (int)Math.Round(enchantments * (1.0 - scalar));
+            else
+                return 0;
+        }
+
         /// <summary>
         /// Returns the effective AL for 1 piece of armor/clothing
         /// </summary>
@@ -412,12 +441,21 @@ namespace ACE.Server.WorldObjects
 
             // armor level additives
             var target = AttackTarget as Creature;
-            var armorMod = ignoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorMod();
+
+            var armorMod = armor.EnchantmentManager.GetArmorMod();
+
+            if (ignoreMagicArmor)
+                armorMod = (int)Math.Round(IgnoreMagicArmorScaled(armorMod));
+
             // Console.WriteLine("Impen: " + armorMod);
             var effectiveAL = baseArmor + armorMod;
 
             // resistance additives
-            var armorBane = ignoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorModVsType(damageType);
+            var armorBane = armor.EnchantmentManager.GetArmorModVsType(damageType);
+
+            if (ignoreMagicArmor)
+                armorBane = IgnoreMagicArmorScaled(armorBane);
+
             // Console.WriteLine("Bane: " + armorBane);
             var effectiveRL = (float)(resistance + armorBane);
 
@@ -425,8 +463,8 @@ namespace ACE.Server.WorldObjects
             effectiveRL = Math.Clamp(effectiveRL, -2.0f, 2.0f);
 
             // TODO: could brittlemail / lures send a piece of armor or clothing's AL into the negatives?
-            if (effectiveAL < 0)
-                effectiveRL = 1.0f / effectiveRL;
+            //if (effectiveAL < 0)
+                //effectiveRL = 1.0f / effectiveRL;
 
             /*Console.WriteLine("Effective AL: " + effectiveAL);
             Console.WriteLine("Effective RL: " + effectiveRL);
@@ -490,24 +528,24 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the monster body part performing the next attack
         /// </summary>
-        public BiotaPropertiesBodyPart GetAttackPart(MotionCommand motionCommand)
+        public KeyValuePair<CombatBodyPart, PropertiesBodyPart> GetAttackPart(MotionCommand motionCommand)
         {
-            List<BiotaPropertiesBodyPart> parts = null;
+            List<KeyValuePair<CombatBodyPart, PropertiesBodyPart>> parts = null;
             var attackHeight = (uint)AttackHeight;
 
             if (motionCommand >= MotionCommand.SpecialAttack1 && motionCommand <= MotionCommand.SpecialAttack3)
                 //parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH == 0).ToList();
-                parts = Biota.BiotaPropertiesBodyPart.Where(b => b.Key == (int)CombatBodyPart.Breath).ToList();  // always use Breath?
+                parts = Biota.PropertiesBodyPart.Where(b => b.Key == CombatBodyPart.Breath).ToList(); // always use Breath?
 
             if (parts == null)
                 //parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH != 0).ToList();
-                parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.Key != (int)CombatBodyPart.Breath).ToList();
+                parts = Biota.PropertiesBodyPart.Where(b => b.Value.DVal != 0 && b.Key != CombatBodyPart.Breath).ToList();
 
             if (parts.Count == 0)
             {
                 log.Warn($"{Name} ({Guid}.GetAttackPart({motionCommand}) failed");
                 log.Warn($"CombatTable: {CombatTableDID:X8}, MotionTable: {MotionTableId:X8}, CurrentStance: {CurrentMotionState.Stance}, AttackHeight: {AttackHeight}, AttackType: {AttackType}");
-                return null;
+                return new KeyValuePair<CombatBodyPart, PropertiesBodyPart>();
             }
 
             var part = parts[ThreadSafeRandom.Next(0, parts.Count - 1)];

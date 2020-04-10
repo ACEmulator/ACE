@@ -1,6 +1,7 @@
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
+using System;
+
 using ACE.Entity;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects

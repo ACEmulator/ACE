@@ -11,12 +11,12 @@ using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.World;
-using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
@@ -242,19 +242,20 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// playsound [Sound] (volumelevel)
         /// </summary>
-        [CommandHandler("playsound", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Plays a sound.", "sound (float)\n" + "Sound can be uint or enum name" + "float is volume level")]
+        [CommandHandler("playsound", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Plays a sound.", "sound (volume) (guid)\n" + "Sound can be uint or enum name\n" + "Volume and source guid are optional")]
         public static void HandlePlaySound(Session session, params string[] parameters)
         {
             try
             {
                 float volume = 1f;
-                var soundEvent = new GameMessageSound(session.Player.Guid, Sound.Invalid, volume);
 
                 if (parameters.Length > 1)
-                {
-                    if (parameters[1] != "")
-                        volume = float.Parse(parameters[1]);
-                }
+                    float.TryParse(parameters[1], out volume);
+
+                uint guid = session.Player.Guid.Full;
+
+                if (parameters.Length > 2)
+                    uint.TryParse(parameters[2].TrimStart("0x"), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out guid);
 
                 var message = $"Unable to find a sound called {parameters[0]} to play.";
 
@@ -266,7 +267,7 @@ namespace ACE.Server.Command.Handlers
                         // add the sound to the player queue for everyone to hear
                         // player action queue items will execute on the landblock
                         // player.playsound will play a sound on only the client session that called the function
-                        session.Player.HandleActionApplySoundEffect(sound);
+                        session.Player.PlaySoundEffect(sound, new ObjectGuid(guid), volume);
                     }
                 }
 
@@ -474,14 +475,6 @@ namespace ACE.Server.Command.Handlers
             });
         }
 
-        [CommandHandler("cacheallweenies", AccessLevel.Developer, CommandHandlerFlag.None, "Loads and caches all Weenies. This may take 15+ minutes and is very heavy on the database.")]
-        public static void HandleCacheAllWeenies(Session session, params string[] parameters)
-        {
-            CommandHandlerHelper.WriteOutputInfo(session, "Caching Weenies... This may take more than 15 minutes...");
-
-            Task.Run(() => DatabaseManager.World.CacheAllWeenies());
-        }
-
 
         // ==================================
         // World Object Properties
@@ -683,7 +676,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("listpositions", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Displays all available saved character positions from the database.", "@listpositions")]
         public static void HandleListPositions(Session session, params string[] parameters)
         {
-            var posDict = session.Player.GetPositions();
+            var posDict = session.Player.GetAllPositions();
             string message = "Saved character positions:\n";
 
             foreach (var posPair in posDict)
@@ -1967,37 +1960,37 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("debugdamage", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Toggles the display for player damage info", "/debugdamage <attack|defense|all|on|off>")]
         public static void HandleDebugDamage(Session session, params string[] parameters)
         {
-            // get last appraisal player target
-            var targetPlayer = CommandHandlerHelper.GetLastAppraisedObject(session) as Player;
-            if (targetPlayer == null) return;
+            // get last appraisal creature target
+            var targetCreature = CommandHandlerHelper.GetLastAppraisedObject(session) as Creature;
+            if (targetCreature == null) return;
 
             if (parameters.Length == 0)
             {
                 // toggle
-                if (targetPlayer.DebugDamage == Player.DebugDamageType.None)
-                    targetPlayer.DebugDamage = Player.DebugDamageType.All;
+                if (targetCreature.DebugDamage == Creature.DebugDamageType.None)
+                    targetCreature.DebugDamage = Creature.DebugDamageType.All;
                 else
-                    targetPlayer.DebugDamage = Player.DebugDamageType.None;
+                    targetCreature.DebugDamage = Creature.DebugDamageType.None;
             }
             else
             {
                 var param = parameters[0].ToLower();
                 if (param.Equals("on") || param.Equals("all"))
-                    targetPlayer.DebugDamage = Player.DebugDamageType.All;
+                    targetCreature.DebugDamage = Creature.DebugDamageType.All;
                 else if (param.Equals("off"))
-                    targetPlayer.DebugDamage = Player.DebugDamageType.None;
+                    targetCreature.DebugDamage = Creature.DebugDamageType.None;
                 else if (param.StartsWith("attack"))
-                    targetPlayer.DebugDamage = Player.DebugDamageType.Attacker;
+                    targetCreature.DebugDamage = Creature.DebugDamageType.Attacker;
                 else if (param.StartsWith("defen"))
-                    targetPlayer.DebugDamage = Player.DebugDamageType.Defender;
+                    targetCreature.DebugDamage = Creature.DebugDamageType.Defender;
                 else
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: - unknown {param} ({targetPlayer.Name})", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: - unknown {param} ({targetCreature.Name})", ChatMessageType.Broadcast));
                     return;
                 }
             }
-            session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: - {session.Player.DebugDamage} ({targetPlayer.Name})", ChatMessageType.Broadcast));
-            targetPlayer.DebugDamageTarget = session.Player.Guid;
+            session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: - {targetCreature.DebugDamage} ({targetCreature.Name})", ChatMessageType.Broadcast));
+            targetCreature.DebugDamageTarget = session.Player.Guid;
         }
 
         /// <summary>
@@ -2295,7 +2288,7 @@ namespace ACE.Server.Command.Handlers
             // Create a dummy treasure profile for passing in tier value
             TreasureDeath profile = new TreasureDeath
             {
-                Tier = 7,
+                Tier = tier,
                 LootQualityMod = 0
             };
 
@@ -2453,7 +2446,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            obj.Biota.GetOrAddKnownSpell((int)spellId, obj.BiotaDatabaseLock, obj.BiotaPropertySpells, out var spellAdded);
+            obj.Biota.GetOrAddKnownSpell((int)spellId, obj.BiotaDatabaseLock, out var spellAdded);
 
             var msg = spellAdded ? "added to" : "already on";
 
@@ -2482,7 +2475,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            var spellRemoved = obj.Biota.TryRemoveKnownSpell((int)spellId, out _, obj.BiotaDatabaseLock, obj.BiotaPropertySpells);
+            var spellRemoved = obj.Biota.TryRemoveKnownSpell((int)spellId, obj.BiotaDatabaseLock);
 
             var msg = spellRemoved ? "removed from" : "not found on";
 
@@ -2794,12 +2787,24 @@ namespace ACE.Server.Command.Handlers
         {
             var spell = new Spell(SpellId.QuicknessSelf8);
             session.Player.CreateEnchantment(session.Player, session.Player, spell);
+
+            spell = new Spell(SpellId.SprintSelf8);
+            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+
+            spell = new Spell(SpellId.StrengthSelf8);
+            session.Player.CreateEnchantment(session.Player, session.Player, spell);
         }
 
         [CommandHandler("slow", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void HandleSlow(Session session, params string[] parameters)
         {
             var spell = new Spell(SpellId.SlownessSelf8);
+            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+
+            spell = new Spell(SpellId.LeadenFeetSelf8);
+            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+
+            spell = new Spell(SpellId.WeaknessSelf8);
             session.Player.CreateEnchantment(session.Player, session.Player, spell);
         }
 
@@ -2972,6 +2977,34 @@ namespace ACE.Server.Command.Handlers
                 landblock.Init(true);
             });
             actionChain.EnqueueChain();
+        }
+
+        [CommandHandler("showvelocity", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the velocity of the last appraised object.")]
+        public static void HandleShowVelocity(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (obj?.PhysicsObj == null)
+                return;
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Velocity: {obj.Velocity}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Physics.Velocity: {obj.PhysicsObj.Velocity}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"CachedVelocity: {obj.PhysicsObj.CachedVelocity}", ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("bumpvelocity", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Bumps the velocity of the last appraised object.")]
+        public static void HandleBumpVelocity(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (obj?.PhysicsObj == null)
+                return;
+
+            var velocity = new Vector3(0, 0, 0.5f);
+
+            obj.PhysicsObj.Velocity = velocity;
+
+            session.Network.EnqueueSend(new GameMessageVectorUpdate(obj));
         }
     }
 }
