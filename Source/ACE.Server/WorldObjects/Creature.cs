@@ -129,6 +129,9 @@ namespace ACE.Server.WorldObjects
             selectedTargets = new Dictionary<uint, WorldObjectInfo>();
         }
 
+        // verify logic
+        public bool IsNPC => !(this is Player) && !Attackable && TargetingTactic == TargetingTactic.None;
+
         public void GenerateNewFace()
         {
             var cg = DatManager.PortalDat.CharGen;
