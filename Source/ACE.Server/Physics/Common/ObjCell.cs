@@ -7,6 +7,7 @@ using System.Threading;
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Combat;
+using ACE.Server.Physics.Managers;
 
 namespace ACE.Server.Physics.Common
 {
@@ -29,6 +30,11 @@ namespace ACE.Server.Physics.Common
         public bool SeenOutside;
         public List<uint> VoyeurTable;
         public Landblock CurLandblock;
+
+        /// <summary>
+        /// Returns TRUE if this is a house cell that can be protected by a housing barrier
+        /// </summary>
+        public bool IsCellRestricted => RestrictionObj != 0;
 
         /// <summary>
         /// TODO: This is a temporary locking mechanism, Mag-nus 2019-10-20
@@ -272,13 +278,51 @@ namespace ACE.Server.Physics.Common
 
         public TransitionState check_entry_restrictions(Transition transition)
         {
-            var objInfo = transition.ObjectInfo;
+            // custom - acclient checks for entry restrictions (housing barriers)
+            // for each tick in the transition, regardless if there is a cell change
 
-            if (objInfo.Object == null) return TransitionState.Collided;
-            if (objInfo.Object.WeenieObj == null) return TransitionState.OK;
+            // optimizing for server here, to only check unverified cell changes
 
-            // check against world object
+            if (!transition.ObjectInfo.Object.IsPlayer || transition.CollisionInfo.VerifiedRestrictions || transition.SpherePath.BeginCell?.ID == ID)
+            {
+                return TransitionState.OK;
+            }
+
+            if (transition.ObjectInfo.Object == null)
+                return TransitionState.Collided;
+
+            var weenieObj = transition.ObjectInfo.Object.WeenieObj;
+
+            // TODO: handle DatObject
+            if (weenieObj != null)
+            {
+                //if (transition.ObjectInfo.State.HasFlag(ObjectInfoState.IsPlayer))
+                if (transition.ObjectInfo.Object.IsPlayer)
+                {
+                    if (RestrictionObj != 0 && !weenieObj.CanBypassMoveRestrictions())
+                    {
+                        var restrictionObj = ServerObjectManager.GetObjectA(RestrictionObj);
+
+                        if (restrictionObj?.WeenieObj == null)
+                            return TransitionState.Collided;
+
+                        if (!restrictionObj.WeenieObj.CanMoveInto(weenieObj))
+                        {
+                            handle_move_restriction(transition);
+                            return TransitionState.Collided;
+                        }
+                        else
+                            transition.CollisionInfo.VerifiedRestrictions = true;
+                    }
+                }
+            }
             return TransitionState.OK;
+        }
+
+        public virtual bool handle_move_restriction(Transition transition)
+        {
+            // empty base?
+            return false;
         }
 
         public static void find_cell_list(Position position, int numSphere, List<Sphere> sphere, CellArray cellArray, ref ObjCell currCell, SpherePath path)

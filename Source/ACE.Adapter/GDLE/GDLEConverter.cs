@@ -164,6 +164,10 @@ namespace ACE.Adapter.GDLE
                     }
                 }
 
+                // reguid if needed
+                var landblockId = (ushort)(input.key >> 16);
+                ReGuidAndConvertLandblocks(results, links, landblockId);
+
                 return true;
             }
             catch
@@ -171,6 +175,34 @@ namespace ACE.Adapter.GDLE
                 results = null;
                 links = null;
                 return false;
+            }
+        }
+
+        private static void ReGuidAndConvertLandblocks(List<LandblockInstance> instances, List<LandblockInstanceLink> links, ushort landblockId)
+        {
+            var firstGuid = 0x70000000 | ((uint)landblockId << 12);
+            var lastGuid = firstGuid | 0xFFF;
+
+            var nextGuid = firstGuid;
+
+            var reguid = new Dictionary<uint, uint>();
+
+            foreach (var instance in instances)
+            {
+                if (instance.Guid < firstGuid || instance.Guid > lastGuid)
+                {
+                    reguid.Add(instance.Guid, nextGuid);
+                    instance.Guid = nextGuid++;
+                }
+            }
+
+            foreach (var link in links)
+            {
+                if (reguid.TryGetValue(link.ParentGuid, out var newParentGuid))
+                    link.ParentGuid = newParentGuid;
+
+                if (reguid.TryGetValue(link.ChildGuid, out var newChildGuid))
+                    link.ChildGuid = newChildGuid;
             }
         }
 

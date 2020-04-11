@@ -223,9 +223,8 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 default:
-                    Session.Network.EnqueueSend(new GameEventAttackDone(Session));
-                    SendWeenieError(status);
 
+                    SendWeenieError(status);
                     HandleActionCancelAttack();
                     break;
             }

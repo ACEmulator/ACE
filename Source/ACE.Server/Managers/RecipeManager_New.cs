@@ -16,13 +16,6 @@ namespace ACE.Server.Managers
     {
         public static Dictionary<uint, Dictionary<uint, uint>> Precursors;
 
-        public static HashSet<int> Trinkets;
-
-        static RecipeManager()
-        {
-            Trinkets = LootTables.trinketItems.ToHashSet();
-        }
-
         public static void ReadJSON()
         {
             // read recipeprecursors.json
@@ -46,26 +39,6 @@ namespace ACE.Server.Managers
         public static Recipe GetNewRecipe(Player player, WorldObject source, WorldObject target)
         {
             Recipe recipe = null;
-
-            if (Trinkets.Contains((int)target.WeenieClassId))
-            {
-                // trinkets are ItemType.Jewelry,
-                // so need to be excluded in precursors
-                switch ((WeenieClassName)source.WeenieClassId)
-                {
-                    // allowed
-                    case WeenieClassName.W_MATERIALAMBER_CLASS:
-                    case WeenieClassName.W_MATERIALDIAMOND_CLASS:
-                    case WeenieClassName.W_MATERIALGROMNIEHIDE_CLASS:
-                    case WeenieClassName.W_MATERIALPYREAL_CLASS:
-                    case WeenieClassName.W_MATERIALRUBY_CLASS:
-                    case WeenieClassName.W_MATERIALSAPPHIRE_CLASS:
-                        break;
-
-                    default:
-                        return null;
-                }
-            }
 
             switch ((WeenieClassName)source.WeenieClassId)
             {
@@ -253,7 +226,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALCARNELIAN_CLASS:
 
                     // ensure item is generic (jewelry), and has workmanship
-                    if (target.WeenieType != WeenieType.Generic || target.Workmanship == null)
+                    if (target.WeenieType != WeenieType.Generic || target.Workmanship == null || target.ValidLocations == EquipMask.TrinketOne)
                         return null;
 
                     recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);

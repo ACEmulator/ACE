@@ -112,12 +112,9 @@ namespace ACE.Server.WorldObjects
             {
                 GenerateWieldList();
 
-                if (!(this is CombatPet)) //combat pets normally wouldn't have these items, but due to subbing in code currently, sometimes they do. this skips them for now.
-                {
-                    GenerateWieldedTreasure();
+                GenerateWieldedTreasure();
 
-                    EquipInventoryItems();
-                }
+                EquipInventoryItems();
 
                 // TODO: fix tod data
                 Health.Current = Health.MaxValue;

@@ -156,18 +156,37 @@ namespace ACE.Server.WorldObjects
             return ((uint)a.ArmorLevel).CompareTo((uint)b.ArmorLevel);
         }
 
+        public void GetMonsterInventory(List<WorldObject> allWeapons, List<WorldObject> ammo)
+        {
+            // similar to GetInventoryItemsOfTypeWeenieType, optimized for this particular scenario
+            foreach (var item in Inventory.Values)
+            {
+                switch (item.WeenieType)
+                {
+                    case WeenieType.MeleeWeapon:
+                    case WeenieType.MissileLauncher:
+                    case WeenieType.Missile:
+                    case WeenieType.Caster:
+
+                        allWeapons.Add(item);
+                        break;
+
+                    case WeenieType.Ammunition:
+
+                        ammo.Add(item);
+                        break;
+                }
+            }
+        }
+
         public List<WorldObject> SelectWieldedWeapons()
         {
             //Console.WriteLine($"{Name}.SelectWieldedWeapons()");
 
-            var meleeWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.MeleeWeapon);
-            var missileWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.MissileLauncher);
-            var missiles = GetInventoryItemsOfTypeWeenieType(WeenieType.Missile);
-            missileWeapons.AddRange(missiles);
-            var ammo = GetInventoryItemsOfTypeWeenieType(WeenieType.Ammunition);
+            var allWeapons = new List<WorldObject>();
+            var ammo = new List<WorldObject>();
 
-            var allWeapons = meleeWeapons.Concat(missileWeapons).ToList();
-            //var allWeapons = missileWeapons;
+            GetMonsterInventory(allWeapons, ammo);
 
             if (allWeapons.Count == 0) return new List<WorldObject>();
 
@@ -207,7 +226,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (weapon.WeenieType == WeenieType.MeleeWeapon && !weapon.IsTwoHanded)
                     {
-                        var dualWield = meleeWeapons.FirstOrDefault(i => i.AutoWieldLeft);
+                        var dualWield = allWeapons.FirstOrDefault(i => i.AutoWieldLeft);
                         if (dualWield != null)
                             return new List<WorldObject> { weapon, dualWield };
                     }
@@ -281,19 +300,21 @@ namespace ACE.Server.WorldObjects
         public void EquipInventoryItems(bool weaponsOnly = false)
         {
             var items = weaponsOnly ? SelectWieldedWeapons() : SelectWieldedTreasure();
-            if (items != null)
-            {
-                foreach (var item in items)
-                {
-                    //Console.WriteLine($"{Name} equipping {item.Name}");
 
-                    if (item.ValidLocations != null)
-                    {
-                        TryRemoveFromInventory(item.Guid);
-                        var result = TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0);
-                        //Console.WriteLine($"{Name} tried to equip {item.Name}, result={result}");
-                    }
-                }
+            if (items == null) return;
+
+            foreach (var item in items)
+            {
+                if (item.ValidLocations == null)
+                    continue;
+
+                //Console.WriteLine($"{Name} equipping {item.Name}");
+
+                if (!TryRemoveFromInventory(item.Guid))
+                    continue;
+
+                if (!TryWieldObject(item, item.ValidLocations ?? 0))
+                    TryAddToInventory(item);
             }
         }
     }

@@ -15,6 +15,7 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics;
 
 namespace ACE.Server.WorldObjects
 {
@@ -565,6 +566,18 @@ namespace ACE.Server.WorldObjects
         private MotionCommand GetPickupMotion(WorldObject objectWereReachingToward)
         {
             if (objectWereReachingToward.Location == null)
+                return MotionCommand.Invalid;
+
+            // hack for jump looting --
+
+            // in retail, this bug was a result of actions running on motion callbacks,
+            // when the motions exited the animation queue
+
+            // since a 'crouch down' motion cannot be performed while jumping,
+            // this crouch down motion exited the animation queue immediately
+
+            // here we are just skipping the animation if the player is jumping
+            if (IsJumping && PropertyManager.GetBool("jump_loot").Item)
                 return MotionCommand.Invalid;
 
             MotionCommand pickupMotion;

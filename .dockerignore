@@ -8,6 +8,10 @@
 **/sed/
 **/AppVeyor/
 **/publish/
+**/Config/
+**/Dats/
+**/Logs/
+**/db-data/
 
 # files
 Dockerfile*

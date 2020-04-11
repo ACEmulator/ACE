@@ -66,7 +66,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            if (IsJumping)
             {
                 SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
                 return;
@@ -176,28 +176,44 @@ namespace ACE.Server.WorldObjects
                         if (success)
                             Attack(target, attackSequence);
                         else
-                            Session.Network.EnqueueSend(new GameEventAttackDone(Session));
+                            OnAttackDone();
                     });
                 }
             }
         }
 
-        public void OnAttackDone()
+        public void OnAttackDone(WeenieError error = WeenieError.None)
         {
+            // this function is called at the very end of an attack sequence,
+            // and not between the repeat attacks
+
+            // it sends action cancelled so the power / accuracy meter
+            // is reset, and doesn't start refilling again
+
+            // the werror for this network message is not displayed to the client --
+            // if you wish to display a message, a separate GameEventWeenieError should also be sent
+
+            Session.Network.EnqueueSend(new GameEventAttackDone(Session, WeenieError.ActionCancelled));
+
             MeleeTarget = null;
             MissileTarget = null;
 
             AttackQueue.Clear();
+
+            AttackCancelled = false;
         }
 
         /// <summary>
         /// called when client sends the 'Cancel attack' network message
         /// </summary>
-        public void HandleActionCancelAttack()
+        public void HandleActionCancelAttack(WeenieError error = WeenieError.None)
         {
             //Console.WriteLine($"{Name}.HandleActionCancelAttack()");
 
-            OnAttackDone();
+            if (Attacking)
+                AttackCancelled = true;
+            else
+                OnAttackDone();
 
             PhysicsObj.cancel_moveto();
         }
@@ -205,7 +221,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Performs a player melee attack against a target
         /// </summary>
-        public void Attack(WorldObject target, int attackSequence)
+        public void Attack(WorldObject target, int attackSequence, bool subsequent = false)
         {
             //log.Info($"{Name}.Attack({target.Name}, {attackSequence})");
 
@@ -234,6 +250,13 @@ namespace ACE.Server.WorldObjects
 
             // point of no return beyond this point -- cannot be cancelled
             Attacking = true;
+
+            if (subsequent)
+            {
+                // client shows hourglass, until attack done is received
+                // retail only did this for subsequent attacks w/ repeat attacks on
+                Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
+            }
 
             var weapon = GetEquippedMeleeWeapon();
             var attackType = GetWeaponAttackType(weapon);
@@ -304,7 +327,6 @@ namespace ACE.Server.WorldObjects
 
             actionChain.AddAction(this, () =>
             {
-                Session.Network.EnqueueSend(new GameEventAttackDone(Session));
                 Attacking = false;
 
                 // powerbar refill timing
@@ -317,20 +339,18 @@ namespace ACE.Server.WorldObjects
 
                 var dist = GetCylinderDistance(target);
 
-                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && (dist <= MeleeDistance || dist <= StickyDistance && IsMeleeVisible(target)))
+                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && (dist <= MeleeDistance || dist <= StickyDistance && IsMeleeVisible(target)) && !IsBusy && !AttackCancelled)
                 {
-                    Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
+                    // client starts refilling power meter
                     Session.Network.EnqueueSend(new GameEventAttackDone(Session));
 
                     var nextAttack = new ActionChain();
                     nextAttack.AddDelaySeconds(nextRefillTime);
-                    nextAttack.AddAction(this, () => Attack(target, attackSequence));
+                    nextAttack.AddAction(this, () => Attack(target, attackSequence, true));
                     nextAttack.EnqueueChain();
                 }
                 else
-                {
                     OnAttackDone();
-                }
             });
 
             actionChain.EnqueueChain();

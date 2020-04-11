@@ -115,6 +115,8 @@ namespace ACE.Server.Physics
 
         public static readonly int UpdateTimeLength = 9;
 
+        public bool IsSticky => PositionManager?.StickyManager != null && PositionManager.StickyManager.TargetID != 0;
+
         public PhysicsObj()
         {
             PlayerVector = new Vector3(0, 0, 1);
