@@ -1804,7 +1804,7 @@ namespace ACE.Server.Command.Handlers
                     {
                         returnState += $"{(int)kvp.Key}=";
                         returnState += $"{sk.LevelFromPP}=";
-                        returnState += $"{sk.SAC}=";
+                        returnState += $"{(uint)sk.SAC}=";
                         returnState += $"{sk.PP}=";
                         returnState += $"{sk.InitLevel}=";
                     }
@@ -1944,7 +1944,18 @@ namespace ACE.Server.Command.Handlers
                             case int n when (n <= 238):
                                 var playerSkill = currentPlayer.Skills[(Skill)int.Parse(returnStringArr[i])];
                                 playerSkill.Ranks = ushort.Parse(returnStringArr[i + 1]);
-                                playerSkill.AdvancementClass = (SkillAdvancementClass)uint.Parse(returnStringArr[i + 2]);
+
+                                // Handle god users stuck in god mode due to bad godstate with Enum string
+                                SkillAdvancementClass advancement;
+                                if (Enum.TryParse(returnStringArr[i + 2], out advancement))
+                                {
+                                    playerSkill.AdvancementClass = advancement;
+                                }
+                                else
+                                {
+                                    playerSkill.AdvancementClass = (SkillAdvancementClass)uint.Parse(returnStringArr[i + 2]);
+                                }
+
                                 playerSkill.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
                                 playerSkill.InitLevel = uint.Parse(returnStringArr[i + 4]);
                                 currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, playerSkill));
