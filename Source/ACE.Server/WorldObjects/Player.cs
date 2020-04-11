@@ -442,6 +442,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool PKLogout;
 
+        public bool IsLoggingOut;
+
         /// <summary>
         /// Do the player log out work.<para />
         /// If you want to force a player to logout, use Session.LogOffPlayer().
@@ -480,6 +482,8 @@ namespace ACE.Server.WorldObjects
 
         public void LogOut_Inner(bool clientSessionTerminatedAbruptly = false)
         {
+            IsLoggingOut = true;
+
             if (Fellowship != null)
                 FellowshipQuit(false);
 

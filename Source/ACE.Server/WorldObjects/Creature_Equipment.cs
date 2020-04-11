@@ -153,6 +153,14 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns either a shield, an off-hand weapon, or null
+        /// </summary>
+        public WorldObject GetEquippedOffHand()
+        {
+            return EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.Shield);
+        }
+
+        /// <summary>
         /// Returns the currently equipped shield
         /// </summary>
         public WorldObject GetEquippedShield()
