@@ -138,29 +138,31 @@ namespace ACE.Server.WorldObjects
             // reset for next projectile
             EnqueueMotion(actionChain, MotionCommand.Ready);
 
-            var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload, MotionCommand.Ready);
+            var linkAnim = reloadTime > 0 ? MotionCommand.Reload : aimLevel;
+
+            var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, linkAnim, MotionCommand.Ready);
 
             if (weapon.IsThrownWeapon)
             {
-                actionChain.EnqueueChain();
+                if (reloadTime > 0)
+                {
+                    actionChain.EnqueueChain();
+                    actionChain = new ActionChain();
+                }
 
-                actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(linkTime);
             }
-            //Console.WriteLine($"Reload time: launchTime({launchTime}) + reloadTime({reloadTime}) + linkTime({linkTime})");
 
-            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, ACE.Entity.Enum.ParentLocation.RightHand,
-                    ACE.Entity.Enum.Placement.RightHandCombat)));
+            //log.Info($"{Name}.Reload time: launchTime({launchTime}) + reloadTime({reloadTime}) + linkTime({linkTime})");
+
+            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo,
+                ACE.Entity.Enum.ParentLocation.RightHand, ACE.Entity.Enum.Placement.RightHandCombat)));
 
             actionChain.EnqueueChain();
 
             var timeOffset = launchTime + reloadTime + linkTime;
 
-            var missileDelay = MissileDelay;
-            if (!weapon.IsAmmoLauncher)
-                missileDelay *= 1.5f;
-
-            NextMoveTime = NextAttackTime = Timers.RunningTime + timeOffset + missileDelay;
+            NextMoveTime = NextAttackTime = Timers.RunningTime + timeOffset + MissileDelay;
         }
 
         /// <summary>
