@@ -403,10 +403,14 @@ namespace ACE.Server.Command.Handlers
             // Boot the player
             if (NetworkManager.Find(accountName) != null)
             {
-                //string[] bootArgs = { "account", accountName };
-                var bootArgs = new List<string> { "account", accountName };
+                var bootArgs = new List<string> { "account" };
                 if (!string.IsNullOrWhiteSpace(banReason))
+                {
+                    bootArgs.Add($"{accountName},");
                     bootArgs.Add(banReason);
+                }
+                else
+                    bootArgs.Add(accountName);
                 HandleBoot(session, bootArgs.ToArray());
             }
 
