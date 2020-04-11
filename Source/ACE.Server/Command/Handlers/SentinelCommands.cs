@@ -130,7 +130,7 @@ namespace ACE.Server.Command.Handlers
 
         // portal_bypass
         [CommandHandler("portal_bypass", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
-            "Toggles the ability to bypass portal restrictions",
+            "Toggles the ability to bypass portal restrictions.",
             "")]
         public static void HandlePortalBypass(Session session, params string[] parameters)
         {
@@ -421,8 +421,8 @@ namespace ACE.Server.Command.Handlers
 
         // unban < acct >
         [CommandHandler("unban", AccessLevel.Sentinel, CommandHandlerFlag.None, 1,
-            "Unbans the specified player account",
-            "accountname\n" +
+            "Unbans the specified player account.",
+            "[accountname]\n" +
             "This command removes the ban from the specified account. The player will then be able to log into the game.")]
         public static void HandleUnBanAccount(Session session, params string[] parameters)
         {
