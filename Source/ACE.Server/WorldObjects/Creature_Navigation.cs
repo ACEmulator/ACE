@@ -124,12 +124,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sends a TurnToObject command to the client
         /// </summary>
-        public void TurnToObject(WorldObject target, bool stopCompletely = false)
+        public void TurnToObject(WorldObject target, bool stopCompletely = true)
         {
             var turnToMotion = new Motion(this, target, MovementType.TurnToObject);
 
-            if (stopCompletely)
-                turnToMotion.MoveToParameters.MovementParameters |= MovementParams.StopCompletely;
+            if (!stopCompletely)
+                turnToMotion.MoveToParameters.MovementParameters &= ~MovementParams.StopCompletely;
 
             EnqueueBroadcastMotion(turnToMotion);
         }
@@ -302,10 +302,8 @@ namespace ACE.Server.WorldObjects
         public Motion GetMoveToMotion(WorldObject target, float runRate)
         {
             var motion = new Motion(this, target, MovementType.MoveToObject);
-            motion.MoveToParameters.MovementParameters |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.Sticky | MovementParams.MoveAway | MovementParams.StopCompletely;
+            motion.MoveToParameters.MovementParameters |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.Sticky | MovementParams.MoveAway;
             motion.MoveToParameters.WalkRunThreshold = 1.0f;
-
-            // TODO: check distanceToObject sync
 
             if (runRate > 0)
                 motion.RunRate = runRate;

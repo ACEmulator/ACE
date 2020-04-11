@@ -78,147 +78,6 @@ namespace ACE.Server.Command.Handlers
             // just a placeholder, probably not needed or should be handled by a decal plugin to replicate the admin ui
         }
 
-        // ban < acct > < days > < hours > < minutes >
-        [CommandHandler("ban", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 4)]
-        public static void HandleBanAccount(Session session, params string[] parameters)
-        {
-            // usage: @ban < acct > < days > < hours > < minutes >
-            // This command bans the specified player account for the specified time.This player will not be able to enter the game with any character until the time expires.
-            // @ban - Bans the specified player account.
-
-            // TODO: output
-        }
-
-        // unban < acct >
-        [CommandHandler("unban", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
-        public static void HandleUnBanAccount(Session session, params string[] parameters)
-        {
-            // usage: @unban acct
-            // This command removes the ban from the specified account.The player will then be able to log into the game.
-            // @unban - Unbans the specified player account.
-
-            // TODO: output
-        }
-
-        // banlist
-        [CommandHandler("banlist", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
-        public static void HandleBanlist(Session session, params string[] parameters)
-        {
-            // @banlist - Lists all banned accounts on this world.
-
-            // TODO: output
-        }
-
-        public enum BootCommandType
-        {
-            //Account,
-            Char,
-            Iid
-        }
-
-        /// <summary>
-        /// Boots the session of the logged in character from the server and displays CoC Violation Warning or supplied reason.
-        /// </summary>
-        /// <remarks>
-        ///     TODO: 1. After the group messages are operational, Send out a message on the Audit Group Chat Channel and alert other admins of this command usage.
-        ///     TODO: 2. boot by account name
-        /// </remarks>
-        [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.None, true, 1,
-            "Boots the session of the logged in character from the server and displays CoC Violation Warning or supplied reason.\n<who> can be either a character iid or character name.",
-            "who, char|iid [ , reason ]\nexamples:\nboot axe man, char, griefing and spamming chat\nboot 1342177281, iid")]
-        public static void HandleBoot(Session session, params string[] parameters)
-        {
-            List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
-            {
-                new CommandParameterHelpers.ACECommandParameter() {
-                    Type = CommandParameterHelpers.ACECommandParameterType.PlayerName,
-                    Required = true,
-                    ErrorMessage = "Please supply the iid or name of the online character to boot"
-                },
-                new CommandParameterHelpers.ACECommandParameter()
-                {
-                    Type = CommandParameterHelpers.ACECommandParameterType.Enum,
-                    PossibleValues = typeof(BootCommandType),
-                    Required = true,
-                    ErrorMessage = "Please supply the boot type: char|iid"
-                },
-                new CommandParameterHelpers.ACECommandParameter()
-                {
-                    Type = CommandParameterHelpers.ACECommandParameterType.CommaPrefixedText,
-                    Required = false
-                }
-            };
-            if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams, true)) return;
-
-            BootCommandType bct = (BootCommandType)aceParams[1].Value;
-            Player plr = null;
-            Session playerSession = null;
-            switch (bct)
-            {
-                case BootCommandType.Char:
-                    List<CommandParameterHelpers.ACECommandParameter> aceParams2 = new List<CommandParameterHelpers.ACECommandParameter>()
-                    {
-                        new CommandParameterHelpers.ACECommandParameter() {
-                            Type = CommandParameterHelpers.ACECommandParameterType.OnlinePlayerName,
-                            ErrorMessage = $"Could not find the online character with name {aceParams[0].AsString}",
-                            Required = true,
-                        }
-                    };
-                    if (!CommandParameterHelpers.ResolveACEParameters(session, new string[1] { aceParams[0].AsString }, aceParams2, true)) return;
-                    plr = aceParams2[0].AsPlayer;
-                    break;
-                case BootCommandType.Iid:
-                    List<CommandParameterHelpers.ACECommandParameter> aceParams3 = new List<CommandParameterHelpers.ACECommandParameter>()
-                    {
-                        new CommandParameterHelpers.ACECommandParameter() {
-                            Type = CommandParameterHelpers.ACECommandParameterType.OnlinePlayerIid,
-                            ErrorMessage = $"Could not find the online character with iid {aceParams[0].AsString}",
-                            Required = true,
-                        }
-                    };
-                    if (!CommandParameterHelpers.ResolveACEParameters(session, new string[1] { aceParams[0].AsString }, aceParams3, true)) return;
-                    plr = aceParams3[0].AsPlayer;
-                    break;
-            }
-            playerSession = plr.Session;
-            string whoDid = (session != null) ? session.Player.Name : "console";
-            string bootText = $"{whoDid} has booted player: {plr.Name} id: { plr.Guid.Full}";
-
-            string specifiedReason = aceParams[2].Value != null ? aceParams[2].AsString : null;
-
-            // Boot the player
-            playerSession.Terminate(SessionTerminationReason.AccountBooted, new GameMessageBootAccount(playerSession, $" - {specifiedReason}"), null, specifiedReason);
-
-            PlayerManager.BroadcastToAuditChannel(session?.Player, bootText);
-
-            // log the boot to file
-            log.Info(bootText);
-
-            // finish execution of command logic
-            return;
-        }
-
-        // deaf < on / off >
-        [CommandHandler("deaf", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
-        public static void HandleDeaf(Session session, params string[] parameters)
-        {
-            // @deaf - Block @tells except for the player you are currently helping.
-            // @deaf on -Make yourself deaf to players.
-            // @deaf off -You can hear players again.
-
-            // TODO: output
-        }
-
-        // deaf < hear | mute > < player >
-        [CommandHandler("deaf", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 2)]
-        public static void HandleDeafHearOrMute(Session session, params string[] parameters)
-        {
-            // @deaf hear[name] -add a player to the list of players that you can hear.
-            // @deaf mute[name] -remove a player from the list of players you can hear.
-
-            // TODO: output
-        }
-
         // delete
         [CommandHandler("delete", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0, "Deletes the selected object.", "Players may not be deleted this way.")]
         public static void HandleDeleteSelected(Session session, params string[] parameters)
@@ -1804,7 +1663,7 @@ namespace ACE.Server.Command.Handlers
                     {
                         returnState += $"{(int)kvp.Key}=";
                         returnState += $"{sk.LevelFromPP}=";
-                        returnState += $"{sk.SAC}=";
+                        returnState += $"{(uint)sk.SAC}=";
                         returnState += $"{sk.PP}=";
                         returnState += $"{sk.InitLevel}=";
                     }
@@ -1944,7 +1803,18 @@ namespace ACE.Server.Command.Handlers
                             case int n when (n <= 238):
                                 var playerSkill = currentPlayer.Skills[(Skill)int.Parse(returnStringArr[i])];
                                 playerSkill.Ranks = ushort.Parse(returnStringArr[i + 1]);
-                                playerSkill.AdvancementClass = (SkillAdvancementClass)uint.Parse(returnStringArr[i + 2]);
+
+                                // Handle god users stuck in god mode due to bad godstate with Enum string
+                                SkillAdvancementClass advancement;
+                                if (Enum.TryParse(returnStringArr[i + 2], out advancement))
+                                {
+                                    playerSkill.AdvancementClass = advancement;
+                                }
+                                else
+                                {
+                                    playerSkill.AdvancementClass = (SkillAdvancementClass)uint.Parse(returnStringArr[i + 2]);
+                                }
+
                                 playerSkill.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
                                 playerSkill.InitLevel = uint.Parse(returnStringArr[i + 4]);
                                 currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, playerSkill));
@@ -2301,7 +2171,7 @@ namespace ACE.Server.Command.Handlers
 
                     if (wearable.Palette > 0)
                         worldObject.PaletteTemplate = wearable.Palette;
-                    if (wearable.Shade >= 0)
+                    if (wearable.Shade > 0)
                         worldObject.Shade = wearable.Shade;
 
                     player.TryEquipObjectWithNetworking(worldObject, worldObject.ValidLocations ?? 0);
@@ -2323,7 +2193,7 @@ namespace ACE.Server.Command.Handlers
 
                     if (containable.Palette > 0)
                         worldObject.PaletteTemplate = containable.Palette;
-                    if (containable.Shade >= 0)
+                    if (containable.Shade > 0)
                         worldObject.Shade = containable.Shade;
                     player.TryAddToInventory(worldObject);
                 }

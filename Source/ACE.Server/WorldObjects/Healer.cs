@@ -66,7 +66,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (healer.FastTick && !healer.PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            if (healer.IsJumping)
             {
                 healer.SendUseDoneEvent(WeenieError.YouCantDoThatWhileInTheAir);
                 return;
@@ -113,7 +113,7 @@ namespace ACE.Server.WorldObjects
                 DoHealMotion(healer, targetPlayer, true);
         }
 
-        public static readonly float Healing_MaxMove = 4.0f;
+        public static readonly float Healing_MaxMove = 5.0f;
 
         public void DoHealMotion(Player healer, Player target, bool success)
         {
