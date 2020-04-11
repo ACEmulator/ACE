@@ -449,7 +449,9 @@ namespace ACE.Server.Command.Handlers
         }
 
         // banlist
-        [CommandHandler("banlist", AccessLevel.Sentinel, CommandHandlerFlag.None, 0)]
+        [CommandHandler("banlist", AccessLevel.Sentinel, CommandHandlerFlag.None, 0,
+            "Lists all banned accounts on this world.",
+            "")]
         public static void HandleBanlist(Session session, params string[] parameters)
         {
             // @banlist - Lists all banned accounts on this world.
