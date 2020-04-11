@@ -69,8 +69,14 @@ namespace ACE.Server.WorldObjects
             var ammo = weapon.IsAmmoLauncher ? GetEquippedAmmo() : weapon;
             if (ammo == null) return;
 
-            // ensure direct line of sight
-            if (!IsDirectVisible(AttackTarget))
+            /*if (!IsDirectVisible(AttackTarget))
+            {
+                // ensure direct line of sight
+                //NextAttackTime = Timers.RunningTime + 1.0f;
+                SwitchToMeleeAttack();
+                return;
+            }*/
+            if (SwitchWeaponsPending)
             {
                 NextAttackTime = Timers.RunningTime + 1.0f;
                 return;
@@ -190,15 +196,35 @@ namespace ACE.Server.WorldObjects
                 SwitchToMeleeAttack();*/
 
             if (MonsterProjectile_OnCollideEnvironment_Counter >= 3)
+                TrySwitchToMeleeAttack();
+        }
+
+        public bool SwitchWeaponsPending;
+
+        public void TrySwitchToMeleeAttack()
+        {
+            // 24139 - Invisible Assailant never switches to melee?
+            if (Visibility) return;
+
+            SwitchWeaponsPending = true;
+
+            var nextSwitchTime = NextMoveTime - MissileDelay;
+
+            if (nextSwitchTime > Timers.RunningTime)
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(nextSwitchTime - Timers.RunningTime);
+                actionChain.AddAction(this, () => SwitchToMeleeAttack());
+                actionChain.EnqueueChain();
+            }
+            else
                 SwitchToMeleeAttack();
         }
 
         public void SwitchToMeleeAttack()
         {
-            // 24139 - Invisible Assailant never switches to melee?
-            if (Visibility) return;
-
             //Console.WriteLine($"{Name}.SwitchToMeleeAttack()");
+            if (IsDead) return;
 
             var weapon = GetEquippedMissileWeapon();
             var ammo = GetEquippedAmmo();
@@ -223,6 +249,8 @@ namespace ACE.Server.WorldObjects
             EquipInventoryItems(true);
             DoAttackStance();
             CurrentAttack = null;
+
+            SwitchWeaponsPending = false;
 
             // this is an unfortunate hack to fix the following scenario:
 

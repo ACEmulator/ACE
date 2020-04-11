@@ -154,7 +154,7 @@ namespace ACE.Server.WorldObjects
 
                     // should ranged mobs only get CurrentTargets within MaxRange?
                     //Console.WriteLine($"{Name}.MissileAttack({AttackTarget.Name}): targetDist={targetDist}, MaxRange={MaxRange}, switching to melee");
-                    SwitchToMeleeAttack();
+                    TrySwitchToMeleeAttack();
                 }
             }
 
