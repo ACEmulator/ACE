@@ -65,27 +65,22 @@ namespace ACE.Server.WorldObjects
         {
             var weapon = GetEquippedWeapon();
 
-            // missile weapon
-            if (weapon != null && weapon.CurrentWieldedLocation == EquipMask.MissileWeapon)
-                return GetCreatureSkill(Skill.MissileWeapons).Skill;
+            if (weapon?.WeaponSkill == null)
+                return GetHighestMeleeSkill();
 
-            if (weapon != null && weapon.WeaponSkill == Skill.TwoHandedCombat)
-                return Skill.TwoHandedCombat;
-
-            // hack for converting pre-MoA skills
-            var maxMelee = GetCreatureSkill(GetHighestMeleeSkill());
+            var skill = ConvertToMoASkill(weapon.WeaponSkill);
 
             // DualWieldAlternate will be TRUE if *next* attack is offhand
             if (IsDualWieldAttack && !DualWieldAlternate)
             {
+                var weaponSkill = GetCreatureSkill(skill);
                 var dualWield = GetCreatureSkill(Skill.DualWield);
 
                 // offhand attacks use the lower skill level between dual wield and weapon skill
-                if (dualWield.Current < maxMelee.Current)
+                if (dualWield.Current < weaponSkill.Current)
                     return dualWield.Skill;
             }
-
-            return maxMelee.Skill;
+            return skill;
         }
 
         /// <summary>
