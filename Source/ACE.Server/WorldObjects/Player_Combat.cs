@@ -78,8 +78,9 @@ namespace ACE.Server.WorldObjects
 
                 // offhand attacks use the lower skill level between dual wield and weapon skill
                 if (dualWield.Current < weaponSkill.Current)
-                    return dualWield.Skill;
+                    skill = Skill.DualWield;
             }
+            //Console.WriteLine($"{Name}.GetCurrentWeaponSkill - {skill}");
             return skill;
         }
 
