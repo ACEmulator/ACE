@@ -372,12 +372,12 @@ namespace ACE.Server.Command.Handlers
                 CommandHandlerHelper.WriteOutputInfo(session, $"Days must not be less than 0.", ChatMessageType.Broadcast);
                 return;
             }
-            if (!double.TryParse(banHours, out var hours) || days < 0)
+            if (!double.TryParse(banHours, out var hours) || hours < 0)
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Hours must not be less than 0.", ChatMessageType.Broadcast);
                 return;
             }
-            if (!double.TryParse(banMinutes, out var minutes) || days < 0)
+            if (!double.TryParse(banMinutes, out var minutes) || minutes < 0)
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Minutes must not be less than 0.", ChatMessageType.Broadcast);
                 return;
