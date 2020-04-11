@@ -233,16 +233,6 @@ namespace ACE.Server.Physics.Common
             WorldObject.OnMoveComplete(status);
         }
 
-        public void OnSticky()
-        {
-            WorldObject.OnSticky();
-        }
-
-        public void OnUnsticky()
-        {
-            WorldObject.OnUnsticky();
-        }
-
         public bool CanBypassMoveRestrictions()
         {
             // acclient checks both of these here
