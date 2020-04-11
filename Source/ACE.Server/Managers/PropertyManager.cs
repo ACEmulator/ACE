@@ -505,6 +505,7 @@ namespace ACE.Server.Managers
                 ("house_rent_enabled", new Property<bool>(true, "If FALSE then rent is not required")),
                 ("iou_trades", new Property<bool>(false, "(non-retail function) If enabled, IOUs can be traded for objects that are missing in DB but added/restored later on")),
                 ("item_dispel", new Property<bool>(false, "if enabled, allows players to dispel items. defaults to end of retail, where item dispels could only target creatures")),
+                ("jump_loot", new Property<bool>(false, "Enables jump looting from retail, where a player can quickly loot items while jumping, bypassing the 'crouch down' animation")),
                 ("lifestone_broadcast_death", new Property<bool>(true, "if true, player deaths are additionally broadcast to other players standing near the destination lifestone")),
                 ("log_audit", new Property<bool>(true, "if FALSE then audit channel is not logged")),
                 ("loot_quality_mod", new Property<bool>(true, "if FALSE then the loot quality modifier of a Death Treasure profile does not affect loot generation")),
