@@ -138,12 +138,20 @@ namespace ACE.Server.WorldObjects
             // reset for next projectile
             EnqueueMotion(actionChain, MotionCommand.Ready);
 
-            var linkAnim = weapon.IsAmmoLauncher ? MotionCommand.Reload : aimLevel;
+            var linkAnim = reloadTime > 0 ? MotionCommand.Reload : aimLevel;
 
             var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, linkAnim, MotionCommand.Ready);
 
-            if (!weapon.IsAmmoLauncher)
+            if (weapon.IsThrownWeapon)
+            {
+                if (reloadTime > 0)
+                {
+                    actionChain.EnqueueChain();
+                    actionChain = new ActionChain();
+                }
+
                 actionChain.AddDelaySeconds(linkTime);
+            }
 
             //log.Info($"{Name}.Reload time: launchTime({launchTime}) + reloadTime({reloadTime}) + linkTime({linkTime})");
 
