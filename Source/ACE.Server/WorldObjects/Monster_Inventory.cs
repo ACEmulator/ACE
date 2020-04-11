@@ -294,7 +294,10 @@ namespace ACE.Server.WorldObjects
                 if (!TryRemoveFromInventory(item.Guid))
                     continue;
 
-                if (!TryWieldObject(item, item.ValidLocations ?? 0))
+                var success = weaponsOnly ? TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0)
+                    : TryWieldObject(item, item.ValidLocations ?? 0);
+
+                if (!success)
                     TryAddToInventory(item);
             }
         }
