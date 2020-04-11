@@ -116,7 +116,7 @@ namespace ACE.Database.Adapter
             {
                 result.PropertiesPalette = new Collection<PropertiesPalette>();
 
-                foreach (var record in biota.BiotaPropertiesPalette)
+                foreach (var record in biota.BiotaPropertiesPalette.OrderBy(r => r.Order))
                 {
                     var newEntity = new PropertiesPalette
                     {
@@ -557,9 +557,11 @@ namespace ACE.Database.Adapter
 
             if (biota.PropertiesPalette != null)
             {
-                foreach (var value in biota.PropertiesPalette)
+                for (int i = 0; i < biota.PropertiesPalette.Count; i++)
                 {
-                    var entity = new BiotaPropertiesPalette { ObjectId = biota.Id, SubPaletteId = value.SubPaletteId, Offset = value.Offset, Length = value.Length };
+                    var value = biota.PropertiesPalette[i];
+
+                    var entity = new BiotaPropertiesPalette { ObjectId = biota.Id, SubPaletteId = value.SubPaletteId, Offset = value.Offset, Length = value.Length, Order = (byte)i };
 
                     result.BiotaPropertiesPalette.Add(entity);
                 }

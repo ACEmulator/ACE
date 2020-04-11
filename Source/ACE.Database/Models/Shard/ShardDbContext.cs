@@ -1030,6 +1030,8 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Offset).HasColumnName("offset");
 
+                entity.Property(e => e.Order).HasColumnName("order");
+
                 entity.Property(e => e.SubPaletteId).HasColumnName("sub_Palette_Id");
 
                 entity.HasOne(d => d.Object)
