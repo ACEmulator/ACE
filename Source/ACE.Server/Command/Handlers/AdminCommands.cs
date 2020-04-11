@@ -201,7 +201,7 @@ namespace ACE.Server.Command.Handlers
                 {
                     if (account.BannedTime != null)
                     {
-                        var bannedbyAccount = account.BannedByAccountId.Value > 0 ? $"account {DatabaseManager.Authentication.GetAccountById(account.BannedByAccountId.Value).AccountName}" : "CONSOLE";
+                        var bannedbyAccount = account.BannedByAccountId > 0 ? $"account {DatabaseManager.Authentication.GetAccountById(account.BannedByAccountId.Value).AccountName}" : "CONSOLE";
 
                         message = $"Account '{account.AccountName}' was banned by {bannedbyAccount} until server time {account.BanExpireTime.Value.ToLocalTime():MMM dd yyyy  h:mmtt}.\n";
                     }
