@@ -29,7 +29,7 @@ namespace ACE.Entity.Models
         IDictionary<int, float /* probability */> PropertiesSpellBook { get; set; }
 
         IList<PropertiesAnimPart> PropertiesAnimPart { get; set; }
-        ICollection<PropertiesPalette> PropertiesPalette { get; set; }
+        IList<PropertiesPalette> PropertiesPalette { get; set; }
         IList<PropertiesTextureMap> PropertiesTextureMap { get; set; }
 
         // Properties for all world objects that typically aren't modified over the original weenie

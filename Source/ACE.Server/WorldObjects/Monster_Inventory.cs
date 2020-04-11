@@ -153,7 +153,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public int ArmorLevelComparer(WorldObject a, WorldObject b)
         {
-            return ((uint)a.ArmorLevel).CompareTo((uint)b.ArmorLevel);
+            return (a.ArmorLevel ?? 0).CompareTo(b.ArmorLevel ?? 0);
         }
 
         public void GetMonsterInventory(List<WorldObject> allWeapons, List<WorldObject> ammo)
@@ -212,6 +212,10 @@ namespace ACE.Server.WorldObjects
 
                     if (curAmmo == null)
                     {
+                        // npcs don't require ammo
+                        if (IsNPC)
+                            return new List<WorldObject> { weapon };
+
                         allWeapons.Remove(weapon);  // remove from possible selections
                         continue;   // find next best weapon
                     }
@@ -313,7 +317,10 @@ namespace ACE.Server.WorldObjects
                 if (!TryRemoveFromInventory(item.Guid))
                     continue;
 
-                if (!TryWieldObject(item, item.ValidLocations ?? 0))
+                var success = weaponsOnly ? TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0)
+                    : TryWieldObject(item, item.ValidLocations ?? 0);
+
+                if (!success)
                     TryAddToInventory(item);
             }
         }
