@@ -507,9 +507,11 @@ namespace ACE.Server.Physics.Common
                 {
                     foreach (var kvp in Info.RestrictionTables)
                     {
-                        var lcoord = LandDefs.gid_to_lcoord(kvp.Key).Value;
+                        var lcoord = LandDefs.gid_to_lcoord(kvp.Key);
 
-                        var idx = ((int)lcoord.Y & 7) + ((int)lcoord.X & 7) * SideCellCount;
+                        if (lcoord == null) continue;
+
+                        var idx = ((int)lcoord.Value.Y & 7) + ((int)lcoord.Value.X & 7) * SideCellCount;
 
                         LandCells[idx].RestrictionObj = kvp.Value;
                     }
