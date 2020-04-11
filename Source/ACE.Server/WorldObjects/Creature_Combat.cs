@@ -484,7 +484,12 @@ namespace ACE.Server.WorldObjects
             var imbuedEffectType = defenseSkill == Skill.MissileDefense ? ImbuedEffectType.MissileDefense : ImbuedEffectType.MeleeDefense;
             var defenseImbues = GetDefenseImbues(imbuedEffectType);
 
-            var effectiveDefense = (uint)Math.Round(GetCreatureSkill(defenseSkill).Current * defenseMod * burdenMod + defenseImbues);
+            var stanceMod = this is Player player ? player.GetDefenseStanceMod() : 1.0f;
+
+            //if (this is Player)
+                //Console.WriteLine($"StanceMod: {stanceMod}");
+
+            var effectiveDefense = (uint)Math.Round(GetCreatureSkill(defenseSkill).Current * defenseMod * burdenMod * stanceMod + defenseImbues);
 
             if (IsExhausted) effectiveDefense = 0;
 

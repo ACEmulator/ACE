@@ -41,16 +41,27 @@ namespace ACE.Server.Network.Handlers
         {
             var characterCreateInfo = new CharacterCreateInfo();
             characterCreateInfo.Unpack(message.Payload);
+            
+            if (PropertyManager.GetBool("taboo_table").Item && DatManager.PortalDat.TabooTable.ContainsBadWord(characterCreateInfo.Name.ToLowerInvariant()))
+            {
+                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameBanned);
+                return;
+            }
 
-            // TODO: Check for Banned Name Here
-            //DatabaseManager.Shard.IsCharacterNameBanned(characterCreateInfo.Name, isBanned =>
-            //{
-            //    if (!isBanned)
-            //    {
-            //        SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameBanned);
-            //        return;
-            //    }
-            //});
+            if (PropertyManager.GetBool("creature_name_check").Item && DatabaseManager.World.IsCreatureNameInWorldDatabase(characterCreateInfo.Name))
+            {
+                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameBanned);
+                return;
+            }
+
+            DatabaseManager.Shard.IsCharacterNameAvailable(characterCreateInfo.Name, isAvailable =>
+            {
+                if (!isAvailable)
+                {
+                    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);
+                    return;
+                }
+            });
 
             // Disable OlthoiPlay characters for now. They're not implemented yet.
             // FIXME: Restore OlthoiPlay characters when properly handled.
@@ -124,12 +135,6 @@ namespace ACE.Server.Network.Handlers
             if (result != PlayerFactory.CreateResult.Success || player == null)
             {
                 SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Corrupt);
-                return;
-            }
-
-            if (PropertyManager.GetBool("taboo_table").Item && DatManager.PortalDat.TabooTable.ContainsBadWord(characterCreateInfo.Name.ToLowerInvariant()))
-            {
-                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameBanned);
                 return;
             }
 

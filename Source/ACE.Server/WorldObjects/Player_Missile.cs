@@ -58,7 +58,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            if (IsJumping)
             {
                 SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
                 return;
@@ -123,7 +123,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Launches a missile attack from player to target
         /// </summary>
-        public void LaunchMissile(WorldObject target, int attackSequence)
+        public void LaunchMissile(WorldObject target, int attackSequence, bool subsequent = false)
         {
             if (AttackSequence != attackSequence)
                 return;
@@ -149,19 +149,39 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (!TargetInRange(target))
+            {
+                // this must also be sent to actually display the transient message
+                SendWeenieError(WeenieError.MissileOutOfRange);
+
+                // this prevents the accuracy bar from refilling when 'repeat attacks' is enabled
+                OnAttackDone();
+
+                return;
+            }
+
             // launch animation
             // point of no return beyond this point -- cannot be cancelled
             Attacking = true;
 
+            if (subsequent)
+            {
+                // client shows hourglass, until attack done is received
+                // retail only did this for subsequent attacks w/ repeat attacks on
+                Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
+            }
+
+            var projectileSpeed = GetProjectileSpeed();
+
             // get z-angle for aim motion
-            var aimVelocity = GetAimVelocity(target);
+            var aimVelocity = GetAimVelocity(target, projectileSpeed);
 
             var aimLevel = GetAimLevel(aimVelocity);
 
             // calculate projectile spawn pos and velocity
             var localOrigin = GetProjectileSpawnOrigin(ammo.WeenieClassId, aimLevel);
 
-            var velocity = CalculateProjectileVelocity(localOrigin, target, out Vector3 origin, out Quaternion orientation);
+            var velocity = CalculateProjectileVelocity(localOrigin, target, projectileSpeed, out Vector3 origin, out Quaternion orientation);
 
             //Console.WriteLine($"Velocity: {velocity}");
 
@@ -218,25 +238,24 @@ namespace ACE.Server.WorldObjects
 
             actionChain.AddAction(this, () =>
             {
-                Session.Network.EnqueueSend(new GameEventAttackDone(Session));
                 Attacking = false;
 
-                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && !IsBusy)
+                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && !IsBusy && !AttackCancelled)
                 {
-                    Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
+                    // client starts refilling accuracy bar
                     Session.Network.EnqueueSend(new GameEventAttackDone(Session));
 
                     AccuracyLevel = AttackQueue.Fetch();
 
                     // can be cancelled, but cannot be pre-empted with another attack
                     var nextAttack = new ActionChain();
-                    var nextRefillTime = AccuracyLevel + 0.1f;
+                    var nextRefillTime = AccuracyLevel;
 
                     NextRefillTime = DateTime.UtcNow.AddSeconds(nextRefillTime);
                     nextAttack.AddDelaySeconds(nextRefillTime);
 
                     // perform next attack
-                    nextAttack.AddAction(this, () => { LaunchMissile(target, attackSequence); });
+                    nextAttack.AddAction(this, () => { LaunchMissile(target, attackSequence, true); });
                     nextAttack.EnqueueChain();
                 }
                 else
@@ -275,6 +294,16 @@ namespace ACE.Server.WorldObjects
                 TryDequipObjectWithNetworking(ammo.Guid, out _, DequipObjectAction.ConsumeItem);
             else
                 TryConsumeFromInventoryWithNetworking(ammo, 1);
+        }
+
+        public bool TargetInRange(WorldObject target)
+        {
+            // 2d or 3d distance?
+            var dist = Location.DistanceTo(target.Location);
+
+            var maxRange = GetMaxMissileRange();
+
+            return dist <= maxRange;
         }
     }
 }

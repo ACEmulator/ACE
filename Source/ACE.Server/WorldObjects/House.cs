@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using log4net;
+
 using ACE.Common;
 using ACE.Database;
 using ACE.Entity;
@@ -19,6 +21,8 @@ namespace ACE.Server.WorldObjects
 {
     public class House : WorldObject
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // TODO now that the new biota model uses a dictionary for this, see if we can remove this duplicate dictionary
         public Dictionary<ObjectGuid, bool> Guests;
 
@@ -521,42 +525,16 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                if (HouseType == HouseType.Apartment || HouseType == HouseType.Cottage)
+                if (_rootGuid == null)
                 {
-                    _rootGuid = Guid;
-                    return Guid;
-                }
-
-                if (_rootGuid != null)
-                    return _rootGuid.Value;
-
-                // CurrentLandblock == null should only happen when the player is in a villa/mansion dungeon basement,
-                // and the outdoor house landblock is still unloaded. the reference to the outdoor House will be a shallow reference at that point,
-                // and this should only happen for outdoor landblocks
-
-                if (CurrentLandblock == null || !CurrentLandblock.HasDungeon)
-                {
-                    _rootGuid = Guid;
-                    return Guid;
-                }
-
-                var biota = DatabaseManager.Shard.BaseDatabase.GetBiotasByWcid(WeenieClassId).Where(bio => bio.BiotaPropertiesPosition.Count > 0).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location?.Landblock);
-                if (biota == null)
-                {
-                    var instance = DatabaseManager.World.GetLandblockInstancesByWcid(WeenieClassId).FirstOrDefault(w => w.ObjCellId >> 16 != Location?.Landblock);
-                    if (instance != null)
+                    if (HouseCell.RootGuids.TryGetValue(Guid.Full, out var rootGuid))
+                        _rootGuid = new ObjectGuid(rootGuid);
+                    else
                     {
-                        _rootGuid = new ObjectGuid(instance.Guid);
-                        return _rootGuid.Value;
+                        log.Error($"House.RootGuid - couldn't find root guid for house guid {Guid}");
+                        _rootGuid = Guid;
                     }
-
-                    Console.WriteLine($"{Name}.RootGuid: couldn't find root guid for {WeenieClassId} on landblock {Location.Landblock:X8}");
-
-                    _rootGuid = Guid;
-                    return Guid;
                 }
-
-                _rootGuid = new ObjectGuid(biota.Id);
                 return _rootGuid.Value;
             }
         }

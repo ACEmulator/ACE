@@ -153,6 +153,14 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns either a shield, an off-hand weapon, or null
+        /// </summary>
+        public WorldObject GetEquippedOffHand()
+        {
+            return EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.Shield);
+        }
+
+        /// <summary>
         /// Returns the currently equipped shield
         /// </summary>
         public WorldObject GetEquippedShield()
@@ -522,15 +530,17 @@ namespace ACE.Server.WorldObjects
             {
                 var wo = WorldObjectFactory.CreateNewWorldObject(item);
 
-                if (wo == null) continue;
+                if (wo != null)
+                    TryAddToInventory(wo);
 
-                var equipped = false;
+                // handled in EquipInventoryItems()
+                /*var equipped = false;
 
                 if (wo.ValidLocations != null)
                     equipped = TryWieldObject(wo, (EquipMask)wo.ValidLocations);
 
-                if (!equipped)
-                    TryAddToInventory(wo);
+                if (!equipped)*/
+                    
             }
         }
 
@@ -653,7 +663,18 @@ namespace ACE.Server.WorldObjects
             var wieldedTreasure = GenerateWieldedTreasureSets(table);
 
             foreach (var item in wieldedTreasure)
+            {
                 TryAddToInventory(item);
+
+                // handled in EquipInventoryItems()
+
+                /*var equipped = false;
+
+                if (item.ValidLocations != null)
+                    equipped = TryWieldObject(item, (EquipMask)item.ValidLocations);
+
+                if (!equipped)*/
+            }
         }
     }
 }

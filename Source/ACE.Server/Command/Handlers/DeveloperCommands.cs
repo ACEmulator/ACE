@@ -242,19 +242,20 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// playsound [Sound] (volumelevel)
         /// </summary>
-        [CommandHandler("playsound", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Plays a sound.", "sound (float)\n" + "Sound can be uint or enum name" + "float is volume level")]
+        [CommandHandler("playsound", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Plays a sound.", "sound (volume) (guid)\n" + "Sound can be uint or enum name\n" + "Volume and source guid are optional")]
         public static void HandlePlaySound(Session session, params string[] parameters)
         {
             try
             {
                 float volume = 1f;
-                var soundEvent = new GameMessageSound(session.Player.Guid, Sound.Invalid, volume);
 
                 if (parameters.Length > 1)
-                {
-                    if (parameters[1] != "")
-                        volume = float.Parse(parameters[1]);
-                }
+                    float.TryParse(parameters[1], out volume);
+
+                uint guid = session.Player.Guid.Full;
+
+                if (parameters.Length > 2)
+                    uint.TryParse(parameters[2].TrimStart("0x"), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out guid);
 
                 var message = $"Unable to find a sound called {parameters[0]} to play.";
 
@@ -266,7 +267,7 @@ namespace ACE.Server.Command.Handlers
                         // add the sound to the player queue for everyone to hear
                         // player action queue items will execute on the landblock
                         // player.playsound will play a sound on only the client session that called the function
-                        session.Player.HandleActionApplySoundEffect(sound);
+                        session.Player.PlaySoundEffect(sound, new ObjectGuid(guid), volume);
                     }
                 }
 
@@ -500,7 +501,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("whoami", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows you your GUIDs.")]
         public static void HandleWhoAmI(Session session, params string[] parameters)
         {
-            ChatPacket.SendServerMessage(session, $"GUID: {session.Player.Guid.Full} ID(low): {session.Player.Guid.Low} High:{session.Player.Guid.High}", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, $"GUID: {session.Player.Guid.Full} (0x{session.Player.Guid}) | ID(low): {session.Player.Guid.Low} High:{session.Player.Guid.High}", ChatMessageType.Broadcast);
         }
 
         /// <summary>

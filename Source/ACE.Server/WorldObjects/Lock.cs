@@ -56,6 +56,26 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {unlockerType} has {unlocker.Structure} {usePlural} left.", ChatMessageType.Broadcast));
             }
         }
+        public static uint GetEffectiveLockpickSkill(Player player, WorldObject unlocker)
+        {
+            var lockpickSkill = player.GetCreatureSkill(Skill.Lockpick).Current;
+
+            var additiveBonus = unlocker.GetProperty(PropertyInt.LockpickMod) ?? 0;
+            var multiplicativeBonus = unlocker.GetProperty(PropertyFloat.LockpickMod) ?? 1.0f;
+
+            // is this really 10x bonus, or +10% bonus?
+            if (multiplicativeBonus > 1.0f)
+                multiplicativeBonus = 1.0f + multiplicativeBonus * 0.01f;
+
+            var effectiveSkill = (int)Math.Round(lockpickSkill * multiplicativeBonus + additiveBonus);
+
+            effectiveSkill = Math.Max(0, effectiveSkill);
+
+            //Console.WriteLine($"Base skill: {lockpickSkill}");
+            //Console.WriteLine($"Effective skill: {effectiveSkill}");
+
+            return (uint)effectiveSkill;
+        }
         public static void UseUnlocker(Player player, WorldObject unlocker, WorldObject target)
         {
             ActionChain chain = new ActionChain();
@@ -74,7 +94,10 @@ namespace ACE.Server.WorldObjects
                     UnlockResults result = UnlockResults.IncorrectKey;
                     var difficulty = 0;
                     if (unlocker.WeenieType == WeenieType.Lockpick)
-                        result = @lock.Unlock(player.Guid.Full, player.Skills[Skill.Lockpick].Current, ref difficulty);
+                    {
+                        var effectiveLockpickSkill = GetEffectiveLockpickSkill(player, unlocker);
+                        result = @lock.Unlock(player.Guid.Full, effectiveLockpickSkill, ref difficulty);
+                    }
                     else if (unlocker is Key woKey)
                     {
                         if (target is Door woDoor)
@@ -94,7 +117,9 @@ namespace ACE.Server.WorldObjects
 
                             if (unlocker.WeenieType == WeenieType.Lockpick)
                             {
-                                player.HandleActionApplySoundEffect(Sound.Lockpicking);// Sound.Lockpicking doesn't work via EnqueueBroadcastSound for some reason.
+                                // the source guid for this sound must be the player, else the sound will not play
+                                // which differs from PicklockFail and LockSuccess being in the target sound table
+                                player.EnqueueBroadcast(new GameMessageSound(player.Guid, Sound.Lockpicking, 1.0f));
 
                                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully picked the lock! It is now unlocked.", ChatMessageType.Broadcast));
 

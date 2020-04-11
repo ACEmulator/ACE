@@ -57,7 +57,7 @@ namespace ACE.Server.Network
                     try
                     {
                         var fragment = new ClientPacketFragment();
-                        fragment.Unpack(DataReader);
+                        if (!fragment.Unpack(DataReader)) return false;
 
                         Fragments.Add(fragment);
                     }
@@ -126,58 +126,20 @@ namespace ACE.Server.Network
                 return _payloadChecksum.Value;
             }
         }
-
-        private bool VerifyChecksum()
-        {
-            return headerChecksum + payloadChecksum == Header.Checksum;
-        }
-
-        private bool VerifyEncryptedCRC(CryptoSystem fq, out string keyOffsetForLogging)
-        {
-            var verifiedKey = new Tuple<int, uint>(0, 0);
-
-            uint receivedKey = (Header.Checksum - headerChecksum) ^ payloadChecksum;
-
-            Func<Tuple<int, uint>, bool> cbSearch = new Func<Tuple<int, uint>, bool>((pair) =>
-            {
-                if (receivedKey == pair.Item2)
-                {
-                    verifiedKey = pair;
-                    return true;
-                }
-
-                return false;
-            });
-
-            if (fq.Search(cbSearch))
-            {
-                keyOffsetForLogging = verifiedKey.Item1.ToString();
-                return true;
-            }
-
-            keyOffsetForLogging = "???";
-            return false;
-        }
-
-        private bool VerifyEncryptedCRCAndLogResult(CryptoSystem fq)
-        {
-            bool result = VerifyEncryptedCRC(fq, out string key);
-
-            key = (key == "") ? "" : $" Key: {key}";
-            packetLog.DebugFormat("{0} {1}{2}", fq, this, key);
-
-            return result;
-        }
         public bool VerifyCRC(CryptoSystem fq)
         {
             if (Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
             {
-                if (VerifyEncryptedCRCAndLogResult(fq))
+                var key = ((Header.Checksum - headerChecksum) ^ payloadChecksum);
+                if (fq.Search(key))
+                {
+                    fq.ConsumeKey(key);
                     return true;
+                }
             }
             else
             {
-                if (VerifyChecksum())
+                if (headerChecksum + payloadChecksum == Header.Checksum)
                 {
                     packetLog.DebugFormat("{0}", this);
                     return true;
