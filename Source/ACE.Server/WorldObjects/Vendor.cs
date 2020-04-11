@@ -208,7 +208,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (item.Palette > 0)
                         wo.PaletteTemplate = item.Palette;
-                    if (item.Shade >= 0)
+                    if (item.Shade > 0)
                         wo.Shade = item.Shade;
                     wo.ContainerId = Guid.Full;
                     wo.CalculateObjDesc(); // i don't like firing this but this triggers proper icons, the way vendors load inventory feels off to me in this method.

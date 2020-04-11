@@ -843,7 +843,7 @@ namespace ACE.Server.WorldObjects
 
                 if (item.Palette > 0)
                     wo.PaletteTemplate = item.Palette;
-                if (item.Shade >= 0)
+                if (item.Shade > 0)
                     wo.Shade = item.Shade;
                 if (item.StackSize > 1)
                     wo.SetStackSize(item.StackSize);
