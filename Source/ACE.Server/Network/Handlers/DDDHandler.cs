@@ -42,7 +42,7 @@ namespace ACE.Server.Network.Handlers
 
             if (session.Player.FirstEnterWorldDone) // Boot client with msg
             {
-                session.Network.EnqueueSend(new GameMessageBootAccount(session, $"\n{msg}"), dddErrorMsg);
+                session.Network.EnqueueSend(new GameMessageBootAccount($"\n{msg}"), dddErrorMsg);
                 session.LogOffPlayer(true);
             }
             else // cannot cleanly boot player that hasn't completed first login, client crashes so msg wouldn't be seen, instead spam msgs until server auto boots them or they disconnect.

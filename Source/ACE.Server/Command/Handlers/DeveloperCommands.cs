@@ -501,7 +501,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("whoami", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows you your GUIDs.")]
         public static void HandleWhoAmI(Session session, params string[] parameters)
         {
-            ChatPacket.SendServerMessage(session, $"GUID: {session.Player.Guid.Full} ID(low): {session.Player.Guid.Low} High:{session.Player.Guid.High}", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, $"GUID: {session.Player.Guid.Full} (0x{session.Player.Guid}) | ID(low): {session.Player.Guid.Low} High:{session.Player.Guid.High}", ChatMessageType.Broadcast);
         }
 
         /// <summary>
