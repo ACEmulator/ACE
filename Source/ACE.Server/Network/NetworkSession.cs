@@ -104,11 +104,6 @@ namespace ACE.Server.Network
                 currentBundleLocks[i] = new object();
                 currentBundles[i] = new NetworkBundle();
             }
-
-            ConnectionData.CryptoClient.OnCryptoSystemCatastrophicFailure += (sender, e) =>
-            {
-                session.Terminate(SessionTerminationReason.ClientConnectionFailure);
-            };
         }
 
         /// <summary>
@@ -685,7 +680,7 @@ namespace ACE.Server.Network
 
             if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
             {
-                uint issacXor = ConnectionData.IssacServer.GetOffset();
+                uint issacXor = ConnectionData.IssacServer.Next();
                 packetLog.DebugFormat("[{0}] Setting Issac for packet {1} to {2}", session.LoggingIdentifier, packet.GetHashCode(), issacXor);
                 packet.IssacXor = issacXor;
             }

@@ -151,7 +151,6 @@ namespace ACE.Server.WorldObjects
 
             var moveToPosition = new Motion(this, to);
             moveToPosition.MoveToParameters.DistanceToObject = distanceToObject;
-            moveToPosition.MoveToParameters.MovementParameters |= MovementParams.StopCompletely;
             moveToPosition.MoveToParameters.MovementParameters &= ~MovementParams.UseSpheres;
 
             if (finalHeading)

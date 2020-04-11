@@ -242,6 +242,41 @@ namespace ACE.Database
             return weenie;
         }
 
+        private readonly ConcurrentDictionary<string, uint> creatureWeenieNamesLowerInvariantCache = new ConcurrentDictionary<string, uint>();
+
+        public bool IsCreatureNameInWorldDatabase(string name)
+        {
+            if (creatureWeenieNamesLowerInvariantCache.TryGetValue(name.ToLowerInvariant(), out _))
+                return true;
+
+            using (var context = new WorldDbContext())
+            {
+                return IsCreatureNameInWorldDatabase(context, name);
+            }
+        }
+
+        public bool IsCreatureNameInWorldDatabase(WorldDbContext context, string name)
+        {
+            var query = from weenieRecord in context.Weenie
+                        join stringProperty in context.WeeniePropertiesString on weenieRecord.ClassId equals stringProperty.ObjectId
+                        where weenieRecord.Type == (int)WeenieType.Creature && stringProperty.Type == (ushort)PropertyString.Name && stringProperty.Value.ToLowerInvariant() == name.ToLowerInvariant()
+                        select weenieRecord;
+
+            var weenie = query
+                .Include(r => r.WeeniePropertiesString)
+                .AsNoTracking()
+                .FirstOrDefault();
+
+            if (weenie == null)
+                return false;
+
+            var weenieName = weenie.GetProperty(PropertyString.Name).ToLowerInvariant();
+
+            creatureWeenieNamesLowerInvariantCache.TryAdd(weenieName, weenie.ClassId);
+
+            return true;
+        }
+
 
         // =====================================
         // CookBook
