@@ -1013,16 +1013,6 @@ namespace ACE.Server.WorldObjects
             // empty base
         }
 
-        public virtual void OnSticky()
-        {
-            // empty base
-        }
-
-        public virtual void OnUnsticky()
-        {
-            // empty base
-        }
-
         public bool IsTradeNote => ItemType == ItemType.PromissoryNote;
 
         public virtual bool IsAttunedOrContainsAttuned => Attuned >= AttunedStatus.Attuned;

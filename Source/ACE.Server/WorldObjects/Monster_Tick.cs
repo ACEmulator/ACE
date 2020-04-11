@@ -109,7 +109,7 @@ namespace ACE.Server.WorldObjects
             var targetDist = GetDistanceToTarget();
             //Console.WriteLine($"{Name} ({Guid}) - Dist: {targetDist}");
 
-            if (Sticky)
+            if (PhysicsObj.PositionManager?.StickyManager != null && PhysicsObj.PositionManager.StickyManager.TargetID != 0)
                 UpdatePosition();
 
             if (CurrentAttack != CombatType.Missile)

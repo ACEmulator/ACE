@@ -61,8 +61,6 @@ namespace ACE.Server.WorldObjects
 
         public bool DebugMove;
 
-        public bool Sticky;
-
         public double NextMoveTime;
         public double NextCancelTime;
 
@@ -414,18 +412,6 @@ namespace ACE.Server.WorldObjects
                 mvp.Flags |= MovementParamFlags.FailWalk | MovementParamFlags.UseFinalHeading | MovementParamFlags.Sticky | MovementParamFlags.MoveAway;
 
             return mvp;
-        }
-
-        public override void OnSticky()
-        {
-            //Console.WriteLine($"{Name} ({Guid}) - OnSticky");
-            Sticky = true;
-        }
-
-        public override void OnUnsticky()
-        {
-            //Console.WriteLine($"{Name} ({Guid}) - OnUnsticky");
-            Sticky = false;
         }
 
         /// <summary>
