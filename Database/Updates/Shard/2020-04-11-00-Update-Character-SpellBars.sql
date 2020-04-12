@@ -1,9 +1,9 @@
 USE ace_shard;
 
 ALTER TABLE `character_properties_spell_bar`
-DROP INDEX `wcid_spellbar_barId_spellId_uidx`;
-ALTER TABLE `character_properties_spell_bar`
 DROP FOREIGN KEY `wcid_spellbar`;
+ALTER TABLE `character_properties_spell_bar`
+DROP INDEX `wcid_spellbar_barId_spellId_uidx`;
 
 UPDATE character_properties_spell_bar
 SET spell_Bar_Number = spell_Bar_Number + 1,
