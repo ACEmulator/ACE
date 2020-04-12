@@ -11,10 +11,14 @@ using ACE.Server.Command.Handlers.Processors;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 
+using log4net;
+
 namespace ACE.Server.Command.Handlers
 {
     public static class DeveloperDatabaseCommands
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         [CommandHandler("databasequeueinfo", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Show database queue information.")]
         public static void HandleDatabaseQueueInfo(Session session, params string[] parameters)
         {
@@ -196,6 +200,81 @@ namespace ACE.Server.Command.Handlers
             shardDatabaseWithCaching.NonPlayerBiotaRetentionTime = TimeSpan.FromMinutes(value);
 
             CommandHandlerHelper.WriteOutputInfo(session, $"Shard Database, Non-Player Biota Cache - Retention Time {shardDatabaseWithCaching.NonPlayerBiotaRetentionTime.TotalMinutes:N0} m");
+        }
+
+        [CommandHandler("fix-spell-bars", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Fixes the players spell bars.", "<execute>")]
+        public static void HandleFixSpellBars(Session session, params string[] parameters)
+        {
+            Console.WriteLine();
+
+            Console.WriteLine("This command will attempt to fix player spell bars. Unless explictly indicated, command will dry run only");
+            Console.WriteLine("You must have executed 2020-04-11-00-Update-Character-SpellBars.sql script first before running this command");
+
+            Console.WriteLine();
+
+            var execute = false;
+
+            if (parameters.Length < 1)
+                Console.WriteLine("This will be a dry run and show which characters that would be affected. To perform fix, please use command: fix-shortcut-bars execute");
+            else if (parameters[0].ToLower() == "execute")
+                execute = true;
+            else
+                Console.WriteLine("Please use command fix-shortcut-bars execute");
+
+            var numberOfRecordsFixed = 0;
+
+            log.Info($"Starting FixSpellBarsPR2918 process. This could take a while...");
+
+            using (var context = new ShardDbContext())
+            {
+                var characterSpellBarsNotFixed = context.CharacterPropertiesSpellBar.Where(c => c.SpellBarNumber == 0).ToList();
+
+                if (characterSpellBarsNotFixed.Count > 0)
+                {
+                    log.Warn("2020-04-11-00-Update-Character-SpellBars.sql patch not yet applied. Please apply this patch ASAP! Skipping FixSpellBarsPR2918 for now...");
+                    log.Fatal("2020-04-11-00-Update-Character-SpellBars.sql patch not yet applied. You must apply this patch before proceeding further...");
+                    return;
+                }
+
+                var characterIds = context.Character.Select(c => c.Id).ToList();
+
+                foreach (var character in characterIds)
+                {
+                    for (var spellBarNumber = 1; spellBarNumber < 9; spellBarNumber++)
+                    {
+                        var characterSpellBars = context.CharacterPropertiesSpellBar.Where(c => c.CharacterId == character && c.SpellBarNumber == spellBarNumber).OrderBy(c => c.SpellBarIndex).ToList();
+
+                        var spellBarIndex = 0u;
+                        foreach (var spellbar in characterSpellBars)
+                        {
+                            spellBarIndex++;
+                            if (spellbar.SpellBarIndex != spellBarIndex)
+                            {
+                                Console.WriteLine($"FixSpellBarsPR2918: Character 0x{character:X8}, SpellBarNumber = {spellbar.SpellBarNumber} | SpellBarIndex = {spellbar.SpellBarIndex:000}; Fixed - {spellBarIndex:000}");
+                                spellbar.SpellBarIndex = spellBarIndex;
+                                numberOfRecordsFixed++;
+                            }
+                            else
+                            {
+                                Console.WriteLine($"FixSpellBarsPR2918: Character 0x{character:X8}, SpellBarNumber = {spellbar.SpellBarNumber} | SpellBarIndex = {spellbar.SpellBarIndex:000}; OK");
+                            }
+                        }
+                    }
+                }
+
+                // Save
+                if (execute)
+                {
+                    Console.WriteLine("Saving changes...");
+                    context.SaveChanges();
+                    log.Info($"Fixed {numberOfRecordsFixed:N0} CharacterPropertiesSpellBar records.");
+                }
+                else
+                {
+                    Console.WriteLine($"{numberOfRecordsFixed:N0} CharacterPropertiesSpellBar records need to be fixed!");
+                    Console.WriteLine("dry run completed. Use fix-spell-bars execute to actually run command");
+                }
+            }
         }
     }
 }
