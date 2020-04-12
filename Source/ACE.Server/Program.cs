@@ -167,6 +167,10 @@ namespace ACE.Server
             ShardDatabaseOfflineTools.FixAnimPartAndTextureMapFromPR2731(out var numberOfRecordsFixed);
             log.Info($"Fixed {numberOfRecordsFixed:N0} AnimPart and TextureMap records.");
 
+            // This is temporary and can be removed in the near future, 2020-04-12 Ripley
+            ShardDatabaseOfflineTools.FixSpellBarsPR2918(out var numberOfSpellBarsFixed);
+            log.Info($"Fixed {numberOfSpellBarsFixed:N0} CharacterPropertiesSpellBar records.");
+
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();
 

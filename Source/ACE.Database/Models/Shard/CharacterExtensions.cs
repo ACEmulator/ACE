@@ -297,7 +297,7 @@ namespace ACE.Database.Models.Shard
                     indexInBar = (uint)(spellCountInThisBar);
 
                 // We must increment the position of existing spells in the bar that exist on or after this position
-                foreach (var property in character.CharacterPropertiesSpellBar)
+                foreach (var property in character.CharacterPropertiesSpellBar.OrderBy(x => x.SpellBarIndex))
                 {
                     if (property.SpellBarNumber == barNumber + 1 && property.SpellBarIndex >= indexInBar + 1)
                     {
@@ -338,7 +338,7 @@ namespace ACE.Database.Models.Shard
                         entity.Character = null;
 
                         // We must decrement the position of existing spells in the bar that exist after this position
-                        foreach (var property in character.CharacterPropertiesSpellBar)
+                        foreach (var property in character.CharacterPropertiesSpellBar.OrderBy(x => x.SpellBarIndex))
                         {
                             if (property.SpellBarNumber == barNumber + 1 && property.SpellBarIndex > entity.SpellBarIndex)
                             {

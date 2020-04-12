@@ -845,5 +845,40 @@ namespace ACE.Database
                 context.SaveChanges();
             }
         }
+
+        /// <summary>
+        /// This is temporary and can be removed in the near future, 2020-04-12 Ripley
+        /// </summary>
+        public static void FixSpellBarsPR2918(out int numberOfRecordsFixed)
+        {
+            numberOfRecordsFixed = 0;
+
+            using (var context = new ShardDbContext())
+            {
+                var characterIds = context.Character.Select(c => c.Id).ToList();
+
+                foreach (var character in characterIds)
+                {
+                    var spellBarNumber = 1u;
+                    var characterSpellBars = context.CharacterPropertiesSpellBar.Where(c => c.CharacterId == character && c.SpellBarNumber == spellBarNumber).OrderBy(c => c.SpellBarIndex).ToList();
+
+                    var spellBarIndex = 0u;
+                    foreach (var spellbar in characterSpellBars)
+                    {
+                        spellBarIndex++;
+                        if (spellbar.SpellBarIndex != spellBarIndex)
+                        {
+                            Console.WriteLine($"FixSpellBarsPR2918: Character 0x{character:X8}, SpellBarNumber = {spellbar.SpellBarNumber} | SpellBarIndex = {spellbar.SpellBarIndex}; should be {spellBarIndex}");
+                            spellbar.SpellBarIndex = spellBarIndex;
+                            numberOfRecordsFixed++;
+                        }
+                    }
+                    spellBarNumber++;
+                }
+
+                // Save
+                context.SaveChanges();
+            }
+        }
     }
 }
