@@ -17,7 +17,7 @@ ADD PRIMARY KEY (`character_Id`, `spell_Bar_Number`, `spell_Id`),
 ADD INDEX `spellBar_idx` (`spell_Bar_Index` ASC);
 
 ALTER TABLE `character_properties_spell_bar`
-ADD CONSTRAINT `wcid_spellbar`
+ADD CONSTRAINT `characterId_spellbar`
   FOREIGN KEY (`character_Id`)
   REFERENCES `character` (`id`)
   ON DELETE CASCADE;
