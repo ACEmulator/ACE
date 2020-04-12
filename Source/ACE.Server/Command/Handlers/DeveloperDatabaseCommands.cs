@@ -215,11 +215,11 @@ namespace ACE.Server.Command.Handlers
             var execute = false;
 
             if (parameters.Length < 1)
-                Console.WriteLine("This will be a dry run and show which characters that would be affected. To perform fix, please use command: fix-shortcut-bars execute");
+                Console.WriteLine("This will be a dry run and show which characters that would be affected. To perform fix, please use command: fix-spell-bars execute");
             else if (parameters[0].ToLower() == "execute")
                 execute = true;
             else
-                Console.WriteLine("Please use command fix-shortcut-bars execute");
+                Console.WriteLine("Please use command fix-spell-bars execute");
 
             var numberOfRecordsFixed = 0;
 
