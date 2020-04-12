@@ -81,7 +81,8 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void StopUpdating()
         {
-            _workerThread.Stop();
+            if (_workerThread != null)
+                _workerThread.Stop();
         }
 
 
