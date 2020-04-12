@@ -273,7 +273,6 @@ namespace ACE.Database.Models.Shard
             rwLock.EnterReadLock();
             try
             {
-                //return character.CharacterPropertiesSpellBar.Where(x => x.SpellBarNumber == barNumber).ToList();
                 return character.CharacterPropertiesSpellBar.Where(x => x.SpellBarNumber == barNumber + 1).OrderBy(x => x.SpellBarIndex).ToList();
             }
             finally
@@ -292,30 +291,26 @@ namespace ACE.Database.Models.Shard
             {
                 var spellCountInThisBar = character.CharacterPropertiesSpellBar.Count(x => x.SpellBarNumber == barNumber + 1);
 
-                Console.WriteLine($"Character.AddSpellToBar.Entry: barNumber = {barNumber} ({barNumber + 1}) | indexInBar = {indexInBar} ({indexInBar + 1}) | spell = {spell} | spellCountInThisBar = {spellCountInThisBar}");
+                //Console.WriteLine($"Character.AddSpellToBar.Entry: barNumber = {barNumber} ({barNumber + 1}) | indexInBar = {indexInBar} ({indexInBar + 1}) | spell = {spell} | spellCountInThisBar = {spellCountInThisBar}");
 
-                //if (indexInBar > spellCountInThisBar + 1)
                 if (indexInBar > spellCountInThisBar)
                     indexInBar = (uint)(spellCountInThisBar);
-                    //indexInBar = (uint)(spellCountInThisBar + 1);
 
                 // We must increment the position of existing spells in the bar that exist on or after this position
                 foreach (var property in character.CharacterPropertiesSpellBar)
                 {
-                    //if (property.SpellBarNumber == barNumber && property.SpellBarIndex >= indexInBar + 1)
                     if (property.SpellBarNumber == barNumber + 1 && property.SpellBarIndex >= indexInBar + 1)
                     {
                         property.SpellBarIndex++;
-                        Console.WriteLine($"Character.AddSpellToBar.Adjust: SpellBarNumber = {property.SpellBarNumber} | SpellBarIndex = {property.SpellBarIndex} ({property.SpellBarIndex - 1}) | SpellId = {property.SpellId}");
+                        //Console.WriteLine($"Character.AddSpellToBar.Adjust: SpellBarNumber = {property.SpellBarNumber} | SpellBarIndex = {property.SpellBarIndex} ({property.SpellBarIndex - 1}) | SpellId = {property.SpellId}");
                     }
                 }
 
-                //var entity = new CharacterPropertiesSpellBar { CharacterId = character.Id, SpellBarNumber = barNumber, SpellBarIndex = indexInBar, SpellId = spell, Character = character };
                 var entity = new CharacterPropertiesSpellBar { CharacterId = character.Id, SpellBarNumber = barNumber + 1, SpellBarIndex = indexInBar + 1, SpellId = spell, Character = character };
 
                 character.CharacterPropertiesSpellBar.Add(entity);
 
-                Console.WriteLine($"Character.AddSpellToBar.Add: barNumber = {barNumber + 1} | indexInBar = {indexInBar + 1} | spell = {spell}");
+                //Console.WriteLine($"Character.AddSpellToBar.Add: barNumber = {barNumber + 1} | indexInBar = {indexInBar + 1} | spell = {spell}");
             }
             finally
             {
@@ -331,26 +326,24 @@ namespace ACE.Database.Models.Shard
             rwLock.EnterUpgradeableReadLock();
             try
             {
-                Console.WriteLine($"Character.TryRemoveSpellFromBar.Entry: barNumber = {barNumber} ({barNumber + 1}) | spell = {spell}");
-                //entity = character.CharacterPropertiesSpellBar.FirstOrDefault(x => x.SpellBarNumber == barNumber && x.SpellId == spell);
+                //Console.WriteLine($"Character.TryRemoveSpellFromBar.Entry: barNumber = {barNumber} ({barNumber + 1}) | spell = {spell}");
                 entity = character.CharacterPropertiesSpellBar.FirstOrDefault(x => x.SpellBarNumber == barNumber + 1 && x.SpellId == spell);
                 if (entity != null)
                 {
                     rwLock.EnterWriteLock();
                     try
                     {
-                        Console.WriteLine($"Character.TryRemoveSpellFromBar.Remove: SpellBarNumber = {entity.SpellBarNumber} | SpellBarIndex = {entity.SpellBarIndex} | SpellId = {entity.SpellId}");
+                        //Console.WriteLine($"Character.TryRemoveSpellFromBar.Remove: SpellBarNumber = {entity.SpellBarNumber} | SpellBarIndex = {entity.SpellBarIndex} | SpellId = {entity.SpellId}");
                         character.CharacterPropertiesSpellBar.Remove(entity);
                         entity.Character = null;
 
                         // We must decrement the position of existing spells in the bar that exist after this position
                         foreach (var property in character.CharacterPropertiesSpellBar)
                         {
-                            //if (property.SpellBarNumber == barNumber && property.SpellBarIndex > entity.SpellBarIndex)
                             if (property.SpellBarNumber == barNumber + 1 && property.SpellBarIndex > entity.SpellBarIndex)
                             {
                                 property.SpellBarIndex--;
-                                Console.WriteLine($"Character.TryRemoveSpellFromBar.Adjust: SpellBarNumber = {property.SpellBarNumber} | SpellBarIndex = {property.SpellBarIndex} ({property.SpellBarIndex + 1}) | SpellId = {property.SpellId}");
+                                //Console.WriteLine($"Character.TryRemoveSpellFromBar.Adjust: SpellBarNumber = {property.SpellBarNumber} | SpellBarIndex = {property.SpellBarIndex} ({property.SpellBarIndex + 1}) | SpellId = {property.SpellId}");
                             }
                         }
 
