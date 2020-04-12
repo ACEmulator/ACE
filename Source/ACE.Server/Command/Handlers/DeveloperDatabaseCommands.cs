@@ -221,6 +221,14 @@ namespace ACE.Server.Command.Handlers
             else
                 Console.WriteLine("Please use command fix-spell-bars execute");
 
+
+            if (!execute)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Press enter to start.");
+                Console.ReadLine();
+            }
+
             var numberOfRecordsFixed = 0;
 
             log.Info($"Starting FixSpellBarsPR2918 process. This could take a while...");
@@ -236,16 +244,19 @@ namespace ACE.Server.Command.Handlers
                     return;
                 }
 
-                var characterIds = context.Character.Select(c => c.Id).ToList();
+                var characterIds = context.Character.AsNoTracking().OrderBy(c => c.Id).Select(c => c.Id).ToList();
+
+                var characterSpellBars = context.CharacterPropertiesSpellBar.OrderBy(c => c.CharacterId).ThenBy(c => c.SpellBarNumber).ThenBy(c => c.SpellBarIndex).ToList();
 
                 foreach (var character in characterIds)
                 {
                     for (var spellBarNumber = 1; spellBarNumber < 9; spellBarNumber++)
                     {
-                        var characterSpellBars = context.CharacterPropertiesSpellBar.Where(c => c.CharacterId == character && c.SpellBarNumber == spellBarNumber).OrderBy(c => c.SpellBarIndex).ToList();
+                        //var characterSpellBars = context.CharacterPropertiesSpellBar.Where(c => c.CharacterId == character && c.SpellBarNumber == spellBarNumber).OrderBy(c => c.SpellBarIndex).ToList();
+                        var localSpellBars = characterSpellBars.Where(c => c.CharacterId == character && c.SpellBarNumber == spellBarNumber).OrderBy(c => c.SpellBarIndex).ToList();
 
                         var spellBarIndex = 0u;
-                        foreach (var spellbar in characterSpellBars)
+                        foreach (var spellbar in localSpellBars)
                         {
                             spellBarIndex++;
                             if (spellbar.SpellBarIndex != spellBarIndex)
