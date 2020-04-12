@@ -244,32 +244,37 @@ namespace ACE.Server.Command.Handlers
                     return;
                 }
 
-                var characterIds = context.Character.AsNoTracking().OrderBy(c => c.Id).Select(c => c.Id).ToList();
-
                 var characterSpellBars = context.CharacterPropertiesSpellBar.OrderBy(c => c.CharacterId).ThenBy(c => c.SpellBarNumber).ThenBy(c => c.SpellBarIndex).ToList();
 
-                foreach (var character in characterIds)
-                {
-                    for (var spellBarNumber = 1; spellBarNumber < 9; spellBarNumber++)
-                    {
-                        //var characterSpellBars = context.CharacterPropertiesSpellBar.Where(c => c.CharacterId == character && c.SpellBarNumber == spellBarNumber).OrderBy(c => c.SpellBarIndex).ToList();
-                        var localSpellBars = characterSpellBars.Where(c => c.CharacterId == character && c.SpellBarNumber == spellBarNumber).OrderBy(c => c.SpellBarIndex).ToList();
+                uint characterId = 0;
+                uint spellBarNumber = 0;
+                uint spellBarIndex = 0;
 
-                        var spellBarIndex = 0u;
-                        foreach (var spellbar in localSpellBars)
-                        {
-                            spellBarIndex++;
-                            if (spellbar.SpellBarIndex != spellBarIndex)
-                            {
-                                Console.WriteLine($"FixSpellBarsPR2918: Character 0x{character:X8}, SpellBarNumber = {spellbar.SpellBarNumber} | SpellBarIndex = {spellbar.SpellBarIndex:000}; Fixed - {spellBarIndex:000}");
-                                spellbar.SpellBarIndex = spellBarIndex;
-                                numberOfRecordsFixed++;
-                            }
-                            else
-                            {
-                                Console.WriteLine($"FixSpellBarsPR2918: Character 0x{character:X8}, SpellBarNumber = {spellbar.SpellBarNumber} | SpellBarIndex = {spellbar.SpellBarIndex:000}; OK");
-                            }
-                        }
+                foreach (var entry in characterSpellBars)
+                {
+                    if (entry.CharacterId != characterId)
+                    {
+                        characterId = entry.CharacterId;
+                        spellBarIndex = 0;
+                    }
+
+                    if (entry.SpellBarNumber != spellBarNumber)
+                    {
+                        spellBarNumber = entry.SpellBarNumber;
+                        spellBarIndex = 0;
+                    }
+
+                    spellBarIndex++;
+
+                    if (entry.SpellBarIndex != spellBarIndex)
+                    {
+                        Console.WriteLine($"FixSpellBarsPR2918: Character 0x{entry.CharacterId:X8}, SpellBarNumber = {entry.SpellBarNumber} | SpellBarIndex = {entry.SpellBarIndex:000}; Fixed - {spellBarIndex:000}");
+                        entry.SpellBarIndex = spellBarIndex;
+                        numberOfRecordsFixed++;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"FixSpellBarsPR2918: Character 0x{entry.CharacterId:X8}, SpellBarNumber = {entry.SpellBarNumber} | SpellBarIndex = {entry.SpellBarIndex:000}; OK");
                     }
                 }
 
