@@ -200,7 +200,20 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            // TODO: check for account bans
+            if (account.BanExpireTime.HasValue)
+            {
+                var now = DateTime.UtcNow;
+                if (now < account.BanExpireTime.Value)
+                {
+                    var reason = account.BanReason;
+                    session.Terminate(SessionTerminationReason.AccountBanned, new GameMessageBootAccount($"{(reason != null ? $" - {reason}" : null)}"), null, reason);
+                    return;
+                }
+                else
+                {
+                    account.UnBan();
+                }
+            }
 
             account.UpdateLastLogin(session.EndPoint.Address);
 

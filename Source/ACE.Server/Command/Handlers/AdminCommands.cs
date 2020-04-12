@@ -199,7 +199,14 @@ namespace ACE.Server.Command.Handlers
 
                 if (account != null)
                 {
-                    message = $"Account '{account.AccountName}' is not banned.\n"; //todo: fix this when banning works
+                    if (account.BannedTime != null)
+                    {
+                        var bannedbyAccount = account.BannedByAccountId > 0 ? $"account {DatabaseManager.Authentication.GetAccountById(account.BannedByAccountId.Value).AccountName}" : "CONSOLE";
+
+                        message = $"Account '{account.AccountName}' was banned by {bannedbyAccount} until server time {account.BanExpireTime.Value.ToLocalTime():MMM dd yyyy  h:mmtt}.\n";
+                    }
+                    else
+                        message = $"Account '{account.AccountName}' is not banned.\n";
                     if (account.AccessLevel > (int)AccessLevel.Player)
                         message += $"Account '{account.AccountName}' has been granted AccessLevel.{((AccessLevel)account.AccessLevel).ToString()} rights.\n";
                     message += $"Account created on {account.CreateTime.ToLocalTime()} by IP: {(account.CreateIP != null ? new IPAddress(account.CreateIP).ToString() : "N/A")} \n";

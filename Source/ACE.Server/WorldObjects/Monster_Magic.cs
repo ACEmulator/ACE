@@ -102,15 +102,15 @@ namespace ACE.Server.WorldObjects
             return null;
         }
 
-        // todo: monster spellcasting anim speed?
-        public static float CastSpeed = 1.5f;
+        public static float PreCastSpeed = 2.0f;
+        public static float PostCastSpeed = 1.0f;
 
         /// <summary>
         /// Perform the first part of monster spell casting animation - spreading arms out
         /// </summary>
         public float PreCastMotion(WorldObject target)
         {
-            var motion = new Motion(this, MotionCommand.CastSpell, CastSpeed);
+            var motion = new Motion(this, MotionCommand.CastSpell, PreCastSpeed);
             motion.MotionState.TurnSpeed = 2.25f;
             //motion.HasTarget = true;
             //motion.TargetGuid = target.Guid;
@@ -118,7 +118,7 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcastMotion(motion);
 
-            return MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, CastSpeed);
+            return GetPreCastTime();
         }
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public float PostCastMotion()
         {
-            var motion = new Motion(this, MotionCommand.Ready, CastSpeed);
+            var motion = new Motion(this, MotionCommand.Ready, PostCastSpeed);
             motion.MotionState.TurnSpeed = 2.25f;
             //motion.HasTarget = true;
             //motion.TargetGuid = target.Guid;
@@ -135,7 +135,17 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcastMotion(motion);
 
-            return MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, MotionCommand.Ready, CastSpeed);
+            return GetPostCastTime();
+        }
+
+        public float GetPreCastTime()
+        {
+            return MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, PreCastSpeed);
+        }
+
+        public float GetPostCastTime()
+        {
+            return MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, MotionCommand.Ready, PostCastSpeed);
         }
 
         /// <summary>
@@ -173,13 +183,18 @@ namespace ACE.Server.WorldObjects
             });
             actionChain.EnqueueChain();
 
-            var postCastTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, MotionCommand.Ready, 1.5f);
+            var postCastTime = GetPostCastTime();
             var animTime = preCastTime + postCastTime;
 
             //Console.WriteLine($"{Name}.MagicAttack(): preCastTime({preCastTime}), postCastTime({postCastTime})");
 
-            NextAttackTime = Timers.RunningTime + animTime + MagicDelay;
-            NextMoveTime = NextAttackTime - 1.0f;
+            // slight variation here
+            PrevAttackTime = Timers.RunningTime + preCastTime;
+            var powerupTime = (float)(PowerupTime ?? 1.0f);
+
+            var postDelay = ThreadSafeRandom.Next(0.0f, powerupTime);
+
+            NextMoveTime = NextAttackTime = PrevAttackTime + postCastTime + postDelay;
         }
 
         /// <summary>
@@ -292,6 +307,18 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             return GetSpellMaxRange() == float.PositiveInfinity;
+        }
+
+        /// <summary>
+        /// The amount of time a monster waits to cast a magic spell
+        /// defined as seconds from the start of the previous attack
+        /// the most common value in the db is 3s
+        /// some other common values include 2s and 1s, with some mobs having values up to 1m
+        /// </summary>
+        public double? AiUseMagicDelay
+        {
+            get => GetProperty(PropertyFloat.AiUseMagicDelay);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.AiUseMagicDelay); else SetProperty(PropertyFloat.AiUseMagicDelay, value.Value); }
         }
     }
 }

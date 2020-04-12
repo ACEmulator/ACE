@@ -177,21 +177,28 @@ namespace ACE.Database.Adapter
 
             if (sourceBiota.PropertiesPalette != null)
             {
-                foreach (var value in sourceBiota.PropertiesPalette)
+                for (int i = 0; i < sourceBiota.PropertiesPalette.Count; i++)
                 {
-                    BiotaPropertiesPalette existingValue = targetBiota.BiotaPropertiesPalette.FirstOrDefault(r => r.SubPaletteId == value.SubPaletteId && r.Offset == value.Offset && r.Length == value.Length);
+                    var value = sourceBiota.PropertiesPalette[i];
+
+                    BiotaPropertiesPalette existingValue = targetBiota.BiotaPropertiesPalette.FirstOrDefault(r => r.Order == i);
 
                     if (existingValue == null)
                     {
-                        existingValue = new BiotaPropertiesPalette { ObjectId = sourceBiota.Id, SubPaletteId = value.SubPaletteId, Offset = value.Offset, Length = value.Length };
+                        existingValue = new BiotaPropertiesPalette { ObjectId = sourceBiota.Id };
 
                         targetBiota.BiotaPropertiesPalette.Add(existingValue);
                     }
+
+                    existingValue.SubPaletteId = value.SubPaletteId;
+                    existingValue.Offset = value.Offset;
+                    existingValue.Length = value.Length;
+                    existingValue.Order = (byte)i;
                 }
             }
             foreach (var value in targetBiota.BiotaPropertiesPalette)
             {
-                if (sourceBiota.PropertiesPalette == null || !sourceBiota.PropertiesPalette.Any(p => p.SubPaletteId == value.SubPaletteId && p.Offset == value.Offset && p.Length == value.Length))
+                if (sourceBiota.PropertiesPalette == null || value.Order == null || value.Order >= sourceBiota.PropertiesPalette.Count)
                     context.BiotaPropertiesPalette.Remove(value);
             }
 

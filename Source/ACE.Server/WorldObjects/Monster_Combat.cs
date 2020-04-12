@@ -42,9 +42,28 @@ namespace ACE.Server.WorldObjects
         public float MaxRange;
 
         /// <summary>
+        ///  The time when monster started its last attack
+        /// </summary>
+        public double PrevAttackTime;
+
+        /// <summary>
         /// The time when monster can perform its next attack
         /// </summary>
         public double NextAttackTime;
+
+        /// <summary>
+        /// The time when monster can perform its next magic attack
+        /// </summary>
+        public double NextMagicAttackTime
+        {
+            get
+            {
+                // defaults to most common value found in py16 db
+                var magicDelay = AiUseMagicDelay ?? 3.0f;
+
+                return PrevAttackTime + magicDelay;
+            }
+        }
 
         /// <summary>
         /// Returns true if monster is dead
@@ -194,7 +213,9 @@ namespace ACE.Server.WorldObjects
         /// <returns></returns>
         public bool AttackReady()
         {
-            if (Timers.RunningTime < NextAttackTime || !IsAttackRange())
+            var nextAttackTime = CurrentAttack == CombatType.Magic ? NextMagicAttackTime : NextAttackTime;
+
+            if (Timers.RunningTime < nextAttackTime || !IsAttackRange())
                 return false;
 
             PhysicsObj.update_object();
