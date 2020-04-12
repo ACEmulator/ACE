@@ -1338,6 +1338,9 @@ namespace ACE.Database.Models.Shard
 
                 entity.ToTable("character_properties_spell_bar");
 
+                entity.HasIndex(e => e.SpellBarIndex)
+                    .HasName("spellBar_idx");
+
                 entity.Property(e => e.CharacterId)
                     .HasColumnName("character_Id")
                     .HasDefaultValueSql("'0'");
@@ -1357,7 +1360,7 @@ namespace ACE.Database.Models.Shard
                 entity.HasOne(d => d.Character)
                     .WithMany(p => p.CharacterPropertiesSpellBar)
                     .HasForeignKey(d => d.CharacterId)
-                    .HasConstraintName("wcid_spellbar");
+                    .HasConstraintName("characterId_spellbar");
             });
 
             modelBuilder.Entity<CharacterPropertiesSquelch>(entity =>
