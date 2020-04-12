@@ -13,7 +13,8 @@ WHERE id > 0;
 ALTER TABLE `character_properties_spell_bar`
 DROP COLUMN `id`,
 DROP PRIMARY KEY,
-ADD PRIMARY KEY (`character_Id`, `spell_Bar_Number`, `spell_Id`);
+ADD PRIMARY KEY (`character_Id`, `spell_Bar_Number`, `spell_Id`),
+ADD INDEX `spellBar_idx` (`spell_Bar_Index` ASC);
 
 ALTER TABLE `character_properties_spell_bar`
 ADD CONSTRAINT `wcid_spellbar`
