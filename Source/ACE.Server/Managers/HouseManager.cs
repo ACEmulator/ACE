@@ -587,7 +587,7 @@ namespace ACE.Server.Managers
 
             var rank = allegianceNode != null ? allegianceNode.Rank : 0;
 
-            if (allegiance == null || rank < allegianceMinLevel)
+            if (allegianceMinLevel > 0 && (allegiance == null || rank < allegianceMinLevel))
             {
                 log.Debug($"[HOUSE] {playerHouse.PlayerName}.HasRequirements() - allegiance rank {rank} < {allegianceMinLevel}");
                 return false;
