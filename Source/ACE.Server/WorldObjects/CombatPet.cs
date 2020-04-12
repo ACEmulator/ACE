@@ -72,8 +72,9 @@ namespace ACE.Server.WorldObjects
             }
 
             // get nearest monster
-            var nearest = BuildTargetDistance(nearbyMonsters);
-            if (nearest[0].Distance > RadiusAwareness)
+            var nearest = BuildTargetDistance(nearbyMonsters, true);
+
+            if (nearest[0].Distance > VisualAwarenessRangeSq)
             {
                 //Console.WriteLine($"{Name}.FindNextTarget(): next object out-of-range (dist: {Math.Round(Math.Sqrt(nearest[0].Distance))})");
                 return false;
