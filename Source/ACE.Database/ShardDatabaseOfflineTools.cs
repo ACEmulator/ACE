@@ -851,6 +851,7 @@ namespace ACE.Database
         /// </summary>
         public static void FixSpellBarsPR2918(out int numberOfRecordsFixed)
         {
+            var debug = false;
             numberOfRecordsFixed = 0;
 
             using (var context = new ShardDbContext())
@@ -859,21 +860,39 @@ namespace ACE.Database
 
                 foreach (var character in characterIds)
                 {
-                    var spellBarNumber = 1u;
-                    var characterSpellBars = context.CharacterPropertiesSpellBar.Where(c => c.CharacterId == character && c.SpellBarNumber == spellBarNumber).OrderBy(c => c.SpellBarIndex).ToList();
+                    var characterSpellBarsNotFixed = context.CharacterPropertiesSpellBar.Where(c => c.CharacterId == character && c.SpellBarNumber == 0).OrderBy(c => c.SpellBarIndex).ToList();
 
-                    var spellBarIndex = 0u;
-                    foreach (var spellbar in characterSpellBars)
+                    if (characterSpellBarsNotFixed.Count > 0)
                     {
-                        spellBarIndex++;
-                        if (spellbar.SpellBarIndex != spellBarIndex)
+                        log.Warn("2020-04-11-00-Update-Character-SpellBars.sql patch not yet applied. Please apply this patch ASAP! Skipping FixSpellBarsPR2918 for now...");
+                        log.Warn("2020-04-11-00-Update-Character-SpellBars.sql patch not yet applied. Please apply this patch ASAP! Skipping FixSpellBarsPR2918 for now...");
+                        log.Warn("2020-04-11-00-Update-Character-SpellBars.sql patch not yet applied. Please apply this patch ASAP! Skipping FixSpellBarsPR2918 for now...");
+                        log.Warn("2020-04-11-00-Update-Character-SpellBars.sql patch not yet applied. Please apply this patch ASAP! Skipping FixSpellBarsPR2918 for now...");
+                        return;
+                    }
+
+                    for (var spellBarNumber = 1; spellBarNumber < 9; spellBarNumber++)
+                    {
+                        var characterSpellBars = context.CharacterPropertiesSpellBar.Where(c => c.CharacterId == character && c.SpellBarNumber == spellBarNumber).OrderBy(c => c.SpellBarIndex).ToList();
+
+                        var spellBarIndex = 0u;
+                        foreach (var spellbar in characterSpellBars)
                         {
-                            Console.WriteLine($"FixSpellBarsPR2918: Character 0x{character:X8}, SpellBarNumber = {spellbar.SpellBarNumber} | SpellBarIndex = {spellbar.SpellBarIndex}; should be {spellBarIndex}");
-                            spellbar.SpellBarIndex = spellBarIndex;
-                            numberOfRecordsFixed++;
+                            spellBarIndex++;
+                            if (spellbar.SpellBarIndex != spellBarIndex)
+                            {
+                                if (debug)
+                                    Console.WriteLine($"FixSpellBarsPR2918: Character 0x{character:X8}, SpellBarNumber = {spellbar.SpellBarNumber} | SpellBarIndex = {spellbar.SpellBarIndex:000}; Fixed - {spellBarIndex:000}");
+                                spellbar.SpellBarIndex = spellBarIndex;
+                                numberOfRecordsFixed++;
+                            }
+                            else
+                            {
+                                if (debug)
+                                    Console.WriteLine($"FixSpellBarsPR2918: Character 0x{character:X8}, SpellBarNumber = {spellbar.SpellBarNumber} | SpellBarIndex = {spellbar.SpellBarIndex:000}; OK");
+                            }
                         }
                     }
-                    spellBarNumber++;
                 }
 
                 // Save
