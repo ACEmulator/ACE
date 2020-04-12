@@ -27,6 +27,7 @@ namespace ACE.Server.Network.Enum
         WorldClosed,
         AbnormalSequenceReceived,
         AccountLoggedIn,
+        ServerShuttingDown,
         AccountBanned
     }
     public static class SessionTerminationReasonHelper
@@ -52,6 +53,7 @@ namespace ACE.Server.Network.Enum
             "World is closed",
             "Client supplied an abnormal sequence",
             "Account was logged in, booting currently connected account in favor of new connection",
+            "Server is shutting down",
             "Account is banned"
         };
         public static string GetDescription(this SessionTerminationReason reason)

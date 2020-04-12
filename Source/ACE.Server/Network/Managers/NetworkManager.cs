@@ -100,6 +100,11 @@ namespace ACE.Server.Network.Managers
                         log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
                         SendLoginRequestReject(connectionListener, endPoint, CharacterError.LogonServerFull);
                     }
+                    else if (ServerManager.ShutdownInProgress)
+                    {
+                        log.InfoFormat("Login Request from {0} rejected. Server is shutting down.", endPoint);
+                        SendLoginRequestReject(connectionListener, endPoint, CharacterError.ServerCrash1);
+                    }
                     else if (ServerManager.ShutdownInitiated && (ServerManager.ShutdownTime - DateTime.UtcNow).TotalMinutes < 2)
                     {
                         log.InfoFormat("Login Request from {0} rejected. Server shutting down in less than 2 minutes.", endPoint);
@@ -358,6 +363,14 @@ namespace ACE.Server.Network.Managers
                 sessionLock.ExitUpgradeableReadLock();
             }
             return sessionCount;
+        }
+
+        public static void DisconnectAllSessionsForShutdown()
+        {
+            foreach (var session in sessionMap)
+            {
+                session?.Terminate(SessionTerminationReason.ServerShuttingDown, new GameMessages.Messages.GameMessageCharacterError(CharacterError.ServerCrash1));
+            }
         }
     }
 }
