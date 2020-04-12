@@ -279,7 +279,10 @@ namespace ACE.Server.WorldObjects
                                 vendor.TryCastSpell(spell, this, vendor);
                                 vendor.PostCastMotion();
                             });
-                            castChain.AddDelaySeconds(preCastTime);
+
+                            var postCastTime = vendor.GetPostCastTime();
+
+                            castChain.AddDelaySeconds(postCastTime);
                             castChain.AddAction(vendor, () => vendor.IsBusy = false);
 
                             castChain.EnqueueChain();

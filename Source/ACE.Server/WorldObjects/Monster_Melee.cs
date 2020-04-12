@@ -119,10 +119,12 @@ namespace ACE.Server.WorldObjects
             }
             actionChain.EnqueueChain();
 
+            PrevAttackTime = Timers.RunningTime;
+            NextMoveTime = PrevAttackTime + animLength + 0.5f;
+
             var meleeDelay = ThreadSafeRandom.Next(0.0f, (float)(PowerupTime ?? 1.0f));
 
-            NextMoveTime = Timers.RunningTime + animLength + 0.5f;
-            NextAttackTime = Timers.RunningTime + animLength + meleeDelay;
+            NextAttackTime = PrevAttackTime + animLength + meleeDelay;
 
             return animLength;
         }

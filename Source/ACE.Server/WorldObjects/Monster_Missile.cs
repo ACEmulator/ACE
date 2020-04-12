@@ -166,9 +166,11 @@ namespace ACE.Server.WorldObjects
 
             actionChain.EnqueueChain();
 
+            PrevAttackTime = Timers.RunningTime;
+
             var timeOffset = launchTime + reloadTime + linkTime;
 
-            NextMoveTime = NextAttackTime = Timers.RunningTime + timeOffset + MissileDelay;
+            NextMoveTime = NextAttackTime = PrevAttackTime + timeOffset + MissileDelay;
         }
 
         /// <summary>
