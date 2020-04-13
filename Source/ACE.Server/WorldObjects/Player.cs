@@ -43,7 +43,7 @@ namespace ACE.Server.WorldObjects
         public ContractManager ContractManager;
 
         public bool LastContact = true;
-        public bool IsJumping => !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable);
+        public bool IsJumping => FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable);
 
         public DateTime LastJumpTime;
 
