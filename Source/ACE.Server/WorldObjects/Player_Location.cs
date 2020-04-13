@@ -208,10 +208,15 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
+            if (CombatMode != CombatMode.NonCombat)
+            {
+                // this should be handled by a different thing, probably a function that forces player into peacemode
+                var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
+                SetCombatMode(CombatMode.NonCombat);
+                Session.Network.EnqueueSend(updateCombatMode);
+            }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the marketplace.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
-            Session.Network.EnqueueSend(updateCombatMode); // this should be handled by a different thing, probably a function that forces player into peacemode
             EnqueueBroadcastMotion(motionMarketplaceRecall);
 
             var startPos = new Position(Location);

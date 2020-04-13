@@ -84,6 +84,8 @@ namespace ACE.Server.WorldObjects
 
         public override void ActOnUse(WorldObject worldObject)
         {
+            if (IsBusy) return;
+
             var player = worldObject as Player;
             var behind = player != null && player.GetRelativeDir(this).HasFlag(Quadrant.Back);
 
@@ -128,6 +130,15 @@ namespace ACE.Server.WorldObjects
 
             if (opener.Full > 0)
                 UseTimestamp = Time.GetUnixTime();
+
+            IsBusy = true;
+
+            var animTime = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, MotionStance.NonCombat, MotionCommand.Off, MotionCommand.On);
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(animTime);
+            actionChain.AddAction(this, () => IsBusy = false);
+            actionChain.EnqueueChain();
         }
 
         public void Close(ObjectGuid closer = new ObjectGuid())
@@ -144,11 +155,14 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine($"AnimTime: {animTime}");
 
+            IsBusy = true;
+
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(animTime);
             actionChain.AddAction(this, () =>
             {
                 Ethereal = false;
+                IsBusy = false;
 
                 EnqueueBroadcastPhysicsState();
             });

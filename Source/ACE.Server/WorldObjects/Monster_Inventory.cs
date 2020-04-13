@@ -105,7 +105,7 @@ namespace ACE.Server.WorldObjects
             var upperArms = armor.Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)(EquipMask.UpperArmArmor | EquipMask.UpperArmWear)) != 0).ToList();    // this will also grab chest pieces that also cover upper arms etc.
             var lowerArms = armor.Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)(EquipMask.LowerArmArmor | EquipMask.LowerArmWear)) != 0).ToList();
             var hands = armor.Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)EquipMask.HandWear) != 0).ToList();
-            // excluding abdomen, as that can be covered by potentially chest or pants
+            var abdomen = armor.Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)(EquipMask.AbdomenArmor)) != 0).ToList();
             var upperLegs = armor.Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)(EquipMask.UpperLegArmor | EquipMask.UpperLegWear)) != 0).ToList();
             var lowerLegs = armor.Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)(EquipMask.LowerLegArmor | EquipMask.LowerLegWear)) != 0).ToList();
             var feet = armor.Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)EquipMask.FootWear) != 0).ToList();
@@ -117,7 +117,7 @@ namespace ACE.Server.WorldObjects
             // try to equip the clothing at top of lists
             var equipped = new List<WorldObject>();
 
-            var sorted = head.Concat(chest).Concat(upperArms).Concat(lowerArms).Concat(hands).Concat(upperLegs).Concat(lowerLegs).Concat(feet).ToList();
+            var sorted = head.Concat(chest).Concat(upperArms).Concat(lowerArms).Concat(hands).Concat(upperLegs).Concat(abdomen).Concat(lowerLegs).Concat(feet).ToList();
 
             foreach (var item in sorted)
             {

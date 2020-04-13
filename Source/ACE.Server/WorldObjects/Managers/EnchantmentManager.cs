@@ -1148,19 +1148,11 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public void HeartBeat(double heartbeatInterval)
         {
-            var expired = new List<PropertiesEnchantmentRegistry>();
+            var topLayerEnchantments = WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(WorldObject.BiotaDatabaseLock);
 
-            var enchantments = WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(WorldObject.BiotaDatabaseLock);
-            HeartBeat_DamageOverTime(enchantments);
+            HeartBeat_DamageOverTime(topLayerEnchantments);
 
-            foreach (var enchantment in enchantments)
-            {
-                enchantment.StartTime -= heartbeatInterval;
-
-                // StartTime ticks backwards to -Duration
-                if (enchantment.Duration >= 0 && enchantment.StartTime <= -enchantment.Duration)
-                    expired.Add(enchantment);
-            }
+            var expired = WorldObject.Biota.PropertiesEnchantmentRegistry.HeartBeatEnchantmentsAndReturnExpired(heartbeatInterval, WorldObject.BiotaDatabaseLock);
 
             foreach (var enchantment in expired)
                 Remove(enchantment);

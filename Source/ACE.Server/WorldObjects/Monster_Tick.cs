@@ -105,12 +105,12 @@ namespace ACE.Server.WorldObjects
                 //MaxRange = MaxMeleeRange;   // FIXME: server position sync
             }
 
+            if (PhysicsObj.IsSticky)
+                UpdatePosition();
+
             // get distance to target
             var targetDist = GetDistanceToTarget();
             //Console.WriteLine($"{Name} ({Guid}) - Dist: {targetDist}");
-
-            if (PhysicsObj.PositionManager?.StickyManager != null && PhysicsObj.PositionManager.StickyManager.TargetID != 0)
-                UpdatePosition();
 
             if (CurrentAttack != CombatType.Missile)
             {
