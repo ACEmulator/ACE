@@ -1670,7 +1670,9 @@ namespace ACE.Server.Physics
 
                 var transit = transition(Position, newPos, false);
 
-                if (transit != null)
+
+                // temporarily modified while debug path is examined
+                if (transit != null && transit.SpherePath.CurCell != null)
                 {
                     CachedVelocity = Position.GetOffset(transit.SpherePath.CurPos) / (float)quantum;
 
@@ -1679,7 +1681,9 @@ namespace ACE.Server.Physics
                 else
                 {
                     if (IsPlayer)
-                        log.Debug($"{Name}.UpdateObjectInternal({quantum}) - failed transition from {Position} to {newPos}");
+                        log.Debug($"{Name} ({ID:X8}).UpdateObjectInternal({quantum}) - failed transition from {Position} to {newPos}");
+                    else if (transit != null && transit.SpherePath.CurCell == null)
+                        log.Warn($"{Name} ({ID:X8}).UpdateObjectInternal({quantum}) - avoided CurCell=null from {Position} to {newPos}");
 
                     newPos.Frame.Origin = Position.Frame.Origin;
                     set_initial_frame(newPos.Frame);
