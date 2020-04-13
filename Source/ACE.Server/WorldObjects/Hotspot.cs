@@ -175,8 +175,7 @@ namespace ACE.Server.WorldObjects
 
                     if (creature.Invincible) return;
 
-                    if (!IgnoreMagicResist)
-                        amount *= (float)creature.GetLifeResistance(DamageType);
+                    amount *= creature.GetResistanceMod(DamageType, this, null);
 
                     if (player != null)
                         iAmount = player.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
