@@ -2429,7 +2429,7 @@ namespace ACE.Server.Physics
         {
             foreach (var shadowObj in ShadowObjects.Values)
             {
-                if (shadowObj.Cell.check_collisions(this))
+                if (shadowObj.Cell != null && shadowObj.Cell.check_collisions(this))
                     return true;
             }
             return false;
