@@ -170,6 +170,9 @@ namespace ACE.Server
             // This is temporary and can be removed in the near future, 2020-04-12 Ripley
             ShardDatabaseOfflineTools.CheckForPR2918Script();
 
+            // This should only be enabled manually. To enable it, simply uncomment this line
+            //ACE.Database.OfflineTools.Shard.BiotaGuidConsolidator.ConsolidateBiotaGuids(0xC0000000, out int numberOfBiotasConsolidated, out int numberOfErrors);
+
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();
 
