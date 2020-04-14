@@ -1414,10 +1414,8 @@ namespace ACE.Server.Physics
                         var landblock = LScape.get_landblock(newPos.ObjCellID);
                         var groundZ = landblock.GetZ(newPos.Frame.Origin) + 0.05f;
 
-                        var diff = Math.Abs(newPos.Frame.Origin.Z - groundZ);
-
-                        if (diff > ScatterThreshold_Z)
-                            log.Debug($"{Name} ({ID:X8}).SetScatterPositionInternal() - tried to spawn outdoor object @ {newPos} ground Z {groundZ} (diff: {diff}), investigate ScatterThreshold_Z");
+                        if (Math.Abs(newPos.Frame.Origin.Z - groundZ) > ScatterThreshold_Z)
+                            log.Debug($"{Name} ({ID:X8}).SetScatterPositionInternal() - tried to spawn outdoor object @ {newPos} ground Z {groundZ} (diff: {newPos.Frame.Origin.Z - groundZ}), investigate ScatterThreshold_Z");
                         else
                             newPos.Frame.Origin.Z = groundZ;
 
