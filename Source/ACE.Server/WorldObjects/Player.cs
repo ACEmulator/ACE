@@ -1052,7 +1052,7 @@ namespace ACE.Server.WorldObjects
 
             actionChain.AddAction(this, () =>
             {
-                if (PropertyManager.GetBool("pkl_bump").Item)
+                if (PropertyManager.GetBool("allow_pkl_bump").Item)
                 {
                     // check for collisions
                     PlayerKillerStatus = PlayerKillerStatus.PKLite;
