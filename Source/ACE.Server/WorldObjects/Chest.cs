@@ -8,6 +8,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -82,6 +83,12 @@ namespace ACE.Server.WorldObjects
         protected static readonly Motion motionOpen = new Motion(MotionStance.NonCombat, MotionCommand.On);
         protected static readonly Motion motionClosed = new Motion(MotionStance.NonCombat, MotionCommand.Off);
 
+        /// <summary>
+        /// The chest unlocker is given exclusive access to first opening the chest
+        /// for this number of seconds
+        /// </summary>
+        public static readonly float UseLockThreshold = 10.0f;
+
         public override ActivationResult CheckUseRequirements(WorldObject activator)
         {
             var baseRequirements = base.CheckUseRequirements(activator);
@@ -97,23 +104,37 @@ namespace ACE.Server.WorldObjects
                 return new ActivationResult(false);
             }
 
+            if (UseLockTimestamp != null && activator.Guid.Full != LastUnlocker)
+            {
+                var currentTime = Time.GetUnixTime();
+
+                // prevent ninja looting
+                if (UseLockTimestamp.Value + UseLockThreshold > currentTime)
+                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.The_IsCurrentlyInUse, Name));
+            }
+
             if (IsOpen)
             {
-                // player has this chest open, close it
+                // current player has this chest open, close it
                 if (Viewer == player.Guid.Full)
+                {
                     Close(player);
-
-                // else another player has this chest open - send error message?
+                    return new ActivationResult(false);
+                }
                 else
                 {
+                    // another player has this chest open -- ensure they are within rnage
                     var currentViewer = CurrentLandblock.GetObject(Viewer) as Player;
 
-                    // current viewer not found, close it
                     if (currentViewer == null)
+                    {
+                        // current viewer not found, close it
                         Close(null);
-                }
+                        return new ActivationResult(false);
+                    }
 
-                return new ActivationResult(false);
+                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.The_IsCurrentlyInUse, Name));
+                }
             }
 
             // handle quest requirements
@@ -168,6 +189,8 @@ namespace ACE.Server.WorldObjects
 
                 ResetMessagePending = true;
             }
+
+            UseLockTimestamp = null;
         }
 
         public override void Close(Player player)
@@ -283,8 +306,10 @@ namespace ACE.Server.WorldObjects
             var result = LockHelper.Unlock(this, playerLockpickSkillLvl, ref difficulty);
 
             if (result == UnlockResults.UnlockSuccess)
+            {
                 LastUnlocker = unlockerGuid;
-
+                UseLockTimestamp = Time.GetUnixTime();
+            }
             return result;
         }
 
@@ -296,8 +321,10 @@ namespace ACE.Server.WorldObjects
             var result = LockHelper.Unlock(this, key, keyCode);
 
             if (result == UnlockResults.UnlockSuccess)
+            {
                 LastUnlocker = unlockerGuid;
-
+                UseLockTimestamp = Time.GetUnixTime();
+            }
             return result;
         }
     }
