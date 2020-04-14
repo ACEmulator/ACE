@@ -110,16 +110,18 @@ namespace ACE.Server.WorldObjects
 
                 // prevent ninja looting
                 if (UseLockTimestamp.Value + UseLockThreshold > currentTime)
-                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.The_IsCurrentlyInUse, Name));
+                {
+                    player.SendTransientError(InUseMessage);
+                    return new ActivationResult(false);
+                }
             }
 
             if (IsOpen)
             {
-                // current player has this chest open, close it
                 if (Viewer == player.Guid.Full)
                 {
+                    // current player has this chest open, close it
                     Close(player);
-                    return new ActivationResult(false);
                 }
                 else
                 {
@@ -127,14 +129,12 @@ namespace ACE.Server.WorldObjects
                     var currentViewer = CurrentLandblock.GetObject(Viewer) as Player;
 
                     if (currentViewer == null)
-                    {
-                        // current viewer not found, close it
-                        Close(null);
-                        return new ActivationResult(false);
-                    }
-
-                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.The_IsCurrentlyInUse, Name));
+                        Close(null);    // current viewer not found, close it
+                    else
+                        player.SendTransientError(InUseMessage);
                 }
+
+                return new ActivationResult(false);
             }
 
             // handle quest requirements
