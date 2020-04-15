@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -85,6 +86,7 @@ namespace ACE.Database.OfflineTools.Shard
             using (var context = new ShardDbContext())
                 partialBiotas = context.Biota.Where(r => r.Id >= startingGuid).OrderByDescending(r => r.Id).ToList();
 
+            var idConversions = new ConcurrentDictionary<uint, uint>();
 
             // Process ConsolidatableBasicWeenieTypes first
             Parallel.ForEach(partialBiotas, partialBiota =>
@@ -129,6 +131,8 @@ namespace ACE.Database.OfflineTools.Shard
                     log.Fatal("Failed to generate new id. No more id's available for consolidation. This shouldn't require a rollback.");
                     return;
                 }
+
+                idConversions[fullBiota.Id] = newId;
 
                 // Copy our original biota into a new biota and set the new id
                 var converted = BiotaConverter.ConvertToEntityBiota(fullBiota);
@@ -201,6 +205,8 @@ namespace ACE.Database.OfflineTools.Shard
                     break;
                 }
 
+                idConversions[fullBiota.Id] = newId;
+
                 // Copy our original biota into a new biota and set the new id
                 var converted = BiotaConverter.ConvertToEntityBiota(fullBiota);
                 converted.Id = newId;
@@ -241,6 +247,35 @@ namespace ACE.Database.OfflineTools.Shard
 
                 if ((tempNumOfBiotasConsolidated + numOfErrors) % 1000 == 0)
                     Console.WriteLine($"{tempNumOfBiotasConsolidated:N0} biotas successfully processed out of {partialBiotas.Count:N0}...");
+            }
+
+
+            // Update enchantment tables for equipped items
+            using (var context = new ShardDbContext())
+            {
+                var enchantments = context.BiotaPropertiesEnchantmentRegistry.Where(r => r.CasterObjectId >= startingGuid);
+
+                // First, remove the enchantments from the database
+                foreach (var enchantment in enchantments)
+                {
+                    if (idConversions.TryGetValue(enchantment.CasterObjectId, out var newId))
+                        context.BiotaPropertiesEnchantmentRegistry.Remove(enchantment);
+                }
+
+                context.SaveChanges();
+
+                // Second, re-id them and add them back
+                foreach (var enchantment in enchantments)
+                {
+                    if (idConversions.TryGetValue(enchantment.CasterObjectId, out var newId))
+                    {
+                        enchantment.CasterObjectId = newId;
+
+                        context.BiotaPropertiesEnchantmentRegistry.Add(enchantment);
+                    }
+                }
+
+                context.SaveChanges();
             }
 
 
