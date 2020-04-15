@@ -307,7 +307,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Notifies the damage over time (DoT) source player of the tick damage amount
         /// </summary>
-        public void TakeDamageOverTime_NotifySource(Player source, DamageType damageType, float amount)
+        public void TakeDamageOverTime_NotifySource(Player source, DamageType damageType, float amount, bool aetheria = false)
         {
             if (PropertyManager.GetBool("show_dot_messages").Item)
             {
@@ -317,12 +317,19 @@ namespace ACE.Server.WorldObjects
                 string msg = null;
                 var type = ChatMessageType.CombatSelf;
 
-                if (damageType == DamageType.Nether)
+                if (damageType == DamageType.Nether || aetheria)
                 {
+                    var notifyType = aetheria ? DamageType.Health : damageType;
+
                     string verb = null, plural = null;
                     var percent = amount / Health.MaxValue;
-                    Strings.GetAttackVerb(damageType, percent, ref verb, ref plural);
-                    msg = $"You {verb} {Name} for {iAmount} points of periodic nether damage!";
+                    Strings.GetAttackVerb(notifyType, percent, ref verb, ref plural);
+
+                    if (damageType == DamageType.Nether)
+                        msg = $"You {verb} {Name} for {iAmount} points of periodic nether damage!";
+                    else
+                        msg = $"With Surge of Affliction you {verb} {iAmount} points of health from {Name}!";
+
                     type = ChatMessageType.Magic;
                 }
                 else
