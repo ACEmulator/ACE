@@ -1318,6 +1318,8 @@ namespace ACE.Server.WorldObjects.Managers
                             {
                                 // update existing quest
                                 var canSolve = player.Fellowship.QuestManager.CanSolve(questName);
+                                if (canSolve)
+                                    player.Fellowship.QuestManager.Stamp(questName);
                                 ExecuteEmoteSet(canSolve ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
                             }
                         }
@@ -1348,6 +1350,8 @@ namespace ACE.Server.WorldObjects.Managers
                         {
                             // update existing quest
                             var canSolve = questTarget.QuestManager.CanSolve(questName);
+                            if (canSolve)
+                                questTarget.QuestManager.Stamp(questName);
                             ExecuteEmoteSet(canSolve ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
                         }
                     }
