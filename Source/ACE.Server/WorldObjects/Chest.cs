@@ -83,12 +83,6 @@ namespace ACE.Server.WorldObjects
         protected static readonly Motion motionOpen = new Motion(MotionStance.NonCombat, MotionCommand.On);
         protected static readonly Motion motionClosed = new Motion(MotionStance.NonCombat, MotionCommand.Off);
 
-        /// <summary>
-        /// The chest unlocker is given exclusive access to first opening the chest
-        /// for this number of seconds
-        /// </summary>
-        public static readonly float UseLockThreshold = 10.0f;
-
         public override ActivationResult CheckUseRequirements(WorldObject activator)
         {
             var baseRequirements = base.CheckUseRequirements(activator);
