@@ -1342,10 +1342,12 @@ namespace ACE.Server.Physics
 
         public SetPositionError SetPositionSimple(Position pos, bool sliding)
         {
-            var flags = sliding ? 4114 : 4098;  // ??
             var setPos = new SetPosition();
             setPos.Pos = pos;
-            setPos.Flags = (SetPositionFlags)flags;
+            setPos.Flags = SetPositionFlags.Teleport | SetPositionFlags.SendPositionEvent;
+
+            if (sliding)
+                setPos.Flags |= SetPositionFlags.Slide;
 
             return SetPosition(setPos);
         }

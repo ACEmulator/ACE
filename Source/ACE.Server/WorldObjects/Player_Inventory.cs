@@ -577,7 +577,7 @@ namespace ACE.Server.WorldObjects
             // this crouch down motion exited the animation queue immediately
 
             // here we are just skipping the animation if the player is jumping
-            if (IsJumping && PropertyManager.GetBool("jump_loot").Item)
+            if (IsJumping && PropertyManager.GetBool("allow_jump_loot").Item)
                 return MotionCommand.Invalid;
 
             MotionCommand pickupMotion;
