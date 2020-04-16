@@ -8,6 +8,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -108,7 +109,7 @@ namespace ACE.Server.WorldObjects
                 var currentTime = Time.GetUnixTime();
 
                 // prevent ninja looting
-                if (UseLockTimestamp.Value + UseLockThreshold > currentTime)
+                if (UseLockTimestamp.Value + PropertyManager.GetDouble("unlocker_window").Item > currentTime)
                 {
                     player.SendTransientError(InUseMessage);
                     return new ActivationResult(false);
