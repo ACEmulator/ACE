@@ -307,29 +307,43 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Notifies the damage over time (DoT) source player of the tick damage amount
         /// </summary>
-        public void TakeDamageOverTime_NotifySource(Player source, DamageType damageType, float amount)
+        public void TakeDamageOverTime_NotifySource(Player source, DamageType damageType, float amount, bool aetheria = false)
         {
-            if (PropertyManager.GetBool("show_dot_messages").Item)
+            if (!PropertyManager.GetBool("show_dot_messages").Item)
+                return;
+
+            var iAmount = (uint)Math.Round(amount);
+
+            var notifyType = damageType == DamageType.Undef ? DamageType.Health : damageType;
+
+            string verb = null, plural = null;
+            var percent = amount / Health.MaxValue;
+            Strings.GetAttackVerb(notifyType, percent, ref verb, ref plural);
+
+            string msg = null;
+
+            var type = ChatMessageType.CombatSelf;
+
+            if (damageType == DamageType.Nether)
             {
-                var iAmount = (uint)Math.Round(amount);
-
-                // damage text notification
-                string msg = null;
-                var type = ChatMessageType.CombatSelf;
-
-                if (damageType == DamageType.Nether)
-                {
-                    string verb = null, plural = null;
-                    var percent = amount / Health.MaxValue;
-                    Strings.GetAttackVerb(damageType, percent, ref verb, ref plural);
-                    msg = $"You {verb} {Name} for {iAmount} points of periodic nether damage!";
-                    type = ChatMessageType.Magic;
-                }
-                else
-                    msg = $"You bleed {Name} for {iAmount} points of periodic damage!";
-
-                source.SendMessage(msg, type);
+                msg = $"You {verb} {Name} for {iAmount} points of periodic nether damage!";
+                type = ChatMessageType.Magic;
             }
+            else if (aetheria)
+            {
+                msg = $"With Surge of Affliction you {verb} {iAmount} points of health from {Name}!";
+                type = ChatMessageType.Magic;
+            }
+            else
+            {
+                /*var skill = source.GetCreatureSkill(Skill.DirtyFighting);
+                var attack = skill.AdvancementClass == SkillAdvancementClass.Specialized ? "Bleeding Assault" : "Bleeding Blow";
+                msg = $"With {attack} you {verb} {iAmount} points of health from {Name}!";*/
+
+                msg = $"You bleed {Name} for {iAmount} points of periodic health damage!";
+                type = ChatMessageType.CombatSelf;
+            }
+            source.SendMessage(msg, type);
         }
 
         /// <summary>
