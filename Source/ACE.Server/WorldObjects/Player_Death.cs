@@ -200,6 +200,8 @@ namespace ACE.Server.WorldObjects
                 EnchantmentManager.RemoveAllEnchantments();
                 Session.Network.EnqueueSend(msgPurgeEnchantments);
             }
+            else
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Your augmentation prevents the tides of death from ripping away your current enchantments!", ChatMessageType.Broadcast));
 
             // wait for the death animation to finish
             var dieChain = new ActionChain();
