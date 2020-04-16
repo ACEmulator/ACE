@@ -44,7 +44,7 @@ namespace ACE.Server.WorldObjects
 
                 string inscription;
                 if (book.Inscription != null)
-                    inscription = Inscription;
+                    inscription = book.Inscription;
                 else
                     inscription = "";
 
