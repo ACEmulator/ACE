@@ -25,7 +25,7 @@ namespace ACE.Server.WorldObjects
 
                 string authorName;
                 if (book.ScribeName != null)
-                    authorName = ScribeName;
+                    authorName = book.ScribeName;
                 else
                     authorName = "";
 
