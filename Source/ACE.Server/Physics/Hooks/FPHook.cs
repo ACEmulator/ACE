@@ -27,7 +27,7 @@ namespace ACE.Server.Physics.Hooks
                     scale = 1.0;
             }
             var current = (EndValue - StartValue) * scale + StartValue;
-            obj.process_fp_hook((int)HookType, (float)current, UserData);
+            obj.process_fp_hook(HookType, (float)current, UserData);
             return scale == 1.0;
         }
     }
