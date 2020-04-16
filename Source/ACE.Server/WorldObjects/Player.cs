@@ -43,7 +43,21 @@ namespace ACE.Server.WorldObjects
         public ContractManager ContractManager;
 
         public bool LastContact = true;
-        public bool IsJumping => !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable);
+
+        public bool IsJumping
+        {
+            get
+            {
+                if (FastTick)
+                    return !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable);
+                else
+                {
+                    // for npks only, fixes a bug where OnWalkable can briefly lose state for 1 AutoPos frame
+                    // a good repro for this is collision w/ monsters near the top of ramps
+                    return !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable) && Velocity != Vector3.Zero;
+                }
+            }
+        }
 
         public DateTime LastJumpTime;
 
