@@ -10,7 +10,7 @@ namespace ACE.Server.WorldObjects
         public void ReadBook(uint bookGuid)
         {
             // This appears to have been sent in response 0x00AA (not pcapped)
-            // When a book is blank, client automatically adds a "blank" page after opening and then sends 0x00AA, expecting this reponse or the page/book is not writable or usable, unless it is closed and opened again
+            // When a book is blank, client automatically adds a "blank" page after opening, gets a GameEventBookAddPageResponse success and then sends 0x00AA, expecting this response or the page/book is not writable or usable, unless it is closed and opened again
 
             // TODO: Do we want to throttle this request, like appraisals?
 
