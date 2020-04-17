@@ -400,7 +400,7 @@ namespace ACE.Server.WorldObjects
                                 PhysicsObj.CurCell = curCell;
                             }
 
-                            if (verifyContact && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+                            if (verifyContact && IsJumping)
                             {
                                 log.Warn($"z-pos hacking detected for {Name}, lastGroundPos: {LastGroundPos.ToLOCString()} - requestPos: {newPosition.ToLOCString()}");
                                 Location = new ACE.Entity.Position(LastGroundPos);

@@ -142,9 +142,6 @@ namespace ACE.Database
             return true;
         }
 
-        /// <summary>
-        /// Will return null if the accountId was not found.
-        /// </summary>
         public List<string> GetListofAccountsByAccessLevel(AccessLevel accessLevel)
         {
             using (var context = new AuthDbContext())
@@ -156,6 +153,25 @@ namespace ACE.Database
                 var result = new List<string>();
                 foreach (var account in results)
                     result.Add(account.AccountName);
+
+                return result;
+            }
+        }
+
+        public List<string> GetListofBannedAccounts()
+        {
+            using (var context = new AuthDbContext())
+            {
+                var results = context.Account
+                    .AsNoTracking()
+                    .Where(r => r.BanExpireTime > DateTime.UtcNow).ToList();
+
+                var result = new List<string>();
+                foreach (var account in results)
+                {
+                    var bannedbyAccount = account.BannedByAccountId.Value > 0 ? $"account {GetAccountById(account.BannedByAccountId.Value).AccountName}" : "CONSOLE";
+                    result.Add($"{account.AccountName} -- banned by {bannedbyAccount} until server time {account.BanExpireTime.Value.ToLocalTime():MMM dd yyyy  h:mmtt}{(!string.IsNullOrWhiteSpace(account.BanReason) ? $" -- Reason: {account.BanReason}" : "")}");
+                }
 
                 return result;
             }

@@ -199,7 +199,8 @@ namespace ACE.Server.WorldObjects.Managers
                         }
 
                         var preCastTime = creature.PreCastMotion(targetObject);
-                        delay = preCastTime * 2.0f;
+
+                        delay = preCastTime + creature.GetPostCastTime();
 
                         var castChain = new ActionChain();
                         castChain.AddDelaySeconds(preCastTime);
@@ -1317,6 +1318,8 @@ namespace ACE.Server.WorldObjects.Managers
                             {
                                 // update existing quest
                                 var canSolve = player.Fellowship.QuestManager.CanSolve(questName);
+                                if (canSolve)
+                                    player.Fellowship.QuestManager.Stamp(questName);
                                 ExecuteEmoteSet(canSolve ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
                             }
                         }
@@ -1347,6 +1350,8 @@ namespace ACE.Server.WorldObjects.Managers
                         {
                             // update existing quest
                             var canSolve = questTarget.QuestManager.CanSolve(questName);
+                            if (canSolve)
+                                questTarget.QuestManager.Stamp(questName);
                             ExecuteEmoteSet(canSolve ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
                         }
                     }

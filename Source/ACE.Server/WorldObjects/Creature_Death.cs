@@ -245,18 +245,11 @@ namespace ACE.Server.WorldObjects
                 // Pull and save objdesc for correct corpse apperance at time of death
                 var objDesc = CalculateObjDesc();
 
-                if (corpse.Biota.PropertiesAnimPart == null)
-                    corpse.Biota.PropertiesAnimPart = new List<PropertiesAnimPart>();
-                corpse.Biota.PropertiesAnimPart.Add(objDesc.AnimPartChanges, BiotaDatabaseLock);
+                corpse.Biota.PropertiesAnimPart = objDesc.AnimPartChanges.Clone(corpse.BiotaDatabaseLock);
 
-                if (corpse.Biota.PropertiesPalette == null)
-                    corpse.Biota.PropertiesPalette = new Collection<PropertiesPalette>();
-                corpse.Biota.PropertiesPalette.Add(objDesc.SubPalettes, BiotaDatabaseLock);
+                corpse.Biota.PropertiesPalette = objDesc.SubPalettes.Clone(corpse.BiotaDatabaseLock);
 
-                if (corpse.Biota.PropertiesTextureMap == null)
-                    corpse.Biota.PropertiesTextureMap = new List<PropertiesTextureMap>();
-                foreach (var textureChange in objDesc.TextureChanges)
-                    corpse.Biota.PropertiesTextureMap.Add(new PropertiesTextureMap { PartIndex = textureChange.PartIndex, OldTexture = textureChange.OldTexture, NewTexture = textureChange.NewTexture });
+                corpse.Biota.PropertiesTextureMap = objDesc.TextureChanges.Clone(corpse.BiotaDatabaseLock);
             }
 
             // use the physics location for accuracy,

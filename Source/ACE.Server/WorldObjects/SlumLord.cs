@@ -158,7 +158,7 @@ namespace ACE.Server.WorldObjects
             if (allegianceMinLevel == -1)
                 allegianceMinLevel = AllegianceMinLevel.Value;
 
-            if (player.Allegiance == null || player.AllegianceNode.Rank < allegianceMinLevel)
+            if (allegianceMinLevel > 0 && (player.Allegiance == null || player.AllegianceNode.Rank < allegianceMinLevel))
             {
                 Console.WriteLine($"{Name}.HasRequirements({player.Name}) - allegiance rank {player.AllegianceNode?.Rank ?? 0} < {allegianceMinLevel}");
                 return false;

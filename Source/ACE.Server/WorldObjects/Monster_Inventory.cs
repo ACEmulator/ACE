@@ -105,7 +105,7 @@ namespace ACE.Server.WorldObjects
             var upperArms = armor.Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)(EquipMask.UpperArmArmor | EquipMask.UpperArmWear)) != 0).ToList();    // this will also grab chest pieces that also cover upper arms etc.
             var lowerArms = armor.Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)(EquipMask.LowerArmArmor | EquipMask.LowerArmWear)) != 0).ToList();
             var hands = armor.Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)EquipMask.HandWear) != 0).ToList();
-            // excluding abdomen, as that can be covered by potentially chest or pants
+            var abdomen = armor.Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)(EquipMask.AbdomenArmor)) != 0).ToList();
             var upperLegs = armor.Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)(EquipMask.UpperLegArmor | EquipMask.UpperLegWear)) != 0).ToList();
             var lowerLegs = armor.Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)(EquipMask.LowerLegArmor | EquipMask.LowerLegWear)) != 0).ToList();
             var feet = armor.Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)EquipMask.FootWear) != 0).ToList();
@@ -117,7 +117,7 @@ namespace ACE.Server.WorldObjects
             // try to equip the clothing at top of lists
             var equipped = new List<WorldObject>();
 
-            var sorted = head.Concat(chest).Concat(upperArms).Concat(lowerArms).Concat(hands).Concat(upperLegs).Concat(lowerLegs).Concat(feet).ToList();
+            var sorted = head.Concat(chest).Concat(upperArms).Concat(lowerArms).Concat(hands).Concat(upperLegs).Concat(abdomen).Concat(lowerLegs).Concat(feet).ToList();
 
             foreach (var item in sorted)
             {
@@ -153,21 +153,40 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public int ArmorLevelComparer(WorldObject a, WorldObject b)
         {
-            return ((uint)a.ArmorLevel).CompareTo((uint)b.ArmorLevel);
+            return (a.ArmorLevel ?? 0).CompareTo(b.ArmorLevel ?? 0);
+        }
+
+        public void GetMonsterInventory(List<WorldObject> allWeapons, List<WorldObject> ammo)
+        {
+            // similar to GetInventoryItemsOfTypeWeenieType, optimized for this particular scenario
+            foreach (var item in Inventory.Values)
+            {
+                switch (item.WeenieType)
+                {
+                    case WeenieType.MeleeWeapon:
+                    case WeenieType.MissileLauncher:
+                    case WeenieType.Missile:
+                    case WeenieType.Caster:
+
+                        allWeapons.Add(item);
+                        break;
+
+                    case WeenieType.Ammunition:
+
+                        ammo.Add(item);
+                        break;
+                }
+            }
         }
 
         public List<WorldObject> SelectWieldedWeapons()
         {
             //Console.WriteLine($"{Name}.SelectWieldedWeapons()");
 
-            var meleeWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.MeleeWeapon);
-            var missileWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.MissileLauncher);
-            var missiles = GetInventoryItemsOfTypeWeenieType(WeenieType.Missile);
-            missileWeapons.AddRange(missiles);
-            var ammo = GetInventoryItemsOfTypeWeenieType(WeenieType.Ammunition);
+            var allWeapons = new List<WorldObject>();
+            var ammo = new List<WorldObject>();
 
-            var allWeapons = meleeWeapons.Concat(missileWeapons).ToList();
-            //var allWeapons = missileWeapons;
+            GetMonsterInventory(allWeapons, ammo);
 
             if (allWeapons.Count == 0) return new List<WorldObject>();
 
@@ -193,6 +212,10 @@ namespace ACE.Server.WorldObjects
 
                     if (curAmmo == null)
                     {
+                        // npcs don't require ammo
+                        if (IsNPC)
+                            return new List<WorldObject> { weapon };
+
                         allWeapons.Remove(weapon);  // remove from possible selections
                         continue;   // find next best weapon
                     }
@@ -207,7 +230,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (weapon.WeenieType == WeenieType.MeleeWeapon && !weapon.IsTwoHanded)
                     {
-                        var dualWield = meleeWeapons.FirstOrDefault(i => i.AutoWieldLeft);
+                        var dualWield = allWeapons.FirstOrDefault(i => i.AutoWieldLeft);
                         if (dualWield != null)
                             return new List<WorldObject> { weapon, dualWield };
                     }
@@ -294,7 +317,10 @@ namespace ACE.Server.WorldObjects
                 if (!TryRemoveFromInventory(item.Guid))
                     continue;
 
-                if (!TryWieldObject(item, item.ValidLocations ?? 0))
+                var success = weaponsOnly ? TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0)
+                    : TryWieldObject(item, item.ValidLocations ?? 0);
+
+                if (!success)
                     TryAddToInventory(item);
             }
         }

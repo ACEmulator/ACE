@@ -214,6 +214,33 @@ namespace ACE.Entity.Models
             }
         }
 
+        public static List<PropertiesEnchantmentRegistry> HeartBeatEnchantmentsAndReturnExpired(this ICollection<PropertiesEnchantmentRegistry> value, double heartbeatInterval, ReaderWriterLockSlim rwLock)
+        {
+            if (value == null)
+                return null;
+
+            rwLock.EnterReadLock();
+            try
+            {
+                var expired = new List<PropertiesEnchantmentRegistry>();
+
+                foreach (var enchantment in value)
+                {
+                    enchantment.StartTime -= heartbeatInterval;
+
+                    // StartTime ticks backwards to -Duration
+                    if (enchantment.Duration >= 0 && enchantment.StartTime <= -enchantment.Duration)
+                        expired.Add(enchantment);
+                }
+
+                return expired;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
         public static void AddEnchantment(this ICollection<PropertiesEnchantmentRegistry> value, PropertiesEnchantmentRegistry entity, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterWriteLock();

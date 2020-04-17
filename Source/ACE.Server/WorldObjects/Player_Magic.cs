@@ -100,7 +100,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            if (IsJumping)
             {
                 SendUseDoneEvent(WeenieError.YouCantDoThatWhileInTheAir);
                 return;
@@ -289,7 +289,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            if (IsJumping)
             {
                 SendUseDoneEvent(WeenieError.YouCantDoThatWhileInTheAir);
                 return;
@@ -523,7 +523,7 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Spellcasting), LocalBroadcastRange, ChatMessageType.Spellcasting);
         }
 
-        public static new float CastSpeed = 2.0f;       // from retail pcaps, player animation speed for windup / first half of cast gesture
+        public static float CastSpeed = 2.0f;       // from retail pcaps, player animation speed for windup / first half of cast gesture
 
         public void DoWindupGestures(Spell spell, bool isWeaponSpell, ActionChain castChain)
         {

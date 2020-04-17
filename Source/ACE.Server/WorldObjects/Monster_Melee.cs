@@ -17,11 +17,15 @@ namespace ACE.Server.WorldObjects
     partial class Creature
     {
         /// <summary>
-        /// The delay between melee attacks (todo: find actual value)
+        /// The maximum delay in seconds between the end of a monster's previous attack,
+        /// and their next attack
         /// </summary>
-        public static readonly float MeleeDelay = 1.5f;
-        public static readonly float MeleeDelayMin = 0.5f;
-        public static readonly float MeleeDelayMax = 2.0f;
+        public double? PowerupTime
+        {
+            get => GetProperty(PropertyFloat.PowerupTime);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.PowerupTime); else SetProperty(PropertyFloat.PowerupTime, value.Value); }
+        }
+
 
         /// <summary>
         /// Returns TRUE if creature can perform a melee attack
@@ -115,9 +119,13 @@ namespace ACE.Server.WorldObjects
             }
             actionChain.EnqueueChain();
 
-            // TODO: figure out exact speed / delay formula
-            var meleeDelay = ThreadSafeRandom.Next(MeleeDelayMin, MeleeDelayMax);
-            NextAttackTime = Timers.RunningTime + animLength + meleeDelay;
+            PrevAttackTime = Timers.RunningTime;
+            NextMoveTime = PrevAttackTime + animLength + 0.5f;
+
+            var meleeDelay = ThreadSafeRandom.Next(0.0f, (float)(PowerupTime ?? 1.0f));
+
+            NextAttackTime = PrevAttackTime + animLength + meleeDelay;
+
             return animLength;
         }
 

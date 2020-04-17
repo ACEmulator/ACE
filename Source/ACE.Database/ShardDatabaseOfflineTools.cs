@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using log4net;
 
 using ACE.Common;
-using ACE.Database.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -844,6 +843,29 @@ namespace ACE.Database
                 // Save
                 context.SaveChanges();
             }
+        }
+
+        /// <summary>
+        /// This is temporary and can be removed in the near future, 2020-04-12 Ripley
+        /// </summary>
+        public static void CheckForPR2918Script()
+        {
+            log.Info($"Checking for 2020-04-11-00-Update-Character-SpellBars.sql patch");
+
+            using (var context = new ShardDbContext())
+            {
+                var characterSpellBarsNotFixed = context.CharacterPropertiesSpellBar.Where(c => c.SpellBarNumber == 0).ToList();
+
+                if (characterSpellBarsNotFixed.Count > 0)
+                {
+                    log.Warn("2020-04-11-00-Update-Character-SpellBars.sql patch not yet applied. Please apply this patch ASAP! Skipping FixSpellBarsPR2918 for now...");
+                    log.Fatal("2020-04-11-00-Update-Character-SpellBars.sql patch not yet applied. You must apply this patch before proceeding further...");
+                    Environment.Exit(1);
+                    return;
+                }
+            }
+
+            log.Info($"2020-04-11-00-Update-Character-SpellBars.sql patch has been successfully installed. Before opening world to players, make sure you've run fix-spell-bars command from console");
         }
     }
 }

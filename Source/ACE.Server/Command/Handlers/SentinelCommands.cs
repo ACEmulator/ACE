@@ -1,15 +1,27 @@
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 
+using ACE.Database;
+using ACE.Database.Models.Auth;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 using ACE.Server.Network;
+using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Managers;
 using ACE.Server.WorldObjects;
+
+using log4net;
 
 namespace ACE.Server.Command.Handlers
 {
     public static class SentinelCommands
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // cloak < on / off / player / creature >
         [CommandHandler("cloak", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
             "Sets your cloaking state.",
@@ -119,7 +131,7 @@ namespace ACE.Server.Command.Handlers
 
         // portal_bypass
         [CommandHandler("portal_bypass", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
-            "Toggles the ability to bypass portal restrictions",
+            "Toggles the ability to bypass portal restrictions.",
             "")]
         public static void HandlePortalBypass(Session session, params string[] parameters)
         {
@@ -235,6 +247,254 @@ namespace ACE.Server.Command.Handlers
                     session.Network.EnqueueSend(new GameMessageSystemChat("Run forrest, run!", ChatMessageType.Broadcast));
                     break;
             }
+        }
+
+        // boot { account | char | iid } who
+        [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.None, 2,
+            "Boots the character out of the game.",
+            "[account | char | iid] who (, reason) \n"
+            + "This command boots the specified character out of the game. You can specify who to boot by account, character name, or player instance id. 'who' is the account / character / instance id to actually boot. You can optionally include a reason for the boot.\n"
+            + "Example: @boot char Character Name\n"
+            + "         @boot account AccountName\n"
+            + "         @boot iid 0x51234567\n"
+            + "         @boot char Character Name, Reason for being booted\n")]
+        public static void HandleBoot(Session session, params string[] parameters)
+        {
+            // usage: @boot { account,char, iid} who
+            // This command boots the specified character out of the game.You can specify who to boot by account, character name, or player instance id.  'who' is the account / character / instance id to actually boot.
+            // @boot - Boots the character out of the game.
+
+            var whomToBoot = parameters[1];
+            string specifiedReason = null;
+
+            if (parameters.Length > 1)
+            {
+                var parametersAfterBootType = "";
+                for (var i = 1; i < parameters.Length; i++)
+                {
+                    parametersAfterBootType += parameters[i] + " ";
+                }
+                parametersAfterBootType = parametersAfterBootType.Trim();
+                var completeBootNamePlusCommaSeperatedReason = parametersAfterBootType.Split(",");
+                whomToBoot = completeBootNamePlusCommaSeperatedReason[0].Trim();
+                if (completeBootNamePlusCommaSeperatedReason.Length > 1)
+                    specifiedReason = parametersAfterBootType.Replace($"{whomToBoot},", "").Trim();
+            }
+
+            string whatToBoot = null;
+            Session sessionToBoot = null;
+            switch (parameters[0].ToLower())
+            {
+                case "char":
+                    whatToBoot = "character";
+                    sessionToBoot = PlayerManager.GetOnlinePlayer(whomToBoot)?.Session;
+                    break;
+                case "account":
+                    whatToBoot = "account";
+                    sessionToBoot = NetworkManager.Find(whomToBoot);
+                    break;
+                case "iid":
+                    whatToBoot = "instance id";
+                    if (!whomToBoot.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"That is not a valid Instance ID (IID). IIDs must be between 0x{ObjectGuid.PlayerMin:X8} and 0x{ObjectGuid.PlayerMax:X8}", ChatMessageType.Broadcast);
+                        return;
+                    }    
+                    if (uint.TryParse(whomToBoot.Substring(2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var iid))
+                    {
+                        sessionToBoot = PlayerManager.GetOnlinePlayer(iid)?.Session;
+                    }
+                    else
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"That is not a valid Instance ID (IID). IIDs must be between 0x{ObjectGuid.PlayerMin:X8} and 0x{ObjectGuid.PlayerMax:X8}", ChatMessageType.Broadcast);
+                        return;
+                    }
+                    break;
+                default:
+                    CommandHandlerHelper.WriteOutputInfo(session, "You must specify what you are booting with char, account, or iid as the first parameter.", ChatMessageType.Broadcast);
+                    return;
+            }
+
+            if (sessionToBoot == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Cannot boot \"{whomToBoot}\" because that {whatToBoot} is not currently online or cannot be found. Check syntax/spelling and try again.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            // Boot the player
+            var bootText = $"Booting {whatToBoot} {whomToBoot}.{(specifiedReason != null ? $" Reason: {specifiedReason}" : "")}";
+            CommandHandlerHelper.WriteOutputInfo(session, bootText, ChatMessageType.Broadcast);
+            sessionToBoot.Terminate(SessionTerminationReason.AccountBooted, new GameMessageBootAccount($"{(specifiedReason != null ? $" - {specifiedReason}" : null)}"), null, specifiedReason);
+            //CommandHandlerHelper.WriteOutputInfo(session, $"...Result: Success!", ChatMessageType.Broadcast);
+
+            PlayerManager.BroadcastToAuditChannel(session?.Player, bootText);
+        }
+
+        // ban < acct > < days > < hours > < minutes >
+        [CommandHandler("ban", AccessLevel.Sentinel, CommandHandlerFlag.None, 4,
+            "Bans the specified player account.",
+            "[accountname] [days] [hours] [minutes] (reason)\n"
+            + "This command bans the specified player account for the specified time. This player will not be able to enter the game with any character until the time expires.\n"
+            + "Example: @ban AccountName 0 0 5\n"
+            + "Example: @ban AccountName 1 0 0 banned 1 day because reasons\n")]
+        public static void HandleBanAccount(Session session, params string[] parameters)
+        {
+            // usage: @ban < acct > < days > < hours > < minutes >
+            // This command bans the specified player account for the specified time.This player will not be able to enter the game with any character until the time expires.
+            // @ban - Bans the specified player account.
+
+            var accountName = parameters[0];
+            var banDays     = parameters[1];
+            var banHours    = parameters[2];
+            var banMinutes  = parameters[3];
+
+            var banReason = string.Empty;
+            if (parameters.Length > 4)
+            {
+                var parametersAfterBanParams = "";
+                for (var i = 4; i < parameters.Length; i++)
+                {
+                    parametersAfterBanParams += parameters[i] + " ";
+                }
+                parametersAfterBanParams = parametersAfterBanParams.Trim();
+                banReason = parametersAfterBanParams;
+            }
+
+            var account = DatabaseManager.Authentication.GetAccountByName(accountName);
+
+            if (account == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Cannot ban \"{accountName}\" because that account cannot be found in database. Check syntax/spelling and try again.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            if (!double.TryParse(banDays, out var days) || days < 0)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Days must not be less than 0.", ChatMessageType.Broadcast);
+                return;
+            }
+            if (!double.TryParse(banHours, out var hours) || hours < 0)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Hours must not be less than 0.", ChatMessageType.Broadcast);
+                return;
+            }
+            if (!double.TryParse(banMinutes, out var minutes) || minutes < 0)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Minutes must not be less than 0.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            var bannedOn = DateTime.UtcNow;
+            var banExpires = DateTime.UtcNow.AddDays(days).AddHours(hours).AddMinutes(minutes);
+
+            var bannedBy = 0u;
+            if (session != null)
+            {
+                bannedBy = session.AccountId;
+            }
+
+            account.BannedTime = bannedOn;
+            account.BanExpireTime = banExpires;
+            account.BannedByAccountId = bannedBy;
+            if (!string.IsNullOrWhiteSpace(banReason))
+                account.BanReason = banReason;
+
+            DatabaseManager.Authentication.UpdateAccount(account);
+
+            // Boot the player
+            if (NetworkManager.Find(accountName) != null)
+            {
+                var bootArgs = new List<string> { "account" };
+                if (!string.IsNullOrWhiteSpace(banReason))
+                {
+                    bootArgs.Add($"{accountName},");
+                    bootArgs.Add(banReason);
+                }
+                else
+                    bootArgs.Add(accountName);
+                HandleBoot(session, bootArgs.ToArray());
+            }
+
+            var banText = $"Banned account {accountName} for {days} days, {hours} hours and {minutes} minutes.{(!string.IsNullOrWhiteSpace(banReason) ? $" Reason: {banReason}" : "")}";
+            CommandHandlerHelper.WriteOutputInfo(session, banText, ChatMessageType.Broadcast);
+            PlayerManager.BroadcastToAuditChannel(session?.Player, banText);
+        }
+
+        // unban < acct >
+        [CommandHandler("unban", AccessLevel.Sentinel, CommandHandlerFlag.None, 1,
+            "Unbans the specified player account.",
+            "[accountname]\n" +
+            "This command removes the ban from the specified account. The player will then be able to log into the game.")]
+        public static void HandleUnBanAccount(Session session, params string[] parameters)
+        {
+            // usage: @unban acct
+            // This command removes the ban from the specified account.The player will then be able to log into the game.
+            // @unban - Unbans the specified player account.
+
+            var accountName = parameters[0];
+
+            var account = DatabaseManager.Authentication.GetAccountByName(accountName);
+
+            if (account == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Cannot unban \"{accountName}\" because that account cannot be found in database. Check spelling and try again.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            if (account.BanExpireTime == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Cannon unban\"{accountName}\" because that account is not banned.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            account.UnBan();
+            var banText = $"UnBanned account {accountName}.";
+            CommandHandlerHelper.WriteOutputInfo(session, banText, ChatMessageType.Broadcast);
+            PlayerManager.BroadcastToAuditChannel(session?.Player, banText);
+        }
+
+        // banlist
+        [CommandHandler("banlist", AccessLevel.Sentinel, CommandHandlerFlag.None, 0,
+            "Lists all banned accounts on this world.",
+            "")]
+        public static void HandleBanlist(Session session, params string[] parameters)
+        {
+            // @banlist - Lists all banned accounts on this world.
+
+            var bannedAccounts = DatabaseManager.Authentication.GetListofBannedAccounts();
+
+            if (bannedAccounts.Count != 0)
+            {
+                var msg = "The following accounts are banned:\n";
+                msg += "-------------------\n";
+                foreach (var account in bannedAccounts)
+                    msg += account + "\n";
+
+                CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.Broadcast);
+            }
+            else
+                CommandHandlerHelper.WriteOutputInfo(session, $"There are no accounts currently banned.", ChatMessageType.Broadcast);
+        }
+
+        // deaf < on / off >
+        [CommandHandler("deaf", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
+        public static void HandleDeaf(Session session, params string[] parameters)
+        {
+            // @deaf - Block @tells except for the player you are currently helping.
+            // @deaf on -Make yourself deaf to players.
+            // @deaf off -You can hear players again.
+
+            // TODO: output
+        }
+
+        // deaf < hear | mute > < player >
+        [CommandHandler("deaf", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 2)]
+        public static void HandleDeafHearOrMute(Session session, params string[] parameters)
+        {
+            // @deaf hear[name] -add a player to the list of players that you can hear.
+            // @deaf mute[name] -remove a player from the list of players you can hear.
+
+            // TODO: output
         }
     }
 }

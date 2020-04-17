@@ -53,7 +53,8 @@ namespace ACE.Database
 
         public static void Stop()
         {
-            serializedShardDb.Stop();
+            if (serializedShardDb != null)
+                serializedShardDb.Stop();
         }
     }
 }

@@ -23,7 +23,7 @@ namespace ACE.Server.WorldObjects
                 if (item.Palette > 0)
                     wo.PaletteTemplate = item.Palette;
 
-                if (item.Shade >= 0)
+                if (item.Shade > 0)
                     wo.Shade = item.Shade;
 
                 if (item.StackSize > 0)
@@ -79,7 +79,7 @@ namespace ACE.Server.WorldObjects
             if (item.PaletteId > 0)
                 wo.PaletteTemplate = (int)item.PaletteId;
 
-            if (item.Shade >= 0)
+            if (item.Shade > 0)
                 wo.Shade = item.Shade;
 
             if (item.StackSize > 0)
