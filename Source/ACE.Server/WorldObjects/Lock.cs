@@ -148,13 +148,9 @@ namespace ACE.Server.WorldObjects
                                 // which differs from PicklockFail and LockSuccess being in the target sound table
                                 player.EnqueueBroadcast(new GameMessageSound(player.Guid, Sound.Lockpicking, 1.0f));
 
-                                //player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully picked the lock! It is now unlocked.", ChatMessageType.Broadcast));
-
                                 var lockpickSkill = player.GetCreatureSkill(Skill.Lockpick);
                                 Proficiency.OnSuccessUse(player, lockpickSkill, difficulty);
                             }
-                            //else
-                            //    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} has been unlocked.", ChatMessageType.Broadcast));
 
                             ConsumeUnlocker(player, unlocker, target, true);
                             break;
