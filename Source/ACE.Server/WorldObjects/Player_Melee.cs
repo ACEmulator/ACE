@@ -409,16 +409,27 @@ namespace ACE.Server.WorldObjects
 
             var weapon = GetEquippedMeleeWeapon();
 
+            // for reference: https://www.youtube.com/watch?v=MUaD53D9c74
+            // a player with 1/2 power bar, or slightly below half
+            // doing the backswing, well above 33%
+            var subdivision = 0.33f;
+
             if (weapon != null)
             {
                 AttackType = weapon.GetAttackType(CurrentMotionState.Stance, PowerLevel, offhand);
+                if (weapon.IsThrustSlash)
+                    subdivision = 0.66f;
             }
             else
             {
                 AttackType = PowerLevel > KickThreshold ? AttackType.Kick : AttackType.Punch;
             }
 
-            var motion = CombatTable.GetMotion(CurrentMotionState.Stance, AttackHeight.Value, AttackType, PrevMotionCommand);
+            var motions = CombatTable.GetMotion(CurrentMotionState.Stance, AttackHeight.Value, AttackType, PrevMotionCommand);
+
+            // higher-powered animation always in first slot ?
+            var motion = motions.Count > 1 && PowerLevel < subdivision ? motions[1] : motions[0];
+
             PrevMotionCommand = motion;
 
             //Console.WriteLine($"{motion}");

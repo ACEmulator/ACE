@@ -969,7 +969,28 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public static readonly float ThrustThreshold = 0.25f;
+        // from the Dark Majesty strategy guide, page 150:
+
+        // -   0 - 1/3 sec. Power-up Time = High Stab
+        // - 1/3 - 2/3 sec. Power-up Time = High Backhand
+        // -       2/3 sec+ Power-up Time = High Slash
+
+        public static readonly float ThrustThreshold = 0.33f;
+
+        /// <summary>
+        /// Returns TRUE if this is a thrust/slash weapon,
+        /// or if this weapon uses 2 different attack types based on the ThrustThreshold
+        /// </summary>
+        public bool IsThrustSlash
+        {
+            get
+            {
+                return W_AttackType.HasFlag(AttackType.Slash | AttackType.Thrust) ||
+                       W_AttackType.HasFlag(AttackType.DoubleSlash | AttackType.DoubleThrust) ||
+                       W_AttackType.HasFlag(AttackType.TripleSlash | AttackType.TripleThrust) ||
+                       W_AttackType.HasFlag(AttackType.DoubleSlash);  // stiletto
+            }
+        }
 
         public AttackType GetAttackType(MotionStance stance, float powerLevel, bool offhand)
         {
