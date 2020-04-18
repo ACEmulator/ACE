@@ -2360,9 +2360,7 @@ namespace ACE.Server.Factories
             // Add variance to armor burden
 
             int finalBurden = ThreadSafeRandom.Next(existBurden / 2, existBurden);
-
             return finalBurden;
-
         }
     }         
 }
