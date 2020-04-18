@@ -71,6 +71,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.Account15Days); else SetProperty(PropertyBool.Account15Days, value); }
         }
 
+        public SubscriptionStatus AccountRequirements
+        {
+            get => (SubscriptionStatus)(GetProperty(PropertyInt.AccountRequirements) ?? (int)SubscriptionStatus.AsheronsCall_Subscription);
+            set { if (value == SubscriptionStatus.AsheronsCall_Subscription) RemoveProperty(PropertyInt.AccountRequirements); else SetProperty(PropertyInt.AccountRequirements, (int)value); }
+        }
 
         // ========================================
         // ========= Advocate Properties ==========
