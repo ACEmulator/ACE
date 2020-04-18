@@ -84,7 +84,7 @@ namespace ACE.Server.Factories
             // Material/Value/Color
             double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(profile.Tier, GetWorkmanship(profile.Tier), gemMaterialMod, materialMod);
+            var value = GetValue(profile.Tier, (int)wo.Workmanship, gemMaterialMod, materialMod);
             wo.Value = value;
             wo = RandomizeColor(wo);
             
