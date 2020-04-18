@@ -324,22 +324,19 @@ namespace ACE.Server.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Test Message " + i, ChatMessageType.Broadcast);
         }
 
-        [CommandHandler("animation", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Sends a MovementEvent to you.", "uint\n")]
+        [CommandHandler("animation", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Sends a MovementEvent to you.", "MotionCommand\n")]
         public static void Animation(Session session, params string[] parameters)
         {
-            uint animationId;
-
-            try
+            if (!Enum.TryParse(parameters[0], out MotionCommand motionCommand))
             {
-                animationId = Convert.ToUInt32(parameters[0]);
-            }
-            catch (Exception)
-            {
-                ChatPacket.SendServerMessage(session, "Invalid Animation value", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, $"MotionCommand: {parameters[0]} not found", ChatMessageType.Broadcast);
                 return;
             }
+            var stance = session.Player.CurrentMotionState.Stance;
 
-            session.Player.EnqueueBroadcastMotion(new Motion(session.Player, (MotionCommand)animationId));
+            ChatPacket.SendServerMessage(session, $"Playing animation {stance}.{motionCommand}", ChatMessageType.Broadcast);
+
+            session.Player.EnqueueBroadcastMotion(new Motion(stance, motionCommand));
         }
 
         /// <summary>
