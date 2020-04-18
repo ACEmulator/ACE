@@ -2345,5 +2345,24 @@ namespace ACE.Server.Factories
             meleeMod += 1.0;
             return meleeMod;
         }
+        /// <summary>
+        /// Calculates Final Burden of an Item
+        /// <param name="existBurden"></param>
+        /// </summary>
+        private static int CalcBurden(int existBurden)
+        {
+            // From Retail data on Melee and Missile weapons, the min burden is about half of the max value.
+            // There is data to suggest the Float Property BULK_MOD_FLOAT is used to calculate burden.
+            // However there isn't any data on how its used, and that property is missing on existing base weenies, and unknown if that value was different across the same weenie types.
+            // Till that can be figured out, doing a random value between min (half of max) and max burden values (max being the encumbval on base weenie)
+            // TODO:
+            // Incorperate the use of Float Property BULK_MOD_FLOAT into calculating burden
+            // Add variance to armor burden
+
+            int finalBurden = ThreadSafeRandom.Next(existBurden / 2, existBurden);
+
+            return finalBurden;
+
+        }
     }         
 }

@@ -339,6 +339,8 @@ namespace ACE.Server.Factories
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
             wo.ItemWorkmanship = workmanship;
+            // Burden
+            wo.EncumbranceVal = CalcBurden((int)wo.EncumbranceVal);
 
             // Weapon Stats
             wo.Damage = damage;
