@@ -305,8 +305,8 @@ namespace ACE.Database
                 }
 
                 // Character name might be in use or some other fault
-                log.Error($"[DATABASE] DoSaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException}");
-                log.Error($"[DATABASE] DoSaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex}");
+                log.Error($"[DATABASE] DoSaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException.GetFullMessage()}");
+                log.Error($"[DATABASE] DoSaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex.GetFullMessage()}");
                 return false;
             }
         }
@@ -387,8 +387,8 @@ namespace ACE.Database
                     }
 
                     // Character name might be in use or some other fault
-                    log.Error($"[DATABASE] RemoveBiota 0x{id:X8} failed first attempt with exception: {firstException}");
-                    log.Error($"[DATABASE] RemoveBiota 0x{id:X8} failed second attempt with exception: {ex}");
+                    log.Error($"[DATABASE] RemoveBiota 0x{id:X8} failed first attempt with exception: {firstException.GetFullMessage()}");
+                    log.Error($"[DATABASE] RemoveBiota 0x{id:X8} failed second attempt with exception: {ex.GetFullMessage()}");
                     return false;
                 }
             }
@@ -647,8 +647,8 @@ namespace ACE.Database
                         }
 
                         // Character name might be in use or some other fault
-                        log.Error($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException}");
-                        log.Error($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex}");
+                        log.Error($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
+                        log.Error($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
                         return false;
                     }
                 }
@@ -688,8 +688,8 @@ namespace ACE.Database
                     }
 
                     // Character name might be in use or some other fault
-                    log.Error($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException}");
-                    log.Error($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex}");
+                    log.Error($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
+                    log.Error($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
                     return false;
                 }
             }

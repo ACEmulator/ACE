@@ -71,6 +71,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.Account15Days); else SetProperty(PropertyBool.Account15Days, value); }
         }
 
+        public SubscriptionStatus AccountRequirements
+        {
+            get => (SubscriptionStatus)(GetProperty(PropertyInt.AccountRequirements) ?? (int)SubscriptionStatus.AsheronsCall_Subscription);
+            set { if (value == SubscriptionStatus.AsheronsCall_Subscription) RemoveProperty(PropertyInt.AccountRequirements); else SetProperty(PropertyInt.AccountRequirements, (int)value); }
+        }
 
         // ========================================
         // ========= Advocate Properties ==========
@@ -257,6 +262,18 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.SafeSpellComponents); else SetProperty(PropertyBool.SafeSpellComponents, value); }
         }
 
+        public bool IsOlthoiPlayer()
+        {
+            switch (WeenieClassId)
+            {
+                case 43480: // olthoiplayer
+                case 43481: // olthoiacidplayer
+                case 43493: // olthoiadmin
+                case 43494: // olthoiacidadmin:
+                    return true;
+            }
+            return false;
+        }
 
         // ========================================
         // ===== Player Properties - Titles========

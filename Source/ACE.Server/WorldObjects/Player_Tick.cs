@@ -6,6 +6,7 @@ using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -289,6 +290,19 @@ namespace ACE.Server.WorldObjects
             Location.Rotation = PhysicsObj.Position.Frame.Orientation;
 
             if (!FastTick) return;
+
+            // ensure PKLogout position is synced up for other players
+            if (PKLogout)
+            {
+                EnqueueBroadcast(new GameMessageUpdateMotion(this, new Motion(MotionStance.NonCombat, MotionCommand.Ready)));
+                PhysicsObj.StopCompletely(true);
+
+                if (!PhysicsObj.IsMovingOrAnimating)
+                {
+                    SyncLocation();
+                    EnqueueBroadcast(new GameMessageUpdatePosition(this));
+                }
+            }
 
             // this fixes some differences between client movement (DoMotion/StopMotion) and server movement (apply_raw_movement)
             //

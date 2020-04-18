@@ -1209,6 +1209,8 @@ namespace ACE.Server.WorldObjects
             gateway.MinLevel = portal.MinLevel;
             gateway.MaxLevel = portal.MaxLevel;
             gateway.PortalRestrictions = portal.PortalRestrictions;
+            gateway.AccountRequirements = portal.AccountRequirements;
+            gateway.AdvocateQuest = portal.AdvocateQuest;
 
             gateway.Quest = portal.Quest;
             gateway.QuestRestriction = portal.QuestRestriction;

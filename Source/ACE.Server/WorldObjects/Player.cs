@@ -19,6 +19,7 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Sequence;
 using ACE.Server.Network.Structure;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
@@ -475,16 +476,6 @@ namespace ACE.Server.WorldObjects
 
                     LogoffTimestamp = Time.GetFutureUnixTime(PropertyManager.GetLong("pk_timer").Item);
                     PlayerManager.AddPlayerToLogoffQueue(this);
-
-                    // send packet to stop completely
-                    var actionChain = new ActionChain();
-                    actionChain.AddDelaySeconds(0.1f);
-                    actionChain.AddAction(this, () =>
-                    {
-                        var motion = new Motion(MotionStance.NonCombat);
-                        EnqueueBroadcastMotion(motion);
-                    });
-                    actionChain.EnqueueChain();
                 }
                 return false;
             }
@@ -1065,6 +1056,29 @@ namespace ACE.Server.WorldObjects
 
             actionChain.AddAction(this, () =>
             {
+                if (PropertyManager.GetBool("allow_pkl_bump").Item)
+                {
+                    // check for collisions
+                    PlayerKillerStatus = PlayerKillerStatus.PKLite;
+
+                    var colliding = PhysicsObj.ethereal_check_for_collisions();
+
+                    if (colliding)
+                    {
+                        // try initial placement
+                        var result = PhysicsObj.SetPositionSimple(PhysicsObj.Position, true);
+
+                        if (result == SetPositionError.OK)
+                        {
+                            // handle landblock update?
+                            SyncLocation();
+
+                            // force broadcast
+                            Sequences.GetNextSequence(SequenceType.ObjectForcePosition);
+                            SendUpdatePosition();
+                        }
+                    }
+                }
                 UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite, true);
 
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNowPKLite));
