@@ -262,6 +262,18 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.SafeSpellComponents); else SetProperty(PropertyBool.SafeSpellComponents, value); }
         }
 
+        public bool IsOlthoiPlayer()
+        {
+            switch (WeenieClassId)
+            {
+                case 43480: // olthoiplayer
+                case 43481: // olthoiacidplayer
+                case 43493: // olthoiadmin
+                case 43494: // olthoiacidadmin:
+                    return true;
+            }
+            return false;
+        }
 
         // ========================================
         // ===== Player Properties - Titles========

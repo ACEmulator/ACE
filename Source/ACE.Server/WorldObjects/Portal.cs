@@ -166,17 +166,13 @@ namespace ACE.Server.WorldObjects
                     return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.NonPKsMayNotUsePortal));
                 }
 
-                if (PortalRestrictions.HasFlag(PortalBitmask.OnlyOlthoiPCs)
-                    && !player.WeenieClassName.Equals("olthoiplayer", System.StringComparison.OrdinalIgnoreCase) && !player.WeenieClassName.Equals("olthoiacidplayer", System.StringComparison.OrdinalIgnoreCase)
-                    && !player.WeenieClassName.Equals("olthoiadmin", System.StringComparison.OrdinalIgnoreCase) && !player.WeenieClassName.Equals("olthoiacidadmin", System.StringComparison.OrdinalIgnoreCase))
+                if (PortalRestrictions.HasFlag(PortalBitmask.OnlyOlthoiPCs) && !player.IsOlthoiPlayer())
                 {
                     // Only Olthoi may pass through this portal!
                     return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.OnlyOlthoiMayUsePortal));
                 }
 
-                if (PortalRestrictions.HasFlag(PortalBitmask.NoOlthoiPCs)
-                    && player.WeenieClassName.Equals("olthoiplayer", System.StringComparison.OrdinalIgnoreCase) && player.WeenieClassName.Equals("olthoiacidplayer", System.StringComparison.OrdinalIgnoreCase)
-                    && player.WeenieClassName.Equals("olthoiadmin", System.StringComparison.OrdinalIgnoreCase) && player.WeenieClassName.Equals("olthoiacidadmin", System.StringComparison.OrdinalIgnoreCase))
+                if (PortalRestrictions.HasFlag(PortalBitmask.NoOlthoiPCs) && player.IsOlthoiPlayer())
                 {
                     // Olthoi may not pass through this portal!
                     return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.OlthoiMayNotUsePortal));
@@ -207,12 +203,6 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            // handle quest initial flagging
-            if (Quest != null)
-            {
-                player.QuestManager.Update(Quest);
-            }
-
             if (QuestRestriction != null && !player.IgnorePortalRestrictions)
             {
                 var hasQuest = player.QuestManager.HasQuest(QuestRestriction);
@@ -225,6 +215,12 @@ namespace ACE.Server.WorldObjects
                     player.QuestManager.HandlePortalQuestError(QuestRestriction);
                     return new ActivationResult(false);
                 }
+            }
+
+            // handle quest initial flagging
+            if (Quest != null)
+            {
+                player.QuestManager.Update(Quest);
             }
 
             return new ActivationResult(true);
