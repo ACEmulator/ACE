@@ -1,3 +1,5 @@
+using System;
+
 using ACE.Server.Network.Structure;
 
 namespace ACE.Server.Network.GameAction.Actions
@@ -11,6 +13,8 @@ namespace ACE.Server.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             //Console.WriteLine($"{session.Player.Name}.MoveToState");
+
+            if (session.Player.PKLogout) return;
 
             var moveToState = new MoveToState(session.Player, message.Payload);
             session.Player.CurrentMoveToState = moveToState;
