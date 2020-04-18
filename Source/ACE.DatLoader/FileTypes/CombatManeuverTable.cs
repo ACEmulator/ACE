@@ -101,7 +101,7 @@ namespace ACE.DatLoader.FileTypes
             }
             return maneuvers[0];*/
 
-            // if the CMT contains > 1 entires for this lookup, return both
+            // if the CMT contains > 1 entries for this lookup, return both
             // the code determines which motion to use based on the power bar
             return maneuvers;
         }
