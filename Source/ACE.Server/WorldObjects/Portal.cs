@@ -89,6 +89,14 @@ namespace ACE.Server.WorldObjects
 
         public bool IsGateway { get => WeenieClassId == 1955; }
 
+        //public override void OnActivate(WorldObject activator)
+        //{
+        //    if (activator is Creature creature)
+        //        EmoteManager.OnUse(creature);
+
+        //    base.OnActivate(activator);
+        //}
+
         public virtual void OnCollideObject(Player player)
         {
             OnActivate(player);
