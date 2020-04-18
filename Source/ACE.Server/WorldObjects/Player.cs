@@ -476,16 +476,6 @@ namespace ACE.Server.WorldObjects
 
                     LogoffTimestamp = Time.GetFutureUnixTime(PropertyManager.GetLong("pk_timer").Item);
                     PlayerManager.AddPlayerToLogoffQueue(this);
-
-                    // send packet to stop completely
-                    var actionChain = new ActionChain();
-                    actionChain.AddDelaySeconds(0.1f);
-                    actionChain.AddAction(this, () =>
-                    {
-                        var motion = new Motion(MotionStance.NonCombat);
-                        EnqueueBroadcastMotion(motion);
-                    });
-                    actionChain.EnqueueChain();
                 }
                 return false;
             }
