@@ -13,6 +13,7 @@ using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.WorldObjects
 {
@@ -124,7 +125,12 @@ namespace ACE.Server.WorldObjects
             // check for looting permission
             if (!HasPermission(player))
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat("You don't have permission to loot the " + Name, ChatMessageType.Broadcast));
+                if (CorpseGeneratedRare)
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You may not loot the {Name} because the {Name} has generated a rare item."));
+                else if (PkLevel == PKLevel.PK)
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You may not loot the {Name} because the death was caused by a player killer."));
+                else
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You do not yet have the right to loot the {Name}."));
                 return;
             }
             base.Open(player);
