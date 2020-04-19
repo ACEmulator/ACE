@@ -1240,18 +1240,12 @@ namespace ACE.Server.WorldObjects.Managers
                         var fellowship = player.Fellowship;
                         if (fellowship == null)
                         {
-                            message = Replace(emote.Message, WorldObject, player, emoteSet.Quest);
-                            player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(WorldObject, message, player, ChatMessageType.Tell));
-                        }
-                        else
-                        {
                             var fellowshipMembers = fellowship.GetFellowshipMembers();
 
-                            foreach (var fellow in fellowshipMembers.Values)
-                            {
-                                message = Replace(emote.Message, WorldObject, fellow, emoteSet.Quest);
-                                player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(WorldObject, message, fellow, ChatMessageType.Tell));
-                            }
+                            text = Replace(emote.Message, WorldObject, player, emoteSet.Quest);
+
+                            foreach (var fellowmember in fellowshipMembers.Values)
+                                fellowmember.Session.Network.EnqueueSend(new GameEventChannelBroadcast(fellowmember.Session, Channel.Fellow, WorldObject.Name, text));
                         }
                     }
                     break;
