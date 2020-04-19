@@ -36,6 +36,11 @@ namespace ACE.Server.Factories
         public float HealingKit { get; set; }
         public float DinnerWare { get; set; }
         public float LevelEightComp { get; set; }
+        public float MinorCantripCount { get; set; }
+        public float MajorCantripCount { get; set; }
+        public float EpicCantripCount { get; set; }
+        public float LegendaryCantripCount { get; set; }
+
 
         // Tables
         public string MeleeWeapons { get; set; }

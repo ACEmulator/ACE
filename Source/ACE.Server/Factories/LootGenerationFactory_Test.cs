@@ -171,6 +171,18 @@ namespace ACE.Server.Factories
                     case ItemType.Armor:
                         ls.ArmorCount++;
                         string equipmentSet = "None    ";
+                        bool cantrip = false;
+                        // float cantripSpells = 0;
+
+                        if (testItem.EpicCantrips.Count > 0)
+                        {
+                            cantrip = true;
+                            // cantripSpells = testItem.EpicCantrips.Keys;
+                        }
+                            
+                        if (testItem.LegendaryCantrips.Count > 0)
+                            cantrip = true;
+
                         if (testItem.EquipmentSetId != null)
                             equipmentSet = Enum.GetName(typeof(EquipmentSet), testItem.EquipmentSetId);
                         if (logstats == true)
@@ -178,7 +190,7 @@ namespace ACE.Server.Factories
                             ls.Armor += $"{testItem.ArmorLevel},{equipmentSet},{testItem.Value.Value},{testItem.EncumbranceVal},{testItem.Name}\n";
                         }
                         else
-                            ls.Armor += $" {testItem.ArmorLevel}\t {equipmentSet}\t\t\t {testItem.Value.Value} \t{testItem.EncumbranceVal} \t {testItem.Name}\n";
+                            ls.Armor += $" {testItem.ArmorLevel}\t {equipmentSet}\t\t\t {testItem.Value.Value} \t{testItem.EncumbranceVal}\t {testItem.EpicCantrips.Count}\t {testItem.EpicCantrips.Keys}\t {testItem.Name}\n";
                         if (testItem.Name.Contains("Sheild"))
                             break;
                         if (testItem.ArmorLevel > ls.MaxAL)
@@ -566,6 +578,17 @@ namespace ACE.Server.Factories
                 else
                 {
                 }
+
+                if (testItem.EpicCantrips.Count > 0)
+                {
+                    ls.EpicCantripCount++;
+                }
+                if (testItem.LegendaryCantrips.Count > 0)
+                {
+                    ls.LegendaryCantripCount++;
+                }
+
+
             }
             return ls;
         }
@@ -682,6 +705,13 @@ namespace ACE.Server.Factories
                                 $" Bracelet = {ls.JewelryBraceletCount}\t Droprate = {ls.JewelryBraceletCount / ls.JewelryCount * 100}%\n" +
                                 $"     Ring = {ls.JewelryRingCount}\t Droprate = {ls.JewelryRingCount / ls.JewelryCount * 100}%\n" +
                                 $"  Trinket = {ls.JewelryTrinketCount}\t Droprate = {ls.JewelryTrinketCount / ls.JewelryCount * 100}%\n");
+            // Cantrip Counts
+            displayStats += ($"\n Cantip Counts Stats \n ----\n" +
+                    //$"     Minor = {ls.MinorCantripCount}\t Droprate = {ls.MinorCantripCount / ls.TotalItems * 100}%\n" +
+                    //$"     Major = {ls.MajorCantripCount}\t Droprate = {ls.MajorCantripCount / ls.TotalItems * 100}%\n" +
+                    $"      Epic = {ls.EpicCantripCount}\t Droprate = {ls.EpicCantripCount / ls.TotalItems * 100}%\n" +
+                    $" Legendary = {ls.LegendaryCantripCount}\t Droprate = {ls.LegendaryCantripCount / ls.TotalItems * 100}%\n");
+
             if (ls.HasManaCount == 0)
             {
             }
@@ -734,6 +764,10 @@ namespace ACE.Server.Factories
             ls.HealingKit = 0;
             ls.DinnerWare = 0;
             ls.LevelEightComp = 0;
+            ls.MinorCantripCount = 0;
+            ls.MajorCantripCount = 0;
+            ls.EpicCantripCount = 0;
+            ls.LegendaryCantripCount = 0;
             ls.PetsTotalRatings = 0;
             ls.PetRatingsEqualZero = 0;
             ls.PetRatingsEqualOne = 0;
