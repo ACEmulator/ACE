@@ -317,21 +317,7 @@ namespace ACE.Server.WorldObjects.Managers
                     if (player != null)
                     {
                         var fellowship = player.Fellowship;
-                        //if (fellowship == null)
-                        //{
-                        //    text = Replace(emote.Message, WorldObject, player, emoteSet.Quest);
-                        //    player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
-                        //}
-                        //else
-                        //{
-                        //    var fellowshipMembers = fellowship.GetFellowshipMembers();
 
-                        //    foreach (var fellow in fellowshipMembers.Values)
-                        //    {
-                        //        text = Replace(emote.Message, WorldObject, fellow, emoteSet.Quest);
-                        //        fellow.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
-                        //    }
-                        //}
                         if (fellowship == null)
                         {
                             var fellowshipMembers = fellowship.GetFellowshipMembers();
@@ -339,10 +325,6 @@ namespace ACE.Server.WorldObjects.Managers
                             text = Replace(emote.Message, WorldObject, player, emoteSet.Quest);
 
                             foreach (var fellowmember in fellowshipMembers.Values)
-                                //if (fellowmember.Session != session && !fellowmember.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Fellowship))
-                                //    fellowmember.Session.Network.EnqueueSend(new GameEventChannelBroadcast(fellowmember.Session, groupChatType, session.Player.Name, message));
-                                //else
-                                //    session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
                                 fellowmember.Session.Network.EnqueueSend(new GameEventChannelBroadcast(fellowmember.Session, Channel.FellowBroadcast, WorldObject.Name, text));
                         }
                     }
