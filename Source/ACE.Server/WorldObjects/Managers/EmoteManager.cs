@@ -318,14 +318,11 @@ namespace ACE.Server.WorldObjects.Managers
                     {
                         var fellowship = player.Fellowship;
 
-                        if (fellowship == null)
+                        if (fellowship != null)
                         {
-                            var fellowshipMembers = fellowship.GetFellowshipMembers();
-
                             text = Replace(emote.Message, WorldObject, player, emoteSet.Quest);
 
-                            foreach (var fellowmember in fellowshipMembers.Values)
-                                fellowmember.Session.Network.EnqueueSend(new GameEventChannelBroadcast(fellowmember.Session, Channel.FellowBroadcast, WorldObject.Name, text));
+                            fellowship.BroadcastToFellow(text);
                         }
                     }
                     break;
@@ -1238,14 +1235,11 @@ namespace ACE.Server.WorldObjects.Managers
                     if (player != null)
                     {
                         var fellowship = player.Fellowship;
-                        if (fellowship == null)
+                        if (fellowship != null)
                         {
-                            var fellowshipMembers = fellowship.GetFellowshipMembers();
-
                             text = Replace(emote.Message, WorldObject, player, emoteSet.Quest);
 
-                            foreach (var fellowmember in fellowshipMembers.Values)
-                                fellowmember.Session.Network.EnqueueSend(new GameEventChannelBroadcast(fellowmember.Session, Channel.Fellow, WorldObject.Name, text));
+                            fellowship.TellFellow(WorldObject, text);
                         }
                     }
                     break;

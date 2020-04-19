@@ -212,6 +212,22 @@ namespace ACE.Server.Entity
             }
         }
 
+        public void BroadcastToFellow(string message)
+        {
+            var fellowshipMembers = GetFellowshipMembers();
+
+            foreach (var member in fellowshipMembers.Values)
+                member.Session.Network.EnqueueSend(new GameEventChannelBroadcast(member.Session, Channel.FellowBroadcast, "", message));
+        }
+
+        public void TellFellow(WorldObject sender, string message)
+        {
+            var fellowshipMembers = GetFellowshipMembers();
+
+            foreach (var member in fellowshipMembers.Values)
+                member.Session.Network.EnqueueSend(new GameEventChannelBroadcast(member.Session, Channel.Fellow, sender.Name, message));
+        }
+
         private void SendWeenieErrorWithStringAndUpdate(WeenieErrorWithString error, string message)
         {
             var fellowshipMembers = GetFellowshipMembers();
