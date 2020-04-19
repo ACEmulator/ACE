@@ -143,10 +143,10 @@ namespace ACE.Server.Factories
                         {
                             if (logstats == true)
                             {
-                                ls.MeleeWeapons += $"{testItem.WeaponSkill},{wield},{testItem.Damage.Value},{strikeType},{testItem.DamageVariance.Value},{Math.Round(testItem.WeaponDefense.Value)},{magicDefMod},{missileDefMod},{value},{testItem.Name}\n";
+                                ls.MeleeWeapons += $"{testItem.WeaponSkill},{wield},{testItem.Damage.Value},{strikeType},{testItem.DamageVariance.Value},{Math.Round(testItem.WeaponDefense.Value)},{magicDefMod},{missileDefMod},{value},{testItem.EncumbranceVal},{testItem.Name}\n";
                             }
                             else
-                                ls.MeleeWeapons += $" {testItem.WeaponSkill}\t {wield}\t {testItem.Damage.Value}\t\t {strikeType} \t\t {testItem.DamageVariance.Value}\t\t {Math.Round(testItem.WeaponDefense.Value)}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.Name}\n";
+                                ls.MeleeWeapons += $" {testItem.WeaponSkill}\t {wield}\t {testItem.Damage.Value}\t\t {strikeType} \t\t {testItem.DamageVariance.Value}\t\t {Math.Round(testItem.WeaponDefense.Value)}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t{testItem.EncumbranceVal} \t {testItem.Name}\n";
                         }
                         else
                         {
@@ -162,10 +162,10 @@ namespace ACE.Server.Factories
                             }
                             if (logstats == true)
                             {
-                                ls.MeleeWeapons += $"{testItem.WeaponSkill},{wield},{testItem.Damage.Value},{strikeType},{testItem.DamageVariance.Value},{Math.Round(testItem.WeaponDefense.Value)},{magicDefMod},{missileDefMod},{value},{testItem.Name}\n";
+                                ls.MeleeWeapons += $"{testItem.WeaponSkill},{wield},{testItem.Damage.Value},{strikeType},{testItem.DamageVariance.Value},{Math.Round(testItem.WeaponDefense.Value)},{magicDefMod},{missileDefMod},{value},{testItem.EncumbranceVal},{testItem.Name}\n";
                             }
                             else
-                                ls.MeleeWeapons += $" {testItem.WeaponSkill}\t\t {wield}\t {testItem.Damage.Value}\t\t {strikeType}\t\t {testItem.DamageVariance.Value}\t\t {Math.Round(testItem.WeaponDefense.Value)}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.Name}\n";
+                                ls.MeleeWeapons += $" {testItem.WeaponSkill}\t\t {wield}\t {testItem.Damage.Value}\t\t {strikeType}\t\t {testItem.DamageVariance.Value}\t\t {Math.Round(testItem.WeaponDefense.Value)}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t{testItem.EncumbranceVal} \t {testItem.Name}\n";
                         }
                         break;
                     case ItemType.Armor:
@@ -175,10 +175,10 @@ namespace ACE.Server.Factories
                             equipmentSet = Enum.GetName(typeof(EquipmentSet), testItem.EquipmentSetId);
                         if (logstats == true)
                         {
-                            ls.Armor += $"{testItem.ArmorLevel},{equipmentSet},{testItem.Value.Value},{testItem.Name}\n";
+                            ls.Armor += $"{testItem.ArmorLevel},{equipmentSet},{testItem.Value.Value},{testItem.EncumbranceVal},{testItem.Name}\n";
                         }
                         else
-                            ls.Armor += $" {testItem.ArmorLevel}\t {equipmentSet}\t\t\t {testItem.Value.Value} \t {testItem.Name}\n";
+                            ls.Armor += $" {testItem.ArmorLevel}\t {equipmentSet}\t\t\t {testItem.Value.Value} \t{testItem.EncumbranceVal} \t {testItem.Name}\n";
                         if (testItem.Name.Contains("Sheild"))
                             break;
                         if (testItem.ArmorLevel > ls.MaxAL)
@@ -397,10 +397,10 @@ namespace ACE.Server.Factories
                         {
                             if (logstats == true)
                             {
-                                ls.MissileWeapons += $"{missileType},{wield},{Math.Round(damageMod, 2)},{eleBonus},{Math.Round(testItem.WeaponDefense.Value)},{magicDefMod},{missileDefMod},{value}\n";
+                                ls.MissileWeapons += $"{missileType},{wield},{Math.Round(damageMod, 2)},{eleBonus},{Math.Round(testItem.WeaponDefense.Value)},{magicDefMod},{missileDefMod},{value},{testItem.EncumbranceVal}\n";
                             }
                             else
-                                ls.MissileWeapons += $"{missileType}\t {wield}\t {Math.Round(damageMod, 2)}\t\t{eleBonus}\t\t {Math.Round(testItem.WeaponDefense.Value)}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\n";
+                                ls.MissileWeapons += $"{missileType}\t {wield}\t {Math.Round(damageMod, 2)}\t\t{eleBonus}\t\t {Math.Round(testItem.WeaponDefense.Value)}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.EncumbranceVal}\n";
                         }
 
                         break;
@@ -461,10 +461,10 @@ namespace ACE.Server.Factories
                             ls.ItemMaxMana = testItem.ItemMaxMana.Value;
                         if (logstats == true)
                         {
-                            ls.CasterWeapons += $"{wield},{eleMod},{Math.Round(testItem.WeaponDefense.Value, 2)},{magicDefMod},{missileDefMod},{value},{ls.ItemMaxMana}\n";
+                            ls.CasterWeapons += $"{wield},{eleMod},{Math.Round(testItem.WeaponDefense.Value, 2)},{magicDefMod},{missileDefMod},{value},{testItem.EncumbranceVal},{ls.ItemMaxMana}\n";
                         }
                         else
-                            ls.CasterWeapons += $" {wield}\t {eleMod}\t\t {Math.Round(testItem.WeaponDefense.Value, 2)}\t\t  {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {ls.ItemMaxMana}\n";
+                            ls.CasterWeapons += $" {wield}\t {eleMod}\t\t {Math.Round(testItem.WeaponDefense.Value, 2)}\t\t  {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.EncumbranceVal} \t {ls.ItemMaxMana}\n";
                         break;
                     case ItemType.Portal:
                         break;
@@ -753,28 +753,28 @@ namespace ACE.Server.Factories
             // Tables
             if (logstats == true)
             {
-                ls.MeleeWeapons = $"-----Melee Weapons----\nSkill,Wield,Damage,MStrike,Variance,DefenseMod,MagicDBonus,MissileDBonus,Value,Type\n";
+                ls.MeleeWeapons = $"-----Melee Weapons----\nSkill,Wield,Damage,MStrike,Variance,DefenseMod,MagicDBonus,MissileDBonus,Value,Burden,Type\n";
             }
             else
-                ls.MeleeWeapons = $"-----Melee Weapons----\n Skill \t\t\t Wield \t Damage \t MStrike \t Variance \t DefenseMod \t MagicDBonus \t MissileDBonus\t Value\t Type \n";
+                ls.MeleeWeapons = $"-----Melee Weapons----\n Skill \t\t\t Wield \t Damage \t MStrike \t Variance \t DefenseMod \t MagicDBonus \t MissileDBonus\t Value\t Burden\t Type \n";
             if (logstats == true)
             {
-                ls.MissileWeapons = $"-----Missile Weapons----\nType,Wield,Modifier,ElementBonus,DefenseMod,MagicDBonus,MissileDBonus,Value\n";
+                ls.MissileWeapons = $"-----Missile Weapons----\nType,Wield,Modifier,ElementBonus,DefenseMod,MagicDBonus,MissileDBonus,Value,Burden\n";
             }
             else
-                ls.MissileWeapons = $"-----Missile Weapons----\n Type \t Wield \t Modifier \tElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\t Value\n";
+                ls.MissileWeapons = $"-----Missile Weapons----\n Type \t Wield \t Modifier \tElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\t Value\t Burden\n";
             if (logstats == true)
             {
-                ls.CasterWeapons = $"-----Caster Weapons----\nWield,ElementBonus,DefenseMod,MagicDBonus,MissileDBonus,Value,MaxMana\n";
+                ls.CasterWeapons = $"-----Caster Weapons----\nWield,ElementBonus,DefenseMod,MagicDBonus,MissileDBonus,Value,MaxMana,Burden\n";
             }
             else
-                ls.CasterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus \t Value \t MaxMana\n";
+                ls.CasterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus \t Value\t Burden\t MaxMana\n";
             if (logstats == true)
             {
-                ls.Armor = $"-----Armor----\nAL,EquipmentSet,Value,Type\n";
+                ls.Armor = $"-----Armor----\nAL,EquipmentSet,Value,Burden,Type\n";
             }
             else
-                ls.Armor = $"-----Armor----\n AL \t Equipment Set \t\t\t Value \t Type\n";
+                ls.Armor = $"-----Armor----\n AL \t Equipment Set \t\t\t Value\t Burden\t Type\n";
             if (logstats == true)
             {
                 ls.Pets = $"-----Pet Devices----\nLevel,Dmg,DmgR,Crit,CritD,CDR,CritR,Total\n";
