@@ -173,11 +173,12 @@ namespace ACE.Server.Factories
                         string equipmentSet = "None    ";
                         bool cantrip = false;
                         // float cantripSpells = 0;
+                        var epicCantripSpells = testItem.EpicCantrips.Keys;
 
                         if (testItem.EpicCantrips.Count > 0)
                         {
                             cantrip = true;
-                            // cantripSpells = testItem.EpicCantrips.Keys;
+                            
                         }
                             
                         if (testItem.LegendaryCantrips.Count > 0)
@@ -187,10 +188,10 @@ namespace ACE.Server.Factories
                             equipmentSet = Enum.GetName(typeof(EquipmentSet), testItem.EquipmentSetId);
                         if (logstats == true)
                         {
-                            ls.Armor += $"{testItem.ArmorLevel},{equipmentSet},{testItem.Value.Value},{testItem.EncumbranceVal},{testItem.Name}\n";
+                            ls.Armor += $"{testItem.ArmorLevel},{testItem.Value.Value},{testItem.EncumbranceVal},{testItem.EpicCantrips.Count},{testItem.LegendaryCantrips.Count},{equipmentSet},{testItem.Name}\n";
                         }
                         else
-                            ls.Armor += $" {testItem.ArmorLevel}\t {equipmentSet}\t\t\t {testItem.Value.Value} \t{testItem.EncumbranceVal}\t {testItem.EpicCantrips.Count}\t {testItem.EpicCantrips.Keys}\t {testItem.Name}\n";
+                            ls.Armor += $" {testItem.ArmorLevel}\t{testItem.Value.Value}\t{testItem.EncumbranceVal}\t{testItem.EpicCantrips.Count}\t{testItem.LegendaryCantrips.Count}\t{equipmentSet}\t\t\t{testItem.Name}\n";
                         if (testItem.Name.Contains("Sheild"))
                             break;
                         if (testItem.ArmorLevel > ls.MaxAL)
@@ -805,10 +806,10 @@ namespace ACE.Server.Factories
                 ls.CasterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus \t Value\t Burden\t MaxMana\n";
             if (logstats == true)
             {
-                ls.Armor = $"-----Armor----\nAL,EquipmentSet,Value,Burden,Type\n";
+                ls.Armor = $"-----Armor----\nAL,Value,Burden,Epic,Legendary,EquipmentSet,Type\n";
             }
             else
-                ls.Armor = $"-----Armor----\n AL \t Equipment Set \t\t\t Value\t Burden\t Type\n";
+                ls.Armor = $"-----Armor----\n AL\tValue\tBurden\tEpics\tLegend\tEquipment Set\t\t\tType\n";
             if (logstats == true)
             {
                 ls.Pets = $"-----Pet Devices----\nLevel,Dmg,DmgR,Crit,CritD,CDR,CritR,Total\n";
