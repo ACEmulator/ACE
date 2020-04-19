@@ -95,6 +95,12 @@ namespace ACE.Server.Entity
             }
             else
             {
+                if (newMember.IsBusy)
+                {
+                    inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newMember.Name} is busy.", ChatMessageType.Broadcast));
+                    return;
+                }
+
                 if (newMember.GetCharacterOption(CharacterOption.AutomaticallyAcceptFellowshipRequests))
                 {
                     AddConfirmedMember(inviter, newMember, true);
