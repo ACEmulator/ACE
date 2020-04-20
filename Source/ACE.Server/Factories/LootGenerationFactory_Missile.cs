@@ -42,7 +42,7 @@ namespace ACE.Server.Factories
             wo.GemType = (MaterialType)ThreadSafeRandom.Next(10, 50);
             wo.LongDesc = wo.Name;
             // Burden
-            wo.EncumbranceVal = CalcBurden((int)wo.EncumbranceVal);
+            wo.EncumbranceVal = CalcBurden((int)wo.EncumbranceVal, profile.Tier);
 
             // MeleeD/MagicD/Missile Bonus
             wo.WeaponMagicDefense = GetMagicMissileDMod(profile.Tier); 

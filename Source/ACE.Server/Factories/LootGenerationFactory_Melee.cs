@@ -340,7 +340,7 @@ namespace ACE.Server.Factories
                 wo.MaterialType = (MaterialType)materialType;
             wo.ItemWorkmanship = workmanship;
             // Burden
-            wo.EncumbranceVal = CalcBurden((int)wo.EncumbranceVal);
+            wo.EncumbranceVal = CalcBurden((int)wo.EncumbranceVal, profile.Tier);
 
             // Weapon Stats
             wo.Damage = damage;

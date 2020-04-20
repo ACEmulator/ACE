@@ -2349,7 +2349,7 @@ namespace ACE.Server.Factories
         /// Calculates Final Burden of an Item
         /// <param name="existBurden"></param>
         /// </summary>
-        private static int CalcBurden(int existBurden)
+        private static int CalcBurden(int existBurden, int tier)
         {
             // From Retail data on Melee and Missile weapons, the min burden is about half of the max value.
             // There is data to suggest the Float Property BULK_MOD_FLOAT is used to calculate burden.
@@ -2359,7 +2359,13 @@ namespace ACE.Server.Factories
             // Incorperate the use of Float Property BULK_MOD_FLOAT into calculating burden
             // Add variance to armor burden
 
-            int finalBurden = ThreadSafeRandom.Next(existBurden / 2, existBurden);
+            double tierMod = 0;
+
+            // Spread is ~50% between min and max burden. Dividing that by the number of tiers, and then using that to get the min burden for each Tier.
+            tierMod = 1 - (tier * (0.5 / 8));
+            int minBurden = (int)(existBurden * tierMod);
+
+            int finalBurden = ThreadSafeRandom.Next(minBurden, existBurden);
             return finalBurden;
         }
     }         
