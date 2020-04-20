@@ -93,6 +93,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case WeenieClassName.W_MATERIALSANDSTONE_CLASS:
+                case WeenieClassName.W_MATERIALSANDSTONE100_CLASS:
 
                     // ensure item is retained and sellable
                     if (!target.Retained || !target.IsSellable)
