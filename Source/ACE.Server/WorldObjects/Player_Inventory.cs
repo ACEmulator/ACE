@@ -1785,6 +1785,16 @@ namespace ACE.Server.WorldObjects
                         }
 
                         var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
+
+                        if (newStack == null)
+                        {
+                            // this should never happen under normal circumstances,
+                            // but can happen if the player has an item in their inventory that is no longer in the world database
+                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.ActionCancelled));
+                            EnqueuePickupDone(pickupMotion);
+                            return;
+                        }
+
                         newStack.SetStackSize(amount);
 
                         if (DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, placementPosition, amount))
@@ -1809,6 +1819,15 @@ namespace ACE.Server.WorldObjects
             else // This is a self-contained movement
             {
                 var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
+
+                if (newStack == null)
+                {
+                    // this should never happen under normal circumstances,
+                    // but can happen if the player has an item in their inventory that is no longer in the world database
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
+                    return;
+                }
+
                 newStack.SetStackSize(amount);
 
                 DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, placementPosition, amount);
@@ -1920,6 +1939,15 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
 
                 var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
+
+                if (newStack == null)
+                {
+                    // this should never happen under normal circumstances,
+                    // but can happen if the player has an item in their inventory that is no longer in the world database
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.ActionCancelled));
+                    return;
+                }
+
                 newStack.SetStackSize(amount);
 
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
@@ -2619,6 +2647,16 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
 
                 var newStack = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+
+                if (newStack == null)
+                {
+                    // this should never happen under normal circumstances,
+                    // but can happen if the player has an item in their inventory that is no longer in the world database
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                    itemToGive = null;
+                    return false;
+                }
+
                 newStack.SetStackSize(amount);
 
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
