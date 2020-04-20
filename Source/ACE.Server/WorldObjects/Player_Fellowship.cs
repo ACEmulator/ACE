@@ -51,7 +51,6 @@ namespace ACE.Server.WorldObjects
             if (Guid.Full == Fellowship.FellowshipLeaderGuid)
                 Fellowship.RemoveFellowshipMember(player);
             else
-                //Session.Network.EnqueueSend(new GameMessageSystemChat("You are not the fellowship leader.", ChatMessageType.Fellowship));
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustBeLeaderOfFellowship));
         }
 
@@ -69,7 +68,6 @@ namespace ACE.Server.WorldObjects
                 if (Guid.Full == Fellowship.FellowshipLeaderGuid || Fellowship.Open)
                     Fellowship.AddFellowshipMember(this, newPlayer);
                 else
-                    //Session.Network.EnqueueSend(new GameMessageSystemChat("You are not the fellowship leader.", ChatMessageType.Fellowship));
                     Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustBeLeaderOfFellowship));
             }
         }
