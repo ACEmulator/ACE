@@ -254,7 +254,13 @@ namespace ACE.Server.Entity
                         member.Session.Network.EnqueueSend(new GameEventFellowshipDisband(member.Session));
 
                         if (ShareLoot)
+                        {
                             member.Session.Network.EnqueueSend(new GameMessageSystemChat("You no longer have permission to loot anyone else's kills.", ChatMessageType.Broadcast));
+
+                            // you would expect this occur, but it did not in retail pcaps
+                            //foreach (var fellow in fellowshipMembers.Values)
+                            //    member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name} does not have permission to loot your kills.", ChatMessageType.Broadcast));
+                        }
 
                         member.Fellowship = null;
                     }
