@@ -280,7 +280,10 @@ namespace ACE.Server.Entity
                         member.Session.Network.EnqueueSend(new GameEventFellowshipQuit(member.Session, player.Guid.Full));
 
                         if (ShareLoot)
+                        {
                             member.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have lost permission to loot the kills of {player.Name}.", ChatMessageType.Broadcast));
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{member.Name} does not have permission to loot your kills.", ChatMessageType.Broadcast));
+                        }
                     }
                     AssignNewLeader(null, null);
                     CalculateXPSharing();
