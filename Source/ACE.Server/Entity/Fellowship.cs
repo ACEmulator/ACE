@@ -90,8 +90,9 @@ namespace ACE.Server.Entity
 
             if (newMember.Fellowship != null || FellowshipMembers.ContainsKey(newMember.Guid.Full))
             {
+                // todo: can't seem to find pcap of this scenario... seems odd..
                 inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newMember.Name} is already in a fellowship", ChatMessageType.Fellowship));
-                //inviter.Session.Network.EnqueueSend(new GameEventWeenieError(inviter.Session, WeenieError.FellowshipMember));
+                //inviter.Session.Network.EnqueueSend(new GameEventWeenieError(inviter.Session, WeenieError.FellowshipMember)); 
             }
             else
             {
@@ -129,7 +130,6 @@ namespace ACE.Server.Entity
 
             if (FellowshipMembers.Count == 9)
             {
-                //inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cannot join as fellowship is full", ChatMessageType.Fellowship));
                 inviter.Session.Network.EnqueueSend(new GameEventWeenieError(inviter.Session, WeenieError.YourFellowshipIsFull));
                 return;
             }
@@ -156,7 +156,6 @@ namespace ACE.Server.Entity
                 }
             }
 
-            //SendMessageAndUpdate($"{player.Name} joined the fellowship");
             UpdateAllMembers();
         }
 
@@ -252,13 +251,7 @@ namespace ACE.Server.Entity
 
                     foreach (var member in fellowshipMembers.Values)
                     {
-                        //member.Session.Network.EnqueueSend(new GameEventFellowshipQuit(member.Session, member.Guid.Full));
                         member.Session.Network.EnqueueSend(new GameEventFellowshipDisband(member.Session));
-
-                        //if (member.Guid.Full == FellowshipLeaderGuid)
-                        //    member.Session.Network.EnqueueSend(new GameMessageSystemChat("You disband the fellowship", ChatMessageType.Fellowship));
-                        //else
-                        //    member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} disbanded the fellowship", ChatMessageType.Fellowship));
 
                         if (ShareLoot)
                             member.Session.Network.EnqueueSend(new GameMessageSystemChat("You no longer have permission to loot anyone else's kills.", ChatMessageType.Broadcast));
@@ -287,8 +280,6 @@ namespace ACE.Server.Entity
                     }
                     AssignNewLeader(null, null);
                     CalculateXPSharing();
-                    //SendMessageAndUpdate($"{player.Name} left the fellowship");
-                    //UpdateAllMembers();
                 }
             }
             else if (!disband)
@@ -308,8 +299,6 @@ namespace ACE.Server.Entity
                 }
                 player.Fellowship = null;
                 CalculateXPSharing();
-                //SendMessageAndUpdate($"{player.Name} left the fellowship");
-                //UpdateAllMembers();
             }
         }
 
@@ -353,9 +342,6 @@ namespace ACE.Server.Entity
             // Unlocking a fellowship is not possible without disbanding in retail worlds, so in all likelihood, this is only firing for fellowships being locked by emotemanager
 
             IsLocked = isLocked;
-            //string lockedness = IsLocked ? "locked" : "unlocked";
-            //SendMessageAndUpdate($"Fellowship is now {lockedness}");
-            //SendBroadcastAndUpdate("Your fellowship is now locked.  You may not recruit new members.  If you leave the fellowship, you have 15 minutes to be recruited back into the fellowship.");
 
             if (isLocked)
             {
