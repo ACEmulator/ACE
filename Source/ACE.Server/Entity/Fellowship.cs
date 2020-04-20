@@ -261,7 +261,7 @@ namespace ACE.Server.Entity
                 }
                 else
                 {
-                    // most likely is not hit due to client proactively sending AssignNewLeader msg]
+                    // most likely is not hit due to client proactively sending AssignNewLeader msg
 
                     FellowshipMembers.Remove(player.Guid.Full);
                     player.Fellowship = null;
