@@ -108,10 +108,10 @@ namespace ACE.Server.WorldObjects
 
             // for invisible spell traps,
             // their effects won't be seen if they broadcast from themselves
-            if (target != null && spell.TargetEffect != 0 && status.Success)
+            if (target != null && spell.TargetEffect != 0) //&& status.Success)
                 target.EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
 
-            if (caster != null && spell.CasterEffect != 0 && status.Success)
+            if (caster != null && spell.CasterEffect != 0) //&& status.Success)
                 caster.EnqueueBroadcast(new GameMessageScript(caster.Guid, spell.CasterEffect, spell.Formula.Scale));
         }
 
@@ -1016,11 +1016,11 @@ namespace ACE.Server.WorldObjects
                                 });
                                 portalSendingChain.EnqueueChain();
                             }
-                            else
-                            {
-                                enchantmentStatus.Success = false;
-                                return enchantmentStatus;
-                            }
+                            //else
+                            //{
+                            //    enchantmentStatus.Success = false;
+                            //    return enchantmentStatus;
+                            //}
                         }
                         break;
 
