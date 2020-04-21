@@ -66,7 +66,7 @@ namespace ACE.Server.Physics
         public Vector3 Acceleration;
         public Vector3 Omega;
         public List<PhysicsObjHook> Hooks;
-        public List<AnimHook> AnimHooks;
+        public List<DatLoader.Entity.AnimationHook> AnimHooks;
         public float Scale;
         public float AttackRadius;
         public DetectionManager DetectionManager;
@@ -136,7 +136,7 @@ namespace ACE.Server.Physics
             SlidingNormal = Vector3.Zero;
             CachedVelocity = Vector3.Zero;
             Hooks = new List<PhysicsObjHook>();
-            AnimHooks = new List<AnimHook>();
+            AnimHooks = new List<DatLoader.Entity.AnimationHook>();
             Children = new ChildList();
             ShadowObjects = new Dictionary<uint, ShadowObj>();
             CollisionTable = new Dictionary<uint, CollisionRecord>();
@@ -279,7 +279,7 @@ namespace ACE.Server.Physics
             }
             var upperBound = (float)delta;
             var randp = ThreadSafeRandom.Next(0.0f, upperBound);
-            var hook = new FPHook(PhysicsHookType.Velocity | PhysicsHookType.MotionTable | PhysicsHookType.Setup, PhysicsTimer_CurrentTime, randp, 0.0f, 1.0f, pes);
+            var hook = new FPHook(PhysicsHookType.CallPES, PhysicsTimer_CurrentTime, randp, 0.0f, 1.0f, pes);
             Hooks.Add(hook);
         }
 
@@ -1052,7 +1052,7 @@ namespace ACE.Server.Physics
                     PartArray.SetLuminosityInternal(end);
                 return;
             }
-            var hook = new FPHook(PhysicsHookType.MotionTable | PhysicsHookType.Setup, PhysicsTimer_CurrentTime, delta, start, end, 0);
+            var hook = new FPHook(PhysicsHookType.Luminosity, PhysicsTimer_CurrentTime, delta, start, end, 0);
             Hooks.Add(hook);
         }
 
@@ -1086,7 +1086,7 @@ namespace ACE.Server.Physics
                     PartArray.SetPartDiffusionInternal(part, end);
                 return;
             }
-            var hook = new FPHook(PhysicsHookType.Velocity | PhysicsHookType.MotionTable, PhysicsTimer_CurrentTime, delta, start, end, part);
+            var hook = new FPHook(PhysicsHookType.PartDiffusion, PhysicsTimer_CurrentTime, delta, start, end, part);
             Hooks.Add(hook);
         }
 
@@ -1106,7 +1106,7 @@ namespace ACE.Server.Physics
                     PartArray.SetPartLuminosityInternal(part, end);
                 return;
             }
-            var hook = new FPHook(PhysicsHookType.Velocity | PhysicsHookType.Setup, PhysicsTimer_CurrentTime, delta, start, end, part);
+            var hook = new FPHook(PhysicsHookType.PartLuminosity, PhysicsTimer_CurrentTime, delta, start, end, part);
             Hooks.Add(hook);
         }
 
@@ -1124,7 +1124,7 @@ namespace ACE.Server.Physics
                     PartArray.SetPartTranslucencyInternal(partIdx, endTrans);
                 return;
             }
-            var hook = new FPHook(PhysicsHookType.MotionTable, PhysicsTimer_CurrentTime, delta, startTrans, endTrans, partIdx);
+            var hook = new FPHook(PhysicsHookType.PartTranslucency, PhysicsTimer_CurrentTime, delta, startTrans, endTrans, partIdx);
             Hooks.Add(hook);
         }
 
@@ -1342,10 +1342,12 @@ namespace ACE.Server.Physics
 
         public SetPositionError SetPositionSimple(Position pos, bool sliding)
         {
-            var flags = sliding ? 4114 : 4098;  // ??
             var setPos = new SetPosition();
             setPos.Pos = pos;
-            setPos.Flags = (SetPositionFlags)flags;
+            setPos.Flags = SetPositionFlags.Teleport | SetPositionFlags.SendPositionEvent;
+
+            if (sliding)
+                setPos.Flags |= SetPositionFlags.Slide;
 
             return SetPosition(setPos);
         }
@@ -1358,7 +1360,7 @@ namespace ACE.Server.Physics
                     PartArray.SetScaleInternal(new Vector3(scale, scale, scale));
                 return;
             }
-            var hook = new FPHook((PhysicsHookType)0, PhysicsTimer_CurrentTime, delta, Scale, scale, 0);
+            var hook = new FPHook(PhysicsHookType.Scale, PhysicsTimer_CurrentTime, delta, Scale, scale, 0);
             Hooks.Add(hook);
         }
 
@@ -1415,7 +1417,7 @@ namespace ACE.Server.Physics
                         var groundZ = landblock.GetZ(newPos.Frame.Origin) + 0.05f;
 
                         if (Math.Abs(newPos.Frame.Origin.Z - groundZ) > ScatterThreshold_Z)
-                            log.Debug($"{Name} ({ID:X8}).SetScatterPositionInternal() - tried to spawn outdoor object @ {newPos} ground Z {groundZ}, investigate ScatterThreshold_Z");
+                            log.Debug($"{Name} ({ID:X8}).SetScatterPositionInternal() - tried to spawn outdoor object @ {newPos} ground Z {groundZ} (diff: {newPos.Frame.Origin.Z - groundZ}), investigate ScatterThreshold_Z");
                         else
                             newPos.Frame.Origin.Z = groundZ;
 
@@ -1478,7 +1480,7 @@ namespace ACE.Server.Physics
                 if (PartArray != null) PartArray.SetTranslucencyInternal(Translucency);
                 return;
             }
-            var hook = new FPHook(PhysicsHookType.Setup, PhysicsTimer_CurrentTime, delta, 0.0f, translucency, 0);
+            var hook = new FPHook(PhysicsHookType.Translucency, PhysicsTimer_CurrentTime, delta, 0.0f, translucency, 0);
             Hooks.Add(hook);
         }
 
@@ -1491,7 +1493,7 @@ namespace ACE.Server.Physics
                 if (PartArray != null) PartArray.SetTranslucencyInternal(startTrans);
                 return;
             }
-            var hook = new FPHook(PhysicsHookType.Setup, PhysicsTimer_CurrentTime, delta, startTrans, endTrans, 0);
+            var hook = new FPHook(PhysicsHookType.Translucency, PhysicsTimer_CurrentTime, delta, startTrans, endTrans, 0);
             Hooks.Add(hook);
         }
 
@@ -1670,7 +1672,9 @@ namespace ACE.Server.Physics
 
                 var transit = transition(Position, newPos, false);
 
-                if (transit != null)
+
+                // temporarily modified while debug path is examined
+                if (transit != null && transit.SpherePath.CurCell != null)
                 {
                     CachedVelocity = Position.GetOffset(transit.SpherePath.CurPos) / (float)quantum;
 
@@ -1679,7 +1683,9 @@ namespace ACE.Server.Physics
                 else
                 {
                     if (IsPlayer)
-                        log.Debug($"{Name}.UpdateObjectInternal({quantum}) - failed transition from {Position} to {newPos}");
+                        log.Debug($"{Name} ({ID:X8}).UpdateObjectInternal({quantum}) - failed transition from {Position} to {newPos}");
+                    else if (transit != null && transit.SpherePath.CurCell == null)
+                        log.Warn($"{Name} ({ID:X8}).UpdateObjectInternal({quantum}) - avoided CurCell=null from {Position} to {newPos}");
 
                     newPos.Frame.Origin = Position.Frame.Origin;
                     set_initial_frame(newPos.Frame);
@@ -1889,7 +1895,7 @@ namespace ACE.Server.Physics
                 child.UpdateViewerDistanceRecursive();
         }
 
-        public void add_anim_hook(AnimHook hook)
+        public void add_anim_hook(DatLoader.Entity.AnimationHook hook)
         {
             AnimHooks.Add(hook);
         }
@@ -2425,7 +2431,7 @@ namespace ACE.Server.Physics
         {
             foreach (var shadowObj in ShadowObjects.Values)
             {
-                if (shadowObj.Cell.check_collisions(this))
+                if (shadowObj.Cell != null && shadowObj.Cell.check_collisions(this))
                     return true;
             }
             return false;
@@ -3086,32 +3092,32 @@ namespace ACE.Server.Physics
             return true;
         }
 
-        public void process_fp_hook(int type, float curr_value, Object userData)
+        public void process_fp_hook(PhysicsHookType type, float curr_value, Object userData)
         {
             switch (type)
             {
-                case 0:
+                case PhysicsHookType.Scale:
                     SetScaleStatic(curr_value);
                     break;
-                case 1:
+                case PhysicsHookType.Translucency:
                     SetTranslucencyInternal(curr_value);
                     break;
-                case 2:
+                case PhysicsHookType.PartTranslucency:
                     if (PartArray != null) PartArray.SetPartTranslucencyInternal((int)userData, curr_value);
                     break;
-                case 3:
+                case PhysicsHookType.Luminosity:
                     if (PartArray != null) PartArray.SetLuminosityInternal(curr_value);
                     break;
-                case 5:     // combined types?
+                case PhysicsHookType.PartLuminosity:
                     if (PartArray != null) PartArray.SetPartLuminosityInternal((int)userData, curr_value);
                     break;
-                case 4:
+                case PhysicsHookType.Diffusion:
                     if (PartArray != null) PartArray.SetDiffusionInternal(curr_value);
                     break;
-                case 6:
+                case PhysicsHookType.PartDiffusion:
                     if (PartArray != null) PartArray.SetPartDiffusionInternal((int)userData, curr_value);
                     break;
-                case 7:
+                case PhysicsHookType.CallPES:
                     CallPESInternal((uint)userData, curr_value);
                     break;
             }
@@ -3130,7 +3136,7 @@ namespace ACE.Server.Physics
             for (var i = 0; i < AnimHooks.Count; i++)
             {
                 var animHook = AnimHooks[i];
-                animHook.Execute(this);
+                AnimHook.Execute(this, animHook);
             }
 
             AnimHooks.Clear();
@@ -3569,14 +3575,16 @@ namespace ACE.Server.Physics
 
             State &= ~PhysicsState.Ethereal;
 
-            if (Parent != null || CurCell != null || ethereal_check_for_collisions())
+            if (Parent != null || CurCell == null || !ethereal_check_for_collisions())
             {
                 TransientState &= ~TransientStateFlags.CheckEthereal;
                 return true;
             }
 
-            TransientState |= TransientStateFlags.CheckEthereal;
+            // error path - go back to ethereal, start loop in CheckEthereal state
             State |= PhysicsState.Ethereal;
+            TransientState |= TransientStateFlags.CheckEthereal;
+
             return false;
         }
 

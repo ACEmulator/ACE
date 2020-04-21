@@ -716,6 +716,12 @@ namespace ACE.Server.Managers
                 else
                     callback(house);
             }
+            else if (!loaded.CreateWorldObjectsCompleted)
+            {
+                var houseBiota = House.Load(houseGuid);
+
+                RegisterCallback(houseBiota, callback);
+            }
             else
                 log.Error($"HouseManager.GetHouse({houseGuid:X8}): couldn't find house on loaded landblock");
         }

@@ -669,17 +669,24 @@ namespace ACE.Server.WorldObjects
                 else if (Viewer == player.Guid.Full)
                     Close(player);
                 else
-                {
-                    var currentViewer = "someone else";
-                    if (PropertyManager.GetBool("container_opener_name").Item)
-                    {
-                        var name = CurrentLandblock?.GetObject(Viewer)?.Name;
-                        if (name != null)
-                            currentViewer = name;
-                    }
+                    player.SendTransientError(InUseMessage);
+            }
+        }
 
-                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is already in use by {currentViewer}!"));
+        public string InUseMessage
+        {
+            get
+            {
+                // verified this message was sent for corpses, instead of WeenieErrorWithString.The_IsCurrentlyInUse
+                var currentViewer = "someone else";
+
+                if (PropertyManager.GetBool("container_opener_name").Item)
+                {
+                    var name = CurrentLandblock?.GetObject(Viewer)?.Name;
+                    if (name != null)
+                        currentViewer = name;
                 }
+                return $"The {Name} is already in use by {currentViewer}!";
             }
         }
 

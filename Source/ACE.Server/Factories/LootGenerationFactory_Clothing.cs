@@ -113,6 +113,9 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.RawSkill);
                 wo.SetProperty(PropertyInt.WieldSkillType, (int)wieldSkill);
                 wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+
+                // used by tinkering requirements for copper/silver
+                wo.SetProperty(PropertyDataId.ItemSkillLimit, (uint)wieldSkill);
             }
 
             // Setting random color

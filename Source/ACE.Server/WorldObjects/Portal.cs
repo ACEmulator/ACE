@@ -89,6 +89,14 @@ namespace ACE.Server.WorldObjects
 
         public bool IsGateway { get => WeenieClassId == 1955; }
 
+        //public override void OnActivate(WorldObject activator)
+        //{
+        //    if (activator is Creature creature)
+        //        EmoteManager.OnUse(creature);
+
+        //    base.OnActivate(activator);
+        //}
+
         public virtual void OnCollideObject(Player player)
         {
             OnActivate(player);
@@ -134,12 +142,73 @@ namespace ACE.Server.WorldObjects
                     // You are too powerful to interact with that portal!
                     return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouAreTooPowerfulToUsePortal));
                 }
-            }
 
-            // handle quest initial flagging
-            if (Quest != null)
-            {
-                player.QuestManager.Update(Quest);
+                var playerPkLevel = player.PkLevel;
+
+                if (PropertyManager.GetBool("pk_server").Item)
+                    playerPkLevel = PKLevel.PK;
+                else if (PropertyManager.GetBool("pkl_server").Item)
+                    playerPkLevel = PKLevel.PKLite;
+
+                if (PortalRestrictions == PortalBitmask.NotPassable)
+                {
+                    // Players may not interact with that portal.
+                    return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.PlayersMayNotUsePortal));
+                }
+
+                if (PortalRestrictions.HasFlag(PortalBitmask.NoPk) && (playerPkLevel == PKLevel.PK || player.PlayerKillerStatus == PlayerKillerStatus.PK))
+                {
+                    // Player killers may not interact with that portal!
+                    return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.PKsMayNotUsePortal));
+                }
+
+                if (PortalRestrictions.HasFlag(PortalBitmask.NoPKLite) && (playerPkLevel == PKLevel.PKLite || player.PlayerKillerStatus == PlayerKillerStatus.PKLite))
+                {
+                    // Lite Player Killers may not interact with that portal!
+                    return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.PKLiteMayNotUsePortal));
+                }
+
+                if (PortalRestrictions.HasFlag(PortalBitmask.NoNPK) && playerPkLevel == PKLevel.NPK)
+                {
+                    // Non-player killers may not interact with that portal!
+                    return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.NonPKsMayNotUsePortal));
+                }
+
+                if (PortalRestrictions.HasFlag(PortalBitmask.OnlyOlthoiPCs) && !player.IsOlthoiPlayer())
+                {
+                    // Only Olthoi may pass through this portal!
+                    return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.OnlyOlthoiMayUsePortal));
+                }
+
+                if (PortalRestrictions.HasFlag(PortalBitmask.NoOlthoiPCs) && player.IsOlthoiPlayer())
+                {
+                    // Olthoi may not pass through this portal!
+                    return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.OlthoiMayNotUsePortal));
+                }
+
+                if (PortalRestrictions.HasFlag(PortalBitmask.NoVitae) && player.HasVitae)
+                {
+                    // You may not pass through this portal while Vitae weakens you!
+                    return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMayNotUsePortalWithVitae));
+                }
+
+                if (PortalRestrictions.HasFlag(PortalBitmask.NoNewAccounts) && !player.Account15Days)
+                {
+                    // This character must be two weeks old or have been created on an account at least two weeks old to use this portal!
+                    return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMustBeTwoWeeksOldToUsePortal));
+                }
+
+                if (player.AccountRequirements < AccountRequirements)
+                {
+                    // You must purchase Asheron's Call -- Throne of Destiny to use this portal.
+                    return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.MustPurchaseThroneOfDestinyToUsePortal));
+                }
+
+                if ((AdvocateQuest ?? false) && !player.IsAdvocate)
+                {
+                    // You must be an Advocate to interact with that portal.
+                    return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMustBeAnAdvocateToUsePortal));
+                }
             }
 
             if (QuestRestriction != null && !player.IgnorePortalRestrictions)
@@ -154,6 +223,12 @@ namespace ACE.Server.WorldObjects
                     player.QuestManager.HandlePortalQuestError(QuestRestriction);
                     return new ActivationResult(false);
                 }
+            }
+
+            // handle quest initial flagging
+            if (Quest != null)
+            {
+                player.QuestManager.Update(Quest);
             }
 
             return new ActivationResult(true);

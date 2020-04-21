@@ -303,14 +303,20 @@ namespace ACE.Server.WorldObjects
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your corpse is located at ({corpse.Location.GetMapCoordStr()}).", ChatMessageType.Broadcast));
                 }
 
-                if (!player.IsPKDeath(killer) && !player.IsPKLiteDeath(killer))
+                var isPKdeath = player.IsPKDeath(killer);
+                var isPKLdeath = player.IsPKLiteDeath(killer);
+
+                if (isPKdeath)
+                    corpse.PkLevel = PKLevel.PK;
+
+                if (!isPKdeath && !isPKLdeath)
                 {
                     var miserAug = player.AugmentationLessDeathItemLoss * 5;
                     if (miserAug > 0)
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your augmentation has reduced the number of items you can lose by {miserAug}!", ChatMessageType.Broadcast));
                 }
 
-                if (dropped.Count == 0 && !player.IsPKLiteDeath(killer))
+                if (dropped.Count == 0 && !isPKLdeath)
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have retained all your items. You do not need to recover your corpse!", ChatMessageType.Broadcast));
             }
             else

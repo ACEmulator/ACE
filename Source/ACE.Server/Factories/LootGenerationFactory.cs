@@ -2222,7 +2222,7 @@ namespace ACE.Server.Factories
         }
 
         /// <summary>
-        /// Will return correct meleeMod for bow wields (some debate on what 375 top out at, leaving at 18 for now). HarliQ 11/17/19
+        /// Will return correct meleeMod for Missile/Caster wields (some debate on what 375 top out at, leaving at 18 for now). HarliQ 11/17/19
         /// </summary>
         private static double GetWieldReqMeleeDMod(int wield)
         {

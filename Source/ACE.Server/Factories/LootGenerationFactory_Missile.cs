@@ -8,11 +8,15 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
+        /// <summary>
+        /// Creates a Missile weapon object.
+        /// </summary>
+        /// <param name="profile"></param><param name="isMagical"></param>
+        /// <returns>Returns Missile WO</returns>
         public static WorldObject CreateMissileWeapon(TreasureDeath profile, bool isMagical)
         {
             int weaponWeenie;
             int elemenatalBonus = 0;
-
             int wieldDifficulty = GetWield(profile.Tier, 1);
 
             // Changing based on wield, not tier. Refactored, less code, best results.  HarliQ 11/18/19
@@ -29,63 +33,68 @@ namespace ACE.Server.Factories
             if (wo == null)
                 return null;
 
-            int workmanship = GetWorkmanship(profile.Tier);
-            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
+            // Item Basics
+            wo.ItemWorkmanship = GetWorkmanship(profile.Tier); 
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
-            wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
-            wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
-            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
+            wo.GemCount = ThreadSafeRandom.Next(1, 5);
+            wo.GemType = (MaterialType)ThreadSafeRandom.Next(10, 50);
+            wo.LongDesc = wo.Name;
 
-            double meleeDMod = GetWieldReqMeleeDMod(wieldDifficulty);
-            // double meleeDMod = GetMeleeDMod(tier);
-            if (meleeDMod > 0.0f)
-                wo.SetProperty(PropertyFloat.WeaponDefense, meleeDMod);
-
-            // MagicD/Missile Bonus
+            // MeleeD/MagicD/Missile Bonus
             wo.WeaponMagicDefense = GetMagicMissileDMod(profile.Tier); 
             wo.WeaponMissileDefense = GetMagicMissileDMod(profile.Tier);
+            double meleeDMod = GetWieldReqMeleeDMod(wieldDifficulty);
+            if (meleeDMod > 0.0f)
+                wo.WeaponDefense = meleeDMod;
 
-            wo.SetProperty(PropertyFloat.DamageMod, GetMissileDamageMod(wieldDifficulty, wo.GetProperty(PropertyInt.WeaponType)));
-
+            // Damage
+            wo.DamageMod = GetMissileDamageMod(wieldDifficulty, wo.GetProperty(PropertyInt.WeaponType));
             if (elemenatalBonus > 0)
-                wo.SetProperty(PropertyInt.ElementalDamageBonus, elemenatalBonus);
+                wo.ElementalDamageBonus = elemenatalBonus;
 
+            // Wields
             if (wieldDifficulty > 0)
             {
-                wo.SetProperty(PropertyInt.WieldDifficulty, wieldDifficulty);
-                wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.RawSkill);
-                wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.MissileWeapons);
+                wo.WieldDifficulty = wieldDifficulty;
+                wo.WieldRequirements = WieldRequirement.RawSkill;
+                wo.WieldSkillType = (int)Skill.MissileWeapons;
             }
             else
             {
-                wo.RemoveProperty(PropertyInt.WieldDifficulty);
-                wo.RemoveProperty(PropertyInt.WieldRequirements);
-                wo.RemoveProperty(PropertyInt.WieldSkillType);
+                wo.WieldDifficulty = null;
+                wo.WieldRequirements = WieldRequirement.Invalid;
+                wo.WieldSkillType = null;
             }
 
+            // Magic
             if (isMagical)
                 wo = AssignMagic(wo, profile);
             else
             {
-                wo.RemoveProperty(PropertyInt.ItemManaCost);
-                wo.RemoveProperty(PropertyInt.ItemMaxMana);
-                wo.RemoveProperty(PropertyInt.ItemCurMana);
-                wo.RemoveProperty(PropertyInt.ItemSpellcraft);
-                wo.RemoveProperty(PropertyInt.ItemDifficulty);
-                wo.RemoveProperty(PropertyFloat.ManaRate);
+                wo.ItemManaCost = null;
+                wo.ItemMaxMana = null;
+                wo.ItemCurMana = null;
+                wo.ItemSpellcraft = null;
+                wo.ItemDifficulty = null;
+                wo.ManaRate = null;
             }
 
+            // Material/Value/Color
             double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
+            var value = GetValue(profile.Tier, (int)wo.Workmanship, gemMaterialMod, materialMod);
             wo.Value = value;
-
             wo = RandomizeColor(wo);
+            
             return wo;
         }
-
+        /// <summary>
+        /// Get Missile Wield Index.
+        /// </summary>
+        /// <param name="wieldDiff"></param>
+        /// <returns>Missile Wield Index</returns>
         private static int GetMissileWieldToIndex(int wieldDiff)
         {
             int index = 0;
@@ -100,11 +109,16 @@ namespace ACE.Server.Factories
                 360 => 6,
                 375 => 7,
                 385 => 8,
-                _ => 0,
+                _ => 0,  // Default/Else
             };
             return index;
         }
 
+        /// <summary>
+        /// Get Missile Damage based on Missile Weapon Type.
+        /// </summary>
+        /// <param name="wieldDiff"></param><param name="missileType"></param>
+        /// <returns>Missile Damage</returns>
         private static float GetMissileDamageMod(int wieldDiff, int? missileType)
         {
             WeaponType weaponType = (WeaponType)(missileType ?? 8);
@@ -117,7 +131,7 @@ namespace ACE.Server.Factories
                 WeaponType.Bow => LootTables.MissileDamageMod[bow][GetMissileWieldToIndex(wieldDiff)],
                 WeaponType.Crossbow => LootTables.MissileDamageMod[crossbow][GetMissileWieldToIndex(wieldDiff)],
                 WeaponType.Thrown => LootTables.MissileDamageMod[thrown][GetMissileWieldToIndex(wieldDiff)],
-                _ => 1.5f,
+                _ => 1.5f, // Default/Else
             };
             // Added varaiance for Damage Modifier.  Full Modifier was rare in retail
             int modChance = ThreadSafeRandom.Next(0, 100);
@@ -142,6 +156,11 @@ namespace ACE.Server.Factories
 
             return damageMod;
         }
+        /// <summary>
+        /// Get Missile Elemental Damage based on Wield.
+        /// </summary>
+        /// <param name="wield"></param>
+        /// <returns>Missile Weapon Wield Requirement</returns>
         private static int GetElementalBonus(int wield)
         {
             int chance = 0;
@@ -234,7 +253,10 @@ namespace ACE.Server.Factories
 
             return eleMod;
         }
-
+        /// <summary>
+        /// Determines Type of Missile Weapon, and the element.
+        /// </summary>
+        /// <returns>Missile Type, Element</returns>
         private static int GetElementalMissileWeapon()
         {
             // Determine missile weapon type: 0 - Bow, 1 - Crossbows, 2 - Atlatl, 3 - Slingshot, 4 - Compound Bow, 5 - Compound Crossbow
@@ -244,8 +266,12 @@ namespace ACE.Server.Factories
             int element = ThreadSafeRandom.Next(0, 6);
 
             return LootTables.ElementalMissileWeaponsMatrix[missileType][element];
+            
         }
-
+        /// <summary>
+        /// Determines Non Elemental type of missile weapon (No Wields).
+        /// </summary>
+        /// <returns>Missile Weapon Type and SubType</returns>      
         private static int GetNonElementalMissileWeapon()
         {
 
@@ -255,7 +281,8 @@ namespace ACE.Server.Factories
             {
                 0 => ThreadSafeRandom.Next(0, 6),
                 1 => ThreadSafeRandom.Next(0, 2),
-                _ => ThreadSafeRandom.Next(0, 1),
+                2 => ThreadSafeRandom.Next(0, 1),
+                _ => 0, // Default/Else
             };
             return LootTables.NonElementalMissileWeaponsMatrix[missileType][subType];
         }

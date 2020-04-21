@@ -7,6 +7,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -141,6 +142,8 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
         }
 
+        public double CloseTimestamp;
+
         public void Close(ObjectGuid closer = new ObjectGuid())
         {
             if (CurrentMotionState == motionClosed)
@@ -157,19 +160,51 @@ namespace ACE.Server.WorldObjects
 
             IsBusy = true;
 
+            CloseTimestamp = Time.GetUnixTime();
+
+            var closeTimestamp = CloseTimestamp;
+
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(animTime);
             actionChain.AddAction(this, () =>
             {
-                Ethereal = false;
+                FinalizeClose(closeTimestamp);
                 IsBusy = false;
-
-                EnqueueBroadcastPhysicsState();
             });
             actionChain.EnqueueChain();
 
             if (closer.Full > 0)
                 UseTimestamp = Time.GetUnixTime();
+        }
+
+        private void FinalizeClose(double closeTimestamp)
+        {
+            if (IsOpen || closeTimestamp != CloseTimestamp)
+                return;
+
+            // ethereal must be set to false for ethereal_check_for_collisions
+            Ethereal = false;
+
+            if (PropertyManager.GetBool("allow_door_hold").Item && PhysicsObj.ethereal_check_for_collisions())
+            {
+                // the source of this bug is EtherealHook for the door
+                // physics engine set_ethereal() -> ethereal_check_for_collisions() -> CheckEthereal state
+
+                // if fix_door_holding == true, the player can still hold doors for other nearby players
+                // who already know about the door / have not been far away from the door for > 25s
+
+                // fix_door_holding == true only fixes 'long holding'
+                //Console.WriteLine($"{Name} ({Guid}).FinalizeClose()");
+                Ethereal = true;
+
+                var holdChain = new ActionChain();
+                holdChain.AddDelaySeconds(1.0f);    // poll every second
+                holdChain.AddAction(this, () => FinalizeClose(closeTimestamp));
+                holdChain.EnqueueChain();
+                return;
+            }
+
+            EnqueueBroadcastPhysicsState();
         }
 
         private void Reset(double useTimestamp)

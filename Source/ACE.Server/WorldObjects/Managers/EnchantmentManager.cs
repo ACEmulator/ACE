@@ -1166,18 +1166,23 @@ namespace ACE.Server.WorldObjects.Managers
         {
             var dots = new List<PropertiesEnchantmentRegistry>();
             var netherDots = new List<PropertiesEnchantmentRegistry>();
+            var aetheriaDots = new List<PropertiesEnchantmentRegistry>();
             var heals = new List<PropertiesEnchantmentRegistry>();
 
             foreach (var enchantment in enchantments)
             {
                 // combine DoTs from multiple sources
                 if (enchantment.StatModKey == (int)PropertyInt.DamageOverTime)
-                    dots.Add(enchantment);
-
-                if (enchantment.StatModKey == (int)PropertyInt.NetherOverTime)
+                {
+                    if (enchantment.SpellCategory == SpellCategory.AetheriaProcDamageOverTimeRaising)
+                        aetheriaDots.Add(enchantment);
+                    else
+                        dots.Add(enchantment);
+                }
+                else if (enchantment.StatModKey == (int)PropertyInt.NetherOverTime)
                     netherDots.Add(enchantment);
 
-                if (enchantment.StatModKey == (int)PropertyInt.HealOverTime)
+                else if (enchantment.StatModKey == (int)PropertyInt.HealOverTime)
                     heals.Add(enchantment);
             }
 
@@ -1187,6 +1192,9 @@ namespace ACE.Server.WorldObjects.Managers
 
             if (netherDots.Count > 0)
                 ApplyDamageTick(netherDots, DamageType.Nether);
+
+            if (aetheriaDots.Count > 0)
+                ApplyDamageTick(aetheriaDots, DamageType.Undef, true);
 
             // apply healing over time (HoTs)
             if (heals.Count > 0)
@@ -1224,7 +1232,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// Applies 1 tick of damage from a DoT spell
         /// </summary>
         /// <param name="enchantments">The damage over time (DoT) spells</param>
-        public void ApplyDamageTick(List<PropertiesEnchantmentRegistry> enchantments, DamageType damageType)
+        public void ApplyDamageTick(List<PropertiesEnchantmentRegistry> enchantments, DamageType damageType, bool aetheria = false)
         {
             var creature = WorldObject as Creature;
             if (creature == null || creature.IsDead) return;
@@ -1307,7 +1315,7 @@ namespace ACE.Server.WorldObjects.Managers
                 var damageSourcePlayer = damager as Player;
                 if (damageSourcePlayer != null)
                 {
-                    creature.TakeDamageOverTime_NotifySource(damageSourcePlayer, damageType, amount);
+                    creature.TakeDamageOverTime_NotifySource(damageSourcePlayer, damageType, amount, aetheria);
 
                     if (creature.IsAlive)
                         creature.EmoteManager.OnDamage(damageSourcePlayer);

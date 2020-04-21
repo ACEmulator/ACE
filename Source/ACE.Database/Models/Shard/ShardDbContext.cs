@@ -65,9 +65,7 @@ namespace ACE.Database.Models.Shard
                 optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
             }
 
-#if DEBUG
             optionsBuilder.EnableSensitiveDataLogging(true);
-#endif
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
