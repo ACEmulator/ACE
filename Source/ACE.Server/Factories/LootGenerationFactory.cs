@@ -2365,9 +2365,9 @@ namespace ACE.Server.Factories
             var bulk = isWeapon ? WeaponBulk : ArmorBulk;
             bulk *= (float)(wo.BulkMod ?? 1.0f);
 
-            var minBurdenMod = 1.0f - bulk;
+            var maxBurdenMod = 1.0f - bulk;
 
-            var burdenMod = 1.0f - (roll * minBurdenMod);
+            var burdenMod = 1.0f - (roll * maxBurdenMod);
 
             // modify burden
             var prevBurden = wo.EncumbranceVal.Value;

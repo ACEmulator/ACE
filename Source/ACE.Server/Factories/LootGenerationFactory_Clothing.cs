@@ -2,6 +2,7 @@ using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
@@ -36,8 +37,6 @@ namespace ACE.Server.Factories
                 case 7:
                 case 8:
                     maxType = LootTables.ArmorType.OlthoiAlduressaArmor;
-
-
                     break;
             }
 
@@ -140,6 +139,10 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemSpellcraft);
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
             }
+
+            // try mutate burden, if MutateFilter exists
+            if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
+                MutateBurden(wo, profile.Tier, false);
 
             wo = RandomizeColor(wo);
 

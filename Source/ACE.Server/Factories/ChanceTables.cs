@@ -179,7 +179,7 @@ namespace ACE.Server.Factories
         /// Performs a weighted RNG roll
         /// linearly interpolates between discrete values
         /// </summary>
-        /// <returns>A value between 0.0f - 1.0f</returns>
+        /// <returns>A value between 0.0f - 1.0f, higher values = better</returns>
         public static float Roll(int tier)
         {
             var chances = GetQualityChancesForTier(tier);

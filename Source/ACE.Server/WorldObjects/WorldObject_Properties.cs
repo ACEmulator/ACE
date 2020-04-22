@@ -2904,5 +2904,23 @@ namespace ACE.Server.WorldObjects
             EncumbranceVal = (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
             Value = (StackUnitValue ?? 0) * (StackSize ?? 1);
         }
+
+        /// <summary>
+        /// 0x0E file id
+        /// </summary>
+        public uint? MutateFilter
+        {
+            get => GetProperty(PropertyDataId.MutateFilter);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.MutateFilter); else SetProperty(PropertyDataId.MutateFilter, value.Value); }
+        }
+
+        /// <summary>
+        /// 0x38 file id
+        /// </summary>
+        public uint? TsysMutationFilter
+        {
+            get => GetProperty(PropertyDataId.TsysMutationFilter);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.TsysMutationFilter); else SetProperty(PropertyDataId.TsysMutationFilter, value.Value); }
+        }
     }
 }
