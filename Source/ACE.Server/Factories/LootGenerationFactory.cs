@@ -2345,28 +2345,49 @@ namespace ACE.Server.Factories
             meleeMod += 1.0;
             return meleeMod;
         }
-        /// <summary>
-        /// Calculates Final Burden of an Item
-        /// <param name="existBurden"></param>
-        /// </summary>
-        private static int CalcBurden(int existBurden, int tier)
+
+        public static readonly float WeaponBulk = 0.50f;
+        public static readonly float ArmorBulk = 0.25f;
+
+        private static bool MutateBurden(WorldObject wo, int tier, bool isWeapon)
         {
-            // From Retail data on Melee and Missile weapons, the min burden is about half of the max value.
-            // There is data to suggest the Float Property BULK_MOD_FLOAT is used to calculate burden.
-            // However there isn't any data on how its used, and that property is missing on existing base weenies, and unknown if that value was different across the same weenie types.
-            // Till that can be figured out, doing a random value between min (half of max) and max burden values (max being the encumbval on base weenie)
-            // TODO:
-            // Incorperate the use of Float Property BULK_MOD_FLOAT into calculating burden
-            // Add variance to armor burden
+            // ensure item has burden
+            if (wo.EncumbranceVal == null)
+                return false;
 
-            double tierMod = 0;
+            // initial rng roll - burden mod chance per tier
+            if (!RollBurdenModChance(tier))
+                return false;
 
-            // Spread is ~50% between min and max burden. Dividing that by the number of tiers, and then using that to get the min burden for each Tier.
-            tierMod = 1 - (tier * (0.5 / 8));
-            int minBurden = (int)(existBurden * tierMod);
+            // secondary rng roll - pseudo curve table per tier
+            var roll = ChanceTables.Roll(tier);
 
-            int finalBurden = ThreadSafeRandom.Next(minBurden, existBurden);
-            return finalBurden;
+            var bulk = isWeapon ? WeaponBulk : ArmorBulk;
+            bulk *= (float)(wo.BulkMod ?? 1.0f);
+
+            var minBurdenMod = 1.0f - bulk;
+
+            var burdenMod = 1.0f - (roll * minBurdenMod);
+
+            // modify burden
+            var prevBurden = wo.EncumbranceVal.Value;
+            wo.EncumbranceVal = (int)Math.Round(prevBurden * burdenMod);
+
+            if (wo.EncumbranceVal < 1)
+                wo.EncumbranceVal = 1;
+
+            //Console.WriteLine($"Modified burden from {prevBurden} to {wo.EncumbranceVal} for {wo.Name} ({wo.WeenieClassId})");
+
+            return true;
+        }
+
+        private static bool RollBurdenModChance(int tier)
+        {
+            var chance = ChanceTables.QualityChancePerTier[tier - 1];
+
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            return rng < chance;
         }
     }         
 }

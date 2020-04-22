@@ -1882,6 +1882,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.EncumbranceVal); else SetProperty(PropertyInt.EncumbranceVal, value.Value); }
         }
 
+        public double? BulkMod
+        {
+            get => GetProperty(PropertyFloat.BulkMod);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.BulkMod); else SetProperty(PropertyFloat.BulkMod, value.Value); }
+        }
+
         public uint? PaletteBaseId
         {
             get => GetProperty(PropertyDataId.PaletteBase);
