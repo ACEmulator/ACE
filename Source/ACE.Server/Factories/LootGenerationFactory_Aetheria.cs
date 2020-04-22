@@ -1,4 +1,3 @@
-
 using ACE.Common;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects;
@@ -7,14 +6,8 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateAetheria(int tier)
+        private static WorldObject CreateAetheria(int tier, bool mutate = true)
         {
-            const uint aetheriaIconOverlayOne   = 100690996;
-            const uint aetheriaIconOverlayTwo   = 100690997;
-            const uint aetheriaIconOverlayThree = 100690998;
-            const uint aetheriaIconOverlayFour  = 100690999;
-            const uint aetheriaIconOverlayFive  = 100691000;
-
             int chance;
             uint aetheriaType;
 
@@ -46,9 +39,19 @@ namespace ACE.Server.Factories
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject(aetheriaType) as Gem;
 
-            if (wo == null)
-                return null;
+            if (wo != null && mutate)
+                MutateAetheria(wo, tier);
 
+            return wo;
+        }
+
+        private static void MutateAetheria(WorldObject wo, int tier)
+        {
+            const uint aetheriaIconOverlayOne   = 100690996;
+            const uint aetheriaIconOverlayTwo   = 100690997;
+            const uint aetheriaIconOverlayThree = 100690998;
+            const uint aetheriaIconOverlayFour  = 100690999;
+            const uint aetheriaIconOverlayFive  = 100691000;
 
             // Initial roll for an Aetheria level 1 through 3
             wo.ItemMaxLevel = 1;
@@ -94,8 +97,11 @@ namespace ACE.Server.Factories
                     wo.IconOverlayId = aetheriaIconOverlayFive;
                     break;
             }
+        }
 
-            return wo;
+        private static bool GetMutateAetheriaData(uint wcid)
+        {
+            return LootTables.AetheriaWcids.Contains(wcid);
         }
     }
 }

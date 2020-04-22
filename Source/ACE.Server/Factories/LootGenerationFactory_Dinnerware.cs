@@ -1,3 +1,5 @@
+using System.Linq;
+
 using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -7,7 +9,7 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateDinnerware(int tier)
+        private static WorldObject CreateDinnerware(int tier, bool mutate = true)
         {
             uint id = 0;
             int chance;
@@ -22,11 +24,16 @@ namespace ACE.Server.Factories
             chance = ThreadSafeRandom.Next(0, upperLimit);
             id = (uint)LootTables.DinnerwareLootMatrix[chance];
 
-            if (id == 0)
-                return null;
-
             wo = WorldObjectFactory.CreateNewWorldObject(id);
 
+            if (wo != null && mutate)
+                MutateDinnerware(wo, tier);
+
+            return wo;
+        }
+
+        private static void MutateDinnerware(WorldObject wo, int tier)
+        {
             // Dinnerware has all these options (plates, tankards, etc)
             // This is just a short-term fix until Loot is overhauled
             // TODO - Doesn't handle damage/speed/etc that the mutate engine should for these types of items.
@@ -44,9 +51,12 @@ namespace ACE.Server.Factories
 
             wo = AssignValue(wo);
 
-            wo = RandomizeColor(wo);
+            RandomizeColor(wo);
+        }
 
-            return wo;
+        private static bool GetMutateDinnerwareData(uint wcid)
+        {
+            return LootTables.DinnerwareLootMatrix.Contains((int)wcid);
         }
     }
 }

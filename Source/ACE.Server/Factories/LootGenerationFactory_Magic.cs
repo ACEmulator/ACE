@@ -9,7 +9,7 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateSummoningEssence(int tier)
+        private static WorldObject CreateSummoningEssence(int tier, bool mutate = true)
         {
             uint id = 0;
 
@@ -24,7 +24,6 @@ namespace ACE.Server.Factories
             // T3- 80,50
             // T2- 50
             // T1- 50
-
 
             // Tables are already 1-7, so removing them being Tier dependent
 
@@ -48,9 +47,16 @@ namespace ACE.Server.Factories
             if (id == 0)
                 return null;
 
-            if (!(WorldObjectFactory.CreateNewWorldObject(id) is PetDevice petDevice))
-                return null;
+            var petDevice = WorldObjectFactory.CreateNewWorldObject(id) as PetDevice;
 
+            if (petDevice != null && mutate)
+                MutatePetDevice(petDevice, tier);
+
+            return petDevice;
+        }
+
+        private static void MutatePetDevice(PetDevice petDevice, int tier)
+        {
             var ratingChance = 0.5f;
 
             // add rng ratings to pet device
@@ -70,8 +76,6 @@ namespace ACE.Server.Factories
 
             var workmanship = GetWorkmanship(tier);
             petDevice.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-
-            return petDevice;
         }
 
         public static int GeneratePetDeviceRating(int tier)
@@ -144,15 +148,13 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Creates Caster (Wand, Staff, Orb)
         /// </summary>
-        public static WorldObject CreateCaster(TreasureDeath profile, bool isMagical, int wield = -1, bool forceWar = false)
+        public static WorldObject CreateCaster(TreasureDeath profile, bool isMagical, int wield = -1, bool forceWar = false, bool mutate = true)
         {
             // Refactored 11/20/19  - HarliQ
-
             int casterWeenie = 0;
-            double elementalDamageMod = 0;
-            Skill wieldSkillType = Skill.None;
-            WieldRequirement wieldRequirement = WieldRequirement.RawSkill;
             int subType = 0;
+            int element = 0;
+
             if (wield == -1)
                 wield = GetWield(profile.Tier, 2);
 
@@ -162,7 +164,35 @@ namespace ACE.Server.Factories
                 // Determine plain caster type: 0 - Orb, 1 - Sceptre, 2 - Staff, 3 - Wand
                 subType = ThreadSafeRandom.Next(0, 3);
                 casterWeenie = LootTables.CasterWeaponsMatrix[wield][subType];
+            }
+            else
+            {
+                // Determine caster type: 1 - Sceptre, 2 - Baton, 3 - Staff
+                int casterType = ThreadSafeRandom.Next(1, 3);
 
+                // Determine element type: 0 - Slashing, 1 - Piercing, 2 - Blunt, 3 - Frost, 4 - Fire, 5 - Acid, 6 - Electric, 7 - Nether
+                element = forceWar ? ThreadSafeRandom.Next(0, 6) : ThreadSafeRandom.Next(0, 7);
+                casterWeenie = LootTables.CasterWeaponsMatrix[casterType][element];
+            }
+
+            WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)casterWeenie);
+
+            // Why is this here?  Should not get a null object
+            if (wo != null && mutate)
+                MutateCaster(wo, profile, isMagical, wield, element);
+
+            return wo;
+        }
+
+        private static void MutateCaster(WorldObject wo, TreasureDeath profile, bool isMagical, int wield, int element)
+        {
+            WieldRequirement wieldRequirement = WieldRequirement.RawSkill;
+            Skill wieldSkillType = Skill.None;
+
+            double elementalDamageMod = 0;
+
+            if (wield == 0)
+            {
                 if (profile.Tier > 6)
                 {
                     wieldRequirement = WieldRequirement.Level;
@@ -180,25 +210,12 @@ namespace ACE.Server.Factories
                 // Determine the Elemental Damage Mod amount
                 elementalDamageMod = DetermineElementMod(wield);
 
-                // Determine caster type: 1 - Sceptre, 2 - Baton, 3 - Staff
-                int casterType = ThreadSafeRandom.Next(1, 3);
-
-                // Determine element type: 0 - Slashing, 1 - Piercing, 2 - Blunt, 3 - Frost, 4 - Fire, 5 - Acid, 6 - Electric, 7 - Nether
-                int element = forceWar ? ThreadSafeRandom.Next(0, 6) : ThreadSafeRandom.Next(0, 7);
-                casterWeenie = LootTables.CasterWeaponsMatrix[casterType][element];
-
                 // If element is Nether, Void Magic is required, else War Magic is required for all other elements
                 if (element == 7)
                     wieldSkillType = Skill.VoidMagic;
                 else
                     wieldSkillType = Skill.WarMagic;
             }
-
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)casterWeenie);
-
-            // Why is this here?  Should not get a null object
-            if (wo == null)
-                return null;
 
             // Setting MagicD and MissileD Bonuses to null (some weenies have a value)
             wo.WeaponMagicDefense = null;
@@ -257,10 +274,26 @@ namespace ACE.Server.Factories
                 wo.ItemDifficulty = null;
             }
 
-            wo = RandomizeColor(wo);
-
-            return wo;
+            RandomizeColor(wo);
         }
+
+        private static bool GetMutateCasterData(uint wcid, out int wield, out int element)
+        {
+            for (wield = 0; wield < LootTables.CasterWeaponsMatrix.Length; wield++)
+            {
+                var table = LootTables.CasterWeaponsMatrix[wield];
+
+                for (element = 0; element < table.Length; element++)
+                {
+                    if (wcid == table[element])
+                        return true;
+                }
+            }
+            wield = -1;
+            element = -1;
+            return false;
+        }
+
         private static double DetermineElementMod(int wield)
         {
             double elementBonus = 0;

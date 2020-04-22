@@ -1,7 +1,9 @@
+using System;
+using System.Linq;
+
 using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
@@ -13,11 +15,56 @@ namespace ACE.Server.Factories
         /// </summary>
         /// <param name="profile"></param><param name="isMagical"></param>
         /// <returns>Returns Melee Weapon WO</returns>
-        public static WorldObject CreateMeleeWeapon(TreasureDeath profile, bool isMagical, int weaponType = -1)
+        public static WorldObject CreateMeleeWeapon(TreasureDeath profile, bool isMagical, int weaponType = -1, bool mutate = true)
+        {
+            int weaponWeenie = 0;
+            int subtype = 0;
+
+            int eleType = ThreadSafeRandom.Next(0, 4);
+            if (weaponType == -1)
+                weaponType = ThreadSafeRandom.Next(0, 3);
+
+            // Weapon Types
+            // 0 = Heavy
+            // 1 = Light
+            // 2 = Finesse
+            // default = Two Handed
+            switch (weaponType)                
+            {
+                case 0:
+                    // Heavy Weapons
+                    subtype = ThreadSafeRandom.Next(0, 22);
+                    weaponWeenie = LootTables.HeavyWeaponsMatrix[subtype][eleType];
+                    break;
+                case 1:
+                    // Light Weapons
+                    subtype = ThreadSafeRandom.Next(0, 19);
+                    weaponWeenie = LootTables.LightWeaponsMatrix[subtype][eleType];
+                    break;
+                case 2:
+                    // Finesse Weapons;
+                    subtype = ThreadSafeRandom.Next(0, 22);
+                    weaponWeenie = LootTables.FinesseWeaponsMatrix[subtype][eleType];
+                    break;
+                default:
+                    // Two handed
+                    subtype = ThreadSafeRandom.Next(0, 11);
+                    weaponWeenie = LootTables.TwoHandedWeaponsMatrix[subtype][eleType];
+                    break;
+            }
+
+            var wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
+
+            if (wo != null && mutate)
+                MutateMeleeWeapon(wo, profile, isMagical, weaponType, subtype);
+
+            return wo;
+        }
+
+        private static void MutateMeleeWeapon(WorldObject wo, TreasureDeath profile, bool isMagical, int weaponType, int subtype)
         {
             Skill wieldSkillType = Skill.None;
 
-            int weaponWeenie = 0;
             int damage = 0;
             double damageVariance = 0;
             double weaponDefense = 0;
@@ -33,24 +80,18 @@ namespace ACE.Server.Factories
             int wieldDiff = GetWield(profile.Tier, 3);
             WieldRequirement wieldRequirments = WieldRequirement.RawSkill;
 
-            int eleType = ThreadSafeRandom.Next(0, 4);
-            if (weaponType == -1)
-                weaponType = ThreadSafeRandom.Next(0, 3);
-
             // Weapon Types
             // 0 = Heavy
             // 1 = Light
             // 2 = Finesse
             // default = Two Handed
-            switch (weaponType)                
+            switch (weaponType)
             {
                 case 0:
                     // Heavy Weapons
                     wieldSkillType = Skill.HeavyWeapons;
-                    int heavyWeaponsType = ThreadSafeRandom.Next(0, 22);
-                    weaponWeenie = LootTables.HeavyWeaponsMatrix[heavyWeaponsType][eleType];
 
-                    switch (heavyWeaponsType)
+                    switch (subtype)
                     {
                         case 0:
                         case 1:
@@ -68,9 +109,9 @@ namespace ACE.Server.Factories
 
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Dagger);
 
-                            if (heavyWeaponsType == 3)
+                            if (subtype == 3)
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.Dagger);
-                            if (heavyWeaponsType == 4 || heavyWeaponsType == 5)
+                            if (subtype == 4 || subtype == 5)
                             {
                                 damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.DaggerMulti);
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.DaggerMulti);
@@ -112,7 +153,7 @@ namespace ACE.Server.Factories
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Sword);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Sword);
 
-                            if (heavyWeaponsType == 20)
+                            if (subtype == 20)
                             {
                                 damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.SwordMulti);
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.SwordMulti);
@@ -130,10 +171,8 @@ namespace ACE.Server.Factories
                 case 1:
                     // Light Weapons;
                     wieldSkillType = Skill.LightWeapons;
-                    int lightWeaponsType = ThreadSafeRandom.Next(0, 19);
-                    weaponWeenie = LootTables.LightWeaponsMatrix[lightWeaponsType][eleType];
 
-                    switch (lightWeaponsType)
+                    switch (subtype)
                     {
                         case 0:
                         case 1:
@@ -184,7 +223,7 @@ namespace ACE.Server.Factories
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Sword);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Sword);
 
-                            if (lightWeaponsType == 14)
+                            if (subtype == 14)
                             {
                                 damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.SwordMulti);
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.SwordMulti);
@@ -202,10 +241,8 @@ namespace ACE.Server.Factories
                 case 2:
                     // Finesse Weapons;
                     wieldSkillType = Skill.FinesseWeapons;
-                    int finesseWeaponsType = ThreadSafeRandom.Next(0, 22);
-                    weaponWeenie = LootTables.FinesseWeaponsMatrix[finesseWeaponsType][eleType];
 
-                    switch (finesseWeaponsType)
+                    switch (subtype)
                     {
                         case 0:
                         case 1:
@@ -223,7 +260,7 @@ namespace ACE.Server.Factories
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Dagger);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Dagger);
 
-                            if (finesseWeaponsType == 3 || finesseWeaponsType == 4)
+                            if (subtype == 3 || subtype == 4)
                             {
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.DaggerMulti);
                                 damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.DaggerMulti);
@@ -239,7 +276,7 @@ namespace ACE.Server.Factories
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Mace);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Mace);
 
-                            if (finesseWeaponsType == 9)
+                            if (subtype == 9)
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.Jitte);
                             break;
                         case 11:
@@ -267,7 +304,7 @@ namespace ACE.Server.Factories
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Sword);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Sword);
 
-                            if (finesseWeaponsType == 15)
+                            if (subtype == 15)
                             {
                                 damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.SwordMulti);
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.SwordMulti);
@@ -285,13 +322,11 @@ namespace ACE.Server.Factories
                 default:
                     // Two handed
                     wieldSkillType = Skill.TwoHandedCombat;
-                    int twoHandedWeaponsType = ThreadSafeRandom.Next(0, 11);
-                    weaponWeenie = LootTables.TwoHandedWeaponsMatrix[twoHandedWeaponsType][eleType];
 
                     damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Cleaving);
                     damageVariance = GetVariance(wieldSkillType, LootWeaponType.TwoHanded);
 
-                    switch (twoHandedWeaponsType)
+                    switch (subtype)
                     {
                         case 0:
                         case 1:
@@ -321,12 +356,6 @@ namespace ACE.Server.Factories
                     }
                     break;
             }
-
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
-
-            if (wo == null)
-                return null;
-
 
             // Description
             wo.AppraisalLongDescDecoration = longDescDecoration;
@@ -360,7 +389,7 @@ namespace ACE.Server.Factories
             {
                 // If no wield, remove wield reqs
                 wo.WieldDifficulty = null;
-                wo.WieldRequirements = WieldRequirement.Invalid;                
+                wo.WieldRequirements = WieldRequirement.Invalid;
                 wo.WieldSkillType = null;
 
             }
@@ -384,8 +413,7 @@ namespace ACE.Server.Factories
             var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
             wo.Value = value;
 
-            wo = RandomizeColor(wo);
-            return wo;
+            RandomizeColor(wo);
         }
 
         private enum LootWeaponType
@@ -688,6 +716,7 @@ namespace ACE.Server.Factories
 
             return variance;
         }
+
         /// <summary>
         /// Gets Melee Weapon Index
         /// </summary>
@@ -730,6 +759,7 @@ namespace ACE.Server.Factories
 
             return index;
         }
+
         /// <summary>
         /// Gets Melee Weapon Max Damage
         /// </summary>
@@ -759,6 +789,25 @@ namespace ACE.Server.Factories
             int maxDamageVariance = ThreadSafeRandom.Next(-4, 0);
 
             return damageTable + maxDamageVariance;
+        }
+
+        private static bool GetMutateMeleeWeaponData(uint wcid, out int weaponType, out int subtype)
+        {
+            // linear search = slow... but this is only called for /lootgen
+            // if this ever needs to be fast, create a lookup table
+
+            for (weaponType = 0; weaponType < LootTables.MeleeWeaponsMatrices.Count; weaponType++)
+            {
+                var lootTable = LootTables.MeleeWeaponsMatrices[weaponType];
+                for (subtype = 0; subtype < lootTable.Length; subtype++)
+                {
+                    if (lootTable[subtype].Contains((int)wcid))
+                        return true;
+                }
+            }
+            weaponType = -1;
+            subtype = -1;
+            return false;
         }
     }
 }
