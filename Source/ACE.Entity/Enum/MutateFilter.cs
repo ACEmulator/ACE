@@ -25,7 +25,7 @@ namespace ACE.Entity.Enum
 
         ArmorModVsType = ArmorModVsAcid | ArmorModVsCold | ArmorModVsElectric | ArmorModVsFire,
 
-        // the 6 mutation filters in 16PY all have these fields
+        // the 6 mutate filters in 16PY all have these fields
         Base = Icon | ItemWorkmanship | LongDesc | Name | ResistItemAppraisal | Setup | ShortDesc | Value,
     }
 }
