@@ -48,7 +48,7 @@ namespace ACE.Server.Factories
 
             return displayHeader;
         }
-        public static string TestLootGenMonster(uint wcid, int numberofcorpses, bool logstats, string displaytable)
+        public static string TestLootGenMonster(uint dtDID, int numberofcorpses, bool logstats, string displaytable)
         {
             string displayHeader = $"\n LootFactory Simulator - Corpses\n ---------------------\n";
 
@@ -57,14 +57,14 @@ namespace ACE.Server.Factories
 
             Console.WriteLine($"Creating {numberofcorpses} corpses.");
 
-            var deathTreasure = DatabaseManager.World.GetCachedDeathTreasure(wcid);
+            var deathTreasure = DatabaseManager.World.GetCachedDeathTreasure(dtDID);
             if (deathTreasure != null)
             {
-                displayHeader += $" Loot profile {deathTreasure.Id} (a Tier {deathTreasure.Tier} profile) from DID {wcid} was used for creating {numberofcorpses} corpses. \n";
+                displayHeader += $" Loot profile {deathTreasure.Id} (a Tier {deathTreasure.Tier} profile) from DID {dtDID} was used for creating {numberofcorpses} corpses. \n";
             }
             else
             {
-                displayHeader += $" DID {wcid} you specified is invalid. \n";
+                displayHeader += $" DID {dtDID} you specified is invalid. \n";
                 return displayHeader;
             }
             for (int i = 0; i < numberofcorpses; i++)
@@ -91,7 +91,7 @@ namespace ACE.Server.Factories
             displayHeader += $" A total of {ls.TotalItems} unique items were generated. \n";
             if (logstats == true)
             {
-                string myfilename = string.Format("LootSim-{0:hh-mm-ss-tt_MM-dd-yyyy}.csv", DateTime.Now);
+                string myfilename = $"LootSim_DeathTreasureDID-{dtDID}" + string.Format("_{0:hh-mm-ss-tt_MM-dd-yyyy}.csv", DateTime.Now);
                 System.IO.File.WriteAllText(myfilename, displayHeader + DisplayStats(ls, displaytable));
             }
 
