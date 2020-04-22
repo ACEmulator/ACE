@@ -10,7 +10,7 @@ namespace ACE.Server.Command.Handlers
 {
     public static class DeveloperLootCommands
     {
-        [CommandHandler("testlootgen", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 2, "Generates Loot for testing LootFactories.  Do testlootgen -info for examples.", "<number of items> <loot tier> <melee, missile, caster, armor, pet, aetheria (optional)>")]
+        [CommandHandler("testlootgen", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Generates Loot for testing LootFactories.  Do testlootgen -info for examples.", "<number of items> <loot tier> <melee, missile, caster, armor, pet, aetheria (optional)>")]
         public static void TestLootGenerator(Session session, params string[] parameters)
         {
             // This generates loot items and displays the drop rates of LootFactory
@@ -94,7 +94,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("testlootgencorpse", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 2, "Generates Corpses for testing LootFactories", "<DID> <number corpses> <display table - melee, missile, caster, armor, pet, aetheria>")]
+        [CommandHandler("testlootgencorpse", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Generates Corpses for testing LootFactories", "<DID> <number corpses> <display table - melee, missile, caster, armor, pet, aetheria>")]
         public static void TestLootGeneratorCorpse(Session session, params string[] parameters)
         {
             // This generates loot items and displays the drop rates of LootFactory
