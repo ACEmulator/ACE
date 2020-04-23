@@ -2496,9 +2496,9 @@ namespace ACE.Server.Physics
             return Position.CylinderDistance(curRadius, curHeight, Position, radius, height, obj.Position);
         }
 
+        // custom, based on above
         public double get_distance_sq_to_object(PhysicsObj obj, bool use_cyls)
         {
-            // custom, based on above
             if (!use_cyls)
                 return Position.DistanceSquared(obj.Position);
 
