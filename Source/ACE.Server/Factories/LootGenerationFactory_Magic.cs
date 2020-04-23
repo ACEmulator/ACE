@@ -2,7 +2,6 @@ using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Database;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
@@ -25,7 +24,6 @@ namespace ACE.Server.Factories
             // T2- 50
             // T1- 50
 
-
             // Tables are already 1-7, so removing them being Tier dependent
 
             int petLevel = 0;
@@ -45,10 +43,9 @@ namespace ACE.Server.Factories
 
             id = (uint)LootTables.SummoningEssencesMatrix[summoningEssenceIndex][petLevel - 1];
 
-            if (id == 0)
-                return null;
+            var petDevice = WorldObjectFactory.CreateNewWorldObject(id) as PetDevice;
 
-            if (!(WorldObjectFactory.CreateNewWorldObject(id) is PetDevice petDevice))
+            if (petDevice == null)
                 return null;
 
             var ratingChance = 0.5f;
@@ -68,15 +65,14 @@ namespace ACE.Server.Factories
             if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
                 petDevice.GearCritResist = GeneratePetDeviceRating(tier);
 
-            var workmanship = GetWorkmanship(tier);
-            petDevice.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
+            petDevice.ItemWorkmanship = GetWorkmanship(tier);
 
             return petDevice;
         }
 
         public static int GeneratePetDeviceRating(int tier)
         {
-            // thanks for morosity for this formula!
+            // thanks to morosity for this formula!
             var baseRating = ThreadSafeRandom.Next(1, 10);
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
             var tierMod = 0.4f + tier * 0.02f;
@@ -154,7 +150,7 @@ namespace ACE.Server.Factories
             WieldRequirement wieldRequirement = WieldRequirement.RawSkill;
             int subType = 0;
             if (wield == -1)
-                wield = GetWield(profile.Tier, 2);
+                wield = GetWieldDifficulty(profile.Tier, WieldType.Caster);
 
             // Getting the caster Weenie needed.
             if (wield == 0)
@@ -261,11 +257,12 @@ namespace ACE.Server.Factories
 
             return wo;
         }
+
         private static double DetermineElementMod(int wield)
         {
             double elementBonus = 0;
 
-           int chance = ThreadSafeRandom.Next(1, 100);
+            int chance = ThreadSafeRandom.Next(1, 100);
             switch (wield)
             {
                 case 290:
