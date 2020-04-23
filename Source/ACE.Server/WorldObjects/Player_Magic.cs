@@ -143,7 +143,6 @@ namespace ACE.Server.WorldObjects
 
             StartPos = new Physics.Common.Position(PhysicsObj.Position);
 
-
             if (RecordCast.Enabled)
                 RecordCast.OnCastTargetedSpell(new Spell(spellId), target);
 
