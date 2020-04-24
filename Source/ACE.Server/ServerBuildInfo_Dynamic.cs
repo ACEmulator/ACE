@@ -4,17 +4,17 @@ namespace ACE.Server
     public static partial class ServerBuildInfo 
     { 
         public static string Branch = "master"; 
-        public static string Commit = "ef9975537be668fe41b8e4ba6b8ab854c3f9aa0d"; 
+        public static string Commit = "16f32a1802b292eb7583261a6e47b6e66cf8091d"; 
  
         public static string Version = "1.2"; 
-        public static string Build   = "3352"; 
+        public static string Build   = "3353"; 
  
         public static int BuildYear   = 2020; 
         public static int BuildMonth  = 04; 
-        public static int BuildDay    = 23; 
-        public static int BuildHour   = 23; 
-        public static int BuildMinute = 57; 
-        public static int BuildSecond = 26; 
+        public static int BuildDay    = 24; 
+        public static int BuildHour   = 14; 
+        public static int BuildMinute = 59; 
+        public static int BuildSecond = 30; 
     } 
 } 
  
