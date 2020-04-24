@@ -2496,6 +2496,21 @@ namespace ACE.Server.Physics
             return Position.CylinderDistance(curRadius, curHeight, Position, radius, height, obj.Position);
         }
 
+        // custom, based on above
+        public double get_distance_sq_to_object(PhysicsObj obj, bool use_cyls)
+        {
+            if (!use_cyls)
+                return Position.DistanceSquared(obj.Position);
+
+            var height = obj.PartArray != null ? obj.PartArray.GetHeight() : 0.0f;
+            var radius = obj.PartArray != null ? obj.PartArray.GetRadius() : 0.0f;
+
+            var curHeight = PartArray != null ? PartArray.GetHeight() : 0.0f;
+            var curRadius = PartArray != null ? PartArray.GetRadius() : 0.0f;
+
+            return Position.CylinderDistanceSq(curRadius, curHeight, Position, radius, height, obj.Position);
+        }
+
         public AFrame get_frame()
         {
             return Position.Frame;
