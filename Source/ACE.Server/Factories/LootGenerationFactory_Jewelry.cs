@@ -118,7 +118,7 @@ namespace ACE.Server.Factories
             if (wo == null)
                 return null;
 
-            wo.AppraisalLongDescDecoration = 1;
+            wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
             wo.LongDesc = wo.Name;
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)

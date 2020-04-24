@@ -154,8 +154,6 @@ namespace ACE.Server.Factories
         /// </summary>
         public static WorldObject CreateLootByWCID(uint wcid, int tier)
         {
-            int longDescDecoration = 5;
-
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject(wcid);
 
             if (wo == null)
@@ -166,7 +164,7 @@ namespace ACE.Server.Factories
             wo.ItemWorkmanship = workmanship;
             wo.GemCount = ThreadSafeRandom.Next(1, 5);
             wo.GemType = (MaterialType)ThreadSafeRandom.Next(10, 50);
-            wo.AppraisalLongDescDecoration = longDescDecoration;
+            wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependMaterial | AppraisalLongDescDecorations.AppendGemInfo;
             wo.LongDesc = wo.Name;
 
             if (wo.TsysMutationData != null)
@@ -1939,16 +1937,14 @@ namespace ACE.Server.Factories
         /// </summary>
         private static WorldObject SetAppraisalLongDescDecoration(WorldObject wo)
         {
-            // LDDecoration_PrependWorkmanship = 0x1,
-            // LDDecoration_PrependMaterial = 0x2,
-            // LDDecoration_AppendGemInfo = 0x4,
-            int appraisalLongDescDecoration = 0;
+            var appraisalLongDescDecoration = AppraisalLongDescDecorations.None;
+
             if (wo.ItemWorkmanship > 0)
-                appraisalLongDescDecoration |= 1;
+                appraisalLongDescDecoration |= AppraisalLongDescDecorations.PrependWorkmanship;
             if (wo.MaterialType > 0)
-                appraisalLongDescDecoration |= 2;
+                appraisalLongDescDecoration |= AppraisalLongDescDecorations.PrependMaterial;
             if (wo.GemType > 0 && wo.GemCount > 0)
-                appraisalLongDescDecoration |= 4;
+                appraisalLongDescDecoration |= AppraisalLongDescDecorations.AppendGemInfo;
 
             if (appraisalLongDescDecoration > 0)
                 wo.AppraisalLongDescDecoration = appraisalLongDescDecoration;
