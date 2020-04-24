@@ -22,7 +22,6 @@ namespace ACE.Server.Factories
             double damageVariance = 0;
             double weaponDefense = 0;
             double weaponOffense = 0;
-            int longDescDecoration = 5;
 
             // Properties for weapons
             double magicD = GetMagicMissileDMod(profile.Tier);
@@ -329,7 +328,7 @@ namespace ACE.Server.Factories
 
 
             // Description
-            wo.AppraisalLongDescDecoration = longDescDecoration;
+            wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship | AppraisalLongDescDecorations.AppendGemInfo;
             wo.LongDesc = wo.Name;
 
             // GemTypes, Material, Workmanship

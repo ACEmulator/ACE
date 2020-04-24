@@ -141,6 +141,8 @@ namespace ACE.Server.WorldObjects
             MagicState.OnCastStart();
             MagicState.SetWindupParams(targetGuid, spellId, builtInSpell);
 
+            StartPos = new Physics.Common.Position(PhysicsObj.Position);
+
             if (RecordCast.Enabled)
                 RecordCast.OnCastTargetedSpell(new Spell(spellId), target);
 
@@ -320,6 +322,8 @@ namespace ACE.Server.WorldObjects
                 RecordCast.OnCastUntargetedSpell(new Spell(spellId));
 
             MagicState.OnCastStart();
+
+            StartPos = new Physics.Common.Position(PhysicsObj.Position);
 
             if (!CreatePlayerSpell(spellId))
                 MagicState.OnCastDone();
@@ -961,7 +965,7 @@ namespace ACE.Server.WorldObjects
             DoSpellWords(spell, isWeaponSpell);
 
             var spellChain = new ActionChain();
-            StartPos = new Physics.Common.Position(PhysicsObj.Position);
+            //StartPos = new Physics.Common.Position(PhysicsObj.Position);
 
             // do wind-up gestures: fastcast has no windup (creature enchantments)
             DoWindupGestures(spell, isWeaponSpell, spellChain);
@@ -1263,7 +1267,7 @@ namespace ACE.Server.WorldObjects
 
             var spellChain = new ActionChain();
 
-            StartPos = new Physics.Common.Position(PhysicsObj.Position);
+            //StartPos = new Physics.Common.Position(PhysicsObj.Position);
 
             // do wind-up gestures: fastcast has no windup (creature enchantments)
             DoWindupGestures(spell, false, spellChain);
