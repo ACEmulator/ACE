@@ -62,7 +62,7 @@ namespace ACE.Server.Factories
             wo.LongDesc = wo.Name;
 
             wo.AppraisalItemSkill = 7;
-            wo.AppraisalLongDescDecoration = 1;
+            wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
 
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
