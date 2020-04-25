@@ -999,7 +999,7 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public Usable? Usable
+        public Usable? ItemUseable
         {
             get => (Usable?)GetProperty(PropertyInt.ItemUseable);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemUseable); else SetProperty(PropertyInt.ItemUseable, (int)value.Value); }

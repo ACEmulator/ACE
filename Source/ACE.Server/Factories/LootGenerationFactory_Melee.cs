@@ -1,7 +1,6 @@
 using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
@@ -29,7 +28,7 @@ namespace ACE.Server.Factories
             int gemCount = ThreadSafeRandom.Next(1, 5);
             int gemType = ThreadSafeRandom.Next(10, 50);
             int workmanship = GetWorkmanship(profile.Tier);
-            int wieldDiff = GetWield(profile.Tier, 3);
+            int wieldDiff = GetWieldDifficulty(profile.Tier, WieldType.MeleeWeapon);
             WieldRequirement wieldRequirments = WieldRequirement.RawSkill;
 
             int eleType = ThreadSafeRandom.Next(0, 4);
@@ -326,7 +325,6 @@ namespace ACE.Server.Factories
             if (wo == null)
                 return null;
 
-
             // Description
             wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship | AppraisalLongDescDecorations.AppendGemInfo;
             wo.LongDesc = wo.Name;
@@ -364,7 +362,6 @@ namespace ACE.Server.Factories
                 wo.WieldDifficulty = null;
                 wo.WieldRequirements = WieldRequirement.Invalid;                
                 wo.WieldSkillType = null;
-
             }
 
             // Adding Magic Spells
@@ -690,11 +687,10 @@ namespace ACE.Server.Factories
 
             return variance;
         }
+
         /// <summary>
         /// Gets Melee Weapon Index
         /// </summary>
-        /// <param name="wieldDiff"></param>
-        /// <returns>Melee Weapon Index</returns>
         private static int GetMeleeWieldToIndex(int wieldDiff)
         {
             int index = 0;
@@ -732,6 +728,7 @@ namespace ACE.Server.Factories
 
             return index;
         }
+
         /// <summary>
         /// Gets Melee Weapon Max Damage
         /// </summary>
