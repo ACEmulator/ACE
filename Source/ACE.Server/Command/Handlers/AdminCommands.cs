@@ -2892,12 +2892,18 @@ namespace ACE.Server.Command.Handlers
                     while (patron.PatronId != null)
                         patron = PlayerManager.FindByGuid(patron.PatronId.Value);
 
-                    Console.WriteLine($"{player.Name} has references to {monarch.Name} as monarch, but should be {patron.Name} -- fixing missing player");
+                    if (player.MonarchId != patron.Guid.Full)
+                    {
+                        Console.WriteLine($"{player.Name} has references to {monarch.Name} as monarch, but should be {patron.Name} -- fixing missing player");
 
-                    player.MonarchId = patron.Guid.Full;
-                    player.SaveBiotaToDatabase();
+                        player.MonarchId = patron.Guid.Full;
+                        player.SaveBiotaToDatabase();
+                    }
                 }
             }
+
+            foreach (var allegiance in AllegianceManager.Allegiances.Values.ToList())
+                AllegianceManager.Rebuild(allegiance);
         }
 
         [CommandHandler("show-allegiances", AccessLevel.Admin, CommandHandlerFlag.None, "Shows all of the allegiance chains on the server.")]
