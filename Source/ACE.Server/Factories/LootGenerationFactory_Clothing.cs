@@ -59,10 +59,10 @@ namespace ACE.Server.Factories
             if (wo == null)
                 return null;
 
-            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
+            wo.LongDesc = wo.Name;
 
-            wo.SetProperty(PropertyInt.AppraisalItemSkill, 7);
-            wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
+            wo.AppraisalItemSkill = 7;
+            wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
 
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
@@ -70,11 +70,12 @@ namespace ACE.Server.Factories
 
             int gemCount = ThreadSafeRandom.Next(1, 6);
             int gemType = ThreadSafeRandom.Next(10, 50);
-            wo.SetProperty(PropertyInt.GemCount, gemCount);
-            wo.SetProperty(PropertyInt.GemType, gemType);
+
+            wo.GemCount = gemCount;
+            wo.GemType = (MaterialType)gemType;
 
             int workmanship = GetWorkmanship(profile.Tier);
-            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
+            wo.ItemWorkmanship = workmanship;
 
             double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
@@ -84,8 +85,8 @@ namespace ACE.Server.Factories
             int wield;
             if (profile.Tier > 6 && armorType != LootTables.ArmorType.CovenantArmor)
             {
-                wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.Level);
-                wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.Axe);  // Set by examples from PCAP data
+                wo.WieldRequirements = WieldRequirement.Level;
+                wo.WieldSkillType = (int)Skill.Axe;  // Set by examples from PCAP data
 
                 wield = profile.Tier switch
                 {
@@ -93,7 +94,7 @@ namespace ACE.Server.Factories
                     _ => 180,// In this instance, used for indicating player level, rather than skill level
                 };
 
-                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+                wo.WieldDifficulty = wield;
             }
 
             if (armorType == LootTables.ArmorType.CovenantArmor)
@@ -101,27 +102,23 @@ namespace ACE.Server.Factories
                 int chance = ThreadSafeRandom.Next(1, 3);
                 var wieldSkill = chance switch
                 {
-                    // Magic Def
                     1 => Skill.MagicDefense,
-                    // Missile Def
                     2 => Skill.MissileDefense,
-                    // Melee Def
                     _ => Skill.MeleeDefense,
                 };
                 wield = GetCovenantWieldReq(profile.Tier, wieldSkill);
 
-                wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.RawSkill);
-                wo.SetProperty(PropertyInt.WieldSkillType, (int)wieldSkill);
-                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+                wo.WieldRequirements = WieldRequirement.RawSkill;
+                wo.WieldSkillType = (int)wieldSkill;
+                wo.WieldDifficulty = wield;
 
                 // used by tinkering requirements for copper/silver
-                wo.SetProperty(PropertyDataId.ItemSkillLimit, (uint)wieldSkill);
+                wo.ItemSkillLimit = (uint)wieldSkill;
             }
 
             // Setting random color
-            wo.SetProperty(PropertyInt.PaletteTemplate, ThreadSafeRandom.Next(1, 2047));
-            double shade = .1 * ThreadSafeRandom.Next(0, 9);
-            wo.SetProperty(PropertyFloat.Shade, shade);
+            wo.PaletteTemplate = ThreadSafeRandom.Next(1, 2047);
+            wo.Shade = .1 * ThreadSafeRandom.Next(0, 9);
 
             wo = AssignArmorLevel(wo, profile.Tier, armorType);
 
@@ -134,11 +131,11 @@ namespace ACE.Server.Factories
             }
             else
             {
-                wo.RemoveProperty(PropertyInt.ItemManaCost);
-                wo.RemoveProperty(PropertyInt.ItemMaxMana);
-                wo.RemoveProperty(PropertyInt.ItemCurMana);
-                wo.RemoveProperty(PropertyInt.ItemSpellcraft);
-                wo.RemoveProperty(PropertyInt.ItemDifficulty);
+                wo.ItemManaCost = null;
+                wo.ItemMaxMana = null;
+                wo.ItemCurMana = null;
+                wo.ItemSpellcraft = null;
+                wo.ItemDifficulty = null;
             }
 
             wo = RandomizeColor(wo);
@@ -245,10 +242,6 @@ namespace ACE.Server.Factories
         /// Used values given at https://asheron.fandom.com/wiki/Loot#Armor_Levels for setting the AL mod values
         /// so as to not exceed the values listed in that table
         /// </summary>
-        /// <param name="wo"></param>
-        /// <param name="tier"></param>
-        /// <param name="armorType"></param>
-        /// <returns></returns>
         private static WorldObject AssignArmorLevel(WorldObject wo, int tier, LootTables.ArmorType armorType)
         {
             if (wo.ArmorType == null)
@@ -257,14 +250,14 @@ namespace ACE.Server.Factories
                 return wo;
             }
 
-            var baseArmorLevel = wo.GetProperty(PropertyInt.ArmorLevel) ?? 0;
+            var baseArmorLevel = wo.ArmorLevel ?? 0;
 
             if (((wo.ClothingPriority & (CoverageMask)CoverageMaskHelper.Underwear) == 0) || wo.IsShield)
             {
                 int armorModValue = 0;
 
                 // Account for ACE World Databases that have not yet been updated
-                if (wo.ArmorType != (int)ArmorType.Cloth && (wo.GetProperty(PropertyInt.Version) == null || wo.GetProperty(PropertyInt.Version) < 3))
+                if (wo.ArmorType != (int)ArmorType.Cloth && (wo.GetProperty(PropertyInt.Version) ?? 0) < 3)
                     return AssignArmorLevelCompat(wo, tier, armorType);
 
                 // Sets AL variations based on weenie ArmorType field, such as cloth, leather, metal, etc.
@@ -403,10 +396,10 @@ namespace ACE.Server.Factories
                 }
 
                 int adjustedArmorLevel = baseArmorLevel + armorModValue;
-                wo.SetProperty(PropertyInt.ArmorLevel, adjustedArmorLevel);
+                wo.ArmorLevel = adjustedArmorLevel;
             }
 
-            if ((wo.ResistMagic == null || wo.ResistMagic < 9999) && wo.GetProperty(PropertyInt.ArmorLevel) >= 345)
+            if ((wo.ResistMagic == null || wo.ResistMagic < 9999) && wo.ArmorLevel >= 345)
                 log.Warn($"[LOOT] Standard armor item exceeding upper AL threshold {wo.WeenieClassId} - {wo.Name}");
 
             return wo;
@@ -416,7 +409,7 @@ namespace ACE.Server.Factories
         {
             log.Debug($"[LOOT] Using AL Assignment Compatibility layer for item {wo.WeenieClassId} - {wo.Name}.");
 
-            var baseArmorLevel = wo.GetProperty(PropertyInt.ArmorLevel) ?? 0;
+            var baseArmorLevel = wo.ArmorLevel ?? 0;
 
             if (baseArmorLevel > 0)
             {
@@ -566,7 +559,7 @@ namespace ACE.Server.Factories
                 }
 
                 int adjustedArmorLevel = baseArmorLevel + armorModValue;
-                wo.SetProperty(PropertyInt.ArmorLevel, adjustedArmorLevel);
+                wo.ArmorLevel = adjustedArmorLevel;
             }
 
             return wo;

@@ -44,7 +44,7 @@ namespace ACE.Server.WorldObjects
         {
             Ethereal = true;
             RadarBehavior = ACE.Entity.Enum.RadarBehavior.ShowNever;
-            Usable = ACE.Entity.Enum.Usable.No;
+            ItemUseable = ACE.Entity.Enum.Usable.No;
 
             SuppressGenerateEffect = true;
         }

@@ -1,4 +1,3 @@
-
 using ACE.Common;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects;

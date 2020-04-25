@@ -17,7 +17,7 @@ namespace ACE.Server.Factories
         {
             int weaponWeenie;
             int elemenatalBonus = 0;
-            int wieldDifficulty = GetWield(profile.Tier, 1);
+            int wieldDifficulty = GetWieldDifficulty(profile.Tier, WieldType.MissileWeapon);
 
             // Changing based on wield, not tier. Refactored, less code, best results.  HarliQ 11/18/19
             if (wieldDifficulty < 315)
@@ -91,11 +91,10 @@ namespace ACE.Server.Factories
             
             return wo;
         }
+
         /// <summary>
         /// Get Missile Wield Index.
         /// </summary>
-        /// <param name="wieldDiff"></param>
-        /// <returns>Missile Wield Index</returns>
         private static int GetMissileWieldToIndex(int wieldDiff)
         {
             int index = 0;
@@ -134,7 +133,7 @@ namespace ACE.Server.Factories
                 WeaponType.Thrown => LootTables.MissileDamageMod[thrown][GetMissileWieldToIndex(wieldDiff)],
                 _ => 1.5f, // Default/Else
             };
-            // Added varaiance for Damage Modifier.  Full Modifier was rare in retail
+            // Added variance for Damage Modifier.  Full Modifier was rare in retail
             int modChance = ThreadSafeRandom.Next(0, 100);
             if (modChance < 20)
                 damageMod -= 0.09f;
@@ -157,6 +156,7 @@ namespace ACE.Server.Factories
 
             return damageMod;
         }
+
         /// <summary>
         /// Get Missile Elemental Damage based on Wield.
         /// </summary>
@@ -254,6 +254,7 @@ namespace ACE.Server.Factories
 
             return eleMod;
         }
+
         /// <summary>
         /// Determines Type of Missile Weapon, and the element.
         /// </summary>
@@ -267,15 +268,14 @@ namespace ACE.Server.Factories
             int element = ThreadSafeRandom.Next(0, 6);
 
             return LootTables.ElementalMissileWeaponsMatrix[missileType][element];
-            
         }
+
         /// <summary>
         /// Determines Non Elemental type of missile weapon (No Wields).
         /// </summary>
         /// <returns>Missile Weapon Type and SubType</returns>      
         private static int GetNonElementalMissileWeapon()
         {
-
             // Determine missile weapon type: 0 - Bow, 1 - Crossbows, 2 - Atlatl
             int missileType = ThreadSafeRandom.Next(0, 2);
             var subType = missileType switch
