@@ -132,28 +132,38 @@ namespace ACE.Server
             log.Info($"Automatic Database Patching started...");
             Thread.Sleep(1000);
 
-            var updatesFile = $"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}Shard{Path.DirectorySeparatorChar}applied_updates.txt";
+            PatchDatabase("Authentication", ConfigManager.Config.MySql.Authentication.Host, ConfigManager.Config.MySql.Authentication.Port, ConfigManager.Config.MySql.Authentication.Username, ConfigManager.Config.MySql.Authentication.Password, ConfigManager.Config.MySql.Authentication.Database);
+            PatchDatabase("Shard", ConfigManager.Config.MySql.Shard.Host, ConfigManager.Config.MySql.Shard.Port, ConfigManager.Config.MySql.Shard.Username, ConfigManager.Config.MySql.Shard.Password, ConfigManager.Config.MySql.Shard.Database);
+            PatchDatabase("World", ConfigManager.Config.MySql.World.Host, ConfigManager.Config.MySql.World.Port, ConfigManager.Config.MySql.World.Username, ConfigManager.Config.MySql.World.Password, ConfigManager.Config.MySql.World.Database);
+
+            Thread.Sleep(1000);
+            log.Info($"Automatic Database Patching complete.");
+        }
+
+        private static void PatchDatabase(string dbType, string host, uint port, string username, string password, string database)
+        {
+            var updatesFile = $"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}{dbType}{Path.DirectorySeparatorChar}applied_updates.txt";
             var appliedUpdates = Array.Empty<string>();
             if (File.Exists(updatesFile))
                 appliedUpdates = File.ReadAllLines(updatesFile);
 
-            Console.WriteLine("Searching for Shard update SQL scripts .... ");
-            foreach (var file in new DirectoryInfo($"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}Shard").GetFiles("*.sql").OrderBy(f => f.Name))
+            Console.WriteLine($"Searching for {dbType} update SQL scripts .... ");
+            foreach (var file in new DirectoryInfo($"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}{dbType}").GetFiles("*.sql").OrderBy(f => f.Name))
             {
                 if (appliedUpdates.Contains(file.Name))
                     continue;
 
                 Console.Write($"Found {file.Name} .... ");
                 var sqlDBFile = File.ReadAllText(file.FullName);
-                var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={ConfigManager.Config.MySql.Shard.Host};port={ConfigManager.Config.MySql.Shard.Port};user={ConfigManager.Config.MySql.Shard.Username};password={ConfigManager.Config.MySql.Shard.Password};database={ConfigManager.Config.MySql.Shard.Database}");
+                var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={host};port={port};user={username};password={password};database={database}");
                 var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
 
-                Console.Write($"Importing into {ConfigManager.Config.MySql.Shard.Database} database on SQL server at {ConfigManager.Config.MySql.Shard.Host}:{ConfigManager.Config.MySql.Shard.Port} .... ");
+                Console.Write($"Importing into {database} database on SQL server at {host}:{port} .... ");
                 try
                 {
                     script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
                     var count = script.Execute();
-                    Console.Write($" {count} database records affected ....");
+                    //Console.Write($" {count} database records affected ....");
                 }
                 catch (MySql.Data.MySqlClient.MySqlException ex)
                 {
@@ -164,10 +174,7 @@ namespace ACE.Server
                 File.AppendAllText(updatesFile, file.Name + Environment.NewLine);
             }
 
-            Console.WriteLine("Shard update SQL scripts import complete!");
-
-            Thread.Sleep(1000);
-            log.Info($"Automatic Database Patching complete.");
+            Console.WriteLine($"{dbType} update SQL scripts import complete!");
         }
     }
 }
