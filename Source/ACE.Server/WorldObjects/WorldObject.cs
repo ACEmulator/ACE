@@ -506,7 +506,7 @@ namespace ACE.Server.WorldObjects
                         sb.AppendLine($"{prop.Name} = {obj.ContainerType.ToString()}" + " (" + (uint)obj.ContainerType + ")");
                         break;
                     case "usable":
-                        sb.AppendLine($"{prop.Name} = {obj.Usable.ToString()}" + " (" + (uint)obj.Usable + ")");
+                        sb.AppendLine($"{prop.Name} = {obj.ItemUseable.ToString()}" + " (" + (uint)obj.ItemUseable + ")");
                         break;
                     case "radarbehavior":
                         sb.AppendLine($"{prop.Name} = {obj.RadarBehavior.ToString()}" + " (" + (uint)obj.RadarBehavior + ")");

@@ -100,7 +100,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write(Value ?? 0);
 
             if ((weenieFlags & WeenieHeaderFlag.Usable) != 0)
-                writer.Write((uint?)Usable ?? 0u);
+                writer.Write((uint?)ItemUseable ?? 0u);
 
             if ((weenieFlags & WeenieHeaderFlag.UseRadius) != 0)
                 writer.Write(UseRadius ?? 0u);
@@ -708,7 +708,7 @@ namespace ACE.Server.WorldObjects
             if (Value != null && (Value > 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.Value;
 
-            if (Usable != null)
+            if (ItemUseable != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Usable;
 
             if (UseRadius != null)

@@ -76,7 +76,7 @@ namespace ACE.Server.Factories
             int gemCount = ThreadSafeRandom.Next(1, 5);
             int gemType = ThreadSafeRandom.Next(10, 50);
             int workmanship = GetWorkmanship(profile.Tier);
-            int wieldDiff = GetWield(profile.Tier, 3);
+            int wieldDiff = GetWieldDifficulty(profile.Tier, WieldType.MeleeWeapon);
             WieldRequirement wieldRequirments = WieldRequirement.RawSkill;
 
             // Weapon Types
@@ -390,7 +390,6 @@ namespace ACE.Server.Factories
                 wo.WieldDifficulty = null;
                 wo.WieldRequirements = WieldRequirement.Invalid;
                 wo.WieldSkillType = null;
-
             }
 
             // Adding Magic Spells
@@ -719,8 +718,6 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Gets Melee Weapon Index
         /// </summary>
-        /// <param name="wieldDiff"></param>
-        /// <returns>Melee Weapon Index</returns>
         private static int GetMeleeWieldToIndex(int wieldDiff)
         {
             int index = 0;

@@ -41,12 +41,12 @@ namespace ACE.Server.Factories
             workmanship = GetWorkmanship(tier);
             wo.ItemWorkmanship = workmanship;
             int value = LootTables.gemValues[(int)gemType] + ThreadSafeRandom.Next(1, LootTables.gemValues[(int)gemType]);
-            wo.Value= value;
+            wo.Value = value;
 
             gemLootMatrixIndex = tier - 1;
             if (isMagical)
             {
-                wo.SetProperty(PropertyInt.ItemUseable, 8);
+                wo.ItemUseable = Usable.Contained;
                 wo.UiEffects = UiEffects.Magical;
 
                 int gemSpellIndex;
@@ -77,8 +77,7 @@ namespace ACE.Server.Factories
                 int spellcraft = 50 * gemSpellIndex;
                 int maxMana = ThreadSafeRandom.Next(manaCost, manaCost + 50);
 
-
-                wo.SetProperty(PropertyDataId.Spell, (uint)spellDID);
+                wo.SpellDID = (uint)spellDID;
                 wo.ItemAllegianceRankLimit= rank;
                 wo.ItemDifficulty = difficulty;
                 wo.ItemManaCost = manaCost;
@@ -88,8 +87,8 @@ namespace ACE.Server.Factories
             }
             else
             {
-                wo.SetProperty(PropertyInt.ItemUseable, 1);
-                wo.RemoveProperty(PropertyDataId.Spell);
+                wo.ItemUseable = Usable.No;
+                wo.SpellDID = null;
                 wo.ItemManaCost = null;
                 wo.ItemMaxMana = null;
                 wo.ItemCurMana = null;
