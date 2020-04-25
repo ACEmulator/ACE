@@ -164,13 +164,13 @@ namespace ACE.Server
                     script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
                     var count = script.Execute();
                     //Console.Write($" {count} database records affected ....");
+                    Console.WriteLine(" complete!");
                 }
                 catch (MySql.Data.MySqlClient.MySqlException ex)
                 {
                     Console.WriteLine($" error!");
                     Console.WriteLine($" Unable to apply patch due to following exception: {ex}");
                 }
-                Console.WriteLine(" complete!");
                 File.AppendAllText(updatesFile, file.Name + Environment.NewLine);
             }
 
