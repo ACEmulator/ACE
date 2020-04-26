@@ -1141,7 +1141,7 @@ namespace ACE.Server.Command.Handlers
         // ??
         public const uint WEENIE_MAX = uint.MaxValue;
 
-        static WorldObject CreateObjectForCommand(Session session, string weenieClassDescription)
+        static WorldObject CreateObjectForCommand(Session session, string weenieClassDescription, bool forInventory = false)
         {
             bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
             if (wcid)
@@ -1199,6 +1199,12 @@ namespace ACE.Server.Command.Handlers
                 )
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot spawn {weenie.ClassName} because it is a {weenieType}", ChatMessageType.Broadcast));
+                return null;
+            }
+
+            if (forInventory && weenie.IsStuck())
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot spawn {weenie.ClassName} in your inventory because it cannot be picked up", ChatMessageType.Broadcast));
                 return null;
             }
 
@@ -1415,7 +1421,7 @@ namespace ACE.Server.Command.Handlers
                     hasShade = true;
             }
 
-            WorldObject obj = CreateObjectForCommand(session, weenieClassDescription);
+            WorldObject obj = CreateObjectForCommand(session, weenieClassDescription, true);
             if (obj == null)
             {
                 // already sent an error message
