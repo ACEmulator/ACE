@@ -96,7 +96,7 @@ namespace ACE.Server.Entity
             }
             else
             {
-                if (newMember.IsBusy)
+                if (PropertyManager.GetBool("fellow_busy_no_recruit").Item && newMember.IsBusy)
                 {
                     inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newMember.Name} is busy.", ChatMessageType.Broadcast));
                     return;
