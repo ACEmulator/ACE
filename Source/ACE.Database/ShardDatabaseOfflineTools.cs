@@ -12,7 +12,6 @@ using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using System.Runtime.ExceptionServices;
 
 namespace ACE.Database
 {
