@@ -478,7 +478,7 @@ namespace ACE.Database
                              || r.WeenieType == (int)WeenieType.Sentinel
                     )
                     .AsNoTracking()
-                    .Select(r=>r.GetProperty(PropertyInstanceId.Monarch) ?? 0)
+                    .Select(r => r.GetProperty(PropertyInstanceId.Monarch) ?? 0)
                     .Distinct()
                     .ToList();
 
