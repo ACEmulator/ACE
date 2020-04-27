@@ -545,12 +545,12 @@ namespace ACE.Database
 
                     var monarchIID = allegiance.BiotaPropertiesIID.FirstOrDefault(m => m.Type == (int)PropertyInstanceId.Monarch).Value;
 
-                    var allegianceToKeep = results.Where(a => a.GetProperty(PropertyInstanceId.Monarch) == monarchIID).FirstOrDefault();
-                    if (allegianceToKeep == null)
-                    {
+                    //var allegianceToKeep = results.Where(a => a.GetProperty(PropertyInstanceId.Monarch) == monarchIID).FirstOrDefault();
+                    //if (allegianceToKeep == null)
+                    //{
                         var allegiancesToPurge = allegiances.Where(a => a.GetProperty(PropertyInstanceId.Monarch) == monarchIID).SkipWhile(a => a.Id == allegiance.Id).ToList();
                         results.AddRange(allegiancesToPurge);
-                    }
+                    //}
                 }
 
                 Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
