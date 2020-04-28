@@ -155,7 +155,7 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.AwardSkillXP:
 
                     if (player != null)
-                        player.AwardSkillXP((Skill)emote.Stat, (uint)emote.Amount);
+                        player.AwardSkillXP((Skill)emote.Stat, (uint)emote.Amount, true);
                     break;
 
                 case EmoteType.AwardTrainingCredits:
