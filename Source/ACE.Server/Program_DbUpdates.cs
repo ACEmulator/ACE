@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Threading;
+
 using ACE.Common;
 
 using Newtonsoft.Json;
@@ -122,9 +123,63 @@ namespace ACE.Server
             Console.WriteLine("Deleted!");
         }
 
+        private static string GetContentFolder()
+        {
+            var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={ConfigManager.Config.MySql.Shard.Host};port={ConfigManager.Config.MySql.Shard.Port};user={ConfigManager.Config.MySql.Shard.Username};password={ConfigManager.Config.MySql.Shard.Password};database={ConfigManager.Config.MySql.Shard.Database}");
+            var sqlQuery = "SELECT `value` FROM config_properties_string WHERE `key` = 'content_folder';";
+            var sqlCommand = new MySql.Data.MySqlClient.MySqlCommand(sqlQuery, sqlConnect);
+
+            sqlConnect.Open();
+            var sqlReader = sqlCommand.ExecuteReader();
+
+            var content_folder = sqlReader.HasRows ? sqlReader.GetString(0) : @".\Content";
+
+            sqlReader.Close();
+            sqlCommand.Connection.Close();
+
+            // handle relative path
+            if (content_folder.StartsWith("."))
+            {
+                var cwd = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar;
+                content_folder = cwd + content_folder;
+            }
+
+            return content_folder;
+        }
+
         private static void AutoApplyWorldCustomizations()
         {
+            var content_folder = GetContentFolder();
 
+            Console.WriteLine($"Searching for World Customization SQL scripts .... ");
+
+            var contentDI = new DirectoryInfo($"{content_folder}{Path.DirectorySeparatorChar}WorldCustomizations");
+
+            if (contentDI.Exists)
+            {
+                foreach (var file in contentDI.GetFiles("*.sql").OrderBy(f => f.Name))
+                {
+                    Console.Write($"Found {file.Name} .... ");
+                    var sqlDBFile = File.ReadAllText(file.FullName);
+                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={ConfigManager.Config.MySql.World.Host};port={ConfigManager.Config.MySql.World.Port};user={ConfigManager.Config.MySql.World.Username};password={ConfigManager.Config.MySql.World.Password};database={ConfigManager.Config.MySql.World.Database}");
+                    var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
+
+                    Console.Write($"Importing into World database on SQL server at {ConfigManager.Config.MySql.World.Host}:{ConfigManager.Config.MySql.World.Port} .... ");
+                    try
+                    {
+                        script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
+                        var count = script.Execute();
+                        //Console.Write($" {count} database records affected ....");
+                        Console.WriteLine(" complete!");
+                    }
+                    catch (MySql.Data.MySqlClient.MySqlException ex)
+                    {
+                        Console.WriteLine($" error!");
+                        Console.WriteLine($" Unable to apply patch due to following exception: {ex}");
+                    }
+                }
+            }
+            Console.WriteLine($"World Customization SQL scripts import complete!");
         }
 
         private static void AutoApplyDatabaseUpdates()
