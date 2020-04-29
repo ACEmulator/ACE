@@ -291,7 +291,7 @@ namespace ACE.Server.WorldObjects
             AvailableSkillCredits += creditsSpent;
 
             creatureSkill.AdvancementClass = SkillAdvancementClass.Trained;
-            creatureSkill.InitLevel -= 10;
+            creatureSkill.InitLevel = 0;
             creatureSkill.ExperienceSpent = 0;
             creatureSkill.Ranks = 0;
 
