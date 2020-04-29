@@ -337,6 +337,8 @@ namespace ACE.Server.WorldObjects
                             CanGenerateRare = true;
                     }
                 }
+                else
+                    CanGenerateRare = false;
             }
 
             corpse.RemoveProperty(PropertyInt.Value);
