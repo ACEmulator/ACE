@@ -219,6 +219,7 @@ namespace ACE.Server.WorldObjects
         public void GenerateRare(DamageHistoryInfo killer)
         {
             //todo: calculate chances for killer's luck (rare timers)
+            var killerPlayer = killer.TryGetAttacker() as Player;
 
             var wo = LootGenerationFactory.CreateRare();
             if (wo == null)
@@ -239,6 +240,42 @@ namespace ACE.Server.WorldObjects
                 killerName = killer.Name.TrimStart('+');
                 CorpseGeneratedRare = true;
                 LongDesc += " This corpse generated a rare item!";
+                if (killerPlayer != null)
+                {
+                    var timestamp = (int)Time.GetUnixTime();
+                    killerPlayer.RaresLoginTimestamp = timestamp;
+                    switch (tier)
+                    {
+                        case 1:
+                            killerPlayer.RaresTierOne++;
+                            killerPlayer.RaresTierOneLogin = timestamp;
+                            break;
+                        case 2:
+                            killerPlayer.RaresTierTwo++;
+                            killerPlayer.RaresTierTwoLogin = timestamp;
+                            break;
+                        case 3:
+                            killerPlayer.RaresTierThree++;
+                            killerPlayer.RaresTierThreeLogin = timestamp;
+                            break;
+                        case 4:
+                            killerPlayer.RaresTierFour++;
+                            killerPlayer.RaresTierFourLogin = timestamp;
+                            break;
+                        case 5:
+                            killerPlayer.RaresTierFive++;
+                            killerPlayer.RaresTierFiveLogin = timestamp;
+                            break;
+                        case 6:
+                            killerPlayer.RaresTierSix++;
+                            killerPlayer.RaresTierSixLogin = timestamp;
+                            break;
+                        //case 7:
+                        //    killerPlayer.RaresTierSeven++;
+                        //    killerPlayer.RaresTierSevenLogin = timestamp;
+                        //    break;
+                    }
+                }
             }
             else
                 log.Error($"[RARE] failed to add to corpse inventory");
