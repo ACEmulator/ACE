@@ -333,7 +333,7 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         var killerPlayer = killer.TryGetAttacker();
-                        if (killerPlayer != null && Level >= killerPlayer.Level + 5)
+                        if (killerPlayer != null && Level >= killerPlayer.Level)
                             CanGenerateRare = true;
                     }
                 }
