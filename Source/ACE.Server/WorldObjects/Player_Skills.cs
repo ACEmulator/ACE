@@ -184,7 +184,7 @@ namespace ACE.Server.WorldObjects
             }
             else
                 creatureSkill.ExperienceSpent = 0;
-            //creatureSkill.InitLevel = 0;
+            creatureSkill.InitLevel = 0;
 
             AvailableSkillCredits -= creditsSpent;
 
@@ -228,7 +228,7 @@ namespace ACE.Server.WorldObjects
                 creatureSkill.Ranks = (ushort)CalcSkillRank(SkillAdvancementClass.Specialized, creatureSkill.ExperienceSpent);
             }
 
-            creatureSkill.InitLevel += 10;
+            creatureSkill.InitLevel = 10;
             creatureSkill.AdvancementClass = SkillAdvancementClass.Specialized;
 
             AvailableSkillCredits -= creditsSpent;
@@ -250,7 +250,7 @@ namespace ACE.Server.WorldObjects
             {
                 // only used to initialize untrained skills for character creation?
                 creatureSkill.AdvancementClass = SkillAdvancementClass.Untrained;       // should this always be Untrained? what about Inactive?
-                //creatureSkill.InitLevel = 0;
+                creatureSkill.InitLevel = 0;
                 creatureSkill.Ranks = 0;
                 creatureSkill.ExperienceSpent = 0;
             }
@@ -264,7 +264,7 @@ namespace ACE.Server.WorldObjects
                 if (IsSkillUntrainable(skill))
                 {
                     creatureSkill.AdvancementClass = SkillAdvancementClass.Untrained;
-                    //creatureSkill.InitLevel = 0;
+                    creatureSkill.InitLevel = 0;
                     AvailableSkillCredits += creditsSpent;
                 }
 
@@ -764,7 +764,7 @@ namespace ACE.Server.WorldObjects
             if (creatureSkill.AdvancementClass == SkillAdvancementClass.Specialized)
             {
                 creatureSkill.AdvancementClass = SkillAdvancementClass.Trained;
-                creatureSkill.InitLevel -= 10;
+                creatureSkill.InitLevel = 0;
                 AvailableSkillCredits += skillBase.UpgradeCostFromTrainedToSpecialized;
             }
 
@@ -773,7 +773,7 @@ namespace ACE.Server.WorldObjects
             if (untrainable)
             {
                 creatureSkill.AdvancementClass = SkillAdvancementClass.Untrained;
-                //creatureSkill.InitLevel = 0;
+                creatureSkill.InitLevel = 0;
                 AvailableSkillCredits += skillBase.TrainedCost;
             }
 
