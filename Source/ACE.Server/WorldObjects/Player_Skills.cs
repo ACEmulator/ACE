@@ -261,7 +261,7 @@ namespace ACE.Server.WorldObjects
                 if (IsSkillUntrainable(skill))
                 {
                     creatureSkill.AdvancementClass = SkillAdvancementClass.Untrained;
-                    creatureSkill.InitLevel -= 5;
+                    creatureSkill.InitLevel = 0;
                     AvailableSkillCredits += creditsSpent;
                 }
 
@@ -287,7 +287,7 @@ namespace ACE.Server.WorldObjects
             AvailableSkillCredits += creditsSpent;
 
             creatureSkill.AdvancementClass = SkillAdvancementClass.Trained;
-            creatureSkill.InitLevel -= 5;
+            creatureSkill.InitLevel = 0;
             creatureSkill.ExperienceSpent = 0;
             creatureSkill.Ranks = 0;
 
