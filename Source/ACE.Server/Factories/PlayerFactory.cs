@@ -204,7 +204,7 @@ namespace ACE.Server.Factories
                 }
                 else if (sac == SkillAdvancementClass.Trained)
                 {
-                    if (!player.TrainSkill((Skill)i, trainedCost))
+                    if (!player.TrainSkill((Skill)i, trainedCost, true))
                         return CreateResult.FailedToTrainSkill;
                 }
                 else if (sac == SkillAdvancementClass.Untrained)

@@ -168,7 +168,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sets the skill to trained status for a character
         /// </summary>
-        public bool TrainSkill(Skill skill, int creditsSpent)
+        public bool TrainSkill(Skill skill, int creditsSpent, bool applyCreationBonusXP = false)
         {
             var creatureSkill = GetCreatureSkill(skill);
 
@@ -177,8 +177,11 @@ namespace ACE.Server.WorldObjects
 
             creatureSkill.AdvancementClass = SkillAdvancementClass.Trained;
             creatureSkill.Ranks = 0;
-            creatureSkill.ExperienceSpent = 0;
-            creatureSkill.InitLevel += 5;
+            if (applyCreationBonusXP)
+                creatureSkill.ExperienceSpent = 526;
+            else
+                creatureSkill.ExperienceSpent = 0;
+            creatureSkill.InitLevel = 0;
 
             AvailableSkillCredits -= creditsSpent;
 
@@ -222,7 +225,7 @@ namespace ACE.Server.WorldObjects
                 creatureSkill.Ranks = (ushort)CalcSkillRank(SkillAdvancementClass.Specialized, creatureSkill.ExperienceSpent);
             }
 
-            creatureSkill.InitLevel += 5;
+            creatureSkill.InitLevel = 10;
             creatureSkill.AdvancementClass = SkillAdvancementClass.Specialized;
 
             AvailableSkillCredits -= creditsSpent;
