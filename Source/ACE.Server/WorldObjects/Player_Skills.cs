@@ -177,6 +177,8 @@ namespace ACE.Server.WorldObjects
 
             creatureSkill.AdvancementClass = SkillAdvancementClass.Trained;
             creatureSkill.Ranks = 0;
+            creatureSkill.InitLevel = 0;
+
             if (applyCreationBonusXP)
             {
                 creatureSkill.ExperienceSpent = 526;
@@ -184,7 +186,6 @@ namespace ACE.Server.WorldObjects
             }
             else
                 creatureSkill.ExperienceSpent = 0;
-            creatureSkill.InitLevel = 0;
 
             AvailableSkillCredits -= creditsSpent;
 
