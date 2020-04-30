@@ -1,5 +1,6 @@
-using System.Linq;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using ACE.Common;
 using ACE.Server.WorldObjects;
@@ -40,11 +41,34 @@ namespace ACE.Server.Factories
             RareWCIDs.Add(6, tier6Rares);
         }
 
-        public static WorldObject CreateRare()
+        public static WorldObject CreateRare(Player player)
         {
+            var t1_chance = 2500; // 1 in 2,500 chance
+
+            if (player != null)
+            {
+                if (player.RaresLoginTimestamp.HasValue)
+                {
+                    var now = DateTime.UtcNow;
+                    var playerLastRareFound = Time.GetDateTimeFromTimestamp(player.RaresLoginTimestamp.Value);
+                    var timeBetweenRareSighting = now - playerLastRareFound;
+                    var daysSinceRareSighting = timeBetweenRareSighting.TotalDays;
+
+                    var maxDaysSinceLastRareFound = 45; // 30? 60?
+                    var chancesModifier = Math.Round(daysSinceRareSighting / maxDaysSinceLastRareFound, 2, MidpointRounding.ToZero);
+                    var chancesModifierAdjusted = Math.Min(chancesModifier, 1.0f);
+
+                    var numberOfChancesToRemove = (int)Math.Round(t1_chance * chancesModifierAdjusted, 0, MidpointRounding.ToZero);
+
+                    t1_chance -= numberOfChancesToRemove;
+
+                    t1_chance = Math.Max(t1_chance, 1);
+                }
+            }
+
             int tier = 0;
 
-            if (ThreadSafeRandom.Next(1, 2500) == 1)   // 1 in 2,500 chance
+            if (ThreadSafeRandom.Next(1, t1_chance) == 1)   // 1 in 2,500 (or less depending on real time reduction) chance
             {
                 tier = 1;
                 if (ThreadSafeRandom.Next(1, 10) == 1)  // 1 in 25,000 chance

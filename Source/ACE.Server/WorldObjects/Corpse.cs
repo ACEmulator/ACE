@@ -221,7 +221,7 @@ namespace ACE.Server.WorldObjects
             //todo: calculate chances for killer's luck (rare timers)
             var killerPlayer = killer.TryGetAttacker() as Player;
 
-            var wo = LootGenerationFactory.CreateRare();
+            var wo = LootGenerationFactory.CreateRare(killerPlayer);
             if (wo == null)
                 return;
 
