@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
+using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
@@ -45,16 +46,14 @@ namespace ACE.Server.Factories
         {
             var t1_chance = 2500; // 1 in 2,500 chance
 
-            if (player != null)
+            if (PropertyManager.GetBool("rares_real_time").Item && player != null && player.RaresLoginTimestamp.HasValue)
             {
-                if (player.RaresLoginTimestamp.HasValue)
-                {
                     var now = DateTime.UtcNow;
                     var playerLastRareFound = Time.GetDateTimeFromTimestamp(player.RaresLoginTimestamp.Value);
                     var timeBetweenRareSighting = now - playerLastRareFound;
                     var daysSinceRareSighting = timeBetweenRareSighting.TotalDays;
 
-                    var maxDaysSinceLastRareFound = 45; // 30? 60?
+                    var maxDaysSinceLastRareFound = (int)PropertyManager.GetLong("rares_max_days_between").Item; // 30? 45? 60?
                     var chancesModifier = Math.Round(daysSinceRareSighting / maxDaysSinceLastRareFound, 2, MidpointRounding.ToZero);
                     var chancesModifierAdjusted = Math.Min(chancesModifier, 1.0f);
 
@@ -63,7 +62,6 @@ namespace ACE.Server.Factories
                     t1_chance -= numberOfChancesToRemove;
 
                     t1_chance = Math.Max(t1_chance, 1);
-                }
             }
 
             int tier = 0;
