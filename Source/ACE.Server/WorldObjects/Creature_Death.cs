@@ -344,7 +344,7 @@ namespace ACE.Server.WorldObjects
             corpse.RemoveProperty(PropertyInt.Value);
 
             if (CanGenerateRare && killer != null)
-                corpse.GenerateRare(killer);
+                corpse.TryGenerateRare(killer);
 
             corpse.InitPhysicsObj();
 

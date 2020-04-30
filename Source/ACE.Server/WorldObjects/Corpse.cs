@@ -214,13 +214,35 @@ namespace ACE.Server.WorldObjects
         private string killerName;
 
         /// <summary>
-        /// Called to generate rare and add to corpse inventory
+        /// Called to attempt to generate rare and add to corpse inventory
         /// </summary>
-        public void GenerateRare(DamageHistoryInfo killer)
+        public void TryGenerateRare(DamageHistoryInfo killer)
         {
             var killerPlayer = killer.TryGetAttacker() as Player;
+            var timestamp = (int)Time.GetUnixTime();
+            var luck = 0;
 
-            var wo = LootGenerationFactory.CreateRare(killerPlayer);
+            if (PropertyManager.GetBool("rares_real_time").Item && killerPlayer != null)
+            {
+                if (killerPlayer.RaresLoginTimestamp.HasValue)
+                {
+                    var now = Time.GetDateTimeFromTimestamp(timestamp);
+                    var playerLastRareFound = Time.GetDateTimeFromTimestamp(killerPlayer.RaresLoginTimestamp.Value);
+                    var timeBetweenRareSighting = now - playerLastRareFound;
+                    var daysSinceRareSighting = timeBetweenRareSighting.TotalDays;
+
+                    var maxDaysSinceLastRareFound = (int)PropertyManager.GetLong("rares_max_days_between").Item; // 30? 45? 60?
+                    var chancesModifier = Math.Round(daysSinceRareSighting / maxDaysSinceLastRareFound, 2, MidpointRounding.ToZero);
+                    var chancesModifierAdjusted = Math.Min(chancesModifier, 1.0f);
+
+                    var t1_chance = 2500;
+                    luck = (int)Math.Round(t1_chance * chancesModifierAdjusted, 0, MidpointRounding.ToZero);
+                }
+                else
+                    killerPlayer.RaresLoginTimestamp = timestamp;
+            }
+
+            var wo = LootGenerationFactory.TryCreateRare(luck);
             if (wo == null)
                 return;
 
@@ -231,7 +253,7 @@ namespace ACE.Server.WorldObjects
             LootGenerationFactory.RareChances.TryGetValue(tier, out var chance);
 
             log.Debug($"[LOOT][RARE] {Name} ({Guid}) generated rare {wo.Name} ({wo.Guid}) for {killer.Name} ({killer.Guid})");
-            log.Debug($"[LOOT][RARE] Tier {tier} -- 1 / {chance:N0} chance");
+            log.Debug($"[LOOT][RARE] Tier {tier} -- 1 / {chance:N0} chance -- {luck:N0} luck");
 
             if (TryAddToInventory(wo))
             {
@@ -241,7 +263,7 @@ namespace ACE.Server.WorldObjects
                 LongDesc += " This corpse generated a rare item!";
                 if (killerPlayer != null)
                 {
-                    var timestamp = (int)Time.GetUnixTime();
+                    //var timestamp = (int)Time.GetUnixTime();
                     killerPlayer.RaresLoginTimestamp = timestamp;
                     switch (tier)
                     {
