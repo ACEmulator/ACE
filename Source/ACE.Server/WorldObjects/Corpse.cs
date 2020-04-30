@@ -263,7 +263,6 @@ namespace ACE.Server.WorldObjects
                 LongDesc += " This corpse generated a rare item!";
                 if (killerPlayer != null)
                 {
-                    //var timestamp = (int)Time.GetUnixTime();
                     killerPlayer.RaresLoginTimestamp = timestamp;
                     switch (tier)
                     {
