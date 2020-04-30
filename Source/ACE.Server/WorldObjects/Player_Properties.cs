@@ -362,7 +362,7 @@ namespace ACE.Server.WorldObjects
         public int RaresTierTwo
         {
             get => GetProperty(PropertyInt.RaresTierTwo) ?? 0;
-            set { if (value == 0) RemoveProperty(PropertyInt.RaresTierOne); else SetProperty(PropertyInt.RaresTierTwo, value); }
+            set { if (value == 0) RemoveProperty(PropertyInt.RaresTierTwo); else SetProperty(PropertyInt.RaresTierTwo, value); }
         }
 
         /// <summary>
