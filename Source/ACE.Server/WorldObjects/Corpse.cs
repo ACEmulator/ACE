@@ -274,7 +274,10 @@ namespace ACE.Server.WorldObjects
             var wo = LootGenerationFactory.TryCreateRare(luck);
 
             if (secondChanceGranted && wo == null)
-                wo = LootGenerationFactory.TryCreateRare(2490);
+            {
+                luck = 2490;
+                wo = LootGenerationFactory.TryCreateRare(luck);
+            }
 
             if (wo == null)
                 return;
