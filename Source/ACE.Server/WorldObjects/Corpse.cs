@@ -247,7 +247,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (killerPlayer.RaresLoginTimestamp.HasValue)
                 {
-                    // This version of the system is based on interpretation of the following way the system was originally described. The one above is how it was stated to *really* work in a dev chat in 2010.
+                    // This version of the system is based on interpretation of the following way the system was originally described. The one above is how it was stated to *really* works as detailed in a dev chat from 2010.
 
                     // http://acpedia.org/wiki/Rare#Real_Time_Rares
 
