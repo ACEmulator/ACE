@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+
 using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
@@ -8,6 +10,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Network.Structure;
@@ -60,14 +63,33 @@ namespace ACE.Server.WorldObjects
 
             if (PropertyManager.GetBool("use_turbine_chat").Item)
             {
-                // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
+                // Init the client with the chat channel ID's, and then notify the player that they've joined the associated channels.
                 UpdateChatChannels();
+
+                var turbineChat = new GameEventWeenieError(Session, WeenieError.TurbineChatIsEnabled);
 
                 var general = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "General");
                 var trade = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Trade");
                 var lfg = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "LFG");
                 var roleplay = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Roleplay");
-                Session.Network.EnqueueSend(general, trade, lfg, roleplay);
+
+                var allegiance = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Allegiance");
+
+                var msgs = new List<GameMessage>() { turbineChat };
+
+                if (GetCharacterOption(CharacterOption.ListenToAllegianceChat) && Allegiance != null)
+                    msgs.Add(allegiance);
+                if (GetCharacterOption(CharacterOption.ListenToGeneralChat))
+                    msgs.Add(general);
+                if (GetCharacterOption(CharacterOption.ListenToTradeChat))
+                    msgs.Add(trade);
+                if (GetCharacterOption(CharacterOption.ListenToLFGChat))
+                    msgs.Add(lfg);
+                if (GetCharacterOption(CharacterOption.ListentoRoleplayChat))
+                    msgs.Add(roleplay);
+
+                if (msgs.Count > 0)
+                    Session.Network.EnqueueSend(msgs.ToArray());
             }
 
             // check if vassals earned XP while offline
