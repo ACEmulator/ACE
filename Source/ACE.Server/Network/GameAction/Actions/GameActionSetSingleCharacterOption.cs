@@ -31,6 +31,20 @@ namespace ACE.Server.Network.GameAction.Actions
                     session.Player.EnqueueBroadcast(new GameMessageObjDescEvent(session.Player));
                     break;
 
+                case CharacterOption.ListenToAllegianceChat:
+                case CharacterOption.ListenToGeneralChat:
+                case CharacterOption.ListenToLFGChat:
+                case CharacterOption.ListenToRoleplayChat:
+                case CharacterOption.ListenToSocietyChat:
+                case CharacterOption.ListenToTradeChat:
+                    var channelName = option.ToString().Replace("ListenTo", "").Replace("Chat", "");
+                    session.Player.SetCharacterOption(option, optionValue);
+                    if (optionValue)
+                        session.Player.JoinTurbineChatChannel(channelName);
+                    else
+                        session.Player.LeaveTurbineChatChannel(channelName);
+                    break;
+
                 default:
                     session.Player.SetCharacterOption(option, optionValue);
                     break;

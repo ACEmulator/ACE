@@ -1,16 +1,15 @@
 using System;
-using System.Collections.Generic;
 
 using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Network.Structure;
@@ -64,22 +63,18 @@ namespace ACE.Server.WorldObjects
             if (PropertyManager.GetBool("use_turbine_chat").Item)
             {
                 // Init the client with the chat channel ID's, and then notify the player that they've joined the associated channels.
-                UpdateChatChannels();
-
-                var msgs = new List<GameMessage>() { new GameEventWeenieError(Session, WeenieError.TurbineChatIsEnabled) };
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.TurbineChatIsEnabled));
 
                 if (GetCharacterOption(CharacterOption.ListenToAllegianceChat) && Allegiance != null)
-                    msgs.Add(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Allegiance"));
+                    JoinTurbineChatChannel("Allegiance");
                 if (GetCharacterOption(CharacterOption.ListenToGeneralChat))
-                    msgs.Add(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "General"));
+                    JoinTurbineChatChannel("General");
                 if (GetCharacterOption(CharacterOption.ListenToTradeChat))
-                    msgs.Add(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Trade"));
+                    JoinTurbineChatChannel("Trade");
                 if (GetCharacterOption(CharacterOption.ListenToLFGChat))
-                    msgs.Add(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "LFG"));
-                if (GetCharacterOption(CharacterOption.ListentoRoleplayChat))
-                    msgs.Add(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Roleplay"));
-
-                Session.Network.EnqueueSend(msgs.ToArray());
+                    JoinTurbineChatChannel("LFG");
+                if (GetCharacterOption(CharacterOption.ListenToRoleplayChat))
+                    JoinTurbineChatChannel("Roleplay");
             }
 
             // check if vassals earned XP while offline
@@ -113,11 +108,27 @@ namespace ACE.Server.WorldObjects
             HandleDBUpdates();
         }
 
-        public void UpdateChatChannels()
+        public void SendTurbineChatChannels(bool breakAllegiance = false)
         {
-            var allegianceChannel = Allegiance != null ? Allegiance.Biota.Id : 0u;
+            var allegianceChannel = Allegiance != null && !breakAllegiance ? Allegiance.Biota.Id : 0u;
+
+            //todo: society chat channel
 
             Session.Network.EnqueueSend(new GameEventSetTurbineChatChannels(Session, allegianceChannel));
+        }
+
+        public void JoinTurbineChatChannel(string channelName)
+        {
+            Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, channelName));
+
+            SendTurbineChatChannels();
+        }
+
+        public void LeaveTurbineChatChannel(string channelName, bool breakAllegiance = false)
+        {
+            Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, channelName));
+
+            SendTurbineChatChannels(breakAllegiance);
         }
 
         private void SendSelf()
