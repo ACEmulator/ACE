@@ -12,10 +12,10 @@ using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.Managers;
-
 
 namespace ACE.Server.Network
 {
@@ -47,6 +47,8 @@ namespace ACE.Server.Network
 
 
         public DateTime logOffRequestTime;
+
+        public DateTime lastCharacterSelectPingReply;
 
         public SessionTerminationDetails PendingTermination { get; set; } = null;
 
@@ -118,6 +120,21 @@ namespace ACE.Server.Network
             // This could be made 0 for instant logoffs.
             if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
                 SendFinalLogOffMessages();
+
+            // This section deviates from known retail pcaps/behavior, but appears to be the least harmful way to work around something that seemingly didn't occur to players using ThwargLauncher connecting to retail servers.
+            // In order to prevent the launcher from thinking the session is dead, we will send a Ping Response every 100 seconds, this will in effect make the client appear active to the launcher and allow players to create characters in peace.
+            if (State == SessionState.AuthConnected) // TODO: why is this needed? Why didn't retail have this problem? Is this fuzzy memory?
+            {
+                if (lastCharacterSelectPingReply == DateTime.MinValue)
+                    lastCharacterSelectPingReply = DateTime.UtcNow.AddSeconds(100);
+                else if (DateTime.UtcNow > lastCharacterSelectPingReply)
+                {
+                    Network.EnqueueSend(new GameEventPingResponse(this));
+                    lastCharacterSelectPingReply = DateTime.UtcNow.AddSeconds(100);
+                }
+            }
+            else if (lastCharacterSelectPingReply != DateTime.MinValue)
+                lastCharacterSelectPingReply = DateTime.MinValue;
         }
 
 
