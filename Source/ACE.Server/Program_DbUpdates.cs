@@ -199,6 +199,11 @@ namespace ACE.Server
         {
             var updatesFile = $"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}{dbType}{Path.DirectorySeparatorChar}applied_updates.txt";
             var appliedUpdates = Array.Empty<string>();
+
+            var containerUpdatesFile = $"/ace/Config/{dbType}_applied_updates.txt";
+            if (IsRunningInContainer && File.Exists(containerUpdatesFile))
+                File.Copy(containerUpdatesFile, updatesFile, true);
+
             if (File.Exists(updatesFile))
                 appliedUpdates = File.ReadAllLines(updatesFile);
 
@@ -228,6 +233,9 @@ namespace ACE.Server
                 }
                 File.AppendAllText(updatesFile, file.Name + Environment.NewLine);
             }
+
+            if (IsRunningInContainer && File.Exists(containerUpdatesFile))
+                File.Copy(updatesFile, containerUpdatesFile, true);
 
             Console.WriteLine($"{dbType} update SQL scripts import complete!");
         }
