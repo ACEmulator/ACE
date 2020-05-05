@@ -291,6 +291,21 @@ namespace ACE.Server.Factories
             new int[] { 41041, 41042, 41043, 41044, 41045 } // Magari Yari
         };
 
+        public static readonly List<int[][]> MeleeWeaponsMatrices = new List<int[][]>()
+        {
+            HeavyWeaponsMatrix,
+            LightWeaponsMatrix,
+            FinesseWeaponsMatrix,
+            TwoHandedWeaponsMatrix
+        };
+
+        public static readonly HashSet<uint> AetheriaWcids = new HashSet<uint>()
+        {
+            Entity.Aetheria.AetheriaBlue,
+            Entity.Aetheria.AetheriaYellow,
+            Entity.Aetheria.AetheriaRed,
+        };
+
         public static readonly int[,] HeavyWeaponDamageTable =
         {
                 { 26, 33, 40, 47, 54, 61, 68, 71, 74 },
@@ -353,6 +368,12 @@ namespace ACE.Server.Factories
             new int[] { 31812, 31814, 31818, 31816, 31817, 31813, 31815 },
             new int[] { 31798, 31800, 31804, 31802, 31803, 31799, 31801 },
             new int[] { 31805, 31807, 31811, 31809, 31810, 31806, 31808 }
+        };
+
+        public static readonly List<int[][]> MissileWeaponsMatrices = new List<int[][]>()
+        {
+            NonElementalMissileWeaponsMatrix,
+            ElementalMissileWeaponsMatrix,
         };
 
         public static readonly int[] DinnerwareLootMatrix = { 141, 142, 148, 149, 150, 154, 161, 163, 168, 243, 254, 7940 };
@@ -1936,6 +1957,14 @@ namespace ACE.Server.Factories
             41488     // Top
         };
 
+        public static readonly List<int[]> jewelryTables = new List<int[]>()
+        {
+            ringItems,
+            braceletItems,
+            necklaceItems,
+            trinketItems
+        };
+
         public static readonly int[] Helms =
         {
             46,     // Metal Cap
@@ -2274,7 +2303,7 @@ namespace ACE.Server.Factories
             }
         }
 
-        private static Dictionary<ArmorType, int[]> armorTypeMap = new Dictionary<ArmorType, int[]>()
+        public static readonly Dictionary<ArmorType, int[]> armorTypeMap = new Dictionary<ArmorType, int[]>()
         {
             { ArmorType.MiscClothing,          MiscClothing },
             { ArmorType.Helms,                 Helms },

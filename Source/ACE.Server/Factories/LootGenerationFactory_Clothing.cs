@@ -1,3 +1,5 @@
+using System.Linq;
+
 using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
@@ -10,7 +12,7 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateArmor(TreasureDeath profile, bool isMagical, bool isArmor, LootBias lootBias = LootBias.UnBiased)
+        private static WorldObject CreateArmor(TreasureDeath profile, bool isMagical, bool isArmor, LootBias lootBias = LootBias.UnBiased, bool mutate = true)
         {
             var minType = LootTables.ArmorType.Helms;
             var maxType = new LootTables.ArmorType();
@@ -55,9 +57,14 @@ namespace ACE.Server.Factories
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)armorWeenie);
 
-            if (wo == null)
-                return null;
+            if (wo != null && mutate)
+                MutateArmor(wo, profile, isMagical, armorType);
 
+            return wo;
+        }
+
+        private static void MutateArmor(WorldObject wo, TreasureDeath profile, bool isMagical, LootTables.ArmorType armorType)
+        {
             wo.LongDesc = wo.Name;
 
             wo.AppraisalItemSkill = 7;
@@ -141,9 +148,21 @@ namespace ACE.Server.Factories
             if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
                 MutateBurden(wo, profile.Tier, false);
 
-            wo = RandomizeColor(wo);
+            RandomizeColor(wo);
+        }
 
-            return wo;
+        private static bool GetMutateArmorData(uint wcid, out LootTables.ArmorType? armorType)
+        {
+            foreach (var kvp in LootTables.armorTypeMap)
+            {
+                armorType = kvp.Key;
+                var table = kvp.Value;
+
+                if (kvp.Value.Contains((int)wcid))
+                    return true;
+            }
+            armorType = null;
+            return false;
         }
 
         private static int GetCovenantWieldReq(int tier, Skill skill)
