@@ -197,7 +197,8 @@ namespace ACE.Server
 
         private static void PatchDatabase(string dbType, string host, uint port, string username, string password, string database)
         {
-            var updatesFile = $"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}{dbType}{Path.DirectorySeparatorChar}applied_updates.txt";
+            var updatesPath = $"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}{dbType}";
+            var updatesFile = $"{updatesPath}{Path.DirectorySeparatorChar}applied_updates.txt";
             var appliedUpdates = Array.Empty<string>();
 
             var containerUpdatesFile = $"/ace/Config/{dbType}_applied_updates.txt";
@@ -208,7 +209,7 @@ namespace ACE.Server
                 appliedUpdates = File.ReadAllLines(updatesFile);
 
             Console.WriteLine($"Searching for {dbType} update SQL scripts .... ");
-            foreach (var file in new DirectoryInfo($"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}{dbType}").GetFiles("*.sql").OrderBy(f => f.Name))
+            foreach (var file in new DirectoryInfo(updatesPath).GetFiles("*.sql").OrderBy(f => f.Name))
             {
                 if (appliedUpdates.Contains(file.Name))
                     continue;
