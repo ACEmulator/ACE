@@ -119,6 +119,13 @@ namespace ACE.Server.WorldObjects
 
         public void JoinTurbineChatChannel(string channelName)
         {
+            if (channelName == "Allegiance" && Allegiance == null)
+                return;
+            else if (channelName == "Society") //&& Society == null) // todo: society
+                return;
+            else if (channelName == "Olthoi") //todo: olthoi play
+                return;
+
             Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, channelName));
 
             SendTurbineChatChannels();
@@ -126,6 +133,13 @@ namespace ACE.Server.WorldObjects
 
         public void LeaveTurbineChatChannel(string channelName, bool breakAllegiance = false)
         {
+            if (channelName == "Allegiance" && !breakAllegiance && Allegiance == null)
+                return;
+            else if (channelName == "Society") //&& Society == null) // todo: society
+                return;
+            else if (channelName == "Olthoi") //todo: olthoi play
+                return;
+
             Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, channelName));
 
             SendTurbineChatChannels(breakAllegiance);
