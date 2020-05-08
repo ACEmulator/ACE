@@ -108,10 +108,10 @@ namespace ACE.Server.WorldObjects
 
             // for invisible spell traps,
             // their effects won't be seen if they broadcast from themselves
-            if (target != null && spell.TargetEffect != 0)
+            if (target != null && spell.TargetEffect != 0) //&& status.Success)
                 target.EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
 
-            if (caster != null && spell.CasterEffect != 0)
+            if (caster != null && spell.CasterEffect != 0) //&& status.Success)
                 caster.EnqueueBroadcast(new GameMessageScript(caster.Guid, spell.CasterEffect, spell.Formula.Scale));
         }
 
@@ -1007,25 +1007,34 @@ namespace ACE.Server.WorldObjects
                                 break;
                             }
 
-                            ActionChain portalSendingChain = new ActionChain();
-                            //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
-                            var fellows = targetPlayer.Fellowship.GetFellowshipMembers().Values;
-                            foreach (var fellow in fellows)
+                            var distanceToTarget = creature.GetDistance(targetPlayer);
+                            var skill = creature.GetCreatureSkill(spell.School);
+                            var magicSkill = skill.InitLevel + skill.Ranks;
+                            var maxRange = spell.BaseRangeConstant + magicSkill * spell.BaseRangeMod;
+                            if (maxRange == 0.0f)
+                                maxRange = float.PositiveInfinity;
+
+                            if (distanceToTarget <= maxRange)
                             {
-                                if (fellow.Guid != targetPlayer.Guid)
-                                    portalSendingChain.AddAction(fellow, () => fellow.EnqueueBroadcast(new GameMessageScript(fellow.Guid, spell.TargetEffect, spell.Formula.Scale)));
-                                portalSendingChain.AddAction(fellow, () => fellow.DoPreTeleportHide());
-                                portalSendingChain.AddAction(fellow, () =>
+                                ActionChain portalSendingChain = new ActionChain();
+                                portalSendingChain.AddAction(targetPlayer, () => targetPlayer.EnqueueBroadcast(new GameMessageScript(targetPlayer.Guid, spell.TargetEffect, spell.Formula.Scale)));
+                                portalSendingChain.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
+                                portalSendingChain.AddAction(targetPlayer, () =>
                                 {
                                     var teleportDest = new Position(spell.Position);
                                     WorldObject.AdjustDungeon(teleportDest);
 
-                                    fellow.Teleport(teleportDest);
+                                    targetPlayer.Teleport(teleportDest);
 
-                                    fellow.SendTeleportedViaMagicMessage(itemCaster, spell);
+                                    targetPlayer.SendTeleportedViaMagicMessage(itemCaster, spell);
                                 });
+                                portalSendingChain.EnqueueChain();
                             }
-                            portalSendingChain.EnqueueChain();
+                            //else
+                            //{
+                            //    enchantmentStatus.Success = false;
+                            //    return enchantmentStatus;
+                            //}
                         }
                         break;
 
