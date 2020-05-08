@@ -130,7 +130,8 @@ namespace ACE.Server.WorldObjects
             // refresh ui panel
             Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
 
-            UpdateChatChannels();
+            if (GetCharacterOption(CharacterOption.ListenToAllegianceChat) && Allegiance != null)
+                JoinTurbineChatChannel("Allegiance");
         }
 
         /// <summary>
@@ -269,7 +270,18 @@ namespace ACE.Server.WorldObjects
             if (player.CheckHouse())
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat("You have been booted from the allegiance house.", ChatMessageType.Broadcast));
 
-            player.UpdateChatChannels();
+            if (player.GetCharacterOption(CharacterOption.ListenToAllegianceChat))
+            {
+                if (player.Allegiance != null)
+                {
+                    player.LeaveTurbineChatChannel("Allegiance", true);
+                    player.JoinTurbineChatChannel("Allegiance");
+                }
+                else
+                    player.LeaveTurbineChatChannel("Allegiance");
+            }
+            else
+                player.SendTurbineChatChannels();
         }
 
         //public static float Allegiance_MaxSwearDistance = 4.0f;
