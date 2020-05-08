@@ -161,7 +161,7 @@ namespace ACE.Server.WorldObjects
             if (player.Fellowship != null && player.Fellowship.ShareLoot)
             {
                 var onlinePlayer = PlayerManager.GetOnlinePlayer(KillerId ?? 0);
-                if (onlinePlayer != null && onlinePlayer.Fellowship != null && player.Fellowship == onlinePlayer.Fellowship && !CorpseGeneratedRare)
+                if (onlinePlayer != null && onlinePlayer.Fellowship != null && player.Fellowship == onlinePlayer.Fellowship && !CorpseGeneratedRare && PkLevel != PKLevel.PK)
                     return true;
             }
             return false;
