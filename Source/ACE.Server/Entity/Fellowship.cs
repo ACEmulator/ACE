@@ -78,22 +78,30 @@ namespace ACE.Server.Entity
 
             if (IsLocked && !LockedMembers.ContainsKey(newMember.Guid.Full))
             {
-                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat("Fellowship is locked", ChatMessageType.Fellowship));
+                inviter.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(inviter.Session, WeenieErrorWithString.LockedFellowshipCannotRecruit_, newMember.Name));
                 return;
             }
 
             if (FellowshipMembers.Count == MaxFellows)
             {
-                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat("Fellowship is already full", ChatMessageType.Fellowship));
+                inviter.Session.Network.EnqueueSend(new GameEventWeenieError(inviter.Session, WeenieError.YourFellowshipIsFull));
                 return;
             }
 
             if (newMember.Fellowship != null || FellowshipMembers.ContainsKey(newMember.Guid.Full))
             {
+                // todo: can't seem to find pcap of this scenario... seems odd..
                 inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newMember.Name} is already in a fellowship", ChatMessageType.Fellowship));
+                //inviter.Session.Network.EnqueueSend(new GameEventWeenieError(inviter.Session, WeenieError.FellowshipMember)); 
             }
             else
             {
+                if (PropertyManager.GetBool("fellow_busy_no_recruit").Item && newMember.IsBusy)
+                {
+                    inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newMember.Name} is busy.", ChatMessageType.Broadcast));
+                    return;
+                }
+
                 if (newMember.GetCharacterOption(CharacterOption.AutomaticallyAcceptFellowshipRequests))
                 {
                     AddConfirmedMember(inviter, newMember, true);
@@ -116,12 +124,13 @@ namespace ACE.Server.Entity
             {
                 // player clicked 'no' on the fellowship popup
                 inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} declines your invite", ChatMessageType.Fellowship));
+                inviter.Session.Network.EnqueueSend(new GameEventWeenieError(inviter.Session, WeenieError.FellowshipDeclined));
                 return;
             }
 
             if (FellowshipMembers.Count == 9)
             {
-                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cannot join as fellowship is full", ChatMessageType.Fellowship));
+                inviter.Session.Network.EnqueueSend(new GameEventWeenieError(inviter.Session, WeenieError.YourFellowshipIsFull));
                 return;
             }
 
@@ -135,7 +144,19 @@ namespace ACE.Server.Entity
             foreach (var member in fellowshipMembers.Values.Where(i => i.Guid != player.Guid))
                 member.Session.Network.EnqueueSend(new GameEventFellowshipUpdateFellow(member.Session, player, ShareXP));
 
-            SendMessageAndUpdate($"{player.Name} joined the fellowship");
+            if (ShareLoot)
+            {
+                foreach (var member in fellowshipMembers.Values.Where(i => i.Guid != player.Guid))
+                {
+                    member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has given you permission to loot his or her kills.", ChatMessageType.Broadcast));
+                    member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} may now loot your kills.", ChatMessageType.Broadcast));
+
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{member.Name} has given you permission to loot his or her kills.", ChatMessageType.Broadcast));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{member.Name} may now loot your kills.", ChatMessageType.Broadcast));
+                }
+            }
+
+            UpdateAllMembers();
         }
 
         public void RemoveFellowshipMember(Player player)
@@ -178,6 +199,46 @@ namespace ACE.Server.Entity
             }
         }
 
+        private void SendBroadcastAndUpdate(string message)
+        {
+            var fellowshipMembers = GetFellowshipMembers();
+
+            foreach (var member in fellowshipMembers.Values)
+            {
+                member.Session.Network.EnqueueSend(new GameEventChannelBroadcast(member.Session, Channel.FellowBroadcast, "", message));
+
+                member.Session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(member.Session));
+            }
+        }
+
+        public void BroadcastToFellow(string message)
+        {
+            var fellowshipMembers = GetFellowshipMembers();
+
+            foreach (var member in fellowshipMembers.Values)
+                member.Session.Network.EnqueueSend(new GameEventChannelBroadcast(member.Session, Channel.FellowBroadcast, "", message));
+        }
+
+        public void TellFellow(WorldObject sender, string message)
+        {
+            var fellowshipMembers = GetFellowshipMembers();
+
+            foreach (var member in fellowshipMembers.Values)
+                member.Session.Network.EnqueueSend(new GameEventChannelBroadcast(member.Session, Channel.Fellow, sender.Name, message));
+        }
+
+        private void SendWeenieErrorWithStringAndUpdate(WeenieErrorWithString error, string message)
+        {
+            var fellowshipMembers = GetFellowshipMembers();
+
+            foreach (var member in fellowshipMembers.Values)
+            {
+                member.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(member.Session, error, message));
+
+                member.Session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(member.Session));
+            }
+        }
+
         public void QuitFellowship(Player player, bool disband)
         {
             if (player == null) return;
@@ -190,45 +251,73 @@ namespace ACE.Server.Entity
 
                     foreach (var member in fellowshipMembers.Values)
                     {
-                        member.Session.Network.EnqueueSend(new GameEventFellowshipQuit(member.Session, member.Guid.Full));
+                        member.Session.Network.EnqueueSend(new GameEventFellowshipDisband(member.Session));
 
-                        if (member.Guid.Full == FellowshipLeaderGuid)
-                            member.Session.Network.EnqueueSend(new GameMessageSystemChat("You disband the fellowship", ChatMessageType.Fellowship));
-                        else
-                            member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} disbanded the fellowship", ChatMessageType.Fellowship));
+                        if (ShareLoot)
+                        {
+                            member.Session.Network.EnqueueSend(new GameMessageSystemChat("You no longer have permission to loot anyone else's kills.", ChatMessageType.Broadcast));
+
+                            // you would expect this occur, but it did not in retail pcaps
+                            //foreach (var fellow in fellowshipMembers.Values)
+                            //    member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name} does not have permission to loot your kills.", ChatMessageType.Broadcast));
+                        }
 
                         member.Fellowship = null;
                     }
                 }
                 else
                 {
+                    // most likely is not hit due to client proactively sending AssignNewLeader msg
+
                     FellowshipMembers.Remove(player.Guid.Full);
                     player.Fellowship = null;
                     player.Session.Network.EnqueueSend(new GameEventFellowshipQuit(player.Session, player.Guid.Full));
-                    AssignNewLeader(null);
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("You no longer have permission to loot anyone else's kills.", ChatMessageType.Broadcast));
+                    var fellowshipMembers = GetFellowshipMembers();
+                    foreach (var member in fellowshipMembers.Values)
+                    {
+                        member.Session.Network.EnqueueSend(new GameEventFellowshipQuit(member.Session, player.Guid.Full));
+
+                        if (ShareLoot)
+                        {
+                            member.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have lost permission to loot the kills of {player.Name}.", ChatMessageType.Broadcast));
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{member.Name} does not have permission to loot your kills.", ChatMessageType.Broadcast));
+                        }
+                    }
+                    AssignNewLeader(null, null);
                     CalculateXPSharing();
-                    SendMessageAndUpdate($"{player.Name} left the fellowship");
                 }
             }
             else if (!disband)
             {
                 FellowshipMembers.Remove(player.Guid.Full);
                 player.Session.Network.EnqueueSend(new GameEventFellowshipQuit(player.Session, player.Guid.Full));
+                var fellowshipMembers = GetFellowshipMembers();
+                foreach (var member in fellowshipMembers.Values)
+                {
+                    member.Session.Network.EnqueueSend(new GameEventFellowshipQuit(member.Session, player.Guid.Full));
+
+                    if (ShareLoot)
+                    {
+                        member.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have lost permission to loot the kills of {player.Name}.", ChatMessageType.Broadcast));
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{member.Name} does not have permission to loot your kills.", ChatMessageType.Broadcast));
+                    }
+                }
                 player.Fellowship = null;
                 CalculateXPSharing();
-                SendMessageAndUpdate($"{player.Name} left the fellowship");
             }
         }
 
-        public void AssignNewLeader(Player p)
+        public void AssignNewLeader(Player oldLeader, Player newLeader)
         {
             string newLeaderName = string.Empty;
-            if (p != null)
+            if (newLeader != null)
             {
-                FellowshipLeaderGuid = p.Guid.Full;
-                newLeaderName = p.Name;
-                SendMessageAndUpdate($"{newLeaderName} now leads the fellowship");
-
+                FellowshipLeaderGuid = newLeader.Guid.Full;
+                newLeaderName = newLeader.Name;
+                if (oldLeader != null)
+                    oldLeader.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(oldLeader.Session, WeenieErrorWithString.YouHavePassedFellowshipLeadershipTo_, newLeaderName));
+                SendWeenieErrorWithStringAndUpdate(WeenieErrorWithString._IsNowLeaderOfFellowship, newLeaderName);
             }
             else
             {
@@ -240,7 +329,9 @@ namespace ACE.Server.Entity
                     var fellowGuids = fellowshipMembers.Keys.ToList();
                     FellowshipLeaderGuid = fellowGuids[newLeaderIndex];
                     newLeaderName = fellowshipMembers[FellowshipLeaderGuid].Name;
-                    SendMessageAndUpdate($"{newLeaderName} now leads the fellowship");
+                    if (oldLeader != null)
+                        oldLeader.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(oldLeader.Session, WeenieErrorWithString.YouHavePassedFellowshipLeadershipTo_, newLeaderName));
+                    SendWeenieErrorWithStringAndUpdate(WeenieErrorWithString._IsNowLeaderOfFellowship, newLeaderName);
                 }
             }
         }
@@ -248,25 +339,35 @@ namespace ACE.Server.Entity
         public void UpdateOpenness(bool isOpen)
         {
             Open = isOpen;
-            string openness = Open ? "open" : "closed";
-            SendMessageAndUpdate($"Fellowship is now {openness}");
+            var openness = Open ? WeenieErrorWithString._IsNowOpenFellowship : WeenieErrorWithString._IsNowClosedFellowship;
+            SendWeenieErrorWithStringAndUpdate(openness, FellowshipName);
         }
 
         public void UpdateLock(bool isLocked)
         {
+            // Unlocking a fellowship is not possible without disbanding in retail worlds, so in all likelihood, this is only firing for fellowships being locked by emotemanager
+
             IsLocked = isLocked;
-            string lockedness = IsLocked ? "locked" : "unlocked";
-            SendMessageAndUpdate($"Fellowship is now {lockedness}");
 
             if (isLocked)
             {
+                Open = false;
+
+                SendBroadcastAndUpdate("Your fellowship is now locked.  You may not recruit new members.  If you leave the fellowship, you have 15 minutes to be recruited back into the fellowship.");
+
                 foreach (var fellow in GetFellowshipMembers().Values)
                 {
                     LockedMembers.TryAdd(fellow.Guid.Full, new WeakReference<Player>(fellow));
                 }
             }
             else
+            {
+                // Unlocking a fellowship is not possible without disbanding in retail worlds, so in all likelihood, this never occurs
+
+                SendBroadcastAndUpdate("Your fellowship is now unlocked.");
+
                 LockedMembers.Clear();
+            }
         }
 
         /// <summary>
@@ -584,7 +685,7 @@ namespace ACE.Server.Entity
                 fellowshipMembers.Remove(fellowGuid);
             }
             if (fellowGuids.Contains(FellowshipLeaderGuid))
-                AssignNewLeader(null);
+                AssignNewLeader(null, null);
 
             CalculateXPSharing();
             UpdateAllMembers();

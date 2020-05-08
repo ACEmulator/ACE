@@ -33,5 +33,27 @@ namespace ACE.Common
         [System.ComponentModel.DefaultValue(false)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool PurgeOrphanedBiotas { get; set; }
+
+        /// <summary>
+        /// Automatically check for and update to latest available world database
+        /// </summary>
+        [System.ComponentModel.DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool AutoUpdateWorldDatabase { get; set; }
+
+        /// <summary>
+        /// After updating to latest world database, automatically import further customizations
+        /// AutoUpdateWorldDatabase must be true for this option to be used
+        /// </summary>
+        [System.ComponentModel.DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool AutoApplyWorldCustomizations { get; set; }
+
+        /// <summary>
+        /// Automatically apply new updates to databases upon startup if they haven't yet been applied
+        /// </summary>
+        [System.ComponentModel.DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool AutoApplyDatabaseUpdates { get; set; }
     }
 }

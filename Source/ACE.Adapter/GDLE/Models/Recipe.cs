@@ -34,7 +34,7 @@ namespace ACE.Adapter.GDLE.Models
         public uint SuccessConsumeTargetAmount { get; set; }
 
         [JsonProperty("SuccessConsumeTargetChance")]
-        public int SuccessConsumeTargetChance { get; set; }
+        public double SuccessConsumeTargetChance { get; set; }
 
         [JsonProperty("SuccessConsumeTargetMessage")]
         public string SuccessConsumeTargetMessage { get; set; }
@@ -43,7 +43,7 @@ namespace ACE.Adapter.GDLE.Models
         public uint SuccessConsumeToolAmount { get; set; }
 
         [JsonProperty("SuccessConsumeToolChance")]
-        public int SuccessConsumeToolChance { get; set; }
+        public double SuccessConsumeToolChance { get; set; }
 
         [JsonProperty("SuccessConsumeToolMessage")]
         public string SuccessConsumeToolMessage { get; set; }
@@ -61,7 +61,7 @@ namespace ACE.Adapter.GDLE.Models
         public uint FailureConsumeTargetAmount { get; set; }
 
         [JsonProperty("FailureConsumeTargetChance")]
-        public int FailureConsumeTargetChance { get; set; }
+        public double FailureConsumeTargetChance { get; set; }
 
         [JsonProperty("FailureConsumeTargetMessage")]
         public string FailureConsumeTargetMessage { get; set; }
@@ -70,7 +70,7 @@ namespace ACE.Adapter.GDLE.Models
         public uint FailureConsumeToolAmount { get; set; }
 
         [JsonProperty("FailureConsumeToolChance")]
-        public int FailureConsumeToolChance { get; set; }
+        public double FailureConsumeToolChance { get; set; }
 
         [JsonProperty("FailureConsumeToolMessage")]
         public string FailureConsumeToolMessage { get; set; }

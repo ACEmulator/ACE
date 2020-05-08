@@ -42,9 +42,6 @@ namespace ACE.Server.Factories
                     chance = ThreadSafeRandom.Next(0, upperLimit);
                     uint id = (uint)LootTables.GenericLootMatrix[genericLootMatrixIndex][chance];
 
-                    if (id == 0)
-                        return null;
-
                     wo = WorldObjectFactory.CreateNewWorldObject(id);
                     break;
             }

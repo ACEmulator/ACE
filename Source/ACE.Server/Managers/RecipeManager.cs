@@ -781,7 +781,7 @@ namespace ACE.Server.Managers
 
         public static bool VerifyUse(Player player, WorldObject source, WorldObject target)
         {
-            var usable = source.Usable ?? Usable.Undef;
+            var usable = source.ItemUseable ?? Usable.Undef;
 
             if (usable == Usable.Undef)
             {

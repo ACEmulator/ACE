@@ -3,6 +3,7 @@ extern alias MySqlConnectorAlias;
 using System;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using ACE.Common;
@@ -324,7 +325,7 @@ namespace ACE.Server
                 }
 
                 Console.WriteLine("Searching for base SQL scripts .... ");
-                foreach (var file in new DirectoryInfo($"DatabaseSetupScripts{Path.DirectorySeparatorChar}Base").GetFiles("*.sql"))
+                foreach (var file in new DirectoryInfo($"DatabaseSetupScripts{Path.DirectorySeparatorChar}Base").GetFiles("*.sql").OrderBy(f => f.Name))
                 {
                     Console.Write($"Found {file.Name} .... ");
                     var sqlDBFile = File.ReadAllText(file.FullName);
@@ -358,7 +359,8 @@ namespace ACE.Server
                 Console.WriteLine("Searching for Update SQL scripts .... ");
 
                 Console.WriteLine("Searching for Authentication update SQL scripts .... ");
-                foreach (var file in new DirectoryInfo($"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}Authentication").GetFiles("*.sql"))
+                var updatesFile = $"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}Authentication{Path.DirectorySeparatorChar}applied_updates.txt";
+                foreach (var file in new DirectoryInfo($"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}Authentication").GetFiles("*.sql").OrderBy(f => f.Name))
                 {
                     Console.Write($"Found {file.Name} .... ");
                     var sqlDBFile = File.ReadAllText(file.FullName);
@@ -376,11 +378,13 @@ namespace ACE.Server
 
                     }
                     Console.WriteLine(" complete!");
+                    File.AppendAllText(updatesFile, file.Name + Environment.NewLine);
                 }
                 Console.WriteLine("Authentication update SQL scripts import complete!");
 
                 Console.WriteLine("Searching for Shard update SQL scripts .... ");
-                foreach (var file in new DirectoryInfo($"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}Shard").GetFiles("*.sql"))
+                updatesFile = $"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}Shard{Path.DirectorySeparatorChar}applied_updates.txt";
+                foreach (var file in new DirectoryInfo($"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}Shard").GetFiles("*.sql").OrderBy(f => f.Name))
                 {
                     Console.Write($"Found {file.Name} .... ");
                     var sqlDBFile = File.ReadAllText(file.FullName);
@@ -398,11 +402,13 @@ namespace ACE.Server
 
                     }
                     Console.WriteLine(" complete!");
+                    File.AppendAllText(updatesFile, file.Name + Environment.NewLine);
                 }
                 Console.WriteLine("Shard update SQL scripts import complete!");
 
                 Console.WriteLine("Searching for World update SQL scripts .... ");
-                foreach (var file in new DirectoryInfo($"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}World").GetFiles("*.sql"))
+                updatesFile = $"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}World{Path.DirectorySeparatorChar}applied_updates.txt";
+                foreach (var file in new DirectoryInfo($"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}World").GetFiles("*.sql").OrderBy(f => f.Name))
                 {
                     Console.Write($"Found {file.Name} .... ");
                     var sqlDBFile = File.ReadAllText(file.FullName);
@@ -420,6 +426,7 @@ namespace ACE.Server
 
                     }
                     Console.WriteLine(" complete!");
+                    File.AppendAllText(updatesFile, file.Name + Environment.NewLine);
                 }
                 Console.WriteLine("World update SQL scripts import complete!");
             }
