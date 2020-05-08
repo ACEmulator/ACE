@@ -562,12 +562,10 @@ namespace ACE.Server.Entity
             if (attacker != null && (attacker.DebugDamage & Creature.DebugDamageType.Attacker) != 0)
             {
                 ShowInfo(attacker);
-                return;
             }
             if (defender != null && (defender.DebugDamage & Creature.DebugDamageType.Defender) != 0)
             {
                 ShowInfo(defender);
-                return;
             }
         }
 

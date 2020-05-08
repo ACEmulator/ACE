@@ -346,31 +346,31 @@ namespace ACE.Server.Factories
                         {
                             switch (testItem.AmmoType.Value)
                             {
-                                case ACE.Entity.Enum.AmmoType.None:
+                                case AmmoType.None:
                                     break;
-                                case ACE.Entity.Enum.AmmoType.Arrow:
+                                case AmmoType.Arrow:
                                     missileType = "Bow";
                                     ls.MissileWeaponCount++;
                                     break;
-                                case ACE.Entity.Enum.AmmoType.Bolt:
+                                case AmmoType.Bolt:
                                     missileType = "X Bow";
                                     ls.MissileWeaponCount++;
                                     break;
-                                case ACE.Entity.Enum.AmmoType.Atlatl:
+                                case AmmoType.Atlatl:
                                     missileType = "Thrown";
                                     ls.MissileWeaponCount++;
                                     break;
-                                case ACE.Entity.Enum.AmmoType.ArrowCrystal:
+                                case AmmoType.ArrowCrystal:
                                     break;
-                                case ACE.Entity.Enum.AmmoType.BoltCrystal:
+                                case AmmoType.BoltCrystal:
                                     break;
-                                case ACE.Entity.Enum.AmmoType.AtlatlCrystal:
+                                case AmmoType.AtlatlCrystal:
                                     break;
-                                case ACE.Entity.Enum.AmmoType.ArrowChorizite:
+                                case AmmoType.ArrowChorizite:
                                     break;
-                                case ACE.Entity.Enum.AmmoType.BoltChorizite:
+                                case AmmoType.BoltChorizite:
                                     break;
-                                case ACE.Entity.Enum.AmmoType.AtlatlChorizite:
+                                case AmmoType.AtlatlChorizite:
                                     break;
                                 default:
                                     break;
