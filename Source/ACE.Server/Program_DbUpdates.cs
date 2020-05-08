@@ -132,7 +132,18 @@ namespace ACE.Server
             sqlConnect.Open();
             var sqlReader = sqlCommand.ExecuteReader();
 
-            var content_folder = sqlReader.HasRows ? sqlReader.GetString(0) : @".\Content";
+            var content_folder = "";
+
+            if (sqlReader.HasRows)
+            {
+                while (sqlReader.Read())
+                {
+                    content_folder = sqlReader.GetString(0);
+                    break;
+                }
+            }
+            else
+                content_folder = @".\Content";
 
             sqlReader.Close();
             sqlCommand.Connection.Close();
