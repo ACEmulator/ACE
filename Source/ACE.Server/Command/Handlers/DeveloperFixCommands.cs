@@ -250,6 +250,85 @@ namespace ACE.Server.Command.Handlers
                         continue;
                     }
 
+                    if (sac != SkillAdvancementClass.Specialized)
+                    {
+                        if (skill.Value.InitLevel > 0)
+                        {
+                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel");
+                            foundIssues = true;
+
+                            if (fix)
+                            {
+                                skill.Value.InitLevel = 0;
+
+                                updated = true;
+                            }
+                        }
+                        //continue;
+                    }
+                    else
+                    {
+                        var augProp = 0;
+                        var augType = AugmentationType.None;
+                        switch (skill.Key)
+                        {
+
+                            case Skill.ArmorTinkering:
+                                //AugmentationDevice.AugProps.TryGetValue(augType, out var augPropInt);
+                                augType = AugmentationType.ArmorTinkering;
+                                augProp = player.GetProperty(PropertyInt.AugmentationSpecializeArmorTinkering) ?? 0;
+                                goto default;
+
+                            case Skill.ItemTinkering:
+                                augType = AugmentationType.ItemTinkering;
+                                augProp = player.GetProperty(PropertyInt.AugmentationSpecializeItemTinkering) ?? 0;
+                                goto default;
+
+                            case Skill.MagicItemTinkering:
+                                augType = AugmentationType.MagicItemTinkering;
+                                augProp = player.GetProperty(PropertyInt.AugmentationSpecializeMagicItemTinkering) ?? 0;
+                                goto default;
+
+                            case Skill.WeaponTinkering:
+                                augType = AugmentationType.WeaponTinkering;
+                                augProp = player.GetProperty(PropertyInt.AugmentationSpecializeWeaponTinkering) ?? 0;
+                                goto default;
+
+                            case Skill.Salvaging:
+                                augType = AugmentationType.Salvage;
+                                augProp = player.GetProperty(PropertyInt.AugmentationSpecializeSalvaging) ?? 0;
+                                goto default;
+
+                            default:
+                                if (skill.Value.InitLevel != 10 && augProp == 0)
+                                {
+                                    Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel");
+                                    foundIssues = true;
+
+                                    if (fix)
+                                    {
+                                        skill.Value.InitLevel = 10;
+
+                                        updated = true;
+                                    }
+                                }
+                                else if (skill.Value.InitLevel == 10 && augProp == 1)
+                                {
+                                    Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel as a result of {augType} augmentation");
+                                    foundIssues = true;
+
+                                    if (fix)
+                                    {
+                                        skill.Value.InitLevel = 0;
+
+                                        updated = true;
+                                    }
+                                }
+                                //continue;
+                                break;
+                        }
+                    }
+
                     // verify skill rank
                     var correctRank = Player.CalcSkillRank(sac, skill.Value.PP);
                     if (rank != correctRank)
@@ -272,8 +351,8 @@ namespace ACE.Server.Command.Handlers
                     // so the data can be in a legit situation here where a character has a skill speced,
                     // but their xp is beyond the spec xp cap (4,100,490,438) and <= the trained xp cap (4,203,819,496)
 
-                    //var skillXPTable = Player.GetSkillXPTable(sac);
-                    var skillXPTable = Player.GetSkillXPTable(SkillAdvancementClass.Trained);
+                    var skillXPTable = Player.GetSkillXPTable(sac);
+                    //var skillXPTable = Player.GetSkillXPTable(SkillAdvancementClass.Trained);
                     var maxSkillXp = skillXPTable[skillXPTable.Count - 1];
 
                     if (skill.Value.PP > maxSkillXp)
@@ -498,7 +577,7 @@ namespace ACE.Server.Command.Handlers
                 refundXP += skill.Value.PP;
 
                 skill.Value.SAC = SkillAdvancementClass.Untrained;
-                skill.Value.InitLevel -= 5;
+                skill.Value.InitLevel = 0;
                 skill.Value.PP = 0;
                 skill.Value.LevelFromPP = 0;
 
