@@ -2201,48 +2201,57 @@ namespace ACE.Server.Command.Handlers
                 player.Character.CharacterOptions1 = session.Player.Character.CharacterOptions1;
                 player.Character.CharacterOptions2 = session.Player.Character.CharacterOptions2;
 
-                //var wearables = weenie.GetCreateList((sbyte)DestinationType.Wield);
-                var wearables = weenie.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Wield || x.DestinationType == DestinationType.WieldTreasure).ToList();
-                foreach (var wearable in wearables)
+                if (weenie.PropertiesCreateList != null)
                 {
-                    var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(wearable.WeenieClassId);
+                    var wearables = weenie.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Wield || x.DestinationType == DestinationType.WieldTreasure).ToList();
+                    foreach (var wearable in wearables)
+                    {
+                        var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(wearable.WeenieClassId);
 
-                    if (weenieOfWearable == null)
-                        continue;
+                        if (weenieOfWearable == null)
+                            continue;
 
-                    var worldObject = WorldObjectFactory.CreateNewWorldObject(weenieOfWearable);
+                        var worldObject = WorldObjectFactory.CreateNewWorldObject(weenieOfWearable);
 
-                    if (worldObject == null)
-                        continue;
+                        if (worldObject == null)
+                            continue;
 
-                    if (wearable.Palette > 0)
-                        worldObject.PaletteTemplate = wearable.Palette;
-                    if (wearable.Shade > 0)
-                        worldObject.Shade = wearable.Shade;
+                        if (wearable.Palette > 0)
+                            worldObject.PaletteTemplate = wearable.Palette;
+                        if (wearable.Shade > 0)
+                            worldObject.Shade = wearable.Shade;
 
-                    player.TryEquipObjectWithNetworking(worldObject, worldObject.ValidLocations ?? 0);
+                        worldObject.CalculateObjDesc();
+
+                        player.TryEquipObject(worldObject, worldObject.ValidLocations ?? 0);
+                    }
+
+                    var containables = weenie.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Contain || x.DestinationType == DestinationType.Shop
+                    || x.DestinationType == DestinationType.Treasure || x.DestinationType == DestinationType.ContainTreasure || x.DestinationType == DestinationType.ShopTreasure).ToList();
+                    foreach (var containable in containables)
+                    {
+                        var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(containable.WeenieClassId);
+
+                        if (weenieOfWearable == null)
+                            continue;
+
+                        var worldObject = WorldObjectFactory.CreateNewWorldObject(weenieOfWearable);
+
+                        if (worldObject == null)
+                            continue;
+
+                        if (containable.Palette > 0)
+                            worldObject.PaletteTemplate = containable.Palette;
+                        if (containable.Shade > 0)
+                            worldObject.Shade = containable.Shade;
+
+                        worldObject.CalculateObjDesc();
+
+                        player.TryAddToInventory(worldObject);
+                    }
                 }
 
-                var containables = weenie.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Contain || x.DestinationType == DestinationType.Shop
-                || x.DestinationType == DestinationType.Treasure || x.DestinationType == DestinationType.ContainTreasure || x.DestinationType == DestinationType.ShopTreasure).ToList();
-                foreach (var containable in containables)
-                {
-                    var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(containable.WeenieClassId);
-
-                    if (weenieOfWearable == null)
-                        continue;
-
-                    var worldObject = WorldObjectFactory.CreateNewWorldObject(weenieOfWearable);
-
-                    if (worldObject == null)
-                        continue;
-
-                    if (containable.Palette > 0)
-                        worldObject.PaletteTemplate = containable.Palette;
-                    if (containable.Shade > 0)
-                        worldObject.Shade = containable.Shade;
-                    player.TryAddToInventory(worldObject);
-                }
+                player.GenerateNewFace();
 
                 var possessions = player.GetAllPossessions();
                 var possessedBiotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
