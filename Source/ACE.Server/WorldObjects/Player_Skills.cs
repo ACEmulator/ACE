@@ -789,7 +789,7 @@ namespace ACE.Server.WorldObjects
             var updateSkill = new GameMessagePrivateUpdateSkill(this, creatureSkill);
             var availableSkillCredits = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.AvailableSkillCredits, AvailableSkillCredits ?? 0);
 
-            var msg = $"Your {typeOfSkill} {skill.ToSentence()} skill has been {(untrainable ? "removed" : "reset")}. ";
+            var msg = $"Your {(untrainable ? $"{typeOfSkill}" : "")}{skill.ToSentence()} skill has been {(untrainable ? "removed" : "reset")}. ";
             msg += $"All the experience {(creditRefund ? "and skill credits " : "")}that you spent on this skill have been refunded to you.";
 
             Session.Network.EnqueueSend(updateSkill, availableSkillCredits, new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
