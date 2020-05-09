@@ -234,7 +234,7 @@ namespace ACE.Server.Command.Handlers
                     {
                         if (skill.Value.PP > 0 || skill.Value.LevelFromPP > 0)
                         {
-                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.PP:N0} xp (rank {skill.Value.LevelFromPP})");
+                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.PP:N0} xp (rank {skill.Value.LevelFromPP}){fixStr}");
                             foundIssues = true;
 
                             if (fix)
@@ -254,7 +254,7 @@ namespace ACE.Server.Command.Handlers
                     {
                         if (skill.Value.InitLevel > 0)
                         {
-                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel");
+                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel{fixStr}");
                             foundIssues = true;
 
                             if (fix)
@@ -300,7 +300,7 @@ namespace ACE.Server.Command.Handlers
                             default:
                                 if (skill.Value.InitLevel != 10 && augProp == 0)
                                 {
-                                    Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel");
+                                    Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel{fixStr}");
                                     foundIssues = true;
 
                                     if (fix)
@@ -312,7 +312,7 @@ namespace ACE.Server.Command.Handlers
                                 }
                                 else if (skill.Value.InitLevel == 10 && augProp == 1)
                                 {
-                                    Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel as a result of {augType} augmentation");
+                                    Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel as a result of {augType} augmentation{fixStr}");
                                     foundIssues = true;
 
                                     if (fix)
