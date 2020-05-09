@@ -329,6 +329,22 @@ namespace ACE.Server.Command.Handlers
                         }
                     }
 
+                    //if (skill.Key == Skill.Salvaging)
+                    //{
+                    //    if (skill.Value.PP < 526)
+                    //    {
+                    //        Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.PP:N0} xp (rank {skill.Value.LevelFromPP})");
+                    //        foundIssues = true;
+
+                    //        if (fix)
+                    //        {
+                    //            skill.Value.PP = 526;
+
+                    //            updated = true;
+                    //        }
+                    //    }
+                    //}
+
                     // verify skill rank
                     var correctRank = Player.CalcSkillRank(sac, skill.Value.PP);
                     if (rank != correctRank)
@@ -351,8 +367,8 @@ namespace ACE.Server.Command.Handlers
                     // so the data can be in a legit situation here where a character has a skill speced,
                     // but their xp is beyond the spec xp cap (4,100,490,438) and <= the trained xp cap (4,203,819,496)
 
-                    var skillXPTable = Player.GetSkillXPTable(sac);
-                    //var skillXPTable = Player.GetSkillXPTable(SkillAdvancementClass.Trained);
+                    //var skillXPTable = Player.GetSkillXPTable(sac);
+                    var skillXPTable = Player.GetSkillXPTable(SkillAdvancementClass.Trained);
                     var maxSkillXp = skillXPTable[skillXPTable.Count - 1];
 
                     if (skill.Value.PP > maxSkillXp)
