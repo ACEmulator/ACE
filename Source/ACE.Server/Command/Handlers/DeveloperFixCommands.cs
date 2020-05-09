@@ -264,7 +264,6 @@ namespace ACE.Server.Command.Handlers
                                 updated = true;
                             }
                         }
-                        //continue;
                     }
                     else
                     {
@@ -274,7 +273,6 @@ namespace ACE.Server.Command.Handlers
                         {
 
                             case Skill.ArmorTinkering:
-                                //AugmentationDevice.AugProps.TryGetValue(augType, out var augPropInt);
                                 augType = AugmentationType.ArmorTinkering;
                                 augProp = player.GetProperty(PropertyInt.AugmentationSpecializeArmorTinkering) ?? 0;
                                 goto default;
@@ -324,26 +322,9 @@ namespace ACE.Server.Command.Handlers
                                         updated = true;
                                     }
                                 }
-                                //continue;
                                 break;
                         }
                     }
-
-                    //if (skill.Key == Skill.Salvaging)
-                    //{
-                    //    if (skill.Value.PP < 526)
-                    //    {
-                    //        Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.PP:N0} xp (rank {skill.Value.LevelFromPP})");
-                    //        foundIssues = true;
-
-                    //        if (fix)
-                    //        {
-                    //            skill.Value.PP = 526;
-
-                    //            updated = true;
-                    //        }
-                    //    }
-                    //}
 
                     // verify skill rank
                     var correctRank = Player.CalcSkillRank(sac, skill.Value.PP);
