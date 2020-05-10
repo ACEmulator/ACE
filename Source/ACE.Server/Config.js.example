@@ -17,7 +17,11 @@
 
       // MaximumAllowedSessionsPerIPAddress, default: -1
       // -1 means unlimited connections per IP Address.
-      "MaximumAllowedSessionsPerIPAddress": -1
+      "MaximumAllowedSessionsPerIPAddress": -1,
+
+     // AllowUlimitedSessionsFromIPs, default []
+     // Will allow the given IP addresses to have unlimited sessions - recommend only use this for Admins/Devs
+     "AllowUlimitedSessionsFromIPAddresses": []
     },
 
     "Accounts": {
