@@ -832,7 +832,9 @@ namespace ACE.Server.Command.Handlers
 
                 var currentSpent = totalXP - unassignedXP;
 
-                if (calculatedSpent != currentSpent)
+                var bonusXp = (currentSpent - calculatedSpent) % 526;
+
+                if (calculatedSpent != currentSpent && bonusXp != 0)
                 {
                     // the results for this data set can be large,
                     // especially due to an earlier ace bug where it wasn't calculating the Proficiency Points correctly
