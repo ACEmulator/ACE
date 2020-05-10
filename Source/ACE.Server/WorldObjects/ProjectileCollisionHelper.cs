@@ -87,8 +87,6 @@ namespace ACE.Server.WorldObjects
             worldObject.PhysicsObj.set_active(false);
 
             worldObject.HitMsg = true;
-
-            worldObject.Destroy();
         }
 
         public static void OnCollideEnvironment(WorldObject worldObject)
@@ -115,8 +113,6 @@ namespace ACE.Server.WorldObjects
             }
 
             worldObject.HitMsg = true;
-
-            worldObject.Destroy();
         }
     }
 }
