@@ -21,7 +21,8 @@
 
      // AllowUlimitedSessionsFromIPs, default []
      // Will allow the given IP addresses to have unlimited sessions - recommend only use this for Admins/Devs
-     "AllowUlimitedSessionsFromIPAddresses": []
+     // Example: [ "127.0.0.1", "8.8.8.8" ]
+     "AllowUnlimitedSessionsFromIPAddresses": []
     },
 
     "Accounts": {

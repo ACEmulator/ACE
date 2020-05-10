@@ -42,6 +42,6 @@ namespace ACE.Common
         /// </remarks>
         [System.ComponentModel.DefaultValue(new string[] { })]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public string[] AllowUlimitedSessionsFromIPAddresses { get; set; }
+        public string[] AllowUnlimitedSessionsFromIPAddresses { get; set; }
     }
 }
