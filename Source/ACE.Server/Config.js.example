@@ -189,6 +189,7 @@
     // all .sql files in the following directories.
     // This process will still use ./Content by default, or the the config_properties_string
     // value for 'content_folder' if it exists
+    // Example: [ "C:\MyContent", "C:\FTPRoot\Editor1Content", "C:\FTPRoot\Editor2Content" ]
     "WorldCustomizationAddedPaths": [],
 
      // When retrieving a file list of .sql files in the AutoApplyWorldCustomizations process
