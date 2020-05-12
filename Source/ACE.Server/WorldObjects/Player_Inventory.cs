@@ -2879,8 +2879,11 @@ namespace ACE.Server.WorldObjects
             {
                 log.Warn($"Player.GiveFromEmote: itemStacks <= 0: emoter: {emoter.Name} (0x{emoter.Guid}) - {emoter.WeenieClassId} | weenieClassId: {weenieClassId} | amount: {amount}");
 
-                var item = PlayerFactory.CreateIOU(weenieClassId);
-                TryCreateForGive(emoter, item);
+                if (PropertyManager.GetBool("iou_trades").Item)
+                {
+                    var item = PlayerFactory.CreateIOU(weenieClassId);
+                    TryCreateForGive(emoter, item);
+                }
             }
         }
 
