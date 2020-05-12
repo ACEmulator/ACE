@@ -21,7 +21,7 @@ namespace ACE.Entity.Enum
         ListenToGeneralChat                     = 0x00000100,
         ListenToTradeChat                       = 0x00000200,
         ListenToLFGChat                         = 0x00000400,
-        ListentoRoleplayChat                    = 0x00000800,        
+        ListenToRoleplayChat                    = 0x00000800,        
         AppearOffline                           = 0x00001000,
         AllowOthersToSeeYourNumberOfTitles      = 0x00002000,
         UseMainPackAsDefaultForPickingUpItems   = 0x00004000,

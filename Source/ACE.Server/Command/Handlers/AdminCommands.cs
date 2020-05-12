@@ -18,7 +18,6 @@ using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
-using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
@@ -1142,7 +1141,7 @@ namespace ACE.Server.Command.Handlers
         // ??
         public const uint WEENIE_MAX = uint.MaxValue;
 
-        static WorldObject CreateObjectForCommand(Session session, string weenieClassDescription)
+        static WorldObject CreateObjectForCommand(Session session, string weenieClassDescription, bool forInventory = false)
         {
             bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
             if (wcid)
@@ -1154,22 +1153,62 @@ namespace ACE.Server.Command.Handlers
                 }
             }
 
-            WorldObject obj;
+            Weenie weenie;
             if (wcid)
-                obj = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
+                weenie = DatabaseManager.World.GetCachedWeenie(weenieClassId);
             else
-                obj = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription);
+                weenie = DatabaseManager.World.GetCachedWeenie(weenieClassDescription);
 
-            if (obj == null)
+            if (weenie == null)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassDescription} is not a valid weenie.", ChatMessageType.Broadcast));
                 return null;
             }
-            if (obj is House)
+
+            var weenieType = weenie.WeenieType;
+            if (   weenieType == WeenieType.Admin
+                || weenieType == WeenieType.AI
+                || weenieType == WeenieType.Allegiance
+                || weenieType == WeenieType.BootSpot
+                || weenieType == WeenieType.Channel
+                || weenieType == WeenieType.CombatPet
+                || weenieType == WeenieType.Deed
+                || weenieType == WeenieType.Entity
+                || weenieType == WeenieType.EventCoordinator
+                || weenieType == WeenieType.Game
+                || weenieType == WeenieType.GamePiece
+                || weenieType == WeenieType.GScoreGatherer
+                || weenieType == WeenieType.GScoreKeeper
+                || weenieType == WeenieType.GSpellEconomy
+                || weenieType == WeenieType.Hook
+                || weenieType == WeenieType.House
+                || weenieType == WeenieType.HousePortal
+                || weenieType == WeenieType.HUD                
+                || weenieType == WeenieType.InGameStatKeeper
+                || weenieType == WeenieType.LScoreKeeper
+                || weenieType == WeenieType.LSpellEconomy
+                || weenieType == WeenieType.Machine
+                || weenieType == WeenieType.Pet
+                || weenieType == WeenieType.ProjectileSpell
+                || weenieType == WeenieType.Sentinel
+                || weenieType == WeenieType.SlumLord
+                || weenieType == WeenieType.SocialManager
+                || weenieType == WeenieType.Storage
+                || weenieType == WeenieType.Undef
+                || weenieType == WeenieType.UNKNOWN__GUESSEDNAME32
+                )
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"You can't spawn a House object.", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot spawn {weenie.ClassName} because it is a {weenieType}", ChatMessageType.Broadcast));
                 return null;
             }
+
+            if (forInventory && weenie.IsStuck())
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot spawn {weenie.ClassName} in your inventory because it cannot be picked up", ChatMessageType.Broadcast));
+                return null;
+            }
+
+            var obj = WorldObjectFactory.CreateNewWorldObject(weenie);
 
             if (!obj.TimeToRot.HasValue)
                 obj.TimeToRot = Double.MaxValue;
@@ -1342,7 +1381,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // ci wclassid (number)
-        [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates an object in your inventory.", "wclassid (string or number), stacksize")]
+        [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates an object in your inventory.", "wclassid (string or number), Amount to Spawn (optional [default:1]), Palette (optional), Shade (optional)\n")]
         public static void HandleCI(Session session, params string[] parameters)
         {
             string weenieClassDescription = parameters[0];
@@ -1382,7 +1421,7 @@ namespace ACE.Server.Command.Handlers
                     hasShade = true;
             }
 
-            WorldObject obj = CreateObjectForCommand(session, weenieClassDescription);
+            WorldObject obj = CreateObjectForCommand(session, weenieClassDescription, true);
             if (obj == null)
             {
                 // already sent an error message
@@ -2111,7 +2150,7 @@ namespace ACE.Server.Command.Handlers
                 }
             }
 
-            Weenie weenie;
+            ACE.Entity.Models.Weenie weenie;
             if (wcid)
                 weenie = DatabaseManager.World.GetCachedWeenie(weenieClassId);
             else
@@ -2162,48 +2201,57 @@ namespace ACE.Server.Command.Handlers
                 player.Character.CharacterOptions1 = session.Player.Character.CharacterOptions1;
                 player.Character.CharacterOptions2 = session.Player.Character.CharacterOptions2;
 
-                //var wearables = weenie.GetCreateList((sbyte)DestinationType.Wield);
-                var wearables = weenie.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Wield || x.DestinationType == DestinationType.WieldTreasure).ToList();
-                foreach (var wearable in wearables)
+                if (weenie.PropertiesCreateList != null)
                 {
-                    var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(wearable.WeenieClassId);
+                    var wearables = weenie.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Wield || x.DestinationType == DestinationType.WieldTreasure).ToList();
+                    foreach (var wearable in wearables)
+                    {
+                        var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(wearable.WeenieClassId);
 
-                    if (weenieOfWearable == null)
-                        continue;
+                        if (weenieOfWearable == null)
+                            continue;
 
-                    var worldObject = WorldObjectFactory.CreateNewWorldObject(weenieOfWearable);
+                        var worldObject = WorldObjectFactory.CreateNewWorldObject(weenieOfWearable);
 
-                    if (worldObject == null)
-                        continue;
+                        if (worldObject == null)
+                            continue;
 
-                    if (wearable.Palette > 0)
-                        worldObject.PaletteTemplate = wearable.Palette;
-                    if (wearable.Shade > 0)
-                        worldObject.Shade = wearable.Shade;
+                        if (wearable.Palette > 0)
+                            worldObject.PaletteTemplate = wearable.Palette;
+                        if (wearable.Shade > 0)
+                            worldObject.Shade = wearable.Shade;
 
-                    player.TryEquipObjectWithNetworking(worldObject, worldObject.ValidLocations ?? 0);
+                        worldObject.CalculateObjDesc();
+
+                        player.TryEquipObject(worldObject, worldObject.ValidLocations ?? 0);
+                    }
+
+                    var containables = weenie.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Contain || x.DestinationType == DestinationType.Shop
+                    || x.DestinationType == DestinationType.Treasure || x.DestinationType == DestinationType.ContainTreasure || x.DestinationType == DestinationType.ShopTreasure).ToList();
+                    foreach (var containable in containables)
+                    {
+                        var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(containable.WeenieClassId);
+
+                        if (weenieOfWearable == null)
+                            continue;
+
+                        var worldObject = WorldObjectFactory.CreateNewWorldObject(weenieOfWearable);
+
+                        if (worldObject == null)
+                            continue;
+
+                        if (containable.Palette > 0)
+                            worldObject.PaletteTemplate = containable.Palette;
+                        if (containable.Shade > 0)
+                            worldObject.Shade = containable.Shade;
+
+                        worldObject.CalculateObjDesc();
+
+                        player.TryAddToInventory(worldObject);
+                    }
                 }
 
-                var containables = weenie.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Contain || x.DestinationType == DestinationType.Shop
-                || x.DestinationType == DestinationType.Treasure || x.DestinationType == DestinationType.ContainTreasure || x.DestinationType == DestinationType.ShopTreasure).ToList();
-                foreach (var containable in containables)
-                {
-                    var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(containable.WeenieClassId);
-
-                    if (weenieOfWearable == null)
-                        continue;
-
-                    var worldObject = WorldObjectFactory.CreateNewWorldObject(weenieOfWearable);
-
-                    if (worldObject == null)
-                        continue;
-
-                    if (containable.Palette > 0)
-                        worldObject.PaletteTemplate = containable.Palette;
-                    if (containable.Shade > 0)
-                        worldObject.Shade = containable.Shade;
-                    player.TryAddToInventory(worldObject);
-                }
+                player.GenerateNewFace();
 
                 var possessions = player.GetAllPossessions();
                 var possessedBiotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
@@ -2892,12 +2940,18 @@ namespace ACE.Server.Command.Handlers
                     while (patron.PatronId != null)
                         patron = PlayerManager.FindByGuid(patron.PatronId.Value);
 
-                    Console.WriteLine($"{player.Name} has references to {monarch.Name} as monarch, but should be {patron.Name} -- fixing missing player");
+                    if (player.MonarchId != patron.Guid.Full)
+                    {
+                        Console.WriteLine($"{player.Name} has references to {monarch.Name} as monarch, but should be {patron.Name} -- fixing missing player");
 
-                    player.MonarchId = patron.Guid.Full;
-                    player.SaveBiotaToDatabase();
+                        player.MonarchId = patron.Guid.Full;
+                        player.SaveBiotaToDatabase();
+                    }
                 }
             }
+
+            foreach (var allegiance in AllegianceManager.Allegiances.Values.ToList())
+                AllegianceManager.Rebuild(allegiance);
         }
 
         [CommandHandler("show-allegiances", AccessLevel.Admin, CommandHandlerFlag.None, "Shows all of the allegiance chains on the server.")]

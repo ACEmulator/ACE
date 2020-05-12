@@ -1541,7 +1541,7 @@ namespace ACE.Server.Command.Handlers
         public static void HandleDist(Session session, params string[] parameters)
         {
             var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
-            if (obj == null) return;
+            if (obj == null || obj.PhysicsObj == null) return;
 
             var sourcePos = session.Player.Location.ToGlobal();
             var targetPos = obj.Location.ToGlobal();
@@ -1549,8 +1549,12 @@ namespace ACE.Server.Command.Handlers
             var dist = Vector3.Distance(sourcePos, targetPos);
             var dist2d = Vector2.Distance(new Vector2(sourcePos.X, sourcePos.Y), new Vector2(targetPos.X, targetPos.Y));
 
+            var cylDist = session.Player.PhysicsObj.get_distance_to_object(obj.PhysicsObj, true);
+
             session.Network.EnqueueSend(new GameMessageSystemChat($"Dist: {dist}", ChatMessageType.Broadcast));
             session.Network.EnqueueSend(new GameMessageSystemChat($"2D Dist: {dist2d}", ChatMessageType.Broadcast));
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"CylDist: {cylDist}", ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -2222,53 +2226,48 @@ namespace ACE.Server.Command.Handlers
             log.Info($"Physics ObjMaint Audit Completed. Errors - objectTable: {objectTableErrors}, visibleObjectTable: {visibleObjectTableErrors}, voyeurTable: {voyeurTableErrors}");
         }
 
-        [CommandHandler("lootgen", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generate a piece of loot from the LootGenerationFactory.", "<wcid> <tier>")]
+        [CommandHandler("lootgen", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generate a piece of loot from the LootGenerationFactory.", "<wcid or classname> <tier>")]
         public static void HandleLootGen(Session session, params string[] parameters)
         {
-            string weenieClassDescription = parameters[0];
-            bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
+            WorldObject wo = null;
 
-            if (!wcid)
+            // create base item
+            if (uint.TryParse(parameters[0], out var wcid))
+                wo = WorldObjectFactory.CreateNewWorldObject(wcid);
+            else
+                wo = WorldObjectFactory.CreateNewWorldObject(parameters[0]);
+
+            if (wo == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"WCID must be a valid weenie id", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {parameters[0]}", ChatMessageType.Broadcast));
                 return;
             }
 
             int tier = 1;
             if (parameters.Length > 1)
-            {
-                var isValidStackSize = int.TryParse(parameters[1], out tier);
-                if (!isValidStackSize || tier < 1 || tier > 8)
-                {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Loot Tier must be number between 1 and 8", ChatMessageType.Broadcast));
-                    return;
-                }
-            }
+                int.TryParse(parameters[1], out tier);
 
-            // Just using this check some properties before we throw it at the loot gen so we can give feedback to the user
-            WorldObject lootTest = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
-
-            if (lootTest == null)
+            if (tier < 1 || tier > 8)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassId} is not a valid wcid.", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Loot Tier must be a number between 1 and 8", ChatMessageType.Broadcast));
                 return;
             }
 
-            if (lootTest.TsysMutationData == null)
+            if (wo.TsysMutationData == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Weenie has a missing PropertyInt.TsysMutationData needed for this function.", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{wo.Name} ({wo.WeenieClassId}) missing PropertyInt.TsysMutationData", ChatMessageType.Broadcast));
                 return;
             }
 
-            WorldObject loot = LootGenerationFactory.CreateLootByWCID(weenieClassId, tier);
-
-            if (loot == null)
+            var profile = new TreasureDeath()
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Generating {weenieClassId} was not successful.", ChatMessageType.Broadcast));
-                return;
-            }
+                Tier = tier,
+                LootQualityMod = 0
+            };
 
-            session.Player.TryCreateInInventoryWithNetworking(loot);
+            var success = LootGenerationFactory.MutateItem(wo, profile, true);
+
+            session.Player.TryCreateInInventoryWithNetworking(wo);
         }
 
         [CommandHandler("ciloot", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generates randomized loot in player's inventory", "<tier> optional: <# items>")]

@@ -501,6 +501,7 @@ namespace ACE.Server.Managers
                 ("equipmentsetid_enabled", new Property<bool>(false, "enable this to allow adding EquipmentSetIDs to loot armor")),
                 ("equipmentsetid_name_decoration", new Property<bool>(false, "enable this to add the EquipmentSet name to loot armor name")),
                 ("fastbuff", new Property<bool>(true, "If TRUE, enables the fast buffing trick from retail.")),
+                ("fellow_busy_no_recruit", new Property<bool>(true, "if FALSE, fellows can be recruited while they are busy, different from retail")),
                 ("fellow_kt_killer", new Property<bool>(true, "if FALSE, fellowship kill tasks will share with the fellowship, even if the killer doesn't have the quest")),
                 ("fellow_kt_landblock", new Property<bool>(false, "if TRUE, fellowship kill tasks will share with landblock range (192 distance radius, or entire dungeon)")),
                 ("fellow_quest_bonus", new Property<bool>(false, "if TRUE, applies EvenShare formula to fellowship quest reward XP (300% max bonus, defaults to false in retail)")),
@@ -521,6 +522,8 @@ namespace ACE.Server.Managers
                 ("pk_server_safe_training_academy", new Property<bool>(false, "set this to TRUE to disable pk fighting in training academy and time to exit starter town safely")),
                 ("pkl_server", new Property<bool>(false, "set this to TRUE for pink servers")),
                 ("quest_info_enabled", new Property<bool>(false, "toggles the /myquests player command")),
+                ("rares_real_time", new Property<bool>(true, "allow for second chance roll based on an rng seeded timestamp for a rare on rare eligible kills that do not generate a rare, rares_max_seconds_between defines maximum seconds before second chance kicks in")),
+                ("rares_real_time_v2", new Property<bool>(false, "chances for a rare to be generated on rare eligible kills are modified by the last time one was found per each player, rares_max_days_between defines maximum days before guaranteed rare generation")),
                 ("runrate_add_hooks", new Property<bool>(false, "if TRUE, adds some runrate hooks that were missing from retail (exhaustion done, raise skill/attribute")),
                 ("require_spell_comps", new Property<bool>(true, "if FALSE spell components are no longer required to be in inventory to cast spells. defaults to enabled, as in retail")),
                 ("salvage_handle_overages", new Property<bool>(false, "in retail, if 2 salvage bags were combined beyond 100 structure, the overages would be lost")),
@@ -535,6 +538,7 @@ namespace ACE.Server.Managers
                 ("tailoring_intermediate_uieffects", new Property<bool>(false, "If true, tailoring intermediate icons retain the magical/elemental highlight of the original item")),
                 ("universal_masteries", new Property<bool>(true, "if TRUE, matches end of retail masteries - players wielding almost any weapon get +5 DR, except if the weapon \"seems tough to master\". " +
                                                                  "if FALSE, players start with mastery of 1 melee and 1 ranged weapon type based on heritage, and can later re-select these 2 masteries")),
+                ("use_turbine_chat", new Property<bool>(true, "enables or disables global chat channels (General, LFG, Roleplay, Trade, Olthoi, Society, Allegience)")),
                 ("use_wield_requirements", new Property<bool>(true, "disable this to bypass wield requirements. mostly for dev debugging")),
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
                 );
@@ -546,6 +550,8 @@ namespace ACE.Server.Managers
                 ("max_chars_per_account", new Property<long>(11, "retail defaults to 11, client supports up to 20")),
                 ("pk_timer", new Property<long>(20, "the number of seconds where a player cannot perform certain actions (ie. teleporting) after becoming involved in a PK battle")),
                 ("player_save_interval", new Property<long>(300, "the number of seconds between automatic player saves")),
+                ("rares_max_days_between", new Property<long>(45, "for rares_real_time_v2: the maximum number of days a player can go before a rare is generated on rare eligible creature kills")),
+                ("rares_max_seconds_between", new Property<long>(5256000, "for rares_real_time: the maximum number of seconds a player can go before a second chance at a rare is allowed on rare eligible creature kills that did not generate a rare")),
                 ("teleport_visibility_fix", new Property<long>(0, "Fixes some possible issues with invisible players and mobs. 0 = default / disabled, 1 = players only, 2 = creatures, 3 = all world objects"))
                 );
 

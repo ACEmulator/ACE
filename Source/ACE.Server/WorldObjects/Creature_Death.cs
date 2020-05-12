@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 using ACE.Database;
@@ -333,16 +332,18 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         var killerPlayer = killer.TryGetAttacker();
-                        if (killerPlayer != null && Level >= killerPlayer.Level + 5)
+                        if (killerPlayer != null && Level > killerPlayer.Level)
                             CanGenerateRare = true;
                     }
                 }
+                else
+                    CanGenerateRare = false;
             }
 
             corpse.RemoveProperty(PropertyInt.Value);
 
             if (CanGenerateRare && killer != null)
-                corpse.GenerateRare(killer);
+                corpse.TryGenerateRare(killer);
 
             corpse.InitPhysicsObj();
 

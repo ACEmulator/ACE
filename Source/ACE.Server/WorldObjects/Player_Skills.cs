@@ -313,7 +313,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Wrapper method used for increasing totalXP and then using the amount granted by HandleActionRaiseSkill
         /// </summary>
-        public void AwardSkillXP(Skill skill, uint amount)
+        public void AwardSkillXP(Skill skill, uint amount, bool alertPlayer = false)
         {
             var playerSkill = GetCreatureSkill(skill);
 
@@ -324,6 +324,9 @@ namespace ACE.Server.WorldObjects
 
             GrantXP(amount, XpType.Emote, ShareType.None);
             HandleActionRaiseSkill(skill, amount);
+
+            if (alertPlayer)
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You've earned {amount:N0} experience in your {playerSkill.Skill.ToSentence()} skill.", ChatMessageType.Broadcast));
         }
 
         public void SpendAllAvailableSkillXp(CreatureSkill creatureSkill, bool sendNetworkUpdate = true)
@@ -362,7 +365,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"{Name}.GrantLevelProportionalSkillXP({skill}, {percent}, {max:N0})");
             //Console.WriteLine($"Amount: {amount:N0}");
 
-            AwardSkillXP(skill, amount);
+            AwardSkillXP(skill, amount, true);
         }
 
         /// <summary>

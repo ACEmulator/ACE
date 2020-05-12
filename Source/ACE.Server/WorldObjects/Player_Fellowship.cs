@@ -1,6 +1,7 @@
 
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -23,7 +24,12 @@ namespace ACE.Server.WorldObjects
         public void HandleActionFellowshipChangeOpenness(bool openness)
         {
             if (Fellowship != null)
-                Fellowship.UpdateOpenness(openness);
+            {
+                if (!Fellowship.IsLocked)
+                    Fellowship.UpdateOpenness(openness);
+                else
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.FellowshipIsLocked));
+            }
         }
 
         public void HandleActionFellowshipChangeLock(bool lockState)
@@ -45,7 +51,7 @@ namespace ACE.Server.WorldObjects
             if (Guid.Full == Fellowship.FellowshipLeaderGuid)
                 Fellowship.RemoveFellowshipMember(player);
             else
-                Session.Network.EnqueueSend(new GameMessageSystemChat("You are not the fellowship leader.", ChatMessageType.Fellowship));
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustBeLeaderOfFellowship));
         }
 
         public void FellowshipRecruit(Player newPlayer)
@@ -54,14 +60,15 @@ namespace ACE.Server.WorldObjects
 
             if (newPlayer.GetCharacterOption(CharacterOption.IgnoreFellowshipRequests))
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{newPlayer.Name} is not accepting fellowing requests.", ChatMessageType.Fellowship));
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{newPlayer.Name} is not accepting fellowship requests.", ChatMessageType.Fellowship));                
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.FellowshipIgnoringRequests));
             }
             else if (Fellowship != null)
             {
                 if (Guid.Full == Fellowship.FellowshipLeaderGuid || Fellowship.Open)
                     Fellowship.AddFellowshipMember(this, newPlayer);
                 else
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("You are not the fellowship leader.", ChatMessageType.Fellowship));
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustBeLeaderOfFellowship));
             }
         }
 
@@ -70,7 +77,7 @@ namespace ACE.Server.WorldObjects
             if (Fellowship == null || newLeader == null)
                 return;
 
-            Fellowship.AssignNewLeader(newLeader);
+            Fellowship.AssignNewLeader(this, newLeader);
         }
     }
 }

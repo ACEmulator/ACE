@@ -999,7 +999,7 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public Usable? Usable
+        public Usable? ItemUseable
         {
             get => (Usable?)GetProperty(PropertyInt.ItemUseable);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemUseable); else SetProperty(PropertyInt.ItemUseable, (int)value.Value); }
@@ -1315,10 +1315,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.NumItemsInMaterial); else SetProperty(PropertyInt.NumItemsInMaterial, value.Value); }
         }
 
-        public int? AppraisalLongDescDecoration
+        public AppraisalLongDescDecorations? AppraisalLongDescDecoration
         {
-            get => GetProperty(PropertyInt.AppraisalLongDescDecoration);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.AppraisalLongDescDecoration); else SetProperty(PropertyInt.AppraisalLongDescDecoration, value.Value); }
+            get => (AppraisalLongDescDecorations?)GetProperty(PropertyInt.AppraisalLongDescDecoration);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AppraisalLongDescDecoration); else SetProperty(PropertyInt.AppraisalLongDescDecoration, (int)value); }
         }
 
         public float? Workmanship
