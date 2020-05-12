@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace ACE.Common
 {
@@ -33,5 +34,14 @@ namespace ACE.Common
         [System.ComponentModel.DefaultValue(-1)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public int MaximumAllowedSessionsPerIPAddress { get; set; }
+
+        /// <summary>
+        /// Will allow the given IP addresses to have unlimited sessions - recommend only use this for Admins
+        /// </summary>
+        /// <remarks>
+        /// </remarks>
+        [System.ComponentModel.DefaultValue(new string[] { })]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public string[] AllowUnlimitedSessionsFromIPAddresses { get; set; }
     }
 }
