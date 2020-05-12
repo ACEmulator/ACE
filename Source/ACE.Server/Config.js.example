@@ -182,6 +182,18 @@
 
     // After updating to latest world database, automatically import further customizations
     // AutoUpdateWorldDatabase must be true for this option to be used
-    "AutoApplyWorldCustomizations": true
+    // SQL files will be executed given the sort order of the full paths of the files
+    "AutoApplyWorldCustomizations": true,
+
+    // When AutoApplyWorldCustomizations is set to true, the auto apply process will search for
+    // all .sql files in the following directories.
+    // This process will still use ./Content by default, or the the config_properties_string
+    // value for 'content_folder' if it exists
+    // Example: [ "C:\\MyContent", "C:\\FTPRoot\\Editor1Content", "C:\\FTPRoot\\Editor2Content" ]
+    "WorldCustomizationAddedPaths": [],
+
+     // When retrieving a file list of .sql files in the AutoApplyWorldCustomizations process
+     // this will cause the file search to retrieve all files recursively from each directory
+     "RecurseWorldCustomizationPaths": true
   }
 }

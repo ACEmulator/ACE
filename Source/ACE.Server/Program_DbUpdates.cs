@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Threading;
+using System.Collections.Generic;
 
 using ACE.Common;
 
@@ -160,36 +161,44 @@ namespace ACE.Server
 
         private static void AutoApplyWorldCustomizations()
         {
-            var content_folder = GetContentFolder();
+            var content_folders_search_option = ConfigManager.Config.Offline.RecurseWorldCustomizationPaths ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+            var content_folders = new List<string> { GetContentFolder() };
+            content_folders.AddRange(ConfigManager.Config.Offline.WorldCustomizationAddedPaths);
+            content_folders.Sort();
 
             Console.WriteLine($"Searching for World Customization SQL scripts .... ");
 
-            var contentDI = new DirectoryInfo($"{content_folder}{Path.DirectorySeparatorChar}WorldCustomizations");
-
-            if (contentDI.Exists)
+            content_folders.ForEach(path =>
             {
-                foreach (var file in contentDI.GetFiles("*.sql").OrderBy(f => f.Name))
+                var contentDI = new DirectoryInfo(path);
+                if (contentDI.Exists)
                 {
-                    Console.Write($"Found {file.Name} .... ");
-                    var sqlDBFile = File.ReadAllText(file.FullName);
-                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={ConfigManager.Config.MySql.World.Host};port={ConfigManager.Config.MySql.World.Port};user={ConfigManager.Config.MySql.World.Username};password={ConfigManager.Config.MySql.World.Password};database={ConfigManager.Config.MySql.World.Database}");
-                    var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
+                    Console.Write($"Searching for SQL files within {path} .... ");
 
-                    Console.Write($"Importing into World database on SQL server at {ConfigManager.Config.MySql.World.Host}:{ConfigManager.Config.MySql.World.Port} .... ");
-                    try
+                    foreach (var file in contentDI.GetFiles("*.sql", content_folders_search_option).OrderBy(f => f.FullName))
                     {
-                        script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
-                        var count = script.Execute();
-                        //Console.Write($" {count} database records affected ....");
-                        Console.WriteLine(" complete!");
-                    }
-                    catch (MySql.Data.MySqlClient.MySqlException ex)
-                    {
-                        Console.WriteLine($" error!");
-                        Console.WriteLine($" Unable to apply patch due to following exception: {ex}");
+                        Console.Write($"Found {file.FullName} .... ");
+                        var sqlDBFile = File.ReadAllText(file.FullName);
+                        var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={ConfigManager.Config.MySql.World.Host};port={ConfigManager.Config.MySql.World.Port};user={ConfigManager.Config.MySql.World.Username};password={ConfigManager.Config.MySql.World.Password};database={ConfigManager.Config.MySql.World.Database}");
+                        var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
+
+                        Console.Write($"Importing into World database on SQL server at {ConfigManager.Config.MySql.World.Host}:{ConfigManager.Config.MySql.World.Port} .... ");
+                        try
+                        {
+                            script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
+                            var count = script.Execute();
+                            //Console.Write($" {count} database records affected ....");
+                            Console.WriteLine(" complete!");
+                        }
+                        catch (MySql.Data.MySqlClient.MySqlException ex)
+                        {
+                            Console.WriteLine($" error!");
+                            Console.WriteLine($" Unable to apply patch due to following exception: {ex}");
+                        }
                     }
                 }
-            }
+            });
+
             Console.WriteLine($"World Customization SQL scripts import complete!");
         }
 
