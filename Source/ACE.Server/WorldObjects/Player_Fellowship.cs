@@ -79,5 +79,15 @@ namespace ACE.Server.WorldObjects
 
             Fellowship.AssignNewLeader(this, newLeader);
         }
+
+        public bool FellowshipPanelOpen;
+
+        public void HandleFellowshipUpdateRequest(bool panelOpen)
+        {
+            FellowshipPanelOpen = panelOpen;
+
+            if (Fellowship != null && FellowshipPanelOpen)
+                Session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(Session));
+        }
     }
 }
