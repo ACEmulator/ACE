@@ -80,8 +80,11 @@ namespace ACE.Server.WorldObjects
             Fellowship.AssignNewLeader(this, newLeader);
         }
 
-        public bool FellowshipPanelOpen;
+        public bool FellowshipPanelOpen { get; set; }
 
+        /// <summary>
+        /// Called when player opens / closes the fellowship panel
+        /// </summary>
         public void HandleFellowshipUpdateRequest(bool panelOpen)
         {
             FellowshipPanelOpen = panelOpen;
