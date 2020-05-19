@@ -238,7 +238,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SelectMoreProfiles()
         {
-            //History.Add($"[{DateTime.UtcNow}] - SelectNextProfile()");
+            //History.Add($"[{DateTime.UtcNow}] - SelectMoreProfiles()");
 
             // stop conditions
             if (StopConditionsMax) return;
@@ -274,7 +274,7 @@ namespace ACE.Server.WorldObjects
                     //var numObjects = GetMaxObjects(profile);
                     profile.Enqueue(numObjects);
 
-                    //History.Add($"[{DateTime.UtcNow}] - SelectProfilesMax() - {rng_str}selected slot {i} to spawn ({profile.CurrentCreate}/{profile.MaxCreate})");
+                    //History.Add($"[{DateTime.UtcNow}] - SelectMoreProfiles() - {rng_str}selected slot {i} to spawn ({profile.CurrentCreate}/{profile.MaxCreate})");
 
                     // if RNG rolled, we are done with this roll
                     if (profile.Biota.Probability != -1)
