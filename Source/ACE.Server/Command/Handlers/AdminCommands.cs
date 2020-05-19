@@ -7,6 +7,7 @@ using System.Threading;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.Auth;
@@ -559,6 +560,7 @@ namespace ACE.Server.Command.Handlers
                 {
                     wo.ResetGenerator();
                     wo.GeneratorEnteredWorld = false;
+                    wo.GeneratorRegeneration(Time.GetUnixTime());
                 }
             }
         }
