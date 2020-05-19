@@ -864,7 +864,7 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    //Console.WriteLine($"{Name}.Generator_Regeneration({RegenerationInterval}) SelectNextProfile: Init={InitCreate} Current={CurrentCreate} Max={MaxCreate}");
+                    //Console.WriteLine($"{Name}.Generator_Regeneration({RegenerationInterval}) SelectMoreProfiles: Init={InitCreate} Current={CurrentCreate} Max={MaxCreate}");
                     SelectMoreProfiles();
                 }
             }
