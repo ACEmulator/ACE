@@ -854,6 +854,9 @@ namespace ACE.Server.WorldObjects
             if (raiseNotifyOfDestructionEvent)
                 NotifyOfEvent(RegenerationType.Destruction);
 
+            if (IsGenerator)
+                ProcessGeneratorDestructionDirective(GeneratorDestructionType);
+
             CurrentLandblock?.RemoveWorldObject(Guid);
 
             RemoveBiotaFromDatabase();
