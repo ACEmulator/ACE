@@ -662,12 +662,14 @@ namespace ACE.Server.WorldObjects
                 NextGeneratorRegenerationTime = GetNextRegenerationTime(GeneratorInitialDelay);
                 CurrentLandblock?.ResortWorldObjectIntoSortedGeneratorRegenerationList(this);
             }
+            else
+            {
+                if (this is Container)
+                    Generator_Regeneration();
 
-            if (this is Container)
-                Generator_Regeneration();
-
-            if (InitCreate == 0)
-                CurrentlyPoweringUp = false;
+                if (InitCreate == 0)
+                    CurrentlyPoweringUp = false;
+            }
         }
 
         private double GetNextRegenerationTime(double generatorInitialDelay)
