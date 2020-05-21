@@ -828,7 +828,7 @@ namespace ACE.Server.WorldObjects
         {
             if (IsDestroyed)
             {
-                log.WarnFormat("Item 0x{0:X8}:{1} called destroy more than once.", Guid.Full, Name);
+                //log.WarnFormat("Item 0x{0:X8}:{1} called destroy more than once.", Guid.Full, Name);
                 return;
             }
 
