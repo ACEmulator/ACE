@@ -23,7 +23,6 @@ namespace ACE.Server.Network
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-
         public IPEndPoint EndPoint { get; }
 
         public NetworkSession Network { get; set; }
@@ -54,6 +53,9 @@ namespace ACE.Server.Network
 
         public string BootSessionReason { get; private set; }
 
+        public bool DatWarnCell;
+        public bool DatWarnPortal;
+        public bool DatWarnLanguage;
 
         public Session(ConnectionListener connectionListener, IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
