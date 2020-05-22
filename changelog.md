@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2020-05-22
+[OptimShi]
+* Allowed console commands to start with "/" or "@". Would previously respond with "Invalid Command" if the command started with a "/" or "@".
+
 ### 2020-03-02
 [Mag-nus]
 * Added ACE.Database.WorldDatabaseWithEntityCache class
