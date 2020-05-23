@@ -2225,6 +2225,50 @@ namespace ACE.Server.Factories
             return meleeMod;
         }
 
+        public static readonly float WeaponBulk = 0.50f;
+        public static readonly float ArmorBulk = 0.25f;
+
+        private static bool MutateBurden(WorldObject wo, int tier, bool isWeapon)
+        {
+            // ensure item has burden
+            if (wo.EncumbranceVal == null)
+                return false;
+
+            // initial rng roll - burden mod chance per tier
+            if (!RollBurdenModChance(tier))
+                return false;
+
+            // secondary rng roll - pseudo curve table per tier
+            var roll = ChanceTables.Roll(tier);
+
+            var bulk = isWeapon ? WeaponBulk : ArmorBulk;
+            bulk *= (float)(wo.BulkMod ?? 1.0f);
+
+            var maxBurdenMod = 1.0f - bulk;
+
+            var burdenMod = 1.0f - (roll * maxBurdenMod);
+
+            // modify burden
+            var prevBurden = wo.EncumbranceVal.Value;
+            wo.EncumbranceVal = (int)Math.Round(prevBurden * burdenMod);
+
+            if (wo.EncumbranceVal < 1)
+                wo.EncumbranceVal = 1;
+
+            //Console.WriteLine($"Modified burden from {prevBurden} to {wo.EncumbranceVal} for {wo.Name} ({wo.WeenieClassId})");
+
+            return true;
+        }
+
+        private static bool RollBurdenModChance(int tier)
+        {
+            var chance = ChanceTables.QualityChancePerTier[tier - 1];
+
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            return rng < chance;
+        }
+
         private static void Shuffle<T>(T[] array)
         {
             Random _r = new Random();
