@@ -855,7 +855,7 @@ namespace ACE.Server.WorldObjects
                 NotifyOfEvent(RegenerationType.Destruction);
 
             if (IsGenerator)
-                ProcessGeneratorDestructionDirective(GeneratorDestructionType);
+                OnGeneratorDestroy();
 
             CurrentLandblock?.RemoveWorldObject(Guid);
 
