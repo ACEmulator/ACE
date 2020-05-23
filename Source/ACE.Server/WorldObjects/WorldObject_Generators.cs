@@ -681,7 +681,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Disables a generator, and destroys all of its spawned objects
+        /// Disables a generator and Processes GeneratorDestructionDirective
         /// </summary>
         public void DisableGenerator()
         {
@@ -690,7 +690,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Called upon death of a generator, and destroys all of its spawned objects
+        /// Called upon death of a generator and Processes GeneratorDestructionDirective
         /// </summary>
         public void OnGeneratorDeath()
         {
@@ -699,7 +699,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Called upon death of a generator, and destroys all of its spawned objects
+        /// Called upon death of a generator and Processes GeneratorDestructionDirective
         /// </summary>
         public void OnGeneratorDestroy()
         {
@@ -708,11 +708,10 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Destroys/Kills all of its spawned objects, if specifically indicated, and resets back to default
+        /// Destroys/Kills all of its spawned objects, if specifically directed, and resets back to default
         /// </summary>
         public void ProcessGeneratorDestructionDirective(GeneratorDestruct generatorDestructType)
         {
-            //everything in registry and reset back to defaults
             switch (generatorDestructType)
             {
                 case GeneratorDestruct.Kill:
