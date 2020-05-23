@@ -883,7 +883,7 @@ namespace ACE.Server.Entity
             {
                 if (emitter.IsWithinUseRadiusOf(wo, wo.HearLocalSignalsRadius))
                 {
-                    //Console.WriteLine($"{wo.Name}.EmoteManager.OnLocalSignal({player.Name}, {message})");
+                    //Console.WriteLine($"{wo.Name}.EmoteManager.OnLocalSignal({emitter.Name}, {message})");
                     wo.EmoteManager.OnLocalSignal(emitter, message);
                 }
             }
