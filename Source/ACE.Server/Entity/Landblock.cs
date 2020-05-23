@@ -879,6 +879,8 @@ namespace ACE.Server.Entity
 
         public void EmitSignal(Creature emitter, string message)
         {
+            if (string.IsNullOrWhiteSpace(message)) return;
+
             foreach (var wo in worldObjects.Values.Where(w => w.HearLocalSignals).ToList())
             {
                 if (emitter.IsWithinUseRadiusOf(wo, wo.HearLocalSignalsRadius))
