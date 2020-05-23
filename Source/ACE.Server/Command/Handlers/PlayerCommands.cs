@@ -38,6 +38,11 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
+            if (session.Player.QuestManager.Quests.Count == 0) {
+                session.Network.EnqueueSend(new GameMessageSystemChat("Quest list is empty.", ChatMessageType.Broadcast));
+                return;
+            }
+
             foreach (var playerQuest in session.Player.QuestManager.Quests)
             {
                 var text = "";
