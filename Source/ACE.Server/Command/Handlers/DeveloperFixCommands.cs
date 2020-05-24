@@ -275,54 +275,52 @@ namespace ACE.Server.Command.Handlers
                             case Skill.ArmorTinkering:
                                 augType = AugmentationType.ArmorTinkering;
                                 augProp = player.GetProperty(PropertyInt.AugmentationSpecializeArmorTinkering) ?? 0;
-                                goto default;
+                                break;
 
                             case Skill.ItemTinkering:
                                 augType = AugmentationType.ItemTinkering;
                                 augProp = player.GetProperty(PropertyInt.AugmentationSpecializeItemTinkering) ?? 0;
-                                goto default;
+                                break;
 
                             case Skill.MagicItemTinkering:
                                 augType = AugmentationType.MagicItemTinkering;
                                 augProp = player.GetProperty(PropertyInt.AugmentationSpecializeMagicItemTinkering) ?? 0;
-                                goto default;
+                                break;
 
                             case Skill.WeaponTinkering:
                                 augType = AugmentationType.WeaponTinkering;
                                 augProp = player.GetProperty(PropertyInt.AugmentationSpecializeWeaponTinkering) ?? 0;
-                                goto default;
+                                break;
 
                             case Skill.Salvaging:
                                 augType = AugmentationType.Salvage;
                                 augProp = player.GetProperty(PropertyInt.AugmentationSpecializeSalvaging) ?? 0;
-                                goto default;
-
-                            default:
-                                if (skill.Value.InitLevel != 10 && augProp == 0)
-                                {
-                                    Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel{fixStr}");
-                                    foundIssues = true;
-
-                                    if (fix)
-                                    {
-                                        skill.Value.InitLevel = 10;
-
-                                        updated = true;
-                                    }
-                                }
-                                else if (skill.Value.InitLevel == 10 && augProp == 1)
-                                {
-                                    Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel as a result of {augType} augmentation{fixStr}");
-                                    foundIssues = true;
-
-                                    if (fix)
-                                    {
-                                        skill.Value.InitLevel = 0;
-
-                                        updated = true;
-                                    }
-                                }
                                 break;
+                        }
+
+                        if (skill.Value.InitLevel != 10 && augProp == 0)
+                        {
+                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel{fixStr}");
+                            foundIssues = true;
+
+                            if (fix)
+                            {
+                                skill.Value.InitLevel = 10;
+
+                                updated = true;
+                            }
+                        }
+                        else if (skill.Value.InitLevel == 10 && augProp == 1)
+                        {
+                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel as a result of {augType} augmentation{fixStr}");
+                            foundIssues = true;
+
+                            if (fix)
+                            {
+                                skill.Value.InitLevel = 0;
+
+                                updated = true;
+                            }
                         }
                     }
 
