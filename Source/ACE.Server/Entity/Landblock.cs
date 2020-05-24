@@ -883,9 +883,11 @@ namespace ACE.Server.Entity
 
             foreach (var wo in worldObjects.Values.Where(w => w.HearLocalSignals).ToList())
             {
+                if (emitter == wo) continue;
+
                 if (emitter.IsWithinUseRadiusOf(wo, wo.HearLocalSignalsRadius))
                 {
-                    //Console.WriteLine($"{wo.Name}.EmoteManager.OnLocalSignal({emitter.Name}, {message})");
+                    Console.WriteLine($"{wo.Name}.EmoteManager.OnLocalSignal({emitter.Name}, {message})");
                     wo.EmoteManager.OnLocalSignal(emitter, message);
                 }
             }
