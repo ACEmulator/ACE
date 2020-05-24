@@ -1312,7 +1312,8 @@ namespace ACE.Server.Command.Handlers.Processors
         public static void RemoveInstance(Session session, bool confirmed = false)
         {
             var wo = CommandHandlerHelper.GetLastAppraisedObject(session);
-            if (wo == null) return;
+
+            if (wo?.Location == null) return;
 
             var landblock = (ushort)wo.Location.Landblock;
 
