@@ -368,6 +368,9 @@ namespace ACE.Server.Factories
                 wo.MaterialType = (MaterialType)materialType;
             wo.ItemWorkmanship = workmanship;
 
+            // Burden
+            MutateBurden(wo, profile.Tier, true);
+
             // Weapon Stats
             wo.Damage = damage;
             wo.DamageVariance = damageVariance;

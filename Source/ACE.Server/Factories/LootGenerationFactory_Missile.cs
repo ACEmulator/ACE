@@ -52,6 +52,9 @@ namespace ACE.Server.Factories
             wo.LongDesc = wo.Name;
             wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship | AppraisalLongDescDecorations.AppendGemInfo;
 
+            // Burden
+            MutateBurden(wo, profile.Tier, true);
+
             // MeleeD/MagicD/Missile Bonus
             wo.WeaponMagicDefense = GetMagicMissileDMod(profile.Tier);
             wo.WeaponMissileDefense = GetMagicMissileDMod(profile.Tier);

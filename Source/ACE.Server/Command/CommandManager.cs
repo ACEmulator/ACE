@@ -136,6 +136,11 @@ namespace ACE.Server.Command
             }
             var commandSplit = commandLine.Split(' ',StringSplitOptions.RemoveEmptyEntries);
             command = commandSplit[0];
+
+            // remove leading '/' or '@' if erroneously entered in console
+            if(command.StartsWith("/") || command.StartsWith("@"))
+                command = command.Substring(1);
+
             parameters = new string[commandSplit.Length - 1];
 
             Array.Copy(commandSplit, 1, parameters, 0, commandSplit.Length - 1);

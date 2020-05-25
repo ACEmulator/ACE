@@ -38,6 +38,12 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
+            if (session.Player.QuestManager.Quests.Count == 0)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("Quest list is empty.", ChatMessageType.Broadcast));
+                return;
+            }
+
             foreach (var playerQuest in session.Player.QuestManager.Quests)
             {
                 var text = "";
@@ -48,8 +54,9 @@ namespace ACE.Server.Command.Handlers
                     Console.WriteLine($"Couldn't find quest {playerQuest.QuestName}");
                     continue;
                 }
+                var minDelta = (uint)(quest.MinDelta * PropertyManager.GetDouble("quest_mindelta_rate").Item);
                 text += $"{playerQuest.QuestName.ToLower()} - {playerQuest.NumTimesCompleted} solves ({playerQuest.LastTimeCompleted})";
-                text += $"\"{quest.Message}\" {quest.MaxSolves} {quest.MinDelta}";
+                text += $"\"{quest.Message}\" {quest.MaxSolves} {minDelta}";
 
                 session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
             }
