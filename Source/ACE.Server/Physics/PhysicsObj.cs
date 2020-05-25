@@ -4318,7 +4318,21 @@ namespace ACE.Server.Physics
             RequestPos.ObjCellID = requestCell;
 
             if (forcePos && success)
+            {
+                // attempt transition to request pos,
+                // to trigger any collision detection
+                var transit = transition(Position, RequestPos, false);
+
+                if (transit != null)
+                {
+                    var prevContact = (TransientState & TransientStateFlags.Contact) != 0;
+
+                    foreach (var collideObject in transit.CollisionInfo.CollideObject)
+                        track_object_collision(collideObject, prevContact);
+                }
+
                 set_current_pos(RequestPos);
+            }
 
             // for teleport, use SetPosition?
             if (isTeleport)

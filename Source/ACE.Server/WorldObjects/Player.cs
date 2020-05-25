@@ -349,6 +349,8 @@ namespace ACE.Server.WorldObjects
                 pressurePlate.OnCollideObject(this);
             else if (target is Hotspot hotspot)
                 hotspot.OnCollideObject(this);
+            else if (target is SpellProjectile spellProjectile)
+                spellProjectile.OnCollideObject(this);
         }
 
         public override void OnCollideObjectEnd(WorldObject target)
