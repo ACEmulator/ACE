@@ -76,6 +76,15 @@ namespace ACE.Server.WorldObjects
                 if (TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0))
                     equipped.Add(item);
             }
+
+            var cloak = GetInventoryItemsOfTypeWeenieType(WeenieType.Clothing).Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)EquipMask.Cloak) != 0).FirstOrDefault();
+            if (cloak != null)
+            {
+                TryRemoveFromInventory(cloak.Guid);
+                if (TryWieldObjectWithBroadcasting(cloak, cloak.ValidLocations ?? 0))
+                    equipped.Add(cloak);
+            }
+
             return equipped;
         }
 
