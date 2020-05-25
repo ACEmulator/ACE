@@ -178,13 +178,6 @@ namespace ACE.Server
             else
                 log.Info($"AutoApplyDatabaseUpdates is disabled...");
 
-            // This is temporary and can be removed in the near future, 2020-04-05 Mag-nus
-            ShardDatabaseOfflineTools.FixAnimPartAndTextureMapFromPR2731(out var numberOfRecordsFixed);
-            log.Info($"Fixed {numberOfRecordsFixed:N0} AnimPart and TextureMap records.");
-
-            // This is temporary and can be removed in the near future, 2020-04-12 Ripley
-            ShardDatabaseOfflineTools.CheckForPR2918Script();
-
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();
 
