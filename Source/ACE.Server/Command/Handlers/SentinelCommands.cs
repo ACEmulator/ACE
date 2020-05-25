@@ -443,7 +443,7 @@ namespace ACE.Server.Command.Handlers
 
             if (account.BanExpireTime == null)
             {
-                CommandHandlerHelper.WriteOutputInfo(session, $"Cannon unban\"{accountName}\" because that account is not banned.", ChatMessageType.Broadcast);
+                CommandHandlerHelper.WriteOutputInfo(session, $"Cannot unban\"{accountName}\" because that account is not banned.", ChatMessageType.Broadcast);
                 return;
             }
 
