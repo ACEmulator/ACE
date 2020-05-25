@@ -50,7 +50,7 @@ namespace ACE.Server.WorldObjects
             else
                 playerMsg = deathMessage.Victim;
 
-            var msgYourDeath = new GameEventYourDeath(Session, playerMsg);
+            var msgYourDeath = new GameEventVictimNotification(Session, playerMsg);
             Session.Network.EnqueueSend(msgYourDeath);
 
             // broadcast to nearby players
@@ -60,18 +60,15 @@ namespace ACE.Server.WorldObjects
             else
                 nearbyMsg = deathMessage.Broadcast;
 
-            var broadcastMsg = new GameMessageSystemChat(nearbyMsg, ChatMessageType.Broadcast);
+            var broadcastMsg = new GameMessagePlayerKilled(nearbyMsg, Guid, lastDamager?.Guid ?? ObjectGuid.Invalid);
 
             log.Debug("[CORPSE] " + nearbyMsg);
 
             var excludePlayers = new List<Player>();
-            if (lastDamagerObj is Player lastDamagerPlayer)
-                excludePlayers.Add(lastDamagerPlayer);
 
-            var nearbyPlayers = EnqueueBroadcast(excludePlayers, false, broadcastMsg);
+            var nearbyPlayers = EnqueueBroadcast(excludePlayers, true, broadcastMsg);
 
             excludePlayers.AddRange(nearbyPlayers);
-            excludePlayers.Add(this); // exclude self
 
             if (Fellowship != null)
                 Fellowship.OnDeath(this);
@@ -203,6 +200,8 @@ namespace ACE.Server.WorldObjects
                 EnchantmentManager.RemoveAllEnchantments();
                 Session.Network.EnqueueSend(msgPurgeEnchantments);
             }
+            else
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Your augmentation prevents the tides of death from ripping away your current enchantments!", ChatMessageType.Broadcast));
 
             // wait for the death animation to finish
             var dieChain = new ActionChain();
@@ -260,13 +259,15 @@ namespace ACE.Server.WorldObjects
 
                     // reset damage history for this player
                     DamageHistory.Reset();
+
+                    OnHealthUpdate();
                 });
 
                 teleportChain.EnqueueChain();
             }));
         }
 
-        private bool suicideInProgress;
+        public bool suicideInProgress;
 
         /// <summary>
         /// Called when player uses the /die command
@@ -506,6 +507,7 @@ namespace ACE.Server.WorldObjects
                         Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
 
                         var dropItem = WorldObjectFactory.CreateNewWorldObject(deathItem.WorldObject.WeenieClassId);
+                        dropItem.SetStackSize(1);
 
                         //Console.WriteLine("Dropping " + deathItem.WorldObject.Name + " (stack)");
                         dropItems.Add(dropItem);

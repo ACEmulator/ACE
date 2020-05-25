@@ -12,17 +12,16 @@ using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.Managers;
-
 
 namespace ACE.Server.Network
 {
     public class Session
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
 
         public IPEndPoint EndPoint { get; }
 
@@ -48,10 +47,15 @@ namespace ACE.Server.Network
 
         public DateTime logOffRequestTime;
 
+        public DateTime lastCharacterSelectPingReply;
+
         public SessionTerminationDetails PendingTermination { get; set; } = null;
 
         public string BootSessionReason { get; private set; }
 
+        public bool DatWarnCell;
+        public bool DatWarnPortal;
+        public bool DatWarnLanguage;
 
         public Session(ConnectionListener connectionListener, IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
@@ -118,6 +122,21 @@ namespace ACE.Server.Network
             // This could be made 0 for instant logoffs.
             if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
                 SendFinalLogOffMessages();
+
+            // This section deviates from known retail pcaps/behavior, but appears to be the least harmful way to work around something that seemingly didn't occur to players using ThwargLauncher connecting to retail servers.
+            // In order to prevent the launcher from thinking the session is dead, we will send a Ping Response every 100 seconds, this will in effect make the client appear active to the launcher and allow players to create characters in peace.
+            if (State == SessionState.AuthConnected) // TODO: why is this needed? Why didn't retail have this problem? Is this fuzzy memory?
+            {
+                if (lastCharacterSelectPingReply == DateTime.MinValue)
+                    lastCharacterSelectPingReply = DateTime.UtcNow.AddSeconds(100);
+                else if (DateTime.UtcNow > lastCharacterSelectPingReply)
+                {
+                    Network.EnqueueSend(new GameEventPingResponse(this));
+                    lastCharacterSelectPingReply = DateTime.UtcNow.AddSeconds(100);
+                }
+            }
+            else if (lastCharacterSelectPingReply != DateTime.MinValue)
+                lastCharacterSelectPingReply = DateTime.MinValue;
         }
 
 
@@ -175,6 +194,8 @@ namespace ACE.Server.Network
         /// </summary>
         public void LogOffPlayer(bool forceImmediate = false)
         {
+            if (Player == null) return;
+
             if (logOffRequestTime == DateTime.MinValue)
             {
                 var result = Player.LogOut(false, forceImmediate);
@@ -201,14 +222,17 @@ namespace ACE.Server.Network
 
             Player = null;
 
-            Network.EnqueueSend(new GameMessageCharacterLogOff());
+            if (!ServerManager.ShutdownInProgress)
+            {
+                Network.EnqueueSend(new GameMessageCharacterLogOff());
 
-            CheckCharactersForDeletion();
+                CheckCharactersForDeletion();
 
-            Network.EnqueueSend(new GameMessageCharacterList(Characters, this));
+                Network.EnqueueSend(new GameMessageCharacterList(Characters, this));
 
-            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, PlayerManager.GetOnlineCount(), (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
-            Network.EnqueueSend(serverNameMessage);
+                GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, PlayerManager.GetOnlineCount(), (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
+                Network.EnqueueSend(serverNameMessage);
+            }
 
             State = SessionState.AuthConnected;
         }

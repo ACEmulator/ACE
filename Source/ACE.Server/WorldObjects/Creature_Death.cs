@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -31,8 +32,8 @@ namespace ACE.Server.WorldObjects
             IsTurning = false;
             IsMoving = false;
 
-            EmoteManager.OnDeath(lastDamager?.TryGetAttacker());
-
+            QuestManager.OnDeath(lastDamager?.TryGetAttacker());
+            
             OnDeath_GrantXP();
 
             if (IsGenerator)
@@ -57,11 +58,10 @@ namespace ACE.Server.WorldObjects
 
                 var killerMsg = string.Format(deathMessage.Killer, Name);
 
-                // todo: verify message type
                 var playerKiller = lastDamager.TryGetAttacker() as Player;
 
                 if (playerKiller != null)
-                    playerKiller.Session.Network.EnqueueSend(new GameMessageSystemChat(killerMsg, ChatMessageType.Broadcast));
+                    playerKiller.Session.Network.EnqueueSend(new GameEventKillerNotification(playerKiller.Session, killerMsg));
             }
             return deathMessage;
         }
@@ -101,6 +101,8 @@ namespace ACE.Server.WorldObjects
             // broadcast death animation
             var motionDeath = new Motion(MotionStance.NonCombat, MotionCommand.Dead);
             var deathAnimLength = ExecuteMotion(motionDeath);
+
+            EmoteManager.OnDeath(lastDamager?.TryGetAttacker());
 
             var dieChain = new ActionChain();
 
@@ -242,19 +244,16 @@ namespace ACE.Server.WorldObjects
                 // Pull and save objdesc for correct corpse apperance at time of death
                 var objDesc = CalculateObjDesc();
 
-                byte i = 0;
-                foreach (var animPartChange in objDesc.AnimPartChanges)
-                    corpse.Biota.BiotaPropertiesAnimPart.Add(new Database.Models.Shard.BiotaPropertiesAnimPart { ObjectId = corpse.Guid.Full, AnimationId = animPartChange.PartID, Index = animPartChange.PartIndex, Order = i++ });
+                corpse.Biota.PropertiesAnimPart = objDesc.AnimPartChanges.Clone(corpse.BiotaDatabaseLock);
 
-                foreach (var subPalette in objDesc.SubPalettes)
-                    corpse.Biota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
+                corpse.Biota.PropertiesPalette = objDesc.SubPalettes.Clone(corpse.BiotaDatabaseLock);
 
-                i = 0;
-                foreach (var textureChange in objDesc.TextureChanges)
-                    corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
+                corpse.Biota.PropertiesTextureMap = objDesc.TextureChanges.Clone(corpse.BiotaDatabaseLock);
             }
 
-            corpse.Location = new Position(Location);
+            // use the physics location for accuracy,
+            // especially while jumping
+            corpse.Location = PhysicsObj.Position.ACEPosition();
 
             corpse.VictimId = Guid.Full;
             corpse.Name = $"{prefix} of {Name}";
@@ -283,7 +282,9 @@ namespace ACE.Server.WorldObjects
 
             bool saveCorpse = false;
 
-            if (this is Player player)
+            var player = this as Player;
+
+            if (player != null)
             {
                 corpse.SetPosition(PositionType.Location, corpse.Location);
                 var dropped = player.CalculateDeathItems(corpse);
@@ -301,14 +302,20 @@ namespace ACE.Server.WorldObjects
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your corpse is located at ({corpse.Location.GetMapCoordStr()}).", ChatMessageType.Broadcast));
                 }
 
-                if (!player.IsPKDeath(killer) && !player.IsPKLiteDeath(killer))
+                var isPKdeath = player.IsPKDeath(killer);
+                var isPKLdeath = player.IsPKLiteDeath(killer);
+
+                if (isPKdeath)
+                    corpse.PkLevel = PKLevel.PK;
+
+                if (!isPKdeath && !isPKLdeath)
                 {
                     var miserAug = player.AugmentationLessDeathItemLoss * 5;
                     if (miserAug > 0)
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your augmentation has reduced the number of items you can lose by {miserAug}!", ChatMessageType.Broadcast));
                 }
 
-                if (dropped.Count == 0 && !player.IsPKLiteDeath(killer))
+                if (dropped.Count == 0 && !isPKLdeath)
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have retained all your items. You do not need to recover your corpse!", ChatMessageType.Broadcast));
             }
             else
@@ -325,29 +332,41 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         var killerPlayer = killer.TryGetAttacker();
-                        if (killerPlayer != null && Level >= killerPlayer.Level + 5)
+                        if (killerPlayer != null && Level > killerPlayer.Level)
                             CanGenerateRare = true;
                     }
                 }
+                else
+                    CanGenerateRare = false;
             }
 
             corpse.RemoveProperty(PropertyInt.Value);
 
             if (CanGenerateRare && killer != null)
-                corpse.GenerateRare(killer);
+                corpse.TryGenerateRare(killer);
+
+            corpse.InitPhysicsObj();
+
+            // persist the original creature velocity (only used for falling) to corpse
+            corpse.PhysicsObj.Velocity = PhysicsObj.Velocity;
 
             corpse.EnterWorld();
 
-            if (this is Player p)
+            if (player != null)
             {
                 if (corpse.PhysicsObj == null || corpse.PhysicsObj.Position == null)
-                    log.Debug($"[CORPSE] {Name}'s corpse (0x{corpse.Guid}) failed to spawn! Tried at {p.Location.ToLOCString()}");
+                    log.Debug($"[CORPSE] {Name}'s corpse (0x{corpse.Guid}) failed to spawn! Tried at {player.Location.ToLOCString()}");
                 else
                     log.Debug($"[CORPSE] {Name}'s corpse (0x{corpse.Guid}) is located at {corpse.PhysicsObj.Position}");
             }
 
             if (saveCorpse)
+            {
                 corpse.SaveBiotaToDatabase();
+
+                foreach (var item in corpse.Inventory.Values)
+                    item.SaveBiotaToDatabase();
+            }
         }
 
         public bool CanGenerateRare
@@ -379,21 +398,24 @@ namespace ACE.Server.WorldObjects
             }
 
             // contain and non-wielded treasure create
-            var createList = Biota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Contain) != 0 ||
-                (i.DestinationType & (int)DestinationType.Treasure) != 0 && (i.DestinationType & (int)DestinationType.Wield) == 0).ToList();
-
-            var selected = CreateListSelect(createList);
-
-            foreach (var item in selected)
+            if (Biota.PropertiesCreateList != null)
             {
-                var wo = WorldObjectFactory.CreateNewWorldObject(item);
+                var createList = Biota.PropertiesCreateList.Where(i => (i.DestinationType & DestinationType.Contain) != 0 ||
+                                (i.DestinationType & DestinationType.Treasure) != 0 && (i.DestinationType & DestinationType.Wield) == 0).ToList();
 
-                if (wo != null)
+                var selected = CreateListSelect(createList);
+
+                foreach (var item in selected)
                 {
-                    if (corpse != null)
-                        corpse.TryAddToInventory(wo);
-                    else
-                        droppedItems.Add(wo);
+                    var wo = WorldObjectFactory.CreateNewWorldObject(item);
+
+                    if (wo != null)
+                    {
+                        if (corpse != null)
+                            corpse.TryAddToInventory(wo);
+                        else
+                            droppedItems.Add(wo);
+                    }
                 }
             }
 
@@ -434,12 +456,12 @@ namespace ACE.Server.WorldObjects
                 log.Debug($"[LOOT][LEGENDARY] {Name} ({Guid}) generated item with {legendaryCantrips.Count} legendar{(legendaryCantrips.Count > 1 ? "ies" : "y")} - {wo.Name} ({wo.Guid}) - {GetSpellList(legendaryCantrips)} - killed by {killer?.Name} ({killer?.Guid})");
         }
 
-        public static string GetSpellList(List<BiotaPropertiesSpellBook> spellbook)
+        public static string GetSpellList(Dictionary<int, float> spellTable)
         {
             var spells = new List<Server.Entity.Spell>();
 
-            foreach (var spell in spellbook)
-                spells.Add(new Server.Entity.Spell(spell.Spell, false));
+            foreach (var kvp in spellTable)
+                spells.Add(new Server.Entity.Spell(kvp.Key, false));
 
             return string.Join(", ", spells.Select(i => i.Name));
         }

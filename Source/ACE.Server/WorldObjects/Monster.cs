@@ -11,6 +11,8 @@ namespace ACE.Server.WorldObjects
 
         public bool IsChessPiece { get; set; }
 
+        public bool IsPassivePet { get; set; }
+
         /// <summary>
         /// The exclusive state of the monster
         /// </summary>
@@ -34,7 +36,8 @@ namespace ACE.Server.WorldObjects
         {
             if (this is Player) return;
 
-            IsChessPiece = this is GamePiece;
+            IsPassivePet = WeenieType == WeenieType.Pet;
+            IsChessPiece = WeenieType == WeenieType.GamePiece;
 
             // includes CombatPets
             IsMonster = Attackable || TargetingTactic != TargetingTactic.None;

@@ -17,7 +17,12 @@
 
       // MaximumAllowedSessionsPerIPAddress, default: -1
       // -1 means unlimited connections per IP Address.
-      "MaximumAllowedSessionsPerIPAddress": -1
+      "MaximumAllowedSessionsPerIPAddress": -1,
+
+     // AllowUlimitedSessionsFromIPs, default []
+     // Will allow the given IP addresses to have unlimited sessions - recommend only use this for Admins/Devs
+     // Example: [ "127.0.0.1", "8.8.8.8" ]
+     "AllowUnlimitedSessionsFromIPAddresses": []
     },
 
     "Accounts": {
@@ -172,6 +177,28 @@
     // This will purge biotas that are completely disconnected from the world
     // These may have been items that were never deleted properly, items that were given to the town crier before delete was implemented, etc...
     // This can be time consuming so it's not something you would have set to true for every server startup. You might run this once every few months
-    "PurgeOrphanedBiotas": false
+    "PurgeOrphanedBiotas": false,
+
+    // Automatically apply new updates to databases upon startup if they haven't yet been applied
+    "AutoApplyDatabaseUpdates": true,
+
+    // Automatically check for and update to latest available world database
+    "AutoUpdateWorldDatabase": true,
+
+    // After updating to latest world database, automatically import further customizations
+    // AutoUpdateWorldDatabase must be true for this option to be used
+    // SQL files will be executed given the sort order of the full paths of the files
+    "AutoApplyWorldCustomizations": true,
+
+    // When AutoApplyWorldCustomizations is set to true, the auto apply process will search for
+    // all .sql files in the following directories.
+    // This process will still use ./Content by default, or the the config_properties_string
+    // value for 'content_folder' if it exists
+    // Example: [ "C:\\MyContent", "C:\\FTPRoot\\Editor1Content", "C:\\FTPRoot\\Editor2Content" ]
+    "WorldCustomizationAddedPaths": [],
+
+     // When retrieving a file list of .sql files in the AutoApplyWorldCustomizations process
+     // this will cause the file search to retrieve all files recursively from each directory
+     "RecurseWorldCustomizationPaths": true
   }
 }

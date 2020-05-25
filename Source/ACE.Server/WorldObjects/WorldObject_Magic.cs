@@ -6,12 +6,12 @@ using System.Text;
 
 using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
@@ -35,20 +35,32 @@ namespace ACE.Server.WorldObjects
             // verify spell exists in database
             if (spell._spell == null)
             {
-                var targetPlayer = target as Player;
-                if (targetPlayer != null)
+                if (target is Player targetPlayer)
                     targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
 
                 return;
             }
 
-            //if (!spell.IsSelfTargeted && target == null && spell.School != MagicSchool.WarMagic)
-                //return;
+            if (spell.Flags.HasFlag(SpellFlags.FellowshipSpell))
+            {
+                var targetPlayer = target as Player;
+                if (targetPlayer == null || targetPlayer.Fellowship == null)
+                    return;
 
-            // spells only castable on creatures?
-            /*var targetCreature = target as Creature;
-            if (targetCreature == null)
-                return;*/
+                var fellows = targetPlayer.Fellowship.GetFellowshipMembers();
+
+                foreach (var fellow in fellows.Values)
+                    TryCastSpell_Inner(spell, fellow, caster, tryResist, showMsg);
+            }
+            else
+                TryCastSpell_Inner(spell, target, caster, tryResist, showMsg);
+        }
+
+        public void TryCastSpell_Inner(Spell spell, WorldObject target, WorldObject caster = null, bool tryResist = true, bool showMsg = true)
+        {
+            // verify before resist, still consumes source item
+            if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(caster, target))
+                return;
 
             // perform resistance check, if applicable
             var resisted = tryResist ? TryResistSpell(target, spell, caster) : false;
@@ -62,6 +74,7 @@ namespace ACE.Server.WorldObjects
                 case MagicSchool.WarMagic:
                     WarMagic(target, spell, this);
                     break;
+
                 case MagicSchool.LifeMagic:
                     var targetDeath = LifeMagic(spell, out uint damage, out bool critical, out status, target, caster);
                     if (targetDeath && target is Creature targetCreature)
@@ -70,30 +83,35 @@ namespace ACE.Server.WorldObjects
                         targetCreature.Die();
                     }
                     break;
+
                 case MagicSchool.CreatureEnchantment:
                     status = CreatureMagic(target, spell, caster);
                     break;
+
                 case MagicSchool.ItemEnchantment:
                     status = ItemMagic(target, spell, caster);
                     break;
+
                 case MagicSchool.VoidMagic:
                     VoidMagic(target, spell, this);
                     break;
             }
 
             // send message to player, if applicable
-            var player = this as Player;
-            if (player != null && status.Message != null && !status.Broadcast && showMsg)
-                player.Session.Network.EnqueueSend(status.Message);
-            else if (player != null && status.Message != null && status.Broadcast && showMsg)
-                player.EnqueueBroadcast(status.Message, LocalBroadcastRange);
+            if (this is Player player && status.Message != null && showMsg)
+            {
+                if (status.Broadcast)
+                    player.EnqueueBroadcast(status.Message, LocalBroadcastRange, ChatMessageType.Magic);
+                else
+                    player.Session.Network.EnqueueSend(status.Message);
+            }
 
             // for invisible spell traps,
             // their effects won't be seen if they broadcast from themselves
-            if (target != null && spell.TargetEffect != 0)
+            if (target != null && spell.TargetEffect != 0) //&& status.Success)
                 target.EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
 
-            if (caster != null && spell.CasterEffect != 0)
+            if (caster != null && spell.CasterEffect != 0) //&& status.Success)
                 caster.EnqueueBroadcast(new GameMessageScript(caster.Guid, spell.CasterEffect, spell.Formula.Scale));
         }
 
@@ -204,6 +222,9 @@ namespace ACE.Server.WorldObjects
             if (caster == target && spell.IsNegativeRedirectable)
                 return true;
 
+            if (targetCreature != null && caster != targetCreature && spell.NonComponentTargetType == ItemType.Creature && !caster.CanDamage(targetCreature))
+                return true;
+
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
             if ((spell.MetaSpellType == SpellType.Enchantment) && (spell.School == MagicSchool.ItemEnchantment))
             {
@@ -230,11 +251,13 @@ namespace ACE.Server.WorldObjects
         /// based upon the caster's magic skill vs target's magic defense skill
         /// </summary>
         /// <returns>TRUE if spell is resisted</returns>
-        public static bool MagicDefenseCheck(uint casterMagicSkill, uint targetMagicDefenseSkill)
+        public static bool MagicDefenseCheck(uint casterMagicSkill, uint targetMagicDefenseSkill, out float resistChance)
         {
             // uses regular 0.03 factor, and not magic casting 0.07 factor
             var chance = SkillCheck.GetSkillChance((int)casterMagicSkill, (int)targetMagicDefenseSkill);
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            resistChance = (float)(1.0f - chance);
 
             return chance <= rng;
         }
@@ -256,7 +279,9 @@ namespace ACE.Server.WorldObjects
             if (caster == null)
                 caster = this;
 
-            if (caster is Creature casterCreature)
+            var casterCreature = caster as Creature;
+
+            if (casterCreature != null)
             {
                 // Retrieve caster's skill level in the Magic School
                 magicSkill = casterCreature.GetCreatureSkill(spell.School).Current;
@@ -283,7 +308,7 @@ namespace ACE.Server.WorldObjects
             var difficulty = targetCreature.GetEffectiveMagicDefense();
 
             //Console.WriteLine($"{target.Name}.ResistSpell({Name}, {spell.Name}): magicSkill: {magicSkill}, difficulty: {difficulty}");
-            bool resisted = MagicDefenseCheck(magicSkill, difficulty);
+            bool resisted = MagicDefenseCheck(magicSkill, difficulty, out float resistChance);
 
             var player = this as Player;
             var targetPlayer = target as Player;
@@ -323,6 +348,16 @@ namespace ACE.Server.WorldObjects
                     Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MagicDefense), magicSkill);
                 }
             }
+
+            if (casterCreature != null && casterCreature.DebugDamage.HasFlag(Creature.DebugDamageType.Attacker))
+            {
+                ShowResistInfo(casterCreature, this, target, spell, magicSkill, difficulty, resistChance, resisted);
+            }
+            if (targetCreature != null && targetCreature.DebugDamage.HasFlag(Creature.DebugDamageType.Defender))
+            {
+                ShowResistInfo(targetCreature, this, target, spell, magicSkill, difficulty, resistChance, resisted);
+            }
+
             return resisted;
         }
 
@@ -339,11 +374,12 @@ namespace ACE.Server.WorldObjects
             var player = this as Player;
             var creature = this as Creature;
 
-            var spellTarget = spell.BaseRangeConstant > 0 ? target as Creature : creature;
-            var targetPlayer = spellTarget as Player;
+            var spellTarget = !spell.IsSelfTargeted ? target as Creature : creature;
 
             if (this is Gem || this is Hook)
                 spellTarget = target as Creature;
+
+            var targetPlayer = spellTarget as Player;
 
             // NonComponentTargetType should be 0 for untargeted spells.
             // Return if the spell type is targeted with no target defined or the target is already dead.
@@ -357,6 +393,7 @@ namespace ACE.Server.WorldObjects
             switch (spell.MetaSpellType)
             {
                 case SpellType.Boost:
+                case SpellType.FellowBoost:
 
                     // handle negatives?
                     int minBoostValue = Math.Min(spell.Boost, spell.MaxBoost);
@@ -433,9 +470,31 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    if (player != null && srcVital != null && srcVital.Equals("health"))
-                        player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
+                    // handle cloaks
+                    if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health") && boost < 0 && spellTarget.HasCloakEquipped)
+                    {
 
+                        if (spellTarget.HasCloakEquipped)
+                        {
+                            // ensure message is sent after enchantment.Message
+                            var actionChain = new ActionChain();
+                            actionChain.AddDelayForOneTick();
+                            actionChain.AddAction(this, () =>
+                            {
+                                var pct = (float)-boost / spellTarget.Health.MaxValue;
+                                Cloak.TryProcSpell(spellTarget, this, pct);
+                            });
+                            actionChain.EnqueueChain();
+                        }
+
+                        // ensure emote process occurs after damage msg
+                        var emoteChain = new ActionChain();
+                        emoteChain.AddDelayForOneTick();
+                        emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
+                        //if (critical)
+                        //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
+                        emoteChain.EnqueueChain();
+                    }
                     break;
 
                 case SpellType.Transfer:
@@ -566,9 +625,30 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    if (player != null && srcVital != null && srcVital.Equals("health"))
-                        player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
+                    // handle cloaks
+                    if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health"))
+                    {
+                        if (spellTarget.HasCloakEquipped)
+                        {
+                            // ensure message is sent after enchantment.Message
+                            var actionChain = new ActionChain();
+                            actionChain.AddDelayForOneTick();
+                            actionChain.AddAction(this, () =>
+                            {
+                                var pct = (float)srcVitalChange / spellTarget.Health.MaxValue;
+                                Cloak.TryProcSpell(spellTarget, this, pct);
+                            });
+                            actionChain.EnqueueChain();
+                        }
 
+                        // ensure emote process occurs after damage msg
+                        var emoteChain = new ActionChain();
+                        emoteChain.AddDelayForOneTick();
+                        emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
+                        //if (critical)
+                        //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
+                        emoteChain.EnqueueChain();
+                    }
                     break;
 
                 case SpellType.LifeProjectile:
@@ -599,10 +679,7 @@ namespace ACE.Server.WorldObjects
                             //player.Fellowship.OnVitalUpdate(player);
                     }
 
-                    var lifeProjectiles = CreateSpellProjectiles(spell, target, itemCaster);
-
-                    foreach (var lifeProjectile in lifeProjectiles)
-                        lifeProjectile.LifeProjectileDamage = damage;
+                    var lifeProjectiles = CreateSpellProjectiles(spell, target, itemCaster, damage);
 
                     if (caster.Health.Current <= 0)
                     {
@@ -615,6 +692,7 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case SpellType.Dispel:
+                case SpellType.FellowDispel:
 
                     var removeSpells = target.EnchantmentManager.SelectDispel(spell);
 
@@ -643,6 +721,8 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case SpellType.Enchantment:
+                case SpellType.FellowEnchantment:
+
                     damage = 0;
                     if (itemCaster != null)
                         enchantmentStatus = CreateEnchantment(target, itemCaster, spell, equip);
@@ -662,6 +742,50 @@ namespace ACE.Server.WorldObjects
             enchantmentStatus.Success = true;
 
             return spellTarget?.IsDead ?? false;
+        }
+
+        public static bool VerifyDispelPKStatus(WorldObject caster, WorldObject target)
+        {
+            // https://asheron.fandom.com/wiki/Announcements_-_2004/04_-_A_New_Threat
+            // https://asheron.fandom.com/wiki/Dispel_Spells
+
+            // Dispel spells and potions have been revised. All dispels are also now tied to the PK/L timer.
+
+            // The feedback on the suggested dispel timer for PK/L was very mixed. There was no clear majority either for or against.
+            // With that in mind, we've gone ahead with the changes that we feel best improve majority of PK/L combat:
+            // we've decided to implement the PK/L timer on dispels.
+
+            // If you have been in a PK/L action within the last 20 seconds, you will not be able to:
+
+            // - Use a dispel gem.
+            // - Use a dispel potion.
+            // - Use the Awakener or Attenuated Awakener on someone else.
+            // - Cast any dispel spell on yourself.
+            // - Cast any dispel spell on someone else.
+
+            var casterPlayer = caster as Player;
+            var targetPlayer = (target.Wielder ?? target) as Player;
+
+            if (casterPlayer != null && casterPlayer.PKTimerActive)
+            {
+                casterPlayer.SendWeenieError(WeenieError.YouHaveBeenInPKBattleTooRecently);
+                return false;
+            }
+
+            if (targetPlayer != null && targetPlayer.PKTimerActive)
+            {
+                if (casterPlayer != null || caster is Gem || caster is Food)
+                {
+                    if (casterPlayer != null)
+                        casterPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{targetPlayer.Name} has been involved in a player killer battle too recently to do that!", ChatMessageType.Magic));
+                    else
+                        targetPlayer.SendWeenieError(WeenieError.YouHaveBeenInPKBattleTooRecently);
+
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -883,25 +1007,34 @@ namespace ACE.Server.WorldObjects
                                 break;
                             }
 
-                            ActionChain portalSendingChain = new ActionChain();
-                            //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
-                            var fellows = targetPlayer.Fellowship.GetFellowshipMembers().Values;
-                            foreach (var fellow in fellows)
+                            var distanceToTarget = creature.GetDistance(targetPlayer);
+                            var skill = creature.GetCreatureSkill(spell.School);
+                            var magicSkill = skill.InitLevel + skill.Ranks;
+                            var maxRange = spell.BaseRangeConstant + magicSkill * spell.BaseRangeMod;
+                            if (maxRange == 0.0f)
+                                maxRange = float.PositiveInfinity;
+
+                            if (distanceToTarget <= maxRange)
                             {
-                                if (fellow.Guid != targetPlayer.Guid)
-                                    portalSendingChain.AddAction(fellow, () => fellow.EnqueueBroadcast(new GameMessageScript(fellow.Guid, spell.TargetEffect, spell.Formula.Scale)));
-                                portalSendingChain.AddAction(fellow, () => fellow.DoPreTeleportHide());
-                                portalSendingChain.AddAction(fellow, () =>
+                                ActionChain portalSendingChain = new ActionChain();
+                                portalSendingChain.AddAction(targetPlayer, () => targetPlayer.EnqueueBroadcast(new GameMessageScript(targetPlayer.Guid, spell.TargetEffect, spell.Formula.Scale)));
+                                portalSendingChain.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
+                                portalSendingChain.AddAction(targetPlayer, () =>
                                 {
                                     var teleportDest = new Position(spell.Position);
                                     WorldObject.AdjustDungeon(teleportDest);
 
-                                    fellow.Teleport(teleportDest);
+                                    targetPlayer.Teleport(teleportDest);
 
-                                    fellow.SendTeleportedViaMagicMessage(itemCaster, spell);
+                                    targetPlayer.SendTeleportedViaMagicMessage(itemCaster, spell);
                                 });
+                                portalSendingChain.EnqueueChain();
                             }
-                            portalSendingChain.EnqueueChain();
+                            //else
+                            //{
+                            //    enchantmentStatus.Success = false;
+                            //    return enchantmentStatus;
+                            //}
                         }
                         break;
 
@@ -1073,7 +1206,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private Portal GetPortal(uint wcid)
         {
-            return WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(wcid), new ObjectGuid(wcid)) as Portal;
+            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+
+            return WorldObjectFactory.CreateWorldObject(weenie, new ObjectGuid(wcid)) as Portal;
         }
 
         /// <summary>
@@ -1097,6 +1232,8 @@ namespace ACE.Server.WorldObjects
             gateway.MinLevel = portal.MinLevel;
             gateway.MaxLevel = portal.MaxLevel;
             gateway.PortalRestrictions = portal.PortalRestrictions;
+            gateway.AccountRequirements = portal.AccountRequirements;
+            gateway.AdvocateQuest = portal.AdvocateQuest;
 
             gateway.Quest = portal.Quest;
             gateway.QuestRestriction = portal.QuestRestriction;
@@ -1111,7 +1248,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Creates and launches the projectiles for a spell
         /// </summary>
-        public List<SpellProjectile> CreateSpellProjectiles(Spell spell, WorldObject target, WorldObject caster)
+        public List<SpellProjectile> CreateSpellProjectiles(Spell spell, WorldObject target, WorldObject caster, uint lifeProjectileDamage = 0)
         {
             if (spell.NumProjectiles == 0)
             {
@@ -1121,20 +1258,57 @@ namespace ACE.Server.WorldObjects
 
             var spellType = SpellProjectile.GetProjectileSpellType(spell.Id);
 
-            var origins = CalculateProjectileOrigins(spell, spellType);
+            var origins = CalculateProjectileOrigins(spell, spellType, target);
 
             var velocity = CalculateProjectileVelocity(spell, target, spellType, origins[0]);
 
-            return LaunchSpellProjectiles(spell, target, spellType, caster, origins, velocity);
+            return LaunchSpellProjectiles(spell, target, spellType, caster, origins, velocity, lifeProjectileDamage);
         }
 
         public static readonly float ProjHeight = 2.0f / 3.0f;
+
+        public Vector3 CalculatePreOffset(Spell spell, ProjectileSpellType spellType, WorldObject target)
+        {
+            var startFactor = spellType == ProjectileSpellType.Arc ? 1.0f : ProjHeight;
+
+            var preOffset = new Vector3(0, 0, Height * startFactor);
+
+            if (target == null)
+                return preOffset;
+
+            var startPos = new Physics.Common.Position(PhysicsObj.Position);
+            startPos.Frame.Origin.Z += Height * startFactor;
+
+            var endFactor = spellType == ProjectileSpellType.Arc ? ProjHeightArc : ProjHeight;
+
+            var endPos = new Physics.Common.Position(target.PhysicsObj.Position);
+            endPos.Frame.Origin.Z += target.Height * endFactor;
+
+            var globOffset = startPos.GetOffset(endPos);
+
+            // align in x
+            var rotate = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)Math.Atan2(globOffset.X, globOffset.Y));
+
+            var offset = Vector3.Transform(globOffset, rotate);
+
+            var localDir = Vector3.Normalize(offset);
+
+            var radsum = PhysicsObj.GetPhysicsRadius() + GetProjectileRadius(spell);
+
+            var defaultSpawnPos = Vector3.UnitY * radsum;
+
+            var spawnPos = localDir * radsum;
+
+            var spawnOffset = spawnPos - defaultSpawnPos;
+
+            return preOffset + spawnOffset;
+        }
 
         /// <summary>
         /// Returns a list of positions to spawn projectiles for a spell,
         /// in local space relative to the caster
         /// </summary>
-        public List<Vector3> CalculateProjectileOrigins(Spell spell, ProjectileSpellType spellType)
+        public List<Vector3> CalculateProjectileOrigins(Spell spell, ProjectileSpellType spellType, WorldObject target)
         {
             var origins = new List<Vector3>();
 
@@ -1147,14 +1321,22 @@ namespace ACE.Server.WorldObjects
 
             var radsum = PhysicsObj.GetPhysicsRadius() * 2.0f + radius * 2.0f;
 
+            var heightOffset = CalculatePreOffset(spell, spellType, target);
+
+            if (target != null)
+            {
+                var cylDist = GetCylinderDistance(target);
+                //Console.WriteLine($"CylDist: {cylDist}");
+                if (cylDist < 0.6f)
+                    radsum = PhysicsObj.GetPhysicsRadius() + radius;
+            }
+
             if (spell.SpreadAngle == 360)
                 radsum *= 0.6f;
 
             baseOffset.Y += radsum;
 
-            var projHeight = spellType == ProjectileSpellType.Arc ? 1.0f : ProjHeight;
-
-            baseOffset.Z += Height * projHeight;
+            baseOffset += heightOffset;
 
             var anglePerStep = GetSpreadAnglePerStep(spell);
 
@@ -1237,37 +1419,51 @@ namespace ACE.Server.WorldObjects
             if (spell.SpreadAngle == 0.0f || spell.NumProjectiles == 1)
                 return 0.0f;
 
-            return spell.SpreadAngle / (spell.NumProjectiles - 1);
+            var numProjectiles = spell.NumProjectiles;
+
+            if (numProjectiles % 2 == 1)
+                numProjectiles--;
+
+            return spell.SpreadAngle / numProjectiles;
         }
 
         public static readonly Quaternion OneEighty = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)Math.PI);
+
+        public static readonly float ProjHeightArc = 5.0f / 6.0f;
 
         /// <summary>
         /// Calculates the spell projectile velocity in global space
         /// </summary>
         public Vector3 CalculateProjectileVelocity(Spell spell, WorldObject target, ProjectileSpellType spellType, Vector3 origin)
         {
+            var casterLoc = PhysicsObj.Position.ACEPosition();
+
             var speed = GetProjectileSpeed(spell);
 
             if (target == null)
             {
                 // launch along forward vector
-                return Vector3.Transform(Vector3.UnitY, Location.Rotation) * speed;
+                return Vector3.Transform(Vector3.UnitY, casterLoc.Rotation) * speed;
             }
+
+            var targetLoc = target.PhysicsObj.Position.ACEPosition();
 
             var strikeSpell = spellType == ProjectileSpellType.Strike;
 
-            var crossLandblock = !strikeSpell && Location.Landblock != target.Location.Landblock;
+            var crossLandblock = !strikeSpell && casterLoc.Landblock != targetLoc.Landblock;
 
-            var startPos = strikeSpell ? target.Location.Pos : crossLandblock ? Location.ToGlobal(false) : Location.Pos;
-            startPos += Vector3.Transform(origin, strikeSpell ? Location.Rotation * OneEighty : Location.Rotation);
+            var qDir = PhysicsObj.Position.GetOffset(target.PhysicsObj.Position);
+            var rotate = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)Math.Atan2(-qDir.X, qDir.Y));
 
-            var endPos = crossLandblock ? target.Location.ToGlobal(false) : target.Location.Pos;
-            endPos.Z += target.Height * 0.5f;
+            var startPos = strikeSpell ? targetLoc.Pos : crossLandblock ? casterLoc.ToGlobal(false) : casterLoc.Pos;
+            startPos += Vector3.Transform(origin, strikeSpell ? rotate * OneEighty : rotate);
+
+            var endPos = crossLandblock ? targetLoc.ToGlobal(false) : targetLoc.Pos;
+
+            endPos.Z += target.Height * (spellType == ProjectileSpellType.Arc ? ProjHeightArc : ProjHeight);
 
             var dir = Vector3.Normalize(endPos - startPos);
 
-            // TODO: change to instantaneous velocity
             var targetVelocity = spell.IsTracking ? target.PhysicsObj.CachedVelocity : Vector3.Zero;
 
             var useGravity = spellType == ProjectileSpellType.Arc;
@@ -1284,13 +1480,16 @@ namespace ACE.Server.WorldObjects
                 return dir * speed;
         }
 
-        public List<SpellProjectile> LaunchSpellProjectiles(Spell spell, WorldObject target, ProjectileSpellType spellType, WorldObject caster, List<Vector3> origins, Vector3 velocity)
+        public List<SpellProjectile> LaunchSpellProjectiles(Spell spell, WorldObject target, ProjectileSpellType spellType, WorldObject caster, List<Vector3> origins, Vector3 velocity, uint lifeProjectileDamage = 0)
         {
             var useGravity = spellType == ProjectileSpellType.Arc;
 
             var strikeSpell = target != null && spellType == ProjectileSpellType.Strike;
 
             var spellProjectiles = new List<SpellProjectile>();
+
+            var casterLoc = PhysicsObj.Position.ACEPosition();
+            var targetLoc = target?.PhysicsObj.Position.ACEPosition();
 
             for (var i = 0; i < origins.Count; i++)
             {
@@ -1306,18 +1505,30 @@ namespace ACE.Server.WorldObjects
 
                 sp.Setup(spell, spellType);
 
-                sp.Location = strikeSpell ? new Position(target.Location) : new Position(Location);
-                sp.Location.Pos += Vector3.Transform(origin, strikeSpell ? Location.Rotation * OneEighty : Location.Rotation);
+                var rotate = casterLoc.Rotation;
+                if (target != null)
+                {
+                    var qDir = PhysicsObj.Position.GetOffset(target.PhysicsObj.Position);
+                    rotate = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)Math.Atan2(-qDir.X, qDir.Y));
+                }
 
-                sp.Velocity = velocity;
+                sp.Location = strikeSpell ? new Position(targetLoc) : new Position(casterLoc);
+                sp.Location.Pos += Vector3.Transform(origin, strikeSpell ? rotate * OneEighty : rotate);
+
+                sp.PhysicsObj.Velocity = velocity;
 
                 if (spell.SpreadAngle > 0)
                 {
                     var n = Vector3.Normalize(origin);
                     var angle = Math.Atan2(-n.X, n.Y);
                     var q = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)angle);
-                    sp.Velocity = Vector3.Transform(velocity, q);
+                    sp.PhysicsObj.Velocity = Vector3.Transform(velocity, q);
                 }
+
+                // set orientation
+                var dir = Vector3.Normalize(sp.Velocity);
+                sp.PhysicsObj.Position.Frame.set_vector_heading(dir);
+                sp.Location.Rotation = sp.PhysicsObj.Position.Frame.Orientation;
 
                 sp.ProjectileSource = this;
                 sp.Caster = caster;
@@ -1329,10 +1540,23 @@ namespace ACE.Server.WorldObjects
                 sp.SetProjectilePhysicsState(sp.ProjectileTarget, useGravity);
                 sp.SpawnPos = new Position(sp.Location);
 
-                if (!LandblockManager.AddObject(sp))
+                sp.LifeProjectileDamage = lifeProjectileDamage;
+
+                if (!LandblockManager.AddObject(sp) || sp.WorldEntryCollision)
+                {
+                    if (sp.PhysicsObj != null)
+                        sp.PhysicsObj.set_active(false);
+
                     continue;
+                }
 
                 sp.EnqueueBroadcast(new GameMessageScript(sp.Guid, PlayScript.Launch, sp.GetProjectileScriptIntensity(spellType)));
+
+                if (!IsProjectileVisible(sp))
+                {
+                    sp.OnCollideEnvironment();
+                    continue;
+                }
 
                 spellProjectiles.Add(sp);
             }
@@ -1363,17 +1587,16 @@ namespace ACE.Server.WorldObjects
                 return 0.0f;
             }
 
-            var setupId = weenie.WeeniePropertiesDID.FirstOrDefault(i => i.Type == (ushort)PropertyDataId.Setup);
-
-            if (setupId == null)
+            if (!weenie.PropertiesDID.TryGetValue(PropertyDataId.Setup, out var setupId))
             {
-                log.Error($"{Name} ({Guid}).GetSetupRadius({spell.Id} - {spell.Name}): couldn't find setup ID for {weenie.ClassId} - {weenie.ClassName}");
+                log.Error($"{Name} ({Guid}).GetSetupRadius({spell.Id} - {spell.Name}): couldn't find setup ID for {weenie.WeenieClassId} - {weenie.ClassName}");
                 return 0.0f;
             }
 
-            var setup = DatManager.PortalDat.ReadFromDat<SetupModel>(setupId.Value);
+            var setup = DatManager.PortalDat.ReadFromDat<SetupModel>(setupId);
 
-            var scale = weenie.WeeniePropertiesFloat.FirstOrDefault(i => i.Type == (ushort)PropertyFloat.DefaultScale)?.Value ?? 1.0f;
+            if (!weenie.PropertiesFloat.TryGetValue(PropertyFloat.DefaultScale, out var scale))
+                scale = 1.0f;
 
             return ProjectileRadiusCache[projectileWcid] = (float)(setup.Spheres[0].Radius * scale);
         }
@@ -1402,15 +1625,13 @@ namespace ACE.Server.WorldObjects
                     return 0.0f;
                 }
 
-                var maxVelocity = weenie.WeeniePropertiesFloat.FirstOrDefault(i => i.Type == (ushort)PropertyFloat.MaximumVelocity);
-
-                if (maxVelocity == null)
+                if (!weenie.PropertiesFloat.TryGetValue(PropertyFloat.MaximumVelocity, out var maxVelocity))
                 {
-                    log.Error($"{Name} ({Guid}).GetSpellProjectileSpeed({spell.Id} - {spell.Name}, {distance}): couldn't find MaxVelocity for {weenie.ClassId} - {weenie.ClassName}");
+                    log.Error($"{Name} ({Guid}).GetSpellProjectileSpeed({spell.Id} - {spell.Name}, {distance}): couldn't find MaxVelocity for {weenie.WeenieClassId} - {weenie.ClassName}");
                     return 0.0f;
                 }
 
-                baseSpeed = (float)maxVelocity.Value;
+                baseSpeed = (float)maxVelocity;
 
                 ProjectileSpeedCache[projectileWcid] = baseSpeed;
             }
@@ -1501,15 +1722,22 @@ namespace ACE.Server.WorldObjects
             // create enchantment
             AddEnchantmentResult addResult;
             var aetheriaProc = false;
+            var cloakProc = false;
 
-            if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId) && caster.ProcSpell == spell.Id)
+            if (caster.ProcSpell == spell.Id)
             {
-                caster = this;
-                addResult = target.EnchantmentManager.Add(spell, caster, equip);
-                aetheriaProc = true;
+                if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId))
+                {
+                    caster = this;
+                    aetheriaProc = true;
+                }
+                else if (Cloak.IsCloak(caster))
+                {
+                    caster = this;
+                    cloakProc = true;
+                }
             }
-            else
-                addResult = target.EnchantmentManager.Add(spell, caster, equip);
+            addResult = target.EnchantmentManager.Add(spell, caster, equip);
 
             // build message
             var suffix = "";
@@ -1563,7 +1791,7 @@ namespace ACE.Server.WorldObjects
             if (playerTarget == null && target.Wielder is Player wielder)
                 playerTarget = wielder;
 
-            if (playerTarget != null && playerTarget != this && !playerTarget.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic))
+            if (playerTarget != null && playerTarget != this && !playerTarget.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic) && !cloakProc)
             {
                 var targetName = target == playerTarget ? "you" : target.Name;
 
@@ -1648,12 +1876,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the epic cantrips from this item's spellbook
         /// </summary>
-        public List<BiotaPropertiesSpellBook> EpicCantrips => Biota.BiotaPropertiesSpellBook.Where(i => LootTables.EpicCantrips.Contains(i.Spell)).ToList();
+        public Dictionary<int, float /* probability */> EpicCantrips => Biota.GetMatchingSpells(LootTables.EpicCantrips, BiotaDatabaseLock);
 
         /// <summary>
         /// Returns the legendary cantrips from this item's spellbook
         /// </summary>
-        public List<BiotaPropertiesSpellBook> LegendaryCantrips => Biota.BiotaPropertiesSpellBook.Where(i => LootTables.LegendaryCantrips.Contains(i.Spell)).ToList();
+        public Dictionary<int, float /* probability */> LegendaryCantrips => Biota.GetMatchingSpells(LootTables.LegendaryCantrips, BiotaDatabaseLock);
 
         private uint? _maxSpellLevel;
 
@@ -1661,10 +1889,37 @@ namespace ACE.Server.WorldObjects
         {
             if (_maxSpellLevel == null)
             {
-                _maxSpellLevel = Biota.BiotaPropertiesSpellBook.Any() ?
-                    Biota.BiotaPropertiesSpellBook.Select(i => new Spell(i.Spell)).Max(i => i.Formula.Level) : 0;
+                _maxSpellLevel = Biota.PropertiesSpellBook != null && Biota.PropertiesSpellBook.Count > 0 ?
+                    Biota.PropertiesSpellBook.Keys.Select(i => new Spell(i)).Max(i => i.Formula.Level) : 0;
             }
             return _maxSpellLevel.Value;
+        }
+
+        public static void ShowResistInfo(Creature observed, WorldObject attacker, WorldObject defender, Spell spell, uint attackSkill, uint defenseSkill, float resistChance, bool resisted)
+        {
+            var targetInfo = PlayerManager.GetOnlinePlayer(observed.DebugDamageTarget);
+            if (targetInfo == null)
+            {
+                observed.DebugDamage = Creature.DebugDamageType.None;
+                return;
+            }
+
+            // initial info / resist chance
+            var info = $"Attacker: {attacker.Name} ({attacker.Guid})\n";
+            info += $"Defender: {defender.Name} ({defender.Guid})\n";
+
+            info += $"CombatType: Magic\n";
+
+            info += $"Spell: {spell.Name} ({spell.Id})\n";
+
+            info += $"EffectiveAttackSkill: {attackSkill}\n";
+            info += $"EffectiveDefenseSkill: {defenseSkill}\n";
+
+            info += $"ResistChance: {resistChance}\n";
+
+            info += $"Resisted: {resisted}";
+
+            targetInfo.Session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
         }
     }
 }

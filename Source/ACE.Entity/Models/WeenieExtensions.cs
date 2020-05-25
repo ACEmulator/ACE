@@ -135,6 +135,13 @@ namespace ACE.Entity.Models
                    || weenieType == WeenieType.SpellComponent || weenieType == WeenieType.Gem || weenieType == WeenieType.Ammunition || weenieType == WeenieType.Missile;
         }
 
+        public static bool IsStuck(this Weenie weenie)
+        {
+            var stuck = weenie.GetProperty(PropertyBool.Stuck) ?? false;
+
+            return stuck;
+        }
+
         public static bool RequiresBackpackSlotOrIsContainer(this Weenie weenie)
         {
             var requiresBackPackSlot = weenie.GetProperty(PropertyBool.RequiresBackpackSlot) ?? false;

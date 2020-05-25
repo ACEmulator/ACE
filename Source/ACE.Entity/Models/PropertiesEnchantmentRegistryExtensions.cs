@@ -127,6 +127,120 @@ namespace ACE.Entity.Models
             }
         }
 
+        // this ensures level 8 item self spells always take precedence over level 8 item other spells
+        private static HashSet<int> Level8AuraSelfSpells = new HashSet<int>
+        {
+            (int)SpellId.BloodDrinkerSelf8,
+            (int)SpellId.DefenderSelf8,
+            (int)SpellId.HeartSeekerSelf8,
+            (int)SpellId.SpiritDrinkerSelf8,
+            (int)SpellId.SwiftKillerSelf8,
+            (int)SpellId.HermeticLinkSelf8,
+        };
+
+        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayer(this ICollection<PropertiesEnchantmentRegistry> value, ReaderWriterLockSlim rwLock)
+        {
+            if (value == null)
+                return null;
+
+            rwLock.EnterReadLock();
+            try
+            {
+                var results = from e in value
+                    group e by e.SpellCategory
+                    into categories
+                    //select categories.OrderByDescending(c => c.LayerId).First();
+                    select categories.OrderByDescending(c => c.PowerLevel).ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId)).First();
+
+                return results.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        /// <summary>
+        /// Returns the top layers in each spell category for a StatMod type
+        /// </summary>
+        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayerByStatModType(this ICollection<PropertiesEnchantmentRegistry> value, EnchantmentTypeFlags statModType, ReaderWriterLockSlim rwLock)
+        {
+            if (value == null)
+                return null;
+
+            rwLock.EnterReadLock();
+            try
+            {
+                var valuesByStatModType = value.Where(e => (e.StatModType & statModType) == statModType);
+
+                var results = from e in valuesByStatModType
+                    group e by e.SpellCategory
+                    into categories
+                    //select categories.OrderByDescending(c => c.LayerId).First();
+                    select categories.OrderByDescending(c => c.PowerLevel).ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId)).First();
+
+                return results.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        /// <summary>
+        /// Returns the top layers in each spell category for a StatMod type + key
+        /// </summary>
+        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayerByStatModType(this ICollection<PropertiesEnchantmentRegistry> value, EnchantmentTypeFlags statModType, uint statModKey, ReaderWriterLockSlim rwLock)
+        {
+            if (value == null)
+                return null;
+
+            rwLock.EnterReadLock();
+            try
+            {
+                var valuesByStatModTypeAndKey = value.Where(e => (e.StatModType & statModType) == statModType && e.StatModKey == statModKey);
+
+                var results = from e in valuesByStatModTypeAndKey
+                    group e by e.SpellCategory
+                    into categories
+                    //select categories.OrderByDescending(c => c.LayerId).First();
+                    select categories.OrderByDescending(c => c.PowerLevel).ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId)).First();
+
+                return results.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static List<PropertiesEnchantmentRegistry> HeartBeatEnchantmentsAndReturnExpired(this ICollection<PropertiesEnchantmentRegistry> value, double heartbeatInterval, ReaderWriterLockSlim rwLock)
+        {
+            if (value == null)
+                return null;
+
+            rwLock.EnterReadLock();
+            try
+            {
+                var expired = new List<PropertiesEnchantmentRegistry>();
+
+                foreach (var enchantment in value)
+                {
+                    enchantment.StartTime -= heartbeatInterval;
+
+                    // StartTime ticks backwards to -Duration
+                    if (enchantment.Duration >= 0 && enchantment.StartTime <= -enchantment.Duration)
+                        expired.Add(enchantment);
+                }
+
+                return expired;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
         public static void AddEnchantment(this ICollection<PropertiesEnchantmentRegistry> value, PropertiesEnchantmentRegistry entity, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterWriteLock();

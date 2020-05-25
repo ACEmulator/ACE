@@ -4,6 +4,8 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
+using log4net;
+
 using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
@@ -12,7 +14,12 @@ namespace ACE.Database
 {
     public class SerializedShardDatabase
     {
-        private readonly ShardDatabase _wrappedDatabase;
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        /// <summary>
+        /// This is the base database that SerializedShardDatabase is a wrapper for.
+        /// </summary>
+        public readonly ShardDatabase BaseDatabase;
 
         private readonly BlockingCollection<Task> _queue = new BlockingCollection<Task>();
 
@@ -20,7 +27,7 @@ namespace ACE.Database
 
         internal SerializedShardDatabase(ShardDatabase shardDatabase)
         {
-            _wrappedDatabase = shardDatabase;
+            BaseDatabase = shardDatabase;
         }
 
         public void Start()
@@ -49,9 +56,10 @@ namespace ACE.Database
                         t.Start();
                         t.Wait();
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        // log eventually, perhaps add failure callbacks?
+                        log.Error($"[DATABASE] DoWork task failed with exception: {ex}");
+                        // perhaps add failure callbacks?
                         // swallow for now.  can't block other db work because 1 fails.
                     }
                 }
@@ -89,7 +97,7 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.GetMaxGuidFoundInRange(min, max);
+                var result = BaseDatabase.GetMaxGuidFoundInRange(min, max);
                 callback?.Invoke(result);
             }));
         }
@@ -102,146 +110,65 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.GetSequenceGaps(min, limitAvailableIDsReturned);
+                var result = BaseDatabase.GetSequenceGaps(min, limitAvailableIDsReturned);
                 callback?.Invoke(result);
             }));
         }
 
 
-        public int GetBiotaCount()
-        {
-            return _wrappedDatabase.GetBiotaCount();
-        }
-
-        public Biota GetBiota(uint id)
-        {
-            return _wrappedDatabase.GetBiota(id);
-        }
-
-        public List<Biota> GetBiotasByWcid(uint id)
-        {
-            return _wrappedDatabase.GetBiotasByWcid(id);
-        }
-
-        public List<Biota> GetBiotasByType(WeenieType type)
-        {
-            return _wrappedDatabase.GetBiotasByType(type);
-        }
-
-        public void GetBiota(uint id, Action<Biota> callback)
+        public void SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var c = _wrappedDatabase.GetBiota(id);
-                callback?.Invoke(c);
-            }));
-        }
-
-        public void SaveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.SaveBiota(biota, rwLock);
+                var result = BaseDatabase.SaveBiota(biota, rwLock);
                 callback?.Invoke(result);
             }));
         }
 
-        public void SaveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
+
+        public void SaveBiotasInParallel(IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = BaseDatabase.SaveBiotasInParallel(biotas);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveBiota(uint id, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = BaseDatabase.RemoveBiota(id);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RemoveBiota(uint id, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
         {
             var initialCallTime = DateTime.UtcNow;
 
             _queue.Add(new Task(() =>
             {
                 var taskStartTime = DateTime.UtcNow;
-                var result = _wrappedDatabase.SaveBiota(biota, rwLock);
+                var result = BaseDatabase.RemoveBiota(id);
                 var taskCompletedTime = DateTime.UtcNow;
                 callback?.Invoke(result);
                 performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
             }));
         }
 
-        public void SaveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.SaveBiotasInParallel(biotas);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void SaveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
+        public void RemoveBiotasInParallel(IEnumerable<uint> ids, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
         {
             var initialCallTime = DateTime.UtcNow;
 
             _queue.Add(new Task(() =>
             {
                 var taskStartTime = DateTime.UtcNow;
-                var result = _wrappedDatabase.SaveBiotasInParallel(biotas);
+                var result = BaseDatabase.RemoveBiotasInParallel(ids);
                 var taskCompletedTime = DateTime.UtcNow;
                 callback?.Invoke(result);
                 performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
-            }));
-        }
-
-        public void RemoveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveBiota(biota, rwLock);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveBiota(Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
-        {
-            var initialCallTime = DateTime.UtcNow;
-
-            _queue.Add(new Task(() =>
-            {
-                var taskStartTime = DateTime.UtcNow;
-                var result = _wrappedDatabase.RemoveBiota(biota, rwLock);
-                var taskCompletedTime = DateTime.UtcNow;
-                callback?.Invoke(result);
-                performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
-            }));
-        }
-
-        public void RemoveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.RemoveBiotasInParallel(biotas);
-                callback?.Invoke(result);
-            }));
-        }
-
-        public void RemoveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
-        {
-            var initialCallTime = DateTime.UtcNow;
-
-            _queue.Add(new Task(() =>
-            {
-                var taskStartTime = DateTime.UtcNow;
-                var result = _wrappedDatabase.RemoveBiotasInParallel(biotas);
-                var taskCompletedTime = DateTime.UtcNow;
-                callback?.Invoke(result);
-                performanceResults?.Invoke(taskStartTime - initialCallTime, taskCompletedTime - taskStartTime);
-            }));
-        }
-
-        public void FreeBiotaAndDisposeContext(Biota biota)
-        {
-            _queue.Add(new Task(() =>
-            {
-                _wrappedDatabase.FreeBiotaAndDisposeContext(biota);
-            }));
-        }
-
-        public void FreeBiotaAndDisposeContexts(IEnumerable<Biota> biotas)
-        {
-            _queue.Add(new Task(() =>
-            {
-                _wrappedDatabase.FreeBiotaAndDisposeContexts(biotas);
             }));
         }
 
@@ -250,7 +177,7 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var c = _wrappedDatabase.GetPossessedBiotasInParallel(id);
+                var c = BaseDatabase.GetPossessedBiotasInParallel(id);
                 callback?.Invoke(c);
             }));
         }
@@ -259,40 +186,10 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var c = _wrappedDatabase.GetInventoryInParallel(parentId, includedNestedItems);
+                var c = BaseDatabase.GetInventoryInParallel(parentId, includedNestedItems);
                 callback?.Invoke(c);
             }));
 
-        }
-
-        public void GetWieldedItemsInParallel(uint parentId, Action<List<Biota>> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var c = _wrappedDatabase.GetWieldedItemsInParallel(parentId);
-                callback?.Invoke(c);
-            }));
-
-        }
-
-        public List<Biota> GetStaticObjectsByLandblock(ushort landblockId)
-        {
-            return _wrappedDatabase.GetStaticObjectsByLandblock(landblockId);
-        }
-
-        public List<Biota> GetStaticObjectsByLandblockInParallel(ushort landblockId)
-        {
-            return _wrappedDatabase.GetStaticObjectsByLandblockInParallel(landblockId);
-        }
-
-        public List<Biota> GetDynamicObjectsByLandblock(ushort landblockId)
-        {
-            return _wrappedDatabase.GetDynamicObjectsByLandblock(landblockId);
-        }
-
-        public List<Biota> GetDynamicObjectsByLandblockInParallel(ushort landblockId)
-        {
-            return _wrappedDatabase.GetDynamicObjectsByLandblockInParallel(landblockId);
         }
 
 
@@ -300,7 +197,7 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.IsCharacterNameAvailable(name);
+                var result = BaseDatabase.IsCharacterNameAvailable(name);
                 callback?.Invoke(result);
             }));
         }
@@ -309,82 +206,34 @@ namespace ACE.Database
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.GetCharacters(accountId, includeDeleted);
+                var result = BaseDatabase.GetCharacters(accountId, includeDeleted);
                 callback?.Invoke(result);
             }));
-        }
-
-        public Character GetFullCharacter(string name)
-        {
-            return _wrappedDatabase.GetFullCharacter(name);
-        }
-
-        public List<Character> GetCharacters(uint accountId, bool includeDeleted)
-        {
-            return _wrappedDatabase.GetCharacters(accountId, includeDeleted);
-        }
-
-        public Character GetCharacterByName(string name)
-        {
-            return _wrappedDatabase.GetCharacterByName(name);
-        }
-
-        public Character GetCharacterByGuid(uint guid)
-        {
-            return _wrappedDatabase.GetCharacterByGuid(guid);
         }
 
         public void SaveCharacter(Character character, ReaderWriterLockSlim rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var result = _wrappedDatabase.SaveCharacter(character, rwLock);
+                var result = BaseDatabase.SaveCharacter(character, rwLock);
                 callback?.Invoke(result);
             }));
         }
-
-
-        public void AddCharacterInParallel(Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock, Action<bool> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.AddCharacterInParallel(biota, biotaLock, possessions, character, characterLock);
-                callback?.Invoke(result);
-            }));
-        }
-
-
-        /// <summary>
-        /// This will get all player biotas that are backed by characters that are not deleted.
-        /// </summary>
-        public List<Biota> GetAllPlayerBiotasInParallel()
-        {
-            return _wrappedDatabase.GetAllPlayerBiotasInParallel();
-        }
-
-        public List<Biota> GetHousesOwned()
-        {
-            return _wrappedDatabase.GetHousesOwned();
-        }
-
-        public uint? GetAllegianceID(uint monarchID)
-        {
-            return _wrappedDatabase.GetAllegianceID(monarchID);
-        }
-
-
-
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
-        // ******************************************************************* OLD CODE BELOW ********************************
 
         public void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback)
         {
+            // TODO
             throw new NotImplementedException();
+        }
+
+
+        public void AddCharacterInParallel(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = BaseDatabase.AddCharacterInParallel(biota, biotaLock, possessions, character, characterLock);
+                callback?.Invoke(result);
+            }));
         }
     }
 }

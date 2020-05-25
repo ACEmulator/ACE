@@ -59,7 +59,7 @@ namespace ACE.Server.Network
 
         public static void Align(this BinaryReader reader)
         {
-            reader.Pad(CalculatePadMultiple((uint)reader.BaseStream.Length, 4u));
+            reader.Pad(CalculatePadMultiple((uint)reader.BaseStream.Position, 4u));
         }
 
         public static string BuildPacketString(this byte[] bytes, int startPosition = 0, int bytesToOutput = 9999)

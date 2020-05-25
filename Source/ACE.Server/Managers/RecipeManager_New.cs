@@ -1,14 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Linq;
+using Newtonsoft.Json;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Factories;
 using ACE.Server.WorldObjects;
-using Newtonsoft.Json;
 
 namespace ACE.Server.Managers
 {
@@ -93,6 +93,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case WeenieClassName.W_MATERIALSANDSTONE_CLASS:
+                case WeenieClassName.W_MATERIALSANDSTONE100_CLASS:
 
                     // ensure item is retained and sellable
                     if (!target.Retained || !target.IsSellable)
@@ -143,13 +144,13 @@ namespace ACE.Server.Managers
                     recipe = DatabaseManager.World.GetRecipe(3858);
                     break;
 
-                //case WeenieClassName.W_MATERIALIRON100_CLASS:
+                case WeenieClassName.W_MATERIALIRON100_CLASS:
                 case WeenieClassName.W_MATERIALIRON_CLASS:
                 //case WeenieClassName.W_MATERIALGRANITE50_CLASS:
                 case WeenieClassName.W_MATERIALGRANITE100_CLASS:
                 case WeenieClassName.W_MATERIALGRANITE_CLASS:
                 case WeenieClassName.W_MATERIALGRANITEPATHWARDEN_CLASS:
-                //case WeenieClassName.W_MATERIALVELVET100_CLASS:
+                case WeenieClassName.W_MATERIALVELVET100_CLASS:
                 case WeenieClassName.W_MATERIALVELVET_CLASS:
 
                     // ensure melee weapon and workmanship
@@ -181,7 +182,7 @@ namespace ACE.Server.Managers
                     recipe = DatabaseManager.World.GetRecipe(3857);
                     break;
 
-                //case WeenieClassName.W_MATERIALOPAL100_CLASS:
+                case WeenieClassName.W_MATERIALOPAL100_CLASS:
                 case WeenieClassName.W_MATERIALOPAL_CLASS:
 
                     // ensure item is caster and has workmanship
@@ -192,7 +193,7 @@ namespace ACE.Server.Managers
                     recipe = DatabaseManager.World.GetRecipe(3979);
                     break;
 
-                //case WeenieClassName.W_MATERIALGREENGARNET100_CLASS:
+                case WeenieClassName.W_MATERIALGREENGARNET100_CLASS:
                 case WeenieClassName.W_MATERIALGREENGARNET_CLASS:
 
                     // ensure item is caster and has workmanship
@@ -203,7 +204,7 @@ namespace ACE.Server.Managers
                     recipe = DatabaseManager.World.GetRecipe(5202);
                     break;
 
-                //case WeenieClassName.W_MATERIALBRASS100_CLASS:
+                case WeenieClassName.W_MATERIALBRASS100_CLASS:
                 case WeenieClassName.W_MATERIALBRASS_CLASS:
 
                     // ensure item has workmanship
@@ -226,7 +227,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALCARNELIAN_CLASS:
 
                     // ensure item is generic (jewelry), and has workmanship
-                    if (target.WeenieType != WeenieType.Generic || target.Workmanship == null)
+                    if (target.WeenieType != WeenieType.Generic || target.Workmanship == null || target.ValidLocations == EquipMask.TrinketOne)
                         return null;
 
                     recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
@@ -346,13 +347,13 @@ namespace ACE.Server.Managers
 
         public static Dictionary<WeenieClassName, uint> SourceToRecipe = new Dictionary<WeenieClassName, uint>()
         {
-            //{ WeenieClassName.W_MATERIALIRON100_CLASS,         3853 },
+            { WeenieClassName.W_MATERIALIRON100_CLASS,         3853 },
             { WeenieClassName.W_MATERIALIRON_CLASS,            3853 },
             { WeenieClassName.W_MATERIALGRANITE100_CLASS,      3852 },
             { WeenieClassName.W_MATERIALGRANITE_CLASS,         3852 },
             { WeenieClassName.W_MATERIALGRANITEPATHWARDEN_CLASS, 3852 },
 
-            //{ WeenieClassName.W_MATERIALVELVET100_CLASS,       3861 },
+            { WeenieClassName.W_MATERIALVELVET100_CLASS,       3861 },
             { WeenieClassName.W_MATERIALVELVET_CLASS,          3861 },
 
             { WeenieClassName.W_MATERIALROSEQUARTZ_CLASS,      4446 },

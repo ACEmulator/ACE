@@ -81,11 +81,26 @@ namespace ACE.Server.WorldObjects
 
             if (CombatMode != CombatMode.Magic)
             {
-                SendUseDoneEvent();
+                log.Error($"{Name}.HandleActionCastTargetedSpell({targetGuid:X8}, {spellId}, {builtInSpell}) - CombatMode mismatch {CombatMode}, LastCombatMode: {LastCombatMode}");
+
+                if (LastCombatMode == CombatMode.Magic)
+                    CombatMode = CombatMode.Magic;
+                else
+                {
+                    SendUseDoneEvent();
+                    return;
+                }
+            }
+
+            if (FastTick && PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.CurrentStyle != (uint)MotionStance.Magic)
+            {
+                log.Warn($"{Name} CombatMode: {CombatMode}, CurrentMotionState: {CurrentMotionState.Stance}.{CurrentMotionState.MotionState.ForwardCommand}, Physics: {(MotionStance)PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.CurrentStyle}.{(MotionCommand)PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.ForwardCommand}");
+                ApplyPhysicsMotion(new Motion(MotionStance.Magic));
+                SendUseDoneEvent(WeenieError.YoureTooBusy);
                 return;
             }
 
-            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            if (IsJumping)
             {
                 SendUseDoneEvent(WeenieError.YouCantDoThatWhileInTheAir);
                 return;
@@ -94,6 +109,13 @@ namespace ACE.Server.WorldObjects
             if (PKLogout)
             {
                 SendUseDoneEvent(WeenieError.YouHaveBeenInPKBattleTooRecently);
+                return;
+            }
+
+            if (IsBusy && MagicState.CanQueue)
+            {
+                MagicState.CastQueue = new CastQueue(CastQueueType.Targeted, targetGuid, spellId, builtInSpell);
+                MagicState.CanQueue = false;
                 return;
             }
 
@@ -118,6 +140,8 @@ namespace ACE.Server.WorldObjects
 
             MagicState.OnCastStart();
             MagicState.SetWindupParams(targetGuid, spellId, builtInSpell);
+
+            StartPos = new Physics.Common.Position(PhysicsObj.Position);
 
             if (RecordCast.Enabled)
                 RecordCast.OnCastTargetedSpell(new Spell(spellId), target);
@@ -163,7 +187,7 @@ namespace ACE.Server.WorldObjects
                 TurnTo_Magic(target);
         }
 
-        public void DoWindup(WindupParams windupParams)
+        public void DoWindup(WindupParams windupParams, bool checkAngle)
         {
             //Console.WriteLine($"{Name}.DoWindup()");
 
@@ -177,7 +201,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsWithinAngle(target))
+            if (!checkAngle || IsWithinAngle(target))
             {
                 if (!CreatePlayerSpell(target, targetCategory, windupParams.SpellId, windupParams.BuiltInSpell))
                     MagicState.OnCastDone();
@@ -185,7 +209,10 @@ namespace ACE.Server.WorldObjects
             else
             {
                 // restart turn if required
-                TurnTo_Magic(target);
+                if (PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.TurnCommand == 0)
+                    TurnTo_Magic(target);
+                else
+                    MagicState.PendingTurnRelease = true;
             }
         }
 
@@ -245,11 +272,26 @@ namespace ACE.Server.WorldObjects
 
             if (CombatMode != CombatMode.Magic)
             {
-                SendUseDoneEvent();
+                log.Error($"{Name}.HandleActionMagicCastUnTargetedSpell({spellId}) - CombatMode mismatch {CombatMode}, LastCombatMode {LastCombatMode}");
+
+                if (LastCombatMode == CombatMode.Magic)
+                    CombatMode = CombatMode.Magic;
+                else
+                {
+                    SendUseDoneEvent();
+                    return;
+                }
+            }
+
+            if (FastTick && PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.CurrentStyle != (uint)MotionStance.Magic)
+            {
+                log.Warn($"{Name} CombatMode: {CombatMode}, CurrentMotionState: {CurrentMotionState.Stance}.{CurrentMotionState.MotionState.ForwardCommand}, Physics: {(MotionStance)PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.CurrentStyle}.{(MotionCommand)PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.ForwardCommand}");
+                ApplyPhysicsMotion(new Motion(MotionStance.Magic));
+                SendUseDoneEvent(WeenieError.YoureTooBusy);
                 return;
             }
 
-            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            if (IsJumping)
             {
                 SendUseDoneEvent(WeenieError.YouCantDoThatWhileInTheAir);
                 return;
@@ -258,6 +300,13 @@ namespace ACE.Server.WorldObjects
             if (PKLogout)
             {
                 SendUseDoneEvent(WeenieError.YouHaveBeenInPKBattleTooRecently);
+                return;
+            }
+
+            if (IsBusy && MagicState.CanQueue)
+            {
+                MagicState.CastQueue = new CastQueue(CastQueueType.Untargeted, 0, spellId, false);
+                MagicState.CanQueue = false;
                 return;
             }
 
@@ -273,6 +322,8 @@ namespace ACE.Server.WorldObjects
                 RecordCast.OnCastUntargetedSpell(new Spell(spellId));
 
             MagicState.OnCastStart();
+
+            StartPos = new Physics.Common.Position(PhysicsObj.Position);
 
             if (!CreatePlayerSpell(spellId))
                 MagicState.OnCastDone();
@@ -318,7 +369,7 @@ namespace ACE.Server.WorldObjects
 
         public bool VerifyBusy()
         {
-            if (IsBusy || Teleporting)
+            if (IsBusy || Teleporting || suicideInProgress)
             {
                 SendUseDoneEvent(WeenieError.YoureTooBusy);
                 return false;
@@ -375,10 +426,11 @@ namespace ACE.Server.WorldObjects
 
             float distanceTo = Location.Distance2D(targetLoc.Location);
 
-            if (distanceTo > spell.BaseRangeConstant + magicSkill * spell.BaseRangeMod)
+            var maxRange = Math.Min(spell.BaseRangeConstant + magicSkill * spell.BaseRangeMod, MaxRadarRange_Outdoors);
+
+            if (distanceTo > maxRange)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"Target is out of range!", ChatMessageType.Magic));
-                SendUseDoneEvent(WeenieError.None);
+                SendUseDoneEvent(WeenieError.MissileOutOfRange);
                 return false;
             }
 
@@ -475,7 +527,7 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Spellcasting), LocalBroadcastRange, ChatMessageType.Spellcasting);
         }
 
-        public static new float CastSpeed = 2.0f;       // from retail pcaps, player animation speed for windup / first half of cast gesture
+        public static float CastSpeed = 2.0f;       // from retail pcaps, player animation speed for windup / first half of cast gesture
 
         public void DoWindupGestures(Spell spell, bool isWeaponSpell, ActionChain castChain)
         {
@@ -517,7 +569,7 @@ namespace ACE.Server.WorldObjects
             }
 
             if (FastTick)
-                windupTime = EnqueueMotionAction(castChain, spell.Formula.WindupGestures, CastSpeed);
+                windupTime = EnqueueMotionAction(castChain, spell.Formula.WindupGestures, CastSpeed, MotionStance.Magic);
         }
 
         public void DoCastGesture(Spell spell, bool isWeaponSpell, ActionChain castChain)
@@ -547,6 +599,9 @@ namespace ACE.Server.WorldObjects
                 if (FastTick)
                     PhysicsObj.StopCompletely(false);
             });
+
+            if (MagicState.CastGesture == MotionCommand.Invalid)
+                MagicState.CastGesture = MotionCommand.Ready;
 
             var castTime = 0.0f;
             if (FastTick)
@@ -598,10 +653,10 @@ namespace ACE.Server.WorldObjects
                         log.Error($"{Name}.IsWithinAngle({target.Name} ({target.Guid})) - couldn't find rootOwner");
 
                     else if (rootOwner != this)
-                        angle = FastTick ? Math.Abs(GetAngle_Physics2(rootOwner)) : GetAngle(rootOwner.Location);
+                        angle = GetAngle(rootOwner);
                 }
                 else
-                    angle = FastTick ? Math.Abs(GetAngle_Physics2(target)) : GetAngle(target.Location);
+                    angle = GetAngle(target);
             }
 
             //Console.WriteLine($"Angle: " + angle);
@@ -622,7 +677,8 @@ namespace ACE.Server.WorldObjects
 
                 if (target == null)
                 {
-                    FinishCast(WeenieError.TargetNotAcquired);
+                    SendWeenieError(WeenieError.TargetNotAcquired);
+                    FinishCast();
                     return;
                 }
 
@@ -640,7 +696,12 @@ namespace ACE.Server.WorldObjects
                         actionChain.EnqueueChain();
                     }
                     else
-                        TurnTo_Magic(target);
+                    {
+                        if (PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.TurnCommand == 0)
+                            TurnTo_Magic(target);
+                        else
+                            MagicState.PendingTurnRelease = true;
+                    }
 
                     return;
                 }
@@ -648,36 +709,49 @@ namespace ACE.Server.WorldObjects
                 // verify spell range
                 if (!VerifySpellRange(target, targetCategory, spell, magicSkill))
                 {
-                    FinishCast(WeenieError.None);
+                    FinishCast();
                     return;
                 }
             }
 
             if (IsDead)
             {
-                FinishCast(WeenieError.None);
+                FinishCast();
                 return;
             }
 
             DoCastSpell_Inner(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus);
         }
 
+        public WorldObject TurnTarget;
+
         public void TurnTo_Magic(WorldObject target)
         {
             //Console.WriteLine($"{Name}.TurnTo_Magic()");
+            TurnTarget = target;
 
             MagicState.TurnStarted = true;
             MagicState.IsTurning = true;
 
             if (FastTick)
             {
-                var stopCompletely = !MagicState.CastMotionDone;
+                if (PropertyManager.GetDouble("spellcast_max_angle").Item > 5.0f && IsWithinAngle(target))
+                {
+                    // emulate current gdle TurnTo - doesn't match retail, but some players may prefer this
+                    OnMoveComplete_Magic(WeenieError.None);
+                    return;
+                }
 
-                CreateTurnToChain2(target, null, stopCompletely);
+                var stopCompletely = !MagicState.CastMotionDone;
+                //var stopCompletely = true;
+
+                CreateTurnToChain2(target, null, stopCompletely, MagicState.AlwaysTurn);
+
+                MagicState.AlwaysTurn = false;
             }
         }
 
-        public Position StartPos;
+        public Physics.Common.Position StartPos { get; set; }
 
         public void DoCastSpell_Inner(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus, bool finishCast = true)
         {
@@ -700,7 +774,10 @@ namespace ACE.Server.WorldObjects
             else
             {
                 caster = GetEquippedWand();     // TODO: persist this from the beginning, since this is done with delay
-                caster.ItemCurMana -= (int)manaUsed;
+                if (caster != null)
+                    caster.ItemCurMana -= (int)manaUsed;
+                else
+                    castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
             }
 
             // consume spell components
@@ -708,8 +785,8 @@ namespace ACE.Server.WorldObjects
                 TryBurnComponents(spell);
 
             // check windup move distance cap
-            var endPos = new Position(Location);
-            var dist = StartPos.DistanceTo(endPos);
+            var endPos = new Physics.Common.Position(PhysicsObj.Position);
+            var dist = StartPos.Distance(endPos);
 
             bool movedTooFar = false;
 
@@ -723,8 +800,6 @@ namespace ACE.Server.WorldObjects
             var pk_error = CheckPKStatusVsTarget(this, target, spell);
             if (pk_error != null)
                 castingPreCheckStatus = CastingPreCheckStatus.InvalidPKStatus;
-
-            var useDone = WeenieError.None;
 
             switch (castingPreCheckStatus)
             {
@@ -765,8 +840,8 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 default:
-                    useDone = WeenieError.YourSpellFizzled;
                     EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Fizzle, 0.5f));
+                    SendWeenieError(WeenieError.YourSpellFizzled);
                     break;
             }
 
@@ -786,10 +861,10 @@ namespace ACE.Server.WorldObjects
             }
 
             if (finishCast)
-                FinishCast(useDone);
+                FinishCast();
         }
 
-        public void FinishCast(WeenieError useDone)
+        public void FinishCast()
         {
             var hasWindupGestures = MagicState.CastSpellParams?.HasWindupGestures ?? true;
             var castGesture = MagicState.CastGesture;
@@ -801,10 +876,12 @@ namespace ACE.Server.WorldObjects
 
             MagicState.OnCastDone();
 
-            //var queue = PropertyManager.GetBool("spellcast_recoil_queue").Item;
-
-            //if (!queue)
             IsBusy = true;
+
+            var queue = PropertyManager.GetBool("spellcast_recoil_queue").Item;
+
+            if (queue)
+                MagicState.CanQueue = true;
 
             if (FastTick)
             {
@@ -815,10 +892,11 @@ namespace ACE.Server.WorldObjects
                 EnqueueMotion(actionChain, MotionCommand.Ready, 1.0f, true, castGesture, false, fastbuff);
                 actionChain.AddAction(this, () =>
                 {
-                    //if (!queue)
                     IsBusy = false;
+                    SendUseDoneEvent();
 
-                    SendUseDoneEvent(useDone);
+                    if (queue)
+                        HandleCastQueue();
 
                     //Console.WriteLine("====================================");
                 });
@@ -835,8 +913,12 @@ namespace ACE.Server.WorldObjects
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(1.0f);   // TODO: get actual recoil timing
                 actionChain.AddAction(this, () => {
+
                     IsBusy = false;
                     SendUseDoneEvent();
+
+                    if (queue)
+                        HandleCastQueue();
                 });
                 actionChain.EnqueueChain();
             }
@@ -883,7 +965,7 @@ namespace ACE.Server.WorldObjects
             DoSpellWords(spell, isWeaponSpell);
 
             var spellChain = new ActionChain();
-            StartPos = new Position(Location);
+            //StartPos = new Physics.Common.Position(PhysicsObj.Position);
 
             // do wind-up gestures: fastcast has no windup (creature enchantments)
             DoWindupGestures(spell, isWeaponSpell, spellChain);
@@ -923,6 +1005,10 @@ namespace ACE.Server.WorldObjects
             WorldObject caster = this;
             if (isWeaponSpell)
                 caster = GetEquippedWand();
+
+            // verify after windup, still consumes mana
+            if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(this, target))
+                return;
 
             switch (spell.School)
             {
@@ -971,14 +1057,14 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
-                    if (targetPlayer == null)
-                        OnAttackMonster(targetCreature);
-
-                    if (TryResistSpell(target, spell, caster))
-                        break;
-
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
+                        if (targetPlayer == null)
+                            OnAttackMonster(targetCreature);
+
+                        if (TryResistSpell(target, spell, caster))
+                            break;
+
                         if (targetCreature != null && targetCreature.NonProjectileMagicImmune)
                         {
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetCreature.Name} with {spell.Name}", ChatMessageType.Magic));
@@ -986,13 +1072,13 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    if (target != null)
-                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
                     targetDeath = LifeMagic(spell, out uint damage, out bool critical, out enchantmentStatus, target, caster);
 
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
+                        if (target != null)
+                            EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
                         if (spell.IsHarmful)
                         {
                             if (targetCreature != null)
@@ -1181,7 +1267,7 @@ namespace ACE.Server.WorldObjects
 
             var spellChain = new ActionChain();
 
-            StartPos = new Position(Location);
+            //StartPos = new Physics.Common.Position(PhysicsObj.Position);
 
             // do wind-up gestures: fastcast has no windup (creature enchantments)
             DoWindupGestures(spell, false, spellChain);
@@ -1224,7 +1310,7 @@ namespace ACE.Server.WorldObjects
                 var item = GetInventoryItemsOfWCID(wcid).FirstOrDefault();
                 if (item == null)
                 {
-                    if (SpellComponentsRequired)
+                    if (SpellComponentsRequired && PropertyManager.GetBool("require_spell_comps").Item)
                         log.Warn($"{Name}.TryBurnComponents({spellComponent.Name}): not found in inventory");
                     else
                         burned.RemoveAt(i);
@@ -1365,7 +1451,19 @@ namespace ACE.Server.WorldObjects
                     RecordCast.Log($"{Name}.HandleMotionDone_Magic({(MotionCommand)motionID}, {success}) - cast gesture done");
 
                 MagicState.CastMotionDone = true;
-                DoCastSpell(MagicState);
+
+                var actionChain = new ActionChain();
+                actionChain.AddDelayForOneTick();
+                actionChain.AddAction(this, () =>
+                {
+                    if (!MagicState.IsCasting)
+                        return;
+
+                    MagicState.AlwaysTurn = true;
+
+                    DoCastSpell(MagicState);
+                });
+                actionChain.EnqueueChain();
             }
         }
 
@@ -1385,10 +1483,20 @@ namespace ACE.Server.WorldObjects
 
             MagicState.IsTurning = false;
 
-            if (!MagicState.CastMotionDone)
-                DoWindup(MagicState.WindupParams);
-            else
-                DoCastSpell(MagicState, status != WeenieError.None);
+            var checkAngle = status != WeenieError.None;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelayForOneTick();
+            actionChain.AddAction(this, () =>
+            {
+                if (!MagicState.IsCasting) return;
+
+                if (!MagicState.CastMotionDone)
+                    DoWindup(MagicState.WindupParams, checkAngle);
+                else
+                    DoCastSpell(MagicState, checkAngle);
+            });
+            actionChain.EnqueueChain();
         }
 
         public void FailCast(bool tryFizzle = true)
@@ -1406,6 +1514,40 @@ namespace ACE.Server.WorldObjects
             SendUseDoneEvent(werror);
 
             MagicState.OnCastDone();
+        }
+
+        public void OnTurnRelease()
+        {
+            MagicState.PendingTurnRelease = false;
+
+            if (!MagicState.CastMotionDone)
+                DoWindup(MagicState.WindupParams, true);
+            else
+                DoCastSpell(MagicState, true);
+        }
+
+        public void CheckTurn()
+        {
+            if (TurnTarget != null && IsWithinAngle(TurnTarget))
+            {
+                if (MagicState.PendingTurnRelease)
+                    OnTurnRelease();
+                else
+                    PhysicsObj.StopCompletely(false);
+            }
+        }
+
+        public void HandleCastQueue()
+        {
+            MagicState.CanQueue = false;
+
+            if (MagicState.CastQueue != null)
+            {
+                if (MagicState.CastQueue.Type == CastQueueType.Targeted)
+                    HandleActionCastTargetedSpell(MagicState.CastQueue.TargetGuid, MagicState.CastQueue.SpellId, MagicState.CastQueue.BuiltInSpell);
+                else
+                    HandleActionMagicCastUnTargetedSpell(MagicState.CastQueue.SpellId);
+            }
         }
     }
 }

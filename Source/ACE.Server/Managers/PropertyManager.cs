@@ -35,6 +35,9 @@ namespace ACE.Server.Managers
 
             LoadPropertiesFromDB();
 
+            if (Program.IsRunningInContainer && !GetString("content_folder").Equals("/ace/Content"))
+                ModifyString("content_folder", "/ace/Content");
+
             _workerThread = new Timer(300000);
             _workerThread.Elapsed += DoWork;
             _workerThread.AutoReset = true;
@@ -78,7 +81,8 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void StopUpdating()
         {
-            _workerThread.Stop();
+            if (_workerThread != null)
+                _workerThread.Stop();
         }
 
 
@@ -482,14 +486,22 @@ namespace ACE.Server.Managers
                 ("advanced_combat_pets", new Property<bool>(false, "(non-retail function) If enabled, Combat Pets can cast spells")),
                 ("advocate_fane_auto_bestow", new Property<bool>(false, "If enabled, Advocate Fane will automatically bestow new advocates to advocate_fane_auto_bestow_level")),
                 ("aetheria_heal_color", new Property<bool>(false, "If enabled, changes the aetheria healing over time messages from the default retail red color to green")),
+                ("allow_door_hold", new Property<bool>(true, "enables retail behavior where standing on a door while it is closing keeps the door as ethereal until it is free from collisions, effectively holding the door open for other players")),
+                ("allow_jump_loot", new Property<bool>(true, "enables retail behavior where a player can quickly loot items while jumping, bypassing the 'crouch down' animation")),
+                ("allow_pkl_bump", new Property<bool>(true, "enables retail behavior where /pkl checks for entry collisions, bumping the player position over if standing on another PKLite. This effectively enables /pkl door skipping from retail")),
                 ("assess_creature_mod", new Property<bool>(false, "(non-retail function) If enabled, re-enables former skill formula, when assess creature skill is not trained or spec'ed")),
                 ("chess_enabled", new Property<bool>(true, "if FALSE then chess will be disabled")),
                 ("client_movement_formula", new Property<bool>(false, "If enabled, server uses DoMotion/StopMotion self-client movement methods instead of apply_raw_movement")),
                 ("container_opener_name", new Property<bool>(false, "If enabled, when a player tries to open a container that is already in use by someone else, replaces 'someone else' in the message with the actual name of the player")),
                 ("corpse_decay_tick_logging", new Property<bool>(false, "If ENABLED then player corpse ticks will be logged")),
                 ("corpse_destroy_pyreals", new Property<bool>(true, "If FALSE then pyreals will not be completely destroyed on player death")),
+                ("craft_exact_msg", new Property<bool>(false, "If TRUE, and player has crafting chance of success dialog enabled, shows them an additional message in their chat window with exact %")),
+                ("creature_name_check", new Property<bool>(true, "if enabled, creature names in world database restricts player names during character creation")),
                 ("creatures_drop_createlist_wield", new Property<bool>(false, "If FALSE then Wielded items in CreateList will not drop. Retail defaulted to TRUE but there are currently data errors")),
+                ("equipmentsetid_enabled", new Property<bool>(false, "enable this to allow adding EquipmentSetIDs to loot armor")),
+                ("equipmentsetid_name_decoration", new Property<bool>(false, "enable this to add the EquipmentSet name to loot armor name")),
                 ("fastbuff", new Property<bool>(true, "If TRUE, enables the fast buffing trick from retail.")),
+                ("fellow_busy_no_recruit", new Property<bool>(true, "if FALSE, fellows can be recruited while they are busy, different from retail")),
                 ("fellow_kt_killer", new Property<bool>(true, "if FALSE, fellowship kill tasks will share with the fellowship, even if the killer doesn't have the quest")),
                 ("fellow_kt_landblock", new Property<bool>(false, "if TRUE, fellowship kill tasks will share with landblock range (192 distance radius, or entire dungeon)")),
                 ("fellow_quest_bonus", new Property<bool>(false, "if TRUE, applies EvenShare formula to fellowship quest reward XP (300% max bonus, defaults to false in retail)")),
@@ -500,7 +512,9 @@ namespace ACE.Server.Managers
                 ("iou_trades", new Property<bool>(false, "(non-retail function) If enabled, IOUs can be traded for objects that are missing in DB but added/restored later on")),
                 ("item_dispel", new Property<bool>(false, "if enabled, allows players to dispel items. defaults to end of retail, where item dispels could only target creatures")),
                 ("lifestone_broadcast_death", new Property<bool>(true, "if true, player deaths are additionally broadcast to other players standing near the destination lifestone")),
-                ("log_audit", new Property<bool>(true, "if FALSE then audit channel is not logged")),                     
+                ("log_audit", new Property<bool>(true, "if FALSE then audit channel is not logged")),
+                ("loot_quality_mod", new Property<bool>(true, "if FALSE then the loot quality modifier of a Death Treasure profile does not affect loot generation")),
+                ("npc_hairstyle_fullrange", new Property<bool>(false, "if TRUE, allows generated creatures to use full range of hairstyles. Retail only allowed first nine (0-8) out of 51")),
                 ("override_encounter_spawn_rates", new Property<bool>(false, "if enabled, landblock encounter spawns are overidden by double properties below.")),
                 ("player_config_command", new Property<bool>(false, "If enabled, players can use /config to change their settings via text commands")),
                 ("player_receive_immediate_save", new Property<bool>(false, "if enabled, when the player receives items from an NPC, they will be saved immediately")),
@@ -508,6 +522,8 @@ namespace ACE.Server.Managers
                 ("pk_server_safe_training_academy", new Property<bool>(false, "set this to TRUE to disable pk fighting in training academy and time to exit starter town safely")),
                 ("pkl_server", new Property<bool>(false, "set this to TRUE for pink servers")),
                 ("quest_info_enabled", new Property<bool>(false, "toggles the /myquests player command")),
+                ("rares_real_time", new Property<bool>(true, "allow for second chance roll based on an rng seeded timestamp for a rare on rare eligible kills that do not generate a rare, rares_max_seconds_between defines maximum seconds before second chance kicks in")),
+                ("rares_real_time_v2", new Property<bool>(false, "chances for a rare to be generated on rare eligible kills are modified by the last time one was found per each player, rares_max_days_between defines maximum days before guaranteed rare generation")),
                 ("runrate_add_hooks", new Property<bool>(false, "if TRUE, adds some runrate hooks that were missing from retail (exhaustion done, raise skill/attribute")),
                 ("require_spell_comps", new Property<bool>(true, "if FALSE spell components are no longer required to be in inventory to cast spells. defaults to enabled, as in retail")),
                 ("salvage_handle_overages", new Property<bool>(false, "in retail, if 2 salvage bags were combined beyond 100 structure, the overages would be lost")),
@@ -516,10 +532,13 @@ namespace ACE.Server.Managers
                 ("show_mana_conv_bonus_0", new Property<bool>(true, "if disabled, only shows mana conversion bonus if not zero, during appraisal of casting items")),
                 ("smite_uses_takedamage", new Property<bool>(false, "if enabled, smite applies damage via TakeDamage")),
                 ("spellcast_recoil_queue", new Property<bool>(false, "if true, players can queue the next spell to cast during recoil animation")),
+                ("spell_projectile_ethereal", new Property<bool>(false, "broadcasts all spell projectiles as ethereal to clients only, and manually send stop velocity on collision. can fix various issues with client missing target id.")),
                 ("suicide_instant_death", new Property<bool>(false, "if enabled, @die command kills player instantly. defaults to disabled, as in retail")),
+                ("taboo_table", new Property<bool>(true, "if enabled, taboo table restricts player names during character creation")),
                 ("tailoring_intermediate_uieffects", new Property<bool>(false, "If true, tailoring intermediate icons retain the magical/elemental highlight of the original item")),
                 ("universal_masteries", new Property<bool>(true, "if TRUE, matches end of retail masteries - players wielding almost any weapon get +5 DR, except if the weapon \"seems tough to master\". " +
                                                                  "if FALSE, players start with mastery of 1 melee and 1 ranged weapon type based on heritage, and can later re-select these 2 masteries")),
+                ("use_turbine_chat", new Property<bool>(true, "enables or disables global chat channels (General, LFG, Roleplay, Trade, Olthoi, Society, Allegience)")),
                 ("use_wield_requirements", new Property<bool>(true, "disable this to bypass wield requirements. mostly for dev debugging")),
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
                 );
@@ -530,35 +549,46 @@ namespace ACE.Server.Managers
                 ("mansion_min_rank", new Property<long>(6, "overrides the default allegiance rank required to own a mansion")),
                 ("max_chars_per_account", new Property<long>(11, "retail defaults to 11, client supports up to 20")),
                 ("pk_timer", new Property<long>(20, "the number of seconds where a player cannot perform certain actions (ie. teleporting) after becoming involved in a PK battle")),
-                ("player_save_interval", new Property<long>(300, "the number of seconds between automatic player saves"))
+                ("player_save_interval", new Property<long>(300, "the number of seconds between automatic player saves")),
+                ("rares_max_days_between", new Property<long>(45, "for rares_real_time_v2: the maximum number of days a player can go before a rare is generated on rare eligible creature kills")),
+                ("rares_max_seconds_between", new Property<long>(5256000, "for rares_real_time: the maximum number of seconds a player can go before a second chance at a rare is allowed on rare eligible creature kills that did not generate a rare")),
+                ("teleport_visibility_fix", new Property<long>(0, "Fixes some possible issues with invisible players and mobs. 0 = default / disabled, 1 = players only, 2 = creatures, 3 = all world objects"))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
             DictOf(
-                ("advocate_fane_auto_bestow_level", new Property<double>(1, "the level that advocates are automatically bestowed by Advocate Fane if advocate_fane_auto_bestow is true")),
+
                 ("minor_cantrip_drop_rate", new Property<double>(1.0, "Modifier for minor cantrip drop rate, 1 being normal")),
                 ("major_cantrip_drop_rate", new Property<double>(1.0, "Modifier for major cantrip drop rate, 1 being normal")),
                 ("epic_cantrip_drop_rate", new Property<double>(1.0, "Modifier for epic cantrip drop rate, 1 being normal")),
                 ("legendary_cantrip_drop_rate", new Property<double>(1.0, "Modifier for legendary cantrip drop rate, 1 being normal")),
+
+                ("advocate_fane_auto_bestow_level", new Property<double>(1, "the level that advocates are automatically bestowed by Advocate Fane if advocate_fane_auto_bestow is true")),
                 ("aetheria_drop_rate", new Property<double>(1.0, "Modifier for Aetheria drop rate, 1 being normal")),
                 ("chess_ai_start_time", new Property<double>(-1.0, "the number of seconds for the chess ai to start. defaults to -1 (disabled)")),
                 ("encounter_delay", new Property<double>(1800, "the number of seconds a generator profile for regions is delayed from returning to free slots")),
                 ("encounter_regen_interval", new Property<double>(600, "the number of seconds a generator for regions at which spawns its next set of objects")),
-                ("luminance_modifier", new Property<double>(1.0, "scales the amount of luminance received by players")),
+                ("equipmentsetid_drop_rate", new Property<double>(1.0, "Modifier for EquipmentSetID drop rate, 1 being normal")),
+                ("fast_missile_modifier", new Property<double>(1.2, "The speed multiplier applied to fast missiles. Defaults to retail value of 1.2")),
+                ("ignore_magic_armor_pvp_scalar", new Property<double>(1.0, "Scales the effectiveness of IgnoreMagicArmor (ie. hollow weapons) in pvp battles. 1.0 = full effectiveness / ignore all enchantments on armor (default), 0.5 = half effectiveness / use half enchantments from armor, 0.0 = no effectiveness / use full enchantments from armor")),
+                ("ignore_magic_resist_pvp_scalar", new Property<double>(1.0, "Scales the effectiveness of IgnoreMagicResist (ie. hollow weapons) in pvp battles. 1.0 = full effectiveness / ignore all resistances from life enchantments (default), 0.5 = half effectiveness / use half resistances from life enchantments, 0.0 = no effectiveness / use full resistances from life enchantments")),
+                ("luminance_modifier", new Property<double>(1.0, "Scales the amount of luminance received by players")),
+                ("mob_awareness_range", new Property<double>(1.0, "Scales the distance the monsters become alerted and aggro the players")),
                 ("pk_new_character_grace_period", new Property<double>(300, "the number of seconds, in addition to pk_respite_timer, that a player killer is set to non-player killer status after first exiting training academy")),
                 ("pk_respite_timer", new Property<double>(300, "the number of seconds that a player killer is set to non-player killer status after dying to another player killer")),
+                ("quest_mindelta_rate", new Property<double>(1.0, "scales all quest min delta time between solves, 1 being normal")),
                 ("spellcast_max_angle", new Property<double>(5.0, "for advanced player spell casting, the maximum angle to target release a spell projectile. retail seemed to default to a lower 5-20 value here, although some players seem to prefer a higher 45 degree angle")),
                 ("trophy_drop_rate", new Property<double>(1.0, "Modifier for trophies dropped on creature death")),
+                ("unlocker_window", new Property<double>(10.0, "The number of seconds a player unlocking a chest has exclusive access to first opening the chest.")),
                 ("vendor_unique_rot_time", new Property<double>(300, "the number of seconds before unique items sold to vendors disappear")),
                 ("vitae_penalty", new Property<double>(0.05, "the amount of vitae penalty a player gets per death")),
                 ("vitae_penalty_max", new Property<double>(0.40, "the maximum vitae penalty a player can have")),
-                ("xp_modifier", new Property<double>(1.0, "scales the amount of xp received by players")),
-                ("quest_mindelta_rate", new Property<double>(1.0, "scales all quest min delta time between solves, 1 being normal"))
+                ("xp_modifier", new Property<double>(1.0, "scales the amount of xp received by players"))
                 );
 
-        public static readonly ReadOnlyDictionary<string, Property<String>> DefaultStringProperties =
+        public static readonly ReadOnlyDictionary<string, Property<string>> DefaultStringProperties =
             DictOf(
-                ("content_folder", new Property<string>(".\\Content", "for content creators to live edit weenies. defaults to Content in the netcoreapp2.2 folder")),
+                ("content_folder", new Property<string>(".\\Content", "for content creators to live edit weenies. defaults to Content folder found in same directory as ACE.Server.dll")),
                 ("dat_warning_msg", new Property<string>("Your DAT files are incomplete.\nACEmulator does not support dynamic DAT updating at this time.\nPlease visit https://emulator.ac/how-to-play to download the complete DAT files.", "Warning message displayed (if show_dat_warning is true) to player if client attempts DAT download from server")),
                 ("popup_header", new Property<string>("Welcome to Asheron's Call!", "Welcome message displayed when you log in")),
                 ("popup_welcome", new Property<string>("To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.", "Welcome message popup in training halls")),

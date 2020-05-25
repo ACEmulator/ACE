@@ -108,7 +108,7 @@ namespace ACE.Server.Managers
             //foreach (var houseOwner in houseOwners)
                 //AddRentQueue(houseOwner);
 
-            var slumlordBiotas = DatabaseManager.Shard.GetBiotasByType(WeenieType.SlumLord);
+            var slumlordBiotas = DatabaseManager.Shard.BaseDatabase.GetBiotasByType(WeenieType.SlumLord);
 
             foreach (var slumlord in slumlordBiotas)
                 AddRentQueue(slumlord);
@@ -213,7 +213,7 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void QueryMultiHouse()
         {
-            var slumlordBiotas = DatabaseManager.Shard.GetBiotasByType(WeenieType.SlumLord);
+            var slumlordBiotas = DatabaseManager.Shard.BaseDatabase.GetBiotasByType(WeenieType.SlumLord);
 
             var playerHouses = new Dictionary<IPlayer, List<Biota>>();
             var accountHouses = new Dictionary<string, List<Biota>>();
@@ -587,7 +587,7 @@ namespace ACE.Server.Managers
 
             var rank = allegianceNode != null ? allegianceNode.Rank : 0;
 
-            if (allegiance == null || rank < allegianceMinLevel)
+            if (allegianceMinLevel > 0 && (allegiance == null || rank < allegianceMinLevel))
             {
                 log.Debug($"[HOUSE] {playerHouse.PlayerName}.HasRequirements() - allegiance rank {rank} < {allegianceMinLevel}");
                 return false;
@@ -687,7 +687,7 @@ namespace ACE.Server.Managers
         /// else return a copy of the House biota from the latest info in the db
         ///
         /// <param name="callback">called when the slumlord inventory is fully loaded</param>
-        private static void GetHouse(uint houseGuid, Action<House> callback)
+        public static void GetHouse(uint houseGuid, Action<House> callback)
         {
             var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
 
@@ -716,6 +716,12 @@ namespace ACE.Server.Managers
                 else
                     callback(house);
             }
+            else if (!loaded.CreateWorldObjectsCompleted)
+            {
+                var houseBiota = House.Load(houseGuid);
+
+                RegisterCallback(houseBiota, callback);
+            }
             else
                 log.Error($"HouseManager.GetHouse({houseGuid:X8}): couldn't find house on loaded landblock");
         }
@@ -723,7 +729,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Registers a callback to run when the slumlord inventory has been loaded
         /// </summary>
-        private static void RegisterCallback(House house, Action<House> callback)
+        public static void RegisterCallback(House house, Action<House> callback)
         {
             if (!SlumlordCallbacks.TryGetValue(house.SlumLord.Guid.Full, out var callbacks))
             {

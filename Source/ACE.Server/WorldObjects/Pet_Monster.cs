@@ -10,7 +10,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Wakes up any monsters within the applicable range
         /// </summary>
-        public void PetCheckMonsters(float rangeSquared = RadiusAwarenessSquared)
+        public void PetCheckMonsters()
         {
             //if (!Attackable) return;
 
@@ -20,7 +20,8 @@ namespace ACE.Server.WorldObjects
             {
                 if (monster.IsDead) continue;
 
-                if (Location.SquaredDistanceTo(monster.Location) < rangeSquared)
+                //if (Location.SquaredDistanceTo(monster.Location) <= monster.VisualAwarenessRangeSq)
+                if (PhysicsObj.get_distance_sq_to_object(monster.PhysicsObj, true) <= monster.VisualAwarenessRangeSq)
                     PetAlertMonster(monster);
             }
         }

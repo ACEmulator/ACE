@@ -2,9 +2,7 @@ using System;
 
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
-using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Physics;
 
 namespace ACE.Server.WorldObjects
 {
@@ -12,38 +10,24 @@ namespace ACE.Server.WorldObjects
     /// Helper class for arrows / bolts / thrown weapons
     /// outside of the WorldObject hierarchy
     /// </summary>
-    public class Projectile
+    public static class ProjectileCollisionHelper
     {
-        public WorldObject WorldObject;
-
-        public PhysicsObj PhysicsObj => WorldObject.PhysicsObj;
-
-        public WorldObject ProjectileSource => WorldObject.ProjectileSource;
-        public WorldObject ProjectileTarget => WorldObject.ProjectileTarget;
-
-        public Projectile() { }
-
-        public Projectile(WorldObject worldObject)
+        public static void OnCollideObject(WorldObject worldObject, WorldObject target)
         {
-            WorldObject = worldObject;
-        }
-
-        public void OnCollideObject(WorldObject target)
-        {
-            if (!PhysicsObj.is_active()) return;
+            if (!worldObject.PhysicsObj.is_active()) return;
 
             //Console.WriteLine($"Projectile.OnCollideObject - {WorldObject.Name} ({WorldObject.Guid}) -> {target.Name} ({target.Guid})");
 
-            if (ProjectileTarget == null || ProjectileTarget != target)
+            if (worldObject.ProjectileTarget == null || worldObject.ProjectileTarget != target)
             {
                 //Console.WriteLine("Unintended projectile target! (should be " + ProjectileTarget.Guid.Full.ToString("X8") + " - " + ProjectileTarget.Name + ")");
-                OnCollideEnvironment();
+                OnCollideEnvironment(worldObject);
                 return;
             }
 
             // take damage
-            var sourceCreature = ProjectileSource as Creature;
-            var sourcePlayer = ProjectileSource as Player;
+            var sourceCreature = worldObject.ProjectileSource as Creature;
+            var sourcePlayer = worldObject.ProjectileSource as Player;
             var targetCreature = target as Creature;
 
             DamageEvent damageEvent = null;
@@ -53,16 +37,16 @@ namespace ACE.Server.WorldObjects
                 if (sourcePlayer != null)
                 {
                     // player damage monster or player
-                    damageEvent = sourcePlayer.DamageTarget(targetCreature, WorldObject);
+                    damageEvent = sourcePlayer.DamageTarget(targetCreature, worldObject);
 
                     if (damageEvent != null && damageEvent.HasDamage)
-                        WorldObject.EnqueueBroadcast(new GameMessageSound(WorldObject.Guid, Sound.Collision, 1.0f));
+                        worldObject.EnqueueBroadcast(new GameMessageSound(worldObject.Guid, Sound.Collision, 1.0f));
                 }
                 else if (sourceCreature != null && sourceCreature.AttackTarget != null)
                 {
                     var targetPlayer = sourceCreature.AttackTarget as Player;
 
-                    damageEvent = DamageEvent.CalculateDamage(sourceCreature, targetCreature, WorldObject);
+                    damageEvent = DamageEvent.CalculateDamage(sourceCreature, targetCreature, worldObject);
 
                     if (targetPlayer != null)
                     {
@@ -99,36 +83,36 @@ namespace ACE.Server.WorldObjects
                     sourceCreature?.TryProcEquippedItems(targetCreature, false);
             }
 
-            WorldObject.CurrentLandblock?.RemoveWorldObject(WorldObject.Guid, showError: !PhysicsObj.entering_world);
-            PhysicsObj.set_active(false);
+            worldObject.CurrentLandblock?.RemoveWorldObject(worldObject.Guid, showError: !worldObject.PhysicsObj.entering_world);
+            worldObject.PhysicsObj.set_active(false);
 
-            WorldObject.HitMsg = true;
+            worldObject.HitMsg = true;
         }
 
-        public void OnCollideEnvironment()
+        public static void OnCollideEnvironment(WorldObject worldObject)
         {
-            if (!PhysicsObj.is_active()) return;
+            if (!worldObject.PhysicsObj.is_active()) return;
 
             // do not send 'Your missile attack hit the environment' messages to player,
             // if projectile is still in the process of spawning into world.
-            if (PhysicsObj.entering_world)
+            if (worldObject.PhysicsObj.entering_world)
                 return;
 
             //Console.WriteLine($"Projectile.OnCollideEnvironment({WorldObject.Name} - {WorldObject.Guid})");
 
-            WorldObject.CurrentLandblock?.RemoveWorldObject(WorldObject.Guid, showError: !PhysicsObj.entering_world);
-            PhysicsObj.set_active(false);
+            worldObject.CurrentLandblock?.RemoveWorldObject(worldObject.Guid, showError: !worldObject.PhysicsObj.entering_world);
+            worldObject.PhysicsObj.set_active(false);
 
-            if (ProjectileSource is Player player)
+            if (worldObject.ProjectileSource is Player player)
             {
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat("Your missile attack hit the environment.", ChatMessageType.Broadcast));
             }
-            else if (ProjectileSource is Creature creature)
+            else if (worldObject.ProjectileSource is Creature creature)
             {
                 creature.MonsterProjectile_OnCollideEnvironment();
             }
 
-            WorldObject.HitMsg = true;
+            worldObject.HitMsg = true;
         }
     }
 }

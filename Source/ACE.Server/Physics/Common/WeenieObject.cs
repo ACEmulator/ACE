@@ -1,10 +1,11 @@
 using System;
 
+using log4net;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Physics.Animation;
-using ACE.Server.Physics.Combat;
 using ACE.Server.Physics.Collision;
 using ACE.Server.WorldObjects;
 
@@ -12,6 +13,8 @@ namespace ACE.Server.Physics.Common
 {
     public class WeenieObject
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public uint ID;
         public double UpdateTime;
         public readonly WorldObjectInfo WorldObjectInfo;
@@ -230,14 +233,35 @@ namespace ACE.Server.Physics.Common
             WorldObject.OnMoveComplete(status);
         }
 
-        public void OnSticky()
+        public bool CanBypassMoveRestrictions()
         {
-            WorldObject.OnSticky();
+            // acclient checks both of these here
+            return WorldObject.IgnoreHouseBarriers/* && WorldObject is Admin*/;
         }
 
-        public void OnUnsticky()
+        public bool CanMoveInto(WeenieObject mover)
         {
-            WorldObject.OnUnsticky();
+            var house = WorldObject as House;
+            if (house == null)
+            {
+                log.Error($"{WorldObject?.Name} ({WorldObject?.Guid}).CanMoveInto({mover.WorldObject?.Name} ({mover.WorldObject?.Guid}) - couldn't find house");
+                return true;
+            }
+            var rootHouse = house.RootHouse;
+            if (rootHouse == null)
+            {
+                log.Error($"{WorldObject?.Name} ({WorldObject?.Guid}).CanMoveInto({mover.WorldObject?.Name} ({mover.WorldObject?.Guid}) - couldn't find root house");
+                return true;
+            }
+            var player = mover?.WorldObject as Player;
+            if (player == null)
+            {
+                log.Error($"{WorldObject?.Name} ({WorldObject?.Guid}).CanMoveInto({mover.WorldObject?.Name} ({mover.WorldObject?.Guid}) - couldn't find player");
+                return true;
+            }
+            var result = rootHouse.HouseOwner == null || rootHouse.OpenStatus || rootHouse.HasPermission(player);
+            //Console.WriteLine($"{player.Name} can move into {rootHouse.Name} ({rootHouse.Guid}): {result}");
+            return result;
         }
     }
 }

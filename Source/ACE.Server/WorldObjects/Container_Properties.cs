@@ -17,6 +17,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.LastUnlocker); else SetProperty(PropertyInstanceId.LastUnlocker, value.Value); }
         }
 
+        public double? UseLockTimestamp
+        {
+            get => GetProperty(PropertyFloat.UseLockTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.UseLockTimestamp); else SetProperty(PropertyFloat.UseLockTimestamp, value.Value); }
+        }
+
         public bool ResetMessagePending
         {
             get => GetProperty(PropertyBool.ResetMessagePending) ?? false;

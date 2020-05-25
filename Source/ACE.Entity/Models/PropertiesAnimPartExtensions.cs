@@ -38,18 +38,20 @@ namespace ACE.Entity.Models
             }
         }
 
-
-        public static void Add(this IList<PropertiesAnimPart> value, IList<PropertiesAnimPart> entries, ReaderWriterLockSlim rwLock)
+        public static void CopyTo(this IList<PropertiesAnimPart> value, ICollection<PropertiesAnimPart> destination, ReaderWriterLockSlim rwLock)
         {
-            rwLock.EnterWriteLock();
+            if (value == null)
+                return;
+
+            rwLock.EnterReadLock();
             try
             {
-                foreach (var entry in entries)
-                    value.Add(entry);
+                foreach (var entry in value)
+                    destination.Add(entry);
             }
             finally
             {
-                rwLock.ExitWriteLock();
+                rwLock.ExitReadLock();
             }
         }
     }

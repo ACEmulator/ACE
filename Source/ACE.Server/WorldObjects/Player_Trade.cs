@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network;

@@ -52,7 +52,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Flag indicates monster is moving towards target
         /// </summary>
-        public new bool IsMoving = false;
+        public bool IsMoving = false;
 
         /// <summary>
         /// The last time a movement tick was processed
@@ -60,8 +60,6 @@ namespace ACE.Server.WorldObjects
         public double LastMoveTime;
 
         public bool DebugMove;
-
-        public bool Sticky;
 
         public double NextMoveTime;
         public double NextCancelTime;
@@ -105,6 +103,9 @@ namespace ACE.Server.WorldObjects
                 PhysicsObj.TurnToObject(AttackTarget.PhysicsObj, mvp);
             else
                 PhysicsObj.MoveToObject(AttackTarget.PhysicsObj, mvp);
+
+            // prevent initial snap
+            PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
         }
 
         /// <summary>
@@ -239,7 +240,7 @@ namespace ACE.Server.WorldObjects
             //if (!IsRanged)
                 UpdatePosition();
 
-            if (GetDistanceToTarget() >= MaxChaseRange && MonsterState != State.Return)
+            if (MonsterState == State.Awake && GetDistanceToTarget() >= MaxChaseRange)
             {
                 CancelMoveTo();
                 FindNextTarget();
@@ -413,18 +414,6 @@ namespace ACE.Server.WorldObjects
             return mvp;
         }
 
-        public override void OnSticky()
-        {
-            //Console.WriteLine($"{Name} ({Guid}) - OnSticky");
-            Sticky = true;
-        }
-
-        public override void OnUnsticky()
-        {
-            //Console.WriteLine($"{Name} ({Guid}) - OnUnsticky");
-            Sticky = false;
-        }
-
         /// <summary>
         /// The maximum distance a monster can travel outside of its home position
         /// </summary>
@@ -466,16 +455,15 @@ namespace ACE.Server.WorldObjects
             var homeDistSq = Vector3.DistanceSquared(globalHomePos, globalPos);
 
             if (homeDistSq > HomeRadiusSq)
-            {
-                EmoteManager.OnHomeSick(AttackTarget);
                 MoveToHome();
-            }
         }
 
         public void MoveToHome()
         {
             if (DebugMove)
                 Console.WriteLine($"{Name}.MoveToHome()");
+
+            var prevAttackTarget = AttackTarget;
 
             MonsterState = State.Return;
             AttackTarget = null;
@@ -492,11 +480,16 @@ namespace ACE.Server.WorldObjects
 
             MoveTo(home, RunRate, false, 1.0f);
 
+            var homePos = new Physics.Common.Position(home);
+
             var mvp = GetMovementParameters();
             mvp.DistanceToObject = 0.6f;
+            mvp.DesiredHeading = homePos.Frame.get_heading();
 
-            PhysicsObj.MoveToPosition(new Physics.Common.Position(home), mvp);
+            PhysicsObj.MoveToPosition(homePos, mvp);
             IsMoving = true;
+
+            EmoteManager.OnHomeSick(prevAttackTarget);
         }
 
         public void CancelMoveTo()

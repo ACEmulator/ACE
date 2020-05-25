@@ -1,5 +1,6 @@
 using System;
 
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace ACE.Common
@@ -33,5 +34,46 @@ namespace ACE.Common
         [System.ComponentModel.DefaultValue(false)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool PurgeOrphanedBiotas { get; set; }
+
+        /// <summary>
+        /// Automatically check for and update to latest available world database
+        /// </summary>
+        [System.ComponentModel.DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool AutoUpdateWorldDatabase { get; set; }
+
+        /// <summary>
+        /// After updating to latest world database, automatically import further customizations
+        /// AutoUpdateWorldDatabase must be true for this option to be used
+        /// SQL files will be executed given the sort order of the full paths of the files
+        /// </summary>
+        [System.ComponentModel.DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool AutoApplyWorldCustomizations { get; set; }
+
+        /// <summary>
+        /// When AutoApplyWorldCustomizations is set to true, the auto apply process will search for
+        /// all .sql files in the following directories.
+        /// This process will still use ./Content by default, or the the config_properties_string
+        /// value for 'content_folder' if it exists
+        /// </summary>
+        [System.ComponentModel.DefaultValue(new string[] { })]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public string[] WorldCustomizationAddedPaths { get; set; }
+
+        /// <summary>
+        /// When retrieving a file list of .sql files in the AutoApplyWorldCustomizations process
+        /// this will cause the file search to retrieve all files recursively from each directory
+        /// </summary>
+        [System.ComponentModel.DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool RecurseWorldCustomizationPaths { get; set; }
+
+        /// <summary>
+        /// Automatically apply new updates to databases upon startup if they haven't yet been applied
+        /// </summary>
+        [System.ComponentModel.DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool AutoApplyDatabaseUpdates { get; set; }
     }
 }

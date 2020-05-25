@@ -25,6 +25,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsPassivePet && this is Pet pet)
+            {
+                pet.Tick(currentUnixTime);
+                return;
+            }
+
             NextMonsterTickTime = currentUnixTime + monsterTickInterval;
 
             if (!IsAwake && MonsterState == State.Return)
@@ -35,14 +41,6 @@ namespace ACE.Server.WorldObjects
             HandleFindTarget();
 
             CheckMissHome();    // tickrate?
-
-            var pet = this as CombatPet;
-
-            if (pet != null && DateTime.UtcNow >= pet.ExpirationTime)
-            {
-                Destroy();
-                return;
-            }
 
             if (AttackTarget == null && MonsterState != State.Return)
             {
@@ -56,8 +54,11 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            var combatPet = this as CombatPet;
+
             var creatureTarget = AttackTarget as Creature;
-            if (creatureTarget != null && (creatureTarget.IsDead || (pet == null && !IsVisibleTarget(creatureTarget))))
+
+            if (creatureTarget != null && (creatureTarget.IsDead || (combatPet == null && !IsVisibleTarget(creatureTarget))))
             {
                 FindNextTarget();
                 return;
@@ -104,12 +105,12 @@ namespace ACE.Server.WorldObjects
                 //MaxRange = MaxMeleeRange;   // FIXME: server position sync
             }
 
+            if (PhysicsObj.IsSticky)
+                UpdatePosition();
+
             // get distance to target
             var targetDist = GetDistanceToTarget();
             //Console.WriteLine($"{Name} ({Guid}) - Dist: {targetDist}");
-
-            if (Sticky)
-                UpdatePosition();
 
             if (CurrentAttack != CombatType.Missile)
             {
@@ -153,13 +154,13 @@ namespace ACE.Server.WorldObjects
 
                     // should ranged mobs only get CurrentTargets within MaxRange?
                     //Console.WriteLine($"{Name}.MissileAttack({AttackTarget.Name}): targetDist={targetDist}, MaxRange={MaxRange}, switching to melee");
-                    SwitchToMeleeAttack();
+                    TrySwitchToMeleeAttack();
                 }
             }
 
             // pets drawing aggro
-            if (pet != null)
-                pet.PetCheckMonsters();
+            if (combatPet != null)
+                combatPet.PetCheckMonsters();
         }
     }
 }

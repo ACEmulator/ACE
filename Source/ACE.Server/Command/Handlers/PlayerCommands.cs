@@ -38,6 +38,12 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
+            if (session.Player.QuestManager.Quests.Count == 0)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("Quest list is empty.", ChatMessageType.Broadcast));
+                return;
+            }
+
             foreach (var playerQuest in session.Player.QuestManager.Quests)
             {
                 var text = "";
@@ -48,8 +54,9 @@ namespace ACE.Server.Command.Handlers
                     Console.WriteLine($"Couldn't find quest {playerQuest.QuestName}");
                     continue;
                 }
+                var minDelta = (uint)(quest.MinDelta * PropertyManager.GetDouble("quest_mindelta_rate").Item);
                 text += $"{playerQuest.QuestName.ToLower()} - {playerQuest.NumTimesCompleted} solves ({playerQuest.LastTimeCompleted})";
-                text += $"\"{quest.Message}\" {quest.MaxSolves} {quest.MinDelta}";
+                text += $"\"{quest.Message}\" {quest.MaxSolves} {minDelta}";
 
                 session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
             }
@@ -314,6 +321,34 @@ namespace ACE.Server.Command.Handlers
 
             // update client
             session.Network.EnqueueSend(new GameEventPlayerDescription(session));
+        }
+
+        /// <summary>
+        /// Force resend of all visible objects known to this player. Can fix rare cases of invisible object bugs.
+        /// Can only be used once every 5 mins max.
+        /// </summary>
+        [CommandHandler("objsend", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Force resend of all visible objects known to this player. Can fix rare cases of invisible object bugs. Can only be used once every 5 mins max.")]
+        public static void HandleObjSend(Session session, params string[] parameters)
+        {
+            // a good repro spot for this is the first room after the door in facility hub
+            // in the portal drop / staircase room, the VisibleCells do not have the room after the door
+            // however, the room after the door *does* have the portal drop / staircase room in its VisibleCells (the inverse relationship is imbalanced)
+            // not sure how to fix this atm, seems like it triggers a client bug..
+
+            if (DateTime.UtcNow - session.Player.PrevObjSend < TimeSpan.FromMinutes(5))
+            {
+                session.Player.SendTransientError("You have used this command too recently!");
+                return;
+            }
+
+            var knownObjs = session.Player.GetKnownObjects();
+
+            foreach (var knownObj in knownObjs)
+            {
+                session.Player.RemoveTrackedObject(knownObj, false);
+                session.Player.TrackObject(knownObj);
+            }
+            session.Player.PrevObjSend = DateTime.UtcNow;
         }
     }
 }

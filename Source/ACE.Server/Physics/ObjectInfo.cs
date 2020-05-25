@@ -7,19 +7,19 @@ namespace ACE.Server.Physics.Animation
     [Flags]
     public enum ObjectInfoState
     {
-        Default = 0x0,
-        Contact = 0x1,
-        OnWalkable = 0x2,
-        IsViewer = 0x4,
-        PathClipped = 0x8,
-        FreeRotate = 0x10,
-        PerfectClip = 0x40,
-        IsImpenetrable = 0x80,
-        IsPlayer = 0x100,
-        EdgeSlide = 0x200,
+        Default         = 0x0,
+        Contact         = 0x1,
+        OnWalkable      = 0x2,
+        IsViewer        = 0x4,
+        PathClipped     = 0x8,
+        FreeRotate      = 0x10,
+        PerfectClip     = 0x40,
+        IsImpenetrable  = 0x80,
+        IsPlayer        = 0x100,
+        EdgeSlide       = 0x200,
         IgnoreCreatures = 0x400,
-        IsPK = 0x800,
-        IsPKLite = 0x1000
+        IsPK            = 0x800,
+        IsPKLite        = 0x1000
     };
 
     public class ObjectInfo
@@ -31,7 +31,7 @@ namespace ACE.Server.Physics.Animation
         public float StepDownHeight;
         public bool Ethereal;
         public bool StepDown;
-        public int TargetID;
+        public uint TargetID;
 
         public float GetWalkableZ()
         {
@@ -59,6 +59,8 @@ namespace ACE.Server.Physics.Animation
                 if (wobj.IsPKLite())
                     State |= ObjectInfoState.IsPKLite;
             }
+            if (obj.ProjectileTarget != null)
+                TargetID = obj.ProjectileTarget.ID;
         }
 
         public bool IsValidWalkable(Vector3 normal)
@@ -68,8 +70,17 @@ namespace ACE.Server.Physics.Animation
 
         public bool MissileIgnore(PhysicsObj collideObj)
         {
+            // modified for 2-way
             if (collideObj.State.HasFlag(PhysicsState.Missile))
+            {
+                if (!Object.IsPlayer)
+                    return true;
+
+                if (collideObj.ProjectileTarget == null || collideObj.ProjectileTarget == Object)
+                    return false;
+
                 return true;
+            }
 
             if (Object.State.HasFlag(PhysicsState.Missile))
             {

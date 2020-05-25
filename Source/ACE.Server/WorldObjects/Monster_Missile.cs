@@ -69,8 +69,14 @@ namespace ACE.Server.WorldObjects
             var ammo = weapon.IsAmmoLauncher ? GetEquippedAmmo() : weapon;
             if (ammo == null) return;
 
-            // ensure direct line of sight
-            if (!IsDirectVisible(AttackTarget))
+            /*if (!IsDirectVisible(AttackTarget))
+            {
+                // ensure direct line of sight
+                //NextAttackTime = Timers.RunningTime + 1.0f;
+                SwitchToMeleeAttack();
+                return;
+            }*/
+            if (SwitchWeaponsPending)
             {
                 NextAttackTime = Timers.RunningTime + 1.0f;
                 return;
@@ -85,15 +91,17 @@ namespace ACE.Server.WorldObjects
             if (DebugMove)
                 Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - LaunchMissile");
 
+            var projectileSpeed = GetProjectileSpeed();
+
             // get z-angle for aim motion
-            var aimVelocity = GetAimVelocity(AttackTarget);
+            var aimVelocity = GetAimVelocity(AttackTarget, projectileSpeed);
 
             var aimLevel = GetAimLevel(aimVelocity);
 
             // calculate projectile spawn pos and velocity
             var localOrigin = GetProjectileSpawnOrigin(ammo.WeenieClassId, aimLevel);
 
-            var velocity = CalculateProjectileVelocity(localOrigin, AttackTarget, out Vector3 origin, out Quaternion orientation);
+            var velocity = CalculateProjectileVelocity(localOrigin, AttackTarget, projectileSpeed, out Vector3 origin, out Quaternion orientation);
 
             //Console.WriteLine($"Velocity: {velocity}");
 
@@ -136,29 +144,33 @@ namespace ACE.Server.WorldObjects
             // reset for next projectile
             EnqueueMotion(actionChain, MotionCommand.Ready);
 
-            var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload, MotionCommand.Ready);
+            var linkAnim = reloadTime > 0 ? MotionCommand.Reload : aimLevel;
+
+            var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, linkAnim, MotionCommand.Ready);
 
             if (weapon.IsThrownWeapon)
             {
-                actionChain.EnqueueChain();
+                if (reloadTime > 0)
+                {
+                    actionChain.EnqueueChain();
+                    actionChain = new ActionChain();
+                }
 
-                actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(linkTime);
             }
-            //Console.WriteLine($"Reload time: launchTime({launchTime}) + reloadTime({reloadTime}) + linkTime({linkTime})");
 
-            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, ACE.Entity.Enum.ParentLocation.RightHand,
-                    ACE.Entity.Enum.Placement.RightHandCombat)));
+            //log.Info($"{Name}.Reload time: launchTime({launchTime}) + reloadTime({reloadTime}) + linkTime({linkTime})");
+
+            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo,
+                ACE.Entity.Enum.ParentLocation.RightHand, ACE.Entity.Enum.Placement.RightHandCombat)));
 
             actionChain.EnqueueChain();
 
+            PrevAttackTime = Timers.RunningTime;
+
             var timeOffset = launchTime + reloadTime + linkTime;
 
-            var missileDelay = MissileDelay;
-            if (!weapon.IsAmmoLauncher)
-                missileDelay *= 1.5f;
-
-            NextMoveTime = NextAttackTime = Timers.RunningTime + timeOffset + missileDelay;
+            NextMoveTime = NextAttackTime = PrevAttackTime + timeOffset + MissileDelay;
         }
 
         /// <summary>
@@ -186,15 +198,35 @@ namespace ACE.Server.WorldObjects
                 SwitchToMeleeAttack();*/
 
             if (MonsterProjectile_OnCollideEnvironment_Counter >= 3)
+                TrySwitchToMeleeAttack();
+        }
+
+        public bool SwitchWeaponsPending;
+
+        public void TrySwitchToMeleeAttack()
+        {
+            // 24139 - Invisible Assailant never switches to melee?
+            if (Visibility) return;
+
+            SwitchWeaponsPending = true;
+
+            var nextSwitchTime = NextMoveTime - MissileDelay;
+
+            if (nextSwitchTime > Timers.RunningTime)
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(nextSwitchTime - Timers.RunningTime);
+                actionChain.AddAction(this, () => SwitchToMeleeAttack());
+                actionChain.EnqueueChain();
+            }
+            else
                 SwitchToMeleeAttack();
         }
 
         public void SwitchToMeleeAttack()
         {
-            // 24139 - Invisible Assailant never switches to melee?
-            if (Visibility) return;
-
             //Console.WriteLine($"{Name}.SwitchToMeleeAttack()");
+            if (IsDead) return;
 
             var weapon = GetEquippedMissileWeapon();
             var ammo = GetEquippedAmmo();
@@ -219,6 +251,8 @@ namespace ACE.Server.WorldObjects
             EquipInventoryItems(true);
             DoAttackStance();
             CurrentAttack = null;
+
+            SwitchWeaponsPending = false;
 
             // this is an unfortunate hack to fix the following scenario:
 

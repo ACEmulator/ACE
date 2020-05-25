@@ -1,3 +1,5 @@
+using System;
+
 using ACE.Server.Network.Structure;
 
 namespace ACE.Server.Network.GameAction.Actions
@@ -12,8 +14,16 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             //Console.WriteLine($"{session.Player.Name}.MoveToState");
 
+            if (session.Player.PKLogout) return;
+
             var moveToState = new MoveToState(session.Player, message.Payload);
             session.Player.CurrentMoveToState = moveToState;
+
+            if (session.Player.IsPlayerMovingTo)
+                session.Player.StopExistingMoveToChains();
+
+            if (session.Player.IsPlayerMovingTo2)
+                session.Player.StopExistingMoveToChains2();
 
             if (!session.Player.Teleporting)
             {
@@ -26,12 +36,6 @@ namespace ACE.Server.Network.GameAction.Actions
 
             //if (!moveToState.StandingLongJump)
                 session.Player.BroadcastMovement(moveToState);
-
-            if (session.Player.IsPlayerMovingTo)
-                session.Player.StopExistingMoveToChains();
-
-            if (session.Player.IsPlayerMovingTo2)
-                session.Player.StopExistingMoveToChains2();
         }
     }
 }

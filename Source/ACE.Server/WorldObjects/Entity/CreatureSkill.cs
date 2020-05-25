@@ -1,9 +1,9 @@
 using System;
 
 using ACE.Common.Extensions;
-using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects.Entity
@@ -12,17 +12,16 @@ namespace ACE.Server.WorldObjects.Entity
     {
         private readonly Creature creature;
 
-        // The underlying database record
-        public readonly BiotaPropertiesSkill BiotaPropertiesSkill;
-
         public readonly Skill Skill;
 
-        public CreatureSkill(Creature creature, BiotaPropertiesSkill biotaPropertiesSkill)
+        // The underlying database record
+        public readonly PropertiesSkill PropertiesSkill;
+
+        public CreatureSkill(Creature creature, Skill skill, PropertiesSkill propertiesSkill)
         {
             this.creature = creature;
-            this.BiotaPropertiesSkill = biotaPropertiesSkill;
-
-            Skill = (Skill)biotaPropertiesSkill.Type;
+            Skill = skill;
+            this.PropertiesSkill = propertiesSkill;
         }
 
         /// <summary>
@@ -30,19 +29,19 @@ namespace ACE.Server.WorldObjects.Entity
         /// </summary>
         public uint InitLevel
         {
-            get => BiotaPropertiesSkill.InitLevel;
-            set => BiotaPropertiesSkill.InitLevel = value;
+            get => PropertiesSkill.InitLevel;
+            set => PropertiesSkill.InitLevel = value;
         }
 
         public SkillAdvancementClass AdvancementClass
         {
-            get => (SkillAdvancementClass)BiotaPropertiesSkill.SAC;
+            get => PropertiesSkill.SAC;
             set
             {
-                if (BiotaPropertiesSkill.SAC != (uint)value)
+                if (PropertiesSkill.SAC != value)
                     creature.ChangesDetected = true;
 
-                BiotaPropertiesSkill.SAC = (uint)value;
+                PropertiesSkill.SAC = value;
             }
         }
 
@@ -70,13 +69,13 @@ namespace ACE.Server.WorldObjects.Entity
         /// </summary>
         public uint ExperienceSpent
         {
-            get => BiotaPropertiesSkill.PP;
+            get => PropertiesSkill.PP;
             set
             {
-                if (BiotaPropertiesSkill.PP != value)
+                if (PropertiesSkill.PP != value)
                     creature.ChangesDetected = true;
 
-                BiotaPropertiesSkill.PP = value;
+                PropertiesSkill.PP = value;
             }
         }
 
@@ -109,13 +108,13 @@ namespace ACE.Server.WorldObjects.Entity
         /// </summary>
         public ushort Ranks
         {
-            get => BiotaPropertiesSkill.LevelFromPP;
+            get => PropertiesSkill.LevelFromPP;
             set
             {
-                if (BiotaPropertiesSkill.LevelFromPP != value)
+                if (PropertiesSkill.LevelFromPP != value)
                     creature.ChangesDetected = true;
 
-                BiotaPropertiesSkill.LevelFromPP = value;
+                PropertiesSkill.LevelFromPP = value;
             }
         }
 

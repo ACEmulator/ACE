@@ -1,12 +1,13 @@
 using System;
+
 using ACE.Common;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -65,13 +66,6 @@ namespace ACE.Server.WorldObjects
             ActivationResponse |= ActivationResponse.Use;
         }
 
-        private double? useLockTimestamp;
-        private double? UseLockTimestamp
-        {
-            get { return useLockTimestamp; }
-            set => useLockTimestamp = Time.GetUnixTime();
-        }
-
         public string LockCode
         {
             get => GetProperty(PropertyString.LockCode);
@@ -91,6 +85,8 @@ namespace ACE.Server.WorldObjects
 
         public override void ActOnUse(WorldObject worldObject)
         {
+            if (IsBusy) return;
+
             var player = worldObject as Player;
             var behind = player != null && player.GetRelativeDir(this).HasFlag(Quadrant.Back);
 
@@ -102,9 +98,11 @@ namespace ACE.Server.WorldObjects
                     Close(worldObject.Guid);
 
                 // Create Door auto close timer
-                ActionChain autoCloseTimer = new ActionChain();
+                var useTimestamp = UseTimestamp ?? 0;
+
+                var autoCloseTimer = new ActionChain();
                 autoCloseTimer.AddDelaySeconds(ResetInterval ?? 0);
-                autoCloseTimer.AddAction(this, () => Reset());
+                autoCloseTimer.AddAction(this, () => Reset(useTimestamp));
                 autoCloseTimer.EnqueueChain();
             }
             else
@@ -125,13 +123,26 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcastMotion(motionOpen);
             CurrentMotionState = motionOpen;
+
             Ethereal = true;
             IsOpen = true;
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? true));
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? true));
+
+            EnqueueBroadcastPhysicsState();
+
             if (opener.Full > 0)
-                UseTimestamp++;
+                UseTimestamp = Time.GetUnixTime();
+
+            IsBusy = true;
+
+            var animTime = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, MotionStance.NonCombat, MotionCommand.Off, MotionCommand.On);
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(animTime);
+            actionChain.AddAction(this, () => IsBusy = false);
+            actionChain.EnqueueChain();
         }
+
+        public double CloseTimestamp;
 
         public void Close(ObjectGuid closer = new ObjectGuid())
         {
@@ -140,18 +151,65 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcastMotion(motionClosed);
             CurrentMotionState = motionClosed;
-            Ethereal = false;
+
             IsOpen = false;
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Ethereal, Ethereal ?? false));
-            //CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(Sequences, Guid, PropertyBool.Open, IsOpen ?? false));
+
+            var animTime = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, MotionStance.NonCombat, MotionCommand.On, MotionCommand.Off);
+
+            //Console.WriteLine($"AnimTime: {animTime}");
+
+            IsBusy = true;
+
+            CloseTimestamp = Time.GetUnixTime();
+
+            var closeTimestamp = CloseTimestamp;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(animTime);
+            actionChain.AddAction(this, () =>
+            {
+                FinalizeClose(closeTimestamp);
+                IsBusy = false;
+            });
+            actionChain.EnqueueChain();
+
             if (closer.Full > 0)
-                UseTimestamp++;
+                UseTimestamp = Time.GetUnixTime();
         }
 
-        private void Reset()
+        private void FinalizeClose(double closeTimestamp)
         {
-            if ((Time.GetUnixTime() - UseTimestamp) < ResetInterval)
+            if (IsOpen || closeTimestamp != CloseTimestamp)
                 return;
+
+            // ethereal must be set to false for ethereal_check_for_collisions
+            Ethereal = false;
+
+            if (PropertyManager.GetBool("allow_door_hold").Item && PhysicsObj.ethereal_check_for_collisions())
+            {
+                // the source of this bug is EtherealHook for the door
+                // physics engine set_ethereal() -> ethereal_check_for_collisions() -> CheckEthereal state
+
+                // if fix_door_holding == true, the player can still hold doors for other nearby players
+                // who already know about the door / have not been far away from the door for > 25s
+
+                // fix_door_holding == true only fixes 'long holding'
+                //Console.WriteLine($"{Name} ({Guid}).FinalizeClose()");
+                Ethereal = true;
+
+                var holdChain = new ActionChain();
+                holdChain.AddDelaySeconds(1.0f);    // poll every second
+                holdChain.AddAction(this, () => FinalizeClose(closeTimestamp));
+                holdChain.EnqueueChain();
+                return;
+            }
+
+            EnqueueBroadcastPhysicsState();
+        }
+
+        private void Reset(double useTimestamp)
+        {
+            if (useTimestamp != UseTimestamp) return;
 
             if (!DefaultOpen)
             {
@@ -166,7 +224,7 @@ namespace ACE.Server.WorldObjects
             else
                 Open(ObjectGuid.Invalid);
 
-            ResetTimestamp++;
+            ResetTimestamp = Time.GetUnixTime();
         }
 
         /// <summary>

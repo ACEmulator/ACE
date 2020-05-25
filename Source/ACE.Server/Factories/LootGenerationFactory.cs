@@ -7,8 +7,8 @@ using log4net;
 using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.World;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 using ACE.Entity.Enum.Properties;
@@ -32,7 +32,7 @@ namespace ACE.Server.Factories
 
             foreach (var weenie in weenies)
             {
-                var wo = WorldObjectFactory.CreateNewWorldObject(weenie.ClassId);
+                var wo = WorldObjectFactory.CreateNewWorldObject(weenie.WeenieClassId);
                 worldObjects.Add(wo);
             }
 
@@ -63,15 +63,19 @@ namespace ACE.Server.Factories
             switch (profile.TreasureType)
             {
                 case 1001:  // Mana Forge Chest, Advanced Equipment Chest, and Mixed Equipment Chest
+                case 2001:
                     lootBias = LootBias.MixedEquipment;
                     break;
                 case 1002:  // Armor Chest
+                case 2002:
                     lootBias = LootBias.Armor;
                     break;
                 case 1003:  // Magic Chest
+                case 2003:
                     lootBias = LootBias.MagicEquipment;
                     break;
                 case 1004:  // Weapon Chest
+                case 2004:
                     lootBias = LootBias.Weapons;
                     break;
                 default:    // Default to unbiased loot profile
@@ -82,173 +86,83 @@ namespace ACE.Server.Factories
             if (itemChance <= profile.ItemChance)
             {
                 numItems = ThreadSafeRandom.Next(profile.ItemMinAmount, profile.ItemMaxAmount);
+
                 for (var i = 0; i < numItems; i++)
                 {
+                    // verify this works as intended. this will also be true for MixedEquipment...
                     if (lootBias == LootBias.MagicEquipment)
-                        lootWorldObject = CreateRandomLootObjects(profile.Tier, false, LootBias.Weapons);
+                        lootWorldObject = CreateRandomLootObjects(profile, false, LootBias.Weapons);
                     else
-                        lootWorldObject = CreateRandomLootObjects(profile.Tier, false, lootBias);
+                        lootWorldObject = CreateRandomLootObjects(profile, false, lootBias);
+
                     if (lootWorldObject != null)
                         loot.Add(lootWorldObject);
                 }
             }
 
+            itemChance = ThreadSafeRandom.Next(1, 100);
             if (itemChance <= profile.MagicItemChance)
             {
                 numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
 
-                bool aetheriaGenerated = false;
-                bool generateAetheria = false;
+                for (var i = 0; i < numItems; i++)
+                {
+                    lootWorldObject = CreateRandomLootObjects(profile, true, lootBias);
+                    if (lootWorldObject != null)
+                        loot.Add(lootWorldObject);
+                }
+            }
+
+            itemChance = ThreadSafeRandom.Next(1, 100);
+            if (itemChance <= profile.MundaneItemChance)
+            {
                 double dropRate = PropertyManager.GetDouble("aetheria_drop_rate").Item;
                 double dropRateMod = 1.0 / dropRate;
 
-                for (var i = 0; i < numItems; i++)
+                // Coalesced Aetheria doesn't drop in loot tiers less than 5
+                // According to wiki, Weapon Mana Forge chests don't drop Aetheria
+                // An Aetheria drop was in addition to the normal drops of the mundane profile
+                // https://asheron.fandom.com/wiki/Announcements_-_2010/04_-_Shedding_Skin :: May 5th, 2010 entry
+                if (profile.Tier > 4 && lootBias != LootBias.Weapons && dropRate > 0)
                 {
-                    // Coalesced Aetheria doesn't drop in loot tiers less than 5
-                    // According to wiki, Weapon Mana Forge chests don't drop Aetheria, also
-                    // a loot role will only drop one Coealesced Aetheria per call into loot system, as I don't remember there
-                    // being multiples, and I didn't find any written mention of it.
-                    if (!aetheriaGenerated && profile.Tier > 4 && lootBias != LootBias.Weapons && dropRate > 0)
-                        generateAetheria = ThreadSafeRandom.Next(1, (int)(100 * dropRateMod)) == 1;     // base 1% of all magical items aetheria?
-                    else
-                        generateAetheria = false;
-
-                    if (generateAetheria)
+                    if (ThreadSafeRandom.Next(1, (int)(100 * dropRateMod)) <= 2)     // base 1% to drop aetheria?
                     {
                         lootWorldObject = CreateAetheria(profile.Tier);
-                        if (lootWorldObject != null)
-                        {
-                            loot.Add(lootWorldObject);
-                            aetheriaGenerated = true;
-                        }
-                    }
-                    else
-                    {
-                        lootWorldObject = CreateRandomLootObjects(profile.Tier, true, lootBias);
                         if (lootWorldObject != null)
                             loot.Add(lootWorldObject);
                     }
                 }
-            }
 
-            if (itemChance <= profile.MundaneItemChance)
-            {
                 numItems = ThreadSafeRandom.Next(profile.MundaneItemMinAmount, profile.MundaneItemMaxAmount);
+
                 for (var i = 0; i < numItems; i++)
                 {
                     if (lootBias != LootBias.UnBiased)
                         lootWorldObject = CreateRandomScroll(profile.Tier);
                     else
-                        lootWorldObject = CreateMundaneObjects(profile.Tier);
+                        lootWorldObject = CreateGenericObjects(profile.Tier);
 
                     if (lootWorldObject != null)
                         loot.Add(lootWorldObject);
-                }
-            }
-
-            // 25% chance to drop a scroll
-            itemChance = ThreadSafeRandom.Next(0, 3);
-            if (itemChance == 3)
-            {
-                if (lootBias == LootBias.UnBiased && profile.MagicItemMinAmount > 0)
-                {
-                    lootWorldObject = CreateRandomScroll(profile.Tier);
-
-                    if (lootWorldObject != null)
-                        loot.Add(lootWorldObject);
-                }
-            }
-
-            if (lootBias != LootBias.Armor && lootBias != LootBias.Weapons && lootBias != LootBias.MagicEquipment && profile.MagicItemMinAmount > 0)
-            {
-                // 17% chance to drop a summoning essence
-                itemChance = ThreadSafeRandom.Next(1, 6);
-                if (itemChance == 6)
-                {
-                    lootWorldObject = CreateSummoningEssence(profile.Tier);
-
-                    if (lootWorldObject != null)
-                        loot.Add(lootWorldObject);
-                }
-
-                // Roll for a 1 in 50 chance to drop an Encapsulated Spirit
-                itemChance = ThreadSafeRandom.Next(1, 50);
-                if (itemChance == 50)
-                {
-                    var encapSpirit = WorldObjectFactory.CreateNewWorldObject(49485);
-
-                    if (encapSpirit != null)
-                        loot.Add(encapSpirit);
                 }
             }
 
             return loot;
         }
 
-        /// <summary>
-        /// This is currently just a function to help test some functionality in the loot gen system.
-        /// </summary>
-        /// <param name="wcid"></param>
-        /// <param name="tier"></param>
-        /// <returns></returns>
-        public static WorldObject CreateLootByWCID(uint wcid, int tier)
+        public static WorldObject CreateRandomLootObjects(TreasureDeath profile, bool isMagical, LootBias lootBias = LootBias.UnBiased)
         {
-            int longDescDecoration = 5;
-
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(wcid);
-
-            if (wo == null)
-                return null;
-
-            int workmanship = GetWorkmanship(tier);
-            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-
-            wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
-            wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
-
-            wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, longDescDecoration);
-            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
-
-            if (wo.TsysMutationData != null)
-            {
-                int newMaterialType = GetMaterialType(wo, tier);
-                if (newMaterialType > 0)
-                {
-                    wo.MaterialType = (MaterialType)newMaterialType;
-                    wo = RandomizeColor(wo);
-                }
-            }
-
-            double materialMod = LootTables.getMaterialValueModifier(wo);
-            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(tier, workmanship, gemMaterialMod, materialMod);
-            wo.Value = value;
-
-            return wo;
-        }
-
-        public static WorldObject CreateRandomLootObjects(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
-        {
-            int type;
             WorldObject wo;
 
             // Adjusting rolls for changing drop rates for clothing - HarliQ 11/11/19 
 
-            switch (lootBias)
+            var type = lootBias switch
             {
-                case LootBias.Armor:
-                    type = 30;
-                    break;
-                case LootBias.Weapons:
-                    type = 60;
-                    break;
-                case LootBias.Jewelry:
-                    type = 90;
-                    break;
-                default:
-                    type = ThreadSafeRandom.Next(1, 100);
-                    break;
-            }
+                LootBias.Armor => 30,
+                LootBias.Weapons => 60,
+                LootBias.Jewelry => 90,
+                _ => ThreadSafeRandom.Next(1, 100),
+            };
 
 
             // converting to a percentage base roll for items (to better align with retail drop rate data from Magnus) - HarliQ 11/11/19
@@ -260,30 +174,41 @@ namespace ACE.Server.Factories
 
             switch (type)
             {
-                case var rate when (type < 15):
+                case var rate when (rate < 15):
                     // jewels (Gems)
-                    wo = CreateJewels(tier, isMagical);
+                    wo = CreateJewels(profile.Tier, isMagical);
                     return wo;
-                case var rate when (type > 14 && type < 39):
+                case var rate when (rate > 14 && rate < 39):
                     //armor
-                    wo = CreateArmor(tier, isMagical, true, lootBias);
+                    wo = CreateArmor(profile, isMagical, true, lootBias);
                     return wo;
-                case var rate when (type > 38 && type < 53):
+                case var rate when (rate > 38 && rate < 53):
                     // clothing (shirts/pants)
-                    wo = CreateArmor(tier, isMagical, false, lootBias);
+                    wo = CreateArmor(profile, isMagical, false, lootBias);
                     return wo;
-                case var rate when (type > 52 && type < 83):
+                case var rate when (rate > 52 && rate < 83):
                     // weapons (Melee/Missile/Casters)
-                    wo = CreateWeapon(tier, isMagical);
+                    wo = CreateWeapon(profile, isMagical);
                     return wo;
-                default:
+                case var rate when (rate > 83 && rate < 93):
                     // jewelry
-                    wo = CreateJewelry(tier, isMagical);
-                    return wo;
+                    wo = CreateJewelry(profile, isMagical);
+                    break;
+                default:
+                    if (isMagical)
+                        wo = CreateJewelry(profile, isMagical); // jewelry
+                    else
+                        // Added Dinnerware at tail end of distribution, as
+                        // they are mutable loot drops that don't belong with the non-mutable drops
+                        // TODO: Will likely need some adjustment/fine tuning
+                        wo = CreateDinnerware(profile.Tier); // dinnerware
+                    break;
             }
+
+            return wo;
         }
 
-        private static WorldObject CreateWeapon(int tier, bool isMagical)
+        private static WorldObject CreateWeapon(TreasureDeath profile, bool isMagical)
         {
             int chance = ThreadSafeRandom.Next(1, 100);
 
@@ -292,40 +217,66 @@ namespace ACE.Server.Factories
             // Missile - 36%
             // Casters - 22%
 
-            switch (chance)
+            return chance switch
             {
-                case var rate when (chance < 43):
-                    return CreateMeleeWeapon(tier, isMagical);
-                case var rate when (chance > 42 && chance < 79):
-                    return CreateMissileWeapon(tier, isMagical);
-                default:
-                    return CreateCaster(tier, isMagical);
-            }
+                var rate when (rate < 43) => CreateMeleeWeapon(profile, isMagical),
+                var rate when (rate > 42 && rate < 79) => CreateMissileWeapon(profile, isMagical),
+                _ => CreateCaster(profile, isMagical),
+            };
         }
 
-        private static void Shuffle<T>(T[] array)
+        public static bool MutateItem(WorldObject item, TreasureDeath profile, bool isMagical)
         {
-            Random _r = new Random();
-            int n = array.Length;
-            for (int i = 0; i < n; i++)
-            {
-                int r = i + _r.Next(n - i);
-                T t = array[r];
-                array[r] = array[i];
-                array[i] = t;
-            }
+            // should ideally be split up between getting the item type,
+            // and getting the specific mutate function parameters
+            // however, with the way the current loot tables are set up, this is not ideal...
+
+            // this function does a bunch of o(n) lookups through the loot tables,
+            // and is only used for the /lootgen dev command currently
+            // if this needs to be used in high performance scenarios, the collections for the loot tables will
+            // will need to be updated to support o(1) queries
+
+            if (GetMutateAetheriaData(item.WeenieClassId))
+                MutateAetheria(item, profile.Tier);
+            else if (GetMutateArmorData(item.WeenieClassId, out var armorType))
+                MutateArmor(item, profile, isMagical, armorType.Value);
+            else if (GetMutateCasterData(item.WeenieClassId, out int wield, out int element))
+                MutateCaster(item, profile, isMagical, wield, element);
+            else if (GetMutateDinnerwareData(item.WeenieClassId))
+                MutateDinnerware(item, profile.Tier);
+            else if (GetMutateJewelryData(item.WeenieClassId))
+                MutateJewelry(item, profile, isMagical);
+            else if (GetMutateJewelsData(item.WeenieClassId, out int gemLootMatrixIndex))
+                MutateJewels(item, profile.Tier, isMagical, gemLootMatrixIndex);
+            else if (GetMutateMeleeWeaponData(item.WeenieClassId, out int weaponType, out int subtype))
+                MutateMeleeWeapon(item, profile, isMagical, weaponType, subtype);
+            else if (GetMutateMissileWeaponData(item.WeenieClassId, profile.Tier, out int wieldDifficulty, out bool isElemental))
+                MutateMissileWeapon(item, profile, isMagical, wieldDifficulty, isElemental);
+            else if (item is PetDevice petDevice)
+                MutatePetDevice(petDevice, profile.Tier);
+            else
+                return false;
+
+            return true;
         }
 
-        private static int GetWield(int tier, int type)
+        public enum WieldType
         {
+            None,
+            MissileWeapon,
+            Caster,
+            MeleeWeapon,
+        };
 
+        private static int GetWieldDifficulty(int tier, WieldType type)
+        {
             int wield = 0;
             int chance = ThreadSafeRandom.Next(1, 100);
 
-            ////Types: 1 Missiles, 2 Casters, 3 melee weapons, 4 covenant armor
             switch (type)
             {
-                case 1:
+                case WieldType.MissileWeapon:
+
                     switch (tier)
                     {
                         case 1:
@@ -387,7 +338,9 @@ namespace ACE.Server.Factories
                             break;
                     }
                     break;
-                case 2:
+
+                case WieldType.Caster:
+
                     switch (tier)
                     {
                         case 1:
@@ -441,7 +394,9 @@ namespace ACE.Server.Factories
                             break;
                     }
                     break;
-                case 3:
+
+                case WieldType.MeleeWeapon:
+
                     switch (tier)
                     {
                         case 1:
@@ -939,37 +894,29 @@ namespace ACE.Server.Factories
                 default:
                     break;
             }
-            double damageMod2 = 1.0 + damageMod;
 
-            return damageMod2;
+            return damageMod + 1;   
         }
 
         public static double GetManaRate(WorldObject wo)
         {
-            double manaRate;
-
-            switch (wo.WeenieType)
+            var manaRate = wo.WeenieType switch
             {
-                case WeenieType.MissileLauncher:
-                    manaRate = 0.04166667;
-                    break;
-                default:
-                    manaRate = 1.0 / ThreadSafeRandom.Next(10, 30);
-                    break;
-            }
-
+                WeenieType.MissileLauncher => 0.04166667,
+                _ => 1.0 / ThreadSafeRandom.Next(10, 30),
+            };
             return -manaRate;
         }
 
-        private static WorldObject AssignMagic(WorldObject wo, int tier, bool covenantArmor = false)
+        private static WorldObject AssignMagic(WorldObject wo, TreasureDeath profile, bool covenantArmor = false)
         {
             const int armorSpellImpenIndex = 47; // 47th row in the LootTables.ArmorSpells array, starting from zero
 
             int[][] spells;
             int[][] cantrips;
 
-            int lowSpellTier = GetLowSpellTier(tier);
-            int highSpellTier = GetHighSpellTier(tier);
+            int lowSpellTier = GetLowSpellTier(profile.Tier);
+            int highSpellTier = GetHighSpellTier(profile.Tier);
 
             double manaRate = GetManaRate(wo);
 
@@ -1004,20 +951,18 @@ namespace ACE.Server.Factories
             if (spells == null || cantrips == null)
                 return wo;
 
-            wo.SetProperty(PropertyInt.UiEffects, (int)UiEffects.Magical);
-
-            wo.SetProperty(PropertyFloat.ManaRate, manaRate);
-
-            int numSpells = GetSpellDistribution(tier, out int minorCantrips, out int majorCantrips, out int epicCantrips, out int legendaryCantrips);
+            // Refactor 3/2/2020 - HQ
+            // Magic stats
+            int numSpells = GetSpellDistribution(profile, out int minorCantrips, out int majorCantrips, out int epicCantrips, out int legendaryCantrips);
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
+            int spellcraft = GetSpellcraft(numSpells, profile.Tier);
 
-            int spellcraft = GetSpellcraft(numSpells, tier);
-            wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
-            wo.SetProperty(PropertyInt.ItemDifficulty, GetDifficulty(tier, spellcraft));
-
-            int maxMana = GetMaxMana(numSpells, tier);
-            wo.SetProperty(PropertyInt.ItemMaxMana, maxMana);
-            wo.SetProperty(PropertyInt.ItemCurMana, maxMana);
+            wo.UiEffects = UiEffects.Magical;
+            wo.ManaRate = manaRate;
+            wo.ItemSpellcraft = spellcraft;
+            wo.ItemDifficulty = GetDifficulty(profile.Tier, spellcraft);
+            wo.ItemMaxMana = GetMaxMana(numSpells, profile.Tier);
+            wo.ItemCurMana = wo.ItemMaxMana;
 
             int[] shuffledValues = new int[spells.Length];
             for (int i = 0; i < spells.Length; i++)
@@ -1033,7 +978,7 @@ namespace ACE.Server.Factories
                 {
                     int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
                     int spellID = spells[shuffledValues[a]][col];
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
 
@@ -1053,7 +998,7 @@ namespace ACE.Server.Factories
                 {
                     int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
                     int spellID = LootTables.ArmorSpells[armorSpellImpenIndex][col];
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
 
@@ -1071,35 +1016,35 @@ namespace ACE.Server.Factories
                 {
                     int spellID = cantrips[shuffledValues[shuffledPlace]][0];
                     shuffledPlace++;
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
                 }
                 //major cantrips
                 for (int a = 0; a < majorCantrips; a++)
                 {
                     int spellID = cantrips[shuffledValues[shuffledPlace]][1];
                     shuffledPlace++;
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
                 }
                 // epic cantrips
                 for (int a = 0; a < epicCantrips; a++)
                 {
                     int spellID = cantrips[shuffledValues[shuffledPlace]][2];
                     shuffledPlace++;
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
                 }
                 //legendary cantrips
                 for (int a = 0; a < legendaryCantrips; a++)
                 {
                     int spellID = cantrips[shuffledValues[shuffledPlace]][3];
                     shuffledPlace++;
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
 
             return wo;
         }
 
-        private static int GetSpellDistribution(int tier, out int numMinors, out int numMajors, out int numEpics, out int numLegendaries)
+        private static int GetSpellDistribution(TreasureDeath profile, out int numMinors, out int numMajors, out int numEpics, out int numLegendaries)
         {
             int numNonCantrips = 0;
 
@@ -1110,9 +1055,9 @@ namespace ACE.Server.Factories
 
             int nonCantripChance = ThreadSafeRandom.Next(1, 100);
 
-            numMinors = GetNumMinorCantrips(tier); // All tiers have a chance for at least one minor cantrip
+            numMinors = GetNumMinorCantrips(profile); // All tiers have a chance for at least one minor cantrip
 
-            switch (tier)
+            switch (profile.Tier)
             {
                 case 1:
                     // 1-3 w/ chance of minor cantrip
@@ -1139,7 +1084,7 @@ namespace ACE.Server.Factories
                     else
                         numNonCantrips = 5;
 
-                    numMajors = GetNumMajorCantrips(tier);
+                    numMajors = GetNumMajorCantrips(profile);
                     break;
 
                 case 4:
@@ -1149,7 +1094,7 @@ namespace ACE.Server.Factories
                     else
                         numNonCantrips = 6;
 
-                    numMajors = GetNumMajorCantrips(tier);
+                    numMajors = GetNumMajorCantrips(profile);
                     break;
 
                 case 5:
@@ -1161,7 +1106,7 @@ namespace ACE.Server.Factories
                     else
                         numNonCantrips = 7;
 
-                    numMajors = GetNumMajorCantrips(tier);
+                    numMajors = GetNumMajorCantrips(profile);
                     break;
 
                 case 6:
@@ -1171,7 +1116,7 @@ namespace ACE.Server.Factories
                     else
                         numNonCantrips = 7;
 
-                    numMajors = GetNumMajorCantrips(tier);
+                    numMajors = GetNumMajorCantrips(profile);
                     break;
 
                 case 7:
@@ -1181,8 +1126,8 @@ namespace ACE.Server.Factories
                     else
                         numNonCantrips = 7;
 
-                    numMajors = GetNumMajorCantrips(tier);
-                    numEpics = GetNumEpicCantrips(tier);
+                    numMajors = GetNumMajorCantrips(profile);
+                    numEpics = GetNumEpicCantrips(profile);
                     break;
 
                 default:
@@ -1192,9 +1137,9 @@ namespace ACE.Server.Factories
                     else
                         numNonCantrips = 7;
 
-                    numMajors = GetNumMajorCantrips(tier);
-                    numEpics = GetNumEpicCantrips(tier);
-                    numLegendaries = GetNumLegendaryCantrips(tier);
+                    numMajors = GetNumMajorCantrips(profile);
+                    numEpics = GetNumEpicCantrips(profile);
+                    numLegendaries = GetNumLegendaryCantrips(profile);
                     break;
             }
 
@@ -1203,8 +1148,7 @@ namespace ACE.Server.Factories
 
         private static int GetLowSpellTier(int tier)
         {
-            int lowSpellTier = 0;
-
+            int lowSpellTier;
             switch (tier)
             {
                 case 1:
@@ -1233,8 +1177,7 @@ namespace ACE.Server.Factories
 
         private static int GetHighSpellTier(int tier)
         {
-            int highSpellTier = 0;
-
+            int highSpellTier;
             switch (tier)
             {
                 case 1:
@@ -1257,15 +1200,6 @@ namespace ACE.Server.Factories
             }
 
             return highSpellTier;
-        }
-
-        private static int GetSkillLevelLimit(int wield)
-        {
-
-            double percentage = (double)ThreadSafeRandom.Next(75, 98);
-            int skill = (int)(percentage * (double)wield);
-
-            return skill;
         }
 
         private static double GetManaCMod(int tier)
@@ -1373,6 +1307,7 @@ namespace ACE.Server.Factories
 
             return manaDMod;
         }
+
         /// <summary>
         /// Returns Values for Magic & Missile Defense Bonus. Updated HarliQ 11/17/19
         /// </summary>
@@ -1612,7 +1547,6 @@ namespace ACE.Server.Factories
 
         private static int GetSpellcraft(int spellAmount, int tier)
         {
-
             int spellcraft = 0;
             switch (tier)
             {
@@ -1722,9 +1656,6 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Returns an appropriate material type for the World Object based on its loot tier.
         /// </summary>
-        /// <param name="wo"></param>
-        /// <param name="tier"></param>
-        /// <returns></returns>
         private static int GetMaterialType(WorldObject wo, int tier)
         {
             int defaultMaterialType = (int)SetDefaultMaterialType(wo);
@@ -1773,19 +1704,15 @@ namespace ACE.Server.Factories
                         if (groupProbability > groupRng || groupProbability == totalGroupProbability)
                             return (int)g.MaterialId;
                     }
-
                     break;
                 }
             }
-
-            return (int)defaultMaterialType;
+            return defaultMaterialType;
         }
 
         /// <summary>
         /// Sets a randomized default material type for when a weenie does not have TsysMutationData 
         /// </summary>
-        /// <param name="wo"></param>
-        /// <returns></returns>
         private static MaterialType SetDefaultMaterialType(WorldObject wo)
         {
             if (wo == null)
@@ -1827,104 +1754,11 @@ namespace ACE.Server.Factories
             return material;
         }
 
-        private static double GetMeleeDMod(int tier)
-        {
-            double meleeMod = 0;
-            int chance = 0;
-
-            switch (tier)
-            {
-                case 1:
-                    meleeMod = 0;
-                    break;
-                case 2:
-                    chance = ThreadSafeRandom.Next(1, 100);
-                    if (chance < 60)
-                        meleeMod = 0;
-                    else if (chance < 80)
-                        meleeMod = .01;
-                    else if (chance < 92)
-                        meleeMod = .02;
-                    else
-                        meleeMod = .03;
-                    break;
-                case 3:
-                    chance = ThreadSafeRandom.Next(1, 100);
-                    if (chance < 60)
-                        meleeMod = .03;
-                    else if (chance < 80)
-                        meleeMod = .04;
-                    else if (chance < 92)
-                        meleeMod = .05;
-                    else
-                        meleeMod = .06;
-                    break;
-                case 4:
-                    chance = ThreadSafeRandom.Next(1, 100);
-                    if (chance < 60)
-                        meleeMod = .06;
-                    else if (chance < 80)
-                        meleeMod = .07;
-                    else if (chance < 92)
-                        meleeMod = .08;
-                    else
-                        meleeMod = .09;
-                    break;
-                case 5:
-                    chance = ThreadSafeRandom.Next(1, 100);
-                    if (chance < 60)
-                        meleeMod = .09;
-                    else if (chance < 80)
-                        meleeMod = .1;
-                    else if (chance < 92)
-                        meleeMod = .11;
-                    else
-                        meleeMod = .12;
-                    break;
-                case 6:
-                    chance = ThreadSafeRandom.Next(1, 100);
-                    if (chance < 60)
-                        meleeMod = .12;
-                    else if (chance < 80)
-                        meleeMod = .13;
-                    else if (chance < 92)
-                        meleeMod = .14;
-                    else
-                        meleeMod = .15;
-                    break;
-                case 7:
-                    chance = ThreadSafeRandom.Next(1, 100);
-                    if (chance < 60)
-                        meleeMod = .15;
-                    else if (chance < 80)
-                        meleeMod = .16;
-                    else if (chance < 92)
-                        meleeMod = .17;
-                    else
-                        meleeMod = .18;
-                    break;
-                case 8:
-                    chance = ThreadSafeRandom.Next(1, 100);
-                    if (chance < 60)
-                        meleeMod = .17;
-                    else if (chance < 80)
-                        meleeMod = .18;
-                    else if (chance < 92)
-                        meleeMod = .19;
-                    else
-                        meleeMod = .20;
-                    break;
-            }
-
-            meleeMod += 1.0;
-            return meleeMod;
-        }
-
-        private static int GetNumLegendaryCantrips(int tier)
+        private static int GetNumLegendaryCantrips(TreasureDeath profile)
         {
             int numLegendaries = 0;
 
-            if (tier < 8)
+            if (profile.Tier < 8)
                 return 0;
 
             var dropRate = PropertyManager.GetDouble("legendary_cantrip_drop_rate").Item;
@@ -1933,20 +1767,24 @@ namespace ACE.Server.Factories
 
             var dropRateMod = 1.0 / dropRate;
 
+            double lootQualityMod = 1.0f;
+            if (PropertyManager.GetBool("loot_quality_mod").Item && profile.LootQualityMod > 0 && profile.LootQualityMod < 1)
+                lootQualityMod = 1.0f - profile.LootQualityMod;
+
             // 1% chance for a legendary, 0.02% chance for 2 legendaries
-            if (ThreadSafeRandom.Next(1, (int)(100 * dropRateMod)) == 1)
+            if (ThreadSafeRandom.Next(1, (int)(100 * dropRateMod * lootQualityMod)) == 1)
                 numLegendaries = 1;
-            if (ThreadSafeRandom.Next(1, (int)(500 * dropRateMod)) == 1)
+            if (ThreadSafeRandom.Next(1, (int)(500 * dropRateMod * lootQualityMod)) == 1)
                 numLegendaries = 2;
 
             return numLegendaries;
         }
 
-        private static int GetNumEpicCantrips(int tier)
+        private static int GetNumEpicCantrips(TreasureDeath profile)
         {
             int numEpics = 0;
 
-            if (tier < 7)
+            if (profile.Tier < 7)
                 return 0;
 
             var dropRate = PropertyManager.GetDouble("epic_cantrip_drop_rate").Item;
@@ -1955,25 +1793,29 @@ namespace ACE.Server.Factories
 
             var dropRateMod = 1.0 / dropRate;
 
+            double lootQualityMod = 1.0f;
+            if (PropertyManager.GetBool("loot_quality_mod").Item && profile.LootQualityMod > 0 && profile.LootQualityMod < 1)
+                lootQualityMod = 1.0f - profile.LootQualityMod;
+
             // 25% base chance for no epics for tier 7
             if (ThreadSafeRandom.Next(1, 4) > 1)
             {
                 // 1% chance for 1 Epic, 0.1% chance for 2 Epics,
                 // 0.01% chance for 3 Epics, 0.001% chance for 4 Epics 
-                if (ThreadSafeRandom.Next(1, (int)(100 * dropRateMod)) == 1)
+                if (ThreadSafeRandom.Next(1, (int)(100 * dropRateMod * lootQualityMod)) == 1)
                     numEpics = 1;
-                if (ThreadSafeRandom.Next(1, (int)(1000 * dropRateMod)) == 1)
+                if (ThreadSafeRandom.Next(1, (int)(1000 * dropRateMod * lootQualityMod)) == 1)
                     numEpics = 2;
-                if (ThreadSafeRandom.Next(1, (int)(10000 * dropRateMod)) == 1)
+                if (ThreadSafeRandom.Next(1, (int)(10000 * dropRateMod * lootQualityMod)) == 1)
                     numEpics = 3;
-                if (ThreadSafeRandom.Next(1, (int)(100000 * dropRateMod)) == 1)
+                if (ThreadSafeRandom.Next(1, (int)(100000 * dropRateMod * lootQualityMod)) == 1)
                     numEpics = 4;
             }
 
             return numEpics;
         }
 
-        private static int GetNumMajorCantrips(int tier)
+        private static int GetNumMajorCantrips(TreasureDeath profile)
         {
             int numMajors = 0;
 
@@ -1983,36 +1825,40 @@ namespace ACE.Server.Factories
 
             var dropRateMod = 1.0 / dropRate;
 
-            switch (tier)
+            double lootQualityMod = 1.0f;
+            if (PropertyManager.GetBool("loot_quality_mod").Item && profile.LootQualityMod > 0 && profile.LootQualityMod < 1)
+                lootQualityMod = 1.0f - profile.LootQualityMod;
+
+            switch (profile.Tier)
             {
                 case 1:
                     numMajors = 0;
                     break;
                 case 2:
-                    if (ThreadSafeRandom.Next(1, (int)(500 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(500 * dropRateMod * lootQualityMod)) == 1)
                         numMajors = 1;
                     break;
                 case 3:
-                    if (ThreadSafeRandom.Next(1, (int)(500 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(500 * dropRateMod * lootQualityMod)) == 1)
                         numMajors = 1;
-                    if (ThreadSafeRandom.Next(1, (int)(10000 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(10000 * dropRateMod * lootQualityMod)) == 1)
                         numMajors = 2;
                     break;
                 case 4:
                 case 5:
                 case 6:
-                    if (ThreadSafeRandom.Next(1, (int)(500 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(500 * dropRateMod * lootQualityMod)) == 1)
                         numMajors = 1;
-                    if (ThreadSafeRandom.Next(1, (int)(5000 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(5000 * dropRateMod * lootQualityMod)) == 1)
                         numMajors = 2;
                     break;
                 case 7:
                 default:
-                    if (ThreadSafeRandom.Next(1, (int)(500 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(500 * dropRateMod * lootQualityMod)) == 1)
                         numMajors = 1;
-                    if (ThreadSafeRandom.Next(1, (int)(5000 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(5000 * dropRateMod * lootQualityMod)) == 1)
                         numMajors = 2;
-                    if (ThreadSafeRandom.Next(1, (int)(15000 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(15000 * dropRateMod * lootQualityMod)) == 1)
                         numMajors = 3;
                     break;
             }
@@ -2020,7 +1866,7 @@ namespace ACE.Server.Factories
             return numMajors;
         }
 
-        private static int GetNumMinorCantrips(int tier)
+        private static int GetNumMinorCantrips(TreasureDeath profile)
         {
             int numMinors = 0;
 
@@ -2030,38 +1876,42 @@ namespace ACE.Server.Factories
 
             var dropRateMod = 1.0 / dropRate;
 
-            switch (tier)
+            double lootQualityMod = 1.0f;
+            if (PropertyManager.GetBool("loot_quality_mod").Item && profile.LootQualityMod > 0 && profile.LootQualityMod < 1)
+                lootQualityMod = 1.0f - profile.LootQualityMod;
+
+            switch (profile.Tier)
             {
                 case 1:
-                    if (ThreadSafeRandom.Next(1, (int)(100 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(100 * dropRateMod * lootQualityMod)) == 1)
                         numMinors = 1;
                     break;
                 case 2:
                 case 3:
-                    if (ThreadSafeRandom.Next(1, (int)(50 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(50 * dropRateMod * lootQualityMod)) == 1)
                         numMinors = 1;
-                    if (ThreadSafeRandom.Next(1, (int)(250 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(250 * dropRateMod * lootQualityMod)) == 1)
                         numMinors = 2;
                     break;
                 case 4:
                 case 5:
-                    if (ThreadSafeRandom.Next(1, (int)(50 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(50 * dropRateMod * lootQualityMod)) == 1)
                         numMinors = 1;
-                    if (ThreadSafeRandom.Next(1, (int)(250 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(250 * dropRateMod * lootQualityMod)) == 1)
                         numMinors = 2;
-                    if (ThreadSafeRandom.Next(1, (int)(1000 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(1000 * dropRateMod * lootQualityMod)) == 1)
                         numMinors = 3;
                     break;
                 case 6:
                 case 7:
                 default:
-                    if (ThreadSafeRandom.Next(1, (int)(50 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(50 * dropRateMod * lootQualityMod)) == 1)
                         numMinors = 1;
-                    if (ThreadSafeRandom.Next(1, (int)(250 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(250 * dropRateMod * lootQualityMod)) == 1)
                         numMinors = 2;
-                    if (ThreadSafeRandom.Next(1, (int)(1000 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(1000 * dropRateMod * lootQualityMod)) == 1)
                         numMinors = 3;
-                    if (ThreadSafeRandom.Next(1, (int)(5000 * dropRateMod)) == 1)
+                    if (ThreadSafeRandom.Next(1, (int)(5000 * dropRateMod * lootQualityMod)) == 1)
                         numMinors = 4;
                     break;
             }
@@ -2072,20 +1922,16 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Set the AppraisalLongDescDecoration of the item, which controls the full descriptive text shown in the client on appraisal
         /// </summary>
-        /// <param name="wo"></param>
-        /// <returns></returns>
         private static WorldObject SetAppraisalLongDescDecoration(WorldObject wo)
         {
-            // LDDecoration_PrependWorkmanship = 0x1,
-            // LDDecoration_PrependMaterial = 0x2,
-            // LDDecoration_AppendGemInfo = 0x4,
-            int appraisalLongDescDecoration = 0;
+            var appraisalLongDescDecoration = AppraisalLongDescDecorations.None;
+
             if (wo.ItemWorkmanship > 0)
-                appraisalLongDescDecoration |= 1;
+                appraisalLongDescDecoration |= AppraisalLongDescDecorations.PrependWorkmanship;
             if (wo.MaterialType > 0)
-                appraisalLongDescDecoration |= 2;
+                appraisalLongDescDecoration |= AppraisalLongDescDecorations.PrependMaterial;
             if (wo.GemType > 0 && wo.GemCount > 0)
-                appraisalLongDescDecoration |= 4;
+                appraisalLongDescDecoration |= AppraisalLongDescDecorations.AppendGemInfo;
 
             if (appraisalLongDescDecoration > 0)
                 wo.AppraisalLongDescDecoration = appraisalLongDescDecoration;
@@ -2132,9 +1978,8 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Assign a random color (Int.PaletteTemplate and Float.Shade) to a World Object based on the material assigned to it.
         /// </summary>
-        /// <param name="wo"></param>
         /// <returns>WorldObject with a random applicable PaletteTemplate and Shade applied, if available</returns>
-        private static WorldObject RandomizeColor(WorldObject wo)
+        private static void RandomizeColor(WorldObject wo)
         {
             if (wo.MaterialType > 0 && wo.TsysMutationData != null && wo.ClothingBase != null)
             {
@@ -2180,7 +2025,7 @@ namespace ACE.Server.Factories
 
                 float totalProbability = GetTotalProbability(colors);
                 // If there's zero chance to get a random color, no point in continuing.
-                if (totalProbability == 0) return wo;
+                if (totalProbability == 0) return;
 
                 var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
 
@@ -2209,7 +2054,7 @@ namespace ACE.Server.Factories
                         // Throw some shade, at random
                         wo.Shade = ThreadSafeRandom.Next(0.0f, 1.0f);
 
-                        // Some debu ginfo...
+                        // Some debug info...
                         // log.Info($"Color success for {wo.MaterialType}({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}. PaletteTemplate {paletteTemplate} applied.");
                     }
                 }
@@ -2218,8 +2063,6 @@ namespace ACE.Server.Factories
                     log.Warn($"[LOOT] Color looked failed for {wo.MaterialType} ({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}.");
                 }
             }
-
-            return wo;
         }
 
         /// <summary>
@@ -2236,6 +2079,7 @@ namespace ACE.Server.Factories
             var totalSum = prob.Sum();
             return totalSum;
         }
+
         private static float GetTotalProbability(List<TreasureMaterialBase> list)
         {
             if (list == null || list.Count == 0) return 0.0f;
@@ -2245,6 +2089,7 @@ namespace ACE.Server.Factories
             var totalSum = prob.Sum();
             return totalSum;
         }
+
         private static float GetTotalProbability(List<TreasureMaterialGroups> list)
         {
             if (list == null || list.Count == 0) return 0.0f;
@@ -2256,7 +2101,7 @@ namespace ACE.Server.Factories
         }
 
         /// <summary>
-        /// Will return correct meleeMod for bow wields (some debate on what 375 top out at, leaving at 18 for now). HarliQ 11/17/19
+        /// Will return correct meleeMod for Missile/Caster wields (some debate on what 375 top out at, leaving at 18 for now). HarliQ 11/17/19
         /// </summary>
         private static double GetWieldReqMeleeDMod(int wield)
         {
@@ -2266,27 +2111,6 @@ namespace ACE.Server.Factories
             switch (wield)
             {
                 case 0:
-                    if (chance < 16)
-                        meleeMod = 0.01;
-                    else if (chance < 31)
-                        meleeMod = 0.02;
-                    else if (chance < 41)
-                        meleeMod = 0.03;
-                    else if (chance < 51)
-                        meleeMod = 0.04;
-                    else if (chance < 61)
-                        meleeMod = 0.05;
-                    else if (chance < 71)
-                        meleeMod = 0.06;
-                    else if (chance < 81)
-                        meleeMod = 0.07;
-                    else if (chance < 91)
-                        meleeMod = 0.08;
-                    else if (chance < 98)
-                        meleeMod = 0.09;
-                    else
-                        meleeMod = 0.10;
-                    break;
                 case 250: // Missile
                     if (chance < 20)
                         meleeMod = 0.01;
@@ -2397,8 +2221,65 @@ namespace ACE.Server.Factories
                 default:
                     break;
             }
-            meleeMod = meleeMod + 1.0;
+            meleeMod += 1.0;
             return meleeMod;
+        }
+
+        public static readonly float WeaponBulk = 0.50f;
+        public static readonly float ArmorBulk = 0.25f;
+
+        private static bool MutateBurden(WorldObject wo, int tier, bool isWeapon)
+        {
+            // ensure item has burden
+            if (wo.EncumbranceVal == null)
+                return false;
+
+            // initial rng roll - burden mod chance per tier
+            if (!RollBurdenModChance(tier))
+                return false;
+
+            // secondary rng roll - pseudo curve table per tier
+            var roll = ChanceTables.Roll(tier);
+
+            var bulk = isWeapon ? WeaponBulk : ArmorBulk;
+            bulk *= (float)(wo.BulkMod ?? 1.0f);
+
+            var maxBurdenMod = 1.0f - bulk;
+
+            var burdenMod = 1.0f - (roll * maxBurdenMod);
+
+            // modify burden
+            var prevBurden = wo.EncumbranceVal.Value;
+            wo.EncumbranceVal = (int)Math.Round(prevBurden * burdenMod);
+
+            if (wo.EncumbranceVal < 1)
+                wo.EncumbranceVal = 1;
+
+            //Console.WriteLine($"Modified burden from {prevBurden} to {wo.EncumbranceVal} for {wo.Name} ({wo.WeenieClassId})");
+
+            return true;
+        }
+
+        private static bool RollBurdenModChance(int tier)
+        {
+            var chance = ChanceTables.QualityChancePerTier[tier - 1];
+
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            return rng < chance;
+        }
+
+        private static void Shuffle<T>(T[] array)
+        {
+            Random _r = new Random();
+            int n = array.Length;
+            for (int i = 0; i < n; i++)
+            {
+                int r = i + _r.Next(n - i);
+                T t = array[r];
+                array[r] = array[i];
+                array[i] = t;
+            }
         }
     }         
 }

@@ -12,13 +12,13 @@ using log4net;
 
 using ACE.Common.Performance;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -170,9 +170,10 @@ namespace ACE.Server.Entity
             PhysicsLandblock = new Physics.Common.Landblock(cellLandblock);
         }
 
-        public void Init()
+        public void Init(bool reload = false)
         {
-            PhysicsLandblock.PostInit();
+            if (!reload)
+                PhysicsLandblock.PostInit();
 
             Task.Run(() =>
             {
@@ -193,7 +194,7 @@ namespace ACE.Server.Entity
         private void CreateWorldObjects()
         {
             var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock);
-            var shardObjects = DatabaseManager.Shard.GetStaticObjectsByLandblock(Id.Landblock);
+            var shardObjects = DatabaseManager.Shard.BaseDatabase.GetStaticObjectsByLandblock(Id.Landblock);
             var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects, shardObjects);
 
             actionQueue.EnqueueAction(new ActionEventDelegate(() =>
@@ -241,7 +242,7 @@ namespace ACE.Server.Entity
         /// </summary>
         private void SpawnDynamicShardObjects()
         {
-            var dynamics = DatabaseManager.Shard.GetDynamicObjectsByLandblock(Id.Landblock);
+            var dynamics = DatabaseManager.Shard.BaseDatabase.GetDynamicObjectsByLandblock(Id.Landblock);
             var factoryShardObjects = WorldObjectFactory.CreateWorldObjects(dynamics);
 
             actionQueue.EnqueueAction(new ActionEventDelegate(() =>
@@ -288,9 +289,22 @@ namespace ACE.Server.Entity
 
                     wo.ReinitializeHeartbeats();
 
-                    foreach (var profile in wo.Biota.BiotaPropertiesGenerator)
+                    if (wo.Biota.PropertiesGenerator != null)
                     {
-                        profile.Delay = (float)PropertyManager.GetDouble("encounter_delay").Item;
+                        // While this may be ugly, it's done for performance reasons.
+                        // Common weenie properties are not cloned into the bota on creation. Instead, the biota references simply point to the weenie collections.
+                        // The problem here is that we want to update one of those common collection properties. If the biota is referencing the weenie collection,
+                        // then we'll end up updating the global weenie (from the cache), instead of just this specific biota.
+                        if (wo.Biota.PropertiesGenerator == wo.Weenie.PropertiesGenerator)
+                        {
+                            wo.Biota.PropertiesGenerator = new List<PropertiesGenerator>(wo.Weenie.PropertiesGenerator.Count);
+
+                            foreach (var record in wo.Weenie.PropertiesGenerator)
+                                wo.Biota.PropertiesGenerator.Add(record.Clone());
+                        }
+
+                        foreach (var profile in wo.Biota.PropertiesGenerator)
+                            profile.Delay = (float) PropertyManager.GetDouble("encounter_delay").Item;
                     }
                 }
 
@@ -463,7 +477,19 @@ namespace ACE.Server.Entity
                 if (!Permaload)
                 {
                     if (lastActiveTime + dormantInterval < thisHeartBeat)
+                    {
+                        if (!IsDormant)
+                        {
+                            var spellProjectiles = worldObjects.Values.Where(i => i is SpellProjectile).ToList();
+                            foreach (var spellProjectile in spellProjectiles)
+                            {
+                                spellProjectile.PhysicsObj.set_active(false);
+                                spellProjectile.Destroy();
+                            }
+                        }
+
                         IsDormant = true;
+                    }
                     if (lastActiveTime + UnloadInterval < thisHeartBeat)
                         LandblockManager.AddToDestructionQueue(this);
                 }
@@ -851,14 +877,14 @@ namespace ACE.Server.Entity
             }
         }
 
-        public void EmitSignal(Player player, string message)
+        public void EmitSignal(Creature emitter, string message)
         {
             foreach (var wo in worldObjects.Values.Where(w => w.HearLocalSignals).ToList())
             {
-                if (player.IsWithinUseRadiusOf(wo, wo.HearLocalSignalsRadius))
+                if (emitter.IsWithinUseRadiusOf(wo, wo.HearLocalSignalsRadius))
                 {
                     //Console.WriteLine($"{wo.Name}.EmoteManager.OnLocalSignal({player.Name}, {message})");
-                    wo.EmoteManager.OnLocalSignal(player, message);
+                    wo.EmoteManager.OnLocalSignal(emitter, message);
                 }
             }
         }
@@ -1017,6 +1043,26 @@ namespace ACE.Server.Entity
 
             // remove physics landblock
             LScape.unload_landblock(landblockID);
+        }
+
+        public void DestroyAllNonPlayerObjects()
+        {
+            ProcessPendingWorldObjectAdditionsAndRemovals();
+
+            SaveDB();
+
+            // remove all objects
+            foreach (var wo in worldObjects.Where(i => !(i.Value is Player)).ToList())
+            {
+                if (!wo.Value.BiotaOriginatedFromOrHasBeenSavedToDatabase())
+                    wo.Value.Destroy(false);
+                else
+                    RemoveWorldObjectInternal(wo.Key);
+            }
+
+            ProcessPendingWorldObjectAdditionsAndRemovals();
+
+            actionQueue.Clear();
         }
 
         private void SaveDB()

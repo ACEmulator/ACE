@@ -291,6 +291,21 @@ namespace ACE.Server.Factories
             new int[] { 41041, 41042, 41043, 41044, 41045 } // Magari Yari
         };
 
+        public static readonly List<int[][]> MeleeWeaponsMatrices = new List<int[][]>()
+        {
+            HeavyWeaponsMatrix,
+            LightWeaponsMatrix,
+            FinesseWeaponsMatrix,
+            TwoHandedWeaponsMatrix
+        };
+
+        public static readonly HashSet<uint> AetheriaWcids = new HashSet<uint>()
+        {
+            Entity.Aetheria.AetheriaBlue,
+            Entity.Aetheria.AetheriaYellow,
+            Entity.Aetheria.AetheriaRed,
+        };
+
         public static readonly int[,] HeavyWeaponDamageTable =
         {
                 { 26, 33, 40, 47, 54, 61, 68, 71, 74 },
@@ -355,6 +370,14 @@ namespace ACE.Server.Factories
             new int[] { 31805, 31807, 31811, 31809, 31810, 31806, 31808 }
         };
 
+        public static readonly List<int[][]> MissileWeaponsMatrices = new List<int[][]>()
+        {
+            NonElementalMissileWeaponsMatrix,
+            ElementalMissileWeaponsMatrix,
+        };
+
+        public static readonly int[] DinnerwareLootMatrix = { 141, 142, 148, 149, 150, 154, 161, 163, 168, 243, 254, 7940 };
+
         public static readonly int[][] GemCreatureSpellMatrix =
         {
             new int[] { 2, 18, 256, 274, 298, 322, 346, 418, 467, 557, 581, 605, 629, 653, 678, 702, 726, 750, 774, 798, 824, 850, 874, 898, 922, 946, 970, 982, 1349, 1373, 1397, 1421, 1445, 1715, 1739, 1763, 5779, 5803, 5827, 5843, 5867, 6116 },
@@ -411,16 +434,16 @@ namespace ACE.Server.Factories
 
         public static readonly int[] food = { 258, 4746, 259, 547, 260, 5758, 261, 262, 263, 264, 265 };
 
-        public static readonly int[][] MundaneLootMatrix =
+        public static readonly int[][] GenericLootMatrix =
         {
-            new int[] { 141, 142, 148, 149, 150, 154, 161, 163, 168, 243, 254, 7940, 8329, 27331, 2434, 378, 377, 379, 2457, 2460, 27326, 628, 629, 513, 545, 42518 },
-            new int[] { 141, 142, 148, 149, 150, 154, 161, 163, 168, 243, 254, 7940, 8329, 8328, 27331, 2434, 2435, 378, 377, 379, 2457, 2460, 27326, 2470, 27319, 27322, 629, 630, 513, 545, 512, 42518 },
-            new int[] { 141, 142, 148, 149, 150, 154, 161, 163, 168, 243, 254, 7940, 8329, 8328, 8326, 2434, 2435, 27330, 27326, 377, 27322, 27319, 2460, 2470, 27324, 2458, 2461, 629, 630, 631, 545, 512, 514, 42518, 42517 },
-            new int[] { 141, 142, 148, 149, 150, 154, 161, 163, 168, 243, 254, 7940, 8329, 8328, 8326, 2434, 2435, 27330, 27326, 377, 27322, 27319, 2460, 2470, 27324, 2458, 2461, 629, 630, 631, 545, 512, 514, 42518, 42517, 42516 },
-            new int[] { 141, 142, 148, 149, 150, 154, 161, 163, 168, 243, 254, 7940, 8326, 8331, 8327, 27330, 2436, 27328, 27324, 2458, 2461, 27320, 27323, 27327, 27325, 27318, 27321, 631, 632, 9229, 514, 515, 516 },
-            new int[] { 141, 142, 148, 149, 150, 154, 161, 163, 168, 243, 254, 7940, 8331, 8327, 8330, 2436, 27328, 27324, 2458, 2461, 27320, 27323, 27327, 27325, 27318, 27321, 631, 632, 9229, 514, 515, 516 },
-            new int[] { 141, 142, 148, 149, 150, 154, 161, 163, 168, 243, 254, 7940, 8331, 8327, 8330, 2436, 27328, 27324, 2458, 2461, 27320, 27323, 27327, 27325, 27318, 27321, 631, 632, 9229, 514, 515, 516 },
-            new int[] { 141, 142, 148, 149, 150, 154, 161, 163, 168, 243, 254, 7940, 8331, 8327, 8330, 2436, 27328, 27324, 2458, 2461, 27320, 27323, 27327, 27325, 27318, 27321, 631, 632, 9229, 514, 515, 516 }
+            new int[] { 8329, 27331, 2434, 378, 377, 379, 2457, 2460, 27326, 628, 629, 513, 545, 42518 },
+            new int[] { 8329, 8328, 27331, 2434, 2435, 378, 377, 379, 2457, 2460, 27326, 2470, 27319, 27322, 629, 630, 513, 545, 512, 42518 },
+            new int[] { 8329, 8328, 8326, 2434, 2435, 27330, 27326, 377, 27322, 27319, 2460, 2470, 27324, 2458, 2461, 629, 630, 631, 545, 512, 514, 42518, 42517 },
+            new int[] { 8329, 8328, 8326, 2434, 2435, 27330, 27326, 377, 27322, 27319, 2460, 2470, 27324, 2458, 2461, 629, 630, 631, 545, 512, 514, 42518, 42517, 42516 },
+            new int[] { 8326, 8331, 8327, 27330, 2436, 27328, 27324, 2458, 2461, 27320, 27323, 27327, 27325, 27318, 27321, 631, 632, 9229, 514, 515, 516 },
+            new int[] { 8331, 8327, 8330, 2436, 27328, 27324, 2458, 2461, 27320, 27323, 27327, 27325, 27318, 27321, 631, 632, 9229, 514, 515, 516 },
+            new int[] { 8331, 8327, 8330, 2436, 27328, 27324, 2458, 2461, 27320, 27323, 27327, 27325, 27318, 27321, 631, 632, 9229, 514, 515, 516 },
+            new int[] { 8331, 8327, 8330, 2436, 27328, 27324, 2458, 2461, 27320, 27323, 27327, 27325, 27318, 27321, 631, 632, 9229, 514, 515, 516 }
         };
 
         // Level 8 spell components
@@ -1221,7 +1244,7 @@ namespace ACE.Server.Factories
                 new int[] { 581, 582, 583, 584, 585, 586, 2249, 4564 }, // Item Enchantment Mastery
                 new int[] { 605, 606, 607, 608, 609, 610, 2267, 4582 }, // Life Magic Mastery
                 new int[] { 629, 630, 631, 632, 633, 634 , 2287, 4602}, // War Magic Mastery
-                new int[] { 1599, 1600, 1601, 1602, 1603, 1604, 2101, 4400 }, // Defender
+                new int[] { 1599, 1601, 1602, 1603, 1604, 1605, 2101, 4400 }, // Defender
                 new int[] { 1475, 1476, 1477, 1478, 1479, 1480, 2117, 4418 }, // Hermetic Link
         };
 
@@ -1472,7 +1495,7 @@ namespace ACE.Server.Factories
             ////Heart Seeker
             new int[] { 1587, 1588, 1589, 1590, 1591, 1592, 2106, 4405 },
             ////Defender
-            new int[] { 1599, 1600, 1601, 1602, 1603, 1604, 2101, 4400 },
+            new int[] { 1599, 1601, 1602, 1603, 1604, 1605, 2101, 4400 },
             ////SwiftKiller
             new int[] { 49, 1623, 1624, 1625, 1626, 1627, 2116, 4417 },
             ////Blooddrinker
@@ -1496,7 +1519,7 @@ namespace ACE.Server.Factories
             ////Heart Seeker
             new int[] { 1587, 1588, 1589, 1590, 1591, 1592, 2106, 4405 },
             ////Defender
-            new int[] { 1599, 1600, 1601, 1602, 1603, 1604, 2101, 4400 },
+            new int[] { 1599, 1601, 1602, 1603, 1604, 1605, 2101, 4400 },
             ////SwiftKiller
             new int[] { 49, 1623, 1624, 1625, 1626, 1627, 2116, 4417 },
             ////Blooddrinker
@@ -1720,7 +1743,7 @@ namespace ACE.Server.Factories
             ////Fire Prot
             new int[] { 2618, 2611, 4675, 6082},
             ////Blade Prot
-            new int[] { 2621, 2614, 3957, 6085},
+            new int[] { 2621, 2614, 4678, 6085},
             ////Pierce Prot
             new int[] { 2620, 2613, 3956, 6084},
             ///Shield
@@ -1922,6 +1945,24 @@ namespace ACE.Server.Factories
             622,    // Necklace
             623,    // Heavy Necklace
             2367    // Gorget
+        };
+
+        public static readonly int[] trinketItems =
+{
+            41483,    // Compass
+            41484,    // Goggles
+            41487,    // Mechanical Scarab
+            41486,    // Puzzle Box
+            41485,    // PocketWatch
+            41488     // Top
+        };
+
+        public static readonly List<int[]> jewelryTables = new List<int[]>()
+        {
+            ringItems,
+            braceletItems,
+            necklaceItems,
+            trinketItems
         };
 
         public static readonly int[] Helms =
@@ -2262,7 +2303,7 @@ namespace ACE.Server.Factories
             }
         }
 
-        private static Dictionary<ArmorType, int[]> armorTypeMap = new Dictionary<ArmorType, int[]>()
+        public static readonly Dictionary<ArmorType, int[]> armorTypeMap = new Dictionary<ArmorType, int[]>()
         {
             { ArmorType.MiscClothing,          MiscClothing },
             { ArmorType.Helms,                 Helms },

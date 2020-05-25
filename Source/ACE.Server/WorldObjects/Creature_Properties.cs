@@ -1,5 +1,7 @@
+using System;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -101,7 +103,10 @@ namespace ACE.Server.WorldObjects
 
             // hollow weapons also ignore player natural resistances
             if (ignoreMagicResist)
-                return weaponResistanceMod;
+            {
+                if (!(attacker is Player) || !(this is Player) || PropertyManager.GetDouble("ignore_magic_resist_pvp_scalar").Item == 1.0)
+                    return weaponResistanceMod;
+            }
 
             var protMod = EnchantmentManager.GetProtectionResistanceMod(damageType);
             var vulnMod = EnchantmentManager.GetVulnerabilityResistanceMod(damageType);
@@ -113,10 +118,35 @@ namespace ACE.Server.WorldObjects
             if (protMod > naturalResistMod)
                 protMod = naturalResistMod;
 
+            // does this stack with natural resistance?
+            if (this is Player player)
+            {
+                var resistAug = player.GetAugmentationResistance(damageType);
+                if (resistAug > 0)
+                {
+                    var augFactor = Math.Min(1.0f, resistAug * 0.1f);
+                    protMod *= 1.0f - augFactor;
+                }
+            }
+
             // vulnerability mod becomes either life vuln or weapon resistance mod,
             // whichever is more powerful
             if (vulnMod < weaponResistanceMod)
                 vulnMod = weaponResistanceMod;
+
+            if (ignoreMagicResist)
+            {
+                // convert to additive space
+                var addProt = -ModToRating(protMod);
+                var addVuln = ModToRating(vulnMod);
+
+                // scale
+                addProt = IgnoreMagicResistScaled(addProt);
+                addVuln = IgnoreMagicResistScaled(addVuln);
+
+                protMod = GetNegativeRatingMod(addProt);
+                vulnMod = GetPositiveRatingMod(addVuln);
+            }
 
             return protMod * vulnMod;
         }
@@ -250,6 +280,24 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.OverpowerResist);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.OverpowerResist); else SetProperty(PropertyInt.OverpowerResist, value.Value); }
+        }
+
+        public string KillQuest
+        {
+            get => GetProperty(PropertyString.KillQuest);
+            set { if (value == null) RemoveProperty(PropertyString.KillQuest); else SetProperty(PropertyString.KillQuest, value); }
+        }
+
+        public string KillQuest2
+        {
+            get => GetProperty(PropertyString.KillQuest2);
+            set { if (value == null) RemoveProperty(PropertyString.KillQuest2); else SetProperty(PropertyString.KillQuest2, value); }
+        }
+
+        public string KillQuest3
+        {
+            get => GetProperty(PropertyString.KillQuest3);
+            set { if (value == null) RemoveProperty(PropertyString.KillQuest3); else SetProperty(PropertyString.KillQuest3, value); }
         }
     }
 }

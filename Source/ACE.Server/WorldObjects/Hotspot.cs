@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -93,9 +91,9 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                var variance = CycleTime * CycleTimeVariance;
-                var min = CycleTime - variance;
-                var max = CycleTime + variance;
+                var max = CycleTime;
+                var min = max * (1.0f - CycleTimeVariance ?? 0.0f);
+
                 return ThreadSafeRandom.Next((float)min, (float)max);
             }
         }
@@ -177,8 +175,7 @@ namespace ACE.Server.WorldObjects
 
                     if (creature.Invincible) return;
 
-                    if (!IgnoreMagicResist)
-                        amount *= (float)creature.GetLifeResistance(DamageType);
+                    amount *= creature.GetResistanceMod(DamageType, this, null);
 
                     if (player != null)
                         iAmount = player.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);

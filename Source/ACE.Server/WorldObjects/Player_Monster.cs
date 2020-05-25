@@ -14,7 +14,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Wakes up any monsters within the applicable range
         /// </summary>
-        public void CheckMonsters(float rangeSquared = RadiusAwarenessSquared)
+        public void CheckMonsters()
         {
             if (!Attackable || Teleporting) return;
 
@@ -24,7 +24,8 @@ namespace ACE.Server.WorldObjects
             {
                 if (monster is Player) continue;
 
-                if (Location.SquaredDistanceTo(monster.Location) < rangeSquared)
+                //if (Location.SquaredDistanceTo(monster.Location) <= monster.VisualAwarenessRangeSq)
+                if (PhysicsObj.get_distance_sq_to_object(monster.PhysicsObj, true) <= monster.VisualAwarenessRangeSq)
                     AlertMonster(monster);
             }
         }
