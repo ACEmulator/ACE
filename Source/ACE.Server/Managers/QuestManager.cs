@@ -346,11 +346,11 @@ namespace ACE.Server.Managers
 
             if (existing != null)
             {
-                if (existing.NumTimesCompleted == 0)
-                {
-                    if (Debug) Console.WriteLine($"{Name}.QuestManager.Decrement({quest}): can not Decrement existing quest. {questName}.NumTimesCompleted is already 0.");
-                    return;
-                }
+                //if (existing.NumTimesCompleted == 0)
+                //{
+                //    if (Debug) Console.WriteLine($"{Name}.QuestManager.Decrement({quest}): can not Decrement existing quest. {questName}.NumTimesCompleted is already 0.");
+                //    return;
+                //}
 
                 // update existing quest
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();

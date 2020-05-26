@@ -877,7 +877,7 @@ namespace ACE.Server.Entity
             }
         }
 
-        public void EmitSignal(Creature emitter, string message)
+        public void EmitSignal(WorldObject emitter, string message)
         {
             if (string.IsNullOrWhiteSpace(message)) return;
 

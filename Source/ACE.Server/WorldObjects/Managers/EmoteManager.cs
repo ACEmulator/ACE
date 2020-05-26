@@ -756,10 +756,10 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.LocalSignal:
 
-                    if (creature != null)
+                    if (WorldObject != null)
                     {
-                        if (creature.CurrentLandblock != null)
-                            creature.CurrentLandblock.EmitSignal(creature, emote.Message);
+                        if (WorldObject.CurrentLandblock != null)
+                            WorldObject.CurrentLandblock.EmitSignal(WorldObject, emote.Message);
                     }
                     break;
 
@@ -1362,6 +1362,8 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public PropertiesEmote GetEmoteSet(EmoteCategory category, string questName = null, VendorType? vendorType = null, uint? wcid = null, bool useRNG = true)
         {
+            //if (Debug) Console.WriteLine($"{WorldObject.Name}.EmoteManager.GetEmoteSet({category}, {questName}, {vendorType}, {wcid}, {useRNG})");
+
             if (_worldObject.Biota.PropertiesEmote == null)
                 return null;
 
@@ -1405,6 +1407,8 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public void ExecuteEmoteSet(EmoteCategory category, string quest = null, WorldObject targetObject = null, bool nested = false)
         {
+            //if (Debug) Console.WriteLine($"{WorldObject.Name}.EmoteManager.ExecuteEmoteSet({category}, {quest}, {targetObject}, {nested})");
+
             var emoteSet = GetEmoteSet(category, quest);
 
             // TODO: revisit if nested chains need to propagate timers
@@ -1419,6 +1423,8 @@ namespace ACE.Server.WorldObjects.Managers
         /// <param name="actionChain">For adding delays between emotes</param>
         public bool ExecuteEmoteSet(PropertiesEmote emoteSet, WorldObject targetObject = null, bool nested = false)
         {
+            //if (Debug) Console.WriteLine($"{WorldObject.Name}.EmoteManager.ExecuteEmoteSet({emoteSet}, {targetObject}, {nested})");
+
             // detect busy state
             // TODO: maybe eventually we should consider having categories that can be queued?
             // there are some categories that shouldn't be queued, like heartbeats...
@@ -1433,6 +1439,8 @@ namespace ACE.Server.WorldObjects.Managers
 
         public void Enqueue(PropertiesEmote emoteSet, WorldObject targetObject, int emoteIdx = 0, float delay = 0.0f)
         {
+            //if (Debug) Console.WriteLine($"{WorldObject.Name}.EmoteManager.Enqueue({emoteSet}, {targetObject}, {emoteIdx}, {delay})");
+
             if (emoteSet == null)
             {
                 Nested--;
@@ -1745,7 +1753,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Called when this NPC receives a local signal from a player
         /// </summary>
-        public void OnLocalSignal(Creature emitter, string message)
+        public void OnLocalSignal(WorldObject emitter, string message)
         {
             ExecuteEmoteSet(EmoteCategory.ReceiveLocalSignal, message, emitter);
         }

@@ -704,6 +704,8 @@ namespace ACE.Server.WorldObjects
 
         public virtual void OnGeneration(WorldObject generator)
         {
+            //Console.WriteLine($"{Name}.OnGeneration()");
+
             EmoteManager.OnGeneration();
         }
 
@@ -720,6 +722,8 @@ namespace ACE.Server.WorldObjects
 
             if (Generator != null)
                 OnGeneration(Generator);
+
+            //Console.WriteLine($"{Name}.EnterWorld()");
 
             return true;
         }
