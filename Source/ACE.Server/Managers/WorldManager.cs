@@ -234,6 +234,14 @@ namespace ACE.Server.Managers
                 actionChain.EnqueueChain();
             }
 
+            // These warnings are set by DDD_InterrogationResponse
+            if ((session.DatWarnCell || session.DatWarnLanguage || session.DatWarnPortal) && PropertyManager.GetBool("show_dat_warning").Item)
+            {
+                var msg = PropertyManager.GetString("dat_warning_msg").Item;
+                var chatMsg = new GameMessageSystemChat(msg, ChatMessageType.System);
+                session.Network.EnqueueSend(chatMsg);
+            }
+
             var popup_header = PropertyManager.GetString("popup_header").Item;
             var popup_motd = PropertyManager.GetString("popup_motd").Item;
             var popup_welcome = PropertyManager.GetString("popup_welcome").Item;

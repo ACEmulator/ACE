@@ -4,6 +4,7 @@ using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
@@ -142,6 +143,10 @@ namespace ACE.Server.Factories
                 wo.ItemSpellcraft = null;
                 wo.ItemDifficulty = null;
             }
+
+            // try mutate burden, if MutateFilter exists
+            if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
+                MutateBurden(wo, profile.Tier, false);
 
             RandomizeColor(wo);
         }

@@ -1882,6 +1882,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.EncumbranceVal); else SetProperty(PropertyInt.EncumbranceVal, value.Value); }
         }
 
+        public double? BulkMod
+        {
+            get => GetProperty(PropertyFloat.BulkMod);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.BulkMod); else SetProperty(PropertyFloat.BulkMod, value.Value); }
+        }
+
         public uint? PaletteBaseId
         {
             get => GetProperty(PropertyDataId.PaletteBase);
@@ -2897,6 +2903,24 @@ namespace ACE.Server.WorldObjects
 
             EncumbranceVal = (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
             Value = (StackUnitValue ?? 0) * (StackSize ?? 1);
+        }
+
+        /// <summary>
+        /// 0x0E file id
+        /// </summary>
+        public uint? MutateFilter
+        {
+            get => GetProperty(PropertyDataId.MutateFilter);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.MutateFilter); else SetProperty(PropertyDataId.MutateFilter, value.Value); }
+        }
+
+        /// <summary>
+        /// 0x38 file id
+        /// </summary>
+        public uint? TsysMutationFilter
+        {
+            get => GetProperty(PropertyDataId.TsysMutationFilter);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.TsysMutationFilter); else SetProperty(PropertyDataId.TsysMutationFilter, value.Value); }
         }
     }
 }

@@ -1156,15 +1156,14 @@ namespace ACE.Server.Command.Handlers.Processors
                 }
             }
 
-
-            if (nextStaticGuid >= maxStaticGuid)
+            if (nextStaticGuid > maxStaticGuid)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Landblock {landblock:X4} has reached the maximum # of static guids", ChatMessageType.Broadcast));
                 return;
             }
 
             // create and spawn object
-            var entityWeenie = ACE.Database.Adapter.WeenieConverter.ConvertToEntityWeenie(weenie);
+            var entityWeenie = Database.Adapter.WeenieConverter.ConvertToEntityWeenie(weenie);
 
             var wo = WorldObjectFactory.CreateWorldObject(entityWeenie, new ObjectGuid(nextStaticGuid));
 
@@ -1294,13 +1293,36 @@ namespace ACE.Server.Command.Handlers.Processors
 
         public static uint GetNextStaticGuid(ushort landblock, List<LandblockInstance> instances)
         {
-            // TODO: eventually find gaps
+            var firstGuid = 0x70000000 | ((uint)landblock << 12);
+            var lastGuid = firstGuid | 0xFFF;
+
             var highestLandblockInst = instances.Where(i => i.Landblock == landblock).OrderByDescending(i => i.Guid).FirstOrDefault();
 
             if (highestLandblockInst == null)
-                return (uint)(0x70000000 | (landblock << 12));
-            else
-                return highestLandblockInst.Guid + 1;
+                return firstGuid;
+
+            var nextGuid = highestLandblockInst.Guid + 1;
+
+            if (nextGuid <= lastGuid)
+                return nextGuid;
+
+            // try more exhaustive search
+            return GetNextStaticGuid_GapFinder(landblock, instances) ?? nextGuid;
+        }
+
+        public static uint? GetNextStaticGuid_GapFinder(ushort landblock, List<LandblockInstance> instances)
+        {
+            var landblockGuids = instances.Where(i => i.Landblock == landblock).Select(i => i.Guid).ToHashSet();
+
+            var firstGuid = 0x70000000 | ((uint)landblock << 12);
+            var lastGuid = firstGuid | 0xFFF;
+
+            for (var guid = firstGuid; guid <= lastGuid; guid++)
+            {
+                if (!landblockGuids.Contains(guid))
+                    return guid;
+            }
+            return null;
         }
 
         [CommandHandler("removeinst", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Removes the last appraised object from the current landblock instances")]
@@ -1312,7 +1334,8 @@ namespace ACE.Server.Command.Handlers.Processors
         public static void RemoveInstance(Session session, bool confirmed = false)
         {
             var wo = CommandHandlerHelper.GetLastAppraisedObject(session);
-            if (wo == null) return;
+
+            if (wo?.Location == null) return;
 
             var landblock = (ushort)wo.Location.Landblock;
 

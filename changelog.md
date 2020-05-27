@@ -1,5 +1,13 @@
 # ACEmulator Change Log
 
+### 2020-05-22
+[OptimShi]
+* Allowed console commands to start with "/" or "@". Would previously respond with "Invalid Command" if the command started with a "/" or "@".
+* Added dat file Iteration checking to server files.
+* Handled DDD_InterrogationResponse to check clients connecting for up-to-date dat files and display a warning upon login.
+* Use command "modifybool show_dat_warning true" to show warning to clients upon login.
+* Fixed ACE.Server.Network binaryReader.Align() function.
+
 ### 2020-03-02
 [Mag-nus]
 * Added ACE.Database.WorldDatabaseWithEntityCache class
