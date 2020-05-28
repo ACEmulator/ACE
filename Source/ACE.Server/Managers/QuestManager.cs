@@ -329,16 +329,16 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Increment the number of times completed for a quest
         /// </summary>
-        public void Increment(string questName)
+        public void Increment(string questName, int amount = 1)
         {
-            // kill task / append # to quest name?
-            Update(questName);
+            for (var i = 0; i < amount; i++)
+                Update(questName);
         }
 
         /// <summary>
         /// Decrement the number of times completed for a quest
         /// </summary>
-        public void Decrement(string quest)
+        public void Decrement(string quest, int amount = 1)
         {
             var questName = GetQuestName(quest);
 
@@ -354,7 +354,7 @@ namespace ACE.Server.Managers
 
                 // update existing quest
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
-                existing.NumTimesCompleted--;
+                existing.NumTimesCompleted -= amount;
 
                 if (Debug) Console.WriteLine($"{Name}.QuestManager.Decrement({quest}): updated quest ({existing.NumTimesCompleted})");
 

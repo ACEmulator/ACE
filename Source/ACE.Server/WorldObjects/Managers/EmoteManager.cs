@@ -276,7 +276,7 @@ namespace ACE.Server.WorldObjects.Managers
                     var questTarget = GetQuestTarget((EmoteType)emote.Type, targetCreature, creature);
 
                     if (questTarget != null)
-                        questTarget.QuestManager.Decrement(emote.Message);
+                        questTarget.QuestManager.Decrement(emote.Message, emote.Amount ?? 1);
 
                     break;
 
@@ -373,7 +373,7 @@ namespace ACE.Server.WorldObjects.Managers
                     questTarget = GetQuestTarget((EmoteType)emote.Type, targetCreature, creature);
 
                     if (questTarget != null)
-                        questTarget.QuestManager.Increment(emote.Message);     // kill task?
+                        questTarget.QuestManager.Increment(emote.Message, emote.Amount ?? 1);
 
                     break;
 
