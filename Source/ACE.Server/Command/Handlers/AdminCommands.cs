@@ -770,9 +770,11 @@ namespace ACE.Server.Command.Handlers
                         return;
 
                     if (wo != null)
+                    {
                         wo.Smite(session.Player, PropertyManager.GetBool("smite_uses_takedamage").Item);
 
-                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite on {wo.Name} (0x{wo.Guid:X8})");
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite on {wo.Name} (0x{wo.Guid:X8})");
+                    }
                 }
                 else
                 {
