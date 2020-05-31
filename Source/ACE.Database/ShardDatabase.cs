@@ -540,7 +540,12 @@ namespace ACE.Database
             {
                 context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
-                var results = context.Biota.Where(i => i.WeenieType == (int)WeenieType.SlumLord).ToList();
+                var query = from biota in context.Biota
+                            join iid in context.BiotaPropertiesIID on biota.Id equals iid.ObjectId
+                            where biota.WeenieType == (int)WeenieType.SlumLord && iid.Type == (ushort)PropertyInstanceId.HouseOwner
+                            select biota;
+
+                var results = query.ToList();
 
                 return results;
             }
