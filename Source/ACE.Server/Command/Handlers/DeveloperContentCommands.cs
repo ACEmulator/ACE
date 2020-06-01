@@ -1175,7 +1175,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var isLinkChild = parentInstance != null;
 
-            if (!isLinkChild && !wo.Stuck)
+            if (!wo.Stuck && !isLinkChild)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{weenie.ClassId} - {weenie.ClassName} is missing PropertyBool.Stuck, cannot spawn as landblock instance unless it is a child object", ChatMessageType.Broadcast));
                 return;
