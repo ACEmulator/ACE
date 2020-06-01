@@ -167,7 +167,7 @@ namespace ACE.Server.Factories
                 _ => 1.5f, // Default/Else
             };
             // Added variance for Damage Modifier.  Full Modifier was rare in retail
-            int modChance = ThreadSafeRandom.Next(0, 100);
+            int modChance = ThreadSafeRandom.Next(0, 99);
             if (modChance < 20)
                 damageMod -= 0.09f;
             else if (modChance < 35)
@@ -202,7 +202,7 @@ namespace ACE.Server.Factories
             switch (wield)
             {
                 case 315:
-                    chance = ThreadSafeRandom.Next(0, 100);
+                    chance = ThreadSafeRandom.Next(0, 99);
                     if (chance < 20)
                         eleMod = 1;
                     else if (chance < 40)
@@ -215,7 +215,7 @@ namespace ACE.Server.Factories
                         eleMod = 5;
                     break;
                 case 335:
-                    chance = ThreadSafeRandom.Next(0, 100);
+                    chance = ThreadSafeRandom.Next(0, 99);
                     if (chance < 20)
                         eleMod = 5;
                     else if (chance < 40)
@@ -228,7 +228,7 @@ namespace ACE.Server.Factories
                         eleMod = 9;
                     break;
                 case 360:
-                    chance = ThreadSafeRandom.Next(0, 100);
+                    chance = ThreadSafeRandom.Next(0, 99);
                     if (chance < 20)
                         eleMod = 10;
                     else if (chance < 30)
@@ -245,7 +245,7 @@ namespace ACE.Server.Factories
                         eleMod = 16;
                     break;
                 case 375: // Added +19 Elemental (like retail) and readjusted odds (odds are approximate, no hard data).  HarliQ 11/17/19  
-                    chance = ThreadSafeRandom.Next(0, 100);
+                    chance = ThreadSafeRandom.Next(0, 99);
                     if (chance < 5)
                         eleMod = 12;
                     else if (chance < 15)
@@ -264,7 +264,7 @@ namespace ACE.Server.Factories
                         eleMod = 19;
                     break;
                 case 385:
-                    chance = ThreadSafeRandom.Next(0, 100);
+                    chance = ThreadSafeRandom.Next(0, 99);
                     if (chance < 20)
                         eleMod = 16;
                     else if (chance < 30)
