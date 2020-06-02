@@ -1173,9 +1173,11 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            if (!wo.Stuck)
+            var isLinkChild = parentInstance != null;
+
+            if (!wo.Stuck && !isLinkChild)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"{weenie.ClassId} - {weenie.ClassName} is missing PropertyBool.Stuck, cannot spawn as landblock instance", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{weenie.ClassId} - {weenie.ClassName} is missing PropertyBool.Stuck, cannot spawn as landblock instance unless it is a child object", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -1186,8 +1188,6 @@ namespace ACE.Server.Command.Handlers.Processors
             // even on flat ground, objects can sometimes fail to spawn at the player's current Z
             // Position.Z has some weird thresholds when moving around, but i guess the same logic doesn't apply when trying to spawn in...
             wo.Location.PositionZ += 0.05f;
-
-            var isLinkChild = parentInstance != null;
 
             session.Network.EnqueueSend(new GameMessageSystemChat($"Creating new landblock instance {(isLinkChild ? "child object " : "")}@ {loc.ToLOCString()}\n{wo.WeenieClassId} - {wo.Name} ({nextStaticGuid:X8})", ChatMessageType.Broadcast));
 
