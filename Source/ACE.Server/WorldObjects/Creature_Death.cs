@@ -483,7 +483,7 @@ namespace ACE.Server.WorldObjects
         public bool IsOnNoDeathXPLandblock => Location != null ? NoDeathXP_Landblocks.Contains(Location.LandblockId.Landblock) : false;
 
         /// <summary>
-        /// A list of landblocks the player gains no xp from creature kills 
+        /// A list of landblocks the player gains no xp from creature kills
         /// </summary>
         public static HashSet<ushort> NoDeathXP_Landblocks = new HashSet<ushort>()
         {
