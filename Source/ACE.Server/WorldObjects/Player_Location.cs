@@ -744,7 +744,6 @@ namespace ACE.Server.WorldObjects
             0x9EE5,     // Northwatch Castle Black Market
             0xB5F0,     // Aerfalle's Sanctum
             0xF92F,     // Freebooter Keep Black Market
-            0x00AF,     // Colosseum Staging Area and Secret Mini-Bosses
             0x00B0,     // Colosseum Arena One
             0x00B1,     // Colosseum Arena Two
             0x00B2,     // Colosseum Arena Three
@@ -757,7 +756,6 @@ namespace ACE.Server.WorldObjects
             0x5963,     // Gauntlet Arena Two (Eldritch Web)
             0x5964,     // Gauntlet Arena One (Radiant Blood)
             0x5965,     // Gauntlet Arena Two (Radiant Blood)
-            0x596B,     // Gauntlet Staging Area (All Societies)
         };
 
         /// <summary>
