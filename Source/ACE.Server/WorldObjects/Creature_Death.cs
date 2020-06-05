@@ -31,7 +31,8 @@ namespace ACE.Server.WorldObjects
         /// <param name="criticalHit">True if the death blow was a critical hit, generates a critical death message</param>
         public virtual DeathMessage OnDeath(DamageHistoryInfo lastDamager, DamageType damageType, bool criticalHit = false)
         {
-            if (onDeathEntered) return null;
+            if (onDeathEntered)
+                return GetDeathMessage(lastDamager, damageType, criticalHit);
 
             onDeathEntered = true;
 
