@@ -637,7 +637,7 @@ namespace ACE.Server.Entity
                     InsertWorldObjectIntoSortedGeneratorUpdateList(kvp.Value);
                     InsertWorldObjectIntoSortedGeneratorRegenerationList(kvp.Value);
 
-                    if (kvp.Value.WeenieClassId == 70498)
+                    if (kvp.Value.WeenieClassId == 80000)
                         NoKeepAliveObject = false;
                 }
 
@@ -659,7 +659,7 @@ namespace ACE.Server.Entity
                         sortedGeneratorsByNextGeneratorUpdate.Remove(wo);
                         sortedGeneratorsByNextRegeneration.Remove(wo);
 
-                        if (wo.WeenieClassId == 70498)
+                        if (wo.WeenieClassId == 80000)
                             NoKeepAliveObject = true;
                     }
                 }
