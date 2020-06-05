@@ -637,7 +637,7 @@ namespace ACE.Server.Entity
                     InsertWorldObjectIntoSortedGeneratorUpdateList(kvp.Value);
                     InsertWorldObjectIntoSortedGeneratorRegenerationList(kvp.Value);
 
-                    if (kvp.Value.WeenieClassId == 80000)
+                    if (kvp.Value.WeenieClassId == 80007) // Landblock KeepAlive weenie (ACE custom)
                         NoKeepAliveObject = false;
                 }
 
@@ -659,7 +659,7 @@ namespace ACE.Server.Entity
                         sortedGeneratorsByNextGeneratorUpdate.Remove(wo);
                         sortedGeneratorsByNextRegeneration.Remove(wo);
 
-                        if (wo.WeenieClassId == 80000)
+                        if (wo.WeenieClassId == 80007) // Landblock KeepAlive weenie (ACE custom)
                             NoKeepAliveObject = true;
                     }
                 }
