@@ -583,7 +583,7 @@ namespace ACE.Server.WorldObjects
 
         public static WeenieError VerifyUseRequirements(Player player, WorldObject source, WorldObject target)
         {
-            // ensure target is summoning essence? this.TargetType is Misc
+            // ensure target is summoning essence? source.TargetType is Misc
 
             // ensure both source and target are in player's inventory
             if (player.FindObject(source.Guid.Full, Player.SearchLocations.MyInventory) == null)
