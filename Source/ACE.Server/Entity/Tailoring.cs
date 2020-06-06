@@ -86,7 +86,18 @@ namespace ACE.Server.Entity
             // perform clapping motion
             animTime += player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
 
-            actionChain.AddAction(player, () => DoTailoring(player, source, target));
+            actionChain.AddAction(player, () =>
+            {
+                // re-verify
+                var useError = VerifyUseRequirements(player, source, target);
+                if (useError != WeenieError.None)
+                {
+                    player.SendUseDoneEvent(useError);
+                    return;
+                }
+
+                DoTailoring(player, source, target);
+            });
 
             actionChain.EnqueueChain();
 
