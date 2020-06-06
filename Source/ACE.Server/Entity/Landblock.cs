@@ -660,7 +660,12 @@ namespace ACE.Server.Entity
                         sortedGeneratorsByNextRegeneration.Remove(wo);
 
                         if (wo.WeenieClassId == 80007) // Landblock KeepAlive weenie (ACE custom)
-                            NoKeepAliveObject = true;
+                        {
+                            var keepAliveObject = worldObjects.Values.FirstOrDefault(w => w.WeenieClassId == 80007);
+
+                            if (keepAliveObject == null)
+                                NoKeepAliveObject = true;
+                        }
                     }
                 }
 
