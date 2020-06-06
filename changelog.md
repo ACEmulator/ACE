@@ -1,5 +1,53 @@
 # ACEmulator Change Log
 
+### 2020-06-04
+[OptimShi]
+* Corrected colors for PFID_CUSTOM_LSCAPE_R8G8B8 type textures
+
+### 2020-06-02
+[Ripley]
+* Fixed issue with createinst in creating child objects
+
+### 2020-06-01
+[Ripley]
+* Fixed issue with character creation skill bonuses
+
+### 2020-05-31
+[gmriggs]
+* Including previously owned houses in /hslist
+* Fix minor off-by-1 numbers
+
+### 2020-05-27
+[gmriggs]
+* Improved AuditItemSpells
+
+### 2020-05-27
+[gmriggs]
+* Added CreateInst gap finder
+
+### 2020-05-26
+[CrimsonMage]
+* Commit #3000 - Fixed typo "Cannon unban" to "Cannot unban"
+
+### 2020-05-25
+[gmriggs]
+* Improved collision detection for projectiles on players
+* Ensure object is on landblock for /removeinst 
+
+[Ripley]
+* Portal.CheckUseRequirements checks PlayerKillerStatus not PkLevel
+* Removed  temporary patches
+* Added cloaks to SelectWieldedClothing()
+
+### 2020-05-24
+[gmriggs]
+* Updated AnimationPartChange DatLoader accessibility for ACViewer clothing
+
+[Trevis, Ripley]
+* Use quest_mindelta_rate server prop when displaying myquests output
+* Added 'Quest list is empty' response to myquests
+* Don't pass default to property manager
+
 ### 2020-05-22
 [OptimShi]
 * Allowed console commands to start with "/" or "@". Would previously respond with "Invalid Command" if the command started with a "/" or "@".
@@ -8,10 +56,799 @@
 * Use command "modifybool show_dat_warning true" to show warning to clients upon login.
 * Fixed ACE.Server.Network binaryReader.Align() function.
 
+[OptimShi, Harli Quin]
+* Added Variance to Burden
+* Updated Burden Formula for Tiers
+* Added MutateBurden curve tables
+* Added MutateFilter, armor burden mod
+
+### 2020-05-17
+[gmriggs]
+* Only send fellowship vital updates to clients w/ fellowship window currently open
+
+### 2020-05-10
+[Ripley]
+* Skip handing out IOUs if system isn't enabled
+
+[Ahric]
+* Added ability to exclude specific IPs from max session count
+* Added config examples
+* Adding extra options for AutoApplyWorldCustomizations
+
+### 2020-05-08
+[Ripley]
+* Fixed read issue with GetContentFolder
+* Added rare timestamping and counters
+* Added Real-Time Rare chance modifier
+* Added server configurables for real time rares
+* Updated CanGenerateRare to false in the case of bad data
+* Fixed issue with SellPrice usage for AlternateCurrency
+* Added ping to clients at character select
+* Do not send Structure in Appraisal reply for TinkeringMaterial CraftTools
+* Updated AwardSkillXP to optionally notify player as appropriate
+* Destroy projectiles on collision
+* Update offline purge to clean up invalid allegiance data
+* Prevent create/ci from using specialized weenie types
+* Enable global chat toggling
+* Fixed issue with Recipe conversions
+* Wire up automatic database updates
+  - Support automatic database patching
+  - Support automatic updating of world database to latest release
+  - Support automatic re-application of world database customization
+* Update fix-allegiances command
+* Update Fellowship messaging + better FellowPortalSending handling
+  - Limit FellowPortalSending spells to in range of caster
+  - Update handling to not teleport multiple times
+
+### 2020-05-05
+[gmriggs]
+* Separated CreateItem from MutateItem in loot generator, wiring up full support for /lootgen=
+* Added support for PetDevice to /lootgen
+* Updated lootsim
+* Updated trinket cleanup script
+
+### 2020-04-25
+[gmriggs]
+* Added support for magic resist to /debugdamage
+* Added /debugdamage for SpellProjectile
+* Cleaned up lootgen factory
+
+[Ripley]
+* Update Corpse messaging
+
+### 2020-04-24
+[gmriggs]
+* Use sphere radius when determining distance for mob aggro
+* Added cylinder distance to /dist dev test command
+* Added support for more sealed bags of salvage to RecipeManager_New
+
+### 2020-04-23
+[gmriggs]
+* Updated casting start pos to match retail
+* Set AppraisalLongDescDecoration on missile weapons 
+* Fixed salvage fail msg
+* Synced get_ending_frame up with acclient 
+
+### 2020-04-20
+[gmriggs]
+* Added handling to prevent server crashes
+
+### 2020-04-18
+[Ripley]
+* Updated ConsumeUnlocker output to match pcaps
+* Updated GetHouse
+
+[Harli Quin]
+* Added Burden to tables
+
+### 2020-04-18
+[gmriggs]
+* Fixed black thistle 
+* Improved pk logout stop movement
+* More CMT fixes for players
+* Fixed copper / silver salvage
+
+[Harli Quin]
+* Missile loot refactor
+
+[Ripley]
+* Updated Corpse permission conditions
+* Updated CheckUseRequirements for Portals
+ 
+### 2020-04-16
+[gmriggs]
+* Prevent ninja looting chests
+* Added server option for /pkl entry collision check, enabling door skipping glitch from retail
+* Normalized config option names / default retail values
+* Normalized server config option for allow_jump_loot
+* Added retail message for Enduring Enchantment
+* Updated Surge of Affliction + show_dot_messages for something more appropriate
+* Further tweaks to DF, adding 'health' to message to suppress Mag-Tools parse error
+* Added server option for players to 'long hold' doors open for other players, as per retail
+* Improved logging for scatter threshold z 
+
+[Mag-nus]
+* EnableSensitiveDataLogging for shard and world
+* Add missing .GetFullMessage()
+
+[Ripley]
+* Fix writability issue with opening "blank/empty" books.
+
+[Ziang]
+* Fixed gap in UpdateQuest emote
+
+### 2020-04-14
+[gmriggs]
+* Temporarily revert npk IsJumping checks again. Fixing actual bug, retaining existing functionality
+
+### 2020-04-13
+[gmriggs]
+* CurCell=null rare bug quick fix
+* Updating resistance checks for hotspots and falling damage
+
+### 2020-04-12
+[gmriggs]
+* Added support for mansion_min_rank 0
+* Prevent door thrashing
+* Fixed bug with marketplace recall
+* Tied monster aggro distance to VisualAwarenessRange
+* Added support for abdomen armor to Monster_Inventory 
+* Improved monster sticky melee
+* Added support for AiUseMagicDelay, synced up to retail
+
+[Mag-nus]
+* Fixed EnchantmentManager Heartbeats
+
+[Ripley]
+* Disallow [re]entry into world if shutdown is in progress
+* Add support for account bans
+* Fix spell bar position save issue
+
+### 2020-04-11
+[gmriggs]
+* Fixed antius blackmoor statue
+* Added support for PowerupTime for monster melee attacks
+* Fixed monster stop-and-go bug after sticky
+* Removed line of sight check for mob archers
+* Synced thrown weapons re-appearance time for monsters up to retail
+* Updated legacy function for player melee skill
+* Synced movement params (stop completely, distance to object) up between client and server slightly better w/ defaults
+* Revert "fixing shade=0, from optimshi (#2870)"
+* Added support for caster weapons to Monster_Inventory
+* Updated no stamina use chance
+* Added DefenseStanceMod
+* Bumped up Healing_MaxMove for pks a small amount, based on player feedback 
+* IsJumping consistency across pks and npks
+* Added jump looting per retail
+* Added reguid support for json landblock conversion w/ relative guids 
+* Ensured pk timer logout stops movement completely 
+* Synced critical frequency for existing ice tachis
+
+[Mag-nus]
+* Add order to BiotaPropertiesPalette
+
+[Ripley]
+* Check player names against creature names in world db
+* Disable creating players with names of creatures in world
+* Update boot command
+
+[deca]
+* Fixed god/ungod failing on SkillAdvancementClass
+
+[fartwhif]
+* Fixed bug allowing a corrupt or malformed packet to crash the server when the fragment parser tries to read past the end of the data
+
+
+### 2020-04-10
+[gmriggs]
+* Verified null restriction tables
+
+### 2020-04-08
+[gmriggs]
+* Fixed sidestep clamp
+* Improved house root guid
+* Synced bouncy housing barriers with server physics
+
+### 2020-04-06
+[Ripley]
+* Updated docker-compose.arm64 / .dockerignore
+
+[gmriggs]
+* Added support for lockpick mod, fixing lockpick sound broadcast
+* Updated coded recipes for trinkets latest version
+* Fixed bandits dual wielding bow + melee
+* Further updates to melee/missile repeat cycle to sync more precisely to retail
+* Added preliminary support for fast missiles
+* Added support for 'lead missile targets' character option disabled
+* Added power bar reset on charge failed
+
+### 2020-04-04
+[Mag-nus]
+* Improved ShardDatabaseWithCaching Locking
+* Hybrid weenie biota
+
+[gmriggs]
+* Updated LoS tests for recent changes to ProjectileTarget
+* Added function to automatically fix any 'invisible' equipped items
+
+### 2020-04-03
+[gmriggs]
+* Updated physics rotation on EmoteManager.Turn
+
+[Mag-nus]
+* Converted ShardDatabase/WorldObjects biota from the ACE.Database model to the new ACE.Entity model
+
+### 2020-03-31
+[gmriggs]
+* Added null check for built-in weapon spells
+
+### 2020-03-30
+[Ripley]
+* Disable account auto promotion when admin account is created via console
+
+[gmriggs]
+* Fixed shade=0, from optimshi
+* Prevent actions while suicide in progress 
+* Suppress log message for require_spell_comps server option
+
+### 2020-03-29
+[gmriggs]
+* Fixed require_spell_comps for freshly loaded acclient 
+* Fixed some rare cases of invisible player bug
+* Ensure npks can take falling damage when portal destination is aerial
+* Fixed possible gap for point-blank life projectile damage
+
+### 2020-03-28
+[gmriggs]
+* Improved animation for AimLevel
+
+### 2020-03-25
+[gmriggs]
+* Update resist aug (3rd times the charm)
+* Removed buggy AL code 
+* Improved ring projectiles spawns for spells with even # of projectiles
+* Revert "Switch Quest stamp on pickup to on generator controlled items only 
+
+[Ripley]
+* Fixed issue with Quest stamp on pickup
+
+### 2020-03-24
+[gmriggs]
+* Improved consistency for NPK falling damage
+* Fixed corpses spawning frozen in mid-air
+* Added support for more fellowship spell types
+* Added support for fellowship spells from non-player sources
+* Fixed display bug for enchantment messages 
+* Fixed gap in admin vision 
+
+[Ripley]
+* Support ARM64 (RPI4 4gb - Ubuntu x64)
+* Updated appveyor.xml
+* Updated AppVeyorAfterDeploy.bat
+* Updated dbversion.txt with latest ACE-World-Database release
+* Updated docker configuration + Improved Build/Version tracking
+* Stacking: Do nothing on use
+* Switch Quest stamp on pickup to on generator controlled items only 
+
+### 2020-03-23
+[Ripley]
+* AppVeyor build pipeline changes
+* Updated appveyor.xml
+
+[gmriggs]
+* Added null check to GetScrollWeenie
+
+### 2020-03-22
+[gmriggs]
+* Update stance if /pkl is entered from combat mode
+* Spell rotation updates
+* Ensure floating point values are retained for IgnoreMagicArmorScaled RL
+* Further cleanup for spell_projectile_ethereal
+
+### 2020-03-21
+[gmriggs]
+* Fixed small movement gap
+* Synced up rotation on MoveToState
+* Added non-default server option to broadcast spell projectiles as ethereal to clients
+* Fixed global velocity for jump broadcast
+* Ensured life projectiles take natural resistances into account
+* Fixed resist aug (again)
+
+### 2020-03-20
+[gmriggs]
+* Cleaned up debug code
+
+[Ziang]
+* Fixed lack of Shield AL assignment
+
+### 2020-03-19
+[gmriggs]
+* Minor adjustments to crafting messages
+* Ensure 19E - PlayerDeath is broadcast to victim for plugins
+* Fixed pressure plate generators w/ RegenInterval 0
+* Added find_cell_list debugging 
+
+### 2020-03-18
+[gmriggs]
+* Added support for 'crafting chance of success dialog' player option to regular recipes
+* Updated hotspot cycle variance to use standard formula
+* Broadcasting icon underlay changes for all recipe mods
+* Added server option for 'craft_exact_msg' 
+
+### 2020-03-17
+[gmriggs]
+* Fixed broadcast move to home
+
+### 2020-03-16
+[gmriggs]
+* Fixed monsters sliding around if they have already started a MoveTo before CreateObject is sent
+* Filled some gaps for instant vital updates for targeted creature
+* Added debugging for passive pet owner going null 
+* Fixed spell projectiles sometimes jumping above target's head on collision
+* Ensure spell projectiles remain inactive if collided on world entry
+
+### 2020-03-15
+[gmriggs]
+* Prevent vendor service spam / cast animation desync 
+* Ensure sync between ace and physics motion state for magic casting
+* Added options for server admins to scale hollow damage in pvp battles
+* Synced Player_Death network broadcasts up to retail
+* Adjusted spellcast_max_angle logic
+* Fixed burning coals
+* Improved accuracy of 'your movement has disrupted spellcasting / healing!' distance check
+* Fixed missing e / typo
+* Added support for gems with UseUserAnimation and UseSound
+* Refactored food
+* Added player.IsDead check to Gem use
+
+### 2020-03-14
+[fartwhif]
+* Limit the number of sequence IDs per S2C NAK packet
+
+### 2020-03-12
+[gmriggs]
+* Reduced unnecessary spam in debug logs
+* Fixed summon into wall issue
+
+### 2020-03-11
+[gmriggs]
+* Prevent player-initiated dispels while pk timers active
+* Fixed players sometimes invisible after teleport
+
+### 2020-03-10
+[gmriggs]
+* Added support for taboo table during character creation 
+
+[gmriggs, Ripley]
+* Added support for passive pets
+
+### 2020-03-09
+[gmriggs]
+* Updated house query
+* Improve responsiveness of first turn after cast gesture 
+* Slightly improved target tracking for spell projectiles 
+* Improvements from fixcast
+* Adjusted healing movement fail range
+* Server broadcast motions back to self client
+* Adjusted spell projectile target height
+* Cleaned up Server.Entity.Spell
+* Fixed no scrolls dropping when world precaching is enabled 
+
+[Harli Quin]
+* Added trinkets
+* Refactored Jewelry
+
+[Ripley]
+* Updated DownloadACEWorld.bat with latest ACE-World-Database release
+
+### 2020-03-08
+[gmriggs]
+* Updated epic slashing ward 
+* Fixed chest reset interval
+* Updated verify-armor-levels
+* Fixed pk logout bug
+
+[Ripley]
+* LandblockInstanceWriter: InstanceNames -> WeenieNames
+
+### 2020-03-07
+[Ripley]
+* Updated DownloadACEWorld.bat with latest ACE-World-Database release
+* More fixes for GenerateNewFace
+
+[gmriggs]
+* Revert cast motion turn stop completely
+* Fixed casting self spells while /attackable off
+* Wielder null fix
+* Re-implemented spellcast_recoil_queue server option
+* Fixed cast tick gap
+* Added /verify-armor-levels admin command
+* Fixed aug resist
+* Fixed minor sync issue in TurnToHeading
+* Reworked TurnTo during magic casting to allow for player manual control
+* Improved target tracking for pk casting
+* Verify TimeSync
+* Fixed some spellcast angle issues
+
+[Harli Quin]
+* LootFactory Melee refactor
+* LootFactory Simulator Jewelry 
+
+### 2020-03-06
+[Ripley]
+* Be less restrictive with GenerateNewFace
+
+[Mag-nus]
+* Revert .net standard 2.1 to 2.0 in Adapter and Database.
+
+[gmriggs]
+* Fixed CS icon underlay color on initial application
+
+### 2020-03-05
+[gmriggs]
+* Added upper cap to max spell range
+* Added additional case for runrate_add_hooks
+* Defender spell fix
+
+### 2020-03-04
+[gmriggs]
+* Prevent monster initial snap forward when they start moving
+* Ensured crit ratings work on combat pets
+* Added /debugdamage support for all creatures
+* Fixed defense and attack bonuses for dual wielding
+
+[Ripley]
+* Fixed Alt Currency minimum cost
+
+### 2020-03-03
+[Ziang]
+* Fixed underclothes getting AL
+
+[Ripley]
+* Exposed content folder in containers
+
 ### 2020-03-02
 [Mag-nus]
 * Added ACE.Database.WorldDatabaseWithEntityCache class
 * Switched ACE.Server over to the new ACE.Entity.Models.Weenie model
+
+[gmriggs]
+* Updated healing
+* Spell projectile dormant fix redux
+* Death item stack
+
+[Harli Quin]
+* Pet device level loot tiers
+
+[Ripley]
+* Dockerized ACE
+* Updated .gitignore
+* Adjustments to AppVeyor
+* Updated Dockerfile
+* Updated version output to client
+* Updated appveyor.yml
+* Updated AppVeyorAfterDeploy.bat
+
+
+### 2020-03-01
+[gmriggs]
+* Ensure melee target is alive before MoveTo
+
+### 2020-02-29
+[Ripley]
+* Updated DownloadACEWorld.bat with latest ACE-World-Database release
+* Updated project to include database scripts for publishing
+* Added support for KillQuest processing
+* Hooked up WoundedTaunt emoting
+* Updated LocalSignal emitting
+* Updated Monster_Awareness.cs
+
+[Ziang]
+* Loot gen changes
+
+[gmriggs]
+* Added minor QoL improvements for content dev commands
+
+### 2020-02-28
+[gmriggs]
+* Fixed spell projectile in dormant landblock bug 
+
+### 2020-02-27
+[gmriggs]
+* Improved json landblock export
+* Synced skill raise message up to retail 
+* Added support for landblock / recipe / quest to export-sql and export-json
+
+### 2020-02-26
+[gmriggs]
+* Added sticky distance check for melee repeat attacks
+
+### 2020-02-23
+[gmriggs]
+* Synced up emotes for scream and newenemy
+* Added support for cloak proc spells
+* Added equipment ratings for DR / DRR / CD / CDR 
+* Updated generators
+* Cleaned up door patterns 
+* Fixed acclient skipping over ethereal animation hooks for known doors that are opened > 96 distance
+* Added /reload-landblock command for content devs
+
+[Ripley]
+* Updated project files
+* Update OnActivate for deep-linked object activation propagation 
+* Fixed sound on Switch weenie class
+
+### 2020-02-22
+[gmriggs]
+* Fixed AuditItemSpells for spell sets
+* Added built-in damage bonus for some quest bows
+
+
+### 2020-02-20
+* Added/removeitemspell dev command
+* Updated homesick
+
+### 2020-02-19
+[gmriggs]
+* Fixed landblock instances content folder 
+* Fixed monsters failing to navigate home 
+* Added landblock instances to /clearcache content developer command
+
+### 2020-02-18
+[gmriggs]
+* Fixed launching projectiles at point-blank range through doors 
+* Fixed untargeted spell projectiles hitting scrum drudge
+* Suppress TakeItems output when player has 0 items
+* Homesick adjustments
+
+[CrimsonMage]
+* Fix to Spine Glaive to stop Double dropping Mazule
+
+### 2020-02-16
+[gmriggs]
+* Ensure gems used directly by player are not resisted0
+* Fixed negative item magic spell resistance check
+
+### 2020-02-15
+[gmriggs]
+* Moved dequip item spell code from Player.TryDequipObjectWithNetworking to Creature.TryDequipObjectWithBroadcasting
+* Added support for IgnoreMagicResist / Armor on creatures directly
+
+### 2020-02-14
+[gmriggs]
+* Cleaned up spell resistance code
+
+[Mag-nus]
+* Added new adapter classes and models
+
+### 2020-02-13
+[Mag-nus]
+* Improved startup time and memory consumption
+* EmoteManager: Where before OrderBy
+
+### 2020-02-12
+[gmriggs]
+* Added quest support to import-json and import-sql
+* Added landblock instance support to import-sql and import-json
+* Added support for recipes to DeveloperContentCommands
+* Fixed a bug where fellowship leader drops under abnormal circumstances
+* Added z-bump to scatter gen
+* FinishCast patch
+
+[Ripley]
+* Wired up adaptor support for wieldedTreasure.json, region.json and encounters.json
+* Switch delayed LogOut_Inner due to PKLogoutActive to PlayerManager.Tick
+
+### 2020-02-08
+[Ripley]
+* Added support for minimums in AwardLevelProportional*XP
+
+### 2020-02-07
+[gmriggs]
+* Further improvements to combat stance swapping
+
+### 2020-02-06
+[Harli Quin]
+* Loot simulator update
+
+[gmriggs]
+* Fixed combat stance and death gaps during pre-windup turn 
+* Matched melee weapon tailoring up to latest GDLE logic
+
+### 2020-02-04
+[gmriggs]
+* Added /dungeonname dev command
+* Fixed some combat state thrashing for food and healing kits
+* Added support for fastbuffing
+* Ensure pktypes are calling the correct MoveTo function 
+* Ensure same PKType for healing other targets, and beneficial spells 
+* Added additional fellowship xp sharing logic from Mirror, Mirror
+* Fixed a gap in pk casting
+* Fixed casting spells on self-wielded target
+* Added dot resistance on appraisal panel
+* Added /fellow-dist dev command 
+
+### 2020-02-02
+[Mag-nus]
+* Fixed AllegianceManager/HouseManager mulit-thread corruption from database callback
+
+### 2020-02-01
+[gmriggs]
+* Added missing swirlies to recall spells
+* Added caster effects to portal tie and lifestone tie
+
+### 2020-01-31
+[Ripley]
+* Add support for inferred %tqm and %tqc in EmoteManager
+* Updated CreateDestroyItems to gracefully fail if it can't find Success/Fail item in DB
+
+### 2020-01-30
+[gmriggs]
+* Fixed jump skill in god mode
+* Fixed cliff slide, contact plane, and landblock transition bugs 
+
+### 2020-01-29
+[Ripley]
+* Fix Ethereal issue with DefaultOpen doors
+
+### 2020-01-28
+[gmriggs]
+* Alternate multi-projectile spell fix
+
+[Ripley]
+* Allow Doors to be controlled via Open/Close Me emotes
+
+### 2020-01-27
+[gmriggs]
+* Fixed missed line for multi-projectile spell targets
+* Improved efficiency for large allegiances
+
+[Ripley]
+* Updated Lifestone usage to drain half of player's current stamina
+* Use DefaultOpen / DefaultLocked properties from DB for Doors
+* Enforced CheckUseRequirements on portal ties and summons
+
+### 2020-01-26
+[gmriggs]
+* Improved swapping weapons while bow is reloading
+
+### 2020-01-25
+[Harli Quin]
+* Added missing T4 Rares
+
+### 2020-01-24
+[Ripley]
+* Updated DownloadACEWorld.bat with latest ACE-World-Database release
+
+[Harli Quin]
+* Added % loot counters that were missing. Changed Counters to Floats
+
+### 2020-01-23
+[gmriggs]
+* Updated GetLastAppraisalObject()
+* Added AimLow/AimHigh animations for missile launchers
+
+### 2020-01-22
+[Harli Quin]
+* Increased Melee D Bonus for no wield wands from 5% to 10%
+
+[gmriggs]
+* Enabled post-windup turn for pve
+* Fixed missile bug + matron bug 
+* Added preliminary support for PropertyInt.Unique
+* Normalized some attuned / bonded logic
+
+[Mag-nus]
+* Updated default dats path on windows
+* Update Readmes - consolidated per duplicate information on wiki
+* Updated ShardDatabaseWithoutCaching.cs 
+
+### 2020-01-21
+[gmriggs]
+* Added support for IgnoreShield
+* Added InqCollisionProfile null check
+* Added support for armor cleaving
+* Fixed attacking while airborne during pk battles 
+* Fixed *wave* spam
+* Broadcast windup motions as actions, as per retail
+* Added handling for multiple attack sequences sent by acclient
+* Updated default values for range and increment/decrement in EmoteManager
+* Fixed mega shields (scaling issue)
+* Fixed missing feedback when launching projectiles point-blank into environment
+* Improved the TakeItems message
+* Normalized defaults for InqQuestSolves to match other emotes
+* Added support to clean up house guest lists for deleted players
+* Added busy checks to melee / missile
+
+[Ripley]
+* Updated DownloadACEWorld.bat with latest ACE-World-Database release
+
+### 2020-01-19
+[fartwhif]
+* Removed network test helpers
+
+### 2020-01-17
+[gmriggs]
+* Enabled players to queue next pickup while previous pickup is in retraction state, as per retail
+* Minor appraisal refactor
+* Improved /createinst command for content dev
+* Added /getinfo command to get basic weenie info 
+
+[Ripley]
+* Added more TestNoQuality support in EmoteManager
+
+### 2020-01-16
+[gmriggs]
+* Filling gaps for attack done
+* Matched TakeItems stackSize default value up to other emotes
+* Fixed /import-sql filename munging
+* Updated MotionTable static tables to ConcurrentDictionary
+
+### 2020-01-15
+[gmriggs]
+* Fixed target velocity for non-tracking spells
+* Added multiplier to LumAugItemManaUsage to match client values
+* Improved peturbation formula
+* Added support for SpellFlags.NotIndoor / SpellFlags.NotOutdoor
+* Updated multi-projectile spells to be closer to retail / match client descriptions.
+
+[Ripley]
+* Enforce quest timers for Portal.QuestRestriction
+* Added time limit to Portal Space
+* Fixed issue with VerifyUse
+* Added alert for incomplete dats
+
+### 2020-01-14
+[gmriggs]
+* Removed cooldown spel message from log during dispel
+* Updated SpendLuminacne to use HeroXP64
+* Added Support for SpellFlags.IgnoresManaConversion
+
+### 2020-01-13
+[Mag-nus]
+* Switched BiotaPropertiesInt to Composite Key
+
+[Ripley]
+* Added/Adjusted some emote handling
+* Reordered Contract Flag staging
+
+### 2020-01-07
+[Ripley]
+* Updated DownloadACEWorld.bat with latest ACE-World-Database release
+
+### 2020-01-06
+[gmriggs]
+* Added NumProjectiles verification
+
+[Mag-nus, Ripley]
+* Updated to .NET Core 3.1
+
+[Mag-nus]
+* Added database logging
+* Added more verbose retransmit logging
+
+### 2020-01-05
+[Mag-nus]
+* Renamed the user supplied path for Config.js from 'filename' to 'path'
+
+### 2020-01-04
+[gmriggs]
+* Updated ring projectile spawn position to match retail
+* Fixed some combat pet maneuvers
+* Fixed some player movement issues during pk spellcasting
+* Updated casting negative item spells on items wielded by target
+* Improved 'Rolling Ball of Death' handling
+
+[Mag-nus]
+* Added support for application startup from outside the directory
+
+### 2020-01-02
+[gmriggs]
+* Added HasDungeon criteria to landblock (check if landblock is a dungeon with no traversable overworld)
+* Re-added missing .EnqueueAction() to EmoteType.CastSpell
+
+[Ripley]
+* Changed Project order in SLN file
 
 ### 2019-12-31
 [Mag-nus]
