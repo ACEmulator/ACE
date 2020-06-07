@@ -58,7 +58,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Flag indicates if this landblock has no keep alive objects
         /// </summary>
-        public bool NoKeepAliveObject = true;
+        public bool HasNoKeepAliveObjects = true;
 
         /// <summary>
         /// This must be true before a player enters a landblock.
@@ -479,7 +479,7 @@ namespace ACE.Server.Entity
                     }
                 }
 
-                if (!Permaload && NoKeepAliveObject)
+                if (!Permaload && HasNoKeepAliveObjects)
                 {
                     if (lastActiveTime + dormantInterval < thisHeartBeat)
                     {
@@ -638,7 +638,7 @@ namespace ACE.Server.Entity
                     InsertWorldObjectIntoSortedGeneratorRegenerationList(kvp.Value);
 
                     if (kvp.Value.WeenieClassId == 80007) // Landblock KeepAlive weenie (ACE custom)
-                        NoKeepAliveObject = false;
+                        HasNoKeepAliveObjects = false;
                 }
 
                 pendingAdditions.Clear();
@@ -664,7 +664,7 @@ namespace ACE.Server.Entity
                             var keepAliveObject = worldObjects.Values.FirstOrDefault(w => w.WeenieClassId == 80007);
 
                             if (keepAliveObject == null)
-                                NoKeepAliveObject = true;
+                                HasNoKeepAliveObjects = true;
                         }
                     }
                 }
