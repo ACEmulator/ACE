@@ -1657,6 +1657,8 @@ namespace ACE.Server.WorldObjects.Managers
 
         public void OnPortal(Creature activator)
         {
+            IsBusy = false;
+
             ExecuteEmoteSet(EmoteCategory.Portal, null, activator);
         }
 
