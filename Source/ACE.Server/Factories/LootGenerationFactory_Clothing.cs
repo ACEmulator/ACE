@@ -599,7 +599,6 @@ namespace ACE.Server.Factories
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)cloakWeenie);
 
-
             if (wo != null && mutate)
                 MutateCloak(wo, profile);
 
@@ -649,7 +648,7 @@ namespace ACE.Server.Factories
             }
             else
             {
-                cloakSpellId = LootTables.CloakSpells[ThreadSafeRandom.Next(0, 11)];
+                cloakSpellId = LootTables.CloakSpells[spellRoll];
                 AssignCloakSpells(wo, cloakSpellId);               
                 if (cloakSpellId == 5753)  // Cloaked in Skill is the only Self Targeted Spell
                     wo.ProcSpellSelfTargeted = true;
