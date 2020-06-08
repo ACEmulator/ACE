@@ -2281,5 +2281,12 @@ namespace ACE.Server.Factories
                 array[i] = t;
             }
         }
+        private static WorldObject AssignCloakSpells(WorldObject wo, int cloakSpellId)
+        {
+
+            wo.Biota.GetOrAddKnownSpell(cloakSpellId, wo.BiotaDatabaseLock, out _);
+            return wo;
+
+        }
     }         
 }

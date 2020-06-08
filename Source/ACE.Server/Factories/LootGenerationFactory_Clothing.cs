@@ -2,11 +2,14 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.Database.Models.World;
+using ACE.Database;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
+using System.Reflection.Metadata.Ecma335;
 
 namespace ACE.Server.Factories
 {
@@ -585,6 +588,138 @@ namespace ACE.Server.Factories
             }
 
             return wo;
+        }
+        private static WorldObject CreateCloak(TreasureDeath profile, bool mutate = true)
+        {
+            int cloakWeenie;
+            int cloakType = ThreadSafeRandom.Next(0, 11);  // 12 different types of Cloaks
+
+            cloakWeenie = LootTables.Cloaks[cloakType];
+
+            WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)cloakWeenie);
+
+
+            if (wo != null && mutate)
+                MutateCloak(wo, profile);
+
+            return wo;
+        }
+        private static void MutateCloak(WorldObject wo, TreasureDeath profile)
+        {
+            const uint cloakIconOverlayOne = 100690996;
+            const uint cloakIconOverlayTwo = 100690997;
+            const uint cloakIconOverlayThree = 100690998;
+            const uint cloakIconOverlayFour = 100690999;
+            const uint cloakIconOverlayFive = 100691000;
+
+            EquipmentSet equipSetId = EquipmentSet.Invalid;
+
+            int cloakSpellId;
+
+            // Workmanship - This really doesn't matter, so not making a big fuss about it.
+            wo.Workmanship = ThreadSafeRandom.Next(1, 10);
+
+            // Level and Icons
+            wo.ItemMaxLevel = GetCloakMaxLevel(profile);
+
+            if (wo.ItemMaxLevel == 1)
+                wo.IconOverlayId = cloakIconOverlayOne;
+            else if (wo.ItemMaxLevel == 2)
+                wo.IconOverlayId = cloakIconOverlayTwo;
+            else if (wo.ItemMaxLevel == 3)
+                wo.IconOverlayId = cloakIconOverlayThree;
+            else if (wo.ItemMaxLevel == 4)
+                wo.IconOverlayId = cloakIconOverlayFour;
+            else if (wo.ItemMaxLevel == 5)
+                wo.IconOverlayId = cloakIconOverlayFive;
+
+            // Cloak Set - Doing it this way because the Equipment Set Enum has MoA values duplicates (which would slant the ratios/drops to Light,Missile,Heavy and Finesse Spells
+            int cloakSetValue = ThreadSafeRandom.Next(0, 34);  // 34 different types of Cloaks
+            int cloakSet = LootTables.CloakSets[cloakSetValue];
+            equipSetId = (EquipmentSet)cloakSet;
+            wo.EquipmentSetId = equipSetId;
+
+            // Surge Spells
+            int spellRoll = ThreadSafeRandom.Next(0, 12);
+            if (spellRoll == 12)
+            {
+                // This is for the one "surge" that is not a spell.  Its a property set for the 
+                // Find what to assign on the WO
+            }
+            else
+            {
+                cloakSpellId = LootTables.CloakSpells[ThreadSafeRandom.Next(0, 11)];
+                AssignCloakSpells(wo, cloakSpellId);
+            }
+        }
+        private static int GetCloakMaxLevel(TreasureDeath profile)
+        {
+            //  These Values are just for starting off.  I haven't gotten the numbers yet to confirm these.
+
+            int cloakLevel = 1;
+            int chance = 0;
+
+            chance = ThreadSafeRandom.Next(1, 100);
+            switch (profile.Tier)
+            {
+                case 1:
+                default:
+                    cloakLevel = 1;
+                    break;
+                case 2:
+                    cloakLevel = 1;
+                    break;
+                case 3:
+                case 4:
+                    if (chance < 65)
+                        cloakLevel = 1;
+                    else
+                        cloakLevel = 2;
+                    break;
+                case 5:
+                    if (chance < 45)
+                        cloakLevel = 1;
+                    else if (chance < 70)
+                        cloakLevel = 2;
+                    else
+                        cloakLevel = 3;
+                    break;
+                case 6:
+                    if (chance < 35)
+                        cloakLevel = 1;
+                    else if (chance < 60)
+                        cloakLevel = 2;
+                    else if (chance < 85)
+                        cloakLevel = 3;
+                    else
+                        cloakLevel = 4;
+                    break;
+                case 7:
+                    if (chance < 25)
+                        cloakLevel = 1;
+                    else if (chance < 50)
+                        cloakLevel = 2;
+                    else if (chance < 75)
+                        cloakLevel = 3;
+                    else if (chance < 97)
+                        cloakLevel = 4;
+                    else
+                        cloakLevel = 5;
+                    break;
+                case 8:
+                    if (chance < 20)
+                        cloakLevel = 1;
+                    else if (chance < 45)
+                        cloakLevel = 2;
+                    else if (chance < 65)
+                        cloakLevel = 3;
+                    else if (chance < 92)
+                        cloakLevel = 4;
+                    else
+                        cloakLevel = 5;
+                    break;
+            }
+            return cloakLevel;
         }
     }
 }
