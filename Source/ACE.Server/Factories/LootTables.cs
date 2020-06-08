@@ -2288,7 +2288,7 @@ namespace ACE.Server.Factories
             44855,  // Halved Cloak
             44856,  // Trimmed Cloak
             44857,  // Quartered Cloak
-            44858,  // Quartered Cloak
+            44858  // Quartered Cloak
         };
 
         public static readonly int[] CloakSpells =  // Cloak SpellIDs 12 of them (Damage Reduction is not a spell, but an Interger Property)

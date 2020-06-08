@@ -10,6 +10,7 @@ using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 using System.Reflection.Metadata.Ecma335;
+using System.Collections.Generic;
 
 namespace ACE.Server.Factories
 {
@@ -649,7 +650,11 @@ namespace ACE.Server.Factories
             else
             {
                 cloakSpellId = LootTables.CloakSpells[ThreadSafeRandom.Next(0, 11)];
-                AssignCloakSpells(wo, cloakSpellId);
+                AssignCloakSpells(wo, cloakSpellId);               
+                if (cloakSpellId == 5753)  // Cloaked in Skill is the only Self Targeted Spell
+                    wo.ProcSpellSelfTargeted = true;
+                else
+                    wo.ProcSpellSelfTargeted = false;
             }
         }
         private static int GetCloakMaxLevel(TreasureDeath profile)
@@ -720,6 +725,10 @@ namespace ACE.Server.Factories
                     break;
             }
             return cloakLevel;
+        }
+        private static bool GetMutateCloakData(uint wcid)
+        {
+            return LootTables.Cloaks.Contains((int)wcid);
         }
     }
 }

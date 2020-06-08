@@ -254,6 +254,8 @@ namespace ACE.Server.Factories
                 MutateMissileWeapon(item, profile, isMagical, wieldDifficulty, isElemental);
             else if (item is PetDevice petDevice)
                 MutatePetDevice(petDevice, profile.Tier);
+            else if (GetMutateCloakData(item.WeenieClassId))
+                MutateCloak(item, profile);
             else
                 return false;
 
