@@ -634,7 +634,7 @@ namespace ACE.Server.Factories
                 wo.IconOverlayId = cloakIconOverlayFive;
 
             // Cloak Set - Doing it this way because the Equipment Set Enum has MoA values duplicates (which would slant the ratios/drops to Light,Missile,Heavy and Finesse Spells
-            int cloakSetValue = ThreadSafeRandom.Next(0, 34);  // 34 different types of Cloaks
+            int cloakSetValue = ThreadSafeRandom.Next(0, 34);  // 35 different types of Cloak Sets
             int cloakSet = LootTables.CloakSets[cloakSetValue];
             equipSetId = (EquipmentSet)cloakSet;
             wo.EquipmentSetId = equipSetId;
@@ -675,49 +675,49 @@ namespace ACE.Server.Factories
                     break;
                 case 3:
                 case 4:
-                    if (chance < 65)
+                    if (chance < 66)
                         cloakLevel = 1;
                     else
                         cloakLevel = 2;
                     break;
                 case 5:
-                    if (chance < 45)
+                    if (chance < 46)
                         cloakLevel = 1;
-                    else if (chance < 70)
+                    else if (chance < 71)
                         cloakLevel = 2;
                     else
                         cloakLevel = 3;
                     break;
                 case 6:
-                    if (chance < 35)
+                    if (chance < 36)
                         cloakLevel = 1;
-                    else if (chance < 60)
+                    else if (chance < 61)
                         cloakLevel = 2;
-                    else if (chance < 85)
+                    else if (chance < 96)
                         cloakLevel = 3;
                     else
                         cloakLevel = 4;
                     break;
                 case 7:
-                    if (chance < 25)
+                    if (chance < 26)
                         cloakLevel = 1;
-                    else if (chance < 50)
+                    else if (chance < 51)
                         cloakLevel = 2;
-                    else if (chance < 75)
+                    else if (chance < 91)
                         cloakLevel = 3;
-                    else if (chance < 97)
+                    else if (chance < 99)
                         cloakLevel = 4;
                     else
                         cloakLevel = 5;
                     break;
                 case 8:
-                    if (chance < 20)
+                    if (chance < 21)
                         cloakLevel = 1;
-                    else if (chance < 45)
+                    else if (chance < 46)
                         cloakLevel = 2;
-                    else if (chance < 65)
+                    else if (chance < 81)
                         cloakLevel = 3;
-                    else if (chance < 92)
+                    else if (chance < 97)
                         cloakLevel = 4;
                     else
                         cloakLevel = 5;

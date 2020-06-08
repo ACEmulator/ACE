@@ -169,7 +169,8 @@ namespace ACE.Server.Factories
             // Gems 14%
             // Armor 24%
             // Weapons 30%
-            // Clothing 14%
+            // Clothing 12%
+            // Cloaks 2%
             // Jewelry 18%
 
             switch (type)
@@ -182,9 +183,13 @@ namespace ACE.Server.Factories
                     //armor
                     wo = CreateArmor(profile, isMagical, true, lootBias);
                     return wo;
-                case var rate when (rate > 38 && rate < 53):
+                case var rate when (rate > 38 && rate < 51):
                     // clothing (shirts/pants)
                     wo = CreateArmor(profile, isMagical, false, lootBias);
+                    return wo;
+                case var rate when (rate > 50 && rate < 53):
+                    // Cloaks  
+                    wo = CreateCloak(profile);
                     return wo;
                 case var rate when (rate > 52 && rate < 83):
                     // weapons (Melee/Missile/Casters)
