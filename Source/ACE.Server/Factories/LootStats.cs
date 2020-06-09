@@ -15,6 +15,7 @@ namespace ACE.Server.Factories
         public float GemCount { get; set; }
         public float AetheriaCount { get; set; }        
         public float ClothingCount { get; set; }
+        public float CloakCount { get; set; }
         public float OtherCount { get; set; }
         public float NullCount { get; set; }
         public int MinItemsCreated { get; set; }
@@ -43,8 +44,10 @@ namespace ACE.Server.Factories
         public string MissileWeapons { get; set; }
         public string CasterWeapons { get; set; }
         public string Armor { get; set; }
+        public string Cloaks { get; set; }
         public string Pets { get; set; }
         public string Aetheria { get; set; }
+
 
         // Item Stats
         public int ItemMaxMana { get; set; }

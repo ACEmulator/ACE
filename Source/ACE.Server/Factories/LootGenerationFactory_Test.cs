@@ -215,7 +215,21 @@ namespace ACE.Server.Factories
                         }
                         break;
                     case ItemType.Clothing:
-                        ls.ClothingCount++;
+                        if (testItem.Name.Contains("Cloak"))
+                        {
+                            string cloakSet = "None ";
+                            if (testItem.EquipmentSetId != null)
+                                cloakSet = Enum.GetName(typeof(EquipmentSet), testItem.EquipmentSetId);
+                            ls.CloakCount++;
+                            if (logstats == true)
+                            {
+                                ls.Cloaks += $"{cloakSet},{testItem.ItemMaxLevel},{testItem.Value.Value}\n";
+                            }
+                            else
+                                ls.Cloaks += $" {cloakSet}\t {testItem.ItemMaxLevel} \t{testItem.Value.Value}\n";
+                        }
+                        else
+                            ls.ClothingCount++;
                         break;
                     case ItemType.Jewelry:
                         ls.JewelryCount++;
@@ -620,6 +634,9 @@ namespace ACE.Server.Factories
                 case "armor":
                     displayStats += ls.Armor + $"\n";
                     break;
+                case "cloaks":
+                    displayStats += ls.Cloaks + $"\n";
+                    break;
                 case "pet":
                     displayStats += ls.Pets + $"\n";
                     break;
@@ -631,6 +648,7 @@ namespace ACE.Server.Factories
                     displayStats += ls.MissileWeapons + $"\n";
                     displayStats += ls.CasterWeapons + $"\n";
                     displayStats += ls.Armor + $"\n";
+                    displayStats += ls.Cloaks + $"\n";
                     displayStats += ls.Pets + $"\n";
                     displayStats += ls.Aetheria + $"\n";
                     break;
@@ -649,6 +667,7 @@ namespace ACE.Server.Factories
                     $"Gem={ls.GemCount} \n " +
                     $"Aetheria={ls.AetheriaCount} \n " +
                     $"Clothing={ls.ClothingCount} \n " +
+                    $"Cloaks={ls.CloakCount} \n " +
                     $"\n Generic Items \n " +
                     $"---- \n " +
                     $"Food={ls.Food} \n " +
@@ -677,6 +696,7 @@ namespace ACE.Server.Factories
                                 $"Gem= {ls.GemCount / ls.TotalItems * 100}% \n " +
                                 $"Aetheria= {ls.AetheriaCount / ls.TotalItems * 100}% \n " +
                                 $"Clothing= {ls.ClothingCount / ls.TotalItems * 100}% \n " +
+                                $"Cloaks= {ls.CloakCount / ls.TotalItems * 100}% \n " +
                                 $"Food= {ls.Food / ls.TotalItems * 100}% \n " +
                                 $"SpellComps= {ls.SpellComponents / ls.TotalItems * 100}% \n " +
                                 $"Keys= {ls.Key / ls.TotalItems * 100}% \n " +
@@ -793,6 +813,7 @@ namespace ACE.Server.Factories
             ls.PetRatingsOverHundred = 0;
             ls.MinAL = 1000;
             ls.MaxAL = 0;
+            ls.CloakCount = 0;
 
             // Tables
             if (logstats == true)
@@ -831,6 +852,12 @@ namespace ACE.Server.Factories
             }
             else
                 ls.Aetheria = $"-----Aetheria----\n Color \t Level\n";
+            if (logstats == true)
+            {
+                ls.Cloaks = $"-----Cloaks----\nSet,Level,Value";
+            }
+            else
+                ls.Cloaks = $"-----Cloaks----\n Set\t Level\t Value\n";
             return ls;
         }
         public static string LogStats()
