@@ -619,6 +619,11 @@ namespace ACE.Server.Factories
             // Workmanship - This really doesn't matter, so not making a big fuss about it.
             wo.Workmanship = ThreadSafeRandom.Next(1, 10);
 
+            // Value
+            double materialMod = LootTables.getMaterialValueModifier(wo);
+            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+            wo.Value = GetValue(profile.Tier, (int)wo.Workmanship, gemMaterialMod, materialMod);
+
             // Level and Icons
             wo.ItemMaxLevel = GetCloakMaxLevel(profile);
 
