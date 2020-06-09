@@ -407,6 +407,32 @@ namespace ACE.Server.WorldObjects
                     int boost = tryBoost;
                     damage = tryBoost < 0 ? (uint)Math.Abs(tryBoost) : 0;
 
+                    // handle cloak damage proc for harm other
+                    var equippedCloak = spellTarget?.EquippedCloak;
+
+                    if (spellTarget != this && spell.VitalDamageType == DamageType.Health && tryBoost < 0 && equippedCloak?.CloakWeaveProc == 2)
+                    {
+                        var percent = (float)-tryBoost / spellTarget.Health.MaxValue;
+
+                        var cloakProc = Cloak.RollProc(percent);
+
+                        if (cloakProc)
+                        {
+                            var reduced = Math.Min(0, tryBoost + 200);
+
+                            var cloakMsg = $"reduced the damage from {-tryBoost} down to {-reduced}!";
+
+                            if (targetPlayer != null)
+                                targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your cloak {cloakMsg}", ChatMessageType.Magic));
+
+                            if (player != null)
+                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The cloak of {spellTarget.Name} {cloakMsg}", ChatMessageType.Magic));
+
+                            tryBoost = boost = reduced;
+                            damage = (uint)Math.Abs(tryBoost);
+                        }
+                    }
+
                     switch (spell.VitalDamageType)
                     {
                         case DamageType.Mana:
@@ -470,10 +496,10 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health") && boost < 0)
+                    if (spellTarget != this && spellTarget.IsAlive && spell.VitalDamageType == DamageType.Health && boost < 0)
                     {
-                        // handle cloaks
-                        if (spellTarget.HasCloakEquipped)
+                        // handle cloak spell proc
+                        if (equippedCloak?.ProcSpell != null)
                         {
                             // ensure message is sent after enchantment.Message
                             var actionChain = new ActionChain();
@@ -489,9 +515,9 @@ namespace ACE.Server.WorldObjects
                         // ensure emote process occurs after damage msg
                         var emoteChain = new ActionChain();
                         emoteChain.AddDelayForOneTick();
-                        emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
+                        emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(creature));
                         //if (critical)
-                        //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
+                        //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(creature));
                         emoteChain.EnqueueChain();
                     }
                     break;
@@ -536,6 +562,32 @@ namespace ACE.Server.WorldObjects
 
                         srcVitalChange = (uint)Math.Round(srcVitalChange * scalar);
                         destVitalChange = maxDestVitalChange;
+                    }
+
+                    // handle cloak damage procs for drain health other
+                    equippedCloak = spellTarget?.EquippedCloak;
+
+                    if (isDrain && spell.Source == PropertyAttribute2nd.Health && equippedCloak?.CloakWeaveProc == 2)
+                    {
+                        var percent = (float)srcVitalChange / spellTarget.Health.MaxValue;
+
+                        var cloakProc = Cloak.RollProc(percent);
+
+                        if (cloakProc)
+                        {
+                            var reduced = Math.Max(0, (int)srcVitalChange - 200);
+
+                            var cloakMsg = $"reduced the damage from {srcVitalChange} down to {reduced}!";
+
+                            if (targetPlayer != null)
+                                targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your cloak {cloakMsg}", ChatMessageType.Magic));
+
+                            if (player != null)
+                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The cloak of {spellTarget.Name} {cloakMsg}", ChatMessageType.Magic));
+
+                            srcVitalChange = (uint)reduced;
+                            destVitalChange = (uint)Math.Round(srcVitalChange * (1.0f - spell.LossPercent) * boostMod);
+                        }
                     }
 
                     // Apply the change in vitals to the source
@@ -624,10 +676,10 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    // handle cloaks
-                    if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health"))
+                    if (isDrain && spellTarget.IsAlive && spell.Source == PropertyAttribute2nd.Health)
                     {
-                        if (spellTarget.HasCloakEquipped)
+                        // handle cloak spell proc
+                        if (equippedCloak?.ProcSpell != null)
                         {
                             // ensure message is sent after enchantment.Message
                             var actionChain = new ActionChain();
@@ -643,9 +695,9 @@ namespace ACE.Server.WorldObjects
                         // ensure emote process occurs after damage msg
                         var emoteChain = new ActionChain();
                         emoteChain.AddDelayForOneTick();
-                        emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
+                        emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(creature));
                         //if (critical)
-                        //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
+                        //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(creature));
                         emoteChain.EnqueueChain();
                     }
                     break;
