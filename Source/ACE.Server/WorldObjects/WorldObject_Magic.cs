@@ -108,10 +108,10 @@ namespace ACE.Server.WorldObjects
 
             // for invisible spell traps,
             // their effects won't be seen if they broadcast from themselves
-            if (target != null && spell.TargetEffect != 0)
+            if (target != null && spell.TargetEffect != 0) //&& status.Success)
                 target.EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
 
-            if (caster != null && spell.CasterEffect != 0)
+            if (caster != null && spell.CasterEffect != 0) //&& status.Success)
                 caster.EnqueueBroadcast(new GameMessageScript(caster.Guid, spell.CasterEffect, spell.Formula.Scale));
         }
 
@@ -251,11 +251,13 @@ namespace ACE.Server.WorldObjects
         /// based upon the caster's magic skill vs target's magic defense skill
         /// </summary>
         /// <returns>TRUE if spell is resisted</returns>
-        public static bool MagicDefenseCheck(uint casterMagicSkill, uint targetMagicDefenseSkill)
+        public static bool MagicDefenseCheck(uint casterMagicSkill, uint targetMagicDefenseSkill, out float resistChance)
         {
             // uses regular 0.03 factor, and not magic casting 0.07 factor
             var chance = SkillCheck.GetSkillChance((int)casterMagicSkill, (int)targetMagicDefenseSkill);
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            resistChance = (float)(1.0f - chance);
 
             return chance <= rng;
         }
@@ -277,7 +279,9 @@ namespace ACE.Server.WorldObjects
             if (caster == null)
                 caster = this;
 
-            if (caster is Creature casterCreature)
+            var casterCreature = caster as Creature;
+
+            if (casterCreature != null)
             {
                 // Retrieve caster's skill level in the Magic School
                 magicSkill = casterCreature.GetCreatureSkill(spell.School).Current;
@@ -304,7 +308,7 @@ namespace ACE.Server.WorldObjects
             var difficulty = targetCreature.GetEffectiveMagicDefense();
 
             //Console.WriteLine($"{target.Name}.ResistSpell({Name}, {spell.Name}): magicSkill: {magicSkill}, difficulty: {difficulty}");
-            bool resisted = MagicDefenseCheck(magicSkill, difficulty);
+            bool resisted = MagicDefenseCheck(magicSkill, difficulty, out float resistChance);
 
             var player = this as Player;
             var targetPlayer = target as Player;
@@ -344,6 +348,16 @@ namespace ACE.Server.WorldObjects
                     Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MagicDefense), magicSkill);
                 }
             }
+
+            if (casterCreature != null && casterCreature.DebugDamage.HasFlag(Creature.DebugDamageType.Attacker))
+            {
+                ShowResistInfo(casterCreature, this, target, spell, magicSkill, difficulty, resistChance, resisted);
+            }
+            if (targetCreature != null && targetCreature.DebugDamage.HasFlag(Creature.DebugDamageType.Defender))
+            {
+                ShowResistInfo(targetCreature, this, target, spell, magicSkill, difficulty, resistChance, resisted);
+            }
+
             return resisted;
         }
 
@@ -993,25 +1007,34 @@ namespace ACE.Server.WorldObjects
                                 break;
                             }
 
-                            ActionChain portalSendingChain = new ActionChain();
-                            //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
-                            var fellows = targetPlayer.Fellowship.GetFellowshipMembers().Values;
-                            foreach (var fellow in fellows)
+                            var distanceToTarget = creature.GetDistance(targetPlayer);
+                            var skill = creature.GetCreatureSkill(spell.School);
+                            var magicSkill = skill.InitLevel + skill.Ranks;
+                            var maxRange = spell.BaseRangeConstant + magicSkill * spell.BaseRangeMod;
+                            if (maxRange == 0.0f)
+                                maxRange = float.PositiveInfinity;
+
+                            if (distanceToTarget <= maxRange)
                             {
-                                if (fellow.Guid != targetPlayer.Guid)
-                                    portalSendingChain.AddAction(fellow, () => fellow.EnqueueBroadcast(new GameMessageScript(fellow.Guid, spell.TargetEffect, spell.Formula.Scale)));
-                                portalSendingChain.AddAction(fellow, () => fellow.DoPreTeleportHide());
-                                portalSendingChain.AddAction(fellow, () =>
+                                ActionChain portalSendingChain = new ActionChain();
+                                portalSendingChain.AddAction(targetPlayer, () => targetPlayer.EnqueueBroadcast(new GameMessageScript(targetPlayer.Guid, spell.TargetEffect, spell.Formula.Scale)));
+                                portalSendingChain.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
+                                portalSendingChain.AddAction(targetPlayer, () =>
                                 {
                                     var teleportDest = new Position(spell.Position);
                                     WorldObject.AdjustDungeon(teleportDest);
 
-                                    fellow.Teleport(teleportDest);
+                                    targetPlayer.Teleport(teleportDest);
 
-                                    fellow.SendTeleportedViaMagicMessage(itemCaster, spell);
+                                    targetPlayer.SendTeleportedViaMagicMessage(itemCaster, spell);
                                 });
+                                portalSendingChain.EnqueueChain();
                             }
-                            portalSendingChain.EnqueueChain();
+                            //else
+                            //{
+                            //    enchantmentStatus.Success = false;
+                            //    return enchantmentStatus;
+                            //}
                         }
                         break;
 
@@ -1870,6 +1893,33 @@ namespace ACE.Server.WorldObjects
                     Biota.PropertiesSpellBook.Keys.Select(i => new Spell(i)).Max(i => i.Formula.Level) : 0;
             }
             return _maxSpellLevel.Value;
+        }
+
+        public static void ShowResistInfo(Creature observed, WorldObject attacker, WorldObject defender, Spell spell, uint attackSkill, uint defenseSkill, float resistChance, bool resisted)
+        {
+            var targetInfo = PlayerManager.GetOnlinePlayer(observed.DebugDamageTarget);
+            if (targetInfo == null)
+            {
+                observed.DebugDamage = Creature.DebugDamageType.None;
+                return;
+            }
+
+            // initial info / resist chance
+            var info = $"Attacker: {attacker.Name} ({attacker.Guid})\n";
+            info += $"Defender: {defender.Name} ({defender.Guid})\n";
+
+            info += $"CombatType: Magic\n";
+
+            info += $"Spell: {spell.Name} ({spell.Id})\n";
+
+            info += $"EffectiveAttackSkill: {attackSkill}\n";
+            info += $"EffectiveDefenseSkill: {defenseSkill}\n";
+
+            info += $"ResistChance: {resistChance}\n";
+
+            info += $"Resisted: {resisted}";
+
+            targetInfo.Session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
         }
     }
 }

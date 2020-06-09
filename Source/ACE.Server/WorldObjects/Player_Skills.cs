@@ -168,7 +168,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sets the skill to trained status for a character
         /// </summary>
-        public bool TrainSkill(Skill skill, int creditsSpent)
+        public bool TrainSkill(Skill skill, int creditsSpent, bool applyCreationBonusXP = false)
         {
             var creatureSkill = GetCreatureSkill(skill);
 
@@ -177,8 +177,15 @@ namespace ACE.Server.WorldObjects
 
             creatureSkill.AdvancementClass = SkillAdvancementClass.Trained;
             creatureSkill.Ranks = 0;
-            creatureSkill.ExperienceSpent = 0;
-            creatureSkill.InitLevel += 5;
+            creatureSkill.InitLevel = 0;
+
+            if (applyCreationBonusXP)
+            {
+                creatureSkill.ExperienceSpent = 526;
+                creatureSkill.Ranks = 5;
+            }
+            else
+                creatureSkill.ExperienceSpent = 0;
 
             AvailableSkillCredits -= creditsSpent;
 
@@ -222,7 +229,7 @@ namespace ACE.Server.WorldObjects
                 creatureSkill.Ranks = (ushort)CalcSkillRank(SkillAdvancementClass.Specialized, creatureSkill.ExperienceSpent);
             }
 
-            creatureSkill.InitLevel += 5;
+            creatureSkill.InitLevel = 10;
             creatureSkill.AdvancementClass = SkillAdvancementClass.Specialized;
 
             AvailableSkillCredits -= creditsSpent;
@@ -258,7 +265,7 @@ namespace ACE.Server.WorldObjects
                 if (IsSkillUntrainable(skill))
                 {
                     creatureSkill.AdvancementClass = SkillAdvancementClass.Untrained;
-                    creatureSkill.InitLevel -= 5;
+                    creatureSkill.InitLevel = 0;
                     AvailableSkillCredits += creditsSpent;
                 }
 
@@ -284,7 +291,7 @@ namespace ACE.Server.WorldObjects
             AvailableSkillCredits += creditsSpent;
 
             creatureSkill.AdvancementClass = SkillAdvancementClass.Trained;
-            creatureSkill.InitLevel -= 5;
+            creatureSkill.InitLevel = 0;
             creatureSkill.ExperienceSpent = 0;
             creatureSkill.Ranks = 0;
 
@@ -313,7 +320,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Wrapper method used for increasing totalXP and then using the amount granted by HandleActionRaiseSkill
         /// </summary>
-        public void AwardSkillXP(Skill skill, uint amount)
+        public void AwardSkillXP(Skill skill, uint amount, bool alertPlayer = false)
         {
             var playerSkill = GetCreatureSkill(skill);
 
@@ -324,6 +331,9 @@ namespace ACE.Server.WorldObjects
 
             GrantXP(amount, XpType.Emote, ShareType.None);
             HandleActionRaiseSkill(skill, amount);
+
+            if (alertPlayer)
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You've earned {amount:N0} experience in your {playerSkill.Skill.ToSentence()} skill.", ChatMessageType.Broadcast));
         }
 
         public void SpendAllAvailableSkillXp(CreatureSkill creatureSkill, bool sendNetworkUpdate = true)
@@ -362,7 +372,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"{Name}.GrantLevelProportionalSkillXP({skill}, {percent}, {max:N0})");
             //Console.WriteLine($"Amount: {amount:N0}");
 
-            AwardSkillXP(skill, amount);
+            AwardSkillXP(skill, amount, true);
         }
 
         /// <summary>
@@ -758,7 +768,7 @@ namespace ACE.Server.WorldObjects
             if (creatureSkill.AdvancementClass == SkillAdvancementClass.Specialized)
             {
                 creatureSkill.AdvancementClass = SkillAdvancementClass.Trained;
-                creatureSkill.InitLevel -= 5;
+                creatureSkill.InitLevel = 0;
                 AvailableSkillCredits += skillBase.UpgradeCostFromTrainedToSpecialized;
             }
 
@@ -767,7 +777,7 @@ namespace ACE.Server.WorldObjects
             if (untrainable)
             {
                 creatureSkill.AdvancementClass = SkillAdvancementClass.Untrained;
-                creatureSkill.InitLevel -= 5;
+                creatureSkill.InitLevel = 0;
                 AvailableSkillCredits += skillBase.TrainedCost;
             }
 
@@ -779,7 +789,7 @@ namespace ACE.Server.WorldObjects
             var updateSkill = new GameMessagePrivateUpdateSkill(this, creatureSkill);
             var availableSkillCredits = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.AvailableSkillCredits, AvailableSkillCredits ?? 0);
 
-            var msg = $"Your {typeOfSkill} {skill.ToSentence()} skill has been {(untrainable ? "removed" : "reset")}. ";
+            var msg = $"Your {(untrainable ? $"{typeOfSkill}" : "")}{skill.ToSentence()} skill has been {(untrainable ? "removed" : "reset")}. ";
             msg += $"All the experience {(creditRefund ? "and skill credits " : "")}that you spent on this skill have been refunded to you.";
 
             Session.Network.EnqueueSend(updateSkill, availableSkillCredits, new GameMessageSystemChat(msg, ChatMessageType.Broadcast));

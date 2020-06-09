@@ -999,7 +999,7 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public Usable? Usable
+        public Usable? ItemUseable
         {
             get => (Usable?)GetProperty(PropertyInt.ItemUseable);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemUseable); else SetProperty(PropertyInt.ItemUseable, (int)value.Value); }
@@ -1315,10 +1315,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.NumItemsInMaterial); else SetProperty(PropertyInt.NumItemsInMaterial, value.Value); }
         }
 
-        public int? AppraisalLongDescDecoration
+        public AppraisalLongDescDecorations? AppraisalLongDescDecoration
         {
-            get => GetProperty(PropertyInt.AppraisalLongDescDecoration);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.AppraisalLongDescDecoration); else SetProperty(PropertyInt.AppraisalLongDescDecoration, value.Value); }
+            get => (AppraisalLongDescDecorations?)GetProperty(PropertyInt.AppraisalLongDescDecoration);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AppraisalLongDescDecoration); else SetProperty(PropertyInt.AppraisalLongDescDecoration, (int)value); }
         }
 
         public float? Workmanship
@@ -1880,6 +1880,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.EncumbranceVal);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.EncumbranceVal); else SetProperty(PropertyInt.EncumbranceVal, value.Value); }
+        }
+
+        public double? BulkMod
+        {
+            get => GetProperty(PropertyFloat.BulkMod);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.BulkMod); else SetProperty(PropertyFloat.BulkMod, value.Value); }
         }
 
         public uint? PaletteBaseId
@@ -2897,6 +2903,24 @@ namespace ACE.Server.WorldObjects
 
             EncumbranceVal = (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
             Value = (StackUnitValue ?? 0) * (StackSize ?? 1);
+        }
+
+        /// <summary>
+        /// 0x0E file id
+        /// </summary>
+        public uint? MutateFilter
+        {
+            get => GetProperty(PropertyDataId.MutateFilter);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.MutateFilter); else SetProperty(PropertyDataId.MutateFilter, value.Value); }
+        }
+
+        /// <summary>
+        /// 0x38 file id
+        /// </summary>
+        public uint? TsysMutationFilter
+        {
+            get => GetProperty(PropertyDataId.TsysMutationFilter);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.TsysMutationFilter); else SetProperty(PropertyDataId.TsysMutationFilter, value.Value); }
         }
     }
 }

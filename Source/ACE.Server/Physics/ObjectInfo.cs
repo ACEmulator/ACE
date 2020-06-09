@@ -70,8 +70,17 @@ namespace ACE.Server.Physics.Animation
 
         public bool MissileIgnore(PhysicsObj collideObj)
         {
+            // modified for 2-way
             if (collideObj.State.HasFlag(PhysicsState.Missile))
+            {
+                if (!Object.IsPlayer)
+                    return true;
+
+                if (collideObj.ProjectileTarget == null || collideObj.ProjectileTarget == Object)
+                    return false;
+
                 return true;
+            }
 
             if (Object.State.HasFlag(PhysicsState.Missile))
             {

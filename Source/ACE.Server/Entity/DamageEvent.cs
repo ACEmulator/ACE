@@ -127,7 +127,8 @@ namespace ACE.Server.Entity
 
         public static HashSet<uint> AllowDamageTypeUndef = new HashSet<uint>()
         {
-            22545   // Obsidian Spines
+            22545,  // Obsidian Spines
+            35191,  // Thunder Chicken
         };
 
         public static DamageEvent CalculateDamage(Creature attacker, Creature defender, WorldObject damageSource, MotionCommand? attackMotion = null)
@@ -562,12 +563,10 @@ namespace ACE.Server.Entity
             if (attacker != null && (attacker.DebugDamage & Creature.DebugDamageType.Attacker) != 0)
             {
                 ShowInfo(attacker);
-                return;
             }
             if (defender != null && (defender.DebugDamage & Creature.DebugDamageType.Defender) != 0)
             {
                 ShowInfo(defender);
-                return;
             }
         }
 

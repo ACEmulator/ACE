@@ -292,6 +292,12 @@ namespace ACE.Server.Network.Structure
                 PropertiesString[PropertyString.Use] = useMessage;
             }
 
+            if (wo is CraftTool && wo.ItemType == ItemType.TinkeringMaterial)
+            {
+                if (PropertiesInt.ContainsKey(PropertyInt.Structure))
+                    PropertiesInt.Remove(PropertyInt.Structure);
+            }
+
             BuildFlags();
         }
 

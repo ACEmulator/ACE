@@ -337,7 +337,7 @@ namespace ACE.Server.Managers
                     player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
             }
             else if (incItemTinkered)
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {sourceName} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}. The target is destroyed.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}. The target is destroyed.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
 
             CreateDestroyItems(player, recipe, tool, target, success, !incItemTinkered);
 
@@ -781,7 +781,7 @@ namespace ACE.Server.Managers
 
         public static bool VerifyUse(Player player, WorldObject source, WorldObject target)
         {
-            var usable = source.Usable ?? Usable.Undef;
+            var usable = source.ItemUseable ?? Usable.Undef;
 
             if (usable == Usable.Undef)
             {
