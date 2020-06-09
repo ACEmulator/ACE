@@ -1707,6 +1707,14 @@ namespace ACE.Server.WorldObjects.Managers
             ExecuteEmoteSet(EmoteCategory.NewEnemy, null, newEnemy);
         }
 
+        /// <summary>
+        /// Called when a monster completes an attack
+        /// </summary>
+        public void OnAttack(WorldObject target)
+        {
+            ExecuteEmoteSet(EmoteCategory.Taunt, null, target);
+        }
+
         public void OnDamage(Creature attacker)
         {
             ExecuteEmoteSet(EmoteCategory.WoundedTaunt, null, attacker);
