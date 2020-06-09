@@ -678,39 +678,33 @@ namespace ACE.Server.WorldObjects
 
                 //Console.WriteLine($"Damage rating: " + Creature.ModToRating(damageRatingMod));
 
-                var finalDamage = damage;
-
                 if (targetPlayer != null)
                 {
                     equippedCloak = targetPlayer.EquippedCloak;
 
-                    if (equippedCloak != null && equippedCloak.CloakWeaveProc >= 2)
+                    if (equippedCloak?.CloakWeaveProc == 2)
                     {
                         var cloakProc = Cloak.RollProc(percent);
 
                         if (cloakProc)
                         {
-                            finalDamage = Math.Max(0, damage - 200);
+                            var reducedDamage = Math.Max(0, damage - 200);
 
-                            var suffix = $"reduced the damage from {Math.Round(damage)} down to {Math.Round(finalDamage)}!";
+                            var suffix = $"reduced the damage from {Math.Round(damage)} down to {Math.Round(reducedDamage)}!";
 
-                            // send cloak message before or after?
-                            var actionChain = new ActionChain();
-                            actionChain.AddDelayForOneTick();
-                            actionChain.AddAction(this, () =>
-                            {
-                                targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your cloak {suffix}", ChatMessageType.Magic));
+                            targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your cloak {suffix}", ChatMessageType.Magic));
 
-                                // send message to attacker?
-                                if (sourcePlayer != null)
-                                    sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"The cloak of {Name} {suffix}", ChatMessageType.Magic));
-                            });
-                            actionChain.EnqueueChain();
+                            // send message to attacker?
+                            if (sourcePlayer != null)
+                                sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"The cloak of {target.Name} {suffix}", ChatMessageType.Magic));
+
+                            damage = reducedDamage;
+                            percent = damage / target.Health.MaxValue;
                         }
                     }
                 }
 
-                amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(finalDamage));
+                amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage));
                 target.DamageHistory.Add(ProjectileSource, Spell.DamageType, amount);
 
                 //if (targetPlayer != null && targetPlayer.Fellowship != null)

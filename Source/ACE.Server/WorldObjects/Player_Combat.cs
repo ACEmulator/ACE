@@ -465,34 +465,26 @@ namespace ACE.Server.WorldObjects
             var amount = (uint)Math.Round(_amount);
             var percent = (float)amount / Health.MaxValue;
 
-            var amountMsg = amount;
-            var percentMsg = percent;
-
             var equippedCloak = EquippedCloak;
 
-            if (equippedCloak != null && equippedCloak.CloakWeaveProc >= 2)
+            if (equippedCloak?.CloakWeaveProc == 2)
             {
                 var cloakProc = Cloak.RollProc(percent);
 
                 if (cloakProc)
                 {
-                    amount = (uint)Math.Round(Math.Max(0, _amount - 200));
+                    var reducedAmount = (uint)Math.Round(Math.Max(0, _amount - 200));
+
+                    var suffix = $"reduced the damage from {amount} down to {reducedAmount}!";
+
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"Your cloak {suffix}", ChatMessageType.Magic));
+
+                    // send message to attacker?
+                    if (source is Player playerSource)
+                        playerSource.Session.Network.EnqueueSend(new GameMessageSystemChat($"The cloak of {Name} {suffix}", ChatMessageType.Magic));
+
+                    amount = reducedAmount;
                     percent = (float)amount / Health.MaxValue;
-
-                    var suffix = $"reduced the damage from {amountMsg} down to {amount}!";
-
-                    // send cloak message before or after?
-                    var actionChain = new ActionChain();
-                    actionChain.AddDelayForOneTick();
-                    actionChain.AddAction(this, () =>
-                    {
-                        Session.Network.EnqueueSend(new GameMessageSystemChat($"Your cloak {suffix}", ChatMessageType.Magic));
-
-                        // send message to attacker?
-                        if (source is Player playerSource)
-                            playerSource.Session.Network.EnqueueSend(new GameMessageSystemChat($"The cloak of {Name} {suffix}", ChatMessageType.Magic));
-                    });
-                    actionChain.EnqueueChain();
                 }
             }
 
@@ -531,7 +523,7 @@ namespace ACE.Server.WorldObjects
             if (source is Creature creature)
             {
                 if (!SquelchManager.Squelches.Contains(source, ChatMessageType.CombatEnemy))
-                    Session.Network.EnqueueSend(new GameEventDefenderNotification(Session, creature.Name, damageType, percentMsg, amountMsg, damageLocation, crit, attackConditions));
+                    Session.Network.EnqueueSend(new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, attackConditions));
 
                 var hitSound = new GameMessageSound(Guid, GetHitSound(source, bodyPart), 1.0f);
                 var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));
