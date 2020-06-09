@@ -470,10 +470,9 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    // handle cloaks
-                    if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health") && boost < 0 && spellTarget.HasCloakEquipped)
+                    if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health") && boost < 0)
                     {
-
+                        // handle cloaks
                         if (spellTarget.HasCloakEquipped)
                         {
                             // ensure message is sent after enchantment.Message
