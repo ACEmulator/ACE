@@ -22,7 +22,7 @@ namespace ACE.Server.Command.Handlers
             {
                 case "-info":
                     Console.WriteLine($"Usage: \n" +
-                                    $"<number of items> <loot tier> <(optional)display table - melee, missile, caster, armor, pet, aetheria> \n" +
+                                    $"<number of items> <loot tier> <(optional)display table - melee, missile, caster, armor, cloak, pet, aetheria> \n" +
                                     $" Example: The following command will generate 1000 items in Tier 7 that shows the melee table\n" +
                                     $"testlootgen 1000 7 melee \n" +
                                     $" Example: The following command will generate 1000 items in Tier 6 that just shows a summary \n" +
@@ -62,13 +62,14 @@ namespace ACE.Server.Command.Handlers
                 case "pet":
                 case "aetheria":
                 case "all":
+                case "cloak":
                 case "":
                     break;
                 case "-log":
                     logstats = true;                    
                     break;
                 default:
-                    Console.WriteLine("Invalid Table Option.  Available Tables to show are melee, missile, caster, armor, pet, aetheria or all.");
+                    Console.WriteLine("Invalid Table Option.  Available Tables to show are melee, missile, caster, armor, cloak, pet, aetheria or all.");
                     return;
             }
             if (parameters.Length > 3)
@@ -148,6 +149,7 @@ namespace ACE.Server.Command.Handlers
                 case "pet":
                 case "aetheria":
                 case "all":
+                case "cloak":
                 case "":
                     break;
                 case "-log":
