@@ -642,6 +642,8 @@ namespace ACE.Server.WorldObjects
             var damageRatingMod = 1.0f;
             var damageResistRatingMod = 1.0f;
 
+            WorldObject equippedCloak = null;
+
             // handle life projectiles for stamina / mana
             if (Spell.Category == SpellCategory.StaminaLowering)
             {
@@ -672,10 +674,43 @@ namespace ACE.Server.WorldObjects
                 damageResistRatingMod = Creature.GetNegativeRatingMod(target.GetDamageResistRating(CombatType.Magic));
                 damage *= damageRatingMod * damageResistRatingMod;
 
+                percent = damage / target.Health.MaxValue;
+
                 //Console.WriteLine($"Damage rating: " + Creature.ModToRating(damageRatingMod));
 
-                percent = damage / target.Health.MaxValue;
-                amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage));
+                var finalDamage = damage;
+
+                if (targetPlayer != null)
+                {
+                    equippedCloak = targetPlayer.EquippedCloak;
+
+                    if (equippedCloak != null && equippedCloak.CloakWeaveProc >= 2)
+                    {
+                        var cloakProc = Cloak.RollProc(percent);
+
+                        if (cloakProc)
+                        {
+                            finalDamage = Math.Max(0, damage - 200);
+
+                            var suffix = $"reduced the damage from {Math.Round(damage)} down to {Math.Round(finalDamage)}!";
+
+                            // send cloak message before or after?
+                            var actionChain = new ActionChain();
+                            actionChain.AddDelayForOneTick();
+                            actionChain.AddAction(this, () =>
+                            {
+                                targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your cloak {suffix}", ChatMessageType.Magic));
+
+                                // send message to attacker?
+                                if (sourcePlayer != null)
+                                    sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"The cloak of {Name} {suffix}", ChatMessageType.Magic));
+                            });
+                            actionChain.EnqueueChain();
+                        }
+                    }
+                }
+
+                amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(finalDamage));
                 target.DamageHistory.Add(ProjectileSource, Spell.DamageType, amount);
 
                 //if (targetPlayer != null && targetPlayer.Fellowship != null)
@@ -731,7 +766,7 @@ namespace ACE.Server.WorldObjects
 
                 if (!nonHealth)
                 {
-                    if (target.HasCloakEquipped)
+                    if (equippedCloak?.ProcSpell != null)
                         Cloak.TryProcSpell(target, ProjectileSource, percent);
 
                     target.EmoteManager.OnDamage(sourcePlayer);

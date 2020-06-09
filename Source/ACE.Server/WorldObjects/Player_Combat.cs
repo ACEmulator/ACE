@@ -465,6 +465,37 @@ namespace ACE.Server.WorldObjects
             var amount = (uint)Math.Round(_amount);
             var percent = (float)amount / Health.MaxValue;
 
+            var amountMsg = amount;
+            var percentMsg = percent;
+
+            var equippedCloak = EquippedCloak;
+
+            if (equippedCloak != null && equippedCloak.CloakWeaveProc >= 2)
+            {
+                var cloakProc = Cloak.RollProc(percent);
+
+                if (cloakProc)
+                {
+                    amount = (uint)Math.Round(Math.Max(0, _amount - 200));
+                    percent = (float)amount / Health.MaxValue;
+
+                    var suffix = $"reduced the damage from {amountMsg} down to {amount}!";
+
+                    // send cloak message before or after?
+                    var actionChain = new ActionChain();
+                    actionChain.AddDelayForOneTick();
+                    actionChain.AddAction(this, () =>
+                    {
+                        Session.Network.EnqueueSend(new GameMessageSystemChat($"Your cloak {suffix}", ChatMessageType.Magic));
+
+                        // send message to attacker?
+                        if (source is Player playerSource)
+                            playerSource.Session.Network.EnqueueSend(new GameMessageSystemChat($"The cloak of {Name} {suffix}", ChatMessageType.Magic));
+                    });
+                    actionChain.EnqueueChain();
+                }
+            }
+
             // update health
             var damageTaken = (uint)-UpdateVitalDelta(Health, (int)-amount);
             DamageHistory.Add(source, damageType, damageTaken);
@@ -500,7 +531,7 @@ namespace ACE.Server.WorldObjects
             if (source is Creature creature)
             {
                 if (!SquelchManager.Squelches.Contains(source, ChatMessageType.CombatEnemy))
-                    Session.Network.EnqueueSend(new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, attackConditions));
+                    Session.Network.EnqueueSend(new GameEventDefenderNotification(Session, creature.Name, damageType, percentMsg, amountMsg, damageLocation, crit, attackConditions));
 
                 var hitSound = new GameMessageSound(Guid, GetHitSound(source, bodyPart), 1.0f);
                 var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));
@@ -510,7 +541,7 @@ namespace ACE.Server.WorldObjects
             if (percent >= 0.1f)
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound1, 1.0f));
 
-            if (HasCloakEquipped)
+            if (equippedCloak?.ProcSpell != null)
                 Cloak.TryProcSpell(this, source, percent);
 
             // if player attacker, update PK timer
