@@ -2,15 +2,11 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.Database.Models.World;
-using ACE.Database;
-using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
-using System.Reflection.Metadata.Ecma335;
-using System.Collections.Generic;
 
 namespace ACE.Server.Factories
 {
@@ -593,7 +589,7 @@ namespace ACE.Server.Factories
         private static WorldObject CreateCloak(TreasureDeath profile, bool mutate = true)
         {
             int cloakWeenie;
-            int cloakType = ThreadSafeRandom.Next(0, 11);  // 12 different types of Cloaks
+            int cloakType = ThreadSafeRandom.Next(0, 10);  // 11 different types of Cloaks
 
             cloakWeenie = LootTables.Cloaks[cloakType];
 
