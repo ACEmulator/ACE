@@ -70,7 +70,7 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            if (source.ItemType == ItemType.TinkeringMaterial)
+            if ((source.ItemType == ItemType.TinkeringMaterial) || (source.ItemType == ItemType.Misc))
             {
                 HandleTinkering(player, source, target);
                 return;
