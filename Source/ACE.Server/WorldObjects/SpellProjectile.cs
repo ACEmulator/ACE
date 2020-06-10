@@ -746,8 +746,8 @@ namespace ACE.Server.WorldObjects
 
                 if (!nonHealth)
                 {
-                    if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak) && Cloak.RollProc(percent))
-                        Cloak.HandleProcSpell(target, ProjectileSource, equippedCloak);
+                    if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak))
+                        Cloak.TryProcSpell(target, ProjectileSource, equippedCloak, percent);
 
                     target.EmoteManager.OnDamage(sourcePlayer);
 

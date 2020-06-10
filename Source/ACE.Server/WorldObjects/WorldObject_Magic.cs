@@ -490,15 +490,15 @@ namespace ACE.Server.WorldObjects
 
                     if (spellTarget != this && spellTarget.IsAlive && spell.VitalDamageType == DamageType.Health && boost < 0)
                     {
-                        var pct = (float)-boost / spellTarget.Health.MaxValue;
-
                         // handle cloak spell proc
-                        if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak) && Cloak.RollProc(pct))
+                        if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak))
                         {
+                            var pct = (float)-boost / spellTarget.Health.MaxValue;
+
                             // ensure message is sent after enchantment.Message
                             var actionChain = new ActionChain();
                             actionChain.AddDelayForOneTick();
-                            actionChain.AddAction(this, () => Cloak.HandleProcSpell(spellTarget, this, equippedCloak));
+                            actionChain.AddAction(this, () => Cloak.TryProcSpell(spellTarget, this, equippedCloak, pct));
                             actionChain.EnqueueChain();
                         }
 
@@ -660,15 +660,15 @@ namespace ACE.Server.WorldObjects
 
                     if (isDrain && spellTarget.IsAlive && spell.Source == PropertyAttribute2nd.Health)
                     {
-                        var pct = (float)srcVitalChange / spellTarget.Health.MaxValue;
-
                         // handle cloak spell proc
-                        if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak) && Cloak.RollProc(pct))
+                        if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak))
                         {
+                            var pct = (float)srcVitalChange / spellTarget.Health.MaxValue;
+
                             // ensure message is sent after enchantment.Message
                             var actionChain = new ActionChain();
                             actionChain.AddDelayForOneTick();
-                            actionChain.AddAction(this, () => Cloak.HandleProcSpell(spellTarget, this, equippedCloak));
+                            actionChain.AddAction(this, () => Cloak.TryProcSpell(spellTarget, this, equippedCloak, pct));
                             actionChain.EnqueueChain();
                         }
 
