@@ -678,30 +678,16 @@ namespace ACE.Server.WorldObjects
 
                 //Console.WriteLine($"Damage rating: " + Creature.ModToRating(damageRatingMod));
 
-                if (targetPlayer != null)
+                equippedCloak = target.EquippedCloak;
+
+                if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(percent))
                 {
-                    equippedCloak = targetPlayer.EquippedCloak;
+                    var reducedDamage = Cloak.GetReducedAmount(damage);
 
-                    if (equippedCloak?.CloakWeaveProc == 2)
-                    {
-                        var cloakProc = Cloak.RollProc(percent);
+                    Cloak.ShowMessage(target, ProjectileSource, damage, reducedDamage);
 
-                        if (cloakProc)
-                        {
-                            var reducedDamage = Math.Max(0, damage - 200);
-
-                            var suffix = $"reduced the damage from {Math.Round(damage)} down to {Math.Round(reducedDamage)}!";
-
-                            targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your cloak {suffix}", ChatMessageType.Magic));
-
-                            // send message to attacker?
-                            if (sourcePlayer != null)
-                                sourcePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"The cloak of {target.Name} {suffix}", ChatMessageType.Magic));
-
-                            damage = reducedDamage;
-                            percent = damage / target.Health.MaxValue;
-                        }
-                    }
+                    damage = reducedDamage;
+                    percent = damage / target.Health.MaxValue;
                 }
 
                 amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage));
@@ -760,8 +746,8 @@ namespace ACE.Server.WorldObjects
 
                 if (!nonHealth)
                 {
-                    if (equippedCloak?.ProcSpell != null)
-                        Cloak.TryProcSpell(target, ProjectileSource, percent);
+                    if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak) && Cloak.RollProc(percent))
+                        Cloak.HandleProcSpell(target, ProjectileSource, equippedCloak);
 
                     target.EmoteManager.OnDamage(sourcePlayer);
 

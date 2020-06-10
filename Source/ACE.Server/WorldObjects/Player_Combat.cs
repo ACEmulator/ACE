@@ -467,25 +467,14 @@ namespace ACE.Server.WorldObjects
 
             var equippedCloak = EquippedCloak;
 
-            if (equippedCloak?.CloakWeaveProc == 2)
+            if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(percent))
             {
-                var cloakProc = Cloak.RollProc(percent);
+                var reducedAmount = Cloak.GetReducedAmount(amount);
 
-                if (cloakProc)
-                {
-                    var reducedAmount = (uint)Math.Round(Math.Max(0, _amount - 200));
+                Cloak.ShowMessage(this, source, amount, reducedAmount);
 
-                    var suffix = $"reduced the damage from {amount} down to {reducedAmount}!";
-
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"Your cloak {suffix}", ChatMessageType.Magic));
-
-                    // send message to attacker?
-                    if (source is Player playerSource)
-                        playerSource.Session.Network.EnqueueSend(new GameMessageSystemChat($"The cloak of {Name} {suffix}", ChatMessageType.Magic));
-
-                    amount = reducedAmount;
-                    percent = (float)amount / Health.MaxValue;
-                }
+                amount = reducedAmount;
+                percent = (float)amount / Health.MaxValue;
             }
 
             // update health
@@ -533,8 +522,8 @@ namespace ACE.Server.WorldObjects
             if (percent >= 0.1f)
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound1, 1.0f));
 
-            if (equippedCloak?.ProcSpell != null)
-                Cloak.TryProcSpell(this, source, percent);
+            if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak))
+                Cloak.TryProcSpell(this, source, equippedCloak, percent);
 
             // if player attacker, update PK timer
             if (source is Player attacker)

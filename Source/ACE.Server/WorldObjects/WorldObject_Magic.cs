@@ -410,23 +410,15 @@ namespace ACE.Server.WorldObjects
                     // handle cloak damage proc for harm other
                     var equippedCloak = spellTarget?.EquippedCloak;
 
-                    if (spellTarget != this && spell.VitalDamageType == DamageType.Health && tryBoost < 0 && equippedCloak?.CloakWeaveProc == 2)
+                    if (spellTarget != this && spell.VitalDamageType == DamageType.Health && tryBoost < 0)
                     {
                         var percent = (float)-tryBoost / spellTarget.Health.MaxValue;
 
-                        var cloakProc = Cloak.RollProc(percent);
-
-                        if (cloakProc)
+                        if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(percent))
                         {
-                            var reduced = Math.Min(0, tryBoost + 200);
+                            var reduced = -Cloak.GetReducedAmount(-tryBoost);
 
-                            var cloakMsg = $"reduced the damage from {-tryBoost} down to {-reduced}!";
-
-                            if (targetPlayer != null)
-                                targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your cloak {cloakMsg}", ChatMessageType.Magic));
-
-                            if (player != null)
-                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The cloak of {spellTarget.Name} {cloakMsg}", ChatMessageType.Magic));
+                            Cloak.ShowMessage(spellTarget, this, -tryBoost, -reduced);
 
                             tryBoost = boost = reduced;
                             damage = (uint)Math.Abs(tryBoost);
@@ -498,17 +490,15 @@ namespace ACE.Server.WorldObjects
 
                     if (spellTarget != this && spellTarget.IsAlive && spell.VitalDamageType == DamageType.Health && boost < 0)
                     {
+                        var pct = (float)-boost / spellTarget.Health.MaxValue;
+
                         // handle cloak spell proc
-                        if (equippedCloak?.ProcSpell != null)
+                        if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak) && Cloak.RollProc(pct))
                         {
                             // ensure message is sent after enchantment.Message
                             var actionChain = new ActionChain();
                             actionChain.AddDelayForOneTick();
-                            actionChain.AddAction(this, () =>
-                            {
-                                var pct = (float)-boost / spellTarget.Health.MaxValue;
-                                Cloak.TryProcSpell(spellTarget, this, pct);
-                            });
+                            actionChain.AddAction(this, () => Cloak.HandleProcSpell(spellTarget, this, equippedCloak));
                             actionChain.EnqueueChain();
                         }
 
@@ -567,25 +557,17 @@ namespace ACE.Server.WorldObjects
                     // handle cloak damage procs for drain health other
                     equippedCloak = spellTarget?.EquippedCloak;
 
-                    if (isDrain && spell.Source == PropertyAttribute2nd.Health && equippedCloak?.CloakWeaveProc == 2)
+                    if (isDrain && spell.Source == PropertyAttribute2nd.Health)
                     {
                         var percent = (float)srcVitalChange / spellTarget.Health.MaxValue;
 
-                        var cloakProc = Cloak.RollProc(percent);
-
-                        if (cloakProc)
+                        if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(percent))
                         {
-                            var reduced = Math.Max(0, (int)srcVitalChange - 200);
+                            var reduced = Cloak.GetReducedAmount(srcVitalChange);
 
-                            var cloakMsg = $"reduced the damage from {srcVitalChange} down to {reduced}!";
+                            Cloak.ShowMessage(spellTarget, this, srcVitalChange, reduced);
 
-                            if (targetPlayer != null)
-                                targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your cloak {cloakMsg}", ChatMessageType.Magic));
-
-                            if (player != null)
-                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The cloak of {spellTarget.Name} {cloakMsg}", ChatMessageType.Magic));
-
-                            srcVitalChange = (uint)reduced;
+                            srcVitalChange = reduced;
                             destVitalChange = (uint)Math.Round(srcVitalChange * (1.0f - spell.LossPercent) * boostMod);
                         }
                     }
@@ -678,17 +660,15 @@ namespace ACE.Server.WorldObjects
 
                     if (isDrain && spellTarget.IsAlive && spell.Source == PropertyAttribute2nd.Health)
                     {
+                        var pct = (float)srcVitalChange / spellTarget.Health.MaxValue;
+
                         // handle cloak spell proc
-                        if (equippedCloak?.ProcSpell != null)
+                        if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak) && Cloak.RollProc(pct))
                         {
                             // ensure message is sent after enchantment.Message
                             var actionChain = new ActionChain();
                             actionChain.AddDelayForOneTick();
-                            actionChain.AddAction(this, () =>
-                            {
-                                var pct = (float)srcVitalChange / spellTarget.Health.MaxValue;
-                                Cloak.TryProcSpell(spellTarget, this, pct);
-                            });
+                            actionChain.AddAction(this, () => Cloak.HandleProcSpell(spellTarget, this, equippedCloak));
                             actionChain.EnqueueChain();
                         }
 
