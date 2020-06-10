@@ -264,6 +264,9 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALRAREFOOLPROOFPERIDOT_CLASS:
                 case WeenieClassName.W_MATERIALRAREFOOLPROOFYELLOWTOPAZ_CLASS:
                 case WeenieClassName.W_MATERIALRAREFOOLPROOFZIRCON_CLASS:
+                case WeenieClassName.W_MATERIALACE36634FOOLPROOFPERIDOT:
+                case WeenieClassName.W_MATERIALACE36635FOOLPROOFYELLOWTOPAZ:
+                case WeenieClassName.W_MATERIALACE36636FOOLPROOFZIRCON:
 
                     // ensure clothing/armor w/ AL and workmanship
                     if (target.WeenieType != WeenieType.Clothing || (target.ArmorLevel ?? 0) == 0 || target.Workmanship == null)
@@ -334,9 +337,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALACE36626FOOLPROOFREDGARNET:
                 case WeenieClassName.W_MATERIALACE36627FOOLPROOFSUNSTONE:
                 case WeenieClassName.W_MATERIALACE36628FOOLPROOFWHITESAPPHIRE:
-                case WeenieClassName.W_MATERIALACE36634FOOLPROOFPERIDOT:
-                case WeenieClassName.W_MATERIALACE36635FOOLPROOFYELLOWTOPAZ:
-                case WeenieClassName.W_MATERIALACE36636FOOLPROOFZIRCON:
+
 
                     recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
                     break;
