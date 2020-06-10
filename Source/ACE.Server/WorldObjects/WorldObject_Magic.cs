@@ -725,9 +725,9 @@ namespace ACE.Server.WorldObjects
 
                     damage = 0;
                     if (itemCaster != null)
-                        enchantmentStatus = CreateEnchantment(spellTarget, itemCaster, spell, equip);
+                        enchantmentStatus = CreateEnchantment(spellTarget ?? target, itemCaster, spell, equip);
                     else
-                        enchantmentStatus = CreateEnchantment(spellTarget, this, spell, equip);
+                        enchantmentStatus = CreateEnchantment(spellTarget ?? target, this, spell, equip);
                     break;
 
                 default:
