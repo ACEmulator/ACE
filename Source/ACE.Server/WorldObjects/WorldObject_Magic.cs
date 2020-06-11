@@ -1440,6 +1440,9 @@ namespace ACE.Server.WorldObjects
 
             var speed = GetProjectileSpeed(spell);
 
+            if (target == null && this is Creature creature && !(this is Player))
+                target = creature.AttackTarget;
+
             if (target == null)
             {
                 // launch along forward vector
