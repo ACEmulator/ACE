@@ -854,10 +854,10 @@ namespace ACE.Server.Factories
                 ls.Aetheria = $"-----Aetheria----\n Color \t Level\n";
             if (logstats == true)
             {
-                ls.Cloaks = $"-----Cloaks----\nLevel,Proc,Value,Set";
+                ls.Cloaks = $"-----Cloaks----\nLevel,Value,Proc,Set";
             }
             else
-                ls.Cloaks = $"-----Cloaks----\n Level\t Proc\t Value\t Set \n";
+                ls.Cloaks = $"-----Cloaks----\n Level\t Value\t Proc\t  Set \n";
             return ls;
         }
         public static string LogStats()
