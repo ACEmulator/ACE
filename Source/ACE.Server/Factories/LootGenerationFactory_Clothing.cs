@@ -645,7 +645,7 @@ namespace ACE.Server.Factories
             if (spellRoll == 12)
             {
                 // This is for the one "surge" that is not a spell.  Its a property set for the 
-                // Find what to assign on the WO
+                wo.CloakWeaveProc = 2;
             }
             else
             {
@@ -655,6 +655,7 @@ namespace ACE.Server.Factories
                     wo.ProcSpellSelfTargeted = true;
                 else
                     wo.ProcSpellSelfTargeted = false;
+                wo.CloakWeaveProc = 1;
             }
         }
         private static int GetCloakMaxLevel(TreasureDeath profile)
