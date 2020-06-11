@@ -1371,8 +1371,10 @@ namespace ACE.Server.WorldObjects.Managers
             var emoteSet = _worldObject.Biota.PropertiesEmote.Where(e => e.Category == category);
 
             // optional criteria
-            if (questName != null)
-                emoteSet = emoteSet.Where(e => e.Quest.Equals(questName, StringComparison.OrdinalIgnoreCase));
+            if (category == EmoteCategory.HearChat && questName != null)
+                emoteSet = emoteSet.Where(e => e.Quest != null && e.Quest.Equals(questName, StringComparison.OrdinalIgnoreCase) || e.Quest == null);
+            else if (questName != null)
+                emoteSet = emoteSet.Where(e => e.Quest != null && e.Quest.Equals(questName, StringComparison.OrdinalIgnoreCase));
             if (vendorType != null)
                 emoteSet = emoteSet.Where(e => e.VendorType != null && e.VendorType.Value == vendorType);
             if (wcid != null)
@@ -1764,6 +1766,14 @@ namespace ACE.Server.WorldObjects.Managers
         public void OnHomeSick(WorldObject attackTarget)
         {
             ExecuteEmoteSet(EmoteCategory.Homesick, null, attackTarget);
+        }
+
+        /// <summary>
+        /// Called when this NPC hears local chat from a player
+        /// </summary>
+        public void OnHearChat(Player player, string message)
+        {
+            ExecuteEmoteSet(EmoteCategory.HearChat, message, player);
         }
 
         //public bool HasAntennas => WorldObject.Biota.BiotaPropertiesEmote.Count(x => x.Category == (int)EmoteCategory.ReceiveLocalSignal) > 0;
