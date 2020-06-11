@@ -705,6 +705,19 @@ namespace ACE.Server.Physics.Common
             }
         }
 
+        public List<Creature> GetKnownObjectsValuesAsCreature()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return KnownObjects.Values.Select(v => v.WeenieObj.WorldObject).OfType<Creature>().ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
         /// <summary>
         /// Adds a player who currently knows about this object
         /// - this is maintained for all server-spawned objects

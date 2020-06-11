@@ -783,7 +783,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionTalk(string message)
         {
             if (!IsGagged)
+            {
                 EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, ChatMessageType.Speech);
+
+                OnTalk(message);
+            }
             else
                 SendGagError();
         }
@@ -809,7 +813,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionEmote(string message)
         {
             if (!IsGagged)
+            {
                 EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, Name, message), LocalBroadcastRange);
+
+                OnTalk(message);
+            }
             else
                 SendGagError();
         }
@@ -817,9 +825,32 @@ namespace ACE.Server.WorldObjects
         public void HandleActionSoulEmote(string message)
         {
             if (!IsGagged)
+            {
                 EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message), LocalBroadcastRange);
+
+                OnTalk(message);
+            }
             else
                 SendGagError();
+        }
+
+        public void OnTalk(string message)
+        {
+            if (PhysicsObj == null || CurrentLandblock == null) return;
+
+            var isDungeon = CurrentLandblock.PhysicsLandblock != null && CurrentLandblock.PhysicsLandblock.IsDungeon;
+
+            var rangeSquared = LocalBroadcastRangeSq;
+
+            foreach (var creature in PhysicsObj.ObjMaint.GetKnownObjectsValuesAsCreature())
+            {
+                if (isDungeon && Location.Landblock != creature.Location.Landblock)
+                    continue;
+
+                var distSquared = Location.SquaredDistanceTo(creature.Location);
+                if (distSquared <= rangeSquared)
+                    creature.EmoteManager.OnHearChat(this, message);
+            }
         }
 
         public void HandleActionJump(JumpPack jump)

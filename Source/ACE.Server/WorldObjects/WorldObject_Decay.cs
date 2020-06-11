@@ -144,9 +144,6 @@ namespace ACE.Server.WorldObjects
 
         public void DeleteObject(Container rootOwner = null)
         {
-            if (IsGenerator)
-                ProcessGeneratorDestructionDirective(GeneratorDestructionType);
-
             if (Wielder != null)
             {
                 if (Wielder is Player player)
