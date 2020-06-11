@@ -223,10 +223,10 @@ namespace ACE.Server.Factories
                             ls.CloakCount++;
                             if (logstats == true)
                             {
-                                ls.Cloaks += $"{testItem.ItemMaxLevel},{testItem.Value.Value},{cloakSet}\n";
+                                ls.Cloaks += $"{testItem.ItemMaxLevel},{testItem.Value.Value},{testItem.CloakWeaveProc.Value},{cloakSet}\n";
                             }
                             else
-                                ls.Cloaks += $" {testItem.ItemMaxLevel}\t {testItem.Value.Value}\t {cloakSet}\n";
+                                ls.Cloaks += $" {testItem.ItemMaxLevel}\t {testItem.Value.Value}\t {testItem.CloakWeaveProc.Value}\t {cloakSet}\n";
                         }
                         else
                             ls.ClothingCount++;
@@ -854,10 +854,10 @@ namespace ACE.Server.Factories
                 ls.Aetheria = $"-----Aetheria----\n Color \t Level\n";
             if (logstats == true)
             {
-                ls.Cloaks = $"-----Cloaks----\nLevel,Value,Set";
+                ls.Cloaks = $"-----Cloaks----\nLevel,Proc,Value,Set";
             }
             else
-                ls.Cloaks = $"-----Cloaks----\n Level\t Value\t Set \n";
+                ls.Cloaks = $"-----Cloaks----\n Level\t Proc\t Value\t Set \n";
             return ls;
         }
         public static string LogStats()
