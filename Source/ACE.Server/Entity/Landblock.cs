@@ -877,13 +877,17 @@ namespace ACE.Server.Entity
             }
         }
 
-        public void EmitSignal(Creature emitter, string message)
+        public void EmitSignal(WorldObject emitter, string message)
         {
+            if (string.IsNullOrWhiteSpace(message)) return;
+
             foreach (var wo in worldObjects.Values.Where(w => w.HearLocalSignals).ToList())
             {
+                if (emitter == wo) continue;
+
                 if (emitter.IsWithinUseRadiusOf(wo, wo.HearLocalSignalsRadius))
                 {
-                    //Console.WriteLine($"{wo.Name}.EmoteManager.OnLocalSignal({player.Name}, {message})");
+                    //Console.WriteLine($"{wo.Name}.EmoteManager.OnLocalSignal({emitter.Name}, {message})");
                     wo.EmoteManager.OnLocalSignal(emitter, message);
                 }
             }
