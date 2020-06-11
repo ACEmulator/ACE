@@ -642,6 +642,8 @@ namespace ACE.Server.WorldObjects
             var damageRatingMod = 1.0f;
             var damageResistRatingMod = 1.0f;
 
+            WorldObject equippedCloak = null;
+
             // handle life projectiles for stamina / mana
             if (Spell.Category == SpellCategory.StaminaLowering)
             {
@@ -672,9 +674,22 @@ namespace ACE.Server.WorldObjects
                 damageResistRatingMod = Creature.GetNegativeRatingMod(target.GetDamageResistRating(CombatType.Magic));
                 damage *= damageRatingMod * damageResistRatingMod;
 
+                percent = damage / target.Health.MaxValue;
+
                 //Console.WriteLine($"Damage rating: " + Creature.ModToRating(damageRatingMod));
 
-                percent = damage / target.Health.MaxValue;
+                equippedCloak = target.EquippedCloak;
+
+                if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(percent))
+                {
+                    var reducedDamage = Cloak.GetReducedAmount(damage);
+
+                    Cloak.ShowMessage(target, ProjectileSource, damage, reducedDamage);
+
+                    damage = reducedDamage;
+                    percent = damage / target.Health.MaxValue;
+                }
+
                 amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage));
                 target.DamageHistory.Add(ProjectileSource, Spell.DamageType, amount);
 
@@ -731,8 +746,8 @@ namespace ACE.Server.WorldObjects
 
                 if (!nonHealth)
                 {
-                    if (target.HasCloakEquipped)
-                        Cloak.TryProcSpell(target, ProjectileSource, percent);
+                    if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak))
+                        Cloak.TryProcSpell(target, ProjectileSource, equippedCloak, percent);
 
                     target.EmoteManager.OnDamage(sourcePlayer);
 

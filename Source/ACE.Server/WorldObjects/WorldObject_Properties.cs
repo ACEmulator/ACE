@@ -2922,5 +2922,16 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyDataId.TsysMutationFilter);
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.TsysMutationFilter); else SetProperty(PropertyDataId.TsysMutationFilter, value.Value); }
         }
+
+        /// <summary>
+        /// Either 1 or 2 for cloaks
+        /// 1 = spell proc
+        /// 2 = damage reduction proc
+        /// </summary>
+        public int? CloakWeaveProc
+        {
+            get => GetProperty(PropertyInt.CloakWeaveProc);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CloakWeaveProc); else SetProperty(PropertyInt.CloakWeaveProc, value.Value); }
+        }
     }
 }
