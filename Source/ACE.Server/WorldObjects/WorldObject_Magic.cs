@@ -725,9 +725,9 @@ namespace ACE.Server.WorldObjects
 
                     damage = 0;
                     if (itemCaster != null)
-                        enchantmentStatus = CreateEnchantment(target, itemCaster, spell, equip);
+                        enchantmentStatus = CreateEnchantment(spellTarget ?? target, itemCaster, spell, equip);
                     else
-                        enchantmentStatus = CreateEnchantment(target, this, spell, equip);
+                        enchantmentStatus = CreateEnchantment(spellTarget ?? target, this, spell, equip);
                     break;
 
                 default:
@@ -822,7 +822,7 @@ namespace ACE.Server.WorldObjects
                 LifeMagic(spell, out uint damage, out bool critical, out var enchantmentStatus, target);
                 return enchantmentStatus;
             }
-            return CreateEnchantment(target, itemCaster ?? this, spell, equip);
+            return CreateEnchantment(target ?? itemCaster ?? this, itemCaster ?? this, spell, equip);
         }
 
         /// <summary>
