@@ -56,6 +56,11 @@ namespace ACE.Server.Entity
         public bool Permaload = false;
 
         /// <summary>
+        /// Flag indicates if this landblock has no keep alive objects
+        /// </summary>
+        public bool HasNoKeepAliveObjects = true;
+
+        /// <summary>
         /// This must be true before a player enters a landblock.
         /// This prevents a player from possibly pasing through a door that hasn't spawned in yet, and other scenarios.
         /// </summary>
@@ -474,7 +479,7 @@ namespace ACE.Server.Entity
                     }
                 }
 
-                if (!Permaload)
+                if (!Permaload && HasNoKeepAliveObjects)
                 {
                     if (lastActiveTime + dormantInterval < thisHeartBeat)
                     {
@@ -631,6 +636,9 @@ namespace ACE.Server.Entity
                     InsertWorldObjectIntoSortedHeartbeatList(kvp.Value);
                     InsertWorldObjectIntoSortedGeneratorUpdateList(kvp.Value);
                     InsertWorldObjectIntoSortedGeneratorRegenerationList(kvp.Value);
+
+                    if (kvp.Value.WeenieClassId == 80007) // Landblock KeepAlive weenie (ACE custom)
+                        HasNoKeepAliveObjects = false;
                 }
 
                 pendingAdditions.Clear();
@@ -650,6 +658,14 @@ namespace ACE.Server.Entity
                         sortedWorldObjectsByNextHeartbeat.Remove(wo);
                         sortedGeneratorsByNextGeneratorUpdate.Remove(wo);
                         sortedGeneratorsByNextRegeneration.Remove(wo);
+
+                        if (wo.WeenieClassId == 80007) // Landblock KeepAlive weenie (ACE custom)
+                        {
+                            var keepAliveObject = worldObjects.Values.FirstOrDefault(w => w.WeenieClassId == 80007);
+
+                            if (keepAliveObject == null)
+                                HasNoKeepAliveObjects = true;
+                        }
                     }
                 }
 
