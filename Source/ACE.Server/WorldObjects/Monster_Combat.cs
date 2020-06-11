@@ -244,6 +244,9 @@ namespace ACE.Server.WorldObjects
                     MagicAttack();
                     break;
             }
+
+            EmoteManager.OnAttack(AttackTarget);
+
             ResetAttack();
         }
 
