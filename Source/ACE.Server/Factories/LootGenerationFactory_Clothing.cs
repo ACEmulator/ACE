@@ -634,6 +634,19 @@ namespace ACE.Server.Factories
             else if (wo.ItemMaxLevel == 5)
                 wo.IconOverlayId = cloakIconOverlayFive;
 
+            // Wield Diff
+            // Notes - There is a lvl 180 cloak, but that cloak req has Damage Ratings and is T8 only.  Damage ratings on items are done at this time.
+            if (wo.ItemMaxLevel == 1)
+                wo.WieldDifficulty = 30;
+            else if (wo.ItemMaxLevel == 2)
+                wo.WieldDifficulty = 60;
+            else if (wo.ItemMaxLevel == 3)
+                wo.WieldDifficulty = 90;
+            else if (wo.ItemMaxLevel == 4)
+                wo.WieldDifficulty = 120;
+            else if (wo.ItemMaxLevel == 5)
+                wo.WieldDifficulty = 150;
+
             // Cloak Set - Doing it this way because the Equipment Set Enum has MoA values duplicates (which would slant the ratios/drops to Light,Missile,Heavy and Finesse Spells
             int cloakSetValue = ThreadSafeRandom.Next(0, 34);  // 35 different types of Cloak Sets
             int cloakSet = LootTables.CloakSets[cloakSetValue];
