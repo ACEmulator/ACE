@@ -234,7 +234,7 @@ namespace ACE.Server.Command.Handlers
                     {
                         if (skill.Value.PP > 0 || skill.Value.LevelFromPP > 0)
                         {
-                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.PP:N0} xp (rank {skill.Value.LevelFromPP})");
+                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.PP:N0} xp (rank {skill.Value.LevelFromPP}){fixStr}");
                             foundIssues = true;
 
                             if (fix)
@@ -248,6 +248,80 @@ namespace ACE.Server.Command.Handlers
                             }
                         }
                         continue;
+                    }
+
+                    if (sac != SkillAdvancementClass.Specialized)
+                    {
+                        if (skill.Value.InitLevel > 0)
+                        {
+                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel{fixStr}");
+                            foundIssues = true;
+
+                            if (fix)
+                            {
+                                skill.Value.InitLevel = 0;
+
+                                updated = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var augProp = 0;
+                        var augType = AugmentationType.None;
+                        switch (skill.Key)
+                        {
+
+                            case Skill.ArmorTinkering:
+                                augType = AugmentationType.ArmorTinkering;
+                                augProp = player.GetProperty(PropertyInt.AugmentationSpecializeArmorTinkering) ?? 0;
+                                break;
+
+                            case Skill.ItemTinkering:
+                                augType = AugmentationType.ItemTinkering;
+                                augProp = player.GetProperty(PropertyInt.AugmentationSpecializeItemTinkering) ?? 0;
+                                break;
+
+                            case Skill.MagicItemTinkering:
+                                augType = AugmentationType.MagicItemTinkering;
+                                augProp = player.GetProperty(PropertyInt.AugmentationSpecializeMagicItemTinkering) ?? 0;
+                                break;
+
+                            case Skill.WeaponTinkering:
+                                augType = AugmentationType.WeaponTinkering;
+                                augProp = player.GetProperty(PropertyInt.AugmentationSpecializeWeaponTinkering) ?? 0;
+                                break;
+
+                            case Skill.Salvaging:
+                                augType = AugmentationType.Salvage;
+                                augProp = player.GetProperty(PropertyInt.AugmentationSpecializeSalvaging) ?? 0;
+                                break;
+                        }
+
+                        if (skill.Value.InitLevel != 10 && augProp == 0)
+                        {
+                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel{fixStr}");
+                            foundIssues = true;
+
+                            if (fix)
+                            {
+                                skill.Value.InitLevel = 10;
+
+                                updated = true;
+                            }
+                        }
+                        else if (skill.Value.InitLevel == 10 && augProp == 1)
+                        {
+                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel as a result of {augType} augmentation{fixStr}");
+                            foundIssues = true;
+
+                            if (fix)
+                            {
+                                skill.Value.InitLevel = 0;
+
+                                updated = true;
+                            }
+                        }
                     }
 
                     // verify skill rank
@@ -498,7 +572,7 @@ namespace ACE.Server.Command.Handlers
                 refundXP += skill.Value.PP;
 
                 skill.Value.SAC = SkillAdvancementClass.Untrained;
-                skill.Value.InitLevel -= 5;
+                skill.Value.InitLevel = 0;
                 skill.Value.PP = 0;
                 skill.Value.LevelFromPP = 0;
 
@@ -756,7 +830,9 @@ namespace ACE.Server.Command.Handlers
 
                 var currentSpent = totalXP - unassignedXP;
 
-                if (calculatedSpent != currentSpent)
+                var bonusXp = (currentSpent - calculatedSpent) % 526;
+
+                if (calculatedSpent != currentSpent && bonusXp != 0)
                 {
                     // the results for this data set can be large,
                     // especially due to an earlier ace bug where it wasn't calculating the Proficiency Points correctly

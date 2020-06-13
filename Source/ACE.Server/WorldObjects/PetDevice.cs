@@ -527,6 +527,14 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // verify use requirements
+            var useError = VerifyUseRequirements(player, spirit, this);
+            if (useError != WeenieError.None)
+            {
+                player.SendUseDoneEvent(useError);
+                return;
+            }
+
             player.IsBusy = true;
 
             var animTime = 0.0f;
@@ -547,6 +555,14 @@ namespace ACE.Server.WorldObjects
 
             actionChain.AddAction(player, () =>
             {
+                // re-verify
+                var useError = VerifyUseRequirements(player, spirit, this);
+                if (useError != WeenieError.None)
+                {
+                    player.SendUseDoneEvent(useError);
+                    return;
+                }
+
                 player.UpdateProperty(this, PropertyInt.Structure, MaxStructure);
 
                 player.TryConsumeFromInventoryWithNetworking(spirit, 1);
@@ -563,6 +579,20 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
 
             player.NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
+        }
+
+        public static WeenieError VerifyUseRequirements(Player player, WorldObject source, WorldObject target)
+        {
+            // ensure target is summoning essence? source.TargetType is Misc
+
+            // ensure both source and target are in player's inventory
+            if (player.FindObject(source.Guid.Full, Player.SearchLocations.MyInventory) == null)
+                return WeenieError.YouDoNotPassCraftingRequirements;
+
+            if (player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory) == null)
+                return WeenieError.YouDoNotPassCraftingRequirements;
+
+            return WeenieError.None;
         }
     }
 }

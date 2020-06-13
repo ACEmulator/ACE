@@ -407,6 +407,24 @@ namespace ACE.Server.WorldObjects
                     int boost = tryBoost;
                     damage = tryBoost < 0 ? (uint)Math.Abs(tryBoost) : 0;
 
+                    // handle cloak damage proc for harm other
+                    var equippedCloak = spellTarget?.EquippedCloak;
+
+                    if (spellTarget != this && spell.VitalDamageType == DamageType.Health && tryBoost < 0)
+                    {
+                        var percent = (float)-tryBoost / spellTarget.Health.MaxValue;
+
+                        if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(percent))
+                        {
+                            var reduced = -Cloak.GetReducedAmount(-tryBoost);
+
+                            Cloak.ShowMessage(spellTarget, this, -tryBoost, -reduced);
+
+                            tryBoost = boost = reduced;
+                            damage = (uint)Math.Abs(tryBoost);
+                        }
+                    }
+
                     switch (spell.VitalDamageType)
                     {
                         case DamageType.Mana:
@@ -470,29 +488,26 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    // handle cloaks
-                    if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health") && boost < 0 && spellTarget.HasCloakEquipped)
+                    if (spellTarget != this && spellTarget.IsAlive && spell.VitalDamageType == DamageType.Health && boost < 0)
                     {
-
-                        if (spellTarget.HasCloakEquipped)
+                        // handle cloak spell proc
+                        if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak))
                         {
+                            var pct = (float)-boost / spellTarget.Health.MaxValue;
+
                             // ensure message is sent after enchantment.Message
                             var actionChain = new ActionChain();
                             actionChain.AddDelayForOneTick();
-                            actionChain.AddAction(this, () =>
-                            {
-                                var pct = (float)-boost / spellTarget.Health.MaxValue;
-                                Cloak.TryProcSpell(spellTarget, this, pct);
-                            });
+                            actionChain.AddAction(this, () => Cloak.TryProcSpell(spellTarget, this, equippedCloak, pct));
                             actionChain.EnqueueChain();
                         }
 
                         // ensure emote process occurs after damage msg
                         var emoteChain = new ActionChain();
                         emoteChain.AddDelayForOneTick();
-                        emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
+                        emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(creature));
                         //if (critical)
-                        //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
+                        //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(creature));
                         emoteChain.EnqueueChain();
                     }
                     break;
@@ -537,6 +552,24 @@ namespace ACE.Server.WorldObjects
 
                         srcVitalChange = (uint)Math.Round(srcVitalChange * scalar);
                         destVitalChange = maxDestVitalChange;
+                    }
+
+                    // handle cloak damage procs for drain health other
+                    equippedCloak = spellTarget?.EquippedCloak;
+
+                    if (isDrain && spell.Source == PropertyAttribute2nd.Health)
+                    {
+                        var percent = (float)srcVitalChange / spellTarget.Health.MaxValue;
+
+                        if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(percent))
+                        {
+                            var reduced = Cloak.GetReducedAmount(srcVitalChange);
+
+                            Cloak.ShowMessage(spellTarget, this, srcVitalChange, reduced);
+
+                            srcVitalChange = reduced;
+                            destVitalChange = (uint)Math.Round(srcVitalChange * (1.0f - spell.LossPercent) * boostMod);
+                        }
                     }
 
                     // Apply the change in vitals to the source
@@ -625,28 +658,26 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    // handle cloaks
-                    if (spellTarget != this && spellTarget.IsAlive && srcVital != null && srcVital.Equals("health"))
+                    if (isDrain && spellTarget.IsAlive && spell.Source == PropertyAttribute2nd.Health)
                     {
-                        if (spellTarget.HasCloakEquipped)
+                        // handle cloak spell proc
+                        if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak))
                         {
+                            var pct = (float)srcVitalChange / spellTarget.Health.MaxValue;
+
                             // ensure message is sent after enchantment.Message
                             var actionChain = new ActionChain();
                             actionChain.AddDelayForOneTick();
-                            actionChain.AddAction(this, () =>
-                            {
-                                var pct = (float)srcVitalChange / spellTarget.Health.MaxValue;
-                                Cloak.TryProcSpell(spellTarget, this, pct);
-                            });
+                            actionChain.AddAction(this, () => Cloak.TryProcSpell(spellTarget, this, equippedCloak, pct));
                             actionChain.EnqueueChain();
                         }
 
                         // ensure emote process occurs after damage msg
                         var emoteChain = new ActionChain();
                         emoteChain.AddDelayForOneTick();
-                        emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(player));
+                        emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(creature));
                         //if (critical)
-                        //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(player));
+                        //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(creature));
                         emoteChain.EnqueueChain();
                     }
                     break;
@@ -725,9 +756,9 @@ namespace ACE.Server.WorldObjects
 
                     damage = 0;
                     if (itemCaster != null)
-                        enchantmentStatus = CreateEnchantment(target, itemCaster, spell, equip);
+                        enchantmentStatus = CreateEnchantment(spellTarget ?? target, itemCaster, spell, equip);
                     else
-                        enchantmentStatus = CreateEnchantment(target, this, spell, equip);
+                        enchantmentStatus = CreateEnchantment(spellTarget ?? target, this, spell, equip);
                     break;
 
                 default:
@@ -822,7 +853,7 @@ namespace ACE.Server.WorldObjects
                 LifeMagic(spell, out uint damage, out bool critical, out var enchantmentStatus, target);
                 return enchantmentStatus;
             }
-            return CreateEnchantment(target, itemCaster ?? this, spell, equip);
+            return CreateEnchantment(target ?? itemCaster ?? this, itemCaster ?? this, spell, equip);
         }
 
         /// <summary>
@@ -1439,6 +1470,9 @@ namespace ACE.Server.WorldObjects
             var casterLoc = PhysicsObj.Position.ACEPosition();
 
             var speed = GetProjectileSpeed(spell);
+
+            if (target == null && this is Creature creature && !(this is Player))
+                target = creature.AttackTarget;
 
             if (target == null)
             {
