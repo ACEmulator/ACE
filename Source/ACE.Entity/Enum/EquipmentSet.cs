@@ -1,4 +1,4 @@
-﻿namespace ACE.Entity.Enum
+namespace ACE.Entity.Enum
 {
     // List of equipment sets for armor/weapons. Compiled from aclogview, and the client.
     public enum EquipmentSet
@@ -142,11 +142,8 @@
         PurpleSocietyBand                = 135,
         BlueSocietyBand                  = 136,
         GauntletGarb                     = 137,
-        // Possibly Paragon Missile Weapons
-        UNKNOWN_138                      = 138,
-        // Possibly Paragon Casters
-        UNKNOWN_139                      = 139,
-        // Possibly Paragon Melee Weapons
-        UNKNOWN_140                      = 140,
+        ParagonMissile                   = 138,
+        ParagonCaster                    = 139,
+        ParagonMelee                     = 140,
     }
 }
