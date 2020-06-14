@@ -367,6 +367,53 @@ namespace ACE.Server.Managers
 
                 case WeenieClassName.W_LUMINOUSAMBEROFTHE2NDTIERPARAGON_CLASS:
                 case WeenieClassName.W_LUMINOUSAMBEROFTHE3RDTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE4THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE5THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE6THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE7THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE8THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE9THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE10THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE11THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE12THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE13THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE14THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE15THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE16THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE17THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE18THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE19THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE20THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE21STTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE22NDTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE23RDTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE24THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE25THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE26THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE27THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE28THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE29THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE30THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE31STTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE32NDTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE33RDTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE34THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE35THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE36THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE37THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE38THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE39THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE40THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE41STTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE42NDTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE43RDTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE44THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE45THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE46THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE47THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE48THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE49THTIERPARAGON_CLASS:
+                case WeenieClassName.W_LUMINOUSAMBEROFTHE50THTIERPARAGON_CLASS:
                     recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
                     break;
             }
