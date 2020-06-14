@@ -23,6 +23,7 @@ using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics.Extensions;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Command.Handlers.Processors
@@ -2149,6 +2150,287 @@ namespace ACE.Server.Command.Handlers.Processors
                 }
                 return FileType.Undefined;
             }
+        }
+
+        [CommandHandler("nudge", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Adjusts the spawn position of a landblock instance", "<dir> <amount>\nDirections: x, y, z, north, south, west, east, northwest, northeast, southwest, southeast, n, s, w, e, nw, ne, sw, se, up, down, here")]
+        public static void HandleNudge(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (obj == null) return;
+
+            // ensure landblock instance
+            if (!obj.Guid.IsStatic())
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}) is not landblock instance", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (obj.PhysicsObj == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}) is not a physics object", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // get direction
+            var dirname = parameters[0].ToLower();
+            var dir = GetNudgeDir(dirname);
+
+            bool curPos = false;
+
+            if (dir == null)
+            {
+                if (dirname.Equals("here") || dirname.Equals("to me"))
+                {
+                    dir = Vector3.Zero;
+                    curPos = true;
+                }
+                else
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid direction: {dirname}", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+
+            // get distance / amount
+            var amount = 1.0f;
+            if (parameters.Length > 1)
+            {
+                if (!float.TryParse(parameters[1], out amount))
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid amount: {amount}", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+
+            var nudge = dir * amount;
+
+            // get landblock for static guid
+            var landblock_id = (ushort)(obj.Guid.Full >> 12);
+
+            // get instances for landblock
+            var instances = DatabaseManager.World.GetCachedInstancesByLandblock(landblock_id);
+
+            // find instance
+            var instance = instances.FirstOrDefault(i => i.Guid == obj.Guid.Full);
+
+            if (instance == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find instance for {obj.Name} ({obj.Guid})", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (curPos)
+            {
+                // ensure same landblock
+                if ((instance.ObjCellId >> 16) != (session.Player.Location.Cell >> 16))
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Failed to move {obj.Name} ({obj.Guid}) to current location -- different landblock", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                obj.Ethereal = true;
+                obj.EnqueueBroadcastPhysicsState();
+
+                var newLoc = new Position(session.Player.Location);
+
+                // slide?
+                var setPos = new Physics.Common.SetPosition(newLoc.PhysPosition(), Physics.Common.SetPositionFlags.Teleport /* | Physics.Common.SetPositionFlags.Slide */);
+                var result = obj.PhysicsObj.SetPosition(setPos);
+
+                if (result != Physics.Common.SetPositionError.OK)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Failed to move {obj.Name} ({obj.Guid}) to current location: {result}", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                instance.AnglesX = obj.Location.RotationX;
+                instance.AnglesY = obj.Location.RotationY;
+                instance.AnglesZ = obj.Location.RotationZ;
+                instance.AnglesW = obj.Location.RotationW;
+            }
+            else
+            {
+                // compare current position with home position
+                // the nudge should be performed as an offset from home position
+                if (instance.OriginX != obj.Location.PositionX || instance.OriginY != obj.Location.PositionY || instance.OriginZ != obj.Location.PositionZ)
+                {
+                    //session.Network.EnqueueSend(new GameMessageSystemChat($"Moving {obj.Name} ({obj.Guid}) to home position: {obj.Location} to {instance.ObjCellId:X8} [{instance.OriginX} {instance.OriginY} {instance.OriginZ}]", ChatMessageType.Broadcast));
+
+                    var homePos = new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW);
+
+                    // slide?
+                    var setPos = new Physics.Common.SetPosition(homePos.PhysPosition(), Physics.Common.SetPositionFlags.Teleport /* | Physics.Common.SetPositionFlags.Slide*/);
+                    var result = obj.PhysicsObj.SetPosition(setPos);
+
+                    if (result != Physics.Common.SetPositionError.OK)
+                    {
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Failed to move {obj.Name} ({obj.Guid}) to home position {homePos.ToLOCString()}", ChatMessageType.Broadcast));
+                        return;
+                    }
+                }
+
+                // perform physics transition
+                var newPos = new Physics.Common.Position(obj.PhysicsObj.Position);
+                newPos.add_offset(nudge.Value);
+
+                var transit = obj.PhysicsObj.transition(obj.PhysicsObj.Position, newPos, true);
+
+                var errorMsg = $"{obj.Name} ({obj.Guid}) failed to move from {obj.PhysicsObj.Position.ACEPosition()} to {newPos.ACEPosition()}";
+
+                if (transit == null)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat(errorMsg, ChatMessageType.Broadcast));
+                    return;
+                }
+
+                // ensure same landblock
+                if ((transit.SpherePath.CurPos.ObjCellID >> 16) != (obj.PhysicsObj.Position.ObjCellID >> 16))
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"{errorMsg} - cannot change landblock", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                obj.PhysicsObj.SetPositionInternal(transit);
+            }
+
+            // update ace location
+            var prevLoc = new Position(obj.Location);
+            obj.Location = obj.PhysicsObj.Position.ACEPosition();
+
+            if (prevLoc.Landblock != obj.Location.Landblock)
+                LandblockManager.RelocateObjectForPhysics(obj, true);
+
+            // broadcast new position
+            obj.SendUpdatePosition(true);
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}) - moved from {prevLoc} to {obj.Location}", ChatMessageType.Broadcast));
+
+            // update sql
+            instance.ObjCellId = obj.Location.Cell;
+            instance.OriginX = obj.Location.PositionX;
+            instance.OriginY = obj.Location.PositionY;
+            instance.OriginZ = obj.Location.PositionZ;
+
+            SyncInstances(session, landblock_id, instances);
+        }
+
+        public static Vector3? GetNudgeDir(string dir)
+        {
+            if (dir.Equals("north") || dir.Equals("n") || dir.Equals("y"))
+                return Vector3.UnitY;
+            else if (dir.Equals("south") || dir.Equals("s"))
+                return -Vector3.UnitY;
+            else if (dir.Equals("west") || dir.Equals("w"))
+                return -Vector3.UnitX;
+            else if (dir.Equals("east") || dir.Equals("e") || dir.Equals("x"))
+                return Vector3.UnitX;
+            else if (dir.Equals("northwest") || dir.Equals("nw"))
+                return Vector3.Normalize(new Vector3(-1, 1, 0));
+            else if (dir.Equals("northeast") || dir.Equals("ne"))
+                return Vector3.Normalize(new Vector3(1, 1, 0));
+            else if (dir.Equals("southwest") || dir.Equals("sw"))
+                return Vector3.Normalize(new Vector3(-1, -1, 0));
+            else if (dir.Equals("southeast") || dir.Equals("se"))
+                return Vector3.Normalize(new Vector3(1, -1, 0));
+            else if (dir.Equals("up") || dir.Equals("z"))
+                return Vector3.UnitZ;
+            else if (dir.Equals("down"))
+                return -Vector3.UnitZ;
+            else
+                return null;
+        }
+
+        [CommandHandler("rotate", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Adjusts the rotation of a landblock instance", "<dir>\nDirections: north, south, west, east, northwest, northeast, southwest, southeast, n, s, w, e, nw, ne, sw, se, -or-\n0-360, with 0 being north, and 90 being west")]
+        public static void HandleRotate(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (obj == null) return;
+
+            // ensure landblock instance
+            if (!obj.Guid.IsStatic())
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}) is not landblock instance", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (obj.PhysicsObj == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}) is not a physics object", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // get direction
+            var dirname = parameters[0].ToLower();
+            var dir = GetNudgeDir(dirname);
+
+            bool curRotate = false;
+
+            if (dir == null)
+            {
+                if (float.TryParse(dirname, out var degrees))
+                {
+                    var rads = degrees.ToRadians();
+                    var q = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rads);
+                    dir = Vector3.Transform(Vector3.UnitY, q);
+                }
+                else if (dirname.Equals("here") || dirname.Equals("me"))
+                {
+                    dir = Vector3.Zero;
+                    curRotate = true;
+                }
+                else
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid direction: {dirname}", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+
+            // get quaternion
+            var newRotation = Quaternion.Identity;
+
+            if (curRotate)
+            {
+                newRotation = session.Player.Location.Rotation;
+            }
+            else
+            {
+                var angle = Math.Atan2(-dir.Value.X, dir.Value.Y);
+                newRotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)angle);
+            }
+
+            // get landblock for static guid
+            var landblock_id = (ushort)(obj.Guid.Full >> 12);
+
+            // get instances for landblock
+            var instances = DatabaseManager.World.GetCachedInstancesByLandblock(landblock_id);
+
+            // find instance
+            var instance = instances.FirstOrDefault(i => i.Guid == obj.Guid.Full);
+
+            if (instance == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find instance for {obj.Name} ({obj.Guid})", ChatMessageType.Broadcast));
+                return;
+            }
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}) new rotation: {newRotation}", ChatMessageType.Broadcast));
+
+            // update physics / ace rotation
+            obj.PhysicsObj.Position.Frame.Orientation = newRotation;
+            obj.Location.Rotation = newRotation;
+
+            // update instance
+            instance.AnglesW = newRotation.W;
+            instance.AnglesX = newRotation.X;
+            instance.AnglesY = newRotation.Y;
+            instance.AnglesZ = newRotation.Z;
+
+            SyncInstances(session, landblock_id, instances);
+
+            // broadcast new rotation
+            obj.SendUpdatePosition(true);
         }
     }
 }
