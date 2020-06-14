@@ -1152,7 +1152,6 @@ namespace ACE.Server.Managers
 
                     //  Paragon Weapons (data id is ACE custom/placeholder for unknown real value)
                     case 0x39000000:
-                        target.IconOverlayId ??= 0x60063D6; // is this correct?
                         var itemMaxLevel = target.GetProperty(PropertyInt.ItemMaxLevel) ?? 0;
                         target.SetProperty(PropertyInt.ItemMaxLevel, ++itemMaxLevel);
                         target.SetProperty(PropertyInt64.ItemBaseXp, 2000000000);
