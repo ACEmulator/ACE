@@ -282,6 +282,8 @@ namespace ACE.Server.WorldObjects
             var prevTime = 0.0f;
             bool targetProc = false;
 
+            List<Creature> cleave = null;
+
             for (var i = 0; i < numStrikes; i++)
             {
                 // are there animation hooks for damage frames?
@@ -308,13 +310,18 @@ namespace ACE.Server.WorldObjects
                         targetProc = true;
                     }
 
-                    if (weapon != null && weapon.IsCleaving)
-                    {
-                        var cleave = GetCleaveTarget(creature, weapon);
-                        foreach (var cleaveHit in cleave)
-                            DamageTarget(cleaveHit, weapon);
+                    if (i == 0 && weapon != null && weapon.IsCleaving)
+                        cleave = GetCleaveTarget(creature, weapon);
 
-                        // target procs don't happen for cleaving
+                    if (cleave != null)
+                    {
+                        foreach (var cleaveHit in cleave)
+                        {
+                            if (i == 0 || IsCleaveable(cleaveHit))
+                                DamageTarget(cleaveHit, weapon);
+
+                            // target procs don't happen for cleaving
+                        }
                     }
                 });
 
