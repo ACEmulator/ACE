@@ -1339,13 +1339,22 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var landblock = (ushort)wo.Location.Landblock;
 
+            // if generator child, try getting the "real" guid
+            var guid = wo.Guid.Full;
+            if (wo.Generator != null)
+            {
+                var staticGuid = wo.Generator.GetStaticGuid(guid);
+                if (staticGuid != null)
+                    guid = staticGuid.Value;
+            }
+
             var instances = DatabaseManager.World.GetCachedInstancesByLandblock(landblock);
 
-            var instance = instances.FirstOrDefault(i => i.Guid == wo.Guid.Full);
+            var instance = instances.FirstOrDefault(i => i.Guid == guid);
 
             if (instance == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find landblock_instance for {wo.WeenieClassId} - {wo.Name} (0x{wo.Guid})", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find landblock_instance for {wo.WeenieClassId} - {wo.Name} (0x{guid:X8})", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -1380,7 +1389,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 }
                 if (link == null)
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find parent link for child {wo.WeenieClassId} - {wo.Name} (0x{wo.Guid})", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find parent link for child {wo.WeenieClassId} - {wo.Name} (0x{guid:X8})", ChatMessageType.Broadcast));
                     return;
                 }
             }
@@ -1394,7 +1403,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             SyncInstances(session, landblock, instances);
 
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Removed {(instance.IsLinkChild ? "child " : "")}{wo.WeenieClassId} - {wo.Name} (0x{wo.Guid}) from landblock instances", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Removed {(instance.IsLinkChild ? "child " : "")}{wo.WeenieClassId} - {wo.Name} (0x{guid:X8}) from landblock instances", ChatMessageType.Broadcast));
         }
 
         public static int GetNumChilds(Session session, LandblockInstanceLink link, List<LandblockInstance> instances)
