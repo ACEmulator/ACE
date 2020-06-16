@@ -465,6 +465,18 @@ namespace ACE.Server.WorldObjects
             var amount = (uint)Math.Round(_amount);
             var percent = (float)amount / Health.MaxValue;
 
+            var equippedCloak = EquippedCloak;
+
+            if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(percent))
+            {
+                var reducedAmount = Cloak.GetReducedAmount(amount);
+
+                Cloak.ShowMessage(this, source, amount, reducedAmount);
+
+                amount = reducedAmount;
+                percent = (float)amount / Health.MaxValue;
+            }
+
             // update health
             var damageTaken = (uint)-UpdateVitalDelta(Health, (int)-amount);
             DamageHistory.Add(source, damageType, damageTaken);
@@ -510,8 +522,8 @@ namespace ACE.Server.WorldObjects
             if (percent >= 0.1f)
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound1, 1.0f));
 
-            if (HasCloakEquipped)
-                Cloak.TryProcSpell(this, source, percent);
+            if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak))
+                Cloak.TryProcSpell(this, source, equippedCloak, percent);
 
             // if player attacker, update PK timer
             if (source is Player attacker)

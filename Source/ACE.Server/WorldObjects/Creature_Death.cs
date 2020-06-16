@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 using ACE.Database;
@@ -22,6 +21,8 @@ namespace ACE.Server.WorldObjects
     {
         public TreasureDeath DeathTreasure { get => DeathTreasureType.HasValue ? DatabaseManager.World.GetCachedDeathTreasure(DeathTreasureType.Value) : null; }
 
+        private bool onDeathEntered = false;
+
         /// <summary>
         /// Called when a monster or player dies, in conjunction with Die()
         /// </summary>
@@ -30,15 +31,18 @@ namespace ACE.Server.WorldObjects
         /// <param name="criticalHit">True if the death blow was a critical hit, generates a critical death message</param>
         public virtual DeathMessage OnDeath(DamageHistoryInfo lastDamager, DamageType damageType, bool criticalHit = false)
         {
+            if (onDeathEntered)
+                return GetDeathMessage(lastDamager, damageType, criticalHit);
+
+            onDeathEntered = true;
+
             IsTurning = false;
             IsMoving = false;
 
             QuestManager.OnDeath(lastDamager?.TryGetAttacker());
             
-            OnDeath_GrantXP();
-
-            if (IsGenerator)
-                OnGeneratorDeath();
+            if (!IsOnNoDeathXPLandblock)
+                OnDeath_GrantXP();
 
             return GetDeathMessage(lastDamager, damageType, criticalHit);
         }
@@ -75,11 +79,17 @@ namespace ACE.Server.WorldObjects
             Die(DamageHistory.LastDamager, DamageHistory.TopDamager);
         }
 
+        private bool dieEntered = false;
+
         /// <summary>
         /// Performs the full death sequence for non-Player creatures
         /// </summary>
         protected virtual void Die(DamageHistoryInfo lastDamager, DamageHistoryInfo topDamager)
         {
+            if (dieEntered) return;
+
+            dieEntered = true;
+
             UpdateVital(Health, 0);
 
             if (topDamager != null)
@@ -333,16 +343,18 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         var killerPlayer = killer.TryGetAttacker();
-                        if (killerPlayer != null && Level >= killerPlayer.Level + 5)
+                        if (killerPlayer != null && Level > killerPlayer.Level)
                             CanGenerateRare = true;
                     }
                 }
+                else
+                    CanGenerateRare = false;
             }
 
             corpse.RemoveProperty(PropertyInt.Value);
 
             if (CanGenerateRare && killer != null)
-                corpse.GenerateRare(killer);
+                corpse.TryGenerateRare(killer);
 
             corpse.InitPhysicsObj();
 
@@ -464,5 +476,26 @@ namespace ACE.Server.WorldObjects
 
             return string.Join(", ", spells.Select(i => i.Name));
         }
+
+        public bool IsOnNoDeathXPLandblock => Location != null ? NoDeathXP_Landblocks.Contains(Location.LandblockId.Landblock) : false;
+
+        /// <summary>
+        /// A list of landblocks the player gains no xp from creature kills
+        /// </summary>
+        public static HashSet<ushort> NoDeathXP_Landblocks = new HashSet<ushort>()
+        {
+            0x00B0,     // Colosseum Arena One
+            0x00B1,     // Colosseum Arena Two
+            0x00B2,     // Colosseum Arena Three
+            0x00B3,     // Colosseum Arena Four
+            0x00B4,     // Colosseum Arena Five
+            0x5960,     // Gauntlet Arena One (Celestial Hand)
+            0x5961,     // Gauntlet Arena Two (Celestial Hand)
+            0x5962,     // Gauntlet Arena One (Eldritch Web)
+            0x5963,     // Gauntlet Arena Two (Eldritch Web)
+            0x5964,     // Gauntlet Arena One (Radiant Blood)
+            0x5965,     // Gauntlet Arena Two (Radiant Blood)
+            0x596B,     // Gauntlet Staging Area (All Societies)
+        };
     }
 }

@@ -1,9 +1,11 @@
 using System;
+
 using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
@@ -58,14 +60,22 @@ namespace ACE.Server.WorldObjects
 
             //SendPropertyUpdatesAndOverrides();
 
-            // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
-            UpdateChatChannels();
+            if (PropertyManager.GetBool("use_turbine_chat").Item)
+            {
+                // Init the client with the chat channel ID's, and then notify the player that they've joined the associated channels.
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.TurbineChatIsEnabled));
 
-            var general = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "General");
-            var trade = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Trade");
-            var lfg = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "LFG");
-            var roleplay = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Roleplay");
-            Session.Network.EnqueueSend(general, trade, lfg, roleplay);
+                if (GetCharacterOption(CharacterOption.ListenToAllegianceChat) && Allegiance != null)
+                    JoinTurbineChatChannel("Allegiance");
+                if (GetCharacterOption(CharacterOption.ListenToGeneralChat))
+                    JoinTurbineChatChannel("General");
+                if (GetCharacterOption(CharacterOption.ListenToTradeChat))
+                    JoinTurbineChatChannel("Trade");
+                if (GetCharacterOption(CharacterOption.ListenToLFGChat))
+                    JoinTurbineChatChannel("LFG");
+                if (GetCharacterOption(CharacterOption.ListenToRoleplayChat))
+                    JoinTurbineChatChannel("Roleplay");
+            }
 
             // check if vassals earned XP while offline
             HandleAllegianceOnLogin();
@@ -98,11 +108,41 @@ namespace ACE.Server.WorldObjects
             HandleDBUpdates();
         }
 
-        public void UpdateChatChannels()
+        public void SendTurbineChatChannels(bool breakAllegiance = false)
         {
-            var allegianceChannel = Allegiance != null ? Allegiance.Biota.Id : 0u;
+            var allegianceChannel = Allegiance != null && !breakAllegiance ? Allegiance.Biota.Id : 0u;
+
+            //todo: society chat channel
 
             Session.Network.EnqueueSend(new GameEventSetTurbineChatChannels(Session, allegianceChannel));
+        }
+
+        public void JoinTurbineChatChannel(string channelName)
+        {
+            if (channelName == "Allegiance" && Allegiance == null)
+                return;
+            else if (channelName == "Society") //&& Society == null) // todo: society
+                return;
+            else if (channelName == "Olthoi") //todo: olthoi play
+                return;
+
+            Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, channelName));
+
+            SendTurbineChatChannels();
+        }
+
+        public void LeaveTurbineChatChannel(string channelName, bool breakAllegiance = false)
+        {
+            if (channelName == "Allegiance" && !breakAllegiance && Allegiance == null)
+                return;
+            else if (channelName == "Society") //&& Society == null) // todo: society
+                return;
+            else if (channelName == "Olthoi") //todo: olthoi play
+                return;
+
+            Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, channelName));
+
+            SendTurbineChatChannels(breakAllegiance);
         }
 
         private void SendSelf()

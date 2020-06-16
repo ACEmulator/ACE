@@ -1,3 +1,5 @@
+using System.Linq;
+
 using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
@@ -8,15 +10,8 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateJewels(int tier, bool isMagical)
+        private static WorldObject CreateJewels(int tier, bool isMagical, bool mutate = true)
         {
-            uint gemType = 0;
-            int workmanship = 0;
-            int rank = 0;
-            int difficulty = 0;
-            int spellDID = 0;
-            int skill_level_limit = 0;
-
             int gemLootMatrixIndex = tier - 1;
 
             if (gemLootMatrixIndex > 4) gemLootMatrixIndex = 4;
@@ -26,20 +21,32 @@ namespace ACE.Server.Factories
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject(gemWCID) as Gem;
 
-            if (wo == null)
-                return null;
+            if (wo != null && mutate)
+                MutateJewels(wo, tier, isMagical, gemLootMatrixIndex);
+
+            return wo;
+        }
+
+        private static void MutateJewels(WorldObject wo, int tier, bool isMagical, int gemLootMatrixIndex)
+        {
+            uint gemType = 0;
+            int workmanship = 0;
+            int rank = 0;
+            int difficulty = 0;
+            int spellDID = 0;
+            int skill_level_limit = 0;
 
             gemType = (uint)wo.MaterialType;
 
             workmanship = GetWorkmanship(tier);
             wo.ItemWorkmanship = workmanship;
             int value = LootTables.gemValues[(int)gemType] + ThreadSafeRandom.Next(1, LootTables.gemValues[(int)gemType]);
-            wo.Value= value;
+            wo.Value = value;
 
             gemLootMatrixIndex = tier - 1;
             if (isMagical)
             {
-                wo.SetProperty(PropertyInt.ItemUseable, 8);
+                wo.ItemUseable = Usable.Contained;
                 wo.UiEffects = UiEffects.Magical;
 
                 int gemSpellIndex;
@@ -70,8 +77,7 @@ namespace ACE.Server.Factories
                 int spellcraft = 50 * gemSpellIndex;
                 int maxMana = ThreadSafeRandom.Next(manaCost, manaCost + 50);
 
-
-                wo.SetProperty(PropertyDataId.Spell, (uint)spellDID);
+                wo.SpellDID = (uint)spellDID;
                 wo.ItemAllegianceRankLimit= rank;
                 wo.ItemDifficulty = difficulty;
                 wo.ItemManaCost = manaCost;
@@ -81,8 +87,8 @@ namespace ACE.Server.Factories
             }
             else
             {
-                wo.SetProperty(PropertyInt.ItemUseable, 1);
-                wo.RemoveProperty(PropertyDataId.Spell);
+                wo.ItemUseable = Usable.No;
+                wo.SpellDID = null;
                 wo.ItemManaCost = null;
                 wo.ItemMaxMana = null;
                 wo.ItemCurMana = null;
@@ -92,14 +98,22 @@ namespace ACE.Server.Factories
                 wo.ManaRate = null;
 
             }
-
-            wo = RandomizeColor(wo);
-            return wo;
+            RandomizeColor(wo);
         }
 
-        private static WorldObject CreateJewelry(TreasureDeath profile, bool isMagical)
+        private static bool GetMutateJewelsData(uint wcid, out int gemLootMatrixIndex)
         {
+            for (gemLootMatrixIndex = 0; gemLootMatrixIndex < LootTables.GemsWCIDsMatrix.Length; gemLootMatrixIndex++)
+            {
+                if (LootTables.GemsWCIDsMatrix[gemLootMatrixIndex].Contains((int)wcid))
+                    return true;
+            }
+            gemLootMatrixIndex = -1;
+            return false;
+        }
 
+        private static WorldObject CreateJewelry(TreasureDeath profile, bool isMagical, bool mutate = true)
+        {
             // 31% chance ring, 31% chance bracelet, 30% chance necklace 8% chance Trinket
 
             int jewelrySlot = ThreadSafeRandom.Next(1, 100);
@@ -117,10 +131,15 @@ namespace ACE.Server.Factories
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)jewelType);
 
-            if (wo == null)
-                return null;
+            if (wo != null && mutate)
+                MutateJewelry(wo, profile, isMagical);
 
-            wo.AppraisalLongDescDecoration = 1;
+            return wo;
+        }
+
+        private static void MutateJewelry(WorldObject wo, TreasureDeath profile, bool isMagical)
+        {
+            wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
             wo.LongDesc = wo.Name;
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
@@ -164,8 +183,17 @@ namespace ACE.Server.Factories
                 wo.ManaRate = null;
             }
 
-            wo = RandomizeColor(wo);
-            return wo;
+            RandomizeColor(wo);
+        }
+
+        private static bool GetMutateJewelryData(uint wcid)
+        {
+            foreach (var jewelryTable in LootTables.jewelryTables)
+            {
+                if (jewelryTable.Contains((int)wcid))
+                    return true;
+            }
+            return false;
         }
     }
 }

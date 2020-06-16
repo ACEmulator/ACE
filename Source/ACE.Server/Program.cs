@@ -163,12 +163,20 @@ namespace ACE.Server
                 log.Info($"Purged {numberOfBiotasPurged:N0} biotas.");
             }
 
-            // This is temporary and can be removed in the near future, 2020-04-05 Mag-nus
-            ShardDatabaseOfflineTools.FixAnimPartAndTextureMapFromPR2731(out var numberOfRecordsFixed);
-            log.Info($"Fixed {numberOfRecordsFixed:N0} AnimPart and TextureMap records.");
+            if (ConfigManager.Config.Offline.AutoUpdateWorldDatabase)
+            {
+                CheckForWorldDatabaseUpdate();
 
-            // This is temporary and can be removed in the near future, 2020-04-12 Ripley
-            ShardDatabaseOfflineTools.CheckForPR2918Script();
+                if (ConfigManager.Config.Offline.AutoApplyWorldCustomizations)
+                    AutoApplyWorldCustomizations();
+            }
+            else
+                log.Info($"AutoUpdateWorldDatabase is disabled...");
+
+            if (ConfigManager.Config.Offline.AutoApplyDatabaseUpdates)
+                AutoApplyDatabaseUpdates();
+            else
+                log.Info($"AutoApplyDatabaseUpdates is disabled...");
 
             // This should only be enabled manually. To enable it, simply uncomment this line
             //ACE.Database.OfflineTools.Shard.BiotaGuidConsolidator.ConsolidateBiotaGuids(0xC0000000, out int numberOfBiotasConsolidated, out int numberOfErrors);

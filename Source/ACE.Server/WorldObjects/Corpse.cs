@@ -13,6 +13,7 @@ using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.WorldObjects
 {
@@ -124,7 +125,12 @@ namespace ACE.Server.WorldObjects
             // check for looting permission
             if (!HasPermission(player))
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat("You don't have permission to loot the " + Name, ChatMessageType.Broadcast));
+                if (CorpseGeneratedRare)
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You may not loot the {Name} because the {Name} has generated a rare item."));
+                else if (PkLevel == PKLevel.PK)
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You may not loot the {Name} because the death was caused by a player killer."));
+                else
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You do not yet have the right to loot the {Name}."));
                 return;
             }
             base.Open(player);
@@ -155,7 +161,7 @@ namespace ACE.Server.WorldObjects
             if (player.Fellowship != null && player.Fellowship.ShareLoot)
             {
                 var onlinePlayer = PlayerManager.GetOnlinePlayer(KillerId ?? 0);
-                if (onlinePlayer != null && onlinePlayer.Fellowship != null && player.Fellowship == onlinePlayer.Fellowship && !CorpseGeneratedRare)
+                if (onlinePlayer != null && onlinePlayer.Fellowship != null && player.Fellowship == onlinePlayer.Fellowship && !CorpseGeneratedRare && PkLevel != PKLevel.PK)
                     return true;
             }
             return false;
@@ -214,13 +220,71 @@ namespace ACE.Server.WorldObjects
         private string killerName;
 
         /// <summary>
-        /// Called to generate rare and add to corpse inventory
+        /// Called to attempt to generate rare and add to corpse inventory
         /// </summary>
-        public void GenerateRare(DamageHistoryInfo killer)
+        public void TryGenerateRare(DamageHistoryInfo killer)
         {
-            //todo: calculate chances for killer's luck (rare timers)
+            var killerPlayer = killer.TryGetAttacker() as Player;
+            var timestamp = (int)Time.GetUnixTime();
+            var luck = 0;
+            var secondChanceGranted = false;
 
-            var wo = LootGenerationFactory.CreateRare();
+            var realTimeRares = PropertyManager.GetBool("rares_real_time").Item;
+            var realTimeRaresAlt = PropertyManager.GetBool("rares_real_time_v2").Item;
+            if (realTimeRares && killerPlayer != null)
+            {
+                if (killerPlayer.RaresLoginTimestamp.HasValue)
+                {
+                    // http://acpedia.org/wiki/Announcements_-_2010/04_-_Shedding_Skin#Rares_Update
+
+                    // Real Time Rares work the same as they always have. It rolls a number between 1 second and 2 months worth of seconds. When that number is up you get an additional chance of finding a rare on any valid rare kill.
+                    // That additional chance is very high. You can still only find one rare on any given kill but it's possible to find a normal rare when your Real Time Rare timer is up but you haven't found one yet.
+
+                    var now = Time.GetDateTimeFromTimestamp(timestamp);
+                    var playerLastRareFound = Time.GetDateTimeFromTimestamp(killerPlayer.RaresLoginTimestamp.Value);
+
+                    if (now >= playerLastRareFound)
+                        secondChanceGranted = true;
+                }
+                else
+                    killerPlayer.RaresLoginTimestamp = (int)Time.GetFutureUnixTime(ThreadSafeRandom.Next(1, (int)PropertyManager.GetLong("rares_max_seconds_between").Item));
+            }
+            else if (realTimeRaresAlt && killerPlayer != null)
+            {
+                if (killerPlayer.RaresLoginTimestamp.HasValue)
+                {
+                    // This version of the system is based on interpretation of the following way the system was originally described. The one above is how it was stated to *really* works as detailed in a dev chat from 2010.
+
+                    // http://acpedia.org/wiki/Rare#Real_Time_Rares
+
+                    // Also there is a real time rare timer for each character, this timer starts the first time you kill a rare eligible creature. A character such as a mule that has never killed anything will not have an active timer.
+                    // It works by looking at the real time that has elapsed since the last rare was found, it increases as the time gets closer to two months (real life time) at which point it is a 100% chance.
+                    // People have found that for characters that don't normally hunt, it's best to take them out at at the 30 day mark and a rare will drop after a few kills (although it sometimes can take longer since it's still a % chance at the 30 day mark).
+
+                    var now = Time.GetDateTimeFromTimestamp(timestamp);
+                    var playerLastRareFound = Time.GetDateTimeFromTimestamp(killerPlayer.RaresLoginTimestamp.Value);
+                    var timeBetweenRareSighting = now - playerLastRareFound;
+                    var daysSinceRareSighting = timeBetweenRareSighting.TotalDays;
+
+                    var maxDaysSinceLastRareFound = (int)PropertyManager.GetLong("rares_max_days_between").Item; // 30? 45? 60?
+                    var chancesModifier = Math.Round(daysSinceRareSighting / maxDaysSinceLastRareFound, 2, MidpointRounding.ToZero);
+                    var chancesModifierAdjusted = Math.Min(chancesModifier, 1.0f);
+
+                    var t1_chance = 2500;
+                    luck = (int)Math.Round(t1_chance * chancesModifierAdjusted, 0, MidpointRounding.ToZero);
+                }
+                else
+                    killerPlayer.RaresLoginTimestamp = timestamp;
+            }
+
+            var wo = LootGenerationFactory.TryCreateRare(luck);
+
+            if (secondChanceGranted && wo == null)
+            {
+                luck = 2490;
+                wo = LootGenerationFactory.TryCreateRare(luck);
+            }
+
             if (wo == null)
                 return;
 
@@ -231,7 +295,7 @@ namespace ACE.Server.WorldObjects
             LootGenerationFactory.RareChances.TryGetValue(tier, out var chance);
 
             log.Debug($"[LOOT][RARE] {Name} ({Guid}) generated rare {wo.Name} ({wo.Guid}) for {killer.Name} ({killer.Guid})");
-            log.Debug($"[LOOT][RARE] Tier {tier} -- 1 / {chance:N0} chance");
+            log.Debug($"[LOOT][RARE] Tier {tier} -- 1 / {chance:N0} chance -- {luck:N0} luck");
 
             if (TryAddToInventory(wo))
             {
@@ -239,6 +303,44 @@ namespace ACE.Server.WorldObjects
                 killerName = killer.Name.TrimStart('+');
                 CorpseGeneratedRare = true;
                 LongDesc += " This corpse generated a rare item!";
+                if (killerPlayer != null)
+                {
+                    if (realTimeRares)
+                        killerPlayer.RaresLoginTimestamp = (int)Time.GetFutureUnixTime(ThreadSafeRandom.Next(1, (int)PropertyManager.GetLong("rares_max_seconds_between").Item));
+                    else
+                        killerPlayer.RaresLoginTimestamp = timestamp;
+                    switch (tier)
+                    {
+                        case 1:
+                            killerPlayer.RaresTierOne++;
+                            killerPlayer.RaresTierOneLogin = timestamp;
+                            break;
+                        case 2:
+                            killerPlayer.RaresTierTwo++;
+                            killerPlayer.RaresTierTwoLogin = timestamp;
+                            break;
+                        case 3:
+                            killerPlayer.RaresTierThree++;
+                            killerPlayer.RaresTierThreeLogin = timestamp;
+                            break;
+                        case 4:
+                            killerPlayer.RaresTierFour++;
+                            killerPlayer.RaresTierFourLogin = timestamp;
+                            break;
+                        case 5:
+                            killerPlayer.RaresTierFive++;
+                            killerPlayer.RaresTierFiveLogin = timestamp;
+                            break;
+                        case 6:
+                            killerPlayer.RaresTierSix++;
+                            killerPlayer.RaresTierSixLogin = timestamp;
+                            break;
+                        //case 7:
+                        //    killerPlayer.RaresTierSeven++;
+                        //    killerPlayer.RaresTierSevenLogin = timestamp;
+                        //    break;
+                    }
+                }
             }
             else
                 log.Error($"[RARE] failed to add to corpse inventory");

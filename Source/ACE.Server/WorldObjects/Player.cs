@@ -349,6 +349,8 @@ namespace ACE.Server.WorldObjects
                 pressurePlate.OnCollideObject(this);
             else if (target is Hotspot hotspot)
                 hotspot.OnCollideObject(this);
+            else if (target is SpellProjectile spellProjectile)
+                spellProjectile.OnCollideObject(this);
         }
 
         public override void OnCollideObjectEnd(WorldObject target)
@@ -502,14 +504,19 @@ namespace ACE.Server.WorldObjects
 
             if (!clientSessionTerminatedAbruptly)
             {
-                // Thie retail server sends a ChatRoomTracker 0x0295 first, then the status message, 0x028B. It does them one at a time for each individual channel.
-                // The ChatRoomTracker message doesn't seem to change at all.
-                // For the purpose of ACE, we simplify this process.
-                var general = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, "General");
-                var trade = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, "Trade");
-                var lfg = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, "LFG");
-                var roleplay = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, "Roleplay");
-                Session.Network.EnqueueSend(general, trade, lfg, roleplay);
+                if (PropertyManager.GetBool("use_turbine_chat").Item)
+                {
+                    if (GetCharacterOption(CharacterOption.ListenToGeneralChat))
+                        LeaveTurbineChatChannel("General");
+                    if (GetCharacterOption(CharacterOption.ListenToTradeChat))
+                        LeaveTurbineChatChannel("Trade");
+                    if (GetCharacterOption(CharacterOption.ListenToLFGChat))
+                        LeaveTurbineChatChannel("LFG");
+                    if (GetCharacterOption(CharacterOption.ListenToRoleplayChat))
+                        LeaveTurbineChatChannel("Roleplay");
+                    if (GetCharacterOption(CharacterOption.ListenToAllegianceChat) && Allegiance != null)
+                        LeaveTurbineChatChannel("Allegiance");
+                }
             }
 
             if (CurrentActivePet != null)
@@ -776,7 +783,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionTalk(string message)
         {
             if (!IsGagged)
+            {
                 EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, ChatMessageType.Speech);
+
+                OnTalk(message);
+            }
             else
                 SendGagError();
         }
@@ -802,7 +813,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionEmote(string message)
         {
             if (!IsGagged)
+            {
                 EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, Name, message), LocalBroadcastRange);
+
+                OnTalk(message);
+            }
             else
                 SendGagError();
         }
@@ -810,9 +825,32 @@ namespace ACE.Server.WorldObjects
         public void HandleActionSoulEmote(string message)
         {
             if (!IsGagged)
+            {
                 EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message), LocalBroadcastRange);
+
+                OnTalk(message);
+            }
             else
                 SendGagError();
+        }
+
+        public void OnTalk(string message)
+        {
+            if (PhysicsObj == null || CurrentLandblock == null) return;
+
+            var isDungeon = CurrentLandblock.PhysicsLandblock != null && CurrentLandblock.PhysicsLandblock.IsDungeon;
+
+            var rangeSquared = LocalBroadcastRangeSq;
+
+            foreach (var creature in PhysicsObj.ObjMaint.GetKnownObjectsValuesAsCreature())
+            {
+                if (isDungeon && Location.Landblock != creature.Location.Landblock)
+                    continue;
+
+                var distSquared = Location.SquaredDistanceTo(creature.Location);
+                if (distSquared <= rangeSquared)
+                    creature.EmoteManager.OnHearChat(this, message);
+            }
         }
 
         public void HandleActionJump(JumpPack jump)

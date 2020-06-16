@@ -15,6 +15,9 @@ namespace ACE.Server.Network.Handlers
         [GameMessage(GameMessageOpcode.TurbineChat, SessionState.WorldConnected)]
         public static void TurbineChatReceived(ClientMessage clientMessage, Session session)
         {
+            if (!PropertyManager.GetBool("use_turbine_chat").Item)
+                return;
+
             clientMessage.Payload.ReadUInt32(); // Bytes to follow
             var chatBlobType = (ChatNetworkBlobType)clientMessage.Payload.ReadUInt32();
             clientMessage.Payload.ReadUInt32(); // Always 2
@@ -33,7 +36,7 @@ namespace ACE.Server.Network.Handlers
 
             if (chatBlobType == ChatNetworkBlobType.NETBLOB_REQUEST_BINARY)
             {
-                clientMessage.Payload.ReadUInt32(); // 0x01 - 0x71 (maybe higher), typically though 0x01 - 0x0F
+                var contextId = clientMessage.Payload.ReadUInt32(); // 0x01 - 0x71 (maybe higher), typically though 0x01 - 0x0F
                 clientMessage.Payload.ReadUInt32(); // Always 2
                 clientMessage.Payload.ReadUInt32(); // Always 2
                 var channelID = clientMessage.Payload.ReadUInt32();
@@ -91,7 +94,7 @@ namespace ACE.Server.Network.Handlers
                         if (channelID == TurbineChatChannel.General && !recipient.GetCharacterOption(CharacterOption.ListenToGeneralChat) ||
                             channelID == TurbineChatChannel.Trade && !recipient.GetCharacterOption(CharacterOption.ListenToTradeChat) ||
                             channelID == TurbineChatChannel.LFG && !recipient.GetCharacterOption(CharacterOption.ListenToLFGChat) ||
-                            channelID == TurbineChatChannel.Roleplay && !recipient.GetCharacterOption(CharacterOption.ListentoRoleplayChat) ||
+                            channelID == TurbineChatChannel.Roleplay && !recipient.GetCharacterOption(CharacterOption.ListenToRoleplayChat) ||
                             channelID == TurbineChatChannel.Society && !recipient.GetCharacterOption(CharacterOption.ListenToSocietyChat))
                             continue;
 
@@ -100,6 +103,8 @@ namespace ACE.Server.Network.Handlers
 
                         recipient.Session.Network.EnqueueSend(gameMessageTurbineChat);
                     }
+
+                    session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                 }
             }
             else

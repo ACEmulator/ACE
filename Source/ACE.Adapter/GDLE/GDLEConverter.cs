@@ -460,19 +460,19 @@ namespace ACE.Adapter.GDLE
                 result.FailAmount = input.FailAmount;
                 result.FailMessage = input.FailMessage;
 
-                result.SuccessConsumeTargetChance = (int)input.SuccessDestroyTargetChance;
+                result.SuccessConsumeTargetChance = input.SuccessDestroyTargetChance;
                 result.SuccessConsumeTargetAmount = input.SuccessDestroyTargetAmount;
                 result.SuccessConsumeTargetMessage = input.SuccessDestroyTargetMessage;
 
-                result.SuccessConsumeToolChance = (int)input.SuccessDestroySourceChance;
+                result.SuccessConsumeToolChance = input.SuccessDestroySourceChance;
                 result.SuccessConsumeToolAmount = input.SuccessDestroySourceAmount;
                 result.SuccessConsumeToolMessage = input.SuccessDestroySourceMessage;
 
-                result.FailureConsumeTargetChance = (int)input.FailDestroyTargetChance;
+                result.FailureConsumeTargetChance = input.FailDestroyTargetChance;
                 result.FailureConsumeTargetAmount = input.FailDestroyTargetAmount;
                 result.FailureConsumeTargetMessage = input.FailDestroyTargetMessage;
 
-                result.FailureConsumeToolChance = (int)input.FailDestroySourceChance;
+                result.FailureConsumeToolChance = input.FailDestroySourceChance;
                 result.FailureConsumeToolAmount = input.FailDestroySourceAmount;
                 result.FailureConsumeToolMessage = input.FailDestroySourceMessage;
 

@@ -143,12 +143,12 @@ namespace ACE.Server.WorldObjects
                     return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouAreTooPowerfulToUsePortal));
                 }
 
-                var playerPkLevel = player.PkLevel;
+                //var playerPkLevel = player.PkLevel;
 
-                if (PropertyManager.GetBool("pk_server").Item)
-                    playerPkLevel = PKLevel.PK;
-                else if (PropertyManager.GetBool("pkl_server").Item)
-                    playerPkLevel = PKLevel.PKLite;
+                //if (PropertyManager.GetBool("pk_server").Item)
+                //    playerPkLevel = PKLevel.PK;
+                //else if (PropertyManager.GetBool("pkl_server").Item)
+                //    playerPkLevel = PKLevel.PKLite;
 
                 if (PortalRestrictions == PortalBitmask.NotPassable)
                 {
@@ -156,19 +156,19 @@ namespace ACE.Server.WorldObjects
                     return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.PlayersMayNotUsePortal));
                 }
 
-                if (PortalRestrictions.HasFlag(PortalBitmask.NoPk) && (playerPkLevel == PKLevel.PK || player.PlayerKillerStatus == PlayerKillerStatus.PK))
+                if (PortalRestrictions.HasFlag(PortalBitmask.NoPk) && player.PlayerKillerStatus == PlayerKillerStatus.PK)
                 {
                     // Player killers may not interact with that portal!
                     return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.PKsMayNotUsePortal));
                 }
 
-                if (PortalRestrictions.HasFlag(PortalBitmask.NoPKLite) && (playerPkLevel == PKLevel.PKLite || player.PlayerKillerStatus == PlayerKillerStatus.PKLite))
+                if (PortalRestrictions.HasFlag(PortalBitmask.NoPKLite) && player.PlayerKillerStatus == PlayerKillerStatus.PKLite)
                 {
                     // Lite Player Killers may not interact with that portal!
                     return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.PKLiteMayNotUsePortal));
                 }
 
-                if (PortalRestrictions.HasFlag(PortalBitmask.NoNPK) && playerPkLevel == PKLevel.NPK)
+                if (PortalRestrictions.HasFlag(PortalBitmask.NoNPK) && player.PlayerKillerStatus == PlayerKillerStatus.NPK)
                 {
                     // Non-player killers may not interact with that portal!
                     return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.NonPKsMayNotUsePortal));
