@@ -2155,7 +2155,28 @@ namespace ACE.Server.Command.Handlers.Processors
         [CommandHandler("nudge", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Adjusts the spawn position of a landblock instance", "<dir> <amount>\nDirections: x, y, z, north, south, west, east, northwest, northeast, southwest, southeast, n, s, w, e, nw, ne, sw, se, up, down, here")]
         public static void HandleNudge(Session session, params string[] parameters)
         {
-            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+            WorldObject obj = null;
+
+            var curParam = 0;
+
+            if (parameters.Length == 3)
+            {
+                if (!uint.TryParse(parameters[curParam++].TrimStart("0x"), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var guid))
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid guid: {parameters[0]}", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                obj = session.Player.FindObject(guid, Player.SearchLocations.Landblock);
+
+                if (obj == null)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {parameters[0]}", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+            else
+                obj = CommandHandlerHelper.GetLastAppraisedObject(session);
 
             if (obj == null) return;
 
@@ -2173,7 +2194,7 @@ namespace ACE.Server.Command.Handlers.Processors
             }
 
             // get direction
-            var dirname = parameters[0].ToLower();
+            var dirname = parameters[curParam++].ToLower();
             var dir = GetNudgeDir(dirname);
 
             bool curPos = false;
@@ -2194,9 +2215,9 @@ namespace ACE.Server.Command.Handlers.Processors
 
             // get distance / amount
             var amount = 1.0f;
-            if (parameters.Length > 1)
+            if (curParam < parameters.Length)
             {
-                if (!float.TryParse(parameters[1], out amount))
+                if (!float.TryParse(parameters[curParam++], out amount))
                 {
                     session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid amount: {amount}", ChatMessageType.Broadcast));
                     return;
@@ -2344,7 +2365,28 @@ namespace ACE.Server.Command.Handlers.Processors
         [CommandHandler("rotate", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Adjusts the rotation of a landblock instance", "<dir>\nDirections: north, south, west, east, northwest, northeast, southwest, southeast, n, s, w, e, nw, ne, sw, se, -or-\n0-360, with 0 being north, and 90 being west")]
         public static void HandleRotate(Session session, params string[] parameters)
         {
-            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+            WorldObject obj = null;
+
+            var curParam = 0;
+
+            if (parameters.Length == 2)
+            {
+                if (!uint.TryParse(parameters[curParam++].TrimStart("0x"), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var guid))
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid guid: {parameters[0]}", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                obj = session.Player.FindObject(guid, Player.SearchLocations.Landblock);
+
+                if (obj == null)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {parameters[0]}", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+            else
+                obj = CommandHandlerHelper.GetLastAppraisedObject(session);
 
             if (obj == null) return;
 
@@ -2362,7 +2404,7 @@ namespace ACE.Server.Command.Handlers.Processors
             }
 
             // get direction
-            var dirname = parameters[0].ToLower();
+            var dirname = parameters[curParam++].ToLower();
             var dir = GetNudgeDir(dirname);
 
             bool curRotate = false;
