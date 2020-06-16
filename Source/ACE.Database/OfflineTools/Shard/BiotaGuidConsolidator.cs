@@ -253,7 +253,7 @@ namespace ACE.Database.OfflineTools.Shard
             // Update enchantment tables for equipped items
             using (var context = new ShardDbContext())
             {
-                var enchantments = context.BiotaPropertiesEnchantmentRegistry.Where(r => r.CasterObjectId >= startingGuid);
+                var enchantments = context.BiotaPropertiesEnchantmentRegistry.Where(r => r.CasterObjectId >= startingGuid).ToList();
 
                 // First, remove the enchantments from the database
                 foreach (var enchantment in enchantments)
