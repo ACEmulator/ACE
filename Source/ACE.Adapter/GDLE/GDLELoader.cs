@@ -379,6 +379,68 @@ namespace ACE.Adapter.GDLE
             }
         }
 
+        public static bool TryLoadRecipeCombinedInParallel(string folder, out List<Models.RecipeCombined> results)
+        {
+            try
+            {
+                var files = Directory.GetFiles(folder, "*.json", SearchOption.AllDirectories);
+
+                var recipes = new ConcurrentBag<Models.RecipeCombined>();
+
+                Parallel.ForEach(files, file =>
+                {
+                    if (TryLoadRecipeCombined(file, out var result))
+                        recipes.Add(result);
+                });
+
+                results = new List<Models.RecipeCombined>(recipes);
+
+                return true;
+            }
+            catch
+            {
+                results = null;
+                return false;
+            }
+        }
+
+        public static bool TryLoadRecipeCombinedConverted(string folder, out List<Recipe> recipes, out List<CookBook> cookBooks)
+        {
+            try
+            {
+                TryLoadRecipeCombinedInParallel(folder, out var gdleModel);
+
+                recipes = new List<Recipe>();
+
+                cookBooks = new List<CookBook>();
+
+                foreach (var value in gdleModel)
+                {
+                    if (GDLEConverter.TryConvert(value.recipe, out var result))
+                    {
+                        foreach (var precursor in value.precursors)
+                        {
+                            if (GDLEConverter.TryConvert(precursor, out var result2))
+                            {
+                                result2.RecipeId = value.key;
+                                cookBooks.Add(result2);
+                            }
+                        }
+                        recipes.Add(result);
+                    }
+                }
+
+                return true;
+
+            }
+            catch
+            {
+                recipes = null;
+                cookBooks = null;
+                return false;
+            }
+        }
+
         public static bool TryLoadRecipesConverted(string file, out List<Recipe> results)
         {
             try
