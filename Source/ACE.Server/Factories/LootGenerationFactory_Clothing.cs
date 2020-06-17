@@ -678,61 +678,55 @@ namespace ACE.Server.Factories
             int cloakLevel = 1;
             int chance = 0;
 
-            chance = ThreadSafeRandom.Next(1, 100);
+            chance = ThreadSafeRandom.Next(1, 1000);
             switch (profile.Tier)
             {
                 case 1:
-                default:
-                    cloakLevel = 1;
-                    break;
                 case 2:
+                default:                
                     cloakLevel = 1;
                     break;
                 case 3:
                 case 4:
-                    if (chance < 66)
+                    if (chance <= 440)
                         cloakLevel = 1;
                     else
                         cloakLevel = 2;
                     break;
                 case 5:
-                    if (chance < 46)
+                    if (chance <= 250)
                         cloakLevel = 1;
-                    else if (chance < 71)
+                    else if (chance <= 700)
                         cloakLevel = 2;
                     else
                         cloakLevel = 3;
                     break;
                 case 6:
-                    if (chance < 36)
+                    if (chance <= 36)
                         cloakLevel = 1;
-                    else if (chance < 61)
+                    else if (chance <= 357)
                         cloakLevel = 2;
-                    else if (chance < 96)
+                    else if (chance <= 990)
                         cloakLevel = 3;
                     else
                         cloakLevel = 4;
                     break;
-                case 7:
-                    if (chance < 26)
-                        cloakLevel = 1;
-                    else if (chance < 51)
+                case 7:  // From data, no chance to get a lvl 1 cloak
+                    if (chance <= 463)
                         cloakLevel = 2;
-                    else if (chance < 91)
+                    else if (chance <= 945)
                         cloakLevel = 3;
-                    else if (chance < 99)
+                    else if (chance <= 984)
                         cloakLevel = 4;
                     else
                         cloakLevel = 5;
                     break;
-                case 8:
-                    if (chance < 21)
-                        cloakLevel = 1;
-                    else if (chance < 46)
+                case 8:  // From data, no chance to get a lvl 1 cloak
+                    if (chance <= 451)
                         cloakLevel = 2;
-                    else if (chance < 81)
+                    else if (chance <= 920)
                         cloakLevel = 3;
-                    else if (chance < 97)
+                    else if (chance <= 975)
                         cloakLevel = 4;
                     else
                         cloakLevel = 5;
