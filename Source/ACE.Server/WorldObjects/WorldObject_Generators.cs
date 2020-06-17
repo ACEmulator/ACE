@@ -904,5 +904,15 @@ namespace ACE.Server.WorldObjects
                 generator.SpawnQueue.Clear();
             }
         }
+
+        public uint? GetStaticGuid(uint dynamicGuid)
+        {
+            foreach (var profile in GeneratorProfiles)
+            {
+                if (profile.Spawned.ContainsKey(dynamicGuid))
+                    return profile.Id;
+            }
+            return null;
+        }
     }
 }
