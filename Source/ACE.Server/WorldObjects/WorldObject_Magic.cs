@@ -682,6 +682,12 @@ namespace ACE.Server.WorldObjects
                     }
                     break;
 
+                case SpellType.Projectile:
+
+                    damage = 0;
+                    var projectiles = CreateSpellProjectiles(spell, target, itemCaster);
+                    break;
+
                 case SpellType.LifeProjectile:
 
                     caster = this as Creature;
