@@ -582,7 +582,10 @@ namespace ACE.Server.WorldObjects
 
             MotionCommand pickupMotion;
 
-            var item_location_z = objectWereReachingToward.Location.PositionZ + (objectWereReachingToward.Height * 0.5);
+            var item_location_z = objectWereReachingToward.Location.PositionZ;
+
+            if (!(objectWereReachingToward is Corpse))
+                item_location_z += objectWereReachingToward.Height * 0.5f;
 
             if (item_location_z >= Location.PositionZ + (Height * 0.90))
                 pickupMotion = MotionCommand.Pickup20; // Reach up

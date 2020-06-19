@@ -342,7 +342,7 @@ namespace ACE.Database.SQLFormatters.World
             if (input.PositionObjCellId.HasValue)
             {
                 spellLineHdr += ", `position_Obj_Cell_ID`";
-                spellLine += $", {input.PositionObjCellId}";
+                spellLine += $", 0x{input.PositionObjCellId:X8}";
             }
             if (input.PositionOriginX.HasValue)
             {
