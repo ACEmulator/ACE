@@ -2290,7 +2290,7 @@ namespace ACE.Server.Factories
         }
         private static WorldObject AssignCloakSpells(WorldObject wo, int cloakSpellId)
         {
-            wo.Biota.GetOrAddKnownSpell(cloakSpellId, wo.BiotaDatabaseLock, out _);
+            wo.ProcSpell = (uint)cloakSpellId;
             return wo;
         }
     }         

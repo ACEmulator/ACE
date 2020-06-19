@@ -670,6 +670,7 @@ namespace ACE.Server.Factories
                     wo.ProcSpellSelfTargeted = false;
                 wo.CloakWeaveProc = 1;
             }
+            
         }
         private static int GetCloakMaxLevel(TreasureDeath profile)
         {
