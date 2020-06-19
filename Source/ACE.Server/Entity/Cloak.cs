@@ -33,7 +33,7 @@ namespace ACE.Server.Entity
         public static bool RollProc(float damage_percent, int cloak_level)
         {
             // TODO: find retail formula
-            // TODO: cloak level multiplier - Added 6/19/2020 HQ (Still need to retail numbers)
+            // TODO: cloak level multiplier - Added 6/19/2020 HQ (Still need retail numbers)
 
             float chance;
             if (cloak_level > 0 || cloak_level < 6)
