@@ -19,7 +19,7 @@ namespace ACE.Server.Entity
         {
             if (cloak == null) return false;
 
-            if (!RollProc(damage_percent, cloak.ItemMaxLevel.Value))
+            if (!RollProc(cloak, damage_percent))
                 return false;
 
             return HandleProcSpell(defender, attacker, cloak);
@@ -30,16 +30,16 @@ namespace ACE.Server.Entity
         /// </summary>
         /// <param name="damage_percent">The percent of MaxHealth inflicted by an enemy's hit</param>
         /// <returns></returns>
-        public static bool RollProc(float damage_percent, int cloak_level)
+        public static bool RollProc(WorldObject cloak, float damage_percent)
         {
             // TODO: find retail formula
             // TODO: cloak level multiplier - Added 6/19/2020 HQ (Still need retail numbers)
 
-            float chance;
-            if (cloak_level > 0 || cloak_level < 6)
-                chance = damage_percent * (ChanceMod + ((float)cloak_level / 10.0f));
-            else
-                chance = damage_percent * ChanceMod;
+            var itemMaxLevel = cloak.ItemMaxLevel ?? 0;
+
+            var chanceMod = ChanceMod + itemMaxLevel * 0.1f;
+
+            var chance = damage_percent * chanceMod;
 
             if (chance < 1.0f)
             {

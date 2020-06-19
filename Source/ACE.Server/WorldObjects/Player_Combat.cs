@@ -467,7 +467,7 @@ namespace ACE.Server.WorldObjects
 
             var equippedCloak = EquippedCloak;
 
-            if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(percent, equippedCloak.ItemMaxLevel.Value))
+            if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(equippedCloak, percent))
             {
                 var reducedAmount = Cloak.GetReducedAmount(amount);
 
