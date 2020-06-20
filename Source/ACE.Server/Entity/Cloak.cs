@@ -9,7 +9,7 @@ namespace ACE.Server.Entity
 {
     public class Cloak
     {
-        private static readonly float ChanceMod = 2.5f;
+        private static readonly float ChanceMod = 2.0f;
 
         /// <summary>
         /// Rolls for a chance at procing a cloak spell
@@ -19,7 +19,7 @@ namespace ACE.Server.Entity
         {
             if (cloak == null) return false;
 
-            if (!RollProc(damage_percent))
+            if (!RollProc(cloak, damage_percent))
                 return false;
 
             return HandleProcSpell(defender, attacker, cloak);
@@ -30,11 +30,16 @@ namespace ACE.Server.Entity
         /// </summary>
         /// <param name="damage_percent">The percent of MaxHealth inflicted by an enemy's hit</param>
         /// <returns></returns>
-        public static bool RollProc(float damage_percent)
+        public static bool RollProc(WorldObject cloak, float damage_percent)
         {
             // TODO: find retail formula
-            // TODO: cloak level multiplier
-            var chance = damage_percent * ChanceMod;
+            // TODO: cloak level multiplier - Added 6/19/2020 HQ (Still need retail numbers) Updated with Riggs suggestions
+
+            var itemMaxLevel = cloak.ItemMaxLevel ?? 0;
+
+            var chanceMod = ChanceMod + itemMaxLevel * 0.1f;
+
+            var chance = damage_percent * chanceMod;
 
             if (chance < 1.0f)
             {
