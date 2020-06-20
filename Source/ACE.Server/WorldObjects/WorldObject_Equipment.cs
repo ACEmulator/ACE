@@ -28,7 +28,7 @@ namespace ACE.Server.WorldObjects
 
                 if (item.StackSize > 0 && wo is Stackable)
                     wo.SetStackSize(item.StackSize);
-                else if (item.StackSize > 0)
+                else if (item.StackSize > 0) // item isn't a stackable object, but we want multiples of it while not displaying multiple single items in the profile. Munge stacksize to get us there.
                     wo.StackSize = item.StackSize;
 
                 items.Add(wo);
