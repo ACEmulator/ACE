@@ -26,8 +26,10 @@ namespace ACE.Server.WorldObjects
                 if (item.Shade > 0)
                     wo.Shade = item.Shade;
 
-                if (item.StackSize > 0)
+                if (item.StackSize > 0 && wo is Stackable)
                     wo.SetStackSize(item.StackSize);
+                else if (item.StackSize > 0)
+                    wo.StackSize = item.StackSize;
 
                 items.Add(wo);
             }
