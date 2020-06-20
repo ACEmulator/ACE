@@ -114,7 +114,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<WorldObject> GetBuyItems()
         {
-            return GetCreateList(DestinationType.HouseBuy);
+            return GetCreateListForSlumLord(DestinationType.HouseBuy);
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<WorldObject> GetRentItems()
         {
-            return GetCreateList(DestinationType.HouseRent);
+            return GetCreateListForSlumLord(DestinationType.HouseRent);
         }
 
         /// <summary>

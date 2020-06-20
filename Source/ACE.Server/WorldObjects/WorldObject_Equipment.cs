@@ -12,7 +12,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        public List<WorldObject> GetCreateList(DestinationType type)
+        public List<WorldObject> GetCreateListForSlumLord(DestinationType type)
         {
             var items = new List<WorldObject>();
 
