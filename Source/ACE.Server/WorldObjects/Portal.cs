@@ -150,7 +150,7 @@ namespace ACE.Server.WorldObjects
                 //else if (PropertyManager.GetBool("pkl_server").Item)
                 //    playerPkLevel = PKLevel.PKLite;
 
-                if (PortalRestrictions == PortalBitmask.NotPassable)
+                if (PortalRestrictions == PortalBitmask.Undef)
                 {
                     // Players may not interact with that portal.
                     return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.PlayersMayNotUsePortal));
