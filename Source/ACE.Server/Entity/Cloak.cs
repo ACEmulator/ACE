@@ -33,7 +33,7 @@ namespace ACE.Server.Entity
         public static bool RollProc(WorldObject cloak, float damage_percent)
         {
             // TODO: find retail formula
-            // TODO: cloak level multiplier - Added 6/19/2020 HQ (Still need retail numbers)
+            // TODO: cloak level multiplier - Added 6/19/2020 HQ (Still need retail numbers) Updated with Riggs suggestions
 
             var itemMaxLevel = cloak.ItemMaxLevel ?? 0;
 
