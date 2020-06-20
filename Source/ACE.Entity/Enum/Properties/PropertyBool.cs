@@ -166,7 +166,9 @@ namespace ACE.Entity.Enum.Properties
         HadNoVitae                       = 128,
         NoOlthoiTalk                     = 129,
         AutowieldLeft                    = 130,
-
+        [Ephemeral]
+        [SendOnLogin]
+        IsEnvoy                          = 131,
         /* custom */
         [ServerOnly]
         LinkedPortalOneSummon            = 9001,
