@@ -26,10 +26,13 @@ namespace ACE.Server.WorldObjects
                 if (item.Shade > 0)
                     wo.Shade = item.Shade;
 
-                if (item.StackSize > 0 && wo is Stackable)
-                    wo.SetStackSize(item.StackSize);
-                else if (item.StackSize > 0) // item isn't a stackable object, but we want multiples of it while not displaying multiple single items in the profile. Munge stacksize to get us there.
-                    wo.StackSize = item.StackSize;
+                if (item.StackSize > 0)
+                {
+                    if (wo is Stackable)
+                        wo.SetStackSize(item.StackSize);
+                    else
+                        wo.StackSize = item.StackSize;  // item isn't a stackable object, but we want multiples of it while not displaying multiple single items in the profile. Munge stacksize to get us there.
+                }
 
                 items.Add(wo);
             }
