@@ -166,9 +166,7 @@ namespace ACE.Entity.Enum.Properties
         HadNoVitae                       = 128,
         NoOlthoiTalk                     = 129,
         AutowieldLeft                    = 130,
-        [Ephemeral]
-        [SendOnLogin]
-        IsEnvoy                          = 131,
+
         /* custom */
         [ServerOnly]
         LinkedPortalOneSummon            = 9001,
@@ -178,6 +176,8 @@ namespace ACE.Entity.Enum.Properties
         HouseEvicted                     = 9003,
         [ServerOnly]
         UntrainedSkills                  = 9004,
+        [Ephemeral][ServerOnly]
+        IsEnvoy                          = 9005,
     }
 
     public static class PropertyBoolExtensions
