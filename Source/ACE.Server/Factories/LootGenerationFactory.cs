@@ -1053,95 +1053,130 @@ namespace ACE.Server.Factories
             numEpics = 0;
             numLegendaries = 0;
 
-            int nonCantripChance = ThreadSafeRandom.Next(1, 100);
+            int nonCantripChance = ThreadSafeRandom.Next(1, 100000);
 
             numMinors = GetNumMinorCantrips(profile); // All tiers have a chance for at least one minor cantrip
+            numMajors = GetNumMajorCantrips(profile);
+            numEpics = GetNumEpicCantrips(profile);
+            numLegendaries = GetNumLegendaryCantrips(profile);
 
-            switch (profile.Tier)
-            {
-                case 1:
-                    // 1-3 w/ chance of minor cantrip
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 1;
-                    else if (nonCantripChance <= 90)
-                        numNonCantrips = 2;
-                    else
-                        numNonCantrips = 3;
-                    break;
+            //  Fixing the absurd amount of spells on items - HQ 6/21/2020
+            //  From Mags Data all tiers have about the same chance for a given number of spells on items.  This is the ratio for magical items.
+            //  1 Spell(s) - 46.410 %
+            //  2 Spell(s) - 27.040 %
+            //  3 Spell(s) - 17.850 %
+            //  4 Spell(s) - 6.875 %
+            //  5 Spell(s) - 1.525 %
+            //  6 Spell(s) - 0.235 %
+            //  7 Spell(s) - 0.065 %
 
-                case 2:
-                    // 3-4 w/ chance of either minor or major
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 3;
-                    else
-                        numNonCantrips = 4;
-                    break;
 
-                case 3:
-                    // 4-5 w/ chance of either major or minor
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 4;
-                    else
-                        numNonCantrips = 5;
+            if (nonCantripChance <= 46410)
+                numNonCantrips = 1;
+            else if (nonCantripChance <= 73450)
+                numNonCantrips = 2;
+            else if (nonCantripChance <= 91300)
+                numNonCantrips = 3;
+            else if (nonCantripChance <= 98175)
+                numNonCantrips = 4;
+            else if (nonCantripChance <= 99700)
+                numNonCantrips = 5;
+            else if (nonCantripChance <= 99935)
+                numNonCantrips = 6;
+            else
+                numNonCantrips = 7;
 
-                    numMajors = GetNumMajorCantrips(profile);
-                    break;
 
-                case 4:
-                    // 5-6, major and minor
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 5;
-                    else
-                        numNonCantrips = 6;
+            //switch (profile.Tier)
+            //{
+            //    case 1:
+            //        // 1-3 w/ chance of minor cantrip
+            //        if (nonCantripChance <= 50)
+            //            numNonCantrips = 1;
+            //        else if (nonCantripChance <= 90)
+            //            numNonCantrips = 2;
+            //        else
+            //            numNonCantrips = 3;
+            //        break;
 
-                    numMajors = GetNumMajorCantrips(profile);
-                    break;
+            //    case 2:
+            //        // 3-4 w/ chance of either minor or major
+            //        if (nonCantripChance <= 50)
+            //            numNonCantrips = 3;
+            //        else
+            //            numNonCantrips = 4;
+            //        break;
 
-                case 5:
-                    // 5-7 major and minor
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 5;
-                    else if (nonCantripChance <= 90)
-                        numNonCantrips = 6;
-                    else
-                        numNonCantrips = 7;
+            //    case 3:
+            //        // 4-5 w/ chance of either major or minor
+            //        if (nonCantripChance <= 50)
+            //            numNonCantrips = 4;
+            //        else
+            //            numNonCantrips = 5;
 
-                    numMajors = GetNumMajorCantrips(profile);
-                    break;
+            //        numMajors = GetNumMajorCantrips(profile);
+            //        break;
 
-                case 6:
-                    // 6-7, minor(4 total) major(2 total)
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 6;
-                    else
-                        numNonCantrips = 7;
+            //    case 4:
+            //        // 5-6, major and minor
+            //        if (nonCantripChance <= 50)
+            //            numNonCantrips = 5;
+            //        else
+            //            numNonCantrips = 6;
 
-                    numMajors = GetNumMajorCantrips(profile);
-                    break;
+            //        numMajors = GetNumMajorCantrips(profile);
+            //        break;
 
-                case 7:
-                    /// 6-7, minor(4), major(3), epic(4)
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 6;
-                    else
-                        numNonCantrips = 7;
+            //    case 5:
+            //        // 5-7 major and minor
+            //        if (nonCantripChance <= 50)
+            //            numNonCantrips = 5;
+            //        else if (nonCantripChance <= 90)
+            //            numNonCantrips = 6;
+            //        else
+            //            numNonCantrips = 7;
 
-                    numMajors = GetNumMajorCantrips(profile);
-                    numEpics = GetNumEpicCantrips(profile);
-                    break;
+            //        numMajors = GetNumMajorCantrips(profile);
+            //        break;
 
-                default:
-                    // 6-7, minor(4), major(3), epic(4), legendary(2)
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 6;
-                    else
-                        numNonCantrips = 7;
+            //    case 6:
+            //        // 6-7, minor(4 total) major(2 total)
+            //        if (nonCantripChance <= 50)
+            //            numNonCantrips = 6;
+            //        else
+            //            numNonCantrips = 7;
 
-                    numMajors = GetNumMajorCantrips(profile);
-                    numEpics = GetNumEpicCantrips(profile);
-                    numLegendaries = GetNumLegendaryCantrips(profile);
-                    break;
-            }
+            //        numMajors = GetNumMajorCantrips(profile);
+            //        break;
+
+            //    case 7:
+            //        /// 6-7, minor(4), major(3), epic(4)
+            //        if (nonCantripChance <= 50)
+            //            numNonCantrips = 6;
+            //        else
+            //            numNonCantrips = 7;
+
+            //        numMajors = GetNumMajorCantrips(profile);
+            //        numEpics = GetNumEpicCantrips(profile);
+            //        break;
+
+            //    default:
+            //        // 6-7, minor(4), major(3), epic(4), legendary(2)
+            //        if (nonCantripChance <= 50)
+            //            numNonCantrips = 6;
+            //        else
+            //            numNonCantrips = 7;
+
+            //        numMajors = GetNumMajorCantrips(profile);
+            //        numEpics = GetNumEpicCantrips(profile);
+            //        numLegendaries = GetNumLegendaryCantrips(profile);
+            //        break;
+            //}
+
+
+
+
+
 
             return numNonCantrips + numMinors + numMajors + numEpics + numLegendaries;
         }
