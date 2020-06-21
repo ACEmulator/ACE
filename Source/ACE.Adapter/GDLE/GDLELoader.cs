@@ -80,7 +80,7 @@ namespace ACE.Adapter.GDLE
             {
                 TryLoadLandblocksInParallel(folder, out var landblocks);
 
-                if (landblocks is null)
+                if (landblocks == null)
                 {
                     results = null;
                     links = null;
@@ -192,7 +192,7 @@ namespace ACE.Adapter.GDLE
                 var gdleModel = JsonConvert.DeserializeObject<Models.WorldSpawns>(fileText);
 
 
-                if (gdleModel.Landblocks is null)
+                if (gdleModel.Landblocks == null)
                 {
                     results = null;
                     links = null;
@@ -425,7 +425,7 @@ namespace ACE.Adapter.GDLE
             {
                 TryLoadRecipeCombinedInParallel(folder, out var gdleModel);
 
-                if (gdleModel is null)
+                if (gdleModel == null)
                 {
                     recipes = null;
                     cookBooks = null;
