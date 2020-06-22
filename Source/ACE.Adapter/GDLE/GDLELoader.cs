@@ -80,6 +80,13 @@ namespace ACE.Adapter.GDLE
             {
                 TryLoadLandblocksInParallel(folder, out var landblocks);
 
+                if (landblocks == null)
+                {
+                    results = null;
+                    links = null;
+                    return false;
+                }
+
                 ReGuidAndConvertLandblocks(out results, out links, startingIdOffset, landblocks);
 
                 return true;
@@ -183,6 +190,14 @@ namespace ACE.Adapter.GDLE
                 var fileText = File.ReadAllText(file);
 
                 var gdleModel = JsonConvert.DeserializeObject<Models.WorldSpawns>(fileText);
+
+
+                if (gdleModel.Landblocks == null)
+                {
+                    results = null;
+                    links = null;
+                    return false;
+                }
 
                 ReGuidAndConvertLandblocks(out results, out links, startingIdOffset, gdleModel.Landblocks);
 
@@ -409,6 +424,13 @@ namespace ACE.Adapter.GDLE
             try
             {
                 TryLoadRecipeCombinedInParallel(folder, out var gdleModel);
+
+                if (gdleModel == null)
+                {
+                    recipes = null;
+                    cookBooks = null;
+                    return false;
+                }
 
                 recipes = new List<Recipe>();
 
