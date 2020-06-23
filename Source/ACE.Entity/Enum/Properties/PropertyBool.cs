@@ -176,6 +176,15 @@ namespace ACE.Entity.Enum.Properties
         HouseEvicted                     = 9003,
         [ServerOnly]
         UntrainedSkills                  = 9004,
+
+        [ServerOnly]
+        UnspecializedSkills              = 9006,
+        [ServerOnly]
+        FreeSkillResetRenewed            = 9007,
+        [ServerOnly]
+        FreeAttributeResetRenewed        = 9008,
+        [ServerOnly]
+        SkillTemplesTimerReset          = 9009,
     }
 
     public static class PropertyBoolExtensions

@@ -585,11 +585,24 @@ namespace ACE.Server.WorldObjects
             Skill.Salvaging
         };
 
+        public static List<Skill> AugSpecSkills = new List<Skill>()
+        {
+            Skill.ArmorTinkering,
+            Skill.ItemTinkering,
+            Skill.MagicItemTinkering,
+            Skill.WeaponTinkering,
+            Skill.Salvaging
+        };
+
         public static bool IsSkillUntrainable(Skill skill)
         {
             return !AlwaysTrained.Contains(skill);
         }
 
+        public static bool IsSkillSpecializedViaAugmentation(Skill skill)
+        {
+            return !AugSpecSkills.Contains(skill);
+        }
 
         public override bool GetHeritageBonus(WorldObject weapon)
         {
@@ -711,6 +724,79 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessageSystemChat("Your trained skills have been reset due to an error with skill credits.\nYou have received a refund for these skill credits and experience.", ChatMessageType.Broadcast));
 
                 RemoveProperty(PropertyBool.UntrainedSkills);
+            });
+            actionChain.EnqueueChain();
+        }
+
+        public void HandleSkillSpecCreditRefund()
+        {
+            if (!(GetProperty(PropertyBool.UnspecializedSkills) ?? false)) return;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(5.0f);
+            actionChain.AddAction(this, () =>
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Your specialized skills have been unspecialized due to an error with skill credits.\nYou have received a refund for these skill credits and experience.", ChatMessageType.Broadcast));
+
+                RemoveProperty(PropertyBool.UnspecializedSkills);
+            });
+            actionChain.EnqueueChain();
+        }
+
+        public void HandleFreeSkillResetRenewal()
+        {
+            if (!(GetProperty(PropertyBool.FreeSkillResetRenewed) ?? false)) return;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(5.0f);
+            actionChain.AddAction(this, () =>
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Your opportunity to change your skills is renewed! Visit Fianhe to reset your skills.", ChatMessageType.Magic));
+
+                RemoveProperty(PropertyBool.FreeSkillResetRenewed);
+
+                QuestManager.Erase("UsedFreeSkillReset");
+            });
+            actionChain.EnqueueChain();
+        }
+
+        public void HandleFreeAttributeResetRenewal()
+        {
+            if (!(GetProperty(PropertyBool.FreeAttributeResetRenewed) ?? false)) return;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(5.0f);
+            actionChain.AddAction(this, () =>
+            {
+                // Your opportunity to change your attributes is renewed! Visit Chafulumisa to reset your skills [sic attributes].
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Your opportunity to change your attributes is renewed! Visit Chafulumisa to reset your attributes.", ChatMessageType.Magic));
+
+                RemoveProperty(PropertyBool.FreeAttributeResetRenewed);
+
+                QuestManager.Erase("UsedFreeAttributeReset");
+            });
+            actionChain.EnqueueChain();
+        }
+
+        public void HandleSkillTemplesReset()
+        {
+            if (!(GetProperty(PropertyBool.SkillTemplesTimerReset) ?? false)) return;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(5.0f);
+            actionChain.AddAction(this, () =>
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat("The Temples of Forgetfulness and Enlightenment have had the timer for their use reset due to skill changes.", ChatMessageType.Magic));
+
+                RemoveProperty(PropertyBool.SkillTemplesTimerReset);
+
+                QuestManager.Erase("ForgetfulnessGems1");
+                QuestManager.Erase("ForgetfulnessGems2");
+                QuestManager.Erase("ForgetfulnessGems3");
+                QuestManager.Erase("ForgetfulnessGems4");
+                QuestManager.Erase("Forgetfulness6days");
+                QuestManager.Erase("Forgetfulness13days");
+                QuestManager.Erase("Forgetfulness20days");
             });
             actionChain.EnqueueChain();
         }
