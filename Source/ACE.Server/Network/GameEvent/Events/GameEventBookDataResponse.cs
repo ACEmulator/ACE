@@ -23,7 +23,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 Writer.Write(pageData[i].AuthorId);
                 Writer.WriteString16L(pageData[i].AuthorName);
                 // Check if player is admin and hide AuthorAccount if not. Potential security hole if we are sending out account usernames.
-                if (session.Player.IsAdmin || session.Player.IsSentinel || session.Player.IsArch || session.Player.IsPsr)
+                if (session.Player.IsAdmin || session.Player.IsSentinel || session.Player.IsEnvoy || session.Player.IsArch || session.Player.IsPsr)
                     Writer.WriteString16L(pageData[i].AuthorAccount);
                 else
                     Writer.WriteString16L("beer good");

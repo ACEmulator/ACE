@@ -600,6 +600,10 @@ namespace ACE.Server.Managers
         public void OnDeath(WorldObject killer)
         {
             var player = killer as Player;
+
+            if (killer is CombatPet combatPet)
+                player = combatPet.P_PetOwner;
+
             if (player == null) return;
 
             if (Creature.KillQuest != null)

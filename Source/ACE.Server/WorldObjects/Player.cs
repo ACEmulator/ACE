@@ -147,8 +147,13 @@ namespace ACE.Server.WorldObjects
                     IsAdmin = true;
                 if (Session.AccessLevel == AccessLevel.Developer)
                     IsArch = true;
-                if (Session.AccessLevel == AccessLevel.Envoy || Session.AccessLevel == AccessLevel.Sentinel)
+                if (Session.AccessLevel == AccessLevel.Sentinel)
                     IsSentinel = true;
+                if (Session.AccessLevel == AccessLevel.Envoy)
+                {
+                    IsEnvoy = true;
+                    IsSentinel = true; //IsEnvoy is not recognized by the client and therefore the client should treat the user as a Sentinel.
+                }
                 if (Session.AccessLevel == AccessLevel.Advocate)
                     IsAdvocate = true;
             }

@@ -231,7 +231,7 @@ namespace ACE.Server.Factories
             wo.LongDesc = wo.Name;
 
             // Setting Weapon defensive mods 
-            wo.WeaponDefense = GetWieldReqMeleeDMod(wield);
+            wo.WeaponDefense = GetWieldReqMeleeDMod(wield, profile);
             wo.WeaponMagicDefense = GetMagicMissileDMod(profile.Tier);
             wo.WeaponMissileDefense = GetMagicMissileDMod(profile.Tier);
 
