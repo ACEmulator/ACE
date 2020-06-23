@@ -176,6 +176,8 @@ namespace ACE.Entity.Enum.Properties
         HouseEvicted                     = 9003,
         [ServerOnly]
         UntrainedSkills                  = 9004,
+        [Ephemeral][ServerOnly]
+        IsEnvoy                          = 9005,
     }
 
     public static class PropertyBoolExtensions

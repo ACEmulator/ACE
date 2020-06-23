@@ -32,6 +32,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.IsSentinel); else SetProperty(PropertyBool.IsSentinel, value); }
         }
 
+        public bool IsEnvoy
+        {
+            get => GetProperty(PropertyBool.IsEnvoy) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsEnvoy); else SetProperty(PropertyBool.IsEnvoy, value); }
+        }
+
         public bool IsArch
         {
             get => GetProperty(PropertyBool.IsArch) ?? false;

@@ -99,10 +99,10 @@ namespace ACE.Server.Network.Structure
                 if (!PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedActivator))
                     PropertiesBool.Add(PropertyBool.AppraisalHasAllowedActivator, true);
 
-            if (PropertiesString.ContainsKey(PropertyString.ScribeAccount) && !examiner.IsAdmin && !examiner.IsSentinel && !examiner.IsArch && !examiner.IsPsr)
+            if (PropertiesString.ContainsKey(PropertyString.ScribeAccount) && !examiner.IsAdmin && !examiner.IsSentinel && !examiner.IsEnvoy && !examiner.IsArch && !examiner.IsPsr)
                 PropertiesString.Remove(PropertyString.ScribeAccount);
 
-            if (PropertiesString.ContainsKey(PropertyString.HouseOwnerAccount) && !examiner.IsAdmin && !examiner.IsSentinel && !examiner.IsArch && !examiner.IsPsr)
+            if (PropertiesString.ContainsKey(PropertyString.HouseOwnerAccount) && !examiner.IsAdmin && !examiner.IsSentinel && !examiner.IsEnvoy && !examiner.IsArch && !examiner.IsPsr)
                 PropertiesString.Remove(PropertyString.HouseOwnerAccount);
 
             if (PropertiesInt.ContainsKey(PropertyInt.Lifespan))
