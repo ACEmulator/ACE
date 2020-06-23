@@ -955,12 +955,11 @@ namespace ACE.Server.Factories
             // Magic stats
             int numSpells = GetSpellDistribution(profile, out int minorCantrips, out int majorCantrips, out int epicCantrips, out int legendaryCantrips);
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
-            int spellcraft = GetSpellcraft(wo, numSpells, profile.Tier);
+            
 
             wo.UiEffects = UiEffects.Magical;
             wo.ManaRate = manaRate;
-            wo.ItemSpellcraft = spellcraft;
-            wo.ItemDifficulty = GetDifficulty(wo, profile.Tier, spellcraft);
+
             wo.ItemMaxMana = GetMaxMana(numSpells, profile.Tier);
             wo.ItemCurMana = wo.ItemMaxMana;
 
@@ -1040,7 +1039,9 @@ namespace ACE.Server.Factories
                     wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
-
+            int spellcraft = GetSpellcraft(wo, numSpells, profile.Tier);
+            wo.ItemSpellcraft = spellcraft;
+            wo.ItemDifficulty = GetDifficulty(wo, profile.Tier, spellcraft);
             return wo;
         }
 
@@ -1535,8 +1536,27 @@ namespace ACE.Server.Factories
             //}
 
             var maxSpellLevel = wo.GetMaxSpellLevel();
+            int maxSpellDiff = 1;
 
-            var spellCraft = maxSpellLevel * ThreadSafeRandom.Next(min, max);
+            if (maxSpellLevel == 2)
+                maxSpellDiff = 50;
+            else if (maxSpellLevel == 3)
+                maxSpellDiff = 100;
+            else if (maxSpellLevel == 4)
+                maxSpellDiff = 150;
+            else if (maxSpellLevel == 5)
+                maxSpellDiff = 200;
+            else if (maxSpellLevel == 6)
+                maxSpellDiff = 250;
+            else if (maxSpellLevel == 7)
+                maxSpellDiff = 300;
+            else if (maxSpellLevel == 8)
+                maxSpellDiff = 400;
+
+
+
+
+            var spellCraft = maxSpellDiff * ThreadSafeRandom.Next(min, max);
 
             //return spellCraft;
             return (int)(spellCraft < 0 ? 0 : Math.Floor(spellCraft));
@@ -1575,9 +1595,15 @@ namespace ACE.Server.Factories
             //        break;
             //}
 
-            int allegianceLimit = wo.ItemAllegianceRankLimit.Value;
-            int skillLimit = wo.WieldDifficulty.Value;
+            int allegianceLimit = 0;
+            int skillLimit = 1;
 
+            if (wo.ItemAllegianceRankLimit.HasValue)
+                allegianceLimit = wo.ItemAllegianceRankLimit.Value;
+            if (wo.WieldDifficulty.HasValue)
+                skillLimit = wo.WieldDifficulty.Value;
+
+            
             var heritageLimit = wo.Heritage.HasValue ? 0.75f : 1.0f;
             if (allegianceLimit == 0)
                 allegianceLimit = 1;
