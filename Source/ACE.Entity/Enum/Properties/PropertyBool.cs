@@ -176,7 +176,8 @@ namespace ACE.Entity.Enum.Properties
         HouseEvicted                     = 9003,
         [ServerOnly]
         UntrainedSkills                  = 9004,
-
+        [Ephemeral][ServerOnly]
+        IsEnvoy                          = 9005,
         [ServerOnly]
         UnspecializedSkills              = 9006,
         [ServerOnly]
