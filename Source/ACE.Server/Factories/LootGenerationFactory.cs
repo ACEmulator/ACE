@@ -1490,51 +1490,33 @@ namespace ACE.Server.Factories
 
         private static int GetSpellcraft(WorldObject wo, int spellAmount, int tier)
         {
-            //int spellcraft = 0;
-            //switch (tier)
-            //{
-            //    case 1:
-            //        spellcraft = ThreadSafeRandom.Next(1, 20) + spellAmount * ThreadSafeRandom.Next(1, 4); //1-50
-            //        break;
-            //    case 2:
-            //        spellcraft = ThreadSafeRandom.Next(40, 70) + spellAmount * ThreadSafeRandom.Next(1, 5); //40-90
-            //        break;
-            //    case 3:
-            //        spellcraft = ThreadSafeRandom.Next(70, 90) + spellAmount * ThreadSafeRandom.Next(1, 6); //80 - 130
-            //        break;
-            //    case 4:
-            //        spellcraft = ThreadSafeRandom.Next(100, 120) + spellAmount * ThreadSafeRandom.Next(1, 7); /// 120 - 160
-            //        break;
-            //    case 5:
-            //        spellcraft = ThreadSafeRandom.Next(130, 150) + spellAmount * ThreadSafeRandom.Next(1, 8); ///150 - 210
-            //        break;
-            //    case 6:
-            //        spellcraft = ThreadSafeRandom.Next(160, 180) + spellAmount * ThreadSafeRandom.Next(1, 9); /// 200-260
-            //        break;
-            //    case 7:
-            //        spellcraft = ThreadSafeRandom.Next(230, 260) + spellAmount * ThreadSafeRandom.Next(1, 10); /// 250 - 310
-            //        break;
-            //    case 8:
-            //        spellcraft = ThreadSafeRandom.Next(280, 300) + spellAmount * ThreadSafeRandom.Next(1, 11); //300-450
-            //        break;
-            //    default:
-            //        break;
-            //}
 
-            var min = 0.90f;
-            var max = 1.10f;
+            var min = 0.0f;
+            var max = 0.0f;
 
-            //if (wo.gem)
-            //{
-            //    min = 0.90f;
-            //    max = 1.10f;
-            //}
-            //else (treasureClass == TreasureItemClass.Gem)
-            //{
-            //    min = 1.00f;
-            //    max = 1.00f;
-            //}
+            //  Values taken from Riggs Port
+            switch (wo.ItemType)
+            {
+                case ItemType.MeleeWeapon:
+                case ItemType.Caster:
+                case ItemType.MissileWeapon:
+                case ItemType.Armor:
+                case ItemType.Clothing:
+                case ItemType.Jewelry:
+                    min = 0.90f;
+                    max = 1.10f;
+                    break;
+                case ItemType.Gem:
+                    min = 1.00f;
+                    max = 1.00f;
+                    break;
+                default:
+                    min = 1.00f;
+                    max = 1.00f;
+                    break;
+            }
 
+            // Getting the spell difficulty - Maybe a better way to do this.
             var maxSpellLevel = wo.GetMaxSpellLevel();
             int maxSpellDiff = 1;
 
@@ -1551,10 +1533,7 @@ namespace ACE.Server.Factories
             else if (maxSpellLevel == 7)
                 maxSpellDiff = 300;
             else if (maxSpellLevel == 8)
-                maxSpellDiff = 400;
-
-
-
+                maxSpellDiff = 400;  //  Is this 400 or 350?   I know on calcuating spell damage bonus, its 350, but also know need 400 skill to cast a lvl 8 spell. Sticking with 400 for now.
 
             var spellCraft = maxSpellDiff * ThreadSafeRandom.Next(min, max);
 
@@ -1564,47 +1543,23 @@ namespace ACE.Server.Factories
 
         private static int GetDifficulty(WorldObject wo, int tier, int spellcraft)
         {
-            // int difficulty = 0;
-            //switch (tier)
-            //{
-            //    case 1:
-            //        difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-            //        break;
-            //    case 2:
-            //        difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-            //        break;
-            //    case 3:
-            //        difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-            //        break;
-            //    case 4:
-            //        difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-            //        break;
-            //    case 5:
-            //        difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-            //        break;
-            //    case 6:
-            //        difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-            //        break;
-            //    case 7:
-            //        difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-            //        break;
-            //    case 8:
-            //        difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-            //        break;
-            //    default:
-            //        break;
-            //}
+            // Taken from Riggs Treasure Port and modified to work with ACE.
 
-            int allegianceLimit = 0;
-            int skillLimit = 1;
+            int allegianceLimit = 0;  // Not really being used, but availabe to be used in calc
+
+            // Do I need to do an additional calc here?
+            int skillLimit = 1;       // Skill Limit is supposed to be the Wield Req of a weapon.  (ie. 330,355,360,400, etc..)  
 
             if (wo.ItemAllegianceRankLimit.HasValue)
                 allegianceLimit = wo.ItemAllegianceRankLimit.Value;
             if (wo.WieldDifficulty.HasValue)
-                skillLimit = wo.WieldDifficulty.Value;
+                if (wo.WieldDifficulty == 150 || wo.WieldDifficulty == 180)  // Wield Levels are going to be first if they are T7 or T8.  Moving to secound Diff.
+                    if (wo.WieldDifficulty2.HasValue)
+                        skillLimit = wo.WieldDifficulty2.Value;
+                else                    
+                    skillLimit = wo.WieldDifficulty.Value;      
 
-            
-            var heritageLimit = wo.Heritage.HasValue ? 0.75f : 1.0f;
+            var heritageLimit = wo.Heritage.HasValue ? 0.75f : 1.0f;  
             if (allegianceLimit == 0)
                 allegianceLimit = 1;
 
@@ -1613,7 +1568,6 @@ namespace ACE.Server.Factories
             diff -= skillLimit / 2.0f;
 
             return (int)(diff < 0 ? 0 : Math.Floor(diff));
-
         }
 
         private static int GetMaxMana(int spellAmount, int tier)
