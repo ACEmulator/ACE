@@ -1493,7 +1493,7 @@ namespace ACE.Server.Factories
 
             float minItemSpellCraftRange = 0.0f;
             float maxItemSpellCraftRange = 0.0f;
-           
+
             switch (wo.ItemType)
             {
                 case ItemType.MeleeWeapon:
@@ -1503,7 +1503,7 @@ namespace ACE.Server.Factories
                 case ItemType.Clothing:
                 case ItemType.Jewelry:
                     minItemSpellCraftRange = 0.90f;
-                    maxItemSpellCraftRange = 1.10f;
+                    maxItemSpellCraftRange = 1.05f;
                     break;
                 case ItemType.Gem:
                 default:
@@ -1529,7 +1529,7 @@ namespace ACE.Server.Factories
             else if (maxSpellLevel == 7)
                 maxSpellDiff = 300;
             else if (maxSpellLevel == 8)
-                maxSpellDiff = 400;  //  Is this 400 or 350?   I know on calcuating spell damage bonus, its 350, but also know need 400 skill to cast a lvl 8 spell. Sticking with 400 for now.
+                maxSpellDiff = 400;  
 
             var tItemSpellCraft = maxSpellDiff * ThreadSafeRandom.Next(minItemSpellCraftRange, maxItemSpellCraftRange);
 
@@ -1539,45 +1539,45 @@ namespace ACE.Server.Factories
             int finalItemSpellCraft = (int)Math.Floor(tItemSpellCraft);
 
             return finalItemSpellCraft;
-            
+
         }
 
         private static int GetDifficulty(WorldObject wo, int tier, int itemspellcraft)
         {
-            
-            int sc = 0;  // Not really being used, but availabe to be used in calc
 
-            // Do I need to do an additional calc here?
-            int wieldReq = 1;       // Skill Limit is supposed to be the Wield Req of a weapon.  (ie. 330,355,360,400, etc..)  
+            int sc = 0;  
+            int spc = 1;
+            spc = wo.Biota.PropertiesSpellBook.Count();
+            
+            int wieldReq = 1;       
 
             if (wo.ItemAllegianceRankLimit.HasValue)
                 sc = wo.ItemAllegianceRankLimit.Value;
             if (wo.WieldDifficulty.HasValue)
-                if (wo.WieldDifficulty == 150 || wo.WieldDifficulty == 180)  // Wield Levels are going to be first if they are T7 or T8.  Moving to secound Diff.
-                    if (wo.WieldDifficulty2.HasValue)
-                        wieldReq = wo.WieldDifficulty2.Value;
+                if (wo.WieldDifficulty == 150 || wo.WieldDifficulty == 180)
+                    wieldReq = 1;
                 else
-                        wieldReq = wo.WieldDifficulty.Value;
+                    wieldReq = wo.WieldDifficulty.Value;
+            else
+                wieldReq = 1;
 
             float bq = 1.0f;
             if (wo.Heritage.HasValue)
-                bq = 0.75f;           
+                bq = 0.75f;
 
             if (sc == 0)
                 sc = 1;
 
-            float tArcane = itemspellcraft * bq * 2.0f;
+            float tArcane = itemspellcraft * bq * 1.9f + ((spc * 25.0f) / (spc + 2.0f));
             tArcane /= sc + 1.0f;
-            tArcane -= wieldReq / 2.0f;
+            tArcane -= wieldReq / 3.0f;
 
             if (tArcane < 0)
                 tArcane = 0;
 
             int fArcane = (int)Math.Floor(tArcane);
             return fArcane;
-
         }
-
         private static int GetMaxMana(int spellAmount, int tier)
         {
             int maxmana = 0;
