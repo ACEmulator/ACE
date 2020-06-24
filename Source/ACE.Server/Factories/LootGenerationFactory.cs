@@ -1491,10 +1491,9 @@ namespace ACE.Server.Factories
         private static int GetSpellcraft(WorldObject wo, int spellAmount, int tier)
         {
 
-            var min = 0.0f;
-            var max = 0.0f;
-
-            //  Values taken from Riggs Port
+            float minItemSpellCraftRange = 0.0f;
+            float maxItemSpellCraftRange = 0.0f;
+           
             switch (wo.ItemType)
             {
                 case ItemType.MeleeWeapon:
@@ -1503,16 +1502,13 @@ namespace ACE.Server.Factories
                 case ItemType.Armor:
                 case ItemType.Clothing:
                 case ItemType.Jewelry:
-                    min = 0.90f;
-                    max = 1.10f;
+                    minItemSpellCraftRange = 0.90f;
+                    maxItemSpellCraftRange = 1.10f;
                     break;
                 case ItemType.Gem:
-                    min = 1.00f;
-                    max = 1.00f;
-                    break;
                 default:
-                    min = 1.00f;
-                    max = 1.00f;
+                    minItemSpellCraftRange = 1.00f;
+                    maxItemSpellCraftRange = 1.00f;
                     break;
             }
 
@@ -1535,39 +1531,51 @@ namespace ACE.Server.Factories
             else if (maxSpellLevel == 8)
                 maxSpellDiff = 400;  //  Is this 400 or 350?   I know on calcuating spell damage bonus, its 350, but also know need 400 skill to cast a lvl 8 spell. Sticking with 400 for now.
 
-            var spellCraft = maxSpellDiff * ThreadSafeRandom.Next(min, max);
+            var tItemSpellCraft = maxSpellDiff * ThreadSafeRandom.Next(minItemSpellCraftRange, maxItemSpellCraftRange);
 
-            //return spellCraft;
-            return (int)(spellCraft < 0 ? 0 : Math.Floor(spellCraft));
+            if (tItemSpellCraft < 0)
+                tItemSpellCraft = 0;
+
+            int finalItemSpellCraft = (int)Math.Floor(tItemSpellCraft);
+
+            return finalItemSpellCraft;
+            
         }
 
-        private static int GetDifficulty(WorldObject wo, int tier, int spellcraft)
+        private static int GetDifficulty(WorldObject wo, int tier, int itemspellcraft)
         {
-            // Taken from Riggs Treasure Port and modified to work with ACE.
-
-            int allegianceLimit = 0;  // Not really being used, but availabe to be used in calc
+            
+            int maxRank = 0;  // Not really being used, but availabe to be used in calc
 
             // Do I need to do an additional calc here?
-            int skillLimit = 1;       // Skill Limit is supposed to be the Wield Req of a weapon.  (ie. 330,355,360,400, etc..)  
+            int wieldReq = 1;       // Skill Limit is supposed to be the Wield Req of a weapon.  (ie. 330,355,360,400, etc..)  
 
             if (wo.ItemAllegianceRankLimit.HasValue)
-                allegianceLimit = wo.ItemAllegianceRankLimit.Value;
+                maxRank = wo.ItemAllegianceRankLimit.Value;
             if (wo.WieldDifficulty.HasValue)
                 if (wo.WieldDifficulty == 150 || wo.WieldDifficulty == 180)  // Wield Levels are going to be first if they are T7 or T8.  Moving to secound Diff.
                     if (wo.WieldDifficulty2.HasValue)
-                        skillLimit = wo.WieldDifficulty2.Value;
-                else                    
-                    skillLimit = wo.WieldDifficulty.Value;      
+                        wieldReq = wo.WieldDifficulty2.Value;
+                else
+                        wieldReq = wo.WieldDifficulty.Value;
 
-            var heritageLimit = wo.Heritage.HasValue ? 0.75f : 1.0f;  
-            if (allegianceLimit == 0)
-                allegianceLimit = 1;
+            float charRace = 1.0f;
+            if (wo.Heritage.HasValue)
+                charRace = 0.75f;           
 
-            var diff = spellcraft * heritageLimit * 2.0f;
-            diff /= allegianceLimit + 1.0f;
-            diff -= skillLimit / 2.0f;
+            if (maxRank == 0)
+                maxRank = 1;
 
-            return (int)(diff < 0 ? 0 : Math.Floor(diff));
+            float tArcane = itemspellcraft * charRace * 2.0f;
+            tArcane /= maxRank + 1.0f;
+            tArcane -= wieldReq / 2.0f;
+
+            if (tArcane < 0)
+                tArcane = 0;
+
+            int fArcane = (int)Math.Floor(tArcane);
+            return fArcane;
+
         }
 
         private static int GetMaxMana(int spellAmount, int tier)
