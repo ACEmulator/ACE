@@ -53,3 +53,11 @@ INNER JOIN biota ON bfloat.object_Id=biota.Id
 INNER JOIN ace_world.weenie_properties_float wfloat ON wfloat.object_Id=biota.weenie_Class_Id
 SET bfloat.value=wfloat.value
 WHERE biota.weenie_Class_Id=40652 and bfloat.`type`=156 and wfloat.`type`=156;
+
+/* PropertyDataId.UseUserAnimation - 49563 Facility Hub Portal Gem */
+
+UPDATE biota_properties_d_i_d bd_i_d
+INNER JOIN biota ON bd_i_d.object_Id=biota.Id
+INNER JOIN ace_world.weenie_properties_d_i_d wd_i_d ON wd_i_d.object_Id=biota.weenie_Class_Id
+SET bd_i_d.value=wd_i_d.value
+WHERE biota.weenie_Class_Id=49563 and bd_i_d.`type`=27 and wd_i_d.`type`=27;
