@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using ACE.Common;
@@ -727,6 +728,42 @@ namespace ACE.Server.Entity
 
             CalculateXPSharing();
             UpdateAllMembers();
+        }
+    }
+
+    public class DepartedMembersComparer : IComparer<uint>
+    {
+        public static ushort TableSize = 32;
+
+        public int Compare(uint a, uint b)
+        {
+            var keyA = a % TableSize;
+            var keyB = b % TableSize;
+
+            var result = keyA.CompareTo(keyB);
+
+            if (result == 0)
+                result = a.CompareTo(b);
+
+            return result;
+        }
+    }
+
+    public static class FellowshipExtensions
+    {
+        public static DepartedMembersComparer DepartedMembersComparer = new DepartedMembersComparer();
+
+        public static void Write(this BinaryWriter writer, Dictionary<uint, int> departedMembersHash)
+        {
+            writer.Write((ushort)departedMembersHash.Count);
+            writer.Write(DepartedMembersComparer.TableSize);
+
+            var departedMembers = new SortedDictionary<uint, int>(departedMembersHash, DepartedMembersComparer);
+            foreach (var member in departedMembers)
+            {
+                writer.Write(member.Key);
+                writer.Write(member.Value);
+            }
         }
     }
 }

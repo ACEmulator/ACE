@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ACE.Server.Entity;
 using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects;
 
@@ -37,12 +38,7 @@ namespace ACE.Server.Network.GameEvent.Events
 
             Writer.Write(Convert.ToUInt32(fellowship.IsLocked));
 
-            PackableHashTable.WriteHeader(Writer, fellowship.DepartedMembers.Count);
-            foreach (var kvp in fellowship.DepartedMembers)
-            {
-                Writer.Write(kvp.Key);
-                Writer.Write(kvp.Value);
-            }
+            Writer.Write(fellowship.DepartedMembers);
 
             Writer.Write(fellowship.FellowshipLocks);
         }

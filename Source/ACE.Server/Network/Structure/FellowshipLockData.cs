@@ -42,7 +42,8 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<string, FellowshipLockData> fellowshipLocks)
         {
-            PackableHashTable.WriteHeader(writer, fellowshipLocks.Count);
+            writer.Write((ushort)fellowshipLocks.Count);
+            writer.Write((ushort)32);
             foreach (var kvp in fellowshipLocks)
             {
                 writer.WriteString16L(kvp.Key);
