@@ -83,7 +83,7 @@ namespace ACE.Server.Entity
                 if (!DepartedMembers.TryGetValue(newMember.Guid.Full, out var timeDeparted))
                 {
                     inviter.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(inviter.Session, WeenieErrorWithString.LockedFellowshipCannotRecruit_, newMember.Name));
-                    newMember.SendWeenieError(WeenieError.LockedFellowshipCannotRecruitYou);
+                    //newMember.SendWeenieError(WeenieError.LockedFellowshipCannotRecruitYou);
                     return;
                 }
                 else
@@ -92,7 +92,7 @@ namespace ACE.Server.Entity
                     if (DateTime.UtcNow > timeLimit)
                     {
                         inviter.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(inviter.Session, WeenieErrorWithString.LockedFellowshipCannotRecruit_, newMember.Name));
-                        newMember.SendWeenieError(WeenieError.LockedFellowshipCannotRecruitYou);
+                        //newMember.SendWeenieError(WeenieError.LockedFellowshipCannotRecruitYou);
                         return;
                     }
                 }
