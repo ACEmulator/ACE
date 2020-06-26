@@ -40,7 +40,7 @@ namespace ACE.Server.Entity
 
         public Dictionary<uint, int> DepartedMembers;
 
-        public Dictionary<string, LockedFellowshipData> LockedFellowshipList;
+        public Dictionary<string, LockedFellowshipData> FellowshipLocks;
 
         public QuestManager QuestManager;
 
@@ -66,7 +66,7 @@ namespace ACE.Server.Entity
             QuestManager = new QuestManager(this);
             IsLocked = false;
             DepartedMembers = new Dictionary<uint, int>();
-            LockedFellowshipList = new Dictionary<string, LockedFellowshipData>();
+            FellowshipLocks = new Dictionary<string, LockedFellowshipData>();
         }
 
         /// <summary>
@@ -385,8 +385,8 @@ namespace ACE.Server.Entity
 
                 DepartedMembers.Clear();
 
-                if (!LockedFellowshipList.TryAdd(lockName, new LockedFellowshipData(Time.GetUnixTime())))
-                    LockedFellowshipList[lockName].UpdateTimestamp(Time.GetUnixTime());
+                if (!FellowshipLocks.TryAdd(lockName, new LockedFellowshipData(Time.GetUnixTime())))
+                    FellowshipLocks[lockName].UpdateTimestamp(Time.GetUnixTime());
 
                 SendBroadcastAndUpdate("Your fellowship is now locked.  You may not recruit new members.  If you leave the fellowship, you have 15 minutes to be recruited back into the fellowship.");
             }

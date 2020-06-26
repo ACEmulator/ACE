@@ -44,7 +44,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 Writer.Write(kvp.Value);
             }
 
-            Writer.Write(fellowship.LockedFellowshipList);
+            Writer.Write(fellowship.FellowshipLocks);
         }
 
         public void WriteFellow(Player fellow)
