@@ -379,6 +379,9 @@ namespace ACE.Server.Entity
 
             IsLocked = isLocked;
 
+            if (string.IsNullOrWhiteSpace(lockName))
+                lockName = "Undefined";
+
             if (isLocked)
             {
                 Open = false;
@@ -395,6 +398,8 @@ namespace ACE.Server.Entity
                 // Unlocking a fellowship is not possible without disbanding in retail worlds, so in all likelihood, this never occurs
 
                 DepartedMembers.Clear();
+
+                FellowshipLocks.Remove(lockName);
 
                 SendBroadcastAndUpdate("Your fellowship is now unlocked.");
             }
