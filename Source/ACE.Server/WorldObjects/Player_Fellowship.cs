@@ -32,10 +32,10 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void HandleActionFellowshipChangeLock(bool lockState)
+        public void HandleActionFellowshipChangeLock(bool lockState, string lockName)
         {
             if (Fellowship != null)
-                Fellowship.UpdateLock(lockState);
+                Fellowship.UpdateLock(lockState, lockName);
         }
 
         public void FellowshipQuit(bool disband)
