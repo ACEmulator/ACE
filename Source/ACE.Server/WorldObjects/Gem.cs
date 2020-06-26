@@ -104,7 +104,8 @@ namespace ACE.Server.WorldObjects
                 // the animation is also weird, and differs from food, in that it is the full animation
                 // instead of stopping at the 'eat/drink' point... so we pass 0.5 here?
 
-                player.ApplyConsumable(UseUserAnimation, () => UseGem(player), 0.5f);
+                //player.ApplyConsumable(UseUserAnimation, () => UseGem(player), 0.5f);
+                player.ApplyConsumable(UseUserAnimation, () => UseGem(player));
             }
             else
                 UseGem(player);

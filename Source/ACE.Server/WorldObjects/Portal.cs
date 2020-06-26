@@ -253,6 +253,8 @@ namespace ACE.Server.WorldObjects
                     player.LastPortalDID = OriginalPortal == null ? WeenieClassId : OriginalPortal; // if walking through a summoned portal
 
                 EmoteManager.OnPortal(player);
+
+                player.SendWeenieError(WeenieError.ITeleported);
             }));
         }
     }
