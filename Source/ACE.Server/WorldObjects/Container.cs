@@ -370,12 +370,12 @@ namespace ACE.Server.WorldObjects
             var items = new List<WorldObject>();
 
             // search main pack / creature
-            var localInventory = Inventory.Values.Where(i => i.WeenieClassName.StartsWith("tradenote")).ToList();
+            var localInventory = Inventory.Values.Where(i => i.WeenieClassName.StartsWith("tradenote")).OrderBy(i => i.PlacementPosition).ToList();
 
             items.AddRange(localInventory);
 
             // next search any side containers
-            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).Select(i => i as Container).ToList();
+            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).Select(i => i as Container).OrderBy(i => i.PlacementPosition).ToList();
             foreach (var container in sideContainers)
                 items.AddRange(container.GetTradeNotes());
 
