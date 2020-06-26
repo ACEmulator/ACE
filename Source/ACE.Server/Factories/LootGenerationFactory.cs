@@ -1544,12 +1544,18 @@ namespace ACE.Server.Factories
 
         private static int GetDifficulty(WorldObject wo, int tier, int itemspellcraft)
         {
-
+            int wieldReq = 1;
             int sc = 0;  
             int spc = 1;
+            int epicAddon = 0;
+            int legAddon = 0;
+
             spc = wo.Biota.PropertiesSpellBook.Count();
-            
-            int wieldReq = 1;       
+
+            if (wo.EpicCantrips.Count > 0)
+                epicAddon = ThreadSafeRandom.Next(1, 5) * wo.EpicCantrips.Count;
+            if (wo.LegendaryCantrips.Count > 0)
+                legAddon = ThreadSafeRandom.Next(5, 10) * wo.LegendaryCantrips.Count;
 
             if (wo.ItemAllegianceRankLimit.HasValue)
                 sc = wo.ItemAllegianceRankLimit.Value;
@@ -1568,7 +1574,11 @@ namespace ACE.Server.Factories
             if (sc == 0)
                 sc = 1;
 
-            float tArcane = itemspellcraft * bq * 1.9f + ((spc * 25.0f) / (spc + 2.0f));
+            // Spell Count Addon
+            float spellAddonChance = spc * (20.0f / (spc + 2.0f));
+            float spellAddon = ThreadSafeRandom.Next(1.0f, spellAddonChance) * spc;
+
+            float tArcane = itemspellcraft * bq * 1.9f + spellAddon + epicAddon + legAddon;
             tArcane /= sc + 1.0f;
             tArcane -= wieldReq / 3.0f;
 
@@ -1576,6 +1586,8 @@ namespace ACE.Server.Factories
                 tArcane = 0;
 
             int fArcane = (int)Math.Floor(tArcane);
+            if (fArcane < 10)
+                fArcane += 10;
             return fArcane;
         }
         private static int GetMaxMana(int spellAmount, int tier)
