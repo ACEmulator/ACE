@@ -290,8 +290,9 @@ namespace ACE.Server.Entity
 
                     if (IsLocked)
                     {
-                        if (!DepartedMembers.TryAdd(player.Guid.Full, (int)Time.GetUnixTime()))
-                            DepartedMembers[player.Guid.Full] = (int)Time.GetUnixTime();
+                        var timestamp = (int)Time.GetUnixTime();
+                        if (!DepartedMembers.TryAdd(player.Guid.Full, timestamp))
+                            DepartedMembers[player.Guid.Full] = timestamp;
                     }
 
                     player.Fellowship = null;
@@ -318,8 +319,9 @@ namespace ACE.Server.Entity
 
                 if (IsLocked)
                 {
-                    if (!DepartedMembers.TryAdd(player.Guid.Full, (int)Time.GetUnixTime()))
-                        DepartedMembers[player.Guid.Full] = (int)Time.GetUnixTime();
+                    var timestamp = (int)Time.GetUnixTime();
+                    if (!DepartedMembers.TryAdd(player.Guid.Full, timestamp))
+                        DepartedMembers[player.Guid.Full] = timestamp;
                 }
 
                 player.Session.Network.EnqueueSend(new GameEventFellowshipQuit(player.Session, player.Guid.Full));
@@ -389,8 +391,9 @@ namespace ACE.Server.Entity
 
                 DepartedMembers.Clear();
 
-                if (!FellowshipLocks.TryAdd(lockName, new FellowshipLockData(Time.GetUnixTime())))
-                    FellowshipLocks[lockName].UpdateTimestamp(Time.GetUnixTime());
+                var timestamp = Time.GetUnixTime();
+                if (!FellowshipLocks.TryAdd(lockName, new FellowshipLockData(timestamp)))
+                    FellowshipLocks[lockName].UpdateTimestamp(timestamp);
 
                 SendBroadcastAndUpdate("Your fellowship is now locked.  You may not recruit new members.  If you leave the fellowship, you have 15 minutes to be recruited back into the fellowship.");
             }
