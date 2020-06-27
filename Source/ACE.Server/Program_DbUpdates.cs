@@ -91,7 +91,7 @@ namespace ACE.Server
             using (var sr = File.OpenText(sqlFile))
             {
                 var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={ConfigManager.Config.MySql.World.Host};port={ConfigManager.Config.MySql.World.Port};user={ConfigManager.Config.MySql.World.Username};password={ConfigManager.Config.MySql.World.Password};DefaultCommandTimeout=120");
-                
+
                 var line = string.Empty;
                 var completeSQLline = string.Empty;
                 while ((line = sr.ReadLine()) != null)
