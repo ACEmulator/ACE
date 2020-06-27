@@ -31,6 +31,8 @@ namespace ACE.Server.Network.Structure
 
     public static class FellowshipLockDataExtensions
     {
+        public static ushort NumBuckets = 32;
+
         public static void Write(this BinaryWriter writer, FellowshipLockData fellowshipLockData)
         {
             writer.Write(fellowshipLockData.Unknown_1);
@@ -43,7 +45,7 @@ namespace ACE.Server.Network.Structure
         public static void Write(this BinaryWriter writer, Dictionary<string, FellowshipLockData> fellowshipLocks)
         {
             writer.Write((ushort)fellowshipLocks.Count);
-            writer.Write((ushort)32);
+            writer.Write(NumBuckets);
             foreach (var kvp in fellowshipLocks)
             {
                 writer.WriteString16L(kvp.Key);
