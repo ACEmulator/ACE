@@ -293,12 +293,12 @@ namespace ACE.Server.WorldObjects
             var items = new List<WorldObject>();
 
             // first search me / add all items of type.
-            var localInventory = Inventory.Values.Where(wo => wo.WeenieType == type).ToList();
+            var localInventory = Inventory.Values.Where(wo => wo.WeenieType == type).OrderBy(i => i.PlacementPosition).ToList();
 
             items.AddRange(localInventory);
 
             // next search all containers for type.. run function again for each container.
-            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).ToList();
+            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).OrderBy(i => i.PlacementPosition).ToList();
             foreach (var container in sideContainers)
                 items.AddRange(((Container)container).GetInventoryItemsOfTypeWeenieType(type));
 
@@ -313,12 +313,12 @@ namespace ACE.Server.WorldObjects
             var items = new List<WorldObject>();
 
             // search main pack / creature
-            var localInventory = Inventory.Values.Where(i => i.WeenieClassId == weenieClassId).ToList();
+            var localInventory = Inventory.Values.Where(i => i.WeenieClassId == weenieClassId).OrderBy(i => i.PlacementPosition).ToList();
 
             items.AddRange(localInventory);
 
             // next search any side containers
-            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).Select(i => i as Container).ToList();
+            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).Select(i => i as Container).OrderBy(i => i.PlacementPosition).ToList();
             foreach (var container in sideContainers)
                 items.AddRange(container.GetInventoryItemsOfWCID(weenieClassId));
 
@@ -341,12 +341,12 @@ namespace ACE.Server.WorldObjects
             var items = new List<WorldObject>();
 
             // search main pack / creature
-            var localInventory = Inventory.Values.Where(i => i.WeenieClassName.Equals(weenieClassName, StringComparison.OrdinalIgnoreCase)).ToList();
+            var localInventory = Inventory.Values.Where(i => i.WeenieClassName.Equals(weenieClassName, StringComparison.OrdinalIgnoreCase)).OrderBy(i => i.PlacementPosition).ToList();
 
             items.AddRange(localInventory);
 
             // next search any side containers
-            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).Select(i => i as Container).ToList();
+            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).Select(i => i as Container).OrderBy(i => i.PlacementPosition).ToList();
             foreach (var container in sideContainers)
                 items.AddRange(container.GetInventoryItemsOfWeenieClass(weenieClassName));
 
@@ -370,12 +370,12 @@ namespace ACE.Server.WorldObjects
             var items = new List<WorldObject>();
 
             // search main pack / creature
-            var localInventory = Inventory.Values.Where(i => i.WeenieClassName.StartsWith("tradenote")).ToList();
+            var localInventory = Inventory.Values.Where(i => i.WeenieClassName.StartsWith("tradenote")).OrderBy(i => i.PlacementPosition).ToList();
 
             items.AddRange(localInventory);
 
             // next search any side containers
-            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).Select(i => i as Container).ToList();
+            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).Select(i => i as Container).OrderBy(i => i.PlacementPosition).ToList();
             foreach (var container in sideContainers)
                 items.AddRange(container.GetTradeNotes());
 
