@@ -143,7 +143,7 @@ namespace ACE.Server.WorldObjects
             var currencyStacksCollected = new List<WorldObject>();
 
             var currencyStacksInInventory = GetInventoryItemsOfWCID(currencyWeenieClassId);
-            currencyStacksInInventory = currencyStacksInInventory.OrderBy(o => o.Value).ToList();
+            //currencyStacksInInventory = currencyStacksInInventory.OrderBy(o => o.Value).ToList();
 
             var leftToCollect = (int)amountToSpend;
             foreach (var stack in currencyStacksInInventory)

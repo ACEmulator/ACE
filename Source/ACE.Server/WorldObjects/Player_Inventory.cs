@@ -148,7 +148,7 @@ namespace ACE.Server.WorldObjects
         public bool TryConsumeFromInventoryWithNetworking(uint wcid, int amount = int.MaxValue)
         {
             var items = GetInventoryItemsOfWCID(wcid);
-            items = items.OrderBy(o => o.Value).ToList();
+            //items = items.OrderBy(o => o.Value).ToList();
 
             var leftReq = amount;
             foreach (var item in items)

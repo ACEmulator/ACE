@@ -677,12 +677,12 @@ namespace ACE.Server.WorldObjects
 
         public void SendTeleportedViaMagicMessage(WorldObject itemCaster, Spell spell)
         {
-            if (itemCaster == null)
+            if (itemCaster == null || itemCaster is Gem)
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been teleported.", ChatMessageType.Magic));
             else if (this != itemCaster && !(itemCaster is Gem))
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{itemCaster.Name} teleports you with {spell.Name}.", ChatMessageType.Magic));
-            else if (itemCaster is Gem)
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ITeleported));
+            //else if (itemCaster is Gem)
+            //    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ITeleported));
         }
 
         public void NotifyLandblocks()

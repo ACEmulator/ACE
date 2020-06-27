@@ -213,6 +213,8 @@ namespace ACE.Entity.Enum.Properties
 
                 case PropertyDataId.PCAPRecordedParentLocation:
                     return System.Enum.GetName(typeof(ParentLocation), value);
+                case PropertyDataId.PCAPRecordedDefaultScript:
+                    return System.Enum.GetName(typeof(MotionCommand), value);
             }
 
             return null;

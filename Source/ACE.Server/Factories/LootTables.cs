@@ -2276,6 +2276,76 @@ namespace ACE.Server.Factories
             37217   // Olthoi Alduressa Coat
         };
 
+        public static readonly int[] Cloaks =  // Cloak WCIDs Total of 11
+        {
+            44840,  // Cloak
+            44849,  // Chevron Cloak
+            44850,  // Chevron Cloak
+            44851,  // Chevron Cloak
+            44852,  // Chevron Cloak
+            44853,  // Bordered Cloak
+            44854,  // Halved Cloak
+            44855,  // Halved Cloak
+            44856,  // Trimmed Cloak
+            44857,  // Quartered Cloak
+            44858  // Quartered Cloak
+        };
+
+        public static readonly int[] CloakSpells =  // Cloak SpellIDs 12 of them (Damage Reduction is not a spell, but an Interger Property)
+        {
+            1784,  // Horizon's Blades
+            1789,  // Tectonic Rifts
+            1786,  // Nuhmudira's Spines
+            1783,  // Searing Disc
+            1785,  // Cassius' Ring of Fire
+            1787,  // Halo of Frost
+            1788,  // Eye of the Storm
+            5361,  // Clouded Soul
+            5754,  // Shroud of Darkness (Magic)
+            5755,  // Shroud of Darkness (Melee)
+            5756,  // Shroud of Darkness (Missile)
+            5753   // Cloaked in Skill
+        };
+
+        public static readonly int[] CloakSets =  // Total of 35 different sets, Duplicates were removed (MoA update)
+        {
+            49,  // Alchemy
+            50,  // Arcane Lore
+            51,  // Armor Tinkering
+            52,  // Assess Person
+            53,  // Light Weapons
+            54,  // Missile Weapons
+            55,  // Cooking
+            56,  // Creature Enchantment
+            58,  // Finesse Weapons
+            59,  // Deception
+            60,  // Fletching
+            61,  // Healing
+            62,  // Item Enchantment
+            63,  // Item Tinkering
+            64,  // Leadership
+            65,  // Life Magic
+            66,  // Loyalty
+            68,  // Magic Defense
+            69,  // Magic Item Tinkering
+            70,  // Mana Conversion
+            71,  // Melee Defense
+            72,  // Missile Defense
+            73,  // Salvaging
+            76,  // Heavy Weapons
+            78,  // Two Handed Combat
+            80,  // Void Magic
+            81,  // War Magic
+            82,  // Weapon Tinkering
+            83,  // Assess Creature
+            84,  // Dirty Fighting
+            85,  // Dual Wield
+            86,  // Recklessness
+            87,  // Shield
+            88,  // Sneak Attack
+            90   // Summoning
+        };
+
         // for logging epic/legendary drops
         public static HashSet<int> MinorCantrips;
         public static HashSet<int> MajorCantrips;
