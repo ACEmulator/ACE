@@ -287,7 +287,7 @@ namespace ACE.Server
                 {
                     try
                     {
-                        using (var sqlTestConnection = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password}"))
+                        using (var sqlTestConnection = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};DefaultCommandTimeout=120"))
                         {
                             Console.Write(".");
                             sqlTestConnection.Open();
@@ -307,7 +307,7 @@ namespace ACE.Server
                 {
                     Console.Write("Clearing out temporary ace% database .... ");
                     var sqlDBFile = "DROP DATABASE `ace%`;";
-                    var sqlConnectInfo = $"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password}";
+                    var sqlConnectInfo = $"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};DefaultCommandTimeout=120";
                     var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection(sqlConnectInfo);
                     var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
 
@@ -329,14 +329,14 @@ namespace ACE.Server
                 {
                     Console.Write($"Found {file.Name} .... ");
                     var sqlDBFile = File.ReadAllText(file.FullName);
-                    var sqlConnectInfo = $"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password}";
+                    var sqlConnectInfo = $"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};DefaultCommandTimeout=120";
                     switch (file.Name)
                     {
                         case "AuthenticationBase":
-                            sqlConnectInfo = $"server={config.MySql.Authentication.Host};port={config.MySql.Authentication.Port};user={config.MySql.Authentication.Username};password={config.MySql.Authentication.Password}";
+                            sqlConnectInfo = $"server={config.MySql.Authentication.Host};port={config.MySql.Authentication.Port};user={config.MySql.Authentication.Username};password={config.MySql.Authentication.Password};DefaultCommandTimeout=120";
                             break;
                         case "ShardBase":
-                            sqlConnectInfo = $"server={config.MySql.Shard.Host};port={config.MySql.Shard.Port};user={config.MySql.Shard.Username};password={config.MySql.Shard.Password}";
+                            sqlConnectInfo = $"server={config.MySql.Shard.Host};port={config.MySql.Shard.Port};user={config.MySql.Shard.Username};password={config.MySql.Shard.Password};DefaultCommandTimeout=120";
                             break;
                     }
                     var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection(sqlConnectInfo);
@@ -364,7 +364,7 @@ namespace ACE.Server
                 {
                     Console.Write($"Found {file.Name} .... ");
                     var sqlDBFile = File.ReadAllText(file.FullName);
-                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.Authentication.Host};port={config.MySql.Authentication.Port};user={config.MySql.Authentication.Username};password={config.MySql.Authentication.Password};database={config.MySql.Authentication.Database}");
+                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.Authentication.Host};port={config.MySql.Authentication.Port};user={config.MySql.Authentication.Username};password={config.MySql.Authentication.Password};database={config.MySql.Authentication.Database};DefaultCommandTimeout=120");
                     var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
 
                     Console.Write($"Importing into {config.MySql.Authentication.Database} database on SQL server at {config.MySql.Authentication.Host}:{config.MySql.Authentication.Port} .... ");
@@ -388,7 +388,7 @@ namespace ACE.Server
                 {
                     Console.Write($"Found {file.Name} .... ");
                     var sqlDBFile = File.ReadAllText(file.FullName);
-                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.Shard.Host};port={config.MySql.Shard.Port};user={config.MySql.Shard.Username};password={config.MySql.Shard.Password};database={config.MySql.Shard.Database}");
+                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.Shard.Host};port={config.MySql.Shard.Port};user={config.MySql.Shard.Username};password={config.MySql.Shard.Password};database={config.MySql.Shard.Database};DefaultCommandTimeout=120");
                     var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
 
                     Console.Write($"Importing into {config.MySql.Shard.Database} database on SQL server at {config.MySql.Shard.Host}:{config.MySql.Shard.Port} .... ");
@@ -412,7 +412,7 @@ namespace ACE.Server
                 {
                     Console.Write($"Found {file.Name} .... ");
                     var sqlDBFile = File.ReadAllText(file.FullName);
-                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};database={config.MySql.World.Database}");
+                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};database={config.MySql.World.Database};DefaultCommandTimeout=120");
                     var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
 
                     Console.Write($"Importing into {config.MySql.World.Database} database on SQL server at {config.MySql.World.Host}:{config.MySql.World.Port} .... ");
@@ -489,7 +489,7 @@ namespace ACE.Server
                 Console.Write($"Importing {sqlFile} into SQL server at {config.MySql.World.Host}:{config.MySql.World.Port} (This will take a while, please be patient) .... ");
                 using (var sr = File.OpenText(sqlFile))
                 {
-                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password}");
+                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};DefaultCommandTimeout=120");
 
                     var line = string.Empty;
                     var completeSQLline = string.Empty;
