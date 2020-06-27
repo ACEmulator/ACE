@@ -731,34 +731,18 @@ namespace ACE.Server.Entity
         }
     }
 
-    public class DepartedMembersComparer : IComparer<uint>
-    {
-        public static ushort TableSize = 32;
-
-        public int Compare(uint a, uint b)
-        {
-            var keyA = a % TableSize;
-            var keyB = b % TableSize;
-
-            var result = keyA.CompareTo(keyB);
-
-            if (result == 0)
-                result = a.CompareTo(b);
-
-            return result;
-        }
-    }
-
     public static class FellowshipExtensions
     {
-        public static DepartedMembersComparer DepartedMembersComparer = new DepartedMembersComparer();
+        public static ushort NumBuckets = 32;
+
+        public static HashComparer HashComparer = new HashComparer(NumBuckets);
 
         public static void Write(this BinaryWriter writer, Dictionary<uint, int> departedMembersHash)
         {
             writer.Write((ushort)departedMembersHash.Count);
-            writer.Write(DepartedMembersComparer.TableSize);
+            writer.Write(NumBuckets);
 
-            var departedMembers = new SortedDictionary<uint, int>(departedMembersHash, DepartedMembersComparer);
+            var departedMembers = new SortedDictionary<uint, int>(departedMembersHash, HashComparer);
             foreach (var member in departedMembers)
             {
                 writer.Write(member.Key);
