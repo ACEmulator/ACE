@@ -94,7 +94,7 @@ namespace ACE.Server.WorldObjects
             {
                 var playerSkill = player.GetCreatureSkill(AugTypeHelper.GetSkill(type));
                 playerSkill.AdvancementClass = SkillAdvancementClass.Specialized;
-                //playerSkill.InitLevel = 10;
+                playerSkill.InitLevel = 10;
                 // adjust rank?
                 // handle overages?
                 // if trained skill is maxed, there will be a ~103m xp overage...
