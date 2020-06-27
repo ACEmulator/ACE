@@ -169,7 +169,8 @@ namespace ACE.Server.Factories
             // Gems 14%
             // Armor 24%
             // Weapons 30%
-            // Clothing 14%
+            // Clothing 13%
+            // Cloaks 1%
             // Jewelry 18%
 
             switch (type)
@@ -182,9 +183,13 @@ namespace ACE.Server.Factories
                     //armor
                     wo = CreateArmor(profile, isMagical, true, lootBias);
                     return wo;
-                case var rate when (rate > 38 && rate < 53):
+                case var rate when (rate > 38 && rate < 52):
                     // clothing (shirts/pants)
                     wo = CreateArmor(profile, isMagical, false, lootBias);
+                    return wo;
+                case var rate when (rate > 51 && rate < 53):
+                    // Cloaks  
+                    wo = CreateCloak(profile);
                     return wo;
                 case var rate when (rate > 52 && rate < 83):
                     // weapons (Melee/Missile/Casters)
@@ -254,6 +259,8 @@ namespace ACE.Server.Factories
                 MutateMissileWeapon(item, profile, isMagical, wieldDifficulty, isElemental);
             else if (item is PetDevice petDevice)
                 MutatePetDevice(petDevice, profile.Tier);
+            else if (GetMutateCloakData(item.WeenieClassId))
+                MutateCloak(item, profile);
             else
                 return false;
 
@@ -2367,6 +2374,11 @@ namespace ACE.Server.Factories
                 array[r] = array[i];
                 array[i] = t;
             }
+        }
+        private static WorldObject AssignCloakSpells(WorldObject wo, int cloakSpellId)
+        {
+            wo.ProcSpell = (uint)cloakSpellId;
+            return wo;
         }
     }         
 }
