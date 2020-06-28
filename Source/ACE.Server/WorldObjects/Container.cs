@@ -472,7 +472,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns TRUE if there are enough free burden available to add item
+        /// Returns TRUE if there are enough free burden available to merge item and merge target will not exceed maximum stack size
         /// </summary>
         public bool CanMergeToInventory(WorldObject worldObject, WorldObject mergeTarget, int mergeAmout)
         {
