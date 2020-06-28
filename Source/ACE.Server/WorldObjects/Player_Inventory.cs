@@ -2092,7 +2092,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!CanMergeToInventory(sourceStack, targetStack, amount))
+            if (targetStackRootOwner == this && !CanMergeToInventory(sourceStack, targetStack, amount))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full, WeenieError.None));
                 return;
