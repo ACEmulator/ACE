@@ -1995,8 +1995,8 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var sourceStack = FindObject(mergeFromGuid, SearchLocations.LocationsICanMove, out var sourceStackFoundInContainer, out var sourceStackRootOwner, out _);
-            var targetStack = FindObject(mergeToGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.LastUsedContainer, out var targetStackFoundInContainer, out var targetStackRootOwner, out _);
+            var sourceStack = FindObject(mergeFromGuid, SearchLocations.LocationsICanMove, out _, out var sourceStackRootOwner, out _);
+            var targetStack = FindObject(mergeToGuid, SearchLocations.LocationsICanMove, out _, out var targetStackRootOwner, out _);
 
             if (sourceStack == null)
             {
@@ -2203,14 +2203,20 @@ namespace ACE.Server.WorldObjects
         private bool DoHandleActionStackableMerge(WorldObject sourceStack, WorldObject targetStack, int amount)
         {
             var previousSourceStackCheck = sourceStack;
-            var previousTargetStackCheck = targetStack;
+            //var previousTargetStackCheck = targetStack;
 
             sourceStack = FindObject(sourceStack.Guid, SearchLocations.LocationsICanMove, out _, out _, out _);
-            targetStack = FindObject(targetStack.Guid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.LastUsedContainer, out var targetStackFoundInContainer, out var targetStackRootOwner, out _);
+            targetStack = FindObject(targetStack.Guid, SearchLocations.LocationsICanMove, out var targetStackFoundInContainer, out var targetStackRootOwner, out _);
 
             if (sourceStack == null || targetStack == null)
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousSourceStackCheck.Guid.Full, WeenieError.None));
+                return false;
+            }
+
+            if (targetStack == null || targetStack.MaxStackSize < targetStack.StackSize + amount)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousSourceStackCheck.Guid.Full));
                 return false;
             }
 
@@ -2223,14 +2229,25 @@ namespace ACE.Server.WorldObjects
                 if (!AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner))
                     return false;
 
-                Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
+                if (targetStack.CurrentLandblock != null)
+                    targetStack.EnqueueBroadcast(new GameMessageSetStackSize(targetStack));
+                else
+                    Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
             }
             else // The merge will reduce the size of the source stack
             {
                 previousSourceStackCheck = sourceStack;
+                //previousTargetStackCheck = targetStack;
                 sourceStack = FindObject(sourceStack.Guid, SearchLocations.LocationsICanMove, out var sourceStackFoundInContainer, out var sourceStackRootOwner, out _);
+                targetStack = FindObject(targetStack.Guid, SearchLocations.LocationsICanMove, out targetStackFoundInContainer, out targetStackRootOwner, out _);
 
                 if (sourceStack == null || sourceStack.StackSize < amount)
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousSourceStackCheck.Guid.Full));
+                    return false;
+                }
+
+                if (targetStack == null || targetStack.MaxStackSize < targetStack.StackSize + amount)
                 {
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousSourceStackCheck.Guid.Full));
                     return false;
@@ -2242,15 +2259,18 @@ namespace ACE.Server.WorldObjects
                     return false;
                 }
 
-                if (sourceStackRootOwner == null)
-                    EnqueueBroadcast(new GameMessageSetStackSize(sourceStack));
+                if (sourceStack.CurrentLandblock != null)
+                    sourceStack.EnqueueBroadcast(new GameMessageSetStackSize(sourceStack));
                 else
                     Session.Network.EnqueueSend(new GameMessageSetStackSize(sourceStack));
 
                 if (!AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner))
                     return false;
 
-                Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
+                if (targetStack.CurrentLandblock != null)
+                    targetStack.EnqueueBroadcast(new GameMessageSetStackSize(targetStack));
+                else
+                    Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
             }
 
             return true;
