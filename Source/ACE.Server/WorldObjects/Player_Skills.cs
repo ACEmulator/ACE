@@ -806,7 +806,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool ResetSkill(Skill skill)
         {
-            var creatureSkill = GetCreatureSkill(skill);
+            var creatureSkill = GetCreatureSkill(skill, false);
 
             if (creatureSkill == null || creatureSkill.AdvancementClass < SkillAdvancementClass.Trained)
                 return false;
