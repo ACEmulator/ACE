@@ -1229,6 +1229,8 @@ namespace ACE.Server.WorldObjects
             set { if (value) RemoveProperty(PropertyBool.IsSellable); else SetProperty(PropertyBool.IsSellable, value); }
         }
 
+        public WorldObject Container;
+
         public uint? ContainerId
         {
             get => GetProperty(PropertyInstanceId.Container);

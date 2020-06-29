@@ -964,7 +964,7 @@ namespace ACE.Server.WorldObjects
                                 item.NotifyOfEvent(RegenerationType.PickUp);
 
                                 if (questSolve)
-                                    QuestManager.Update(item.Quest);
+                                    item.EmoteManager.OnQuest(this);
 
                                 if (isFromAPlayerCorpse)
                                 {

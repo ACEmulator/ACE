@@ -1293,7 +1293,13 @@ namespace ACE.Server.WorldObjects
 
         public List<Player> EnqueueBroadcast(bool sendSelf = true, params GameMessage[] msgs)
         {
-            if (PhysicsObj == null) return null;
+            if (PhysicsObj == null)
+            {
+                if (Container != null)
+                    return Container.EnqueueBroadcast(sendSelf, msgs);
+
+                return null;
+            }
 
             if (sendSelf)
             {
