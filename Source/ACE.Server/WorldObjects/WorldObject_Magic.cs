@@ -457,12 +457,14 @@ namespace ACE.Server.WorldObjects
                             string msg;
                             if (spell.IsBeneficial)
                             {
-                                msg = $"You cast {spell.Name} and restore {boost} points of {srcVital} to {spellTarget.Name}.";
+                                //msg = $"You cast {spell.Name} and restore {boost} points of {srcVital} to {spellTarget.Name}.";
+                                msg = $"With {spell.Name} you restore {boost} points of {srcVital} to {spellTarget.Name}.";
                                 enchantmentStatus.Message = new GameMessageSystemChat(msg, ChatMessageType.Magic);
                             }
                             else
                             {
-                                msg = $"You cast {spell.Name} and drain {Math.Abs(boost)} points of {srcVital} from {spellTarget.Name}.";
+                                //msg = $"You cast {spell.Name} and drain {Math.Abs(boost)} points of {srcVital} from {spellTarget.Name}.";
+                                msg = $"With {spell.Name} you drain {Math.Abs(boost)} points of {srcVital} from {spellTarget.Name}.";
                                 enchantmentStatus.Message = new GameMessageSystemChat(msg, ChatMessageType.Magic);
                             }
                         }
