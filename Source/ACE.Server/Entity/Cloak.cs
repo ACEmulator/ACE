@@ -82,7 +82,7 @@ namespace ACE.Server.Entity
 
             defender.EnqueueBroadcast(msg, WorldObject.LocalBroadcastRange, ChatMessageType.Magic);
 
-            defender.TryCastSpell(spell, target, defender, true, false);
+            defender.TryCastSpell(spell, target, defender, false, false);
 
             return true;
         }
