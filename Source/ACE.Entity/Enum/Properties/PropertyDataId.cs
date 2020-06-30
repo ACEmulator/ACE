@@ -168,7 +168,7 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         PCAPRecordedMaxVelocityEstimated = 8030,
         [ServerOnly]
-        PCAPPhysicsDIDDataTemplatedFrom = 8044
+        PCAPPhysicsDIDDataTemplatedFrom  = 8044
 
         //[ServerOnly]
         //HairTexture                = 9001,
