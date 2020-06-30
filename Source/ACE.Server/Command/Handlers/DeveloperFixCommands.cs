@@ -803,77 +803,79 @@ namespace ACE.Server.Command.Handlers
 
             var results = new List<VerifyXpResult>();
 
+            HashSet<uint> lesserBenediction = null;
+
             using (var ctx = new ShardDbContext())
             {
-                foreach (var player in players)
+                // Asheron's Lesser Benediction augmentation operates differently than all other augs
+                lesserBenediction = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("LesserBenedictionAug")).Select(i => i.CharacterId).ToHashSet();
+            }
+
+            foreach (var player in players)
+            {
+                var totalXP = player.GetProperty(PropertyInt64.TotalExperience) ?? 0;
+                var unassignedXP = player.GetProperty(PropertyInt64.AvailableExperience) ?? 0;
+
+                // loop through all attributes/vitals/skills, add up assigned xp
+                long attributeXP = 0;
+                long vitalXP = 0;
+                long skillXP = 0;
+                long augXP = 0;
+
+                long diffXP = Math.Min(0, player.GetProperty(PropertyInt64.VerifyXp) ?? 0);
+
+                foreach (var attribute in player.Biota.PropertiesAttribute)
+                    attributeXP += attribute.Value.CPSpent;
+
+                foreach (var vital in player.Biota.PropertiesAttribute2nd)
+                    vitalXP += vital.Value.CPSpent;
+
+                foreach (var skill in player.Biota.PropertiesSkill)
+                    skillXP += skill.Value.PP;
+
+                // find any xp spent on augs
+                var heritage = (HeritageGroup?)player.GetProperty(PropertyInt.HeritageGroup);
+                if (heritage == null)
+                    continue;       // ignore admins who have morphed into asheron / bael'zharon
+
+                var heritageAug = GetHeritageAug(heritage.Value);
+
+                foreach (var kvp in AugmentationDevices)
                 {
-                    var totalXP = player.GetProperty(PropertyInt64.TotalExperience) ?? 0;
-                    var unassignedXP = player.GetProperty(PropertyInt64.AvailableExperience) ?? 0;
+                    var augProperty = kvp.Key;
 
-                    // loop through all attributes/vitals/skills, add up assigned xp
-                    long attributeXP = 0;
-                    long vitalXP = 0;
-                    long skillXP = 0;
-                    long augXP = 0;
+                    var numAugs = player.GetProperty(augProperty) ?? 0;
+                    if (augProperty == heritageAug)
+                        numAugs--;
 
-                    long diffXP = Math.Min(0, player.GetProperty(PropertyInt64.VerifyXp) ?? 0);
+                    if (numAugs <= 0)
+                        continue;
 
-                    foreach (var attribute in player.Biota.PropertiesAttribute)
-                        attributeXP += attribute.Value.CPSpent;
+                    var aug = DatabaseManager.World.GetCachedWeenie(kvp.Value);
+                    aug.PropertiesInt64.TryGetValue(PropertyInt64.AugmentationCost, out var costPer);
 
-                    foreach (var vital in player.Biota.PropertiesAttribute2nd)
-                        vitalXP += vital.Value.CPSpent;
+                    augXP += costPer * numAugs;
+                }
 
-                    foreach (var skill in player.Biota.PropertiesSkill)
-                        skillXP += skill.Value.PP;
+                if (lesserBenediction.Contains(player.Guid.Full))
+                    augXP += 2000000000;
 
-                    // find any xp spent on augs
-                    var heritage = (HeritageGroup?)player.GetProperty(PropertyInt.HeritageGroup);
-                    if (heritage == null)
-                        continue;       // ignore admins who have morphed into asheron / bael'zharon
+                var calculatedSpent = attributeXP + vitalXP + skillXP + augXP + diffXP;
 
-                    var heritageAug = GetHeritageAug(heritage.Value);
+                var currentSpent = totalXP - unassignedXP;
 
-                    foreach (var kvp in AugmentationDevices)
-                    {
-                        var augProperty = kvp.Key;
+                var bonusXp = (currentSpent - calculatedSpent) % 526;
 
-                        var numAugs = player.GetProperty(augProperty) ?? 0;
-                        if (augProperty == heritageAug)
-                            numAugs--;
+                if (calculatedSpent != currentSpent && bonusXp != 0)
+                {
+                    // the results for this data set can be large,
+                    // especially due to an earlier ace bug where it wasn't calculating the Proficiency Points correctly
 
-                        if (numAugs <= 0)
-                            continue;
+                    // instead of displaying the results in random order,
+                    // we going to sort them all by diff
 
-                        var aug = DatabaseManager.World.GetCachedWeenie(kvp.Value);
-                        aug.PropertiesInt64.TryGetValue(PropertyInt64.AugmentationCost, out var costPer);
-
-                        augXP += costPer * numAugs;
-                    }
-
-                    // Asheron's Lesser Benediction augmentation operates differently than all other augs.
-                    var hasLesserBenedictionAug = ctx.CharacterPropertiesQuestRegistry.Count(i => i.CharacterId == player.Guid.Full && i.QuestName.Equals("LesserBenedictionAug")) == 1;
-
-                    if (hasLesserBenedictionAug)
-                        augXP += 2000000000;
-
-                    var calculatedSpent = attributeXP + vitalXP + skillXP + augXP + diffXP;
-
-                    var currentSpent = totalXP - unassignedXP;
-
-                    var bonusXp = (currentSpent - calculatedSpent) % 526;
-
-                    if (calculatedSpent != currentSpent && bonusXp != 0)
-                    {
-                        // the results for this data set can be large,
-                        // especially due to an earlier ace bug where it wasn't calculating the Proficiency Points correctly
-
-                        // instead of displaying the results in random order,
-                        // we going to sort them all by diff
-
-                        foundIssues = true;
-                        results.Add(new VerifyXpResult(player, calculatedSpent, currentSpent));
-                    }
+                    foundIssues = true;
+                    results.Add(new VerifyXpResult(player, calculatedSpent, currentSpent));
                 }
             }
 
