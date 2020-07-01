@@ -135,12 +135,12 @@ namespace ACE.Server.WorldObjects
             if (Quest != null)
             {
                 if (!player.QuestManager.HasQuest(Quest))
-                    player.QuestManager.Update(Quest);
+                    EmoteManager.OnQuest(player);
                 else
                 {
                     if (player.QuestManager.CanSolve(Quest))
                     {
-                        player.QuestManager.Update(Quest);
+                        EmoteManager.OnQuest(player);
                     }
                     else
                     {
