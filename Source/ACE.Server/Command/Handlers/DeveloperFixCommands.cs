@@ -347,9 +347,6 @@ namespace ACE.Server.Command.Handlers
 
             using (var ctx = new ShardDbContext())
             {
-                // Asheron's Lesser Benediction augmentation operates differently than all other augs
-                //lesserBenediction = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("LesserBenedictionAug")).Select(i => i.CharacterId).ToHashSet();
-
                 // 4 possible skill credits from quests
                 // - ChasingOswaldDone
                 // - ArantahKill1 (no 'turned in' stamp, only if given figurine?)
