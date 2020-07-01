@@ -414,7 +414,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 // 2 possible skill credits from quests
-                // - ChasingOswaldDone                
+                // - ChasingOswaldDone
                 if (oswaldSkillCredit.Contains(player.Guid.Full))
                     totalCredits++;
 
