@@ -267,38 +267,7 @@ namespace ACE.Server.Command.Handlers
                     }
                     else
                     {
-                        var augProp = 0;
-                        var augType = AugmentationType.None;
-                        switch (skill.Key)
-                        {
-
-                            case Skill.ArmorTinkering:
-                                augType = AugmentationType.ArmorTinkering;
-                                augProp = player.GetProperty(PropertyInt.AugmentationSpecializeArmorTinkering) ?? 0;
-                                break;
-
-                            case Skill.ItemTinkering:
-                                augType = AugmentationType.ItemTinkering;
-                                augProp = player.GetProperty(PropertyInt.AugmentationSpecializeItemTinkering) ?? 0;
-                                break;
-
-                            case Skill.MagicItemTinkering:
-                                augType = AugmentationType.MagicItemTinkering;
-                                augProp = player.GetProperty(PropertyInt.AugmentationSpecializeMagicItemTinkering) ?? 0;
-                                break;
-
-                            case Skill.WeaponTinkering:
-                                augType = AugmentationType.WeaponTinkering;
-                                augProp = player.GetProperty(PropertyInt.AugmentationSpecializeWeaponTinkering) ?? 0;
-                                break;
-
-                            case Skill.Salvaging:
-                                augType = AugmentationType.Salvage;
-                                augProp = player.GetProperty(PropertyInt.AugmentationSpecializeSalvaging) ?? 0;
-                                break;
-                        }
-
-                        if (skill.Value.InitLevel != 10 && augProp == 0)
+                        if (skill.Value.InitLevel != 10)
                         {
                             Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel{fixStr}");
                             foundIssues = true;
@@ -306,18 +275,6 @@ namespace ACE.Server.Command.Handlers
                             if (fix)
                             {
                                 skill.Value.InitLevel = 10;
-
-                                updated = true;
-                            }
-                        }
-                        else if (skill.Value.InitLevel == 10 && augProp == 1)
-                        {
-                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel as a result of {augType} augmentation{fixStr}");
-                            foundIssues = true;
-
-                            if (fix)
-                            {
-                                skill.Value.InitLevel = 0;
 
                                 updated = true;
                             }
@@ -405,6 +362,8 @@ namespace ACE.Server.Command.Handlers
 
                     var used = 0;
 
+                    var specCreditsSpent = 0;
+
                     foreach (var skill in new Dictionary<Skill, PropertiesSkill>(player.Biota.PropertiesSkill))
                     {
                         var sac = skill.Value.SAC;
@@ -435,6 +394,8 @@ namespace ACE.Server.Command.Handlers
                             }
 
                             used += skillInfo.UpgradeCostFromTrainedToSpecialized;
+
+                            specCreditsSpent += skillInfo.SpecializedCost;
                         }
                     }
 
@@ -460,6 +421,20 @@ namespace ACE.Server.Command.Handlers
 
                         if (fix)
                             UntrainSkills(player, targetCredits);
+
+                        continue;
+                    }
+
+                    if (specCreditsSpent > 70)
+                    {
+                        // if the player has already spent more skill credits than they should have,
+                        // unfortunately this situation requires a partial reset..
+
+                        Console.WriteLine($"{player.Name} has spent {specCreditsSpent} skill credits on specalization, {specCreditsSpent - 70} over the limit of 70. To fix this situation, specialized skill reset will need to be applied{fixStr}");
+                        foundIssues = true;
+
+                        if (fix)
+                            UnspecializeSkills(player);
 
                         continue;
                     }
@@ -586,6 +561,54 @@ namespace ACE.Server.Command.Handlers
             player.SetProperty(PropertyInt.AvailableSkillCredits, targetCredits);
 
             player.SetProperty(PropertyBool.UntrainedSkills, true);
+
+            player.SaveBiotaToDatabase();
+        }
+
+        /// <summary>
+        /// This method is only required if the player is found to be over the spec skill limit of 70 credits
+        /// </summary>
+        private static void UnspecializeSkills(OfflinePlayer player)
+        {
+            long refundXP = 0;
+
+            int refundedCredits = 0;
+
+            foreach (var skill in new Dictionary<Skill, PropertiesSkill>(player.Biota.PropertiesSkill))
+            {
+                if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue((uint)skill.Key, out var skillBase))
+                {
+                    Console.WriteLine($"{player.Name}.UntrainSkills({skill.Key}) - unknown skill");
+                    continue;
+                }
+
+                var sac = skill.Value.SAC;
+
+                if (sac != SkillAdvancementClass.Specialized || !Player.IsSkillSpecializedViaAugmentation(skill.Key))
+                    continue;
+
+                refundXP += skill.Value.PP;
+
+                skill.Value.SAC = SkillAdvancementClass.Trained;
+                skill.Value.InitLevel = 0;
+                skill.Value.PP = 0;
+                skill.Value.LevelFromPP = 0;
+
+                refundedCredits += skillBase.UpgradeCostFromTrainedToSpecialized;
+            }
+
+            var availableExperience = player.GetProperty(PropertyInt64.AvailableExperience) ?? 0;
+
+            player.SetProperty(PropertyInt64.AvailableExperience, availableExperience + refundXP);
+
+            var availableSkillCredits = player.GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
+
+            player.SetProperty(PropertyInt.AvailableSkillCredits, availableSkillCredits + refundedCredits);
+
+            player.SetProperty(PropertyBool.UnspecializedSkills, true);
+
+            player.SetProperty(PropertyBool.FreeSkillResetRenewed, true);
+            player.SetProperty(PropertyBool.SkillTemplesTimerReset, true);
 
             player.SaveBiotaToDatabase();
         }

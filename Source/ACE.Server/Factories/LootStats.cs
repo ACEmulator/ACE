@@ -48,6 +48,7 @@ namespace ACE.Server.Factories
         public string Pets { get; set; }
         public string Aetheria { get; set; }
 
+        public string Jewelry { get; set; }
 
         // Item Stats
         public int ItemMaxMana { get; set; }

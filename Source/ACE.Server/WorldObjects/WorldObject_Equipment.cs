@@ -12,7 +12,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        public List<WorldObject> GetCreateList(DestinationType type)
+        public List<WorldObject> GetCreateListForSlumLord(DestinationType type)
         {
             var items = new List<WorldObject>();
 
@@ -27,7 +27,12 @@ namespace ACE.Server.WorldObjects
                     wo.Shade = item.Shade;
 
                 if (item.StackSize > 0)
-                    wo.SetStackSize(item.StackSize);
+                {
+                    if (wo is Stackable)
+                        wo.SetStackSize(item.StackSize);
+                    else
+                        wo.StackSize = item.StackSize;  // item isn't a stackable object, but we want multiples of it while not displaying multiple single items in the profile. Munge stacksize to get us there.
+                }
 
                 items.Add(wo);
             }

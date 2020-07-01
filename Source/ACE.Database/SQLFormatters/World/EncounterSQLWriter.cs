@@ -22,7 +22,7 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(IList<Encounter> input, StreamWriter writer)
         {
-            writer.WriteLine($"DELETE FROM `encounter` WHERE `landblock` = {input[0].Landblock};");
+            writer.WriteLine($"DELETE FROM `encounter` WHERE `landblock` = 0x{input[0].Landblock:X4};");
         }
 
         public void CreateSQLINSERTStatement(IList<Encounter> input, StreamWriter writer)
@@ -36,7 +36,7 @@ namespace ACE.Database.SQLFormatters.World
                 if (WeenieNames != null)
                     WeenieNames.TryGetValue(input[i].WeenieClassId, out label);
 
-                return $"{input[i].Landblock}, {input[i].WeenieClassId}, {input[i].CellX}, {input[i].CellY}, '{input[i].LastModified:yyyy-MM-dd HH:mm:ss}') /* {label} */";
+                return $"0x{input[i].Landblock:X4}, {input[i].WeenieClassId}, {input[i].CellX}, {input[i].CellY}, '{input[i].LastModified:yyyy-MM-dd HH:mm:ss}') /* {label} */";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);

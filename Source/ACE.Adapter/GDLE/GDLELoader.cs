@@ -80,6 +80,13 @@ namespace ACE.Adapter.GDLE
             {
                 TryLoadLandblocksInParallel(folder, out var landblocks);
 
+                if (landblocks == null)
+                {
+                    results = null;
+                    links = null;
+                    return false;
+                }
+
                 ReGuidAndConvertLandblocks(out results, out links, startingIdOffset, landblocks);
 
                 return true;
@@ -183,6 +190,14 @@ namespace ACE.Adapter.GDLE
                 var fileText = File.ReadAllText(file);
 
                 var gdleModel = JsonConvert.DeserializeObject<Models.WorldSpawns>(fileText);
+
+
+                if (gdleModel.Landblocks == null)
+                {
+                    results = null;
+                    links = null;
+                    return false;
+                }
 
                 ReGuidAndConvertLandblocks(out results, out links, startingIdOffset, gdleModel.Landblocks);
 
@@ -375,6 +390,75 @@ namespace ACE.Adapter.GDLE
             catch
             {
                 result = null;
+                return false;
+            }
+        }
+
+        public static bool TryLoadRecipeCombinedInParallel(string folder, out List<Models.RecipeCombined> results)
+        {
+            try
+            {
+                var files = Directory.GetFiles(folder, "*.json", SearchOption.AllDirectories);
+
+                var recipes = new ConcurrentBag<Models.RecipeCombined>();
+
+                Parallel.ForEach(files, file =>
+                {
+                    if (TryLoadRecipeCombined(file, out var result))
+                        recipes.Add(result);
+                });
+
+                results = new List<Models.RecipeCombined>(recipes);
+
+                return true;
+            }
+            catch
+            {
+                results = null;
+                return false;
+            }
+        }
+
+        public static bool TryLoadRecipeCombinedConverted(string folder, out List<Recipe> recipes, out List<CookBook> cookBooks)
+        {
+            try
+            {
+                TryLoadRecipeCombinedInParallel(folder, out var gdleModel);
+
+                if (gdleModel == null)
+                {
+                    recipes = null;
+                    cookBooks = null;
+                    return false;
+                }
+
+                recipes = new List<Recipe>();
+
+                cookBooks = new List<CookBook>();
+
+                foreach (var value in gdleModel)
+                {
+                    if (GDLEConverter.TryConvert(value.recipe, out var result))
+                    {
+                        foreach (var precursor in value.precursors)
+                        {
+                            if (GDLEConverter.TryConvert(precursor, out var result2))
+                            {
+                                result2.RecipeId = value.key;
+                                cookBooks.Add(result2);
+                            }
+                        }
+                        recipes.Add(result);
+                    }
+                }
+
+                return true;
+
+            }
+            catch
+            {
+                recipes = null;
+                cookBooks = null;
                 return false;
             }
         }

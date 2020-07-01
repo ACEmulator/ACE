@@ -58,7 +58,7 @@ namespace ACE.Server.Factories
             // MeleeD/MagicD/Missile Bonus
             wo.WeaponMagicDefense = GetMagicMissileDMod(profile.Tier);
             wo.WeaponMissileDefense = GetMagicMissileDMod(profile.Tier);
-            double meleeDMod = GetWieldReqMeleeDMod(wieldDifficulty);
+            double meleeDMod = GetWieldReqMeleeDMod(wieldDifficulty, profile);
             if (meleeDMod > 0.0f)
                 wo.WeaponDefense = meleeDMod;
 

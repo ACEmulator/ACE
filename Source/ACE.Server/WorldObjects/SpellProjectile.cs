@@ -415,7 +415,7 @@ namespace ACE.Server.WorldObjects
             var slayerMod = GetWeaponCreatureSlayerModifier(sourceCreature, target);
 
             // life magic projectiles: ie., martyr's hecatomb
-            if (Spell.School == MagicSchool.LifeMagic)
+            if (Spell.MetaSpellType == ACE.Entity.Enum.SpellType.LifeProjectile)
             {
                 lifeMagicDamage = LifeProjectileDamage * Spell.DamageRatio;
 
@@ -680,7 +680,7 @@ namespace ACE.Server.WorldObjects
 
                 equippedCloak = target.EquippedCloak;
 
-                if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(percent))
+                if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(equippedCloak, percent))
                 {
                     var reducedDamage = Cloak.GetReducedAmount(damage);
 
@@ -821,7 +821,7 @@ namespace ACE.Server.WorldObjects
             info += $"CriticalDefended: {critDefended}\n";
             info += $"Overpower: {overpower}\n";
         
-            if (skill.Skill == Skill.LifeMagic)
+            if (spell.MetaSpellType == ACE.Entity.Enum.SpellType.LifeProjectile)
             {
                 // life magic projectile
                 info += $"LifeProjectileDamage: {lifeProjectileDamage}\n";
