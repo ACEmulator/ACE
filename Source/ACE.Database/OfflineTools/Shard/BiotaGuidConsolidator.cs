@@ -275,6 +275,14 @@ namespace ACE.Database.OfflineTools.Shard
                     }
                 }
 
+                var shortcuts = context.CharacterPropertiesShortcutBar.Where(r => r.ShortcutObjectId >= startingGuid).ToList();
+
+                foreach (var shortcut in shortcuts)
+                {
+                    if (idConversions.TryGetValue(shortcut.ShortcutObjectId, out var newId))
+                        shortcut.ShortcutObjectId = newId;
+                }
+
                 context.SaveChanges();
             }
 
