@@ -2224,12 +2224,15 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(sourceStack));
 
-                if (sourceStackRootOwner != null && sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out var stackToDestroy, true))
-                    stackToDestroy?.Destroy();
-                else if (sourceStackRootOwner != null)
+                if (sourceStackRootOwner != null)
                 {
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousSourceStackCheck.Guid.Full));
-                    return false;
+                    if (sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out var stackToDestroy, true))
+                        stackToDestroy?.Destroy();
+                    else
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousSourceStackCheck.Guid.Full));
+                        return false;
+                    }
                 }
                 else
                     sourceStack.Destroy();
