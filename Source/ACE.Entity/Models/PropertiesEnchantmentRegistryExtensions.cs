@@ -190,7 +190,7 @@ namespace ACE.Entity.Models
         /// <summary>
         /// Returns the top layers in each spell category for a StatMod type + key
         /// </summary>
-        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayerByStatModType(this ICollection<PropertiesEnchantmentRegistry> value, EnchantmentTypeFlags statModType, uint statModKey, ReaderWriterLockSlim rwLock)
+        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayerByStatModType(this ICollection<PropertiesEnchantmentRegistry> value, EnchantmentTypeFlags statModType, uint statModKey, ReaderWriterLockSlim rwLock, bool handleMultiple = false)
         {
             if (value == null)
                 return null;
@@ -198,7 +198,7 @@ namespace ACE.Entity.Models
             rwLock.EnterReadLock();
             try
             {
-                var valuesByStatModTypeAndKey = value.Where(e => (e.StatModType & statModType) == statModType && e.StatModKey == statModKey);
+                var valuesByStatModTypeAndKey = value.Where(e => (e.StatModType & statModType) == statModType && e.StatModKey == statModKey || (handleMultiple && (e.StatModType & EnchantmentTypeFlags.MultipleStat) == EnchantmentTypeFlags.MultipleStat));
 
                 var results = from e in valuesByStatModTypeAndKey
                     group e by e.SpellCategory
