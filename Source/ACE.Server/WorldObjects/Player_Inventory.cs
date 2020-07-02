@@ -2205,7 +2205,7 @@ namespace ACE.Server.WorldObjects
             var previousSourceStackCheck = sourceStack;
             //var previousTargetStackCheck = targetStack;
 
-            sourceStack = FindObject(sourceStack.Guid, SearchLocations.LocationsICanMove, out var _, out var sourceStackRootOwner, out _);
+            sourceStack = FindObject(sourceStack.Guid, SearchLocations.LocationsICanMove, out _, out var sourceStackRootOwner, out _);
             targetStack = FindObject(targetStack.Guid, SearchLocations.LocationsICanMove, out var targetStackFoundInContainer, out var targetStackRootOwner, out _);
 
             if (sourceStack == null || targetStack == null)
