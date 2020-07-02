@@ -806,7 +806,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool ResetSkill(Skill skill)
         {
-            var creatureSkill = GetCreatureSkill(skill);
+            var creatureSkill = GetCreatureSkill(skill, false);
 
             if (creatureSkill == null || creatureSkill.AdvancementClass < SkillAdvancementClass.Trained)
                 return false;
@@ -844,14 +844,14 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
-            if (specAug)
-                return false;   // send message?
+            //if (specAug)
+            //    return false;   // send message?
 
             var typeOfSkill = creatureSkill.AdvancementClass.ToString().ToLower() + " ";
             var untrainable = IsSkillUntrainable(skill);
             var creditRefund = creatureSkill.AdvancementClass == SkillAdvancementClass.Specialized || untrainable;
 
-            if (creatureSkill.AdvancementClass == SkillAdvancementClass.Specialized)
+            if (creatureSkill.AdvancementClass == SkillAdvancementClass.Specialized && !specAug)
             {
                 creatureSkill.AdvancementClass = SkillAdvancementClass.Trained;
                 creatureSkill.InitLevel = 0;
@@ -860,7 +860,7 @@ namespace ACE.Server.WorldObjects
 
             // temple untraining 'always trained' skills:
             // cannot be untrained, but skill XP can be recovered
-            if (untrainable)
+            if (untrainable && !specAug)
             {
                 creatureSkill.AdvancementClass = SkillAdvancementClass.Untrained;
                 creatureSkill.InitLevel = 0;
@@ -875,8 +875,8 @@ namespace ACE.Server.WorldObjects
             var updateSkill = new GameMessagePrivateUpdateSkill(this, creatureSkill);
             var availableSkillCredits = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.AvailableSkillCredits, AvailableSkillCredits ?? 0);
 
-            var msg = $"Your {(untrainable ? $"{typeOfSkill}" : "")}{skill.ToSentence()} skill has been {(untrainable ? "removed" : "reset")}. ";
-            msg += $"All the experience {(creditRefund ? "and skill credits " : "")}that you spent on this skill have been refunded to you.";
+            var msg = $"Your {(untrainable && !specAug ? $"{typeOfSkill}" : "")}{skill.ToSentence()} skill has been {(untrainable && !specAug ? "removed" : "reset")}. ";
+            msg += $"All the experience {(creditRefund && !specAug ? "and skill credits " : "")}that you spent on this skill have been refunded to you.";
 
             Session.Network.EnqueueSend(updateSkill, availableSkillCredits, new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 

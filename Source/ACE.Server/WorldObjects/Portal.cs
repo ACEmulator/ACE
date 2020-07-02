@@ -228,7 +228,7 @@ namespace ACE.Server.WorldObjects
             // handle quest initial flagging
             if (Quest != null)
             {
-                player.QuestManager.Update(Quest);
+                EmoteManager.OnQuest(player);
             }
 
             return new ActivationResult(true);

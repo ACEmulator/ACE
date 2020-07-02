@@ -472,6 +472,21 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns TRUE if there are enough free burden available to merge item and merge target will not exceed maximum stack size
+        /// </summary>
+        public bool CanMergeToInventory(WorldObject worldObject, WorldObject mergeTarget, int mergeAmout)
+        {
+            if (this is Player player && !player.HasEnoughBurdenToAddToInventory(worldObject))
+                return false;
+
+            var currentStackSize = mergeTarget.StackSize;
+            var maxStackSize = mergeTarget.MaxStackSize;
+            var newStackSize = currentStackSize + mergeAmout;
+
+            return newStackSize <= maxStackSize;
+        }
+
+        /// <summary>
         /// If enough burden is available, this will try to add an item to the main pack. If the main pack is full, it will try to add it to the first side pack with room.<para />
         /// It will also increase the EncumbranceVal and Value.
         /// </summary>
@@ -539,6 +554,7 @@ namespace ACE.Server.WorldObjects
 
             worldObject.OwnerId = Guid.Full;
             worldObject.ContainerId = Guid.Full;
+            worldObject.Container = this;
             worldObject.PlacementPosition = placementPosition; // Server only variable that we use to remember/restore the order in which items exist in a container
 
             // Move all the existing items PlacementPosition over.
@@ -600,6 +616,7 @@ namespace ACE.Server.WorldObjects
 
                 item.OwnerId = null;
                 item.ContainerId = null;
+                item.Container = null;
                 item.PlacementPosition = null;
 
                 // Move all the existing items PlacementPosition over.
