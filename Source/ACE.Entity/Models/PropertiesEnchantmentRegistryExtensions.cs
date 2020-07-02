@@ -187,6 +187,8 @@ namespace ACE.Entity.Models
             }
         }
 
+        private static readonly EnchantmentTypeFlags MultiSkill = EnchantmentTypeFlags.MultipleStat | EnchantmentTypeFlags.Skill;
+
         /// <summary>
         /// Returns the top layers in each spell category for a StatMod type + key
         /// </summary>
@@ -198,7 +200,7 @@ namespace ACE.Entity.Models
             rwLock.EnterReadLock();
             try
             {
-                var valuesByStatModTypeAndKey = value.Where(e => (e.StatModType & statModType) == statModType && e.StatModKey == statModKey || (handleMultiple && (e.StatModType & EnchantmentTypeFlags.MultipleStat) == EnchantmentTypeFlags.MultipleStat && e.StatModKey == 0));
+                var valuesByStatModTypeAndKey = value.Where(e => (e.StatModType & statModType) == statModType && e.StatModKey == statModKey || (handleMultiple && (e.StatModType & MultiSkill) == MultiSkill && e.StatModKey == 0));
 
                 var results = from e in valuesByStatModTypeAndKey
                     group e by e.SpellCategory
