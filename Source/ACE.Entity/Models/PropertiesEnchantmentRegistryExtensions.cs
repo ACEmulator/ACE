@@ -198,7 +198,7 @@ namespace ACE.Entity.Models
             rwLock.EnterReadLock();
             try
             {
-                var valuesByStatModTypeAndKey = value.Where(e => (e.StatModType & statModType) == statModType && e.StatModKey == statModKey || (handleMultiple && (e.StatModType & EnchantmentTypeFlags.MultipleStat) == EnchantmentTypeFlags.MultipleStat));
+                var valuesByStatModTypeAndKey = value.Where(e => (e.StatModType & statModType) == statModType && e.StatModKey == statModKey || (handleMultiple && (e.StatModType & EnchantmentTypeFlags.MultipleStat) == EnchantmentTypeFlags.MultipleStat && e.StatModKey == 0));
 
                 var results = from e in valuesByStatModTypeAndKey
                     group e by e.SpellCategory
