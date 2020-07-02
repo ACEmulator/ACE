@@ -2226,11 +2226,14 @@ namespace ACE.Server.WorldObjects
 
                 if (sourceStackRootOwner != null && sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out var stackToDestroy, true))
                     stackToDestroy?.Destroy();
-                else
+                else if (sourceStackRootOwner != null)
                 {
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousSourceStackCheck.Guid.Full));
                     return false;
                 }
+                else
+                    sourceStack.Destroy();
+
 
                 if (!AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner))
                     return false;
