@@ -2224,7 +2224,7 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(sourceStack));
 
-                if (sourceStackRootOwner != null)
+                if (sourceStackRootOwner != null) // item is contained and not on a landblock
                 {
                     if (sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out var stackToDestroy, true))
                         stackToDestroy?.Destroy();
@@ -2234,7 +2234,7 @@ namespace ACE.Server.WorldObjects
                         return false;
                     }
                 }
-                else
+                else // item is on the landblock and not contained
                     sourceStack.Destroy();
 
 
