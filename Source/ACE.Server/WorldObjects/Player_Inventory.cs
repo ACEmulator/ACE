@@ -2224,7 +2224,7 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(sourceStack));
 
-                if (sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out var stackToDestroy, true))
+                if (sourceStackRootOwner != null && sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out var stackToDestroy, true))
                     stackToDestroy?.Destroy();
                 else
                 {
