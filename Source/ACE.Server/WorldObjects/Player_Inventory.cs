@@ -2205,7 +2205,7 @@ namespace ACE.Server.WorldObjects
             var previousSourceStackCheck = sourceStack;
             //var previousTargetStackCheck = targetStack;
 
-            sourceStack = FindObject(sourceStack.Guid, SearchLocations.LocationsICanMove, out _, out _, out _);
+            sourceStack = FindObject(sourceStack.Guid, SearchLocations.LocationsICanMove, out _, out var sourceStackRootOwner, out _);
             targetStack = FindObject(targetStack.Guid, SearchLocations.LocationsICanMove, out var targetStackFoundInContainer, out var targetStackRootOwner, out _);
 
             if (sourceStack == null || targetStack == null)
@@ -2224,7 +2224,19 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(sourceStack));
 
-                sourceStack.Destroy();
+                if (sourceStackRootOwner != null) // item is contained and not on a landblock
+                {
+                    if (sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out var stackToDestroy, true))
+                        stackToDestroy?.Destroy();
+                    else
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousSourceStackCheck.Guid.Full));
+                        return false;
+                    }
+                }
+                else // item is on the landblock and not contained
+                    sourceStack.Destroy();
+
 
                 if (!AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner))
                     return false;
@@ -2238,7 +2250,7 @@ namespace ACE.Server.WorldObjects
             {
                 previousSourceStackCheck = sourceStack;
                 //previousTargetStackCheck = targetStack;
-                sourceStack = FindObject(sourceStack.Guid, SearchLocations.LocationsICanMove, out var sourceStackFoundInContainer, out var sourceStackRootOwner, out _);
+                sourceStack = FindObject(sourceStack.Guid, SearchLocations.LocationsICanMove, out var sourceStackFoundInContainer, out sourceStackRootOwner, out _);
                 targetStack = FindObject(targetStack.Guid, SearchLocations.LocationsICanMove, out targetStackFoundInContainer, out targetStackRootOwner, out _);
 
                 if (sourceStack == null || sourceStack.StackSize < amount)
