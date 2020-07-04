@@ -1106,7 +1106,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                     questTarget = GetQuestTarget((EmoteType)emote.Type, targetCreature, creature);
 
-                    if (questTarget != null && emote.Amount != null)
+                    if (questTarget != null && emote.Message != null && emote.Amount != null)
                         questTarget.QuestManager.SetQuestBits(emote.Message, (int)emote.Amount, false);
 
                     break;
@@ -1116,7 +1116,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                     questTarget = GetQuestTarget((EmoteType)emote.Type, targetCreature, creature);
 
-                    if (questTarget != null && emote.Amount != null)
+                    if (questTarget != null && emote.Message != null && emote.Amount != null)
                         questTarget.QuestManager.SetQuestBits(emote.Message, (int)emote.Amount);
 
                     break;
