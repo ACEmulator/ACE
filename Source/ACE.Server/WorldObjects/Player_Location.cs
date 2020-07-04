@@ -92,11 +92,20 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(updateCombatMode);
             }
 
-            var motion = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
-            motion.MotionState.AddCommand(this, MotionCommand.HouseRecall);
-
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling home.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
-            EnqueueBroadcastMotion(motion);
+
+            if (FastTick)
+            {
+                var recallChain = new ActionChain();
+                EnqueueMotionAction(recallChain, new List<MotionCommand>() { MotionCommand.HouseRecall }, 1.0f, MotionStance.NonCombat);
+                recallChain.EnqueueChain();
+            }
+            else
+            {
+                var motion = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
+                motion.MotionState.AddCommand(this, MotionCommand.HouseRecall);
+                EnqueueBroadcastMotion(motion);
+            }
 
             var startPos = new Position(Location);
 
