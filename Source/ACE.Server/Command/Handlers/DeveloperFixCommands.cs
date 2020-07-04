@@ -341,119 +341,137 @@ namespace ACE.Server.Command.Handlers
             var fixStr = fix ? " -- fixed" : "";
             var foundIssues = false;
 
+            HashSet<uint> oswaldSkillCredit = null;
+            HashSet<uint> ralireaSkillCredit = null;
+            Dictionary<uint, int> lumAugSkillCredits = null;
+
             using (var ctx = new ShardDbContext())
             {
-                foreach (var player in players)
+                // 4 possible skill credits from quests
+                // - ChasingOswaldDone
+                // - ArantahKill1 (no 'turned in' stamp, only if given figurine?)
+                // - LumAugSkillQuest (stamped either 1 or 2 times)
+
+                oswaldSkillCredit = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("ChasingOswaldDone")).Select(i => i.CharacterId).ToHashSet();
+                ralireaSkillCredit = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("ArantahKill1")).Select(i => i.CharacterId).ToHashSet();
+                lumAugSkillCredits = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("LumAugSkillQuest")).ToDictionary(i => i.CharacterId, i => i.NumTimesCompleted);
+            }
+
+            foreach (var player in players)
+            {
+                // skip admins
+                if (player.Account == null || player.Account.AccessLevel == (uint)AccessLevel.Admin)
+                    continue;
+
+                // player starts with 52 skill credits
+                var startCredits = 52;
+
+                // skills that cannot be untrained: arcane lore, jump, loyalty, magic defense, run, salvaging
+                // all of these have '0' cost to train, except for arcane lore, which has 4 (seems to be an outlier?)
+                startCredits += 4;
+
+                var levelCredits = GetAdditionalCredits(player.Level ?? 1);
+
+                var totalCredits = startCredits + levelCredits;
+
+                var used = 0;
+
+                var specCreditsSpent = 0;
+
+                foreach (var skill in new Dictionary<Skill, PropertiesSkill>(player.Biota.PropertiesSkill))
                 {
-                    // skip admins
-                    if (player.Account == null || player.Account.AccessLevel == (uint)AccessLevel.Admin)
+                    var sac = skill.Value.SAC;
+                    if (sac < SkillAdvancementClass.Trained)
                         continue;
 
-                    // player starts with 52 skill credits
-                    var startCredits = 52;
-
-                    // skills that cannot be untrained: arcane lore, jump, loyalty, magic defense, run, salvaging
-                    // all of these have '0' cost to train, except for arcane lore, which has 4 (seems to be an outlier?)
-                    startCredits += 4;
-
-                    var levelCredits = GetAdditionalCredits(player.Level ?? 1);
-
-                    var totalCredits = startCredits + levelCredits;
-
-                    var used = 0;
-
-                    var specCreditsSpent = 0;
-
-                    foreach (var skill in new Dictionary<Skill, PropertiesSkill>(player.Biota.PropertiesSkill))
+                    if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue((uint)skill.Key, out var skillInfo))
                     {
-                        var sac = skill.Value.SAC;
-                        if (sac < SkillAdvancementClass.Trained)
-                            continue;
-
-                        if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue((uint)skill.Key, out var skillInfo))
-                        {
-                            Console.WriteLine($"{player.Name}.HandleVerifySkillCredits({skill.Key}): unknown skill");
-                            continue;
-                        }
-
-                        //Console.WriteLine($"{(Skill)skill.Type} trained cost: {skillInfo.TrainedCost}, spec cost: {skillInfo.SpecializedCost}");
-
-                        used += skillInfo.TrainedCost;
-
-                        if (sac == SkillAdvancementClass.Specialized)
-                        {
-                            switch (skill.Key)
-                            {
-                                // these can only be speced through augs, they have >= 999 in the spec data
-                                case Skill.ArmorTinkering:
-                                case Skill.ItemTinkering:
-                                case Skill.MagicItemTinkering:
-                                case Skill.WeaponTinkering:
-                                case Skill.Salvaging:
-                                    continue;
-                            }
-
-                            used += skillInfo.UpgradeCostFromTrainedToSpecialized;
-
-                            specCreditsSpent += skillInfo.SpecializedCost;
-                        }
-                    }
-
-                    // 2 possible skill credits from quests
-                    // - ChasingOswaldDone
-                    // - ArantahKill1 (no 'turned in' stamp, only if given figurine?)
-                    var questCredits = ctx.CharacterPropertiesQuestRegistry.Count(i => i.CharacterId == player.Guid.Full && (i.QuestName.Equals("ChasingOswaldDone") || i.QuestName.Equals("ArantahKill1")));
-
-                    totalCredits += questCredits;
-
-                    // TODO: 2 lum augs
-
-                    var targetCredits = totalCredits - used;
-                    var targetMsg = $"{player.Name} should have {targetCredits} available skill credits";
-
-                    if (targetCredits < 0)
-                    {
-                        // if the player has already spent more skill credits than they should have,
-                        // unfortunately this situation requires a partial reset..
-
-                        Console.WriteLine($"{targetMsg}. To fix this situation, trained skill reset will need to be applied{fixStr}");
-                        foundIssues = true;
-
-                        if (fix)
-                            UntrainSkills(player, targetCredits);
-
+                        Console.WriteLine($"{player.Name}.HandleVerifySkillCredits({skill.Key}): unknown skill");
                         continue;
                     }
 
-                    if (specCreditsSpent > 70)
+                    //Console.WriteLine($"{(Skill)skill.Type} trained cost: {skillInfo.TrainedCost}, spec cost: {skillInfo.SpecializedCost}");
+
+                    used += skillInfo.TrainedCost;
+
+                    if (sac == SkillAdvancementClass.Specialized)
                     {
-                        // if the player has already spent more skill credits than they should have,
-                        // unfortunately this situation requires a partial reset..
-
-                        Console.WriteLine($"{player.Name} has spent {specCreditsSpent} skill credits on specalization, {specCreditsSpent - 70} over the limit of 70. To fix this situation, specialized skill reset will need to be applied{fixStr}");
-                        foundIssues = true;
-
-                        if (fix)
-                            UnspecializeSkills(player);
-
-                        continue;
-                    }
-
-                    var availableCredits = player.GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
-
-                    if (availableCredits != targetCredits)
-                    {
-                        Console.WriteLine($"{targetMsg}, but they have {availableCredits}{fixStr}");
-                        foundIssues = true;
-
-                        if (fix)
+                        switch (skill.Key)
                         {
-                            player.SetProperty(PropertyInt.AvailableSkillCredits, targetCredits);
-                            player.SaveBiotaToDatabase();
+                            // these can only be speced through augs, they have >= 999 in the spec data
+                            case Skill.ArmorTinkering:
+                            case Skill.ItemTinkering:
+                            case Skill.MagicItemTinkering:
+                            case Skill.WeaponTinkering:
+                            case Skill.Salvaging:
+                                continue;
                         }
+
+                        used += skillInfo.UpgradeCostFromTrainedToSpecialized;
+
+                        specCreditsSpent += skillInfo.SpecializedCost;
+                    }
+                }
+
+                // 2 possible skill credits from quests
+                // - ChasingOswaldDone
+                if (oswaldSkillCredit.Contains(player.Guid.Full))
+                    totalCredits++;
+
+                // - ArantahKill1 (no 'turned in' stamp, only if given figurine?)
+                if (ralireaSkillCredit.Contains(player.Guid.Full))
+                    totalCredits++;
+
+                // - LumAugSkillQuest (stamped either 1 or 2 times)
+                if (lumAugSkillCredits.TryGetValue(player.Guid.Full, out var lumSkillCredits))
+                    totalCredits += lumSkillCredits;
+
+                var targetCredits = totalCredits - used;
+                var targetMsg = $"{player.Name} should have {targetCredits} available skill credits";
+
+                if (targetCredits < 0)
+                {
+                    // if the player has already spent more skill credits than they should have,
+                    // unfortunately this situation requires a partial reset..
+
+                    Console.WriteLine($"{targetMsg}. To fix this situation, trained skill reset will need to be applied{fixStr}");
+                    foundIssues = true;
+
+                    if (fix)
+                        UntrainSkills(player, targetCredits);
+
+                    continue;
+                }
+
+                if (specCreditsSpent > 70)
+                {
+                    // if the player has already spent more skill credits than they should have,
+                    // unfortunately this situation requires a partial reset..
+
+                    Console.WriteLine($"{player.Name} has spent {specCreditsSpent} skill credits on specalization, {specCreditsSpent - 70} over the limit of 70. To fix this situation, specialized skill reset will need to be applied{fixStr}");
+                    foundIssues = true;
+
+                    if (fix)
+                        UnspecializeSkills(player);
+
+                    continue;
+                }
+
+                var availableCredits = player.GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
+
+                if (availableCredits != targetCredits)
+                {
+                    Console.WriteLine($"{targetMsg}, but they have {availableCredits}{fixStr}");
+                    foundIssues = true;
+
+                    if (fix)
+                    {
+                        player.SetProperty(PropertyInt.AvailableSkillCredits, targetCredits);
+                        player.SaveBiotaToDatabase();
                     }
                 }
             }
+
             if (!fix && foundIssues)
                 Console.WriteLine($"Dry run completed. Type 'verify-skill-credits fix' to fix any issues.");
 
@@ -803,6 +821,14 @@ namespace ACE.Server.Command.Handlers
 
             var results = new List<VerifyXpResult>();
 
+            HashSet<uint> lesserBenediction = null;
+
+            using (var ctx = new ShardDbContext())
+            {
+                // Asheron's Lesser Benediction augmentation operates differently than all other augs
+                lesserBenediction = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("LesserBenedictionAug")).Select(i => i.CharacterId).ToHashSet();
+            }
+
             foreach (var player in players)
             {
                 var totalXP = player.GetProperty(PropertyInt64.TotalExperience) ?? 0;
@@ -848,6 +874,9 @@ namespace ACE.Server.Command.Handlers
 
                     augXP += costPer * numAugs;
                 }
+
+                if (lesserBenediction.Contains(player.Guid.Full))
+                    augXP += 2000000000;
 
                 var calculatedSpent = attributeXP + vitalXP + skillXP + augXP + diffXP;
 

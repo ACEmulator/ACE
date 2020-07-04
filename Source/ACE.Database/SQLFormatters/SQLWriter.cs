@@ -189,6 +189,7 @@ namespace ACE.Database.SQLFormatters
                 case PropertyDataId.OriginalPortal:
                 case PropertyDataId.UseCreateItem:
                 case PropertyDataId.VendorsClassId:
+                case PropertyDataId.PCAPPhysicsDIDDataTemplatedFrom:
                     if (WeenieNames != null)
                     {
                         WeenieNames.TryGetValue(value, out var propertyValueDescription);
