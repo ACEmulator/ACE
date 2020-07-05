@@ -614,7 +614,7 @@ namespace ACE.Server.Managers
                 player.QuestManager.HandleKillTask(Creature.KillQuest3, Creature);
         }
 
-        public bool HasQuestBitsOn(string questFormat, int bits)
+        public bool HasQuestBits(string questFormat, int bits)
         {
             var questName = GetQuestName(questFormat);
 
@@ -624,7 +624,7 @@ namespace ACE.Server.Managers
             var hasQuestBits = (quest.NumTimesCompleted & bits) == bits;
 
             if (Debug)
-                Console.WriteLine($"{Name}.QuestManager.HasQuestBitsOn({questFormat}, 0x{bits:X}): {hasQuestBits}");
+                Console.WriteLine($"{Name}.QuestManager.HasQuestBits({questFormat}, 0x{bits:X}): {hasQuestBits}");
 
             return hasQuestBits;
         }

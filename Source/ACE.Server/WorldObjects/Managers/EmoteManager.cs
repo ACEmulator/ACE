@@ -562,7 +562,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (questTarget != null)
                     {
-                        var hasQuestBits = questTarget.QuestManager.HasQuestBitsOn(emote.Message, emote.Amount ?? 0);
+                        var hasQuestBits = questTarget.QuestManager.HasQuestBits(emote.Message, emote.Amount ?? 0);
 
                         ExecuteEmoteSet(!hasQuestBits ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
                     }
@@ -576,7 +576,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (questTarget != null)
                     {
-                        var hasQuestBits = questTarget.QuestManager.HasQuestBitsOn(emote.Message, emote.Amount ?? 0);
+                        var hasQuestBits = questTarget.QuestManager.HasQuestBits(emote.Message, emote.Amount ?? 0);
 
                         ExecuteEmoteSet(hasQuestBits ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
                     }
