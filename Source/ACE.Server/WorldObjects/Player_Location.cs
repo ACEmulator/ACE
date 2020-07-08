@@ -93,7 +93,8 @@ namespace ACE.Server.WorldObjects
             }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling home.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
-            EnqueueBroadcastMotion(motionHouseRecall);
+
+            SendRecallAnimation(MotionCommand.HouseRecall);
 
             var startPos = new Position(Location);
 
@@ -160,7 +161,8 @@ namespace ACE.Server.WorldObjects
             }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the lifestone.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
-            EnqueueBroadcastMotion(motionLifestoneRecall);
+
+            SendRecallAnimation(MotionCommand.LifestoneRecall);
 
             var startPos = new Position(Location);
 
@@ -217,7 +219,8 @@ namespace ACE.Server.WorldObjects
             }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the marketplace.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
-            EnqueueBroadcastMotion(motionMarketplaceRecall);
+
+            SendRecallAnimation(MotionCommand.MarketplaceRecall);
 
             var startPos = new Position(Location);
 
@@ -292,7 +295,8 @@ namespace ACE.Server.WorldObjects
             }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is going to the Allegiance hometown.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
-            EnqueueBroadcastMotion(motionAllegianceHometownRecall);
+
+            SendRecallAnimation(MotionCommand.AllegianceHometownRecall);
 
             var startPos = new Position(Location);
 
@@ -382,7 +386,8 @@ namespace ACE.Server.WorldObjects
             }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the Allegiance housing.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
-            EnqueueBroadcastMotion(motionHouseRecall);
+
+            SendRecallAnimation(MotionCommand.HouseRecall);
 
             var startPos = new Position(Location);
 
@@ -458,7 +463,8 @@ namespace ACE.Server.WorldObjects
             }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is going to the PK Arena.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
-            EnqueueBroadcastMotion(motionPkArenaRecall);
+
+            SendRecallAnimation(MotionCommand.PKArenaRecall);
 
             var startPos = new Position(Location);
 
@@ -535,7 +541,8 @@ namespace ACE.Server.WorldObjects
             }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is going to the PKL Arena.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
-            EnqueueBroadcastMotion(motionPkArenaRecall);
+
+            SendRecallAnimation(MotionCommand.PKArenaRecall);
 
             var startPos = new Position(Location);
 
@@ -564,6 +571,22 @@ namespace ACE.Server.WorldObjects
             });
 
             actionChain.EnqueueChain();
+        }
+
+        private void SendRecallAnimation(MotionCommand motionCommand)
+        {
+            if (FastTick)
+            {
+                var actionChain = new ActionChain();
+                EnqueueMotionAction(actionChain, new List<MotionCommand>() { motionCommand }, 1.0f, MotionStance.NonCombat);
+                actionChain.EnqueueChain();
+            }
+            else
+            {
+                var motion = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
+                motion.MotionState.AddCommand(this, motionCommand);
+                EnqueueBroadcastMotion(motion);
+            }
         }
 
         public DateTime LastTeleportTime;
