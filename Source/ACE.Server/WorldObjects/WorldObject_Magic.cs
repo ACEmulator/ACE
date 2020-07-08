@@ -72,7 +72,7 @@ namespace ACE.Server.WorldObjects
             switch (spell.School)
             {
                 case MagicSchool.WarMagic:
-                    WarMagic(target, spell, this);
+                    WarMagic(target, spell, caster ?? this);
                     break;
 
                 case MagicSchool.LifeMagic:
@@ -93,7 +93,7 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case MagicSchool.VoidMagic:
-                    VoidMagic(target, spell, this);
+                    VoidMagic(target, spell, caster ?? this);
                     break;
             }
 
@@ -272,6 +272,9 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             if (spell.NumProjectiles > 0 && !projectileHit)
+                return false;
+
+            if (caster != null && Cloak.IsCloak(caster))
                 return false;
 
             uint magicSkill = 0;
