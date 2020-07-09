@@ -613,5 +613,41 @@ namespace ACE.Server.Managers
             if (Creature.KillQuest3 != null)
                 player.QuestManager.HandleKillTask(Creature.KillQuest3, Creature);
         }
+
+        public bool HasQuestBits(string questFormat, int bits)
+        {
+            var questName = GetQuestName(questFormat);
+
+            var quest = GetQuest(questName);
+            if (quest == null) return false;
+
+            var hasQuestBits = (quest.NumTimesCompleted & bits) == bits;
+
+            if (Debug)
+                Console.WriteLine($"{Name}.QuestManager.HasQuestBits({questFormat}, 0x{bits:X}): {hasQuestBits}");
+
+            return hasQuestBits;
+        }
+
+        public void SetQuestBits(string questFormat, int bits, bool on = true)
+        {
+            var questName = GetQuestName(questFormat);
+
+            var quest = GetQuest(questName);
+
+            var questBits = 0;
+
+            if (quest != null) questBits = quest.NumTimesCompleted;
+
+            if (on)
+                questBits |= bits;
+            else
+                questBits &= ~bits;
+
+            if (Debug)
+                Console.WriteLine($"{Name}.QuestManager.SetQuestBits({questFormat}, 0x{bits:X}): {on}");
+
+            SetQuestCompletions(questFormat, questBits);
+        }
     }
 }
