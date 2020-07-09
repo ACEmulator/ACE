@@ -400,7 +400,7 @@ namespace ACE.Server.Factories
                 wo.PaletteTemplate = item.Palette;
 
             // if treasure, this is probability instead of shade
-            if (!isTreasure && item.Shade > 0)
+            if (!isTreasure)
                 wo.Shade = item.Shade;
 
             return wo;
