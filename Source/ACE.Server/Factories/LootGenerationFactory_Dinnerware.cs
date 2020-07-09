@@ -46,7 +46,7 @@ namespace ACE.Server.Factories
             int workmanship = GetWorkmanship(tier);
             wo.ItemWorkmanship = workmanship;
 
-            wo = SetAppraisalLongDescDecoration(wo);
+            //wo = SetAppraisalLongDescDecoration(wo);
 
             wo = AssignValue(wo);
 
