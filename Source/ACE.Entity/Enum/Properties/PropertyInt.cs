@@ -720,6 +720,7 @@ namespace ACE.Entity.Enum.Properties
                 case PropertyInt.WieldSkillType2:
                 case PropertyInt.WieldSkillType3:
                 case PropertyInt.WieldSkillType4:
+                case PropertyInt.AppraisalItemSkill:
                     return System.Enum.GetName(typeof(Skill), value);
                 case PropertyInt.AccountRequirements:
                     return System.Enum.GetName(typeof(SubscriptionStatus), value);
