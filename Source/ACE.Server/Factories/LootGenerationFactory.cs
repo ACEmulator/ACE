@@ -1512,24 +1512,19 @@ namespace ACE.Server.Factories
                     break;
             }
 
-            // Getting the spell difficulty - Maybe a better way to do this.
+            // Getting the spell difficulty
             var maxSpellLevel = wo.GetMaxSpellLevel();
-            int maxSpellDiff = 1;
-
-            if (maxSpellLevel == 2)
-                maxSpellDiff = 50;
-            else if (maxSpellLevel == 3)
-                maxSpellDiff = 100;
-            else if (maxSpellLevel == 4)
-                maxSpellDiff = 150;
-            else if (maxSpellLevel == 5)
-                maxSpellDiff = 200;
-            else if (maxSpellLevel == 6)
-                maxSpellDiff = 250;
-            else if (maxSpellLevel == 7)
-                maxSpellDiff = 300;
-            else if (maxSpellLevel == 8)
-                maxSpellDiff = 400;  
+            int maxSpellDiff = maxSpellLevel switch
+            {
+                2 => 50,
+                3 => 100,
+                4 => 150,
+                5 => 200,
+                6 => 250,
+                7 => 300,
+                8 => 400,
+                _ => 1
+            };
 
             var tItemSpellCraft = maxSpellDiff * ThreadSafeRandom.Next(minItemSpellCraftRange, maxItemSpellCraftRange);
 
@@ -1545,12 +1540,12 @@ namespace ACE.Server.Factories
         private static int GetDifficulty(WorldObject wo, int tier, int itemspellcraft)
         {
             int wieldReq = 1;
-            int sc = 0;  
-            int spc = 1;
+            int rank_mod = 0;  
+            int num_spells = 1;
             int epicAddon = 0;
             int legAddon = 0;
 
-            spc = wo.Biota.PropertiesSpellBook.Count();
+            num_spells = wo.Biota.PropertiesSpellBook.Count();
 
             if (wo.EpicCantrips.Count > 0)
                 epicAddon = ThreadSafeRandom.Next(1, 5) * wo.EpicCantrips.Count;
@@ -1558,7 +1553,7 @@ namespace ACE.Server.Factories
                 legAddon = ThreadSafeRandom.Next(5, 10) * wo.LegendaryCantrips.Count;
 
             if (wo.ItemAllegianceRankLimit.HasValue)
-                sc = wo.ItemAllegianceRankLimit.Value;
+                rank_mod = wo.ItemAllegianceRankLimit.Value;
             if (wo.WieldDifficulty.HasValue)
                 if (wo.WieldDifficulty == 150 || wo.WieldDifficulty == 180)
                     wieldReq = 1;
@@ -1567,19 +1562,19 @@ namespace ACE.Server.Factories
             else
                 wieldReq = 1;
 
-            float bq = 1.0f;
+            float heritage_mod = 1.0f;  
             if (wo.Heritage.HasValue)
-                bq = 0.75f;
+                heritage_mod = 0.75f;
 
-            if (sc == 0)
-                sc = 1;
+            if (rank_mod == 0)
+                rank_mod = 1;
 
             // Spell Count Addon
-            float spellAddonChance = spc * (20.0f / (spc + 2.0f));
-            float spellAddon = ThreadSafeRandom.Next(1.0f, spellAddonChance) * spc;
+            float spellAddonChance = num_spells * (20.0f / (num_spells + 2.0f));
+            float spellAddon = ThreadSafeRandom.Next(1.0f, spellAddonChance) * num_spells;
 
-            float tArcane = itemspellcraft * bq * 1.9f + spellAddon + epicAddon + legAddon;
-            tArcane /= sc + 1.0f;
+            float tArcane = itemspellcraft * heritage_mod * 1.9f + spellAddon + epicAddon + legAddon;
+            tArcane /= rank_mod + 1.0f;
             tArcane -= wieldReq / 3.0f;
 
             if (tArcane < 0)
