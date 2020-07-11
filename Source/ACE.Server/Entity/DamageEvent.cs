@@ -74,6 +74,7 @@ namespace ACE.Server.Entity
 
         public float DamageRatingBaseMod;
         public float RecklessnessMod;
+        public bool SelfReckless;
         public float SneakAttackMod;
         public float HeritageMod;
 
@@ -209,7 +210,7 @@ namespace ACE.Server.Entity
 
             // ratings
             DamageRatingBaseMod = Creature.GetPositiveRatingMod(attacker.GetDamageRating());
-            RecklessnessMod = Creature.GetRecklessnessMod(attacker, defender);
+            RecklessnessMod = Creature.GetRecklessnessMod(attacker, defender, out SelfReckless);
             SneakAttackMod = attacker.GetSneakAttackMod(defender);
             HeritageMod = attacker.GetHeritageBonus(Weapon) ? 1.05f : 1.0f;
 
@@ -578,7 +579,7 @@ namespace ACE.Server.Entity
 
                 if (CriticalDefended)
                     attackConditions |= AttackConditions.CriticalProtectionAugmentation;
-                if (RecklessnessMod > 1.0f)
+                if (RecklessnessMod > 1.0f && SelfReckless)
                     attackConditions |= AttackConditions.Recklessness;
                 if (SneakAttackMod > 1.0f)
                     attackConditions |= AttackConditions.SneakAttack;
