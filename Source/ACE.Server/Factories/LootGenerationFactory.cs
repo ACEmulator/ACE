@@ -1041,7 +1041,7 @@ namespace ACE.Server.Factories
             }
             int spellcraft = GetSpellcraft(wo, numSpells, profile.Tier);
             wo.ItemSpellcraft = spellcraft;
-            wo.ItemDifficulty = GetDifficulty(wo, profile.Tier, spellcraft);
+            wo.ItemDifficulty = GetDifficulty(wo, spellcraft);
             return wo;
         }
 
@@ -1537,7 +1537,7 @@ namespace ACE.Server.Factories
 
         }
 
-        private static int GetDifficulty(WorldObject wo, int tier, int itemspellcraft)
+        private static int GetDifficulty(WorldObject wo, int itemspellcraft)
         {
             int wieldReq = 1;
             int rank_mod = 0;  
