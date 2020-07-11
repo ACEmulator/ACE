@@ -143,6 +143,19 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must be a {SummoningMastery} to use the {Name}", ChatMessageType.Broadcast));
                 return new ActivationResult(false);
             }
+
+            // duplicating some of this verification logic here from Pet.Init()
+            // since the PetDevice owner and the summoned Pet are separate objects w/ potentially different heartbeat offsets,
+            // the cooldown can still expire before the CombatPet's lifespan
+            // in this case, if the player tries to re-activate the PetDevice while the CombatPet is still in the world,
+            // we want to return an error without re-activating the cooldown
+
+            if (player.CurrentActivePet != null && player.CurrentActivePet is CombatPet)
+            {
+                player.SendTransientError($"{player.CurrentActivePet.Name} is already active");
+                return new ActivationResult(false);
+            }
+
             return new ActivationResult(true);
         }
 
