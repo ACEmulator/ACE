@@ -123,6 +123,8 @@ namespace ACE.Database.SQLFormatters
                     return ((AetheriaBitfield)value).ToString();
                 case PropertyInt.AiAllowedCombatStyle:
                     return ((CombatStyle)value).ToString();
+                case PropertyInt.AppraisalLongDescDecoration:
+                    return ((AppraisalLongDescDecorations)value).ToString();
                 case PropertyInt.AttackType:
                     return ((AttackType)value).ToString();
                 case PropertyInt.ChannelsActive:

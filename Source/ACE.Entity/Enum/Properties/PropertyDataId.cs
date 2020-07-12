@@ -213,6 +213,10 @@ namespace ACE.Entity.Enum.Properties
                 case PropertyDataId.YellowSurgeSpell:
                     return System.Enum.GetName(typeof(SpellId), value);
 
+                case PropertyDataId.ItemSkillLimit:
+                case PropertyDataId.ItemSpecializedOnly:
+                    return System.Enum.GetName(typeof(Skill), value);
+
                 case PropertyDataId.PCAPRecordedParentLocation:
                     return System.Enum.GetName(typeof(ParentLocation), value);
                 case PropertyDataId.PCAPRecordedDefaultScript:
