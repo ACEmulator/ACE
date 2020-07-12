@@ -612,7 +612,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the damage rating modifier for an applicable Recklessness attack
+        /// Returns the damage rating increase for an applicable Recklessness attack
         /// </summary>
         /// <param name="powerAccuracyBar">The 0.0 - 1.0 power/accurary bar</param>
         public int GetRecklessRating(/*float powerAccuracyBar*/)
