@@ -1555,10 +1555,12 @@ namespace ACE.Server.Factories
             if (wo.ItemAllegianceRankLimit.HasValue)
                 rank_mod = wo.ItemAllegianceRankLimit.Value;
             if (wo.WieldDifficulty.HasValue)
+            {
                 if (wo.WieldDifficulty == 150 || wo.WieldDifficulty == 180)
                     wieldReq = 1;
                 else
                     wieldReq = wo.WieldDifficulty.Value;
+            }
             else
                 wieldReq = 1;
 
