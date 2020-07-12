@@ -12,6 +12,11 @@ namespace ACE.Server.Entity
         private static readonly float ChanceMod = 2.0f;
 
         /// <summary>
+        /// The maximum frequency of cloak procs, in seconds
+        /// </summary>
+        private static readonly float MinDelay = 5.0f;
+
+        /// <summary>
         /// Rolls for a chance at procing a cloak spell
         /// If successful, casts the spell
         /// </summary>
@@ -35,6 +40,11 @@ namespace ACE.Server.Entity
             // TODO: find retail formula
             // TODO: cloak level multiplier - Added 6/19/2020 HQ (Still need retail numbers) Updated with Riggs suggestions
 
+            var currentTime = Time.GetUnixTime();
+
+            if (currentTime - cloak.UseTimestamp < MinDelay)
+                return false;
+
             var itemMaxLevel = cloak.ItemMaxLevel ?? 0;
 
             var chanceMod = ChanceMod + itemMaxLevel * 0.1f;
@@ -47,6 +57,9 @@ namespace ACE.Server.Entity
                 if (chance < rng)
                     return false;
             }
+
+            cloak.UseTimestamp = currentTime;
+
             return true;
         }
 
