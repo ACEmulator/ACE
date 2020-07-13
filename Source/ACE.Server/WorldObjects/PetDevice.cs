@@ -574,6 +574,15 @@ namespace ACE.Server.WorldObjects
                 if (useError != WeenieError.None)
                 {
                     player.SendUseDoneEvent(useError);
+                    player.IsBusy = false;
+                    return;
+                }
+
+                if (Structure == MaxStructure)
+                {
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("This essence is already full.", ChatMessageType.Broadcast));
+                    player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                    player.IsBusy = false;
                     return;
                 }
 
