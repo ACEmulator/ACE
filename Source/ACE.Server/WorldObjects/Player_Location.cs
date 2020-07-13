@@ -220,9 +220,6 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the marketplace.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
 
-            //motionMarketplaceRecall.MotionState.Flags |= (MovementStateFlag)0x80;
-            //EnqueueBroadcastMotion(motionMarketplaceRecall);
-
             SendMotionAsCommands(MotionCommand.MarketplaceRecall);
 
             var startPos = new Position(Location);
