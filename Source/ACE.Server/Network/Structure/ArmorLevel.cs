@@ -61,7 +61,7 @@ namespace ACE.Server.Network.Structure
 
             // if all layers for this body part are unenchantable,
             // send totalAL + 9999 for client to display *
-            if (!layers.Any(i => i.IsEnchantable))
+            if (layers.Count > 0 && !layers.Any(i => i.IsEnchantable))
                 totalAL += 9999;
 
             return (uint)totalAL;
