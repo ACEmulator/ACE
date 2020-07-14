@@ -112,6 +112,8 @@ namespace ACE.Server.WorldObjects
             {
                 GenerateWieldList();
 
+                EquipInventoryItems();
+
                 GenerateWieldedTreasure();
 
                 EquipInventoryItems();
