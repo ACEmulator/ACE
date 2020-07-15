@@ -629,6 +629,21 @@ namespace ACE.Server.Managers
             return hasQuestBits;
         }
 
+        public bool HasNoQuestBits(string questFormat, int bits)
+        {
+            var questName = GetQuestName(questFormat);
+
+            var quest = GetQuest(questName);
+            if (quest == null) return true;
+
+            var hasNoQuestBits = (quest.NumTimesCompleted & bits) == 0;
+
+            if (Debug)
+                Console.WriteLine($"{Name}.QuestManager.HasNoQuestBits({questFormat}, 0x{bits:X}): {hasNoQuestBits}");
+
+            return hasNoQuestBits;
+        }
+
         public void SetQuestBits(string questFormat, int bits, bool on = true)
         {
             var questName = GetQuestName(questFormat);
