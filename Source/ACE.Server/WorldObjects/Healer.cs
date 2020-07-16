@@ -133,7 +133,8 @@ namespace ACE.Server.WorldObjects
             var startPos = new Physics.Common.Position(healer.PhysicsObj.Position);
 
             var actionChain = new ActionChain();
-            actionChain.AddAction(healer, () => healer.EnqueueBroadcastMotion(motion));
+            //actionChain.AddAction(healer, () => healer.EnqueueBroadcastMotion(motion));
+            actionChain.AddAction(healer, () => healer.SendMotionAsCommands(motionCommand));
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(healer, () =>
             {
