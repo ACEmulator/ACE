@@ -563,7 +563,8 @@ namespace ACE.Server.Network.Structure
             ResistHighlight = ResistMaskHelper.GetHighlightMask(creature);
             ResistColor = ResistMaskHelper.GetColorMask(creature);
 
-            ArmorLevels = new ArmorLevel(creature);
+            if (creature is Player || !creature.Attackable)
+                ArmorLevels = new ArmorLevel(creature);
 
             AddRatings(creature);
 
