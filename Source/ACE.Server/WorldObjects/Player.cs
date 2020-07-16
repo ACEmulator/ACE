@@ -521,6 +521,8 @@ namespace ACE.Server.WorldObjects
                         LeaveTurbineChatChannel("Roleplay");
                     if (GetCharacterOption(CharacterOption.ListenToAllegianceChat) && Allegiance != null)
                         LeaveTurbineChatChannel("Allegiance");
+                    if (GetCharacterOption(CharacterOption.ListenToSocietyChat) && Society != FactionBits.None)
+                        LeaveTurbineChatChannel("Society");
                 }
             }
 
