@@ -124,7 +124,7 @@ namespace ACE.Server.Network.Handlers
                 {
                     // todo: olthoi play chat (ha! yeah right...)
                 }
-                else // Channel must be availiable to all players
+                else // Channel must be available to all players
                 {
                     foreach (var recipient in PlayerManager.GetAllOnline())
                     {
