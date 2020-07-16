@@ -117,8 +117,8 @@ namespace ACE.Server.Entity
             var player = GetPlayerResponse(response);
             if (player == null) return;
 
-            var source = player.FindObject(SourceGuid.Full, Player.SearchLocations.MyInventory | Player.SearchLocations.MyEquippedItems);
-            var target = player.FindObject(TargetGuid.Full, Player.SearchLocations.MyInventory | Player.SearchLocations.MyEquippedItems);
+            var source = player.FindObject(SourceGuid.Full, Player.SearchLocations.LocationsICanMove);
+            var target = player.FindObject(TargetGuid.Full, Player.SearchLocations.LocationsICanMove);
 
             if (source != null && target != null)
             {
