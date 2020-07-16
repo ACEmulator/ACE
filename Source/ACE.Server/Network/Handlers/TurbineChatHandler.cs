@@ -87,6 +87,8 @@ namespace ACE.Server.Network.Handlers
 
                             online.Session.Network.EnqueueSend(gameMessageTurbineChat);
                         }
+
+                        session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                     }
                 }
                 else if (channelID > TurbineChatChannel.Society) // Channel must be a society restricted channel
