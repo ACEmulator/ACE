@@ -45,7 +45,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
             if (targetPlayer.IsAfk)
             {
-                session.Network.EnqueueSend(new GameEventWeenieErrorWithString(session, WeenieErrorWithString.AFK, $"{targetPlayer.Name} is away: " + (string.IsNullOrWhiteSpace(targetPlayer.AfkMessage) ? "I am currently away from the keyboard." : targetPlayer.AfkMessage)));
+                session.Network.EnqueueSend(new GameEventWeenieErrorWithString(session, WeenieErrorWithString.AFK, $"{targetPlayer.Name} is away: " + (string.IsNullOrWhiteSpace(targetPlayer.AfkMessage) ? targetPlayer.DefaultAFKMessage : targetPlayer.AfkMessage)));
                 return;
             }
 
