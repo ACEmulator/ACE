@@ -1808,12 +1808,12 @@ namespace ACE.Server.WorldObjects
             }
             else if (caster == this || target == this || caster != target)
             {
-                var prefix = caster == this ? "You cast" : $"{caster.Name} casts";
+                var casterName = caster == this ? "You" : caster.Name;
                 var targetName = target.Name;
                 if (target == this)
                     targetName = caster == this ? "yourself" : "you";
 
-                message = $"{prefix} {spell.Name} on {targetName}{suffix}";
+                message = $"{casterName} cast {spell.Name} on {targetName}{suffix}";
             }
 
             if (message != null)
