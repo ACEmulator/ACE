@@ -578,12 +578,14 @@ namespace ACE.Server.WorldObjects
             if (FastTick)
             {
                 var actionChain = new ActionChain();
-                EnqueueMotionAction(actionChain, new List<MotionCommand>() { motionCommand }, 1.0f, MotionStance.NonCombat);
+                //EnqueueMotionAction(actionChain, new List<MotionCommand>() { motionCommand }, 1.0f, MotionStance.NonCombat);
+                EnqueueMotionAction(actionChain, new List<MotionCommand>() { motionCommand }, 1.0f, CurrentMotionState.Stance);
                 actionChain.EnqueueChain();
             }
             else
             {
-                var motion = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
+                //var motion = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
+                var motion = new Motion(CurrentMotionState.Stance, MotionCommand.Ready);
                 motion.MotionState.AddCommand(this, motionCommand);
                 EnqueueBroadcastMotion(motion);
             }
