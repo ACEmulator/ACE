@@ -827,6 +827,7 @@ namespace ACE.Server.Entity
             if (counterVal != 0)
             {
                 log.Error($"Landblock 0x{Id} entered AddWorldObjectInternal but counterVal: {counterVal} is not 0");
+                log.Error($"AddWorldObjectInternal: 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}], previous landblock 0x{wo.CurrentLandblock?.Id}");
                 log.Error(System.Environment.StackTrace);
                 log.Error("PLEASE REPORT THIS TO THE ACE DEV TEAM !!!");
             }
@@ -861,8 +862,18 @@ namespace ACE.Server.Entity
             if (counterVal != 0)
             {
                 log.Error($"Landblock 0x{Id} middle AddWorldObjectInternal but counterVal: {counterVal} is not 0");
+                log.Error($"AddWorldObjectInternal: 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}], previous landblock 0x{wo.CurrentLandblock?.Id}");
                 log.Error(System.Environment.StackTrace);
                 log.Error("PLEASE REPORT THIS TO THE ACE DEV TEAM !!!");
+
+                // This part might actually prevent the crash
+                while (true)
+                {
+                    counterVal = Interlocked.Read(ref processPendingWorldObjectAdditionsAndRemovalsCounter);
+
+                    if (counterVal == 0)
+                        break;
+                }
             }
 
             if (!worldObjects.ContainsKey(wo.Guid))
@@ -901,8 +912,18 @@ namespace ACE.Server.Entity
             if (counterVal != 0)
             {
                 log.Error($"Landblock 0x{Id} entered RemoveWorldObjectInternal but counterVal: {counterVal} is not 0");
+                log.Error($"RemoveWorldObjectInternal: 0x{objectId} {adjacencyMove} {fromPickup} {showError}");
                 log.Error(System.Environment.StackTrace);
                 log.Error("PLEASE REPORT THIS TO THE ACE DEV TEAM !!!");
+
+                // This part might actually prevent the crash
+                while (true)
+                {
+                    counterVal = Interlocked.Read(ref processPendingWorldObjectAdditionsAndRemovalsCounter);
+
+                    if (counterVal == 0)
+                        break;
+                }
             }
 
             if (worldObjects.TryGetValue(objectId, out var wo))
