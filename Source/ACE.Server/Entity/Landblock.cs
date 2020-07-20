@@ -867,13 +867,8 @@ namespace ACE.Server.Entity
                 log.Error("PLEASE REPORT THIS TO THE ACE DEV TEAM !!!");
 
                 // This part might actually prevent the crash
-                while (true)
-                {
+                while (counterVal != 0)
                     counterVal = Interlocked.Read(ref processPendingWorldObjectAdditionsAndRemovalsCounter);
-
-                    if (counterVal == 0)
-                        break;
-                }
             }
 
             if (!worldObjects.ContainsKey(wo.Guid))
@@ -917,13 +912,8 @@ namespace ACE.Server.Entity
                 log.Error("PLEASE REPORT THIS TO THE ACE DEV TEAM !!!");
 
                 // This part might actually prevent the crash
-                while (true)
-                {
+                while (counterVal != 0)
                     counterVal = Interlocked.Read(ref processPendingWorldObjectAdditionsAndRemovalsCounter);
-
-                    if (counterVal == 0)
-                        break;
-                }
             }
 
             if (worldObjects.TryGetValue(objectId, out var wo))
