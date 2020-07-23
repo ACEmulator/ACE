@@ -294,6 +294,7 @@ Dats/
 Logs/
 db-data/
 AppVeyor/
+DatUpdates/
 
 # ACEmulator specific files
 Source/ACE.Server/config.js
