@@ -152,6 +152,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALGRANITEPATHWARDEN_CLASS:
                 case WeenieClassName.W_MATERIALVELVET100_CLASS:
                 case WeenieClassName.W_MATERIALVELVET_CLASS:
+                case WeenieClassName.W_LUCKYRABBITSFOOT_CLASS:
 
                     // ensure melee weapon and workmanship
                     if (target.WeenieType != WeenieType.MeleeWeapon || target.Workmanship == null)
@@ -338,6 +339,11 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALACE36627FOOLPROOFSUNSTONE:
                 case WeenieClassName.W_MATERIALACE36628FOOLPROOFWHITESAPPHIRE:
 
+                // Slayer stones
+                case WeenieClassName.W_GREATERMUKKIRSLAYERSTONE_CLASS:
+                case WeenieClassName.W_BLACKSKULLOFXIKMA_CLASS:
+                case WeenieClassName.W_SPECTRALSKULL_CLASS:
+                case WeenieClassName.W_ANEKSHAYSLAYERSTONE_CLASS:
 
                     recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
                     break;
@@ -441,6 +447,7 @@ namespace ACE.Server.Managers
             { WeenieClassName.W_MATERIALGRANITE100_CLASS,      3852 },
             { WeenieClassName.W_MATERIALGRANITE_CLASS,         3852 },
             { WeenieClassName.W_MATERIALGRANITEPATHWARDEN_CLASS, 3852 },
+            { WeenieClassName.W_LUCKYRABBITSFOOT_CLASS,        8751 },
 
             { WeenieClassName.W_MATERIALVELVET100_CLASS,       3861 },
             { WeenieClassName.W_MATERIALVELVET_CLASS,          3861 },
@@ -526,6 +533,11 @@ namespace ACE.Server.Managers
             { WeenieClassName.W_LEFTHANDTETHERREMOVER_CLASS,              6799 },
             { WeenieClassName.W_COREPLATINGINTEGRATOR_CLASS,              6800 },
             { WeenieClassName.W_COREPLATINGDISINTEGRATOR_CLASS,           6801 },
+
+            { WeenieClassName.W_GREATERMUKKIRSLAYERSTONE_CLASS,           8752 },
+            { WeenieClassName.W_BLACKSKULLOFXIKMA_CLASS,                  8753 },
+            { WeenieClassName.W_SPECTRALSKULL_CLASS,                      8754 },
+            { WeenieClassName.W_ANEKSHAYSLAYERSTONE_CLASS,                8755 },
 
             { WeenieClassName.W_LUMINOUSAMBEROFTHE2NDTIERPARAGON_CLASS,    8702 },
             { WeenieClassName.W_LUMINOUSAMBEROFTHE3RDTIERPARAGON_CLASS,    8703 },
