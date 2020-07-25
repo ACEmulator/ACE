@@ -127,7 +127,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public static void ShowMessage(Creature defender, WorldObject attacker, int origDamage, int reducedDamage)
         {
-            var suffix = $"reduced the damage from {origDamage} to {reducedDamage}!";
+            var suffix = $"reduced the damage from {origDamage} down to {reducedDamage}!";
 
             if (defender is Player playerDefender)
                 playerDefender.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your cloak {suffix}", ChatMessageType.Magic));
