@@ -866,6 +866,18 @@ namespace ACE.Server.Entity
                 log.Error(System.Environment.StackTrace);
                 log.Error("PLEASE REPORT THIS TO THE ACE DEV TEAM !!!");
 
+                if (wo.WeenieType == WeenieType.ProjectileSpell)
+                {
+                    log.Error($"wo.ProjectileSource?.Name: {wo.ProjectileSource?.Name}");
+                    if (wo is SpellProjectile spellProjectile)
+                        log.Error($"wo.Caster?.Name: {spellProjectile.Caster?.Name}");
+
+                    wo.CurrentLandblock = null;
+                    wo.PhysicsObj.DestroyObject();
+
+                    return false;
+                }
+
                 // This part might actually prevent the crash
                 while (counterVal != 0)
                     counterVal = Interlocked.Read(ref processPendingWorldObjectAdditionsAndRemovalsCounter);
