@@ -868,9 +868,10 @@ namespace ACE.Server.Entity
 
                 if (wo.WeenieType == WeenieType.ProjectileSpell)
                 {
-                    log.Error($"wo.ProjectileSource?.Name: {wo.ProjectileSource?.Name}");
-                    if (wo is SpellProjectile spellProjectile)
-                        log.Error($"wo.Caster?.Name: {spellProjectile.Caster?.Name}");
+                    if (wo.ProjectileSource != null)
+                        log.Error($"wo.ProjectileSource: 0x{wo.ProjectileSource?.Guid}:{wo.ProjectileSource?.Name}, position: {wo.ProjectileSource?.Location}");
+                    if (wo is SpellProjectile spellProjectile && spellProjectile.Caster != null)
+                        log.Error($"wo.Caster: 0x{spellProjectile.Caster?.Guid}:{spellProjectile.Caster?.Name}, position: {spellProjectile.Caster?.Location}");
 
                     wo.CurrentLandblock = null;
                     wo.PhysicsObj.DestroyObject();
