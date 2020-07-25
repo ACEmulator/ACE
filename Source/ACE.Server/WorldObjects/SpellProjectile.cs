@@ -327,7 +327,16 @@ namespace ACE.Server.WorldObjects
                 // note that for untargeted multi-projectile spells,
                 // ProjectileTarget will be null here, so procs will not apply
                 if (sourceCreature != null && ProjectileTarget != null)
-                    sourceCreature.TryProcEquippedItems(creatureTarget, false);
+                {
+                    // Ok... if we got here, we're likely in the parallel landblock physics processing.
+                    // We're currently on the thread for worldObject, but we're wanting to perform some work on sourceCreature which can result in a new spell being created
+                    // and added to the sourceCreature's current landblock, which, could be on a separate thread.
+                    // Any chance of a cross landblock group transfer (and thus cross thread), must be managed by WorldManager for thread safety.
+                    if (sourceCreature.CurrentLandblock == null || sourceCreature.CurrentLandblock == CurrentLandblock)
+                        sourceCreature.TryProcEquippedItems(creatureTarget, false);
+                    else
+                        WorldManager.EnqueueAction(new ActionEventDelegate(() => sourceCreature.TryProcEquippedItems(creatureTarget, false)));
+                }
             }
 
             // also called on resist
