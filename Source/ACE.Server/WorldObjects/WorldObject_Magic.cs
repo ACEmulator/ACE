@@ -379,7 +379,7 @@ namespace ACE.Server.WorldObjects
 
             var spellTarget = !spell.IsSelfTargeted ? target as Creature : creature;
 
-            if (this is Gem || this is Hook)
+            if (this is Gem || this is Food || this is Hook)
                 spellTarget = target as Creature;
 
             var targetPlayer = spellTarget as Player;
