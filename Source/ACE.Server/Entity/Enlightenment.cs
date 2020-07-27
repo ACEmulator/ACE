@@ -53,6 +53,8 @@ namespace ACE.Server.Entity
             RemoveAbility(player);
 
             AddPerks(npc, player);
+
+            player.SaveBiotaToDatabase();
         }
 
         public static bool VerifyRequirements(Player player)
