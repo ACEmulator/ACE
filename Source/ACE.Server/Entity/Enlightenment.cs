@@ -49,6 +49,8 @@ namespace ACE.Server.Entity
             if (!VerifyRequirements(player))
                 return;
 
+            player.IsBusy = true;
+
             DequipAllItems(player);
 
             RemoveAbility(player);
@@ -56,6 +58,8 @@ namespace ACE.Server.Entity
             AddPerks(npc, player);
 
             player.SaveBiotaToDatabase();
+
+            player.IsBusy = false;
         }
 
         public static bool VerifyRequirements(Player player)
