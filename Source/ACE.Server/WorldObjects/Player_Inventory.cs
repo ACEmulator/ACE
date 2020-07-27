@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -2836,6 +2836,12 @@ namespace ACE.Server.WorldObjects
                 //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough pack space to use that!"));
                 //else //if (playerOutOfContainerSlots)
                 //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough container slots to use that!"));
+
+                // Font of Enlightenment and Rebirth tries to give you Attribute Reset Certificate.
+                var itemBeingGiven = DatabaseManager.World.GetCachedWeenie(weenieClassId);
+                var msg = new GameMessageSystemChat($"{emoter.Name} tries to give you {(itemStacks > 1 ? $"{itemStacks} " : "")}{(itemStacks > 1 ? itemBeingGiven.GetPluralName() : itemBeingGiven.GetName())}.", ChatMessageType.Broadcast);
+                Session.Network.EnqueueSend(msg);
+
                 return;
             }
 
@@ -2880,7 +2886,11 @@ namespace ACE.Server.WorldObjects
         public bool TryCreateForGive(WorldObject giver, WorldObject itemBeingGiven)
         {
             if (!TryCreateInInventoryWithNetworking(itemBeingGiven))
+            {
+                var msg = new GameMessageSystemChat($"{giver.Name} tries to give you {(itemBeingGiven.StackSize > 1 ? $"{itemBeingGiven.StackSize} " : "")}{(itemBeingGiven.StackSize > 1 ? itemBeingGiven.GetPluralName() : itemBeingGiven.Name)}.", ChatMessageType.Broadcast);
+                Session.Network.EnqueueSend(msg);
                 return false;
+            }
 
             if (!(giver.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
             {

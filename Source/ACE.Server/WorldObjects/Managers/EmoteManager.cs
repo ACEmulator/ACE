@@ -302,6 +302,15 @@ namespace ACE.Server.WorldObjects.Managers
 
                     break;
 
+                case EmoteType.Enlightenment:
+
+                    if (player != null)
+                    {
+                        Enlightenment.HandleEnlightenment(WorldObject, player);
+                    }
+
+                    break;
+
                 case EmoteType.EraseMyQuest:
                 case EmoteType.EraseQuest:
 
@@ -530,11 +539,26 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.InqPackSpace:
 
-                    //if (player != null)
-                    //{
-                    //    var freeSpace = player.ContainerCapacity > player.ItemCapacity;
-                    //    InqCategory(freeSpace ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
-                    //}
+                    if (player != null)
+                    {
+                        var numRequired = emote.Amount ?? 1;
+
+                        success = false;
+                        if (numRequired > 10000)
+                        {
+                            var freeSpace = player.GetFreeContainerSlots();
+
+                            success = freeSpace >= (numRequired - 10000);
+                        }
+                        else
+                        {
+                            var freeSpace = player.GetFreeInventorySlots(false);
+
+                            success = freeSpace >= numRequired;
+                        }
+
+                        ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                    }
                     break;
 
                 case EmoteType.InqMyQuest:

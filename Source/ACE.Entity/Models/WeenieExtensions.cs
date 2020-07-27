@@ -117,6 +117,13 @@ namespace ACE.Entity.Models
         // Utility
         // =====================================
 
+        public static string GetName(this Weenie weenie)
+        {
+            var name = weenie.GetProperty(PropertyString.Name);
+
+            return name;
+        }
+
         public static string GetPluralName(this Weenie weenie)
         {
             var pluralName = weenie.GetProperty(PropertyString.PluralName);

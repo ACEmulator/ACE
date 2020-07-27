@@ -804,7 +804,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Resets the skill, refunds all experience and skill credits, if allowed.
         /// </summary>
-        public bool ResetSkill(Skill skill)
+        public bool ResetSkill(Skill skill, bool refund = true)
         {
             var creatureSkill = GetCreatureSkill(skill, false);
 
@@ -867,7 +867,8 @@ namespace ACE.Server.WorldObjects
                 AvailableSkillCredits += skillBase.TrainedCost;
             }
 
-            RefundXP(creatureSkill.ExperienceSpent);
+            if (refund)
+                RefundXP(creatureSkill.ExperienceSpent);
 
             creatureSkill.ExperienceSpent = 0;
             creatureSkill.Ranks = 0;
@@ -878,7 +879,10 @@ namespace ACE.Server.WorldObjects
             var msg = $"Your {(untrainable && !specAug ? $"{typeOfSkill}" : "")}{skill.ToSentence()} skill has been {(untrainable && !specAug ? "removed" : "reset")}. ";
             msg += $"All the experience {(creditRefund && !specAug ? "and skill credits " : "")}that you spent on this skill have been refunded to you.";
 
-            Session.Network.EnqueueSend(updateSkill, availableSkillCredits, new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+            if (refund)
+                Session.Network.EnqueueSend(updateSkill, availableSkillCredits, new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+            else
+                Session.Network.EnqueueSend(updateSkill, new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
             return true;
         }
