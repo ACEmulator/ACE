@@ -135,15 +135,18 @@ namespace ACE.Server.Entity
         {
             player.QuestManager.Erase("SocietyMember");
             player.QuestManager.Erase("CelestialHandMember");
+            player.QuestManager.Stamp("EnlightenedCelestialHandMaster");
             player.QuestManager.Erase("EldrytchWebMember");
+            player.QuestManager.Stamp("EnlightenedEldrytchWebMaster");
             player.QuestManager.Erase("RadiantBloodMember");
+            player.QuestManager.Stamp("EnlightenedRadiantBloodMaster");
 
             if (player.SocietyRankCelhan == 1001)
-                player.QuestManager.Stamp("EnlightenedCelestialHandMaster");
+                player.QuestManager.Stamp("EnlightenedCelestialHandMaster"); // after rejoining society, player can get promoted instantly to master when speaking to promotions officer
             if (player.SocietyRankEldweb == 1001)
-                player.QuestManager.Stamp("EnlightenedEldrytchWebMaster");
+                player.QuestManager.Stamp("EnlightenedEldrytchWebMaster");   // after rejoining society, player can get promoted instantly to master when speaking to promotions officer
             if (player.SocietyRankRadblo == 1001)
-                player.QuestManager.Stamp("EnlightenedRadiantBloodMaster");
+                player.QuestManager.Stamp("EnlightenedRadiantBloodMaster");  // after rejoining society, player can get promoted instantly to master when speaking to promotions officer
 
             player.Faction1Bits = null;
             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.Faction1Bits, 0));
