@@ -178,6 +178,9 @@ namespace ACE.Server
             else
                 log.Info($"AutoApplyDatabaseUpdates is disabled...");
 
+            // This should only be enabled manually. To enable it, simply uncomment this line
+            //ACE.Database.OfflineTools.Shard.BiotaGuidConsolidator.ConsolidateBiotaGuids(0xC0000000, out int numberOfBiotasConsolidated, out int numberOfErrors);
+
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();
 

@@ -111,7 +111,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     // ensure player won't exceed limit of 70 specialized credits after operation
-                    if (GetTotalSpecializedCredits(player) + skillBase.UpgradeCostFromTrainedToSpecialized > 70)
+                    if (GetTotalSpecializedCredits(player) + skillBase.SpecializedCost > 70)
                     {
                         player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.TooManyCreditsInSpecializedSkills, skill.Skill.ToSentence()));
                         return false;
@@ -259,7 +259,7 @@ namespace ACE.Server.WorldObjects
 
                     var skill = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)kvp.Key];
 
-                    specializedCreditsTotal += skill.UpgradeCostFromTrainedToSpecialized;
+                    specializedCreditsTotal += skill.SpecializedCost;
                 }
             }
 

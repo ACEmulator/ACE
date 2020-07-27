@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using ACE.Common;
@@ -8,6 +9,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects;
 
 using log4net;
@@ -36,11 +38,10 @@ namespace ACE.Server.Entity
         public bool IsLocked;           // only set through emotes. if a fellowship is locked, new fellowship members cannot be added
 
         public Dictionary<uint, WeakReference<Player>> FellowshipMembers;
-        public Dictionary<uint, WeakReference<Player>> LockedMembers;
 
-        // todo: fellows departed
-        // if fellowship locked, and one of the fellows disconnects and reconnects,
-        // they can rejoin the fellowship within a certain amount of time
+        public Dictionary<uint, int> DepartedMembers;
+
+        public Dictionary<string, FellowshipLockData> FellowshipLocks;
 
         public QuestManager QuestManager;
 
@@ -65,7 +66,8 @@ namespace ACE.Server.Entity
 
             QuestManager = new QuestManager(this);
             IsLocked = false;
-            LockedMembers = new Dictionary<uint, WeakReference<Player>>();
+            DepartedMembers = new Dictionary<uint, int>();
+            FellowshipLocks = new Dictionary<string, FellowshipLockData>();
         }
 
         /// <summary>
@@ -76,10 +78,25 @@ namespace ACE.Server.Entity
             if (inviter == null || newMember == null)
                 return;
 
-            if (IsLocked && !LockedMembers.ContainsKey(newMember.Guid.Full))
+            if (IsLocked)
             {
-                inviter.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(inviter.Session, WeenieErrorWithString.LockedFellowshipCannotRecruit_, newMember.Name));
-                return;
+
+                if (!DepartedMembers.TryGetValue(newMember.Guid.Full, out var timeDeparted))
+                {
+                    inviter.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(inviter.Session, WeenieErrorWithString.LockedFellowshipCannotRecruit_, newMember.Name));
+                    //newMember.SendWeenieError(WeenieError.LockedFellowshipCannotRecruitYou);
+                    return;
+                }
+                else
+                {
+                    var timeLimit = Time.GetDateTimeFromTimestamp(timeDeparted).AddSeconds(600);
+                    if (DateTime.UtcNow > timeLimit)
+                    {
+                        inviter.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(inviter.Session, WeenieErrorWithString.LockedFellowshipCannotRecruit_, newMember.Name));
+                        //newMember.SendWeenieError(WeenieError.LockedFellowshipCannotRecruitYou);
+                        return;
+                    }
+                }
             }
 
             if (FellowshipMembers.Count == MaxFellows)
@@ -270,6 +287,14 @@ namespace ACE.Server.Entity
                     // most likely is not hit due to client proactively sending AssignNewLeader msg
 
                     FellowshipMembers.Remove(player.Guid.Full);
+
+                    if (IsLocked)
+                    {
+                        var timestamp = (int)Time.GetUnixTime();
+                        if (!DepartedMembers.TryAdd(player.Guid.Full, timestamp))
+                            DepartedMembers[player.Guid.Full] = timestamp;
+                    }
+
                     player.Fellowship = null;
                     player.Session.Network.EnqueueSend(new GameEventFellowshipQuit(player.Session, player.Guid.Full));
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat("You no longer have permission to loot anyone else's kills.", ChatMessageType.Broadcast));
@@ -291,6 +316,14 @@ namespace ACE.Server.Entity
             else if (!disband)
             {
                 FellowshipMembers.Remove(player.Guid.Full);
+
+                if (IsLocked)
+                {
+                    var timestamp = (int)Time.GetUnixTime();
+                    if (!DepartedMembers.TryAdd(player.Guid.Full, timestamp))
+                        DepartedMembers[player.Guid.Full] = timestamp;
+                }
+
                 player.Session.Network.EnqueueSend(new GameEventFellowshipQuit(player.Session, player.Guid.Full));
                 var fellowshipMembers = GetFellowshipMembers();
                 foreach (var member in fellowshipMembers.Values)
@@ -343,30 +376,36 @@ namespace ACE.Server.Entity
             SendWeenieErrorWithStringAndUpdate(openness, FellowshipName);
         }
 
-        public void UpdateLock(bool isLocked)
+        public void UpdateLock(bool isLocked, string lockName)
         {
             // Unlocking a fellowship is not possible without disbanding in retail worlds, so in all likelihood, this is only firing for fellowships being locked by emotemanager
 
             IsLocked = isLocked;
 
+            if (string.IsNullOrWhiteSpace(lockName))
+                lockName = "Undefined";
+
             if (isLocked)
             {
                 Open = false;
 
-                SendBroadcastAndUpdate("Your fellowship is now locked.  You may not recruit new members.  If you leave the fellowship, you have 15 minutes to be recruited back into the fellowship.");
+                DepartedMembers.Clear();
 
-                foreach (var fellow in GetFellowshipMembers().Values)
-                {
-                    LockedMembers.TryAdd(fellow.Guid.Full, new WeakReference<Player>(fellow));
-                }
+                var timestamp = Time.GetUnixTime();
+                if (!FellowshipLocks.TryAdd(lockName, new FellowshipLockData(timestamp)))
+                    FellowshipLocks[lockName].UpdateTimestamp(timestamp);
+
+                SendBroadcastAndUpdate("Your fellowship is now locked.  You may not recruit new members.  If you leave the fellowship, you have 15 minutes to be recruited back into the fellowship.");
             }
             else
             {
                 // Unlocking a fellowship is not possible without disbanding in retail worlds, so in all likelihood, this never occurs
 
-                SendBroadcastAndUpdate("Your fellowship is now unlocked.");
+                DepartedMembers.Clear();
 
-                LockedMembers.Clear();
+                FellowshipLocks.Remove(lockName);
+
+                SendBroadcastAndUpdate("Your fellowship is now unlocked.");
             }
         }
 
@@ -692,6 +731,26 @@ namespace ACE.Server.Entity
 
             CalculateXPSharing();
             UpdateAllMembers();
+        }
+    }
+
+    public static class FellowshipExtensions
+    {
+        public static ushort NumBuckets = 32;
+
+        public static HashComparer HashComparer = new HashComparer(NumBuckets);
+
+        public static void Write(this BinaryWriter writer, Dictionary<uint, int> departedMembersHash)
+        {
+            writer.Write((ushort)departedMembersHash.Count);
+            writer.Write(NumBuckets);
+
+            var departedMembers = new SortedDictionary<uint, int>(departedMembersHash, HashComparer);
+            foreach (var member in departedMembers)
+            {
+                writer.Write(member.Key);
+                writer.Write(member.Value);
+            }
         }
     }
 }

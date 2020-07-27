@@ -788,13 +788,16 @@ namespace ACE.Server.WorldObjects
             var endPos = new Physics.Common.Position(PhysicsObj.Position);
             var dist = StartPos.Distance(endPos);
 
-            bool movedTooFar = false;
-
             // only PKs affected by these caps?
             if (dist > Windup_MaxMove && PlayerKillerStatus != PlayerKillerStatus.NPK)
             {
-                castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
-                movedTooFar = true;
+                //player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted spell casting!", ChatMessageType.Magic));
+
+                if (finishCast)
+                    FinishCast();
+
+                return;
             }
 
             var pk_error = CheckPKStatusVsTarget(this, target, spell);
@@ -852,12 +855,6 @@ namespace ACE.Server.WorldObjects
 
                 if (target is Player targetPlayer)
                     targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pk_error[1], Name));
-            }
-
-            if (movedTooFar)
-            {
-                //player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted spell casting!", ChatMessageType.Magic));
             }
 
             if (finishCast)

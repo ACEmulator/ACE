@@ -557,10 +557,30 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.InqMyQuestBitsOff:
                 case EmoteType.InqQuestBitsOff:
+
+                    questTarget = GetQuestTarget((EmoteType)emote.Type, targetCreature, creature);
+
+                    if (questTarget != null)
+                    {
+                        var hasNoQuestBits = questTarget.QuestManager.HasNoQuestBits(emote.Message, emote.Amount ?? 0);
+
+                        ExecuteEmoteSet(hasNoQuestBits ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
+                    }
+
                     break;
 
                 case EmoteType.InqMyQuestBitsOn:
                 case EmoteType.InqQuestBitsOn:
+
+                    questTarget = GetQuestTarget((EmoteType)emote.Type, targetCreature, creature);
+
+                    if (questTarget != null)
+                    {
+                        var hasQuestBits = questTarget.QuestManager.HasQuestBits(emote.Message, emote.Amount ?? 0);
+
+                        ExecuteEmoteSet(hasQuestBits ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
+                    }
+
                     break;
 
                 case EmoteType.InqMyQuestSolves:
@@ -766,7 +786,7 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.LockFellow:
 
                     if (player != null && player.Fellowship != null)
-                        player.HandleActionFellowshipChangeLock(true);
+                        player.HandleActionFellowshipChangeLock(true, emoteSet.Quest);
 
                     break;
 
@@ -1083,10 +1103,22 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.SetMyQuestBitsOff:
                 case EmoteType.SetQuestBitsOff:
+
+                    questTarget = GetQuestTarget((EmoteType)emote.Type, targetCreature, creature);
+
+                    if (questTarget != null && emote.Message != null && emote.Amount != null)
+                        questTarget.QuestManager.SetQuestBits(emote.Message, (int)emote.Amount, false);
+
                     break;
 
                 case EmoteType.SetMyQuestBitsOn:
                 case EmoteType.SetQuestBitsOn:
+
+                    questTarget = GetQuestTarget((EmoteType)emote.Type, targetCreature, creature);
+
+                    if (questTarget != null && emote.Message != null && emote.Amount != null)
+                        questTarget.QuestManager.SetQuestBits(emote.Message, (int)emote.Amount);
+
                     break;
 
                 case EmoteType.SetMyQuestCompletions:
@@ -1752,6 +1784,32 @@ namespace ACE.Server.WorldObjects.Managers
         public void OnKill(Player player)
         {
             ExecuteEmoteSet(EmoteCategory.KillTaunt, null, player);
+        }
+
+        /// <summary>
+        /// Called when player interacts with item that has a Quest string
+        /// </summary>
+        public void OnQuest(Creature initiator)
+        {
+            var questName = WorldObject.Quest;
+
+            var hasQuest = initiator.QuestManager.HasQuest(questName);
+
+            if (!hasQuest)
+            {
+                // add new quest
+                initiator.QuestManager.Update(questName);
+                hasQuest = initiator.QuestManager.HasQuest(questName);
+                ExecuteEmoteSet(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, questName, initiator);
+            }
+            else
+            {
+                // update existing quest
+                var canSolve = initiator.QuestManager.CanSolve(questName);
+                if (canSolve)
+                    initiator.QuestManager.Stamp(questName);
+                ExecuteEmoteSet(canSolve ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, questName, initiator);
+            }
         }
 
         /// <summary>

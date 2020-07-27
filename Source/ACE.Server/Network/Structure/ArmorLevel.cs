@@ -57,7 +57,14 @@ namespace ACE.Server.Network.Structure
             }
 
             // doesn't handle negatives?
-            return (uint)Math.Max(0, totalAL);
+            totalAL = Math.Max(0, totalAL);
+
+            // if all layers for this body part are unenchantable,
+            // send totalAL + 9999 for client to display *
+            if (layers.Count > 0 && !layers.Any(i => i.IsEnchantable))
+                totalAL += 9999;
+
+            return (uint)totalAL;
         }
 
         /// <summary>

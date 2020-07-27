@@ -139,7 +139,7 @@ namespace ACE.Server.Factories
 
         private static void MutateJewelry(WorldObject wo, TreasureDeath profile, bool isMagical)
         {
-            wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
+            //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
             wo.LongDesc = wo.Name;
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)

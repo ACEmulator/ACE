@@ -190,6 +190,24 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
+        /// Power is used to determine, among possibly thing things, the number of Prisimatic Tapers in a "Scarab Only Formula" (foci)
+        /// </summary>
+        public uint Power
+        {
+            get
+            {
+                if (Components == null || Components.Count == 0)
+                    return 0;
+
+                var firstComp = Components[0];
+                if (!IsScarab(firstComp))
+                    return 0;
+
+                return ScarabPower[(Scarab)firstComp];
+            }
+        }
+
+        /// <summary>
         /// The spell table from the portal.dat
         /// </summary>
         public static SpellTable SpellTable { get => DatManager.PortalDat.SpellTable; }
@@ -315,23 +333,42 @@ namespace ACE.Server.Entity
         {
             FociFormula = new List<uint>();
 
-            // max 4 prismatic tapers, depending on spell level (client formula)
-            var numTapers = Math.Min(Level, 4);
-
-            var curTapers = 0;
+            // Add all the scarabs (remember, some spells have multiple scarabs, like Ring spells)
             for (var i = 0; i < Components.Count; i++)
             {
                 var component = Components[i];
                 if (IsScarab(component))
                     FociFormula.Add(component);
-                else
-                {
-                    FociFormula.Add(188);   // prismatic taper
-                    curTapers++;
-                    if (curTapers == numTapers)
-                        break;
-                }
             }
+
+            // Number of Prismatic Tapers is based on the spell "power"
+            // See client CSpellBase::InqScarabOnlyFormula
+            var numTapers = 0;
+            switch (Power)
+            {
+                case 1:
+                    numTapers = 1;
+                    break;
+                case 2:
+                    numTapers = 2;
+                    break;
+                case 3:
+                case 4:
+                case 7:
+                    numTapers = 3;
+                    break;
+                case 5:
+                case 6:
+                case 8:
+                case 9:
+                case 10:
+                    numTapers = 4;
+                    break;
+            }
+
+            for (var i = 0; i < numTapers; i++)
+                FociFormula.Add(188);   // prismatic taper
+
             return FociFormula;
         }
 

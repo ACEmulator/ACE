@@ -67,8 +67,8 @@ namespace ACE.Server.Factories
         {
             wo.LongDesc = wo.Name;
 
-            wo.AppraisalItemSkill = 7;
-            wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
+            //wo.AppraisalItemSkill = 7;
+            //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
 
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
@@ -585,6 +585,159 @@ namespace ACE.Server.Factories
             }
 
             return wo;
+        }
+        private static WorldObject CreateCloak(TreasureDeath profile, bool mutate = true)
+        {
+            int cloakWeenie;
+            int cloakType = ThreadSafeRandom.Next(0, 10);  // 11 different types of Cloaks
+
+            cloakWeenie = LootTables.Cloaks[cloakType];
+
+            WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)cloakWeenie);
+
+            if (wo != null && mutate)
+                MutateCloak(wo, profile);
+
+            return wo;
+        }
+        private static void MutateCloak(WorldObject wo, TreasureDeath profile)
+        {
+            const uint cloakIconOverlayOne = 100690996;
+            const uint cloakIconOverlayTwo = 100690997;
+            const uint cloakIconOverlayThree = 100690998;
+            const uint cloakIconOverlayFour = 100690999;
+            const uint cloakIconOverlayFive = 100691000;
+
+            EquipmentSet equipSetId = EquipmentSet.Invalid;
+
+            int cloakSpellId;
+
+            // Workmanship - This really doesn't matter, so not making a big fuss about it.
+            wo.Workmanship = ThreadSafeRandom.Next(1, 10);
+
+            // Value
+            double materialMod = LootTables.getMaterialValueModifier(wo);
+            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+            wo.Value = GetValue(profile.Tier, (int)wo.Workmanship, gemMaterialMod, materialMod);
+
+            // Level and Icons
+            wo.ItemMaxLevel = GetCloakMaxLevel(profile);
+
+            if (wo.ItemMaxLevel == 1)
+                wo.IconOverlayId = cloakIconOverlayOne;
+            else if (wo.ItemMaxLevel == 2)
+                wo.IconOverlayId = cloakIconOverlayTwo;
+            else if (wo.ItemMaxLevel == 3)
+                wo.IconOverlayId = cloakIconOverlayThree;
+            else if (wo.ItemMaxLevel == 4)
+                wo.IconOverlayId = cloakIconOverlayFour;
+            else if (wo.ItemMaxLevel == 5)
+                wo.IconOverlayId = cloakIconOverlayFive;
+
+            // Wield Diff
+            // Notes - There is a lvl 180 cloak, but that cloak req has Damage Ratings and is T8 only.  Damage ratings on items are done at this time.
+            if (wo.ItemMaxLevel == 1)
+                wo.WieldDifficulty = 30;
+            else if (wo.ItemMaxLevel == 2)
+                wo.WieldDifficulty = 60;
+            else if (wo.ItemMaxLevel == 3)
+                wo.WieldDifficulty = 90;
+            else if (wo.ItemMaxLevel == 4)
+                wo.WieldDifficulty = 120;
+            else if (wo.ItemMaxLevel == 5)
+                wo.WieldDifficulty = 150;
+
+            // Cloak Set - Doing it this way because the Equipment Set Enum has MoA values duplicates (which would slant the ratios/drops to Light,Missile,Heavy and Finesse Spells
+            int cloakSetValue = ThreadSafeRandom.Next(0, 34);  // 35 different types of Cloak Sets
+            int cloakSet = LootTables.CloakSets[cloakSetValue];
+            equipSetId = (EquipmentSet)cloakSet;
+            wo.EquipmentSetId = equipSetId;
+
+            // Surge Spells
+            int spellRoll = ThreadSafeRandom.Next(0, 12);
+            if (spellRoll == 12)
+            {
+                // This is for the one "surge" that is not a spell.  Its a property set for the 
+                wo.CloakWeaveProc = 2;
+            }
+            else
+            {
+                cloakSpellId = LootTables.CloakSpells[spellRoll];
+                AssignCloakSpells(wo, cloakSpellId);               
+                if (cloakSpellId == 5753)  // Cloaked in Skill is the only Self Targeted Spell
+                    wo.ProcSpellSelfTargeted = true;
+                else
+                    wo.ProcSpellSelfTargeted = false;
+                wo.CloakWeaveProc = 1;
+            }
+            
+        }
+        private static int GetCloakMaxLevel(TreasureDeath profile)
+        {
+            //  These Values are just for starting off.  I haven't gotten the numbers yet to confirm these.
+
+            int cloakLevel = 1;
+            int chance = 0;
+
+            chance = ThreadSafeRandom.Next(1, 1000);
+            switch (profile.Tier)
+            {
+                case 1:
+                case 2:
+                default:                
+                    cloakLevel = 1;
+                    break;
+                case 3:
+                case 4:
+                    if (chance <= 440)
+                        cloakLevel = 1;
+                    else
+                        cloakLevel = 2;
+                    break;
+                case 5:
+                    if (chance <= 250)
+                        cloakLevel = 1;
+                    else if (chance <= 700)
+                        cloakLevel = 2;
+                    else
+                        cloakLevel = 3;
+                    break;
+                case 6:
+                    if (chance <= 36)
+                        cloakLevel = 1;
+                    else if (chance <= 357)
+                        cloakLevel = 2;
+                    else if (chance <= 990)
+                        cloakLevel = 3;
+                    else
+                        cloakLevel = 4;
+                    break;
+                case 7:  // From data, no chance to get a lvl 1 cloak
+                    if (chance <= 463)
+                        cloakLevel = 2;
+                    else if (chance <= 945)
+                        cloakLevel = 3;
+                    else if (chance <= 984)
+                        cloakLevel = 4;
+                    else
+                        cloakLevel = 5;
+                    break;
+                case 8:  // From data, no chance to get a lvl 1 cloak
+                    if (chance <= 451)
+                        cloakLevel = 2;
+                    else if (chance <= 920)
+                        cloakLevel = 3;
+                    else if (chance <= 975)
+                        cloakLevel = 4;
+                    else
+                        cloakLevel = 5;
+                    break;
+            }
+            return cloakLevel;
+        }
+        private static bool GetMutateCloakData(uint wcid)
+        {
+            return LootTables.Cloaks.Contains((int)wcid);
         }
     }
 }

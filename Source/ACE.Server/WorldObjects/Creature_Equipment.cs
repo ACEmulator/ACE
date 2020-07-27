@@ -216,6 +216,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private void TryActivateItemSpells(WorldObject item)
         {
+            if (!Attackable)
+                return;
+
             // check activation requirements?
             foreach (var spell in item.Biota.GetKnownSpellsIds(BiotaDatabaseLock))
                 CreateItemSpell(item, (uint)spell);
@@ -532,10 +535,10 @@ namespace ACE.Server.WorldObjects
 
                 if (wo == null) continue;
 
-                if (wo.ValidLocations == null || (ItemCapacity ?? 0) > 0)
+                //if (wo.ValidLocations == null || (ItemCapacity ?? 0) > 0)
                     TryAddToInventory(wo);
-                else
-                    TryWieldObject(wo, (EquipMask)wo.ValidLocations);
+                //else
+                    //TryWieldObject(wo, (EquipMask)wo.ValidLocations);
             }
         }
 
@@ -659,10 +662,10 @@ namespace ACE.Server.WorldObjects
 
             foreach (var item in wieldedTreasure)
             {
-                if (item.ValidLocations == null || (ItemCapacity ?? 0) > 0)
+                //if (item.ValidLocations == null || (ItemCapacity ?? 0) > 0)
                     TryAddToInventory(item);
-                else
-                    TryWieldObject(item, (EquipMask)item.ValidLocations);
+                //else
+                    //TryWieldObject(item, (EquipMask)item.ValidLocations);
             }
         }
     }

@@ -126,9 +126,9 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Returns the top layers in each spell category for a StatMod type + key
         /// </summary>
-        public List<PropertiesEnchantmentRegistry> GetEnchantments_TopLayer(EnchantmentTypeFlags statModType, uint statModKey)
+        public List<PropertiesEnchantmentRegistry> GetEnchantments_TopLayer(EnchantmentTypeFlags statModType, uint statModKey, bool handleMultiple = false)
         {
-            return WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayerByStatModType(statModType, statModKey, WorldObject.BiotaDatabaseLock);
+            return WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayerByStatModType(statModType, statModKey, WorldObject.BiotaDatabaseLock, handleMultiple);
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace ACE.Server.WorldObjects.Managers
                 return result;
             }
 
-            result.BuildStack(entries, spell, caster);
+            result.BuildStack(entries, spell, caster, equip);
 
             // handle cases:
             // surpassing: new spell is written to next layer
@@ -702,7 +702,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public virtual int GetSkillMod(Skill skill)
         {
-            var enchantments = GetEnchantments_TopLayer(EnchantmentTypeFlags.Skill, (uint)skill);
+            var enchantments = GetEnchantments_TopLayer(EnchantmentTypeFlags.Skill, (uint)skill, true);
 
             var skillMod = 0;
             foreach (var enchantment in enchantments)
