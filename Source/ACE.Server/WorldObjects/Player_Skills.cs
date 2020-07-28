@@ -189,7 +189,7 @@ namespace ACE.Server.WorldObjects
 
             AvailableSkillCredits -= creditsSpent;
 
-            // Tinkering skills can be reset at Asheron's Castle and Enlightenment, if player has augmentation, when they train the skill again immediately sepecialize it again.
+            // Tinkering skills can be reset at Asheron's Castle and Enlightenment, so if player has the augmentation when they train the skill again immediately specialize it again.
             if (IsSkillSpecializedViaAugmentation(skill, out var playerHasAugmentation) && playerHasAugmentation)
                 SpecializeSkill(skill, 0, false);
 
