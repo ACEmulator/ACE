@@ -6,6 +6,7 @@ using ACE.Server.Network.GameMessages.Messages;
 
 using System.Linq;
 using ACE.DatLoader;
+using System;
 
 namespace ACE.Server.Entity
 {
@@ -199,7 +200,8 @@ namespace ACE.Server.Entity
 
         public static void RemoveAttributes(Player player)
         {
-            for (var i = 1; i < 7; i++)
+            var propertyCount = Enum.GetNames(typeof(PropertyAttribute)).Length;
+            for (var i = 1; i < propertyCount; i++)
             {
                 var attribute = (PropertyAttribute)i;
 
@@ -208,7 +210,8 @@ namespace ACE.Server.Entity
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(player, player.Attributes[attribute]));
             }
 
-            for (var i = 1; i < 7; i += 2)
+            propertyCount = Enum.GetNames(typeof(PropertyAttribute2nd)).Length;
+            for (var i = 1; i < propertyCount; i += 2)
             {
                 var attribute = (PropertyAttribute2nd)i;
 
@@ -222,7 +225,8 @@ namespace ACE.Server.Entity
 
         public static void RemoveSkills(Player player)
         {
-            for (var i = 1; i < 55; i++)
+            var propertyCount = Enum.GetNames(typeof(Skill)).Length;
+            for (var i = 1; i < propertyCount; i++)
             {
                 var skill = (Skill)i;
 
