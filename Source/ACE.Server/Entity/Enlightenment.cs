@@ -5,6 +5,7 @@ using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
 using System.Linq;
+using ACE.DatLoader;
 
 namespace ACE.Server.Entity
 {
@@ -138,11 +139,11 @@ namespace ACE.Server.Entity
         {
             player.QuestManager.Erase("SocietyMember");
             player.QuestManager.Erase("CelestialHandMember");
-            player.QuestManager.Stamp("EnlightenedCelestialHandMaster");
+            player.QuestManager.Erase("EnlightenedCelestialHandMaster");
             player.QuestManager.Erase("EldrytchWebMember");
-            player.QuestManager.Stamp("EnlightenedEldrytchWebMaster");
+            player.QuestManager.Erase("EnlightenedEldrytchWebMaster");
             player.QuestManager.Erase("RadiantBloodMember");
-            player.QuestManager.Stamp("EnlightenedRadiantBloodMaster");
+            player.QuestManager.Erase("EnlightenedRadiantBloodMaster");
 
             if (player.SocietyRankCelhan == 1001)
                 player.QuestManager.Stamp("EnlightenedCelestialHandMaster"); // after rejoining society, player can get promoted instantly to master when speaking to promotions officer
@@ -231,7 +232,17 @@ namespace ACE.Server.Entity
             player.AvailableExperience = 0;
             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(player, PropertyInt64.AvailableExperience, 0));
 
-            //player.AvailableSkillCredits = char gen + quest skill credits;
+            var heritageGroup = DatManager.PortalDat.CharGen.HeritageGroups[(uint)player.Heritage];
+            var availableSkillCredits = 0;
+
+            availableSkillCredits += (int)heritageGroup.SkillCredits; // base skill credits allowed
+
+            availableSkillCredits += player.QuestManager.GetCurrentSolves("ArantahKill1");       // additional quest skill credit
+            availableSkillCredits += player.QuestManager.GetCurrentSolves("ChasingOswaldDone");  // additional quest skill credit
+            availableSkillCredits += player.QuestManager.GetCurrentSolves("LumAugSkillQuest");   // additional quest skill credits
+
+            player.AvailableSkillCredits = availableSkillCredits;
+
             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AvailableSkillCredits, player.AvailableSkillCredits ?? 0));
         }
 
@@ -243,6 +254,8 @@ namespace ACE.Server.Entity
             player.QuestManager.Erase("LoyalToLiamOfGelid");
             player.QuestManager.Erase("LoyalToLordTyragar");
 
+            player.LumAugDamageRating = 0;
+            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugDamageRating, 0));
             player.LumAugDamageReductionRating = 0;
             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugDamageReductionRating, 0));
             player.LumAugCritDamageRating = 0;
@@ -261,6 +274,13 @@ namespace ACE.Server.Entity
             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugVitality, 0));
             player.LumAugHealingRating = 0;
             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugHealingRating, 0));
+            player.LumAugSkilledCraft = 0;
+            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugSkilledCraft, 0));
+            player.LumAugSkilledSpec = 0;
+            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugSkilledSpec, 0));
+            player.LumAugAllSkills = 0;
+            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugAllSkills, 0));
+
             player.AvailableLuminance = null;
             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(player, PropertyInt64.AvailableLuminance, 0));
             player.MaximumLuminance = null;
