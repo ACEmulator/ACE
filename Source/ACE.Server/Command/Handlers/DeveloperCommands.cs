@@ -3019,10 +3019,10 @@ namespace ACE.Server.Command.Handlers
             "sets your own faction state.",
             "< none / ch / ew / rb > (rank)\n" +
             "This command sets your current faction state\n" +
-            "< none > No faction.\n" +
+            "< none > No Faction\n" +
             "< ch > Celestial Hand\n" +
             "< ew > Eldrytch Web\n" +
-            "< rb > Radiant Blood" +
+            "< rb > Radiant Blood\n" +
             "(rank) 1 = Initiate | 2 = Adept | 3 = Knight | 4 = Lord | 5 = Master")]
         public static void HandleFaction(Session session, params string[] parameters)
         {
