@@ -1214,8 +1214,8 @@ namespace ACE.Server.Command.Handlers
 
             var obj = WorldObjectFactory.CreateNewWorldObject(weenie);
 
-            if (!obj.TimeToRot.HasValue)
-                obj.TimeToRot = Double.MaxValue;
+            //if (!obj.TimeToRot.HasValue)
+            //    obj.TimeToRot = Double.MaxValue;
 
             if (obj.WeenieType == WeenieType.Creature)
                 obj.Location = session.Player.Location.InFrontOf(5f, true);
