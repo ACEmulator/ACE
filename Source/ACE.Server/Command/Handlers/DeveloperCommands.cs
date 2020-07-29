@@ -3016,7 +3016,7 @@ namespace ACE.Server.Command.Handlers
 
         // faction
         [CommandHandler("faction", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "sets your own PK state.",
+            "sets your own faction state.",
             "< none / ch / ew / rb > (rank)\n" +
             "This command sets your current faction state\n" +
             "< none > No faction.\n" +
