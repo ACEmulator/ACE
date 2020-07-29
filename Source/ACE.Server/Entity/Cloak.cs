@@ -80,7 +80,7 @@ namespace ACE.Server.Entity
 
             // cloak range?
 
-            var msg = new GameMessageSystemChat($"The cloak of {defender.Name} weaves the power of {spell.Name}!", ChatMessageType.Spellcasting);
+            var msg = new GameMessageSystemChat($"The cloak of {defender.Name} weaves the magic of {spell.Name}!", ChatMessageType.Spellcasting);
 
             defender.EnqueueBroadcast(msg, WorldObject.LocalBroadcastRange, ChatMessageType.Magic);
 
@@ -129,7 +129,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public static void ShowMessage(Creature defender, WorldObject attacker, int origDamage, int reducedDamage)
         {
-            var suffix = $"reduced the damage from {origDamage} to {reducedDamage}!";
+            var suffix = $"reduced the damage from {origDamage} down to {reducedDamage}!";
 
             if (defender is Player playerDefender)
                 playerDefender.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your cloak {suffix}", ChatMessageType.Magic));

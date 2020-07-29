@@ -702,7 +702,7 @@ namespace ACE.Server.WorldObjects
         {
             if (itemCaster == null || itemCaster is Gem)
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been teleported.", ChatMessageType.Magic));
-            else if (this != itemCaster && !(itemCaster is Gem))
+            else if (this != itemCaster && !(itemCaster is Gem) && !(itemCaster is Switch) && !(itemCaster.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{itemCaster.Name} teleports you with {spell.Name}.", ChatMessageType.Magic));
             //else if (itemCaster is Gem)
             //    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ITeleported));
