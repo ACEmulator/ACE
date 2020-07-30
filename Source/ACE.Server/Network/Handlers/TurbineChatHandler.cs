@@ -114,7 +114,7 @@ namespace ACE.Server.Network.Handlers
                     foreach (var recipient in PlayerManager.GetAllOnline())
                     {
                         // handle filters
-                        if (senderSociety != recipient.Society)
+                        if (senderSociety != recipient.Society && !recipient.IsAdmin)
                             continue;
 
                         if (!recipient.GetCharacterOption(CharacterOption.ListenToSocietyChat))
