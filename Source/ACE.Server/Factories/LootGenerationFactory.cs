@@ -77,9 +77,25 @@ namespace ACE.Server.Factories
                 case 1004:  // Weapon Chest
                 case 2004:
                     lootBias = LootBias.Weapons;
-                    break;
+                    break;               
                 default:    // Default to unbiased loot profile
                     break;
+            }
+
+            // For Society Armor - Only generates 2 pieces of Society Armor.
+            // breaking it out here to Generate Armor
+            if (profile.TreasureType >= 2971 && profile.TreasureType <= 2999)
+            {
+                bool mutateYes = true;
+                numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
+
+                for (var i = 0; i < numItems; i++)
+                {
+                    lootWorldObject = CreateSocietyArmor(profile, mutateYes);
+                    if (lootWorldObject != null)
+                        loot.Add(lootWorldObject);
+                }
+                return loot;
             }
 
             var itemChance = ThreadSafeRandom.Next(1, 100);
