@@ -2416,10 +2416,8 @@ namespace ACE.Server.Factories
             new int[] { 38468, 38477, 38486 },  // Pauldrons
             new int[] { 38469, 38478, 38487 },  // Tassets
             new int[] { 38470, 38479, 38488 },  // Vambraces
-            new int[] { 38471, 38470, 38489 }   // Sollerets
+            new int[] { 38471, 38480, 38489 }   // Sollerets
         };
-
-
 
         public static int[] GetLootTable(ArmorType armorType)
         {
