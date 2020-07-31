@@ -208,7 +208,7 @@ namespace ACE.Server.WorldObjects
             });
 
             // ammo remaining?
-            if (ammo.StackSize == null || ammo.StackSize <= 1)
+            if (!ammo.UnlimitedUse && (ammo.StackSize == null || ammo.StackSize <= 1))
             {
                 actionChain.AddAction(this, () =>
                 {
@@ -287,8 +287,14 @@ namespace ACE.Server.WorldObjects
 
         public override void UpdateAmmoAfterLaunch(WorldObject ammo)
         {
+            //if (ammo.UnlimitedUse)
+            //    return;
+
             // hide previously held ammo
             EnqueueBroadcast(new GameMessagePickupEvent(ammo));
+
+            if (ammo.UnlimitedUse)
+                return;
 
             if (ammo.StackSize == null || ammo.StackSize <= 1)
                 TryDequipObjectWithNetworking(ammo.Guid, out _, DequipObjectAction.ConsumeItem);

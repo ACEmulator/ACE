@@ -396,5 +396,22 @@ namespace ACE.Server.WorldObjects
         {
             Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, msg));
         }
+
+        public void HandleActionSetAFKMode(bool afkStatus)
+        {
+            IsAfk = afkStatus;
+
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyBool(this, PropertyBool.Afk, IsAfk));
+        }
+
+        public static string DefaultAFKMessage => "I am currently away from the keyboard."; // client default (/afk msg)
+
+        public void HandleActionSetAFKMessage(string afkMessage)
+        {
+            if (string.IsNullOrWhiteSpace(afkMessage))
+                afkMessage = DefaultAFKMessage; // client default
+
+            AfkMessage = afkMessage;
+        }
     }
 }

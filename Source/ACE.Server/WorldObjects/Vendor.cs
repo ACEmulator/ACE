@@ -528,6 +528,10 @@ namespace ACE.Server.WorldObjects
                 if (item.GetProperty(PropertyBool.DestroyOnSell) ?? false)
                     resellItem = false;
 
+                // don't resell Attuned items that can be sold
+                if (item.Attuned == AttunedStatus.Attuned)
+                    resellItem = false;
+
                 // don't resell stackables?
                 if (item.MaxStackSize != null || item.MaxStructure != null)
                     resellItem = false;

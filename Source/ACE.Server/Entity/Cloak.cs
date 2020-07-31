@@ -9,7 +9,7 @@ namespace ACE.Server.Entity
 {
     public class Cloak
     {
-        private static readonly float ChanceMod = 2.0f;
+        private static readonly float ChanceMod = 1.0f;
 
         /// <summary>
         /// Rolls for a chance at procing a cloak spell
@@ -35,9 +35,11 @@ namespace ACE.Server.Entity
             // TODO: find retail formula
             // TODO: cloak level multiplier - Added 6/19/2020 HQ (Still need retail numbers) Updated with Riggs suggestions
 
-            var itemMaxLevel = cloak.ItemMaxLevel ?? 0;
+            var itemLevel = cloak.ItemLevel ?? 0;
 
-            var chanceMod = ChanceMod + itemMaxLevel * 0.1f;
+            var chanceMod = ChanceMod + itemLevel * 0.02f;
+            if (itemLevel < 1)
+                chanceMod = 0.0f;
 
             var chance = damage_percent * chanceMod;
 
@@ -78,7 +80,7 @@ namespace ACE.Server.Entity
 
             // cloak range?
 
-            var msg = new GameMessageSystemChat($"The cloak of {defender.Name} weaves the power of {spell.Name}!", ChatMessageType.Spellcasting);
+            var msg = new GameMessageSystemChat($"The cloak of {defender.Name} weaves the magic of {spell.Name}!", ChatMessageType.Spellcasting);
 
             defender.EnqueueBroadcast(msg, WorldObject.LocalBroadcastRange, ChatMessageType.Magic);
 
@@ -127,7 +129,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public static void ShowMessage(Creature defender, WorldObject attacker, int origDamage, int reducedDamage)
         {
-            var suffix = $"reduced the damage from {origDamage} to {reducedDamage}!";
+            var suffix = $"reduced the damage from {origDamage} down to {reducedDamage}!";
 
             if (defender is Player playerDefender)
                 playerDefender.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your cloak {suffix}", ChatMessageType.Magic));

@@ -602,7 +602,7 @@ namespace ACE.Server.Command.Handlers
 
                 var sac = skill.Value.SAC;
 
-                if (sac != SkillAdvancementClass.Specialized || !Player.IsSkillSpecializedViaAugmentation(skill.Key))
+                if (sac != SkillAdvancementClass.Specialized || Player.AugSpecSkills.Contains(skill.Key))
                     continue;
 
                 refundXP += skill.Value.PP;

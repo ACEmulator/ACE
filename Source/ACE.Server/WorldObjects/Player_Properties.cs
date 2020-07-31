@@ -416,6 +416,18 @@ namespace ACE.Server.WorldObjects
         //    set { if (value == 0) RemoveProperty(PropertyInt.RaresTierSeven); else SetProperty(PropertyInt.RaresTierSeven, value); }
         //}
 
+        public bool IsAfk
+        {
+            get => GetProperty(PropertyBool.Afk) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.Afk); else SetProperty(PropertyBool.Afk, value); }
+        }
+
+        public string AfkMessage
+        {
+            get => GetProperty(PropertyString.Afk);
+            set { if (value == null) RemoveProperty(PropertyString.Afk); else SetProperty(PropertyString.Afk, value); }
+        }
+
         // ========================================
         // ===== Player Properties - Titles========
         // ========================================
