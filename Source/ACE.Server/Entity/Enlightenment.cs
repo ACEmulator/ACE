@@ -293,7 +293,7 @@ namespace ACE.Server.Entity
             player.SendMessage("Your Luminance and Luminance Auras fade from your spirit.", ChatMessageType.Broadcast);
         }
 
-        public static uint MasteryResetCertificate => 46422;
+        public static uint AttributeResetCertificate => 46421;
 
         public static void AddPerks(WorldObject npc, Player player)
         {
@@ -338,7 +338,7 @@ namespace ACE.Server.Entity
                     break;
             }
 
-            player.GiveFromEmote(npc, MasteryResetCertificate, 1);
+            player.GiveFromEmote(npc, AttributeResetCertificate, 1);
 
             PlayerManager.BroadcastToAll(new GameMessageSystemChat($"{player.Name} has achieved the {lvl} level of Enlightenment!", ChatMessageType.WorldBroadcast));
 
