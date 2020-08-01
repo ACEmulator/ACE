@@ -77,7 +77,7 @@ namespace ACE.Server.Factories
                 case 1004:  // Weapon Chest
                 case 2004:
                     lootBias = LootBias.Weapons;
-                    break;               
+                    break;
                 default:    // Default to unbiased loot profile
                     break;
             }
