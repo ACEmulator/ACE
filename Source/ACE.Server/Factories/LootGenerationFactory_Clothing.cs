@@ -66,8 +66,8 @@ namespace ACE.Server.Factories
         private static WorldObject CreateSocietyArmor(TreasureDeath profile, bool mutate)
         {
 
-            int society = 4;
-            int armortype = 10;
+            int society = 0;
+            int armortype = 0;
 
             if (profile.TreasureType >= 2971 && profile.TreasureType <= 2980)
                 society = 0; // CH
