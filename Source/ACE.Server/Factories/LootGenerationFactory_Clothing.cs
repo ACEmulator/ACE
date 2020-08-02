@@ -127,7 +127,7 @@ namespace ACE.Server.Factories
                     break;
             }
 
-            int societyArmorWeenie = LootTables.SocietyArmorMatrix[society][armortype];
+            int societyArmorWeenie = LootTables.SocietyArmorMatrix[armortype][society];
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)societyArmorWeenie);
 
             if (wo != null && mutate)
