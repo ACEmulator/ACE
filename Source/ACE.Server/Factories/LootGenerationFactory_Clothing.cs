@@ -251,8 +251,8 @@ namespace ACE.Server.Factories
 
             if (isMagical)
             {
-                // bool covenantArmor = false || (armorType == LootTables.ArmorType.CovenantArmor || armorType == LootTables.ArmorType.OlthoiArmor);
-                wo = AssignMagic(wo, profile, false);
+                // looks like society armor always had impen on it
+                wo = AssignMagic(wo, profile, true);
             }
             else
             {
