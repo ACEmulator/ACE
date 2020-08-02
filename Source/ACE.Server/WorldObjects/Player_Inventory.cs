@@ -274,6 +274,10 @@ namespace ACE.Server.WorldObjects
                     if (result.Message != null)
                         Session.Network.EnqueueSend(result.Message);
 
+                    // handle equipment sets
+                    if (item.HasItemSet)
+                        EquipItemFromSet(item);
+
                     return true;
                 }
 
