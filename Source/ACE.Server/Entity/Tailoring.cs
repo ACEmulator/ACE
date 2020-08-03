@@ -500,7 +500,8 @@ namespace ACE.Server.Entity
         {
             player.UpdateProperty(target, PropertyInt.PaletteTemplate, source.PaletteTemplate);
             //player.UpdateProperty(target, PropertyInt.UiEffects, (int?)source.UiEffects);
-            player.UpdateProperty(target, PropertyInt.MaterialType, (int?)source.MaterialType);
+            if (source.MaterialType.HasValue)
+                player.UpdateProperty(target, PropertyInt.MaterialType, (int?)source.MaterialType);
 
             player.UpdateProperty(target, PropertyFloat.DefaultScale, source.ObjScale);
 
