@@ -39,6 +39,8 @@ namespace ACE.Server.WorldObjects
         {
             var clothing = GetInventoryItemsOfTypeWeenieType(WeenieType.Clothing).Where(c => ((uint)(c.ClothingPriority ?? 0) & (uint)CoverageMaskHelper.Underwear) != 0).ToList();
 
+            clothing.AddRange(GetInventoryItemsOfTypeWeenieType(WeenieType.Clothing).Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)EquipMask.Cloak) != 0));
+
             if (clothing.Count == 0) return new List<WorldObject>();
 
             // sort by # of areas covered
@@ -77,12 +79,13 @@ namespace ACE.Server.WorldObjects
                     equipped.Add(item);
             }
 
-            var cloak = GetInventoryItemsOfTypeWeenieType(WeenieType.Clothing).Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)EquipMask.Cloak) != 0).FirstOrDefault();
-            if (cloak != null)
+            var cloaks = clothing.Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)EquipMask.Cloak) != 0).ToList();
+            if (cloaks.Count > 0)
             {
-                TryRemoveFromInventory(cloak.Guid);
-                if (TryWieldObjectWithBroadcasting(cloak, cloak.ValidLocations ?? 0))
-                    equipped.Add(cloak);
+                var item = cloaks[0];
+                TryRemoveFromInventory(item.Guid);
+                if (TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0))
+                    equipped.Add(item);
             }
 
             return equipped;
