@@ -371,7 +371,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_ELDRYTCHWEBTOWERSHIELDCOVER_CLASS:
                 case WeenieClassName.W_RADIANTBLOODTOWERSHIELDCOVER_CLASS:
 
-                    // ensure dyeable armor/clothing
+                    // ensure target is a shield
                     if (target.WeenieType != WeenieType.Generic || target.ItemType != ItemType.Armor || !target.IsShield)
                         return null;
 
