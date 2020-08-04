@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+
 using Newtonsoft.Json;
+
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Factories;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Managers
@@ -339,6 +339,45 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALACE36627FOOLPROOFSUNSTONE:
                 case WeenieClassName.W_MATERIALACE36628FOOLPROOFWHITESAPPHIRE:
 
+                    recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
+                    break;
+
+                // Society Shields
+                case WeenieClassName.W_CELESTIALHANDSHIELDCOVER_CLASS:
+                case WeenieClassName.W_ELDRYTCHWEBSHIELDCOVER_CLASS:
+                case WeenieClassName.W_RADIANTBLOODSHIELDCOVER_CLASS:
+                case WeenieClassName.W_CELESTIALHANDBUCKLERSHIELDCOVER_CLASS:
+                case WeenieClassName.W_ELDRYTCHWEBBUCKLERSHIELDCOVER_CLASS:
+                case WeenieClassName.W_RADIANTBLOODBUCKLERSHIELDCOVER_CLASS:
+                case WeenieClassName.W_CELESTIALHANDCOVENANTSHIELDCOVER_CLASS:
+                case WeenieClassName.W_ELDRYTCHWEBCOVENANTSHIELDCOVER_CLASS:
+                case WeenieClassName.W_RADIANTBLOODCOVENANTSHIELDCOVER_CLASS:
+                case WeenieClassName.W_CELESTIALHANDKITESHIELDCOVER_CLASS:
+                case WeenieClassName.W_ELDRYTCHWEBKITESHIELDCOVER_CLASS:
+                case WeenieClassName.W_CELESTIALHANDLARGEKITESHIELDCOVER_CLASS:
+                case WeenieClassName.W_ELDRYTCHWEBLARGEKITESHIELDCOVER_CLASS:
+                case WeenieClassName.W_RADIANTBLOODLARGEKITESHIELDCOVER_CLASS:
+                case WeenieClassName.W_RADIANTBLOODKITESHIELDCOVER_CLASS:
+                case WeenieClassName.W_CELESTIALHANDOLTHOISHIELDCOVER_CLASS:
+                case WeenieClassName.W_ELDRYTCHWEBOLTHOISHIELDCOVER_CLASS:
+                case WeenieClassName.W_RADIANTBLOODOLTHOISHIELDCOVER_CLASS:
+                case WeenieClassName.W_CELESTIALHANDROUNDSHIELDCOVER_CLASS:
+                case WeenieClassName.W_ELDRYTCHWEBROUNDSHIELDCOVER_CLASS:
+                case WeenieClassName.W_CELESTIALHANDLARGEROUNDSHIELDCOVER_CLASS:
+                case WeenieClassName.W_ELDRYTCHWEBLARGEROUNDSHIELDCOVER_CLASS:
+                case WeenieClassName.W_RADIANTBLOODLARGEROUNDSHIELDCOVER_CLASS:
+                case WeenieClassName.W_RADIANTBLOODROUNDSHIELDCOVER_CLASS:
+                case WeenieClassName.W_CELESTIALHANDTOWERSHIELDCOVER_CLASS:
+                case WeenieClassName.W_ELDRYTCHWEBTOWERSHIELDCOVER_CLASS:
+                case WeenieClassName.W_RADIANTBLOODTOWERSHIELDCOVER_CLASS:
+
+                    // ensure dyeable armor/clothing
+                    if (target.WeenieType != WeenieType.Generic || target.ItemType != ItemType.Armor || !target.IsShield)
+                        return null;
+
+                    recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
+                    break;
+
                 // Slayer stones
                 case WeenieClassName.W_GREATERMUKKIRSLAYERSTONE_CLASS:
                 case WeenieClassName.W_BLACKSKULLOFXIKMA_CLASS:
@@ -533,6 +572,34 @@ namespace ACE.Server.Managers
             { WeenieClassName.W_LEFTHANDTETHERREMOVER_CLASS,              6799 },
             { WeenieClassName.W_COREPLATINGINTEGRATOR_CLASS,              6800 },
             { WeenieClassName.W_COREPLATINGDISINTEGRATOR_CLASS,           6801 },
+
+            { WeenieClassName.W_CELESTIALHANDSHIELDCOVER_CLASS,           8337 },
+            { WeenieClassName.W_ELDRYTCHWEBSHIELDCOVER_CLASS,             8338 },
+            { WeenieClassName.W_RADIANTBLOODSHIELDCOVER_CLASS,            8339 },
+            { WeenieClassName.W_CELESTIALHANDBUCKLERSHIELDCOVER_CLASS,    8113 },
+            { WeenieClassName.W_ELDRYTCHWEBBUCKLERSHIELDCOVER_CLASS,      8114 },
+            { WeenieClassName.W_RADIANTBLOODBUCKLERSHIELDCOVER_CLASS,     8115 },
+            { WeenieClassName.W_CELESTIALHANDCOVENANTSHIELDCOVER_CLASS,   8116 },
+            { WeenieClassName.W_ELDRYTCHWEBCOVENANTSHIELDCOVER_CLASS,     8117 },
+            { WeenieClassName.W_RADIANTBLOODCOVENANTSHIELDCOVER_CLASS,    8118 },
+            { WeenieClassName.W_CELESTIALHANDKITESHIELDCOVER_CLASS,       8119 },
+            { WeenieClassName.W_ELDRYTCHWEBKITESHIELDCOVER_CLASS,         8120 },
+            { WeenieClassName.W_CELESTIALHANDLARGEKITESHIELDCOVER_CLASS,  8122 },
+            { WeenieClassName.W_ELDRYTCHWEBLARGEKITESHIELDCOVER_CLASS,    8123 },
+            { WeenieClassName.W_RADIANTBLOODLARGEKITESHIELDCOVER_CLASS,   8124 },
+            { WeenieClassName.W_RADIANTBLOODKITESHIELDCOVER_CLASS,        8121 },
+            { WeenieClassName.W_CELESTIALHANDOLTHOISHIELDCOVER_CLASS,     8125 },
+            { WeenieClassName.W_ELDRYTCHWEBOLTHOISHIELDCOVER_CLASS,       8126 },
+            { WeenieClassName.W_RADIANTBLOODOLTHOISHIELDCOVER_CLASS,      8127 },
+            { WeenieClassName.W_CELESTIALHANDROUNDSHIELDCOVER_CLASS,      8128 },
+            { WeenieClassName.W_ELDRYTCHWEBROUNDSHIELDCOVER_CLASS,        8129 },
+            { WeenieClassName.W_CELESTIALHANDLARGEROUNDSHIELDCOVER_CLASS, 8131 },
+            { WeenieClassName.W_ELDRYTCHWEBLARGEROUNDSHIELDCOVER_CLASS,   8132 },
+            { WeenieClassName.W_RADIANTBLOODLARGEROUNDSHIELDCOVER_CLASS,  8133 },
+            { WeenieClassName.W_RADIANTBLOODROUNDSHIELDCOVER_CLASS,       8130 },
+            { WeenieClassName.W_CELESTIALHANDTOWERSHIELDCOVER_CLASS,      8134 },
+            { WeenieClassName.W_ELDRYTCHWEBTOWERSHIELDCOVER_CLASS,        8135 },
+            { WeenieClassName.W_RADIANTBLOODTOWERSHIELDCOVER_CLASS,       8136 },
 
             { WeenieClassName.W_GREATERMUKKIRSLAYERSTONE_CLASS,           8752 },
             { WeenieClassName.W_BLACKSKULLOFXIKMA_CLASS,                  8753 },
