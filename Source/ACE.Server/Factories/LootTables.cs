@@ -1867,7 +1867,8 @@ namespace ACE.Server.Factories
             OlthoiAmuliArmor,
             OlthoiCeldonArmor,
             OlthoiKoujiaArmor,
-            OlthoiAlduressaArmor
+            OlthoiAlduressaArmor,
+            SocietyArmor           
         }
 
         public static readonly int[] OverRobes =
@@ -2403,6 +2404,19 @@ namespace ACE.Server.Factories
             { ArmorType.OlthoiCeldonArmor,     OlthoiCeldonArmor },
             { ArmorType.OlthoiKoujiaArmor,     OlthoiKoujiaArmor },
             { ArmorType.OlthoiAlduressaArmor,  OlthoiAlduressaArmor }
+        };
+
+        public static readonly int[][] SocietyArmorMatrix =
+        {           //   CH     EW     RB 
+            new int[] { 38463, 38472, 38481 },  // BP
+            new int[] { 38464, 38473, 38482 },  // Gauntlets
+            new int[] { 38465, 38474, 38483 },  // Girth
+            new int[] { 38466, 38475, 38484 },  // Greaves
+            new int[] { 38467, 38476, 38485 },  // Helm
+            new int[] { 38468, 38477, 38486 },  // Pauldrons
+            new int[] { 38469, 38478, 38487 },  // Tassets
+            new int[] { 38470, 38479, 38488 },  // Vambraces
+            new int[] { 38471, 38480, 38489 }   // Sollerets
         };
 
         public static int[] GetLootTable(ArmorType armorType)
