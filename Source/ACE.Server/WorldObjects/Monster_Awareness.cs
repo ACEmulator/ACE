@@ -251,6 +251,11 @@ namespace ACE.Server.WorldObjects
                 if (PhysicsObj.get_distance_sq_to_object(creature.PhysicsObj, true) > chaseDistSq)
                     continue;
 
+                // if this monster belongs to a faction,
+                // ensure target does not belong to the same faction, or they are in the damage history
+                if (Faction1Bits != null && creature.Faction1Bits != null && (Faction1Bits & creature.Faction1Bits) != 0 && !DamageHistory.HasDamager(creature))
+                    continue;
+
                 visibleTargets.Add(creature);
             }
 
