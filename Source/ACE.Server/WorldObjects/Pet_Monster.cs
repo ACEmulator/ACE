@@ -31,13 +31,18 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private bool PetAlertMonster(Creature monster)
         {
-            if (monster.Attackable && monster.MonsterState == State.Idle && monster.Tolerance == Tolerance.None)
-            {
-                monster.AttackTarget = this;
-                monster.WakeUp();
-                return true;
-            }
-            return false;
+            if (!monster.Attackable || monster.MonsterState != State.Idle || monster.Tolerance != Tolerance.None)
+                return false;
+
+            // if the combat pet's owner belongs to a faction,
+            // and the monster also belongs to the same faction, don't attack the monster?
+            if (Faction1Bits != null && monster.Faction1Bits != null && (Faction1Bits & monster.Faction1Bits) != 0)
+                return false;
+
+            monster.AttackTarget = this;
+            monster.WakeUp();
+
+            return true;
         }
 
         /// <summary>

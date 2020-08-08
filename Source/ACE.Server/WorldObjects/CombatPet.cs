@@ -51,6 +51,14 @@ namespace ACE.Server.WorldObjects
             CritRating = petDevice.GearCrit;
             CritResistRating = petDevice.GearCritResist;
 
+            // are CombatPets supposed to attack monsters that are in the same faction as the pet owner?
+            // if not, there are a couple of different approaches to this
+            // the easiest way for the code would be to simply set Faction1Bits for the CombatPet to match the pet owner's
+            // however, retail pcaps did not contain Faction1Bits for CombatPets
+
+            // doing this the easiest way for the code here, and just removing during appraisal
+            Faction1Bits = player.Faction1Bits;
+
             return true;
         }
 
@@ -102,6 +110,11 @@ namespace ACE.Server.WorldObjects
                     //Console.WriteLine($"{Name}.GetNearbyMonsters(): refusing to add dead creature {creature.Name} ({creature.Guid})");
                     continue;
                 }
+
+                // combat pets do not aggro monsters belonging to the same faction as the pet owner?
+                if (Faction1Bits != null && creature.Faction1Bits != null && (Faction1Bits & creature.Faction1Bits) != 0)
+                    continue;
+
                 monsters.Add(creature);
             }
 
