@@ -258,7 +258,7 @@ namespace ACE.Server.WorldObjects
                 // ensure target does not belong to the same faction, or they have been provoked
                 if (Faction1Bits != null && creature.Faction1Bits != null && (Faction1Bits & creature.Faction1Bits) != 0)
                 {
-                    if (RetaliateTargets != null && !RetaliateTargets.Contains(Guid.Full))
+                    if (RetaliateTargets != null && !RetaliateTargets.Contains(creature.Guid.Full))
                         continue;
                 }
 

@@ -1923,6 +1923,10 @@ namespace ACE.Server.Command.Handlers
             }
             session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}): {prop} = {value}", ChatMessageType.Broadcast));
             PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} changed a property for {obj.Name} ({obj.Guid}): {prop} = {value}");
+
+            // hack for easier testing
+            if (pType == typeof(PropertyInt) && (PropertyInt)result == PropertyInt.Faction1Bits && obj is Creature creature && creature.RetaliateTargets == null)
+                creature.RetaliateTargets = new HashSet<uint>();
         }
 
         /// <summary>
