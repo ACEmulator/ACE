@@ -165,13 +165,6 @@ namespace ACE.Server
             var content_folders = new List<string> { GetContentFolder() };
             content_folders.AddRange(ConfigManager.Config.Offline.WorldCustomizationAddedPaths);
             content_folders.Sort();
-			DateTime date = DateTime.Now;
-			string dateString = date.ToString("yyyyMMdd");			
-			string logpath = Path.Combine(Directory.GetCurrentDirectory(),"WorldCustomizationsLogs" );
-			string datefile = dateString + "_Error-Log.txt";
-			if (!Directory.Exists(logpath))
-				Directory.CreateDirectory(logpath);
-			string logfile = Path.Combine(logpath, datefile);
 
             Console.WriteLine($"Searching for World Customization SQL scripts .... ");
 
@@ -201,12 +194,6 @@ namespace ACE.Server
                         {
                             Console.WriteLine($" error!");
                             Console.WriteLine($" Unable to apply patch due to following exception: {ex}");
-							using (StreamWriter sw = File.AppendText(logfile))
-							{
-							        sw.WriteLine(file.FullName);
-									sw.WriteLine(ex);
-									sw.WriteLine(" ");
-							}
                         }
                     }
                 }
