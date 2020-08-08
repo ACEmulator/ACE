@@ -3054,7 +3054,7 @@ namespace ACE.Server.Command.Handlers
                         session.Player.QuestManager.Erase("RadiantBloodMember");
                         break;
                     case "ch":
-                        session.Player.Faction1Bits = (int)FactionBits.CelestialHand;
+                        session.Player.Faction1Bits = FactionBits.CelestialHand;
                         session.Player.SocietyRankCelhan = 1;
                         session.Player.SocietyRankEldweb = null;
                         session.Player.SocietyRankRadblo = null;
@@ -3093,7 +3093,7 @@ namespace ACE.Server.Command.Handlers
                         }
                         break;
                     case "ew":
-                        session.Player.Faction1Bits = (int)FactionBits.EldrytchWeb;
+                        session.Player.Faction1Bits = FactionBits.EldrytchWeb;
                         session.Player.SocietyRankCelhan = null;
                         session.Player.SocietyRankEldweb = 1;
                         session.Player.SocietyRankRadblo = null;
@@ -3132,7 +3132,7 @@ namespace ACE.Server.Command.Handlers
                         }
                         break;
                     case "rb":
-                        session.Player.Faction1Bits = (int)FactionBits.RadiantBlood;
+                        session.Player.Faction1Bits = FactionBits.RadiantBlood;
                         session.Player.SocietyRankCelhan = null;
                         session.Player.SocietyRankEldweb = null;
                         session.Player.SocietyRankRadblo = 1;
@@ -3171,7 +3171,7 @@ namespace ACE.Server.Command.Handlers
                         }
                         break;
                 }
-                session.Player.EnqueueBroadcast(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.Faction1Bits, session.Player.Faction1Bits ?? 0));
+                session.Player.EnqueueBroadcast(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.Faction1Bits, (int)(session.Player.Faction1Bits ?? 0)));
                 session.Player.EnqueueBroadcast(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.SocietyRankCelhan, session.Player.SocietyRankCelhan ?? 0));
                 session.Player.EnqueueBroadcast(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.SocietyRankEldweb, session.Player.SocietyRankEldweb ?? 0));
                 session.Player.EnqueueBroadcast(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.SocietyRankRadblo, session.Player.SocietyRankRadblo ?? 0));
