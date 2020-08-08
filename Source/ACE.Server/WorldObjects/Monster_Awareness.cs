@@ -418,6 +418,9 @@ namespace ACE.Server.WorldObjects
                     if (distSq > nearbyCreature.VisualAwarenessRangeSq)
                         continue;
 
+                    if (nearbyCreature.RetaliateTargets != null)
+                        nearbyCreature.RetaliateTargets.Add(AttackTarget.Guid.Full);
+
                     Alerted = true;
                     nearbyCreature.AttackTarget = AttackTarget;
                     nearbyCreature.WakeUp(false);
