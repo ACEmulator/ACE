@@ -61,11 +61,11 @@ namespace ACE.Server.WorldObjects
             Console.WriteLine($"Attackable: {monster.Attackable}");
             Console.WriteLine($"Tolerance: {monster.Tolerance}");*/
 
+            if (monster.RetaliateTargets != null)
+                monster.RetaliateTargets.Add(Guid.Full);
+
             if (monster.MonsterState == State.Idle && !monster.Tolerance.HasFlag(Tolerance.NoAttack))
             {
-                if (monster.RetaliateTargets != null)
-                    monster.RetaliateTargets.Add(Guid.Full);
-
                 monster.AttackTarget = this;
                 monster.WakeUp();
             }

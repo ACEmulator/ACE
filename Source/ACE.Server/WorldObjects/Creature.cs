@@ -54,7 +54,7 @@ namespace ACE.Server.WorldObjects
         /// - if a player attacks a same-factioned mob in a group of same-factioned mobs, the other nearby faction mobs should be alerted, and should maintain aggro, even without a DamageHistory entry
         /// - if a summoner attacks a same-factioned mob, should the summoned CombatPet possibly defend the player in that situation?
         /// </summary>
-        public HashSet<uint> RetaliateTargets;
+        public HashSet<uint> RetaliateTargets { get; set; }
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
