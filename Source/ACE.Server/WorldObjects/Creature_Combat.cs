@@ -1117,6 +1117,9 @@ namespace ACE.Server.WorldObjects
             if (Faction1Bits != null && monster.Faction1Bits != null && (Faction1Bits & monster.Faction1Bits) != 0)
                 return false;
 
+            if (monster.RetaliateTargets != null)
+                monster.RetaliateTargets.Add(Guid.Full);
+
             //Console.WriteLine($"[{Timers.RunningTime}] - {monster.Name} ({monster.Guid}) - waking up");
             monster.AttackTarget = this;
             monster.WakeUp();

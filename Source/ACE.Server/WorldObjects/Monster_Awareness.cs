@@ -57,6 +57,9 @@ namespace ACE.Server.WorldObjects
             MonsterState = State.Idle;
 
             PhysicsObj.CachedVelocity = Vector3.Zero;
+
+            if (RetaliateTargets != null)
+                RetaliateTargets.Clear();
         }
 
         public Tolerance Tolerance
@@ -252,9 +255,12 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 // if this monster belongs to a faction,
-                // ensure target does not belong to the same faction, or they are in the damage history
-                if (Faction1Bits != null && creature.Faction1Bits != null && (Faction1Bits & creature.Faction1Bits) != 0 && !DamageHistory.HasDamager(creature))
-                    continue;
+                // ensure target does not belong to the same faction, or they have been provoked
+                if (Faction1Bits != null && creature.Faction1Bits != null && (Faction1Bits & creature.Faction1Bits) != 0)
+                {
+                    if (RetaliateTargets != null && RetaliateTargets.Contains(Guid.Full))
+                        continue;
+                }
 
                 visibleTargets.Add(creature);
             }

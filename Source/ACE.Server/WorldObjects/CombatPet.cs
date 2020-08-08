@@ -10,7 +10,7 @@ namespace ACE.Server.WorldObjects
     /// <summary>
     /// Summonable monsters combat AI
     /// </summary>
-    public class CombatPet : Pet
+    public partial class CombatPet : Pet
     {
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -113,7 +113,11 @@ namespace ACE.Server.WorldObjects
 
                 // combat pets do not aggro monsters belonging to the same faction as the pet owner?
                 if (Faction1Bits != null && creature.Faction1Bits != null && (Faction1Bits & creature.Faction1Bits) != 0)
-                    continue;
+                {
+                    // unless the pet owner or the pet is being retaliated against?
+                    if (creature.RetaliateTargets != null && P_PetOwner != null && !creature.RetaliateTargets.Contains(P_PetOwner.Guid.Full) && !creature.RetaliateTargets.Contains(Guid.Full))
+                        continue;
+                }
 
                 monsters.Add(creature);
             }

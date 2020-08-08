@@ -44,6 +44,10 @@ namespace ACE.Server.WorldObjects
             if (monster.MonsterState != State.Awake && !monster.Tolerance.HasFlag(Tolerance.NoAttack))
             {
                 monster.AttackTarget = this;
+
+                if (monster.RetaliateTargets != null)
+                    monster.RetaliateTargets.Add(Guid.Full);
+
                 monster.WakeUp();
             }
         }
