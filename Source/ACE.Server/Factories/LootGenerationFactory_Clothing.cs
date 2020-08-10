@@ -205,8 +205,8 @@ namespace ACE.Server.Factories
 
             if (isMagical)
             {
-                bool covenantArmor = false || (armorType == LootTables.ArmorType.CovenantArmor || armorType == LootTables.ArmorType.OlthoiArmor);
-                wo = AssignMagic(wo, profile, covenantArmor);
+                //bool covenantArmor = false || (armorType == LootTables.ArmorType.CovenantArmor || armorType == LootTables.ArmorType.OlthoiArmor);
+                wo = AssignMagic(wo, profile, true);
             }
             else
             {
