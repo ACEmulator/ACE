@@ -82,6 +82,22 @@ namespace ACE.Server.Factories
                     break;
             }
 
+            // For Society Armor - Only generates 2 pieces of Society Armor.
+            // breaking it out here to Generate Armor
+            if (profile.TreasureType >= 2971 && profile.TreasureType <= 2999)
+            {
+                bool mutateYes = true;
+                numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
+
+                for (var i = 0; i < numItems; i++)
+                {
+                    lootWorldObject = CreateSocietyArmor(profile, mutateYes);
+                    if (lootWorldObject != null)
+                        loot.Add(lootWorldObject);
+                }
+                return loot;
+            }
+
             var itemChance = ThreadSafeRandom.Next(1, 100);
             if (itemChance <= profile.ItemChance)
             {
@@ -962,12 +978,11 @@ namespace ACE.Server.Factories
             // Magic stats
             int numSpells = GetSpellDistribution(profile, out int minorCantrips, out int majorCantrips, out int epicCantrips, out int legendaryCantrips);
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
-            int spellcraft = GetSpellcraft(numSpells, profile.Tier);
+            
 
             wo.UiEffects = UiEffects.Magical;
             wo.ManaRate = manaRate;
-            wo.ItemSpellcraft = spellcraft;
-            wo.ItemDifficulty = GetDifficulty(profile.Tier, spellcraft);
+
             wo.ItemMaxMana = GetMaxMana(numSpells, profile.Tier);
             wo.ItemCurMana = wo.ItemMaxMana;
 
@@ -1047,7 +1062,9 @@ namespace ACE.Server.Factories
                     wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
-
+            int spellcraft = GetSpellcraft(wo, numSpells, profile.Tier);
+            wo.ItemSpellcraft = spellcraft;
+            wo.ItemDifficulty = GetDifficulty(wo, spellcraft);
             return wo;
         }
 
@@ -1060,95 +1077,37 @@ namespace ACE.Server.Factories
             numEpics = 0;
             numLegendaries = 0;
 
-            int nonCantripChance = ThreadSafeRandom.Next(1, 100);
+            int nonCantripChance = ThreadSafeRandom.Next(1, 100000);
 
             numMinors = GetNumMinorCantrips(profile); // All tiers have a chance for at least one minor cantrip
+            numMajors = GetNumMajorCantrips(profile);
+            numEpics = GetNumEpicCantrips(profile);
+            numLegendaries = GetNumLegendaryCantrips(profile);
 
-            switch (profile.Tier)
-            {
-                case 1:
-                    // 1-3 w/ chance of minor cantrip
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 1;
-                    else if (nonCantripChance <= 90)
-                        numNonCantrips = 2;
-                    else
-                        numNonCantrips = 3;
-                    break;
+            //  Fixing the absurd amount of spells on items - HQ 6/21/2020
+            //  From Mags Data all tiers have about the same chance for a given number of spells on items.  This is the ratio for magical items.
+            //  1 Spell(s) - 46.410 %
+            //  2 Spell(s) - 27.040 %
+            //  3 Spell(s) - 17.850 %
+            //  4 Spell(s) - 6.875 %
+            //  5 Spell(s) - 1.525 %
+            //  6 Spell(s) - 0.235 %
+            //  7 Spell(s) - 0.065 %
 
-                case 2:
-                    // 3-4 w/ chance of either minor or major
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 3;
-                    else
-                        numNonCantrips = 4;
-                    break;
-
-                case 3:
-                    // 4-5 w/ chance of either major or minor
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 4;
-                    else
-                        numNonCantrips = 5;
-
-                    numMajors = GetNumMajorCantrips(profile);
-                    break;
-
-                case 4:
-                    // 5-6, major and minor
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 5;
-                    else
-                        numNonCantrips = 6;
-
-                    numMajors = GetNumMajorCantrips(profile);
-                    break;
-
-                case 5:
-                    // 5-7 major and minor
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 5;
-                    else if (nonCantripChance <= 90)
-                        numNonCantrips = 6;
-                    else
-                        numNonCantrips = 7;
-
-                    numMajors = GetNumMajorCantrips(profile);
-                    break;
-
-                case 6:
-                    // 6-7, minor(4 total) major(2 total)
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 6;
-                    else
-                        numNonCantrips = 7;
-
-                    numMajors = GetNumMajorCantrips(profile);
-                    break;
-
-                case 7:
-                    /// 6-7, minor(4), major(3), epic(4)
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 6;
-                    else
-                        numNonCantrips = 7;
-
-                    numMajors = GetNumMajorCantrips(profile);
-                    numEpics = GetNumEpicCantrips(profile);
-                    break;
-
-                default:
-                    // 6-7, minor(4), major(3), epic(4), legendary(2)
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 6;
-                    else
-                        numNonCantrips = 7;
-
-                    numMajors = GetNumMajorCantrips(profile);
-                    numEpics = GetNumEpicCantrips(profile);
-                    numLegendaries = GetNumLegendaryCantrips(profile);
-                    break;
-            }
+            if (nonCantripChance <= 46410)
+                numNonCantrips = 1;
+            else if (nonCantripChance <= 73450)
+                numNonCantrips = 2;
+            else if (nonCantripChance <= 91300)
+                numNonCantrips = 3;
+            else if (nonCantripChance <= 98175)
+                numNonCantrips = 4;
+            else if (nonCantripChance <= 99700)
+                numNonCantrips = 5;
+            else if (nonCantripChance <= 99935)
+                numNonCantrips = 6;
+            else
+                numNonCantrips = 7;
 
             return numNonCantrips + numMinors + numMajors + numEpics + numLegendaries;
         }
@@ -1552,78 +1511,105 @@ namespace ACE.Server.Factories
             return workmanship;
         }
 
-        private static int GetSpellcraft(int spellAmount, int tier)
+        private static int GetSpellcraft(WorldObject wo, int spellAmount, int tier)
         {
-            int spellcraft = 0;
-            switch (tier)
+
+            float minItemSpellCraftRange = 0.0f;
+            float maxItemSpellCraftRange = 0.0f;
+
+            switch (wo.ItemType)
             {
-                case 1:
-                    spellcraft = ThreadSafeRandom.Next(1, 20) + spellAmount * ThreadSafeRandom.Next(1, 4); //1-50
+                case ItemType.MeleeWeapon:
+                case ItemType.Caster:
+                case ItemType.MissileWeapon:
+                case ItemType.Armor:
+                case ItemType.Clothing:
+                case ItemType.Jewelry:
+                    minItemSpellCraftRange = 0.90f;
+                    maxItemSpellCraftRange = 1.05f;
                     break;
-                case 2:
-                    spellcraft = ThreadSafeRandom.Next(40, 70) + spellAmount * ThreadSafeRandom.Next(1, 5); //40-90
-                    break;
-                case 3:
-                    spellcraft = ThreadSafeRandom.Next(70, 90) + spellAmount * ThreadSafeRandom.Next(1, 6); //80 - 130
-                    break;
-                case 4:
-                    spellcraft = ThreadSafeRandom.Next(100, 120) + spellAmount * ThreadSafeRandom.Next(1, 7); /// 120 - 160
-                    break;
-                case 5:
-                    spellcraft = ThreadSafeRandom.Next(130, 150) + spellAmount * ThreadSafeRandom.Next(1, 8); ///150 - 210
-                    break;
-                case 6:
-                    spellcraft = ThreadSafeRandom.Next(160, 180) + spellAmount * ThreadSafeRandom.Next(1, 9); /// 200-260
-                    break;
-                case 7:
-                    spellcraft = ThreadSafeRandom.Next(230, 260) + spellAmount * ThreadSafeRandom.Next(1, 10); /// 250 - 310
-                    break;
-                case 8:
-                    spellcraft = ThreadSafeRandom.Next(280, 300) + spellAmount * ThreadSafeRandom.Next(1, 11); //300-450
-                    break;
+                case ItemType.Gem:
                 default:
+                    minItemSpellCraftRange = 1.00f;
+                    maxItemSpellCraftRange = 1.00f;
                     break;
             }
 
-            return spellcraft;
-        }
-
-        private static int GetDifficulty(int tier, int spellcraft)
-        {
-            int difficulty = 0;
-            switch (tier)
+            // Getting the spell difficulty
+            var maxSpellLevel = wo.GetMaxSpellLevel();
+            int maxSpellDiff = maxSpellLevel switch
             {
-                case 1:
-                    difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-                    break;
-                case 2:
-                    difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-                    break;
-                case 3:
-                    difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-                    break;
-                case 4:
-                    difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-                    break;
-                case 5:
-                    difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-                    break;
-                case 6:
-                    difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-                    break;
-                case 7:
-                    difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-                    break;
-                case 8:
-                    difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-                    break;
-                default:
-                    break;
-            }
+                2 => 50,
+                3 => 100,
+                4 => 150,
+                5 => 200,
+                6 => 250,
+                7 => 300,
+                8 => 400,
+                _ => 1
+            };
 
-            return difficulty;
+            var tItemSpellCraft = maxSpellDiff * ThreadSafeRandom.Next(minItemSpellCraftRange, maxItemSpellCraftRange);
+
+            if (tItemSpellCraft < 0)
+                tItemSpellCraft = 0;
+
+            int finalItemSpellCraft = (int)Math.Floor(tItemSpellCraft);
+
+            return finalItemSpellCraft;
+
         }
 
+        private static int GetDifficulty(WorldObject wo, int itemspellcraft)
+        {
+            int wieldReq = 1;
+            int rank_mod = 0;  
+            int num_spells = 1;
+            int epicAddon = 0;
+            int legAddon = 0;
+
+            num_spells = wo.Biota.PropertiesSpellBook.Count();
+
+            if (wo.EpicCantrips.Count > 0)
+                epicAddon = ThreadSafeRandom.Next(1, 5) * wo.EpicCantrips.Count;
+            if (wo.LegendaryCantrips.Count > 0)
+                legAddon = ThreadSafeRandom.Next(5, 10) * wo.LegendaryCantrips.Count;
+
+            if (wo.ItemAllegianceRankLimit.HasValue)
+                rank_mod = wo.ItemAllegianceRankLimit.Value;
+            if (wo.WieldDifficulty.HasValue)
+            {
+                if (wo.WieldDifficulty == 150 || wo.WieldDifficulty == 180)
+                    wieldReq = 1;
+                else
+                    wieldReq = wo.WieldDifficulty.Value;
+            }
+            else
+                wieldReq = 1;
+
+            float heritage_mod = 1.0f;  
+            if (wo.Heritage.HasValue)
+                heritage_mod = 0.75f;
+
+            if (rank_mod == 0)
+                rank_mod = 1;
+
+            // Spell Count Addon
+            float spellAddonChance = num_spells * (20.0f / (num_spells + 2.0f));
+            float spellAddon = ThreadSafeRandom.Next(1.0f, spellAddonChance) * num_spells;
+
+            float tArcane = itemspellcraft * heritage_mod * 1.9f + spellAddon + epicAddon + legAddon;
+            tArcane /= rank_mod + 1.0f;
+            tArcane -= wieldReq / 3.0f;
+
+            if (tArcane < 0)
+                tArcane = 0;
+
+            int fArcane = (int)Math.Floor(tArcane);
+            if (fArcane < 10)
+                fArcane += 10;
+            return fArcane;
+        }
         private static int GetMaxMana(int spellAmount, int tier)
         {
             int maxmana = 0;

@@ -417,7 +417,7 @@ namespace ACE.Server.Network.Structure
             if (wo.GemType > 0 && wo.GemCount > 0)
                 appraisalLongDescDecoration |= AppraisalLongDescDecorations.AppendGemInfo;
 
-            if (appraisalLongDescDecoration > 0)
+            if (appraisalLongDescDecoration > 0 && wo.LongDesc != null && wo.LongDesc.StartsWith(wo.Name))
                 PropertiesInt[PropertyInt.AppraisalLongDescDecoration] = (int)appraisalLongDescDecoration;
             else
                 PropertiesInt.Remove(PropertyInt.AppraisalLongDescDecoration);
