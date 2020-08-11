@@ -2194,6 +2194,7 @@ namespace ACE.Server.Factories
         {
             43048,  // Knorr Academy Breastplate
             43049,  // Knorr Academy Gauntlets
+            43050,  // Knorr Academy Girth
             43051,  // Knorr Academy Greaves
             43052,  // Knorr Academy Pauldrons
             43053,  // Knorr Academy Boots
