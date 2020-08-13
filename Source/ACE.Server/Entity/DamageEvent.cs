@@ -129,6 +129,13 @@ namespace ACE.Server.Entity
         {
             22545,  // Obsidian Spines
             35191,  // Thunder Chicken
+            38406,  // Blessed Moar
+            38587,  // Ardent Moar
+            38588,  // Blessed Moar
+            38586,  // Verdant Moar
+            40298,  // Ardent Moar
+            40300,  // Blessed Moar
+            40301,  // Verdant Moar
         };
 
         public static DamageEvent CalculateDamage(Creature attacker, Creature defender, WorldObject damageSource, MotionCommand? attackMotion = null)
