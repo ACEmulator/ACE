@@ -931,7 +931,7 @@ namespace ACE.Server.Factories
             return -manaRate;
         }
 
-        private static WorldObject AssignMagic(WorldObject wo, TreasureDeath profile, bool covenantArmor = false)
+        private static WorldObject AssignMagic(WorldObject wo, TreasureDeath profile, bool isArmor = false)
         {
             const int armorSpellImpenIndex = 47; // 47th row in the LootTables.ArmorSpells array, starting from zero
 
@@ -1004,8 +1004,8 @@ namespace ACE.Server.Factories
                 }
             }
 
-            // From a discussion on LSD, determined in that if covenant armor includes spells, the armor piece will have at least Impen
-            if (covenantArmor == true)
+            // Per discord discussions: ALL armor/shields if it had any spells, had an Impen spell
+            if (isArmor == true)
             {
                 // Ensure that one of the Impen spells was not already added
                 bool impenFound = false;
