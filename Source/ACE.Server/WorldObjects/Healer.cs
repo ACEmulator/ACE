@@ -128,12 +128,14 @@ namespace ACE.Server.WorldObjects
             var motionCommand = healer.Equals(target) ? MotionCommand.SkillHealSelf : MotionCommand.SkillHealOther;
 
             var motion = new Motion(healer, motionCommand);
-            var animLength = MotionTable.GetAnimationLength(healer.MotionTableId, healer.CurrentMotionState.Stance, motionCommand);
+            var currentStance = healer.CurrentMotionState.Stance;
+            var animLength = MotionTable.GetAnimationLength(healer.MotionTableId, currentStance, motionCommand);
 
             var startPos = new Physics.Common.Position(healer.PhysicsObj.Position);
 
             var actionChain = new ActionChain();
-            actionChain.AddAction(healer, () => healer.EnqueueBroadcastMotion(motion));
+            //actionChain.AddAction(healer, () => healer.EnqueueBroadcastMotion(motion));
+            actionChain.AddAction(healer, () => healer.SendMotionAsCommands(motionCommand, currentStance));
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(healer, () =>
             {

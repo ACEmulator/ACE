@@ -483,9 +483,9 @@ namespace ACE.Server.Managers
 
                 case MaterialType.Silk:
 
-                    // remove allegiance rank limit, increase item difficulty by spellcraft?
+                    // remove allegiance rank limit, set difficulty to spellcraft
                     target.ItemAllegianceRankLimit = null;
-                    target.ItemDifficulty = (target.ItemDifficulty ?? 0) + target.ItemSpellcraft;
+                    target.ItemDifficulty = target.ItemSpellcraft;
                     break;
 
                 // armatures / trinkets

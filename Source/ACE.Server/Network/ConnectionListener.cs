@@ -63,7 +63,7 @@ namespace ACE.Server.Network
             try
             {
                 EndPoint clientEndPoint = new IPEndPoint(listeningHost, 0);
-                Socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref clientEndPoint, OnDataReceieve, Socket);
+                Socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref clientEndPoint, OnDataReceive, Socket);
             }
             catch (SocketException socketException)
             {
@@ -76,7 +76,7 @@ namespace ACE.Server.Network
             }
         }
 
-        private void OnDataReceieve(IAsyncResult result)
+        private void OnDataReceive(IAsyncResult result)
         {
             EndPoint clientEndPoint = null;
 
@@ -85,15 +85,15 @@ namespace ACE.Server.Network
                 clientEndPoint = new IPEndPoint(listeningHost, 0);
                 int dataSize = Socket.EndReceiveFrom(result, ref clientEndPoint);
 
-                byte[] data = new byte[dataSize];
-                Buffer.BlockCopy(buffer, 0, data, 0, dataSize);
-
                 IPEndPoint ipEndpoint = (IPEndPoint)clientEndPoint;
 
                 // TO-DO: generate ban entries here based on packet rates of endPoint, IP Address, and IP Address Range
 
                 if (packetLog.IsDebugEnabled)
                 {
+                    byte[] data = new byte[dataSize];
+                    Buffer.BlockCopy(buffer, 0, data, 0, dataSize);
+
                     StringBuilder sb = new StringBuilder();
                     sb.AppendLine($"Received Packet (Len: {data.Length}) [{ipEndpoint.Address}:{ipEndpoint.Port}=>{ListenerEndpoint.Address}:{ListenerEndpoint.Port}]");
                     sb.AppendLine(data.BuildPacketString());
@@ -102,8 +102,10 @@ namespace ACE.Server.Network
 
                 var packet = new ClientPacket();
 
-                if (packet.Unpack(data))
+                if (packet.Unpack(buffer, dataSize))
                     NetworkManager.ProcessPacket(this, packet, ipEndpoint);
+
+                packet.ReleaseBuffer();
             }
             catch (SocketException socketException)
             {

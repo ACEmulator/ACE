@@ -72,7 +72,7 @@ namespace ACE.Server.WorldObjects
             switch (spell.School)
             {
                 case MagicSchool.WarMagic:
-                    WarMagic(target, spell, this);
+                    WarMagic(target, spell, caster ?? this);
                     break;
 
                 case MagicSchool.LifeMagic:
@@ -93,7 +93,7 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case MagicSchool.VoidMagic:
-                    VoidMagic(target, spell, this);
+                    VoidMagic(target, spell, caster ?? this);
                     break;
             }
 
@@ -274,6 +274,9 @@ namespace ACE.Server.WorldObjects
             if (spell.NumProjectiles > 0 && !projectileHit)
                 return false;
 
+            if (caster != null && Cloak.IsCloak(caster))
+                return false;
+
             uint magicSkill = 0;
 
             if (caster == null)
@@ -376,7 +379,7 @@ namespace ACE.Server.WorldObjects
 
             var spellTarget = !spell.IsSelfTargeted ? target as Creature : creature;
 
-            if (this is Gem || this is Hook)
+            if (this is Gem || this is Food || this is Hook)
                 spellTarget = target as Creature;
 
             var targetPlayer = spellTarget as Player;
@@ -1729,7 +1732,7 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, spell.Formula.Scale));
             var enchantmentStatus = CreatureMagic(target, spell);
-            if (enchantmentStatus.Message != null)
+            if (player != null && enchantmentStatus.Message != null)
                 player.Session.Network.EnqueueSend(enchantmentStatus.Message);
 
             var difficulty = spell.Power;
@@ -1737,7 +1740,8 @@ namespace ACE.Server.WorldObjects
 
             if (spell.IsHarmful)
             {
-                Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
+                if (player != null)
+                    Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
 
                 // handle target procs
                 var sourceCreature = this as Creature;
@@ -1747,7 +1751,7 @@ namespace ACE.Server.WorldObjects
                 if (player != null && targetPlayer != null)
                     Player.UpdatePKTimers(player, targetPlayer);
             }
-            else
+            else if (player != null)
                 Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), difficultyMod);
 
             return true;
@@ -1805,12 +1809,12 @@ namespace ACE.Server.WorldObjects
             }
             else if (caster == this || target == this || caster != target)
             {
-                var prefix = caster == this ? "You cast" : $"{caster.Name} casts";
+                var casterName = caster == this ? "You" : caster.Name;
                 var targetName = target.Name;
                 if (target == this)
                     targetName = caster == this ? "yourself" : "you";
 
-                message = $"{prefix} {spell.Name} on {targetName}{suffix}";
+                message = $"{casterName} cast {spell.Name} on {targetName}{suffix}";
             }
 
             if (message != null)

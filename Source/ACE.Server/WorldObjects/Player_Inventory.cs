@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -273,6 +273,10 @@ namespace ACE.Server.WorldObjects
                 {
                     if (result.Message != null)
                         Session.Network.EnqueueSend(result.Message);
+
+                    // handle equipment sets
+                    if (item.HasItemSet)
+                        EquipItemFromSet(item);
 
                     return true;
                 }
@@ -1540,7 +1544,7 @@ namespace ACE.Server.WorldObjects
                 case WieldRequirement.Skill:
 
                     // verify skill level - current / buffed
-                    var skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute));
+                    var skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute), false);
                     if (skill.Current < difficulty)
                         return WeenieError.SkillTooLow;
                     break;
@@ -1548,7 +1552,7 @@ namespace ACE.Server.WorldObjects
                 case WieldRequirement.RawSkill:
 
                     // verify skill level - base
-                    skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute));
+                    skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute), false);
                     if (skill.Base < difficulty)
                         return WeenieError.SkillTooLow;
                     break;
@@ -1588,14 +1592,14 @@ namespace ACE.Server.WorldObjects
                 case WieldRequirement.Level:
 
                     // verify player level
-                    if (Level < difficulty)
+                    if ((Level ?? 1) < difficulty)
                         return WeenieError.LevelTooLow;
                     break;
 
                 case WieldRequirement.Training:
 
                     // verify skill is trained / specialized
-                    skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute));
+                    skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute), false);
                     if ((int)skill.AdvancementClass < difficulty)
                         return WeenieError.SkillTooLow;
                     break;
@@ -1603,7 +1607,7 @@ namespace ACE.Server.WorldObjects
                 case WieldRequirement.IntStat:      // unused in PY16
 
                     // verify PropertyInt minimum
-                    var propInt = GetProperty((PropertyInt)skillOrAttribute);
+                    var propInt = GetProperty((PropertyInt)skillOrAttribute) ?? 0;
                     if (propInt < difficulty)
                         return WeenieError.SkillTooLow;
                     break;
@@ -1611,7 +1615,7 @@ namespace ACE.Server.WorldObjects
                 case WieldRequirement.BoolStat:     // unused in PY16
 
                     // verify PropertyBool equal
-                    var propBool = GetProperty((PropertyBool)skillOrAttribute);
+                    var propBool = GetProperty((PropertyBool)skillOrAttribute) ?? false;
                     if (propBool != Convert.ToBoolean(difficulty))
                         return WeenieError.SkillTooLow;
                     break;
@@ -2836,6 +2840,12 @@ namespace ACE.Server.WorldObjects
                 //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough pack space to use that!"));
                 //else //if (playerOutOfContainerSlots)
                 //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough container slots to use that!"));
+
+                // Font of Enlightenment and Rebirth tries to give you Attribute Reset Certificate.
+                var itemBeingGiven = DatabaseManager.World.GetCachedWeenie(weenieClassId);
+                var msg = new GameMessageSystemChat($"{emoter.Name} tries to give you {(itemStacks > 1 ? $"{itemStacks} " : "")}{(itemStacks > 1 ? itemBeingGiven.GetPluralName() : itemBeingGiven.GetName())}.", ChatMessageType.Broadcast);
+                Session.Network.EnqueueSend(msg);
+
                 return;
             }
 
@@ -2880,7 +2890,11 @@ namespace ACE.Server.WorldObjects
         public bool TryCreateForGive(WorldObject giver, WorldObject itemBeingGiven)
         {
             if (!TryCreateInInventoryWithNetworking(itemBeingGiven))
+            {
+                var msg = new GameMessageSystemChat($"{giver.Name} tries to give you {(itemBeingGiven.StackSize > 1 ? $"{itemBeingGiven.StackSize} " : "")}{(itemBeingGiven.StackSize > 1 ? itemBeingGiven.GetPluralName() : itemBeingGiven.Name)}.", ChatMessageType.Broadcast);
+                Session.Network.EnqueueSend(msg);
                 return false;
+            }
 
             if (!(giver.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
             {

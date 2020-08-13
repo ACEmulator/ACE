@@ -63,6 +63,7 @@ namespace ACE.Entity.Enum.Properties
         DateOfBirth                     = 43,
         ThirdPartyApi                   = 44,
         KillQuest                       = 45,
+        [Ephemeral]
         Afk                             = 46,
         AllegianceName                  = 47,
         AugmentationAddQuest            = 48,

@@ -708,6 +708,9 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddAction(this, () => HandleActionChangeCombatMode_Inner(newCombatMode));
                 actionChain.EnqueueChain();
             }
+
+            if (IsAfk)
+                HandleActionSetAFKMode(false);
         }
 
         public void HandleActionChangeCombatMode_Inner(CombatMode newCombatMode)

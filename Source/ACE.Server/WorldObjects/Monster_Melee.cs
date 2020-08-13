@@ -75,7 +75,7 @@ namespace ACE.Server.WorldObjects
 
                 actionChain.AddAction(this, () =>
                 {
-                    if (AttackTarget == null || IsDead) return;
+                    if (AttackTarget == null || IsDead || target.IsDead) return;
 
                     if (WeenieType == WeenieType.GamePiece)
                     {

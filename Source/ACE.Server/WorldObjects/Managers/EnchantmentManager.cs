@@ -154,7 +154,7 @@ namespace ACE.Server.WorldObjects.Managers
                 return result;
             }
 
-            result.BuildStack(entries, spell, caster);
+            result.BuildStack(entries, spell, caster, equip);
 
             // handle cases:
             // surpassing: new spell is written to next layer

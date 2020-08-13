@@ -357,7 +357,7 @@ namespace ACE.Server.Factories
             }
 
             // Description
-            wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship | AppraisalLongDescDecorations.AppendGemInfo;
+            //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship | AppraisalLongDescDecorations.AppendGemInfo;
             wo.LongDesc = wo.Name;
 
             // GemTypes, Material, Workmanship
