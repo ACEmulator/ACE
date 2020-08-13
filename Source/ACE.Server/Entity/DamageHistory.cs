@@ -236,6 +236,14 @@ namespace ACE.Server.Entity
             }
         }
 
+        /// <summary>
+        /// Returns TRUE if damage history contains wo as recent attacker
+        /// </summary>
+        public bool HasDamager(WorldObject wo)
+        {
+            return TotalDamage.ContainsKey(wo.Guid);
+        }
+
         public override string ToString()
         {
             var table = "";
