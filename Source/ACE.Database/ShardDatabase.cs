@@ -764,5 +764,88 @@ namespace ACE.Database
                 return query.FirstOrDefault();
             }
         }
+
+        public bool RenameCharacter(Character character, string newName, ReaderWriterLockSlim rwLock)
+        {
+            if (CharacterContexts.TryGetValue(character, out var cachedContext))
+            {
+                rwLock.EnterReadLock();
+                try
+                {
+                    Exception firstException = null;
+                retry:
+
+                    try
+                    {
+                        character.Name = newName;
+                        cachedContext.SaveChanges();
+
+                        if (firstException != null)
+                            log.Debug($"[DATABASE] RenameCharacter 0x{character.Id:X8}:{character.Name} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (firstException == null)
+                        {
+                            firstException = ex;
+                            goto retry;
+                        }
+
+                        // Character name might be in use or some other fault
+                        log.Error($"[DATABASE] RenameCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
+                        log.Error($"[DATABASE] RenameCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
+                        return false;
+                    }
+                }
+                finally
+                {
+                    rwLock.ExitReadLock();
+                }
+            }
+
+            character.Name = newName;
+
+            var context = new ShardDbContext();
+
+            CharacterContexts.Add(character, context);
+
+            rwLock.EnterReadLock();
+            try
+            {
+                context.Character.Add(character);
+
+                Exception firstException = null;
+            retry:
+
+                try
+                {
+                    context.SaveChanges();
+
+                    if (firstException != null)
+                        log.Debug($"[DATABASE] RenameCharacter 0x{character.Id:X8}:{character.Name} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    if (firstException == null)
+                    {
+                        firstException = ex;
+                        goto retry;
+                    }
+
+                    // Character name might be in use or some other fault
+                    log.Error($"[DATABASE] RenameCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
+                    log.Error($"[DATABASE] RenameCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
+                    return false;
+                }
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
     }
 }
