@@ -220,6 +220,15 @@ namespace ACE.Database
             }));
         }
 
+        public void RenameCharacter(Character character, string newName, ReaderWriterLockSlim rwLock, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = BaseDatabase.RenameCharacter(character, newName, rwLock);
+                callback?.Invoke(result);
+            }));
+        }
+
         public void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback)
         {
             // TODO

@@ -2464,7 +2464,6 @@ namespace ACE.Server.Command.Handlers
             var offlinePlayer = PlayerManager.GetOfflinePlayer(oldName);
             if (onlinePlayer != null)
             {
-                var success = false;
                 DatabaseManager.Shard.IsCharacterNameAvailable(newName, isAvailable =>
                 {
                     if (!isAvailable)
@@ -2478,19 +2477,13 @@ namespace ACE.Server.Command.Handlers
                     onlinePlayer.Name = newName;
                     onlinePlayer.SavePlayerToDatabase();
 
-                    success = true;
-                });
-
-                if (success)
-                {
                     CommandHandlerHelper.WriteOutputInfo(session, $"Player named \"{oldName}\" renamed to \"{newName}\" succesfully!", ChatMessageType.Broadcast);
 
                     onlinePlayer.Session.LogOffPlayer();
-                }
+                });
             }
             else if (offlinePlayer != null)
             {
-                var success = false;
                 DatabaseManager.Shard.IsCharacterNameAvailable(newName, isAvailable =>
                 {
                     if (!isAvailable)
@@ -2501,16 +2494,23 @@ namespace ACE.Server.Command.Handlers
 
                     var character = DatabaseManager.Shard.BaseDatabase.GetCharacterStubByName(oldName);
 
-                    character.Name = newName;
-                    DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), null);
+                    DatabaseManager.Shard.GetCharacters(character.AccountId, false, result =>
+                    {
+                        var foundCharacterMatch = result.Where(c => c.Id == character.Id).FirstOrDefault();
+
+                        if (foundCharacterMatch == null)
+                        {
+                            CommandHandlerHelper.WriteOutputInfo(session, $"Error, a player named \"{oldName}\" cannot be found.", ChatMessageType.Broadcast);
+                        }
+
+                        DatabaseManager.Shard.RenameCharacter(foundCharacterMatch, newName, new ReaderWriterLockSlim(), null);
+                    });
+
                     offlinePlayer.SetProperty(PropertyString.Name, newName);
                     offlinePlayer.SaveBiotaToDatabase();
 
-                    success = true;
-                });
-
-                if (success)
                     CommandHandlerHelper.WriteOutputInfo(session, $"Player named \"{oldName}\" renamed to \"{newName}\" succesfully!", ChatMessageType.Broadcast);
+                });
             }
             else
             {
