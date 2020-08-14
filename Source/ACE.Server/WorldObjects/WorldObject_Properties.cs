@@ -545,7 +545,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (ephemeralPosition != null && !ephemeralPosition.Rotation.IsRotationValid())
                 {
-                    log.Warn("detected bad quaternion x y z w");
+                    log.Warn($"detected bad quaternion x y z w for {Name} (0x{Guid}) | WCID: {WeenieClassId} | WeenieType: {WeenieType} | PositionType: {positionType}");
                     log.Warn($"before fix: {ephemeralPosition.ToLOCString()}");
                     ephemeralPosition.AttemptToFixRotation();
                     log.Warn($" after fix: {ephemeralPosition.ToLOCString()}");
@@ -558,7 +558,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (cachedPosition != null && !cachedPosition.Rotation.IsRotationValid())
                 {
-                    log.Warn("detected bad quaternion x y z w");
+                    log.Warn($"detected bad quaternion x y z w for {Name} (0x{Guid}) | WCID: {WeenieClassId} | WeenieType: {WeenieType} | PositionType: {positionType}");
                     log.Warn($"before fix: {cachedPosition.ToLOCString()}");
                     cachedPosition.AttemptToFixRotation();
                     log.Warn($" after fix: {cachedPosition.ToLOCString()}");
@@ -571,7 +571,7 @@ namespace ACE.Server.WorldObjects
 
             if (position != null && !position.Rotation.IsRotationValid())
             {
-                log.Warn("detected bad quaternion x y z w");
+                log.Warn($"detected bad quaternion x y z w for {Name} (0x{Guid}) | WCID: {WeenieClassId} | WeenieType: {WeenieType} | PositionType: {positionType}");
                 log.Warn($"before fix: {position.ToLOCString()}");
                 position.AttemptToFixRotation();
                 log.Warn($" after fix: {position.ToLOCString()}");
@@ -594,7 +594,7 @@ namespace ACE.Server.WorldObjects
         {
             if (position != null && !position.Rotation.IsRotationValid())
             {
-                log.Warn("detected bad quaternion x y z w");
+                log.Warn($"detected bad quaternion x y z w for {Name} (0x{Guid}) | WCID: {WeenieClassId} | WeenieType: {WeenieType}");
                 log.Warn($"before fix: {position.ToLOCString()}");
                 position.AttemptToFixRotation();
                 log.Warn($" after fix: {position.ToLOCString()}");
