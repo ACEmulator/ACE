@@ -544,7 +544,12 @@ namespace ACE.Server.WorldObjects
             if (ephemeralPositions.TryGetValue(positionType, out var ephemeralPosition))
             {
                 if (ephemeralPosition != null && !ephemeralPosition.Rotation.IsRotationValid())
-                    ephemeralPosition.Rotation = Quaternion.Normalize(ephemeralPosition.Rotation);
+                {
+                    log.Warn("detected bad quaternion x y z w");
+                    log.Warn($"before fix: {ephemeralPosition.ToLOCString()}");
+                    ephemeralPosition.AttemptToFixRotation();
+                    log.Warn($" after fix: {ephemeralPosition.ToLOCString()}");
+                }
 
                 return ephemeralPosition;
             }
@@ -552,7 +557,12 @@ namespace ACE.Server.WorldObjects
             if (positionCache.TryGetValue(positionType, out var cachedPosition))
             {
                 if (cachedPosition != null && !cachedPosition.Rotation.IsRotationValid())
-                    cachedPosition.Rotation = Quaternion.Normalize(cachedPosition.Rotation);
+                {
+                    log.Warn("detected bad quaternion x y z w");
+                    log.Warn($"before fix: {cachedPosition.ToLOCString()}");
+                    cachedPosition.AttemptToFixRotation();
+                    log.Warn($" after fix: {cachedPosition.ToLOCString()}");
+                }
 
                 return cachedPosition;
             }
@@ -560,7 +570,12 @@ namespace ACE.Server.WorldObjects
             var position = Biota.GetPosition(positionType, BiotaDatabaseLock);
 
             if (position != null && !position.Rotation.IsRotationValid())
-                position.Rotation = Quaternion.Normalize(position.Rotation);
+            {
+                log.Warn("detected bad quaternion x y z w");
+                log.Warn($"before fix: {position.ToLOCString()}");
+                position.AttemptToFixRotation();
+                log.Warn($" after fix: {position.ToLOCString()}");
+            }
 
             positionCache[positionType] = position;
 
@@ -578,7 +593,12 @@ namespace ACE.Server.WorldObjects
         public void SetPosition(PositionType positionType, Position position)
         {
             if (position != null && !position.Rotation.IsRotationValid())
-                position.Rotation = Quaternion.Normalize(position.Rotation);
+            {
+                log.Warn("detected bad quaternion x y z w");
+                log.Warn($"before fix: {position.ToLOCString()}");
+                position.AttemptToFixRotation();
+                log.Warn($" after fix: {position.ToLOCString()}");
+            }
 
             if (EphemeralProperties.PositionTypes.Contains(positionType))
                 ephemeralPositions[positionType] = position;
