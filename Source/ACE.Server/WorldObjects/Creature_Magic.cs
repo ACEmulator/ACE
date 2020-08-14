@@ -109,12 +109,14 @@ namespace ACE.Server.WorldObjects
                 baseCost += spell.ManaMod * (uint)numFellows;
             }
 
-            if (spell.Flags.HasFlag(SpellFlags.IgnoresManaConversion))
+            var manaConversion = caster.GetCreatureSkill(Skill.ManaConversion);
+
+            if (manaConversion.AdvancementClass < SkillAdvancementClass.Trained || spell.Flags.HasFlag(SpellFlags.IgnoresManaConversion))
                 return baseCost;
 
             var difficulty = spell.PowerMod;   // modified power difficulty
 
-            var mana_conversion_skill = (uint)Math.Round(caster.GetCreatureSkill(Skill.ManaConversion).Current * GetWeaponManaConversionModifier(caster));
+            var mana_conversion_skill = (uint)Math.Round(manaConversion.Current * GetWeaponManaConversionModifier(caster));
 
             var manaCost = GetManaCost(difficulty, baseCost, mana_conversion_skill);
 
