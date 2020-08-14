@@ -543,7 +543,7 @@ namespace ACE.Server.WorldObjects
         {
             if (ephemeralPositions.TryGetValue(positionType, out var ephemeralPosition))
             {
-                if (ephemeralPosition != null && !ephemeralPosition.Rotation.IsValid())
+                if (ephemeralPosition != null && !ephemeralPosition.Rotation.IsRotationValid())
                     ephemeralPosition.Rotation = Quaternion.Normalize(ephemeralPosition.Rotation);
 
                 return ephemeralPosition;
@@ -551,7 +551,7 @@ namespace ACE.Server.WorldObjects
 
             if (positionCache.TryGetValue(positionType, out var cachedPosition))
             {
-                if (cachedPosition != null && !cachedPosition.Rotation.IsValid())
+                if (cachedPosition != null && !cachedPosition.Rotation.IsRotationValid())
                     cachedPosition.Rotation = Quaternion.Normalize(cachedPosition.Rotation);
 
                 return cachedPosition;
@@ -559,7 +559,7 @@ namespace ACE.Server.WorldObjects
 
             var position = Biota.GetPosition(positionType, BiotaDatabaseLock);
 
-            if (position != null && !position.Rotation.IsValid())
+            if (position != null && !position.Rotation.IsRotationValid())
                 position.Rotation = Quaternion.Normalize(position.Rotation);
 
             positionCache[positionType] = position;
