@@ -6,7 +6,8 @@ namespace ACE.Server.Physics
 {
     public class PhysicsGlobals
     {
-        public static readonly float EPSILON = 0.00019999999f;
+        //public static readonly float EPSILON = 0.00019999999f;
+        public static readonly float EPSILON = 0.0001f;
 
         public static readonly float EpsilonSq = EPSILON * EPSILON;
 
