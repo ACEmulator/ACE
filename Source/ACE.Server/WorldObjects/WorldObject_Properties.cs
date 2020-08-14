@@ -577,7 +577,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetPosition(PositionType positionType, Position position)
         {
-            if (position != null && !position.Rotation.IsValid())
+            if (position != null && !position.Rotation.IsRotationValid())
                 position.Rotation = Quaternion.Normalize(position.Rotation);
 
             if (EphemeralProperties.PositionTypes.Contains(positionType))
