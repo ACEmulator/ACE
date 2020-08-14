@@ -544,12 +544,7 @@ namespace ACE.Server.WorldObjects
             if (ephemeralPositions.TryGetValue(positionType, out var ephemeralPosition))
             {
                 if (ephemeralPosition != null && !ephemeralPosition.Rotation.IsRotationValid())
-                {
-                    log.Warn($"detected bad quaternion x y z w for {Name} (0x{Guid}) | WCID: {WeenieClassId} | WeenieType: {WeenieType} | PositionType: {positionType}");
-                    log.Warn($"before fix: {ephemeralPosition.ToLOCString()}");
-                    ephemeralPosition.AttemptToFixRotation();
-                    log.Warn($" after fix: {ephemeralPosition.ToLOCString()}");
-                }
+                    ephemeralPosition.AttemptToFixRotation(this, positionType);
 
                 return ephemeralPosition;
             }
@@ -557,12 +552,7 @@ namespace ACE.Server.WorldObjects
             if (positionCache.TryGetValue(positionType, out var cachedPosition))
             {
                 if (cachedPosition != null && !cachedPosition.Rotation.IsRotationValid())
-                {
-                    log.Warn($"detected bad quaternion x y z w for {Name} (0x{Guid}) | WCID: {WeenieClassId} | WeenieType: {WeenieType} | PositionType: {positionType}");
-                    log.Warn($"before fix: {cachedPosition.ToLOCString()}");
-                    cachedPosition.AttemptToFixRotation();
-                    log.Warn($" after fix: {cachedPosition.ToLOCString()}");
-                }
+                    cachedPosition.AttemptToFixRotation(this, positionType);
 
                 return cachedPosition;
             }
@@ -571,10 +561,7 @@ namespace ACE.Server.WorldObjects
 
             if (position != null && !position.Rotation.IsRotationValid())
             {
-                log.Warn($"detected bad quaternion x y z w for {Name} (0x{Guid}) | WCID: {WeenieClassId} | WeenieType: {WeenieType} | PositionType: {positionType}");
-                log.Warn($"before fix: {position.ToLOCString()}");
-                position.AttemptToFixRotation();
-                log.Warn($" after fix: {position.ToLOCString()}");
+                position.AttemptToFixRotation(this, positionType);
             }
 
             positionCache[positionType] = position;
@@ -592,13 +579,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetPosition(PositionType positionType, Position position)
         {
-            if (position != null && !position.Rotation.IsRotationValid())
-            {
-                log.Warn($"detected bad quaternion x y z w for {Name} (0x{Guid}) | WCID: {WeenieClassId} | WeenieType: {WeenieType}");
-                log.Warn($"before fix: {position.ToLOCString()}");
-                position.AttemptToFixRotation();
-                log.Warn($" after fix: {position.ToLOCString()}");
-            }
+            //if (position != null && !position.Rotation.IsRotationValid())
+                //position.AttemptToFixRotation(this, positionType);
 
             if (EphemeralProperties.PositionTypes.Contains(positionType))
                 ephemeralPositions[positionType] = position;

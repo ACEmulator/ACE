@@ -466,19 +466,5 @@ namespace ACE.Entity
         {
             return Cell == p.Cell && Pos.Equals(p.Pos) && Rotation.Equals(p.Rotation);
         }
-
-        public bool AttemptToFixRotation()
-        {
-            var fixRotation = Quaternion.Normalize(Rotation);
-
-            if (!float.IsNaN(fixRotation.X) && !float.IsNaN(fixRotation.Y) && !float.IsNaN(fixRotation.Z) && !float.IsNaN(fixRotation.W))
-            {
-                Rotation = fixRotation;
-
-                return true;
-            }
-
-            return false;
-        }
     }
 }
