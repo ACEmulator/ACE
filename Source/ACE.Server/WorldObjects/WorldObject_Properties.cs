@@ -13,6 +13,7 @@ using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.Structure;
+using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
 {
@@ -541,12 +542,27 @@ namespace ACE.Server.WorldObjects
         public Position GetPosition(PositionType positionType)
         {
             if (ephemeralPositions.TryGetValue(positionType, out var ephemeralPosition))
+            {
+                if (ephemeralPosition != null && !ephemeralPosition.Rotation.IsRotationValid())
+                    ephemeralPosition.AttemptToFixRotation(this, positionType);
+
                 return ephemeralPosition;
+            }
 
             if (positionCache.TryGetValue(positionType, out var cachedPosition))
+            {
+                if (cachedPosition != null && !cachedPosition.Rotation.IsRotationValid())
+                    cachedPosition.AttemptToFixRotation(this, positionType);
+
                 return cachedPosition;
+            }
 
             var position = Biota.GetPosition(positionType, BiotaDatabaseLock);
+
+            if (position != null && !position.Rotation.IsRotationValid())
+            {
+                position.AttemptToFixRotation(this, positionType);
+            }
 
             positionCache[positionType] = position;
 
@@ -563,6 +579,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetPosition(PositionType positionType, Position position)
         {
+            //if (position != null && !position.Rotation.IsRotationValid())
+                //position.AttemptToFixRotation(this, positionType);
+
             if (EphemeralProperties.PositionTypes.Contains(positionType))
                 ephemeralPositions[positionType] = position;
             else
