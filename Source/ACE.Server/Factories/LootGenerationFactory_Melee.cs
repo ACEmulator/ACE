@@ -56,14 +56,24 @@ namespace ACE.Server.Factories
             var wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
 
             if (wo != null && mutate)
-                MutateMeleeWeapon(wo, profile, isMagical, weaponType, subtype);
+                if (!MutateMeleeWeapon(wo, profile, isMagical))
+                    wo = null;
 
             return wo;
         }
 
-        private static void MutateMeleeWeapon(WorldObject wo, TreasureDeath profile, bool isMagical, int weaponType, int subtype)
+        private static bool MutateMeleeWeapon(WorldObject wo, TreasureDeath profile, bool isMagical)
         {
-            Skill wieldSkillType = Skill.None;
+            if ((wo.WeaponSkill != Skill.HeavyWeapons || wo.WeaponSkill != Skill.LightWeapons || wo.WeaponSkill != Skill.FinesseWeapons || wo.WeaponSkill != Skill.TwoHandedCombat)
+                || (wo.W_WeaponType != WeaponType.Axe || wo.W_WeaponType != WeaponType.Mace || wo.W_WeaponType != WeaponType.Dagger || wo.W_WeaponType != WeaponType.Staff
+                || wo.W_WeaponType != WeaponType.Sword || wo.W_WeaponType != WeaponType.Spear || wo.W_WeaponType != WeaponType.Unarmed || wo.W_WeaponType != WeaponType.TwoHanded)
+                || (wo.W_AttackType == 0))
+            {
+                log.Warn($"[LOOT] Missing melee weapon properties on loot item {wo.WeenieClassId} - {wo.Name}");
+                return false;
+            }
+
+            Skill wieldSkillType = wo.WeaponSkill;
 
             int damage = 0;
             double damageVariance = 0;
@@ -79,87 +89,62 @@ namespace ACE.Server.Factories
             int wieldDiff = GetWieldDifficulty(profile.Tier, WieldType.MeleeWeapon);
             WieldRequirement wieldRequirments = WieldRequirement.RawSkill;
 
-            // Weapon Types
-            // 0 = Heavy
-            // 1 = Light
-            // 2 = Finesse
-            // default = Two Handed
-            switch (weaponType)
+            switch (wieldSkillType)
             {
-                case 0:
-                    // Heavy Weapons
-                    wieldSkillType = Skill.HeavyWeapons;
-
-                    switch (subtype)
+                case Skill.HeavyWeapons:
+                    switch (wo.W_WeaponType)
                     {
-                        case 0:
-                        case 1:
-                        case 2:
-                        case 3:
+                        case WeaponType.Axe:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 18);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 22);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Axe);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Axe);
                             break;
-                        case 4:
-                        case 5:
-                        case 6:
+                        case WeaponType.Dagger:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
 
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Dagger);
 
-                            if (subtype == 3)
-                                damageVariance = GetVariance(wieldSkillType, LootWeaponType.Dagger);
-                            if (subtype == 4 || subtype == 5)
+                            if (wo.W_AttackType.IsMultiStrike())
                             {
                                 damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.DaggerMulti);
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.DaggerMulti);
                             }
+                            else
+                                damageVariance = GetVariance(wieldSkillType, LootWeaponType.Dagger);
                             break;
-                        case 7:
-                        case 8:
-                        case 9:
-                        case 10:
+                        case WeaponType.Mace:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 22);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 18);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Mace);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Mace);
                             break;
-                        case 11:
-                        case 12:
-                        case 13:
+                        case WeaponType.Spear:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 15);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 25);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Spear);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Spear);
                             break;
-                        case 14:
-                        case 15:
+                        case WeaponType.Staff:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 25);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 15);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Staff);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Staff);
                             break;
-                        case 16:
-                        case 17:
-                        case 18:
-                        case 19:
-                        case 20:
-                        case 21:
+                        case WeaponType.Sword:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
 
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Sword);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Sword);
 
-                            if (subtype == 20)
+                            if (wo.W_AttackType.IsMultiStrike())
                             {
                                 damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.SwordMulti);
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.SwordMulti);
                             }
                             break;
-                        case 22:
                         default:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
@@ -168,68 +153,52 @@ namespace ACE.Server.Factories
                             break;
                     }
                     break;
-                case 1:
-                    // Light Weapons;
-                    wieldSkillType = Skill.LightWeapons;
-
-                    switch (subtype)
+                case Skill.LightWeapons:
+                    switch (wo.W_WeaponType)
                     {
-                        case 0:
-                        case 1:
-                        case 2:
-                        case 3:
+                        case WeaponType.Axe:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 18);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 22);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Axe);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Axe);
                             break;
-                        case 4:
-                        case 5:
+                        case WeaponType.Dagger:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.DaggerMulti);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.DaggerMulti);
                             break;
-                        case 6:
-                        case 7:
-                        case 8:
+                        case WeaponType.Mace:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 22);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 18);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Mace);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Mace);
                             break;
-                        case 9:
-                        case 10:
+                        case WeaponType.Spear:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 15);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 25);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Spear);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Spear);
                             break;
-                        case 11:
+                        case WeaponType.Staff:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 25);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 15);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Staff);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Staff);
                             break;
-                        case 12:
-                        case 13:
-                        case 14:
-                        case 15:
-                        case 16:
-                        case 17:
+                        case WeaponType.Sword:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
 
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Sword);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Sword);
 
-                            if (subtype == 14)
+                            if (wo.W_AttackType.IsMultiStrike())
                             {
                                 damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.SwordMulti);
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.SwordMulti);
                             }
                             break;
-                        case 18:
                         default:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
@@ -238,78 +207,60 @@ namespace ACE.Server.Factories
                             break;
                     }
                     break;
-                case 2:
-                    // Finesse Weapons;
-                    wieldSkillType = Skill.FinesseWeapons;
-
-                    switch (subtype)
+                case Skill.FinesseWeapons:
+                    switch (wo.W_WeaponType)
                     {
-                        case 0:
-                        case 1:
-                        case 2:
+                        case WeaponType.Axe:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 18);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 22);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Axe);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Axe);
                             break;
-                        case 3:
-                        case 4:
-                        case 5:
+                        case WeaponType.Dagger:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Dagger);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Dagger);
 
-                            if (subtype == 3 || subtype == 4)
+                            if (wo.W_AttackType.IsMultiStrike())
                             {
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.DaggerMulti);
                                 damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.DaggerMulti);
                             }
                             break;
-                        case 6:
-                        case 7:
-                        case 8:
-                        case 9:
+                        case WeaponType.Mace:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 22);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 18);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Mace);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Mace);
 
-                            if (subtype == 9)
+                            if (wo.Name.Any() != false && wo.Name.Contains("Jitte"))
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.Jitte);
                             break;
-                        case 10:
-                        case 11:
+                        case WeaponType.Spear:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 15);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 25);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Spear);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Spear);
                             break;
-                        case 12:
-                        case 13:
+                        case WeaponType.Staff:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 25);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 15);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Staff);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Staff);
                             break;
-                        case 14:
-                        case 15:
-                        case 16:
-                        case 17:
-                        case 18:
-                        case 19:
+                        case WeaponType.Sword:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Sword);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Sword);
 
-                            if (subtype == 15)
+                            if (wo.W_AttackType.IsMultiStrike())
                             {
                                 damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.SwordMulti);
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.SwordMulti);
                             }
                             break;
-                        case 20:
                         default:
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
@@ -318,39 +269,33 @@ namespace ACE.Server.Factories
                             break;
                     }
                     break;
-                default:
-                    // Two handed
-                    wieldSkillType = Skill.TwoHandedCombat;
-
+                default: // Two handed
                     damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Cleaving);
                     damageVariance = GetVariance(wieldSkillType, LootWeaponType.TwoHanded);
 
-                    switch (subtype)
+                    switch (wo.W_AttackType)
                     {
-                        case 0:
-                        case 1:
-                        case 2:
-                            weaponDefense = GetMaxDamageMod(profile.Tier, 20);
-                            weaponOffense = GetMaxDamageMod(profile.Tier, 20);
-                            break;
-                        case 3:
-                        case 4:
-                        case 5:
-                        case 6:
-                            weaponDefense = GetMaxDamageMod(profile.Tier, 22);
-                            weaponOffense = GetMaxDamageMod(profile.Tier, 18);
-                            break;
-                        case 7:
-                            weaponDefense = GetMaxDamageMod(profile.Tier, 18);
-                            weaponOffense = GetMaxDamageMod(profile.Tier, 22);
-                            break;
-                        case 8:
-                        case 9:
-                        case 10:
-                        default:
+                        case AttackType.Thrust: // Assagai | Pike | Corsesca | Magari Yari
                             weaponDefense = GetMaxDamageMod(profile.Tier, 15);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 25);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Spears);
+                            break;
+                        case AttackType.Slash:
+                            // Great Star Mace | Quadrelle | Khanda-handled Mace | Tetsubo
+                            weaponDefense = GetMaxDamageMod(profile.Tier, 22);
+                            weaponOffense = GetMaxDamageMod(profile.Tier, 18);
+
+                            if ((wo.Name.Any() != false) && (wo.Name.Contains("Nodachi") || wo.Name.Contains("Shashqa") || wo.Name.Contains("Spadone")))
+                            {
+                                weaponDefense = GetMaxDamageMod(profile.Tier, 20);
+                                weaponOffense = GetMaxDamageMod(profile.Tier, 20);
+                            }
+
+                            if (wo.SetupTableId >= 33560802 && wo.SetupTableId <= 33560807) // Greataxe
+                            {
+                                weaponDefense = GetMaxDamageMod(profile.Tier, 18);
+                                weaponOffense = GetMaxDamageMod(profile.Tier, 22);
+                            }
                             break;
                     }
                     break;
@@ -415,6 +360,8 @@ namespace ACE.Server.Factories
             wo.Value = value;
 
             RandomizeColor(wo);
+
+            return true;
         }
 
         private enum LootWeaponType
@@ -790,22 +737,20 @@ namespace ACE.Server.Factories
             return damageTable + maxDamageVariance;
         }
 
-        private static bool GetMutateMeleeWeaponData(uint wcid, out int weaponType, out int subtype)
+        private static bool GetMutateMeleeWeaponData(uint wcid)
         {
             // linear search = slow... but this is only called for /lootgen
             // if this ever needs to be fast, create a lookup table
 
-            for (weaponType = 0; weaponType < LootTables.MeleeWeaponsMatrices.Count; weaponType++)
+            for (int weaponType = 0; weaponType < LootTables.MeleeWeaponsMatrices.Count; weaponType++)
             {
                 var lootTable = LootTables.MeleeWeaponsMatrices[weaponType];
-                for (subtype = 0; subtype < lootTable.Length; subtype++)
+                for (int subtype = 0; subtype < lootTable.Length; subtype++)
                 {
                     if (lootTable[subtype].Contains((int)wcid))
                         return true;
                 }
             }
-            weaponType = -1;
-            subtype = -1;
             return false;
         }
     }

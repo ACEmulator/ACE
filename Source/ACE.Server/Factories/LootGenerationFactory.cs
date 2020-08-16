@@ -269,8 +269,11 @@ namespace ACE.Server.Factories
                 MutateJewelry(item, profile, isMagical);
             else if (GetMutateJewelsData(item.WeenieClassId, out int gemLootMatrixIndex))
                 MutateJewels(item, profile.Tier, isMagical, gemLootMatrixIndex);
-            else if (GetMutateMeleeWeaponData(item.WeenieClassId, out int weaponType, out int subtype))
-                MutateMeleeWeapon(item, profile, isMagical, weaponType, subtype);
+            else if (GetMutateMeleeWeaponData(item.WeenieClassId))
+            {
+                if (!MutateMeleeWeapon(item, profile, isMagical))
+                    return false;
+            }
             else if (GetMutateMissileWeaponData(item.WeenieClassId, profile.Tier, out int wieldDifficulty, out bool isElemental))
                 MutateMissileWeapon(item, profile, isMagical, wieldDifficulty, isElemental);
             else if (item is PetDevice petDevice)
