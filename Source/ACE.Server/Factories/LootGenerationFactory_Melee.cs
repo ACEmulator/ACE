@@ -33,22 +33,22 @@ namespace ACE.Server.Factories
             {
                 case 0:
                     // Heavy Weapons
-                    subtype = ThreadSafeRandom.Next(0, LootTables.HeavyWeaponsMatrix.Length);
+                    subtype = ThreadSafeRandom.Next(0, LootTables.HeavyWeaponsMatrix.Length - 1);
                     weaponWeenie = LootTables.HeavyWeaponsMatrix[subtype][eleType];
                     break;
                 case 1:
                     // Light Weapons
-                    subtype = ThreadSafeRandom.Next(0, LootTables.LightWeaponsMatrix.Length);
+                    subtype = ThreadSafeRandom.Next(0, LootTables.LightWeaponsMatrix.Length - 1);
                     weaponWeenie = LootTables.LightWeaponsMatrix[subtype][eleType];
                     break;
                 case 2:
                     // Finesse Weapons;
-                    subtype = ThreadSafeRandom.Next(0, LootTables.FinesseWeaponsMatrix.Length);
+                    subtype = ThreadSafeRandom.Next(0, LootTables.FinesseWeaponsMatrix.Length - 1);
                     weaponWeenie = LootTables.FinesseWeaponsMatrix[subtype][eleType];
                     break;
                 default:
                     // Two handed
-                    subtype = ThreadSafeRandom.Next(0, LootTables.TwoHandedWeaponsMatrix.Length);
+                    subtype = ThreadSafeRandom.Next(0, LootTables.TwoHandedWeaponsMatrix.Length - 1);
                     weaponWeenie = LootTables.TwoHandedWeaponsMatrix[subtype][eleType];
                     break;
             }
