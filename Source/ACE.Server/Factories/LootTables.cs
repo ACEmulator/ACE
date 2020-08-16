@@ -202,6 +202,7 @@ namespace ACE.Server.Factories
             new int[] { 301, 3750, 3751, 3752, 3753 }, // Battle Axe
             new int[] { 344, 3865, 3866, 3867, 3868 }, // Silifi
             new int[] { 31769, 31770, 31771, 31772, 31768 }, // War Axe
+            new int[] { 31764, 31765, 31766, 31767, 31763 }, // Lugian Hammer
             new int[] { 22440, 22441, 22442, 22443, 22444 }, // Dirk
             new int[] { 30601, 30602, 30603, 30604, 30605 }, // Stiletto
             new int[] { 319, 3794, 3795, 3796, 3797 }, // Jambiya
@@ -240,7 +241,7 @@ namespace ACE.Server.Factories
             new int[] { 338, 22164, 22165, 22166, 22167 }, // Quarter Staff
             new int[] { 350, 3877, 3878, 3879, 3880 }, // Broad Sword
             new int[] { 31759, 31760, 31761, 31762, 31758 }, // Dericost Blade
-            new int[] { 45099, 45099, 45099, 45099, 45099 }, // Epee - Placeholders, as not yet in database
+            new int[] { 45099, 45099, 45099, 45099, 45099 }, // Epee
             new int[] { 324, 3810, 3811, 3812, 3813 }, // Kaskara
             new int[] { 30571, 30572, 30573, 30574, 30575 }, // Spada
             new int[] { 340, 3853, 3854, 3855, 3856 },// Shamshir
@@ -260,7 +261,6 @@ namespace ACE.Server.Factories
             new int[] { 313, 3774, 3775, 3776, 3777 }, // Dabus
             new int[] { 356, 3897, 3898, 3899, 3900 }, // Tofun
             new int[] { 321, 3802, 3803, 3804, 3805 }, // Jitte
-            new int[] { 31774, 31775, 31776, 31777, 31773 }, // Stone Mace
             new int[] { 308, 3762, 3763, 3764, 3765 }, // Budiaq
             new int[] { 7771, 7795, 7796, 7797, 7798 }, // Naginata
             new int[] { 30606, 30607, 30608, 30609, 30610 }, // Bastone
