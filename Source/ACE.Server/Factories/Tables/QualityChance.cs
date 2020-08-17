@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using log4net;
 using ACE.Common;
 
-namespace ACE.Server.Factories
+namespace ACE.Server.Factories.Tables
 {
-    public static class ChanceTables
+    public static class QualityChance
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
