@@ -261,8 +261,11 @@ namespace ACE.Server.Factories
                 MutateAetheria(item, profile.Tier);
             else if (GetMutateArmorData(item.WeenieClassId, out var armorType))
                 MutateArmor(item, profile, isMagical, armorType.Value);
-            else if (GetMutateCasterData(item.WeenieClassId, out int wield, out int element))
+            else if (GetMutateCasterData(item.WeenieClassId, out int element))
+            {
+                var wield = element > -1 ? GetWieldDifficulty(profile.Tier, WieldType.Caster) : 0;
                 MutateCaster(item, profile, isMagical, wield, element);
+            }
             else if (GetMutateDinnerwareData(item.WeenieClassId))
                 MutateDinnerware(item, profile.Tier);
             else if (GetMutateJewelryData(item.WeenieClassId))
