@@ -391,7 +391,7 @@ namespace ACE.Server.Entity
 
         public bool VerifyWalkableSlope(WorldObject obj)
         {
-            if (!obj.Location.Indoors && !obj.Location.IsWalkable())
+            if (!obj.Location.Indoors && !obj.Location.IsWalkable() && (obj.GravityStatus ?? false))
             {
                 //log.Debug($"{_generator.Name}.VerifyWalkableSlope({obj.Name}) - spawn location is unwalkable slope");
                 return false;
