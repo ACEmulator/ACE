@@ -951,10 +951,8 @@ namespace ACE.Server.Factories
 
         private static WorldObject AssignMagic(WorldObject wo, TreasureDeath profile, bool isArmor = false)
         {
-            const int armorSpellImpenIndex = 47; // 47th row in the LootTables.ArmorSpells array, starting from zero
-
-            int[][] spells;
-            int[][] cantrips;
+            SpellId[][] spells;
+            SpellId[][] cantrips;
 
             int lowSpellTier = GetLowSpellTier(profile.Tier);
             int highSpellTier = GetHighSpellTier(profile.Tier);
@@ -964,24 +962,24 @@ namespace ACE.Server.Factories
             switch (wo.WeenieType)
             {
                 case WeenieType.Clothing:
-                    spells = LootTables.ArmorSpells;
-                    cantrips = LootTables.ArmorCantrips;
+                    spells = ArmorSpells.Table;
+                    cantrips = ArmorCantrips.Table;
                     break;
                 case WeenieType.Caster:
-                    spells = LootTables.WandSpells;
-                    cantrips = LootTables.WandCantrips;
+                    spells = WandSpells.Table;
+                    cantrips = WandCantrips.Table;
                     break;
                 case WeenieType.Generic:
-                    spells = LootTables.JewelrySpells;
-                    cantrips = LootTables.JewelryCantrips;
+                    spells = JewelrySpells.Table;
+                    cantrips = JewelryCantrips.Table;
                     break;
                 case WeenieType.MeleeWeapon:
-                    spells = LootTables.MeleeSpells;
-                    cantrips = LootTables.MeleeCantrips;
+                    spells = MeleeSpells.Table;
+                    cantrips = MeleeCantrips.Table;
                     break;
                 case WeenieType.MissileLauncher:
-                    spells = LootTables.MissileSpells;
-                    cantrips = LootTables.MissileCantrips;
+                    spells = MissileSpells.Table;
+                    cantrips = MissileCantrips.Table;
                     break;
                 default:
                     spells = null;
@@ -1004,80 +1002,77 @@ namespace ACE.Server.Factories
             wo.ItemMaxMana = GetMaxMana(numSpells, profile.Tier);
             wo.ItemCurMana = wo.ItemMaxMana;
 
-            int[] shuffledValues = new int[spells.Length];
-            for (int i = 0; i < spells.Length; i++)
-            {
-                shuffledValues[i] = i;
-            }
+            int[] shuffledValues = Enumerable.Range(0, spells.Length).ToArray();
 
             Shuffle(shuffledValues);
 
             if (numSpells - numCantrips > 0)
             {
-                for (int a = 0; a < numSpells - numCantrips; a++)
+                for (int i = 0; i < numSpells - numCantrips; i++)
                 {
                     int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
-                    int spellID = spells[shuffledValues[a]][col];
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
+                    SpellId spellID = spells[shuffledValues[i]][col];
+                    wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
 
             // Per discord discussions: ALL armor/shields if it had any spells, had an Impen spell
-            if (isArmor == true)
+            if (isArmor)
             {
+                var impenSpells = SpellLevelProgression.Impenetrability;
+
                 // Ensure that one of the Impen spells was not already added
                 bool impenFound = false;
-                for (int a = 0; a < 8; a++)
+                for (int i = 0; i < 8; i++)
                 {
-                    impenFound = wo.Biota.SpellIsKnown(LootTables.ArmorSpells[armorSpellImpenIndex][a], wo.BiotaDatabaseLock);
-                    if (impenFound == true)
+                    if (wo.Biota.SpellIsKnown((int)impenSpells[i], wo.BiotaDatabaseLock))
+                    {
+                        impenFound = true;
                         break;
+                    }
                 }
-
-                if (impenFound == false)
+                if (!impenFound)
                 {
                     int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
-                    int spellID = LootTables.ArmorSpells[armorSpellImpenIndex][col];
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
+                    SpellId spellID = impenSpells[col];
+                    wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
 
             if (numCantrips > 0)
             {
-                shuffledValues = new int[cantrips.Length];
-                for (int i = 0; i < cantrips.Length; i++)
-                {
-                    shuffledValues[i] = i;
-                }
+                shuffledValues = Enumerable.Range(0, cantrips.Length).ToArray();
                 Shuffle(shuffledValues);
+
                 int shuffledPlace = 0;
-                //minor cantripps
-                for (int a = 0; a < minorCantrips; a++)
+
+                // minor cantrips
+                for (var i = 0; i < minorCantrips; i++)
                 {
-                    int spellID = cantrips[shuffledValues[shuffledPlace]][0];
+                    SpellId spellID = cantrips[shuffledValues[shuffledPlace]][0];
                     shuffledPlace++;
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
+                    wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
-                //major cantrips
-                for (int a = 0; a < majorCantrips; a++)
+                // major cantrips
+                for (var i = 0; i < majorCantrips; i++)
                 {
-                    int spellID = cantrips[shuffledValues[shuffledPlace]][1];
+                    SpellId spellID = cantrips[shuffledValues[shuffledPlace]][1];
                     shuffledPlace++;
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
+                    wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
                 // epic cantrips
-                for (int a = 0; a < epicCantrips; a++)
+                for (var i = 0; i < epicCantrips; i++)
                 {
-                    int spellID = cantrips[shuffledValues[shuffledPlace]][2];
+                    SpellId spellID = cantrips[shuffledValues[shuffledPlace]][2];
                     shuffledPlace++;
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
+                    wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
-                //legendary cantrips
-                for (int a = 0; a < legendaryCantrips; a++)
+                // legendary cantrips
+                for (var i = 0; i < legendaryCantrips; i++)
                 {
-                    int spellID = cantrips[shuffledValues[shuffledPlace]][3];
+                    SpellId spellID = cantrips[shuffledValues[shuffledPlace]][3];
                     shuffledPlace++;
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, out _);
+                    wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
             int spellcraft = GetSpellcraft(wo, numSpells, profile.Tier);
@@ -2369,16 +2364,17 @@ namespace ACE.Server.Factories
 
         private static void Shuffle<T>(T[] array)
         {
-            Random _r = new Random();
-            int n = array.Length;
-            for (int i = 0; i < n; i++)
+            // verified even distribution
+            for (var i = 0; i < array.Length; i++)
             {
-                int r = i + _r.Next(n - i);
-                T t = array[r];
-                array[r] = array[i];
-                array[i] = t;
+                var idx = ThreadSafeRandom.Next(i, array.Length - 1);
+
+                var temp = array[idx];
+                array[idx] = array[i];
+                array[i] = temp;
             }
         }
+
         private static WorldObject AssignCloakSpells(WorldObject wo, int cloakSpellId)
         {
             wo.ProcSpell = (uint)cloakSpellId;
