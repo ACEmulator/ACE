@@ -530,9 +530,9 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Increments the counter for a kill task, and optionally shares with fellowship
+        /// Increments the counter for a kill task for a player
         /// </summary>
-        public void HandleKillTask(string killQuestName, WorldObject killedCreature, bool shareable = true)
+        public void HandleKillTask(string killQuestName, WorldObject killedCreature)
         {
             var player = Creature as Player;
             if (player == null) return;
@@ -554,44 +554,28 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            if (HasQuest(questName))
+            if (!HasQuest(questName))
+                return;
+
+            Stamp(killQuestName);
+
+            var playerQuest = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+
+            if (playerQuest == null)
             {
-                Stamp(killQuestName);
-
-                var playerQuest = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
-
-                if (playerQuest == null)
-                {
-                    // this should be impossible
-                    log.Error($"{Name}.QuestManager.HandleKillTask({killQuestName}): couldn't find kill task {questName} in player quests");
-                    return;
-                }
-
-                var msg = $"You have killed {playerQuest.NumTimesCompleted} {killedCreature.GetPluralName()}!";
-
-                if (IsMaxSolves(questName))
-                    msg += $" Your task is complete.";
-                else
-                    msg += $" You must kill {quest.MaxSolves} to complete your task.";
-
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
-            }
-            else if (PropertyManager.GetBool("fellow_kt_killer").Item)
-            {
-                // if this option is enabled (retail default), the killer is required to have kill task
-                // for it to share with fellowship
+                // this should be impossible
+                log.Error($"{Name}.QuestManager.HandleKillTask({killQuestName}): couldn't find kill task {questName} in player quests");
                 return;
             }
 
-            // is player in fellowship?
-            if (player.Fellowship != null && shareable)
-            {
-                // if so, share with fellows within range
-                var fellows = player.Fellowship.WithinRange(player);
+            var msg = $"You have killed {playerQuest.NumTimesCompleted} {killedCreature.GetPluralName()}!";
 
-                foreach (var fellow in fellows)
-                    fellow.QuestManager.HandleKillTask(killQuestName, killedCreature, false);
-            }
+            if (IsMaxSolves(questName))
+                msg += $" Your task is complete.";
+            else
+                msg += $" You must kill {quest.MaxSolves} to complete your task.";
+
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -599,19 +583,6 @@ namespace ACE.Server.Managers
         /// </summary>
         public void OnDeath(WorldObject killer)
         {
-            var player = killer as Player;
-
-            if (killer is CombatPet combatPet)
-                player = combatPet.P_PetOwner;
-
-            if (player == null) return;
-
-            if (Creature.KillQuest != null)
-                player.QuestManager.HandleKillTask(Creature.KillQuest, Creature);
-            if (Creature.KillQuest2 != null)
-                player.QuestManager.HandleKillTask(Creature.KillQuest2, Creature);
-            if (Creature.KillQuest3 != null)
-                player.QuestManager.HandleKillTask(Creature.KillQuest3, Creature);
         }
 
         public bool HasQuestBits(string questFormat, int bits)
