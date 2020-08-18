@@ -542,20 +542,10 @@ namespace ACE.Server.WorldObjects
         public Position GetPosition(PositionType positionType)
         {
             if (ephemeralPositions.TryGetValue(positionType, out var ephemeralPosition))
-            {
-                if (ephemeralPosition != null && !ephemeralPosition.Rotation.IsRotationValid())
-                    ephemeralPosition.AttemptToFixRotation(this, positionType);
-
                 return ephemeralPosition;
-            }
 
             if (positionCache.TryGetValue(positionType, out var cachedPosition))
-            {
-                if (cachedPosition != null && !cachedPosition.Rotation.IsRotationValid())
-                    cachedPosition.AttemptToFixRotation(this, positionType);
-
                 return cachedPosition;
-            }
 
             var position = Biota.GetPosition(positionType, BiotaDatabaseLock);
 
