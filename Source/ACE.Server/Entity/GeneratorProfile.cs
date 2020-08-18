@@ -400,7 +400,7 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// A list of landblocks the player excluded from VerifyWalkableSlope check
+        /// A list of landblocks the excluded from VerifyWalkableSlope check
         /// 
         /// TODO gmriggs
         /// Hack until this can be looked into more.
