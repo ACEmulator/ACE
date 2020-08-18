@@ -325,9 +325,6 @@ namespace ACE.Server.Entity
 
         public static bool AttemptToFixRotation(this Position pos, WorldObject wo, PositionType positionType)
         {
-            if (wo is SpellProjectile)
-                return false;
-
             log.Warn($"detected bad quaternion x y z w for {wo.Name} (0x{wo.Guid}) | WCID: {wo.WeenieClassId} | WeenieType: {wo.WeenieType} | PositionType: {positionType}");
             log.Warn($"before fix: {pos.ToLOCString()}");
 
