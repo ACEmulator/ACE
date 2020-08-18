@@ -244,6 +244,9 @@ namespace ACE.Server.WorldObjects
 
             foreach (var kvp in DamageHistory.TotalDamage)
             {
+                if (kvp.Value.TotalDamage <= 0)
+                    continue;
+
                 var damager = kvp.Value.TryGetAttacker();
 
                 var playerDamager = damager as Player;
@@ -253,9 +256,14 @@ namespace ACE.Server.WorldObjects
                     // handle combat pets
                     playerDamager = kvp.Value.TryGetPetOwner();
 
-                    // only add combat pet to eligible receivers if player has quest, and allow_summoning_killtask_multicredit = true (default, retail)
-                    if (playerDamager != null && playerDamager.QuestManager.HasQuest(questName) && PropertyManager.GetBool("allow_summoning_killtask_multicredit").Item)
-                        receivers[kvp.Value.Guid] = kvp.Value;
+                    if (playerDamager != null && playerDamager.QuestManager.HasQuest(questName))
+                    {
+                        // only add combat pet to eligible receivers if player has quest, and allow_summoning_killtask_multicredit = true (default, retail)
+                        if (DamageHistory.HasDamager(playerDamager, true) && PropertyManager.GetBool("allow_summoning_killtask_multicredit").Item)
+                            receivers[kvp.Value.Guid] = kvp.Value;
+                        else
+                            receivers[playerDamager.Guid] = new DamageHistoryInfo(playerDamager);
+                    }
 
                     // regardless if combat pet is eligible, we still want to continue traversing to the pet owner, and possibly fellows
 
