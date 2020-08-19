@@ -185,6 +185,17 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine($"Velocity: {velocity}");
 
+            if (velocity == Vector3.Zero)
+            {
+                // pre-check succeeded, but actual velocity calculation failed
+                SendWeenieError(WeenieError.MissileOutOfRange);
+
+                // this prevents the accuracy bar from refilling when 'repeat attacks' is enabled
+                Attacking = false;
+                OnAttackDone();
+                return;
+            }
+
             var actionChain = new ActionChain();
             var launchTime = EnqueueMotion(actionChain, aimLevel);
 
