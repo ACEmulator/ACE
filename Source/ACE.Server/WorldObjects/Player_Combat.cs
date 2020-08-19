@@ -105,6 +105,7 @@ namespace ACE.Server.WorldObjects
 
         public override CombatType GetCombatType()
         {
+            // this is an unsafe function, move away from this
             var weapon = GetEquippedWeapon();
 
             if (weapon == null || weapon.CurrentWieldedLocation != EquipMask.MissileWeapon)
