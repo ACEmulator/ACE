@@ -1107,6 +1107,29 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
+        public float EnqueueMotion(ActionChain actionChain, MotionStance stance, MotionCommand motionCommand, float speed = 1.0f)
+        {
+            // specialized function to mitigate odd client behvaior w/ swapping bows during repeat attacks
+            // TODO: fix the CurrentMotionState mess
+            var motion = new Motion(stance, motionCommand, speed);
+            motion.MotionState.TurnSpeed = 2.25f;  // ??
+
+            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
+
+            actionChain.AddAction(this, () =>
+            {
+                // retain original profile of function, but if something else has changed the stance (such as weapon swapping),
+                // do not thrash CurrentMotionState.Stance
+                if (CurrentMotionState.Stance == stance)
+                    CurrentMotionState = motion;
+
+                EnqueueBroadcastMotion(motion);
+            });
+            actionChain.AddDelaySeconds(animLength);
+
+            return animLength;
+        }
+
         public float EnqueueMotionAction(ActionChain actionChain, List<MotionCommand> motionCommands, float speed = 1.0f, MotionStance? useStance = null, bool usePrevCommand = false)
         {
             var stance = useStance ?? CurrentMotionState.Stance;
