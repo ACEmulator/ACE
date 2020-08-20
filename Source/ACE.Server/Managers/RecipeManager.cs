@@ -259,7 +259,7 @@ namespace ACE.Server.Managers
             var skill = player.GetCreatureSkill(recipeSkill);
 
             // require skill check for everything except ivory / leather / sandstone
-            if (UseSkillCheck(materialType))
+            if (UseSkillCheck(recipeSkill, materialType))
             {
                 // tinkering skill must be trained
                 if (skill.AdvancementClass < SkillAdvancementClass.Trained)
@@ -341,7 +341,7 @@ namespace ACE.Server.Managers
 
             CreateDestroyItems(player, recipe, tool, target, success, !incItemTinkered);
 
-            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) || !UseSkillCheck(tool.MaterialType ?? 0))
+            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) || !UseSkillCheck((Skill)recipe.Skill, tool.MaterialType ?? 0))
                 player.SendUseDoneEvent();
         }
 
@@ -564,7 +564,7 @@ namespace ACE.Server.Managers
                     target.DamageMod += 0.04f;
                     break;
                 case MaterialType.Granite:
-                    target.DamageVariance *= 0.8f;
+                    target.DamageVariance *= 0.8f;      // additive or multiplicative?
                     break;
                 case MaterialType.Oak:
                     target.WeaponTime = Math.Max(0, (target.WeaponTime ?? 0) - 50);
@@ -1144,6 +1144,8 @@ namespace ACE.Server.Managers
                 // apply base mod
                 switch (mod.DataId)
                 {
+                    // TODO: add real mutation scripts
+
                     //  Fetish of the Dark Idols
                     case 0x38000046:
                         AddImbuedEffect(player, target, ImbuedEffectType.IgnoreSomeMagicProjectileDamage);
@@ -1157,6 +1159,12 @@ namespace ACE.Server.Managers
                         target.SetProperty(PropertyInt64.ItemBaseXp, 2000000000);
                         var itemTotalXp = target.GetProperty(PropertyInt64.ItemTotalXp) ?? 0;
                         target.SetProperty(PropertyInt64.ItemTotalXp, itemTotalXp);
+                        break;
+
+                    // Lucky White Rabbit's Foot
+                    case 0x3800001C:
+                        if (target.DamageVariance != null)
+                            target.DamageVariance = Math.Max(0, target.DamageVariance.Value - 0.2f);    // assuming this should be additive instead of multiplicative, tinkering for MaterialType.Granite could possibly be wrong
                         break;
                 }
 
@@ -1391,11 +1399,11 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Returns TRUE if this material requies a skill check
+        /// Returns TRUE if tinker operation requires a skill check
         /// </summary>
-        public static bool UseSkillCheck(MaterialType material)
+        public static bool UseSkillCheck(Skill skill, MaterialType material)
         {
-            return material != MaterialType.Ivory && material != MaterialType.Leather && material != MaterialType.Sandstone;
+            return skill != Skill.None && material != MaterialType.Ivory && material != MaterialType.Leather && material != MaterialType.Sandstone;
         }
     }
 }
