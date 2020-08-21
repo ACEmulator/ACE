@@ -50,7 +50,9 @@ namespace ACE.Entity
 
         // not sure where this logic came from, i don't think MapScope.IndoorsSmall and MapScope.IndoorsLarge was a thing?
         //public MapScope MapScope => (MapScope)((Raw & 0x0F00) >> 8);
-        public MapScope MapScope
+
+        // just nuking this now, keeping this code here for reference
+        /*public MapScope MapScope
         {
             // TODO: port the updated version of Position and Landblock from Instancing branch, get rid of this MapScope thing..
             get
@@ -64,7 +66,9 @@ namespace ACE.Entity
                 else
                     return MapScope.IndoorsLarge;
             }
-        }
+        }*/
+
+        public bool Indoors => (Raw & 0xFFFF) >= 0x100;
 
         public static bool operator ==(LandblockId c1, LandblockId c2)
         {
