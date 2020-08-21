@@ -4,6 +4,7 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.DatLoader;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
@@ -297,6 +298,10 @@ namespace ACE.Server.WorldObjects
             }*/
         }
 
+        private static readonly List<float> defaultAttackFrames = new List<float>() { 1.0f / 3.0f };
+
+        private static readonly HashSet<AttackFrameParams> missingAttackFrames = new HashSet<AttackFrameParams>();
+
         /// <summary>
         /// Perform the melee attack swing animation
         /// </summary>
@@ -314,6 +319,18 @@ namespace ACE.Server.WorldObjects
             animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, motionCommand, animSpeed);
 
             attackFrames = MotionTable.GetAttackFrames(MotionTableId, CurrentMotionState.Stance, motionCommand);
+
+            if (attackFrames.Count == 0)
+            {
+                var attackFrameParams = new AttackFrameParams(MotionTableId, CurrentMotionState.Stance, motionCommand);
+                if (!missingAttackFrames.Contains(attackFrameParams))
+                {
+                    // only show warning message once for each combo
+                    log.Warn($"{Name} ({Guid}) - no attack frames for MotionTable {MotionTableId:X8}, {CurrentMotionState.Stance}, {motionCommand}, using defaults");
+                    missingAttackFrames.Add(attackFrameParams);
+                }
+                attackFrames = defaultAttackFrames;
+            }
 
             var motion = new Motion(this, motionCommand, animSpeed);
             motion.MotionState.TurnSpeed = 2.25f;
