@@ -43,13 +43,9 @@ namespace ACE.Server.Entity
 
             var chance = damage_percent * chanceMod;
 
-            if (chance < 1.0f)
-            {
-                var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-                if (chance < rng)
-                    return false;
-            }
-            return true;
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            return rng < chance;
         }
 
         /// <summary>

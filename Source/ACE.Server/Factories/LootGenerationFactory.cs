@@ -1596,7 +1596,7 @@ namespace ACE.Server.Factories
 
             // Spell Count Addon
             float spellAddonChance = num_spells * (20.0f / (num_spells + 2.0f));
-            float spellAddon = ThreadSafeRandom.Next(1.0f, spellAddonChance) * num_spells;
+            float spellAddon = (float)ThreadSafeRandom.Next(1.0f, spellAddonChance) * num_spells;
 
             float tArcane = itemspellcraft * heritage_mod * 1.9f + spellAddon + epicAddon + legAddon;
             tArcane /= rank_mod + 1.0f;
@@ -2028,7 +2028,7 @@ namespace ACE.Server.Factories
                 foreach (var color in colors)
                 {
                     probability += color.Probability;
-                    if (probability >= rng || probability == totalProbability)
+                    if (probability > rng || probability == totalProbability)
                     {
                         paletteTemplate = color.PaletteTemplate;
                         break;

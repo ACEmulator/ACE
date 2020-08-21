@@ -79,7 +79,7 @@ namespace ACE.Server.Factories
             var baseRating = ThreadSafeRandom.Next(1, 10);
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
             var tierMod = 0.4f + tier * 0.02f;
-            if (rng > tierMod)
+            if (rng > tierMod)      // TODO: this might be backwards, review
                 baseRating += ThreadSafeRandom.Next(1, 10);
 
             return baseRating;
