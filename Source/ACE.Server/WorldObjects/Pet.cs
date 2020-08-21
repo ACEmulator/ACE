@@ -11,6 +11,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
@@ -44,28 +45,15 @@ namespace ACE.Server.WorldObjects
         {
             Ethereal = true;
             RadarBehavior = ACE.Entity.Enum.RadarBehavior.ShowNever;
-            ItemUseable = ACE.Entity.Enum.Usable.No;
+            ItemUseable = Usable.No;
 
             SuppressGenerateEffect = true;
         }
 
         public virtual bool Init(Player player, PetDevice petDevice)
         {
-            if (player.CurrentActivePet != null)
-            {
-                if (player.CurrentActivePet is CombatPet)
-                {
-                    player.SendTransientError($"{player.CurrentActivePet.Name} is already active");
-                    return false;
-                }
-
-                var stowPet = WeenieClassId == player.CurrentActivePet.WeenieClassId;
-
-                // despawn passive pet
-                player.CurrentActivePet.Destroy();
-
-                if (stowPet) return false;
-           }
+            if (!HandleCurrentActivePet(player))
+                return false;
 
             if (IsPassivePet)
             {
@@ -103,6 +91,65 @@ namespace ACE.Server.WorldObjects
                 nextSlowTickTime = Time.GetUnixTime();
 
             return true;
+        }
+
+        public bool HandleCurrentActivePet(Player player)
+        {
+            if (PropertyManager.GetBool("pet_stow_replace").Item)
+                return HandleCurrentActivePet_Replace(player);
+            else
+                return HandleCurrentActivePet_Retail(player);
+        }
+
+        public bool HandleCurrentActivePet_Replace(Player player)
+        {
+            // original ace logic
+            if (player.CurrentActivePet == null)
+                return true;
+
+            if (player.CurrentActivePet is CombatPet)
+            {
+                // possibly add the ability to stow combat pets with passive pet devices here?
+                player.SendTransientError($"{player.CurrentActivePet.Name} is already active");
+                return false;
+            }
+
+            var stowPet = WeenieClassId == player.CurrentActivePet.WeenieClassId;
+
+            // despawn passive pet
+            player.CurrentActivePet.Destroy();
+
+            return !stowPet;
+        }
+
+        public bool HandleCurrentActivePet_Retail(Player player)
+        {
+            if (player.CurrentActivePet == null)
+                return true;
+
+            if (IsPassivePet)
+            {
+                // using a passive pet device
+                // stow currently active passive/combat pet, as per retail
+                // spawning the new passive pet requires another double click
+                player.CurrentActivePet.Destroy();
+            }
+            else
+            {
+                // using a combat pet device
+                if (player.CurrentActivePet is CombatPet)
+                {
+                    player.SendTransientError($"{player.CurrentActivePet.Name} is already active");
+                }
+                else
+                {
+                    // stow currently active passive pet
+                    // stowing the currently active passive pet w/ a combat pet device will unfortunately start the cooldown timer on the combat pet device, as per retail
+                    // spawning the combat pet will require another double click in ~45s, as per retail
+                    player.CurrentActivePet.Destroy();
+                }
+            }
+            return false;
         }
 
         /// <summary>
