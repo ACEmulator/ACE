@@ -432,7 +432,7 @@ namespace ACE.Server.WorldObjects
             TooEncumbered = false;
             NotEnoughFreeSlots = false;
 
-            if (this is Player player && !player.HasEnoughBurdenToAddToInventory(worldObjects))
+            if (this is Player player && worldObjects.Count >=1 && !player.HasEnoughBurdenToAddToInventory(worldObjects))
             {
                 TooEncumbered = true;
                 return false;
