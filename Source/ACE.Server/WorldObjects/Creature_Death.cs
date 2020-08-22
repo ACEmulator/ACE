@@ -120,7 +120,7 @@ namespace ACE.Server.WorldObjects
             var motionDeath = new Motion(MotionStance.NonCombat, MotionCommand.Dead);
             var deathAnimLength = ExecuteMotion(motionDeath);
 
-            EmoteManager.OnDeath(lastDamager?.TryGetAttacker());
+            EmoteManager.OnDeath(lastDamager);
 
             var dieChain = new ActionChain();
 
