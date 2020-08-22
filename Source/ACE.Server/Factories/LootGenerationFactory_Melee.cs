@@ -90,7 +90,7 @@ namespace ACE.Server.Factories
             // 1 = Light
             // 2 = Finesse
             // default = Two Handed
-            switch (wo.WeaponSkill)
+            switch (wieldSkillType)
             {
                 case Skill.HeavyWeapons:
                     switch (wo.W_WeaponType)
@@ -211,7 +211,6 @@ namespace ACE.Server.Factories
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.UA);
                             break;
                         default:
-                            log.Warn($"[LOOT] Missing needed melee weapon properties on loot item {wo.WeenieClassId} - {wo.Name} for mutations");
                             return false;
                     }
                     break;
@@ -280,7 +279,6 @@ namespace ACE.Server.Factories
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.UA);
                             break;
                         default:
-                            log.Warn($"[LOOT] Missing needed melee weapon properties on loot item {wo.WeenieClassId} - {wo.Name} for mutations");
                             return false;
                     }
                     break;
@@ -301,7 +299,6 @@ namespace ACE.Server.Factories
                     }
                     break;
                 default:
-                    log.Warn($"[LOOT] Missing needed melee weapon properties on loot item {wo.WeenieClassId} - {wo.Name} for mutations");
                     return false;
             }
 
