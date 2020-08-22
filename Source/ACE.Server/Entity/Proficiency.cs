@@ -34,6 +34,13 @@ namespace ACE.Server.Entity
 
             var timeDiff = currentTime - last_used_time;
 
+            if (timeDiff < 0)
+            {
+                // can happen if user sets their clock backwards
+                log.Warn($"Proficiency.OnSuccessUse({player.Name}, {skill.Skill}, {difficulty}) - timeDiff: {timeDiff}");
+                return;
+            }
+
             var difficulty_check = difficulty > last_difficulty;
             var time_check = timeDiff >= FullTime.TotalSeconds;
 
@@ -63,7 +70,7 @@ namespace ACE.Server.Entity
 
                 if (totalXPGranted > 10000)
                 {
-                    log.Warn($"Proficiency.OnSuccessUse({player.Name}, {skill.Skill}, {difficulty})");
+                    log.Warn($"Proficiency.OnSuccessUse({player.Name}, {skill.Skill}, {difficulty}) - totalXPGranted: {totalXPGranted}");
                 }
 
                 var maxLevel = Player.GetMaxLevel();
