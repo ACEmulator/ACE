@@ -38,6 +38,7 @@ namespace ACE.Server.Entity
             {
                 // can happen if server clock is rewound back in time
                 log.Warn($"Proficiency.OnSuccessUse({player.Name}, {skill.Skill}, {difficulty}) - timeDiff: {timeDiff}");
+                skill.PropertiesSkill.LastUsedTime = currentTime;       // update to prevent log spam
                 return;
             }
 
