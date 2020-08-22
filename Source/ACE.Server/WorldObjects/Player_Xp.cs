@@ -483,7 +483,7 @@ namespace ACE.Server.WorldObjects
                 augBonus = AugmentationBonusXp * 0.05f;
 
             var modifier = 1.0f + enchantmentBonus + augBonus;
-            Console.WriteLine($"XPAndLuminanceModifier: {modifier}");
+            //Console.WriteLine($"XPAndLuminanceModifier: {modifier}");
 
             return modifier;
         }
