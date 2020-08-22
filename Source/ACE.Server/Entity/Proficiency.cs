@@ -71,7 +71,7 @@ namespace ACE.Server.Entity
 
                 if (totalXPGranted > 10000)
                 {
-                    log.Warn($"Proficiency.OnSuccessUse({player.Name}, {skill.Skill}, {difficulty}) - totalXPGranted: {totalXPGranted}");
+                    log.Warn($"Proficiency.OnSuccessUse({player.Name}, {skill.Skill}, {difficulty}) - totalXPGranted: {totalXPGranted:N0}");
                 }
 
                 var maxLevel = Player.GetMaxLevel();
