@@ -100,7 +100,6 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"Allegiance({monarch}): monarch constructor");
 
-            InitializePropertyDictionaries();
             Init(monarch);
         }
 
