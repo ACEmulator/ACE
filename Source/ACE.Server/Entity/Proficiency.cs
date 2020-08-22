@@ -36,7 +36,7 @@ namespace ACE.Server.Entity
 
             if (timeDiff < 0)
             {
-                // can happen if user sets their clock backwards
+                // can happen if server clock is rewound back in time
                 log.Warn($"Proficiency.OnSuccessUse({player.Name}, {skill.Skill}, {difficulty}) - timeDiff: {timeDiff}");
                 return;
             }
