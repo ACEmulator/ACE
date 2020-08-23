@@ -29,26 +29,26 @@ namespace ACE.Server.Factories
             // 1 = Light
             // 2 = Finesse
             // default = Two Handed
-            switch (weaponType)                
+            switch (weaponType)
             {
                 case 0:
                     // Heavy Weapons
-                    subtype = ThreadSafeRandom.Next(0, 22);
+                    subtype = ThreadSafeRandom.Next(0, LootTables.HeavyWeaponsMatrix.Length - 1);
                     weaponWeenie = LootTables.HeavyWeaponsMatrix[subtype][eleType];
                     break;
                 case 1:
                     // Light Weapons
-                    subtype = ThreadSafeRandom.Next(0, 19);
+                    subtype = ThreadSafeRandom.Next(0, LootTables.LightWeaponsMatrix.Length - 1);
                     weaponWeenie = LootTables.LightWeaponsMatrix[subtype][eleType];
                     break;
                 case 2:
                     // Finesse Weapons;
-                    subtype = ThreadSafeRandom.Next(0, 22);
+                    subtype = ThreadSafeRandom.Next(0, LootTables.FinesseWeaponsMatrix.Length - 1);
                     weaponWeenie = LootTables.FinesseWeaponsMatrix[subtype][eleType];
                     break;
                 default:
                     // Two handed
-                    subtype = ThreadSafeRandom.Next(0, 11);
+                    subtype = ThreadSafeRandom.Next(0, LootTables.TwoHandedWeaponsMatrix.Length - 1);
                     weaponWeenie = LootTables.TwoHandedWeaponsMatrix[subtype][eleType];
                     break;
             }
@@ -282,6 +282,7 @@ namespace ACE.Server.Factories
                             {
                                 weaponDefense = GetMaxDamageMod(profile.Tier, 25);
                                 weaponOffense = GetMaxDamageMod(profile.Tier, 15);
+                                damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Jitte);
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.Jitte);
                             }
                             break;
@@ -420,19 +421,19 @@ namespace ACE.Server.Factories
 
         private enum LootWeaponType
         {
-            Axe,
-            Dagger,
-            DaggerMulti,
-            Mace,
-            Spear,
-            Sword,
-            SwordMulti,
-            Staff,
-            UA,
-            Jitte,
+            Axe = 0,
+            Dagger = 1,
+            DaggerMulti = 2,
+            Mace = 3,
+            Spear = 4,
+            Sword = 5,
+            SwordMulti = 6,
+            Staff = 7,
+            UA = 8,
+            Jitte = 9,
             TwoHanded = 0,
             Cleaving = 0,
-            Spears,
+            Spears = 1,
         }
 
         // The percentages for variances need to be fixed
