@@ -70,6 +70,9 @@ namespace ACE.Entity.Enum
 
             var playerTypes = powerLevel < 0.33f ? damageType & DamageType.Physical : damageType & ~DamageType.Physical;
 
+            if (playerTypes == DamageType.Undef)
+                playerTypes = damageType;
+
             return playerTypes.SelectDamageType();
         }
     }
