@@ -196,6 +196,12 @@ namespace ACE.Server.Managers
                 else
                     player.Session.Network.EnqueueSend(updateObj);
             }
+
+            if (success && recipe.Skill > 0 && recipe.Difficulty > 0)
+            {
+                var skill = player.GetCreatureSkill((Skill)recipe.Skill);
+                Proficiency.OnSuccessUse(player, skill, recipe.Difficulty);
+            }
         }
 
         public static float DoMotion(Player player, MotionCommand motionCommand)
