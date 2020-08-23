@@ -331,7 +331,7 @@ namespace ACE.Server.Factories
                 {  9, 11, 13, 16, 18, 20, 24, 25, 28 }, // 6 - MultiSword
                 { 19, 28, 32, 36, 40, 44, 51, 54, 57 }, // 7 - Staff
                 { 17, 23, 27, 31, 34, 37, 44, 46, 48 }, // 8 - UA
-				{ 19, 28, 32, 36, 40, 44, 51, 54, 57 }  // 9 - Jitte
+                { 19, 28, 32, 36, 40, 44, 51, 54, 57 }  // 9 - Jitte
         };
 
         public static readonly int[,] TwoHandedWeaponDamageTable =
@@ -1248,7 +1248,7 @@ namespace ACE.Server.Factories
             new int[] { 629, 630, 631, 632, 633, 634 , 2323, 4638 },      // War Magic Mastery
             new int[] { 1599, 1601, 1602, 1603, 1604, 1605, 2101, 4400 }, // Defender
             new int[] { 1475, 1476, 1477, 1478, 1479, 1480, 2117, 4418 }, // Hermetic Link
-			new int[] { 3253, 3254, 3255, 3256, 3257, 3258, 3259, 4414 }, // Spirit Drinker
+            new int[] { 3253, 3254, 3255, 3256, 3257, 3258, 3259, 4414 }, // Spirit Drinker
         };
 
         public static readonly int[][] JewelrySpells =
