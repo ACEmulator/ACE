@@ -1240,6 +1240,9 @@ namespace ACE.Server.WorldObjects.Managers
             bool isDead = false;
             var damagers = new Dictionary<WorldObject, float>();
 
+            var targetCreature = WorldObject as Creature;
+            var targetPlayer = WorldObject as Player;
+
             // get the total tick amount
             var tickAmountTotal = 0.0f;
             foreach (var enchantment in enchantments)
@@ -1262,7 +1265,6 @@ namespace ACE.Server.WorldObjects.Managers
                 }
 
                 // if a PKType with Enduring Enchantment has died, ensure they don't continue to take DoT from PK sources
-                var targetPlayer = WorldObject as Player;
                 if (targetPlayer != null && damager is Player && !targetPlayer.IsPKType)
                     continue;
 
@@ -1276,11 +1278,19 @@ namespace ACE.Server.WorldObjects.Managers
                 var damageResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDamageResistRating(CombatType.Magic, false));    // df?
                 var dotResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDotResistanceRating());
 
+                // slayer affected void dots, but not dirty fighting?
+                // at some point, we probably want to pre-calculate the output damage, and put it into the enchantment
+                // and then only calculate the resistance on each tick
+                // if someone casts a void DoT with weeping wand in pvp, and then switches wands, it should still stick
+                var slayerMod = 1.0f;
+                if (damageType == DamageType.Nether)
+                    slayerMod = WorldObject.GetWeaponCreatureSlayerModifier(damager, targetCreature);
+
                 //Console.WriteLine("DR: " + Creature.ModToRating(damageRatingMod));
                 //Console.WriteLine("DRR: " + Creature.NegativeModToRating(damageResistRatingMod));
                 //Console.WriteLine("NRR: " + Creature.NegativeModToRating(netherResistRatingMod));
 
-                tickAmount *= damageRatingMod * damageResistRatingMod * dotResistRatingMod;
+                tickAmount *= slayerMod * damageRatingMod * damageResistRatingMod * dotResistRatingMod;
 
                 // http://acpedia.org/wiki/Announcements_-_11th_Anniversary_Preview#Void_Magic_and_You.21
                 // Creatures under Asheron’s protection take half damage from any nether type spell.
