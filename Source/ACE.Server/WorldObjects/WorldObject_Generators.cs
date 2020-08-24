@@ -664,7 +664,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                if (this is Container)
+                if (this is Container || (!string.IsNullOrEmpty(GeneratorEvent) && RegenerationInterval == 0))
                     Generator_Regeneration();
 
                 if (InitCreate == 0)

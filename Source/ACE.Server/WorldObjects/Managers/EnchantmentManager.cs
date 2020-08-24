@@ -643,7 +643,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public virtual int GetAttributeMod(PropertyAttribute attribute)
         {
-            var enchantments = GetEnchantments_TopLayer(EnchantmentTypeFlags.Attribute, (uint)attribute);
+            var enchantments = GetEnchantments_TopLayer(EnchantmentTypeFlags.Attribute, (uint)attribute, true);
 
             var attributeMod = 0;
             foreach (var enchantment in enchantments)

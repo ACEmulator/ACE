@@ -185,6 +185,17 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine($"Velocity: {velocity}");
 
+            if (velocity == Vector3.Zero)
+            {
+                // pre-check succeeded, but actual velocity calculation failed
+                SendWeenieError(WeenieError.MissileOutOfRange);
+
+                // this prevents the accuracy bar from refilling when 'repeat attacks' is enabled
+                Attacking = false;
+                OnAttackDone();
+                return;
+            }
+
             var actionChain = new ActionChain();
             var launchTime = EnqueueMotion(actionChain, aimLevel);
 
@@ -208,7 +219,7 @@ namespace ACE.Server.WorldObjects
             });
 
             // ammo remaining?
-            if (ammo.StackSize == null || ammo.StackSize <= 1)
+            if (!ammo.UnlimitedUse && (ammo.StackSize == null || ammo.StackSize <= 1))
             {
                 actionChain.AddAction(this, () =>
                 {
@@ -287,8 +298,14 @@ namespace ACE.Server.WorldObjects
 
         public override void UpdateAmmoAfterLaunch(WorldObject ammo)
         {
+            //if (ammo.UnlimitedUse)
+            //    return;
+
             // hide previously held ammo
             EnqueueBroadcast(new GameMessagePickupEvent(ammo));
+
+            if (ammo.UnlimitedUse)
+                return;
 
             if (ammo.StackSize == null || ammo.StackSize <= 1)
                 TryDequipObjectWithNetworking(ammo.Guid, out _, DequipObjectAction.ConsumeItem);

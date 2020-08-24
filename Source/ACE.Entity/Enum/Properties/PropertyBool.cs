@@ -144,6 +144,7 @@ namespace ACE.Entity.Enum.Properties
         RecallsDisabled                  = 107,
         RareUsesTimer                    = 108,
         ActdPreorderReceivedItems        = 109,
+        [Ephemeral]
         Afk                              = 110,
         IsGagged                         = 111,
         ProcSpellSelfTargeted            = 112,

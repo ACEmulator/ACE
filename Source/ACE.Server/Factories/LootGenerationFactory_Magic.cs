@@ -272,19 +272,23 @@ namespace ACE.Server.Factories
             RandomizeColor(wo);
         }
 
-        private static bool GetMutateCasterData(uint wcid, out int wield, out int element)
+        private static bool GetMutateCasterData(uint wcid, out int element)
         {
-            for (wield = 0; wield < LootTables.CasterWeaponsMatrix.Length; wield++)
+            for (var i = 0; i < LootTables.CasterWeaponsMatrix.Length; i++)
             {
-                var table = LootTables.CasterWeaponsMatrix[wield];
+                var table = LootTables.CasterWeaponsMatrix[i];
 
                 for (element = 0; element < table.Length; element++)
                 {
                     if (wcid == table[element])
+                    {
+                        if (i == 0)
+                            element = -1;
+
                         return true;
+                    }
                 }
             }
-            wield = -1;
             element = -1;
             return false;
         }
