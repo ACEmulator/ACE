@@ -564,7 +564,7 @@ namespace ACE.Server.Managers
                     target.DamageMod += 0.04f;
                     break;
                 case MaterialType.Granite:
-                    //target.DamageVariance *= 0.8f;
+                    //target.DamageVariance *= 0.8f;    // handled w/ lucky rabbits foot below
                     break;
                 case MaterialType.Oak:
                     target.WeaponTime = Math.Max(0, (target.WeaponTime ?? 0) - 50);
