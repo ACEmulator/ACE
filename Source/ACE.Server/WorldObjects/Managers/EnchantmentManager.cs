@@ -1286,7 +1286,7 @@ namespace ACE.Server.WorldObjects.Managers
                 // Creatures under Asheron’s protection take half damage from any nether type spell.
 
                 if (targetPlayer != null && damageType == DamageType.Nether)
-                    tickAmount *= 0.5f;
+                    tickAmount *= (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
 
                 // make sure the target's current health is not exceeded
                 if (tickAmountTotal + tickAmount >= creature.Health.Current)

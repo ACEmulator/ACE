@@ -515,7 +515,7 @@ namespace ACE.Server.WorldObjects
                 // verified this is equivalent to doing the halving for the individual factors
 
                 if (targetPlayer != null && Spell.School == MagicSchool.VoidMagic)
-                    finalDamage *= 0.5f;    
+                    finalDamage *= (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
             }
 
             // show debug info
