@@ -1089,25 +1089,24 @@ namespace ACE.Server.WorldObjects.Managers
             return (int)Math.Round(GetAdditiveMod(enchantments));
         }
 
-        public int GetNetherDotDamageRating()
+        public virtual int GetNetherDotDamageRating()
         {
             var type = EnchantmentTypeFlags.Int | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
             var netherDots = GetEnchantments_TopLayer(type, (uint)PropertyInt.NetherOverTime);
 
-            var totalRating = 0.0f;
+            // this function produces a similar value to the original ACE function,
+            // but is using the actual retail calculation method
+            var totalBaseDamage = 0.0f;
             foreach (var netherDot in netherDots)
             {
-                var spell = new Spell(netherDot.SpellId);
-
-                var baseDamage = Math.Max(0.5f, spell.Formula.Level - 1);
-
-                // destructive curse / corruption
-                if (netherDot.SpellCategory == SpellCategory.NetherDamageOverTimeRaising || netherDot.SpellCategory == SpellCategory.NetherDamageOverTimeRaising3)
-                    totalRating += baseDamage;
-                else if (netherDot.SpellCategory == SpellCategory.NetherDamageOverTimeRaising2)    // corrosion
-                    totalRating += Math.Max(baseDamage * 2 - 1, 2);
+                // normally we could just use netherDot.StatModValue here,
+                // but in case WorldObject has a non-default HeartbeatInterval,
+                // we want this value to still be based on the damage per default heartbeat interval
+                totalBaseDamage += GetDamagePerTick(netherDot, 5.0);
             }
-            return totalRating.Round();
+            var rating = (int)Math.Round(totalBaseDamage / 8.0f);   // thanks to Xenocide for this formula!
+            //Console.WriteLine($"{WorldObject.Name}.NetherDotDamageRating: {rating}");
+            return rating;
         }
 
         /// <summary>
@@ -1364,13 +1363,46 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Returns the number of ticks for a DoT enchantment
         /// </summary>
-        public int GetNumTicks(PropertiesEnchantmentRegistry enchantment)
+        public int GetNumTicks(PropertiesEnchantmentRegistry enchantment, double? heartbeatInterval = null)
         {
             // assumed to be DoT enchantment
 
+            if (heartbeatInterval == null)
+                heartbeatInterval = WorldObject.HeartbeatInterval ?? 5.0;
+
             // it's possible retail had a separate ticking mechanism for these,
             // that ensured ticks every 5s, instead of heartbeat intervals
-            return (int)Math.Ceiling(enchantment.Duration / (WorldObject.HeartbeatInterval ?? 5.0f));
+            return (int)Math.Ceiling(enchantment.Duration / heartbeatInterval.Value);
+        }
+
+        public float GetDamagePerTick(PropertiesEnchantmentRegistry enchantment, double? heartbeatInterval = null)
+        {
+            // assumed to be DoT enchantment
+
+            var creatureHeartbeatInterval = WorldObject.HeartbeatInterval ?? 5.0;
+
+            if (heartbeatInterval == null)
+                heartbeatInterval = creatureHeartbeatInterval;
+
+            if (heartbeatInterval == creatureHeartbeatInterval)
+                return enchantment.StatModValue;
+
+            // calculate the total damage w/ creature heartbeat interval
+            var totalDamage = GetTotalDamage(enchantment);
+
+            // divide totalDamage by the requested tick interval
+            var numTicks = GetNumTicks(enchantment, heartbeatInterval);
+
+            return totalDamage / numTicks;
+        }
+
+        /// <summary>
+        /// Returns the total damage for a DoT enchantment
+        /// </summary>
+        public float GetTotalDamage(PropertiesEnchantmentRegistry enchantment)
+        {
+            // assumed to be DoT enchantment
+            return enchantment.StatModValue * GetNumTicks(enchantment);
         }
     }
 }
