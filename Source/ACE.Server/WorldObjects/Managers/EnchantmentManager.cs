@@ -178,6 +178,12 @@ namespace ACE.Server.WorldObjects.Managers
             }
             else
             {
+                // for multiple void casters casting the same DoT,
+                // we might want to sort by StatModValue in GetEnchantments_TopLayer()
+
+                // for the same void caster re-casting the same DoT,
+                // should be update the StatModVal here?
+
                 var duration = spell.Duration;
                 if (caster is Player player && player.AugmentationIncreasedSpellDuration > 0 && spell.DotDuration == 0)
                     duration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
@@ -212,8 +218,6 @@ namespace ACE.Server.WorldObjects.Managers
             entry.SpellCategory = spell.Category;
             entry.PowerLevel = spell.Power;
 
-            // should default duration be 0 or -1 here?
-            // changed from spellBase -> spell for void..
             if (caster is Creature)
             {
                 entry.Duration = spell.Duration;
@@ -223,13 +227,13 @@ namespace ACE.Server.WorldObjects.Managers
             }
             else
             {
-                //if (caster == null || caster.CurrentWieldedLocation == null && !caster.ItemSetContains(spell.Id))
                 if (!equip)
                 {
                     entry.Duration = spell.Duration;
                 }
                 else
                 {
+                    // enchantments from equipping items are active until the item is dequipped
                     entry.Duration = -1.0;
                     entry.StartTime = 0;
                 }
@@ -245,6 +249,17 @@ namespace ACE.Server.WorldObjects.Managers
             entry.StatModType = spell.StatModType;
             entry.StatModKey = spell.StatModKey;
             entry.StatModValue = spell.StatModVal;
+
+            if (spell.DotDuration != 0)
+            {
+                var heartbeatInterval = WorldObject.HeartbeatInterval ?? 5.0f;
+
+                if (heartbeatInterval != 5.0f)
+                {
+                    // scale StatModValue for HeartbeatIntervals other than the default 5s
+                    entry.StatModValue = spell.GetDamagePerTick((float)heartbeatInterval);
+                }
+            }
 
             // handle equipment sets
             if (caster != null && caster.HasItemSet && caster.ItemSetContains(spell.Id))
@@ -1210,14 +1225,15 @@ namespace ACE.Server.WorldObjects.Managers
             var tickAmountTotal = 0.0f;
             foreach (var enchantment in enchantments)
             {
-                var totalAmount = enchantment.StatModValue;
-                var totalTicks = (int)Math.Ceiling(enchantment.Duration / (WorldObject.HeartbeatInterval ?? 5));
-                var tickAmount = totalAmount / totalTicks;
+                //var totalAmount = enchantment.StatModValue;
+                //var totalTicks = GetNumTicks(enchantment);
+                var tickAmount = enchantment.StatModValue;
 
                 tickAmountTotal += tickAmount;
             }
 
             // apply healing ratings
+            // TODO: move this to pre-calc?
             tickAmountTotal *= creature.GetHealingRatingMod();
 
             // do healing
@@ -1244,9 +1260,9 @@ namespace ACE.Server.WorldObjects.Managers
             var tickAmountTotal = 0.0f;
             foreach (var enchantment in enchantments)
             {
-                var totalAmount = enchantment.StatModValue;
-                var totalTicks = (int)Math.Ceiling(enchantment.Duration / (WorldObject.HeartbeatInterval ?? 5));
-                var tickAmount = totalAmount / totalTicks;
+                //var totalAmount = enchantment.StatModValue;
+                //var totalTicks = GetNumTicks(enchantment);
+                var tickAmount = enchantment.StatModValue;
 
                 // run tick amount through damage calculation functions?
                 // it appears retail might have done an initial damage calc,
@@ -1266,6 +1282,7 @@ namespace ACE.Server.WorldObjects.Managers
                     continue;
 
                 // get damage / damage resistance rating here for now?
+                // TODO: move everything pre-resistances to pre-calc, and store in enchantment statmodval
                 var heritageMod = 1.0f;
                 if (damager is Player player)
                     heritageMod = player.GetHeritageBonus(player.GetEquippedWeapon() ?? player.GetEquippedWand()) ? 1.05f : 1.0f;
@@ -1342,6 +1359,18 @@ namespace ACE.Server.WorldObjects.Managers
             if (Player == null) return;
             var vitae = new Enchantment(Player, GetVitae());
             Player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(Player.Session, vitae));
+        }
+
+        /// <summary>
+        /// Returns the number of ticks for a DoT enchantment
+        /// </summary>
+        public int GetNumTicks(PropertiesEnchantmentRegistry enchantment)
+        {
+            // assumed to be DoT enchantment
+
+            // it's possible retail had a separate ticking mechanism for these,
+            // that ensured ticks every 5s, instead of heartbeat intervals
+            return (int)Math.Ceiling(enchantment.Duration / (WorldObject.HeartbeatInterval ?? 5.0f));
         }
     }
 }
