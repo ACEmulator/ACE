@@ -1380,6 +1380,15 @@ namespace ACE.Server.WorldObjects.Managers
             return (int)Math.Ceiling(enchantment.Duration / heartbeatInterval.Value);
         }
 
+        /// <summary>
+        /// Returns the total damage for a DoT enchantment
+        /// </summary>
+        public float GetTotalDamage(PropertiesEnchantmentRegistry enchantment)
+        {
+            // assumed to be DoT enchantment
+            return enchantment.StatModValue * GetNumTicks(enchantment);
+        }
+
         public float GetDamagePerTick(PropertiesEnchantmentRegistry enchantment, double? heartbeatInterval = null)
         {
             // assumed to be DoT enchantment
@@ -1399,15 +1408,6 @@ namespace ACE.Server.WorldObjects.Managers
             var numTicks = GetNumTicks(enchantment, heartbeatInterval);
 
             return totalDamage / numTicks;
-        }
-
-        /// <summary>
-        /// Returns the total damage for a DoT enchantment
-        /// </summary>
-        public float GetTotalDamage(PropertiesEnchantmentRegistry enchantment)
-        {
-            // assumed to be DoT enchantment
-            return enchantment.StatModValue * GetNumTicks(enchantment);
         }
     }
 }
