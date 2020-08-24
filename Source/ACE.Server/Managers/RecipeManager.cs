@@ -564,7 +564,7 @@ namespace ACE.Server.Managers
                     target.DamageMod += 0.04f;
                     break;
                 case MaterialType.Granite:
-                    target.DamageVariance *= 0.8f;      // additive or multiplicative?
+                    //target.DamageVariance *= 0.8f;
                     break;
                 case MaterialType.Oak:
                     target.WeaponTime = Math.Max(0, (target.WeaponTime ?? 0) - 50);
@@ -1161,10 +1161,10 @@ namespace ACE.Server.Managers
                         target.SetProperty(PropertyInt64.ItemTotalXp, itemTotalXp);
                         break;
 
+                    // Granite
                     // Lucky White Rabbit's Foot
                     case 0x3800001C:
-                        if (target.DamageVariance != null)
-                            target.DamageVariance = Math.Max(0, target.DamageVariance.Value - 0.2f);    // assuming this should be additive instead of multiplicative, tinkering for MaterialType.Granite could possibly be wrong
+                        target.DamageVariance *= 0.8f;
                         break;
                 }
 
