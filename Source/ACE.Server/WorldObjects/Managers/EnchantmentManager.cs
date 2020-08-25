@@ -1243,9 +1243,8 @@ namespace ACE.Server.WorldObjects.Managers
                 tickAmountTotal += tickAmount;
             }
 
-            // apply healing ratings
-            // TODO: move this to pre-calc?
-            //tickAmountTotal *= creature.GetHealingRatingMod();
+            // apply healing ratings?
+            tickAmountTotal *= creature.GetHealingRatingMod();
 
             // do healing
             var healAmount = creature.UpdateVitalDelta(creature.Health, (int)Math.Round(tickAmountTotal));
@@ -1266,6 +1265,8 @@ namespace ACE.Server.WorldObjects.Managers
 
             bool isDead = false;
             var damagers = new Dictionary<WorldObject, float>();
+
+            var targetPlayer = WorldObject as Player;
 
             // get the total tick amount
             var tickAmountTotal = 0.0f;
@@ -1289,7 +1290,6 @@ namespace ACE.Server.WorldObjects.Managers
                 }
 
                 // if a PKType with Enduring Enchantment has died, ensure they don't continue to take DoT from PK sources
-                var targetPlayer = WorldObject as Player;
                 if (targetPlayer != null && damager is Player && !targetPlayer.IsPKType)
                     continue;
 
@@ -1301,7 +1301,10 @@ namespace ACE.Server.WorldObjects.Managers
 
                 var damageRatingMod = Creature.AdditiveCombine(heritageMod, Creature.GetPositiveRatingMod(damager.GetDamageRating()));*/
 
-                var damageResistRatingMod = creature.GetDamageResistRatingMod(CombatType.Magic, false);   // df?
+                // with the halvening, this actually seems like the fairest balance currently..
+                var useNetherDotDamageRating = targetPlayer != null;
+
+                var damageResistRatingMod = creature.GetDamageResistRatingMod(CombatType.Magic, useNetherDotDamageRating);   // df?
 
                 var dotResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDotResistanceRating());  // should this be here, or somewhere else?
                                                                                                             // should this affect NetherDotDamageRating?

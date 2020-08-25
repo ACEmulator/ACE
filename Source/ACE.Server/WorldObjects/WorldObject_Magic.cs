@@ -1991,16 +1991,17 @@ namespace ACE.Server.WorldObjects
 
             if (spell.Category == SpellCategory.AetheriaProcHealthOverTimeRaising)
             {
-                // TODO: check retail pcaps if StatModVal included healing rating boost on apply
-                if (creatureTarget != null)
-                    enchantment_statModVal *= creatureTarget.GetHealingRatingMod();
+                // no healing boost rating modifier found in retail pcaps on apply,
+                // could there have been one on tick?
+                //if (creatureTarget != null)
+                    //enchantment_statModVal *= creatureTarget.GetHealingRatingMod();
 
                 return enchantment_statModVal;
             }
 
             if (spell.Category == SpellCategory.AetheriaProcDamageOverTimeRaising)
             {
-                // no mods?
+                // no mods found in retail pcaps
                 return enchantment_statModVal;
             }
 
@@ -2025,10 +2026,8 @@ namespace ACE.Server.WorldObjects
 
             if (spell.Category == SpellCategory.DFBleedDamage)
             {
-                // check if retail pcaps included any mods here
-                // its possible there were none, but damage rating (and possibly even some type of attribute mod) would seem like decent scalars ..
-                //return enchantment_statModVal * damageRatingMod;
-                return enchantment_statModVal;
+                // retail pcaps have modifiers in the range of 1.1x - 1.7x
+                return enchantment_statModVal * damageRatingMod;
             }
 
             if (spell.Category != SpellCategory.NetherDamageOverTimeRaising && spell.Category != SpellCategory.NetherDamageOverTimeRaising2 && spell.Category != SpellCategory.NetherDamageOverTimeRaising3)
