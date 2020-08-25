@@ -254,11 +254,18 @@ namespace ACE.Server.WorldObjects.Managers
             {
                 var heartbeatInterval = WorldObject.HeartbeatInterval ?? 5.0f;
 
+                // scale StatModValue for HeartbeatIntervals other than the default 5s
                 if (heartbeatInterval != 5.0f)
                 {
-                    // scale StatModValue for HeartbeatIntervals other than the default 5s
                     entry.StatModValue = spell.GetDamagePerTick((float)heartbeatInterval);
                 }
+
+                // calculate runtime StatModValue for enchantment
+                if (caster != null)
+                {
+                    entry.StatModValue = caster.CalculateDotEnchantment_StatModValue(spell, WorldObject, entry.StatModValue);
+                }
+                Console.WriteLine($"enchantment_statModVal: {entry.StatModValue}");
             }
 
             // handle equipment sets
@@ -1238,7 +1245,7 @@ namespace ACE.Server.WorldObjects.Managers
 
             // apply healing ratings
             // TODO: move this to pre-calc?
-            tickAmountTotal *= creature.GetHealingRatingMod();
+            //tickAmountTotal *= creature.GetHealingRatingMod();
 
             // do healing
             var healAmount = creature.UpdateVitalDelta(creature.Health, (int)Math.Round(tickAmountTotal));
@@ -1287,20 +1294,22 @@ namespace ACE.Server.WorldObjects.Managers
 
                 // get damage / damage resistance rating here for now?
                 // TODO: move everything pre-resistances to pre-calc, and store in enchantment statmodval
-                var heritageMod = 1.0f;
+                /*var heritageMod = 1.0f;
                 if (damager is Player player)
                     heritageMod = player.GetHeritageBonus(player.GetEquippedWeapon() ?? player.GetEquippedWand()) ? 1.05f : 1.0f;
 
-                var damageRatingMod = Creature.AdditiveCombine(heritageMod, Creature.GetPositiveRatingMod(damager.GetDamageRating()));
+                var damageRatingMod = Creature.AdditiveCombine(heritageMod, Creature.GetPositiveRatingMod(damager.GetDamageRating()));*/
 
-                var damageResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDamageResistRating(CombatType.Magic, false));    // df?
-                var dotResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDotResistanceRating());
+                var damageResistRatingMod = creature.GetDamageResistRatingMod(CombatType.Magic, false);   // df?
+
+                var dotResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDotResistanceRating());  // should this be here, or somewhere else?
+                                                                                                            // should this affect NetherDotDamageRating?
 
                 //Console.WriteLine("DR: " + Creature.ModToRating(damageRatingMod));
                 //Console.WriteLine("DRR: " + Creature.NegativeModToRating(damageResistRatingMod));
                 //Console.WriteLine("NRR: " + Creature.NegativeModToRating(netherResistRatingMod));
 
-                tickAmount *= damageRatingMod * damageResistRatingMod * dotResistRatingMod;
+                tickAmount *= damageResistRatingMod * dotResistRatingMod;
 
                 // make sure the target's current health is not exceeded
                 if (tickAmountTotal + tickAmount >= creature.Health.Current)

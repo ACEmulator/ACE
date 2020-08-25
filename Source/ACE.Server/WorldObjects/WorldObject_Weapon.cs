@@ -361,7 +361,7 @@ namespace ACE.Server.WorldObjects
 
             var modifier = (float)(elementalDamageMod + enchantments);
 
-            if (modifier > 1.0f && wielder is Player && target is Player)
+            if (modifier > 1.0f && target is Player)
                 modifier = 1.0f + (modifier - 1.0f) * ElementalDamageBonusPvPReduction;
 
             return modifier;

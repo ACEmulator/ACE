@@ -3,6 +3,7 @@ using System.Linq;
 
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -38,9 +39,20 @@ namespace ACE.Server.WorldObjects
         /// Returns a 0.xx rating modifier by default,
         /// or a 1.xx rating modifier if negative
         /// </summary>
-        public static float GetNegativeRatingMod(int rating)
+        public static float GetNegativeRatingMod(int rating, bool allowBug = false)
         {
-            if (rating < 0) return GetPositiveRatingMod(-rating);
+            if (rating < 0 && !allowBug)
+                return GetPositiveRatingMod(-rating);
+
+            if (allowBug)
+            {
+                // with the bug allowed for DRR reduction from void dots,
+                // this method will produce highly unbalanced modifiers for negative ratings
+                // as a negative rating approaches -100, it will ramp up extremely to infinity, eventually getting a divide by 0 crash for -100
+                // values less than -100 would produce negative multipliers, which would wreak havoc for the various upstream calcs
+
+                rating = Math.Max(rating, -99);
+            }
 
             // formula: 100 / (100 + rating) = 0.xx modifier
             var ratingMod = 100.0f / (100 + rating);
@@ -243,6 +255,15 @@ namespace ACE.Server.WorldObjects
             }
 
             return damageResistRating + equipment + enchantments - netherDotDamageRating + augBonus + lumAugBonus + specBonus;
+        }
+
+        public float GetDamageResistRatingMod(CombatType? combatType = null, bool directDamage = true)
+        {
+            var damageResistRating = GetDamageResistRating(combatType, directDamage);
+
+            var allowBug = PropertyManager.GetBool("allow_negative_drr_calc_bug").Item;
+
+            return GetNegativeRatingMod(damageResistRating, allowBug);
         }
 
         public int GetSpecDefenseBonus(CombatType? combatType)
