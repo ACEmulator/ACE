@@ -47,9 +47,10 @@ namespace ACE.Server.WorldObjects
             if (allowBug)
             {
                 // with the bug allowed for DRR reduction from void dots,
-                // this method will produce highly unbalanced modifiers for negative ratings
-                // as a negative rating approaches -100, it will ramp up extremely to infinity, eventually getting a divide by 0 crash for -100
-                // values less than -100 would produce negative multipliers, which would wreak havoc for the various upstream calcs
+                // this method will produce unbalanced modifiers for negative ratings
+                // as negative rating approaches -100, it ramps up in a curve to infinity, eventually getting a divide by 0 crash for -100
+                // values less than -100 would produce negative multipliers, which would result in undefined behavior throughout the system,
+                // such as negative damage numbers. even with the bug enabled, we still limit to -99 on the lower end to prevent system failure
 
                 rating = Math.Max(rating, -99);
             }
@@ -261,7 +262,7 @@ namespace ACE.Server.WorldObjects
         {
             var damageResistRating = GetDamageResistRating(combatType, directDamage);
 
-            var allowBug = PropertyManager.GetBool("allow_negative_drr_calc_bug").Item;
+            var allowBug = PropertyManager.GetBool("allow_negative_rating_curve").Item;
 
             return GetNegativeRatingMod(damageResistRating, allowBug);
         }

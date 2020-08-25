@@ -1293,13 +1293,7 @@ namespace ACE.Server.WorldObjects.Managers
                 if (targetPlayer != null && damager is Player && !targetPlayer.IsPKType)
                     continue;
 
-                // get damage / damage resistance rating here for now?
-                // TODO: move everything pre-resistances to pre-calc, and store in enchantment statmodval
-                /*var heritageMod = 1.0f;
-                if (damager is Player player)
-                    heritageMod = player.GetHeritageBonus(player.GetEquippedWeapon() ?? player.GetEquippedWand()) ? 1.05f : 1.0f;
-
-                var damageRatingMod = Creature.AdditiveCombine(heritageMod, Creature.GetPositiveRatingMod(damager.GetDamageRating()));*/
+                var resistanceMod = creature.GetResistanceMod(damageType, damager, null);
 
                 // with the halvening, this actually seems like the fairest balance currently..
                 var useNetherDotDamageRating = targetPlayer != null;
@@ -1313,13 +1307,7 @@ namespace ACE.Server.WorldObjects.Managers
                 //Console.WriteLine("DRR: " + Creature.NegativeModToRating(damageResistRatingMod));
                 //Console.WriteLine("NRR: " + Creature.NegativeModToRating(netherResistRatingMod));
 
-                tickAmount *= damageResistRatingMod * dotResistRatingMod;
-
-                // http://acpedia.org/wiki/Announcements_-_11th_Anniversary_Preview#Void_Magic_and_You.21
-                // Creatures under Asheron’s protection take half damage from any nether type spell.
-
-                if (targetPlayer != null && damageType == DamageType.Nether)
-                    tickAmount *= (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
+                tickAmount *= resistanceMod * damageResistRatingMod * dotResistRatingMod;
 
                 // make sure the target's current health is not exceeded
                 if (tickAmountTotal + tickAmount >= creature.Health.Current)

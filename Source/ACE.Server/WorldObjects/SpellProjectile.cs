@@ -507,16 +507,6 @@ namespace ACE.Server.WorldObjects
                 finalDamage = baseDamage + critDamageBonus + skillBonus;
 
                 finalDamage *= elementalDamageMod * slayerMod * resistanceMod * absorbMod;
-
-                // http://acpedia.org/wiki/Announcements_-_11th_Anniversary_Preview#Void_Magic_and_You.21
-                // Creatures under Asheron’s protection take half damage from any nether type spell.
-
-                // applies to baseDamage, critDamageBonus, and skillBonus, as they are all derived from MinDamage / MaxDamage
-                // verified this is equivalent to doing the halving for the individual factors
-
-                // already comes from natural resistances?
-                //if (targetPlayer != null && Spell.School == MagicSchool.VoidMagic)
-                    //finalDamage *= (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
             }
 
             // show debug info
