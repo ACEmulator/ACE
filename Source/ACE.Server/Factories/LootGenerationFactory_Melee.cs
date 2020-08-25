@@ -92,74 +92,72 @@ namespace ACE.Server.Factories
 
                     switch (subtype)
                     {
-                        case 0:
-                        case 1:
-                        case 2:
+                        case 0://  0 - Battle Axe
+                        case 1://  1 - Silifi
+                        case 2://  2 - War Axe
+                        case 3://  3 - Lugian Hammer
                             weaponDefense = GetMaxDamageMod(profile.Tier, 18);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 22);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Axe);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Axe);
                             break;
-                        case 3:
-                        case 4:
-                        case 5:
+                        case 4://  4 - Dirk
+                        case 5://  5 - Stiletto (MS)
+                        case 6://  6 - Jambiya (MS)
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
-
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Dagger);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.Dagger);
 
-                            if (subtype == 3)
-                                damageVariance = GetVariance(wieldSkillType, LootWeaponType.Dagger);
-                            if (subtype == 4 || subtype == 5)
+                            if (subtype == 5 || subtype == 6)
                             {
                                 damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.DaggerMulti);
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.DaggerMulti);
                             }
                             break;
-                        case 6:
-                        case 7:
-                        case 8:
-                        case 9:
+                        case 7://  7 - Flanged Mace
+                        case 8://  8 - Mace
+                        case 9://  9 - Mazule
+                        case 10:// 10 - Morning Star
                             weaponDefense = GetMaxDamageMod(profile.Tier, 22);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 18);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Mace);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Mace);
                             break;
-                        case 10:
-                        case 11:
-                        case 12:
+                        case 11:// 11 - Spine Glaive
+                        case 12:// 12 - Partizan
+                        case 13:// 13 - Trident
                             weaponDefense = GetMaxDamageMod(profile.Tier, 15);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 25);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Spear);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Spear);
                             break;
-                        case 13:
-                        case 14:
+                        case 14:// 14 - Nabut
+                        case 15:// 15 - Stick
                             weaponDefense = GetMaxDamageMod(profile.Tier, 25);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 15);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Staff);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Staff);
                             break;
-                        case 15:
-                        case 16:
-                        case 17:
-                        case 18:
-                        case 19:
-                        case 20:
+                        case 16:// 16 - Flamberge
+                        case 17:// 17 - Ken
+                        case 18:// 18 - Long Sword
+                        case 19:// 19 - Tachi
+                        case 20:// 20 - Takuba
+                        case 21:// 21 - Schlager (MS)
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
-
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Sword);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Sword);
 
-                            if (subtype == 20)
+                            if (subtype == 21)
                             {
                                 damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.SwordMulti);
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.SwordMulti);
                             }
                             break;
-                        case 21:
-                        default:
+                        case 22:// 22 - Cestus
+                        default:// 23 - Nekode
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.UA);
@@ -173,52 +171,57 @@ namespace ACE.Server.Factories
 
                     switch (subtype)
                     {
-                        case 0:
-                        case 1:
-                        case 2:
-                        case 3:
+                        case 0://  0 - Dolabra
+                        case 1://  1 - Hand Axe
+                        case 2://  2 - Ono
+                        case 3://  3 - War Hammer
                             weaponDefense = GetMaxDamageMod(profile.Tier, 18);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 22);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Axe);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Axe);
                             break;
-                        case 4:
-                        case 5:
+                        case 4://  4 - Dagger (MS)
+                        case 5://  5 - Khanjar
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.DaggerMulti);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.DaggerMulti);
+
+                            if (subtype == 5)
+                            {
+                                damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Dagger);
+                                damageVariance = GetVariance(wieldSkillType, LootWeaponType.Dagger);
+                            }
                             break;
-                        case 6:
-                        case 7:
-                        case 8:
+                        case 6://  6 - Club
+                        case 7://  7 - Kasrullah
+                        case 8://  8 - Spiked Club
                             weaponDefense = GetMaxDamageMod(profile.Tier, 22);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 18);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Mace);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Mace);
                             break;
-                        case 9:
-                        case 10:
+                        case 9://  9 - Spear
+                        case 10:// 10 - Yari
                             weaponDefense = GetMaxDamageMod(profile.Tier, 15);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 25);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Spear);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Spear);
                             break;
-                        case 11:
+                        case 11:// 11 - Quarter Staff
                             weaponDefense = GetMaxDamageMod(profile.Tier, 25);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 15);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Staff);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Staff);
                             break;
-                        case 12:
-                        case 13:
-                        case 14:
-                        case 15:
-                        case 16:
-                        case 17:
+                        case 12:// 12 - Broad Sword
+                        case 13:// 13 - Dericost Blade
+                        case 14:// 14 - Epee (MS)
+                        case 15:// 15 - Kaskara
+                        case 16:// 16 - Spada
+                        case 17:// 17 - Shamshir
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
-
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Sword);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Sword);
 
@@ -228,8 +231,8 @@ namespace ACE.Server.Factories
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.SwordMulti);
                             }
                             break;
-                        case 18:
-                        default:
+                        case 18:// 18 - Knuckles
+                        default:// 19 - Katar
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.UA);
@@ -243,61 +246,65 @@ namespace ACE.Server.Factories
 
                     switch (subtype)
                     {
-                        case 0:
-                        case 1:
-                        case 2:
+                        case 0://  0 - Hammer
+                        case 1://  1 - Hatchet
+                        case 2://  2 - Shou-ono
+                        case 3://  3 - Tungi
                             weaponDefense = GetMaxDamageMod(profile.Tier, 18);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 22);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Axe);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Axe);
                             break;
-                        case 3:
-                        case 4:
-                        case 5:
+                        case 4://  4 - Knife (MS)
+                        case 5://  5 - Lancet (MS)
+                        case 6://  6 - Poniard
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Dagger);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Dagger);
 
-                            if (subtype == 3 || subtype == 4)
+                            if (subtype == 4 || subtype == 5)
                             {
-                                damageVariance = GetVariance(wieldSkillType, LootWeaponType.DaggerMulti);
                                 damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.DaggerMulti);
+                                damageVariance = GetVariance(wieldSkillType, LootWeaponType.DaggerMulti);
                             }
                             break;
-                        case 6:
-                        case 7:
-                        case 8:
-                        case 9:
-                        case 10:
+                        case 7://  7 - Board with Nail
+                        case 8://  8 - Dabus
+                        case 9://  9 - Tofun
+                        case 10:// 10 - Jitte
                             weaponDefense = GetMaxDamageMod(profile.Tier, 22);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 18);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Mace);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Mace);
 
-                            if (subtype == 9)
+                            if (subtype == 10)
+                            {
+                                weaponDefense = GetMaxDamageMod(profile.Tier, 25);
+                                weaponOffense = GetMaxDamageMod(profile.Tier, 15);
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.Jitte);
+                            }
                             break;
-                        case 11:
-                        case 12:
+                        case 11:// 11 - Budiaq
+                        case 12:// 12 - Naginata
                             weaponDefense = GetMaxDamageMod(profile.Tier, 15);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 25);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Spear);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Spear);
                             break;
-                        case 13:
-                        case 14:
+                        case 13:// 13 - Bastone
+                        case 14:// 14 - Jo
                             weaponDefense = GetMaxDamageMod(profile.Tier, 25);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 15);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Staff);
                             damageVariance = GetVariance(wieldSkillType, LootWeaponType.Staff);
                             break;
-                        case 15:
-                        case 16:
-                        case 17:
-                        case 18:
-                        case 19:
-                        case 20:
+                        case 15:// 15 - Rapier (MS)
+                        case 16:// 16 - Sabra
+                        case 17:// 17 - Scimitar
+                        case 18:// 18 - Short Sword
+                        case 19:// 19 - Simi
+                        case 20:// 20 - Yaoji
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Sword);
@@ -309,8 +316,8 @@ namespace ACE.Server.Factories
                                 damageVariance = GetVariance(wieldSkillType, LootWeaponType.SwordMulti);
                             }
                             break;
-                        case 21:
-                        default:
+                        case 21:// 21 - Claw
+                        default:// 22 - Hand Wraps
                             weaponDefense = GetMaxDamageMod(profile.Tier, 20);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 20);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.UA);
@@ -319,38 +326,32 @@ namespace ACE.Server.Factories
                     }
                     break;
                 default:
-                    // Two handed
+                    // Two Handed
                     wieldSkillType = Skill.TwoHandedCombat;
-
-                    damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Cleaving);
-                    damageVariance = GetVariance(wieldSkillType, LootWeaponType.TwoHanded);
 
                     switch (subtype)
                     {
-                        case 0:
-                        case 1:
-                        case 2:
-                            weaponDefense = GetMaxDamageMod(profile.Tier, 20);
-                            weaponOffense = GetMaxDamageMod(profile.Tier, 20);
-                            break;
-                        case 3:
-                        case 4:
-                        case 5:
-                        case 6:
-                            weaponDefense = GetMaxDamageMod(profile.Tier, 22);
-                            weaponOffense = GetMaxDamageMod(profile.Tier, 18);
-                            break;
-                        case 7:
+                        case 0://  0 - Nodachi
+                        case 1://  1 - Shashqa
+                        case 2://  2 - Spadone
+                        case 3://  3 - Great Star Mace
+                        case 4://  4 - Quadrelle
+                        case 5://  5 - Khanda-handled Mace
+                        case 6://  6 - Tetsubo
+                        case 7://  7 - Great Axe
                             weaponDefense = GetMaxDamageMod(profile.Tier, 18);
                             weaponOffense = GetMaxDamageMod(profile.Tier, 22);
+                            damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Cleaving);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.TwoHanded);
                             break;
-                        case 8:
-                        case 9:
-                        case 10:
-                        default:
-                            weaponDefense = GetMaxDamageMod(profile.Tier, 15);
-                            weaponOffense = GetMaxDamageMod(profile.Tier, 25);
+                        case 8://  8 - Assagai
+                        case 9://  9 - Pike
+                        case 10:// 10 - Corsesca
+                        default:// 11 - Magari Yari
+                            weaponDefense = GetMaxDamageMod(profile.Tier, 20);
+                            weaponOffense = GetMaxDamageMod(profile.Tier, 20);
                             damage = GetMeleeMaxDamage(wieldSkillType, wieldDiff, LootWeaponType.Spears);
+                            damageVariance = GetVariance(wieldSkillType, LootWeaponType.TwoHanded);
                             break;
                     }
                     break;

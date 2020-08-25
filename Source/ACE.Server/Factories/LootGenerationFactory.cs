@@ -261,8 +261,11 @@ namespace ACE.Server.Factories
                 MutateAetheria(item, profile.Tier);
             else if (GetMutateArmorData(item.WeenieClassId, out var armorType))
                 MutateArmor(item, profile, isMagical, armorType.Value);
-            else if (GetMutateCasterData(item.WeenieClassId, out int wield, out int element))
+            else if (GetMutateCasterData(item.WeenieClassId, out int element))
+            {
+                var wield = element > -1 ? GetWieldDifficulty(profile.Tier, WieldType.Caster) : 0;
                 MutateCaster(item, profile, isMagical, wield, element);
+            }
             else if (GetMutateDinnerwareData(item.WeenieClassId))
                 MutateDinnerware(item, profile.Tier);
             else if (GetMutateJewelryData(item.WeenieClassId))
@@ -931,7 +934,7 @@ namespace ACE.Server.Factories
             return -manaRate;
         }
 
-        private static WorldObject AssignMagic(WorldObject wo, TreasureDeath profile, bool covenantArmor = false)
+        private static WorldObject AssignMagic(WorldObject wo, TreasureDeath profile, bool isArmor = false)
         {
             const int armorSpellImpenIndex = 47; // 47th row in the LootTables.ArmorSpells array, starting from zero
 
@@ -1004,8 +1007,8 @@ namespace ACE.Server.Factories
                 }
             }
 
-            // From a discussion on LSD, determined in that if covenant armor includes spells, the armor piece will have at least Impen
-            if (covenantArmor == true)
+            // Per discord discussions: ALL armor/shields if it had any spells, had an Impen spell
+            if (isArmor == true)
             {
                 // Ensure that one of the Impen spells was not already added
                 bool impenFound = false;

@@ -212,10 +212,10 @@ namespace ACE.Server.WorldObjects.Entity
                     break;
             }
 
-            if (AdvancementClass == SkillAdvancementClass.Specialized && player.LumAugSkilledSpec != 0)
+            if (current && AdvancementClass == SkillAdvancementClass.Specialized && player.LumAugSkilledSpec != 0)
                 total += (uint)player.LumAugSkilledSpec * 2;
 
-            if (player.Enlightenment != 0)
+            if (AdvancementClass >= SkillAdvancementClass.Trained && player.Enlightenment != 0)
                 total += (uint)player.Enlightenment;
 
             return total;

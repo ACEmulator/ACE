@@ -570,6 +570,10 @@ namespace ACE.Server.Network.Structure
 
             if (PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal))
                 PropertiesInt.Remove(PropertyInt.EncumbranceVal);
+
+            // see notes in CombatPet.Init()
+            if (creature is CombatPet && PropertiesInt.ContainsKey(PropertyInt.Faction1Bits))
+                PropertiesInt.Remove(PropertyInt.Faction1Bits);
         }
 
         private void AddRatings(Creature creature)

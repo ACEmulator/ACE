@@ -324,7 +324,7 @@ namespace ACE.Server.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Test Message " + i, ChatMessageType.Broadcast);
         }
 
-        [CommandHandler("animation", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Sends a MovementEvent to you.", "MotionCommand\n")]
+        [CommandHandler("animation", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Plays an animation on the current player, or optionally another object", "MotionCommand (optional target guid)\n")]
         public static void Animation(Session session, params string[] parameters)
         {
             if (!Enum.TryParse(parameters[0], out MotionCommand motionCommand))
@@ -332,11 +332,36 @@ namespace ACE.Server.Command.Handlers
                 ChatPacket.SendServerMessage(session, $"MotionCommand: {parameters[0]} not found", ChatMessageType.Broadcast);
                 return;
             }
-            var stance = session.Player.CurrentMotionState.Stance;
+            WorldObject obj = session.Player;
 
-            ChatPacket.SendServerMessage(session, $"Playing animation {stance}.{motionCommand}", ChatMessageType.Broadcast);
+            if (parameters.Length > 1)
+            {
+                if (!uint.TryParse(parameters[1].TrimStart("0x"), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var guid))
+                {
+                    ChatPacket.SendServerMessage(session, $"Invalid guid: {parameters[1]}", ChatMessageType.Broadcast);
+                    return;
+                }
+                obj = session.Player.FindObject(guid, Player.SearchLocations.Everywhere);
+                if (obj == null)
+                {
+                    ChatPacket.SendServerMessage(session, $"Couldn't find guid: {parameters[1]}", ChatMessageType.Broadcast);
+                    return;
+                }
+                if (obj.CurrentMotionState == null)
+                {
+                    ChatPacket.SendServerMessage(session, $"{obj.Name} ({obj.Guid}) has no CurrentMotionState", ChatMessageType.Broadcast);
+                    return;
+                }
+            }
+            var stance = obj.CurrentMotionState.Stance;
 
-            session.Player.EnqueueBroadcastMotion(new Motion(stance, motionCommand));
+            var suffix = "";
+            if (obj != session.Player)
+                suffix = $" on {obj.Name} ({obj.Guid})";
+
+            ChatPacket.SendServerMessage(session, $"Playing animation {stance}.{motionCommand}{suffix}", ChatMessageType.Broadcast);
+
+            obj.EnqueueBroadcastMotion(new Motion(stance, motionCommand));
         }
 
         /// <summary>
@@ -1923,6 +1948,10 @@ namespace ACE.Server.Command.Handlers
             }
             session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}): {prop} = {value}", ChatMessageType.Broadcast));
             PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} changed a property for {obj.Name} ({obj.Guid}): {prop} = {value}");
+
+            // hack for easier testing
+            if (pType == typeof(PropertyInt) && (PropertyInt)result == PropertyInt.Faction1Bits && obj is Creature creature && creature.RetaliateTargets == null)
+                creature.RetaliateTargets = new HashSet<uint>();
         }
 
         /// <summary>
@@ -3054,7 +3083,7 @@ namespace ACE.Server.Command.Handlers
                         session.Player.QuestManager.Erase("RadiantBloodMember");
                         break;
                     case "ch":
-                        session.Player.Faction1Bits = (int)FactionBits.CelestialHand;
+                        session.Player.Faction1Bits = FactionBits.CelestialHand;
                         session.Player.SocietyRankCelhan = 1;
                         session.Player.SocietyRankEldweb = null;
                         session.Player.SocietyRankRadblo = null;
@@ -3093,7 +3122,7 @@ namespace ACE.Server.Command.Handlers
                         }
                         break;
                     case "ew":
-                        session.Player.Faction1Bits = (int)FactionBits.EldrytchWeb;
+                        session.Player.Faction1Bits = FactionBits.EldrytchWeb;
                         session.Player.SocietyRankCelhan = null;
                         session.Player.SocietyRankEldweb = 1;
                         session.Player.SocietyRankRadblo = null;
@@ -3132,7 +3161,7 @@ namespace ACE.Server.Command.Handlers
                         }
                         break;
                     case "rb":
-                        session.Player.Faction1Bits = (int)FactionBits.RadiantBlood;
+                        session.Player.Faction1Bits = FactionBits.RadiantBlood;
                         session.Player.SocietyRankCelhan = null;
                         session.Player.SocietyRankEldweb = null;
                         session.Player.SocietyRankRadblo = 1;
@@ -3171,7 +3200,7 @@ namespace ACE.Server.Command.Handlers
                         }
                         break;
                 }
-                session.Player.EnqueueBroadcast(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.Faction1Bits, session.Player.Faction1Bits ?? 0));
+                session.Player.EnqueueBroadcast(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.Faction1Bits, (int)(session.Player.Faction1Bits ?? 0)));
                 session.Player.EnqueueBroadcast(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.SocietyRankCelhan, session.Player.SocietyRankCelhan ?? 0));
                 session.Player.EnqueueBroadcast(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.SocietyRankEldweb, session.Player.SocietyRankEldweb ?? 0));
                 session.Player.EnqueueBroadcast(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.SocietyRankRadblo, session.Player.SocietyRankRadblo ?? 0));

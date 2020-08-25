@@ -57,6 +57,9 @@ namespace ACE.Server.WorldObjects
             MonsterState = State.Idle;
 
             PhysicsObj.CachedVelocity = Vector3.Zero;
+
+            if (RetaliateTargets != null)
+                RetaliateTargets.Clear();
         }
 
         public Tolerance Tolerance
@@ -251,6 +254,14 @@ namespace ACE.Server.WorldObjects
                 if (PhysicsObj.get_distance_sq_to_object(creature.PhysicsObj, true) > chaseDistSq)
                     continue;
 
+                // if this monster belongs to a faction,
+                // ensure target does not belong to the same faction, or they have been provoked
+                if (Faction1Bits != null && creature.Faction1Bits != null && (Faction1Bits & creature.Faction1Bits) != 0)
+                {
+                    if (RetaliateTargets != null && !RetaliateTargets.Contains(creature.Guid.Full))
+                        continue;
+                }
+
                 visibleTargets.Add(creature);
             }
 
@@ -406,6 +417,9 @@ namespace ACE.Server.WorldObjects
                     var distSq = PhysicsObj.get_distance_sq_to_object(nearbyCreature.PhysicsObj, true);
                     if (distSq > nearbyCreature.VisualAwarenessRangeSq)
                         continue;
+
+                    if (nearbyCreature.RetaliateTargets != null)
+                        nearbyCreature.RetaliateTargets.Add(AttackTarget.Guid.Full);
 
                     Alerted = true;
                     nearbyCreature.AttackTarget = AttackTarget;

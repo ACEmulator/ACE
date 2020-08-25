@@ -48,6 +48,15 @@ namespace ACE.Server.WorldObjects
         private Dictionary<uint, WorldObjectInfo> selectedTargets;
 
         /// <summary>
+        /// Currently used to handle some edge cases for faction mobs
+        /// DamageHistory.HasDamager() has the following issues:
+        /// - if a player attacks a same-factioned mob but is evaded, the mob would quickly de-aggro
+        /// - if a player attacks a same-factioned mob in a group of same-factioned mobs, the other nearby faction mobs should be alerted, and should maintain aggro, even without a DamageHistory entry
+        /// - if a summoner attacks a same-factioned mob, should the summoned CombatPet possibly defend the player in that situation?
+        /// </summary>
+        public HashSet<uint> RetaliateTargets { get; set; }
+
+        /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
         public Creature(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
@@ -129,6 +138,9 @@ namespace ACE.Server.WorldObjects
             CurrentMotionState = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
 
             selectedTargets = new Dictionary<uint, WorldObjectInfo>();
+
+            if (!(this is Player) && Faction1Bits != null)
+                RetaliateTargets = new HashSet<uint>();
         }
 
         // verify logic
