@@ -514,8 +514,9 @@ namespace ACE.Server.WorldObjects
                 // applies to baseDamage, critDamageBonus, and skillBonus, as they are all derived from MinDamage / MaxDamage
                 // verified this is equivalent to doing the halving for the individual factors
 
-                if (targetPlayer != null && Spell.School == MagicSchool.VoidMagic)
-                    finalDamage *= (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
+                // already comes from natural resistances?
+                //if (targetPlayer != null && Spell.School == MagicSchool.VoidMagic)
+                    //finalDamage *= (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
             }
 
             // show debug info
