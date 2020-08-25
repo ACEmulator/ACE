@@ -265,7 +265,7 @@ namespace ACE.Server.WorldObjects.Managers
                 {
                     entry.StatModValue = caster.CalculateDotEnchantment_StatModValue(spell, WorldObject, entry.StatModValue);
                 }
-                Console.WriteLine($"enchantment_statModVal: {entry.StatModValue}");
+                //Console.WriteLine($"enchantment_statModVal: {entry.StatModValue}");
             }
 
             // handle equipment sets
