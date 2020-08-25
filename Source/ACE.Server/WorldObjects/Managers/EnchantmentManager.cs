@@ -1289,7 +1289,8 @@ namespace ACE.Server.WorldObjects.Managers
                 }
 
                 // if a PKType with Enduring Enchantment has died, ensure they don't continue to take DoT from PK sources
-                if (WorldObject is Player _player && damager is Player && !_player.IsPKType)
+                var targetPlayer = WorldObject as Player;
+                if (targetPlayer != null && damager is Player && !targetPlayer.IsPKType)
                     continue;
 
                 // get damage / damage resistance rating here for now?
@@ -1310,6 +1311,12 @@ namespace ACE.Server.WorldObjects.Managers
                 //Console.WriteLine("NRR: " + Creature.NegativeModToRating(netherResistRatingMod));
 
                 tickAmount *= damageResistRatingMod * dotResistRatingMod;
+
+                // http://acpedia.org/wiki/Announcements_-_11th_Anniversary_Preview#Void_Magic_and_You.21
+                // Creatures under Asheron’s protection take half damage from any nether type spell.
+
+                if (targetPlayer != null && damageType == DamageType.Nether)
+                    tickAmount *= (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
 
                 // make sure the target's current health is not exceeded
                 if (tickAmountTotal + tickAmount >= creature.Health.Current)
