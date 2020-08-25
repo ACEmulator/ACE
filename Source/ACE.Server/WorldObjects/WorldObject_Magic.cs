@@ -2042,6 +2042,8 @@ namespace ACE.Server.WorldObjects
             // - caster damage type bonus (pvm, half for pvp)
             // - skill in magic school vs. spell difficulty (for projectiles)
 
+            // thanks to Xenocide for figuring this part out!
+
             var elementalDamageMod = 1.0f;
             var skillMod = 1.0f;
 
