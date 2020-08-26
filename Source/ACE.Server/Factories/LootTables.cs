@@ -302,9 +302,9 @@ namespace ACE.Server.Factories
 
         public static readonly HashSet<uint> AetheriaWcids = new HashSet<uint>()
         {
-            Entity.Aetheria.AetheriaBlue,
-            Entity.Aetheria.AetheriaYellow,
-            Entity.Aetheria.AetheriaRed,
+            Server.Entity.Aetheria.AetheriaBlue,
+            Server.Entity.Aetheria.AetheriaYellow,
+            Server.Entity.Aetheria.AetheriaRed,
         };
 
         public static readonly int[,] HeavyWeaponDamageTable =
