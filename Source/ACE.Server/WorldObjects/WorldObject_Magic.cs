@@ -339,8 +339,6 @@ namespace ACE.Server.WorldObjects
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{targetCreature.Name} resists your spell", ChatMessageType.Magic));
 
                     player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, Sound.ResistSpell, 1.0f));
-
-                    targetCreature.EmoteManager.OnResistSpell(player);
                 }
 
                 if (targetPlayer != null)
@@ -352,6 +350,9 @@ namespace ACE.Server.WorldObjects
 
                     Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MagicDefense), magicSkill);
                 }
+
+                if (this is Creature creature)
+                    targetCreature.EmoteManager.OnResistSpell(creature);
             }
 
             if (casterCreature != null && casterCreature.DebugDamage.HasFlag(Creature.DebugDamageType.Attacker))
