@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -300,7 +301,7 @@ namespace ACE.Server.WorldObjects
 
         private static readonly List<float> defaultAttackFrames = new List<float>() { 1.0f / 3.0f };
 
-        private static readonly HashSet<AttackFrameParams> missingAttackFrames = new HashSet<AttackFrameParams>();
+        private static readonly ConcurrentDictionary<AttackFrameParams, bool> missingAttackFrames = new ConcurrentDictionary<AttackFrameParams, bool>();
 
         /// <summary>
         /// Perform the melee attack swing animation
@@ -323,11 +324,11 @@ namespace ACE.Server.WorldObjects
             if (attackFrames.Count == 0)
             {
                 var attackFrameParams = new AttackFrameParams(MotionTableId, CurrentMotionState.Stance, motionCommand);
-                if (!missingAttackFrames.Contains(attackFrameParams))
+                if (!missingAttackFrames.ContainsKey(attackFrameParams))
                 {
                     // only show warning message once for each combo
                     log.Warn($"{Name} ({Guid}) - no attack frames for MotionTable {MotionTableId:X8}, {CurrentMotionState.Stance}, {motionCommand}, using defaults");
-                    missingAttackFrames.Add(attackFrameParams);
+                    missingAttackFrames.TryAdd(attackFrameParams, true);
                 }
                 attackFrames = defaultAttackFrames;
             }
