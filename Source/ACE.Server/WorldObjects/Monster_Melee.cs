@@ -5,6 +5,7 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.DatLoader;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
