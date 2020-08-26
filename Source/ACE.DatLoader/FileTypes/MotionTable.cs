@@ -7,8 +7,6 @@ using System.Numerics;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 
-using AttackFrameParams = ACE.Entity.AttackFrameParams;
-
 namespace ACE.DatLoader.FileTypes
 {
     [DatFileType(DatFileType.MotionTable)]
@@ -81,14 +79,22 @@ namespace ACE.DatLoader.FileTypes
             return length;
         }
 
-        private static readonly ConcurrentDictionary<AttackFrameParams, List<float>> attackFrameCache = new ConcurrentDictionary<AttackFrameParams, List<float>>();
+        private static readonly ConcurrentDictionary<uint, ConcurrentDictionary<ulong, List<float>>> attackFrameCache = new ConcurrentDictionary<uint, ConcurrentDictionary<ulong, List<float>>>();
 
         public List<float> GetAttackFrames(uint motionTableId, MotionStance stance, MotionCommand motion)
         {
-            // could also do uint, and then a packed ulong, but would be more complicated maybe?
-            var attackFrameParams = new AttackFrameParams(motionTableId, stance, motion);
-            if (attackFrameCache.TryGetValue(attackFrameParams, out var attackFrames))
-                return attackFrames;
+            var key = (ulong)stance << 32 | (uint)motion;
+
+            if (attackFrameCache.TryGetValue(motionTableId, out var motionTableCache))
+            {
+                if (motionTableCache.TryGetValue(key, out var attackframes))
+                    return attackframes;
+            }
+            else
+            {
+                motionTableCache = new ConcurrentDictionary<ulong, List<float>>();
+                attackFrameCache.TryAdd(motionTableId, motionTableCache);
+            }
 
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(motionTableId);
 
@@ -113,11 +119,11 @@ namespace ACE.DatLoader.FileTypes
                     totalFrames++;
                 }
             }
-            attackFrames = new List<float>();
+            var attackFrames = new List<float>();
             foreach (var frameNum in frameNums)
                 attackFrames.Add((float)frameNum / totalFrames);    // div 0?
 
-            attackFrameCache.TryAdd(attackFrameParams, attackFrames);
+            motionTableCache.TryAdd(key, attackFrames);
 
             return attackFrames;
         }
