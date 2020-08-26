@@ -350,6 +350,9 @@ namespace ACE.Server.WorldObjects
 
                     Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MagicDefense), magicSkill);
                 }
+
+                if (this is Creature creature)
+                    targetCreature.EmoteManager.OnResistSpell(creature);
             }
 
             if (casterCreature != null && casterCreature.DebugDamage.HasFlag(Creature.DebugDamageType.Attacker))
