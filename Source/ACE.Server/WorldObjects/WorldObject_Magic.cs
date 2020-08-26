@@ -1401,7 +1401,7 @@ namespace ACE.Server.WorldObjects
 
                         if (spell.Peturbation != Vector3.Zero)
                         {
-                            var rng = new Vector3(ThreadSafeRandom.Next(-1.0f, 1.0f), ThreadSafeRandom.Next(-1.0f, 1.0f), ThreadSafeRandom.Next(-1.0f, 1.0f));
+                            var rng = new Vector3((float)ThreadSafeRandom.Next(-1.0f, 1.0f), (float)ThreadSafeRandom.Next(-1.0f, 1.0f), (float)ThreadSafeRandom.Next(-1.0f, 1.0f));
 
                             curOffset += rng * spell.Peturbation * spell.Padding;
                         }

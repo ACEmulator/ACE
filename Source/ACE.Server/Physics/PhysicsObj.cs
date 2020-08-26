@@ -1381,8 +1381,8 @@ namespace ACE.Server.Physics
             {
                 var newPos = new Position(setPos.Pos);
 
-                newPos.Frame.Origin.X += ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadX;
-                newPos.Frame.Origin.Y += ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadY;
+                newPos.Frame.Origin.X += (float)ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadX;
+                newPos.Frame.Origin.Y += (float)ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadY;
 
                 // customized
                 if ((newPos.ObjCellID & 0xFFFF) < 0x100)
