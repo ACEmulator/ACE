@@ -456,7 +456,7 @@ namespace ACE.Server.Physics.Animation
         public static List<float> GetAttackFrames(uint motionTableId, MotionStance stance, MotionCommand motion)
         {
             var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableId);
-            return motionTable.GetAttackFrames(motionTableId, stance, motion, null);
+            return motionTable.GetAttackFrames(motionTableId, stance, motion);
         }
 
         public static float GetAnimationLength(uint motionTableId, MotionStance stance, MotionCommand motion, float speed = 1.0f)
