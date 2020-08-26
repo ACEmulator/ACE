@@ -75,6 +75,8 @@ namespace ACE.Server.WorldObjects
         public Allegiance(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             //Console.WriteLine($"Allegiance({weenie.ClassId}, {guid}): weenie constructor");
+
+            InitializePropertyDictionaries();
         }
 
         /// <summary>
@@ -90,6 +92,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            InitializePropertyDictionaries();
             Init(new ObjectGuid(MonarchId.Value));
         }
 
@@ -98,6 +101,12 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"Allegiance({monarch}): monarch constructor");
 
             Init(monarch);
+        }
+
+        private void InitializePropertyDictionaries()
+        {
+            if (Biota.PropertiesAllegiance == null)
+                Biota.PropertiesAllegiance = new Dictionary<uint, PropertiesAllegiance>();
         }
 
         /// <summary>

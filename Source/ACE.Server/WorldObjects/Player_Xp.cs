@@ -25,7 +25,9 @@ namespace ACE.Server.WorldObjects
 
             // apply xp modifier
             var modifier = PropertyManager.GetDouble("xp_modifier").Item;
-            var enchantment = EnchantmentManager.GetXPMod();
+
+            // should this be passed upstream to fellowship / allegiance?
+            var enchantment = GetXPAndLuminanceModifier(xpType);
 
             var m_amount = (long)Math.Round(amount * enchantment * modifier);
 
@@ -467,6 +469,23 @@ namespace ACE.Server.WorldObjects
                 });
                 actionChain.EnqueueChain();
             }
+        }
+
+        /// <summary>
+        /// Returns the multiplier to XP and Luminance from Trinkets and Augmentations
+        /// </summary>
+        public float GetXPAndLuminanceModifier(XpType xpType)
+        {
+            var enchantmentBonus = EnchantmentManager.GetXPBonus();
+
+            var augBonus = 0.0f;
+            if (xpType == XpType.Kill && AugmentationBonusXp > 0)
+                augBonus = AugmentationBonusXp * 0.05f;
+
+            var modifier = 1.0f + enchantmentBonus + augBonus;
+            //Console.WriteLine($"XPAndLuminanceModifier: {modifier}");
+
+            return modifier;
         }
     }
 }

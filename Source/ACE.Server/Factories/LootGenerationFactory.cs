@@ -8,10 +8,12 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
+using ACE.Server.Factories.Enum;
+using ACE.Server.Factories.Tables;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
-using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.Factories
 {
@@ -40,17 +42,34 @@ namespace ACE.Server.Factories
         }
 
         // Enum used for adjusting the loot bias for the various types of Mana forge chests
-        public enum LootBias : uint
+        // TODO: port this over to TreasureItemTypeChances
+        /*[Flags]
+        public enum LootBias
         {
-            UnBiased = 0,
-            Armor = 1,
-            Weapons = 2,
-            SpellComps = 4,
-            Clothing = 8,
-            Jewelry = 16,
-            MagicEquipment = 31,
-            MixedEquipment = 31,
-        }
+            UnBiased   = 0x0,
+            Armor      = 0x1,
+            Weapons    = 0x2,
+            SpellComps = 0x4,
+            Clothing   = 0x8,
+            Jewelry    = 0x10,
+
+            MagicEquipment = Armor | Weapons | SpellComps | Clothing | Jewelry,
+            MixedEquipment = Armor | Weapons | SpellComps | Clothing | Jewelry
+        }*/
+
+        public enum LootBias
+        {
+            UnBiased,
+
+            Armor,
+            Weapons,
+            SpellComps,
+            Clothing,
+            Jewelry,
+
+            MagicEquipment,
+            MixedEquipment
+        };
 
         public static List<WorldObject> CreateRandomLootObjects(TreasureDeath profile)
         {
@@ -168,64 +187,63 @@ namespace ACE.Server.Factories
 
         public static WorldObject CreateRandomLootObjects(TreasureDeath profile, bool isMagical, LootBias lootBias = LootBias.UnBiased)
         {
-            WorldObject wo;
+            WorldObject wo = null;
 
-            // Adjusting rolls for changing drop rates for clothing - HarliQ 11/11/19 
+            var treasureItemTypeChances = isMagical ? TreasureItemTypeChances.DefaultMagical : TreasureItemTypeChances.DefaultNonMagical;
 
-            var type = lootBias switch
+            switch (lootBias)
             {
-                LootBias.Armor => 30,
-                LootBias.Weapons => 60,
-                LootBias.Jewelry => 90,
-                _ => ThreadSafeRandom.Next(1, 100),
-            };
-
-
-            // converting to a percentage base roll for items (to better align with retail drop rate data from Magnus) - HarliQ 11/11/19
-            // Gems 14%
-            // Armor 24%
-            // Weapons 30%
-            // Clothing 13%
-            // Cloaks 1%
-            // Jewelry 18%
-
-            switch (type)
-            {
-                case var rate when (rate < 15):
-                    // jewels (Gems)
-                    wo = CreateJewels(profile.Tier, isMagical);
-                    return wo;
-                case var rate when (rate > 14 && rate < 39):
-                    //armor
-                    wo = CreateArmor(profile, isMagical, true, lootBias);
-                    return wo;
-                case var rate when (rate > 38 && rate < 52):
-                    // clothing (shirts/pants)
-                    wo = CreateArmor(profile, isMagical, false, lootBias);
-                    return wo;
-                case var rate when (rate > 51 && rate < 53):
-                    // Cloaks  
-                    wo = CreateCloak(profile);
-                    return wo;
-                case var rate when (rate > 52 && rate < 83):
-                    // weapons (Melee/Missile/Casters)
-                    wo = CreateWeapon(profile, isMagical);
-                    return wo;
-                case var rate when (rate > 83 && rate < 93):
-                    // jewelry
-                    wo = CreateJewelry(profile, isMagical);
+                case LootBias.Armor:
+                    treasureItemTypeChances = TreasureItemTypeChances.Armor;
                     break;
-                default:
-                    if (isMagical)
-                        wo = CreateJewelry(profile, isMagical); // jewelry
-                    else
-                        // Added Dinnerware at tail end of distribution, as
-                        // they are mutable loot drops that don't belong with the non-mutable drops
-                        // TODO: Will likely need some adjustment/fine tuning
-                        wo = CreateDinnerware(profile.Tier); // dinnerware
+                case LootBias.Weapons:
+                    treasureItemTypeChances = TreasureItemTypeChances.Weapons;
+                    break;
+                case LootBias.Jewelry:
+                    treasureItemTypeChances = TreasureItemTypeChances.Jewelry;
+                    break;
+
+                case LootBias.MagicEquipment:
+                case LootBias.MixedEquipment:
+                    treasureItemTypeChances = TreasureItemTypeChances.MixedMagicEquipment;
                     break;
             }
 
+            var treasureItemType = TreasureItemTypeChances.Roll(treasureItemTypeChances);
+
+            switch (treasureItemType)
+            {
+                case TreasureItemType.Gem:
+                    wo = CreateJewels(profile.Tier, isMagical);
+                    break;
+
+                case TreasureItemType.Armor:
+                    wo = CreateArmor(profile, isMagical, true, lootBias);
+                    break;
+
+                case TreasureItemType.Clothing:
+                    wo = CreateArmor(profile, isMagical, false, lootBias);
+                    break;
+
+                case TreasureItemType.Cloak:
+                    wo = CreateCloak(profile);
+                    break;
+
+                case TreasureItemType.Weapon:
+                    wo = CreateWeapon(profile, isMagical);
+                    break;
+
+                case TreasureItemType.Jewelry:
+                    wo = CreateJewelry(profile, isMagical);
+                    break;
+
+                case TreasureItemType.Dinnerware:
+                    // Added Dinnerware at tail end of distribution, as
+                    // they are mutable loot drops that don't belong with the non-mutable drops
+                    // TODO: Will likely need some adjustment/fine tuning
+                    wo = CreateDinnerware(profile.Tier);
+                    break;
+            }
             return wo;
         }
 
@@ -261,8 +279,11 @@ namespace ACE.Server.Factories
                 MutateAetheria(item, profile.Tier);
             else if (GetMutateArmorData(item.WeenieClassId, out var armorType))
                 MutateArmor(item, profile, isMagical, armorType.Value);
-            else if (GetMutateCasterData(item.WeenieClassId, out int wield, out int element))
+            else if (GetMutateCasterData(item.WeenieClassId, out int element))
+            {
+                var wield = element > -1 ? GetWieldDifficulty(profile.Tier, WieldType.Caster) : 0;
                 MutateCaster(item, profile, isMagical, wield, element);
+            }
             else if (GetMutateDinnerwareData(item.WeenieClassId))
                 MutateDinnerware(item, profile.Tier);
             else if (GetMutateJewelryData(item.WeenieClassId))
@@ -2319,7 +2340,7 @@ namespace ACE.Server.Factories
                 return false;
 
             // secondary rng roll - pseudo curve table per tier
-            var roll = ChanceTables.Roll(tier);
+            var roll = QualityChance.Roll(tier);
 
             var bulk = isWeapon ? WeaponBulk : ArmorBulk;
             bulk *= (float)(wo.BulkMod ?? 1.0f);
@@ -2342,7 +2363,7 @@ namespace ACE.Server.Factories
 
         private static bool RollBurdenModChance(int tier)
         {
-            var chance = ChanceTables.QualityChancePerTier[tier - 1];
+            var chance = QualityChance.QualityChancePerTier[tier - 1];
 
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
 

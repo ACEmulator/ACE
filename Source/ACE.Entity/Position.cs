@@ -72,7 +72,7 @@ namespace ACE.Entity
         public float RotationY { get; set; }
         public float RotationZ { get; set; }
 
-        public bool Indoors => landblockId.MapScope != MapScope.Outdoors;
+        public bool Indoors => landblockId.Indoors;
 
         /// <summary>
         /// Returns the normalized 2D heading direction

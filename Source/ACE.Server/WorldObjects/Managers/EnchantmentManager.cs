@@ -682,18 +682,23 @@ namespace ACE.Server.WorldObjects.Managers
         }
 
         /// <summary>
-        /// Returns the modifier from XP enchantments, such as Augmented Understanding
+        /// Returns the additive bonus from XP enchantments, such as Augmented Understanding
         /// </summary>
-        /// <returns></returns>
-        public virtual float GetXPMod()
+        public virtual float GetXPBonus()
         {
             var enchantments = GetEnchantments(SpellCategory.TrinketXPRaising);
 
-            // multiplier
-            var modifier = 1.0f;
-            foreach (var enchantment in enchantments)
-                modifier *= enchantment.StatModValue;
+            // TODO: temporary code to handle both additive and multiplicative mods
+            // should be additive in database, update when everything is in sync
+            var modifier = 0.0f;
 
+            foreach (var enchantment in enchantments)
+            {
+                if (enchantment.StatModType.HasFlag(EnchantmentTypeFlags.Multiplicative))
+                    modifier += enchantment.StatModValue - 1.0f;
+                else
+                    modifier += enchantment.StatModValue;
+            }
             return modifier;
         }
 

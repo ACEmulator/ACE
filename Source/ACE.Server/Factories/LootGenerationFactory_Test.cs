@@ -194,7 +194,7 @@ namespace ACE.Server.Factories
                             cantrip = true;
 
                         if (testItem.EquipmentSetId != null)
-                            equipmentSet = Enum.GetName(typeof(EquipmentSet), testItem.EquipmentSetId);
+                            equipmentSet = System.Enum.GetName(typeof(EquipmentSet), testItem.EquipmentSetId);
                         if (logstats == true)
                         {
                             ls.Armor += $"{testItem.ArmorLevel},{testItem.ItemDifficulty},{testItem.Value.Value},{testItem.EncumbranceVal},{testItem.EpicCantrips.Count},{testItem.LegendaryCantrips.Count},{equipmentSet},{testItem.Name}\n";
@@ -219,7 +219,7 @@ namespace ACE.Server.Factories
                         {
                             string cloakSet = "None ";
                             if (testItem.EquipmentSetId != null)
-                                cloakSet = Enum.GetName(typeof(EquipmentSet), testItem.EquipmentSetId);
+                                cloakSet = System.Enum.GetName(typeof(EquipmentSet), testItem.EquipmentSetId);
                             ls.CloakCount++;
                             if (logstats == true)
                             {
