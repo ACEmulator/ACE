@@ -1795,6 +1795,11 @@ namespace ACE.Server.WorldObjects.Managers
             ExecuteEmoteSet(EmoteCategory.ReceiveCritical, null, attacker);
         }
 
+        public void OnResistSpell(Creature attacker)
+        {
+            ExecuteEmoteSet(EmoteCategory.ResistSpell, null, attacker);
+        }
+
         public void OnDeath(DamageHistoryInfo lastDamagerInfo)
         {
             IsBusy = false;

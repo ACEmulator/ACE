@@ -339,6 +339,8 @@ namespace ACE.Server.WorldObjects
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{targetCreature.Name} resists your spell", ChatMessageType.Magic));
 
                     player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, Sound.ResistSpell, 1.0f));
+
+                    targetCreature.EmoteManager.OnResistSpell(player);
                 }
 
                 if (targetPlayer != null)
