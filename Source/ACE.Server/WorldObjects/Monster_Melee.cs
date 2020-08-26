@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -301,7 +300,7 @@ namespace ACE.Server.WorldObjects
 
         private static readonly List<float> defaultAttackFrames = new List<float>() { 1.0f / 3.0f };
 
-        private static readonly ConcurrentDictionary<uint, ConcurrentDictionary<ulong, bool>> missingAttackFrames = new ConcurrentDictionary<uint, ConcurrentDictionary<ulong, bool>>();
+        private static readonly HashSet<AttackFrameParams> missingAttackFrames = new HashSet<AttackFrameParams>();
 
         /// <summary>
         /// Perform the melee attack swing animation
@@ -323,22 +322,14 @@ namespace ACE.Server.WorldObjects
 
             if (attackFrames.Count == 0)
             {
-                attackFrames = defaultAttackFrames;
-
-                // only show warning message once for each combo
-                var key = (ulong)CurrentMotionState.Stance << 32 | (uint)motionCommand;
-
-                if (!missingAttackFrames.TryGetValue(MotionTableId, out var motionTableCache) || !motionTableCache.ContainsKey(key))
+                var attackFrameParams = new AttackFrameParams(MotionTableId, CurrentMotionState.Stance, motionCommand);
+                if (!missingAttackFrames.Contains(attackFrameParams))
                 {
+                    // only show warning message once for each combo
                     log.Warn($"{Name} ({Guid}) - no attack frames for MotionTable {MotionTableId:X8}, {CurrentMotionState.Stance}, {motionCommand}, using defaults");
-
-                    if (motionTableCache == null)
-                    {
-                        motionTableCache = new ConcurrentDictionary<ulong, bool>();
-                        missingAttackFrames.TryAdd(MotionTableId, motionTableCache);
-                    }
-                    motionTableCache.TryAdd(key, true);
+                    missingAttackFrames.Add(attackFrameParams);
                 }
+                attackFrames = defaultAttackFrames;
             }
 
             var motion = new Motion(this, motionCommand, animSpeed);
