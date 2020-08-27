@@ -302,7 +302,6 @@ namespace ACE.Server.Managers
         /// Some quests we do not want to scale MinDelta if "quest_mindelta_rate" has been set.
         /// They may be things that are races against time, like Colo
         /// </summary>
-        /// 
         public static bool CanScaleQuestMinDelta(Database.Models.World.Quest quest)
         {
             if (quest.Name.StartsWith("ColoArena"))
