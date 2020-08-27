@@ -54,10 +54,9 @@ namespace ACE.Server
             }
             catch (Exception ex)
             {
-                log.Info($"Unable to continue with Automatic World Database Update due to error: {ex}");
+                log.Info($"Unable to continue with Automatic World Database Update due to the following error: {ex}");
             }
             log.Info($"Automatic World Database Update complete.");
-
         }
 
         private static void UpdateToLatestWorldDatabase(string dbURL, string dbFileName)
