@@ -86,10 +86,11 @@ namespace ACE.Server.WorldObjects
                         useResult = WeenieError.ActionCancelled;
                     else
                     {
-                        if (!player.TryConsumeFromInventoryWithNetworking(target))
+                        if (!target.DeleteObject(player))
                         {
                             log.Error($"Failed to remove {target.Name} from player inventory.");
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.ActionCancelled));
+                            return;
                         }
 
                         //The Mana Stone drains 5,253 points of mana from the Wand.
