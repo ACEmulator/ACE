@@ -358,17 +358,11 @@ namespace ACE.Server
 
                 Console.WriteLine("Searching for Update SQL scripts .... ");
 
-                Console.WriteLine("Searching for Authentication update SQL scripts .... ");
                 PatchDatabase("Authentication", ConfigManager.Config.MySql.Authentication.Host, ConfigManager.Config.MySql.Authentication.Port, ConfigManager.Config.MySql.Authentication.Username, ConfigManager.Config.MySql.Authentication.Password, ConfigManager.Config.MySql.Authentication.Database);
-                Console.WriteLine("Authentication update SQL scripts import complete!");
 
-                Console.WriteLine("Searching for Shard update SQL scripts .... ");
                 PatchDatabase("Shard", ConfigManager.Config.MySql.Shard.Host, ConfigManager.Config.MySql.Shard.Port, ConfigManager.Config.MySql.Shard.Username, ConfigManager.Config.MySql.Shard.Password, ConfigManager.Config.MySql.Shard.Database);
-                Console.WriteLine("Shard update SQL scripts import complete!");
 
-                Console.WriteLine("Searching for World update SQL scripts .... ");
                 PatchDatabase("World", ConfigManager.Config.MySql.World.Host, ConfigManager.Config.MySql.World.Port, ConfigManager.Config.MySql.World.Username, ConfigManager.Config.MySql.World.Password, ConfigManager.Config.MySql.World.Database);
-                Console.WriteLine("World update SQL scripts import complete!");
             }
 
             Console.WriteLine();
