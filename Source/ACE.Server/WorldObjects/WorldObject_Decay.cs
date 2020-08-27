@@ -146,26 +146,23 @@ namespace ACE.Server.WorldObjects
                 Destroy();
         }
 
-        public bool DeleteObject(Container rootOwner = null)
+        public void DeleteObject(Container rootOwner = null)
         {
-            var success = false;
-
             if (Wielder != null)
             {
                 if (Wielder is Player player)
-                    success = player.TryDequipObjectWithNetworking(Guid, out _, Player.DequipObjectAction.ConsumeItem);
+                    player.TryDequipObjectWithNetworking(Guid, out _, Player.DequipObjectAction.ConsumeItem);
                 else if (Wielder is Creature creature)
-                    success = creature.TryUnwieldObjectWithBroadcasting(Guid, out _, out _);
+                    creature.TryUnwieldObjectWithBroadcasting(Guid, out _, out _);
             }
             else if (rootOwner != null)
             {
                 if (rootOwner is Player player)
-                    success = player.TryRemoveFromInventoryWithNetworking(Guid, out _, Player.RemoveFromInventoryAction.ConsumeItem);
+                    player.TryRemoveFromInventoryWithNetworking(Guid, out _, Player.RemoveFromInventoryAction.ConsumeItem);
                 else
-                    success = rootOwner.TryRemoveFromInventory(Guid);
+                    rootOwner.TryRemoveFromInventory(Guid);
             }
             Destroy();
-            return success;
         }
     }
 }
