@@ -359,84 +359,15 @@ namespace ACE.Server
                 Console.WriteLine("Searching for Update SQL scripts .... ");
 
                 Console.WriteLine("Searching for Authentication update SQL scripts .... ");
-                var updatesFile = $"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}Authentication{Path.DirectorySeparatorChar}applied_updates.txt";
-                var containerUpdatesFile = $"/ace/Config/Authentication_applied_updates.txt";
-                foreach (var file in new DirectoryInfo($"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}Authentication").GetFiles("*.sql").OrderBy(f => f.Name))
-                {
-                    Console.Write($"Found {file.Name} .... ");
-                    var sqlDBFile = File.ReadAllText(file.FullName);
-                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.Authentication.Host};port={config.MySql.Authentication.Port};user={config.MySql.Authentication.Username};password={config.MySql.Authentication.Password};database={config.MySql.Authentication.Database};DefaultCommandTimeout=120");
-                    var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
-
-                    Console.Write($"Importing into {config.MySql.Authentication.Database} database on SQL server at {config.MySql.Authentication.Host}:{config.MySql.Authentication.Port} .... ");
-                    try
-                    {
-                        script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
-                        var count = script.Execute();
-                    }
-                    catch (MySql.Data.MySqlClient.MySqlException)
-                    {
-
-                    }
-                    Console.WriteLine(" complete!");
-                    File.AppendAllText(updatesFile, file.Name + Environment.NewLine);
-                    if (IsRunningInContainer && File.Exists(updatesFile))
-                        File.Copy(updatesFile, containerUpdatesFile, true);
-                }
+                PatchDatabase("Authentication", ConfigManager.Config.MySql.Authentication.Host, ConfigManager.Config.MySql.Authentication.Port, ConfigManager.Config.MySql.Authentication.Username, ConfigManager.Config.MySql.Authentication.Password, ConfigManager.Config.MySql.Authentication.Database);
                 Console.WriteLine("Authentication update SQL scripts import complete!");
 
                 Console.WriteLine("Searching for Shard update SQL scripts .... ");
-                updatesFile = $"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}Shard{Path.DirectorySeparatorChar}applied_updates.txt";
-                containerUpdatesFile = $"/ace/Config/Shard_applied_updates.txt";
-                foreach (var file in new DirectoryInfo($"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}Shard").GetFiles("*.sql").OrderBy(f => f.Name))
-                {
-                    Console.Write($"Found {file.Name} .... ");
-                    var sqlDBFile = File.ReadAllText(file.FullName);
-                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.Shard.Host};port={config.MySql.Shard.Port};user={config.MySql.Shard.Username};password={config.MySql.Shard.Password};database={config.MySql.Shard.Database};DefaultCommandTimeout=120");
-                    var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
-
-                    Console.Write($"Importing into {config.MySql.Shard.Database} database on SQL server at {config.MySql.Shard.Host}:{config.MySql.Shard.Port} .... ");
-                    try
-                    {
-                        script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
-                        var count = script.Execute();
-                    }
-                    catch (MySql.Data.MySqlClient.MySqlException)
-                    {
-
-                    }
-                    Console.WriteLine(" complete!");
-                    File.AppendAllText(updatesFile, file.Name + Environment.NewLine);
-                    if (IsRunningInContainer && File.Exists(updatesFile))
-                        File.Copy(updatesFile, containerUpdatesFile, true);
-                }
+                PatchDatabase("Shard", ConfigManager.Config.MySql.Shard.Host, ConfigManager.Config.MySql.Shard.Port, ConfigManager.Config.MySql.Shard.Username, ConfigManager.Config.MySql.Shard.Password, ConfigManager.Config.MySql.Shard.Database);
                 Console.WriteLine("Shard update SQL scripts import complete!");
 
                 Console.WriteLine("Searching for World update SQL scripts .... ");
-                updatesFile = $"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}World{Path.DirectorySeparatorChar}applied_updates.txt";
-                containerUpdatesFile = $"/ace/Config/World_applied_updates.txt";
-                foreach (var file in new DirectoryInfo($"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}World").GetFiles("*.sql").OrderBy(f => f.Name))
-                {
-                    Console.Write($"Found {file.Name} .... ");
-                    var sqlDBFile = File.ReadAllText(file.FullName);
-                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};database={config.MySql.World.Database};DefaultCommandTimeout=120");
-                    var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
-
-                    Console.Write($"Importing into {config.MySql.World.Database} database on SQL server at {config.MySql.World.Host}:{config.MySql.World.Port} .... ");
-                    try
-                    {
-                        script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
-                        var count = script.Execute();
-                    }
-                    catch (MySql.Data.MySqlClient.MySqlException)
-                    {
-
-                    }
-                    Console.WriteLine(" complete!");
-                    File.AppendAllText(updatesFile, file.Name + Environment.NewLine);
-                    if (IsRunningInContainer && File.Exists(updatesFile))
-                        File.Copy(updatesFile, containerUpdatesFile, true);
-                }
+                PatchDatabase("World", ConfigManager.Config.MySql.World.Host, ConfigManager.Config.MySql.World.Port, ConfigManager.Config.MySql.World.Username, ConfigManager.Config.MySql.World.Password, ConfigManager.Config.MySql.World.Database);
                 Console.WriteLine("World update SQL scripts import complete!");
             }
 
