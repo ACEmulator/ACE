@@ -255,7 +255,7 @@ namespace ACE.Server
                 File.AppendAllText(updatesFile, file.Name + Environment.NewLine);
             }
 
-            if (IsRunningInContainer && File.Exists(containerUpdatesFile))
+            if (IsRunningInContainer)
                 File.Copy(updatesFile, containerUpdatesFile, true);
 
             Console.WriteLine($"{dbType} update SQL scripts import complete!");
