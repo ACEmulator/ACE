@@ -177,7 +177,7 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= successChance;
+            var success = ThreadSafeRandom.Next(0.0f, 1.0f) < successChance;
 
             CreateDestroyItems(player, recipe, source, target, success);
 
@@ -195,6 +195,12 @@ namespace ACE.Server.Managers
                     player.EnqueueBroadcast(updateObj, updateDesc);
                 else
                     player.Session.Network.EnqueueSend(updateObj);
+            }
+
+            if (success && recipe.Skill > 0 && recipe.Difficulty > 0)
+            {
+                var skill = player.GetCreatureSkill((Skill)recipe.Skill);
+                Proficiency.OnSuccessUse(player, skill, recipe.Difficulty);
             }
         }
 
@@ -259,7 +265,7 @@ namespace ACE.Server.Managers
             var skill = player.GetCreatureSkill(recipeSkill);
 
             // require skill check for everything except ivory / leather / sandstone
-            if (UseSkillCheck(materialType))
+            if (UseSkillCheck(recipeSkill, materialType))
             {
                 // tinkering skill must be trained
                 if (skill.AdvancementClass < SkillAdvancementClass.Trained)
@@ -324,7 +330,7 @@ namespace ACE.Server.Managers
 
         public static void DoTinkering(Player player, WorldObject tool, WorldObject target, Recipe recipe, float chance, bool incItemTinkered)
         {
-            var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= chance;
+            var success = ThreadSafeRandom.Next(0.0f, 1.0f) < chance;
 
             var sourceName = Regex.Replace(tool.NameWithMaterial, @" \(\d+\)$", "");
 
@@ -341,7 +347,7 @@ namespace ACE.Server.Managers
 
             CreateDestroyItems(player, recipe, tool, target, success, !incItemTinkered);
 
-            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) || !UseSkillCheck(tool.MaterialType ?? 0))
+            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) || !UseSkillCheck((Skill)recipe.Skill, tool.MaterialType ?? 0))
                 player.SendUseDoneEvent();
         }
 
@@ -564,7 +570,7 @@ namespace ACE.Server.Managers
                     target.DamageMod += 0.04f;
                     break;
                 case MaterialType.Granite:
-                    target.DamageVariance *= 0.8f;
+                    //target.DamageVariance *= 0.8f;    // handled w/ lucky rabbits foot below
                     break;
                 case MaterialType.Oak:
                     target.WeaponTime = Math.Max(0, (target.WeaponTime ?? 0) - 50);
@@ -1011,8 +1017,8 @@ namespace ACE.Server.Managers
             var destroyTargetChance = success ? recipe.SuccessDestroyTargetChance : recipe.FailDestroyTargetChance;
             var destroySourceChance = success ? recipe.SuccessDestroySourceChance : recipe.FailDestroySourceChance;
 
-            var destroyTarget = ThreadSafeRandom.Next(0.0f, 1.0f) <= destroyTargetChance;
-            var destroySource = ThreadSafeRandom.Next(0.0f, 1.0f) <= destroySourceChance;
+            var destroyTarget = ThreadSafeRandom.Next(0.0f, 1.0f) < destroyTargetChance;
+            var destroySource = ThreadSafeRandom.Next(0.0f, 1.0f) < destroySourceChance;
 
             var createItem = success ? recipe.SuccessWCID : recipe.FailWCID;
             var createAmount = success ? recipe.SuccessAmount : recipe.FailAmount;
@@ -1144,6 +1150,8 @@ namespace ACE.Server.Managers
                 // apply base mod
                 switch (mod.DataId)
                 {
+                    // TODO: add real mutation scripts
+
                     //  Fetish of the Dark Idols
                     case 0x38000046:
                         AddImbuedEffect(player, target, ImbuedEffectType.IgnoreSomeMagicProjectileDamage);
@@ -1157,6 +1165,12 @@ namespace ACE.Server.Managers
                         target.SetProperty(PropertyInt64.ItemBaseXp, 2000000000);
                         var itemTotalXp = target.GetProperty(PropertyInt64.ItemTotalXp) ?? 0;
                         target.SetProperty(PropertyInt64.ItemTotalXp, itemTotalXp);
+                        break;
+
+                    // Granite
+                    // Lucky White Rabbit's Foot
+                    case 0x3800001C:
+                        target.DamageVariance *= 0.8f;
                         break;
                 }
 
@@ -1391,11 +1405,11 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Returns TRUE if this material requies a skill check
+        /// Returns TRUE if tinker operation requires a skill check
         /// </summary>
-        public static bool UseSkillCheck(MaterialType material)
+        public static bool UseSkillCheck(Skill skill, MaterialType material)
         {
-            return material != MaterialType.Ivory && material != MaterialType.Leather && material != MaterialType.Sandstone;
+            return skill != Skill.None && material != MaterialType.Ivory && material != MaterialType.Leather && material != MaterialType.Sandstone;
         }
     }
 }

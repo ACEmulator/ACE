@@ -169,7 +169,7 @@ namespace ACE.Server.WorldObjects.Managers
             armorModCache = null;
             armorModVsTypeModCache.Clear();
             ratingCache.Clear();
-            xpModCache = null;
+            xpBonusCache = null;
             resistLockpickCache = null;
         }
 
@@ -506,14 +506,14 @@ namespace ACE.Server.WorldObjects.Managers
             return value;
         }
 
-        private float? xpModCache;
+        private float? xpBonusCache;
 
-        public override float GetXPMod()
+        public override float GetXPBonus()
         {
-            if (xpModCache == null)
-                xpModCache = base.GetXPMod();
+            if (xpBonusCache == null)
+                xpBonusCache = base.GetXPBonus();
 
-            return xpModCache.Value;
+            return xpBonusCache.Value;
         }
 
         public override bool StartCooldown(WorldObject item)

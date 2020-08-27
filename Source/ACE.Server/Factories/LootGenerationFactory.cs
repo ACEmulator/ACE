@@ -279,8 +279,11 @@ namespace ACE.Server.Factories
                 MutateAetheria(item, profile.Tier);
             else if (GetMutateArmorData(item.WeenieClassId, out var armorType))
                 MutateArmor(item, profile, isMagical, armorType.Value);
-            else if (GetMutateCasterData(item.WeenieClassId, out int wield, out int element))
+            else if (GetMutateCasterData(item.WeenieClassId, out int element))
+            {
+                var wield = element > -1 ? GetWieldDifficulty(profile.Tier, WieldType.Caster) : 0;
                 MutateCaster(item, profile, isMagical, wield, element);
+            }
             else if (GetMutateDinnerwareData(item.WeenieClassId))
                 MutateDinnerware(item, profile.Tier);
             else if (GetMutateJewelryData(item.WeenieClassId))
@@ -1609,7 +1612,7 @@ namespace ACE.Server.Factories
 
             // Spell Count Addon
             float spellAddonChance = num_spells * (20.0f / (num_spells + 2.0f));
-            float spellAddon = ThreadSafeRandom.Next(1.0f, spellAddonChance) * num_spells;
+            float spellAddon = (float)ThreadSafeRandom.Next(1.0f, spellAddonChance) * num_spells;
 
             float tArcane = itemspellcraft * heritage_mod * 1.9f + spellAddon + epicAddon + legAddon;
             tArcane /= rank_mod + 1.0f;
@@ -2041,7 +2044,7 @@ namespace ACE.Server.Factories
                 foreach (var color in colors)
                 {
                     probability += color.Probability;
-                    if (probability >= rng || probability == totalProbability)
+                    if (probability > rng || probability == totalProbability)
                     {
                         paletteTemplate = color.PaletteTemplate;
                         break;

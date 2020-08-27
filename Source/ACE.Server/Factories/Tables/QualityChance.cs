@@ -199,7 +199,7 @@ namespace ACE.Server.Factories.Tables
 
                     var interval = (rng - prevChance) / dx;
 
-                    return dy * (interval + i);
+                    return (float)(dy * (interval + i));
                 }
             }
             log.Error($"QualityTables.Roll - This shouldn't happen");

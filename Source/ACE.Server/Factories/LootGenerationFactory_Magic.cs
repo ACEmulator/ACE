@@ -80,7 +80,7 @@ namespace ACE.Server.Factories
             var baseRating = ThreadSafeRandom.Next(1, 10);
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
             var tierMod = 0.4f + tier * 0.02f;
-            if (rng > tierMod)
+            if (rng > tierMod)      // TODO: this might be backwards, review
                 baseRating += ThreadSafeRandom.Next(1, 10);
 
             return baseRating;
@@ -273,19 +273,23 @@ namespace ACE.Server.Factories
             RandomizeColor(wo);
         }
 
-        private static bool GetMutateCasterData(uint wcid, out int wield, out int element)
+        private static bool GetMutateCasterData(uint wcid, out int element)
         {
-            for (wield = 0; wield < LootTables.CasterWeaponsMatrix.Length; wield++)
+            for (var i = 0; i < LootTables.CasterWeaponsMatrix.Length; i++)
             {
-                var table = LootTables.CasterWeaponsMatrix[wield];
+                var table = LootTables.CasterWeaponsMatrix[i];
 
                 for (element = 0; element < table.Length; element++)
                 {
                     if (wcid == table[element])
+                    {
+                        if (i == 0)
+                            element = -1;
+
                         return true;
+                    }
                 }
             }
-            wield = -1;
             element = -1;
             return false;
         }

@@ -238,7 +238,7 @@ namespace ACE.Server.WorldObjects
             difficulty = (int)Math.Round((vital.MaxValue - vital.Current) * 2 * combatMod);
 
             var skillCheck = SkillCheck.GetSkillChance(effectiveSkill, difficulty);
-            return skillCheck >= ThreadSafeRandom.Next(0.0f, 1.0f);
+            return skillCheck > ThreadSafeRandom.Next(0.0f, 1.0f);
         }
 
         /// <summary>
