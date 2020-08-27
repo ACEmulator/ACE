@@ -358,11 +358,11 @@ namespace ACE.Server
 
                 Console.WriteLine("Searching for Update SQL scripts .... ");
 
-                PatchDatabase("Authentication", ConfigManager.Config.MySql.Authentication.Host, ConfigManager.Config.MySql.Authentication.Port, ConfigManager.Config.MySql.Authentication.Username, ConfigManager.Config.MySql.Authentication.Password, ConfigManager.Config.MySql.Authentication.Database);
+                PatchDatabase("Authentication", config.MySql.Authentication.Host, config.MySql.Authentication.Port, config.MySql.Authentication.Username, config.MySql.Authentication.Password, config.MySql.Authentication.Database);
 
-                PatchDatabase("Shard", ConfigManager.Config.MySql.Shard.Host, ConfigManager.Config.MySql.Shard.Port, ConfigManager.Config.MySql.Shard.Username, ConfigManager.Config.MySql.Shard.Password, ConfigManager.Config.MySql.Shard.Database);
+                PatchDatabase("Shard", config.MySql.Shard.Host, config.MySql.Shard.Port, config.MySql.Shard.Username, config.MySql.Shard.Password, config.MySql.Shard.Database);
 
-                PatchDatabase("World", ConfigManager.Config.MySql.World.Host, ConfigManager.Config.MySql.World.Port, ConfigManager.Config.MySql.World.Username, ConfigManager.Config.MySql.World.Password, ConfigManager.Config.MySql.World.Database);
+                PatchDatabase("World", config.MySql.World.Host, config.MySql.World.Port, config.MySql.World.Username, config.MySql.World.Password, config.MySql.World.Database);
             }
 
             Console.WriteLine();
