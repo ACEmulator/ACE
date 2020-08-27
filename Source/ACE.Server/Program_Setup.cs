@@ -360,6 +360,7 @@ namespace ACE.Server
 
                 Console.WriteLine("Searching for Authentication update SQL scripts .... ");
                 var updatesFile = $"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}Authentication{Path.DirectorySeparatorChar}applied_updates.txt";
+                var containerUpdatesFile = $"/ace/Config/Authentication_applied_updates.txt";
                 foreach (var file in new DirectoryInfo($"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}Authentication").GetFiles("*.sql").OrderBy(f => f.Name))
                 {
                     Console.Write($"Found {file.Name} .... ");
@@ -379,11 +380,14 @@ namespace ACE.Server
                     }
                     Console.WriteLine(" complete!");
                     File.AppendAllText(updatesFile, file.Name + Environment.NewLine);
+                    if (IsRunningInContainer && File.Exists(updatesFile))
+                        File.Copy(updatesFile, containerUpdatesFile, true);
                 }
                 Console.WriteLine("Authentication update SQL scripts import complete!");
 
                 Console.WriteLine("Searching for Shard update SQL scripts .... ");
                 updatesFile = $"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}Shard{Path.DirectorySeparatorChar}applied_updates.txt";
+                containerUpdatesFile = $"/ace/Config/Shard_applied_updates.txt";
                 foreach (var file in new DirectoryInfo($"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}Shard").GetFiles("*.sql").OrderBy(f => f.Name))
                 {
                     Console.Write($"Found {file.Name} .... ");
@@ -403,11 +407,14 @@ namespace ACE.Server
                     }
                     Console.WriteLine(" complete!");
                     File.AppendAllText(updatesFile, file.Name + Environment.NewLine);
+                    if (IsRunningInContainer && File.Exists(updatesFile))
+                        File.Copy(updatesFile, containerUpdatesFile, true);
                 }
                 Console.WriteLine("Shard update SQL scripts import complete!");
 
                 Console.WriteLine("Searching for World update SQL scripts .... ");
                 updatesFile = $"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}World{Path.DirectorySeparatorChar}applied_updates.txt";
+                containerUpdatesFile = $"/ace/Config/World_applied_updates.txt";
                 foreach (var file in new DirectoryInfo($"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}World").GetFiles("*.sql").OrderBy(f => f.Name))
                 {
                     Console.Write($"Found {file.Name} .... ");
@@ -427,6 +434,8 @@ namespace ACE.Server
                     }
                     Console.WriteLine(" complete!");
                     File.AppendAllText(updatesFile, file.Name + Environment.NewLine);
+                    if (IsRunningInContainer && File.Exists(updatesFile))
+                        File.Copy(updatesFile, containerUpdatesFile, true);
                 }
                 Console.WriteLine("World update SQL scripts import complete!");
             }
