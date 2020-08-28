@@ -221,7 +221,6 @@ namespace ACE.Server.WorldObjects
             {
                 if (kvp.Value.AdvancementClass == SkillAdvancementClass.Specialized)
                 {
-                    
                     switch (kvp.Key)
                     {
                         // exclude None/Undef skill
