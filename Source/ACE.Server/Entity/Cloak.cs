@@ -46,7 +46,7 @@ namespace ACE.Server.Entity
 
             if (itemLevel < 1) return false;
 
-            var maxProcRate = 0.25f + itemLevel * 0.01f;
+            var maxProcRate = 0.25f + (itemLevel - 1) * 0.0125f;
 
             var chance = Math.Min(damage_percent, maxProcRate);
 
