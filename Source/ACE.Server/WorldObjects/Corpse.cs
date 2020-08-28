@@ -224,7 +224,7 @@ namespace ACE.Server.WorldObjects
             else
             {
                 // player corpses -- after corpse owner loots, becomes open to anyone?
-                if (player.Guid == victimGuid)
+                if (player != null && player.Guid == victimGuid)
                     IsLooted = true;
             }
         }
