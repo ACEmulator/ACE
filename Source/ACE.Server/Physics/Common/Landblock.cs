@@ -571,6 +571,16 @@ namespace ACE.Server.Physics.Common
                 if (isDungeon != null)
                     return isDungeon.Value;
 
+                // hack for NW island
+                // did a worldwide analysis for adding watercells into the formula,
+                // but they are inconsistently defined for some of the edges of map unfortunately
+                if (BlockCoord.X < 64 && BlockCoord.Y > 1976)
+                {
+                    //Console.WriteLine($"Allowing {ID:X8}");
+                    isDungeon = false;
+                    return isDungeon.Value;
+                }
+
                 // a dungeon landblock is determined by:
                 // - all heights being 0
                 // - having at least 1 EnvCell (0x100+)
