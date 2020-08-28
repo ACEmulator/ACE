@@ -52,6 +52,8 @@ namespace ACE.Server.Network.Structure
         {
             Init(contractId);
 
+            if (player == null) return;
+
             if (!string.IsNullOrWhiteSpace(Contract.QuestflagStarted))
             {
                 if (player.QuestManager.HasQuest(Contract.QuestflagStarted))
