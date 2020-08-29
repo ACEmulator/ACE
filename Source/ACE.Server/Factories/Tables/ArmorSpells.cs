@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 
 using log4net;
 
@@ -109,13 +108,7 @@ namespace ACE.Server.Factories.Tables
         static ArmorSpells()
         {
             // takes ~0.3ms
-            var timer = Stopwatch.StartNew();
-
             BuildSpells();
-
-            timer.Stop();
-
-            log.Info($"ArmorSpells - {timer.Elapsed.TotalMilliseconds}ms");
         }
 
         private static void BuildSpells()

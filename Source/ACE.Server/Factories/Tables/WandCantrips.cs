@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 
 using log4net;
 
@@ -40,13 +39,7 @@ namespace ACE.Server.Factories.Tables
         static WandCantrips()
         {
             // takes ~0.3ms
-            var timer = Stopwatch.StartNew();
-
             BuildSpells();
-
-            timer.Stop();
-
-            log.Info($"WandCantrips - {timer.Elapsed.TotalMilliseconds}ms");
         }
 
         private static void BuildSpells()

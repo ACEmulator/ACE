@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+
 using System.Diagnostics;
 
 using log4net;
@@ -37,13 +38,7 @@ namespace ACE.Server.Factories.Tables
         static MeleeSpells()
         {
             // takes ~0.3ms
-            var timer = Stopwatch.StartNew();
-
             BuildSpells();
-
-            timer.Stop();
-
-            log.Info($"MeleeSpells - {timer.Elapsed.TotalMilliseconds}ms");
         }
 
         private static void BuildSpells()
