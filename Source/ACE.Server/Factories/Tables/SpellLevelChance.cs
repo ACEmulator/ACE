@@ -146,11 +146,11 @@ namespace ACE.Server.Factories.Tables
             for (var i = 0; i < spellLevelChances.Count; i++)
             {
                 total += spellLevelChances[i];
-                if (rng <= total)       // FIXME: should be < but ThreadSafeRandom.Next(float, float) has precision issues with double -> float conversion
-                    return i + 1;       // fix rng so (float, float) is (inclusive, exclusive)
+                if (rng < total)
+                    return i + 1;
             }
 
-            // this shouldn't happen, verify floating point precision?
+            // this shouldn't normally happen, floating point addition imprecision?
             log.Error($"LootGenerationFactory - SpellLevel.Roll - This shouldn't happen, tier={tier}, total={total}, rng={rng}");
             for (var i = spellLevelChances.Count - 1; i >= 0; i--)
             {
