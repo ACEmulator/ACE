@@ -259,5 +259,19 @@ namespace ACE.Server.Managers
             else
                 return lastNoticeTime;
         }
+
+        public static string ShutdownNoticeText()
+        {
+            var sdt = ShutdownTime - DateTime.UtcNow;
+
+            var timeToShutdown = $"{(sdt.Hours > 0 ? $"{sdt.Hours} hour{(sdt.Hours > 1 ? "s" : "")}" : "")}";
+            timeToShutdown += $"{(timeToShutdown.Length > 0 ? ", " : "")}{(sdt.Minutes > 0 ? $"{sdt.Minutes} minute{(sdt.Minutes > 1 ? "s" : "")}" : "")}";
+            timeToShutdown += $"{(timeToShutdown.Length > 0 ? " and " : "")}{(sdt.Seconds > 0 ? $"{sdt.Seconds} second{(sdt.Seconds > 1 ? "s" : "")}" : "")}";
+
+            if (sdt.TotalSeconds > 10)
+               return $"Broadcast from System> {(sdt.TotalMinutes > 1.5 ? "ATTENTION" : "WARNING")} - This Asheron's Call Server is shutting down in {timeToShutdown}.{(sdt.TotalMinutes <= 3 ? " Please log out." : "")}";
+            else
+               return $"Broadcast from System> ATTENTION - This Asheron's Call Server is shutting down NOW!!!!";
+        }
     }
 }
