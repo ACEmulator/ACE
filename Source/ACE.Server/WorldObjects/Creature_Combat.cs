@@ -55,10 +55,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Switches a player or creature to a new combat stance
         /// </summary>
-        public float SetCombatMode(CombatMode combatMode, out float queueTime)
+        public float SetCombatMode(CombatMode combatMode, out float queueTime, bool forceHandCombat = false)
         {
             // check if combat stance actually needs switching
-            var combatStance = GetCombatStance();
+            var combatStance = forceHandCombat ? MotionStance.HandCombat : GetCombatStance();
 
             //Console.WriteLine($"{Name}.SetCombatMode({combatMode}), CombatStance: {combatStance}");
 
@@ -81,7 +81,7 @@ namespace ACE.Server.WorldObjects
                     animLength = HandleSwitchToPeaceMode();
                     break;
                 case CombatMode.Melee:
-                    animLength = HandleSwitchToMeleeCombatMode();
+                    animLength = HandleSwitchToMeleeCombatMode(forceHandCombat);
                     break;
                 case CombatMode.Magic:
                     animLength = HandleSwitchToMagicCombatMode();
@@ -155,10 +155,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Switches a player or creature to melee attack stance
         /// </summary>
-        public float HandleSwitchToMeleeCombatMode()
+        public float HandleSwitchToMeleeCombatMode(bool forceHandCombat = false)
         {
             // get appropriate combat stance for currently wielded items
-            var combatStance = GetCombatStance();
+            var combatStance = forceHandCombat ? MotionStance.HandCombat : GetCombatStance();
 
             var animLength = SwitchCombatStyles();
             animLength += MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, (MotionCommand)combatStance);
@@ -370,7 +370,7 @@ namespace ACE.Server.WorldObjects
             else
             {
                 LastWeaponSwap += animLength;
-                return (float)(LastWeaponSwap - currentTime);
+                return (float)(LastWeaponSwap - currentTime - animLength);
             }
         }
 

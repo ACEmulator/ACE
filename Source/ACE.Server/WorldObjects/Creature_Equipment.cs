@@ -289,7 +289,7 @@ namespace ACE.Server.WorldObjects
         /// It does not add it to inventory as you could be unwielding to the ground or a chest.<para />
         /// It will also decrease the EncumbranceVal and Value.
         /// </summary>
-        public bool TryDequipObject(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation)
+        public bool TryDequipObject(ObjectGuid objectGuid, out WorldObject worldObject, out EquipMask wieldedLocation)
         {
             if (!EquippedObjects.Remove(objectGuid, out worldObject))
             {
@@ -297,7 +297,7 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            wieldedLocation = worldObject.GetProperty(PropertyInt.CurrentWieldedLocation) ?? 0;
+            wieldedLocation = worldObject.CurrentWieldedLocation ?? EquipMask.None;
 
             worldObject.RemoveProperty(PropertyInt.CurrentWieldedLocation);
             worldObject.RemoveProperty(PropertyInstanceId.Wielder);
@@ -322,7 +322,7 @@ namespace ACE.Server.WorldObjects
         /// Called by non-player creatures to unwield an item,
         /// removing any spells casted by the item
         /// </summary>
-        public bool TryUnwieldObjectWithBroadcasting(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation, bool droppingToLandscape = false)
+        public bool TryUnwieldObjectWithBroadcasting(ObjectGuid objectGuid, out WorldObject worldObject, out EquipMask wieldedLocation, bool droppingToLandscape = false)
         {
             if (!TryDequipObjectWithBroadcasting(objectGuid, out worldObject, out wieldedLocation, droppingToLandscape))
                 return false;
@@ -339,12 +339,12 @@ namespace ACE.Server.WorldObjects
         /// It does not add it to inventory as you could be unwielding to the ground or a chest.<para />
         /// It will also decrease the EncumbranceVal and Value.
         /// </summary>
-        protected bool TryDequipObjectWithBroadcasting(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation, bool droppingToLandscape = false)
+        protected bool TryDequipObjectWithBroadcasting(ObjectGuid objectGuid, out WorldObject worldObject, out EquipMask wieldedLocation, bool droppingToLandscape = false)
         {
             if (!TryDequipObject(objectGuid, out worldObject, out wieldedLocation))
                 return false;
 
-            if ((wieldedLocation & (int)EquipMask.Selectable) != 0) // Is this equipped item visible to others?
+            if ((wieldedLocation & EquipMask.Selectable) != 0) // Is this equipped item visible to others?
                 EnqueueBroadcast(false, new GameMessageSound(Guid, Sound.UnwieldObject));
 
             EnqueueBroadcast(new GameMessageObjDescEvent(this));

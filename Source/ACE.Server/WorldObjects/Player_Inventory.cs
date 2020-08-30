@@ -373,19 +373,43 @@ namespace ACE.Server.WorldObjects
 
             if (dequipObjectAction != DequipObjectAction.ToCorpseOnDeath)
             {
-                if (CombatMode == CombatMode.Missile && wieldedLocation == (int)EquipMask.MissileAmmo)
+                if (RequiresStanceSwap(wieldedLocation))
                 {
-                    HandleActionChangeCombatMode(CombatMode.NonCombat);
-                    return true;
+                    var newCombatMode = CombatMode.Melee;
+
+                    if (CombatMode == CombatMode.Missile && wieldedLocation == EquipMask.MissileAmmo)
+                        newCombatMode = CombatMode.NonCombat;
+
+                    HandleActionChangeCombatMode(newCombatMode);
                 }
-
-                if (CombatMode == CombatMode.NonCombat || (wieldedLocation != (int)EquipMask.MeleeWeapon && wieldedLocation != (int)EquipMask.MissileWeapon && wieldedLocation != (int)EquipMask.Held && wieldedLocation != (int)EquipMask.Shield && !item.IsTwoHanded))
-                    return true;
-
-                HandleActionChangeCombatMode(CombatMode.Melee);
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Returns TRUE if unwielding an item from wieldedLocation
+        /// should cause the player to switch to a new stance
+        /// </summary>
+        public bool RequiresStanceSwap(EquipMask wieldedLocation, bool checkMissile = true)
+        {
+            if (CombatMode == CombatMode.NonCombat)
+                return false;
+
+            switch (wieldedLocation)
+            {
+                case EquipMask.MeleeWeapon:
+                case EquipMask.MissileWeapon:
+                case EquipMask.Held:
+                case EquipMask.Shield:
+                case EquipMask.TwoHanded:
+                    return true;
+            }
+
+            if (checkMissile && CombatMode == CombatMode.Missile && wieldedLocation == EquipMask.MissileAmmo)
+                return true;
+
+            return false;
         }
 
 
@@ -731,7 +755,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            OnPutItemInContainer(itemGuid, containerGuid, placement);
+            //OnPutItemInContainer(itemGuid, containerGuid, placement);
 
             var item = FindObject(itemGuid, SearchLocations.LocationsICanMove, out _, out var itemRootOwner, out var itemWasEquipped);
             var container = FindObject(containerGuid, SearchLocations.MyInventory | SearchLocations.Landblock | SearchLocations.LastUsedContainer, out _, out var containerRootOwner, out _) as Container;
@@ -985,7 +1009,21 @@ namespace ACE.Server.WorldObjects
             }
             else // This is a self-contained movement
             {
-                DoHandleActionPutItemInContainer(item, itemRootOwner, itemWasEquipped, container, containerRootOwner, placement);
+                var wieldedLocation = item.CurrentWieldedLocation ?? EquipMask.None;
+
+                // todo: handle arrows
+                if (RequiresStanceSwap(wieldedLocation, false))
+                {
+                    HandleActionChangeCombatMode(CombatMode.Melee, true, () =>
+                    {
+                        // todo: re-verify
+                        DoHandleActionPutItemInContainer(item, itemRootOwner, itemWasEquipped, container, containerRootOwner, placement);
+                    });
+                }
+                else
+                {
+                    DoHandleActionPutItemInContainer(item, itemRootOwner, itemWasEquipped, container, containerRootOwner, placement);
+                }
             }
         }
 
@@ -1012,10 +1050,12 @@ namespace ACE.Server.WorldObjects
 
         private bool DoHandleActionPutItemInContainer(WorldObject item, Container itemRootOwner, bool itemWasEquipped, Container container, Container containerRootOwner, int placement)
         {
-            //Console.WriteLine($"DoHandleActionPutItemInContainer({item.Name}, {container.Name}, {itemWasEquipped}, {placement})");
+            //Console.WriteLine($"-> DoHandleActionPutItemInContainer({item.Name}, {container.Name}, {itemWasEquipped}, {placement})");
 
             Position prevLocation = null;
             Landblock prevLandblock = null;
+
+            OnPutItemInContainer(item.Guid.Full, container.Guid.Full, placement);
 
             if (item.CurrentLandblock != null) // Movement is an item pickup off the landblock
             {
