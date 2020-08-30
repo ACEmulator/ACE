@@ -53,7 +53,7 @@ namespace ACE.Server
                     int.TryParse(tagSplit[1], out var tagMinor);
                     int.TryParse(tagSplit[2], out var tagBuild);
 
-                    if (tagMajor > patchMajor || tagMinor > patchMinor || tagBuild > patchBuild)
+                    if (tagMajor > patchMajor || tagMinor > patchMinor || (tagBuild > patchBuild && patchBuild != 0))
                     {
                         log.Info($"Latest patch version is {tag} -- Update Required!");
                         UpdateToLatestWorldDatabase(dbURL, dbFileName);
