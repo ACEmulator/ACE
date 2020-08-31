@@ -1029,7 +1029,7 @@ namespace ACE.Server.Physics.Common
                 // in all of the logic based on VisibleTargets
                 if (VisibleTargets.ContainsKey(obj.ID))
                 {
-                    Console.WriteLine($"{PhysicsObj.Name}.AddRetaliateTarget({obj.Name}) - visible target already exists");
+                    //Console.WriteLine($"{PhysicsObj.Name}.AddRetaliateTarget({obj.Name}) - visible target already exists");
                     return;
                 }
                 VisibleTargets.Add(obj.ID, obj);
