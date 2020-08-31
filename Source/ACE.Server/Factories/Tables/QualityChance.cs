@@ -202,7 +202,7 @@ namespace ACE.Server.Factories.Tables
                     return (float)(dy * (interval + i));
                 }
             }
-            log.Error($"ChanceTables.Roll - This shouldn't happen");
+            log.Error($"QualityTables.Roll - This shouldn't happen");
             return 0.0f;
         }
     }

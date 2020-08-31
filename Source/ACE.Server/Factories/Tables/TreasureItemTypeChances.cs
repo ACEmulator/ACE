@@ -95,7 +95,7 @@ namespace ACE.Server.Factories.Tables
             {
                 total += chance.Chance;
 
-                if (rng <= total)
+                if (rng < total)
                     return chance.TreasureItemType;
             }
 
