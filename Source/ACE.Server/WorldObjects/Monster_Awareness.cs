@@ -58,8 +58,7 @@ namespace ACE.Server.WorldObjects
 
             PhysicsObj.CachedVelocity = Vector3.Zero;
 
-            if (RetaliateTargets != null)
-                RetaliateTargets.Clear();
+            ClearRetaliateTargets();
         }
 
         public Tolerance Tolerance
@@ -255,10 +254,11 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 // if this monster belongs to a faction,
-                // ensure target does not belong to the same faction, or they have been provoked
-                if (Faction1Bits != null && creature.Faction1Bits != null && (Faction1Bits & creature.Faction1Bits) != 0)
+                // ensure target does not belong to the same faction
+                if (SameFaction(creature))
                 {
-                    if (RetaliateTargets != null && !RetaliateTargets.Contains(creature.Guid.Full))
+                    // unless they have been provoked
+                    if (!PhysicsObj.ObjMaint.RetaliateTargetsContainsKey(creature.Guid.Full))
                         continue;
                 }
 
@@ -418,8 +418,8 @@ namespace ACE.Server.WorldObjects
                     if (distSq > nearbyCreature.VisualAwarenessRangeSq)
                         continue;
 
-                    if (nearbyCreature.RetaliateTargets != null)
-                        nearbyCreature.RetaliateTargets.Add(AttackTarget.Guid.Full);
+                    if (nearbyCreature.SameFaction(AttackTarget as Creature))
+                        nearbyCreature.AddRetaliateTarget(AttackTarget);
 
                     Alerted = true;
                     nearbyCreature.AttackTarget = AttackTarget;
