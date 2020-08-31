@@ -914,6 +914,11 @@ namespace ACE.Server.Physics.Common
                 // only tracking players and combat pets
                 if (!obj.IsPlayer && !obj.WeenieObj.IsCombatPet)
                 {
+                    // depending on if we want regular mobs to aggro faction mobs on sight,
+                    // or only after the faction mob has attacked them, this logic may need adjusted
+                    if (obj.WeenieObj.IsFactionMob)
+                        return false;
+
                     Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add a non-player / non-combat pet");
                     return false;
                 }
@@ -1016,6 +1021,7 @@ namespace ACE.Server.Physics.Common
                     //Console.WriteLine($"{PhysicsObj.Name}.AddRetaliateTarget({obj.Name}) - retaliate target already exists");
                     return;
                 }
+                Console.WriteLine($"{PhysicsObj.Name}.AddRetaliateTarget({obj.Name})");
                 RetaliateTargets.Add(obj.ID, obj);
 
                 // we're going to add retaliate targets to the list of visible targets as well,
