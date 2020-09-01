@@ -52,6 +52,9 @@ namespace ACE.DatLoader.Tests
 
             foreach (var kvp in dat.AllFiles)
             {
+                if (kvp.Key == 0xFFFF0001) // Not sure what this is, EOF record maybe?
+                    continue;
+
                 if (kvp.Value.FileSize == 0) // DatFileType.LandBlock files can be empty
                     continue;
 
@@ -60,9 +63,8 @@ namespace ACE.DatLoader.Tests
                 if ((kvp.Key & 0xFFFF) == 0xFFFE) fileType = DatFileType.LandBlockInfo;
                 if ((kvp.Key & 0xFFFF) == 0xFFFF) fileType = DatFileType.LandBlock;
 
-                if (fileType == null) // What are these?
-                    continue;
                 //Assert.IsNotNull(fileType, $"Key: 0x{kvp.Key:X8}, ObjectID: 0x{kvp.Value.ObjectId:X8}, FileSize: {kvp.Value.FileSize}, BitFlags:, 0x{kvp.Value.BitFlags:X8}");
+                Assert.IsNotNull(fileType, $"Key: 0x{kvp.Key:X8}, ObjectID: 0x{kvp.Value.ObjectId:X8}, FileSize: {kvp.Value.FileSize}");
 
                 var type = types
                     .SelectMany(m => m.GetCustomAttributes(typeof(DatFileTypeAttribute), false), (m, a) => new { m, a })
