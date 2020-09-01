@@ -159,7 +159,7 @@ namespace ACE.Server.WorldObjects
                 return null;
             }
 
-            var stanceKey = (uint)CurrentMotionState.Stance << 16 | ((uint)MotionCommand.Ready & 0xFFFFF);
+            var stanceKey = (uint)CurrentMotionState.Stance << 16 | ((uint)MotionCommand.Ready & 0xFFFFFF);
             motionTable.Links.TryGetValue(stanceKey, out var motions);
             if (motions == null)
             {

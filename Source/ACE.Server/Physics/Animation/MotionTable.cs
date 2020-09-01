@@ -235,7 +235,7 @@ namespace ACE.Server.Physics.Animation
                 Cycles.TryGetValue(styleKey | (currState.Substate & 0xFFFFFF), out cycles);
                 if (cycles != null && (cycles.Bitfield & 1) == 0)
                 {
-                    Modifiers.TryGetValue(styleKey | motion, out motionData);
+                    Modifiers.TryGetValue(styleKey | (motion & 0xFFFFFF), out motionData);
                     if (motionData == null)
                         Modifiers.TryGetValue(motion & 0xFFFFFF, out motionData);
                     if (motionData != null)
@@ -412,7 +412,7 @@ namespace ACE.Server.Physics.Animation
 
             var key = style << 16;
             if (checkFirst)
-                key |= first & 0xFFFFF;
+                key |= first & 0xFFFFFF;
             Links.TryGetValue(key, out link);
             if (link == null)
                 return null;
