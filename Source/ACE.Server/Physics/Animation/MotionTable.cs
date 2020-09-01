@@ -412,7 +412,7 @@ namespace ACE.Server.Physics.Animation
 
             var key = style << 16;
             if (checkFirst)
-                key |= first & 0xFFFFF;
+                key |= first & 0xFFFFFF;
             Links.TryGetValue(key, out link);
             if (link == null)
                 return null;
