@@ -128,7 +128,11 @@ namespace ACE.Server.WorldObjects
 
                 return;
             }
-            TryCastSpell(spell, player);
+
+            // should be 'You cast', instead of 'Item cast'
+            // omitting the item caster here, so player is also used for enchantment registry caster,
+            // which could prevent some scenarios with spamming enchantments from multiple food sources to protect against dispels
+            player.TryCastSpell(spell, player, null, false);
         }
 
         public Sound GetUseSound()
