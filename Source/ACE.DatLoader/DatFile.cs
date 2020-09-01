@@ -154,7 +154,6 @@ namespace ACE.DatLoader
                     return DatFileType.DbProperties;
             }
 
-
             switch (ObjectId >> 16)
             {
                 case 0x0E01:
