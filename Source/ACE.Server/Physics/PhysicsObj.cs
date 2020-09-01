@@ -1305,9 +1305,8 @@ namespace ACE.Server.Physics
             if (spellCollide)
             {
                 // send initial CO as ethereal
-                // fixme?
-                //WeenieObj.WorldObject.Ethereal = true;
-                WeenieObj.WorldObject.SetProperty(PropertyBool.Ethereal, true);
+                WeenieObj.WorldObject.Ethereal = true;
+                //WeenieObj.WorldObject.SetProperty(PropertyBool.Ethereal, true);
             }
 
             if (!SetPositionInternal(transition))
@@ -3351,9 +3350,10 @@ namespace ACE.Server.Physics
                 // prev_has_contact and missile state params swapped?
                 var profile = obj.build_collision_profile(this, obj.TransientState.HasFlag(TransientStateFlags.Contact), velocityCollide);
 
-                // ??
+                // ObjID and obj are custom parameters added by ace
+                // if obj. and obj) are the same, all of these calls seem to effectively get dropped
+                // is this intended for 1-way collisions??
                 obj.WeenieObj.DoCollision(profile, ObjID, obj);
-                //obj.WeenieObj.DoCollision(profile, ObjID, this);
 
                 collided = true;
             }
