@@ -399,6 +399,12 @@ namespace ACE.Server.Physics.Animation
                     link.TryGetValue(substate, out var result);
                     return result;
                 }
+
+                if (StyleDefaults.TryGetValue(style, out var defaultMotion) && Links.TryGetValue((style << 16) | (substate & 0xFFFFFF), out var sublink))
+                {
+                    sublink.TryGetValue(defaultMotion, out var result);
+                    return result;
+                }
             }
             else
             {
@@ -407,22 +413,10 @@ namespace ACE.Server.Physics.Animation
                     link.TryGetValue(motion, out var result);
                     return result;
                 }
-            }
 
-            // ----
-            if (speed < 0.0f || substateSpeed < 0.0f)
-            {
-                if (StyleDefaults.TryGetValue(style, out var defaultStyle) && Links.TryGetValue((style << 16) | (substate & 0xFFFFFF), out var link))
+                if (Links.TryGetValue(style << 16, out var sublink))
                 {
-                    link.TryGetValue(defaultStyle, out var result);
-                    return result;
-                }
-            }
-            else
-            {
-                if (Links.TryGetValue(style << 16, out var link))
-                {
-                    link.TryGetValue(motion, out var result);
+                    sublink.TryGetValue(motion, out var result);
                     return result;
                 }
             }
