@@ -26,6 +26,8 @@ namespace ACE.Server.Physics.Common
 
         public bool IsFactionMob { get; set; }
 
+        public FactionBits Faction1Bits { get; set; }
+
         public WeenieObject() { }
 
         public WeenieObject(WorldObject worldObject)
@@ -39,7 +41,14 @@ namespace ACE.Server.Physics.Common
 
             IsMonster = creature.IsMonster && !IsCombatPet;
 
-            IsFactionMob = IsMonster && creature.Faction1Bits != null;
+            Faction1Bits = creature.Faction1Bits ?? FactionBits.None;
+
+            IsFactionMob = IsMonster && Faction1Bits != FactionBits.None;
+        }
+
+        public bool SameFaction(PhysicsObj obj)
+        {
+            return (Faction1Bits & obj.WeenieObj.Faction1Bits) != 0;
         }
 
         public bool CanJump(float extent)

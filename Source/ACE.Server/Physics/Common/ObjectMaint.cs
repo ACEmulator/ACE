@@ -397,11 +397,13 @@ namespace ACE.Server.Physics.Common
                 if (PhysicsObj.WeenieObj.IsCombatPet)
                     results = objs.Where(i => i.WeenieObj.IsMonster);
                 else if (PhysicsObj.WeenieObj.IsFactionMob)
-                    results = objs.Where(i => i.WeenieObj.IsMonster || i.IsPlayer || i.WeenieObj.IsCombatPet);
+                    results = objs.Where(i => i.IsPlayer || i.WeenieObj.IsCombatPet || i.WeenieObj.IsMonster && !i.WeenieObj.SameFaction(PhysicsObj));
                 else
-                    results = objs.Where(i => i.IsPlayer || i.WeenieObj.IsCombatPet);
+                {
+                    // adding faction mobs here, even though they are retaliate-only, for inverse visible targets
+                    results = objs.Where(i => i.IsPlayer || i.WeenieObj.IsCombatPet || i.WeenieObj.IsFactionMob);
+                }
             }
-
             return results;
         }
 
@@ -909,16 +911,29 @@ namespace ACE.Server.Physics.Common
                     return false;
                 }
             }
-            else if (!PhysicsObj.WeenieObj.IsFactionMob)
+            else if (PhysicsObj.WeenieObj.IsFactionMob)
             {
+                // only tracking players, combat pets, and monsters of differing faction
+                if (!obj.IsPlayer && !obj.WeenieObj.IsCombatPet && (!obj.WeenieObj.IsMonster || PhysicsObj.WeenieObj.SameFaction(obj)))
+                {
+                    Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add a non-player / non-combat pet / non-opposing faction mob");
+                    return false;
+                }
+            }
+            else
+            {
+                // handle special case:
+                // we want to select faction mobs for monsters inverse targets,
+                // but not add to the original monster
+                if (obj.WeenieObj.IsFactionMob)
+                {
+                    obj.ObjMaint.AddVisibleTarget(PhysicsObj);
+                    return false;
+                }
+
                 // only tracking players and combat pets
                 if (!obj.IsPlayer && !obj.WeenieObj.IsCombatPet)
                 {
-                    // depending on if we want regular mobs to aggro faction mobs on sight,
-                    // or only after the faction mob has attacked them, this logic may need adjusted
-                    if (obj.WeenieObj.IsFactionMob)
-                        return false;
-
                     Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add a non-player / non-combat pet");
                     return false;
                 }
