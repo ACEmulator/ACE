@@ -1305,8 +1305,7 @@ namespace ACE.Server.Physics
             if (spellCollide)
             {
                 // send initial CO as ethereal
-                WeenieObj.WorldObject.Ethereal = true;
-                //WeenieObj.WorldObject.SetProperty(PropertyBool.Ethereal, true);
+                WeenieObj.WorldObject.SetProperty(PropertyBool.Ethereal, true);
             }
 
             if (!SetPositionInternal(transition))
