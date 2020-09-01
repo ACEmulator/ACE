@@ -5,6 +5,7 @@ using System.Numerics;
 
 using ACE.Common;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Physics.Animation;
@@ -1304,7 +1305,9 @@ namespace ACE.Server.Physics
             if (spellCollide)
             {
                 // send initial CO as ethereal
-                WeenieObj.WorldObject.Ethereal = true;
+                // fixme?
+                //WeenieObj.WorldObject.Ethereal = true;
+                WeenieObj.WorldObject.SetProperty(PropertyBool.Ethereal, true);
             }
 
             if (!SetPositionInternal(transition))
@@ -3345,10 +3348,12 @@ namespace ACE.Server.Physics
             if (obj.State.HasFlag(PhysicsState.ReportCollisions) && !State.HasFlag(PhysicsState.IgnoreCollisions) && obj.WeenieObj != null)
             {
                 // acclient might have a bug here,
-                // prev_has_contact and missie state params swapped?
+                // prev_has_contact and missile state params swapped?
                 var profile = obj.build_collision_profile(this, obj.TransientState.HasFlag(TransientStateFlags.Contact), velocityCollide);
 
+                // ??
                 obj.WeenieObj.DoCollision(profile, ObjID, obj);
+                //obj.WeenieObj.DoCollision(profile, ObjID, this);
 
                 collided = true;
             }
