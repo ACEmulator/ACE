@@ -3,7 +3,7 @@ using System.IO;
 namespace ACE.DatLoader.FileTypes
 {
     /// <summary>
-    /// These are client_local_English.dat files starting with 0x31.
+    /// These are client_portal.dat files starting with 0x31.
     /// This is called a "String" in the client; It has been renamed to avoid conflicts with the generic "String" class.
     /// </summary>
     [DatFileType(DatFileType.String)]
