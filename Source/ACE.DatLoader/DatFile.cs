@@ -71,10 +71,9 @@ namespace ACE.DatLoader
             {
                 if ((ObjectId & 0xFFFF) == 0xFFFF)
                     return DatFileType.LandBlock;
-                else if ((ObjectId & 0xFFFF) == 0xFFFE)
+                if ((ObjectId & 0xFFFF) == 0xFFFE)
                     return DatFileType.LandBlockInfo;
-                else
-                    return DatFileType.EnvCell;
+                return DatFileType.EnvCell;
             }
             switch (ObjectId >> 24)
             {
@@ -132,19 +131,19 @@ namespace ACE.DatLoader
 
             if (ObjectId == 0x0E000002)
                 return DatFileType.CharacterGenerator;
-            else if (ObjectId == 0x0E000007)
+            if (ObjectId == 0x0E000007)
                 return DatFileType.ChatPoseTable;
-            else if (ObjectId == 0x0E00000D)
+            if (ObjectId == 0x0E00000D)
                 return DatFileType.ObjectHierarchy;
-            else if (ObjectId == 0xE00001A)
+            if (ObjectId == 0xE00001A)
                 return DatFileType.BadData;
-            else if (ObjectId == 0x0E00001E)
+            if (ObjectId == 0x0E00001E)
                 return DatFileType.TabooTable;
-            else if (ObjectId == 0x0E00001F)
+            if (ObjectId == 0x0E00001F)
                 return DatFileType.FileToId;
-            else if (ObjectId == 0x0E000020)
+            if (ObjectId == 0x0E000020)
                 return DatFileType.NameFilterTable;
-            else if (ObjectId == 0x0E020000)
+            if (ObjectId == 0x0E020000)
                 return DatFileType.MonitoredProperties;
 
             Console.WriteLine($"Unknown file type: {ObjectId:X8}");
