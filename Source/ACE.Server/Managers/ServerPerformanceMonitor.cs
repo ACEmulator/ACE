@@ -67,6 +67,7 @@ namespace ACE.Server.Managers
             // These are all found in various places and are cumulative per Landblock_Tick
             Monster_Awareness_FindNextTarget,
             Monster_Navigation_UpdatePosition_PUO,
+            LootGenerationFactory_CreateRandomLootObjects,
 
             MaxItems // Keep this at the end to properly size our monitors array
         }
@@ -288,7 +289,7 @@ namespace ACE.Server.Managers
                 AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType)i).ToString(), sb);
 
             sb.Append($"Calls from Landblock.TickLandblockGroupThreadSafeWork() - Misc - Cumulative over a single UpdateGameWorld Tick{'\n'}");
-            for (int i = (int)CumulativeEventHistoryType.Monster_Awareness_FindNextTarget; i <= (int)CumulativeEventHistoryType.Monster_Navigation_UpdatePosition_PUO; i++)
+            for (int i = (int)CumulativeEventHistoryType.Monster_Awareness_FindNextTarget; i <= (int)CumulativeEventHistoryType.LootGenerationFactory_CreateRandomLootObjects; i++)
                 AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType)i).ToString(), sb);
 
             sb.Append($"Calls from Landblock.TickSingleThreadedWork() - Cumulative over a single UpdateGameWorld Tick{'\n'}");
