@@ -3,7 +3,7 @@ using System.Linq;
 using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
+using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
@@ -33,7 +33,7 @@ namespace ACE.Server.Factories
             int workmanship = 0;
             int rank = 0;
             int difficulty = 0;
-            int spellDID = 0;
+            SpellId spellDID = 0;
             int skill_level_limit = 0;
 
             gemType = (uint)wo.MaterialType;
@@ -42,6 +42,10 @@ namespace ACE.Server.Factories
             wo.ItemWorkmanship = workmanship;
             int value = LootTables.gemValues[(int)gemType] + ThreadSafeRandom.Next(1, LootTables.gemValues[(int)gemType]);
             wo.Value = value;
+
+            // TODO: here tier N always rolls a level N spell
+            // in retail, each tier could roll different levels of spells. each tier had a spell level chance table
+            // for example, tier 8 might have had a 75% chance to roll level 7 spells, and a 25% chance to roll level 8 spells
 
             gemLootMatrixIndex = tier - 1;
             if (isMagical)
@@ -57,19 +61,19 @@ namespace ACE.Server.Factories
                 {
                     case 0:
                         gemSpellIndex = LootTables.GemSpellIndexMatrix[gemLootMatrixIndex][0];
-                        spellDID = LootTables.GemCreatureSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, LootTables.GemCreatureSpellMatrix[gemSpellIndex].Length - 1)];
+                        spellDID = GemSpells.GemCreatureSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, GemSpells.GemCreatureSpellMatrix[gemSpellIndex].Length - 1)];
                         break;
                     case 1:
                         gemSpellIndex = LootTables.GemSpellIndexMatrix[gemLootMatrixIndex][0];
-                        spellDID = LootTables.GemLifeSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, LootTables.GemLifeSpellMatrix[gemSpellIndex].Length - 1)];
+                        spellDID = GemSpells.GemLifeSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, GemSpells.GemLifeSpellMatrix[gemSpellIndex].Length - 1)];
                         break;
                     case 2:
                         gemSpellIndex = LootTables.GemSpellIndexMatrix[gemLootMatrixIndex][1];
-                        spellDID = LootTables.GemCreatureSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, LootTables.GemCreatureSpellMatrix[gemSpellIndex].Length - 1)];
+                        spellDID = GemSpells.GemCreatureSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, GemSpells.GemCreatureSpellMatrix[gemSpellIndex].Length - 1)];
                         break;
                     default:
                         gemSpellIndex = LootTables.GemSpellIndexMatrix[gemLootMatrixIndex][1];
-                        spellDID = LootTables.GemLifeSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, LootTables.GemLifeSpellMatrix[gemSpellIndex].Length - 1)];
+                        spellDID = GemSpells.GemLifeSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, GemSpells.GemLifeSpellMatrix[gemSpellIndex].Length - 1)];
                         break;
                 }
 

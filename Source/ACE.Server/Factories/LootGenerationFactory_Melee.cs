@@ -420,19 +420,19 @@ namespace ACE.Server.Factories
 
         private enum LootWeaponType
         {
-            Axe,
-            Dagger,
-            DaggerMulti,
-            Mace,
-            Spear,
-            Sword,
-            SwordMulti,
-            Staff,
-            UA,
-            Jitte,
+            Axe = 0,
+            Dagger = 1,
+            DaggerMulti = 2,
+            Mace = 3,
+            Spear = 4,
+            Sword = 5,
+            SwordMulti = 6,
+            Staff = 7,
+            UA = 8,
+            Jitte = 9,
             TwoHanded = 0,
             Cleaving = 0,
-            Spears,
+            Spears = 1,
         }
 
         // The percentages for variances need to be fixed
