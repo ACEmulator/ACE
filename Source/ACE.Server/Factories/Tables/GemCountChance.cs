@@ -18,21 +18,21 @@ namespace ACE.Server.Factories.Tables
         {
             using (var ctx = new WorldDbContext())
             {
-                var gemDists = ctx.TreasureGemCount.Where(i => i.Chance > 0);
+                var gemCounts = ctx.TreasureGemCount.Where(i => i.Chance > 0);
 
-                foreach (var gemDist in gemDists)
+                foreach (var gemCount in gemCounts)
                 {
-                    if (!gemCodes.TryGetValue(gemDist.GemCode, out var tiers))
+                    if (!gemCodes.TryGetValue(gemCount.GemCode, out var tiers))
                     {
                         tiers = new Dictionary<int, ChanceTable<int>>();
-                        gemCodes[gemDist.GemCode] = tiers;
+                        gemCodes[gemCount.GemCode] = tiers;
                     }
-                    if (!tiers.TryGetValue(gemDist.Tier, out var chances))
+                    if (!tiers.TryGetValue(gemCount.Tier, out var chances))
                     {
                         chances = new ChanceTable<int>();
-                        tiers[gemDist.Tier] = chances;
+                        tiers[gemCount.Tier] = chances;
                     }
-                    chances.Add(gemDist.Count, gemDist.Chance);
+                    chances.Add(gemCount.Count, gemCount.Chance);
                 }
             }
         }
