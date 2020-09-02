@@ -16,7 +16,10 @@ namespace ACE.DatLoader.FileTypes
             Id = reader.ReadUInt32();
             uint strLen = reader.ReadCompressedUInt32();
             if (strLen > 0)
-                CharBuffer = reader.ReadPString(strLen);
+            {
+                byte[] thestring = reader.ReadBytes((int)strLen);
+                CharBuffer = System.Text.Encoding.Default.GetString(thestring);
+            }
         }
     }
 }
