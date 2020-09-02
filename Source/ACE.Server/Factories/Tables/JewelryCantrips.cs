@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 
-using System.Diagnostics;
-
 using log4net;
 
 using ACE.Entity.Enum;
@@ -64,7 +62,7 @@ namespace ACE.Server.Factories.Tables
 
             // life
 
-            SpellId.CANTRIPARMOR1,      // was in original twice, right next to each other -- intended?
+            SpellId.CANTRIPARMOR1,      // was in original twice
             SpellId.CANTRIPACIDWARD1,
             SpellId.CANTRIPBLUDGEONINGWARD1,
             SpellId.CANTRIPFROSTWARD1,
