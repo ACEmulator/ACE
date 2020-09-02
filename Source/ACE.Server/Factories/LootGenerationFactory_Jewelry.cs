@@ -145,13 +145,18 @@ namespace ACE.Server.Factories
         {
             //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
             wo.LongDesc = wo.Name;
+
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
-            int gemCount = ThreadSafeRandom.Next(1, 5);
-            int gemType = ThreadSafeRandom.Next(10, 50);
-            wo.GemCount = gemCount;
-            wo.GemType = (MaterialType)gemType;
+
+            if (wo.GemCode != null)
+                wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
+            else
+                wo.GemCount = ThreadSafeRandom.Next(1, 5);
+
+            wo.GemType = (MaterialType)ThreadSafeRandom.Next(10, 50);
+
             int workmanship = GetWorkmanship(profile.Tier);
 
             double materialMod = LootTables.getMaterialValueModifier(wo);

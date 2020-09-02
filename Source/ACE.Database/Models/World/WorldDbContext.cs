@@ -39,7 +39,7 @@ namespace ACE.Database.Models.World
         public virtual DbSet<RecipeRequirementsString> RecipeRequirementsString { get; set; }
         public virtual DbSet<Spell> Spell { get; set; }
         public virtual DbSet<TreasureDeath> TreasureDeath { get; set; }
-        public virtual DbSet<TreasureGemDist> TreasureGemDist { get; set; }
+        public virtual DbSet<TreasureGemCount> TreasureGemCount { get; set; }
         public virtual DbSet<TreasureMaterialBase> TreasureMaterialBase { get; set; }
         public virtual DbSet<TreasureMaterialColor> TreasureMaterialColor { get; set; }
         public virtual DbSet<TreasureMaterialGroups> TreasureMaterialGroups { get; set; }
@@ -1169,20 +1169,22 @@ namespace ACE.Database.Models.World
                     .HasColumnType("int(10)");
             });
 
-            modelBuilder.Entity<TreasureGemDist>(entity =>
+            modelBuilder.Entity<TreasureGemCount>(entity =>
             {
-                entity.ToTable("treasure_gem_dist");
+                entity.ToTable("treasure_gem_count");
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.Chance).HasColumnName("chance");
+                entity.Property(e => e.Chance)
+                    .HasColumnName("chance")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Count)
                     .HasColumnName("count")
                     .HasColumnType("int(11)");
 
-                entity.Property(e => e.Group)
-                    .HasColumnName("group")
+                entity.Property(e => e.GemCode)
+                    .HasColumnName("gem_Code")
                     .HasColumnType("int(11)");
 
                 entity.Property(e => e.Tier)
