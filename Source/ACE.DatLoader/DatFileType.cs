@@ -2,8 +2,7 @@
 namespace ACE.DatLoader
 {
     /// <summary>
-    /// File types inside .dat files.  These constants were extracted from the
-    /// decompiled client
+    /// File types inside .dat files.  These constants were extracted from the decompiled client
     /// </summary>
     public enum DatFileType : uint
     {
@@ -444,7 +443,7 @@ namespace ACE.DatLoader
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeExtension("rendermesh")]
         [DatFileTypeIdRange(0x19000000, 0x19FFFFFF)]
-        RenderMesh              = 50, // DB_TYPE_RENDER_MESH
+        RenderMesh              = 67, // DB_TYPE_RENDER_MESH
         
         // the following special files are called out in a different section of the decompiled client:
 

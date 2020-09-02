@@ -71,11 +71,15 @@ namespace ACE.DatLoader
             {
                 if ((ObjectId & 0xFFFF) == 0xFFFF)
                     return DatFileType.LandBlock;
-                else if ((ObjectId & 0xFFFF) == 0xFFFE)
+
+                if ((ObjectId & 0xFFFF) == 0xFFFE)
                     return DatFileType.LandBlockInfo;
-                else
-                    return DatFileType.EnvCell;
+
+                return DatFileType.EnvCell;
             }
+
+            // Portal
+
             switch (ObjectId >> 24)
             {
                 case 0x01:
@@ -108,44 +112,82 @@ namespace ACE.DatLoader
                     return DatFileType.Scene;
                 case 0x13:
                     return DatFileType.Region;
+                case 0x14:
+                    return DatFileType.KeyMap;
+                case 0x15:
+                    return DatFileType.RenderTexture;
+                case 0x16:
+                    return DatFileType.RenderMaterial;
+                case 0x17:
+                    return DatFileType.MaterialModifier;
+                case 0x18:
+                    return DatFileType.MaterialInstance;
                 case 0x20:
                     return DatFileType.SoundTable;
+                case 0x21:
+                    return DatFileType.UiLayout;
                 case 0x22:
                     return DatFileType.EnumMapper;
                 case 0x23:
                     return DatFileType.StringTable;
                 case 0x25:
                     return DatFileType.DidMapper;
+                case 0x26:
+                    return DatFileType.ActionMap;
                 case 0x27:
                     return DatFileType.DualDidMapper;
                 case 0x30:
                     return DatFileType.CombatTable;
+                case 0x31:
+                    return DatFileType.String;
                 case 0x32:
                     return DatFileType.ParticleEmitter;
                 case 0x33:
                     return DatFileType.PhysicsScript;
                 case 0x34:
                     return DatFileType.PhysicsScriptTable;
+                case 0x39:
+                    return DatFileType.MasterProperty;
                 case 0x40:
                     return DatFileType.Font;
+                case 0x78:
+                    return DatFileType.DbProperties;
+            }
+
+            switch (ObjectId >> 16)
+            {
+                case 0x0E01:
+                    return DatFileType.QualityFilter;
+                case 0x0E02:
+                    return DatFileType.MonitoredProperties;
             }
 
             if (ObjectId == 0x0E000002)
                 return DatFileType.CharacterGenerator;
-            else if (ObjectId == 0x0E000007)
+            if (ObjectId == 0x0E000003)
+                return DatFileType.SecondaryAttributeTable;
+            if (ObjectId == 0x0E000004)
+                return DatFileType.SkillTable;
+            if (ObjectId == 0x0E000007)
                 return DatFileType.ChatPoseTable;
-            else if (ObjectId == 0x0E00000D)
+            if (ObjectId == 0x0E00000D)
                 return DatFileType.ObjectHierarchy;
-            else if (ObjectId == 0xE00001A)
+            if (ObjectId == 0x0E00000E)
+                return DatFileType.SpellTable;
+            if (ObjectId == 0x0E00000F)
+                return DatFileType.SpellComponentTable;
+            if (ObjectId == 0x0E000018)
+                return DatFileType.XpTable;
+            if (ObjectId == 0xE00001A)
                 return DatFileType.BadData;
-            else if (ObjectId == 0x0E00001E)
+            if (ObjectId == 0x0E00001D)
+                return DatFileType.ContractTable;
+            if (ObjectId == 0x0E00001E)
                 return DatFileType.TabooTable;
-            else if (ObjectId == 0x0E00001F)
+            if (ObjectId == 0x0E00001F)
                 return DatFileType.FileToId;
-            else if (ObjectId == 0x0E000020)
+            if (ObjectId == 0x0E000020)
                 return DatFileType.NameFilterTable;
-            else if (ObjectId == 0x0E020000)
-                return DatFileType.MonitoredProperties;
 
             Console.WriteLine($"Unknown file type: {ObjectId:X8}");
             return null;
