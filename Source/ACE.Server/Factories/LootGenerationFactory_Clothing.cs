@@ -153,7 +153,7 @@ namespace ACE.Server.Factories
             else
                 wo.GemCount = ThreadSafeRandom.Next(1, 6);
 
-            wo.GemType = (MaterialType)ThreadSafeRandom.Next(10, 50);
+            wo.GemType = RollGemType(profile.Tier);
 
             int workmanship = GetWorkmanship(profile.Tier);
             wo.ItemWorkmanship = workmanship;
@@ -240,7 +240,7 @@ namespace ACE.Server.Factories
             else
                 wo.GemCount = ThreadSafeRandom.Next(1, 6);
 
-            wo.GemType = (MaterialType)ThreadSafeRandom.Next(10, 50);
+            wo.GemType = RollGemType(profile.Tier);
 
             int workmanship = GetWorkmanship(profile.Tier);
             wo.ItemWorkmanship = workmanship;

@@ -231,7 +231,7 @@ namespace ACE.Server.Factories
             else
                 wo.GemCount = ThreadSafeRandom.Next(1, 5);
 
-            wo.GemType = (MaterialType)ThreadSafeRandom.Next(10, 50);
+            wo.GemType = RollGemType(profile.Tier);
 
             wo.Value = GetValue(profile.Tier, wo.ItemWorkmanship.Value, LootTables.getMaterialValueModifier(wo), LootTables.getGemMaterialValueModifier(wo));
             // Is this right??

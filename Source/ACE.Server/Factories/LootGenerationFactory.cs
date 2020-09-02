@@ -2383,5 +2383,18 @@ namespace ACE.Server.Factories
             wo.ProcSpell = (uint)cloakSpellId;
             return wo;
         }
+
+        public static MaterialType RollGemType(int tier)
+        {
+            // previous formula
+            //return (MaterialType)ThreadSafeRandom.Next(10, 50);
+
+            // the gem class value can be further utilized for determining the item's monetary value
+            var gemClass = GemClassChance.Roll(tier);
+
+            var gemMaterial = GemMaterialChance.Roll(gemClass);
+
+            return gemMaterial;
+        }
     }         
 }
