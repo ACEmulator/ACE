@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 
 using log4net;
 
@@ -23,7 +24,7 @@ namespace ACE.Server.Factories
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // Used for cumulative ServerPerformanceMonitor event recording
-        private static readonly Stopwatch stopwatch = new Stopwatch();
+        private static readonly ThreadLocal<Stopwatch> stopwatch = new ThreadLocal<Stopwatch>(() => new Stopwatch());
 
         static LootGenerationFactory()
         {
@@ -77,7 +78,7 @@ namespace ACE.Server.Factories
 
         public static List<WorldObject> CreateRandomLootObjects(TreasureDeath profile)
         {
-            stopwatch.Restart();
+            stopwatch.Value.Restart();
 
             try
             {
@@ -195,7 +196,7 @@ namespace ACE.Server.Factories
             }
             finally
             {
-                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.LootGenerationFactory_CreateRandomLootObjects, stopwatch.Elapsed.TotalSeconds);
+                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.LootGenerationFactory_CreateRandomLootObjects, stopwatch.Value.Elapsed.TotalSeconds);
             }
         }
 
