@@ -32,7 +32,7 @@ namespace ACE.Server.Factories.Tables
                         chances = new ChanceTable<int>();
                         tiers[gemCount.Tier] = chances;
                     }
-                    chances.Add(gemCount.Count, gemCount.Chance);
+                    chances.Add((gemCount.Count, gemCount.Chance));
                 }
             }
         }
