@@ -15,14 +15,14 @@
 DROP TABLE IF EXISTS `treasure_gem_count`;
 CREATE TABLE IF NOT EXISTS `treasure_gem_count` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `gem_Code` int(11) NOT NULL,
+  `gem_Code` tinyint(3) unsigned NOT NULL DEFAULT 0,
   `tier` int(11) NOT NULL,
   `count` int(11) NOT NULL,
   `chance` float NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=487 DEFAULT CHARSET=utf16;
 
--- Dumping data for table ace_world.treasure_gem_count: ~25 rows (approximately)
+-- Dumping data for table ace_world.treasure_gem_count: ~8 rows (approximately)
 /*!40000 ALTER TABLE `treasure_gem_count` DISABLE KEYS */;
 INSERT INTO `treasure_gem_count` (`id`, `gem_Code`, `tier`, `count`, `chance`) VALUES
 	(1, 1, 1, 0, 1),

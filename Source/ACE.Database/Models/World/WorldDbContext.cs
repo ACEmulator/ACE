@@ -1185,7 +1185,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.GemCode)
                     .HasColumnName("gem_Code")
-                    .HasColumnType("int(11)");
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Tier)
                     .HasColumnName("tier")
