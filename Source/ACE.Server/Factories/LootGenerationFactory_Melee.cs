@@ -4,6 +4,7 @@ using System.Linq;
 using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
@@ -417,10 +418,14 @@ namespace ACE.Server.Factories
 
             }
 
-            double materialMod = LootTables.getMaterialValueModifier(wo);
+            /*double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
             var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
-            wo.Value = value;
+            wo.Value = value;*/
+
+            // try mutate value, if MutateFilter exists
+            if (wo.HasMutateFilter(MutateFilter.Value))
+                MutateValue(wo, profile.Tier);
 
             RandomizeColor(wo);
         }

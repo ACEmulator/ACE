@@ -3,6 +3,7 @@ using System.Linq;
 using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
@@ -157,13 +158,12 @@ namespace ACE.Server.Factories
 
             wo.GemType = RollGemType(profile.Tier);
 
-            int workmanship = GetWorkmanship(profile.Tier);
+            wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
 
-            double materialMod = LootTables.getMaterialValueModifier(wo);
+            /*double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
             var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
-            wo.Value = value;
-            wo.ItemWorkmanship = workmanship;
+            wo.Value = value;*/
 
             wo.ItemSkillLevelLimit = null;
 
@@ -192,6 +192,10 @@ namespace ACE.Server.Factories
                 wo.ManaRate = null;
             }
 
+            // try mutate value, if MutateFilter exists
+            if (wo.HasMutateFilter(MutateFilter.Value))
+                MutateValue(wo, profile.Tier);
+
             RandomizeColor(wo);
         }
 
@@ -203,6 +207,11 @@ namespace ACE.Server.Factories
                     return true;
             }
             return false;
+        }
+
+        private static void MutateValue_Gem(WorldObject wo)
+        {
+            wo.Value = (int)(wo.Value * MaterialTable.GetValueMod(wo.MaterialType) * wo.ItemWorkmanship);
         }
     }
 }

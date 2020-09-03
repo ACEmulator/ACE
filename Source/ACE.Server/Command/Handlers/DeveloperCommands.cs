@@ -3208,6 +3208,56 @@ namespace ACE.Server.Command.Handlers
                 CommandHandlerHelper.WriteOutputInfo(session, $"Your current Faction state is now set to: {session.Player.Society.ToSentence()}{(session.Player.Society != FactionBits.None ? $" with a rank of {rankStr}" : "")}", ChatMessageType.Broadcast);
 
                 PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} changed their Faction state to {session.Player.Society.ToSentence()}{(session.Player.Society != FactionBits.None ? $" with a rank of {rankStr}" : "")}.");
+
+            }
+        }
+
+        /// <summary>
+        /// Shows the DeathTreasure tier for the last appraised monster
+        /// </summary>
+        [CommandHandler("showtier", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the DeathTreasure tier for the last appraised monster")]
+        public static void HandleShowTier(Session session, params string[] parameters)
+        {
+            var creature = CommandHandlerHelper.GetLastAppraisedObject(session) as Creature;
+
+            if (creature != null)
+            {
+                var msg = creature.DeathTreasure != null ? $"DeathTreasure - Tier: {creature.DeathTreasure.Tier}" : "doesn't have PropertyDataId.DeathTreasureType";
+
+                CommandHandlerHelper.WriteOutputInfo(session, $"{creature.Name} ({creature.Guid}) {msg}");
+            }
+        }
+
+        /// <summary>
+        /// Shows a list of monsters for a particular tier #
+        /// </summary>
+        [CommandHandler("tiermobs", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Shows a list of monsters for a particular tier #", "tier")]
+        public static void HandleTierMobs(Session session, params string[] parameters)
+        {
+            if (!uint.TryParse(parameters[0], out var tier))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Invalid tier {parameters[0]}");
+                return;
+            }
+            if (tier < 1 || tier > 8)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Please enter a tier between 1-8");
+                return;
+            }
+            using (var ctx = new WorldDbContext())
+            {
+                var query = from weenie in ctx.Weenie
+                            join deathTreasure in ctx.WeeniePropertiesDID on weenie.ClassId equals deathTreasure.ObjectId
+                            join treasureDeath in ctx.TreasureDeath on deathTreasure.Value equals treasureDeath.TreasureType
+                            where weenie.Type == (int)WeenieType.Creature && deathTreasure.Type == (ushort)PropertyDataId.DeathTreasureType && treasureDeath.Tier == tier
+                            select weenie;
+
+                var results = query.ToList();
+
+                CommandHandlerHelper.WriteOutputInfo(session, $"Found {results.Count()} monsters for tier {tier}");
+
+                foreach (var result in results)
+                    CommandHandlerHelper.WriteOutputInfo(session, result.ClassName);
             }
         }
     }
