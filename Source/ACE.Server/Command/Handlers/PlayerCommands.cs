@@ -54,7 +54,11 @@ namespace ACE.Server.Command.Handlers
                     Console.WriteLine($"Couldn't find quest {playerQuest.QuestName}");
                     continue;
                 }
-                var minDelta = (uint)(quest.MinDelta * PropertyManager.GetDouble("quest_mindelta_rate").Item);
+
+                var minDelta = quest.MinDelta;
+                if (QuestManager.CanScaleQuestMinDelta(quest))
+                    minDelta = (uint)(quest.MinDelta * PropertyManager.GetDouble("quest_mindelta_rate").Item);
+
                 text += $"{playerQuest.QuestName.ToLower()} - {playerQuest.NumTimesCompleted} solves ({playerQuest.LastTimeCompleted})";
                 text += $"\"{quest.Message}\" {quest.MaxSolves} {minDelta}";
 

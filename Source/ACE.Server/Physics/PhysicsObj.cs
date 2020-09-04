@@ -5,6 +5,7 @@ using System.Numerics;
 
 using ACE.Common;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Physics.Animation;
@@ -1304,7 +1305,7 @@ namespace ACE.Server.Physics
             if (spellCollide)
             {
                 // send initial CO as ethereal
-                WeenieObj.WorldObject.Ethereal = true;
+                WeenieObj.WorldObject.SetProperty(PropertyBool.Ethereal, true);
             }
 
             if (!SetPositionInternal(transition))
@@ -1381,8 +1382,8 @@ namespace ACE.Server.Physics
             {
                 var newPos = new Position(setPos.Pos);
 
-                newPos.Frame.Origin.X += ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadX;
-                newPos.Frame.Origin.Y += ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadY;
+                newPos.Frame.Origin.X += (float)ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadX;
+                newPos.Frame.Origin.Y += (float)ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadY;
 
                 // customized
                 if ((newPos.ObjCellID & 0xFFFF) < 0x100)
@@ -3345,9 +3346,12 @@ namespace ACE.Server.Physics
             if (obj.State.HasFlag(PhysicsState.ReportCollisions) && !State.HasFlag(PhysicsState.IgnoreCollisions) && obj.WeenieObj != null)
             {
                 // acclient might have a bug here,
-                // prev_has_contact and missie state params swapped?
+                // prev_has_contact and missile state params swapped?
                 var profile = obj.build_collision_profile(this, obj.TransientState.HasFlag(TransientStateFlags.Contact), velocityCollide);
 
+                // ObjID and obj are custom parameters added by ace
+                // if obj. and obj) are the same, all of these calls seem to effectively get dropped
+                // is this intended for 1-way collisions??
                 obj.WeenieObj.DoCollision(profile, ObjID, obj);
 
                 collided = true;

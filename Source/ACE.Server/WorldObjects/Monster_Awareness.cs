@@ -307,7 +307,7 @@ namespace ACE.Server.WorldObjects
             {
                 invRatio += 1.0f - (targetDistance.Distance / distSum);
 
-                if (rng <= invRatio)
+                if (rng < invRatio)
                     return targetDistance.Target;
             }
             // precision error?

@@ -221,9 +221,12 @@ namespace ACE.Server.WorldObjects
             {
                 if (kvp.Value.AdvancementClass == SkillAdvancementClass.Specialized)
                 {
-                    // exclude aug specs
                     switch (kvp.Key)
                     {
+                        // exclude None/Undef skill
+                        case Skill.None:
+
+                        // exclude aug specs
                         case Skill.ArmorTinkering:
                         case Skill.ItemTinkering:
                         case Skill.MagicItemTinkering:

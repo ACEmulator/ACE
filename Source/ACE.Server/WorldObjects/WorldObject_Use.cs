@@ -11,7 +11,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        protected double? UseTimestamp
+        public double? UseTimestamp
         {
             get => GetProperty(PropertyFloat.UseTimestamp);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.UseTimestamp); else SetProperty(PropertyFloat.UseTimestamp, value.Value); }

@@ -307,7 +307,7 @@ namespace ACE.Server.WorldObjects
 
                     //Console.WriteLine($"NoStaminaUseChance: {noStaminaUseChance}");
 
-                    if (noStaminaUseChance < ThreadSafeRandom.Next(0.0f, 1.0f))
+                    if (noStaminaUseChance <= ThreadSafeRandom.Next(0.0f, 1.0f))
                         UpdateVitalDelta(Stamina, -1);
                 }
                 else

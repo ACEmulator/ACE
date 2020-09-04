@@ -308,8 +308,11 @@ namespace ACE.Server.WorldObjects
                 if ((this is Admin || this is Sentinel) && CloakStatus == CloakStatus.On)
                     chance = 1.0f;
 
-                success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);
+                success = chance > ThreadSafeRandom.Next(0.0f, 1.0f);
             }
+
+            if (obj.ResistItemAppraisal >= 999)
+                success = false;
 
             if (creature is Pet || creature is CombatPet)
                 success = true;

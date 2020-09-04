@@ -9,7 +9,10 @@ namespace ACE.Server.Entity
 {
     public class Cloak
     {
-        private static readonly float ChanceMod = 1.0f;
+        /// <summary>
+        /// The maximum frequency of cloak procs, in seconds
+        /// </summary>
+        private static readonly float MinDelay = 5.0f;
 
         /// <summary>
         /// Rolls for a chance at procing a cloak spell
@@ -33,23 +36,29 @@ namespace ACE.Server.Entity
         public static bool RollProc(WorldObject cloak, float damage_percent)
         {
             // TODO: find retail formula
-            // TODO: cloak level multiplier - Added 6/19/2020 HQ (Still need retail numbers) Updated with Riggs suggestions
+
+            var currentTime = Time.GetUnixTime();
+
+            if (currentTime - cloak.UseTimestamp < MinDelay)
+                return false;
 
             var itemLevel = cloak.ItemLevel ?? 0;
 
-            var chanceMod = ChanceMod + itemLevel * 0.02f;
-            if (itemLevel < 1)
-                chanceMod = 0.0f;
+            if (itemLevel < 1) return false;
 
-            var chance = damage_percent * chanceMod;
+            var maxProcRate = 0.25f + (itemLevel - 1) * 0.0125f;
 
-            if (chance < 1.0f)
+            var chance = Math.Min(damage_percent, maxProcRate);
+
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            if (rng < chance)
             {
-                var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-                if (chance < rng)
-                    return false;
+                cloak.UseTimestamp = currentTime;
+                return true;
             }
-            return true;
+            else
+                return false;
         }
 
         /// <summary>

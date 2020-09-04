@@ -933,7 +933,7 @@ namespace ACE.Server.WorldObjects
                 chance = Aetheria.CalcProcRate(this, wielder);
 
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-            if (rng > chance)
+            if (rng >= chance)
                 return;
 
             var spell = new Spell(ProcSpell.Value);

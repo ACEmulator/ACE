@@ -173,13 +173,11 @@ namespace ACE.Database
                             .Where(r => r.Type == weenieTypeId)
                             .ToList();
 
-                        var rand = new Random();
-
                         weenies = new List<ACE.Entity.Models.Weenie>();
 
                         for (int i = 0; i < count; i++)
                         {
-                            var index = rand.Next(0, results.Count - 1);
+                            var index = ThreadSafeRandom.Next(0, results.Count - 1);
 
                             var weenie = GetCachedWeenie(results[index].ClassId);
 
@@ -198,13 +196,11 @@ namespace ACE.Database
                 return new List<ACE.Entity.Models.Weenie>();
 
             {
-                var rand = new Random();
-
                 var results = new List<ACE.Entity.Models.Weenie>();
 
                 for (int i = 0; i < count; i++)
                 {
-                    var index = rand.Next(0, weenies.Count - 1);
+                    var index = ThreadSafeRandom.Next(0, weenies.Count - 1);
 
                     var weenie = GetCachedWeenie(weenies[index].WeenieClassId);
 

@@ -141,7 +141,7 @@ namespace ACE.Server.WorldObjects
             //   so players will always have a level of "luck" in manacost if they make skill checks
             var luck = ThreadSafeRandom.Next(0.0f, 1.0f);
 
-            if (roll <= successChance)
+            if (roll < successChance)
             {
                 manaCost = (uint)Math.Round(manaCost * (1.0f - (successChance - (roll * luck))));
             }
@@ -156,7 +156,7 @@ namespace ACE.Server.WorldObjects
                 successChance = SkillCheck.GetSkillChance(manaConv, difficulty);
                 roll = ThreadSafeRandom.Next(0.0f, 1.0f);
 
-                if (roll <= successChance)
+                if (roll < successChance)
                     manaCost = (uint)Math.Round(manaCost * (1.0f - (successChance - (roll * luck))));
             }
 

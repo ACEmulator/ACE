@@ -2,6 +2,7 @@ using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Database;
 using ACE.Entity.Enum;
+using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
@@ -79,7 +80,7 @@ namespace ACE.Server.Factories
             var baseRating = ThreadSafeRandom.Next(1, 10);
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
             var tierMod = 0.4f + tier * 0.02f;
-            if (rng > tierMod)
+            if (rng > tierMod)      // TODO: this might be backwards, review
                 baseRating += ThreadSafeRandom.Next(1, 10);
 
             return baseRating;
@@ -116,12 +117,12 @@ namespace ACE.Server.Factories
             int maxSpellLevel = LootTables.ScrollLootMatrix[scrollLootMatrixIndex][1];
 
             int scrollLootIndex = ThreadSafeRandom.Next(minSpellLevel, maxSpellLevel);
-            uint spellID = 0;
+            var spellID = SpellId.Undef;
 
-            while (spellID == 0)
-                spellID = (uint)LootTables.ScrollSpells[ThreadSafeRandom.Next(0, LootTables.ScrollSpells.Length - 1)][scrollLootIndex];
+            while (spellID == SpellId.Undef)
+                spellID = ScrollSpells.Table[ThreadSafeRandom.Next(0, ScrollSpells.Table.Length - 1)][scrollLootIndex];
 
-            var weenie = DatabaseManager.World.GetScrollWeenie(spellID);
+            var weenie = DatabaseManager.World.GetScrollWeenie((uint)spellID);
             if (weenie == null)
             {
                 log.DebugFormat("CreateRandomScroll for tier {0} and spellID of {1} returned null from the database.", tier, spellID);

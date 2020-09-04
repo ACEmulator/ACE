@@ -26,7 +26,20 @@ namespace ACE.Server.Network.Structure
         public bool SetAsDisplayContract; // depreciated?
 
         // not sent in network structure
-        public Contract Contract => DatManager.PortalDat.ContractTable.Contracts.TryGetValue(ContractId, out var contractData) ? contractData : null;
+        private Contract _contract;
+        public Contract Contract
+        {
+            get
+            {
+                if (_contract != null)
+                    return _contract;
+
+                if (DatManager.PortalDat.ContractTable.Contracts.TryGetValue(ContractId, out var contractData))
+                    _contract = contractData;
+
+                return _contract;
+            }
+        }
 
         public ContractTracker() { }
 
@@ -52,6 +65,38 @@ namespace ACE.Server.Network.Structure
         {
             Init(contractId);
 
+            if (player == null) return;
+
+            // Started, Stamped, Timer or Progress
+            CheckAndSetStage(player);
+
+            if (!string.IsNullOrWhiteSpace(Contract.QuestflagFinished))
+            {
+                if (player.QuestManager.HasQuest(Contract.QuestflagFinished))
+                    Stage = ContractStage.DoneOrPendingRepeat;
+            }
+
+            if (!string.IsNullOrWhiteSpace(Contract.QuestflagRepeatTime))
+            {
+                if (player.QuestManager.HasQuest(Contract.QuestflagRepeatTime))
+                {                    
+                    TimeWhenRepeats = player.QuestManager.GetNextSolveTime(Contract.QuestflagRepeatTime).TotalSeconds;
+
+                    if (TimeWhenRepeats > 0)
+                        Stage = ContractStage.DoneOrPendingRepeat;
+                    else
+                    {
+                        Stage = ContractStage.Available;
+
+                        // Recheck for Started, Stamped, Timer or Progress and update accordingly
+                        CheckAndSetStage(player);
+                    }
+                }
+            }
+        }
+
+        private void CheckAndSetStage(Player player)
+        {
             if (!string.IsNullOrWhiteSpace(Contract.QuestflagStarted))
             {
                 if (player.QuestManager.HasQuest(Contract.QuestflagStarted))
@@ -82,25 +127,6 @@ namespace ACE.Server.Network.Structure
                     var progress = quest.NumTimesCompleted;
 
                     Stage = progress > 0 ? ContractStage.ProgressCounter + progress : ContractStage.InProgress;
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(Contract.QuestflagFinished))
-            {
-                if (player.QuestManager.HasQuest(Contract.QuestflagFinished))
-                    Stage = ContractStage.DoneOrPendingRepeat;
-            }
-
-            if (!string.IsNullOrWhiteSpace(Contract.QuestflagRepeatTime))
-            {
-                if (player.QuestManager.HasQuest(Contract.QuestflagRepeatTime))
-                {                    
-                    TimeWhenRepeats = player.QuestManager.GetNextSolveTime(Contract.QuestflagRepeatTime).TotalSeconds;
-
-                    if (TimeWhenRepeats > 0)
-                        Stage = ContractStage.DoneOrPendingRepeat;
-                    else
-                        Stage = ContractStage.Available;
                 }
             }
         }

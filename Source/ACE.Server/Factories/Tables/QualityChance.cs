@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using log4net;
 using ACE.Common;
 
-namespace ACE.Server.Factories
+namespace ACE.Server.Factories.Tables
 {
-    public static class ChanceTables
+    public static class QualityChance
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -199,10 +199,10 @@ namespace ACE.Server.Factories
 
                     var interval = (rng - prevChance) / dx;
 
-                    return dy * (interval + i);
+                    return (float)(dy * (interval + i));
                 }
             }
-            log.Error($"ChanceTables.Roll - This shouldn't happen");
+            log.Error($"QualityTables.Roll - This shouldn't happen");
             return 0.0f;
         }
     }
