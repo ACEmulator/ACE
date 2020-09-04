@@ -130,7 +130,6 @@ namespace ACE.Server.Factories.Tables
             { SpellId.HealingMasterySelf1,              "Healing" },
             { SpellId.HealingMasteryOther1,             "Healing" },
             { SpellId.LeadershipMasterySelf1,           "Leadership" },
-            { SpellId.LeadershipMasterySelf2,           "Leadership" },
             { SpellId.LeadershipMasteryOther1,          "Leadership" },
             { SpellId.LockpickMasterySelf1,             "Lockpicking" },
             { SpellId.LockpickMasteryOther1,            "Lockpicking" },
