@@ -254,11 +254,18 @@ namespace ACE.Server.WorldObjects.Managers
             {
                 var heartbeatInterval = WorldObject.HeartbeatInterval ?? 5.0f;
 
+                // scale StatModValue for HeartbeatIntervals other than the default 5s
                 if (heartbeatInterval != 5.0f)
                 {
-                    // scale StatModValue for HeartbeatIntervals other than the default 5s
                     entry.StatModValue = spell.GetDamagePerTick((float)heartbeatInterval);
                 }
+
+                // calculate runtime StatModValue for enchantment
+                if (caster != null)
+                {
+                    entry.StatModValue = caster.CalculateDotEnchantment_StatModValue(spell, WorldObject, entry.StatModValue);
+                }
+                //Console.WriteLine($"enchantment_statModVal: {entry.StatModValue}");
             }
 
             // handle equipment sets
@@ -1236,8 +1243,7 @@ namespace ACE.Server.WorldObjects.Managers
                 tickAmountTotal += tickAmount;
             }
 
-            // apply healing ratings
-            // TODO: move this to pre-calc?
+            // apply healing ratings?
             tickAmountTotal *= creature.GetHealingRatingMod();
 
             // do healing
@@ -1259,6 +1265,8 @@ namespace ACE.Server.WorldObjects.Managers
 
             bool isDead = false;
             var damagers = new Dictionary<WorldObject, float>();
+
+            var targetPlayer = WorldObject as Player;
 
             // get the total tick amount
             var tickAmountTotal = 0.0f;
@@ -1282,25 +1290,24 @@ namespace ACE.Server.WorldObjects.Managers
                 }
 
                 // if a PKType with Enduring Enchantment has died, ensure they don't continue to take DoT from PK sources
-                if (WorldObject is Player _player && damager is Player && !_player.IsPKType)
+                if (targetPlayer != null && damager is Player && !targetPlayer.IsPKType)
                     continue;
 
-                // get damage / damage resistance rating here for now?
-                // TODO: move everything pre-resistances to pre-calc, and store in enchantment statmodval
-                var heritageMod = 1.0f;
-                if (damager is Player player)
-                    heritageMod = player.GetHeritageBonus(player.GetEquippedWeapon() ?? player.GetEquippedWand()) ? 1.05f : 1.0f;
+                var resistanceMod = creature.GetResistanceMod(damageType, damager, null);
 
-                var damageRatingMod = Creature.AdditiveCombine(heritageMod, Creature.GetPositiveRatingMod(damager.GetDamageRating()));
+                // with the halvening, this actually seems like the fairest balance currently..
+                var useNetherDotDamageRating = targetPlayer != null;
 
-                var damageResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDamageResistRating(CombatType.Magic, false));    // df?
-                var dotResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDotResistanceRating());
+                var damageResistRatingMod = creature.GetDamageResistRatingMod(CombatType.Magic, useNetherDotDamageRating);   // df?
+
+                var dotResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDotResistanceRating());  // should this be here, or somewhere else?
+                                                                                                            // should this affect NetherDotDamageRating?
 
                 //Console.WriteLine("DR: " + Creature.ModToRating(damageRatingMod));
                 //Console.WriteLine("DRR: " + Creature.NegativeModToRating(damageResistRatingMod));
                 //Console.WriteLine("NRR: " + Creature.NegativeModToRating(netherResistRatingMod));
 
-                tickAmount *= damageRatingMod * damageResistRatingMod * dotResistRatingMod;
+                tickAmount *= resistanceMod * damageResistRatingMod * dotResistRatingMod;
 
                 // make sure the target's current health is not exceeded
                 if (tickAmountTotal + tickAmount >= creature.Health.Current)
