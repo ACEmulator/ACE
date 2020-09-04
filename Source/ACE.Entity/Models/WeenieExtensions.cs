@@ -117,6 +117,13 @@ namespace ACE.Entity.Models
         // Utility
         // =====================================
 
+        public static string GetName(this Weenie weenie)
+        {
+            var name = weenie.GetProperty(PropertyString.Name);
+
+            return name;
+        }
+
         public static string GetPluralName(this Weenie weenie)
         {
             var pluralName = weenie.GetProperty(PropertyString.PluralName);
@@ -133,6 +140,13 @@ namespace ACE.Entity.Models
 
             return weenieType == WeenieType.Stackable || weenieType == WeenieType.Food || weenieType == WeenieType.Coin || weenieType == WeenieType.CraftTool
                    || weenieType == WeenieType.SpellComponent || weenieType == WeenieType.Gem || weenieType == WeenieType.Ammunition || weenieType == WeenieType.Missile;
+        }
+
+        public static bool IsStuck(this Weenie weenie)
+        {
+            var stuck = weenie.GetProperty(PropertyBool.Stuck) ?? false;
+
+            return stuck;
         }
 
         public static bool RequiresBackpackSlotOrIsContainer(this Weenie weenie)

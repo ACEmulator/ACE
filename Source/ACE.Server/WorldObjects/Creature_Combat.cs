@@ -484,7 +484,12 @@ namespace ACE.Server.WorldObjects
             var imbuedEffectType = defenseSkill == Skill.MissileDefense ? ImbuedEffectType.MissileDefense : ImbuedEffectType.MeleeDefense;
             var defenseImbues = GetDefenseImbues(imbuedEffectType);
 
-            var effectiveDefense = (uint)Math.Round(GetCreatureSkill(defenseSkill).Current * defenseMod * burdenMod + defenseImbues);
+            var stanceMod = this is Player player ? player.GetDefenseStanceMod() : 1.0f;
+
+            //if (this is Player)
+                //Console.WriteLine($"StanceMod: {stanceMod}");
+
+            var effectiveDefense = (uint)Math.Round(GetCreatureSkill(defenseSkill).Current * defenseMod * burdenMod * stanceMod + defenseImbues);
 
             if (IsExhausted) effectiveDefense = 0;
 
@@ -663,7 +668,7 @@ namespace ACE.Server.WorldObjects
             var modSL = shield.EnchantmentManager.GetArmorMod();
 
             if (ignoreMagicArmor)
-                modSL = attacker is Player ? IgnoreMagicArmorScaled(modSL) : 0;
+                modSL = attacker is Player ? (int)Math.Round(IgnoreMagicArmorScaled(modSL)) : 0;
 
             var effectiveSL = baseSL + modSL;
 
@@ -675,7 +680,7 @@ namespace ACE.Server.WorldObjects
             var modRL = shield.EnchantmentManager.GetArmorModVsType(damageType);
 
             if (ignoreMagicArmor)
-                modRL = attacker is Player ? IgnoreMagicArmorScaled(modRL) : 0;
+                modRL = attacker is Player ? IgnoreMagicArmorScaled(modRL) : 0.0f;
 
             var effectiveRL = (float)(baseRL + modRL);
 
@@ -775,7 +780,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"Sneak attack {(behind ? "behind" : "front")}, chance {Math.Round(chance * 100)}%");
 
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-            if (rng > chance)
+            if (rng >= chance)
                 return 1.0f;
 
             // Damage Rating:
@@ -871,7 +876,7 @@ namespace ACE.Server.WorldObjects
             }
 
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-            if (rng > chance)
+            if (rng >= chance)
                 return;
 
             switch (AttackHeight)
@@ -1097,14 +1102,29 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool AlertMonster(Creature monster)
         {
-            if ((monster.Attackable || monster.TargetingTactic != TargetingTactic.None) && monster.MonsterState == State.Idle && monster.Tolerance == Tolerance.None)
-            {
-                //Console.WriteLine($"[{Timers.RunningTime}] - {monster.Name} ({monster.Guid}) - waking up");
-                monster.AttackTarget = this;
-                monster.WakeUp();
-                return true;
-            }
-            return false;
+            // non-attackable creatures do not get aggroed,
+            // unless they have a TargetingTactic, such as the invisible archers in Oswald's Dirk Quest
+            if (!monster.Attackable && monster.TargetingTactic == TargetingTactic.None)
+                return false;
+
+            // ensure monster is currently in idle state to wake up,
+            // and it has no tolerance to players running nearby
+            // TODO: investigate usage for tolerance
+            if (monster.MonsterState != State.Idle || monster.Tolerance != Tolerance.None)
+                return false;
+
+            // if monster has faction bits set, ensure player doesn't belong to same faction
+            if (Faction1Bits != null && monster.Faction1Bits != null && (Faction1Bits & monster.Faction1Bits) != 0)
+                return false;
+
+            if (monster.RetaliateTargets != null)
+                monster.RetaliateTargets.Add(Guid.Full);
+
+            //Console.WriteLine($"[{Timers.RunningTime}] - {monster.Name} ({monster.Guid}) - waking up");
+            monster.AttackTarget = this;
+            monster.WakeUp();
+
+            return true;
         }
 
         /// <summary>

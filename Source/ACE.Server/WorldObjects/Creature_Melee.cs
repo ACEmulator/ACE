@@ -157,5 +157,32 @@ namespace ACE.Server.WorldObjects
             }
             return cleaveTargets;
         }
+
+        public bool IsCleaveable(Creature creature)
+        {
+            if (creature == null || !creature.Attackable || creature.Teleporting || creature.IsDead)
+                return false;
+
+            var player = this as Player;
+
+            if (player != null && creature is Player && player.CheckPKStatusVsTarget(player, creature, null) != null)
+                return false;
+
+            if (creature is CombatPet && (player != null || this is CombatPet))
+                return false;
+
+            // no objects in cleave range
+            var distSquared = Location.SquaredDistanceTo(creature.Location);
+            if (distSquared > CleaveRangeSq)
+                return false;
+
+            // only cleave in front of attacker
+            var angle = GetAngle(creature);
+            if (Math.Abs(angle) > CleaveAngle / 2.0f)
+                return false;
+
+            // found cleavable object
+            return true;
+        }
     }
 }

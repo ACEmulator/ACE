@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
@@ -74,7 +74,7 @@ namespace ACE.Server.WorldObjects
                 if (allegianceMinLevel == -1)
                     allegianceMinLevel = slumlord.AllegianceMinLevel.Value;
 
-                if (Allegiance == null || AllegianceNode.Rank < allegianceMinLevel)
+                if (allegianceMinLevel > 0 && (Allegiance == null || AllegianceNode.Rank < allegianceMinLevel))
                 {
                     Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouMustBeAboveAllegianceRank_ToBuyHouse, allegianceMinLevel.ToString()));
                     return;

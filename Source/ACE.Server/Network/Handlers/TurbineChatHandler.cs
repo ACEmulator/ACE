@@ -15,6 +15,9 @@ namespace ACE.Server.Network.Handlers
         [GameMessage(GameMessageOpcode.TurbineChat, SessionState.WorldConnected)]
         public static void TurbineChatReceived(ClientMessage clientMessage, Session session)
         {
+            if (!PropertyManager.GetBool("use_turbine_chat").Item)
+                return;
+
             clientMessage.Payload.ReadUInt32(); // Bytes to follow
             var chatBlobType = (ChatNetworkBlobType)clientMessage.Payload.ReadUInt32();
             clientMessage.Payload.ReadUInt32(); // Always 2
@@ -33,7 +36,7 @@ namespace ACE.Server.Network.Handlers
 
             if (chatBlobType == ChatNetworkBlobType.NETBLOB_REQUEST_BINARY)
             {
-                clientMessage.Payload.ReadUInt32(); // 0x01 - 0x71 (maybe higher), typically though 0x01 - 0x0F
+                var contextId = clientMessage.Payload.ReadUInt32(); // 0x01 - 0x71 (maybe higher), typically though 0x01 - 0x0F
                 clientMessage.Payload.ReadUInt32(); // Always 2
                 clientMessage.Payload.ReadUInt32(); // Always 2
                 var channelID = clientMessage.Payload.ReadUInt32();
@@ -52,7 +55,7 @@ namespace ACE.Server.Network.Handlers
                 clientMessage.Payload.ReadUInt32(); // Always 0
                 var chatType = (ChatType)clientMessage.Payload.ReadUInt32();
 
-                if (channelID == TurbineChatChannel.Society)
+                if (channelID == TurbineChatChannel.Society) // shouldn't ever be hit
                 {
                     ChatPacket.SendServerMessage(session, "You do not belong to a society.", ChatMessageType.Broadcast); // I don't know if this is how it was done on the live servers
                     return;
@@ -60,39 +63,61 @@ namespace ACE.Server.Network.Handlers
 
                 var gameMessageTurbineChat = new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_EVENT_BINARY, channelID, session.Player.Name, message, senderID, chatType);
 
-                var allegiance = AllegianceManager.FindAllegiance(channelID);
-                if (allegiance != null)
+                if (channelID > TurbineChatChannel.SocietyRadiantBlood) // Channel must be an allegiance channel
                 {
-                    // is sender booted / gagged?
-                    if (allegiance.IsFiltered(session.Player.Guid)) return;
-
-                    // iterate through all allegiance members
-                    foreach (var member in allegiance.Members.Keys)
+                    var allegiance = AllegianceManager.FindAllegiance(channelID);
+                    if (allegiance != null)
                     {
-                        // is this allegiance member online?
-                        var online = PlayerManager.GetOnlinePlayer(member);
-                        if (online == null)
-                            continue;
+                        // is sender booted / gagged?
+                        if (allegiance.IsFiltered(session.Player.Guid)) return;
 
-                        // is this member booted / gagged?
-                        if (allegiance.IsFiltered(member) || online.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Allegiance)) continue;
+                        // iterate through all allegiance members
+                        foreach (var member in allegiance.Members.Keys)
+                        {
+                            // is this allegiance member online?
+                            var online = PlayerManager.GetOnlinePlayer(member);
+                            if (online == null)
+                                continue;
 
-                        // does this player have allegiance chat filtered?
-                        if (!online.GetCharacterOption(CharacterOption.ListenToAllegianceChat)) continue;
+                            // is this member booted / gagged?
+                            if (allegiance.IsFiltered(member) || online.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.Allegiance)) continue;
 
-                        online.Session.Network.EnqueueSend(gameMessageTurbineChat);
+                            // does this player have allegiance chat filtered?
+                            if (!online.GetCharacterOption(CharacterOption.ListenToAllegianceChat)) continue;
+
+                            online.Session.Network.EnqueueSend(gameMessageTurbineChat);
+                        }
+
+                        session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                     }
                 }
-                else
+                else if (channelID > TurbineChatChannel.Society) // Channel must be a society restricted channel
                 {
+                    var senderSociety = session.Player.Society;
+
+                    //var adjustedChatType = senderSociety switch
+                    //{
+                    //    FactionBits.CelestialHand => ChatType.SocietyCelHan,
+                    //    FactionBits.EldrytchWeb => ChatType.SocietyEldWeb,
+                    //    FactionBits.RadiantBlood => ChatType.SocietyRadBlo,
+                    //    _ => ChatType.Society
+                    //};
+
+                    //gameMessageTurbineChat = new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_EVENT_BINARY, channelID, session.Player.Name, message, senderID, adjustedChatType);
+
+                    if (senderSociety == FactionBits.None)
+                    {
+                        ChatPacket.SendServerMessage(session, "You do not belong to a society.", ChatMessageType.Broadcast); // I don't know if this is how it was done on the live servers
+                        return;
+                    }
+
                     foreach (var recipient in PlayerManager.GetAllOnline())
                     {
                         // handle filters
-                        if (channelID == TurbineChatChannel.General && !recipient.GetCharacterOption(CharacterOption.ListenToGeneralChat) ||
-                            channelID == TurbineChatChannel.Trade && !recipient.GetCharacterOption(CharacterOption.ListenToTradeChat) ||
-                            channelID == TurbineChatChannel.LFG && !recipient.GetCharacterOption(CharacterOption.ListenToLFGChat) ||
-                            channelID == TurbineChatChannel.Roleplay && !recipient.GetCharacterOption(CharacterOption.ListentoRoleplayChat) ||
-                            channelID == TurbineChatChannel.Society && !recipient.GetCharacterOption(CharacterOption.ListenToSocietyChat))
+                        if (senderSociety != recipient.Society && !recipient.IsAdmin)
+                            continue;
+
+                        if (!recipient.GetCharacterOption(CharacterOption.ListenToSocietyChat))
                             continue;
 
                         if (recipient.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.AllChannels))
@@ -100,6 +125,31 @@ namespace ACE.Server.Network.Handlers
 
                         recipient.Session.Network.EnqueueSend(gameMessageTurbineChat);
                     }
+
+                    session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
+                }
+                else if (channelID == TurbineChatChannel.Olthoi) // Channel must is the Olthoi play channel
+                {
+                    // todo: olthoi play chat (ha! yeah right...)
+                }
+                else // Channel must be one of the channels available to all players
+                {
+                    foreach (var recipient in PlayerManager.GetAllOnline())
+                    {
+                        // handle filters
+                        if (channelID == TurbineChatChannel.General && !recipient.GetCharacterOption(CharacterOption.ListenToGeneralChat) ||
+                            channelID == TurbineChatChannel.Trade && !recipient.GetCharacterOption(CharacterOption.ListenToTradeChat) ||
+                            channelID == TurbineChatChannel.LFG && !recipient.GetCharacterOption(CharacterOption.ListenToLFGChat) ||
+                            channelID == TurbineChatChannel.Roleplay && !recipient.GetCharacterOption(CharacterOption.ListenToRoleplayChat))
+                            continue;
+
+                        if (recipient.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.AllChannels))
+                            continue;
+
+                        recipient.Session.Network.EnqueueSend(gameMessageTurbineChat);
+                    }
+
+                    session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                 }
             }
             else

@@ -66,7 +66,7 @@ namespace ACE.Server.WorldObjects
 
             var excludePlayers = new List<Player>();
 
-            var nearbyPlayers = EnqueueBroadcast(excludePlayers, false, broadcastMsg);
+            var nearbyPlayers = EnqueueBroadcast(excludePlayers, true, broadcastMsg);
 
             excludePlayers.AddRange(nearbyPlayers);
 
@@ -200,6 +200,8 @@ namespace ACE.Server.WorldObjects
                 EnchantmentManager.RemoveAllEnchantments();
                 Session.Network.EnqueueSend(msgPurgeEnchantments);
             }
+            else
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Your augmentation prevents the tides of death from ripping away your current enchantments!", ChatMessageType.Broadcast));
 
             // wait for the death animation to finish
             var dieChain = new ActionChain();
@@ -265,7 +267,7 @@ namespace ACE.Server.WorldObjects
             }));
         }
 
-        private bool suicideInProgress;
+        public bool suicideInProgress;
 
         /// <summary>
         /// Called when player uses the /die command

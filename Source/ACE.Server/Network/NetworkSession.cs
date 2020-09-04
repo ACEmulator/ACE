@@ -104,11 +104,6 @@ namespace ACE.Server.Network
                 currentBundleLocks[i] = new object();
                 currentBundles[i] = new NetworkBundle();
             }
-
-            ConnectionData.CryptoClient.OnCryptoSystemCatastrophicFailure += (sender, e) =>
-            {
-                session.Terminate(SessionTerminationReason.ClientConnectionFailure);
-            };
         }
 
         /// <summary>
@@ -685,7 +680,7 @@ namespace ACE.Server.Network
 
             if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
             {
-                uint issacXor = ConnectionData.IssacServer.GetOffset();
+                uint issacXor = ConnectionData.IssacServer.Next();
                 packetLog.DebugFormat("[{0}] Setting Issac for packet {1} to {2}", session.LoggingIdentifier, packet.GetHashCode(), issacXor);
                 packet.IssacXor = issacXor;
             }
@@ -808,6 +803,8 @@ namespace ACE.Server.Network
 
                         foreach (MessageFragment fragment in fragments)
                         {
+                            bool fragmentSkipped = false;
+
                             // Is this a large fragment and does it have a tail that needs sending?
                             if (!fragment.TailSent && availableSpace >= fragment.TailSize)
                             {
@@ -824,9 +821,16 @@ namespace ACE.Server.Network
                                 packet.Fragments.Add(spf);
                                 availableSpace -= spf.Length;
                             }
+                            else
+                                fragmentSkipped = true;
+
                             // If message is out of data, set to remove it
                             if (fragment.DataRemaining <= 0)
                                 removeList.Add(fragment);
+
+                            // UIQueue messages must go out in order. Otherwise, you might see an NPC's tells in an order that doesn't match their defined emotes.
+                            if (fragmentSkipped && group == GameMessageGroup.UIQueue)
+                                break;
                         }
 
                         // Remove all completed messages

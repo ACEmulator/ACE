@@ -6,8 +6,6 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Entity.Chess;
 using ACE.Server.Network.GameMessages.Messages;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class GamePiece : Creature
@@ -153,7 +151,6 @@ namespace ACE.Server.WorldObjects
 
             var moveToPosition = new Motion(this, to);
             moveToPosition.MoveToParameters.DistanceToObject = distanceToObject;
-            moveToPosition.MoveToParameters.MovementParameters |= MovementParams.StopCompletely;
             moveToPosition.MoveToParameters.MovementParameters &= ~MovementParams.UseSpheres;
 
             if (finalHeading)

@@ -171,7 +171,7 @@ namespace ACE.Server.Network.Handlers
                         log.Debug($"client {loginRequest.Account} connected with non matching password so booting");
 
                     SendConnectRequest(session);
-                    session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageBootAccount(session, " because the password entered for this account was not correct."));
+                    session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageBootAccount(" because the password entered for this account was not correct."));
 
                     // TO-DO: temporary lockout of account preventing brute force password discovery
                     // exponential duration of lockout for targeted account
@@ -212,7 +212,22 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            // TODO: check for account bans
+            if (account.BanExpireTime.HasValue)
+            {
+                var now = DateTime.UtcNow;
+                if (now < account.BanExpireTime.Value)
+                {
+                    var reason = account.BanReason;
+                    SendConnectRequest(session);
+                    session.Terminate(SessionTerminationReason.AccountBanned, new GameMessageBootAccount($"{(reason != null ? $" - {reason}" : null)}"), null, reason);
+                    return;
+                }
+                else
+                {
+                    account.UnBan();
+                }
+            }
+
             SendConnectRequest(session);
 
             account.UpdateLastLogin(session.EndPoint.Address);

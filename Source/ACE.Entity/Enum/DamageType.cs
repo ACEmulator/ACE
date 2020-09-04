@@ -20,7 +20,11 @@ namespace ACE.Entity.Enum
         Stamina     = 0x100,
         Mana        = 0x200,
         Nether      = 0x400,
-        Base        = 0x10000000
+        Base        = 0x10000000,
+
+        // helpers
+        Physical    = Slash | Pierce | Bludgeon,
+        Elemental   = Cold | Fire | Acid | Electric,
     };
 
     public static class DamageTypeExtensions
@@ -52,13 +56,24 @@ namespace ACE.Entity.Enum
             return EnumHelper.HasMultiple((uint)damageType);
         }
 
-        public static DamageType SelectDamageType(this DamageType damageType)
+        public static DamageType SelectDamageType(this DamageType damageType, float? powerLevel = null)
         {
-            var damageTypes = EnumHelper.GetFlags(damageType);
+            if (powerLevel == null)
+            {
+                // select random damage type
+                var damageTypes = EnumHelper.GetFlags(damageType);
 
-            var rng = ThreadSafeRandom.Next(1, damageTypes.Count - 1);
+                var rng = ThreadSafeRandom.Next(1, damageTypes.Count - 1);
 
-            return (DamageType)damageTypes[rng];
+                return (DamageType)damageTypes[rng];
+            }
+
+            var playerTypes = powerLevel < 0.33f ? damageType & DamageType.Physical : damageType & ~DamageType.Physical;
+
+            if (playerTypes == DamageType.Undef)
+                playerTypes = damageType;
+
+            return playerTypes.SelectDamageType();
         }
     }
 }

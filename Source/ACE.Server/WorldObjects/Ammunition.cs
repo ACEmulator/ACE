@@ -3,8 +3,6 @@ using System;
 using ACE.Entity;
 using ACE.Entity.Models;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class Ammunition : Stackable
@@ -31,14 +29,12 @@ namespace ACE.Server.WorldObjects
 
         public override void OnCollideObject(WorldObject target)
         {
-            var proj = new Projectile(this);
-            proj.OnCollideObject(target);
+            ProjectileCollisionHelper.OnCollideObject(this, target);
         }
 
         public override void OnCollideEnvironment()
         {
-            var proj = new Projectile(this);
-            proj.OnCollideEnvironment();
+            ProjectileCollisionHelper.OnCollideEnvironment(this);
         }
 
         public override void ActOnUse(WorldObject wo)

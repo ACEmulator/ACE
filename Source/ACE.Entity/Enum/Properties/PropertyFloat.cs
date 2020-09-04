@@ -111,6 +111,7 @@ namespace ACE.Entity.Enum.Properties
         CheckpointTimestamp            = 96,
         SoldTimestamp                  = 97,
         UseTimestamp                   = 98,
+        [Ephemeral]
         UseLockTimestamp               = 99,
         HealkitMod                     = 100,
         FrozenTimestamp                = 101,

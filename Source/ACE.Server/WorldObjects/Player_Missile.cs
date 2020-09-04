@@ -52,13 +52,13 @@ namespace ACE.Server.WorldObjects
                     return;
             }
 
-            if (IsBusy)
+            if (IsBusy || Teleporting || suicideInProgress)
             {
                 SendWeenieError(WeenieError.YoureTooBusy);
                 return;
             }
 
-            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            if (IsJumping)
             {
                 SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
                 return;
@@ -95,13 +95,6 @@ namespace ACE.Server.WorldObjects
             if (Attacking || MissileTarget != null && MissileTarget.IsAlive)
                 return;
 
-            // perform verifications
-            if (IsBusy || Teleporting)
-            {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
-                return;
-            }
-
             if (!CanDamage(target))
                 return;     // werror?
 
@@ -130,7 +123,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Launches a missile attack from player to target
         /// </summary>
-        public void LaunchMissile(WorldObject target, int attackSequence)
+        public void LaunchMissile(WorldObject target, int attackSequence, bool subsequent = false)
         {
             if (AttackSequence != attackSequence)
                 return;
@@ -150,9 +143,20 @@ namespace ACE.Server.WorldObjects
             }
 
             var creature = target as Creature;
-            if (!IsAlive || IsBusy || MissileTarget == null || creature == null || !creature.IsAlive)
+            if (!IsAlive || IsBusy || MissileTarget == null || creature == null || !creature.IsAlive || suicideInProgress)
             {
                 OnAttackDone();
+                return;
+            }
+
+            if (!TargetInRange(target))
+            {
+                // this must also be sent to actually display the transient message
+                SendWeenieError(WeenieError.MissileOutOfRange);
+
+                // this prevents the accuracy bar from refilling when 'repeat attacks' is enabled
+                OnAttackDone();
+
                 return;
             }
 
@@ -160,17 +164,37 @@ namespace ACE.Server.WorldObjects
             // point of no return beyond this point -- cannot be cancelled
             Attacking = true;
 
+            if (subsequent)
+            {
+                // client shows hourglass, until attack done is received
+                // retail only did this for subsequent attacks w/ repeat attacks on
+                Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
+            }
+
+            var projectileSpeed = GetProjectileSpeed();
+
             // get z-angle for aim motion
-            var aimVelocity = GetAimVelocity(target);
+            var aimVelocity = GetAimVelocity(target, projectileSpeed);
 
             var aimLevel = GetAimLevel(aimVelocity);
 
             // calculate projectile spawn pos and velocity
             var localOrigin = GetProjectileSpawnOrigin(ammo.WeenieClassId, aimLevel);
 
-            var velocity = CalculateProjectileVelocity(localOrigin, target, out Vector3 origin, out Quaternion orientation);
+            var velocity = CalculateProjectileVelocity(localOrigin, target, projectileSpeed, out Vector3 origin, out Quaternion orientation);
 
             //Console.WriteLine($"Velocity: {velocity}");
+
+            if (velocity == Vector3.Zero)
+            {
+                // pre-check succeeded, but actual velocity calculation failed
+                SendWeenieError(WeenieError.MissileOutOfRange);
+
+                // this prevents the accuracy bar from refilling when 'repeat attacks' is enabled
+                Attacking = false;
+                OnAttackDone();
+                return;
+            }
 
             var actionChain = new ActionChain();
             var launchTime = EnqueueMotion(actionChain, aimLevel);
@@ -195,7 +219,7 @@ namespace ACE.Server.WorldObjects
             });
 
             // ammo remaining?
-            if (ammo.StackSize == null || ammo.StackSize <= 1)
+            if (!ammo.UnlimitedUse && (ammo.StackSize == null || ammo.StackSize <= 1))
             {
                 actionChain.AddAction(this, () =>
                 {
@@ -225,25 +249,24 @@ namespace ACE.Server.WorldObjects
 
             actionChain.AddAction(this, () =>
             {
-                Session.Network.EnqueueSend(new GameEventAttackDone(Session));
                 Attacking = false;
 
-                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && !IsBusy)
+                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && !IsBusy && !AttackCancelled)
                 {
-                    Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
+                    // client starts refilling accuracy bar
                     Session.Network.EnqueueSend(new GameEventAttackDone(Session));
 
                     AccuracyLevel = AttackQueue.Fetch();
 
                     // can be cancelled, but cannot be pre-empted with another attack
                     var nextAttack = new ActionChain();
-                    var nextRefillTime = AccuracyLevel + 0.1f;
+                    var nextRefillTime = AccuracyLevel;
 
                     NextRefillTime = DateTime.UtcNow.AddSeconds(nextRefillTime);
                     nextAttack.AddDelaySeconds(nextRefillTime);
 
                     // perform next attack
-                    nextAttack.AddAction(this, () => { LaunchMissile(target, attackSequence); });
+                    nextAttack.AddAction(this, () => { LaunchMissile(target, attackSequence, true); });
                     nextAttack.EnqueueChain();
                 }
                 else
@@ -275,13 +298,29 @@ namespace ACE.Server.WorldObjects
 
         public override void UpdateAmmoAfterLaunch(WorldObject ammo)
         {
+            //if (ammo.UnlimitedUse)
+            //    return;
+
             // hide previously held ammo
             EnqueueBroadcast(new GameMessagePickupEvent(ammo));
+
+            if (ammo.UnlimitedUse)
+                return;
 
             if (ammo.StackSize == null || ammo.StackSize <= 1)
                 TryDequipObjectWithNetworking(ammo.Guid, out _, DequipObjectAction.ConsumeItem);
             else
                 TryConsumeFromInventoryWithNetworking(ammo, 1);
+        }
+
+        public bool TargetInRange(WorldObject target)
+        {
+            // 2d or 3d distance?
+            var dist = Location.DistanceTo(target.Location);
+
+            var maxRange = GetMaxMissileRange();
+
+            return dist <= maxRange;
         }
     }
 }

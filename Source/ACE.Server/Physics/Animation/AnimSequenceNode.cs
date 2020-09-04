@@ -30,7 +30,7 @@ namespace ACE.Server.Physics.Animation
 
         public float get_ending_frame()
         {
-            if (Framerate > 0.0f)
+            if (Framerate >= 0.0f)
                 return HighFrame + 1 - PhysicsGlobals.EPSILON;
             else
                 return LowFrame;

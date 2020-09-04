@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects.Entity;
 
@@ -47,7 +47,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// Removes a spell from the enchantment registry, and
         /// sends the relevant network messages for spell removal
         /// </summary>
-        public override void Remove(BiotaPropertiesEnchantmentRegistry entry, bool sound = true)
+        public override void Remove(PropertiesEnchantmentRegistry entry, bool sound = true)
         {
             base.Remove(entry, sound);
 
@@ -58,7 +58,7 @@ namespace ACE.Server.WorldObjects.Managers
 
             if (Player != null)
             {
-                if (entry.SpellCategory != SpellCategory_Cooldown)
+                if (entry.SpellCategory != (SpellCategory)SpellCategory_Cooldown)
                 {
                     var spell = new Spell(entry.SpellId);
                     Player.HandleSpellHooks(spell);
@@ -106,7 +106,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Silently removes a spell from the enchantment registry, and sends the relevant network message for dispel
         /// </summary>
-        public override void Dispel(BiotaPropertiesEnchantmentRegistry entry)
+        public override void Dispel(PropertiesEnchantmentRegistry entry)
         {
             base.Dispel(entry);
 
@@ -125,7 +125,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Silently removes multiple spells from the enchantment registry, and sends the relevent network messages for dispel
         /// </summary>
-        public override void Dispel(List<BiotaPropertiesEnchantmentRegistry> entries)
+        public override void Dispel(List<PropertiesEnchantmentRegistry> entries)
         {
             base.Dispel(entries);
 
@@ -169,7 +169,8 @@ namespace ACE.Server.WorldObjects.Managers
             armorModCache = null;
             armorModVsTypeModCache.Clear();
             ratingCache.Clear();
-            xpModCache = null;
+            netherDotDamageRatingCache = null;
+            xpBonusCache = null;
             resistLockpickCache = null;
         }
 
@@ -506,14 +507,24 @@ namespace ACE.Server.WorldObjects.Managers
             return value;
         }
 
-        private float? xpModCache;
+        private int? netherDotDamageRatingCache;
 
-        public override float GetXPMod()
+        public override int GetNetherDotDamageRating()
         {
-            if (xpModCache == null)
-                xpModCache = base.GetXPMod();
+            if (netherDotDamageRatingCache == null)
+                netherDotDamageRatingCache = base.GetNetherDotDamageRating();
 
-            return xpModCache.Value;
+            return netherDotDamageRatingCache.Value;
+        }
+
+        private float? xpBonusCache;
+
+        public override float GetXPBonus()
+        {
+            if (xpBonusCache == null)
+                xpBonusCache = base.GetXPBonus();
+
+            return xpBonusCache.Value;
         }
 
         public override bool StartCooldown(WorldObject item)

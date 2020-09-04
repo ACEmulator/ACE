@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 
 using ACE.Common.Extensions;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Managers;
 
@@ -18,7 +18,7 @@ namespace ACE.Server.Network.Structure
 
         public EnchantmentRegistry(Player player)
         {
-            var enchantments = player.Biota.GetEnchantments(player.BiotaDatabaseLock);
+            var enchantments = player.Biota.PropertiesEnchantmentRegistry.Clone(player.BiotaDatabaseLock);
 
             Enchantments = BuildCategories(player, enchantments);
 
@@ -33,7 +33,7 @@ namespace ACE.Server.Network.Structure
             SetEnchantMask();
         }
 
-        private static Dictionary<EnchantmentMask, List<Enchantment>> BuildCategories(Player player, ICollection<BiotaPropertiesEnchantmentRegistry> registry)
+        private static Dictionary<EnchantmentMask, List<Enchantment>> BuildCategories(Player player, ICollection<PropertiesEnchantmentRegistry> registry)
         {
             var categories = new Dictionary<EnchantmentMask, List<Enchantment>>();
 

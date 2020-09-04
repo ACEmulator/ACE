@@ -8,9 +8,8 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
-
-using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {
@@ -99,20 +98,34 @@ namespace ACE.Server.WorldObjects
                 return new ActivationResult(false);
             }
 
+            if (UseLockTimestamp != null && activator.Guid.Full != LastUnlocker)
+            {
+                var currentTime = Time.GetUnixTime();
+
+                // prevent ninja looting
+                if (UseLockTimestamp.Value + PropertyManager.GetDouble("unlocker_window").Item > currentTime)
+                {
+                    player.SendTransientError(InUseMessage);
+                    return new ActivationResult(false);
+                }
+            }
+
             if (IsOpen)
             {
-                // player has this chest open, close it
                 if (Viewer == player.Guid.Full)
+                {
+                    // current player has this chest open, close it
                     Close(player);
-
-                // else another player has this chest open - send error message?
+                }
                 else
                 {
+                    // another player has this chest open -- ensure they are within range
                     var currentViewer = CurrentLandblock.GetObject(Viewer) as Player;
 
-                    // current viewer not found, close it
                     if (currentViewer == null)
-                        Close(null);
+                        Close(null);    // current viewer not found, close it
+                    else
+                        player.SendTransientError(InUseMessage);
                 }
 
                 return new ActivationResult(false);
@@ -122,12 +135,12 @@ namespace ACE.Server.WorldObjects
             if (Quest != null)
             {
                 if (!player.QuestManager.HasQuest(Quest))
-                    player.QuestManager.Update(Quest);
+                    EmoteManager.OnQuest(player);
                 else
                 {
                     if (player.QuestManager.CanSolve(Quest))
                     {
-                        player.QuestManager.Update(Quest);
+                        EmoteManager.OnQuest(player);
                     }
                     else
                     {
@@ -170,6 +183,8 @@ namespace ACE.Server.WorldObjects
 
                 ResetMessagePending = true;
             }
+
+            UseLockTimestamp = null;
         }
 
         public override void Close(Player player)
@@ -285,8 +300,10 @@ namespace ACE.Server.WorldObjects
             var result = LockHelper.Unlock(this, playerLockpickSkillLvl, ref difficulty);
 
             if (result == UnlockResults.UnlockSuccess)
+            {
                 LastUnlocker = unlockerGuid;
-
+                UseLockTimestamp = Time.GetUnixTime();
+            }
             return result;
         }
 
@@ -298,8 +315,10 @@ namespace ACE.Server.WorldObjects
             var result = LockHelper.Unlock(this, key, keyCode);
 
             if (result == UnlockResults.UnlockSuccess)
+            {
                 LastUnlocker = unlockerGuid;
-
+                UseLockTimestamp = Time.GetUnixTime();
+            }
             return result;
         }
     }

@@ -12,6 +12,7 @@ using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network;
@@ -52,12 +53,12 @@ namespace ACE.Server.Command.Handlers
             {
                 var updated = false;
 
-                foreach (var attr in player.Biota.BiotaPropertiesAttribute.ToList())
+                foreach (var attr in new Dictionary<PropertyAttribute, PropertiesAttribute>(player.Biota.PropertiesAttribute))
                 {
                     // ensure this is a valid attribute
-                    if (attr.Type < (ushort)PropertyAttribute.Strength || attr.Type > (ushort)PropertyAttribute.Self)
+                    if (attr.Key < PropertyAttribute.Strength || attr.Key > PropertyAttribute.Self)
                     {
-                        Console.WriteLine($"{player.Name} has unknown attribute {(PropertyAttribute)attr.Type}{fixStr}");
+                        Console.WriteLine($"{player.Name} has unknown attribute {attr.Key}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
@@ -65,24 +66,24 @@ namespace ACE.Server.Command.Handlers
                             // i have found no instances of this situation being run into,
                             // but if it does happen, verify-xp will refund the player xp properly
 
-                            player.Biota.BiotaPropertiesAttribute.Remove(attr);
+                            player.Biota.PropertiesAttribute.Remove(attr);
                             updated = true;
                         }
                         continue;
                     }
 
-                    var rank = attr.LevelFromCP;
+                    var rank = attr.Value.LevelFromCP;
 
                     // verify attribute rank
-                    var correctRank = Player.CalcAttributeRank(attr.CPSpent);
+                    var correctRank = Player.CalcAttributeRank(attr.Value.CPSpent);
                     if (rank != correctRank)
                     {
-                        Console.WriteLine($"{player.Name}'s {(PropertyAttribute)attr.Type} rank is {rank}, should be {correctRank}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {attr.Key} rank is {rank}, should be {correctRank}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
                         {
-                            attr.LevelFromCP = (ushort)correctRank;
+                            attr.Value.LevelFromCP = (ushort)correctRank;
                             updated = true;
                         }
                     }
@@ -91,9 +92,9 @@ namespace ACE.Server.Command.Handlers
                     var attributeXPTable = DatManager.PortalDat.XpTable.AttributeXpList;
                     var maxAttributeXp = attributeXPTable[attributeXPTable.Count - 1];
 
-                    if (attr.CPSpent > maxAttributeXp)
+                    if (attr.Value.CPSpent > maxAttributeXp)
                     {
-                        Console.WriteLine($"{player.Name}'s {(PropertyAttribute)attr.Type} attribute total xp is {attr.CPSpent:N0}, should be capped at {maxAttributeXp:N0}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {attr.Key} attribute total xp is {attr.Value.CPSpent:N0}, should be capped at {maxAttributeXp:N0}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
@@ -101,7 +102,7 @@ namespace ACE.Server.Command.Handlers
                             // again i have found no instances of this situation being run into,
                             // but if it does happen, verify-xp will refund the player xp properly
 
-                            attr.CPSpent = maxAttributeXp;
+                            attr.Value.CPSpent = maxAttributeXp;
                             updated = true;
                         }
                     }
@@ -130,12 +131,12 @@ namespace ACE.Server.Command.Handlers
             {
                 var updated = false;
 
-                foreach (var vital in player.Biota.BiotaPropertiesAttribute2nd.ToList())
+                foreach (var vital in new Dictionary<PropertyAttribute2nd, PropertiesAttribute2nd>(player.Biota.PropertiesAttribute2nd))
                 {
                     // ensure this is a valid MaxVital
-                    if (vital.Type != (ushort)PropertyAttribute2nd.MaxHealth && vital.Type != (ushort)PropertyAttribute2nd.MaxStamina && vital.Type != (ushort)PropertyAttribute2nd.MaxMana)
+                    if (vital.Key != PropertyAttribute2nd.MaxHealth && vital.Key != PropertyAttribute2nd.MaxStamina && vital.Key != PropertyAttribute2nd.MaxMana)
                     {
-                        Console.WriteLine($"{player.Name} has unknown vita {(PropertyAttribute2nd)vital.Type}{fixStr}");
+                        Console.WriteLine($"{player.Name} has unknown vita {vital.Key}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
@@ -143,24 +144,24 @@ namespace ACE.Server.Command.Handlers
                             // i have found no instances of this situation being run into,
                             // but if it does happen, verify-xp will refund the player xp properly
 
-                            player.Biota.BiotaPropertiesAttribute2nd.Remove(vital);
+                            player.Biota.PropertiesAttribute2nd.Remove(vital.Key);
                             updated = true;
                         }
                         continue;
                     }
 
-                    var rank = vital.LevelFromCP;
+                    var rank = vital.Value.LevelFromCP;
 
                     // verify vital rank
-                    var correctRank = Player.CalcVitalRank(vital.CPSpent);
+                    var correctRank = Player.CalcVitalRank(vital.Value.CPSpent);
                     if (rank != correctRank)
                     {
-                        Console.WriteLine($"{player.Name}'s {(PropertyAttribute2nd)vital.Type} rank is {rank}, should be {correctRank}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {vital.Key} rank is {rank}, should be {correctRank}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
                         {
-                            vital.LevelFromCP = (ushort)correctRank;
+                            vital.Value.LevelFromCP = (ushort)correctRank;
                             updated = true;
                         }
                     }
@@ -169,9 +170,9 @@ namespace ACE.Server.Command.Handlers
                     var vitalXPTable = DatManager.PortalDat.XpTable.VitalXpList;
                     var maxVitalXp = vitalXPTable[vitalXPTable.Count - 1];
 
-                    if (vital.CPSpent > maxVitalXp)
+                    if (vital.Value.CPSpent > maxVitalXp)
                     {
-                        Console.WriteLine($"{player.Name}'s {(PropertyAttribute2nd)vital.Type} vital total xp is {vital.CPSpent:N0}, should be capped at {maxVitalXp:N0}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {vital.Key} vital total xp is {vital.Value.CPSpent:N0}, should be capped at {maxVitalXp:N0}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
@@ -179,7 +180,7 @@ namespace ACE.Server.Command.Handlers
                             // again i have found no instances of this situation being run into,
                             // but if it does happen, verify-xp will refund the player xp properly
 
-                            vital.CPSpent = maxVitalXp;
+                            vital.Value.CPSpent = maxVitalXp;
                             updated = true;
                         }
                     }
@@ -209,39 +210,39 @@ namespace ACE.Server.Command.Handlers
             {
                 var updated = false;
 
-                foreach (var skill in player.Biota.BiotaPropertiesSkill.ToList())
+                foreach (var skill in new Dictionary<Skill, PropertiesSkill>(player.Biota.PropertiesSkill))
                 {
                     // ensure this is a valid player skill
-                    if (!Player.PlayerSkills.Contains((Skill)skill.Type))
+                    if (!Player.PlayerSkills.Contains(skill.Key))
                     {
-                        Console.WriteLine($"{player.Name} has unknown skill {(Skill)skill.Type}{fixStr}");
+                        Console.WriteLine($"{player.Name} has unknown skill {skill.Key}{fixStr}");
                         foundIssues = true;
                         if (fix)
                         {
                             // i have found no instances of these skills ever having xp put into them,
                             // but if there were, verify-xp will fix that
-                            player.Biota.BiotaPropertiesSkill.Remove(skill);
+                            player.Biota.PropertiesSkill.Remove(skill.Key);
                             updated = true;
                         }
                         continue;
                     }
 
-                    var rank = skill.LevelFromPP;
+                    var rank = skill.Value.LevelFromPP;
 
-                    var sac = (SkillAdvancementClass)skill.SAC;
+                    var sac = skill.Value.SAC;
                     if (sac < SkillAdvancementClass.Trained)
                     {
-                        if (skill.PP > 0 || skill.LevelFromPP > 0)
+                        if (skill.Value.PP > 0 || skill.Value.LevelFromPP > 0)
                         {
-                            Console.WriteLine($"{player.Name} has {sac} skill {(Skill)skill.Type} with {skill.PP:N0} xp (rank {skill.LevelFromPP})");
+                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.PP:N0} xp (rank {skill.Value.LevelFromPP}){fixStr}");
                             foundIssues = true;
 
                             if (fix)
                             {
                                 // i have found no instances of this situation being run into,
                                 // but if it does happen, verify-xp will refund the player xp properly
-                                skill.PP = 0;
-                                skill.LevelFromPP = 0;
+                                skill.Value.PP = 0;
+                                skill.Value.LevelFromPP = 0;
 
                                 updated = true;
                             }
@@ -249,16 +250,47 @@ namespace ACE.Server.Command.Handlers
                         continue;
                     }
 
+                    if (sac != SkillAdvancementClass.Specialized)
+                    {
+                        if (skill.Value.InitLevel > 0)
+                        {
+                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel{fixStr}");
+                            foundIssues = true;
+
+                            if (fix)
+                            {
+                                skill.Value.InitLevel = 0;
+
+                                updated = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (skill.Value.InitLevel != 10)
+                        {
+                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel{fixStr}");
+                            foundIssues = true;
+
+                            if (fix)
+                            {
+                                skill.Value.InitLevel = 10;
+
+                                updated = true;
+                            }
+                        }
+                    }
+
                     // verify skill rank
-                    var correctRank = Player.CalcSkillRank(sac, skill.PP);
+                    var correctRank = Player.CalcSkillRank(sac, skill.Value.PP);
                     if (rank != correctRank)
                     {
-                        Console.WriteLine($"{player.Name}'s {(Skill)skill.Type} rank is {rank}, should be {correctRank}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {skill.Key} rank is {rank}, should be {correctRank}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
                         {
-                            skill.LevelFromPP = (ushort)correctRank;
+                            skill.Value.LevelFromPP = (ushort)correctRank;
                             updated = true;
                         }
                     }
@@ -275,15 +307,15 @@ namespace ACE.Server.Command.Handlers
                     var skillXPTable = Player.GetSkillXPTable(SkillAdvancementClass.Trained);
                     var maxSkillXp = skillXPTable[skillXPTable.Count - 1];
 
-                    if (skill.PP > maxSkillXp)
+                    if (skill.Value.PP > maxSkillXp)
                     {
-                        Console.WriteLine($"{player.Name}'s {sac} {(Skill)skill.Type} skill total xp is {skill.PP:N0}, should be capped at {maxSkillXp:N0}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {sac} {skill.Key} skill total xp is {skill.Value.PP:N0}, should be capped at {maxSkillXp:N0}{fixStr}");
                         foundIssues = true;
                         if (fix)
                         {
                             // again i have found no instances of this situation being run into,
                             // but if it does happen, verify-xp will refund the player xp properly
-                            skill.PP = maxSkillXp;
+                            skill.Value.PP = maxSkillXp;
                             updated = true;
                         }
                     }
@@ -309,101 +341,137 @@ namespace ACE.Server.Command.Handlers
             var fixStr = fix ? " -- fixed" : "";
             var foundIssues = false;
 
+            HashSet<uint> oswaldSkillCredit = null;
+            HashSet<uint> ralireaSkillCredit = null;
+            Dictionary<uint, int> lumAugSkillCredits = null;
+
             using (var ctx = new ShardDbContext())
             {
-                foreach (var player in players)
+                // 4 possible skill credits from quests
+                // - ChasingOswaldDone
+                // - ArantahKill1 (no 'turned in' stamp, only if given figurine?)
+                // - LumAugSkillQuest (stamped either 1 or 2 times)
+
+                oswaldSkillCredit = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("ChasingOswaldDone")).Select(i => i.CharacterId).ToHashSet();
+                ralireaSkillCredit = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("ArantahKill1")).Select(i => i.CharacterId).ToHashSet();
+                lumAugSkillCredits = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("LumAugSkillQuest")).ToDictionary(i => i.CharacterId, i => i.NumTimesCompleted);
+            }
+
+            foreach (var player in players)
+            {
+                // skip admins
+                if (player.Account == null || player.Account.AccessLevel == (uint)AccessLevel.Admin)
+                    continue;
+
+                // player starts with 52 skill credits
+                var startCredits = 52;
+
+                // skills that cannot be untrained: arcane lore, jump, loyalty, magic defense, run, salvaging
+                // all of these have '0' cost to train, except for arcane lore, which has 4 (seems to be an outlier?)
+                startCredits += 4;
+
+                var levelCredits = GetAdditionalCredits(player.Level ?? 1);
+
+                var totalCredits = startCredits + levelCredits;
+
+                var used = 0;
+
+                var specCreditsSpent = 0;
+
+                foreach (var skill in new Dictionary<Skill, PropertiesSkill>(player.Biota.PropertiesSkill))
                 {
-                    // skip admins
-                    if (player.Account == null || player.Account.AccessLevel == (uint)AccessLevel.Admin)
+                    var sac = skill.Value.SAC;
+                    if (sac < SkillAdvancementClass.Trained)
                         continue;
 
-                    // player starts with 52 skill credits
-                    var startCredits = 52;
-
-                    // skills that cannot be untrained: arcane lore, jump, loyalty, magic defense, run, salvaging
-                    // all of these have '0' cost to train, except for arcane lore, which has 4 (seems to be an outlier?)
-                    startCredits += 4;
-
-                    var levelCredits = GetAdditionalCredits(player.Level ?? 1);
-
-                    var totalCredits = startCredits + levelCredits;
-
-                    var used = 0;
-
-                    foreach (var skill in player.Biota.BiotaPropertiesSkill)
+                    if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue((uint)skill.Key, out var skillInfo))
                     {
-                        var sac = (SkillAdvancementClass)skill.SAC;
-                        if (sac < SkillAdvancementClass.Trained)
-                            continue;
-
-                        if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue(skill.Type, out var skillInfo))
-                        {
-                            Console.WriteLine($"{player.Name}.HandleVerifySkillCredits({(Skill)skill.Type}): unknown skill");
-                            continue;
-                        }
-
-                        //Console.WriteLine($"{(Skill)skill.Type} trained cost: {skillInfo.TrainedCost}, spec cost: {skillInfo.SpecializedCost}");
-
-                        used += skillInfo.TrainedCost;
-
-                        if (sac == SkillAdvancementClass.Specialized)
-                        {
-                            switch ((Skill)skill.Type)
-                            {
-                                // these can only be speced through augs, they have >= 999 in the spec data
-                                case Skill.ArmorTinkering:
-                                case Skill.ItemTinkering:
-                                case Skill.MagicItemTinkering:
-                                case Skill.WeaponTinkering:
-                                case Skill.Salvaging:
-                                    continue;
-                            }
-
-                            used += skillInfo.UpgradeCostFromTrainedToSpecialized;
-                        }
-                    }
-
-                    // 2 possible skill credits from quests
-                    // - ChasingOswaldDone
-                    // - ArantahKill1 (no 'turned in' stamp, only if given figurine?)
-                    var questCredits = ctx.CharacterPropertiesQuestRegistry.Count(i => i.CharacterId == player.Guid.Full && (i.QuestName.Equals("ChasingOswaldDone") || i.QuestName.Equals("ArantahKill1")));
-
-                    totalCredits += questCredits;
-
-                    // TODO: 2 lum augs
-
-                    var targetCredits = totalCredits - used;
-                    var targetMsg = $"{player.Name} should have {targetCredits} available skill credits";
-
-                    if (targetCredits < 0)
-                    {
-                        // if the player has already spent more skill credits than they should have,
-                        // unfortunately this situation requires a partial reset..
-
-                        Console.WriteLine($"{targetMsg}. To fix this situation, trained skill reset will need to be applied{fixStr}");
-                        foundIssues = true;
-
-                        if (fix)
-                            UntrainSkills(player, targetCredits);
-
+                        Console.WriteLine($"{player.Name}.HandleVerifySkillCredits({skill.Key}): unknown skill");
                         continue;
                     }
 
-                    var availableCredits = player.GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
+                    //Console.WriteLine($"{(Skill)skill.Type} trained cost: {skillInfo.TrainedCost}, spec cost: {skillInfo.SpecializedCost}");
 
-                    if (availableCredits != targetCredits)
+                    used += skillInfo.TrainedCost;
+
+                    if (sac == SkillAdvancementClass.Specialized)
                     {
-                        Console.WriteLine($"{targetMsg}, but they have {availableCredits}{fixStr}");
-                        foundIssues = true;
-
-                        if (fix)
+                        switch (skill.Key)
                         {
-                            player.SetProperty(PropertyInt.AvailableSkillCredits, targetCredits);
-                            player.SaveBiotaToDatabase();
+                            // these can only be speced through augs, they have >= 999 in the spec data
+                            case Skill.ArmorTinkering:
+                            case Skill.ItemTinkering:
+                            case Skill.MagicItemTinkering:
+                            case Skill.WeaponTinkering:
+                            case Skill.Salvaging:
+                                continue;
                         }
+
+                        used += skillInfo.UpgradeCostFromTrainedToSpecialized;
+
+                        specCreditsSpent += skillInfo.SpecializedCost;
+                    }
+                }
+
+                // 2 possible skill credits from quests
+                // - ChasingOswaldDone
+                if (oswaldSkillCredit.Contains(player.Guid.Full))
+                    totalCredits++;
+
+                // - ArantahKill1 (no 'turned in' stamp, only if given figurine?)
+                if (ralireaSkillCredit.Contains(player.Guid.Full))
+                    totalCredits++;
+
+                // - LumAugSkillQuest (stamped either 1 or 2 times)
+                if (lumAugSkillCredits.TryGetValue(player.Guid.Full, out var lumSkillCredits))
+                    totalCredits += lumSkillCredits;
+
+                var targetCredits = totalCredits - used;
+                var targetMsg = $"{player.Name} should have {targetCredits} available skill credits";
+
+                if (targetCredits < 0)
+                {
+                    // if the player has already spent more skill credits than they should have,
+                    // unfortunately this situation requires a partial reset..
+
+                    Console.WriteLine($"{targetMsg}. To fix this situation, trained skill reset will need to be applied{fixStr}");
+                    foundIssues = true;
+
+                    if (fix)
+                        UntrainSkills(player, targetCredits);
+
+                    continue;
+                }
+
+                if (specCreditsSpent > 70)
+                {
+                    // if the player has already spent more skill credits than they should have,
+                    // unfortunately this situation requires a partial reset..
+
+                    Console.WriteLine($"{player.Name} has spent {specCreditsSpent} skill credits on specalization, {specCreditsSpent - 70} over the limit of 70. To fix this situation, specialized skill reset will need to be applied{fixStr}");
+                    foundIssues = true;
+
+                    if (fix)
+                        UnspecializeSkills(player);
+
+                    continue;
+                }
+
+                var availableCredits = player.GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
+
+                if (availableCredits != targetCredits)
+                {
+                    Console.WriteLine($"{targetMsg}, but they have {availableCredits}{fixStr}");
+                    foundIssues = true;
+
+                    if (fix)
+                    {
+                        player.SetProperty(PropertyInt.AvailableSkillCredits, targetCredits);
+                        player.SaveBiotaToDatabase();
                     }
                 }
             }
+
             if (!fix && foundIssues)
                 Console.WriteLine($"Dry run completed. Type 'verify-skill-credits fix' to fix any issues.");
 
@@ -481,25 +549,25 @@ namespace ACE.Server.Command.Handlers
         {
             long refundXP = 0;
 
-            foreach (var skill in player.Biota.BiotaPropertiesSkill)
+            foreach (var skill in new Dictionary<Skill, PropertiesSkill>(player.Biota.PropertiesSkill))
             {
-                if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue(skill.Type, out var skillBase))
+                if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue((uint)skill.Key, out var skillBase))
                 {
-                    Console.WriteLine($"{player.Name}.UntrainSkills({(Skill)skill.Type}) - unknown skill");
+                    Console.WriteLine($"{player.Name}.UntrainSkills({skill.Key}) - unknown skill");
                     continue;
                 }
 
-                var sac = (SkillAdvancementClass)skill.SAC;
+                var sac = skill.Value.SAC;
 
-                if (sac != SkillAdvancementClass.Trained || !Player.IsSkillUntrainable((Skill)skill.Type))
+                if (sac != SkillAdvancementClass.Trained || !Player.IsSkillUntrainable(skill.Key))
                     continue;
 
-                refundXP += skill.PP;
+                refundXP += skill.Value.PP;
 
-                skill.SAC = (uint)SkillAdvancementClass.Untrained;
-                skill.InitLevel -= 5;
-                skill.PP = 0;
-                skill.LevelFromPP = 0;
+                skill.Value.SAC = SkillAdvancementClass.Untrained;
+                skill.Value.InitLevel = 0;
+                skill.Value.PP = 0;
+                skill.Value.LevelFromPP = 0;
 
                 targetCredits += skillBase.TrainedCost;
             }
@@ -511,6 +579,54 @@ namespace ACE.Server.Command.Handlers
             player.SetProperty(PropertyInt.AvailableSkillCredits, targetCredits);
 
             player.SetProperty(PropertyBool.UntrainedSkills, true);
+
+            player.SaveBiotaToDatabase();
+        }
+
+        /// <summary>
+        /// This method is only required if the player is found to be over the spec skill limit of 70 credits
+        /// </summary>
+        private static void UnspecializeSkills(OfflinePlayer player)
+        {
+            long refundXP = 0;
+
+            int refundedCredits = 0;
+
+            foreach (var skill in new Dictionary<Skill, PropertiesSkill>(player.Biota.PropertiesSkill))
+            {
+                if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue((uint)skill.Key, out var skillBase))
+                {
+                    Console.WriteLine($"{player.Name}.UntrainSkills({skill.Key}) - unknown skill");
+                    continue;
+                }
+
+                var sac = skill.Value.SAC;
+
+                if (sac != SkillAdvancementClass.Specialized || Player.AugSpecSkills.Contains(skill.Key))
+                    continue;
+
+                refundXP += skill.Value.PP;
+
+                skill.Value.SAC = SkillAdvancementClass.Trained;
+                skill.Value.InitLevel = 0;
+                skill.Value.PP = 0;
+                skill.Value.LevelFromPP = 0;
+
+                refundedCredits += skillBase.UpgradeCostFromTrainedToSpecialized;
+            }
+
+            var availableExperience = player.GetProperty(PropertyInt64.AvailableExperience) ?? 0;
+
+            player.SetProperty(PropertyInt64.AvailableExperience, availableExperience + refundXP);
+
+            var availableSkillCredits = player.GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
+
+            player.SetProperty(PropertyInt.AvailableSkillCredits, availableSkillCredits + refundedCredits);
+
+            player.SetProperty(PropertyBool.UnspecializedSkills, true);
+
+            player.SetProperty(PropertyBool.FreeSkillResetRenewed, true);
+            player.SetProperty(PropertyBool.SkillTemplesTimerReset, true);
 
             player.SaveBiotaToDatabase();
         }
@@ -705,6 +821,14 @@ namespace ACE.Server.Command.Handlers
 
             var results = new List<VerifyXpResult>();
 
+            HashSet<uint> lesserBenediction = null;
+
+            using (var ctx = new ShardDbContext())
+            {
+                // Asheron's Lesser Benediction augmentation operates differently than all other augs
+                lesserBenediction = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("LesserBenedictionAug")).Select(i => i.CharacterId).ToHashSet();
+            }
+
             foreach (var player in players)
             {
                 var totalXP = player.GetProperty(PropertyInt64.TotalExperience) ?? 0;
@@ -718,14 +842,14 @@ namespace ACE.Server.Command.Handlers
 
                 long diffXP = Math.Min(0, player.GetProperty(PropertyInt64.VerifyXp) ?? 0);
 
-                foreach (var attribute in player.Biota.BiotaPropertiesAttribute)
-                    attributeXP += attribute.CPSpent;
+                foreach (var attribute in player.Biota.PropertiesAttribute)
+                    attributeXP += attribute.Value.CPSpent;
 
-                foreach (var vital in player.Biota.BiotaPropertiesAttribute2nd)
-                    vitalXP += vital.CPSpent;
+                foreach (var vital in player.Biota.PropertiesAttribute2nd)
+                    vitalXP += vital.Value.CPSpent;
 
-                foreach (var skill in player.Biota.BiotaPropertiesSkill)
-                    skillXP += skill.PP;
+                foreach (var skill in player.Biota.PropertiesSkill)
+                    skillXP += skill.Value.PP;
 
                 // find any xp spent on augs
                 var heritage = (HeritageGroup?)player.GetProperty(PropertyInt.HeritageGroup);
@@ -751,11 +875,16 @@ namespace ACE.Server.Command.Handlers
                     augXP += costPer * numAugs;
                 }
 
+                if (lesserBenediction.Contains(player.Guid.Full))
+                    augXP += 2000000000;
+
                 var calculatedSpent = attributeXP + vitalXP + skillXP + augXP + diffXP;
 
                 var currentSpent = totalXP - unassignedXP;
 
-                if (calculatedSpent != currentSpent)
+                var bonusXp = (currentSpent - calculatedSpent) % 526;
+
+                if (calculatedSpent != currentSpent && bonusXp != 0)
                 {
                     // the results for this data set can be large,
                     // especially due to an earlier ace bug where it wasn't calculating the Proficiency Points correctly

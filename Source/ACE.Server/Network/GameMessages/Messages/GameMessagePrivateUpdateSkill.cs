@@ -19,8 +19,8 @@ namespace ACE.Server.Network.GameMessages.Messages
             Writer.Write(creatureSkill.ExperienceSpent);
 
             Writer.Write(creatureSkill.InitLevel);            // starting point for advancement of the skill (eg. bonus points)
-            Writer.Write(creatureSkill.BiotaPropertiesSkill.ResistanceAtLastCheck);
-            Writer.Write(creatureSkill.BiotaPropertiesSkill.LastUsedTime);
+            Writer.Write(creatureSkill.PropertiesSkill.ResistanceAtLastCheck);
+            Writer.Write(creatureSkill.PropertiesSkill.LastUsedTime);
         }
     }
 }

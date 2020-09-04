@@ -7,8 +7,6 @@ using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class Storage : Chest
@@ -41,7 +39,8 @@ namespace ACE.Server.WorldObjects
             // unanimated objects will float in the air, and not be affected by gravity
             // unless we give it a bit of velocity to start
             // fixes floating storage chests
-            Velocity = new Vector3(0, 0, 0.5f);
+            //Velocity = new Vector3(0, 0, 0.5f);
+            BumpVelocity = true;
         }
 
         public override ActivationResult CheckUseRequirements(WorldObject activator)

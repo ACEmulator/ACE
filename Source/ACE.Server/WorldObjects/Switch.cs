@@ -7,8 +7,6 @@ using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class Switch : WorldObject
@@ -52,7 +50,7 @@ namespace ACE.Server.WorldObjects
             {
                 var useAnimation = UseTargetAnimation != null ? (MotionCommand)UseTargetAnimation : MotionCommand.Twitch1;
 
-                EnqueueMotion(actionChain, useAnimation);
+                EnqueueMotion(actionChain, useAnimation, 1, false);
             }
 
             actionChain.AddAction(this, () => base.OnActivate(activator));

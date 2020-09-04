@@ -112,6 +112,19 @@ namespace ACE.Server.Physics.Common
             }
         }
 
+        public bool KnownObjectsContainsKey(uint guid)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return KnownObjects.ContainsKey(guid);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
         public bool KnownObjectsContainsValue(PhysicsObj value)
         {
             rwLock.EnterReadLock();
@@ -685,6 +698,19 @@ namespace ACE.Server.Physics.Common
             try
             {
                 return KnownPlayers.Values.Select(v => v.WeenieObj.WorldObject).OfType<Player>().ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public List<Creature> GetKnownObjectsValuesAsCreature()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return KnownObjects.Values.Select(v => v.WeenieObj.WorldObject).OfType<Creature>().ToList();
             }
             finally
             {

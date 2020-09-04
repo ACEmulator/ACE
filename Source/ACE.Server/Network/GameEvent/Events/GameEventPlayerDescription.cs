@@ -4,6 +4,7 @@ using System.Linq;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Network.Structure;
 
 namespace ACE.Server.Network.GameEvent.Events
@@ -192,7 +193,9 @@ namespace ACE.Server.Network.GameEvent.Events
 
             DescriptionVectorFlag vectorFlags = DescriptionVectorFlag.Attribute | DescriptionVectorFlag.Skill;
 
-            if (Session.Player.Biota.BiotaPropertiesSpellBook.Count > 0)
+            var knownSpells = Session.Player.Biota.CloneSpells(Session.Player.BiotaDatabaseLock);
+
+            if (knownSpells.Count > 0)
                 vectorFlags |= DescriptionVectorFlag.Spell;
             if (Session.Player.EnchantmentManager.HasEnchantments)
                 vectorFlags |= DescriptionVectorFlag.Enchantment;
@@ -295,12 +298,12 @@ namespace ACE.Server.Network.GameEvent.Events
 
             if ((vectorFlags & DescriptionVectorFlag.Spell) != 0)
             {
-                Writer.Write((ushort)Session.Player.Biota.BiotaPropertiesSpellBook.Count);
+                Writer.Write((ushort)knownSpells.Count);
                 Writer.Write((ushort)64);
 
-                foreach (var spell in Session.Player.Biota.BiotaPropertiesSpellBook)
+                foreach (var spell in knownSpells)
                 {
-                    Writer.Write(spell.Spell);
+                    Writer.Write(spell.Key);
                     // This sets a flag to use new spell configuration always 2
                     Writer.Write(2f);
                 }

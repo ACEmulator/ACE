@@ -1,4 +1,5 @@
-using ACE.Database.Models.Shard;
+
+using ACE.Entity.Models;
 
 namespace ACE.Server.Entity
 {
@@ -7,10 +8,10 @@ namespace ACE.Server.Entity
     /// </summary>
     public class SpellEnchantment
     {
-        public BiotaPropertiesEnchantmentRegistry Enchantment;
+        public PropertiesEnchantmentRegistry Enchantment;
         public Spell Spell;
 
-        public SpellEnchantment(BiotaPropertiesEnchantmentRegistry enchantment)
+        public SpellEnchantment(PropertiesEnchantmentRegistry enchantment)
         {
             Enchantment = enchantment;
             Spell = new Spell(enchantment.SpellId);

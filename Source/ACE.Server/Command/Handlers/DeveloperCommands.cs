@@ -11,12 +11,12 @@ using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.World;
-using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
@@ -242,19 +242,20 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// playsound [Sound] (volumelevel)
         /// </summary>
-        [CommandHandler("playsound", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Plays a sound.", "sound (float)\n" + "Sound can be uint or enum name" + "float is volume level")]
+        [CommandHandler("playsound", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Plays a sound.", "sound (volume) (guid)\n" + "Sound can be uint or enum name\n" + "Volume and source guid are optional")]
         public static void HandlePlaySound(Session session, params string[] parameters)
         {
             try
             {
                 float volume = 1f;
-                var soundEvent = new GameMessageSound(session.Player.Guid, Sound.Invalid, volume);
 
                 if (parameters.Length > 1)
-                {
-                    if (parameters[1] != "")
-                        volume = float.Parse(parameters[1]);
-                }
+                    float.TryParse(parameters[1], out volume);
+
+                uint guid = session.Player.Guid.Full;
+
+                if (parameters.Length > 2)
+                    uint.TryParse(parameters[2].TrimStart("0x"), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out guid);
 
                 var message = $"Unable to find a sound called {parameters[0]} to play.";
 
@@ -266,7 +267,7 @@ namespace ACE.Server.Command.Handlers
                         // add the sound to the player queue for everyone to hear
                         // player action queue items will execute on the landblock
                         // player.playsound will play a sound on only the client session that called the function
-                        session.Player.HandleActionApplySoundEffect(sound);
+                        session.Player.PlaySoundEffect(sound, new ObjectGuid(guid), volume);
                     }
                 }
 
@@ -323,22 +324,44 @@ namespace ACE.Server.Command.Handlers
                 ChatPacket.SendServerMessage(session, "Test Message " + i, ChatMessageType.Broadcast);
         }
 
-        [CommandHandler("animation", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Sends a MovementEvent to you.", "uint\n")]
+        [CommandHandler("animation", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Plays an animation on the current player, or optionally another object", "MotionCommand (optional target guid)\n")]
         public static void Animation(Session session, params string[] parameters)
         {
-            uint animationId;
-
-            try
+            if (!Enum.TryParse(parameters[0], out MotionCommand motionCommand))
             {
-                animationId = Convert.ToUInt32(parameters[0]);
-            }
-            catch (Exception)
-            {
-                ChatPacket.SendServerMessage(session, "Invalid Animation value", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, $"MotionCommand: {parameters[0]} not found", ChatMessageType.Broadcast);
                 return;
             }
+            WorldObject obj = session.Player;
 
-            session.Player.EnqueueBroadcastMotion(new Motion(session.Player, (MotionCommand)animationId));
+            if (parameters.Length > 1)
+            {
+                if (!uint.TryParse(parameters[1].TrimStart("0x"), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var guid))
+                {
+                    ChatPacket.SendServerMessage(session, $"Invalid guid: {parameters[1]}", ChatMessageType.Broadcast);
+                    return;
+                }
+                obj = session.Player.FindObject(guid, Player.SearchLocations.Everywhere);
+                if (obj == null)
+                {
+                    ChatPacket.SendServerMessage(session, $"Couldn't find guid: {parameters[1]}", ChatMessageType.Broadcast);
+                    return;
+                }
+                if (obj.CurrentMotionState == null)
+                {
+                    ChatPacket.SendServerMessage(session, $"{obj.Name} ({obj.Guid}) has no CurrentMotionState", ChatMessageType.Broadcast);
+                    return;
+                }
+            }
+            var stance = obj.CurrentMotionState.Stance;
+
+            var suffix = "";
+            if (obj != session.Player)
+                suffix = $" on {obj.Name} ({obj.Guid})";
+
+            ChatPacket.SendServerMessage(session, $"Playing animation {stance}.{motionCommand}{suffix}", ChatMessageType.Broadcast);
+
+            obj.EnqueueBroadcastMotion(new Motion(stance, motionCommand));
         }
 
         /// <summary>
@@ -500,7 +523,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("whoami", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows you your GUIDs.")]
         public static void HandleWhoAmI(Session session, params string[] parameters)
         {
-            ChatPacket.SendServerMessage(session, $"GUID: {session.Player.Guid.Full} ID(low): {session.Player.Guid.Low} High:{session.Player.Guid.High}", ChatMessageType.Broadcast);
+            ChatPacket.SendServerMessage(session, $"GUID: {session.Player.Guid.Full} (0x{session.Player.Guid}) | ID(low): {session.Player.Guid.Low} High:{session.Player.Guid.High}", ChatMessageType.Broadcast);
         }
 
         /// <summary>
@@ -675,7 +698,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("listpositions", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Displays all available saved character positions from the database.", "@listpositions")]
         public static void HandleListPositions(Session session, params string[] parameters)
         {
-            var posDict = session.Player.GetPositions();
+            var posDict = session.Player.GetAllPositions();
             string message = "Saved character positions:\n";
 
             foreach (var posPair in posDict)
@@ -1543,7 +1566,7 @@ namespace ACE.Server.Command.Handlers
         public static void HandleDist(Session session, params string[] parameters)
         {
             var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
-            if (obj == null) return;
+            if (obj == null || obj.PhysicsObj == null) return;
 
             var sourcePos = session.Player.Location.ToGlobal();
             var targetPos = obj.Location.ToGlobal();
@@ -1551,8 +1574,12 @@ namespace ACE.Server.Command.Handlers
             var dist = Vector3.Distance(sourcePos, targetPos);
             var dist2d = Vector2.Distance(new Vector2(sourcePos.X, sourcePos.Y), new Vector2(targetPos.X, targetPos.Y));
 
+            var cylDist = session.Player.PhysicsObj.get_distance_to_object(obj.PhysicsObj, true);
+
             session.Network.EnqueueSend(new GameMessageSystemChat($"Dist: {dist}", ChatMessageType.Broadcast));
             session.Network.EnqueueSend(new GameMessageSystemChat($"2D Dist: {dist2d}", ChatMessageType.Broadcast));
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"CylDist: {cylDist}", ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -1921,6 +1948,10 @@ namespace ACE.Server.Command.Handlers
             }
             session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}): {prop} = {value}", ChatMessageType.Broadcast));
             PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} changed a property for {obj.Name} ({obj.Guid}): {prop} = {value}");
+
+            // hack for easier testing
+            if (pType == typeof(PropertyInt) && (PropertyInt)result == PropertyInt.Faction1Bits && obj is Creature creature && creature.RetaliateTargets == null)
+                creature.RetaliateTargets = new HashSet<uint>();
         }
 
         /// <summary>
@@ -2224,53 +2255,48 @@ namespace ACE.Server.Command.Handlers
             log.Info($"Physics ObjMaint Audit Completed. Errors - objectTable: {objectTableErrors}, visibleObjectTable: {visibleObjectTableErrors}, voyeurTable: {voyeurTableErrors}");
         }
 
-        [CommandHandler("lootgen", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generate a piece of loot from the LootGenerationFactory.", "<wcid> <tier>")]
+        [CommandHandler("lootgen", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generate a piece of loot from the LootGenerationFactory.", "<wcid or classname> <tier>")]
         public static void HandleLootGen(Session session, params string[] parameters)
         {
-            string weenieClassDescription = parameters[0];
-            bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
+            WorldObject wo = null;
 
-            if (!wcid)
+            // create base item
+            if (uint.TryParse(parameters[0], out var wcid))
+                wo = WorldObjectFactory.CreateNewWorldObject(wcid);
+            else
+                wo = WorldObjectFactory.CreateNewWorldObject(parameters[0]);
+
+            if (wo == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"WCID must be a valid weenie id", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {parameters[0]}", ChatMessageType.Broadcast));
                 return;
             }
 
             int tier = 1;
             if (parameters.Length > 1)
-            {
-                var isValidStackSize = int.TryParse(parameters[1], out tier);
-                if (!isValidStackSize || tier < 1 || tier > 8)
-                {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Loot Tier must be number between 1 and 8", ChatMessageType.Broadcast));
-                    return;
-                }
-            }
+                int.TryParse(parameters[1], out tier);
 
-            // Just using this check some properties before we throw it at the loot gen so we can give feedback to the user
-            WorldObject lootTest = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
-
-            if (lootTest == null)
+            if (tier < 1 || tier > 8)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassId} is not a valid wcid.", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Loot Tier must be a number between 1 and 8", ChatMessageType.Broadcast));
                 return;
             }
 
-            if (lootTest.TsysMutationData == null)
+            if (wo.TsysMutationData == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Weenie has a missing PropertyInt.TsysMutationData needed for this function.", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{wo.Name} ({wo.WeenieClassId}) missing PropertyInt.TsysMutationData", ChatMessageType.Broadcast));
                 return;
             }
 
-            WorldObject loot = LootGenerationFactory.CreateLootByWCID(weenieClassId, tier);
-
-            if (loot == null)
+            var profile = new TreasureDeath()
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Generating {weenieClassId} was not successful.", ChatMessageType.Broadcast));
-                return;
-            }
+                Tier = tier,
+                LootQualityMod = 0
+            };
 
-            session.Player.TryCreateInInventoryWithNetworking(loot);
+            var success = LootGenerationFactory.MutateItem(wo, profile, true);
+
+            session.Player.TryCreateInInventoryWithNetworking(wo);
         }
 
         [CommandHandler("ciloot", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Generates randomized loot in player's inventory", "<tier> optional: <# items>")]
@@ -2445,7 +2471,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            obj.Biota.GetOrAddKnownSpell((int)spellId, obj.BiotaDatabaseLock, obj.BiotaPropertySpells, out var spellAdded);
+            obj.Biota.GetOrAddKnownSpell((int)spellId, obj.BiotaDatabaseLock, out var spellAdded);
 
             var msg = spellAdded ? "added to" : "already on";
 
@@ -2474,7 +2500,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            var spellRemoved = obj.Biota.TryRemoveKnownSpell((int)spellId, out _, obj.BiotaDatabaseLock, obj.BiotaPropertySpells);
+            var spellRemoved = obj.Biota.TryRemoveKnownSpell((int)spellId, obj.BiotaDatabaseLock);
 
             var msg = spellRemoved ? "removed from" : "not found on";
 
@@ -2563,6 +2589,9 @@ namespace ACE.Server.Command.Handlers
                     objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
 
                 var wo = session.Player.CurrentLandblock?.GetObject(objectId);
+
+                if (wo == null)
+                    return;
 
                 if (objectId.IsPlayer())
                     return;
@@ -2901,7 +2930,7 @@ namespace ACE.Server.Command.Handlers
             var wo = CommandHandlerHelper.GetLastAppraisedObject(session);
 
             if (wo != null)
-                session.Network.EnqueueSend(new GameMessageSystemChat($"WeenieClassId: {wo.WeenieClassId}\nWeenieClassName: {wo.WeenieClassName}", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"GUID: {wo.Guid}\nWeenieClassId: {wo.WeenieClassId}\nWeenieClassName: {wo.WeenieClassName}", ChatMessageType.Broadcast));
         }
 
         public static WorldObject LastTestAim;
@@ -2976,6 +3005,210 @@ namespace ACE.Server.Command.Handlers
                 landblock.Init(true);
             });
             actionChain.EnqueueChain();
+        }
+
+        [CommandHandler("showvelocity", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the velocity of the last appraised object.")]
+        public static void HandleShowVelocity(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (obj?.PhysicsObj == null)
+                return;
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Velocity: {obj.Velocity}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Physics.Velocity: {obj.PhysicsObj.Velocity}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"CachedVelocity: {obj.PhysicsObj.CachedVelocity}", ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("bumpvelocity", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Bumps the velocity of the last appraised object.")]
+        public static void HandleBumpVelocity(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (obj?.PhysicsObj == null)
+                return;
+
+            var velocity = new Vector3(0, 0, 0.5f);
+
+            obj.PhysicsObj.Velocity = velocity;
+
+            session.Network.EnqueueSend(new GameMessageVectorUpdate(obj));
+        }
+
+        [CommandHandler("check-collision", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Checks if the player is currently colliding with any other objects.")]
+        public static void HandleCheckEthereal(Session session, params string[] parameters)
+        {
+            var colliding = session.Player.PhysicsObj.ethereal_check_for_collisions();
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"IsColliding: {colliding}", ChatMessageType.Broadcast));
+        }
+
+        // faction
+        [CommandHandler("faction", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "sets your own faction state.",
+            "< none / ch / ew / rb > (rank)\n" +
+            "This command sets your current faction state\n" +
+            "< none > No Faction\n" +
+            "< ch > Celestial Hand\n" +
+            "< ew > Eldrytch Web\n" +
+            "< rb > Radiant Blood\n" +
+            "(rank) 1 = Initiate | 2 = Adept | 3 = Knight | 4 = Lord | 5 = Master")]
+        public static void HandleFaction(Session session, params string[] parameters)
+        {
+            var rankStr = "Initiate";
+            if (parameters.Length == 0)
+            {
+                var message = $"Your current Faction state is: {session.Player.Society.ToSentence()}\n"
+                    + "You can change it to the following:\n"
+                    + "NONE      = No Faction\n"
+                    + "CH        = Celestial Hand\n"
+                    + "EW        = Eldrytch Web\n"
+                    + "RB        = Radiant Blood\n"
+                    + "Optionally you can also include a rank, otherwise rank will be set to Initiate\n1 = Initiate | 2 = Adept | 3 = Knight | 4 = Lord | 5 = Master";
+                CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.Broadcast);
+            }
+            else
+            {
+                switch (parameters[0].ToLower())
+                {
+                    case "none":
+                        session.Player.Faction1Bits = null;
+                        session.Player.SocietyRankCelhan = null;
+                        session.Player.SocietyRankEldweb = null;
+                        session.Player.SocietyRankRadblo = null;
+                        session.Player.QuestManager.Erase("SocietyMember");
+                        session.Player.QuestManager.Erase("SocietyFlag");
+                        session.Player.QuestManager.Erase("CelestialHandMember");
+                        session.Player.QuestManager.Erase("EldrytchWebMember");
+                        session.Player.QuestManager.Erase("RadiantBloodMember");
+                        break;
+                    case "ch":
+                        session.Player.Faction1Bits = FactionBits.CelestialHand;
+                        session.Player.SocietyRankCelhan = 1;
+                        session.Player.SocietyRankEldweb = null;
+                        session.Player.SocietyRankRadblo = null;
+                        session.Player.QuestManager.SetQuestBits("SocietyMember", (int)FactionBits.CelestialHand, true);
+                        session.Player.QuestManager.SetQuestBits("SocietyFlag", (int)FactionBits.CelestialHand, true);
+                        session.Player.QuestManager.SetQuestBits("SocietyMember", (int)(FactionBits.EldrytchWeb | FactionBits.RadiantBlood), false);
+                        session.Player.QuestManager.SetQuestBits("SocietyFlag", (int)(FactionBits.EldrytchWeb | FactionBits.RadiantBlood), false);
+                        session.Player.QuestManager.Stamp("CelestialHandMember");
+                        session.Player.QuestManager.Erase("EldrytchWebMember");
+                        session.Player.QuestManager.Erase("RadiantBloodMember");
+                        if (parameters.Length == 2 && int.TryParse(parameters[1], out var rank))
+                        {
+                            switch (rank)
+                            {
+                                case 1:
+                                    session.Player.SocietyRankCelhan = 1;
+                                    rankStr = "Initiate";
+                                    break;
+                                case 2:
+                                    session.Player.SocietyRankCelhan = 101;
+                                    rankStr = "Adept";
+                                    break;
+                                case 3:
+                                    session.Player.SocietyRankCelhan = 301;
+                                    rankStr = "Knight";
+                                    break;
+                                case 4:
+                                    session.Player.SocietyRankCelhan = 601;
+                                    rankStr = "Lord";
+                                    break;
+                                case 5:
+                                    session.Player.SocietyRankCelhan = 1001;
+                                    rankStr = "Master";
+                                    break;
+                            }
+                        }
+                        break;
+                    case "ew":
+                        session.Player.Faction1Bits = FactionBits.EldrytchWeb;
+                        session.Player.SocietyRankCelhan = null;
+                        session.Player.SocietyRankEldweb = 1;
+                        session.Player.SocietyRankRadblo = null;
+                        session.Player.QuestManager.SetQuestBits("SocietyMember", (int)FactionBits.EldrytchWeb, true);
+                        session.Player.QuestManager.SetQuestBits("SocietyFlag", (int)FactionBits.EldrytchWeb, true);
+                        session.Player.QuestManager.SetQuestBits("SocietyMember", (int)(FactionBits.CelestialHand | FactionBits.RadiantBlood), false);
+                        session.Player.QuestManager.SetQuestBits("SocietyFlag", (int)(FactionBits.CelestialHand | FactionBits.RadiantBlood), false);
+                        session.Player.QuestManager.Erase("CelestialHandMember");
+                        session.Player.QuestManager.Stamp("EldrytchWebMember");
+                        session.Player.QuestManager.Erase("RadiantBloodMember");
+                        if (parameters.Length == 2 && int.TryParse(parameters[1], out rank))
+                        {
+                            switch (rank)
+                            {
+                                case 1:
+                                    session.Player.SocietyRankEldweb = 1;
+                                    rankStr = "Initiate";
+                                    break;
+                                case 2:
+                                    session.Player.SocietyRankEldweb = 101;
+                                    rankStr = "Adept";
+                                    break;
+                                case 3:
+                                    session.Player.SocietyRankEldweb = 301;
+                                    rankStr = "Knight";
+                                    break;
+                                case 4:
+                                    session.Player.SocietyRankEldweb = 601;
+                                    rankStr = "Lord";
+                                    break;
+                                case 5:
+                                    session.Player.SocietyRankEldweb = 1001;
+                                    rankStr = "Master";
+                                    break;
+                            }
+                        }
+                        break;
+                    case "rb":
+                        session.Player.Faction1Bits = FactionBits.RadiantBlood;
+                        session.Player.SocietyRankCelhan = null;
+                        session.Player.SocietyRankEldweb = null;
+                        session.Player.SocietyRankRadblo = 1;
+                        session.Player.QuestManager.SetQuestBits("SocietyMember", (int)FactionBits.RadiantBlood, true);
+                        session.Player.QuestManager.SetQuestBits("SocietyFlag", (int)FactionBits.RadiantBlood, true);
+                        session.Player.QuestManager.SetQuestBits("SocietyMember", (int)(FactionBits.CelestialHand | FactionBits.EldrytchWeb), false);
+                        session.Player.QuestManager.SetQuestBits("SocietyFlag", (int)(FactionBits.CelestialHand | FactionBits.EldrytchWeb), false);
+                        session.Player.QuestManager.Erase("CelestialHandMember");
+                        session.Player.QuestManager.Erase("EldrytchWebMember");
+                        session.Player.QuestManager.Stamp("RadiantBloodMember");
+                        if (parameters.Length == 2 && int.TryParse(parameters[1], out rank))
+                        {
+                            switch (rank)
+                            {
+                                case 1:
+                                    session.Player.SocietyRankRadblo = 1;
+                                    rankStr = "Initiate";
+                                    break;
+                                case 2:
+                                    session.Player.SocietyRankRadblo = 101;
+                                    rankStr = "Adept";
+                                    break;
+                                case 3:
+                                    session.Player.SocietyRankRadblo = 301;
+                                    rankStr = "Knight";
+                                    break;
+                                case 4:
+                                    session.Player.SocietyRankRadblo = 601;
+                                    rankStr = "Lord";
+                                    break;
+                                case 5:
+                                    session.Player.SocietyRankRadblo = 1001;
+                                    rankStr = "Master";
+                                    break;
+                            }
+                        }
+                        break;
+                }
+                session.Player.EnqueueBroadcast(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.Faction1Bits, (int)(session.Player.Faction1Bits ?? 0)));
+                session.Player.EnqueueBroadcast(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.SocietyRankCelhan, session.Player.SocietyRankCelhan ?? 0));
+                session.Player.EnqueueBroadcast(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.SocietyRankEldweb, session.Player.SocietyRankEldweb ?? 0));
+                session.Player.EnqueueBroadcast(new GameMessagePrivateUpdatePropertyInt(session.Player, PropertyInt.SocietyRankRadblo, session.Player.SocietyRankRadblo ?? 0));
+                session.Player.SendTurbineChatChannels();
+                CommandHandlerHelper.WriteOutputInfo(session, $"Your current Faction state is now set to: {session.Player.Society.ToSentence()}{(session.Player.Society != FactionBits.None ? $" with a rank of {rankStr}" : "")}", ChatMessageType.Broadcast);
+
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} changed their Faction state to {session.Player.Society.ToSentence()}{(session.Player.Society != FactionBits.None ? $" with a rank of {rankStr}" : "")}.");
+            }
         }
     }
 }

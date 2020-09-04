@@ -5,8 +5,8 @@ using System.Linq;
 using log4net;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
@@ -97,7 +97,7 @@ namespace ACE.Server.Entity
 
         // creature attacker
         public MotionCommand? AttackMotion;
-        public BiotaPropertiesBodyPart AttackPart;      // the body part this monster is attacking with
+        public KeyValuePair<CombatBodyPart, PropertiesBodyPart> AttackPart;      // the body part this monster is attacking with
 
         // creature defender
         public Quadrant Quadrant;
@@ -114,7 +114,7 @@ namespace ACE.Server.Entity
         public List<WorldObject> Armor;
 
         // creature defender
-        public BiotaPropertiesBodyPart BiotaPropertiesBodyPart;
+        public KeyValuePair<CombatBodyPart, PropertiesBodyPart> PropertiesBodyPart;
         public Creature_BodyPart CreaturePart;
 
         public float Damage;
@@ -127,7 +127,15 @@ namespace ACE.Server.Entity
 
         public static HashSet<uint> AllowDamageTypeUndef = new HashSet<uint>()
         {
-            22545   // Obsidian Spines
+            22545,  // Obsidian Spines
+            35191,  // Thunder Chicken
+            38406,  // Blessed Moar
+            38587,  // Ardent Moar
+            38588,  // Blessed Moar
+            38586,  // Verdant Moar
+            40298,  // Ardent Moar
+            40300,  // Blessed Moar
+            40301,  // Verdant Moar
         };
 
         public static DamageEvent CalculateDamage(Creature attacker, Creature defender, WorldObject damageSource, MotionCommand? attackMotion = null)
@@ -152,11 +160,11 @@ namespace ACE.Server.Entity
             Attacker = attacker;
             Defender = defender;
 
-            CombatType = damageSource.ProjectileSource == null ? attacker.GetCombatType() : CombatType.Missile;
+            CombatType = damageSource.ProjectileSource == null ? CombatType.Melee : CombatType.Missile;
 
             DamageSource = damageSource;
 
-            Weapon = damageSource.ProjectileSource == null ? attacker.GetEquippedWeapon() : damageSource.ProjectileLauncher;
+            Weapon = damageSource.ProjectileSource == null ? attacker.GetEquippedMeleeWeapon() : damageSource.ProjectileLauncher;
 
             AttackType = attacker.AttackType;
             AttackHeight = attacker.AttackHeight ?? AttackHeight.Medium;
@@ -275,7 +283,7 @@ namespace ACE.Server.Entity
                 if (Evaded)
                     return 0.0f;
 
-                Armor = CreaturePart.GetArmorLayers((CombatBodyPart)BiotaPropertiesBodyPart.Key);
+                Armor = CreaturePart.GetArmorLayers(PropertiesBodyPart.Key);
 
                 // get target armor
                 ArmorMod = CreaturePart.GetArmorMod(DamageType, Armor, Attacker, Weapon, ignoreArmorMod);
@@ -298,7 +306,7 @@ namespace ACE.Server.Entity
             }
 
             // damage resistance rating
-            DamageResistanceRatingMod = Creature.GetNegativeRatingMod(defender.GetDamageResistRating(CombatType));
+            DamageResistanceRatingMod = defender.GetDamageResistRatingMod(CombatType);
 
             // get shield modifier
             ShieldMod = defender.GetShieldMod(attacker, DamageType, Weapon);
@@ -330,9 +338,9 @@ namespace ACE.Server.Entity
 
             EffectiveAttackSkill = attacker.GetEffectiveAttackSkill();
 
-            var attackType = attacker.GetCombatType();
+            //var attackType = attacker.GetCombatType();
 
-            EffectiveDefenseSkill = defender.GetEffectiveDefenseSkill(attackType);
+            EffectiveDefenseSkill = defender.GetEffectiveDefenseSkill(CombatType);
 
             var evadeChance = 1.0f - SkillCheck.GetSkillChance(EffectiveAttackSkill, EffectiveDefenseSkill);
             return (float)evadeChance;
@@ -357,7 +365,7 @@ namespace ACE.Server.Entity
                 }
             }
             else
-                DamageType = attacker.GetDamageType();
+                DamageType = attacker.GetDamageType(false, CombatType.Melee);
 
             // TODO: combat maneuvers for player?
             BaseDamageMod = attacker.GetBaseDamageMod(DamageSource);
@@ -369,7 +377,7 @@ namespace ACE.Server.Entity
             if (DamageSource.ItemType == ItemType.MissileWeapon)
                 BaseDamageMod.ElementalBonus = WorldObject.GetMissileElementalDamageBonus(attacker, DamageType);
 
-            BaseDamage = ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
+            BaseDamage = (float)ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
         }
 
         /// <summary>
@@ -378,16 +386,16 @@ namespace ACE.Server.Entity
         public void GetBaseDamage(Creature attacker, MotionCommand motionCommand)
         {
             AttackPart = attacker.GetAttackPart(motionCommand);
-            if (AttackPart == null)
+            if (AttackPart.Value == null)
             {
                 GeneralFailure = true;
                 return;
             }
 
-            BaseDamageMod = attacker.GetBaseDamage(AttackPart);
-            BaseDamage = ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
+            BaseDamageMod = attacker.GetBaseDamage(AttackPart.Value);
+            BaseDamage = (float)ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
 
-            DamageType = attacker.GetDamageType(AttackPart, CombatType);
+            DamageType = attacker.GetDamageType(AttackPart.Value, CombatType);
         }
 
         /// <summary>
@@ -422,7 +430,8 @@ namespace ACE.Server.Entity
 
             //Console.WriteLine($"AttackHeight: {AttackHeight}, Quadrant: {quadrant & FrontBack}{quadrant & LeftRight}, AttackPart: {bodyPart}");
 
-            BiotaPropertiesBodyPart = Defender.Biota.BiotaPropertiesBodyPart.FirstOrDefault(i => i.Key == (ushort)bodyPart);
+            defender.Biota.PropertiesBodyPart.TryGetValue(bodyPart, out var value);
+            PropertiesBodyPart = new KeyValuePair<CombatBodyPart, PropertiesBodyPart>(bodyPart, value);
 
             // select random body part @ current attack height
             /*BiotaPropertiesBodyPart = BodyParts.GetBodyPart(defender, attackHeight);
@@ -433,7 +442,7 @@ namespace ACE.Server.Entity
                 return;
             }*/
 
-            CreaturePart = new Creature_BodyPart(defender, BiotaPropertiesBodyPart);
+            CreaturePart = new Creature_BodyPart(defender, PropertiesBodyPart);
         }
 
         public void ShowInfo(Creature creature)
@@ -478,8 +487,8 @@ namespace ACE.Server.Entity
             {
                 if (AttackMotion != null)
                     info += $"AttackMotion: {AttackMotion}\n";
-                if (AttackPart != null)
-                    info += $"AttackPart: {(CombatBodyPart)AttackPart.Key}\n";
+                if (AttackPart.Value != null)
+                    info += $"AttackPart: {AttackPart.Key}\n";
             }
 
             // base damage
@@ -529,8 +538,8 @@ namespace ACE.Server.Entity
             if (CreaturePart != null)
             {
                 // creature body part
-                info += $"BodyPart: {(CombatBodyPart)BiotaPropertiesBodyPart.Key}\n";
-                info += $"BaseArmor: {CreaturePart.Biota.BaseArmor}\n";
+                info += $"BodyPart: {PropertiesBodyPart.Key}\n";
+                info += $"BaseArmor: {CreaturePart.Biota.Value.BaseArmor}\n";
             }
 
             // damage mitigation
@@ -561,12 +570,10 @@ namespace ACE.Server.Entity
             if (attacker != null && (attacker.DebugDamage & Creature.DebugDamageType.Attacker) != 0)
             {
                 ShowInfo(attacker);
-                return;
             }
             if (defender != null && (defender.DebugDamage & Creature.DebugDamageType.Defender) != 0)
             {
                 ShowInfo(defender);
-                return;
             }
         }
 

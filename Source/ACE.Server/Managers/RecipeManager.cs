@@ -8,12 +8,12 @@ using log4net;
 using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
@@ -48,8 +48,8 @@ namespace ACE.Server.Managers
 
             if (source == target)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {source.Name} cannot be combined with itself.", ChatMessageType.Craft));
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You can't use the {source.Name} on itself."));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {source.NameWithMaterial} cannot be combined with itself.", ChatMessageType.Craft));
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You can't use the {source.NameWithMaterial} on itself."));
                 player.SendUseDoneEvent();
                 return;
             }
@@ -58,7 +58,7 @@ namespace ACE.Server.Managers
 
             if (recipe == null)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {source.Name} cannot be used on the {target.Name}.", ChatMessageType.Craft));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {source.NameWithMaterial} cannot be used on the {target.NameWithMaterial}.", ChatMessageType.Craft));
                 player.SendUseDoneEvent();
                 return;
             }
@@ -70,7 +70,7 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            if (source.ItemType == ItemType.TinkeringMaterial)
+            if ((source.ItemType == ItemType.TinkeringMaterial) || (source.WeenieClassId >= 36619 && source.WeenieClassId <= 36628) || (source.WeenieClassId >= 36634 && source.WeenieClassId <= 36636))
             {
                 HandleTinkering(player, source, target);
                 return;
@@ -177,7 +177,7 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= successChance;
+            var success = ThreadSafeRandom.Next(0.0f, 1.0f) < successChance;
 
             CreateDestroyItems(player, recipe, source, target, success);
 
@@ -195,6 +195,12 @@ namespace ACE.Server.Managers
                     player.EnqueueBroadcast(updateObj, updateDesc);
                 else
                     player.Session.Network.EnqueueSend(updateObj);
+            }
+
+            if (success && recipe.Skill > 0 && recipe.Difficulty > 0)
+            {
+                var skill = player.GetCreatureSkill((Skill)recipe.Skill);
+                Proficiency.OnSuccessUse(player, skill, recipe.Difficulty);
             }
         }
 
@@ -259,7 +265,7 @@ namespace ACE.Server.Managers
             var skill = player.GetCreatureSkill(recipeSkill);
 
             // require skill check for everything except ivory / leather / sandstone
-            if (UseSkillCheck(materialType))
+            if (UseSkillCheck(recipeSkill, materialType))
             {
                 // tinkering skill must be trained
                 if (skill.AdvancementClass < SkillAdvancementClass.Trained)
@@ -286,7 +292,7 @@ namespace ACE.Server.Managers
                 }
 
                 // handle rare foolproof material
-                if (tool.WeenieClassId >= 30094 && tool.WeenieClassId <= 30106)
+                if ((tool.WeenieClassId >= 30094 && tool.WeenieClassId <= 30106) || (tool.WeenieClassId >= 36619 && tool.WeenieClassId <= 36628) || (tool.WeenieClassId >= 36634 && tool.WeenieClassId <= 36636))
                     successChance = 1.0f;
 
                 // check for player option: 'Use Crafting Chance of Success Dialog'
@@ -324,7 +330,7 @@ namespace ACE.Server.Managers
 
         public static void DoTinkering(Player player, WorldObject tool, WorldObject target, Recipe recipe, float chance, bool incItemTinkered)
         {
-            var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= chance;
+            var success = ThreadSafeRandom.Next(0.0f, 1.0f) < chance;
 
             var sourceName = Regex.Replace(tool.NameWithMaterial, @" \(\d+\)$", "");
 
@@ -337,11 +343,11 @@ namespace ACE.Server.Managers
                     player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
             }
             else if (incItemTinkered)
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {sourceName} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}. The target is destroyed.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}. The target is destroyed.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
 
             CreateDestroyItems(player, recipe, tool, target, success, !incItemTinkered);
 
-            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) || !UseSkillCheck(tool.MaterialType ?? 0))
+            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) || !UseSkillCheck((Skill)recipe.Skill, tool.MaterialType ?? 0))
                 player.SendUseDoneEvent();
         }
 
@@ -427,29 +433,65 @@ namespace ACE.Server.Managers
                     break;
                 case MaterialType.Copper:
 
-                    if ((target.WieldSkillType ?? 0) != (int)Skill.MissileDefense)
+                    if (target.WieldSkillType != (int)Skill.MissileDefense)
                         return;
-                    // change wield requirement: missile defense -> melee defense (increased)
+
+                    // change wield requirement: missile defense -> melee defense
                     target.WieldSkillType = (int)Skill.MeleeDefense;
-                    if (target.ItemSkillLevelLimit.HasValue)
-                        target.ItemSkillLevelLimit = (int)Math.Round(target.ItemSkillLevelLimit.Value * 1.2f);
+                    target.ItemSkillLimit = (int)Skill.MeleeDefense;      // recipe requirements check for this field
+
+                    // increase the wield difficulty
+                    if (target.WieldDifficulty != null)
+                    {
+                        target.WieldDifficulty = target.WieldDifficulty switch
+                        {
+                            // todo: figure out the exact formula for this conversion
+                            160 => 200,
+                            205 => 250,
+                            245 => 300,
+                            270 => 325,
+                            290 => 350,
+                            305 => 370,
+                            330 => 400,
+                            340 => 410,
+                            _ => (int)Math.Round(target.WieldDifficulty.Value * 1.25f)
+                        };
+                    }
                     break;
 
                 case MaterialType.Silver:
 
-                    if ((target.WieldSkillType ?? 0) != (int)Skill.MeleeDefense)
+                    if (target.WieldSkillType != (int)Skill.MeleeDefense)
                         return;
-                    // change wield requirement: melee defense -> missile defense (reduced)
+
+                    // change wield requirement: melee defense -> missile defense
                     target.WieldSkillType = (int)Skill.MissileDefense;
-                    if (target.ItemSkillLevelLimit.HasValue)
-                        target.ItemSkillLevelLimit = (int)Math.Round(target.ItemSkillLevelLimit.Value * 0.85f);
+                    target.ItemSkillLimit = (int)Skill.MissileDefense;      // recipe requirements check for this field
+
+                    // decrease the wield difficulty
+                    if (target.WieldDifficulty != null)
+                    {
+                        target.WieldDifficulty = target.WieldDifficulty switch
+                        {
+                            // todo: figure out the exact formula for this conversion
+                            200 => 160,
+                            250 => 205,
+                            300 => 245,
+                            325 => 270,
+                            350 => 290,
+                            370 => 305,
+                            400 => 330,
+                            410 => 340,
+                            _ => (int)Math.Round(target.WieldDifficulty.Value * 0.8f)
+                        };
+                    }
                     break;
 
                 case MaterialType.Silk:
 
-                    // remove allegiance rank limit, increase item difficulty by spellcraft?
+                    // remove allegiance rank limit, set difficulty to spellcraft
                     target.ItemAllegianceRankLimit = null;
-                    target.ItemDifficulty = (target.ItemDifficulty ?? 0) + target.ItemSpellcraft;
+                    target.ItemDifficulty = target.ItemSpellcraft;
                     break;
 
                 // armatures / trinkets
@@ -528,7 +570,7 @@ namespace ACE.Server.Managers
                     target.DamageMod += 0.04f;
                     break;
                 case MaterialType.Granite:
-                    target.DamageVariance *= 0.8f;
+                    //target.DamageVariance *= 0.8f;    // handled w/ lucky rabbits foot below
                     break;
                 case MaterialType.Oak:
                     target.WeaponTime = Math.Max(0, (target.WeaponTime ?? 0) - 50);
@@ -580,7 +622,7 @@ namespace ACE.Server.Managers
 
         public static void AddSpell(Player player, WorldObject target, SpellId spell, int difficulty = 25)
         {
-            target.Biota.GetOrAddKnownSpell((int)spell, target.BiotaDatabaseLock, target.BiotaPropertySpells, out _);
+            target.Biota.GetOrAddKnownSpell((int)spell, target.BiotaDatabaseLock, out _);
             target.ChangesDetected = true;
 
             if (difficulty != 0)
@@ -745,7 +787,7 @@ namespace ACE.Server.Managers
 
         public static bool VerifyUse(Player player, WorldObject source, WorldObject target)
         {
-            var usable = source.Usable ?? Usable.Undef;
+            var usable = source.ItemUseable ?? Usable.Undef;
 
             if (usable == Usable.Undef)
             {
@@ -975,8 +1017,8 @@ namespace ACE.Server.Managers
             var destroyTargetChance = success ? recipe.SuccessDestroyTargetChance : recipe.FailDestroyTargetChance;
             var destroySourceChance = success ? recipe.SuccessDestroySourceChance : recipe.FailDestroySourceChance;
 
-            var destroyTarget = ThreadSafeRandom.Next(0.0f, 1.0f) <= destroyTargetChance;
-            var destroySource = ThreadSafeRandom.Next(0.0f, 1.0f) <= destroySourceChance;
+            var destroyTarget = ThreadSafeRandom.Next(0.0f, 1.0f) < destroyTargetChance;
+            var destroySource = ThreadSafeRandom.Next(0.0f, 1.0f) < destroySourceChance;
 
             var createItem = success ? recipe.SuccessWCID : recipe.FailWCID;
             var createAmount = success ? recipe.SuccessAmount : recipe.FailAmount;
@@ -1108,10 +1150,27 @@ namespace ACE.Server.Managers
                 // apply base mod
                 switch (mod.DataId)
                 {
-                    // 	Fetish of the Dark Idols
+                    // TODO: add real mutation scripts
+
+                    //  Fetish of the Dark Idols
                     case 0x38000046:
                         AddImbuedEffect(player, target, ImbuedEffectType.IgnoreSomeMagicProjectileDamage);
                         target.SetProperty(PropertyFloat.AbsorbMagicDamage, 0.25f);
+                        break;
+
+                    //  Paragon Weapons (data id is ACE custom/placeholder for unknown real value)
+                    case 0x39000000:
+                        var itemMaxLevel = target.GetProperty(PropertyInt.ItemMaxLevel) ?? 0;
+                        target.SetProperty(PropertyInt.ItemMaxLevel, ++itemMaxLevel);
+                        target.SetProperty(PropertyInt64.ItemBaseXp, 2000000000);
+                        var itemTotalXp = target.GetProperty(PropertyInt64.ItemTotalXp) ?? 0;
+                        target.SetProperty(PropertyInt64.ItemTotalXp, itemTotalXp);
+                        break;
+
+                    // Granite
+                    // Lucky White Rabbit's Foot
+                    case 0x3800001C:
+                        target.DamageVariance *= 0.8f;
                         break;
                 }
 
@@ -1186,7 +1245,7 @@ namespace ACE.Server.Managers
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.AddSpell:
-                    targetMod.Biota.GetOrAddKnownSpell(intMod.Stat, target.BiotaDatabaseLock, target.BiotaPropertySpells, out var added);
+                    targetMod.Biota.GetOrAddKnownSpell(intMod.Stat, target.BiotaDatabaseLock, out var added);
                     if (added)
                         targetMod.ChangesDetected = true;
                     if (Debug) Console.WriteLine($"{targetMod.Name}.AddSpell({intMod.Stat}) - {op}");
@@ -1346,11 +1405,11 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Returns TRUE if this material requies a skill check
+        /// Returns TRUE if tinker operation requires a skill check
         /// </summary>
-        public static bool UseSkillCheck(MaterialType material)
+        public static bool UseSkillCheck(Skill skill, MaterialType material)
         {
-            return material != MaterialType.Ivory && material != MaterialType.Leather && material != MaterialType.Sandstone;
+            return skill != Skill.None && material != MaterialType.Ivory && material != MaterialType.Leather && material != MaterialType.Sandstone;
         }
     }
 }

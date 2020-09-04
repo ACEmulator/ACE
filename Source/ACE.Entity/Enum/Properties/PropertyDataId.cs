@@ -166,7 +166,9 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         PCAPRecordedTimestamp9           = 8029,
         [ServerOnly]
-        PCAPRecordedMaxVelocityEstimated = 8030
+        PCAPRecordedMaxVelocityEstimated = 8030,
+        [ServerOnly]
+        PCAPPhysicsDIDDataTemplatedFrom  = 8044
 
         //[ServerOnly]
         //HairTexture                = 9001,
@@ -211,8 +213,14 @@ namespace ACE.Entity.Enum.Properties
                 case PropertyDataId.YellowSurgeSpell:
                     return System.Enum.GetName(typeof(SpellId), value);
 
+                case PropertyDataId.ItemSkillLimit:
+                case PropertyDataId.ItemSpecializedOnly:
+                    return System.Enum.GetName(typeof(Skill), value);
+
                 case PropertyDataId.PCAPRecordedParentLocation:
                     return System.Enum.GetName(typeof(ParentLocation), value);
+                case PropertyDataId.PCAPRecordedDefaultScript:
+                    return System.Enum.GetName(typeof(MotionCommand), value);
             }
 
             return null;

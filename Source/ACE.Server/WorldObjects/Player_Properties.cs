@@ -32,6 +32,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.IsSentinel); else SetProperty(PropertyBool.IsSentinel, value); }
         }
 
+        public bool IsEnvoy
+        {
+            get => GetProperty(PropertyBool.IsEnvoy) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsEnvoy); else SetProperty(PropertyBool.IsEnvoy, value); }
+        }
+
         public bool IsArch
         {
             get => GetProperty(PropertyBool.IsArch) ?? false;
@@ -71,6 +77,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.Account15Days); else SetProperty(PropertyBool.Account15Days, value); }
         }
 
+        public SubscriptionStatus AccountRequirements
+        {
+            get => (SubscriptionStatus)(GetProperty(PropertyInt.AccountRequirements) ?? (int)SubscriptionStatus.AsheronsCall_Subscription);
+            set { if (value == SubscriptionStatus.AsheronsCall_Subscription) RemoveProperty(PropertyInt.AccountRequirements); else SetProperty(PropertyInt.AccountRequirements, (int)value); }
+        }
 
         // ========================================
         // ========= Advocate Properties ==========
@@ -257,6 +268,165 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.SafeSpellComponents); else SetProperty(PropertyBool.SafeSpellComponents, value); }
         }
 
+        public bool IsOlthoiPlayer()
+        {
+            switch (WeenieClassId)
+            {
+                case 43480: // olthoiplayer
+                case 43481: // olthoiacidplayer
+                case 43493: // olthoiadmin
+                case 43494: // olthoiacidadmin:
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// The timestamp when the player last generated a rare
+        /// </summary>
+        public int? RaresLoginTimestamp
+        {
+            get => GetProperty(PropertyInt.RaresLoginTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.RaresLoginTimestamp); else SetProperty(PropertyInt.RaresLoginTimestamp, value.Value); }
+        }
+
+        /// <summary>
+        /// The timestamp when the player last generated a tier one rare
+        /// </summary>
+        public int? RaresTierOneLogin
+        {
+            get => GetProperty(PropertyInt.RaresTierOneLogin);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.RaresTierOneLogin); else SetProperty(PropertyInt.RaresTierOneLogin, value.Value); }
+        }
+
+        /// <summary>
+        /// The timestamp when the player last generated a tier two rare
+        /// </summary>
+        public int? RaresTierTwoLogin
+        {
+            get => GetProperty(PropertyInt.RaresTierTwoLogin);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.RaresTierTwoLogin); else SetProperty(PropertyInt.RaresTierTwoLogin, value.Value); }
+        }
+
+        /// <summary>
+        /// The timestamp when the player last generated a tier three rare
+        /// </summary>
+        public int? RaresTierThreeLogin
+        {
+            get => GetProperty(PropertyInt.RaresTierThreeLogin);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.RaresTierThreeLogin); else SetProperty(PropertyInt.RaresTierThreeLogin, value.Value); }
+        }
+
+        /// <summary>
+        /// The timestamp when the player last generated a tier four rare
+        /// </summary>
+        public int? RaresTierFourLogin
+        {
+            get => GetProperty(PropertyInt.RaresTierFourLogin);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.RaresTierFourLogin); else SetProperty(PropertyInt.RaresTierFourLogin, value.Value); }
+        }
+
+        /// <summary>
+        /// The timestamp when the player last generated a tier five rare
+        /// </summary>
+        public int? RaresTierFiveLogin
+        {
+            get => GetProperty(PropertyInt.RaresTierFiveLogin);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.RaresTierFiveLogin); else SetProperty(PropertyInt.RaresTierFiveLogin, value.Value); }
+        }
+
+        /// <summary>
+        /// The timestamp when the player last generated a tier six rare
+        /// </summary>
+        public int? RaresTierSixLogin
+        {
+            get => GetProperty(PropertyInt.RaresTierSixLogin);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.RaresTierSixLogin); else SetProperty(PropertyInt.RaresTierSixLogin, value.Value); }
+        }
+
+        ///// <summary>
+        ///// The timestamp when the player last generated a tier seven rare
+        ///// </summary>
+        //public int? RaresTierSevenLogin
+        //{
+        //    get => GetProperty(PropertyInt.RaresTierSevenLogin);
+        //    set { if (!value.HasValue) RemoveProperty(PropertyInt.RaresTierSevenLogin); else SetProperty(PropertyInt.RaresTierSevenLogin, value.Value); }
+        //}
+
+        /// <summary>
+        /// The amount of tier one rares generated for this player
+        /// </summary>
+        public int RaresTierOne
+        {
+            get => GetProperty(PropertyInt.RaresTierOne) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.RaresTierOne); else SetProperty(PropertyInt.RaresTierOne, value); }
+        }
+
+        /// <summary>
+        /// The amount of tier two rares generated for this player
+        /// </summary>
+        public int RaresTierTwo
+        {
+            get => GetProperty(PropertyInt.RaresTierTwo) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.RaresTierTwo); else SetProperty(PropertyInt.RaresTierTwo, value); }
+        }
+
+        /// <summary>
+        /// The amount of tier three rares generated for this player
+        /// </summary>
+        public int RaresTierThree
+        {
+            get => GetProperty(PropertyInt.RaresTierThree) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.RaresTierThree); else SetProperty(PropertyInt.RaresTierThree, value); }
+        }
+
+        /// <summary>
+        /// The amount of tier four rares generated for this player
+        /// </summary>
+        public int RaresTierFour
+        {
+            get => GetProperty(PropertyInt.RaresTierFour) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.RaresTierFour); else SetProperty(PropertyInt.RaresTierFour, value); }
+        }
+
+        /// <summary>
+        /// The amount of tier five rares generated for this player
+        /// </summary>
+        public int RaresTierFive
+        {
+            get => GetProperty(PropertyInt.RaresTierFive) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.RaresTierFive); else SetProperty(PropertyInt.RaresTierFive, value); }
+        }
+
+        /// <summary>
+        /// The amount of tier six rares generated for this player
+        /// </summary>
+        public int RaresTierSix
+        {
+            get => GetProperty(PropertyInt.RaresTierSix) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.RaresTierSix); else SetProperty(PropertyInt.RaresTierSix, value); }
+        }
+
+        ///// <summary>
+        ///// The amount of tier seven rares generated for this player
+        ///// </summary>
+        //public int RaresTierSeven
+        //{
+        //    get => GetProperty(PropertyInt.RaresTierSeven) ?? 0;
+        //    set { if (value == 0) RemoveProperty(PropertyInt.RaresTierSeven); else SetProperty(PropertyInt.RaresTierSeven, value); }
+        //}
+
+        public bool IsAfk
+        {
+            get => GetProperty(PropertyBool.Afk) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.Afk); else SetProperty(PropertyBool.Afk, value); }
+        }
+
+        public string AfkMessage
+        {
+            get => GetProperty(PropertyString.Afk);
+            set { if (value == null) RemoveProperty(PropertyString.Afk); else SetProperty(PropertyString.Afk, value); }
+        }
 
         // ========================================
         // ===== Player Properties - Titles========

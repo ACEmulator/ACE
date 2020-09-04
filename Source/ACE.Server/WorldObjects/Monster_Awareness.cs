@@ -19,12 +19,6 @@ namespace ACE.Server.WorldObjects
     partial class Creature
     {
         /// <summary>
-        /// Determines when a monster wakes up from idle state
-        /// </summary>
-        public const float RadiusAwareness = 35.0f;
-        public const float RadiusAwarenessSquared = RadiusAwareness * RadiusAwareness;
-
-        /// <summary>
         /// Monsters wake up when players are in visual range
         /// </summary>
         public bool IsAwake = false;
@@ -63,6 +57,9 @@ namespace ACE.Server.WorldObjects
             MonsterState = State.Idle;
 
             PhysicsObj.CachedVelocity = Vector3.Zero;
+
+            if (RetaliateTargets != null)
+                RetaliateTargets.Clear();
         }
 
         public Tolerance Tolerance
@@ -249,9 +246,21 @@ namespace ACE.Server.WorldObjects
                 if (!creature.Attackable || creature.Teleporting) continue;
 
                 // ensure within 'detection radius' ?
-                var chaseDistSq = creature == AttackTarget ? MaxChaseRangeSq : RadiusAwarenessSquared;
-                if (Location.SquaredDistanceTo(creature.Location) >= chaseDistSq)
+                var chaseDistSq = creature == AttackTarget ? MaxChaseRangeSq : VisualAwarenessRangeSq;
+
+                /*if (Location.SquaredDistanceTo(creature.Location) > chaseDistSq)
+                    continue;*/
+
+                if (PhysicsObj.get_distance_sq_to_object(creature.PhysicsObj, true) > chaseDistSq)
                     continue;
+
+                // if this monster belongs to a faction,
+                // ensure target does not belong to the same faction, or they have been provoked
+                if (Faction1Bits != null && creature.Faction1Bits != null && (Faction1Bits & creature.Faction1Bits) != 0)
+                {
+                    if (RetaliateTargets != null && !RetaliateTargets.Contains(creature.Guid.Full))
+                        continue;
+                }
 
                 visibleTargets.Add(creature);
             }
@@ -262,12 +271,13 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the list of potential attack targets, sorted by closest distance 
         /// </summary>
-        public List<TargetDistance> BuildTargetDistance(List<Creature> targets)
+        public List<TargetDistance> BuildTargetDistance(List<Creature> targets, bool distSq = false)
         {
             var targetDistance = new List<TargetDistance>();
 
             foreach (var target in targets)
-                targetDistance.Add(new TargetDistance(target, Location.DistanceTo(target.Location)));
+                //targetDistance.Add(new TargetDistance(target, distSq ? Location.SquaredDistanceTo(target.Location) : Location.DistanceTo(target.Location)));
+                targetDistance.Add(new TargetDistance(target, distSq ? (float)PhysicsObj.get_distance_sq_to_object(target.PhysicsObj, true) : (float)PhysicsObj.get_distance_to_object(target.PhysicsObj, true)));
 
             return targetDistance.OrderBy(i => i.Distance).ToList();
         }
@@ -297,7 +307,7 @@ namespace ACE.Server.WorldObjects
             {
                 invRatio += 1.0f - (targetDistance.Distance / distSum);
 
-                if (rng <= invRatio)
+                if (rng < invRatio)
                     return targetDistance.Target;
             }
             // precision error?
@@ -329,18 +339,30 @@ namespace ACE.Server.WorldObjects
                 if (creature is Player player && (!player.Attackable || player.Teleporting || (player.Hidden ?? false)))
                     continue;
 
-                var distSq = Location.SquaredDistanceTo(creature.Location);
+                //var distSq = Location.SquaredDistanceTo(creature.Location);
+                var distSq = PhysicsObj.get_distance_sq_to_object(creature.PhysicsObj, true);
                 if (distSq < closestDistSq)
                 {
-                    closestDistSq = distSq;
+                    closestDistSq = (float)distSq;
                     closestTarget = creature;
                 }
             }
-            if (closestTarget == null || closestDistSq > RadiusAwarenessSquared)
+            if (closestTarget == null || closestDistSq > VisualAwarenessRangeSq)
                 return;
 
             closestTarget.AlertMonster(this);
         }
+
+        /// <summary>
+        /// The most common value from retail
+        /// Some other common values are in the range of 12-25
+        /// </summary>
+        public static readonly float VisualAwarenessRange_Default = 18.0f;
+
+        /// <summary>
+        /// The highest value found in the current database
+        /// </summary>
+        public static readonly float VisualAwarenessRange_Highest = 75.0f;
 
         public double? VisualAwarenessRange
         {
@@ -354,39 +376,50 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.AuralAwarenessRange); else SetProperty(PropertyFloat.AuralAwarenessRange, value.Value); }
         }
 
+        private float? _visualAwarenessRangeSq;
+
+        public float VisualAwarenessRangeSq
+        {
+            get
+            {
+                if (_visualAwarenessRangeSq == null)
+                {
+                    var visualAwarenessRange = (float)((VisualAwarenessRange ?? VisualAwarenessRange_Default) * PropertyManager.GetDouble("mob_awareness_range").Item);
+
+                    _visualAwarenessRangeSq = visualAwarenessRange * visualAwarenessRange;
+                }
+
+                return _visualAwarenessRangeSq.Value;
+            }
+        }
+
         /// <summary>
         /// Monsters can only alert other monsters once?
         /// </summary>
-        public bool Alerted = false;
-
-        public static float AlertRadius = 12.0f;    // TODO: find alert radius from retail
-        public static float AlertRadiusSq = AlertRadius * AlertRadius;
+        public bool Alerted;
 
         public void AlertFriendly()
         {
-            if (Alerted) return;
+            //if (Alerted) return;
 
             var visibleObjs = PhysicsObj.ObjMaint.GetVisibleObjects(PhysicsObj.CurCell);
 
             foreach (var obj in visibleObjs)
             {
                 var nearbyCreature = obj.WeenieObj.WorldObject as Creature;
-                if (nearbyCreature == null || nearbyCreature.IsAwake/* || nearbyCreature.IsAlerted*/ || !nearbyCreature.Attackable)
+                if (nearbyCreature == null || nearbyCreature.IsAwake || !nearbyCreature.Attackable)
                     continue;
 
                 if (CreatureType != null && CreatureType == nearbyCreature.CreatureType ||
                       FriendType != null && FriendType == nearbyCreature.CreatureType)
                 {
-                    // clamp radius if outdoors
-                    /*if ((Location.Cell & 0xFFFF) < 0x100)
-                    {
-                        var distSq = Vector3.DistanceSquared(Location.ToGlobal(), nearbyCreature.Location.ToGlobal());
-                        if (distSq > AlertRadiusSq)
-                            continue;
-                    }*/
-                    var dist = Location.DistanceTo(nearbyCreature.Location);
-                    if (dist > (nearbyCreature.VisualAwarenessRange ?? AlertRadius))
+                    //var distSq = Location.SquaredDistanceTo(nearbyCreature.Location);
+                    var distSq = PhysicsObj.get_distance_sq_to_object(nearbyCreature.PhysicsObj, true);
+                    if (distSq > nearbyCreature.VisualAwarenessRangeSq)
                         continue;
+
+                    if (nearbyCreature.RetaliateTargets != null)
+                        nearbyCreature.RetaliateTargets.Add(AttackTarget.Guid.Full);
 
                     Alerted = true;
                     nearbyCreature.AttackTarget = AttackTarget;

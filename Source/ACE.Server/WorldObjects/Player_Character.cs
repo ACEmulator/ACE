@@ -265,7 +265,7 @@ namespace ACE.Server.WorldObjects
                 spells.Add(entity);
             }
 
-            spells.Sort((a, b) => a.SpellBarPositionId.CompareTo(b.SpellBarPositionId));
+            //spells.Sort((a, b) => a.SpellBarPositionId.CompareTo(b.SpellBarPositionId));
 
             return spells;
         }

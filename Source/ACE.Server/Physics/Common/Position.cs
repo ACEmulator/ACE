@@ -113,6 +113,23 @@ namespace ACE.Server.Physics.Common
                 return reach;
         }
 
+        // custom, based on above
+        public static double CylinderDistanceSq(float radius, float height, Position pos, float otherRadius, float otherHeight, Position otherPos)
+        {
+            var offset = pos.GetOffset(otherPos);
+            var reach = offset.Length() - (radius + otherRadius);
+
+            var diffZ = pos.Frame.Origin.Z <= otherPos.Frame.Origin.Z ? otherPos.Frame.Origin.Z - (pos.Frame.Origin.Z + height) :
+                pos.Frame.Origin.Z - (otherPos.Frame.Origin.Z + otherHeight);
+
+            if (diffZ > 0 && reach > 0)
+                return diffZ * diffZ + reach * reach;
+            else if (diffZ < 0 && reach < 0)
+                return -(diffZ * diffZ + reach * reach);
+            else
+                return reach * reach;
+        }
+
         public static float CylinderDistanceNoZ(float radius, Position pos, float otherRadius, Position otherPos)
         {
             var offset = pos.GetOffset(otherPos);

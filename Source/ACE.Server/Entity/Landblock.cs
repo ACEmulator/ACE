@@ -12,7 +12,6 @@ using log4net;
 
 using ACE.Common.Performance;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
@@ -27,7 +26,6 @@ using ACE.Server.Physics.Common;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.WorldObjects;
 
-using Biota = ACE.Database.Models.Shard.Biota;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Entity
@@ -56,6 +54,11 @@ namespace ACE.Server.Entity
         /// Flag indicates if this landblock is permanently loaded (for example, towns on high-traffic servers)
         /// </summary>
         public bool Permaload = false;
+
+        /// <summary>
+        /// Flag indicates if this landblock has no keep alive objects
+        /// </summary>
+        public bool HasNoKeepAliveObjects = true;
 
         /// <summary>
         /// This must be true before a player enters a landblock.
@@ -196,7 +199,7 @@ namespace ACE.Server.Entity
         private void CreateWorldObjects()
         {
             var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock);
-            var shardObjects = DatabaseManager.Shard.GetStaticObjectsByLandblock(Id.Landblock);
+            var shardObjects = DatabaseManager.Shard.BaseDatabase.GetStaticObjectsByLandblock(Id.Landblock);
             var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects, shardObjects);
 
             actionQueue.EnqueueAction(new ActionEventDelegate(() =>
@@ -244,7 +247,7 @@ namespace ACE.Server.Entity
         /// </summary>
         private void SpawnDynamicShardObjects()
         {
-            var dynamics = DatabaseManager.Shard.GetDynamicObjectsByLandblock(Id.Landblock);
+            var dynamics = DatabaseManager.Shard.BaseDatabase.GetDynamicObjectsByLandblock(Id.Landblock);
             var factoryShardObjects = WorldObjectFactory.CreateWorldObjects(dynamics);
 
             actionQueue.EnqueueAction(new ActionEventDelegate(() =>
@@ -291,9 +294,22 @@ namespace ACE.Server.Entity
 
                     wo.ReinitializeHeartbeats();
 
-                    foreach (var profile in wo.Biota.BiotaPropertiesGenerator)
+                    if (wo.Biota.PropertiesGenerator != null)
                     {
-                        profile.Delay = (float)PropertyManager.GetDouble("encounter_delay").Item;
+                        // While this may be ugly, it's done for performance reasons.
+                        // Common weenie properties are not cloned into the bota on creation. Instead, the biota references simply point to the weenie collections.
+                        // The problem here is that we want to update one of those common collection properties. If the biota is referencing the weenie collection,
+                        // then we'll end up updating the global weenie (from the cache), instead of just this specific biota.
+                        if (wo.Biota.PropertiesGenerator == wo.Weenie.PropertiesGenerator)
+                        {
+                            wo.Biota.PropertiesGenerator = new List<PropertiesGenerator>(wo.Weenie.PropertiesGenerator.Count);
+
+                            foreach (var record in wo.Weenie.PropertiesGenerator)
+                                wo.Biota.PropertiesGenerator.Add(record.Clone());
+                        }
+
+                        foreach (var profile in wo.Biota.PropertiesGenerator)
+                            profile.Delay = (float) PropertyManager.GetDouble("encounter_delay").Item;
                     }
                 }
 
@@ -463,7 +479,7 @@ namespace ACE.Server.Entity
                     }
                 }
 
-                if (!Permaload)
+                if (!Permaload && HasNoKeepAliveObjects)
                 {
                     if (lastActiveTime + dormantInterval < thisHeartBeat)
                     {
@@ -620,6 +636,9 @@ namespace ACE.Server.Entity
                     InsertWorldObjectIntoSortedHeartbeatList(kvp.Value);
                     InsertWorldObjectIntoSortedGeneratorUpdateList(kvp.Value);
                     InsertWorldObjectIntoSortedGeneratorRegenerationList(kvp.Value);
+
+                    if (kvp.Value.WeenieClassId == 80007) // Landblock KeepAlive weenie (ACE custom)
+                        HasNoKeepAliveObjects = false;
                 }
 
                 pendingAdditions.Clear();
@@ -639,6 +658,14 @@ namespace ACE.Server.Entity
                         sortedWorldObjectsByNextHeartbeat.Remove(wo);
                         sortedGeneratorsByNextGeneratorUpdate.Remove(wo);
                         sortedGeneratorsByNextRegeneration.Remove(wo);
+
+                        if (wo.WeenieClassId == 80007) // Landblock KeepAlive weenie (ACE custom)
+                        {
+                            var keepAliveObject = worldObjects.Values.FirstOrDefault(w => w.WeenieClassId == 80007);
+
+                            if (keepAliveObject == null)
+                                HasNoKeepAliveObjects = true;
+                        }
                     }
                 }
 
@@ -866,13 +893,17 @@ namespace ACE.Server.Entity
             }
         }
 
-        public void EmitSignal(Creature emitter, string message)
+        public void EmitSignal(WorldObject emitter, string message)
         {
+            if (string.IsNullOrWhiteSpace(message)) return;
+
             foreach (var wo in worldObjects.Values.Where(w => w.HearLocalSignals).ToList())
             {
+                if (emitter == wo) continue;
+
                 if (emitter.IsWithinUseRadiusOf(wo, wo.HearLocalSignalsRadius))
                 {
-                    //Console.WriteLine($"{wo.Name}.EmoteManager.OnLocalSignal({player.Name}, {message})");
+                    //Console.WriteLine($"{wo.Name}.EmoteManager.OnLocalSignal({emitter.Name}, {message})");
                     wo.EmoteManager.OnLocalSignal(emitter, message);
                 }
             }

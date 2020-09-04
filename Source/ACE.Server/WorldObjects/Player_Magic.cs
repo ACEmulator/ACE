@@ -100,7 +100,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            if (IsJumping)
             {
                 SendUseDoneEvent(WeenieError.YouCantDoThatWhileInTheAir);
                 return;
@@ -140,6 +140,8 @@ namespace ACE.Server.WorldObjects
 
             MagicState.OnCastStart();
             MagicState.SetWindupParams(targetGuid, spellId, builtInSpell);
+
+            StartPos = new Physics.Common.Position(PhysicsObj.Position);
 
             if (RecordCast.Enabled)
                 RecordCast.OnCastTargetedSpell(new Spell(spellId), target);
@@ -289,7 +291,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            if (IsJumping)
             {
                 SendUseDoneEvent(WeenieError.YouCantDoThatWhileInTheAir);
                 return;
@@ -320,6 +322,8 @@ namespace ACE.Server.WorldObjects
                 RecordCast.OnCastUntargetedSpell(new Spell(spellId));
 
             MagicState.OnCastStart();
+
+            StartPos = new Physics.Common.Position(PhysicsObj.Position);
 
             if (!CreatePlayerSpell(spellId))
                 MagicState.OnCastDone();
@@ -365,7 +369,7 @@ namespace ACE.Server.WorldObjects
 
         public bool VerifyBusy()
         {
-            if (IsBusy || Teleporting)
+            if (IsBusy || Teleporting || suicideInProgress)
             {
                 SendUseDoneEvent(WeenieError.YoureTooBusy);
                 return false;
@@ -523,7 +527,7 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Spellcasting), LocalBroadcastRange, ChatMessageType.Spellcasting);
         }
 
-        public static new float CastSpeed = 2.0f;       // from retail pcaps, player animation speed for windup / first half of cast gesture
+        public static float CastSpeed = 2.0f;       // from retail pcaps, player animation speed for windup / first half of cast gesture
 
         public void DoWindupGestures(Spell spell, bool isWeaponSpell, ActionChain castChain)
         {
@@ -770,7 +774,10 @@ namespace ACE.Server.WorldObjects
             else
             {
                 caster = GetEquippedWand();     // TODO: persist this from the beginning, since this is done with delay
-                caster.ItemCurMana -= (int)manaUsed;
+                if (caster != null)
+                    caster.ItemCurMana -= (int)manaUsed;
+                else
+                    castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
             }
 
             // consume spell components
@@ -781,13 +788,16 @@ namespace ACE.Server.WorldObjects
             var endPos = new Physics.Common.Position(PhysicsObj.Position);
             var dist = StartPos.Distance(endPos);
 
-            bool movedTooFar = false;
-
             // only PKs affected by these caps?
             if (dist > Windup_MaxMove && PlayerKillerStatus != PlayerKillerStatus.NPK)
             {
-                castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
-                movedTooFar = true;
+                //player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted spell casting!", ChatMessageType.Magic));
+
+                if (finishCast)
+                    FinishCast();
+
+                return;
             }
 
             var pk_error = CheckPKStatusVsTarget(this, target, spell);
@@ -845,12 +855,6 @@ namespace ACE.Server.WorldObjects
 
                 if (target is Player targetPlayer)
                     targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pk_error[1], Name));
-            }
-
-            if (movedTooFar)
-            {
-                //player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted spell casting!", ChatMessageType.Magic));
             }
 
             if (finishCast)
@@ -958,7 +962,7 @@ namespace ACE.Server.WorldObjects
             DoSpellWords(spell, isWeaponSpell);
 
             var spellChain = new ActionChain();
-            StartPos = new Physics.Common.Position(PhysicsObj.Position);
+            //StartPos = new Physics.Common.Position(PhysicsObj.Position);
 
             // do wind-up gestures: fastcast has no windup (creature enchantments)
             DoWindupGestures(spell, isWeaponSpell, spellChain);
@@ -996,8 +1000,8 @@ namespace ACE.Server.WorldObjects
             LastSuccessCast_Time = Time.GetUnixTime();
 
             WorldObject caster = this;
-            if (isWeaponSpell)
-                caster = GetEquippedWand();
+            //if (isWeaponSpell)
+                //caster = GetEquippedWand();
 
             // verify after windup, still consumes mana
             if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(this, target))
@@ -1050,14 +1054,14 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
-                    if (targetPlayer == null)
-                        OnAttackMonster(targetCreature);
-
-                    if (TryResistSpell(target, spell, caster))
-                        break;
-
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
+                        if (targetPlayer == null)
+                            OnAttackMonster(targetCreature);
+
+                        if (TryResistSpell(target, spell, caster))
+                            break;
+
                         if (targetCreature != null && targetCreature.NonProjectileMagicImmune)
                         {
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetCreature.Name} with {spell.Name}", ChatMessageType.Magic));
@@ -1065,13 +1069,13 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    if (target != null)
-                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
                     targetDeath = LifeMagic(spell, out uint damage, out bool critical, out enchantmentStatus, target, caster);
 
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
+                        if (target != null)
+                            EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
                         if (spell.IsHarmful)
                         {
                             if (targetCreature != null)
@@ -1260,7 +1264,7 @@ namespace ACE.Server.WorldObjects
 
             var spellChain = new ActionChain();
 
-            StartPos = new Physics.Common.Position(PhysicsObj.Position);
+            //StartPos = new Physics.Common.Position(PhysicsObj.Position);
 
             // do wind-up gestures: fastcast has no windup (creature enchantments)
             DoWindupGestures(spell, false, spellChain);
@@ -1303,7 +1307,7 @@ namespace ACE.Server.WorldObjects
                 var item = GetInventoryItemsOfWCID(wcid).FirstOrDefault();
                 if (item == null)
                 {
-                    if (SpellComponentsRequired)
+                    if (SpellComponentsRequired && PropertyManager.GetBool("require_spell_comps").Item)
                         log.Warn($"{Name}.TryBurnComponents({spellComponent.Name}): not found in inventory");
                     else
                         burned.RemoveAt(i);

@@ -1,4 +1,4 @@
-﻿namespace ACE.Entity.Enum
+namespace ACE.Entity.Enum
 {
     /// <summary>
     /// exported from the decompiled client.  actual usage of these is 100% speculative.
@@ -127,6 +127,9 @@
         SetFloatStat                  = 118,
         AddContract                   = 119,
         RemoveContract                = 120,
-        InqContractsFull              = 121
+        InqContractsFull              = 121,
+
+        // Unknown Id Emotes & Custom Emotes
+        Enlightenment                 = 9001
     }
 }

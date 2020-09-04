@@ -4,17 +4,13 @@ using System.Collections.Generic;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Models;
-using ACE.Server.Entity;
-using ACE.Server.Managers;
-
-using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {
     /// <summary>
     /// Summonable monsters combat AI
     /// </summary>
-    public class CombatPet : Pet
+    public partial class CombatPet : Pet
     {
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -55,6 +51,14 @@ namespace ACE.Server.WorldObjects
             CritRating = petDevice.GearCrit;
             CritResistRating = petDevice.GearCritResist;
 
+            // are CombatPets supposed to attack monsters that are in the same faction as the pet owner?
+            // if not, there are a couple of different approaches to this
+            // the easiest way for the code would be to simply set Faction1Bits for the CombatPet to match the pet owner's
+            // however, retail pcaps did not contain Faction1Bits for CombatPets
+
+            // doing this the easiest way for the code here, and just removing during appraisal
+            Faction1Bits = player.Faction1Bits;
+
             return true;
         }
 
@@ -76,8 +80,9 @@ namespace ACE.Server.WorldObjects
             }
 
             // get nearest monster
-            var nearest = BuildTargetDistance(nearbyMonsters);
-            if (nearest[0].Distance > RadiusAwareness)
+            var nearest = BuildTargetDistance(nearbyMonsters, true);
+
+            if (nearest[0].Distance > VisualAwarenessRangeSq)
             {
                 //Console.WriteLine($"{Name}.FindNextTarget(): next object out-of-range (dist: {Math.Round(Math.Sqrt(nearest[0].Distance))})");
                 return false;
@@ -105,6 +110,15 @@ namespace ACE.Server.WorldObjects
                     //Console.WriteLine($"{Name}.GetNearbyMonsters(): refusing to add dead creature {creature.Name} ({creature.Guid})");
                     continue;
                 }
+
+                // combat pets do not aggro monsters belonging to the same faction as the pet owner?
+                if (Faction1Bits != null && creature.Faction1Bits != null && (Faction1Bits & creature.Faction1Bits) != 0)
+                {
+                    // unless the pet owner or the pet is being retaliated against?
+                    if (creature.RetaliateTargets != null && P_PetOwner != null && !creature.RetaliateTargets.Contains(P_PetOwner.Guid.Full) && !creature.RetaliateTargets.Contains(Guid.Full))
+                        continue;
+                }
+
                 monsters.Add(creature);
             }
 

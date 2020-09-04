@@ -123,6 +123,8 @@ namespace ACE.Database.SQLFormatters
                     return ((AetheriaBitfield)value).ToString();
                 case PropertyInt.AiAllowedCombatStyle:
                     return ((CombatStyle)value).ToString();
+                case PropertyInt.AppraisalLongDescDecoration:
+                    return ((AppraisalLongDescDecorations)value).ToString();
                 case PropertyInt.AttackType:
                     return ((AttackType)value).ToString();
                 case PropertyInt.ChannelsActive:
@@ -189,6 +191,7 @@ namespace ACE.Database.SQLFormatters
                 case PropertyDataId.OriginalPortal:
                 case PropertyDataId.UseCreateItem:
                 case PropertyDataId.VendorsClassId:
+                case PropertyDataId.PCAPPhysicsDIDDataTemplatedFrom:
                     if (WeenieNames != null)
                     {
                         WeenieNames.TryGetValue(value, out var propertyValueDescription);

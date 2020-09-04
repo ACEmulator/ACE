@@ -109,12 +109,14 @@ namespace ACE.Server.WorldObjects
                 baseCost += spell.ManaMod * (uint)numFellows;
             }
 
-            if (spell.Flags.HasFlag(SpellFlags.IgnoresManaConversion))
+            var manaConversion = caster.GetCreatureSkill(Skill.ManaConversion);
+
+            if (manaConversion.AdvancementClass < SkillAdvancementClass.Trained || spell.Flags.HasFlag(SpellFlags.IgnoresManaConversion))
                 return baseCost;
 
             var difficulty = spell.PowerMod;   // modified power difficulty
 
-            var mana_conversion_skill = (uint)Math.Round(caster.GetCreatureSkill(Skill.ManaConversion).Current * GetWeaponManaConversionModifier(caster));
+            var mana_conversion_skill = (uint)Math.Round(manaConversion.Current * GetWeaponManaConversionModifier(caster));
 
             var manaCost = GetManaCost(difficulty, baseCost, mana_conversion_skill);
 
@@ -139,7 +141,7 @@ namespace ACE.Server.WorldObjects
             //   so players will always have a level of "luck" in manacost if they make skill checks
             var luck = ThreadSafeRandom.Next(0.0f, 1.0f);
 
-            if (roll <= successChance)
+            if (roll < successChance)
             {
                 manaCost = (uint)Math.Round(manaCost * (1.0f - (successChance - (roll * luck))));
             }
@@ -154,7 +156,7 @@ namespace ACE.Server.WorldObjects
                 successChance = SkillCheck.GetSkillChance(manaConv, difficulty);
                 roll = ThreadSafeRandom.Next(0.0f, 1.0f);
 
-                if (roll <= successChance)
+                if (roll < successChance)
                     manaCost = (uint)Math.Round(manaCost * (1.0f - (successChance - (roll * luck))));
             }
 

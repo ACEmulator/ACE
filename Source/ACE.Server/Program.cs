@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -119,10 +118,11 @@ namespace ACE.Server
             }
 
             log.Info("Starting ACEmulator...");
-            var assembly = Assembly.GetExecutingAssembly();
-            var fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
-            var serverVersion = fileVersionInfo.ProductVersion;
-            Console.Title = @$"ACEmulator - v{serverVersion}";
+
+            if (IsRunningInContainer)
+                log.Info("ACEmulator is running in a container...");
+
+            Console.Title = @$"ACEmulator - v{ServerBuildInfo.FullVersion}";
 
             var configFile = Path.Combine(exeLocation, "Config.js");
             var configConfigContainer = Path.Combine(containerConfigDirectory, "Config.js");
@@ -162,6 +162,24 @@ namespace ACE.Server
                 ShardDatabaseOfflineTools.PurgeOrphanedBiotasInParallel(out var numberOfBiotasPurged);
                 log.Info($"Purged {numberOfBiotasPurged:N0} biotas.");
             }
+
+            if (ConfigManager.Config.Offline.AutoUpdateWorldDatabase)
+            {
+                CheckForWorldDatabaseUpdate();
+
+                if (ConfigManager.Config.Offline.AutoApplyWorldCustomizations)
+                    AutoApplyWorldCustomizations();
+            }
+            else
+                log.Info($"AutoUpdateWorldDatabase is disabled...");
+
+            if (ConfigManager.Config.Offline.AutoApplyDatabaseUpdates)
+                AutoApplyDatabaseUpdates();
+            else
+                log.Info($"AutoApplyDatabaseUpdates is disabled...");
+
+            // This should only be enabled manually. To enable it, simply uncomment this line
+            //ACE.Database.OfflineTools.Shard.BiotaGuidConsolidator.ConsolidateBiotaGuids(0xC0000000, out int numberOfBiotasConsolidated, out int numberOfErrors);
 
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();

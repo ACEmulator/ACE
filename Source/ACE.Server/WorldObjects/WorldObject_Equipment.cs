@@ -12,11 +12,11 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        public List<WorldObject> GetCreateList(DestinationType type)
+        public List<WorldObject> GetCreateListForSlumLord(DestinationType type)
         {
             var items = new List<WorldObject>();
 
-            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)type))
+            foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == type))
             {
                 var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 
@@ -27,7 +27,12 @@ namespace ACE.Server.WorldObjects
                     wo.Shade = item.Shade;
 
                 if (item.StackSize > 0)
-                    wo.SetStackSize(item.StackSize);
+                {
+                    if (wo is Stackable)
+                        wo.SetStackSize(item.StackSize);
+                    else
+                        wo.StackSize = item.StackSize;  // item isn't a stackable object, but we want multiples of it while not displaying multiple single items in the profile. Munge stacksize to get us there.
+                }
 
                 items.Add(wo);
             }
@@ -54,7 +59,7 @@ namespace ACE.Server.WorldObjects
             foreach (var item in set.Items)
             {
                 probability += item.Item.Probability;
-                if (rng > probability) continue;
+                if (rng >= probability) continue;
 
                 // item roll successful, spawn item in creature inventory
                 var wo = CreateWieldedTreasure(item.Item);

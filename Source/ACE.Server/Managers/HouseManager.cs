@@ -108,7 +108,7 @@ namespace ACE.Server.Managers
             //foreach (var houseOwner in houseOwners)
                 //AddRentQueue(houseOwner);
 
-            var slumlordBiotas = DatabaseManager.Shard.GetBiotasByType(WeenieType.SlumLord);
+            var slumlordBiotas = DatabaseManager.Shard.BaseDatabase.GetBiotasByType(WeenieType.SlumLord);
 
             foreach (var slumlord in slumlordBiotas)
                 AddRentQueue(slumlord);
@@ -213,7 +213,7 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void QueryMultiHouse()
         {
-            var slumlordBiotas = DatabaseManager.Shard.GetBiotasByType(WeenieType.SlumLord);
+            var slumlordBiotas = DatabaseManager.Shard.BaseDatabase.GetBiotasByType(WeenieType.SlumLord);
 
             var playerHouses = new Dictionary<IPlayer, List<Biota>>();
             var accountHouses = new Dictionary<string, List<Biota>>();
@@ -587,7 +587,7 @@ namespace ACE.Server.Managers
 
             var rank = allegianceNode != null ? allegianceNode.Rank : 0;
 
-            if (allegiance == null || rank < allegianceMinLevel)
+            if (allegianceMinLevel > 0 && (allegiance == null || rank < allegianceMinLevel))
             {
                 log.Debug($"[HOUSE] {playerHouse.PlayerName}.HasRequirements() - allegiance rank {rank} < {allegianceMinLevel}");
                 return false;
@@ -715,6 +715,12 @@ namespace ACE.Server.Managers
                     RegisterCallback(house, callback);
                 else
                     callback(house);
+            }
+            else if (!loaded.CreateWorldObjectsCompleted)
+            {
+                var houseBiota = House.Load(houseGuid);
+
+                RegisterCallback(houseBiota, callback);
             }
             else
                 log.Error($"HouseManager.GetHouse({houseGuid:X8}): couldn't find house on loaded landblock");

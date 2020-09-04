@@ -30,7 +30,7 @@ namespace ACE.Entity.Models
         public IDictionary<int, float /* probability */> PropertiesSpellBook { get; set; }
 
         public IList<PropertiesAnimPart> PropertiesAnimPart { get; set; }
-        public ICollection<PropertiesPalette> PropertiesPalette { get; set; }
+        public IList<PropertiesPalette> PropertiesPalette { get; set; }
         public IList<PropertiesTextureMap> PropertiesTextureMap { get; set; }
 
         // Properties for all world objects that typically aren't modified over the original weenie
@@ -50,8 +50,8 @@ namespace ACE.Entity.Models
         public IList<PropertiesBookPageData> PropertiesBookPageData { get; set; }
 
         // Biota additions over Weenie
-        public virtual IDictionary<uint /* Character ID */, PropertiesAllegiance> PropertiesAllegiance { get; set; }
-        public virtual ICollection<PropertiesEnchantmentRegistry> PropertiesEnchantmentRegistry { get; set; }
-        public virtual IDictionary<uint /* Player GUID */, bool /* Storage */> HousePermissions { get; set; }
+        public IDictionary<uint /* Character ID */, PropertiesAllegiance> PropertiesAllegiance { get; set; }
+        public ICollection<PropertiesEnchantmentRegistry> PropertiesEnchantmentRegistry { get; set; }
+        public IDictionary<uint /* Player GUID */, bool /* Storage */> HousePermissions { get; set; }
     }
 }

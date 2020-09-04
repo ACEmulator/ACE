@@ -1,23 +1,30 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 
 using log4net;
 
 using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.World;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
+using ACE.Server.Factories.Enum;
+using ACE.Server.Factories.Tables;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
-using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        // Used for cumulative ServerPerformanceMonitor event recording
+        private static readonly ThreadLocal<Stopwatch> stopwatch = new ThreadLocal<Stopwatch>(() => new Stopwatch());
 
         static LootGenerationFactory()
         {
@@ -40,211 +47,218 @@ namespace ACE.Server.Factories
         }
 
         // Enum used for adjusting the loot bias for the various types of Mana forge chests
-        public enum LootBias : uint
+        // TODO: port this over to TreasureItemTypeChances
+        /*[Flags]
+        public enum LootBias
         {
-            UnBiased = 0,
-            Armor = 1,
-            Weapons = 2,
-            SpellComps = 4,
-            Clothing = 8,
-            Jewelry = 16,
-            MagicEquipment = 31,
-            MixedEquipment = 31,
-        }
+            UnBiased   = 0x0,
+            Armor      = 0x1,
+            Weapons    = 0x2,
+            SpellComps = 0x4,
+            Clothing   = 0x8,
+            Jewelry    = 0x10,
+
+            MagicEquipment = Armor | Weapons | SpellComps | Clothing | Jewelry,
+            MixedEquipment = Armor | Weapons | SpellComps | Clothing | Jewelry
+        }*/
+
+        public enum LootBias
+        {
+            UnBiased,
+
+            Armor,
+            Weapons,
+            SpellComps,
+            Clothing,
+            Jewelry,
+
+            MagicEquipment,
+            MixedEquipment
+        };
 
         public static List<WorldObject> CreateRandomLootObjects(TreasureDeath profile)
         {
-            int numItems;
-            WorldObject lootWorldObject;
+            stopwatch.Value.Restart();
 
-            LootBias lootBias = LootBias.UnBiased;
-            var loot = new List<WorldObject>();
-
-            switch (profile.TreasureType)
+            try
             {
-                case 1001:  // Mana Forge Chest, Advanced Equipment Chest, and Mixed Equipment Chest
-                case 2001:
-                    lootBias = LootBias.MixedEquipment;
-                    break;
-                case 1002:  // Armor Chest
-                case 2002:
-                    lootBias = LootBias.Armor;
-                    break;
-                case 1003:  // Magic Chest
-                case 2003:
-                    lootBias = LootBias.MagicEquipment;
-                    break;
-                case 1004:  // Weapon Chest
-                case 2004:
-                    lootBias = LootBias.Weapons;
-                    break;
-                default:    // Default to unbiased loot profile
-                    break;
-            }
+                int numItems;
+                WorldObject lootWorldObject;
 
-            var itemChance = ThreadSafeRandom.Next(1, 100);
-            if (itemChance <= profile.ItemChance)
-            {
-                numItems = ThreadSafeRandom.Next(profile.ItemMinAmount, profile.ItemMaxAmount);
+                LootBias lootBias = LootBias.UnBiased;
+                var loot = new List<WorldObject>();
 
-                for (var i = 0; i < numItems; i++)
+                switch (profile.TreasureType)
                 {
-                    if (lootBias == LootBias.MagicEquipment)
-                        lootWorldObject = CreateRandomLootObjects(profile, false, LootBias.Weapons);
-                    else
-                        lootWorldObject = CreateRandomLootObjects(profile, false, lootBias);
-
-                    if (lootWorldObject != null)
-                        loot.Add(lootWorldObject);
+                    case 1001: // Mana Forge Chest, Advanced Equipment Chest, and Mixed Equipment Chest
+                    case 2001:
+                        lootBias = LootBias.MixedEquipment;
+                        break;
+                    case 1002: // Armor Chest
+                    case 2002:
+                        lootBias = LootBias.Armor;
+                        break;
+                    case 1003: // Magic Chest
+                    case 2003:
+                        lootBias = LootBias.MagicEquipment;
+                        break;
+                    case 1004: // Weapon Chest
+                    case 2004:
+                        lootBias = LootBias.Weapons;
+                        break;
+                    default: // Default to unbiased loot profile
+                        break;
                 }
-            }
 
-            itemChance = ThreadSafeRandom.Next(1, 100);
-            if (itemChance <= profile.MagicItemChance)
-            {
-                numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
-
-                for (var i = 0; i < numItems; i++)
+                // For Society Armor - Only generates 2 pieces of Society Armor.
+                // breaking it out here to Generate Armor
+                if (profile.TreasureType >= 2971 && profile.TreasureType <= 2999)
                 {
-                    lootWorldObject = CreateRandomLootObjects(profile, true, lootBias);
-                    if (lootWorldObject != null)
-                        loot.Add(lootWorldObject);
-                }
-            }
+                    bool mutateYes = true;
+                    numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
 
-            itemChance = ThreadSafeRandom.Next(1, 100);
-            if (itemChance <= profile.MundaneItemChance)
-            {
-                double dropRate = PropertyManager.GetDouble("aetheria_drop_rate").Item;
-                double dropRateMod = 1.0 / dropRate;
-
-                // Coalesced Aetheria doesn't drop in loot tiers less than 5
-                // According to wiki, Weapon Mana Forge chests don't drop Aetheria
-                // An Aetheria drop was in addition to the normal drops of the mundane profile
-                // https://asheron.fandom.com/wiki/Announcements_-_2010/04_-_Shedding_Skin :: May 5th, 2010 entry
-                if (profile.Tier > 4 && lootBias != LootBias.Weapons && dropRate > 0)
-                {
-                    if (ThreadSafeRandom.Next(1, (int)(100 * dropRateMod)) <= 2)     // base 1% to drop aetheria?
+                    for (var i = 0; i < numItems; i++)
                     {
-                        lootWorldObject = CreateAetheria(profile.Tier);
+                        lootWorldObject = CreateSocietyArmor(profile, mutateYes);
+                        if (lootWorldObject != null)
+                            loot.Add(lootWorldObject);
+                    }
+
+                    return loot;
+                }
+
+                var itemChance = ThreadSafeRandom.Next(1, 100);
+                if (itemChance <= profile.ItemChance)
+                {
+                    numItems = ThreadSafeRandom.Next(profile.ItemMinAmount, profile.ItemMaxAmount);
+
+                    for (var i = 0; i < numItems; i++)
+                    {
+                        // verify this works as intended. this will also be true for MixedEquipment...
+                        if (lootBias == LootBias.MagicEquipment)
+                            lootWorldObject = CreateRandomLootObjects(profile, false, LootBias.Weapons);
+                        else
+                            lootWorldObject = CreateRandomLootObjects(profile, false, lootBias);
+
                         if (lootWorldObject != null)
                             loot.Add(lootWorldObject);
                     }
                 }
 
-                numItems = ThreadSafeRandom.Next(profile.MundaneItemMinAmount, profile.MundaneItemMaxAmount);
-
-                for (var i = 0; i < numItems; i++)
+                itemChance = ThreadSafeRandom.Next(1, 100);
+                if (itemChance <= profile.MagicItemChance)
                 {
-                    if (lootBias != LootBias.UnBiased)
-                        lootWorldObject = CreateRandomScroll(profile.Tier);
-                    else
-                        lootWorldObject = CreateGenericObjects(profile.Tier);
+                    numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
 
-                    if (lootWorldObject != null)
-                        loot.Add(lootWorldObject);
+                    for (var i = 0; i < numItems; i++)
+                    {
+                        lootWorldObject = CreateRandomLootObjects(profile, true, lootBias);
+                        if (lootWorldObject != null)
+                            loot.Add(lootWorldObject);
+                    }
                 }
+
+                itemChance = ThreadSafeRandom.Next(1, 100);
+                if (itemChance <= profile.MundaneItemChance)
+                {
+                    double dropRate = PropertyManager.GetDouble("aetheria_drop_rate").Item;
+                    double dropRateMod = 1.0 / dropRate;
+
+                    // Coalesced Aetheria doesn't drop in loot tiers less than 5
+                    // According to wiki, Weapon Mana Forge chests don't drop Aetheria
+                    // An Aetheria drop was in addition to the normal drops of the mundane profile
+                    // https://asheron.fandom.com/wiki/Announcements_-_2010/04_-_Shedding_Skin :: May 5th, 2010 entry
+                    if (profile.Tier > 4 && lootBias != LootBias.Weapons && dropRate > 0)
+                    {
+                        if (ThreadSafeRandom.Next(1, (int) (100 * dropRateMod)) <= 2) // base 1% to drop aetheria?
+                        {
+                            lootWorldObject = CreateAetheria(profile.Tier);
+                            if (lootWorldObject != null)
+                                loot.Add(lootWorldObject);
+                        }
+                    }
+
+                    numItems = ThreadSafeRandom.Next(profile.MundaneItemMinAmount, profile.MundaneItemMaxAmount);
+
+                    for (var i = 0; i < numItems; i++)
+                    {
+                        if (lootBias != LootBias.UnBiased)
+                            lootWorldObject = CreateRandomScroll(profile.Tier);
+                        else
+                            lootWorldObject = CreateGenericObjects(profile.Tier);
+
+                        if (lootWorldObject != null)
+                            loot.Add(lootWorldObject);
+                    }
+                }
+
+                return loot;
             }
-
-            return loot;
-        }
-
-        /// <summary>
-        /// This is currently just a function to help test some functionality in the loot gen system.
-        /// </summary>
-        /// <param name="wcid"></param>
-        /// <param name="tier"></param>
-        /// <returns></returns>
-        public static WorldObject CreateLootByWCID(uint wcid, int tier)
-        {
-            int longDescDecoration = 5;
-
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(wcid);
-
-            if (wo == null)
-                return null;
-
-            // Basic Item Stats
-            int workmanship = GetWorkmanship(tier);
-            wo.ItemWorkmanship = workmanship;
-            wo.GemCount = ThreadSafeRandom.Next(1, 5);
-            wo.GemType = (MaterialType)ThreadSafeRandom.Next(10, 50);
-            wo.AppraisalLongDescDecoration = longDescDecoration;
-            wo.LongDesc = wo.Name;
-
-            if (wo.TsysMutationData != null)
+            finally
             {
-                int newMaterialType = GetMaterialType(wo, tier);
-                if (newMaterialType > 0)
-                {
-                    wo.MaterialType = (MaterialType)newMaterialType;
-                    wo = RandomizeColor(wo);
-                }
+                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.LootGenerationFactory_CreateRandomLootObjects, stopwatch.Value.Elapsed.TotalSeconds);
             }
-
-            double materialMod = LootTables.getMaterialValueModifier(wo);
-            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(tier, workmanship, gemMaterialMod, materialMod);
-            wo.Value = value;
-
-            return wo;
         }
 
         public static WorldObject CreateRandomLootObjects(TreasureDeath profile, bool isMagical, LootBias lootBias = LootBias.UnBiased)
         {
-            WorldObject wo;
+            WorldObject wo = null;
 
-            // Adjusting rolls for changing drop rates for clothing - HarliQ 11/11/19 
+            var treasureItemTypeChances = isMagical ? TreasureItemTypeChances.DefaultMagical : TreasureItemTypeChances.DefaultNonMagical;
 
-            var type = lootBias switch
+            switch (lootBias)
             {
-                LootBias.Armor => 30,
-                LootBias.Weapons => 60,
-                LootBias.Jewelry => 90,
-                _ => ThreadSafeRandom.Next(1, 100),
-            };
-
-
-            // converting to a percentage base roll for items (to better align with retail drop rate data from Magnus) - HarliQ 11/11/19
-            // Gems 14%
-            // Armor 24%
-            // Weapons 30%
-            // Clothing 14%
-            // Jewelry 18%
-
-            switch (type)
-            {
-                case var rate when (rate < 15):
-                    // jewels (Gems)
-                    wo = CreateJewels(profile.Tier, isMagical);
-                    return wo;
-                case var rate when (rate > 14 && rate < 39):
-                    //armor
-                    wo = CreateArmor(profile, isMagical, true, lootBias);
-                    return wo;
-                case var rate when (rate > 38 && rate < 53):
-                    // clothing (shirts/pants)
-                    wo = CreateArmor(profile, isMagical, false, lootBias);
-                    return wo;
-                case var rate when (rate > 52 && rate < 83):
-                    // weapons (Melee/Missile/Casters)
-                    wo = CreateWeapon(profile, isMagical);
-                    return wo;
-                case var rate when (rate > 83 && rate < 93):
-                    // jewelry
-                    wo = CreateJewelry(profile, isMagical);
+                case LootBias.Armor:
+                    treasureItemTypeChances = TreasureItemTypeChances.Armor;
                     break;
-                default:
-                    if (isMagical)
-                        wo = CreateJewelry(profile, isMagical); // jewelry
-                    else
-                        // Added Dinnerware at tail end of distribution, as
-                        // they are mutable loot drops that don't belong with the non-mutable drops
-                        // TODO: Will likely need some adjustment/fine tuning
-                        wo = CreateDinnerware(profile.Tier); // dinnerware
+                case LootBias.Weapons:
+                    treasureItemTypeChances = TreasureItemTypeChances.Weapons;
+                    break;
+                case LootBias.Jewelry:
+                    treasureItemTypeChances = TreasureItemTypeChances.Jewelry;
+                    break;
+
+                case LootBias.MagicEquipment:
+                case LootBias.MixedEquipment:
+                    treasureItemTypeChances = TreasureItemTypeChances.MixedMagicEquipment;
                     break;
             }
 
+            var treasureItemType = TreasureItemTypeChances.Roll(treasureItemTypeChances);
+
+            switch (treasureItemType)
+            {
+                case TreasureItemType.Gem:
+                    wo = CreateJewels(profile.Tier, isMagical);
+                    break;
+
+                case TreasureItemType.Armor:
+                    wo = CreateArmor(profile, isMagical, true, lootBias);
+                    break;
+
+                case TreasureItemType.Clothing:
+                    wo = CreateArmor(profile, isMagical, false, lootBias);
+                    break;
+
+                case TreasureItemType.Cloak:
+                    wo = CreateCloak(profile);
+                    break;
+
+                case TreasureItemType.Weapon:
+                    wo = CreateWeapon(profile, isMagical);
+                    break;
+
+                case TreasureItemType.Jewelry:
+                    wo = CreateJewelry(profile, isMagical);
+                    break;
+
+                case TreasureItemType.Dinnerware:
+                    // Added Dinnerware at tail end of distribution, as
+                    // they are mutable loot drops that don't belong with the non-mutable drops
+                    // TODO: Will likely need some adjustment/fine tuning
+                    wo = CreateDinnerware(profile.Tier);
+                    break;
+            }
             return wo;
         }
 
@@ -265,29 +279,63 @@ namespace ACE.Server.Factories
             };
         }
 
-        private static void Shuffle<T>(T[] array)
+        public static bool MutateItem(WorldObject item, TreasureDeath profile, bool isMagical)
         {
-            Random _r = new Random();
-            int n = array.Length;
-            for (int i = 0; i < n; i++)
+            // should ideally be split up between getting the item type,
+            // and getting the specific mutate function parameters
+            // however, with the way the current loot tables are set up, this is not ideal...
+
+            // this function does a bunch of o(n) lookups through the loot tables,
+            // and is only used for the /lootgen dev command currently
+            // if this needs to be used in high performance scenarios, the collections for the loot tables will
+            // will need to be updated to support o(1) queries
+
+            if (GetMutateAetheriaData(item.WeenieClassId))
+                MutateAetheria(item, profile.Tier);
+            else if (GetMutateArmorData(item.WeenieClassId, out var armorType))
+                MutateArmor(item, profile, isMagical, armorType.Value);
+            else if (GetMutateCasterData(item.WeenieClassId, out int element))
             {
-                int r = i + _r.Next(n - i);
-                T t = array[r];
-                array[r] = array[i];
-                array[i] = t;
+                var wield = element > -1 ? GetWieldDifficulty(profile.Tier, WieldType.Caster) : 0;
+                MutateCaster(item, profile, isMagical, wield, element);
             }
+            else if (GetMutateDinnerwareData(item.WeenieClassId))
+                MutateDinnerware(item, profile.Tier);
+            else if (GetMutateJewelryData(item.WeenieClassId))
+                MutateJewelry(item, profile, isMagical);
+            else if (GetMutateJewelsData(item.WeenieClassId, out int gemLootMatrixIndex))
+                MutateJewels(item, profile.Tier, isMagical, gemLootMatrixIndex);
+            else if (GetMutateMeleeWeaponData(item.WeenieClassId, out int weaponType, out int subtype))
+                MutateMeleeWeapon(item, profile, isMagical, weaponType, subtype);
+            else if (GetMutateMissileWeaponData(item.WeenieClassId, profile.Tier, out int wieldDifficulty, out bool isElemental))
+                MutateMissileWeapon(item, profile, isMagical, wieldDifficulty, isElemental);
+            else if (item is PetDevice petDevice)
+                MutatePetDevice(petDevice, profile.Tier);
+            else if (GetMutateCloakData(item.WeenieClassId))
+                MutateCloak(item, profile);
+            else
+                return false;
+
+            return true;
         }
 
-        private static int GetWield(int tier, int type)
+        public enum WieldType
         {
+            None,
+            MissileWeapon,
+            Caster,
+            MeleeWeapon,
+        };
 
+        private static int GetWieldDifficulty(int tier, WieldType type)
+        {
             int wield = 0;
             int chance = ThreadSafeRandom.Next(1, 100);
 
-            ////Types: 1 Missiles, 2 Casters, 3 melee weapons, 4 covenant armor
             switch (type)
             {
-                case 1:  // Missile Weapons
+                case WieldType.MissileWeapon:
+
                     switch (tier)
                     {
                         case 1:
@@ -349,7 +397,9 @@ namespace ACE.Server.Factories
                             break;
                     }
                     break;
-                case 2:  // Casters
+
+                case WieldType.Caster:
+
                     switch (tier)
                     {
                         case 1:
@@ -403,7 +453,9 @@ namespace ACE.Server.Factories
                             break;
                     }
                     break;
-                case 3: // Melee Weapons
+
+                case WieldType.MeleeWeapon:
+
                     switch (tier)
                     {
                         case 1:
@@ -484,7 +536,7 @@ namespace ACE.Server.Factories
                             damageMod = 0;
                             break;
                         case 2:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 80)
                                 damageMod = .01;
                             else if (chance < 95)
@@ -493,7 +545,7 @@ namespace ACE.Server.Factories
                                 damageMod = .03;
                             break;
                         case 3:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .03;
                             else if (chance < 80)
@@ -504,7 +556,7 @@ namespace ACE.Server.Factories
                                 damageMod = .06;
                             break;
                         case 4:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .06;
                             else if (chance < 80)
@@ -515,7 +567,7 @@ namespace ACE.Server.Factories
                                 damageMod = .09;
                             break;
                         case 5:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .09;
                             else if (chance < 80)
@@ -526,7 +578,7 @@ namespace ACE.Server.Factories
                                 damageMod = .12;
                             break;
                         case 6:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .09;
                             else if (chance < 80)
@@ -537,7 +589,7 @@ namespace ACE.Server.Factories
                                 damageMod = .12;
                             break;
                         case 7:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .11;
                             else if (chance < 80)
@@ -546,7 +598,7 @@ namespace ACE.Server.Factories
                                 damageMod = .13;
                             break;
                         case 8:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .13;
                             else if (chance < 80)
@@ -564,7 +616,7 @@ namespace ACE.Server.Factories
                             damageMod = 0;
                             break;
                         case 2:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 80)
                                 damageMod = .01;
                             else if (chance < 95)
@@ -573,7 +625,7 @@ namespace ACE.Server.Factories
                                 damageMod = .03;
                             break;
                         case 3:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .03;
                             else if (chance < 80)
@@ -584,7 +636,7 @@ namespace ACE.Server.Factories
                                 damageMod = .06;
                             break;
                         case 4:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .06;
                             else if (chance < 80)
@@ -595,7 +647,7 @@ namespace ACE.Server.Factories
                                 damageMod = .09;
                             break;
                         case 5:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .09;
                             else if (chance < 80)
@@ -606,7 +658,7 @@ namespace ACE.Server.Factories
                                 damageMod = .12;
                             break;
                         case 6:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .12;
                             else if (chance < 80)
@@ -617,7 +669,7 @@ namespace ACE.Server.Factories
                                 damageMod = .15;
                             break;
                         case 7:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .15;
                             else if (chance < 80)
@@ -626,7 +678,7 @@ namespace ACE.Server.Factories
                                 damageMod = .17;
                             break;
                         case 8:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .16;
                             else if (chance < 80)
@@ -644,7 +696,7 @@ namespace ACE.Server.Factories
                             damageMod = 0;
                             break;
                         case 2:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 80)
                                 damageMod = .01;
                             else if (chance < 95)
@@ -653,7 +705,7 @@ namespace ACE.Server.Factories
                                 damageMod = .03;
                             break;
                         case 3:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .02;
                             else if (chance < 80)
@@ -664,7 +716,7 @@ namespace ACE.Server.Factories
                                 damageMod = .05;
                             break;
                         case 4:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .05;
                             else if (chance < 80)
@@ -675,7 +727,7 @@ namespace ACE.Server.Factories
                                 damageMod = .08;
                             break;
                         case 5:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .07;
                             else if (chance < 80)
@@ -686,7 +738,7 @@ namespace ACE.Server.Factories
                                 damageMod = .10;
                             break;
                         case 6:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .11;
                             else if (chance < 80)
@@ -697,7 +749,7 @@ namespace ACE.Server.Factories
                                 damageMod = .14;
                             break;
                         case 7:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .13;
                             else if (chance < 80)
@@ -708,7 +760,7 @@ namespace ACE.Server.Factories
                                 damageMod = .16;
                             break;
                         case 8:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .17;
                             else if (chance < 80)
@@ -728,7 +780,7 @@ namespace ACE.Server.Factories
                             damageMod = 0;
                             break;
                         case 2:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 80)
                                 damageMod = .01;
                             else if (chance < 95)
@@ -737,7 +789,7 @@ namespace ACE.Server.Factories
                                 damageMod = .03;
                             break;
                         case 3:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .02;
                             else if (chance < 80)
@@ -748,7 +800,7 @@ namespace ACE.Server.Factories
                                 damageMod = .05;
                             break;
                         case 4:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .05;
                             else if (chance < 80)
@@ -759,7 +811,7 @@ namespace ACE.Server.Factories
                                 damageMod = .08;
                             break;
                         case 5:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .07;
                             else if (chance < 80)
@@ -770,7 +822,7 @@ namespace ACE.Server.Factories
                                 damageMod = .10;
                             break;
                         case 6:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .11;
                             else if (chance < 80)
@@ -781,7 +833,7 @@ namespace ACE.Server.Factories
                                 damageMod = .14;
                             break;
                         case 7:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .14;
                             else if (chance < 80)
@@ -792,7 +844,7 @@ namespace ACE.Server.Factories
                                 damageMod = .17;
                             break;
                         case 8:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .18;
                             else if (chance < 80)
@@ -814,7 +866,7 @@ namespace ACE.Server.Factories
                             damageMod = 0;
                             break;
                         case 2:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 80)
                                 damageMod = .01;
                             else if (chance < 70)
@@ -825,7 +877,7 @@ namespace ACE.Server.Factories
                                 damageMod = .04;
                             break;
                         case 3:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .04;
                             else if (chance < 80)
@@ -836,7 +888,7 @@ namespace ACE.Server.Factories
                                 damageMod = .07;
                             break;
                         case 4:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .07;
                             else if (chance < 70)
@@ -849,7 +901,7 @@ namespace ACE.Server.Factories
                                 damageMod = .11;
                             break;
                         case 5:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .11;
                             else if (chance < 70)
@@ -862,7 +914,7 @@ namespace ACE.Server.Factories
                                 damageMod = .15;
                             break;
                         case 6:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .15;
                             else if (chance < 70)
@@ -873,7 +925,7 @@ namespace ACE.Server.Factories
                                 damageMod = .18;
                             break;
                         case 7:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .18;
                             else if (chance < 80)
@@ -884,7 +936,7 @@ namespace ACE.Server.Factories
                                 damageMod = .21;
                             break;
                         case 8:
-                            chance = ThreadSafeRandom.Next(0, 100);
+                            chance = ThreadSafeRandom.Next(0, 99);
                             if (chance < 50)
                                 damageMod = .21;
                             else if (chance < 80)
@@ -915,12 +967,10 @@ namespace ACE.Server.Factories
             return -manaRate;
         }
 
-        private static WorldObject AssignMagic(WorldObject wo, TreasureDeath profile, bool covenantArmor = false)
+        private static WorldObject AssignMagic(WorldObject wo, TreasureDeath profile, bool isArmor = false)
         {
-            const int armorSpellImpenIndex = 47; // 47th row in the LootTables.ArmorSpells array, starting from zero
-
-            int[][] spells;
-            int[][] cantrips;
+            SpellId[][] spells;
+            SpellId[][] cantrips;
 
             int lowSpellTier = GetLowSpellTier(profile.Tier);
             int highSpellTier = GetHighSpellTier(profile.Tier);
@@ -930,24 +980,24 @@ namespace ACE.Server.Factories
             switch (wo.WeenieType)
             {
                 case WeenieType.Clothing:
-                    spells = LootTables.ArmorSpells;
-                    cantrips = LootTables.ArmorCantrips;
+                    spells = ArmorSpells.Table;
+                    cantrips = ArmorCantrips.Table;
                     break;
                 case WeenieType.Caster:
-                    spells = LootTables.WandSpells;
-                    cantrips = LootTables.WandCantrips;
+                    spells = WandSpells.Table;
+                    cantrips = WandCantrips.Table;
                     break;
                 case WeenieType.Generic:
-                    spells = LootTables.JewelrySpells;
-                    cantrips = LootTables.JewelryCantrips;
+                    spells = JewelrySpells.Table;
+                    cantrips = JewelryCantrips.Table;
                     break;
                 case WeenieType.MeleeWeapon:
-                    spells = LootTables.MeleeSpells;
-                    cantrips = LootTables.MeleeCantrips;
+                    spells = MeleeSpells.Table;
+                    cantrips = MeleeCantrips.Table;
                     break;
                 case WeenieType.MissileLauncher:
-                    spells = LootTables.MissileSpells;
-                    cantrips = LootTables.MissileCantrips;
+                    spells = MissileSpells.Table;
+                    cantrips = MissileCantrips.Table;
                     break;
                 default:
                     spells = null;
@@ -962,92 +1012,90 @@ namespace ACE.Server.Factories
             // Magic stats
             int numSpells = GetSpellDistribution(profile, out int minorCantrips, out int majorCantrips, out int epicCantrips, out int legendaryCantrips);
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
-            int spellcraft = GetSpellcraft(numSpells, profile.Tier);
+            
 
             wo.UiEffects = UiEffects.Magical;
             wo.ManaRate = manaRate;
-            wo.ItemSpellcraft = spellcraft;
-            wo.ItemDifficulty = GetDifficulty(profile.Tier, spellcraft);
+
             wo.ItemMaxMana = GetMaxMana(numSpells, profile.Tier);
             wo.ItemCurMana = wo.ItemMaxMana;
 
-            int[] shuffledValues = new int[spells.Length];
-            for (int i = 0; i < spells.Length; i++)
-            {
-                shuffledValues[i] = i;
-            }
+            int[] shuffledValues = Enumerable.Range(0, spells.Length).ToArray();
 
             Shuffle(shuffledValues);
 
             if (numSpells - numCantrips > 0)
             {
-                for (int a = 0; a < numSpells - numCantrips; a++)
+                for (int i = 0; i < numSpells - numCantrips; i++)
                 {
                     int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
-                    int spellID = spells[shuffledValues[a]][col];
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                    SpellId spellID = spells[shuffledValues[i]][col];
+                    wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
 
-            // From a discussion on LSD, determined in that if covenant armor includes spells, the armor piece will have at least Impen
-            if (covenantArmor == true)
+            // Per discord discussions: ALL armor/shields if it had any spells, had an Impen spell
+            if (isArmor)
             {
+                var impenSpells = SpellLevelProgression.Impenetrability;
+
                 // Ensure that one of the Impen spells was not already added
                 bool impenFound = false;
-                for (int a = 0; a < 8; a++)
+                for (int i = 0; i < 8; i++)
                 {
-                    impenFound = wo.Biota.SpellIsKnown(LootTables.ArmorSpells[armorSpellImpenIndex][a], wo.BiotaDatabaseLock);
-                    if (impenFound == true)
+                    if (wo.Biota.SpellIsKnown((int)impenSpells[i], wo.BiotaDatabaseLock))
+                    {
+                        impenFound = true;
                         break;
+                    }
                 }
-
-                if (impenFound == false)
+                if (!impenFound)
                 {
                     int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
-                    int spellID = LootTables.ArmorSpells[armorSpellImpenIndex][col];
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                    SpellId spellID = impenSpells[col];
+                    wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
 
             if (numCantrips > 0)
             {
-                shuffledValues = new int[cantrips.Length];
-                for (int i = 0; i < cantrips.Length; i++)
-                {
-                    shuffledValues[i] = i;
-                }
+                shuffledValues = Enumerable.Range(0, cantrips.Length).ToArray();
                 Shuffle(shuffledValues);
+
                 int shuffledPlace = 0;
-                //minor cantripps
-                for (int a = 0; a < minorCantrips; a++)
+
+                // minor cantrips
+                for (var i = 0; i < minorCantrips; i++)
                 {
-                    int spellID = cantrips[shuffledValues[shuffledPlace]][0];
+                    SpellId spellID = cantrips[shuffledValues[shuffledPlace]][0];
                     shuffledPlace++;
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                    wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
-                //major cantrips
-                for (int a = 0; a < majorCantrips; a++)
+                // major cantrips
+                for (var i = 0; i < majorCantrips; i++)
                 {
-                    int spellID = cantrips[shuffledValues[shuffledPlace]][1];
+                    SpellId spellID = cantrips[shuffledValues[shuffledPlace]][1];
                     shuffledPlace++;
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                    wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
                 // epic cantrips
-                for (int a = 0; a < epicCantrips; a++)
+                for (var i = 0; i < epicCantrips; i++)
                 {
-                    int spellID = cantrips[shuffledValues[shuffledPlace]][2];
+                    SpellId spellID = cantrips[shuffledValues[shuffledPlace]][2];
                     shuffledPlace++;
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                    wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
-                //legendary cantrips
-                for (int a = 0; a < legendaryCantrips; a++)
+                // legendary cantrips
+                for (var i = 0; i < legendaryCantrips; i++)
                 {
-                    int spellID = cantrips[shuffledValues[shuffledPlace]][3];
+                    SpellId spellID = cantrips[shuffledValues[shuffledPlace]][3];
                     shuffledPlace++;
-                    wo.Biota.GetOrAddKnownSpell(spellID, wo.BiotaDatabaseLock, wo.BiotaPropertySpells, out _);
+                    wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
-
+            int spellcraft = GetSpellcraft(wo, numSpells, profile.Tier);
+            wo.ItemSpellcraft = spellcraft;
+            wo.ItemDifficulty = GetDifficulty(wo, spellcraft);
             return wo;
         }
 
@@ -1060,95 +1108,37 @@ namespace ACE.Server.Factories
             numEpics = 0;
             numLegendaries = 0;
 
-            int nonCantripChance = ThreadSafeRandom.Next(1, 100);
+            int nonCantripChance = ThreadSafeRandom.Next(1, 100000);
 
             numMinors = GetNumMinorCantrips(profile); // All tiers have a chance for at least one minor cantrip
+            numMajors = GetNumMajorCantrips(profile);
+            numEpics = GetNumEpicCantrips(profile);
+            numLegendaries = GetNumLegendaryCantrips(profile);
 
-            switch (profile.Tier)
-            {
-                case 1:
-                    // 1-3 w/ chance of minor cantrip
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 1;
-                    else if (nonCantripChance <= 90)
-                        numNonCantrips = 2;
-                    else
-                        numNonCantrips = 3;
-                    break;
+            //  Fixing the absurd amount of spells on items - HQ 6/21/2020
+            //  From Mags Data all tiers have about the same chance for a given number of spells on items.  This is the ratio for magical items.
+            //  1 Spell(s) - 46.410 %
+            //  2 Spell(s) - 27.040 %
+            //  3 Spell(s) - 17.850 %
+            //  4 Spell(s) - 6.875 %
+            //  5 Spell(s) - 1.525 %
+            //  6 Spell(s) - 0.235 %
+            //  7 Spell(s) - 0.065 %
 
-                case 2:
-                    // 3-4 w/ chance of either minor or major
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 3;
-                    else
-                        numNonCantrips = 4;
-                    break;
-
-                case 3:
-                    // 4-5 w/ chance of either major or minor
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 4;
-                    else
-                        numNonCantrips = 5;
-
-                    numMajors = GetNumMajorCantrips(profile);
-                    break;
-
-                case 4:
-                    // 5-6, major and minor
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 5;
-                    else
-                        numNonCantrips = 6;
-
-                    numMajors = GetNumMajorCantrips(profile);
-                    break;
-
-                case 5:
-                    // 5-7 major and minor
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 5;
-                    else if (nonCantripChance <= 90)
-                        numNonCantrips = 6;
-                    else
-                        numNonCantrips = 7;
-
-                    numMajors = GetNumMajorCantrips(profile);
-                    break;
-
-                case 6:
-                    // 6-7, minor(4 total) major(2 total)
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 6;
-                    else
-                        numNonCantrips = 7;
-
-                    numMajors = GetNumMajorCantrips(profile);
-                    break;
-
-                case 7:
-                    /// 6-7, minor(4), major(3), epic(4)
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 6;
-                    else
-                        numNonCantrips = 7;
-
-                    numMajors = GetNumMajorCantrips(profile);
-                    numEpics = GetNumEpicCantrips(profile);
-                    break;
-
-                default:
-                    // 6-7, minor(4), major(3), epic(4), legendary(2)
-                    if (nonCantripChance <= 50)
-                        numNonCantrips = 6;
-                    else
-                        numNonCantrips = 7;
-
-                    numMajors = GetNumMajorCantrips(profile);
-                    numEpics = GetNumEpicCantrips(profile);
-                    numLegendaries = GetNumLegendaryCantrips(profile);
-                    break;
-            }
+            if (nonCantripChance <= 46410)
+                numNonCantrips = 1;
+            else if (nonCantripChance <= 73450)
+                numNonCantrips = 2;
+            else if (nonCantripChance <= 91300)
+                numNonCantrips = 3;
+            else if (nonCantripChance <= 98175)
+                numNonCantrips = 4;
+            else if (nonCantripChance <= 99700)
+                numNonCantrips = 5;
+            else if (nonCantripChance <= 99935)
+                numNonCantrips = 6;
+            else
+                numNonCantrips = 7;
 
             return numNonCantrips + numMinors + numMajors + numEpics + numLegendaries;
         }
@@ -1209,15 +1199,6 @@ namespace ACE.Server.Factories
             return highSpellTier;
         }
 
-        private static int GetSkillLevelLimit(int wield)
-        {
-
-            double percentage = (double)ThreadSafeRandom.Next(75, 98);
-            int skill = (int)(percentage * (double)wield);
-
-            return skill;
-        }
-
         private static double GetManaCMod(int tier)
         {
             int magicMod = 0;
@@ -1230,7 +1211,7 @@ namespace ACE.Server.Factories
                     magicMod = 0;
                     break;
                 case 3:
-                    chance = ThreadSafeRandom.Next(0, 1000);
+                    chance = ThreadSafeRandom.Next(1, 1000);
                     if (chance > 900)
                         magicMod = 5;
                     else if (chance > 800)
@@ -1243,7 +1224,7 @@ namespace ACE.Server.Factories
                         magicMod = 1;
                     break;
                 case 4:
-                    chance = ThreadSafeRandom.Next(0, 1000);
+                    chance = ThreadSafeRandom.Next(1, 1000);
                     if (chance > 900)
                         magicMod = 10;
                     else if (chance > 800)
@@ -1258,7 +1239,7 @@ namespace ACE.Server.Factories
                         magicMod = 5;
                     break;
                 case 5:
-                    chance = ThreadSafeRandom.Next(0, 1000);
+                    chance = ThreadSafeRandom.Next(1, 1000);
                     if (chance > 900)
                         magicMod = 10;
                     else if (chance > 800)
@@ -1273,7 +1254,7 @@ namespace ACE.Server.Factories
                         magicMod = 5;
                     break;
                 case 6:
-                    chance = ThreadSafeRandom.Next(0, 1000);
+                    chance = ThreadSafeRandom.Next(1, 1000);
                     if (chance > 900)
                         magicMod = 10;
                     else if (chance > 800)
@@ -1288,7 +1269,7 @@ namespace ACE.Server.Factories
                         magicMod = 5;
                     break;
                 case 7:
-                    chance = ThreadSafeRandom.Next(0, 1000);
+                    chance = ThreadSafeRandom.Next(1, 1000);
                     if (chance > 900)
                         magicMod = 10;
                     else if (chance > 800)
@@ -1303,7 +1284,7 @@ namespace ACE.Server.Factories
                         magicMod = 5;
                     break;
                 default:
-                    chance = ThreadSafeRandom.Next(0, 1000);
+                    chance = ThreadSafeRandom.Next(1, 1000);
                     if (chance > 900)
                         magicMod = 10;
                     else if (chance > 800)
@@ -1323,6 +1304,7 @@ namespace ACE.Server.Factories
 
             return manaDMod;
         }
+
         /// <summary>
         /// Returns Values for Magic & Missile Defense Bonus. Updated HarliQ 11/17/19
         /// </summary>
@@ -1473,7 +1455,7 @@ namespace ACE.Server.Factories
         private static int GetWorkmanship(int tier)
         {
             int workmanship = 0;
-            int chance = ThreadSafeRandom.Next(0, 100);
+            int chance = ThreadSafeRandom.Next(0, 99);
 
             switch (tier)
             {
@@ -1560,79 +1542,105 @@ namespace ACE.Server.Factories
             return workmanship;
         }
 
-        private static int GetSpellcraft(int spellAmount, int tier)
+        private static int GetSpellcraft(WorldObject wo, int spellAmount, int tier)
         {
 
-            int spellcraft = 0;
-            switch (tier)
+            float minItemSpellCraftRange = 0.0f;
+            float maxItemSpellCraftRange = 0.0f;
+
+            switch (wo.ItemType)
             {
-                case 1:
-                    spellcraft = ThreadSafeRandom.Next(1, 20) + spellAmount * ThreadSafeRandom.Next(1, 4); //1-50
+                case ItemType.MeleeWeapon:
+                case ItemType.Caster:
+                case ItemType.MissileWeapon:
+                case ItemType.Armor:
+                case ItemType.Clothing:
+                case ItemType.Jewelry:
+                    minItemSpellCraftRange = 0.90f;
+                    maxItemSpellCraftRange = 1.05f;
                     break;
-                case 2:
-                    spellcraft = ThreadSafeRandom.Next(40, 70) + spellAmount * ThreadSafeRandom.Next(1, 5); //40-90
-                    break;
-                case 3:
-                    spellcraft = ThreadSafeRandom.Next(70, 90) + spellAmount * ThreadSafeRandom.Next(1, 6); //80 - 130
-                    break;
-                case 4:
-                    spellcraft = ThreadSafeRandom.Next(100, 120) + spellAmount * ThreadSafeRandom.Next(1, 7); /// 120 - 160
-                    break;
-                case 5:
-                    spellcraft = ThreadSafeRandom.Next(130, 150) + spellAmount * ThreadSafeRandom.Next(1, 8); ///150 - 210
-                    break;
-                case 6:
-                    spellcraft = ThreadSafeRandom.Next(160, 180) + spellAmount * ThreadSafeRandom.Next(1, 9); /// 200-260
-                    break;
-                case 7:
-                    spellcraft = ThreadSafeRandom.Next(230, 260) + spellAmount * ThreadSafeRandom.Next(1, 10); /// 250 - 310
-                    break;
-                case 8:
-                    spellcraft = ThreadSafeRandom.Next(280, 300) + spellAmount * ThreadSafeRandom.Next(1, 11); //300-450
-                    break;
+                case ItemType.Gem:
                 default:
+                    minItemSpellCraftRange = 1.00f;
+                    maxItemSpellCraftRange = 1.00f;
                     break;
             }
 
-            return spellcraft;
-        }
-
-        private static int GetDifficulty(int tier, int spellcraft)
-        {
-            int difficulty = 0;
-            switch (tier)
+            // Getting the spell difficulty
+            var maxSpellLevel = wo.GetMaxSpellLevel();
+            int maxSpellDiff = maxSpellLevel switch
             {
-                case 1:
-                    difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-                    break;
-                case 2:
-                    difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-                    break;
-                case 3:
-                    difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-                    break;
-                case 4:
-                    difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-                    break;
-                case 5:
-                    difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-                    break;
-                case 6:
-                    difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-                    break;
-                case 7:
-                    difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-                    break;
-                case 8:
-                    difficulty = spellcraft + (ThreadSafeRandom.Next(0, 10) * ThreadSafeRandom.Next(1, 3));
-                    break;
-                default:
-                    break;
-            }
+                2 => 50,
+                3 => 100,
+                4 => 150,
+                5 => 200,
+                6 => 250,
+                7 => 300,
+                8 => 400,
+                _ => 1
+            };
 
-            return difficulty;
+            var tItemSpellCraft = maxSpellDiff * ThreadSafeRandom.Next(minItemSpellCraftRange, maxItemSpellCraftRange);
+
+            if (tItemSpellCraft < 0)
+                tItemSpellCraft = 0;
+
+            int finalItemSpellCraft = (int)Math.Floor(tItemSpellCraft);
+
+            return finalItemSpellCraft;
+
         }
 
+        private static int GetDifficulty(WorldObject wo, int itemspellcraft)
+        {
+            int wieldReq = 1;
+            int rank_mod = 0;  
+            int num_spells = 1;
+            int epicAddon = 0;
+            int legAddon = 0;
+
+            num_spells = wo.Biota.PropertiesSpellBook.Count();
+
+            if (wo.EpicCantrips.Count > 0)
+                epicAddon = ThreadSafeRandom.Next(1, 5) * wo.EpicCantrips.Count;
+            if (wo.LegendaryCantrips.Count > 0)
+                legAddon = ThreadSafeRandom.Next(5, 10) * wo.LegendaryCantrips.Count;
+
+            if (wo.ItemAllegianceRankLimit.HasValue)
+                rank_mod = wo.ItemAllegianceRankLimit.Value;
+            if (wo.WieldDifficulty.HasValue)
+            {
+                if (wo.WieldDifficulty == 150 || wo.WieldDifficulty == 180)
+                    wieldReq = 1;
+                else
+                    wieldReq = wo.WieldDifficulty.Value;
+            }
+            else
+                wieldReq = 1;
+
+            float heritage_mod = 1.0f;  
+            if (wo.Heritage.HasValue)
+                heritage_mod = 0.75f;
+
+            if (rank_mod == 0)
+                rank_mod = 1;
+
+            // Spell Count Addon
+            float spellAddonChance = num_spells * (20.0f / (num_spells + 2.0f));
+            float spellAddon = (float)ThreadSafeRandom.Next(1.0f, spellAddonChance) * num_spells;
+
+            float tArcane = itemspellcraft * heritage_mod * 1.9f + spellAddon + epicAddon + legAddon;
+            tArcane /= rank_mod + 1.0f;
+            tArcane -= wieldReq / 3.0f;
+
+            if (tArcane < 0)
+                tArcane = 0;
+
+            int fArcane = (int)Math.Floor(tArcane);
+            if (fArcane < 10)
+                fArcane += 10;
+            return fArcane;
+        }
         private static int GetMaxMana(int spellAmount, int tier)
         {
             int maxmana = 0;
@@ -1672,9 +1680,6 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Returns an appropriate material type for the World Object based on its loot tier.
         /// </summary>
-        /// <param name="wo"></param>
-        /// <param name="tier"></param>
-        /// <returns></returns>
         private static int GetMaterialType(WorldObject wo, int tier)
         {
             int defaultMaterialType = (int)SetDefaultMaterialType(wo);
@@ -1723,19 +1728,15 @@ namespace ACE.Server.Factories
                         if (groupProbability > groupRng || groupProbability == totalGroupProbability)
                             return (int)g.MaterialId;
                     }
-
                     break;
                 }
             }
-
-            return (int)defaultMaterialType;
+            return defaultMaterialType;
         }
 
         /// <summary>
         /// Sets a randomized default material type for when a weenie does not have TsysMutationData 
         /// </summary>
-        /// <param name="wo"></param>
-        /// <returns></returns>
         private static MaterialType SetDefaultMaterialType(WorldObject wo)
         {
             if (wo == null)
@@ -1775,99 +1776,6 @@ namespace ACE.Server.Factories
             }
 
             return material;
-        }
-
-        private static double GetMeleeDMod(int tier)
-        {
-            double meleeMod = 0;
-            int chance = 0;
-
-            switch (tier)
-            {
-                case 1:
-                    meleeMod = 0;
-                    break;
-                case 2:
-                    chance = ThreadSafeRandom.Next(1, 100);
-                    if (chance < 60)
-                        meleeMod = 0;
-                    else if (chance < 80)
-                        meleeMod = .01;
-                    else if (chance < 92)
-                        meleeMod = .02;
-                    else
-                        meleeMod = .03;
-                    break;
-                case 3:
-                    chance = ThreadSafeRandom.Next(1, 100);
-                    if (chance < 60)
-                        meleeMod = .03;
-                    else if (chance < 80)
-                        meleeMod = .04;
-                    else if (chance < 92)
-                        meleeMod = .05;
-                    else
-                        meleeMod = .06;
-                    break;
-                case 4:
-                    chance = ThreadSafeRandom.Next(1, 100);
-                    if (chance < 60)
-                        meleeMod = .06;
-                    else if (chance < 80)
-                        meleeMod = .07;
-                    else if (chance < 92)
-                        meleeMod = .08;
-                    else
-                        meleeMod = .09;
-                    break;
-                case 5:
-                    chance = ThreadSafeRandom.Next(1, 100);
-                    if (chance < 60)
-                        meleeMod = .09;
-                    else if (chance < 80)
-                        meleeMod = .1;
-                    else if (chance < 92)
-                        meleeMod = .11;
-                    else
-                        meleeMod = .12;
-                    break;
-                case 6:
-                    chance = ThreadSafeRandom.Next(1, 100);
-                    if (chance < 60)
-                        meleeMod = .12;
-                    else if (chance < 80)
-                        meleeMod = .13;
-                    else if (chance < 92)
-                        meleeMod = .14;
-                    else
-                        meleeMod = .15;
-                    break;
-                case 7:
-                    chance = ThreadSafeRandom.Next(1, 100);
-                    if (chance < 60)
-                        meleeMod = .15;
-                    else if (chance < 80)
-                        meleeMod = .16;
-                    else if (chance < 92)
-                        meleeMod = .17;
-                    else
-                        meleeMod = .18;
-                    break;
-                case 8:
-                    chance = ThreadSafeRandom.Next(1, 100);
-                    if (chance < 60)
-                        meleeMod = .17;
-                    else if (chance < 80)
-                        meleeMod = .18;
-                    else if (chance < 92)
-                        meleeMod = .19;
-                    else
-                        meleeMod = .20;
-                    break;
-            }
-
-            meleeMod += 1.0;
-            return meleeMod;
         }
 
         private static int GetNumLegendaryCantrips(TreasureDeath profile)
@@ -2038,20 +1946,16 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Set the AppraisalLongDescDecoration of the item, which controls the full descriptive text shown in the client on appraisal
         /// </summary>
-        /// <param name="wo"></param>
-        /// <returns></returns>
         private static WorldObject SetAppraisalLongDescDecoration(WorldObject wo)
         {
-            // LDDecoration_PrependWorkmanship = 0x1,
-            // LDDecoration_PrependMaterial = 0x2,
-            // LDDecoration_AppendGemInfo = 0x4,
-            int appraisalLongDescDecoration = 0;
+            var appraisalLongDescDecoration = AppraisalLongDescDecorations.None;
+
             if (wo.ItemWorkmanship > 0)
-                appraisalLongDescDecoration |= 1;
+                appraisalLongDescDecoration |= AppraisalLongDescDecorations.PrependWorkmanship;
             if (wo.MaterialType > 0)
-                appraisalLongDescDecoration |= 2;
+                appraisalLongDescDecoration |= AppraisalLongDescDecorations.PrependMaterial;
             if (wo.GemType > 0 && wo.GemCount > 0)
-                appraisalLongDescDecoration |= 4;
+                appraisalLongDescDecoration |= AppraisalLongDescDecorations.AppendGemInfo;
 
             if (appraisalLongDescDecoration > 0)
                 wo.AppraisalLongDescDecoration = appraisalLongDescDecoration;
@@ -2098,9 +2002,8 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Assign a random color (Int.PaletteTemplate and Float.Shade) to a World Object based on the material assigned to it.
         /// </summary>
-        /// <param name="wo"></param>
         /// <returns>WorldObject with a random applicable PaletteTemplate and Shade applied, if available</returns>
-        private static WorldObject RandomizeColor(WorldObject wo)
+        private static void RandomizeColor(WorldObject wo)
         {
             if (wo.MaterialType > 0 && wo.TsysMutationData != null && wo.ClothingBase != null)
             {
@@ -2146,7 +2049,7 @@ namespace ACE.Server.Factories
 
                 float totalProbability = GetTotalProbability(colors);
                 // If there's zero chance to get a random color, no point in continuing.
-                if (totalProbability == 0) return wo;
+                if (totalProbability == 0) return;
 
                 var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
 
@@ -2156,7 +2059,7 @@ namespace ACE.Server.Factories
                 foreach (var color in colors)
                 {
                     probability += color.Probability;
-                    if (probability >= rng || probability == totalProbability)
+                    if (probability > rng || probability == totalProbability)
                     {
                         paletteTemplate = color.PaletteTemplate;
                         break;
@@ -2175,7 +2078,7 @@ namespace ACE.Server.Factories
                         // Throw some shade, at random
                         wo.Shade = ThreadSafeRandom.Next(0.0f, 1.0f);
 
-                        // Some debu ginfo...
+                        // Some debug info...
                         // log.Info($"Color success for {wo.MaterialType}({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}. PaletteTemplate {paletteTemplate} applied.");
                     }
                 }
@@ -2184,8 +2087,6 @@ namespace ACE.Server.Factories
                     log.Warn($"[LOOT] Color looked failed for {wo.MaterialType} ({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}.");
                 }
             }
-
-            return wo;
         }
 
         /// <summary>
@@ -2202,6 +2103,7 @@ namespace ACE.Server.Factories
             var totalSum = prob.Sum();
             return totalSum;
         }
+
         private static float GetTotalProbability(List<TreasureMaterialBase> list)
         {
             if (list == null || list.Count == 0) return 0.0f;
@@ -2211,6 +2113,7 @@ namespace ACE.Server.Factories
             var totalSum = prob.Sum();
             return totalSum;
         }
+
         private static float GetTotalProbability(List<TreasureMaterialGroups> list)
         {
             if (list == null || list.Count == 0) return 0.0f;
@@ -2222,9 +2125,9 @@ namespace ACE.Server.Factories
         }
 
         /// <summary>
-        /// Will return correct meleeMod for bow wields (some debate on what 375 top out at, leaving at 18 for now). HarliQ 11/17/19
+        /// Will return correct meleeMod for Missile/Caster wields (some debate on what 375 top out at, leaving at 18 for now). HarliQ 11/17/19
         /// </summary>
-        private static double GetWieldReqMeleeDMod(int wield)
+        private static double GetWieldReqMeleeDMod(int wield, TreasureDeath profile)
         {
             double meleeMod = 0;
 
@@ -2232,118 +2135,268 @@ namespace ACE.Server.Factories
             switch (wield)
             {
                 case 0:
+                    switch (profile.Tier) // Only Tiers 1-6
+
+                    {
+                        case 0:
+                        case 1:
+                            meleeMod = 0;
+                            break;
+                        case 2:
+                            if (chance <= 20)
+                                meleeMod = 0.01;
+                            else if (chance <= 45)
+                                meleeMod = 0.02;
+                            else if (chance <= 65)
+                                meleeMod = 0.03;
+                            else if (chance <= 85)
+                                meleeMod = 0.04;
+                            else 
+                                meleeMod = 0.05;
+                            break;                          
+                        case 3:
+                            if (chance <= 20)
+                                meleeMod = 0.03;
+                            else if (chance <= 45)
+                                meleeMod = 0.03;
+                            else if (chance <= 65)
+                                meleeMod = 0.04;
+                            else if (chance <= 85)
+                                meleeMod = 0.05;
+                            else if (chance <= 95)
+                                meleeMod = 0.06;
+                            else
+                                meleeMod = 0.07;
+                            break;
+                        case 4:
+                            if (chance <= 20)
+                                meleeMod = 0.04;
+                            else if (chance <= 45)
+                                meleeMod = 0.05;
+                            else if (chance <= 65)
+                                meleeMod = 0.06;
+                            else if (chance <= 85)
+                                meleeMod = 0.07;
+                            else if (chance <= 95)
+                                meleeMod = 0.08;
+                            else
+                                meleeMod = 0.09;
+                            break;
+                        case 5:
+                            if (chance <= 20)
+                                meleeMod = 0.06;
+                            else if (chance <= 45)
+                                meleeMod = 0.07;
+                            else if (chance <= 65)
+                                meleeMod = 0.08;
+                            else if (chance <= 85)
+                                meleeMod = 0.09;
+                            else if (chance <= 95)
+                                meleeMod = 0.10;
+                            else if (chance <= 98)
+                                meleeMod = 0.11;
+                            else
+                                meleeMod = 0.12;
+                            break;
+                        case 6:
+                            if (chance <= 20)
+                                meleeMod = 0.08;
+                            else if (chance <= 20)
+                                meleeMod = 0.09;
+                            else if (chance <= 40)
+                                meleeMod = 0.10;
+                            else if (chance <= 60)
+                                meleeMod = 0.11;
+                            else if (chance <= 75)
+                                meleeMod = 0.12;
+                            else if (chance <= 89)
+                                meleeMod = 0.13;
+                            else if (chance <= 98)
+                                meleeMod = 0.14;
+                            else
+                                meleeMod = 0.15;
+                            break;
+                        default:
+                            meleeMod = 0.05;
+                            break;
+                    }
+                    break;
                 case 250: // Missile
-                    if (chance < 20)
+                    if (chance <= 20)
                         meleeMod = 0.01;
-                    else if (chance < 45)
+                    else if (chance <= 45)
                         meleeMod = 0.02;
-                    else if (chance < 65)
+                    else if (chance <= 65)
                         meleeMod = 0.03;
-                    else if (chance < 85)
+                    else if (chance <= 85)
                         meleeMod = 0.04;
-                    else if (chance < 95)
+                    else if (chance <= 95)
                         meleeMod = 0.05;
                     else
-                        meleeMod = 0.01;
+                        meleeMod = 0.06;
                     break;
                 case 270: // Missile
-                    if (chance < 10)
+                    if (chance <= 10)
+                        meleeMod = 0.04;
+                    else if (chance <= 20)
                         meleeMod = 0.05;
-                    else if (chance < 20)
+                    else if (chance <= 30)
                         meleeMod = 0.06;
-                    else if (chance < 30)
+                    else if (chance <= 45)
                         meleeMod = 0.07;
-                    else if (chance < 45)
+                    else if (chance <= 55)
                         meleeMod = 0.08;
-                    else if (chance < 55)
+                    else if (chance <= 70)
                         meleeMod = 0.09;
-                    else if (chance < 70)
+                    else if (chance <= 85)
                         meleeMod = 0.10;
-                    else if (chance < 85)
+                    else if (chance <= 95)
                         meleeMod = 0.11;
-                    else if (chance < 95)
-                        meleeMod = 0.12;
                     else
-                        meleeMod = 0.05;
+                        meleeMod = 0.12;
                     break;
                 case 310: // Casters
                 case 290: // Missile & Casters
-                    if (chance < 10)
+                    if (chance <= 10)
+                        meleeMod = 0.08;
+                    else if (chance <= 20)
                         meleeMod = 0.09;
-                    else if (chance < 20)
+                    else if (chance <= 40)
                         meleeMod = 0.10;
-                    else if (chance < 40)
+                    else if (chance <= 60)
                         meleeMod = 0.11;
-                    else if (chance < 60)
+                    else if (chance <= 80)
                         meleeMod = 0.12;
-                    else if (chance < 80)
+                    else if (chance <= 95)
                         meleeMod = 0.13;
-                    else if (chance < 95)
-                        meleeMod = 0.14;
                     else
-                        meleeMod = 0.09;
+                        meleeMod = 0.14;
                     break;
                 case 330: // Casters    
                 case 315: // Missile
                 case 335: // Missile
-                    if (chance < 10)
+                    if (chance <= 10)
+                        meleeMod = 0.09;
+                    else if (chance <= 20)
                         meleeMod = 0.10;
-                    else if (chance < 20)
+                    else if (chance <= 40)
                         meleeMod = 0.11;
-                    else if (chance < 40)
+                    else if (chance <= 60)
                         meleeMod = 0.12;
-                    else if (chance < 60)
+                    else if (chance <= 80)
                         meleeMod = 0.13;
-                    else if (chance < 80)
+                    else if (chance <= 95)
                         meleeMod = 0.14;
-                    else if (chance < 95)
-                        meleeMod = 0.15;
                     else
-                        meleeMod = 0.10;
+                        meleeMod = 0.15;
                     break;
                 case 150: // No wield Casters
                 case 355: // Casters
                 case 360: // Missile
-                    if (chance > 95)
-                        meleeMod = 0.18;
-                    else if (chance > 80)
-                        meleeMod = 0.17;
-                    else if (chance > 65)
-                        meleeMod = 0.16;
-                    else if (chance > 45)
-                        meleeMod = 0.15;
-                    else if (chance > 30)
-                        meleeMod = 0.14;
-                    else if (chance > 20)
-                        meleeMod = 0.13;
-                    else
+                    if (chance <= 15)
                         meleeMod = 0.12;
+                    else if (chance <= 30)
+                        meleeMod = 0.13;
+                    else if (chance <= 45)
+                        meleeMod = 0.14;
+                    else if (chance <= 65)
+                        meleeMod = 0.15;
+                    else if (chance <= 80)
+                        meleeMod = 0.16;
+                    else if (chance <= 95)
+                        meleeMod = 0.17;
+                    else
+                        meleeMod = 0.18;
                     break;
                 case 180: // No wield Casters
                 case 375: // Missile/Caster
                 case 385: // Missile/Caster
-                    if (chance > 95)
-                        meleeMod = 0.20;
-                    else if (chance > 85)
-                        meleeMod = 0.19;
-                    else if (chance > 70)
-                        meleeMod = 0.18;
-                    else if (chance > 50)
-                        meleeMod = 0.17;
-                    else if (chance > 35)
-                        meleeMod = 0.16;
-                    else if (chance > 20)
-                        meleeMod = 0.15;
-                    else if (chance > 5)
-                        meleeMod = 0.14;
-                    else
+                    if (chance <= 10)
                         meleeMod = 0.13;
+                    else if (chance <= 25)
+                        meleeMod = 0.14;
+                    else if (chance <= 45)
+                        meleeMod = 0.15;
+                    else if (chance <= 65)
+                        meleeMod = 0.16;
+                    else if (chance <= 80)
+                        meleeMod = 0.17;
+                    else if (chance <= 90)
+                        meleeMod = 0.18;
+                    else if (chance <= 98)
+                        meleeMod = 0.19;
+                    else
+                        meleeMod = 0.20;
                     break;
                 default:
+                    meleeMod = 0.05;
                     break;
             }
             meleeMod += 1.0;
             return meleeMod;
+        }
+
+        public static readonly float WeaponBulk = 0.50f;
+        public static readonly float ArmorBulk = 0.25f;
+
+        private static bool MutateBurden(WorldObject wo, int tier, bool isWeapon)
+        {
+            // ensure item has burden
+            if (wo.EncumbranceVal == null)
+                return false;
+
+            // initial rng roll - burden mod chance per tier
+            if (!RollBurdenModChance(tier))
+                return false;
+
+            // secondary rng roll - pseudo curve table per tier
+            var roll = QualityChance.Roll(tier);
+
+            var bulk = isWeapon ? WeaponBulk : ArmorBulk;
+            bulk *= (float)(wo.BulkMod ?? 1.0f);
+
+            var maxBurdenMod = 1.0f - bulk;
+
+            var burdenMod = 1.0f - (roll * maxBurdenMod);
+
+            // modify burden
+            var prevBurden = wo.EncumbranceVal.Value;
+            wo.EncumbranceVal = (int)Math.Round(prevBurden * burdenMod);
+
+            if (wo.EncumbranceVal < 1)
+                wo.EncumbranceVal = 1;
+
+            //Console.WriteLine($"Modified burden from {prevBurden} to {wo.EncumbranceVal} for {wo.Name} ({wo.WeenieClassId})");
+
+            return true;
+        }
+
+        private static bool RollBurdenModChance(int tier)
+        {
+            var chance = QualityChance.QualityChancePerTier[tier - 1];
+
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            return rng < chance;
+        }
+
+        private static void Shuffle<T>(T[] array)
+        {
+            // verified even distribution
+            for (var i = 0; i < array.Length; i++)
+            {
+                var idx = ThreadSafeRandom.Next(i, array.Length - 1);
+
+                var temp = array[idx];
+                array[idx] = array[i];
+                array[i] = temp;
+            }
+        }
+
+        private static WorldObject AssignCloakSpells(WorldObject wo, int cloakSpellId)
+        {
+            wo.ProcSpell = (uint)cloakSpellId;
+            return wo;
         }
     }         
 }

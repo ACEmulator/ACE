@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-
+using ACE.Server.Entity;
+using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.GameEvent.Events
@@ -12,17 +13,6 @@ namespace ACE.Server.Network.GameEvent.Events
         public GameEventFellowshipFullUpdate(Session session)
             : base(GameEventType.FellowshipFullUpdate, GameMessageGroup.UIQueue, session)
         {
-            // This is a naive, bare-bones implementation of 0x02BE, FullFellowshipUpdate.
-            // 0x02BE is fairly complicated, so the following code is at least valuable as an example of a valid server response.
-
-            // todo: The current implementation has race conditions,
-            // and there are questions that must be answered before it can be fixed.
-            // We need to figure out who "owns" the fellowship data.
-            // Does everyone get a turn to read from and modify the fellowship data, and if so, how is this managed?
-
-            // Currently, creating and leaving a fellowship is supported.
-            // Any other fellowship function is not yet supported.
-
             var fellowship = session.Player.Fellowship;
 
             #region PackableHashTable of fellowship table - <ObjectID,Fellow>
@@ -48,9 +38,9 @@ namespace ACE.Server.Network.GameEvent.Events
 
             Writer.Write(Convert.ToUInt32(fellowship.IsLocked));
 
-            // TODO PackableHashTable of fellows departed - fellowsDeparted  -<ObjectID,int>
-            Writer.Write((uint)0x00200000);
-            Writer.Write((uint)0x00200000);
+            Writer.Write(fellowship.DepartedMembers);
+
+            Writer.Write(fellowship.FellowshipLocks);
         }
 
         public void WriteFellow(Player fellow)

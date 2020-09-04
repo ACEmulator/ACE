@@ -16,6 +16,8 @@ namespace ACE.Server.Command
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public static readonly bool NonInteractiveConsole = Convert.ToBoolean(Environment.GetEnvironmentVariable("ACE_NONINTERACTIVE_CONSOLE"));
+
         private static Dictionary<string, CommandHandlerInfo> commandHandlers;
 
         public static IEnumerable<CommandHandlerInfo> GetCommands()
@@ -48,7 +50,11 @@ namespace ACE.Server.Command
                 }
             }
 
-            if (Program.IsRunningInContainer) return;
+            if (NonInteractiveConsole)
+            {
+                log.Info("ACEmulator command prompt disabled - Environment.GetEnvironmentVariable(ACE_NONINTERACTIVE_CONSOLE) was true");
+                return;
+            }
 
             var thread = new Thread(new ThreadStart(CommandThread));
             thread.Name = "Command Manager";
@@ -130,6 +136,11 @@ namespace ACE.Server.Command
             }
             var commandSplit = commandLine.Split(' ',StringSplitOptions.RemoveEmptyEntries);
             command = commandSplit[0];
+
+            // remove leading '/' or '@' if erroneously entered in console
+            if(command.StartsWith("/") || command.StartsWith("@"))
+                command = command.Substring(1);
+
             parameters = new string[commandSplit.Length - 1];
 
             Array.Copy(commandSplit, 1, parameters, 0, commandSplit.Length - 1);
@@ -216,7 +227,7 @@ namespace ACE.Server.Command
             {
                 bool isAdvocate = session.Player.IsAdvocate;
                 bool isSentinel = session.Player.IsSentinel;
-                bool isEnvoy = isSentinel; // TODO: Add more resolution to player levels so we can separate IsEnvoy from IsSentinel
+                bool isEnvoy = session.Player.IsEnvoy; 
                 bool isArch = session.Player.IsArch;
                 bool isAdmin = session.Player.IsAdmin;
 

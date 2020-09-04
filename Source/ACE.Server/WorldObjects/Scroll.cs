@@ -6,8 +6,6 @@ using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class Scroll : WorldObject
@@ -57,7 +55,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (player.IsBusy)
+            if (player.IsBusy || player.Teleporting || player.suicideInProgress)
             {
                 player.SendWeenieError(WeenieError.YoureTooBusy);
                 return;

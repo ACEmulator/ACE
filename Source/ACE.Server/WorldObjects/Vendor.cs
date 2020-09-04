@@ -15,8 +15,6 @@ using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Managers;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     /// <summary>
@@ -202,7 +200,7 @@ namespace ACE.Server.WorldObjects
             if (inventoryloaded)
                 return;
 
-            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Shop))
+            foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Shop))
             {
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 
@@ -444,21 +442,26 @@ namespace ACE.Server.WorldObjects
                 if (wo.ItemType == ItemType.PromissoryNote)
                     sellRate = 1.15;
 
-                goldcost += Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (wo.Value ?? 0)) - 0.1));
+                var cost = Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (wo.Value ?? 0)) - 0.1));
+
+                if (AlternateCurrency == null)
+                    goldcost += cost;
+                else
+                    altcost += cost;
             }
 
             foreach (WorldObject wo in genlist)
             {
-                if (AlternateCurrency == null)
-                {
-                    var sellRate = SellPrice ?? 1.0;
-                    if (wo.ItemType == ItemType.PromissoryNote)
-                        sellRate = 1.15;
+                var sellRate = SellPrice ?? 1.0;
+                if (wo.ItemType == ItemType.PromissoryNote)
+                    sellRate = 1.15;
 
-                    goldcost += Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (wo.Value ?? 0)) - 0.1));
-                }
+                var cost = Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (wo.Value ?? 0)) - 0.1));
+
+                if (AlternateCurrency == null)
+                    goldcost += cost;
                 else
-                    altcost += (uint)Math.Max(1, wo.Value ?? 1);
+                    altcost += cost;
             }
 
             if (IsBusy && genlist.Any(i => i.GetProperty(PropertyBool.VendorService) == true))
@@ -523,6 +526,10 @@ namespace ACE.Server.WorldObjects
 
                 // don't resell DestroyOnSell
                 if (item.GetProperty(PropertyBool.DestroyOnSell) ?? false)
+                    resellItem = false;
+
+                // don't resell Attuned items that can be sold
+                if (item.Attuned == AttunedStatus.Attuned)
                     resellItem = false;
 
                 // don't resell stackables?

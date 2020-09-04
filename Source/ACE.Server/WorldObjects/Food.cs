@@ -8,8 +8,6 @@ using ACE.Server.Entity;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class Food : Stackable
@@ -46,13 +44,13 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return;
 
-            if (player.IsBusy || player.Teleporting)
+            if (player.IsBusy || player.Teleporting || player.suicideInProgress)
             {
                 player.SendWeenieError(WeenieError.YoureTooBusy);
                 return;
             }
 
-            if (player.FastTick && !player.PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            if (player.IsJumping)
             {
                 player.SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
                 return;
@@ -130,7 +128,11 @@ namespace ACE.Server.WorldObjects
 
                 return;
             }
-            TryCastSpell(spell, player);
+
+            // should be 'You cast', instead of 'Item cast'
+            // omitting the item caster here, so player is also used for enchantment registry caster,
+            // which could prevent some scenarios with spamming enchantments from multiple food sources to protect against dispels
+            player.TryCastSpell(spell, player, null, false);
         }
 
         public Sound GetUseSound()

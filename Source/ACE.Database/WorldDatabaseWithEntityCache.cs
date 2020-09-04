@@ -173,13 +173,11 @@ namespace ACE.Database
                             .Where(r => r.Type == weenieTypeId)
                             .ToList();
 
-                        var rand = new Random();
-
                         weenies = new List<ACE.Entity.Models.Weenie>();
 
                         for (int i = 0; i < count; i++)
                         {
-                            var index = rand.Next(0, results.Count - 1);
+                            var index = ThreadSafeRandom.Next(0, results.Count - 1);
 
                             var weenie = GetCachedWeenie(results[index].ClassId);
 
@@ -198,13 +196,11 @@ namespace ACE.Database
                 return new List<ACE.Entity.Models.Weenie>();
 
             {
-                var rand = new Random();
-
                 var results = new List<ACE.Entity.Models.Weenie>();
 
                 for (int i = 0; i < count; i++)
                 {
-                    var index = rand.Next(0, weenies.Count - 1);
+                    var index = ThreadSafeRandom.Next(0, weenies.Count - 1);
 
                     var weenie = GetCachedWeenie(weenies[index].WeenieClassId);
 
@@ -230,6 +226,8 @@ namespace ACE.Database
 
                         var result = query.FirstOrDefault();
 
+                        if (result == null) return null;
+
                         weenie = WeenieConverter.ConvertToEntityWeenie(result);
 
                         scrollsBySpellID[spellID] = weenie;
@@ -238,6 +236,41 @@ namespace ACE.Database
             }
 
             return weenie;
+        }
+
+        private readonly ConcurrentDictionary<string, uint> creatureWeenieNamesLowerInvariantCache = new ConcurrentDictionary<string, uint>();
+
+        public bool IsCreatureNameInWorldDatabase(string name)
+        {
+            if (creatureWeenieNamesLowerInvariantCache.TryGetValue(name.ToLowerInvariant(), out _))
+                return true;
+
+            using (var context = new WorldDbContext())
+            {
+                return IsCreatureNameInWorldDatabase(context, name);
+            }
+        }
+
+        public bool IsCreatureNameInWorldDatabase(WorldDbContext context, string name)
+        {
+            var query = from weenieRecord in context.Weenie
+                        join stringProperty in context.WeeniePropertiesString on weenieRecord.ClassId equals stringProperty.ObjectId
+                        where weenieRecord.Type == (int)WeenieType.Creature && stringProperty.Type == (ushort)PropertyString.Name && stringProperty.Value.ToLowerInvariant() == name.ToLowerInvariant()
+                        select weenieRecord;
+
+            var weenie = query
+                .Include(r => r.WeeniePropertiesString)
+                .AsNoTracking()
+                .FirstOrDefault();
+
+            if (weenie == null)
+                return false;
+
+            var weenieName = weenie.GetProperty(PropertyString.Name).ToLowerInvariant();
+
+            creatureWeenieNamesLowerInvariantCache.TryAdd(weenieName, weenie.ClassId);
+
+            return true;
         }
 
 

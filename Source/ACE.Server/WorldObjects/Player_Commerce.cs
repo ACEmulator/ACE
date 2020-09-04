@@ -143,7 +143,7 @@ namespace ACE.Server.WorldObjects
             var currencyStacksCollected = new List<WorldObject>();
 
             var currencyStacksInInventory = GetInventoryItemsOfWCID(currencyWeenieClassId);
-            currencyStacksInInventory = currencyStacksInInventory.OrderBy(o => o.Value).ToList();
+            //currencyStacksInInventory = currencyStacksInInventory.OrderBy(o => o.Value).ToList();
 
             var leftToCollect = (int)amountToSpend;
             foreach (var stack in currencyStacksInInventory)
@@ -279,7 +279,10 @@ namespace ACE.Server.WorldObjects
                                 vendor.TryCastSpell(spell, this, vendor);
                                 vendor.PostCastMotion();
                             });
-                            castChain.AddDelaySeconds(preCastTime);
+
+                            var postCastTime = vendor.GetPostCastTime();
+
+                            castChain.AddDelaySeconds(postCastTime);
                             castChain.AddAction(vendor, () => vendor.IsBusy = false);
 
                             castChain.EnqueueChain();

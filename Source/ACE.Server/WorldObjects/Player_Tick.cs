@@ -1,9 +1,12 @@
 using System;
 using System.Linq;
+using System.Numerics;
 
 using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -255,7 +258,7 @@ namespace ACE.Server.WorldObjects
                     RequestedLocation = null;
                 }
 
-                if (FastTick && PhysicsObj.IsMovingOrAnimating)
+                if (FastTick && PhysicsObj.IsMovingOrAnimating || PhysicsObj.Velocity != Vector3.Zero)
                     UpdatePlayerPhysics();
 
                 InUpdate = false;
@@ -285,6 +288,21 @@ namespace ACE.Server.WorldObjects
 
             // sync ace position?
             Location.Rotation = PhysicsObj.Position.Frame.Orientation;
+
+            if (!FastTick) return;
+
+            // ensure PKLogout position is synced up for other players
+            if (PKLogout)
+            {
+                EnqueueBroadcast(new GameMessageUpdateMotion(this, new Motion(MotionStance.NonCombat, MotionCommand.Ready)));
+                PhysicsObj.StopCompletely(true);
+
+                if (!PhysicsObj.IsMovingOrAnimating)
+                {
+                    SyncLocation();
+                    EnqueueBroadcast(new GameMessageUpdatePosition(this));
+                }
+            }
 
             // this fixes some differences between client movement (DoMotion/StopMotion) and server movement (apply_raw_movement)
             //
@@ -338,7 +356,7 @@ namespace ACE.Server.WorldObjects
             // pre-validate movement
             if (!ValidateMovement(newPosition))
             {
-                log.Error($"{Name}.UpdatePlayerPhysics() - movement pre-validation failed from {Location} to {newPosition}");
+                log.Error($"{Name}.UpdatePlayerPosition() - movement pre-validation failed from {Location} to {newPosition}");
                 return false;
             }
 
@@ -396,7 +414,7 @@ namespace ACE.Server.WorldObjects
                                 PhysicsObj.CurCell = curCell;
                             }
 
-                            if (verifyContact && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+                            if (verifyContact && IsJumping)
                             {
                                 log.Warn($"z-pos hacking detected for {Name}, lastGroundPos: {LastGroundPos.ToLOCString()} - requestPos: {newPosition.ToLOCString()}");
                                 Location = new ACE.Entity.Position(LastGroundPos);
@@ -408,6 +426,8 @@ namespace ACE.Server.WorldObjects
                             CheckMonsters();
                         }
                     }
+                    else
+                        PhysicsObj.Position.Frame.Orientation = newPosition.Rotation;
                 }
 
                 // double update path: landblock physics update -> updateplayerphysics() -> update_object_server() -> Teleport() -> updateplayerphysics() -> return to end of original branch
@@ -438,10 +458,10 @@ namespace ACE.Server.WorldObjects
                 {
                     var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
                     ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Player_Tick_UpdateObjectPhysics, elapsedSeconds);
-                    if (elapsedSeconds >= 1) // Yea, that ain't good....
-                        log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
+                    if (elapsedSeconds >= 0.100) // Yea, that ain't good....
+                        log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPosition() at loc: {Location}");
                     else if (elapsedSeconds >= 0.010)
-                        log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
+                        log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPosition() at loc: {Location}");
                 }
             }
         }
@@ -585,7 +605,7 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(msg, sound);
                     if (item.WielderId != null)
                     {
-                        if (item.Biota.BiotaPropertiesSpellBook != null)
+                        if (item.Biota.PropertiesSpellBook != null)
                         {
                             // unsure if these messages / sounds were ever sent in retail,
                             // or if it just purged the enchantments invisibly
@@ -594,10 +614,8 @@ namespace ACE.Server.WorldObjects
                             actionChain.AddDelaySeconds(2.0f);
                             actionChain.AddAction(this, () =>
                             {
-                                for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
-                                {
-                                    RemoveItemSpell(item, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
-                                }
+                                foreach (var spellId in item.Biota.GetKnownSpellsIds(item.BiotaDatabaseLock))
+                                    RemoveItemSpell(item, (uint)spellId);
                             });
                             actionChain.EnqueueChain();
                         }
