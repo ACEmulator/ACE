@@ -298,6 +298,19 @@ namespace ACE.Server.Network.Structure
                     PropertiesInt.Remove(PropertyInt.Structure);
             }
 
+            if (!Success)
+            {
+                // todo: what specifically to keep/what to clear
+
+                //PropertiesBool.Clear();
+                //PropertiesDID.Clear();
+                //PropertiesFloat.Clear();
+                //PropertiesIID.Clear();
+                //PropertiesInt.Clear();
+                //PropertiesInt64.Clear();
+                //PropertiesString.Clear();
+            }
+
             BuildFlags();
         }
 
@@ -548,6 +561,9 @@ namespace ACE.Server.Network.Structure
 
         private void BuildArmor(WorldObject wo)
         {
+            if (!Success)
+                return;
+
             ArmorProfile = new ArmorProfile(wo);
             ArmorHighlight = ArmorMaskHelper.GetHighlightMask(wo);
             ArmorColor = ArmorMaskHelper.GetColorMask(wo);
@@ -563,7 +579,7 @@ namespace ACE.Server.Network.Structure
             ResistHighlight = ResistMaskHelper.GetHighlightMask(creature);
             ResistColor = ResistMaskHelper.GetColorMask(creature);
 
-            if (creature is Player || !creature.Attackable)
+            if (Success && (creature is Player || !creature.Attackable))
                 ArmorLevels = new ArmorLevel(creature);
 
             AddRatings(creature);
@@ -578,6 +594,9 @@ namespace ACE.Server.Network.Structure
 
         private void AddRatings(Creature creature)
         {
+            if (!Success)
+                return;
+
             var damageRating = creature.GetDamageRating();
 
             // include heritage / weapon type rating?
@@ -636,6 +655,9 @@ namespace ACE.Server.Network.Structure
 
         private void BuildWeapon(WorldObject weapon, WorldObject wielder)
         {
+            if (!Success)
+                return;
+
             var weaponProfile = new WeaponProfile(weapon, wielder);
 
             //WeaponHighlight = WeaponMaskHelper.GetHighlightMask(weapon, wielder);
