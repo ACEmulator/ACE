@@ -299,6 +299,18 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Some quests we do not want to scale MinDelta if "quest_mindelta_rate" has been set.
+        /// They may be things that are races against time, like Colo
+        /// </summary>
+        public static bool CanScaleQuestMinDelta(Database.Models.World.Quest quest)
+        {
+            if (quest.Name.StartsWith("ColoArena"))
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
         /// Returns the time remaining until the player can solve this quest again
         /// </summary>
         public TimeSpan GetNextSolveTime(string questFormat)
@@ -317,7 +329,12 @@ namespace ACE.Server.Managers
                 return TimeSpan.MaxValue;   // cannot solve this quest again - max solves reached / exceeded
 
             var currentTime = (uint)Time.GetUnixTime();
-            var nextSolveTime = playerQuest.LastTimeCompleted + (uint)(quest.MinDelta * PropertyManager.GetDouble("quest_mindelta_rate", 1).Item);
+            uint nextSolveTime;
+
+            if (CanScaleQuestMinDelta(quest))
+                nextSolveTime = playerQuest.LastTimeCompleted + (uint)(quest.MinDelta * PropertyManager.GetDouble("quest_mindelta_rate", 1).Item);
+            else
+                nextSolveTime = playerQuest.LastTimeCompleted + quest.MinDelta;
 
             if (currentTime >= nextSolveTime)
                 return TimeSpan.MinValue;   // can solve again now - next solve time expired

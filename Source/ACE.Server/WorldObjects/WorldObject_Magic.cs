@@ -350,6 +350,9 @@ namespace ACE.Server.WorldObjects
 
                     Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MagicDefense), magicSkill);
                 }
+
+                if (this is Creature creature)
+                    targetCreature.EmoteManager.OnResistSpell(creature);
             }
 
             if (casterCreature != null && casterCreature.DebugDamage.HasFlag(Creature.DebugDamageType.Attacker))
@@ -1401,7 +1404,7 @@ namespace ACE.Server.WorldObjects
 
                         if (spell.Peturbation != Vector3.Zero)
                         {
-                            var rng = new Vector3(ThreadSafeRandom.Next(-1.0f, 1.0f), ThreadSafeRandom.Next(-1.0f, 1.0f), ThreadSafeRandom.Next(-1.0f, 1.0f));
+                            var rng = new Vector3((float)ThreadSafeRandom.Next(-1.0f, 1.0f), (float)ThreadSafeRandom.Next(-1.0f, 1.0f), (float)ThreadSafeRandom.Next(-1.0f, 1.0f));
 
                             curOffset += rng * spell.Peturbation * spell.Padding;
                         }

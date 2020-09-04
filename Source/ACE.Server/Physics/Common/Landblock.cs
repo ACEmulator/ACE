@@ -68,6 +68,8 @@ namespace ACE.Server.Physics.Common
 
         public void PostInit()
         {
+            init_landcell();
+
             init_buildings();
             init_static_objs();
         }

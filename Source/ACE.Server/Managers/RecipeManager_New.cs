@@ -248,8 +248,17 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALSILVER_CLASS:
                 case WeenieClassName.W_MATERIALCOPPER_CLASS:
 
-                    // ensure armor w/ workmanship
-                    if (target.ItemType != ItemType.Armor || (target.ArmorLevel ?? 0) == 0 || target.Workmanship == null)
+                    // ensure loot-generated item w/ armor level
+                    if ((target.ArmorLevel ?? 0) == 0 || target.Workmanship == null)
+                        return null;
+
+                    var allowArmor = target.ItemType == ItemType.Armor;
+
+                    // allow clothing that only covers an extremity
+                    // this excludes some clothing like boots and robes that cover extremities + non-extremities
+                    var allowClothing = target.ItemType == ItemType.Clothing && (target.ValidLocations == EquipMask.HeadWear || target.ValidLocations == EquipMask.HandWear || target.ValidLocations == EquipMask.FootWear);
+
+                    if (!allowArmor && !allowClothing)
                         return null;
 
                     // TODO: replace with PropertyInt.MeleeDefenseImbuedEffectTypeCache == 1 when data is updated

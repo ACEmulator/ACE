@@ -59,7 +59,7 @@ namespace ACE.Server.WorldObjects
             foreach (var item in set.Items)
             {
                 probability += item.Item.Probability;
-                if (rng > probability) continue;
+                if (rng >= probability) continue;
 
                 // item roll successful, spawn item in creature inventory
                 var wo = CreateWieldedTreasure(item.Item);
