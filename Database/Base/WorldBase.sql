@@ -613,6 +613,23 @@ CREATE TABLE `treasure_death` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `treasure_gem_count`
+--
+
+DROP TABLE IF EXISTS `treasure_gem_count`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+ SET character_set_client = utf8mb4 ;
+CREATE TABLE `treasure_gem_count` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `gem_Code` tinyint(3) unsigned NOT NULL,
+  `tier` int(11) NOT NULL,
+  `count` int(11) NOT NULL,
+  `chance` float NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf16;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `treasure_material_base`
 --
 
@@ -627,7 +644,7 @@ CREATE TABLE `treasure_material_base` (
   `material_Id` int(10) unsigned NOT NULL COMMENT 'MaterialType',
   PRIMARY KEY (`id`),
   KEY `tier` (`tier`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -646,7 +663,7 @@ CREATE TABLE `treasure_material_color` (
   PRIMARY KEY (`id`),
   KEY `material_Id` (`material_Id`),
   KEY `tsys_Mutation_Color` (`color_Code`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -664,7 +681,7 @@ CREATE TABLE `treasure_material_groups` (
   `material_Id` int(10) unsigned NOT NULL COMMENT 'MaterialType',
   PRIMARY KEY (`id`),
   KEY `tier` (`tier`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
