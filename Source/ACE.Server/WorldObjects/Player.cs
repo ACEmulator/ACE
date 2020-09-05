@@ -560,7 +560,7 @@ namespace ACE.Server.WorldObjects
                     SavePlayerToDatabase();
                     PlayerManager.SwitchPlayerFromOnlineToOffline(this);
 
-                    if (Session.PendingTermination != null)
+                    if (Session.PendingTermination != null || ServerManager.ShutdownInProgress)
                         Session.DropSessionPost();
                 });
 
@@ -596,7 +596,7 @@ namespace ACE.Server.WorldObjects
                 SavePlayerToDatabase();
                 PlayerManager.SwitchPlayerFromOnlineToOffline(this);
 
-                if (Session.PendingTermination != null)
+                if (Session.PendingTermination != null || ServerManager.ShutdownInProgress)
                     Session.DropSessionPost();
             }
         }
