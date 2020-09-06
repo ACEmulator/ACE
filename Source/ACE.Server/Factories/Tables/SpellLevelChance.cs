@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+
 using log4net;
 
 using ACE.Common;
@@ -9,7 +10,7 @@ namespace ACE.Server.Factories.Tables
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static List<float> T1_SpellLevelChances = new List<float>()
+        private static readonly List<float> T1_SpellLevelChances = new List<float>()
         {
             0.25f,
             0.5f,
@@ -21,7 +22,7 @@ namespace ACE.Server.Factories.Tables
             0,
         };
 
-        private static List<float> T2_SpellLevelChances = new List<float>()
+        private static readonly List<float> T2_SpellLevelChances = new List<float>()
         {
             0,
             0,
@@ -33,7 +34,7 @@ namespace ACE.Server.Factories.Tables
             0
         };
 
-        private static List<float> T3_SpellLevelChances = new List<float>()
+        private static readonly List<float> T3_SpellLevelChances = new List<float>()
         {
             0,
             0,
@@ -45,7 +46,7 @@ namespace ACE.Server.Factories.Tables
             0,
         };
 
-        private static List<float> T4_SpellLevelChances = new List<float>()
+        private static readonly List<float> T4_SpellLevelChances = new List<float>()
         {
             0,
             0,
@@ -57,7 +58,7 @@ namespace ACE.Server.Factories.Tables
             0,
         };
 
-        private static List<float> T5_SpellLevelChances = new List<float>()
+        private static readonly List<float> T5_SpellLevelChances = new List<float>()
         {
             0,
             0,
@@ -69,7 +70,7 @@ namespace ACE.Server.Factories.Tables
             0,
         };
 
-        private static List<float> T6_SpellLevelChances = new List<float>()
+        private static readonly List<float> T6_SpellLevelChances = new List<float>()
         {
             0,
             0,
@@ -82,7 +83,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // TODO: adjust
-        private static List<float> T7_SpellLevelChances = new List<float>()
+        private static readonly List<float> T7_SpellLevelChances = new List<float>()
         {
             0,
             0,
@@ -94,7 +95,7 @@ namespace ACE.Server.Factories.Tables
             0
         };
 
-        private static List<float> T8_SpellLevelChances = new List<float>()
+        private static readonly List<float> T8_SpellLevelChances = new List<float>()
         {
             0,
             0,

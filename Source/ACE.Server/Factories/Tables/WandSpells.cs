@@ -19,11 +19,11 @@ namespace ACE.Server.Factories.Tables
             SpellId.ItemEnchantmentMasterySelf1,
             SpellId.LifeMagicMasterySelf1,
             SpellId.WarMagicMasterySelf1,
-            SpellId.VoidMagicMasterySelf1,  // not in original LootTable.cs, i assume this should be added?
+            SpellId.VoidMagicMasterySelf1,  // missing from original
 
             SpellId.DefenderSelf1,
             SpellId.HermeticLinkSelf1,
-            // spirit thirst?
+            SpellId.SpiritDrinkerSelf1,     // added to match WandCantrips
 
             SpellId.ArcaneEnlightenmentSelf1,
             SpellId.ManaMasterySelf1,
