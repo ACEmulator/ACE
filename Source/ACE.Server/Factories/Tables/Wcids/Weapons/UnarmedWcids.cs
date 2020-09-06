@@ -7,7 +7,7 @@ namespace ACE.Server.Factories.Tables.Wcids
     {
         private static readonly ChanceTable<WeenieClassName> UnarmedWcids_Aluvian = new ChanceTable<WeenieClassName>()
         {
-            ( WeenieClassName.cestus,         0.4f ),
+            ( WeenieClassName.cestus,         0.40f ),
             ( WeenieClassName.cestusacid,     0.15f ),
             ( WeenieClassName.cestuselectric, 0.15f ),
             ( WeenieClassName.cestusfire,     0.15f ),
@@ -16,7 +16,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         private static readonly ChanceTable<WeenieClassName> UnarmedWcids_Gharundim = new ChanceTable<WeenieClassName>()
         {
-            ( WeenieClassName.katar,         0.4f ),
+            ( WeenieClassName.katar,         0.40f ),
             ( WeenieClassName.kataracid,     0.15f ),
             ( WeenieClassName.katarelectric, 0.15f ),
             ( WeenieClassName.katarfire,     0.15f ),
@@ -25,7 +25,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         private static readonly ChanceTable<WeenieClassName> UnarmedWcids_Sho = new ChanceTable<WeenieClassName>()
         {
-            ( WeenieClassName.nekode,         0.4f ),
+            ( WeenieClassName.nekode,         0.40f ),
             ( WeenieClassName.nekodeacid,     0.15f ),
             ( WeenieClassName.nekodeelectric, 0.15f ),
             ( WeenieClassName.nekodefire,     0.15f ),

@@ -7,15 +7,15 @@ namespace ACE.Server.Factories.Tables.Wcids
     {
         private static readonly ChanceTable<WeenieClassName> T1_T4_Chances = new ChanceTable<WeenieClassName>()
         {
-            (WeenieClassName.atlatl,         0.5f ),
-            (WeenieClassName.atlatlroyal,    0.5f ),
-            (WeenieClassName.atlatlslashing, 0f ),
-            (WeenieClassName.atlatlpiercing, 0f ),
-            (WeenieClassName.atlatlblunt,    0f ),
-            (WeenieClassName.atlatlacid,     0f ),
-            (WeenieClassName.atlatlfire,     0f ),
-            (WeenieClassName.atlatlfrost,    0f ),
-            (WeenieClassName.atlatlelectric, 0f ),
+            ( WeenieClassName.atlatl,         0.50f ),
+            ( WeenieClassName.atlatlroyal,    0.50f ),
+            ( WeenieClassName.atlatlslashing, 0.00f ),
+            ( WeenieClassName.atlatlpiercing, 0.00f ),
+            ( WeenieClassName.atlatlblunt,    0.00f ),
+            ( WeenieClassName.atlatlacid,     0.00f ),
+            ( WeenieClassName.atlatlfire,     0.00f ),
+            ( WeenieClassName.atlatlfrost,    0.00f ),
+            ( WeenieClassName.atlatlelectric, 0.00f ),
         };
 
         private static readonly ChanceTable<WeenieClassName> T5_Chances = new ChanceTable<WeenieClassName>()
@@ -33,8 +33,8 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         private static readonly ChanceTable<WeenieClassName> T6_Chances = new ChanceTable<WeenieClassName>()
         {
-            ( WeenieClassName.atlatl,         0f ),
-            ( WeenieClassName.atlatlroyal,    0f ),
+            ( WeenieClassName.atlatl,         0.00f ),
+            ( WeenieClassName.atlatlroyal,    0.00f ),
             ( WeenieClassName.atlatlslashing, 0.15f ),
             ( WeenieClassName.atlatlpiercing, 0.15f ),
             ( WeenieClassName.atlatlblunt,    0.14f ),

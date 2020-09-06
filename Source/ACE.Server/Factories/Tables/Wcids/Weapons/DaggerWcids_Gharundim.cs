@@ -36,11 +36,11 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.khanjarelectric, 0.01f ),
             ( WeenieClassName.khanjarfire,     0.01f ),
             ( WeenieClassName.khanjarfrost,    0.01f ),
-            ( WeenieClassName.dirk,            0.4f ),
-            ( WeenieClassName.dirkacid,        0.1f ),
-            ( WeenieClassName.dirkelectric,    0.1f ),
-            ( WeenieClassName.dirkfire,        0.1f ),
-            ( WeenieClassName.dirkfrost,       0.1f ),
+            ( WeenieClassName.dirk,            0.40f ),
+            ( WeenieClassName.dirkacid,        0.10f ),
+            ( WeenieClassName.dirkelectric,    0.10f ),
+            ( WeenieClassName.dirkfire,        0.10f ),
+            ( WeenieClassName.dirkfrost,       0.10f ),
         };
 
         private static readonly ChanceTable<WeenieClassName> T5_T6_Chances = new ChanceTable<WeenieClassName>()

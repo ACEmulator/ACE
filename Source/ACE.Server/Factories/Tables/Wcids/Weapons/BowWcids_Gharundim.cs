@@ -7,15 +7,15 @@ namespace ACE.Server.Factories.Tables.Wcids
     {
         private static readonly ChanceTable<WeenieClassName> T1_T4_Chances = new ChanceTable<WeenieClassName>()
         {
-            ( WeenieClassName.yag,         0.5f ),
-            ( WeenieClassName.nayin,       0.5f ),
-            ( WeenieClassName.bowslashing, 0f ),
-            ( WeenieClassName.bowpiercing, 0f ),
-            ( WeenieClassName.bowblunt,    0f ),
-            ( WeenieClassName.bowacid,     0f ),
-            ( WeenieClassName.bowfire,     0f ),
-            ( WeenieClassName.bowfrost,    0f ),
-            ( WeenieClassName.bowelectric, 0f ),
+            ( WeenieClassName.yag,         0.50f ),
+            ( WeenieClassName.nayin,       0.50f ),
+            ( WeenieClassName.bowslashing, 0.00f ),
+            ( WeenieClassName.bowpiercing, 0.00f ),
+            ( WeenieClassName.bowblunt,    0.00f ),
+            ( WeenieClassName.bowacid,     0.00f ),
+            ( WeenieClassName.bowfire,     0.00f ),
+            ( WeenieClassName.bowfrost,    0.00f ),
+            ( WeenieClassName.bowelectric, 0.00f ),
         };
 
         private static readonly ChanceTable<WeenieClassName> T5_Chances = new ChanceTable<WeenieClassName>()
@@ -33,8 +33,8 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         private static readonly ChanceTable<WeenieClassName> T6_Chances = new ChanceTable<WeenieClassName>()
         {
-            ( WeenieClassName.yag,         0f ),
-            ( WeenieClassName.nayin,       0f ),
+            ( WeenieClassName.yag,         0.00f ),
+            ( WeenieClassName.nayin,       0.00f ),
             ( WeenieClassName.bowslashing, 0.15f ),
             ( WeenieClassName.bowpiercing, 0.15f ),
             ( WeenieClassName.bowblunt,    0.14f ),

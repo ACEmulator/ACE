@@ -1,7 +1,7 @@
 using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Enum;
 
-namespace ACE.Server.Factories.Tables.Wcids.Weapons
+namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class SpearWcids
     {

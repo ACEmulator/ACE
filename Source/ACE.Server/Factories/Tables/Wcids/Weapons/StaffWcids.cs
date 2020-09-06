@@ -1,13 +1,13 @@
 using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Enum;
 
-namespace ACE.Server.Factories.Tables.Wcids.Weapons
+namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class StaffWcids
     {
         private static readonly ChanceTable<WeenieClassName> StaffWcids_Aluvian = new ChanceTable<WeenieClassName>()
         {
-            ( WeenieClassName.quarterstaffnew,         0.4f ),
+            ( WeenieClassName.quarterstaffnew,         0.40f ),
             ( WeenieClassName.quarterstaffacidnew,     0.15f ),
             ( WeenieClassName.quarterstaffelectricnew, 0.15f ),
             ( WeenieClassName.quarterstaffflamenew,    0.15f ),
@@ -16,7 +16,7 @@ namespace ACE.Server.Factories.Tables.Wcids.Weapons
 
         private static readonly ChanceTable<WeenieClassName> StaffWcids_Gharundim = new ChanceTable<WeenieClassName>()
         {
-            ( WeenieClassName.nabutnew,         0.4f ),
+            ( WeenieClassName.nabutnew,         0.40f ),
             ( WeenieClassName.nabutacidnew,     0.15f ),
             ( WeenieClassName.nabutelectricnew, 0.15f ),
             ( WeenieClassName.nabutfirenew,     0.15f ),
@@ -25,7 +25,7 @@ namespace ACE.Server.Factories.Tables.Wcids.Weapons
 
         private static readonly ChanceTable<WeenieClassName> StaffWcids_Sho = new ChanceTable<WeenieClassName>()
         {
-            ( WeenieClassName.jonew,         0.4f ),
+            ( WeenieClassName.jonew,         0.40f ),
             ( WeenieClassName.joacidnew,     0.15f ),
             ( WeenieClassName.joelectricnew, 0.15f ),
             ( WeenieClassName.jofirenew,     0.15f ),

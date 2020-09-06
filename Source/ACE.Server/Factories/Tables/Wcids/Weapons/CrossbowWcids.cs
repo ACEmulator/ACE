@@ -7,15 +7,15 @@ namespace ACE.Server.Factories.Tables.Wcids
     {
         private static readonly ChanceTable<WeenieClassName> T1_T4_Chances = new ChanceTable<WeenieClassName>()
         {
-            ( WeenieClassName.crossbowlight,    0.5f ),
-            ( WeenieClassName.crossbowheavy,    0.5f ),
-            ( WeenieClassName.crossbowslashing, 0f ),
-            ( WeenieClassName.crossbowpiercing, 0f ),
-            ( WeenieClassName.crossbowblunt,    0f ),
-            ( WeenieClassName.crossbowacid,     0f ),
-            ( WeenieClassName.crossbowfire,     0f ),
-            ( WeenieClassName.crossbowfrost,    0f ),
-            ( WeenieClassName.crossbowelectric, 0f ),
+            ( WeenieClassName.crossbowlight,    0.50f ),
+            ( WeenieClassName.crossbowheavy,    0.50f ),
+            ( WeenieClassName.crossbowslashing, 0.00f ),
+            ( WeenieClassName.crossbowpiercing, 0.00f ),
+            ( WeenieClassName.crossbowblunt,    0.00f ),
+            ( WeenieClassName.crossbowacid,     0.00f ),
+            ( WeenieClassName.crossbowfire,     0.00f ),
+            ( WeenieClassName.crossbowfrost,    0.00f ),
+            ( WeenieClassName.crossbowelectric, 0.00f ),
         };
 
         private static readonly ChanceTable<WeenieClassName> T5_Chances = new ChanceTable<WeenieClassName>()
@@ -33,8 +33,8 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         private static readonly ChanceTable<WeenieClassName> T6_Chances = new ChanceTable<WeenieClassName>()
         {
-            ( WeenieClassName.crossbowlight,    0f ),
-            ( WeenieClassName.crossbowheavy,    0f ),
+            ( WeenieClassName.crossbowlight,    0.00f ),
+            ( WeenieClassName.crossbowheavy,    0.00f ),
             ( WeenieClassName.crossbowslashing, 0.15f ),
             ( WeenieClassName.crossbowpiercing, 0.15f ),
             ( WeenieClassName.crossbowblunt,    0.14f ),
