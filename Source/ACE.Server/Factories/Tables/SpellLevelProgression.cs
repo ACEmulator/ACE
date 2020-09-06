@@ -6,9 +6,9 @@ namespace ACE.Server.Factories.Tables
 {
     public static class SpellLevelProgression
     {
-        private static Dictionary<SpellId, List<SpellId>> spellProgression;
+        private static readonly Dictionary<SpellId, List<SpellId>> spellProgression = new Dictionary<SpellId, List<SpellId>>();
 
-        public static List<SpellId> StrengthOther = new List<SpellId>()
+        public static readonly List<SpellId> StrengthOther = new List<SpellId>()
         {
             SpellId.StrengthOther1,
             SpellId.StrengthOther2,
@@ -20,7 +20,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.StrengthOther8,
         };
 
-        public static List<SpellId> StrengthSelf = new List<SpellId>()
+        public static readonly List<SpellId> StrengthSelf = new List<SpellId>()
         {
             SpellId.StrengthSelf1,
             SpellId.StrengthSelf2,
@@ -32,7 +32,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.StrengthSelf8,
         };
 
-        public static List<SpellId> WeaknessOther = new List<SpellId>()
+        public static readonly List<SpellId> WeaknessOther = new List<SpellId>()
         {
             SpellId.WeaknessOther1,
             SpellId.WeaknessOther2,
@@ -44,7 +44,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.WeaknessOther8,
         };
 
-        public static List<SpellId> WeaknessSelf = new List<SpellId>()
+        public static readonly List<SpellId> WeaknessSelf = new List<SpellId>()
         {
             SpellId.WeaknessSelf1,
             SpellId.WeaknessSelf2,
@@ -56,7 +56,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.WeaknessSelf8,
         };
 
-        public static List<SpellId> HealOther = new List<SpellId>()
+        public static readonly List<SpellId> HealOther = new List<SpellId>()
         {
             SpellId.HealOther1,
             SpellId.HealOther2,
@@ -68,7 +68,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HealOther8,
         };
 
-        public static List<SpellId> HealSelf = new List<SpellId>()
+        public static readonly List<SpellId> HealSelf = new List<SpellId>()
         {
             SpellId.HealSelf1,
             SpellId.HealSelf2,
@@ -80,7 +80,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HealSelf8,
         };
 
-        public static List<SpellId> HarmOther = new List<SpellId>()
+        public static readonly List<SpellId> HarmOther = new List<SpellId>()
         {
             SpellId.HarmOther1,
             SpellId.HarmOther2,
@@ -92,7 +92,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HarmOther8,
         };
 
-        public static List<SpellId> HarmSelf = new List<SpellId>()
+        public static readonly List<SpellId> HarmSelf = new List<SpellId>()
         {
             SpellId.HarmSelf1,
             SpellId.HarmSelf2,
@@ -104,7 +104,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HarmSelf8,
         };
 
-        public static List<SpellId> InfuseMana = new List<SpellId>()
+        public static readonly List<SpellId> InfuseMana = new List<SpellId>()
         {
             SpellId.InfuseMana1,
             SpellId.InfuseMana2,
@@ -116,7 +116,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.InfuseMana8,
         };
 
-        public static List<SpellId> VulnerabilityOther = new List<SpellId>()
+        public static readonly List<SpellId> VulnerabilityOther = new List<SpellId>()
         {
             SpellId.VulnerabilityOther1,
             SpellId.VulnerabilityOther2,
@@ -128,7 +128,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.VulnerabilityOther8,
         };
 
-        public static List<SpellId> VulnerabilitySelf = new List<SpellId>()
+        public static readonly List<SpellId> VulnerabilitySelf = new List<SpellId>()
         {
             SpellId.VulnerabilitySelf1,
             SpellId.VulnerabilitySelf2,
@@ -140,7 +140,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.VulnerabilitySelf8,
         };
 
-        public static List<SpellId> InvulnerabilityOther = new List<SpellId>()
+        public static readonly List<SpellId> InvulnerabilityOther = new List<SpellId>()
         {
             SpellId.InvulnerabilityOther1,
             SpellId.InvulnerabilityOther2,
@@ -152,7 +152,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.InvulnerabilityOther8,
         };
 
-        public static List<SpellId> InvulnerabilitySelf = new List<SpellId>()
+        public static readonly List<SpellId> InvulnerabilitySelf = new List<SpellId>()
         {
             SpellId.InvulnerabilitySelf1,
             SpellId.InvulnerabilitySelf2,
@@ -164,7 +164,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.InvulnerabilitySelf8,
         };
 
-        public static List<SpellId> FireProtectionOther = new List<SpellId>()
+        public static readonly List<SpellId> FireProtectionOther = new List<SpellId>()
         {
             SpellId.FireProtectionOther1,
             SpellId.FireProtectionOther2,
@@ -176,7 +176,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireProtectionOther8,
         };
 
-        public static List<SpellId> FireProtectionSelf = new List<SpellId>()
+        public static readonly List<SpellId> FireProtectionSelf = new List<SpellId>()
         {
             SpellId.FireProtectionSelf1,
             SpellId.FireProtectionSelf2,
@@ -188,7 +188,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireProtectionSelf8,
         };
 
-        public static List<SpellId> FireVulnerabilityOther = new List<SpellId>()
+        public static readonly List<SpellId> FireVulnerabilityOther = new List<SpellId>()
         {
             SpellId.FireVulnerabilityOther1,
             SpellId.FireVulnerabilityOther2,
@@ -200,7 +200,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireVulnerabilityOther8,
         };
 
-        public static List<SpellId> FireVulnerabilitySelf = new List<SpellId>()
+        public static readonly List<SpellId> FireVulnerabilitySelf = new List<SpellId>()
         {
             SpellId.FireVulnerabilitySelf1,
             SpellId.FireVulnerabilitySelf2,
@@ -212,7 +212,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireVulnerabilitySelf8,
         };
 
-        public static List<SpellId> ArmorOther = new List<SpellId>()
+        public static readonly List<SpellId> ArmorOther = new List<SpellId>()
         {
             SpellId.ArmorOther1,
             SpellId.ArmorOther2,
@@ -224,7 +224,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ArmorOther8,
         };
 
-        public static List<SpellId> ArmorSelf = new List<SpellId>()
+        public static readonly List<SpellId> ArmorSelf = new List<SpellId>()
         {
             SpellId.ArmorSelf1,
             SpellId.ArmorSelf2,
@@ -236,7 +236,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ArmorSelf8,
         };
 
-        public static List<SpellId> ImperilOther = new List<SpellId>()
+        public static readonly List<SpellId> ImperilOther = new List<SpellId>()
         {
             SpellId.ImperilOther1,
             SpellId.ImperilOther2,
@@ -248,7 +248,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ImperilOther8,
         };
 
-        public static List<SpellId> ImperilSelf = new List<SpellId>()
+        public static readonly List<SpellId> ImperilSelf = new List<SpellId>()
         {
             SpellId.ImperilSelf1,
             SpellId.ImperilSelf2,
@@ -260,7 +260,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ImperilSelf8,
         };
 
-        public static List<SpellId> FlameBolt = new List<SpellId>()
+        public static readonly List<SpellId> FlameBolt = new List<SpellId>()
         {
             SpellId.FlameBolt1,
             SpellId.FlameBolt2,
@@ -272,7 +272,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FlameBolt8,
         };
 
-        public static List<SpellId> FrostBolt = new List<SpellId>()
+        public static readonly List<SpellId> FrostBolt = new List<SpellId>()
         {
             SpellId.FrostBolt1,
             SpellId.FrostBolt2,
@@ -284,7 +284,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FrostBolt8,
         };
 
-        public static List<SpellId> BloodDrinkerSelf = new List<SpellId>()
+        public static readonly List<SpellId> BloodDrinkerSelf = new List<SpellId>()
         {
             SpellId.BloodDrinkerSelf1,
             SpellId.BloodDrinkerSelf2,
@@ -296,7 +296,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BloodDrinkerSelf8,
         };
 
-        public static List<SpellId> BloodLoather = new List<SpellId>()
+        public static readonly List<SpellId> BloodLoather = new List<SpellId>()
         {
             SpellId.BloodLoather,
             SpellId.BloodLoather2,
@@ -308,7 +308,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BloodLoather8,
         };
 
-        public static List<SpellId> BladeBane = new List<SpellId>()
+        public static readonly List<SpellId> BladeBane = new List<SpellId>()
         {
             SpellId.BladeBane1,
             SpellId.BladeBane2,
@@ -320,7 +320,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BladeBane8,
         };
 
-        public static List<SpellId> BladeLure = new List<SpellId>()
+        public static readonly List<SpellId> BladeLure = new List<SpellId>()
         {
             SpellId.BladeLure1,
             SpellId.BladeLure2,
@@ -332,19 +332,19 @@ namespace ACE.Server.Factories.Tables
             SpellId.BladeLure8,
         };
 
-        public static List<SpellId> PortalTie = new List<SpellId>()
+        public static readonly List<SpellId> PortalTie = new List<SpellId>()
         {
             SpellId.PortalTie1,
             SpellId.PortalTie2,
         };
 
-        public static List<SpellId> PortalTieRecall = new List<SpellId>()
+        public static readonly List<SpellId> PortalTieRecall = new List<SpellId>()
         {
             SpellId.PortalTieRecall1,
             SpellId.PortalTieRecall2,
         };
 
-        public static List<SpellId> SwiftKillerSelf = new List<SpellId>()
+        public static readonly List<SpellId> SwiftKillerSelf = new List<SpellId>()
         {
             SpellId.SwiftKillerSelf1,
             SpellId.SwiftKillerSelf2,
@@ -356,7 +356,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SwiftKillerSelf8,
         };
 
-        public static List<SpellId> LeadenWeapon = new List<SpellId>()
+        public static readonly List<SpellId> LeadenWeapon = new List<SpellId>()
         {
             SpellId.LeadenWeapon1,
             SpellId.LeadenWeapon2,
@@ -368,7 +368,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LeadenWeapon8,
         };
 
-        public static List<SpellId> Impenetrability = new List<SpellId>()
+        public static readonly List<SpellId> Impenetrability = new List<SpellId>()
         {
             SpellId.Impenetrability1,
             SpellId.Impenetrability2,
@@ -380,7 +380,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.Impenetrability8,
         };
 
-        public static List<SpellId> RejuvenationOther = new List<SpellId>()
+        public static readonly List<SpellId> RejuvenationOther = new List<SpellId>()
         {
             SpellId.RejuvenationOther1,
             SpellId.RejuvenationOther2,
@@ -392,7 +392,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.RejuvenationOther8,
         };
 
-        public static List<SpellId> RejuvenationSelf = new List<SpellId>()
+        public static readonly List<SpellId> RejuvenationSelf = new List<SpellId>()
         {
             SpellId.RejuvenationSelf1,
             SpellId.RejuvenationSelf2,
@@ -404,7 +404,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.RejuvenationSelf8,
         };
 
-        public static List<SpellId> AcidStream = new List<SpellId>()
+        public static readonly List<SpellId> AcidStream = new List<SpellId>()
         {
             SpellId.AcidStream1,
             SpellId.AcidStream2,
@@ -416,7 +416,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AcidStream8,
         };
 
-        public static List<SpellId> ShockWave = new List<SpellId>()
+        public static readonly List<SpellId> ShockWave = new List<SpellId>()
         {
             SpellId.ShockWave1,
             SpellId.ShockWave2,
@@ -428,7 +428,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ShockWave8,
         };
 
-        public static List<SpellId> LightningBolt = new List<SpellId>()
+        public static readonly List<SpellId> LightningBolt = new List<SpellId>()
         {
             SpellId.LightningBolt1,
             SpellId.LightningBolt2,
@@ -440,7 +440,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LightningBolt8,
         };
 
-        public static List<SpellId> ForceBolt = new List<SpellId>()
+        public static readonly List<SpellId> ForceBolt = new List<SpellId>()
         {
             SpellId.ForceBolt1,
             SpellId.ForceBolt2,
@@ -452,7 +452,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ForceBolt8,
         };
 
-        public static List<SpellId> WhirlingBlade = new List<SpellId>()
+        public static readonly List<SpellId> WhirlingBlade = new List<SpellId>()
         {
             SpellId.WhirlingBlade1,
             SpellId.WhirlingBlade2,
@@ -464,7 +464,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.WhirlingBlade8,
         };
 
-        public static List<SpellId> AcidBlast = new List<SpellId>()
+        public static readonly List<SpellId> AcidBlast = new List<SpellId>()
         {
             SpellId.Undef,
             SpellId.Undef,
@@ -477,7 +477,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AcidBlast8,
         };
 
-        public static List<SpellId> ShockBlast = new List<SpellId>()
+        public static readonly List<SpellId> ShockBlast = new List<SpellId>()
         {
             SpellId.Undef,
             SpellId.Undef,
@@ -491,7 +491,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ShockBlast8,
         };
 
-        public static List<SpellId> FrostBlast = new List<SpellId>()
+        public static readonly List<SpellId> FrostBlast = new List<SpellId>()
         {
             SpellId.Undef,
             SpellId.Undef,
@@ -505,7 +505,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FrostBlast8,
         };
 
-        public static List<SpellId> LightningBlast = new List<SpellId>()
+        public static readonly List<SpellId> LightningBlast = new List<SpellId>()
         {
             SpellId.Undef,
             SpellId.Undef,
@@ -519,7 +519,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LightningBlast8,
         };
 
-        public static List<SpellId> FlameBlast = new List<SpellId>()
+        public static readonly List<SpellId> FlameBlast = new List<SpellId>()
         {
             SpellId.Undef,
             SpellId.Undef,
@@ -532,7 +532,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FlameBlast8,
         };
 
-        public static List<SpellId> ForceBlast = new List<SpellId>()
+        public static readonly List<SpellId> ForceBlast = new List<SpellId>()
         {
             SpellId.Undef,
             SpellId.Undef,
@@ -546,7 +546,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ForceBlast8,
         };
 
-        public static List<SpellId> BladeBlast = new List<SpellId>()
+        public static readonly List<SpellId> BladeBlast = new List<SpellId>()
         {
             SpellId.Undef,
             SpellId.Undef,
@@ -560,7 +560,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BladeBlast8,
         };
 
-        public static List<SpellId> AcidVolley = new List<SpellId>()
+        public static readonly List<SpellId> AcidVolley = new List<SpellId>()
         {
             SpellId.Undef,
             SpellId.Undef,
@@ -574,7 +574,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AcidVolley8,
         };
 
-        public static List<SpellId> BludgeoningVolley = new List<SpellId>()
+        public static readonly List<SpellId> BludgeoningVolley = new List<SpellId>()
         {
             SpellId.Undef,
             SpellId.Undef,
@@ -588,7 +588,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BludgeoningVolley8,
         };
 
-        public static List<SpellId> FrostVolley = new List<SpellId>()
+        public static readonly List<SpellId> FrostVolley = new List<SpellId>()
         {
             SpellId.Undef,
             SpellId.Undef,
@@ -602,7 +602,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FrostVolley8,
         };
 
-        public static List<SpellId> LightningVolley = new List<SpellId>()
+        public static readonly List<SpellId> LightningVolley = new List<SpellId>()
         {
             SpellId.Undef,
             SpellId.Undef,
@@ -616,7 +616,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LightningVolley8,
         };
 
-        public static List<SpellId> FlameVolley = new List<SpellId>()
+        public static readonly List<SpellId> FlameVolley = new List<SpellId>()
         {
             SpellId.Undef,
             SpellId.Undef,
@@ -630,7 +630,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FlameVolley8,
         };
 
-        public static List<SpellId> ForceVolley = new List<SpellId>()
+        public static readonly List<SpellId> ForceVolley = new List<SpellId>()
         {
             SpellId.Undef,
             SpellId.Undef,
@@ -644,7 +644,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ForceVolley8,
         };
 
-        public static List<SpellId> BladeVolley = new List<SpellId>()
+        public static readonly List<SpellId> BladeVolley = new List<SpellId>()
         {
             SpellId.Undef,
             SpellId.Undef,
@@ -658,14 +658,14 @@ namespace ACE.Server.Factories.Tables
             SpellId.BladeVolley8,
         };
 
-        public static List<SpellId> SummonPortal = new List<SpellId>()
+        public static readonly List<SpellId> SummonPortal = new List<SpellId>()
         {
             SpellId.SummonPortal1,
             SpellId.SummonPortal2,
             SpellId.SummonPortal3,
         };
 
-        public static List<SpellId> RegenerationOther = new List<SpellId>()
+        public static readonly List<SpellId> RegenerationOther = new List<SpellId>()
         {
             SpellId.RegenerationOther1,
             SpellId.RegenerationOther2,
@@ -677,7 +677,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.RegenerationOther8,
         };
 
-        public static List<SpellId> RegenerationSelf = new List<SpellId>()
+        public static readonly List<SpellId> RegenerationSelf = new List<SpellId>()
         {
             SpellId.RegenerationSelf1,
             SpellId.RegenerationSelf2,
@@ -689,7 +689,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.RegenerationSelf8,
         };
 
-        public static List<SpellId> FesterOther = new List<SpellId>()
+        public static readonly List<SpellId> FesterOther = new List<SpellId>()
         {
             SpellId.FesterOther1,
             SpellId.FesterOther2,
@@ -701,7 +701,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FesterOther8,
         };
 
-        public static List<SpellId> FesterSelf = new List<SpellId>()
+        public static readonly List<SpellId> FesterSelf = new List<SpellId>()
         {
             SpellId.FesterSelf1,
             SpellId.FesterSelf2,
@@ -713,7 +713,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FesterSelf8,
         };
 
-        public static List<SpellId> ExhaustionOther = new List<SpellId>()
+        public static readonly List<SpellId> ExhaustionOther = new List<SpellId>()
         {
             SpellId.ExhaustionOther1,
             SpellId.ExhaustionOther2,
@@ -725,7 +725,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ExhaustionOther8,
         };
 
-        public static List<SpellId> ExhaustionSelf = new List<SpellId>()
+        public static readonly List<SpellId> ExhaustionSelf = new List<SpellId>()
         {
             SpellId.ExhaustionSelf1,
             SpellId.ExhaustionSelf2,
@@ -737,7 +737,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ExhaustionSelf8,
         };
 
-        public static List<SpellId> ManaRenewalOther = new List<SpellId>()
+        public static readonly List<SpellId> ManaRenewalOther = new List<SpellId>()
         {
             SpellId.ManaRenewalOther1,
             SpellId.ManaRenewalOther2,
@@ -749,7 +749,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaRenewalOther8,
         };
 
-        public static List<SpellId> ManaRenewalSelf = new List<SpellId>()
+        public static readonly List<SpellId> ManaRenewalSelf = new List<SpellId>()
         {
             SpellId.ManaRenewalSelf1,
             SpellId.ManaRenewalSelf2,
@@ -761,7 +761,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaRenewalSelf8,
         };
 
-        public static List<SpellId> ManaDepletionOther = new List<SpellId>()
+        public static readonly List<SpellId> ManaDepletionOther = new List<SpellId>()
         {
             SpellId.ManaDepletionOther1,
             SpellId.ManaDepletionOther2,
@@ -773,7 +773,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaDepletionOther8,
         };
 
-        public static List<SpellId> ManaDepletionSelf = new List<SpellId>()
+        public static readonly List<SpellId> ManaDepletionSelf = new List<SpellId>()
         {
             SpellId.ManaDepletionSelf1,
             SpellId.ManaDepletionSelf2,
@@ -785,7 +785,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaDepletionSelf8,
         };
 
-        public static List<SpellId> ImpregnabilityOther = new List<SpellId>()
+        public static readonly List<SpellId> ImpregnabilityOther = new List<SpellId>()
         {
             SpellId.ImpregnabilityOther1,
             SpellId.ImpregnabilityOther2,
@@ -797,7 +797,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ImpregnabilityOther8,
         };
 
-        public static List<SpellId> ImpregnabilitySelf = new List<SpellId>()
+        public static readonly List<SpellId> ImpregnabilitySelf = new List<SpellId>()
         {
             SpellId.ImpregnabilitySelf1,
             SpellId.ImpregnabilitySelf2,
@@ -809,7 +809,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ImpregnabilitySelf8,
         };
 
-        public static List<SpellId> DefenselessnessOther = new List<SpellId>()
+        public static readonly List<SpellId> DefenselessnessOther = new List<SpellId>()
         {
             SpellId.DefenselessnessOther1,
             SpellId.DefenselessnessOther2,
@@ -821,7 +821,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DefenselessnessOther8,
         };
 
-        public static List<SpellId> MagicResistanceOther = new List<SpellId>()
+        public static readonly List<SpellId> MagicResistanceOther = new List<SpellId>()
         {
             SpellId.MagicResistanceOther1,
             SpellId.MagicResistanceOther2,
@@ -833,7 +833,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MagicResistanceOther8,
         };
 
-        public static List<SpellId> MagicResistanceSelf = new List<SpellId>()
+        public static readonly List<SpellId> MagicResistanceSelf = new List<SpellId>()
         {
             SpellId.MagicResistanceSelf1,
             SpellId.MagicResistanceSelf2,
@@ -845,7 +845,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MagicResistanceSelf8,
         };
 
-        public static List<SpellId> MagicYieldOther = new List<SpellId>()
+        public static readonly List<SpellId> MagicYieldOther = new List<SpellId>()
         {
             SpellId.MagicYieldOther1,
             SpellId.MagicYieldOther2,
@@ -857,7 +857,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MagicYieldOther8,
         };
 
-        public static List<SpellId> MagicYieldSelf = new List<SpellId>()
+        public static readonly List<SpellId> MagicYieldSelf = new List<SpellId>()
         {
             SpellId.MagicYieldSelf1,
             SpellId.MagicYieldSelf2,
@@ -869,7 +869,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MagicYieldSelf8,
         };
 
-        public static List<SpellId> LightWeaponsMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> LightWeaponsMasteryOther = new List<SpellId>()
         {
             SpellId.LightWeaponsMasteryOther1,
             SpellId.LightWeaponsMasteryOther2,
@@ -881,7 +881,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LightWeaponsMasteryOther8,
         };
 
-        public static List<SpellId> LightWeaponsMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> LightWeaponsMasterySelf = new List<SpellId>()
         {
             SpellId.LightWeaponsMasterySelf1,
             SpellId.LightWeaponsMasterySelf2,
@@ -893,7 +893,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LightWeaponsMasterySelf8,
         };
 
-        public static List<SpellId> LightWeaponsIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> LightWeaponsIneptitudeOther = new List<SpellId>()
         {
             SpellId.LightWeaponsIneptitudeOther1,
             SpellId.LightWeaponsIneptitudeOther2,
@@ -905,7 +905,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LightWeaponsIneptitudeOther8,
         };
 
-        public static List<SpellId> LightWeaponsIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> LightWeaponsIneptitudeSelf = new List<SpellId>()
         {
             SpellId.LightWeaponsIneptitudeSelf1,
             SpellId.LightWeaponsIneptitudeSelf2,
@@ -917,7 +917,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LightWeaponsIneptitudeSelf8,
         };
 
-        public static List<SpellId> FinesseWeaponsMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> FinesseWeaponsMasteryOther = new List<SpellId>()
         {
             SpellId.FinesseWeaponsMasteryOther1,
             SpellId.FinesseWeaponsMasteryOther2,
@@ -929,7 +929,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FinesseWeaponsMasteryOther8,
         };
 
-        public static List<SpellId> FinesseWeaponsMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> FinesseWeaponsMasterySelf = new List<SpellId>()
         {
             SpellId.FinesseWeaponsMasterySelf1,
             SpellId.FinesseWeaponsMasterySelf2,
@@ -941,7 +941,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FinesseWeaponsMasterySelf8,
         };
 
-        public static List<SpellId> FinesseWeaponsIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> FinesseWeaponsIneptitudeOther = new List<SpellId>()
         {
             SpellId.FinesseWeaponsIneptitudeOther1,
             SpellId.FinesseWeaponsIneptitudeOther2,
@@ -953,7 +953,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FinesseWeaponsIneptitudeOther8,
         };
 
-        public static List<SpellId> FinesseWeaponsIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> FinesseWeaponsIneptitudeSelf = new List<SpellId>()
         {
             SpellId.FinesseWeaponsIneptitudeSelf1,
             SpellId.FinesseWeaponsIneptitudeSelf2,
@@ -965,7 +965,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FinesseWeaponsIneptitudeSelf8,
         };
 
-        public static List<SpellId> MaceMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> MaceMasteryOther = new List<SpellId>()
         {
             SpellId.MaceMasteryOther1,
             SpellId.MaceMasteryOther2,
@@ -977,7 +977,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MaceMasteryOther8,
         };
 
-        public static List<SpellId> MaceMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> MaceMasterySelf = new List<SpellId>()
         {
             SpellId.MaceMasterySelf1,
             SpellId.MaceMasterySelf2,
@@ -989,7 +989,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MaceMasterySelf8,
         };
 
-        public static List<SpellId> MaceIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> MaceIneptitudeOther = new List<SpellId>()
         {
             SpellId.MaceIneptitudeOther1,
             SpellId.MaceIneptitudeOther2,
@@ -1001,7 +1001,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MaceIneptitudeOther8,
         };
 
-        public static List<SpellId> MaceIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> MaceIneptitudeSelf = new List<SpellId>()
         {
             SpellId.MaceIneptitudeSelf1,
             SpellId.MaceIneptitudeSelf2,
@@ -1013,7 +1013,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MaceIneptitudeSelf8,
         };
 
-        public static List<SpellId> SpearMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> SpearMasteryOther = new List<SpellId>()
         {
             SpellId.SpearMasteryOther1,
             SpellId.SpearMasteryOther2,
@@ -1025,7 +1025,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SpearMasteryOther8,
         };
 
-        public static List<SpellId> SpearMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> SpearMasterySelf = new List<SpellId>()
         {
             SpellId.SpearMasterySelf1,
             SpellId.SpearMasterySelf2,
@@ -1037,7 +1037,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SpearMasterySelf8,
         };
 
-        public static List<SpellId> SpearIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> SpearIneptitudeOther = new List<SpellId>()
         {
             SpellId.SpearIneptitudeOther1,
             SpellId.SpearIneptitudeOther2,
@@ -1049,7 +1049,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SpearIneptitudeOther8,
         };
 
-        public static List<SpellId> SpearIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> SpearIneptitudeSelf = new List<SpellId>()
         {
             SpellId.SpearIneptitudeSelf1,
             SpellId.SpearIneptitudeSelf2,
@@ -1061,7 +1061,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SpearIneptitudeSelf8,
         };
 
-        public static List<SpellId> StaffMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> StaffMasteryOther = new List<SpellId>()
         {
             SpellId.StaffMasteryOther1,
             SpellId.StaffMasteryOther2,
@@ -1073,7 +1073,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.StaffMasteryOther8,
         };
 
-        public static List<SpellId> StaffMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> StaffMasterySelf = new List<SpellId>()
         {
             SpellId.StaffMasterySelf1,
             SpellId.StaffMasterySelf2,
@@ -1085,7 +1085,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.StaffMasterySelf8,
         };
 
-        public static List<SpellId> StaffIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> StaffIneptitudeOther = new List<SpellId>()
         {
             SpellId.StaffIneptitudeOther1,
             SpellId.StaffIneptitudeOther2,
@@ -1097,7 +1097,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.StaffIneptitudeOther8,
         };
 
-        public static List<SpellId> StaffIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> StaffIneptitudeSelf = new List<SpellId>()
         {
             SpellId.StaffIneptitudeSelf1,
             SpellId.StaffIneptitudeSelf2,
@@ -1109,7 +1109,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.StaffIneptitudeSelf8,
         };
 
-        public static List<SpellId> HeavyWeaponsMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> HeavyWeaponsMasteryOther = new List<SpellId>()
         {
             SpellId.HeavyWeaponsMasteryOther1,
             SpellId.HeavyWeaponsMasteryOther2,
@@ -1121,7 +1121,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HeavyWeaponsMasteryOther8,
         };
 
-        public static List<SpellId> HeavyWeaponsMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> HeavyWeaponsMasterySelf = new List<SpellId>()
         {
             SpellId.HeavyWeaponsMasterySelf1,
             SpellId.HeavyWeaponsMasterySelf2,
@@ -1133,7 +1133,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HeavyWeaponsMasterySelf8,
         };
 
-        public static List<SpellId> HeavyWeaponsIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> HeavyWeaponsIneptitudeOther = new List<SpellId>()
         {
             SpellId.HeavyWeaponsIneptitudeOther1,
             SpellId.HeavyWeaponsIneptitudeOther2,
@@ -1145,7 +1145,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HeavyWeaponsIneptitudeOther8,
         };
 
-        public static List<SpellId> HeavyWeaponsIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> HeavyWeaponsIneptitudeSelf = new List<SpellId>()
         {
             SpellId.HeavyWeaponsIneptitudeSelf1,
             SpellId.HeavyWeaponsIneptitudeSelf2,
@@ -1157,7 +1157,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HeavyWeaponsIneptitudeSelf8,
         };
 
-        public static List<SpellId> UnarmedCombatMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> UnarmedCombatMasteryOther = new List<SpellId>()
         {
             SpellId.UnarmedCombatMasteryOther1,
             SpellId.UnarmedCombatMasteryOther2,
@@ -1169,7 +1169,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.UnarmedCombatMasteryOther8,
         };
 
-        public static List<SpellId> UnarmedCombatMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> UnarmedCombatMasterySelf = new List<SpellId>()
         {
             SpellId.UnarmedCombatMasterySelf1,
             SpellId.UnarmedCombatMasterySelf2,
@@ -1181,7 +1181,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.UnarmedCombatMasterySelf8,
         };
 
-        public static List<SpellId> UnarmedCombatIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> UnarmedCombatIneptitudeOther = new List<SpellId>()
         {
             SpellId.UnarmedCombatIneptitudeOther1,
             SpellId.UnarmedCombatIneptitudeOther2,
@@ -1193,7 +1193,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.UnarmedCombatIneptitudeOther8,
         };
 
-        public static List<SpellId> UnarmedCombatIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> UnarmedCombatIneptitudeSelf = new List<SpellId>()
         {
             SpellId.UnarmedCombatIneptitudeSelf1,
             SpellId.UnarmedCombatIneptitudeSelf2,
@@ -1205,7 +1205,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.UnarmedCombatIneptitudeSelf8,
         };
 
-        public static List<SpellId> MissileWeaponsMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> MissileWeaponsMasteryOther = new List<SpellId>()
         {
             SpellId.MissileWeaponsMasteryOther1,
             SpellId.MissileWeaponsMasteryOther2,
@@ -1217,7 +1217,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MissileWeaponsMasteryOther8,
         };
 
-        public static List<SpellId> MissileWeaponsMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> MissileWeaponsMasterySelf = new List<SpellId>()
         {
             SpellId.MissileWeaponsMasterySelf1,
             SpellId.MissileWeaponsMasterySelf2,
@@ -1229,7 +1229,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MissileWeaponsMasterySelf8,
         };
 
-        public static List<SpellId> MissileWeaponsIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> MissileWeaponsIneptitudeOther = new List<SpellId>()
         {
             SpellId.MissileWeaponsIneptitudeOther1,
             SpellId.MissileWeaponsIneptitudeOther2,
@@ -1241,7 +1241,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MissileWeaponsIneptitudeOther8,
         };
 
-        public static List<SpellId> MissileWeaponsIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> MissileWeaponsIneptitudeSelf = new List<SpellId>()
         {
             SpellId.MissileWeaponsIneptitudeSelf1,
             SpellId.MissileWeaponsIneptitudeSelf2,
@@ -1253,7 +1253,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MissileWeaponsIneptitudeSelf8,
         };
 
-        public static List<SpellId> CrossbowMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> CrossbowMasteryOther = new List<SpellId>()
         {
             SpellId.CrossbowMasteryOther1,
             SpellId.CrossbowMasteryOther2,
@@ -1265,7 +1265,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CrossbowMasteryOther8,
         };
 
-        public static List<SpellId> CrossbowMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> CrossbowMasterySelf = new List<SpellId>()
         {
             SpellId.CrossbowMasterySelf1,
             SpellId.CrossbowMasterySelf2,
@@ -1277,7 +1277,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CrossbowMasterySelf8,
         };
 
-        public static List<SpellId> CrossbowIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> CrossbowIneptitudeOther = new List<SpellId>()
         {
             SpellId.CrossbowIneptitudeOther1,
             SpellId.CrossbowIneptitudeOther2,
@@ -1289,7 +1289,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CrossbowIneptitudeOther8,
         };
 
-        public static List<SpellId> CrossbowIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> CrossbowIneptitudeSelf = new List<SpellId>()
         {
             SpellId.CrossbowIneptitudeSelf1,
             SpellId.CrossbowIneptitudeSelf2,
@@ -1301,7 +1301,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CrossbowIneptitudeSelf8,
         };
 
-        public static List<SpellId> AcidProtectionOther = new List<SpellId>()
+        public static readonly List<SpellId> AcidProtectionOther = new List<SpellId>()
         {
             SpellId.AcidProtectionOther1,
             SpellId.AcidProtectionOther2,
@@ -1313,7 +1313,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AcidProtectionOther8,
         };
 
-        public static List<SpellId> AcidProtectionSelf = new List<SpellId>()
+        public static readonly List<SpellId> AcidProtectionSelf = new List<SpellId>()
         {
             SpellId.AcidProtectionSelf1,
             SpellId.AcidProtectionSelf2,
@@ -1325,7 +1325,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AcidProtectionSelf8,
         };
 
-        public static List<SpellId> AcidVulnerabilityOther = new List<SpellId>()
+        public static readonly List<SpellId> AcidVulnerabilityOther = new List<SpellId>()
         {
             SpellId.AcidVulnerabilityOther1,
             SpellId.AcidVulnerabilityOther2,
@@ -1337,7 +1337,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AcidVulnerabilityOther8,
         };
 
-        public static List<SpellId> AcidVulnerabilitySelf = new List<SpellId>()
+        public static readonly List<SpellId> AcidVulnerabilitySelf = new List<SpellId>()
         {
             SpellId.AcidVulnerabilitySelf1,
             SpellId.AcidVulnerabilitySelf2,
@@ -1349,7 +1349,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AcidVulnerabilitySelf8,
         };
 
-        public static List<SpellId> ThrownWeaponMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> ThrownWeaponMasteryOther = new List<SpellId>()
         {
             SpellId.ThrownWeaponMasteryOther1,
             SpellId.ThrownWeaponMasteryOther2,
@@ -1361,7 +1361,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ThrownWeaponMasteryOther8,
         };
 
-        public static List<SpellId> ThrownWeaponMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> ThrownWeaponMasterySelf = new List<SpellId>()
         {
             SpellId.ThrownWeaponMasterySelf1,
             SpellId.ThrownWeaponMasterySelf2,
@@ -1373,7 +1373,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ThrownWeaponMasterySelf8,
         };
 
-        public static List<SpellId> ThrownWeaponIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> ThrownWeaponIneptitudeOther = new List<SpellId>()
         {
             SpellId.ThrownWeaponIneptitudeOther1,
             SpellId.ThrownWeaponIneptitudeOther2,
@@ -1385,7 +1385,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ThrownWeaponIneptitudeOther8,
         };
 
-        public static List<SpellId> ThrownWeaponIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> ThrownWeaponIneptitudeSelf = new List<SpellId>()
         {
             SpellId.ThrownWeaponIneptitudeSelf1,
             SpellId.ThrownWeaponIneptitudeSelf2,
@@ -1397,7 +1397,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ThrownWeaponIneptitudeSelf8,
         };
 
-        public static List<SpellId> CreatureEnchantmentMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> CreatureEnchantmentMasterySelf = new List<SpellId>()
         {
             SpellId.CreatureEnchantmentMasterySelf1,
             SpellId.CreatureEnchantmentMasterySelf2,
@@ -1409,7 +1409,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CreatureEnchantmentMasterySelf8,
         };
 
-        public static List<SpellId> CreatureEnchantmentMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> CreatureEnchantmentMasteryOther = new List<SpellId>()
         {
             SpellId.CreatureEnchantmentMasteryOther1,
             SpellId.CreatureEnchantmentMasteryOther2,
@@ -1421,7 +1421,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CreatureEnchantmentMasteryOther8,
         };
 
-        public static List<SpellId> CreatureEnchantmentIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> CreatureEnchantmentIneptitudeOther = new List<SpellId>()
         {
             SpellId.CreatureEnchantmentIneptitudeOther1,
             SpellId.CreatureEnchantmentIneptitudeOther2,
@@ -1433,7 +1433,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CreatureEnchantmentIneptitudeOther8,
         };
 
-        public static List<SpellId> CreatureEnchantmentIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> CreatureEnchantmentIneptitudeSelf = new List<SpellId>()
         {
             SpellId.CreatureEnchantmentIneptitudeSelf1,
             SpellId.CreatureEnchantmentIneptitudeSelf2,
@@ -1445,7 +1445,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CreatureEnchantmentIneptitudeSelf8,
         };
 
-        public static List<SpellId> ItemEnchantmentMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> ItemEnchantmentMasterySelf = new List<SpellId>()
         {
             SpellId.ItemEnchantmentMasterySelf1,
             SpellId.ItemEnchantmentMasterySelf2,
@@ -1457,7 +1457,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ItemEnchantmentMasterySelf8,
         };
 
-        public static List<SpellId> ItemEnchantmentMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> ItemEnchantmentMasteryOther = new List<SpellId>()
         {
             SpellId.ItemEnchantmentMasteryOther1,
             SpellId.ItemEnchantmentMasteryOther2,
@@ -1469,7 +1469,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ItemEnchantmentMasteryOther8,
         };
 
-        public static List<SpellId> ItemEnchantmentIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> ItemEnchantmentIneptitudeOther = new List<SpellId>()
         {
             SpellId.ItemEnchantmentIneptitudeOther1,
             SpellId.ItemEnchantmentIneptitudeOther2,
@@ -1481,7 +1481,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ItemEnchantmentIneptitudeOther8,
         };
 
-        public static List<SpellId> ItemEnchantmentIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> ItemEnchantmentIneptitudeSelf = new List<SpellId>()
         {
             SpellId.ItemEnchantmentIneptitudeSelf1,
             SpellId.ItemEnchantmentIneptitudeSelf2,
@@ -1493,7 +1493,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ItemEnchantmentIneptitudeSelf8,
         };
 
-        public static List<SpellId> LifeMagicMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> LifeMagicMasterySelf = new List<SpellId>()
         {
             SpellId.LifeMagicMasterySelf1,
             SpellId.LifeMagicMasterySelf2,
@@ -1505,7 +1505,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LifeMagicMasterySelf8,
         };
 
-        public static List<SpellId> LifeMagicMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> LifeMagicMasteryOther = new List<SpellId>()
         {
             SpellId.LifeMagicMasteryOther1,
             SpellId.LifeMagicMasteryOther2,
@@ -1517,7 +1517,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LifeMagicMasteryOther8,
         };
 
-        public static List<SpellId> LifeMagicIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> LifeMagicIneptitudeSelf = new List<SpellId>()
         {
             SpellId.LifeMagicIneptitudeSelf1,
             SpellId.LifeMagicIneptitudeSelf2,
@@ -1529,7 +1529,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LifeMagicIneptitudeSelf8,
         };
 
-        public static List<SpellId> LifeMagicIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> LifeMagicIneptitudeOther = new List<SpellId>()
         {
             SpellId.LifeMagicIneptitudeOther1,
             SpellId.LifeMagicIneptitudeOther2,
@@ -1541,7 +1541,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LifeMagicIneptitudeOther8,
         };
 
-        public static List<SpellId> WarMagicMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> WarMagicMasterySelf = new List<SpellId>()
         {
             SpellId.WarMagicMasterySelf1,
             SpellId.WarMagicMasterySelf2,
@@ -1553,7 +1553,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.WarMagicMasterySelf8,
         };
 
-        public static List<SpellId> WarMagicMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> WarMagicMasteryOther = new List<SpellId>()
         {
             SpellId.WarMagicMasteryOther1,
             SpellId.WarMagicMasteryOther2,
@@ -1565,7 +1565,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.WarMagicMasteryOther8,
         };
 
-        public static List<SpellId> WarMagicIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> WarMagicIneptitudeSelf = new List<SpellId>()
         {
             SpellId.WarMagicIneptitudeSelf1,
             SpellId.WarMagicIneptitudeSelf2,
@@ -1577,7 +1577,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.WarMagicIneptitudeSelf8,
         };
 
-        public static List<SpellId> WarMagicIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> WarMagicIneptitudeOther = new List<SpellId>()
         {
             SpellId.WarMagicIneptitudeOther1,
             SpellId.WarMagicIneptitudeOther2,
@@ -1589,7 +1589,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.WarMagicIneptitudeOther8,
         };
 
-        public static List<SpellId> ManaMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> ManaMasterySelf = new List<SpellId>()
         {
             SpellId.ManaMasterySelf1,
             SpellId.ManaMasterySelf2,
@@ -1601,7 +1601,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaMasterySelf8,
         };
 
-        public static List<SpellId> ManaMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> ManaMasteryOther = new List<SpellId>()
         {
             SpellId.ManaMasteryOther1,
             SpellId.ManaMasteryOther2,
@@ -1613,7 +1613,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaMasteryOther8,
         };
 
-        public static List<SpellId> ManaIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> ManaIneptitudeSelf = new List<SpellId>()
         {
             SpellId.ManaIneptitudeSelf1,
             SpellId.ManaIneptitudeSelf2,
@@ -1625,7 +1625,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaIneptitudeSelf8,
         };
 
-        public static List<SpellId> ManaIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> ManaIneptitudeOther = new List<SpellId>()
         {
             SpellId.ManaIneptitudeOther1,
             SpellId.ManaIneptitudeOther2,
@@ -1637,7 +1637,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaIneptitudeOther8,
         };
 
-        public static List<SpellId> ArcaneEnlightenmentSelf = new List<SpellId>()
+        public static readonly List<SpellId> ArcaneEnlightenmentSelf = new List<SpellId>()
         {
             SpellId.ArcaneEnlightenmentSelf1,
             SpellId.ArcaneEnlightenmentSelf2,
@@ -1649,7 +1649,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ArcaneEnlightenmentSelf8,
         };
 
-        public static List<SpellId> ArcaneEnlightenmentOther = new List<SpellId>()
+        public static readonly List<SpellId> ArcaneEnlightenmentOther = new List<SpellId>()
         {
             SpellId.ArcaneEnlightenmentOther1,
             SpellId.ArcaneEnlightenmentOther2,
@@ -1661,7 +1661,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ArcaneEnlightenmentOther8,
         };
 
-        public static List<SpellId> ArcaneBenightednessSelf = new List<SpellId>()
+        public static readonly List<SpellId> ArcaneBenightednessSelf = new List<SpellId>()
         {
             SpellId.ArcaneBenightednessSelf1,
             SpellId.ArcaneBenightednessSelf2,
@@ -1673,7 +1673,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ArcaneBenightednessSelf8,
         };
 
-        public static List<SpellId> ArcaneBenightednessOther = new List<SpellId>()
+        public static readonly List<SpellId> ArcaneBenightednessOther = new List<SpellId>()
         {
             SpellId.ArcaneBenightednessOther1,
             SpellId.ArcaneBenightednessOther2,
@@ -1685,7 +1685,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ArcaneBenightednessOther8,
         };
 
-        public static List<SpellId> ArmorExpertiseSelf = new List<SpellId>()
+        public static readonly List<SpellId> ArmorExpertiseSelf = new List<SpellId>()
         {
             SpellId.ArmorExpertiseSelf1,
             SpellId.ArmorExpertiseSelf2,
@@ -1697,7 +1697,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ArmorExpertiseSelf8,
         };
 
-        public static List<SpellId> ArmorExpertiseOther = new List<SpellId>()
+        public static readonly List<SpellId> ArmorExpertiseOther = new List<SpellId>()
         {
             SpellId.ArmorExpertiseOther1,
             SpellId.ArmorExpertiseOther2,
@@ -1709,7 +1709,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ArmorExpertiseOther8,
         };
 
-        public static List<SpellId> ArmorIgnoranceSelf = new List<SpellId>()
+        public static readonly List<SpellId> ArmorIgnoranceSelf = new List<SpellId>()
         {
             SpellId.ArmorIgnoranceSelf1,
             SpellId.ArmorIgnoranceSelf2,
@@ -1721,7 +1721,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ArmorIgnoranceSelf8,
         };
 
-        public static List<SpellId> ArmorIgnoranceOther = new List<SpellId>()
+        public static readonly List<SpellId> ArmorIgnoranceOther = new List<SpellId>()
         {
             SpellId.ArmorIgnoranceOther1,
             SpellId.ArmorIgnoranceOther2,
@@ -1733,7 +1733,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ArmorIgnoranceOther8,
         };
 
-        public static List<SpellId> ItemExpertiseSelf = new List<SpellId>()
+        public static readonly List<SpellId> ItemExpertiseSelf = new List<SpellId>()
         {
             SpellId.ItemExpertiseSelf1,
             SpellId.ItemExpertiseSelf2,
@@ -1745,7 +1745,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ItemExpertiseSelf8,
         };
 
-        public static List<SpellId> ItemExpertiseOther = new List<SpellId>()
+        public static readonly List<SpellId> ItemExpertiseOther = new List<SpellId>()
         {
             SpellId.ItemExpertiseOther1,
             SpellId.ItemExpertiseOther2,
@@ -1757,7 +1757,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ItemExpertiseOther8,
         };
 
-        public static List<SpellId> ItemIgnoranceSelf = new List<SpellId>()
+        public static readonly List<SpellId> ItemIgnoranceSelf = new List<SpellId>()
         {
             SpellId.ItemIgnoranceSelf1,
             SpellId.ItemIgnoranceSelf2,
@@ -1769,7 +1769,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ItemIgnoranceSelf8,
         };
 
-        public static List<SpellId> ItemIgnoranceOther = new List<SpellId>()
+        public static readonly List<SpellId> ItemIgnoranceOther = new List<SpellId>()
         {
             SpellId.ItemIgnoranceOther1,
             SpellId.ItemIgnoranceOther2,
@@ -1781,7 +1781,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ItemIgnoranceOther8,
         };
 
-        public static List<SpellId> MagicItemExpertiseSelf = new List<SpellId>()
+        public static readonly List<SpellId> MagicItemExpertiseSelf = new List<SpellId>()
         {
             SpellId.MagicItemExpertiseSelf1,
             SpellId.MagicItemExpertiseSelf2,
@@ -1793,7 +1793,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MagicItemExpertiseSelf8,
         };
 
-        public static List<SpellId> MagicItemExpertiseOther = new List<SpellId>()
+        public static readonly List<SpellId> MagicItemExpertiseOther = new List<SpellId>()
         {
             SpellId.MagicItemExpertiseOther1,
             SpellId.MagicItemExpertiseOther2,
@@ -1805,7 +1805,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MagicItemExpertiseOther8,
         };
 
-        public static List<SpellId> MagicItemIgnoranceSelf = new List<SpellId>()
+        public static readonly List<SpellId> MagicItemIgnoranceSelf = new List<SpellId>()
         {
             SpellId.MagicItemIgnoranceSelf1,
             SpellId.MagicItemIgnoranceSelf2,
@@ -1817,7 +1817,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MagicItemIgnoranceSelf8,
         };
 
-        public static List<SpellId> MagicItemIgnoranceOther = new List<SpellId>()
+        public static readonly List<SpellId> MagicItemIgnoranceOther = new List<SpellId>()
         {
             SpellId.MagicItemIgnoranceOther1,
             SpellId.MagicItemIgnoranceOther2,
@@ -1829,7 +1829,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MagicItemIgnoranceOther8,
         };
 
-        public static List<SpellId> WeaponExpertiseSelf = new List<SpellId>()
+        public static readonly List<SpellId> WeaponExpertiseSelf = new List<SpellId>()
         {
             SpellId.WeaponExpertiseSelf1,
             SpellId.WeaponExpertiseSelf2,
@@ -1841,7 +1841,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.WeaponExpertiseSelf8,
         };
 
-        public static List<SpellId> WeaponExpertiseOther = new List<SpellId>()
+        public static readonly List<SpellId> WeaponExpertiseOther = new List<SpellId>()
         {
             SpellId.WeaponExpertiseOther1,
             SpellId.WeaponExpertiseOther2,
@@ -1853,7 +1853,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.WeaponExpertiseOther8,
         };
 
-        public static List<SpellId> WeaponIgnoranceSelf = new List<SpellId>()
+        public static readonly List<SpellId> WeaponIgnoranceSelf = new List<SpellId>()
         {
             SpellId.WeaponIgnoranceSelf1,
             SpellId.WeaponIgnoranceSelf2,
@@ -1865,7 +1865,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.WeaponIgnoranceSelf8,
         };
 
-        public static List<SpellId> WeaponIgnoranceOther = new List<SpellId>()
+        public static readonly List<SpellId> WeaponIgnoranceOther = new List<SpellId>()
         {
             SpellId.WeaponIgnoranceOther1,
             SpellId.WeaponIgnoranceOther2,
@@ -1877,7 +1877,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.WeaponIgnoranceOther8,
         };
 
-        public static List<SpellId> MonsterAttunementSelf = new List<SpellId>()
+        public static readonly List<SpellId> MonsterAttunementSelf = new List<SpellId>()
         {
             SpellId.MonsterAttunementSelf1,
             SpellId.MonsterAttunementSelf2,
@@ -1889,7 +1889,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MonsterAttunementSelf8,
         };
 
-        public static List<SpellId> MonsterAttunementOther = new List<SpellId>()
+        public static readonly List<SpellId> MonsterAttunementOther = new List<SpellId>()
         {
             SpellId.MonsterAttunementOther1,
             SpellId.MonsterAttunementOther2,
@@ -1901,7 +1901,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MonsterAttunementOther8,
         };
 
-        public static List<SpellId> MonsterUnfamiliaritySelf = new List<SpellId>()
+        public static readonly List<SpellId> MonsterUnfamiliaritySelf = new List<SpellId>()
         {
             SpellId.MonsterUnfamiliaritySelf1,
             SpellId.MonsterUnfamiliaritySelf2,
@@ -1913,7 +1913,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MonsterUnfamiliaritySelf8,
         };
 
-        public static List<SpellId> MonsterUnfamiliarityOther = new List<SpellId>()
+        public static readonly List<SpellId> MonsterUnfamiliarityOther = new List<SpellId>()
         {
             SpellId.MonsterUnfamiliarityOther1,
             SpellId.MonsterUnfamiliarityOther2,
@@ -1925,7 +1925,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MonsterUnfamiliarityOther8,
         };
 
-        public static List<SpellId> PersonAttunementSelf = new List<SpellId>()
+        public static readonly List<SpellId> PersonAttunementSelf = new List<SpellId>()
         {
             SpellId.PersonAttunementSelf1,
             SpellId.PersonAttunementSelf2,
@@ -1937,7 +1937,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PersonAttunementSelf8,
         };
 
-        public static List<SpellId> PersonAttunementOther = new List<SpellId>()
+        public static readonly List<SpellId> PersonAttunementOther = new List<SpellId>()
         {
             SpellId.PersonAttunementOther1,
             SpellId.PersonAttunementOther2,
@@ -1949,7 +1949,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PersonAttunementOther8,
         };
 
-        public static List<SpellId> PersonUnfamiliaritySelf = new List<SpellId>()
+        public static readonly List<SpellId> PersonUnfamiliaritySelf = new List<SpellId>()
         {
             SpellId.PersonUnfamiliaritySelf1,
             SpellId.PersonUnfamiliaritySelf2,
@@ -1961,7 +1961,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PersonUnfamiliaritySelf8,
         };
 
-        public static List<SpellId> PersonUnfamiliarityOther = new List<SpellId>()
+        public static readonly List<SpellId> PersonUnfamiliarityOther = new List<SpellId>()
         {
             SpellId.PersonUnfamiliarityOther1,
             SpellId.PersonUnfamiliarityOther2,
@@ -1973,7 +1973,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PersonUnfamiliarityOther8,
         };
 
-        public static List<SpellId> DeceptionMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> DeceptionMasterySelf = new List<SpellId>()
         {
             SpellId.DeceptionMasterySelf1,
             SpellId.DeceptionMasterySelf2,
@@ -1985,7 +1985,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DeceptionMasterySelf8,
         };
 
-        public static List<SpellId> DeceptionMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> DeceptionMasteryOther = new List<SpellId>()
         {
             SpellId.DeceptionMasteryOther1,
             SpellId.DeceptionMasteryOther2,
@@ -1997,7 +1997,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DeceptionMasteryOther8,
         };
 
-        public static List<SpellId> DeceptionIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> DeceptionIneptitudeSelf = new List<SpellId>()
         {
             SpellId.DeceptionIneptitudeSelf1,
             SpellId.DeceptionIneptitudeSelf2,
@@ -2009,7 +2009,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DeceptionIneptitudeSelf8,
         };
 
-        public static List<SpellId> DeceptionIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> DeceptionIneptitudeOther = new List<SpellId>()
         {
             SpellId.DeceptionIneptitudeOther1,
             SpellId.DeceptionIneptitudeOther2,
@@ -2021,7 +2021,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DeceptionIneptitudeOther8,
         };
 
-        public static List<SpellId> HealingMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> HealingMasterySelf = new List<SpellId>()
         {
             SpellId.HealingMasterySelf1,
             SpellId.HealingMasterySelf2,
@@ -2033,7 +2033,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HealingMasterySelf8,
         };
 
-        public static List<SpellId> HealingMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> HealingMasteryOther = new List<SpellId>()
         {
             SpellId.HealingMasteryOther1,
             SpellId.HealingMasteryOther2,
@@ -2045,7 +2045,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HealingMasteryOther8,
         };
 
-        public static List<SpellId> HealingIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> HealingIneptitudeSelf = new List<SpellId>()
         {
             SpellId.HealingIneptitudeSelf1,
             SpellId.HealingIneptitudeSelf2,
@@ -2057,7 +2057,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HealingIneptitudeSelf8,
         };
 
-        public static List<SpellId> HealingIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> HealingIneptitudeOther = new List<SpellId>()
         {
             SpellId.HealingIneptitudeOther1,
             SpellId.HealingIneptitudeOther2,
@@ -2069,7 +2069,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HealingIneptitudeOther8,
         };
 
-        public static List<SpellId> LeadershipMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> LeadershipMasterySelf = new List<SpellId>()
         {
             SpellId.LeadershipMasterySelf1,
             SpellId.LeadershipMasterySelf2,
@@ -2081,7 +2081,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LeadershipMasterySelf8,
         };
 
-        public static List<SpellId> LeadershipMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> LeadershipMasteryOther = new List<SpellId>()
         {
             SpellId.LeadershipMasteryOther1,
             SpellId.LeadershipMasteryOther2,
@@ -2093,7 +2093,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LeadershipMasteryOther8,
         };
 
-        public static List<SpellId> LeadershipIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> LeadershipIneptitudeSelf = new List<SpellId>()
         {
             SpellId.LeadershipIneptitudeSelf1,
             SpellId.LeadershipIneptitudeSelf2,
@@ -2105,7 +2105,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LeadershipIneptitudeSelf8,
         };
 
-        public static List<SpellId> LeadershipIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> LeadershipIneptitudeOther = new List<SpellId>()
         {
             SpellId.LeadershipIneptitudeOther1,
             SpellId.LeadershipIneptitudeOther2,
@@ -2117,7 +2117,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LeadershipIneptitudeOther8,
         };
 
-        public static List<SpellId> LockpickMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> LockpickMasterySelf = new List<SpellId>()
         {
             SpellId.LockpickMasterySelf1,
             SpellId.LockpickMasterySelf2,
@@ -2129,7 +2129,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LockpickMasterySelf8,
         };
 
-        public static List<SpellId> LockpickMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> LockpickMasteryOther = new List<SpellId>()
         {
             SpellId.LockpickMasteryOther1,
             SpellId.LockpickMasteryOther2,
@@ -2141,7 +2141,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LockpickMasteryOther8,
         };
 
-        public static List<SpellId> LockpickIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> LockpickIneptitudeSelf = new List<SpellId>()
         {
             SpellId.LockpickIneptitudeSelf1,
             SpellId.LockpickIneptitudeSelf2,
@@ -2153,7 +2153,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LockpickIneptitudeSelf8,
         };
 
-        public static List<SpellId> LockpickIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> LockpickIneptitudeOther = new List<SpellId>()
         {
             SpellId.LockpickIneptitudeOther1,
             SpellId.LockpickIneptitudeOther2,
@@ -2165,7 +2165,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LockpickIneptitudeOther8,
         };
 
-        public static List<SpellId> FealtySelf = new List<SpellId>()
+        public static readonly List<SpellId> FealtySelf = new List<SpellId>()
         {
             SpellId.FealtySelf1,
             SpellId.FealtySelf2,
@@ -2177,7 +2177,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FealtySelf8,
         };
 
-        public static List<SpellId> FealtyOther = new List<SpellId>()
+        public static readonly List<SpellId> FealtyOther = new List<SpellId>()
         {
             SpellId.FealtyOther1,
             SpellId.FealtyOther2,
@@ -2189,7 +2189,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FealtyOther8,
         };
 
-        public static List<SpellId> FaithlessnessSelf = new List<SpellId>()
+        public static readonly List<SpellId> FaithlessnessSelf = new List<SpellId>()
         {
             SpellId.FaithlessnessSelf1,
             SpellId.FaithlessnessSelf2,
@@ -2201,7 +2201,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FaithlessnessSelf8,
         };
 
-        public static List<SpellId> FaithlessnessOther = new List<SpellId>()
+        public static readonly List<SpellId> FaithlessnessOther = new List<SpellId>()
         {
             SpellId.FaithlessnessOther1,
             SpellId.FaithlessnessOther2,
@@ -2213,7 +2213,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FaithlessnessOther8,
         };
 
-        public static List<SpellId> JumpingMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> JumpingMasterySelf = new List<SpellId>()
         {
             SpellId.JumpingMasterySelf1,
             SpellId.JumpingMasterySelf2,
@@ -2225,7 +2225,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.JumpingMasterySelf8,
         };
 
-        public static List<SpellId> JumpingMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> JumpingMasteryOther = new List<SpellId>()
         {
             SpellId.JumpingMasteryOther1,
             SpellId.JumpingMasteryOther2,
@@ -2237,7 +2237,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.JumpingMasteryOther8,
         };
 
-        public static List<SpellId> SprintSelf = new List<SpellId>()
+        public static readonly List<SpellId> SprintSelf = new List<SpellId>()
         {
             SpellId.SprintSelf1,
             SpellId.SprintSelf2,
@@ -2249,7 +2249,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SprintSelf8,
         };
 
-        public static List<SpellId> SprintOther = new List<SpellId>()
+        public static readonly List<SpellId> SprintOther = new List<SpellId>()
         {
             SpellId.SprintOther1,
             SpellId.SprintOther2,
@@ -2261,7 +2261,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SprintOther8,
         };
 
-        public static List<SpellId> LeadenFeetSelf = new List<SpellId>()
+        public static readonly List<SpellId> LeadenFeetSelf = new List<SpellId>()
         {
             SpellId.LeadenFeetSelf1,
             SpellId.LeadenFeetSelf2,
@@ -2273,7 +2273,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LeadenFeetSelf8,
         };
 
-        public static List<SpellId> LeadenFeetOther = new List<SpellId>()
+        public static readonly List<SpellId> LeadenFeetOther = new List<SpellId>()
         {
             SpellId.LeadenFeetOther1,
             SpellId.LeadenFeetOther2,
@@ -2285,7 +2285,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LeadenFeetOther8,
         };
 
-        public static List<SpellId> JumpingIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> JumpingIneptitudeSelf = new List<SpellId>()
         {
             SpellId.JumpingIneptitudeSelf1,
             SpellId.JumpingIneptitudeSelf2,
@@ -2297,7 +2297,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.JumpingIneptitudeSelf8,
         };
 
-        public static List<SpellId> JumpingIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> JumpingIneptitudeOther = new List<SpellId>()
         {
             SpellId.JumpingIneptitudeOther1,
             SpellId.JumpingIneptitudeOther2,
@@ -2309,7 +2309,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.JumpingIneptitudeOther8,
         };
 
-        public static List<SpellId> BludgeonProtectionSelf = new List<SpellId>()
+        public static readonly List<SpellId> BludgeonProtectionSelf = new List<SpellId>()
         {
             SpellId.BludgeonProtectionSelf1,
             SpellId.BludgeonProtectionSelf2,
@@ -2321,7 +2321,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BludgeonProtectionSelf8,
         };
 
-        public static List<SpellId> BludgeonProtectionOther = new List<SpellId>()
+        public static readonly List<SpellId> BludgeonProtectionOther = new List<SpellId>()
         {
             SpellId.BludgeonProtectionOther1,
             SpellId.BludgeonProtectionOther2,
@@ -2333,7 +2333,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BludgeonProtectionOther8,
         };
 
-        public static List<SpellId> ColdProtectionSelf = new List<SpellId>()
+        public static readonly List<SpellId> ColdProtectionSelf = new List<SpellId>()
         {
             SpellId.ColdProtectionSelf1,
             SpellId.ColdProtectionSelf2,
@@ -2345,7 +2345,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ColdProtectionSelf8,
         };
 
-        public static List<SpellId> ColdProtectionOther = new List<SpellId>()
+        public static readonly List<SpellId> ColdProtectionOther = new List<SpellId>()
         {
             SpellId.ColdProtectionOther1,
             SpellId.ColdProtectionOther2,
@@ -2357,7 +2357,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ColdProtectionOther8,
         };
 
-        public static List<SpellId> BludgeonVulnerabilitySelf = new List<SpellId>()
+        public static readonly List<SpellId> BludgeonVulnerabilitySelf = new List<SpellId>()
         {
             SpellId.BludgeonVulnerabilitySelf1,
             SpellId.BludgeonVulnerabilitySelf2,
@@ -2369,7 +2369,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BludgeonVulnerabilitySelf8,
         };
 
-        public static List<SpellId> BludgeonVulnerabilityOther = new List<SpellId>()
+        public static readonly List<SpellId> BludgeonVulnerabilityOther = new List<SpellId>()
         {
             SpellId.BludgeonVulnerabilityOther1,
             SpellId.BludgeonVulnerabilityOther2,
@@ -2381,7 +2381,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BludgeonVulnerabilityOther8,
         };
 
-        public static List<SpellId> ColdVulnerabilitySelf = new List<SpellId>()
+        public static readonly List<SpellId> ColdVulnerabilitySelf = new List<SpellId>()
         {
             SpellId.ColdVulnerabilitySelf1,
             SpellId.ColdVulnerabilitySelf2,
@@ -2393,7 +2393,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ColdVulnerabilitySelf8,
         };
 
-        public static List<SpellId> ColdVulnerabilityOther = new List<SpellId>()
+        public static readonly List<SpellId> ColdVulnerabilityOther = new List<SpellId>()
         {
             SpellId.ColdVulnerabilityOther1,
             SpellId.ColdVulnerabilityOther2,
@@ -2405,7 +2405,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ColdVulnerabilityOther8,
         };
 
-        public static List<SpellId> LightningProtectionSelf = new List<SpellId>()
+        public static readonly List<SpellId> LightningProtectionSelf = new List<SpellId>()
         {
             SpellId.LightningProtectionSelf1,
             SpellId.LightningProtectionSelf2,
@@ -2417,7 +2417,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LightningProtectionSelf8,
         };
 
-        public static List<SpellId> LightningProtectionOther = new List<SpellId>()
+        public static readonly List<SpellId> LightningProtectionOther = new List<SpellId>()
         {
             SpellId.LightningProtectionOther1,
             SpellId.LightningProtectionOther2,
@@ -2429,7 +2429,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LightningProtectionOther8,
         };
 
-        public static List<SpellId> LightningVulnerabilitySelf = new List<SpellId>()
+        public static readonly List<SpellId> LightningVulnerabilitySelf = new List<SpellId>()
         {
             SpellId.LightningVulnerabilitySelf1,
             SpellId.LightningVulnerabilitySelf2,
@@ -2441,7 +2441,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LightningVulnerabilitySelf8,
         };
 
-        public static List<SpellId> LightningVulnerabilityOther = new List<SpellId>()
+        public static readonly List<SpellId> LightningVulnerabilityOther = new List<SpellId>()
         {
             SpellId.LightningVulnerabilityOther1,
             SpellId.LightningVulnerabilityOther2,
@@ -2453,7 +2453,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LightningVulnerabilityOther8,
         };
 
-        public static List<SpellId> BladeProtectionSelf = new List<SpellId>()
+        public static readonly List<SpellId> BladeProtectionSelf = new List<SpellId>()
         {
             SpellId.BladeProtectionSelf1,
             SpellId.BladeProtectionSelf2,
@@ -2465,7 +2465,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BladeProtectionSelf8,
         };
 
-        public static List<SpellId> BladeProtectionOther = new List<SpellId>()
+        public static readonly List<SpellId> BladeProtectionOther = new List<SpellId>()
         {
             SpellId.BladeProtectionOther1,
             SpellId.BladeProtectionOther2,
@@ -2477,7 +2477,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BladeProtectionOther8,
         };
 
-        public static List<SpellId> BladeVulnerabilitySelf = new List<SpellId>()
+        public static readonly List<SpellId> BladeVulnerabilitySelf = new List<SpellId>()
         {
             SpellId.BladeVulnerabilitySelf1,
             SpellId.BladeVulnerabilitySelf2,
@@ -2489,7 +2489,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BladeVulnerabilitySelf8,
         };
 
-        public static List<SpellId> BladeVulnerabilityOther = new List<SpellId>()
+        public static readonly List<SpellId> BladeVulnerabilityOther = new List<SpellId>()
         {
             SpellId.BladeVulnerabilityOther1,
             SpellId.BladeVulnerabilityOther2,
@@ -2501,7 +2501,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BladeVulnerabilityOther8,
         };
 
-        public static List<SpellId> PiercingProtectionSelf = new List<SpellId>()
+        public static readonly List<SpellId> PiercingProtectionSelf = new List<SpellId>()
         {
             SpellId.PiercingProtectionSelf1,
             SpellId.PiercingProtectionSelf2,
@@ -2513,7 +2513,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PiercingProtectionSelf8,
         };
 
-        public static List<SpellId> PiercingProtectionOther = new List<SpellId>()
+        public static readonly List<SpellId> PiercingProtectionOther = new List<SpellId>()
         {
             SpellId.PiercingProtectionOther1,
             SpellId.PiercingProtectionOther2,
@@ -2525,7 +2525,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PiercingProtectionOther8,
         };
 
-        public static List<SpellId> PiercingVulnerabilitySelf = new List<SpellId>()
+        public static readonly List<SpellId> PiercingVulnerabilitySelf = new List<SpellId>()
         {
             SpellId.PiercingVulnerabilitySelf1,
             SpellId.PiercingVulnerabilitySelf2,
@@ -2537,7 +2537,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PiercingVulnerabilitySelf8,
         };
 
-        public static List<SpellId> PiercingVulnerabilityOther = new List<SpellId>()
+        public static readonly List<SpellId> PiercingVulnerabilityOther = new List<SpellId>()
         {
             SpellId.PiercingVulnerabilityOther1,
             SpellId.PiercingVulnerabilityOther2,
@@ -2549,7 +2549,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PiercingVulnerabilityOther8,
         };
 
-        public static List<SpellId> RevitalizeSelf = new List<SpellId>()
+        public static readonly List<SpellId> RevitalizeSelf = new List<SpellId>()
         {
             SpellId.RevitalizeSelf1,
             SpellId.RevitalizeSelf2,
@@ -2561,7 +2561,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.RevitalizeSelf8,
         };
 
-        public static List<SpellId> RevitalizeOther = new List<SpellId>()
+        public static readonly List<SpellId> RevitalizeOther = new List<SpellId>()
         {
             SpellId.RevitalizeOther1,
             SpellId.RevitalizeOther2,
@@ -2573,7 +2573,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.RevitalizeOther8,
         };
 
-        public static List<SpellId> EnfeebleSelf = new List<SpellId>()
+        public static readonly List<SpellId> EnfeebleSelf = new List<SpellId>()
         {
             SpellId.EnfeebleSelf1,
             SpellId.EnfeebleSelf2,
@@ -2585,7 +2585,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.EnfeebleSelf8,
         };
 
-        public static List<SpellId> EnfeebleOther = new List<SpellId>()
+        public static readonly List<SpellId> EnfeebleOther = new List<SpellId>()
         {
             SpellId.EnfeebleOther1,
             SpellId.EnfeebleOther2,
@@ -2597,7 +2597,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.EnfeebleOther8,
         };
 
-        public static List<SpellId> ManaBoostSelf = new List<SpellId>()
+        public static readonly List<SpellId> ManaBoostSelf = new List<SpellId>()
         {
             SpellId.ManaBoostSelf1,
             SpellId.ManaBoostSelf2,
@@ -2609,7 +2609,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaBoostSelf8,
         };
 
-        public static List<SpellId> ManaBoostOther = new List<SpellId>()
+        public static readonly List<SpellId> ManaBoostOther = new List<SpellId>()
         {
             SpellId.ManaBoostOther1,
             SpellId.ManaBoostOther2,
@@ -2621,7 +2621,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaBoostOther8,
         };
 
-        public static List<SpellId> ManaDrainSelf = new List<SpellId>()
+        public static readonly List<SpellId> ManaDrainSelf = new List<SpellId>()
         {
             SpellId.ManaDrainSelf1,
             SpellId.ManaDrainSelf2,
@@ -2633,7 +2633,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaDrainSelf8,
         };
 
-        public static List<SpellId> ManaDrainOther = new List<SpellId>()
+        public static readonly List<SpellId> ManaDrainOther = new List<SpellId>()
         {
             SpellId.ManaDrainOther1,
             SpellId.ManaDrainOther2,
@@ -2645,7 +2645,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaDrainOther8,
         };
 
-        public static List<SpellId> InfuseHealth = new List<SpellId>()
+        public static readonly List<SpellId> InfuseHealth = new List<SpellId>()
         {
             SpellId.InfuseHealth1,
             SpellId.InfuseHealth2,
@@ -2657,7 +2657,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.InfuseHealth8,
         };
 
-        public static List<SpellId> DrainHealth = new List<SpellId>()
+        public static readonly List<SpellId> DrainHealth = new List<SpellId>()
         {
             SpellId.DrainHealth1,
             SpellId.DrainHealth2,
@@ -2669,7 +2669,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DrainHealth8,
         };
 
-        public static List<SpellId> InfuseStamina = new List<SpellId>()
+        public static readonly List<SpellId> InfuseStamina = new List<SpellId>()
         {
             SpellId.InfuseStamina1,
             SpellId.InfuseStamina2,
@@ -2681,7 +2681,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.InfuseStamina8,
         };
 
-        public static List<SpellId> DrainStamina = new List<SpellId>()
+        public static readonly List<SpellId> DrainStamina = new List<SpellId>()
         {
             SpellId.DrainStamina1,
             SpellId.DrainStamina2,
@@ -2693,7 +2693,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DrainStamina8,
         };
 
-        public static List<SpellId> DrainMana = new List<SpellId>()
+        public static readonly List<SpellId> DrainMana = new List<SpellId>()
         {
             SpellId.DrainMana1,
             SpellId.DrainMana2,
@@ -2705,7 +2705,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DrainMana8,
         };
 
-        public static List<SpellId> HealthToStaminaOther = new List<SpellId>()
+        public static readonly List<SpellId> HealthToStaminaOther = new List<SpellId>()
         {
             SpellId.HealthToStaminaOther1,
             SpellId.HealthToStaminaOther2,
@@ -2717,7 +2717,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HealthToStaminaOther8,
         };
 
-        public static List<SpellId> HealthToStaminaSelf = new List<SpellId>()
+        public static readonly List<SpellId> HealthToStaminaSelf = new List<SpellId>()
         {
             SpellId.HealthToStaminaSelf1,
             SpellId.HealthToStaminaSelf2,
@@ -2729,7 +2729,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HealthToStaminaSelf8,
         };
 
-        public static List<SpellId> HealthToManaSelf = new List<SpellId>()
+        public static readonly List<SpellId> HealthToManaSelf = new List<SpellId>()
         {
             SpellId.HealthToManaSelf1,
             SpellId.HealthToManaSelf2,
@@ -2741,7 +2741,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HealthToManaSelf8,
         };
 
-        public static List<SpellId> HealthToManaOther = new List<SpellId>()
+        public static readonly List<SpellId> HealthToManaOther = new List<SpellId>()
         {
             SpellId.HealthToManaOther1,
             SpellId.HealthToManaOther2,
@@ -2753,7 +2753,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HealthToManaOther8,
         };
 
-        public static List<SpellId> ManaToHealthOther = new List<SpellId>()
+        public static readonly List<SpellId> ManaToHealthOther = new List<SpellId>()
         {
             SpellId.ManaToHealthOther1,
             SpellId.ManaToHealthOther2,
@@ -2765,7 +2765,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaToHealthOther8,
         };
 
-        public static List<SpellId> ManaToHealthSelf = new List<SpellId>()
+        public static readonly List<SpellId> ManaToHealthSelf = new List<SpellId>()
         {
             SpellId.ManaToHealthSelf1,
             SpellId.ManaToHealthSelf2,
@@ -2777,7 +2777,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaToHealthSelf8,
         };
 
-        public static List<SpellId> ManaToStaminaSelf = new List<SpellId>()
+        public static readonly List<SpellId> ManaToStaminaSelf = new List<SpellId>()
         {
             SpellId.ManaToStaminaSelf1,
             SpellId.ManaToStaminaSelf2,
@@ -2789,7 +2789,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaToStaminaSelf8,
         };
 
-        public static List<SpellId> ManaToStaminaOther = new List<SpellId>()
+        public static readonly List<SpellId> ManaToStaminaOther = new List<SpellId>()
         {
             SpellId.ManaToStaminaOther1,
             SpellId.ManaToStaminaOther2,
@@ -2801,7 +2801,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaToStaminaOther8,
         };
 
-        public static List<SpellId> EnduranceSelf = new List<SpellId>()
+        public static readonly List<SpellId> EnduranceSelf = new List<SpellId>()
         {
             SpellId.EnduranceSelf1,
             SpellId.EnduranceSelf2,
@@ -2813,7 +2813,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.EnduranceSelf8,
         };
 
-        public static List<SpellId> EnduranceOther = new List<SpellId>()
+        public static readonly List<SpellId> EnduranceOther = new List<SpellId>()
         {
             SpellId.EnduranceOther1,
             SpellId.EnduranceOther2,
@@ -2825,7 +2825,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.EnduranceOther8,
         };
 
-        public static List<SpellId> FrailtySelf = new List<SpellId>()
+        public static readonly List<SpellId> FrailtySelf = new List<SpellId>()
         {
             SpellId.FrailtySelf1,
             SpellId.FrailtySelf2,
@@ -2837,7 +2837,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FrailtySelf8,
         };
 
-        public static List<SpellId> FrailtyOther = new List<SpellId>()
+        public static readonly List<SpellId> FrailtyOther = new List<SpellId>()
         {
             SpellId.FrailtyOther1,
             SpellId.FrailtyOther2,
@@ -2849,7 +2849,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FrailtyOther8,
         };
 
-        public static List<SpellId> CoordinationSelf = new List<SpellId>()
+        public static readonly List<SpellId> CoordinationSelf = new List<SpellId>()
         {
             SpellId.CoordinationSelf1,
             SpellId.CoordinationSelf2,
@@ -2861,7 +2861,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CoordinationSelf8,
         };
 
-        public static List<SpellId> CoordinationOther = new List<SpellId>()
+        public static readonly List<SpellId> CoordinationOther = new List<SpellId>()
         {
             SpellId.CoordinationOther1,
             SpellId.CoordinationOther2,
@@ -2873,7 +2873,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CoordinationOther8,
         };
 
-        public static List<SpellId> ClumsinessSelf = new List<SpellId>()
+        public static readonly List<SpellId> ClumsinessSelf = new List<SpellId>()
         {
             SpellId.ClumsinessSelf1,
             SpellId.ClumsinessSelf2,
@@ -2885,7 +2885,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ClumsinessSelf8,
         };
 
-        public static List<SpellId> ClumsinessOther = new List<SpellId>()
+        public static readonly List<SpellId> ClumsinessOther = new List<SpellId>()
         {
             SpellId.ClumsinessOther1,
             SpellId.ClumsinessOther2,
@@ -2897,7 +2897,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ClumsinessOther8,
         };
 
-        public static List<SpellId> QuicknessSelf = new List<SpellId>()
+        public static readonly List<SpellId> QuicknessSelf = new List<SpellId>()
         {
             SpellId.QuicknessSelf1,
             SpellId.QuicknessSelf2,
@@ -2909,7 +2909,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.QuicknessSelf8,
         };
 
-        public static List<SpellId> QuicknessOther = new List<SpellId>()
+        public static readonly List<SpellId> QuicknessOther = new List<SpellId>()
         {
             SpellId.QuicknessOther1,
             SpellId.QuicknessOther2,
@@ -2921,7 +2921,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.QuicknessOther8,
         };
 
-        public static List<SpellId> SlownessSelf = new List<SpellId>()
+        public static readonly List<SpellId> SlownessSelf = new List<SpellId>()
         {
             SpellId.SlownessSelf1,
             SpellId.SlownessSelf2,
@@ -2933,7 +2933,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SlownessSelf8,
         };
 
-        public static List<SpellId> SlownessOther = new List<SpellId>()
+        public static readonly List<SpellId> SlownessOther = new List<SpellId>()
         {
             SpellId.SlownessOther1,
             SpellId.SlownessOther2,
@@ -2945,7 +2945,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SlownessOther8,
         };
 
-        public static List<SpellId> FocusSelf = new List<SpellId>()
+        public static readonly List<SpellId> FocusSelf = new List<SpellId>()
         {
             SpellId.FocusSelf1,
             SpellId.FocusSelf2,
@@ -2957,7 +2957,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FocusSelf8,
         };
 
-        public static List<SpellId> FocusOther = new List<SpellId>()
+        public static readonly List<SpellId> FocusOther = new List<SpellId>()
         {
             SpellId.FocusOther1,
             SpellId.FocusOther2,
@@ -2969,7 +2969,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FocusOther8,
         };
 
-        public static List<SpellId> BafflementSelf = new List<SpellId>()
+        public static readonly List<SpellId> BafflementSelf = new List<SpellId>()
         {
             SpellId.BafflementSelf1,
             SpellId.BafflementSelf2,
@@ -2981,7 +2981,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BafflementSelf8,
         };
 
-        public static List<SpellId> BafflementOther = new List<SpellId>()
+        public static readonly List<SpellId> BafflementOther = new List<SpellId>()
         {
             SpellId.BafflementOther1,
             SpellId.BafflementOther2,
@@ -2993,7 +2993,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BafflementOther8,
         };
 
-        public static List<SpellId> WillpowerSelf = new List<SpellId>()
+        public static readonly List<SpellId> WillpowerSelf = new List<SpellId>()
         {
             SpellId.WillpowerSelf1,
             SpellId.WillpowerSelf2,
@@ -3005,7 +3005,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.WillpowerSelf8,
         };
 
-        public static List<SpellId> WillpowerOther = new List<SpellId>()
+        public static readonly List<SpellId> WillpowerOther = new List<SpellId>()
         {
             SpellId.WillpowerOther1,
             SpellId.WillpowerOther2,
@@ -3017,7 +3017,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.WillpowerOther8,
         };
 
-        public static List<SpellId> FeeblemindSelf = new List<SpellId>()
+        public static readonly List<SpellId> FeeblemindSelf = new List<SpellId>()
         {
             SpellId.FeeblemindSelf1,
             SpellId.FeeblemindSelf2,
@@ -3029,7 +3029,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FeeblemindSelf8,
         };
 
-        public static List<SpellId> FeeblemindOther = new List<SpellId>()
+        public static readonly List<SpellId> FeeblemindOther = new List<SpellId>()
         {
             SpellId.FeeblemindOther1,
             SpellId.FeeblemindOther2,
@@ -3041,7 +3041,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FeeblemindOther8,
         };
 
-        public static List<SpellId> HermeticVoid = new List<SpellId>()
+        public static readonly List<SpellId> HermeticVoid = new List<SpellId>()
         {
             SpellId.HermeticVoid1,
             SpellId.HermeticVoid2,
@@ -3053,7 +3053,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HermeticVoid8,
         };
 
-        public static List<SpellId> HermeticLinkSelf = new List<SpellId>()
+        public static readonly List<SpellId> HermeticLinkSelf = new List<SpellId>()
         {
             SpellId.HermeticLinkSelf1,
             SpellId.HermeticLinkSelf2,
@@ -3065,7 +3065,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HermeticLinkSelf8,
         };
 
-        public static List<SpellId> Brittlemail = new List<SpellId>()
+        public static readonly List<SpellId> Brittlemail = new List<SpellId>()
         {
             SpellId.Brittlemail1,
             SpellId.Brittlemail2,
@@ -3077,7 +3077,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.Brittlemail8,
         };
 
-        public static List<SpellId> AcidBane = new List<SpellId>()
+        public static readonly List<SpellId> AcidBane = new List<SpellId>()
         {
             SpellId.AcidBane1,
             SpellId.AcidBane2,
@@ -3089,7 +3089,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AcidBane8,
         };
 
-        public static List<SpellId> AcidLure = new List<SpellId>()
+        public static readonly List<SpellId> AcidLure = new List<SpellId>()
         {
             SpellId.AcidLure1,
             SpellId.AcidLure2,
@@ -3101,7 +3101,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AcidLure8,
         };
 
-        public static List<SpellId> BludgeonLure = new List<SpellId>()
+        public static readonly List<SpellId> BludgeonLure = new List<SpellId>()
         {
             SpellId.BludgeonLure1,
             SpellId.BludgeonLure2,
@@ -3113,7 +3113,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BludgeonLure8,
         };
 
-        public static List<SpellId> BludgeonBane = new List<SpellId>()
+        public static readonly List<SpellId> BludgeonBane = new List<SpellId>()
         {
             SpellId.BludgeonBane1,
             SpellId.BludgeonBane2,
@@ -3125,7 +3125,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BludgeonBane8,
         };
 
-        public static List<SpellId> FrostLure = new List<SpellId>()
+        public static readonly List<SpellId> FrostLure = new List<SpellId>()
         {
             SpellId.FrostLure1,
             SpellId.FrostLure2,
@@ -3137,7 +3137,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FrostLure8,
         };
 
-        public static List<SpellId> FrostBane = new List<SpellId>()
+        public static readonly List<SpellId> FrostBane = new List<SpellId>()
         {
             SpellId.FrostBane1,
             SpellId.FrostBane2,
@@ -3149,7 +3149,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FrostBane8,
         };
 
-        public static List<SpellId> LightningLure = new List<SpellId>()
+        public static readonly List<SpellId> LightningLure = new List<SpellId>()
         {
             SpellId.LightningLure1,
             SpellId.LightningLure2,
@@ -3161,7 +3161,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LightningLure8,
         };
 
-        public static List<SpellId> LightningBane = new List<SpellId>()
+        public static readonly List<SpellId> LightningBane = new List<SpellId>()
         {
             SpellId.LightningBane1,
             SpellId.LightningBane2,
@@ -3173,7 +3173,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LightningBane8,
         };
 
-        public static List<SpellId> FlameLure = new List<SpellId>()
+        public static readonly List<SpellId> FlameLure = new List<SpellId>()
         {
             SpellId.FlameLure1,
             SpellId.FlameLure2,
@@ -3185,7 +3185,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FlameLure8,
         };
 
-        public static List<SpellId> FlameBane = new List<SpellId>()
+        public static readonly List<SpellId> FlameBane = new List<SpellId>()
         {
             SpellId.FlameBane1,
             SpellId.FlameBane2,
@@ -3197,7 +3197,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FlameBane8,
         };
 
-        public static List<SpellId> PiercingLure = new List<SpellId>()
+        public static readonly List<SpellId> PiercingLure = new List<SpellId>()
         {
             SpellId.PiercingLure1,
             SpellId.PiercingLure2,
@@ -3209,7 +3209,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PiercingLure8,
         };
 
-        public static List<SpellId> PiercingBane = new List<SpellId>()
+        public static readonly List<SpellId> PiercingBane = new List<SpellId>()
         {
             SpellId.PiercingBane1,
             SpellId.PiercingBane2,
@@ -3221,7 +3221,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PiercingBane8,
         };
 
-        public static List<SpellId> StrengthenLock = new List<SpellId>()
+        public static readonly List<SpellId> StrengthenLock = new List<SpellId>()
         {
             SpellId.StrengthenLock1,
             SpellId.StrengthenLock2,
@@ -3233,7 +3233,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.StrengthenLock8,
         };
 
-        public static List<SpellId> WeakenLock = new List<SpellId>()
+        public static readonly List<SpellId> WeakenLock = new List<SpellId>()
         {
             SpellId.WeakenLock1,
             SpellId.WeakenLock2,
@@ -3245,7 +3245,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.WeakenLock8,
         };
 
-        public static List<SpellId> HeartSeekerSelf = new List<SpellId>()
+        public static readonly List<SpellId> HeartSeekerSelf = new List<SpellId>()
         {
             SpellId.HeartSeekerSelf1,
             SpellId.HeartSeekerSelf2,
@@ -3257,7 +3257,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HeartSeekerSelf8,
         };
 
-        public static List<SpellId> TurnBlade = new List<SpellId>()
+        public static readonly List<SpellId> TurnBlade = new List<SpellId>()
         {
             SpellId.TurnBlade1,
             SpellId.TurnBlade2,
@@ -3269,7 +3269,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.TurnBlade8,
         };
 
-        public static List<SpellId> DefenderSelf = new List<SpellId>()
+        public static readonly List<SpellId> DefenderSelf = new List<SpellId>()
         {
             SpellId.DefenderSelf1,
             SpellId.DefenderSelf2,
@@ -3281,7 +3281,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DefenderSelf8,
         };
 
-        public static List<SpellId> LureBlade = new List<SpellId>()
+        public static readonly List<SpellId> LureBlade = new List<SpellId>()
         {
             SpellId.LureBlade1,
             SpellId.LureBlade2,
@@ -3293,7 +3293,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LureBlade8,
         };
 
-        public static List<SpellId> DefenselessnessSelf = new List<SpellId>()
+        public static readonly List<SpellId> DefenselessnessSelf = new List<SpellId>()
         {
             SpellId.DefenselessnessSelf1,
             SpellId.DefenselessnessSelf2,
@@ -3305,7 +3305,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DefenselessnessSelf8,
         };
 
-        public static List<SpellId> StaminaToHealthOther = new List<SpellId>()
+        public static readonly List<SpellId> StaminaToHealthOther = new List<SpellId>()
         {
             SpellId.StaminaToHealthOther1,
             SpellId.StaminaToHealthOther2,
@@ -3317,7 +3317,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.StaminaToHealthOther8,
         };
 
-        public static List<SpellId> StaminaToHealthSelf = new List<SpellId>()
+        public static readonly List<SpellId> StaminaToHealthSelf = new List<SpellId>()
         {
             SpellId.StaminaToHealthSelf1,
             SpellId.StaminaToHealthSelf2,
@@ -3329,7 +3329,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.StaminaToHealthSelf8,
         };
 
-        public static List<SpellId> StaminaToManaOther = new List<SpellId>()
+        public static readonly List<SpellId> StaminaToManaOther = new List<SpellId>()
         {
             SpellId.StaminaToManaOther1,
             SpellId.StaminaToManaOther2,
@@ -3341,7 +3341,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.StaminaToManaOther8,
         };
 
-        public static List<SpellId> StaminaToManaSelf = new List<SpellId>()
+        public static readonly List<SpellId> StaminaToManaSelf = new List<SpellId>()
         {
             SpellId.StaminaToManaSelf1,
             SpellId.StaminaToManaSelf2,
@@ -3353,7 +3353,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.StaminaToManaSelf8,
         };
 
-        public static List<SpellId> CookingMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> CookingMasteryOther = new List<SpellId>()
         {
             SpellId.CookingMasteryOther1,
             SpellId.CookingMasteryOther2,
@@ -3365,7 +3365,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CookingMasteryOther8,
         };
 
-        public static List<SpellId> CookingMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> CookingMasterySelf = new List<SpellId>()
         {
             SpellId.CookingMasterySelf1,
             SpellId.CookingMasterySelf2,
@@ -3377,7 +3377,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CookingMasterySelf8,
         };
 
-        public static List<SpellId> CookingIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> CookingIneptitudeOther = new List<SpellId>()
         {
             SpellId.CookingIneptitudeOther1,
             SpellId.CookingIneptitudeOther2,
@@ -3389,7 +3389,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CookingIneptitudeOther8,
         };
 
-        public static List<SpellId> CookingIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> CookingIneptitudeSelf = new List<SpellId>()
         {
             SpellId.CookingIneptitudeSelf1,
             SpellId.CookingIneptitudeSelf2,
@@ -3401,7 +3401,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CookingIneptitudeSelf8,
         };
 
-        public static List<SpellId> FletchingMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> FletchingMasteryOther = new List<SpellId>()
         {
             SpellId.FletchingMasteryOther1,
             SpellId.FletchingMasteryOther2,
@@ -3413,7 +3413,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FletchingMasteryOther8,
         };
 
-        public static List<SpellId> FletchingMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> FletchingMasterySelf = new List<SpellId>()
         {
             SpellId.FletchingMasterySelf1,
             SpellId.FletchingMasterySelf2,
@@ -3425,7 +3425,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FletchingMasterySelf8,
         };
 
-        public static List<SpellId> FletchingIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> FletchingIneptitudeOther = new List<SpellId>()
         {
             SpellId.FletchingIneptitudeOther1,
             SpellId.FletchingIneptitudeOther2,
@@ -3437,7 +3437,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FletchingIneptitudeOther8,
         };
 
-        public static List<SpellId> FletchingIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> FletchingIneptitudeSelf = new List<SpellId>()
         {
             SpellId.FletchingIneptitudeSelf1,
             SpellId.FletchingIneptitudeSelf2,
@@ -3449,7 +3449,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FletchingIneptitudeSelf8,
         };
 
-        public static List<SpellId> AlchemyMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> AlchemyMasteryOther = new List<SpellId>()
         {
             SpellId.AlchemyMasteryOther1,
             SpellId.AlchemyMasteryOther2,
@@ -3461,7 +3461,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AlchemyMasteryOther8,
         };
 
-        public static List<SpellId> AlchemyMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> AlchemyMasterySelf = new List<SpellId>()
         {
             SpellId.AlchemyMasterySelf1,
             SpellId.AlchemyMasterySelf2,
@@ -3473,7 +3473,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AlchemyMasterySelf8,
         };
 
-        public static List<SpellId> AlchemyIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> AlchemyIneptitudeOther = new List<SpellId>()
         {
             SpellId.AlchemyIneptitudeOther1,
             SpellId.AlchemyIneptitudeOther2,
@@ -3485,7 +3485,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AlchemyIneptitudeOther8,
         };
 
-        public static List<SpellId> AlchemyIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> AlchemyIneptitudeSelf = new List<SpellId>()
         {
             SpellId.AlchemyIneptitudeSelf1,
             SpellId.AlchemyIneptitudeSelf2,
@@ -3497,7 +3497,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AlchemyIneptitudeSelf8,
         };
 
-        public static List<SpellId> AcidStreak = new List<SpellId>()
+        public static readonly List<SpellId> AcidStreak = new List<SpellId>()
         {
             SpellId.AcidStreak1,
             SpellId.AcidStreak2,
@@ -3509,7 +3509,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AcidStreak8,
         };
 
-        public static List<SpellId> FlameStreak = new List<SpellId>()
+        public static readonly List<SpellId> FlameStreak = new List<SpellId>()
         {
             SpellId.FlameStreak1,
             SpellId.FlameStreak2,
@@ -3521,7 +3521,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FlameStreak8,
         };
 
-        public static List<SpellId> ForceStreak = new List<SpellId>()
+        public static readonly List<SpellId> ForceStreak = new List<SpellId>()
         {
             SpellId.ForceStreak1,
             SpellId.ForceStreak2,
@@ -3533,7 +3533,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ForceStreak8,
         };
 
-        public static List<SpellId> FrostStreak = new List<SpellId>()
+        public static readonly List<SpellId> FrostStreak = new List<SpellId>()
         {
             SpellId.FrostStreak1,
             SpellId.FrostStreak2,
@@ -3545,7 +3545,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FrostStreak8,
         };
 
-        public static List<SpellId> LightningStreak = new List<SpellId>()
+        public static readonly List<SpellId> LightningStreak = new List<SpellId>()
         {
             SpellId.LightningStreak1,
             SpellId.LightningStreak2,
@@ -3557,7 +3557,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LightningStreak8,
         };
 
-        public static List<SpellId> ShockwaveStreak = new List<SpellId>()
+        public static readonly List<SpellId> ShockwaveStreak = new List<SpellId>()
         {
             SpellId.ShockwaveStreak1,
             SpellId.ShockwaveStreak2,
@@ -3569,7 +3569,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ShockwaveStreak8,
         };
 
-        public static List<SpellId> WhirlingBladeStreak = new List<SpellId>()
+        public static readonly List<SpellId> WhirlingBladeStreak = new List<SpellId>()
         {
             SpellId.WhirlingBladeStreak1,
             SpellId.WhirlingBladeStreak2,
@@ -3581,7 +3581,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.WhirlingBladeStreak8,
         };
 
-        public static List<SpellId> DispelAllNeutralOther = new List<SpellId>()
+        public static readonly List<SpellId> DispelAllNeutralOther = new List<SpellId>()
         {
             SpellId.DispelAllNeutralOther1,
             SpellId.DispelAllNeutralOther2,
@@ -3593,7 +3593,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelAllNeutralOther8,
         };
 
-        public static List<SpellId> DispelAllGoodOther = new List<SpellId>()
+        public static readonly List<SpellId> DispelAllGoodOther = new List<SpellId>()
         {
             SpellId.DispelAllGoodOther1,
             SpellId.DispelAllGoodOther2,
@@ -3605,7 +3605,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelAllGoodOther8,
         };
 
-        public static List<SpellId> DispelAllBadOther = new List<SpellId>()
+        public static readonly List<SpellId> DispelAllBadOther = new List<SpellId>()
         {
             SpellId.DispelAllBadOther1,
             SpellId.DispelAllBadOther2,
@@ -3617,7 +3617,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelAllBadOther8,
         };
 
-        public static List<SpellId> DispelAllNeutralSelf = new List<SpellId>()
+        public static readonly List<SpellId> DispelAllNeutralSelf = new List<SpellId>()
         {
             SpellId.DispelAllNeutralSelf1,
             SpellId.DispelAllNeutralSelf2,
@@ -3629,7 +3629,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelAllNeutralSelf8,
         };
 
-        public static List<SpellId> DispelAllGoodSelf = new List<SpellId>()
+        public static readonly List<SpellId> DispelAllGoodSelf = new List<SpellId>()
         {
             SpellId.DispelAllGoodSelf1,
             SpellId.DispelAllGoodSelf2,
@@ -3641,7 +3641,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelAllGoodSelf8,
         };
 
-        public static List<SpellId> DispelAllBadSelf = new List<SpellId>()
+        public static readonly List<SpellId> DispelAllBadSelf = new List<SpellId>()
         {
             SpellId.DispelAllBadSelf1,
             SpellId.DispelAllBadSelf2,
@@ -3653,7 +3653,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelAllBadSelf8,
         };
 
-        public static List<SpellId> DispelCreatureNeutralOther = new List<SpellId>()
+        public static readonly List<SpellId> DispelCreatureNeutralOther = new List<SpellId>()
         {
             SpellId.DispelCreatureNeutralOther1,
             SpellId.DispelCreatureNeutralOther2,
@@ -3665,7 +3665,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelCreatureNeutralOther8,
         };
 
-        public static List<SpellId> DispelCreatureGoodOther = new List<SpellId>()
+        public static readonly List<SpellId> DispelCreatureGoodOther = new List<SpellId>()
         {
             SpellId.DispelCreatureGoodOther1,
             SpellId.DispelCreatureGoodOther2,
@@ -3677,7 +3677,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelCreatureGoodOther8,
         };
 
-        public static List<SpellId> DispelCreatureBadOther = new List<SpellId>()
+        public static readonly List<SpellId> DispelCreatureBadOther = new List<SpellId>()
         {
             SpellId.DispelCreatureBadOther1,
             SpellId.DispelCreatureBadOther2,
@@ -3689,7 +3689,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelCreatureBadOther8,
         };
 
-        public static List<SpellId> DispelCreatureNeutralSelf = new List<SpellId>()
+        public static readonly List<SpellId> DispelCreatureNeutralSelf = new List<SpellId>()
         {
             SpellId.DispelCreatureNeutralSelf1,
             SpellId.DispelCreatureNeutralSelf2,
@@ -3701,7 +3701,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelCreatureNeutralSelf8,
         };
 
-        public static List<SpellId> DispelCreatureGoodSelf = new List<SpellId>()
+        public static readonly List<SpellId> DispelCreatureGoodSelf = new List<SpellId>()
         {
             SpellId.DispelCreatureGoodSelf1,
             SpellId.DispelCreatureGoodSelf2,
@@ -3713,7 +3713,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelCreatureGoodSelf8,
         };
 
-        public static List<SpellId> DispelCreatureBadSelf = new List<SpellId>()
+        public static readonly List<SpellId> DispelCreatureBadSelf = new List<SpellId>()
         {
             SpellId.DispelCreatureBadSelf1,
             SpellId.DispelCreatureBadSelf2,
@@ -3725,7 +3725,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelCreatureBadSelf8,
         };
 
-        public static List<SpellId> DispelItemNeutralOther = new List<SpellId>()
+        public static readonly List<SpellId> DispelItemNeutralOther = new List<SpellId>()
         {
             SpellId.DispelItemNeutralOther1,
             SpellId.DispelItemNeutralOther2,
@@ -3737,7 +3737,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelItemNeutralOther8,
         };
 
-        public static List<SpellId> DispelItemGoodOther = new List<SpellId>()
+        public static readonly List<SpellId> DispelItemGoodOther = new List<SpellId>()
         {
             SpellId.DispelItemGoodOther1,
             SpellId.DispelItemGoodOther2,
@@ -3749,7 +3749,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelItemGoodOther8,
         };
 
-        public static List<SpellId> DispelItemBadOther = new List<SpellId>()
+        public static readonly List<SpellId> DispelItemBadOther = new List<SpellId>()
         {
             SpellId.DispelItemBadOther1,
             SpellId.DispelItemBadOther2,
@@ -3761,7 +3761,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelItemBadOther8,
         };
 
-        public static List<SpellId> DispelItemNeutralSelf = new List<SpellId>()
+        public static readonly List<SpellId> DispelItemNeutralSelf = new List<SpellId>()
         {
             SpellId.DispelItemNeutralSelf1,
             SpellId.DispelItemNeutralSelf2,
@@ -3771,7 +3771,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelItemNeutralSelf6,
         };
 
-        public static List<SpellId> DispelItemGoodSelf = new List<SpellId>()
+        public static readonly List<SpellId> DispelItemGoodSelf = new List<SpellId>()
         {
             SpellId.DispelItemGoodSelf1,
             SpellId.DispelItemGoodSelf2,
@@ -3781,7 +3781,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelItemGoodSelf6,
         };
 
-        public static List<SpellId> DispelItemBadSelf = new List<SpellId>()
+        public static readonly List<SpellId> DispelItemBadSelf = new List<SpellId>()
         {
             SpellId.DispelItemBadSelf1,
             SpellId.DispelItemBadSelf2,
@@ -3791,7 +3791,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelItemBadSelf6,
         };
 
-        public static List<SpellId> DispelLifeNeutralOther = new List<SpellId>()
+        public static readonly List<SpellId> DispelLifeNeutralOther = new List<SpellId>()
         {
             SpellId.DispelLifeNeutralOther1,
             SpellId.DispelLifeNeutralOther2,
@@ -3803,7 +3803,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelLifeNeutralOther8,
         };
 
-        public static List<SpellId> DispelLifeGoodOther = new List<SpellId>()
+        public static readonly List<SpellId> DispelLifeGoodOther = new List<SpellId>()
         {
             SpellId.DispelLifeGoodOther1,
             SpellId.DispelLifeGoodOther2,
@@ -3815,7 +3815,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelLifeGoodOther8,
         };
 
-        public static List<SpellId> DispelLifeBadOther = new List<SpellId>()
+        public static readonly List<SpellId> DispelLifeBadOther = new List<SpellId>()
         {
             SpellId.DispelLifeBadOther1,
             SpellId.DispelLifeBadOther2,
@@ -3827,7 +3827,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelLifeBadOther8,
         };
 
-        public static List<SpellId> DispelLifeNeutralSelf = new List<SpellId>()
+        public static readonly List<SpellId> DispelLifeNeutralSelf = new List<SpellId>()
         {
             SpellId.DispelLifeNeutralSelf1,
             SpellId.DispelLifeNeutralSelf2,
@@ -3839,7 +3839,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelLifeNeutralSelf8,
         };
 
-        public static List<SpellId> DispelLifeGoodSelf = new List<SpellId>()
+        public static readonly List<SpellId> DispelLifeGoodSelf = new List<SpellId>()
         {
             SpellId.DispelLifeGoodSelf1,
             SpellId.DispelLifeGoodSelf2,
@@ -3851,7 +3851,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelLifeGoodSelf8,
         };
 
-        public static List<SpellId> DispelLifeBadSelf = new List<SpellId>()
+        public static readonly List<SpellId> DispelLifeBadSelf = new List<SpellId>()
         {
             SpellId.DispelLifeBadSelf1,
             SpellId.DispelLifeBadSelf2,
@@ -3863,14 +3863,14 @@ namespace ACE.Server.Factories.Tables
             SpellId.DispelLifeBadSelf8,
         };
 
-        public static List<SpellId> RecallAsmolum = new List<SpellId>()
+        public static readonly List<SpellId> RecallAsmolum = new List<SpellId>()
         {
             SpellId.RecallAsmolum1,
             SpellId.RecallAsmolum2,
             SpellId.RecallAsmolum3,
         };
 
-        public static List<SpellId> PortalSendTrial = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendTrial = new List<SpellId>()
         {
             SpellId.PortalSendTrial1,
             SpellId.PortalSendTrial2,
@@ -3879,7 +3879,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendTrial5,
         };
 
-        public static List<SpellId> CANTRIPALCHEMICALPROWESS = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPALCHEMICALPROWESS = new List<SpellId>()
         {
             SpellId.CANTRIPALCHEMICALPROWESS1,
             SpellId.CANTRIPALCHEMICALPROWESS2,
@@ -3887,7 +3887,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripAlchemicalProwess4,
         };
 
-        public static List<SpellId> CANTRIPARCANEPROWESS = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPARCANEPROWESS = new List<SpellId>()
         {
             SpellId.CANTRIPARCANEPROWESS1,
             SpellId.CANTRIPARCANEPROWESS2,
@@ -3895,7 +3895,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripArcaneProwess4,
         };
 
-        public static List<SpellId> CANTRIPARMOREXPERTISE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPARMOREXPERTISE = new List<SpellId>()
         {
             SpellId.CANTRIPARMOREXPERTISE1,
             SpellId.CANTRIPARMOREXPERTISE2,
@@ -3903,7 +3903,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripArmorExpertise4,
         };
 
-        public static List<SpellId> CANTRIPLIGHTWEAPONSAPTITUDE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPLIGHTWEAPONSAPTITUDE = new List<SpellId>()
         {
             SpellId.CANTRIPLIGHTWEAPONSAPTITUDE1,
             SpellId.CANTRIPLIGHTWEAPONSAPTITUDE2,
@@ -3911,7 +3911,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripLightWeaponsAptitude4,
         };
 
-        public static List<SpellId> CANTRIPMISSILEWEAPONSAPTITUDE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPMISSILEWEAPONSAPTITUDE = new List<SpellId>()
         {
             SpellId.CANTRIPMISSILEWEAPONSAPTITUDE1,
             SpellId.CANTRIPMISSILEWEAPONSAPTITUDE2,
@@ -3919,7 +3919,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripMissileWeaponsAptitude4,
         };
 
-        public static List<SpellId> CANTRIPCOOKINGPROWESS = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPCOOKINGPROWESS = new List<SpellId>()
         {
             SpellId.CANTRIPCOOKINGPROWESS1,
             SpellId.CANTRIPCOOKINGPROWESS2,
@@ -3927,7 +3927,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripCookingProwess4,
         };
 
-        public static List<SpellId> CANTRIPCREATUREENCHANTMENTAPTITUDE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPCREATUREENCHANTMENTAPTITUDE = new List<SpellId>()
         {
             SpellId.CANTRIPCREATUREENCHANTMENTAPTITUDE1,
             SpellId.CANTRIPCREATUREENCHANTMENTAPTITUDE2,
@@ -3935,14 +3935,14 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripCreatureEnchantmentAptitude4,
         };
 
-        public static List<SpellId> CANTRIPCROSSBOWAPTITUDE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPCROSSBOWAPTITUDE = new List<SpellId>()
         {
             SpellId.CANTRIPCROSSBOWAPTITUDE1,
             SpellId.CANTRIPCROSSBOWAPTITUDE2,
             SpellId.CANTRIPCROSSBOWAPTITUDE3,
         };
 
-        public static List<SpellId> CANTRIPFINESSEWEAPONSAPTITUDE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPFINESSEWEAPONSAPTITUDE = new List<SpellId>()
         {
             SpellId.CANTRIPFINESSEWEAPONSAPTITUDE1,
             SpellId.CANTRIPFINESSEWEAPONSAPTITUDE2,
@@ -3950,7 +3950,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripFinesseWeaponsAptitude4,
         };
 
-        public static List<SpellId> CANTRIPDECEPTIONPROWESS = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPDECEPTIONPROWESS = new List<SpellId>()
         {
             SpellId.CANTRIPDECEPTIONPROWESS1,
             SpellId.CANTRIPDECEPTIONPROWESS2,
@@ -3958,7 +3958,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripDeceptionProwess4,
         };
 
-        public static List<SpellId> CANTRIPFEALTY = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPFEALTY = new List<SpellId>()
         {
             SpellId.CANTRIPFEALTY1,
             SpellId.CANTRIPFEALTY2,
@@ -3966,7 +3966,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripFealty4,
         };
 
-        public static List<SpellId> CANTRIPFLETCHINGPROWESS = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPFLETCHINGPROWESS = new List<SpellId>()
         {
             SpellId.CANTRIPFLETCHINGPROWESS1,
             SpellId.CANTRIPFLETCHINGPROWESS2,
@@ -3974,7 +3974,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripFletchingProwess4,
         };
 
-        public static List<SpellId> CANTRIPHEALINGPROWESS = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPHEALINGPROWESS = new List<SpellId>()
         {
             SpellId.CANTRIPHEALINGPROWESS1,
             SpellId.CANTRIPHEALINGPROWESS2,
@@ -3982,7 +3982,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripHealingProwess4,
         };
 
-        public static List<SpellId> CANTRIPIMPREGNABILITY = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPIMPREGNABILITY = new List<SpellId>()
         {
             SpellId.CANTRIPIMPREGNABILITY1,
             SpellId.CANTRIPIMPREGNABILITY2,
@@ -3990,7 +3990,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripImpregnability4,
         };
 
-        public static List<SpellId> CANTRIPINVULNERABILITY = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPINVULNERABILITY = new List<SpellId>()
         {
             SpellId.CANTRIPINVULNERABILITY1,
             SpellId.CANTRIPINVULNERABILITY2,
@@ -3998,7 +3998,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripInvulnerability4,
         };
 
-        public static List<SpellId> CANTRIPITEMENCHANTMENTAPTITUDE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPITEMENCHANTMENTAPTITUDE = new List<SpellId>()
         {
             SpellId.CANTRIPITEMENCHANTMENTAPTITUDE1,
             SpellId.CANTRIPITEMENCHANTMENTAPTITUDE2,
@@ -4006,7 +4006,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripItemEnchantmentAptitude4,
         };
 
-        public static List<SpellId> CANTRIPITEMEXPERTISE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPITEMEXPERTISE = new List<SpellId>()
         {
             SpellId.CANTRIPITEMEXPERTISE1,
             SpellId.CANTRIPITEMEXPERTISE2,
@@ -4014,7 +4014,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripItemExpertise4,
         };
 
-        public static List<SpellId> CANTRIPJUMPINGPROWESS = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPJUMPINGPROWESS = new List<SpellId>()
         {
             SpellId.CANTRIPJUMPINGPROWESS1,
             SpellId.CANTRIPJUMPINGPROWESS2,
@@ -4022,7 +4022,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripJumpingProwess4,
         };
 
-        public static List<SpellId> CANTRIPLEADERSHIP = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPLEADERSHIP = new List<SpellId>()
         {
             SpellId.CANTRIPLEADERSHIP1,
             SpellId.CANTRIPLEADERSHIP2,
@@ -4030,7 +4030,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripLeadership4,
         };
 
-        public static List<SpellId> CANTRIPLIFEMAGICAPTITUDE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPLIFEMAGICAPTITUDE = new List<SpellId>()
         {
             SpellId.CANTRIPLIFEMAGICAPTITUDE1,
             SpellId.CANTRIPLIFEMAGICAPTITUDE2,
@@ -4038,7 +4038,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripLifeMagicAptitude4,
         };
 
-        public static List<SpellId> CANTRIPLOCKPICKPROWESS = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPLOCKPICKPROWESS = new List<SpellId>()
         {
             SpellId.CANTRIPLOCKPICKPROWESS1,
             SpellId.CANTRIPLOCKPICKPROWESS2,
@@ -4046,14 +4046,14 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripLockpickProwess4,
         };
 
-        public static List<SpellId> CANTRIPMACEAPTITUDE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPMACEAPTITUDE = new List<SpellId>()
         {
             SpellId.CANTRIPMACEAPTITUDE1,
             SpellId.CANTRIPMACEAPTITUDE2,
             SpellId.CANTRIPMACEAPTITUDE3,
         };
 
-        public static List<SpellId> CANTRIPMAGICITEMEXPERTISE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPMAGICITEMEXPERTISE = new List<SpellId>()
         {
             SpellId.CANTRIPMAGICITEMEXPERTISE1,
             SpellId.CANTRIPMAGICITEMEXPERTISE2,
@@ -4061,7 +4061,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripMagicItemExpertise4,
         };
 
-        public static List<SpellId> CANTRIPMAGICRESISTANCE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPMAGICRESISTANCE = new List<SpellId>()
         {
             SpellId.CANTRIPMAGICRESISTANCE1,
             SpellId.CANTRIPMAGICRESISTANCE2,
@@ -4069,7 +4069,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripMagicResistance4,
         };
 
-        public static List<SpellId> CANTRIPMANACONVERSIONPROWESS = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPMANACONVERSIONPROWESS = new List<SpellId>()
         {
             SpellId.CANTRIPMANACONVERSIONPROWESS1,
             SpellId.CANTRIPMANACONVERSIONPROWESS2,
@@ -4077,7 +4077,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripManaConversionProwess4,
         };
 
-        public static List<SpellId> CANTRIPMONSTERATTUNEMENT = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPMONSTERATTUNEMENT = new List<SpellId>()
         {
             SpellId.CANTRIPMONSTERATTUNEMENT1,
             SpellId.CANTRIPMONSTERATTUNEMENT2,
@@ -4085,7 +4085,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripMonsterAttunement4,
         };
 
-        public static List<SpellId> CANTRIPPERSONATTUNEMENT = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPPERSONATTUNEMENT = new List<SpellId>()
         {
             SpellId.CANTRIPPERSONATTUNEMENT1,
             SpellId.CANTRIPPERSONATTUNEMENT2,
@@ -4093,14 +4093,14 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripPersonAttunement4,
         };
 
-        public static List<SpellId> CANTRIPSPEARAPTITUDE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPSPEARAPTITUDE = new List<SpellId>()
         {
             SpellId.CANTRIPSPEARAPTITUDE1,
             SpellId.CANTRIPSPEARAPTITUDE2,
             SpellId.CANTRIPSPEARAPTITUDE3,
         };
 
-        public static List<SpellId> CANTRIPSPRINT = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPSPRINT = new List<SpellId>()
         {
             SpellId.CANTRIPSPRINT1,
             SpellId.CANTRIPSPRINT2,
@@ -4108,14 +4108,14 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripSprint4,
         };
 
-        public static List<SpellId> CANTRIPSTAFFAPTITUDE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPSTAFFAPTITUDE = new List<SpellId>()
         {
             SpellId.CANTRIPSTAFFAPTITUDE1,
             SpellId.CANTRIPSTAFFAPTITUDE2,
             SpellId.CANTRIPSTAFFAPTITUDE3,
         };
 
-        public static List<SpellId> CANTRIPHEAVYWEAPONSAPTITUDE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPHEAVYWEAPONSAPTITUDE = new List<SpellId>()
         {
             SpellId.CANTRIPHEAVYWEAPONSAPTITUDE1,
             SpellId.CANTRIPHEAVYWEAPONSAPTITUDE2,
@@ -4123,21 +4123,21 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripHeavyWeaponsAptitude4,
         };
 
-        public static List<SpellId> CANTRIPTHROWNAPTITUDE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPTHROWNAPTITUDE = new List<SpellId>()
         {
             SpellId.CANTRIPTHROWNAPTITUDE1,
             SpellId.CANTRIPTHROWNAPTITUDE2,
             SpellId.CANTRIPTHROWNAPTITUDE3,
         };
 
-        public static List<SpellId> CANTRIPUNARMEDAPTITUDE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPUNARMEDAPTITUDE = new List<SpellId>()
         {
             SpellId.CANTRIPUNARMEDAPTITUDE1,
             SpellId.CANTRIPUNARMEDAPTITUDE2,
             SpellId.CANTRIPUNARMEDAPTITUDE3,
         };
 
-        public static List<SpellId> CANTRIPWARMAGICAPTITUDE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPWARMAGICAPTITUDE = new List<SpellId>()
         {
             SpellId.CANTRIPWARMAGICAPTITUDE1,
             SpellId.CANTRIPWARMAGICAPTITUDE2,
@@ -4145,7 +4145,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripWarMagicAptitude4,
         };
 
-        public static List<SpellId> CANTRIPWEAPONEXPERTISE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPWEAPONEXPERTISE = new List<SpellId>()
         {
             SpellId.CANTRIPWEAPONEXPERTISE1,
             SpellId.CANTRIPWEAPONEXPERTISE2,
@@ -4153,7 +4153,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripWeaponExpertise4,
         };
 
-        public static List<SpellId> CANTRIPARMOR = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPARMOR = new List<SpellId>()
         {
             SpellId.CANTRIPARMOR1,
             SpellId.CANTRIPARMOR2,
@@ -4161,7 +4161,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripArmor4,
         };
 
-        public static List<SpellId> CANTRIPCOORDINATION = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPCOORDINATION = new List<SpellId>()
         {
             SpellId.CANTRIPCOORDINATION1,
             SpellId.CANTRIPCOORDINATION2,
@@ -4169,7 +4169,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripCoordination4,
         };
 
-        public static List<SpellId> CANTRIPENDURANCE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPENDURANCE = new List<SpellId>()
         {
             SpellId.CANTRIPENDURANCE1,
             SpellId.CANTRIPENDURANCE2,
@@ -4177,7 +4177,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripEndurance4,
         };
 
-        public static List<SpellId> CANTRIPFOCUS = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPFOCUS = new List<SpellId>()
         {
             SpellId.CANTRIPFOCUS1,
             SpellId.CANTRIPFOCUS2,
@@ -4185,7 +4185,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripFocus4,
         };
 
-        public static List<SpellId> CANTRIPQUICKNESS = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPQUICKNESS = new List<SpellId>()
         {
             SpellId.CANTRIPQUICKNESS1,
             SpellId.CANTRIPQUICKNESS2,
@@ -4193,7 +4193,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripQuickness4,
         };
 
-        public static List<SpellId> CANTRIPSTRENGTH = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPSTRENGTH = new List<SpellId>()
         {
             SpellId.CANTRIPSTRENGTH1,
             SpellId.CANTRIPSTRENGTH2,
@@ -4201,7 +4201,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripStrength4,
         };
 
-        public static List<SpellId> CANTRIPWILLPOWER = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPWILLPOWER = new List<SpellId>()
         {
             SpellId.CANTRIPWILLPOWER1,
             SpellId.CANTRIPWILLPOWER2,
@@ -4209,7 +4209,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripWillpower4,
         };
 
-        public static List<SpellId> CANTRIPACIDBANE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPACIDBANE = new List<SpellId>()
         {
             SpellId.CANTRIPACIDBANE1,
             SpellId.CANTRIPACIDBANE2,
@@ -4217,7 +4217,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripAcidBane4,
         };
 
-        public static List<SpellId> CANTRIPBLOODTHIRST = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPBLOODTHIRST = new List<SpellId>()
         {
             SpellId.CANTRIPBLOODTHIRST1,
             SpellId.CANTRIPBLOODTHIRST2,
@@ -4225,7 +4225,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripBloodThirst4,
         };
 
-        public static List<SpellId> CANTRIPBLUDGEONINGBANE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPBLUDGEONINGBANE = new List<SpellId>()
         {
             SpellId.CANTRIPBLUDGEONINGBANE1,
             SpellId.CANTRIPBLUDGEONINGBANE2,
@@ -4233,7 +4233,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripBludgeoningBane4,
         };
 
-        public static List<SpellId> CANTRIPDEFENDER = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPDEFENDER = new List<SpellId>()
         {
             SpellId.CANTRIPDEFENDER1,
             SpellId.CANTRIPDEFENDER2,
@@ -4241,7 +4241,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripDefender4,
         };
 
-        public static List<SpellId> CANTRIPFLAMEBANE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPFLAMEBANE = new List<SpellId>()
         {
             SpellId.CANTRIPFLAMEBANE1,
             SpellId.CANTRIPFLAMEBANE2,
@@ -4249,7 +4249,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripFlameBane4,
         };
 
-        public static List<SpellId> CANTRIPFROSTBANE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPFROSTBANE = new List<SpellId>()
         {
             SpellId.CANTRIPFROSTBANE1,
             SpellId.CANTRIPFROSTBANE2,
@@ -4257,7 +4257,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripFrostBane4,
         };
 
-        public static List<SpellId> CANTRIPHEARTTHIRST = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPHEARTTHIRST = new List<SpellId>()
         {
             SpellId.CANTRIPHEARTTHIRST1,
             SpellId.CANTRIPHEARTTHIRST2,
@@ -4265,7 +4265,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripHeartThirst4,
         };
 
-        public static List<SpellId> CANTRIPIMPENETRABILITY = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPIMPENETRABILITY = new List<SpellId>()
         {
             SpellId.CANTRIPIMPENETRABILITY1,
             SpellId.CANTRIPIMPENETRABILITY2,
@@ -4273,7 +4273,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripImpenetrability4,
         };
 
-        public static List<SpellId> CANTRIPPIERCINGBANE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPPIERCINGBANE = new List<SpellId>()
         {
             SpellId.CANTRIPPIERCINGBANE1,
             SpellId.CANTRIPPIERCINGBANE2,
@@ -4281,7 +4281,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripPiercingBane4,
         };
 
-        public static List<SpellId> CANTRIPSLASHINGBANE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPSLASHINGBANE = new List<SpellId>()
         {
             SpellId.CANTRIPSLASHINGBANE1,
             SpellId.CANTRIPSLASHINGBANE2,
@@ -4289,7 +4289,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripSlashingBane4,
         };
 
-        public static List<SpellId> CANTRIPSTORMBANE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPSTORMBANE = new List<SpellId>()
         {
             SpellId.CANTRIPSTORMBANE1,
             SpellId.CANTRIPSTORMBANE2,
@@ -4297,7 +4297,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripStormBane4,
         };
 
-        public static List<SpellId> CANTRIPSWIFTHUNTER = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPSWIFTHUNTER = new List<SpellId>()
         {
             SpellId.CANTRIPSWIFTHUNTER1,
             SpellId.CANTRIPSWIFTHUNTER2,
@@ -4305,7 +4305,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripSwiftHunter4,
         };
 
-        public static List<SpellId> CANTRIPACIDWARD = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPACIDWARD = new List<SpellId>()
         {
             SpellId.CANTRIPACIDWARD1,
             SpellId.CANTRIPACIDWARD2,
@@ -4313,7 +4313,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripAcidWard4,
         };
 
-        public static List<SpellId> CANTRIPBLUDGEONINGWARD = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPBLUDGEONINGWARD = new List<SpellId>()
         {
             SpellId.CANTRIPBLUDGEONINGWARD1,
             SpellId.CANTRIPBLUDGEONINGWARD2,
@@ -4321,7 +4321,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripBludgeoningWard4,
         };
 
-        public static List<SpellId> CANTRIPFLAMEWARD = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPFLAMEWARD = new List<SpellId>()
         {
             SpellId.CANTRIPFLAMEWARD1,
             SpellId.CANTRIPFLAMEWARD2,
@@ -4329,7 +4329,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripFlameWard4,
         };
 
-        public static List<SpellId> CANTRIPFROSTWARD = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPFROSTWARD = new List<SpellId>()
         {
             SpellId.CANTRIPFROSTWARD1,
             SpellId.CANTRIPFROSTWARD2,
@@ -4337,7 +4337,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripFrostWard4,
         };
 
-        public static List<SpellId> CANTRIPPIERCINGWARD = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPPIERCINGWARD = new List<SpellId>()
         {
             SpellId.CANTRIPPIERCINGWARD1,
             SpellId.CANTRIPPIERCINGWARD2,
@@ -4345,7 +4345,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripPiercingWard4,
         };
 
-        public static List<SpellId> CANTRIPSLASHINGWARD = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPSLASHINGWARD = new List<SpellId>()
         {
             SpellId.CANTRIPSLASHINGWARD1,
             SpellId.CANTRIPSLASHINGWARD2,
@@ -4353,7 +4353,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripSlashingWard4,
         };
 
-        public static List<SpellId> CANTRIPSTORMWARD = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPSTORMWARD = new List<SpellId>()
         {
             SpellId.CANTRIPSTORMWARD1,
             SpellId.CANTRIPSTORMWARD2,
@@ -4361,7 +4361,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripStormWard4,
         };
 
-        public static List<SpellId> CANTRIPHEALTHGAIN = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPHEALTHGAIN = new List<SpellId>()
         {
             SpellId.CANTRIPHEALTHGAIN1,
             SpellId.CANTRIPHEALTHGAIN2,
@@ -4369,7 +4369,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripHealthGain4,
         };
 
-        public static List<SpellId> CANTRIPMANAGAIN = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPMANAGAIN = new List<SpellId>()
         {
             SpellId.CANTRIPMANAGAIN1,
             SpellId.CANTRIPMANAGAIN2,
@@ -4377,7 +4377,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripManaGain4,
         };
 
-        public static List<SpellId> CANTRIPSTAMINAGAIN = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPSTAMINAGAIN = new List<SpellId>()
         {
             SpellId.CANTRIPSTAMINAGAIN1,
             SpellId.CANTRIPSTAMINAGAIN2,
@@ -4385,20 +4385,20 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripStaminaGain4,
         };
 
-        public static List<SpellId> SummonSecondPortal = new List<SpellId>()
+        public static readonly List<SpellId> SummonSecondPortal = new List<SpellId>()
         {
             SpellId.SummonSecondPortal1,
             SpellId.SummonSecondPortal2,
             SpellId.SummonSecondPortal3,
         };
 
-        public static List<SpellId> MartineRing = new List<SpellId>()
+        public static readonly List<SpellId> MartineRing = new List<SpellId>()
         {
             SpellId.MartineRing1,
             SpellId.MartineRing2,
         };
 
-        public static List<SpellId> ElementalFury = new List<SpellId>()
+        public static readonly List<SpellId> ElementalFury = new List<SpellId>()
         {
             SpellId.ElementalFury1,
             SpellId.ElementalFury2,
@@ -4406,7 +4406,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ElementalFury4,
         };
 
-        public static List<SpellId> AcidArc = new List<SpellId>()
+        public static readonly List<SpellId> AcidArc = new List<SpellId>()
         {
             SpellId.AcidArc1,
             SpellId.AcidArc2,
@@ -4418,7 +4418,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AcidArc8,
         };
 
-        public static List<SpellId> ForceArc = new List<SpellId>()
+        public static readonly List<SpellId> ForceArc = new List<SpellId>()
         {
             SpellId.ForceArc1,
             SpellId.ForceArc2,
@@ -4430,7 +4430,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ForceArc8,
         };
 
-        public static List<SpellId> FrostArc = new List<SpellId>()
+        public static readonly List<SpellId> FrostArc = new List<SpellId>()
         {
             SpellId.FrostArc1,
             SpellId.FrostArc2,
@@ -4442,7 +4442,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FrostArc8,
         };
 
-        public static List<SpellId> LightningArc = new List<SpellId>()
+        public static readonly List<SpellId> LightningArc = new List<SpellId>()
         {
             SpellId.LightningArc1,
             SpellId.LightningArc2,
@@ -4454,7 +4454,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LightningArc8,
         };
 
-        public static List<SpellId> FlameArc = new List<SpellId>()
+        public static readonly List<SpellId> FlameArc = new List<SpellId>()
         {
             SpellId.FlameArc1,
             SpellId.FlameArc2,
@@ -4466,7 +4466,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FlameArc8,
         };
 
-        public static List<SpellId> ShockArc = new List<SpellId>()
+        public static readonly List<SpellId> ShockArc = new List<SpellId>()
         {
             SpellId.ShockArc1,
             SpellId.ShockArc2,
@@ -4478,7 +4478,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ShockArc8,
         };
 
-        public static List<SpellId> BladeArc = new List<SpellId>()
+        public static readonly List<SpellId> BladeArc = new List<SpellId>()
         {
             SpellId.BladeArc1,
             SpellId.BladeArc2,
@@ -4490,7 +4490,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BladeArc8,
         };
 
-        public static List<SpellId> HealthBolt = new List<SpellId>()
+        public static readonly List<SpellId> HealthBolt = new List<SpellId>()
         {
             SpellId.HealthBolt1,
             SpellId.HealthBolt2,
@@ -4502,7 +4502,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HealthBolt8,
         };
 
-        public static List<SpellId> StaminaBolt = new List<SpellId>()
+        public static readonly List<SpellId> StaminaBolt = new List<SpellId>()
         {
             SpellId.StaminaBolt1,
             SpellId.StaminaBolt2,
@@ -4514,7 +4514,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.StaminaBolt8,
         };
 
-        public static List<SpellId> ManaBolt = new List<SpellId>()
+        public static readonly List<SpellId> ManaBolt = new List<SpellId>()
         {
             //SpellId.ManaBolt,
             SpellId.ManaBolt1,
@@ -4527,7 +4527,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaBolt8,
         };
 
-        public static List<SpellId> FireworkOutBlack = new List<SpellId>()
+        public static readonly List<SpellId> FireworkOutBlack = new List<SpellId>()
         {
             SpellId.FireworkOutBlack1,
             SpellId.FireworkOutBlack2,
@@ -4539,7 +4539,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireworkOutBlack8,
         };
 
-        public static List<SpellId> FireworkOutBlue = new List<SpellId>()
+        public static readonly List<SpellId> FireworkOutBlue = new List<SpellId>()
         {
             SpellId.FireworkOutBlue1,
             SpellId.FireworkOutBlue2,
@@ -4551,7 +4551,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireworkOutBlue8,
         };
 
-        public static List<SpellId> FireworkOutGreen = new List<SpellId>()
+        public static readonly List<SpellId> FireworkOutGreen = new List<SpellId>()
         {
             SpellId.FireworkOutGreen1,
             SpellId.FireworkOutGreen2,
@@ -4563,7 +4563,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireworkOutGreen8,
         };
 
-        public static List<SpellId> FireworkOutOrange = new List<SpellId>()
+        public static readonly List<SpellId> FireworkOutOrange = new List<SpellId>()
         {
             SpellId.FireworkOutOrange1,
             SpellId.FireworkOutOrange2,
@@ -4575,7 +4575,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireworkOutOrange8,
         };
 
-        public static List<SpellId> FireworkOutPurple = new List<SpellId>()
+        public static readonly List<SpellId> FireworkOutPurple = new List<SpellId>()
         {
             SpellId.FireworkOutPurple1,
             SpellId.FireworkOutPurple2,
@@ -4587,7 +4587,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireworkOutPurple8,
         };
 
-        public static List<SpellId> FireworkOutRed = new List<SpellId>()
+        public static readonly List<SpellId> FireworkOutRed = new List<SpellId>()
         {
             SpellId.FireworkOutRed1,
             SpellId.FireworkOutRed2,
@@ -4599,7 +4599,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireworkOutRed8,
         };
 
-        public static List<SpellId> FireworkOutWhite = new List<SpellId>()
+        public static readonly List<SpellId> FireworkOutWhite = new List<SpellId>()
         {
             SpellId.FireworkOutWhite1,
             SpellId.FireworkOutWhite2,
@@ -4611,7 +4611,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireworkOutWhite8,
         };
 
-        public static List<SpellId> FireworkOutYellow = new List<SpellId>()
+        public static readonly List<SpellId> FireworkOutYellow = new List<SpellId>()
         {
             SpellId.FireworkOutYellow1,
             SpellId.FireworkOutYellow2,
@@ -4623,7 +4623,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireworkOutYellow8,
         };
 
-        public static List<SpellId> FireworkUpBlack = new List<SpellId>()
+        public static readonly List<SpellId> FireworkUpBlack = new List<SpellId>()
         {
             SpellId.FireworkUpBlack1,
             SpellId.FireworkUpBlack2,
@@ -4635,7 +4635,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireworkUpBlack8,
         };
 
-        public static List<SpellId> FireworkUpBlue = new List<SpellId>()
+        public static readonly List<SpellId> FireworkUpBlue = new List<SpellId>()
         {
             SpellId.FireworkUpBlue1,
             SpellId.FireworkUpBlue2,
@@ -4647,7 +4647,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireworkUpBlue8,
         };
 
-        public static List<SpellId> FireworkUpGreen = new List<SpellId>()
+        public static readonly List<SpellId> FireworkUpGreen = new List<SpellId>()
         {
             SpellId.FireworkUpGreen1,
             SpellId.FireworkUpGreen2,
@@ -4659,7 +4659,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireworkUpGreen8,
         };
 
-        public static List<SpellId> FireworkUpOrange = new List<SpellId>()
+        public static readonly List<SpellId> FireworkUpOrange = new List<SpellId>()
         {
             SpellId.FireworkUpOrange1,
             SpellId.FireworkUpOrange2,
@@ -4671,7 +4671,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireworkUpOrange8,
         };
 
-        public static List<SpellId> FireworkUpPurple = new List<SpellId>()
+        public static readonly List<SpellId> FireworkUpPurple = new List<SpellId>()
         {
             SpellId.FireworkUpPurple1,
             SpellId.FireworkUpPurple2,
@@ -4683,7 +4683,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireworkUpPurple8,
         };
 
-        public static List<SpellId> FireworkUpRed = new List<SpellId>()
+        public static readonly List<SpellId> FireworkUpRed = new List<SpellId>()
         {
             SpellId.FireworkUpRed1,
             SpellId.FireworkUpRed2,
@@ -4695,7 +4695,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireworkUpRed8,
         };
 
-        public static List<SpellId> FireworkUpWhite = new List<SpellId>()
+        public static readonly List<SpellId> FireworkUpWhite = new List<SpellId>()
         {
             SpellId.FireworkUpWhite1,
             SpellId.FireworkUpWhite2,
@@ -4707,7 +4707,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireworkUpWhite8,
         };
 
-        public static List<SpellId> FireworkUpYellow = new List<SpellId>()
+        public static readonly List<SpellId> FireworkUpYellow = new List<SpellId>()
         {
             SpellId.FireworkUpYellow1,
             SpellId.FireworkUpYellow2,
@@ -4719,14 +4719,14 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireworkUpYellow8,
         };
 
-        public static List<SpellId> PortalSendingKnorr = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingKnorr = new List<SpellId>()
         {
             SpellId.PortalSendingKnorr,
             SpellId.PortalSendingKnorr2,
             SpellId.PortalSendingKnorr3,
         };
 
-        public static List<SpellId> PortalSendingFellowshipLiazkBurun = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingFellowshipLiazkBurun = new List<SpellId>()
         {
             SpellId.PortalSendingFellowshipLiazkBurun40,
             SpellId.PortalSendingFellowshipLiazkBurun60,
@@ -4734,7 +4734,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingFellowshipLiazkBurun100,
         };
 
-        public static List<SpellId> PortalSendingLiazkBurun = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingLiazkBurun = new List<SpellId>()
         {
             SpellId.PortalSendingLiazkBurun40,
             SpellId.PortalSendingLiazkBurun60,
@@ -4742,7 +4742,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingLiazkBurun100,
         };
 
-        public static List<SpellId> PortalSendingLiazkJump = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingLiazkJump = new List<SpellId>()
         {
             SpellId.PortalSendingLiazkJump40,
             SpellId.PortalSendingLiazkJump60,
@@ -4750,7 +4750,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingLiazkJump100,
         };
 
-        public static List<SpellId> PortalSendingLiazkSpirits = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingLiazkSpirits = new List<SpellId>()
         {
             SpellId.PortalSendingLiazkSpirits40,
             SpellId.PortalSendingLiazkSpirits60,
@@ -4758,7 +4758,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingLiazkSpirits100,
         };
 
-        public static List<SpellId> PortalSendingLiazkTest = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingLiazkTest = new List<SpellId>()
         {
             SpellId.PortalSendingLiazkTest40,
             SpellId.PortalSendingLiazkTest60,
@@ -4766,7 +4766,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingLiazkTest100,
         };
 
-        public static List<SpellId> CoordinationFellowship = new List<SpellId>()
+        public static readonly List<SpellId> CoordinationFellowship = new List<SpellId>()
         {
             SpellId.CoordinationFellowship4,
             SpellId.CoordinationFellowship5,
@@ -4775,7 +4775,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CoordinationFellowship8,
         };
 
-        public static List<SpellId> EnduranceFellowship = new List<SpellId>()
+        public static readonly List<SpellId> EnduranceFellowship = new List<SpellId>()
         {
             SpellId.EnduranceFellowship4,
             SpellId.EnduranceFellowship5,
@@ -4784,7 +4784,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.EnduranceFellowship8,
         };
 
-        public static List<SpellId> FocusFellowship = new List<SpellId>()
+        public static readonly List<SpellId> FocusFellowship = new List<SpellId>()
         {
             SpellId.FocusFellowship4,
             SpellId.FocusFellowship5,
@@ -4793,7 +4793,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FocusFellowship8,
         };
 
-        public static List<SpellId> QuicknessFellowship = new List<SpellId>()
+        public static readonly List<SpellId> QuicknessFellowship = new List<SpellId>()
         {
             SpellId.QuicknessFellowship4,
             SpellId.QuicknessFellowship5,
@@ -4802,7 +4802,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.QuicknessFellowship8,
         };
 
-        public static List<SpellId> SelfFellowship = new List<SpellId>()
+        public static readonly List<SpellId> SelfFellowship = new List<SpellId>()
         {
             SpellId.SelfFellowship4,
             SpellId.SelfFellowship5,
@@ -4811,7 +4811,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SelfFellowship8,
         };
 
-        public static List<SpellId> StrengthFellowship = new List<SpellId>()
+        public static readonly List<SpellId> StrengthFellowship = new List<SpellId>()
         {
             SpellId.StrengthFellowship4,
             SpellId.StrengthFellowship5,
@@ -4820,7 +4820,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.StrengthFellowship8,
         };
 
-        public static List<SpellId> CantripHermeticLink = new List<SpellId>()
+        public static readonly List<SpellId> CantripHermeticLink = new List<SpellId>()
         {
             SpellId.CantripHermeticLink1,
             SpellId.CantripHermeticLink2,
@@ -4828,7 +4828,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripHermeticLink4,
         };
 
-        public static List<SpellId> CantripSpiritThirst = new List<SpellId>()
+        public static readonly List<SpellId> CantripSpiritThirst = new List<SpellId>()
         {
             SpellId.CantripSpiritThirst1,
             SpellId.CantripSpiritThirst2,
@@ -4836,7 +4836,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripSpiritThirst4,
         };
 
-        public static List<SpellId> SpiritDrinkerSelf = new List<SpellId>()
+        public static readonly List<SpellId> SpiritDrinkerSelf = new List<SpellId>()
         {
             SpellId.SpiritDrinkerSelf1,
             SpellId.SpiritDrinkerSelf2,
@@ -4848,7 +4848,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SpiritDrinkerSelf8,
         };
 
-        public static List<SpellId> SpiritLoather = new List<SpellId>()
+        public static readonly List<SpellId> SpiritLoather = new List<SpellId>()
         {
             SpellId.SpiritLoather1,
             SpellId.SpiritLoather2,
@@ -4860,14 +4860,14 @@ namespace ACE.Server.Factories.Tables
             SpellId.SpiritLoather8,
         };
 
-        public static List<SpellId> PortalSendingHezhitFight = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingHezhitFight = new List<SpellId>()
         {
             SpellId.PortalSendingHezhitFight1,
             SpellId.PortalSendingHezhitFight2,
             SpellId.PortalSendingHezhitFight3,
         };
 
-        public static List<SpellId> PortalSendingHezhitPrison = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingHezhitPrison = new List<SpellId>()
         {
             SpellId.PortalSendingHezhitPrison1,
             SpellId.PortalSendingHezhitPrison2,
@@ -4877,28 +4877,28 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingHezhitPrison6,
         };
 
-        public static List<SpellId> PortalSendingHizkRiGauntlet = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingHizkRiGauntlet = new List<SpellId>()
         {
             SpellId.PortalSendingHizkRiGauntlet60,
             SpellId.PortalSendingHizkRiGauntlet80,
             SpellId.PortalSendingHizkRiGauntlet100,
         };
 
-        public static List<SpellId> PortalSendingHizkRiWell = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingHizkRiWell = new List<SpellId>()
         {
             SpellId.PortalSendingHizkRiWell60,
             SpellId.PortalSendingHizkRiWell80,
             SpellId.PortalSendingHizkRiWell100,
         };
 
-        public static List<SpellId> PortalSendingJrvikFight = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingJrvikFight = new List<SpellId>()
         {
             SpellId.PortalSendingJrvikFight1,
             SpellId.PortalSendingJrvikFight2,
             SpellId.PortalSendingJrvikFight3,
         };
 
-        public static List<SpellId> PortalSendingJrvikPrison = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingJrvikPrison = new List<SpellId>()
         {
             SpellId.PortalSendingJrvikPrison1,
             SpellId.PortalSendingJrvikPrison2,
@@ -4908,14 +4908,14 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingJrvikPrison6,
         };
 
-        public static List<SpellId> PortalSendingZixkFight = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingZixkFight = new List<SpellId>()
         {
             SpellId.PortalSendingZixkFight1,
             SpellId.PortalSendingZixkFight2,
             SpellId.PortalSendingZixkFight3,
         };
 
-        public static List<SpellId> PortalSendingZixkPrison = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingZixkPrison = new List<SpellId>()
         {
             SpellId.PortalSendingZixkPrison1,
             SpellId.PortalSendingZixkPrison2,
@@ -4925,14 +4925,14 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingZixkPrison6,
         };
 
-        public static List<SpellId> PortalSendingHizkRiGuruk = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingHizkRiGuruk = new List<SpellId>()
         {
             SpellId.PortalSendingHizkRiGuruk60,
             SpellId.PortalSendingHizkRiGuruk80,
             SpellId.PortalSendingHizkRiGuruk100,
         };
 
-        public static List<SpellId> AcidProtectionFellowship = new List<SpellId>()
+        public static readonly List<SpellId> AcidProtectionFellowship = new List<SpellId>()
         {
             SpellId.AcidProtectionFellowship4,
             SpellId.AcidProtectionFellowship5,
@@ -4941,7 +4941,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AcidProtectionFellowship8,
         };
 
-        public static List<SpellId> BladeProtectionFellowship = new List<SpellId>()
+        public static readonly List<SpellId> BladeProtectionFellowship = new List<SpellId>()
         {
             SpellId.BladeProtectionFellowship4,
             SpellId.BladeProtectionFellowship5,
@@ -4950,7 +4950,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BladeProtectionFellowship8,
         };
 
-        public static List<SpellId> BludgeonProtectionFellowship = new List<SpellId>()
+        public static readonly List<SpellId> BludgeonProtectionFellowship = new List<SpellId>()
         {
             SpellId.BludgeonProtectionFellowship4,
             SpellId.BludgeonProtectionFellowship5,
@@ -4959,7 +4959,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BludgeonProtectionFellowship8,
         };
 
-        public static List<SpellId> ColdProtectionFellowship = new List<SpellId>()
+        public static readonly List<SpellId> ColdProtectionFellowship = new List<SpellId>()
         {
             SpellId.ColdProtectionFellowship4,
             SpellId.ColdProtectionFellowship5,
@@ -4968,7 +4968,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ColdProtectionFellowship8,
         };
 
-        public static List<SpellId> FireProtectionFellowship = new List<SpellId>()
+        public static readonly List<SpellId> FireProtectionFellowship = new List<SpellId>()
         {
             SpellId.FireProtectionFellowship4,
             SpellId.FireProtectionFellowship5,
@@ -4977,7 +4977,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.FireProtectionFellowship8,
         };
 
-        public static List<SpellId> LightningProtectionFellowship = new List<SpellId>()
+        public static readonly List<SpellId> LightningProtectionFellowship = new List<SpellId>()
         {
             SpellId.LightningProtectionFellowship4,
             SpellId.LightningProtectionFellowship5,
@@ -4986,7 +4986,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LightningProtectionFellowship8,
         };
 
-        public static List<SpellId> PierceProtectionFellowship = new List<SpellId>()
+        public static readonly List<SpellId> PierceProtectionFellowship = new List<SpellId>()
         {
             SpellId.PierceProtectionFellowship4,
             SpellId.PierceProtectionFellowship5,
@@ -4995,7 +4995,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PierceProtectionFellowship8,
         };
 
-        public static List<SpellId> ImpregnabilityFellowship = new List<SpellId>()
+        public static readonly List<SpellId> ImpregnabilityFellowship = new List<SpellId>()
         {
             SpellId.ImpregnabilityFellowship4,
             SpellId.ImpregnabilityFellowship5,
@@ -5004,7 +5004,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ImpregnabilityFellowship8,
         };
 
-        public static List<SpellId> InvulnerabilityFellowship = new List<SpellId>()
+        public static readonly List<SpellId> InvulnerabilityFellowship = new List<SpellId>()
         {
             SpellId.InvulnerabilityFellowship4,
             SpellId.InvulnerabilityFellowship5,
@@ -5013,7 +5013,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.InvulnerabilityFellowship8,
         };
 
-        public static List<SpellId> MagicResistanceFellowship = new List<SpellId>()
+        public static readonly List<SpellId> MagicResistanceFellowship = new List<SpellId>()
         {
             SpellId.MagicResistanceFellowship4,
             SpellId.MagicResistanceFellowship5,
@@ -5022,7 +5022,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MagicResistanceFellowship8,
         };
 
-        public static List<SpellId> CreatureEnchantmentMasteryFellow = new List<SpellId>()
+        public static readonly List<SpellId> CreatureEnchantmentMasteryFellow = new List<SpellId>()
         {
             SpellId.CreatureEnchantmentMasteryFellow4,
             SpellId.CreatureEnchantmentMasteryFellow5,
@@ -5031,7 +5031,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CreatureEnchantmentMasteryFellow8,
         };
 
-        public static List<SpellId> ItemEnchantmentMasteryFellow = new List<SpellId>()
+        public static readonly List<SpellId> ItemEnchantmentMasteryFellow = new List<SpellId>()
         {
             SpellId.ItemEnchantmentMasteryFellow4,
             SpellId.ItemEnchantmentMasteryFellow5,
@@ -5040,7 +5040,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ItemEnchantmentMasteryFellow8,
         };
 
-        public static List<SpellId> LifeMagicMasteryFellow = new List<SpellId>()
+        public static readonly List<SpellId> LifeMagicMasteryFellow = new List<SpellId>()
         {
             SpellId.LifeMagicMasteryFellow4,
             SpellId.LifeMagicMasteryFellow5,
@@ -5049,7 +5049,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.LifeMagicMasteryFellow8,
         };
 
-        public static List<SpellId> ManaConversionMasteryFellow = new List<SpellId>()
+        public static readonly List<SpellId> ManaConversionMasteryFellow = new List<SpellId>()
         {
             SpellId.ManaConversionMasteryFellow4,
             SpellId.ManaConversionMasteryFellow5,
@@ -5058,7 +5058,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaConversionMasteryFellow8,
         };
 
-        public static List<SpellId> WarMagicMasteryFellow = new List<SpellId>()
+        public static readonly List<SpellId> WarMagicMasteryFellow = new List<SpellId>()
         {
             SpellId.WarMagicMasteryFellow4,
             SpellId.WarMagicMasteryFellow5,
@@ -5067,28 +5067,28 @@ namespace ACE.Server.Factories.Tables
             SpellId.WarMagicMasteryFellow8,
         };
 
-        public static List<SpellId> PortalSendingKivikLirArena = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingKivikLirArena = new List<SpellId>()
         {
             SpellId.PortalSendingKivikLirArena60,
             SpellId.PortalSendingKivikLirArena80,
             SpellId.PortalSendingKivikLirArena100,
         };
 
-        public static List<SpellId> PortalSendingKivikLirBoss = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingKivikLirBoss = new List<SpellId>()
         {
             SpellId.PortalSendingKivikLirBoss60,
             SpellId.PortalSendingKivikLirBoss80,
             SpellId.PortalSendingKivikLirBoss100,
         };
 
-        public static List<SpellId> PortalSendingKivikLirHaven = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingKivikLirHaven = new List<SpellId>()
         {
             SpellId.PortalSendingKivikLirHaven60,
             SpellId.PortalSendingKivikLirHaven80,
             SpellId.PortalSendingKivikLirHaven100,
         };
 
-        public static List<SpellId> ManaRenewalFellowship = new List<SpellId>()
+        public static readonly List<SpellId> ManaRenewalFellowship = new List<SpellId>()
         {
             SpellId.ManaRenewalFellowship4,
             SpellId.ManaRenewalFellowship5,
@@ -5097,7 +5097,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ManaRenewalFellowship8,
         };
 
-        public static List<SpellId> RegenerationFellowship = new List<SpellId>()
+        public static readonly List<SpellId> RegenerationFellowship = new List<SpellId>()
         {
             SpellId.RegenerationFellowship4,
             SpellId.RegenerationFellowship5,
@@ -5106,7 +5106,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.RegenerationFellowship8,
         };
 
-        public static List<SpellId> RejuvenationFellowship = new List<SpellId>()
+        public static readonly List<SpellId> RejuvenationFellowship = new List<SpellId>()
         {
             SpellId.RejuvenationFellowship4,
             SpellId.RejuvenationFellowship5,
@@ -5115,14 +5115,14 @@ namespace ACE.Server.Factories.Tables
             SpellId.RejuvenationFellowship8,
         };
 
-        public static List<SpellId> PortalSendingIzjiQoGauntlet = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingIzjiQoGauntlet = new List<SpellId>()
         {
             SpellId.PortalSendingIzjiQoGauntlet60,
             SpellId.PortalSendingIzjiQoGauntlet80,
             SpellId.PortalSendingIzjiQoGauntlet100,
         };
 
-        public static List<SpellId> PortalSendingIzjiQoReceivingChamber = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingIzjiQoReceivingChamber = new List<SpellId>()
         {
             SpellId.PortalSendingIzjiQoReceivingChamber,
             SpellId.PortalSendingIzjiQoReceivingChamber1,
@@ -5134,14 +5134,14 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingIzjiQoReceivingChamber7,
         };
 
-        public static List<SpellId> PortalSendingIzjiQoTest = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingIzjiQoTest = new List<SpellId>()
         {
             SpellId.PortalSendingIzjiQoTest60,
             SpellId.PortalSendingIzjiQoTest80,
             SpellId.PortalSendingIzjiQoTest100,
         };
 
-        public static List<SpellId> ArcanumSalvagingSelf = new List<SpellId>()
+        public static readonly List<SpellId> ArcanumSalvagingSelf = new List<SpellId>()
         {
             SpellId.ArcanumSalvagingSelf1,
             SpellId.ArcanumSalvagingSelf2,
@@ -5153,7 +5153,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ArcanumSalvagingSelf8,
         };
 
-        public static List<SpellId> ArcanumSalvagingOther = new List<SpellId>()
+        public static readonly List<SpellId> ArcanumSalvagingOther = new List<SpellId>()
         {
             SpellId.ArcanumSalvagingOther1,
             SpellId.ArcanumSalvagingOther2,
@@ -5165,7 +5165,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ArcanumSalvagingOther8,
         };
 
-        public static List<SpellId> NuhmudirasWisdom = new List<SpellId>()
+        public static readonly List<SpellId> NuhmudirasWisdom = new List<SpellId>()
         {
             SpellId.NuhmudirasWisdom1,
             SpellId.NuhmudirasWisdom2,
@@ -5177,7 +5177,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.NuhmudirasWisdom8,
         };
 
-        public static List<SpellId> NuhmudirasWisdomOther = new List<SpellId>()
+        public static readonly List<SpellId> NuhmudirasWisdomOther = new List<SpellId>()
         {
             SpellId.NuhmudirasWisdomOther1,
             SpellId.NuhmudirasWisdomOther2,
@@ -5189,122 +5189,122 @@ namespace ACE.Server.Factories.Tables
             SpellId.NuhmudirasWisdomOther8,
         };
 
-        public static List<SpellId> Intoxication = new List<SpellId>()
+        public static readonly List<SpellId> Intoxication = new List<SpellId>()
         {
             SpellId.Intoxication1,
             SpellId.Intoxication2,
             SpellId.Intoxication3,
         };
 
-        public static List<SpellId> AxemansBoon = new List<SpellId>()
+        public static readonly List<SpellId> AxemansBoon = new List<SpellId>()
         {
             SpellId.AxemansBoon,
             SpellId.AxemansBoon3,
         };
 
-        public static List<SpellId> BowmansBoon = new List<SpellId>()
+        public static readonly List<SpellId> BowmansBoon = new List<SpellId>()
         {
             SpellId.BowmansBoon,
             SpellId.BowmansBoon3,
         };
 
-        public static List<SpellId> ChuckersBoon = new List<SpellId>()
+        public static readonly List<SpellId> ChuckersBoon = new List<SpellId>()
         {
             SpellId.ChuckersBoon,
             SpellId.ChuckersBoon3,
         };
 
-        public static List<SpellId> CrossbowmansBoon = new List<SpellId>()
+        public static readonly List<SpellId> CrossbowmansBoon = new List<SpellId>()
         {
             SpellId.CrossbowmansBoon,
             SpellId.CrossbowmansBoon3,
         };
 
-        public static List<SpellId> EnchantersBoon = new List<SpellId>()
+        public static readonly List<SpellId> EnchantersBoon = new List<SpellId>()
         {
             SpellId.EnchantersBoon,
             SpellId.EnchantersBoon3,
         };
 
-        public static List<SpellId> HieromancersBoon = new List<SpellId>()
+        public static readonly List<SpellId> HieromancersBoon = new List<SpellId>()
         {
             SpellId.HieromancersBoon,
             SpellId.HieromancersBoon3,
         };
 
-        public static List<SpellId> KnifersBoon = new List<SpellId>()
+        public static readonly List<SpellId> KnifersBoon = new List<SpellId>()
         {
             SpellId.KnifersBoon,
             SpellId.KnifersBoon3,
         };
 
-        public static List<SpellId> LifeGiversBoon = new List<SpellId>()
+        public static readonly List<SpellId> LifeGiversBoon = new List<SpellId>()
         {
             SpellId.LifeGiversBoon,
             SpellId.LifeGiversBoon3,
         };
 
-        public static List<SpellId> MacersBoon = new List<SpellId>()
+        public static readonly List<SpellId> MacersBoon = new List<SpellId>()
         {
             SpellId.MacersBoon,
             SpellId.MacersBoon3,
         };
 
-        public static List<SpellId> PugilistsBoon = new List<SpellId>()
+        public static readonly List<SpellId> PugilistsBoon = new List<SpellId>()
         {
             SpellId.PugilistsBoon,
             SpellId.PugilistsBoon3,
         };
 
-        public static List<SpellId> SpearmansBoon = new List<SpellId>()
+        public static readonly List<SpellId> SpearmansBoon = new List<SpellId>()
         {
             SpellId.SpearmansBoon,
             SpellId.SpearmansBoon3,
         };
 
-        public static List<SpellId> StafferBoon = new List<SpellId>()
+        public static readonly List<SpellId> StafferBoon = new List<SpellId>()
         {
             SpellId.StafferBoon,
             SpellId.StafferBoon3,
         };
 
-        public static List<SpellId> SwordsmansBoon = new List<SpellId>()
+        public static readonly List<SpellId> SwordsmansBoon = new List<SpellId>()
         {
             SpellId.SwordsmansBoon,
             SpellId.SwordsmansBoon3,
         };
 
-        public static List<SpellId> SalvagingMasteryForge = new List<SpellId>()
+        public static readonly List<SpellId> SalvagingMasteryForge = new List<SpellId>()
         {
             SpellId.SalvagingMasteryForge1,
             SpellId.SalvagingMasteryForge2,
         };
 
-        public static List<SpellId> AlchemyMasteryForge = new List<SpellId>()
+        public static readonly List<SpellId> AlchemyMasteryForge = new List<SpellId>()
         {
             SpellId.AlchemyMasteryForge1,
             SpellId.AlchemyMasteryForge2,
         };
 
-        public static List<SpellId> CookingMasteryForge = new List<SpellId>()
+        public static readonly List<SpellId> CookingMasteryForge = new List<SpellId>()
         {
             SpellId.CookingMasteryForge1,
             SpellId.CookingMasteryForge2,
         };
 
-        public static List<SpellId> FletchingMasteryForge = new List<SpellId>()
+        public static readonly List<SpellId> FletchingMasteryForge = new List<SpellId>()
         {
             SpellId.FletchingMasteryForge1,
             SpellId.FletchingMasteryForge2,
         };
 
-        public static List<SpellId> LockpickMasteryForge = new List<SpellId>()
+        public static readonly List<SpellId> LockpickMasteryForge = new List<SpellId>()
         {
             SpellId.LockpickMasteryForge1,
             SpellId.LockpickMasteryForge2,
         };
 
-        public static List<SpellId> PortalSendingPvPHate20Entry = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingPvPHate20Entry = new List<SpellId>()
         {
             SpellId.PortalSendingPvPHate20Entry1,
             SpellId.PortalSendingPvPHate20Entry2,
@@ -5314,7 +5314,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingPvPHate20Entry6,
         };
 
-        public static List<SpellId> PortalSendingPvPHate40Entry = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingPvPHate40Entry = new List<SpellId>()
         {
             SpellId.PortalSendingPvPHate40Entry1,
             SpellId.PortalSendingPvPHate40Entry2,
@@ -5324,7 +5324,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingPvPHate40Entry6,
         };
 
-        public static List<SpellId> PortalSendingPvPHate60Entry = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingPvPHate60Entry = new List<SpellId>()
         {
             SpellId.PortalSendingPvPHate60Entry1,
             SpellId.PortalSendingPvPHate60Entry2,
@@ -5334,7 +5334,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingPvPHate60Entry6,
         };
 
-        public static List<SpellId> PortalSendingPvPHate80AccursedEntry = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingPvPHate80AccursedEntry = new List<SpellId>()
         {
             SpellId.PortalSendingPvPHate80AccursedEntry1,
             SpellId.PortalSendingPvPHate80AccursedEntry2,
@@ -5344,7 +5344,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingPvPHate80AccursedEntry6,
         };
 
-        public static List<SpellId> PortalSendingPvPHate80UnholyEntry = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingPvPHate80UnholyEntry = new List<SpellId>()
         {
             SpellId.PortalSendingPvPHate80UnholyEntry1,
             SpellId.PortalSendingPvPHate80UnholyEntry2,
@@ -5354,7 +5354,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingPvPHate80UnholyEntry6,
         };
 
-        public static List<SpellId> CantripSalvaging = new List<SpellId>()
+        public static readonly List<SpellId> CantripSalvaging = new List<SpellId>()
         {
             SpellId.CantripSalvaging1,
             SpellId.CantripSalvaging2,
@@ -5362,44 +5362,44 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripSalvaging4,
         };
 
-        public static List<SpellId> RecallSonPooky = new List<SpellId>()
+        public static readonly List<SpellId> RecallSonPooky = new List<SpellId>()
         {
             SpellId.RecallSonPooky1,
             SpellId.RecallSonPooky2,
             SpellId.RecallSonPooky3,
         };
 
-        public static List<SpellId> PortalSendingColosseumA = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingColosseumA = new List<SpellId>()
         {
             SpellId.PortalSendingColosseumA1,
             SpellId.PortalSendingColosseumA6,
         };
 
-        public static List<SpellId> PortalSendingColosseumB = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingColosseumB = new List<SpellId>()
         {
             SpellId.PortalSendingColosseumB1,
             SpellId.PortalSendingColosseumB6,
         };
 
-        public static List<SpellId> PortalSendingColosseumC = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingColosseumC = new List<SpellId>()
         {
             SpellId.PortalSendingColosseumC1,
             SpellId.PortalSendingColosseumC6,
         };
 
-        public static List<SpellId> PortalSendingColosseumD = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingColosseumD = new List<SpellId>()
         {
             SpellId.PortalSendingColosseumD1,
             SpellId.PortalSendingColosseumD6,
         };
 
-        public static List<SpellId> PortalSendingColosseumE = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingColosseumE = new List<SpellId>()
         {
             SpellId.PortalSendingColosseumE1,
             SpellId.PortalSendingColosseumE6,
         };
 
-        public static List<SpellId> PortalSendingVisionQuestBranch4Stage = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingVisionQuestBranch4Stage = new List<SpellId>()
         {
             SpellId.PortalSendingVisionQuestBranch4Stage1,
             SpellId.PortalSendingVisionQuestBranch4Stage2,
@@ -5408,7 +5408,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingVisionQuestBranch4Stage6,
         };
 
-        public static List<SpellId> PortalSendingVisionQuestBranch5Stage = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingVisionQuestBranch5Stage = new List<SpellId>()
         {
             SpellId.PortalSendingVisionQuestBranch5Stage1,
             SpellId.PortalSendingVisionQuestBranch5Stage2,
@@ -5417,7 +5417,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingVisionQuestBranch5Stage6,
         };
 
-        public static List<SpellId> PortalSendingVisionQuestBranch1Stage = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingVisionQuestBranch1Stage = new List<SpellId>()
         {
             SpellId.PortalSendingVisionQuestBranch1Stage1,
             SpellId.PortalSendingVisionQuestBranch1Stage2,
@@ -5426,7 +5426,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingVisionQuestBranch1Stage6,
         };
 
-        public static List<SpellId> PortalSendingVisionQuestBranch2Stage = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingVisionQuestBranch2Stage = new List<SpellId>()
         {
             SpellId.PortalSendingVisionQuestBranch2Stage1,
             SpellId.PortalSendingVisionQuestBranch2Stage2,
@@ -5435,7 +5435,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingVisionQuestBranch2Stage6,
         };
 
-        public static List<SpellId> PortalSendingVisionQuestBranch3Stage = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingVisionQuestBranch3Stage = new List<SpellId>()
         {
             SpellId.PortalSendingVisionQuestBranch3Stage1,
             SpellId.PortalSendingVisionQuestBranch3Stage2,
@@ -5444,20 +5444,20 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingVisionQuestBranch3Stage6,
         };
 
-        public static List<SpellId> PortalSendDarkCrypt = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendDarkCrypt = new List<SpellId>()
         {
             SpellId.PortalSendDarkCrypt1,
             SpellId.PortalSendDarkCrypt2,
             SpellId.PortalSendDarkCrypt3,
         };
 
-        public static List<SpellId> PortalSendJesterPrison = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendJesterPrison = new List<SpellId>()
         {
             SpellId.PortalSendJesterPrison,
             SpellId.PortalSendJesterPrison2,
         };
 
-        public static List<SpellId> RecallJester = new List<SpellId>()
+        public static readonly List<SpellId> RecallJester = new List<SpellId>()
         {
             SpellId.RecallJester1,
             SpellId.RecallJester2,
@@ -5469,21 +5469,21 @@ namespace ACE.Server.Factories.Tables
             SpellId.RecallJester8,
         };
 
-        public static List<SpellId> PortalSendingCHDSStage = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingCHDSStage = new List<SpellId>()
         {
             SpellId.PortalSendingCHDSStage1,
             SpellId.PortalSendingCHDSStage2,
             SpellId.PortalSendingCHDSStage3,
         };
 
-        public static List<SpellId> MoarsmanPoison = new List<SpellId>()
+        public static readonly List<SpellId> MoarsmanPoison = new List<SpellId>()
         {
             SpellId.MoarsmanPoison1,
             SpellId.MoarsmanPoison2,
             SpellId.MoarsmanPoison3,
         };
 
-        public static List<SpellId> SetCoordination = new List<SpellId>()
+        public static readonly List<SpellId> SetCoordination = new List<SpellId>()
         {
             SpellId.SetCoordination1,
             SpellId.SetCoordination2,
@@ -5491,7 +5491,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetCoordination4,
         };
 
-        public static List<SpellId> SetEndurance = new List<SpellId>()
+        public static readonly List<SpellId> SetEndurance = new List<SpellId>()
         {
             SpellId.SetEndurance1,
             SpellId.SetEndurance2,
@@ -5499,7 +5499,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetEndurance4,
         };
 
-        public static List<SpellId> SetFocus = new List<SpellId>()
+        public static readonly List<SpellId> SetFocus = new List<SpellId>()
         {
             SpellId.SetFocus1,
             SpellId.SetFocus2,
@@ -5507,7 +5507,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetFocus4,
         };
 
-        public static List<SpellId> SetQuickness = new List<SpellId>()
+        public static readonly List<SpellId> SetQuickness = new List<SpellId>()
         {
             SpellId.SetQuickness1,
             SpellId.SetQuickness2,
@@ -5515,7 +5515,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetQuickness4,
         };
 
-        public static List<SpellId> SetStrength = new List<SpellId>()
+        public static readonly List<SpellId> SetStrength = new List<SpellId>()
         {
             SpellId.SetStrength1,
             SpellId.SetStrength2,
@@ -5523,7 +5523,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetStrength4,
         };
 
-        public static List<SpellId> SetWillpower = new List<SpellId>()
+        public static readonly List<SpellId> SetWillpower = new List<SpellId>()
         {
             SpellId.SetWillpower1,
             SpellId.SetWillpower2,
@@ -5531,25 +5531,25 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetWillpower4,
         };
 
-        public static List<SpellId> SetHealth = new List<SpellId>()
+        public static readonly List<SpellId> SetHealth = new List<SpellId>()
         {
             SpellId.SetHealth2,
             SpellId.SetHealth3,
         };
 
-        public static List<SpellId> SetMana = new List<SpellId>()
+        public static readonly List<SpellId> SetMana = new List<SpellId>()
         {
             SpellId.SetMana2,
             SpellId.SetMana3,
         };
 
-        public static List<SpellId> SetStamina = new List<SpellId>()
+        public static readonly List<SpellId> SetStamina = new List<SpellId>()
         {
             SpellId.SetStamina2,
             SpellId.SetStamina3,
         };
 
-        public static List<SpellId> SetAcidResistance = new List<SpellId>()
+        public static readonly List<SpellId> SetAcidResistance = new List<SpellId>()
         {
             SpellId.SetAcidResistance1,
             SpellId.SetAcidResistance2,
@@ -5557,7 +5557,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetAcidResistance4,
         };
 
-        public static List<SpellId> SetBludgeonResistance = new List<SpellId>()
+        public static readonly List<SpellId> SetBludgeonResistance = new List<SpellId>()
         {
             SpellId.SetBludgeonResistance1,
             SpellId.SetBludgeonResistance2,
@@ -5565,7 +5565,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetBludgeonResistance4,
         };
 
-        public static List<SpellId> SetFlameResistance = new List<SpellId>()
+        public static readonly List<SpellId> SetFlameResistance = new List<SpellId>()
         {
             SpellId.SetFlameResistance1,
             SpellId.SetFlameResistance2,
@@ -5573,7 +5573,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetFlameResistance4,
         };
 
-        public static List<SpellId> SetFrostResistance = new List<SpellId>()
+        public static readonly List<SpellId> SetFrostResistance = new List<SpellId>()
         {
             SpellId.SetFrostResistance1,
             SpellId.SetFrostResistance2,
@@ -5581,7 +5581,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetFrostResistance4,
         };
 
-        public static List<SpellId> SetLightningResistance = new List<SpellId>()
+        public static readonly List<SpellId> SetLightningResistance = new List<SpellId>()
         {
             SpellId.SetLightningResistance1,
             SpellId.SetLightningResistance2,
@@ -5589,7 +5589,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetLightningResistance4,
         };
 
-        public static List<SpellId> SetPierceResistance = new List<SpellId>()
+        public static readonly List<SpellId> SetPierceResistance = new List<SpellId>()
         {
             SpellId.SetPierceResistance1,
             SpellId.SetPierceResistance2,
@@ -5597,7 +5597,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetPierceResistance4,
         };
 
-        public static List<SpellId> SetSlashingResistance = new List<SpellId>()
+        public static readonly List<SpellId> SetSlashingResistance = new List<SpellId>()
         {
             SpellId.SetSlashingResistance1,
             SpellId.SetSlashingResistance2,
@@ -5605,7 +5605,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetSlashingResistance4,
         };
 
-        public static List<SpellId> SetAlchemyAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetAlchemyAptitude = new List<SpellId>()
         {
             SpellId.SetAlchemyAptitude1,
             SpellId.SetAlchemyAptitude2,
@@ -5613,7 +5613,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetAlchemyAptitude4,
         };
 
-        public static List<SpellId> SetArmorExpertiseAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetArmorExpertiseAptitude = new List<SpellId>()
         {
             SpellId.SetArmorExpertiseAptitude1,
             SpellId.SetArmorExpertiseAptitude2,
@@ -5621,7 +5621,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetArmorExpertiseAptitude4,
         };
 
-        public static List<SpellId> SetAxeAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetAxeAptitude = new List<SpellId>()
         {
             SpellId.SetAxeAptitude1,
             SpellId.SetAxeAptitude2,
@@ -5629,7 +5629,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetAxeAptitude4,
         };
 
-        public static List<SpellId> SetBowAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetBowAptitude = new List<SpellId>()
         {
             SpellId.SetBowAptitude1,
             SpellId.SetBowAptitude2,
@@ -5637,7 +5637,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetBowAptitude4,
         };
 
-        public static List<SpellId> SetCookingAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetCookingAptitude = new List<SpellId>()
         {
             SpellId.SetCookingAptitude1,
             SpellId.SetCookingAptitude2,
@@ -5645,7 +5645,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetCookingAptitude4,
         };
 
-        public static List<SpellId> SetCreatureEnchantmentAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetCreatureEnchantmentAptitude = new List<SpellId>()
         {
             SpellId.SetCreatureEnchantmentAptitude1,
             SpellId.SetCreatureEnchantmentAptitude2,
@@ -5653,7 +5653,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetCreatureEnchantmentAptitude4,
         };
 
-        public static List<SpellId> SetCrossbowAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetCrossbowAptitude = new List<SpellId>()
         {
             SpellId.SetCrossbowAptitude1,
             SpellId.SetCrossbowAptitude2,
@@ -5661,7 +5661,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetCrossbowAptitude4,
         };
 
-        public static List<SpellId> SetDaggerAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetDaggerAptitude = new List<SpellId>()
         {
             SpellId.SetDaggerAptitude1,
             SpellId.SetDaggerAptitude2,
@@ -5669,7 +5669,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetDaggerAptitude4,
         };
 
-        public static List<SpellId> SetFletchingAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetFletchingAptitude = new List<SpellId>()
         {
             SpellId.SetFletchingAptitude1,
             SpellId.SetFletchingAptitude2,
@@ -5677,7 +5677,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetFletchingAptitude4,
         };
 
-        public static List<SpellId> SetItemEnchantmentAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetItemEnchantmentAptitude = new List<SpellId>()
         {
             SpellId.SetItemEnchantmentAptitude1,
             SpellId.SetItemEnchantmentAptitude2,
@@ -5685,7 +5685,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetItemEnchantmentAptitude4,
         };
 
-        public static List<SpellId> SetItemExpertiseAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetItemExpertiseAptitude = new List<SpellId>()
         {
             SpellId.SetItemExpertiseAptitude1,
             SpellId.SetItemExpertiseAptitude2,
@@ -5693,7 +5693,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetItemExpertiseAptitude4,
         };
 
-        public static List<SpellId> SetJumpingAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetJumpingAptitude = new List<SpellId>()
         {
             SpellId.SetJumpingAptitude1,
             SpellId.SetJumpingAptitude2,
@@ -5701,7 +5701,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetJumpingAptitude4,
         };
 
-        public static List<SpellId> SetLifeMagicAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetLifeMagicAptitude = new List<SpellId>()
         {
             SpellId.SetLifeMagicAptitude1,
             SpellId.SetLifeMagicAptitude2,
@@ -5709,7 +5709,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetLifeMagicAptitude4,
         };
 
-        public static List<SpellId> SetLockpickAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetLockpickAptitude = new List<SpellId>()
         {
             SpellId.SetLockpickAptitude1,
             SpellId.SetLockpickAptitude2,
@@ -5717,13 +5717,13 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetLockpickAptitude4,
         };
 
-        public static List<SpellId> SetLoyaltyAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetLoyaltyAptitude = new List<SpellId>()
         {
             SpellId.SetLoyaltyAptitude1,
             SpellId.SetLoyaltyAptitude2,
         };
 
-        public static List<SpellId> SetMaceAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetMaceAptitude = new List<SpellId>()
         {
             SpellId.SetMaceAptitude1,
             SpellId.SetMaceAptitude2,
@@ -5731,7 +5731,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetMaceAptitude4,
         };
 
-        public static List<SpellId> SetMagicDefenseAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetMagicDefenseAptitude = new List<SpellId>()
         {
             SpellId.SetMagicDefenseAptitude1,
             SpellId.SetMagicDefenseAptitude2,
@@ -5739,7 +5739,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetMagicDefenseAptitude4,
         };
 
-        public static List<SpellId> SetMagicItemExpertiseAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetMagicItemExpertiseAptitude = new List<SpellId>()
         {
             SpellId.SetMagicItemExpertiseAptitude1,
             SpellId.SetMagicItemExpertiseAptitude2,
@@ -5747,7 +5747,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetMagicItemExpertiseAptitude4,
         };
 
-        public static List<SpellId> SetMeleeDefenseAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetMeleeDefenseAptitude = new List<SpellId>()
         {
             SpellId.SetMeleeDefenseAptitude1,
             SpellId.SetMeleeDefenseAptitude2,
@@ -5755,7 +5755,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetMeleeDefenseAptitude4,
         };
 
-        public static List<SpellId> SetMissileDefenseAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetMissileDefenseAptitude = new List<SpellId>()
         {
             SpellId.SetMissileDefenseAptitude1,
             SpellId.SetMissileDefenseAptitude2,
@@ -5763,13 +5763,13 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetMissileDefenseAptitude4,
         };
 
-        public static List<SpellId> SetSalvagingAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetSalvagingAptitude = new List<SpellId>()
         {
             SpellId.SetSalvagingAptitude1,
             SpellId.SetSalvagingAptitude2,
         };
 
-        public static List<SpellId> SetSpearAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetSpearAptitude = new List<SpellId>()
         {
             SpellId.SetSpearAptitude1,
             SpellId.SetSpearAptitude2,
@@ -5777,7 +5777,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetSpearAptitude4,
         };
 
-        public static List<SpellId> SetSprintAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetSprintAptitude = new List<SpellId>()
         {
             SpellId.SetSprintAptitude1,
             SpellId.SetSprintAptitude2,
@@ -5785,7 +5785,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetSprintAptitude4,
         };
 
-        public static List<SpellId> SetStaffAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetStaffAptitude = new List<SpellId>()
         {
             SpellId.SetStaffAptitude1,
             SpellId.SetStaffAptitude2,
@@ -5793,7 +5793,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetStaffAptitude4,
         };
 
-        public static List<SpellId> SetSwordAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetSwordAptitude = new List<SpellId>()
         {
             SpellId.SetSwordAptitude1,
             SpellId.SetSwordAptitude2,
@@ -5801,7 +5801,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetSwordAptitude4,
         };
 
-        public static List<SpellId> SetThrownAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetThrownAptitude = new List<SpellId>()
         {
             SpellId.SetThrownAptitude1,
             SpellId.SetThrownAptitude2,
@@ -5809,7 +5809,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetThrownAptitude4,
         };
 
-        public static List<SpellId> SetUnarmedAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetUnarmedAptitude = new List<SpellId>()
         {
             SpellId.SetUnarmedAptitude1,
             SpellId.SetUnarmedAptitude2,
@@ -5817,7 +5817,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetUnarmedAptitude4,
         };
 
-        public static List<SpellId> SetWarMagicAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetWarMagicAptitude = new List<SpellId>()
         {
             SpellId.SetWarMagicAptitude1,
             SpellId.SetWarMagicAptitude2,
@@ -5825,7 +5825,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetWarMagicAptitude4,
         };
 
-        public static List<SpellId> SetWeaponExpertiseAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetWeaponExpertiseAptitude = new List<SpellId>()
         {
             SpellId.SetWeaponExpertiseAptitude1,
             SpellId.SetWeaponExpertiseAptitude2,
@@ -5833,7 +5833,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetWeaponExpertiseAptitude4,
         };
 
-        public static List<SpellId> SetSocietyAttributeAll = new List<SpellId>()
+        public static readonly List<SpellId> SetSocietyAttributeAll = new List<SpellId>()
         {
             SpellId.SetSocietyAttributeAll1,
             SpellId.SetSocietyAttributeAll2,
@@ -5842,19 +5842,19 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetSocietyAttributeAll5,
         };
 
-        public static List<SpellId> SetRejuvenation = new List<SpellId>()
+        public static readonly List<SpellId> SetRejuvenation = new List<SpellId>()
         {
             SpellId.SetRejuvenation1,
             SpellId.SetRejuvenation2,
         };
 
-        public static List<SpellId> AcidStream8Spellpower = new List<SpellId>()
+        public static readonly List<SpellId> AcidStream8Spellpower = new List<SpellId>()
         {
             SpellId.AcidStream8Spellpower300,
             SpellId.AcidStream8Spellpower350,
         };
 
-        public static List<SpellId> MiniArcaneDeath = new List<SpellId>()
+        public static readonly List<SpellId> MiniArcaneDeath = new List<SpellId>()
         {
             SpellId.MiniArcaneDeath,
             SpellId.MiniArcaneDeath2,
@@ -5862,7 +5862,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MiniArcaneDeath4,
         };
 
-        public static List<SpellId> MiniFireball = new List<SpellId>()
+        public static readonly List<SpellId> MiniFireball = new List<SpellId>()
         {
             SpellId.MiniFireball1,
             SpellId.MiniFireball2,
@@ -5870,7 +5870,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MiniFireball4,
         };
 
-        public static List<SpellId> MiniIceball = new List<SpellId>()
+        public static readonly List<SpellId> MiniIceball = new List<SpellId>()
         {
             SpellId.MiniIceball1,
             SpellId.MiniIceball2,
@@ -5878,7 +5878,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MiniIceball4,
         };
 
-        public static List<SpellId> MiniArrow = new List<SpellId>()
+        public static readonly List<SpellId> MiniArrow = new List<SpellId>()
         {
             SpellId.MiniArrow1,
             SpellId.MiniArrow2,
@@ -5886,7 +5886,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MiniArrow4,
         };
 
-        public static List<SpellId> MiniRing = new List<SpellId>()
+        public static readonly List<SpellId> MiniRing = new List<SpellId>()
         {
             SpellId.MiniRing1,
             SpellId.MiniRing2,
@@ -5894,7 +5894,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.MiniRing4,
         };
 
-        public static List<SpellId> PortalSendingAssassinsRoost = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingAssassinsRoost = new List<SpellId>()
         {
             SpellId.PortalSendingAssassinsRoost1,
             SpellId.PortalSendingAssassinsRoost2,
@@ -5903,13 +5903,13 @@ namespace ACE.Server.Factories.Tables
             SpellId.PortalSendingAssassinsRoost5,
         };
 
-        public static List<SpellId> TwoHandedBoon = new List<SpellId>()
+        public static readonly List<SpellId> TwoHandedBoon = new List<SpellId>()
         {
             SpellId.TwoHandedBoon,
             SpellId.TwoHandedBoon3,
         };
 
-        public static List<SpellId> TwoHandedMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> TwoHandedMasterySelf = new List<SpellId>()
         {
             SpellId.TwoHandedMasterySelf1,
             SpellId.TwoHandedMasterySelf2,
@@ -5921,14 +5921,14 @@ namespace ACE.Server.Factories.Tables
             SpellId.TwoHandedMasterySelf8,
         };
 
-        public static List<SpellId> CANTRIPGEARCRAFTAPTITUDE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPGEARCRAFTAPTITUDE = new List<SpellId>()
         {
             SpellId.CANTRIPGEARCRAFTAPTITUDE1,
             SpellId.CANTRIPGEARCRAFTAPTITUDE2,
             SpellId.CANTRIPGEARCRAFTAPTITUDE3,
         };
 
-        public static List<SpellId> CANTRIPTWOHANDEDAPTITUDE = new List<SpellId>()
+        public static readonly List<SpellId> CANTRIPTWOHANDEDAPTITUDE = new List<SpellId>()
         {
             SpellId.CANTRIPTWOHANDEDAPTITUDE1,
             SpellId.CANTRIPTWOHANDEDAPTITUDE2,
@@ -5936,7 +5936,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripTwoHandedAptitude4,
         };
 
-        public static List<SpellId> GearcraftIneptitude = new List<SpellId>()
+        public static readonly List<SpellId> GearcraftIneptitude = new List<SpellId>()
         {
             SpellId.GearcraftIneptitude1,
             SpellId.GearcraftIneptitude2,
@@ -5948,7 +5948,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.GearcraftIneptitude8,
         };
 
-        public static List<SpellId> GearcraftIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> GearcraftIneptitudeSelf = new List<SpellId>()
         {
             SpellId.GearcraftIneptitudeSelf1,
             SpellId.GearcraftIneptitudeSelf2,
@@ -5960,7 +5960,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.GearcraftIneptitudeSelf8,
         };
 
-        public static List<SpellId> GearcraftMastery = new List<SpellId>()
+        public static readonly List<SpellId> GearcraftMastery = new List<SpellId>()
         {
             SpellId.GearcraftMastery1,
             SpellId.GearcraftMastery2,
@@ -5972,7 +5972,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.GearcraftMastery8,
         };
 
-        public static List<SpellId> GearcraftMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> GearcraftMasterySelf = new List<SpellId>()
         {
             SpellId.GearcraftMasterySelf1,
             SpellId.GearcraftMasterySelf2,
@@ -5984,7 +5984,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.GearcraftMasterySelf8,
         };
 
-        public static List<SpellId> TwoHandedIneptitude = new List<SpellId>()
+        public static readonly List<SpellId> TwoHandedIneptitude = new List<SpellId>()
         {
             SpellId.TwoHandedIneptitude1,
             SpellId.TwoHandedIneptitude2,
@@ -5996,7 +5996,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.TwoHandedIneptitude8,
         };
 
-        public static List<SpellId> TwoHandedIneptitudeSelf = new List<SpellId>()
+        public static readonly List<SpellId> TwoHandedIneptitudeSelf = new List<SpellId>()
         {
             SpellId.TwoHandedIneptitudeSelf1,
             SpellId.TwoHandedIneptitudeSelf2,
@@ -6008,7 +6008,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.TwoHandedIneptitudeSelf8,
         };
 
-        public static List<SpellId> TwoHandedMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> TwoHandedMasteryOther = new List<SpellId>()
         {
             SpellId.TwoHandedMasteryOther1,
             SpellId.TwoHandedMasteryOther2,
@@ -6020,7 +6020,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.TwoHandedMasteryOther8,
         };
 
-        public static List<SpellId> SetGearCraftAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetGearCraftAptitude = new List<SpellId>()
         {
             SpellId.SetGearCraftAptitude1,
             SpellId.SetGearCraftAptitude2,
@@ -6028,7 +6028,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetGearCraftAptitude4,
         };
 
-        public static List<SpellId> SetTwoHandedAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetTwoHandedAptitude = new List<SpellId>()
         {
             SpellId.SetTwoHandedAptitude1,
             SpellId.SetTwoHandedAptitude2,
@@ -6036,7 +6036,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetTwoHandedAptitude4,
         };
 
-        public static List<SpellId> ExposeWeakness = new List<SpellId>()
+        public static readonly List<SpellId> ExposeWeakness = new List<SpellId>()
         {
             SpellId.ExposeWeakness1,
             SpellId.ExposeWeakness2,
@@ -6048,7 +6048,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ExposeWeakness8,
         };
 
-        public static List<SpellId> CallOfLeadership = new List<SpellId>()
+        public static readonly List<SpellId> CallOfLeadership = new List<SpellId>()
         {
             SpellId.CallOfLeadership1,
             SpellId.CallOfLeadership2,
@@ -6057,7 +6057,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CallOfLeadership5,
         };
 
-        public static List<SpellId> AnswerOfLoyaltyMana = new List<SpellId>()
+        public static readonly List<SpellId> AnswerOfLoyaltyMana = new List<SpellId>()
         {
             SpellId.AnswerOfLoyaltyMana1,
             SpellId.AnswerOfLoyaltyMana2,
@@ -6066,7 +6066,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AnswerOfLoyaltyMana5,
         };
 
-        public static List<SpellId> AnswerOfLoyaltyStam = new List<SpellId>()
+        public static readonly List<SpellId> AnswerOfLoyaltyStam = new List<SpellId>()
         {
             SpellId.AnswerOfLoyaltyStam1,
             SpellId.AnswerOfLoyaltyStam2,
@@ -6075,49 +6075,49 @@ namespace ACE.Server.Factories.Tables
             SpellId.AnswerOfLoyaltyStam5,
         };
 
-        public static List<SpellId> TrinketXPBoost = new List<SpellId>()
+        public static readonly List<SpellId> TrinketXPBoost = new List<SpellId>()
         {
             SpellId.TrinketXPBoost1,
             SpellId.TrinketXPBoost2,
             SpellId.TrinketXPBoost3,
         };
 
-        public static List<SpellId> TrinketDamageBoost = new List<SpellId>()
+        public static readonly List<SpellId> TrinketDamageBoost = new List<SpellId>()
         {
             SpellId.TrinketDamageBoost1,
             SpellId.TrinketDamageBoost2,
             SpellId.TrinketDamageBoost3,
         };
 
-        public static List<SpellId> TrinketDamageReduction = new List<SpellId>()
+        public static readonly List<SpellId> TrinketDamageReduction = new List<SpellId>()
         {
             SpellId.TrinketDamageReduction1,
             SpellId.TrinketDamageReduction2,
             SpellId.TrinketDamageReduction3,
         };
 
-        public static List<SpellId> TrinketHealth = new List<SpellId>()
+        public static readonly List<SpellId> TrinketHealth = new List<SpellId>()
         {
             SpellId.TrinketHealth1,
             SpellId.TrinketHealth2,
             SpellId.TrinketHealth3,
         };
 
-        public static List<SpellId> TrinketMana = new List<SpellId>()
+        public static readonly List<SpellId> TrinketMana = new List<SpellId>()
         {
             SpellId.TrinketMana1,
             SpellId.TrinketMana2,
             SpellId.TrinketMana3,
         };
 
-        public static List<SpellId> TrinketStamina = new List<SpellId>()
+        public static readonly List<SpellId> TrinketStamina = new List<SpellId>()
         {
             SpellId.TrinketStamina1,
             SpellId.TrinketStamina2,
             SpellId.TrinketStamina3,
         };
 
-        public static List<SpellId> DeceptionArcane = new List<SpellId>()
+        public static readonly List<SpellId> DeceptionArcane = new List<SpellId>()
         {
             SpellId.DeceptionArcane1,
             SpellId.DeceptionArcane2,
@@ -6126,13 +6126,13 @@ namespace ACE.Server.Factories.Tables
             SpellId.DeceptionArcane5,
         };
 
-        public static List<SpellId> SpectralFountain_PortalMaze = new List<SpellId>()
+        public static readonly List<SpellId> SpectralFountain_PortalMaze = new List<SpellId>()
         {
             SpellId.SpectralFountain_PortalMaze1,
             SpellId.SpectralFountain_PortalMaze2,
         };
 
-        public static List<SpellId> RareDamageBoost = new List<SpellId>()
+        public static readonly List<SpellId> RareDamageBoost = new List<SpellId>()
         {
             SpellId.RareDamageBoost1,
             SpellId.RareDamageBoost2,
@@ -6146,7 +6146,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.RareDamageBoost10,
         };
 
-        public static List<SpellId> RareDamageReduction = new List<SpellId>()
+        public static readonly List<SpellId> RareDamageReduction = new List<SpellId>()
         {
             SpellId.RareDamageReduction1,
             SpellId.RareDamageReduction2,
@@ -6160,7 +6160,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.RareDamageReduction10,
         };
 
-        public static List<SpellId> AetheriaCriticalDamageBoost = new List<SpellId>()
+        public static readonly List<SpellId> AetheriaCriticalDamageBoost = new List<SpellId>()
         {
             SpellId.AetheriaCriticalDamageBoost1,
             SpellId.AetheriaCriticalDamageBoost2,
@@ -6179,7 +6179,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AetheriaCriticalDamageBoost15,
         };
 
-        public static List<SpellId> AetheriaDamageBoost = new List<SpellId>()
+        public static readonly List<SpellId> AetheriaDamageBoost = new List<SpellId>()
         {
             SpellId.AetheriaDamageBoost1,
             SpellId.AetheriaDamageBoost2,
@@ -6198,7 +6198,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AetheriaDamageBoost15,
         };
 
-        public static List<SpellId> AetheriaDamageReduction = new List<SpellId>()
+        public static readonly List<SpellId> AetheriaDamageReduction = new List<SpellId>()
         {
             SpellId.AetheriaDamageReduction1,
             SpellId.AetheriaDamageReduction2,
@@ -6217,7 +6217,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AetheriaDamageReduction15,
         };
 
-        public static List<SpellId> AetheriaHealBuff = new List<SpellId>()
+        public static readonly List<SpellId> AetheriaHealBuff = new List<SpellId>()
         {
             SpellId.AetheriaHealBuff1,
             SpellId.AetheriaHealBuff2,
@@ -6236,7 +6236,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AetheriaHealBuff15,
         };
 
-        public static List<SpellId> AetheriaHealth = new List<SpellId>()
+        public static readonly List<SpellId> AetheriaHealth = new List<SpellId>()
         {
             SpellId.AetheriaHealth1,
             SpellId.AetheriaHealth2,
@@ -6255,7 +6255,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AetheriaHealth15,
         };
 
-        public static List<SpellId> AetheriaMana = new List<SpellId>()
+        public static readonly List<SpellId> AetheriaMana = new List<SpellId>()
         {
             SpellId.AetheriaMana1,
             SpellId.AetheriaMana2,
@@ -6274,7 +6274,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AetheriaMana15,
         };
 
-        public static List<SpellId> AetheriaStamina = new List<SpellId>()
+        public static readonly List<SpellId> AetheriaStamina = new List<SpellId>()
         {
             SpellId.AetheriaStamina1,
             SpellId.AetheriaStamina2,
@@ -6293,7 +6293,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AetheriaStamina15,
         };
 
-        public static List<SpellId> AetheriaEndurance = new List<SpellId>()
+        public static readonly List<SpellId> AetheriaEndurance = new List<SpellId>()
         {
             SpellId.AetheriaEndurance1,
             SpellId.AetheriaEndurance2,
@@ -6312,13 +6312,13 @@ namespace ACE.Server.Factories.Tables
             SpellId.AetheriaEndurance15,
         };
 
-        public static List<SpellId> BaelzharonsCurseDestruction = new List<SpellId>()
+        public static readonly List<SpellId> BaelzharonsCurseDestruction = new List<SpellId>()
         {
             SpellId.BaelzharonsCurseDestruction,
             SpellId.BaelzharonsCurseDestruction2,
         };
 
-        public static List<SpellId> CurseDestructionOther = new List<SpellId>()
+        public static readonly List<SpellId> CurseDestructionOther = new List<SpellId>()
         {
             SpellId.CurseDestructionOther1,
             SpellId.CurseDestructionOther2,
@@ -6330,7 +6330,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CurseDestructionOther8,
         };
 
-        public static List<SpellId> NetherStreak = new List<SpellId>()
+        public static readonly List<SpellId> NetherStreak = new List<SpellId>()
         {
             SpellId.NetherStreak1,
             SpellId.NetherStreak2,
@@ -6342,7 +6342,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.NetherStreak8,
         };
 
-        public static List<SpellId> NetherBolt = new List<SpellId>()
+        public static readonly List<SpellId> NetherBolt = new List<SpellId>()
         {
             SpellId.NetherBolt1,
             SpellId.NetherBolt2,
@@ -6354,7 +6354,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.NetherBolt8,
         };
 
-        public static List<SpellId> NetherArc = new List<SpellId>()
+        public static readonly List<SpellId> NetherArc = new List<SpellId>()
         {
             SpellId.NetherArc1,
             SpellId.NetherArc2,
@@ -6366,7 +6366,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.NetherArc8,
         };
 
-        public static List<SpellId> CurseFestering = new List<SpellId>()
+        public static readonly List<SpellId> CurseFestering = new List<SpellId>()
         {
             SpellId.CurseFestering1,
             SpellId.CurseFestering2,
@@ -6378,7 +6378,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CurseFestering8,
         };
 
-        public static List<SpellId> CurseWeakness = new List<SpellId>()
+        public static readonly List<SpellId> CurseWeakness = new List<SpellId>()
         {
             SpellId.CurseWeakness1,
             SpellId.CurseWeakness2,
@@ -6390,7 +6390,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CurseWeakness8,
         };
 
-        public static List<SpellId> Corrosion = new List<SpellId>()
+        public static readonly List<SpellId> Corrosion = new List<SpellId>()
         {
             SpellId.Corrosion1,
             SpellId.Corrosion2,
@@ -6402,7 +6402,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.Corrosion8,
         };
 
-        public static List<SpellId> Corruption = new List<SpellId>()
+        public static readonly List<SpellId> Corruption = new List<SpellId>()
         {
             SpellId.Corruption1,
             SpellId.Corruption2,
@@ -6414,7 +6414,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.Corruption8,
         };
 
-        public static List<SpellId> VoidMagicMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> VoidMagicMasteryOther = new List<SpellId>()
         {
             SpellId.VoidMagicMasteryOther1,
             SpellId.VoidMagicMasteryOther2,
@@ -6426,7 +6426,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.VoidMagicMasteryOther8,
         };
 
-        public static List<SpellId> VoidMagicMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> VoidMagicMasterySelf = new List<SpellId>()
         {
             SpellId.VoidMagicMasterySelf1,
             SpellId.VoidMagicMasterySelf2,
@@ -6438,7 +6438,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.VoidMagicMasterySelf8,
         };
 
-        public static List<SpellId> VoidMagicIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> VoidMagicIneptitudeOther = new List<SpellId>()
         {
             SpellId.VoidMagicIneptitudeOther1,
             SpellId.VoidMagicIneptitudeOther2,
@@ -6450,7 +6450,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.VoidMagicIneptitudeOther8,
         };
 
-        public static List<SpellId> CantripVoidMagicAptitude = new List<SpellId>()
+        public static readonly List<SpellId> CantripVoidMagicAptitude = new List<SpellId>()
         {
             SpellId.CantripVoidMagicAptitude1,
             SpellId.CantripVoidMagicAptitude2,
@@ -6458,7 +6458,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripVoidMagicAptitude4,
         };
 
-        public static List<SpellId> SetVoidMagicAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetVoidMagicAptitude = new List<SpellId>()
         {
             SpellId.SetVoidMagicAptitude1,
             SpellId.SetVoidMagicAptitude2,
@@ -6466,43 +6466,43 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetVoidMagicAptitude4,
         };
 
-        public static List<SpellId> CorruptorsBoon = new List<SpellId>()
+        public static readonly List<SpellId> CorruptorsBoon = new List<SpellId>()
         {
             SpellId.CorruptorsBoon,
             SpellId.CorruptorsBoon3,
         };
 
-        public static List<SpellId> AcidSpitStreak = new List<SpellId>()
+        public static readonly List<SpellId> AcidSpitStreak = new List<SpellId>()
         {
             SpellId.AcidSpitStreak1,
             SpellId.AcidSpitStreak2,
         };
 
-        public static List<SpellId> AcidSpit = new List<SpellId>()
+        public static readonly List<SpellId> AcidSpit = new List<SpellId>()
         {
             SpellId.AcidSpit1,
             SpellId.AcidSpit2,
         };
 
-        public static List<SpellId> AcidSpitArc = new List<SpellId>()
+        public static readonly List<SpellId> AcidSpitArc = new List<SpellId>()
         {
             SpellId.AcidSpitArc1,
             SpellId.AcidSpitArc2,
         };
 
-        public static List<SpellId> AcidSpitBlast = new List<SpellId>()
+        public static readonly List<SpellId> AcidSpitBlast = new List<SpellId>()
         {
             SpellId.AcidSpitBlast1,
             SpellId.AcidspitBlast2,
         };
 
-        public static List<SpellId> AcidSpitVolley = new List<SpellId>()
+        public static readonly List<SpellId> AcidSpitVolley = new List<SpellId>()
         {
             SpellId.AcidSpitVolley1,
             SpellId.AcidSpitVolley2,
         };
 
-        public static List<SpellId> OlthoiCriticalDamageBoost = new List<SpellId>()
+        public static readonly List<SpellId> OlthoiCriticalDamageBoost = new List<SpellId>()
         {
             SpellId.OlthoiCriticalDamageBoost1,
             SpellId.OlthoiCriticalDamageBoost2,
@@ -6517,7 +6517,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.OlthoiCriticalDamageBoost11,
         };
 
-        public static List<SpellId> OlthoiCriticalDamageReduction = new List<SpellId>()
+        public static readonly List<SpellId> OlthoiCriticalDamageReduction = new List<SpellId>()
         {
             SpellId.OlthoiCriticalDamageReduction1,
             SpellId.OlthoiCriticalDamageReduction2,
@@ -6532,7 +6532,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.OlthoiCriticalDamageReduction11,
         };
 
-        public static List<SpellId> OlthoiDamageBoost = new List<SpellId>()
+        public static readonly List<SpellId> OlthoiDamageBoost = new List<SpellId>()
         {
             SpellId.OlthoiDamageBoost1,
             SpellId.OlthoiDamageBoost2,
@@ -6547,7 +6547,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.OlthoiDamageBoost11,
         };
 
-        public static List<SpellId> OlthoiDamageReduction = new List<SpellId>()
+        public static readonly List<SpellId> OlthoiDamageReduction = new List<SpellId>()
         {
             SpellId.OlthoiDamageReduction1,
             SpellId.OlthoiDamageReduction2,
@@ -6562,13 +6562,13 @@ namespace ACE.Server.Factories.Tables
             SpellId.OlthoiDamageReduction11,
         };
 
-        public static List<SpellId> AcidSpitVulnerability = new List<SpellId>()
+        public static readonly List<SpellId> AcidSpitVulnerability = new List<SpellId>()
         {
             SpellId.AcidSpitVulnerability1,
             SpellId.AcidSpitVulnerability2,
         };
 
-        public static List<SpellId> BloodstoneBolt = new List<SpellId>()
+        public static readonly List<SpellId> BloodstoneBolt = new List<SpellId>()
         {
             SpellId.BloodstoneBolt1,
             SpellId.BloodstoneBolt2,
@@ -6580,19 +6580,19 @@ namespace ACE.Server.Factories.Tables
             SpellId.BloodstoneBolt8,
         };
 
-        public static List<SpellId> PortalSendingBloodstoneFactory = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingBloodstoneFactory = new List<SpellId>()
         {
             SpellId.PortalSendingBloodstoneFactory1,
             SpellId.PortalSendingBloodstoneFactory2,
         };
 
-        public static List<SpellId> PortalSendingRitualTime = new List<SpellId>()
+        public static readonly List<SpellId> PortalSendingRitualTime = new List<SpellId>()
         {
             SpellId.PortalSendingRitualTime1,
             SpellId.PortalSendingRitualTime2,
         };
 
-        public static List<SpellId> NetherBlast = new List<SpellId>()
+        public static readonly List<SpellId> NetherBlast = new List<SpellId>()
         {
             SpellId.NetherBlast1,
             SpellId.NetherBlast2,
@@ -6604,7 +6604,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.NetherBlast8,
         };
 
-        public static List<SpellId> AetheriaDoTResistance = new List<SpellId>()
+        public static readonly List<SpellId> AetheriaDoTResistance = new List<SpellId>()
         {
             SpellId.AetheriaDoTResistance1,
             SpellId.AetheriaDoTResistance2,
@@ -6623,7 +6623,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AetheriaDoTResistance15,
         };
 
-        public static List<SpellId> AetheriaHealthResistance = new List<SpellId>()
+        public static readonly List<SpellId> AetheriaHealthResistance = new List<SpellId>()
         {
             SpellId.AetheriaHealthResistance1,
             SpellId.AetheriaHealthResistance2,
@@ -6642,7 +6642,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.AetheriaHealthResistance15,
         };
 
-        public static List<SpellId> CloakAlchemyMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakAlchemyMastery = new List<SpellId>()
         {
             SpellId.CloakAlchemyMastery1,
             SpellId.CloakAlchemyMastery2,
@@ -6651,7 +6651,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakAlchemyMastery5,
         };
 
-        public static List<SpellId> CloakArcaneloreMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakArcaneloreMastery = new List<SpellId>()
         {
             SpellId.CloakArcaneloreMastery1,
             SpellId.CloakArcaneloreMastery2,
@@ -6660,7 +6660,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakArcaneloreMastery5,
         };
 
-        public static List<SpellId> CloakArmortinkeringMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakArmortinkeringMastery = new List<SpellId>()
         {
             SpellId.CloakArmortinkeringMastery1,
             SpellId.CloakArmortinkeringMastery2,
@@ -6669,7 +6669,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakArmortinkeringMastery5,
         };
 
-        public static List<SpellId> CloakAssesspersonMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakAssesspersonMastery = new List<SpellId>()
         {
             SpellId.CloakAssesspersonMastery1,
             SpellId.CloakAssesspersonMastery2,
@@ -6678,7 +6678,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakAssesspersonMastery5,
         };
 
-        public static List<SpellId> CloakAxeMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakAxeMastery = new List<SpellId>()
         {
             SpellId.CloakAxeMastery1,
             SpellId.CloakAxeMastery2,
@@ -6687,7 +6687,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakAxeMastery5,
         };
 
-        public static List<SpellId> CloakBowMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakBowMastery = new List<SpellId>()
         {
             SpellId.CloakBowMastery1,
             SpellId.CloakBowMastery2,
@@ -6696,7 +6696,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakBowMastery5,
         };
 
-        public static List<SpellId> CloakCookingMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakCookingMastery = new List<SpellId>()
         {
             SpellId.CloakCookingMastery1,
             SpellId.CloakCookingMastery2,
@@ -6705,7 +6705,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakCookingMastery5,
         };
 
-        public static List<SpellId> CloakCreatureenchantmentMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakCreatureenchantmentMastery = new List<SpellId>()
         {
             SpellId.CloakCreatureenchantmentMastery1,
             SpellId.CloakCreatureenchantmentMastery2,
@@ -6714,7 +6714,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakCreatureenchantmentMastery5,
         };
 
-        public static List<SpellId> CloakCrossbowMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakCrossbowMastery = new List<SpellId>()
         {
             SpellId.CloakCrossbowMastery1,
             SpellId.CloakCrossbowMastery2,
@@ -6723,7 +6723,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakCrossbowMastery5,
         };
 
-        public static List<SpellId> CloakDaggerMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakDaggerMastery = new List<SpellId>()
         {
             SpellId.CloakDaggerMastery1,
             SpellId.CloakDaggerMastery2,
@@ -6732,7 +6732,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakDaggerMastery5,
         };
 
-        public static List<SpellId> CloakDeceptionMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakDeceptionMastery = new List<SpellId>()
         {
             SpellId.CloakDeceptionMastery1,
             SpellId.CloakDeceptionMastery2,
@@ -6741,7 +6741,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakDeceptionMastery5,
         };
 
-        public static List<SpellId> CloakFletchingMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakFletchingMastery = new List<SpellId>()
         {
             SpellId.CloakFletchingMastery1,
             SpellId.CloakFletchingMastery2,
@@ -6750,7 +6750,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakFletchingMastery5,
         };
 
-        public static List<SpellId> CloakHealingMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakHealingMastery = new List<SpellId>()
         {
             SpellId.CloakHealingMastery1,
             SpellId.CloakHealingMastery2,
@@ -6759,7 +6759,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakHealingMastery5,
         };
 
-        public static List<SpellId> CloakItemenchantmentMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakItemenchantmentMastery = new List<SpellId>()
         {
             SpellId.CloakItemenchantmentMastery1,
             SpellId.CloakItemenchantmentMastery2,
@@ -6768,7 +6768,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakItemenchantmentMastery5,
         };
 
-        public static List<SpellId> CloakItemtinkeringMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakItemtinkeringMastery = new List<SpellId>()
         {
             SpellId.CloakItemtinkeringMastery1,
             SpellId.CloakItemtinkeringMastery2,
@@ -6777,7 +6777,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakItemtinkeringMastery5,
         };
 
-        public static List<SpellId> CloakLeadershipMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakLeadershipMastery = new List<SpellId>()
         {
             SpellId.CloakLeadershipMastery1,
             SpellId.CloakLeadershipMastery2,
@@ -6786,7 +6786,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakLeadershipMastery5,
         };
 
-        public static List<SpellId> CloakLifemagicMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakLifemagicMastery = new List<SpellId>()
         {
             SpellId.CloakLifemagicMastery1,
             SpellId.CloakLifemagicMastery2,
@@ -6795,7 +6795,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakLifemagicMastery5,
         };
 
-        public static List<SpellId> CloakLoyaltyMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakLoyaltyMastery = new List<SpellId>()
         {
             SpellId.CloakLoyaltyMastery1,
             SpellId.CloakLoyaltyMastery2,
@@ -6804,7 +6804,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakLoyaltyMastery5,
         };
 
-        public static List<SpellId> CloakMaceMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakMaceMastery = new List<SpellId>()
         {
             SpellId.CloakMaceMastery1,
             SpellId.CloakMaceMastery2,
@@ -6813,7 +6813,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakMaceMastery5,
         };
 
-        public static List<SpellId> CloakMagicdefenseMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakMagicdefenseMastery = new List<SpellId>()
         {
             SpellId.CloakMagicdefenseMastery1,
             SpellId.CloakMagicdefenseMastery2,
@@ -6822,7 +6822,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakMagicdefenseMastery5,
         };
 
-        public static List<SpellId> CloakMagictinkeringMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakMagictinkeringMastery = new List<SpellId>()
         {
             SpellId.CloakMagictinkeringMastery1,
             SpellId.CloakMagictinkeringMastery2,
@@ -6831,7 +6831,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakMagictinkeringMastery5,
         };
 
-        public static List<SpellId> CloakManaconversionMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakManaconversionMastery = new List<SpellId>()
         {
             SpellId.CloakManaconversionMastery1,
             SpellId.CloakManaconversionMastery2,
@@ -6840,7 +6840,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakManaconversionMastery5,
         };
 
-        public static List<SpellId> CloakMeleedefenseMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakMeleedefenseMastery = new List<SpellId>()
         {
             SpellId.CloakMeleedefenseMastery1,
             SpellId.CloakMeleedefenseMastery2,
@@ -6849,7 +6849,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakMeleedefenseMastery5,
         };
 
-        public static List<SpellId> CloakMissiledefenseMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakMissiledefenseMastery = new List<SpellId>()
         {
             SpellId.CloakMissiledefenseMastery1,
             SpellId.CloakMissiledefenseMastery2,
@@ -6858,7 +6858,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakMissiledefenseMastery5,
         };
 
-        public static List<SpellId> CloakSalvagingMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakSalvagingMastery = new List<SpellId>()
         {
             SpellId.CloakSalvagingMastery1,
             SpellId.CloakSalvagingMastery2,
@@ -6867,7 +6867,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakSalvagingMastery5,
         };
 
-        public static List<SpellId> CloakSpearMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakSpearMastery = new List<SpellId>()
         {
             SpellId.CloakSpearMastery1,
             SpellId.CloakSpearMastery2,
@@ -6876,7 +6876,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakSpearMastery5,
         };
 
-        public static List<SpellId> CloakStaffMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakStaffMastery = new List<SpellId>()
         {
             SpellId.CloakStaffMastery1,
             SpellId.CloakStaffMastery2,
@@ -6885,7 +6885,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakStaffMastery5,
         };
 
-        public static List<SpellId> CloakSwordMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakSwordMastery = new List<SpellId>()
         {
             SpellId.CloakSwordMastery1,
             SpellId.CloakSwordMastery2,
@@ -6894,7 +6894,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakSwordMastery5,
         };
 
-        public static List<SpellId> CloakThrownWeaponMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakThrownWeaponMastery = new List<SpellId>()
         {
             SpellId.CloakThrownWeaponMastery1,
             SpellId.CloakThrownWeaponMastery2,
@@ -6903,7 +6903,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakThrownWeaponMastery5,
         };
 
-        public static List<SpellId> CloakTwoHandedCombatMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakTwoHandedCombatMastery = new List<SpellId>()
         {
             SpellId.CloakTwoHandedCombatMastery1,
             SpellId.CloakTwoHandedCombatMastery2,
@@ -6912,7 +6912,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakTwoHandedCombatMastery5,
         };
 
-        public static List<SpellId> CloakUnarmedCombatMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakUnarmedCombatMastery = new List<SpellId>()
         {
             SpellId.CloakUnarmedCombatMastery1,
             SpellId.CloakUnarmedCombatMastery2,
@@ -6921,7 +6921,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakUnarmedCombatMastery5,
         };
 
-        public static List<SpellId> CloakVoidMagicMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakVoidMagicMastery = new List<SpellId>()
         {
             SpellId.CloakVoidMagicMastery1,
             SpellId.CloakVoidMagicMastery2,
@@ -6930,7 +6930,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakVoidMagicMastery5,
         };
 
-        public static List<SpellId> CloakWarMagicMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakWarMagicMastery = new List<SpellId>()
         {
             SpellId.CloakWarMagicMastery1,
             SpellId.CloakWarMagicMastery2,
@@ -6939,7 +6939,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakWarMagicMastery5,
         };
 
-        public static List<SpellId> CloakWeapontinkeringMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakWeapontinkeringMastery = new List<SpellId>()
         {
             SpellId.CloakWeapontinkeringMastery1,
             SpellId.CloakWeapontinkeringMastery2,
@@ -6948,7 +6948,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakWeapontinkeringMastery5,
         };
 
-        public static List<SpellId> CloakAssessCreatureMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakAssessCreatureMastery = new List<SpellId>()
         {
             SpellId.CloakAssessCreatureMastery1,
             SpellId.CloakAssessCreatureMastery2,
@@ -6957,7 +6957,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakAssessCreatureMastery5,
         };
 
-        public static List<SpellId> DirtyFightingIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> DirtyFightingIneptitudeOther = new List<SpellId>()
         {
             SpellId.DirtyFightingIneptitudeOther1,
             SpellId.DirtyFightingIneptitudeOther2,
@@ -6969,7 +6969,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DirtyFightingIneptitudeOther8,
         };
 
-        public static List<SpellId> DirtyFightingMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> DirtyFightingMasteryOther = new List<SpellId>()
         {
             SpellId.DirtyFightingMasteryOther1,
             SpellId.DirtyFightingMasteryOther2,
@@ -6981,7 +6981,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DirtyFightingMasteryOther8,
         };
 
-        public static List<SpellId> DirtyFightingMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> DirtyFightingMasterySelf = new List<SpellId>()
         {
             SpellId.DirtyFightingMasterySelf1,
             SpellId.DirtyFightingMasterySelf2,
@@ -6993,7 +6993,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DirtyFightingMasterySelf8,
         };
 
-        public static List<SpellId> DualWieldIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> DualWieldIneptitudeOther = new List<SpellId>()
         {
             SpellId.DualWieldIneptitudeOther1,
             SpellId.DualWieldIneptitudeOther2,
@@ -7005,7 +7005,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DualWieldIneptitudeOther8,
         };
 
-        public static List<SpellId> DualWieldMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> DualWieldMasteryOther = new List<SpellId>()
         {
             SpellId.DualWieldMasteryOther1,
             SpellId.DualWieldMasteryOther2,
@@ -7017,7 +7017,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DualWieldMasteryOther8,
         };
 
-        public static List<SpellId> DualWieldMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> DualWieldMasterySelf = new List<SpellId>()
         {
             SpellId.DualWieldMasterySelf1,
             SpellId.DualWieldMasterySelf2,
@@ -7029,7 +7029,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DualWieldMasterySelf8,
         };
 
-        public static List<SpellId> RecklessnessIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> RecklessnessIneptitudeOther = new List<SpellId>()
         {
             SpellId.RecklessnessIneptitudeOther1,
             SpellId.RecklessnessIneptitudeOther2,
@@ -7041,7 +7041,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.RecklessnessIneptitudeOther8,
         };
 
-        public static List<SpellId> RecklessnessMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> RecklessnessMasteryOther = new List<SpellId>()
         {
             SpellId.RecklessnessMasteryOther1,
             SpellId.RecklessnessMasteryOther2,
@@ -7053,7 +7053,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.RecklessnessMasteryOther8,
         };
 
-        public static List<SpellId> RecklessnessMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> RecklessnessMasterySelf = new List<SpellId>()
         {
             SpellId.RecklessnessMasterySelf1,
             SpellId.RecklessnessMasterySelf2,
@@ -7065,7 +7065,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.RecklessnessMasterySelf8,
         };
 
-        public static List<SpellId> ShieldIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> ShieldIneptitudeOther = new List<SpellId>()
         {
             SpellId.ShieldIneptitudeOther1,
             SpellId.ShieldIneptitudeOther2,
@@ -7077,7 +7077,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ShieldIneptitudeOther8,
         };
 
-        public static List<SpellId> ShieldMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> ShieldMasteryOther = new List<SpellId>()
         {
             SpellId.ShieldMasteryOther1,
             SpellId.ShieldMasteryOther2,
@@ -7089,7 +7089,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ShieldMasteryOther8,
         };
 
-        public static List<SpellId> ShieldMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> ShieldMasterySelf = new List<SpellId>()
         {
             SpellId.ShieldMasterySelf1,
             SpellId.ShieldMasterySelf2,
@@ -7101,7 +7101,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ShieldMasterySelf8,
         };
 
-        public static List<SpellId> SneakAttackIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> SneakAttackIneptitudeOther = new List<SpellId>()
         {
             SpellId.SneakAttackIneptitudeOther1,
             SpellId.SneakAttackIneptitudeOther2,
@@ -7113,7 +7113,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SneakAttackIneptitudeOther8,
         };
 
-        public static List<SpellId> SneakAttackMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> SneakAttackMasteryOther = new List<SpellId>()
         {
             SpellId.SneakAttackMasteryOther1,
             SpellId.SneakAttackMasteryOther2,
@@ -7125,7 +7125,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SneakAttackMasteryOther8,
         };
 
-        public static List<SpellId> SneakAttackMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> SneakAttackMasterySelf = new List<SpellId>()
         {
             SpellId.SneakAttackMasterySelf1,
             SpellId.SneakAttackMasterySelf2,
@@ -7137,7 +7137,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SneakAttackMasterySelf8,
         };
 
-        public static List<SpellId> CantripDirtyFightingProwess = new List<SpellId>()
+        public static readonly List<SpellId> CantripDirtyFightingProwess = new List<SpellId>()
         {
             SpellId.CantripDirtyFightingProwess1,
             SpellId.CantripDirtyFightingProwess2,
@@ -7145,7 +7145,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripDirtyFightingProwess4,
         };
 
-        public static List<SpellId> CantripDualWieldAptitude = new List<SpellId>()
+        public static readonly List<SpellId> CantripDualWieldAptitude = new List<SpellId>()
         {
             SpellId.CantripDualWieldAptitude1,
             SpellId.CantripDualWieldAptitude2,
@@ -7153,7 +7153,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripDualWieldAptitude4,
         };
 
-        public static List<SpellId> CantripRecklessnessProwess = new List<SpellId>()
+        public static readonly List<SpellId> CantripRecklessnessProwess = new List<SpellId>()
         {
             SpellId.CantripRecklessnessProwess1,
             SpellId.CantripRecklessnessProwess2,
@@ -7161,7 +7161,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripRecklessnessProwess4,
         };
 
-        public static List<SpellId> CantripShieldAptitude = new List<SpellId>()
+        public static readonly List<SpellId> CantripShieldAptitude = new List<SpellId>()
         {
             SpellId.CantripShieldAptitude1,
             SpellId.CantripShieldAptitude2,
@@ -7169,7 +7169,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripShieldAptitude4,
         };
 
-        public static List<SpellId> CantripSneakAttackProwess = new List<SpellId>()
+        public static readonly List<SpellId> CantripSneakAttackProwess = new List<SpellId>()
         {
             SpellId.CantripSneakAttackProwess1,
             SpellId.CantripSneakAttackProwess2,
@@ -7177,7 +7177,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripSneakAttackProwess4,
         };
 
-        public static List<SpellId> CloakDirtyFightingMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakDirtyFightingMastery = new List<SpellId>()
         {
             SpellId.CloakDirtyFightingMastery1,
             SpellId.CloakDirtyFightingMastery2,
@@ -7186,7 +7186,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakDirtyFightingMastery5,
         };
 
-        public static List<SpellId> CloakDualWieldMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakDualWieldMastery = new List<SpellId>()
         {
             SpellId.CloakDualWieldMastery1,
             SpellId.CloakDualWieldMastery2,
@@ -7195,7 +7195,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakDualWieldMastery5,
         };
 
-        public static List<SpellId> CloakRecklessnessMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakRecklessnessMastery = new List<SpellId>()
         {
             SpellId.CloakRecklessnessMastery1,
             SpellId.CloakRecklessnessMastery2,
@@ -7204,7 +7204,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakRecklessnessMastery5,
         };
 
-        public static List<SpellId> CloakShieldMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakShieldMastery = new List<SpellId>()
         {
             SpellId.CloakShieldMastery1,
             SpellId.CloakShieldMastery2,
@@ -7213,7 +7213,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakShieldMastery5,
         };
 
-        public static List<SpellId> CloakSneakAttackMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakSneakAttackMastery = new List<SpellId>()
         {
             SpellId.CloakSneakAttackMastery1,
             SpellId.CloakSneakAttackMastery2,
@@ -7222,7 +7222,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakSneakAttackMastery5,
         };
 
-        public static List<SpellId> SetDirtyFightingAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetDirtyFightingAptitude = new List<SpellId>()
         {
             SpellId.SetDirtyFightingAptitude1,
             SpellId.SetDirtyFightingAptitude2,
@@ -7230,7 +7230,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetDirtyFightingAptitude4,
         };
 
-        public static List<SpellId> SetDualWieldAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetDualWieldAptitude = new List<SpellId>()
         {
             SpellId.SetDualWieldAptitude1,
             SpellId.SetDualWieldAptitude2,
@@ -7238,7 +7238,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetDualWieldAptitude4,
         };
 
-        public static List<SpellId> SetRecklessnessAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetRecklessnessAptitude = new List<SpellId>()
         {
             SpellId.SetRecklessnessAptitude1,
             SpellId.SetRecklessnessAptitude2,
@@ -7246,7 +7246,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetRecklessnessAptitude4,
         };
 
-        public static List<SpellId> SetShieldAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetShieldAptitude = new List<SpellId>()
         {
             SpellId.SetShieldAptitude1,
             SpellId.SetShieldAptitude2,
@@ -7254,7 +7254,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetShieldAptitude4,
         };
 
-        public static List<SpellId> SetSneakAttackAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetSneakAttackAptitude = new List<SpellId>()
         {
             SpellId.SetSneakAttackAptitude1,
             SpellId.SetSneakAttackAptitude2,
@@ -7262,7 +7262,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetSneakAttackAptitude4,
         };
 
-        public static List<SpellId> RareArmorDamageBoost = new List<SpellId>()
+        public static readonly List<SpellId> RareArmorDamageBoost = new List<SpellId>()
         {
             SpellId.RareArmorDamageBoost1,
             SpellId.RareArmorDamageBoost2,
@@ -7271,7 +7271,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.RareArmorDamageBoost5,
         };
 
-        public static List<SpellId> HermeticLinkOther = new List<SpellId>()
+        public static readonly List<SpellId> HermeticLinkOther = new List<SpellId>()
         {
             SpellId.HermeticLinkOther1,
             SpellId.HermeticLinkOther2,
@@ -7283,7 +7283,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HermeticLinkOther8,
         };
 
-        public static List<SpellId> BloodDrinkerOther = new List<SpellId>()
+        public static readonly List<SpellId> BloodDrinkerOther = new List<SpellId>()
         {
             SpellId.BloodDrinkerOther1,
             SpellId.BloodDrinkerOther2,
@@ -7295,7 +7295,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.BloodDrinkerOther8,
         };
 
-        public static List<SpellId> DefenderOther = new List<SpellId>()
+        public static readonly List<SpellId> DefenderOther = new List<SpellId>()
         {
             SpellId.DefenderOther1,
             SpellId.DefenderOther2,
@@ -7307,7 +7307,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.DefenderOther8,
         };
 
-        public static List<SpellId> HeartSeekerOther = new List<SpellId>()
+        public static readonly List<SpellId> HeartSeekerOther = new List<SpellId>()
         {
             SpellId.HeartSeekerOther1,
             SpellId.HeartSeekerOther2,
@@ -7319,7 +7319,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.HeartSeekerOther8,
         };
 
-        public static List<SpellId> SpiritDrinkerOther = new List<SpellId>()
+        public static readonly List<SpellId> SpiritDrinkerOther = new List<SpellId>()
         {
             SpellId.SpiritDrinkerOther1,
             SpellId.SpiritDrinkerOther2,
@@ -7331,7 +7331,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SpiritDrinkerOther8,
         };
 
-        public static List<SpellId> SwiftKillerOther = new List<SpellId>()
+        public static readonly List<SpellId> SwiftKillerOther = new List<SpellId>()
         {
             SpellId.SwiftKillerOther1,
             SpellId.SwiftKillerOther2,
@@ -7343,7 +7343,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SwiftKillerOther8,
         };
 
-        public static List<SpellId> SummoningMasteryOther = new List<SpellId>()
+        public static readonly List<SpellId> SummoningMasteryOther = new List<SpellId>()
         {
             SpellId.SummoningMasteryOther1,
             SpellId.SummoningMasteryOther2,
@@ -7355,7 +7355,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SummoningMasteryOther8,
         };
 
-        public static List<SpellId> SummoningMasterySelf = new List<SpellId>()
+        public static readonly List<SpellId> SummoningMasterySelf = new List<SpellId>()
         {
             SpellId.SummoningMasterySelf1,
             SpellId.SummoningMasterySelf2,
@@ -7367,7 +7367,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SummoningMasterySelf8,
         };
 
-        public static List<SpellId> CantripSummoningProwess = new List<SpellId>()
+        public static readonly List<SpellId> CantripSummoningProwess = new List<SpellId>()
         {
             SpellId.CantripSummoningProwess1,
             SpellId.CantripSummoningProwess2,
@@ -7375,7 +7375,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CantripSummoningProwess4,
         };
 
-        public static List<SpellId> SummoningIneptitudeOther = new List<SpellId>()
+        public static readonly List<SpellId> SummoningIneptitudeOther = new List<SpellId>()
         {
             SpellId.SummoningIneptitudeOther1,
             SpellId.SummoningIneptitudeOther2,
@@ -7387,7 +7387,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.SummoningIneptitudeOther8,
         };
 
-        public static List<SpellId> CloakSummoningMastery = new List<SpellId>()
+        public static readonly List<SpellId> CloakSummoningMastery = new List<SpellId>()
         {
             SpellId.CloakSummoningMastery1,
             SpellId.CloakSummoningMastery2,
@@ -7396,7 +7396,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CloakSummoningMastery5,
         };
 
-        public static List<SpellId> SetSummoningAptitude = new List<SpellId>()
+        public static readonly List<SpellId> SetSummoningAptitude = new List<SpellId>()
         {
             SpellId.SetSummoningAptitude1,
             SpellId.SetSummoningAptitude2,
@@ -7404,14 +7404,14 @@ namespace ACE.Server.Factories.Tables
             SpellId.SetSummoningAptitude4,
         };
 
-        public static List<SpellId> ReturnToTheStronghold = new List<SpellId>()
+        public static readonly List<SpellId> ReturnToTheStronghold = new List<SpellId>()
         {
             SpellId.ReturnToTheStronghold1,
             SpellId.ReturnToTheStronghold2,
             SpellId.ReturnToTheStronghold3,
         };
 
-        public static List<SpellId> ParagonsDualWieldMastery = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsDualWieldMastery = new List<SpellId>()
         {
             SpellId.ParagonsDualWieldMasteryI,
             SpellId.ParagonsDualWieldMasteryII,
@@ -7420,7 +7420,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsDualWieldMasteryV,
         };
 
-        public static List<SpellId> ParagonsFinesseWeaponMastery = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsFinesseWeaponMastery = new List<SpellId>()
         {
             SpellId.ParagonsFinesseWeaponMasteryI,
             SpellId.ParagonsFinesseWeaponMasteryII,
@@ -7429,7 +7429,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsFinesseWeaponMasteryV,
         };
 
-        public static List<SpellId> ParagonsHeavyWeaponMastery = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsHeavyWeaponMastery = new List<SpellId>()
         {
             SpellId.ParagonsHeavyWeaponMasteryI,
             SpellId.ParagonsHeavyWeaponMasteryII,
@@ -7438,7 +7438,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsHeavyWeaponMasteryV,
         };
 
-        public static List<SpellId> ParagonsLifeMagicMastery = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsLifeMagicMastery = new List<SpellId>()
         {
             SpellId.ParagonsLifeMagicMasteryI,
             SpellId.ParagonsLifeMagicMasteryII,
@@ -7447,7 +7447,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsLifeMagicMasteryV,
         };
 
-        public static List<SpellId> ParagonsLightWeaponMastery = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsLightWeaponMastery = new List<SpellId>()
         {
             SpellId.ParagonsLightWeaponMasteryI,
             SpellId.ParagonsLightWeaponMasteryII,
@@ -7456,7 +7456,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsLightWeaponMasteryV,
         };
 
-        public static List<SpellId> ParagonsMissileWeaponMastery = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsMissileWeaponMastery = new List<SpellId>()
         {
             SpellId.ParagonsMissileWeaponMasteryI,
             SpellId.ParagonsMissileWeaponMasteryII,
@@ -7465,7 +7465,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsMissileWeaponMasteryV,
         };
 
-        public static List<SpellId> ParagonsRecklessnessMastery = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsRecklessnessMastery = new List<SpellId>()
         {
             SpellId.ParagonsRecklessnessMasteryI,
             SpellId.ParagonsRecklessnessMasteryII,
@@ -7474,7 +7474,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsRecklessnessMasteryV,
         };
 
-        public static List<SpellId> ParagonsSneakAttackMastery = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsSneakAttackMastery = new List<SpellId>()
         {
             SpellId.ParagonsSneakAttackMasteryI,
             SpellId.ParagonsSneakAttackMasteryII,
@@ -7483,7 +7483,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsSneakAttackMasteryV,
         };
 
-        public static List<SpellId> ParagonsTwoHandedCombatMastery = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsTwoHandedCombatMastery = new List<SpellId>()
         {
             SpellId.ParagonsTwoHandedCombatMasteryI,
             SpellId.ParagonsTwoHandedCombatMasteryII,
@@ -7492,7 +7492,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsTwoHandedCombatMasteryV,
         };
 
-        public static List<SpellId> ParagonsVoidMagicMastery = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsVoidMagicMastery = new List<SpellId>()
         {
             SpellId.ParagonsVoidMagicMasteryI,
             SpellId.ParagonsVoidMagicMasteryII,
@@ -7501,7 +7501,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsVoidMagicMasteryV,
         };
 
-        public static List<SpellId> ParagonsWarMagicMastery = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsWarMagicMastery = new List<SpellId>()
         {
             SpellId.ParagonsWarMagicMasteryI,
             SpellId.ParagonsWarMagicMasteryII,
@@ -7510,7 +7510,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsWarMagicMasteryV,
         };
 
-        public static List<SpellId> ParagonsDirtyFightingMastery = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsDirtyFightingMastery = new List<SpellId>()
         {
             SpellId.ParagonsDirtyFightingMasteryI,
             SpellId.ParagonsDirtyFightingMasteryII,
@@ -7519,7 +7519,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsDirtyFightingMasteryV,
         };
 
-        public static List<SpellId> ParagonsWillpower = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsWillpower = new List<SpellId>()
         {
             SpellId.ParagonsWillpowerI,
             SpellId.ParagonsWillpowerII,
@@ -7528,7 +7528,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsWillpowerV,
         };
 
-        public static List<SpellId> ParagonsCoordination = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsCoordination = new List<SpellId>()
         {
             SpellId.ParagonsCoordinationI,
             SpellId.ParagonsCoordinationII,
@@ -7537,7 +7537,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsCoordinationV,
         };
 
-        public static List<SpellId> ParagonsEndurance = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsEndurance = new List<SpellId>()
         {
             SpellId.ParagonsEnduranceI,
             SpellId.ParagonsEnduranceII,
@@ -7546,7 +7546,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsEnduranceV,
         };
 
-        public static List<SpellId> ParagonsFocus = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsFocus = new List<SpellId>()
         {
             SpellId.ParagonsFocusI,
             SpellId.ParagonsFocusII,
@@ -7555,7 +7555,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsFocusV,
         };
 
-        public static List<SpellId> ParagonQuickness = new List<SpellId>()
+        public static readonly List<SpellId> ParagonQuickness = new List<SpellId>()
         {
             SpellId.ParagonQuicknessI,
             SpellId.ParagonQuicknessII,
@@ -7564,7 +7564,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonQuicknessV,
         };
 
-        public static List<SpellId> ParagonsStrength = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsStrength = new List<SpellId>()
         {
             SpellId.ParagonsStrengthI,
             SpellId.ParagonsStrengthII,
@@ -7573,7 +7573,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsStrengthV,
         };
 
-        public static List<SpellId> ParagonsStamina = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsStamina = new List<SpellId>()
         {
             SpellId.ParagonsStaminaI,
             SpellId.ParagonsStaminaII,
@@ -7582,7 +7582,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsStaminaV,
         };
 
-        public static List<SpellId> ParagonsCriticalDamageBoost = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsCriticalDamageBoost = new List<SpellId>()
         {
             SpellId.ParagonsCriticalDamageBoostII,
             SpellId.ParagonsCriticalDamageBoostIII,
@@ -7590,7 +7590,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsCriticalDamageBoostV,
         };
 
-        public static List<SpellId> ParagonsCriticalDamageReduction = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsCriticalDamageReduction = new List<SpellId>()
         {
             SpellId.ParagonsCriticalDamageReductionI,
             SpellId.ParagonsCriticalDamageReductionII,
@@ -7599,7 +7599,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsCriticalDamageReductionV,
         };
 
-        public static List<SpellId> ParagonsDamageBoost = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsDamageBoost = new List<SpellId>()
         {
             SpellId.ParagonsDamageBoostI,
             SpellId.ParagonsDamageBoostII,
@@ -7608,7 +7608,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsDamageBoostV,
         };
 
-        public static List<SpellId> ParagonsDamageReduction = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsDamageReduction = new List<SpellId>()
         {
             SpellId.ParagonsDamageReductionI,
             SpellId.ParagonsDamageReductionII,
@@ -7617,7 +7617,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsDamageReductionV,
         };
 
-        public static List<SpellId> ParagonsMana = new List<SpellId>()
+        public static readonly List<SpellId> ParagonsMana = new List<SpellId>()
         {
             SpellId.ParagonsManaI,
             SpellId.ParagonsManaII,
@@ -7626,37 +7626,37 @@ namespace ACE.Server.Factories.Tables
             SpellId.ParagonsManaV,
         };
 
-        public static List<SpellId> GauntletCriticalDamageBoost = new List<SpellId>()
+        public static readonly List<SpellId> GauntletCriticalDamageBoost = new List<SpellId>()
         {
             SpellId.GauntletCriticalDamageBoostI,
             SpellId.GauntletCriticalDamageBoostII,
         };
 
-        public static List<SpellId> GauntletDamageBoost = new List<SpellId>()
+        public static readonly List<SpellId> GauntletDamageBoost = new List<SpellId>()
         {
             SpellId.GauntletDamageBoostI,
             SpellId.GauntletDamageBoostII,
         };
 
-        public static List<SpellId> GauntletDamageReduction = new List<SpellId>()
+        public static readonly List<SpellId> GauntletDamageReduction = new List<SpellId>()
         {
             SpellId.GauntletDamageReductionI,
             SpellId.GauntletDamageReductionII,
         };
 
-        public static List<SpellId> GauntletCriticalDamageReduction = new List<SpellId>()
+        public static readonly List<SpellId> GauntletCriticalDamageReduction = new List<SpellId>()
         {
             SpellId.GauntletCriticalDamageReductionI,
             SpellId.GauntletCriticalDamageReductionII,
         };
 
-        public static List<SpellId> GauntletHealingBoost = new List<SpellId>()
+        public static readonly List<SpellId> GauntletHealingBoost = new List<SpellId>()
         {
             SpellId.GauntletHealingBoostI,
             SpellId.GauntletHealingBoostII,
         };
 
-        public static List<SpellId> GauntletVitality = new List<SpellId>()
+        public static readonly List<SpellId> GauntletVitality = new List<SpellId>()
         {
             SpellId.GauntletVitalityI,
             SpellId.GauntletVitalityII,
