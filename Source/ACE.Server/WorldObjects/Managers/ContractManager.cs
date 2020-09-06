@@ -171,7 +171,8 @@ namespace ACE.Server.WorldObjects.Managers
             {
                 if (Debug) Console.WriteLine($"{Player.Name}.ContractManager.Add({contractId}): contract for {datContract.ContractName} already exists in registry.");
 
-                return false;
+                // contracts dupes are also successful without actually duping into registry.
+                //return false;
             }
 
             return true;
