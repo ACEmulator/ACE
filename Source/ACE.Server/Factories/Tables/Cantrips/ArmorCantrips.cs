@@ -41,10 +41,12 @@ namespace ACE.Server.Factories.Tables
             SpellId.CANTRIPARCANEPROWESS1,
             SpellId.CANTRIPDECEPTIONPROWESS1,
             SpellId.CANTRIPHEALINGPROWESS1,
-            SpellId.CANTRIPJUMPINGPROWESS1,         // missing from original
+            SpellId.CANTRIPJUMPINGPROWESS1,         // missing from original cantrips, but was in spells
+                                                    // should a separate lower armor cantrips table be added for this?
             SpellId.CANTRIPMANACONVERSIONPROWESS1,
             SpellId.CANTRIPLOCKPICKPROWESS1,
-            SpellId.CANTRIPSPRINT1,                 // missing from original
+            SpellId.CANTRIPSPRINT1,                 // missing from original cantrips, but was in spells
+                                                    // should a separate lower armor cantrips table be added for this?
 
             SpellId.CantripDirtyFightingProwess1,
             SpellId.CantripDualWieldAptitude1,
