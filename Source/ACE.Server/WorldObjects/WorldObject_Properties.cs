@@ -2998,5 +2998,11 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.GearCritResist);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.GearCritResist); else SetProperty(PropertyInt.GearCritResist, value.Value); }
         }
+
+        public int? ResistItemAppraisal
+        {
+            get => GetProperty(PropertyInt.ResistItemAppraisal);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistItemAppraisal); else SetProperty(PropertyInt.ResistItemAppraisal, value.Value); }
+        }
     }
 }

@@ -1970,5 +1970,115 @@ namespace ACE.Server.WorldObjects
 
             targetInfo.Session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
         }
+
+
+        /// <summary>
+        /// Calculates the StatModVal x buffs to enter into the enchantment registry
+        /// </summary>
+        /// <param name="spell">A spell with a DotDuration</param>
+        public float CalculateDotEnchantment_StatModValue(Spell spell, WorldObject target, float statModVal)
+        {
+            // here are all the dots with current content:
+
+            // - 3 void dots (2 projectiles, 1 direct enchantment)
+            // - surge of affliction (target loses health over time)
+            // - surge of regeneration (caster gains health over time)
+            // - dirty fighting bleed
+
+            if (spell.DotDuration == 0)
+                return statModVal;
+
+            var enchantment_statModVal = statModVal;
+
+            var creatureTarget = target as Creature;
+
+            if (spell.Category == SpellCategory.AetheriaProcHealthOverTimeRaising)
+            {
+                // no healing boost rating modifier found in retail pcaps on apply,
+                // could there have been one on tick?
+                //if (creatureTarget != null)
+                    //enchantment_statModVal *= creatureTarget.GetHealingRatingMod();
+
+                return enchantment_statModVal;
+            }
+
+            if (spell.Category == SpellCategory.AetheriaProcDamageOverTimeRaising)
+            {
+                // no mods found in retail pcaps
+                return enchantment_statModVal;
+            }
+
+            var creatureSource = this as Creature;
+
+            var damageRatingMod = 1.0f;
+
+            if (creatureSource != null)
+            {
+                // damage rating mod
+                var damageRating = creatureSource.GetDamageRating();
+
+                if (this is Player player)
+                {
+                    // TODO: merge this with damage rating
+                    var equippedWeapon = player.GetEquippedWeapon() ?? player.GetEquippedWand();
+                    if (player.GetHeritageBonus(equippedWeapon))
+                        damageRating += 5;
+                }
+                damageRatingMod = Creature.GetPositiveRatingMod(damageRating);
+            }
+
+            if (spell.Category == SpellCategory.DFBleedDamage)
+            {
+                // retail pcaps have modifiers in the range of 1.1x - 1.7x
+                return enchantment_statModVal * damageRatingMod;
+            }
+
+            if (spell.Category != SpellCategory.NetherDamageOverTimeRaising && spell.Category != SpellCategory.NetherDamageOverTimeRaising2 && spell.Category != SpellCategory.NetherDamageOverTimeRaising3)
+            {
+                log.Error($"{Name}.CalculateDamageOverTimeBase({spell.Id} - {spell.Name}, {target?.Name}) - unknown dot spell category {spell.Category}");
+                return enchantment_statModVal;
+            }
+
+            // factors:
+            // - damage rating
+            // - heritage bonus (universal masteries at end of retail, TODO: merge this with damage rating)
+            // - caster damage type bonus (pvm, half for pvp)
+            // - skill in magic school vs. spell difficulty (for projectiles)
+
+            // thanks to Xenocide for figuring this part out!
+
+            var elementalDamageMod = 1.0f;
+            var skillMod = 1.0f;
+
+            if (creatureSource != null)
+            {
+                // elemental damage mod
+                elementalDamageMod = GetCasterElementalDamageModifier(creatureSource, creatureTarget, spell.DamageType);
+
+                // skillMod only applied to projectiles -- no destructive curse
+                if (spell.NumProjectiles > 0)   
+                {
+                    // from SpellProjectile, slightly modified
+                    // convert this to common function
+
+                    // per retail stats, level 8 difficulty is capped to 350 instead of 400
+                    // without this, level 7s have the potential to deal more damage than level 8s
+                    var difficulty = Math.Min(spell.Power, 350);    // was skillMod possibility capped to 1.3x in retail, instead of level 8 difficulty cap?
+                    var magicSkill = creatureSource.GetCreatureSkill(spell.School).Current;
+
+                    if (magicSkill > difficulty)
+                    {
+                        // Bonus clamped to a maximum of 50%
+                        //var percentageBonus = Math.Clamp((magicSkill - Spell.Power) / 100.0f, 0.0f, 0.5f);
+                        var percentageBonus = (magicSkill - difficulty) / 1000.0f;
+
+                        skillMod = 1.0f + percentageBonus;
+                    }
+                }
+            }
+            enchantment_statModVal *= skillMod * elementalDamageMod * damageRatingMod;
+
+            return enchantment_statModVal;
+        }
     }
 }
