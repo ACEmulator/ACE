@@ -169,6 +169,7 @@ namespace ACE.Server.WorldObjects.Managers
             armorModCache = null;
             armorModVsTypeModCache.Clear();
             ratingCache.Clear();
+            netherDotDamageRatingCache = null;
             xpBonusCache = null;
             resistLockpickCache = null;
         }
@@ -504,6 +505,16 @@ namespace ACE.Server.WorldObjects.Managers
             ratingCache[property] = value;
 
             return value;
+        }
+
+        private int? netherDotDamageRatingCache;
+
+        public override int GetNetherDotDamageRating()
+        {
+            if (netherDotDamageRatingCache == null)
+                netherDotDamageRatingCache = base.GetNetherDotDamageRating();
+
+            return netherDotDamageRatingCache.Value;
         }
 
         private float? xpBonusCache;

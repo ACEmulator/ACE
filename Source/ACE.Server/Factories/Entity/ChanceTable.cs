@@ -5,29 +5,22 @@ using ACE.Common;
 
 namespace ACE.Server.Factories.Entity
 {
-    public class ChanceTable<T>
+    public class ChanceTable<T> : List<(T result, float chance)>
     {
-        private readonly List<(T result, float chance)> table = new List<(T, float)>();
-
-        public void Add(T result, float chance)
-        {
-            table.Add((result, chance));
-        }
-
         public T Roll()
         {
             var total = 0.0f;
 
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
 
-            foreach (var entry in table)
+            foreach (var entry in this)
             {
                 total += entry.chance;
 
                 if (rng < total)
                     return entry.result;
             }
-            return table.Last().result;
+            return this.Last().result;
         }
     }
 }

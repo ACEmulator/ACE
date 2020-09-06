@@ -483,7 +483,7 @@ namespace ACE.Server.WorldObjects
                 {
                     // per retail stats, level 8 difficulty is capped to 350 instead of 400
                     // without this, level 7s have the potential to deal more damage than level 8s
-                    var difficulty = Math.Min(Spell.Power, 350);
+                    var difficulty = Math.Min(Spell.Power, 350);    // was skillMod possibility capped to 1.3x for level 7 spells in retail, instead of level 8 difficulty cap?
                     var magicSkill = sourcePlayer.GetCreatureSkill(Spell.School).Current;
 
                     if (magicSkill > difficulty)
@@ -680,7 +680,7 @@ namespace ACE.Server.WorldObjects
                 // DR / DRR applies for magic too?
                 var damageRating = sourceCreature?.GetDamageRating() ?? 0;
                 damageRatingMod = Creature.AdditiveCombine(Creature.GetPositiveRatingMod(damageRating), heritageMod, sneakAttackMod);
-                damageResistRatingMod = Creature.GetNegativeRatingMod(target.GetDamageResistRating(CombatType.Magic));
+                damageResistRatingMod = target.GetDamageResistRatingMod(CombatType.Magic);
                 damage *= damageRatingMod * damageResistRatingMod;
 
                 percent = damage / target.Health.MaxValue;
