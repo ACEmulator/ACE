@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 
-using System.Diagnostics;
-
 using log4net;
 
 using ACE.Entity.Enum;
@@ -17,7 +15,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CANTRIPSTRENGTH1,
             SpellId.CANTRIPENDURANCE1,
             SpellId.CANTRIPCOORDINATION1,
-            // quickness?
+            SpellId.CANTRIPQUICKNESS1,      // added, according to spellSelectionGroup6
 
             SpellId.CANTRIPBLOODTHIRST1,
             SpellId.CANTRIPHEARTTHIRST1,

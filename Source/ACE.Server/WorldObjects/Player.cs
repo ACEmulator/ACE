@@ -311,6 +311,9 @@ namespace ACE.Server.WorldObjects
                 success = chance > ThreadSafeRandom.Next(0.0f, 1.0f);
             }
 
+            if (obj.ResistItemAppraisal >= 999)
+                success = false;
+
             if (creature is Pet || creature is CombatPet)
                 success = true;
 

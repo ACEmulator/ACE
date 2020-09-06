@@ -841,8 +841,13 @@ namespace ACE.Server.WorldObjects
         // - These abilities are player-only, creatures with high endurance will not benefit from any of these changes.
         // - Come May, you can type @help endurance for a summary of the April changes to Endurance.
 
-        public override float GetNaturalResistance()
+        public override float GetNaturalResistance(DamageType damageType)
         {
+            // http://acpedia.org/wiki/Announcements_-_11th_Anniversary_Preview#Void_Magic_and_You.21
+            // Creatures under Asheron’s protection take half damage from any nether type spell.
+            if (damageType == DamageType.Nether)
+                return (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
+
             // base strength and endurance give the player a natural resistance to damage,
             // which caps at 50% (equivalent to level 5 life prots)
             // these do not stack with life protection spells
