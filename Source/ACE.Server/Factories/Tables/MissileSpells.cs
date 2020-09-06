@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 
-using System.Diagnostics;
-
 using log4net;
 
 using ACE.Entity.Enum;
@@ -17,7 +15,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.StrengthSelf1,
             SpellId.EnduranceSelf1,
             SpellId.CoordinationSelf1,
-            // quickness?
+            SpellId.QuicknessSelf1,     // added, according to spellSelectionGroup6
 
             SpellId.BloodDrinkerSelf1,
             SpellId.HeartSeekerSelf1,

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+
 using ACE.Entity.Enum;
 using ACE.Server.Factories.Entity;
 
@@ -10,7 +11,7 @@ namespace ACE.Server.Factories.Tables
     public static class SpellSelectionTable
     {
         // gems
-        private static List<SpellChance> spellSelectionGroup1 = new List<SpellChance>()
+        private static readonly List<SpellChance> spellSelectionGroup1 = new List<SpellChance>()
         {
             new SpellChance(SpellId.StrengthSelf1, 0.06f),
             new SpellChance(SpellId.EnduranceSelf1, 0.06f),
@@ -32,7 +33,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // jewelry
-        private static List<SpellChance> spellSelectionGroup2 = new List<SpellChance>()
+        private static readonly List<SpellChance> spellSelectionGroup2 = new List<SpellChance>()
         {
             new SpellChance(SpellId.StrengthSelf1, 0.04f),
             new SpellChance(SpellId.EnduranceSelf1, 0.04f),
@@ -65,7 +66,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // crowns
-        private static List<SpellChance> spellSelectionGroup3 = new List<SpellChance>()
+        private static readonly List<SpellChance> spellSelectionGroup3 = new List<SpellChance>()
         {
             new SpellChance(SpellId.FocusSelf1, 0.12f),
             new SpellChance(SpellId.MagicResistanceSelf1, 0.12f),
@@ -80,7 +81,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // orbs, casters
-        private static List<SpellChance> spellSelectionGroup4 = new List<SpellChance>()
+        private static readonly List<SpellChance> spellSelectionGroup4 = new List<SpellChance>()
         {
             new SpellChance(SpellId.CreatureEnchantmentMasterySelf1, 0.2f),
             new SpellChance(SpellId.ItemEnchantmentMasterySelf1, 0.2f),
@@ -91,7 +92,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // wands, staffs, sceptres, batons
-        private static List<SpellChance> spellSelectionGroup5 = new List<SpellChance>()
+        private static readonly List<SpellChance> spellSelectionGroup5 = new List<SpellChance>()
         {
             new SpellChance(SpellId.CreatureEnchantmentMasterySelf1, 0.15f),
             new SpellChance(SpellId.ItemEnchantmentMasterySelf1, 0.15f),
@@ -102,7 +103,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // melee and missile weapons
-        private static List<SpellChance> spellSelectionGroup6 = new List<SpellChance>()
+        private static readonly List<SpellChance> spellSelectionGroup6 = new List<SpellChance>()
         {
             new SpellChance(SpellId.StrengthSelf1, 0.25f),
             new SpellChance(SpellId.EnduranceSelf1, 0.25f),
@@ -111,7 +112,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // bracers, breastplates, coats, cuirasses, girths, hauberks, pauldrons, chest armor, sleeves
-        private static List<SpellChance> spellSelectionGroup7 = new List<SpellChance>()
+        private static readonly List<SpellChance> spellSelectionGroup7 = new List<SpellChance>()
         {
             new SpellChance(SpellId.StrengthSelf1, 0.3f),
             new SpellChance(SpellId.EnduranceSelf1, 0.3f),
@@ -122,7 +123,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // shields
-        private static List<SpellChance> spellSelectionGroup8 = new List<SpellChance>()
+        private static readonly List<SpellChance> spellSelectionGroup8 = new List<SpellChance>()
         {
             new SpellChance(SpellId.StrengthSelf1, 0.1f),
             new SpellChance(SpellId.EnduranceSelf1, 0.1f),
@@ -134,7 +135,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // gauntlets, sollerets, sandals, boots
-        private static List<SpellChance> spellSelectionGroup9 = new List<SpellChance>()
+        private static readonly List<SpellChance> spellSelectionGroup9 = new List<SpellChance>()
         {
             new SpellChance(SpellId.CoordinationSelf1, 0.16f),
             new SpellChance(SpellId.LightWeaponsMasterySelf1, 0.1f),
@@ -151,7 +152,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // helms, basinets, helmets, coifs, cowls, heaumes, kabutons
-        private static List<SpellChance> spellSelectionGroup10 = new List<SpellChance>()
+        private static readonly List<SpellChance> spellSelectionGroup10 = new List<SpellChance>()
         {
             new SpellChance(SpellId.MagicResistanceSelf1, 0.3f),
             new SpellChance(SpellId.ArmorExpertiseSelf1, 0.1f),
@@ -164,7 +165,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // boots, sandals, shoes, slippers, sollerets
-        private static List<SpellChance> spellSelectionGroup11 = new List<SpellChance>()
+        private static readonly List<SpellChance> spellSelectionGroup11 = new List<SpellChance>()
         {
             new SpellChance(SpellId.QuicknessSelf1, 0.15f),
             new SpellChance(SpellId.JumpingMasterySelf1, 0.06f),
@@ -183,7 +184,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // breeches, jerkins, shirts, pants, tunics, doublets, trousers, pantaloons
-        private static List<SpellChance> spellSelectionGroup12 = new List<SpellChance>()
+        private static readonly List<SpellChance> spellSelectionGroup12 = new List<SpellChance>()
         {
             new SpellChance(SpellId.AcidProtectionSelf1, 0.1f),
             new SpellChance(SpellId.BludgeonProtectionSelf1, 0.1f),
@@ -196,7 +197,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // caps, qafiyas, turbans, fezs, berets
-        private static List<SpellChance> spellSelectionGroup13 = new List<SpellChance>()
+        private static readonly List<SpellChance> spellSelectionGroup13 = new List<SpellChance>()
         {
             new SpellChance(SpellId.FocusSelf1, 0.2f),
             new SpellChance(SpellId.MagicResistanceSelf1, 0.1f),
@@ -215,7 +216,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // cloth gloves (1 entry?)
-        private static List<SpellChance> spellSelectionGroup14 = new List<SpellChance>()
+        private static readonly List<SpellChance> spellSelectionGroup14 = new List<SpellChance>()
         {
             new SpellChance(SpellId.CoordinationSelf1, 0.1f),
             new SpellChance(SpellId.HealingMasterySelf1, 0.1f),
@@ -230,7 +231,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // greaves, leggings, tassets, leather pants
-        private static List<SpellChance> spellSelectionGroup15 = new List<SpellChance>()
+        private static readonly List<SpellChance> spellSelectionGroup15 = new List<SpellChance>()
         {
             new SpellChance(SpellId.QuicknessSelf1, 0.3f),
             new SpellChance(SpellId.JumpingMasterySelf1, 0.15f),
@@ -240,7 +241,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // dinnerware
-        private static List<SpellChance> spellSelectionGroup16 = new List<SpellChance>()
+        private static readonly List<SpellChance> spellSelectionGroup16 = new List<SpellChance>()
         {
             new SpellChance(SpellId.StrengthSelf1, 0.03f),
             new SpellChance(SpellId.EnduranceSelf1, 0.03f),
@@ -261,7 +262,7 @@ namespace ACE.Server.Factories.Tables
         /// <summary>
         /// Key is PropertyInt.TsysMutationData >> 24
         /// </summary>
-        public static Dictionary<int, List<SpellChance>> Group = new Dictionary<int, List<SpellChance>>()
+        public static readonly Dictionary<int, List<SpellChance>> Group = new Dictionary<int, List<SpellChance>>()
         {
             { 1, spellSelectionGroup1 },
             { 2, spellSelectionGroup2 },

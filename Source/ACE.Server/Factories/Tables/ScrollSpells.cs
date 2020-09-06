@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+
 using log4net;
+
 using ACE.Entity.Enum;
 
 namespace ACE.Server.Factories.Tables
@@ -169,8 +171,8 @@ namespace ACE.Server.Factories.Tables
             SpellId.RevitalizeOther1,
             SpellId.EnfeebleOther1,
 
-            //SpellId.ManaBoostSelf1,   // not in original LootTable, should this be added?
-            //SpellId.ManaBoostOther1,  // not in original LootTable, should this be added?
+            //SpellId.ManaBoostSelf1,       // these 2 mana boost spells exist,
+            //SpellId.ManaBoostOther1       // but they weren't learnable by the player in retail
             SpellId.ManaDrainOther1,
 
             SpellId.RegenerationSelf1,
