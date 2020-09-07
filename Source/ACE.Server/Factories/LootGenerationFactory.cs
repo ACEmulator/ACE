@@ -2525,6 +2525,8 @@ namespace ACE.Server.Factories
             switch (treasureItemType)
             {
                 case TreasureItemType_Orig.Pyreal:
+
+                    weenieClassName = WeenieClassName.coinstack;
                     break;
 
                 case TreasureItemType_Orig.Gem:
