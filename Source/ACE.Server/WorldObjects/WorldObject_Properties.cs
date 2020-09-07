@@ -1899,6 +1899,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.BulkMod); else SetProperty(PropertyFloat.BulkMod, value.Value); }
         }
 
+        public double? SizeMod
+        {
+            get => GetProperty(PropertyFloat.SizeMod);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.SizeMod); else SetProperty(PropertyFloat.SizeMod, value.Value); }
+        }
+
         public uint? PaletteBaseId
         {
             get => GetProperty(PropertyDataId.PaletteBase);
@@ -2180,6 +2186,16 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.TsysMutationData);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.TsysMutationData); else SetProperty(PropertyInt.TsysMutationData, value.Value); }
         }
+
+        // helpers
+        public byte? MaterialCode => (byte?)TsysMutationData;
+
+        public byte? GemCode => (byte?)(TsysMutationData >> 8);
+
+        public byte? ColorCode => (byte?)(TsysMutationData >> 16);
+
+        public byte? SpellSelectionCode => (byte?)(TsysMutationData >> 24);
+
 
         /// <summary>
         /// If TRUE, this is an admin-only visible object, only seen with /adminvision
