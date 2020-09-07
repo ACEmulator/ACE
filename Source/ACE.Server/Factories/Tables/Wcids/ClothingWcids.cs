@@ -1,11 +1,15 @@
+using ACE.Common;
+using ACE.Database.Models.World;
+using ACE.Entity.Enum;
 using ACE.Server.Factories.Entity;
-using ACE.Server.Factories.Enum;
+
+using WeenieClassName = ACE.Server.Factories.Enum.WeenieClassName;
 
 namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class ClothingWcids
     {
-        private static readonly ChanceTable<WeenieClassName> Clothing1 = new ChanceTable<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> ClothingWcids_Aluvian = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.shirtbaggy,   0.06f ),
             ( WeenieClassName.tunicbaggy,   0.06f ),
@@ -22,7 +26,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.breecheswide, 0.07f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Clothing2 = new ChanceTable<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> ClothingWcids_Gharundim = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.breechesbaggy, 0.07f ),
             ( WeenieClassName.pantsbaggy,    0.07f ),
@@ -41,5 +45,31 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.smock,         0.05f ),
             ( WeenieClassName.turban,        0.07f ),
         };
+
+        public static WeenieClassName Roll(TreasureDeath treasureDeath)
+        {
+            var heritage = RollHeritage(treasureDeath);
+
+            switch (heritage)
+            {
+                case HeritageGroup.Aluvian:
+                    return ClothingWcids_Aluvian.Roll();
+
+                case HeritageGroup.Gharundim:
+                    return ClothingWcids_Gharundim.Roll();
+            }
+            return WeenieClassName.undef;
+        }
+
+        public static HeritageGroup RollHeritage(TreasureDeath treasureDeath)
+        {
+            var heritage = HeritageChance.Roll(treasureDeath.UnknownChances);
+
+            // FIXME: missing sho clothing table
+            if (heritage >= HeritageGroup.Sho)
+                heritage = (HeritageGroup)ThreadSafeRandom.Next(1, 2);
+
+            return heritage;
+        }
     }
 }

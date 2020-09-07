@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -20,7 +21,10 @@ namespace ACE.Server.Factories.Entity
                 if (rng < total)
                     return entry.result;
             }
-            return this.Last().result;
+
+            //Console.WriteLine($"Rolled {rng}, everything >= {total}");
+
+            return this.Last(i => i.chance > 0).result;
         }
     }
 }

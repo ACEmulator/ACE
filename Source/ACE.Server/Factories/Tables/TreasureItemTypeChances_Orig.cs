@@ -7,6 +7,8 @@ namespace ACE.Server.Factories.Tables
 {
     public static class TreasureItemTypeChances_Orig
     {
+        // indexed by TreasureDeath.ItemTreasureTypeSelectionChances
+
         private static readonly ChanceTable<TreasureItemType_Orig> itemTypeChancesGroup1 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Weapon,    1.0f ),
@@ -131,19 +133,31 @@ namespace ACE.Server.Factories.Tables
         /// <summary>
         /// TreasureDeath.ItemTreasureTypeSelectionChances indexes into these profiles
         /// </summary>
-        public static Dictionary<int, ChanceTable<TreasureItemType_Orig>> itemTypeChancesGroups = new Dictionary<int, ChanceTable<TreasureItemType_Orig>>()
+        private static readonly List<ChanceTable<TreasureItemType_Orig>> itemTypeChancesGroups = new List<ChanceTable<TreasureItemType_Orig>>()
         {
-            { 1, itemTypeChancesGroup1 },
-            { 2, itemTypeChancesGroup2 },
-            { 3, itemTypeChancesGroup3 },
-            { 4, itemTypeChancesGroup4 },
-            { 5, itemTypeChancesGroup5 },
-            { 6, itemTypeChancesGroup6 },
-            { 7, itemTypeChancesGroup7 },
-            { 8, itemTypeChancesGroup8 },
-            { 9, itemTypeChancesGroup9 },
-            { 10, itemTypeChancesGroup10 },
-            { 11, itemTypeChancesGroup11 },
+            itemTypeChancesGroup1,
+            itemTypeChancesGroup2,
+            itemTypeChancesGroup3,
+            itemTypeChancesGroup4,
+            itemTypeChancesGroup5,
+            itemTypeChancesGroup6,
+            itemTypeChancesGroup7,
+            itemTypeChancesGroup8,
+            itemTypeChancesGroup9,
+            itemTypeChancesGroup10,
+            itemTypeChancesGroup11,
         };
+
+        /// <summary>
+        /// Rolls for a TreasureItemType for a non-magical TreasureItemCategory.Item
+        /// </summary>
+        /// <param name="itemTypeChancesIdx">From TreasureDeath.ItemTreasureTypeSelectionChances</param>
+        public static TreasureItemType_Orig Roll(int itemTypeChancesIdx)
+        {
+            if (itemTypeChancesIdx < 1 || itemTypeChancesIdx > itemTypeChancesGroups.Count)
+                return TreasureItemType_Orig.Undef;
+
+            return itemTypeChancesGroups[itemTypeChancesIdx - 1].Roll();
+        }
     }
 }

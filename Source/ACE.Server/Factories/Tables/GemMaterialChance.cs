@@ -2,79 +2,81 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Entity.Enum;
 using ACE.Server.Factories.Entity;
+using ACE.Server.Factories.Enum;
+
+using MaterialType = ACE.Entity.Enum.MaterialType;
 
 namespace ACE.Server.Factories.Tables
 {
     public static class GemMaterialChance
     {
-        private static readonly ChanceTable<MaterialType> class1_materialChance = new ChanceTable<MaterialType>()
+        private static readonly ChanceTable<GemResult> class1_materialChance = new ChanceTable<GemResult>()
         {
-            ( MaterialType.Agate, 0.13f ),
-            ( MaterialType.Azurite, 0.13f ),
-            ( MaterialType.LapisLazuli, 0.13f ),
-            ( MaterialType.Malachite, 0.13f ),
-            ( MaterialType.SmokeyQuartz, 0.12f ),
-            ( MaterialType.TigerEye, 0.12f ),
-            ( MaterialType.Turquoise, 0.12f ),
-            ( MaterialType.WhiteQuartz, 0.12f ),
+            ( new GemResult(WeenieClassName.gemagate,         MaterialType.Agate),         0.13f ),
+            ( new GemResult(WeenieClassName.gemazurite,       MaterialType.Azurite),       0.13f ),
+            ( new GemResult(WeenieClassName.gemlapislazuli,   MaterialType.LapisLazuli),   0.13f ),
+            ( new GemResult(WeenieClassName.gemmalachite,     MaterialType.Malachite),     0.13f ),
+            ( new GemResult(WeenieClassName.gemsmokeyquartz,  MaterialType.SmokeyQuartz),  0.12f ),
+            ( new GemResult(WeenieClassName.gemtigereye,      MaterialType.TigerEye),      0.12f ),
+            ( new GemResult(WeenieClassName.gemturquoise,     MaterialType.Turquoise),     0.12f ),
+            ( new GemResult(WeenieClassName.gemwhitequartz,   MaterialType.WhiteQuartz),   0.12f ),
         };
 
-        private static readonly ChanceTable<MaterialType> class2_materialChance = new ChanceTable<MaterialType>()
+        private static readonly ChanceTable<GemResult> class2_materialChance = new ChanceTable<GemResult>()
         {
-            ( MaterialType.Amber, 0.1f ),
-            ( MaterialType.Bloodstone, 0.1f ),
-            ( MaterialType.Carnelian, 0.1f ),
-            ( MaterialType.Citrine, 0.1f ),
-            ( MaterialType.Hematite, 0.1f ),
-            ( MaterialType.Moonstone, 0.1f ),
-            ( MaterialType.Onyx, 0.1f ),
-            ( MaterialType.RoseQuartz, 0.1f ),
-            ( MaterialType.LavenderJade, 0.1f ),
-            ( MaterialType.RedJade, 0.1f ),
+            ( new GemResult(WeenieClassName.gemamber,         MaterialType.Amber),         0.10f ),
+            ( new GemResult(WeenieClassName.gembloodstone,    MaterialType.Bloodstone),    0.10f ),
+            ( new GemResult(WeenieClassName.gemcarnelian,     MaterialType.Carnelian),     0.10f ),
+            ( new GemResult(WeenieClassName.gemcitrine,       MaterialType.Citrine),       0.10f ),
+            ( new GemResult(WeenieClassName.gemhematite,      MaterialType.Hematite),      0.10f ),
+            ( new GemResult(WeenieClassName.gemmoonstone,     MaterialType.Moonstone),     0.10f ),
+            ( new GemResult(WeenieClassName.gemonyx,          MaterialType.Onyx),          0.10f ),
+            ( new GemResult(WeenieClassName.gemrosequartz,    MaterialType.RoseQuartz),    0.10f ),
+            ( new GemResult(WeenieClassName.gemlavenderjade,  MaterialType.LavenderJade),  0.10f ),
+            ( new GemResult(WeenieClassName.gemredjade,       MaterialType.RedJade),       0.10f ),
         };
 
-        private static readonly ChanceTable<MaterialType> class3_materialChance = new ChanceTable<MaterialType>()
+        private static readonly ChanceTable<GemResult> class3_materialChance = new ChanceTable<GemResult>()
         {
-            ( MaterialType.Amethyst, 0.11f ),
-            ( MaterialType.BlackGarnet, 0.11f ),
-            ( MaterialType.GreenJade, 0.11f ),
-            ( MaterialType.Jet, 0.11f ),
-            ( MaterialType.RedGarnet, 0.11f ),
-            ( MaterialType.Tourmaline, 0.11f ),
-            ( MaterialType.WhiteJade, 0.11f ),
-            ( MaterialType.YellowGarnet, 0.11f ),
-            ( MaterialType.Zircon, 0.12f ),
+            ( new GemResult(WeenieClassName.gemamethyst,      MaterialType.Amethyst),      0.11f ),
+            ( new GemResult(WeenieClassName.gemblackgarnet,   MaterialType.BlackGarnet),   0.11f ),
+            ( new GemResult(WeenieClassName.gemgreenjade,     MaterialType.GreenJade),     0.11f ),
+            ( new GemResult(WeenieClassName.gemjet,           MaterialType.Jet),           0.11f ),
+            ( new GemResult(WeenieClassName.gemredgarnet,     MaterialType.RedGarnet),     0.11f ),
+            ( new GemResult(WeenieClassName.gemtourmaline,    MaterialType.Tourmaline),    0.11f ),
+            ( new GemResult(WeenieClassName.gemwhitejade,     MaterialType.WhiteJade),     0.11f ),
+            ( new GemResult(WeenieClassName.gemyellowgarnet,  MaterialType.YellowGarnet),  0.11f ),
+            ( new GemResult(WeenieClassName.gemzircon,        MaterialType.Zircon),        0.12f ),
         };
 
-        private static readonly ChanceTable<MaterialType> class4_materialChance = new ChanceTable<MaterialType>()
+        private static readonly ChanceTable<GemResult> class4_materialChance = new ChanceTable<GemResult>()
         {
-            ( MaterialType.Aquamarine, 0.2f ),
-            ( MaterialType.GreenGarnet, 0.2f ),
-            ( MaterialType.Opal, 0.2f ),
-            ( MaterialType.Peridot, 0.2f ),
-            ( MaterialType.YellowTopaz, 0.2f ),
+            ( new GemResult(WeenieClassName.gemaquamarine,    MaterialType.Aquamarine),    0.20f ),
+            ( new GemResult(WeenieClassName.gemgreengarnet,   MaterialType.GreenGarnet),   0.20f ),
+            ( new GemResult(WeenieClassName.gemopal,          MaterialType.Opal),          0.20f ),
+            ( new GemResult(WeenieClassName.gemperidot,       MaterialType.Peridot),       0.20f ),
+            ( new GemResult(WeenieClassName.gemyellowtopaz,   MaterialType.YellowTopaz),   0.20f ),
         };
 
-        private static readonly ChanceTable<MaterialType> class5_materialChance = new ChanceTable<MaterialType>()
+        private static readonly ChanceTable<GemResult> class5_materialChance = new ChanceTable<GemResult>()
         {
-            ( MaterialType.BlackOpal, 0.2f ),
-            ( MaterialType.FireOpal, 0.2f ),
-            ( MaterialType.ImperialTopaz, 0.2f ),
-            ( MaterialType.Sunstone, 0.2f ),
-            ( MaterialType.WhiteSapphire, 0.2f ),
+            ( new GemResult(WeenieClassName.gemblackopal,     MaterialType.BlackOpal),     0.20f ),
+            ( new GemResult(WeenieClassName.gemfireopal,      MaterialType.FireOpal),      0.20f ),
+            ( new GemResult(WeenieClassName.gemimperialtopaz, MaterialType.ImperialTopaz), 0.20f ),
+            ( new GemResult(WeenieClassName.gemsunstone,      MaterialType.Sunstone),      0.20f ),
+            ( new GemResult(WeenieClassName.gemwhitesapphire, MaterialType.WhiteSapphire), 0.20f ),
         };
 
-        private static readonly ChanceTable<MaterialType> class6_materialChance = new ChanceTable<MaterialType>()
+        private static readonly ChanceTable<GemResult> class6_materialChance = new ChanceTable<GemResult>()
         {
-            ( MaterialType.Diamond, 0.13f ),
-            ( MaterialType.Emerald, 0.29f ),
-            ( MaterialType.Ruby, 0.29f ),
-            ( MaterialType.Sapphire, 0.29f ),
+            ( new GemResult(WeenieClassName.jeweldiamond,     MaterialType.Diamond),       0.13f ),
+            ( new GemResult(WeenieClassName.jewelemerald,     MaterialType.Emerald),       0.29f ),
+            ( new GemResult(WeenieClassName.jewelruby,        MaterialType.Ruby),          0.29f ),
+            ( new GemResult(WeenieClassName.jewelsapphire,    MaterialType.Sapphire),      0.29f ),
         };
 
-        private static readonly List<ChanceTable<MaterialType>> gemMaterialChances = new List<ChanceTable<MaterialType>>()
+        private static readonly List<ChanceTable<GemResult>> gemMaterialChances = new List<ChanceTable<GemResult>>()
         {
             class1_materialChance,
             class2_materialChance,
@@ -87,7 +89,7 @@ namespace ACE.Server.Factories.Tables
         /// <summary>
         /// Rolls for a MaterialType for a gem class
         /// </summary>
-        public static MaterialType Roll(int gemClass)
+        public static GemResult Roll(int gemClass)
         {
             gemClass = Math.Clamp(gemClass, 1, 6);
 
@@ -117,7 +119,7 @@ namespace ACE.Server.Factories.Tables
             for (var i = 0; i < gemMaterialChances.Count; i++)
             {
                 foreach (var material in gemMaterialChances[i].Select(i => i.result))
-                    gemMaterialValue.Add(material, gemClassValue[i]);
+                    gemMaterialValue.Add(material.MaterialType, gemClassValue[i]);
             }
         }
 
