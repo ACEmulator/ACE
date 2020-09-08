@@ -2282,7 +2282,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            if (wo.TsysMutationData == null)
+            if (wo.TsysMutationData == null && !Aetheria.IsAetheria(wo.WeenieClassId) && !(wo is PetDevice))
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{wo.Name} ({wo.WeenieClassId}) missing PropertyInt.TsysMutationData", ChatMessageType.Broadcast));
                 return;
