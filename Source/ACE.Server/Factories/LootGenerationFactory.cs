@@ -12,6 +12,7 @@ using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
+using ACE.Server.Factories;
 using ACE.Server.Factories.Enum;
 using ACE.Server.Factories.Tables;
 using ACE.Server.Factories.Tables.Wcids;
@@ -232,7 +233,7 @@ namespace ACE.Server.Factories
             switch (treasureItemType)
             {
                 case TreasureItemType.Gem:
-                    wo = CreateJewels(profile.Tier, isMagical);
+                    wo = CreateGem(profile.Tier, isMagical);
                     break;
 
                 case TreasureItemType.Armor:
@@ -306,8 +307,8 @@ namespace ACE.Server.Factories
                 MutateDinnerware(item, profile.Tier);
             else if (GetMutateJewelryData(item.WeenieClassId))
                 MutateJewelry(item, profile, isMagical);
-            else if (GetMutateJewelsData(item.WeenieClassId, out int gemLootMatrixIndex))
-                MutateJewels(item, profile.Tier, isMagical, gemLootMatrixIndex);
+            else if (GetMutateGemData(item.WeenieClassId))
+                MutateGem(item, profile.Tier, isMagical);
             else if (GetMutateMeleeWeaponData(item.WeenieClassId, out int weaponType, out int subtype))
                 MutateMeleeWeapon(item, profile, isMagical, weaponType, subtype);
             else if (GetMutateMissileWeaponData(item.WeenieClassId, profile.Tier, out int wieldDifficulty, out bool isElemental))
@@ -2492,9 +2493,9 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        public static WeenieClassName RollWcid(TreasureDeath treasureDeath, TreasureItemCategory category, int profile)
+        public static WeenieClassName RollWcid(TreasureDeath treasureDeath, TreasureItemCategory category, int profile, out TreasureItemType_Orig treasureItemType)
         {
-            var treasureItemType = RollItemType(category, profile);
+            treasureItemType = RollItemType(category, profile);
 
             if (treasureItemType == TreasureItemType_Orig.Undef)
             {
@@ -2534,12 +2535,14 @@ namespace ACE.Server.Factories
 
                     var weaponType = WeaponTypeChance.Roll(treasureDeath.Tier);
                     weenieClassName = WeaponWcids.Roll(treasureDeath, weaponType);
+                    treasureItemType = weaponType;
                     break;
 
                 case TreasureItemType_Orig.Armor:
 
                     var armorType = ArmorTypeChance.Roll(treasureDeath.Tier);
-                    weenieClassName = ArmorWcids.Roll(treasureDeath, armorType);
+                    weenieClassName = ArmorWcids.Roll(treasureDeath, ref armorType);
+                    treasureItemType = armorType;
                     break;
 
                 case TreasureItemType_Orig.Clothing:
@@ -2615,6 +2618,65 @@ namespace ACE.Server.Factories
             var gemResult = GemMaterialChance.Roll(gemClass);
 
             return gemResult.MaterialType;
+        }
+
+        public static WorldObject CreateAndMutateWcid(TreasureDeath treasureDeath, WeenieClassName weenieClassName, TreasureItemType_Orig treasureItemType, bool isMagical)
+        {
+            var wo = WorldObjectFactory.CreateNewWorldObject((uint)weenieClassName);
+
+            switch (treasureItemType)
+            {
+                case TreasureItemType_Orig.Pyreal:
+                    // TODO: better algorithm?
+                    wo.SetStackSize(treasureDeath.Tier * 100);
+                    break;
+                case TreasureItemType_Orig.Gem:
+                    MutateGem(wo, treasureDeath.Tier, isMagical);
+                    break;
+                case TreasureItemType_Orig.Jewelry:
+                    MutateJewelry(wo, treasureDeath, isMagical);
+                    break;
+                case TreasureItemType_Orig.ArtObject:
+                    MutateDinnerware(wo, treasureDeath.Tier);
+                    break;
+
+                case TreasureItemType_Orig.SwordWeapon:
+                case TreasureItemType_Orig.MaceWeapon:
+                case TreasureItemType_Orig.AxeWeapon:
+                case TreasureItemType_Orig.SpearWeapon:
+                case TreasureItemType_Orig.UnarmedWeapon:
+                case TreasureItemType_Orig.StaffWeapon:
+                case TreasureItemType_Orig.DaggerWeapon:
+                case TreasureItemType_Orig.BowWeapon:
+                case TreasureItemType_Orig.CrossbowWeapon:
+                case TreasureItemType_Orig.AtlatlWeapon:
+                    //MutateMeleeWeapon(wo, treasureDeath, isMagical, weaponType, subtype);
+                    break;
+
+                case TreasureItemType_Orig.LeatherArmor:
+                case TreasureItemType_Orig.StuddedLeatherArmor:
+                case TreasureItemType_Orig.ChainMailArmor:
+                case TreasureItemType_Orig.CovenantArmor:
+                case TreasureItemType_Orig.PlateMailArmor:
+                case TreasureItemType_Orig.CeldonArmor:
+                case TreasureItemType_Orig.AmuliArmor:
+                case TreasureItemType_Orig.KoujiaArmor:
+                case TreasureItemType_Orig.LoricaArmor:
+                case TreasureItemType_Orig.NariyidArmor:
+                case TreasureItemType_Orig.ChiranArmor:
+                    var armorType = treasureItemType.ToACEArmor();
+                    MutateArmor(wo, treasureDeath, isMagical, armorType);
+                    break;
+
+                case TreasureItemType_Orig.Clothing:
+                    MutateArmor(wo, treasureDeath, isMagical, LootTables.ArmorType.MiscClothing);
+                    break;
+
+                case TreasureItemType_Orig.Scroll:
+                case TreasureItemType_Orig.Caster:
+                    break;
+            }
+            return wo;
         }
     }         
 }

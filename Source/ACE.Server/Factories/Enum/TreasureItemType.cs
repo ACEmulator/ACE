@@ -1,3 +1,5 @@
+using System;
+
 namespace ACE.Server.Factories.Enum
 {
     public enum TreasureItemType
@@ -55,6 +57,37 @@ namespace ACE.Server.Factories.Enum
                     return TreasureItemType.Dinnerware; // ??
             }
             return TreasureItemType.Undef;
+        }
+
+        public static LootTables.ArmorType ToACEArmor(this TreasureItemType_Orig treasureItemType_orig)
+        {
+            switch (treasureItemType_orig)
+            {
+                case TreasureItemType_Orig.LeatherArmor:
+                    return LootTables.ArmorType.LeatherArmor;
+                case TreasureItemType_Orig.StuddedLeatherArmor:
+                    return LootTables.ArmorType.StuddedLeatherArmor;
+                case TreasureItemType_Orig.ChainMailArmor:
+                    return LootTables.ArmorType.ChainmailArmor;
+                case TreasureItemType_Orig.CovenantArmor:
+                    return LootTables.ArmorType.CovenantArmor;
+                case TreasureItemType_Orig.PlateMailArmor:
+                    return LootTables.ArmorType.PlatemailArmor;
+                case TreasureItemType_Orig.CeldonArmor:
+                    return LootTables.ArmorType.CeldonArmor;
+                case TreasureItemType_Orig.AmuliArmor:
+                    return LootTables.ArmorType.AmuliArmor;
+                case TreasureItemType_Orig.KoujiaArmor:
+                    return LootTables.ArmorType.KoujiaArmor;
+                case TreasureItemType_Orig.LoricaArmor:
+                    return LootTables.ArmorType.LoricaArmor;
+                case TreasureItemType_Orig.NariyidArmor:
+                    return LootTables.ArmorType.NariyidArmor;
+                case TreasureItemType_Orig.ChiranArmor:
+                    return LootTables.ArmorType.ChiranArmor;
+            }
+            Console.WriteLine($"TreasureItemType_Orig.ToACEArmor({treasureItemType_orig}): unknown armor type");
+            return LootTables.ArmorType.Undef;
         }
     }
 }

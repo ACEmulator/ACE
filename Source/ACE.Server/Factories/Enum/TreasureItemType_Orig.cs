@@ -24,7 +24,13 @@ namespace ACE.Server.Factories.Enum
         CovenantArmor,
         PlateMailArmor,
         HeritageLowArmor,
+        CeldonArmor,    // added, temporary
+        AmuliArmor,     // added, temporary
+        KoujiaArmor,    // added, temporary
         HeritageHighArmor,
+        LoricaArmor,    // added, temporary
+        NariyidArmor,   // added, temporary
+        ChiranArmor,    // added, temporary
         SwordWeapon,
         MaceWeapon,
         AxeWeapon,
