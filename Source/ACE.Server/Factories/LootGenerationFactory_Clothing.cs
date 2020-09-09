@@ -6,6 +6,7 @@ using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Factories.Enum;
 using ACE.Server.Factories.Tables;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;

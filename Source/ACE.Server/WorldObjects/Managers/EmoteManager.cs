@@ -15,6 +15,7 @@ using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Factories.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -246,7 +247,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                         // todo: make use of emote.TreasureClass and emote.TreasureType fields.
                         // this emote is primarily seen on fishing holes so defaulting with jewelery as the only pcap showed 2:1 amulet to crown pull (not much to go on) for now
-                        var treasure = LootGenerationFactory.CreateRandomLootObjects(profile, false, LootGenerationFactory.LootBias.Jewelry /* probably treasure type here */);
+                        var treasure = LootGenerationFactory.CreateRandomLootObjects(profile, false, LootBias.Jewelry /* probably treasure type here */);
                         if (treasure != null)
                         {
                             player.TryCreateInInventoryWithNetworking(treasure);
