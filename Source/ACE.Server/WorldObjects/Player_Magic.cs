@@ -1000,8 +1000,8 @@ namespace ACE.Server.WorldObjects
             LastSuccessCast_Time = Time.GetUnixTime();
 
             WorldObject caster = this;
-            //if (isWeaponSpell)
-                //caster = GetEquippedWand();
+            if (isWeaponSpell)
+                caster = GetEquippedWand();
 
             // verify after windup, still consumes mana
             if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(this, target))

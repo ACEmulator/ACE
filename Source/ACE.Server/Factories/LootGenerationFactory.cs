@@ -1476,7 +1476,7 @@ namespace ACE.Server.Factories
             var materialMod = MaterialTable.GetValueMod(wo.MaterialType);
             var gemValue = GemMaterialChance.GemValue(wo.GemType);
 
-            var treasureValue = GetTreasureValueFromWealthRating(tier);
+            var treasureValue = ItemValue_TierMod[Math.Clamp(tier, 1, 8) - 1];
 
             var newValue = (int)wo.Value / 3.0f + materialMod * treasureValue + gemValue;
 
@@ -1485,19 +1485,19 @@ namespace ACE.Server.Factories
             var workmanshipMod = WorkmanshipChance.GetModifier(wo.ItemWorkmanship);
 
             newValue *= (workmanshipMod/* + qualityMod*/) * rng;
-            newValue += 2.0f * (int)wo.Value / 3.0f;
+            newValue += (int)wo.Value * 2.0f / 3.0f;
 
             int iValue = (int)Math.Ceiling(newValue);
 
-            // only reduce value?
-            if (iValue < wo.Value)
+            // only raise value?
+            if (iValue > wo.Value)
                 wo.Value = iValue;
         }
 
         private static void MutateValue_Spells(WorldObject wo)
         {
             if (wo.ItemMaxMana != null)
-                wo.Value += wo.ItemMaxMana;
+                wo.Value += wo.ItemMaxMana * 2;
 
             int spellLevelSum = 0;
 
@@ -1518,34 +1518,17 @@ namespace ACE.Server.Factories
             wo.Value += spellLevelSum * 10;
         }
 
-        private static int GetTreasureValueFromWealthRating(int tier)
+        private static List<int> ItemValue_TierMod = new List<int>()
         {
-            var wealthRating = (WealthRating)tier;
-
-            switch (wealthRating)
-            {
-                case WealthRating.Shoddy:
-                    return 25;
-                case WealthRating.Poor:
-                    return 50;
-                case WealthRating.Medium:
-                    return 100;
-                case WealthRating.Good:
-                    return 250;
-                case WealthRating.Rich:
-                    return 500;
-                case WealthRating.Incomparable:
-                    return 1000;
-                case WealthRating.Exceptional:
-                    return 2500;
-                case WealthRating.Phenomenal:
-                    return 5000;
-                default:
-                    log.Error($"Invalid wealth rating: {wealthRating}");
-                    break;
-            }
-            return 0;
-        }
+            25,     // T1
+            50,     // T2
+            100,    // T3
+            250,    // T4
+            500,    // T5
+            1000,   // T6
+            2500,   // T7
+            5000,   // T8
+        };
 
         private static WorldObject AssignValue(WorldObject wo)
         {
