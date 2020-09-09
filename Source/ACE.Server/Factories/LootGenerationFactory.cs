@@ -298,10 +298,10 @@ namespace ACE.Server.Factories
                 MutateAetheria(item, profile.Tier);
             else if (GetMutateArmorData(item.WeenieClassId, out var armorType))
                 MutateArmor(item, profile, isMagical, armorType.Value);
-            else if (GetMutateCasterData(item.WeenieClassId, out int element))
+            else if (GetMutateCasterData(item.WeenieClassId))
             {
-                var wield = element > -1 ? GetWieldDifficulty(profile.Tier, WieldType.Caster) : 0;
-                MutateCaster(item, profile, isMagical, wield, element);
+                var wieldDifficulty = item.W_DamageType != DamageType.Undef ? GetWieldDifficulty(profile.Tier, WieldType.Caster) : 0;
+                MutateCaster(item, profile, isMagical, wieldDifficulty);
             }
             else if (GetMutateDinnerwareData(item.WeenieClassId))
                 MutateDinnerware(item, profile.Tier);
@@ -309,8 +309,14 @@ namespace ACE.Server.Factories
                 MutateJewelry(item, profile, isMagical);
             else if (GetMutateGemData(item.WeenieClassId))
                 MutateGem(item, profile.Tier, isMagical);
-            else if (GetMutateMeleeWeaponData(item.WeenieClassId, out int weaponType, out int subtype))
-                MutateMeleeWeapon(item, profile, isMagical, weaponType, subtype);
+            else if (GetMutateMeleeWeaponData(item.WeenieClassId))
+            {
+                if (!MutateMeleeWeapon(item, profile, isMagical))
+                {
+                    log.Warn($"[LOOT] Missing needed melee weapon properties on loot item {item.WeenieClassId} - {item.Name} for mutations");
+                    return false;
+                }
+            }
             else if (GetMutateMissileWeaponData(item.WeenieClassId, profile.Tier, out int wieldDifficulty, out bool isElemental))
                 MutateMissileWeapon(item, profile, isMagical, wieldDifficulty, isElemental);
             else if (item is PetDevice petDevice)
@@ -2650,7 +2656,7 @@ namespace ACE.Server.Factories
                 case TreasureItemType_Orig.BowWeapon:
                 case TreasureItemType_Orig.CrossbowWeapon:
                 case TreasureItemType_Orig.AtlatlWeapon:
-                    //MutateMeleeWeapon(wo, treasureDeath, isMagical, weaponType, subtype);
+                    MutateMeleeWeapon(wo, treasureDeath, isMagical);
                     break;
 
                 case TreasureItemType_Orig.LeatherArmor:
@@ -2673,8 +2679,14 @@ namespace ACE.Server.Factories
                     break;
 
                 case TreasureItemType_Orig.Scroll:
-                case TreasureItemType_Orig.Caster:
+                    wo = CreateRandomScroll(treasureDeath.Tier);     // using original method
                     break;
+                case TreasureItemType_Orig.Caster:
+                    var wield = wo.W_DamageType != DamageType.Undef ? GetWieldDifficulty(treasureDeath.Tier, WieldType.Caster) : 0;
+                    MutateCaster(wo, treasureDeath, isMagical, wield);
+                    break;
+
+                // other mundane items (mana stones, food/drink, healing kits, lockpicks, and spell components/peas) don't get mutated
             }
             return wo;
         }
