@@ -2,6 +2,7 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.Entity.Enum;
+using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
@@ -36,7 +37,12 @@ namespace ACE.Server.Factories
             // Dinnerware has all these options (plates, tankards, etc)
             // This is just a short-term fix until Loot is overhauled
             // TODO - Doesn't handle damage/speed/etc that the mutate engine should for these types of items.
-            wo.GemCount = ThreadSafeRandom.Next(1, 5);
+
+            if (wo.GemCode != null)
+                wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, tier);
+            else
+                wo.GemCount = ThreadSafeRandom.Next(1, 5);
+
             wo.GemType = (MaterialType)ThreadSafeRandom.Next(10, 50);
 
             wo.LongDesc = wo.Name;

@@ -10,6 +10,6 @@ namespace ACE.Database.Models.World
         public int MaxNumPages { get; set; }
         public int MaxNumCharsPerPage { get; set; }
 
-        public Weenie Object { get; set; }
+        public virtual Weenie Object { get; set; }
     }
 }
