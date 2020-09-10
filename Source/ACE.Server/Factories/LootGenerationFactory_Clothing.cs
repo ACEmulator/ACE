@@ -885,6 +885,8 @@ namespace ACE.Server.Factories
             // this needs verified...
             var modVal = Math.Pow(armorLevel, 2.0) / 10.0 - 20.0;
 
+            if (modVal < 10) modVal = 10;
+
             var sizeMod = wo.SizeMod ?? 1.0f;
             var bulkMod = wo.BulkMod ?? 1.0f;
 
