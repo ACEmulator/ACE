@@ -56,6 +56,7 @@ namespace ACE.Server.Factories
                 wo.GemCount = ThreadSafeRandom.Next(1, 5);
 
             wo.GemType = RollGemType(profile.Tier);
+
             wo.LongDesc = wo.Name;
             //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship | AppraisalLongDescDecorations.AppendGemInfo;
 
@@ -102,14 +103,10 @@ namespace ACE.Server.Factories
             }
 
             // Material/Value/Color
-            /*double materialMod = LootTables.getMaterialValueModifier(wo);
+            double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
             var value = GetValue(profile.Tier, (int)wo.Workmanship, gemMaterialMod, materialMod);
-            wo.Value = value;*/
-
-            // try mutate value, if MutateFilter exists
-            if (wo.HasMutateFilter(MutateFilter.Value))
-                MutateValue(wo, profile.Tier);
+            wo.Value = value;
 
             RandomizeColor(wo);
         }
