@@ -833,6 +833,9 @@ namespace ACE.Server.Entity
                     else if (wo.ProjectileTarget == null)
                         log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}]");
 
+                    else if (wo is Player)
+                        log.Error($"AddWorldObjectInternal: failed for player 0x{wo.Guid}:{wo.Name}, tried landblock {Id.Raw:X8}, Position: {wo.Location?.ToLOCString()}");
+
                     return false;
                 }
             }
