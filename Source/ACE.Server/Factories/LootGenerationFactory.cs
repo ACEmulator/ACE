@@ -1460,7 +1460,7 @@ namespace ACE.Server.Factories
 
         private static int GetWorkmanship(int tier)
         {
-            int workmanship = 0;
+            /*int workmanship = 0;
             int chance = ThreadSafeRandom.Next(0, 99);
 
             switch (tier)
@@ -1545,7 +1545,9 @@ namespace ACE.Server.Factories
                     break;
             }
 
-            return workmanship;
+            return workmanship;*/
+
+            return WorkmanshipChance.Roll(tier);
         }
 
         private static int GetSpellcraft(WorldObject wo, int spellAmount, int tier)
