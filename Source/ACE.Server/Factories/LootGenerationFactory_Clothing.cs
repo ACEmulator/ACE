@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 using ACE.Common;
@@ -5,6 +6,7 @@ using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Factories.Tables;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
@@ -136,7 +138,7 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-    private static void MutateArmor(WorldObject wo, TreasureDeath profile, bool isMagical, LootTables.ArmorType armorType)
+        private static void MutateArmor(WorldObject wo, TreasureDeath profile, bool isMagical, LootTables.ArmorType armorType)
         {
             wo.LongDesc = wo.Name;
 
@@ -147,19 +149,20 @@ namespace ACE.Server.Factories
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
 
-            int gemCount = ThreadSafeRandom.Next(1, 6);
-            int gemType = ThreadSafeRandom.Next(10, 50);
+            if (wo.GemCode != null)
+                wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
+            else
+                wo.GemCount = ThreadSafeRandom.Next(1, 6);
 
-            wo.GemCount = gemCount;
-            wo.GemType = (MaterialType)gemType;
+            wo.GemType = RollGemType(profile.Tier);
 
             int workmanship = GetWorkmanship(profile.Tier);
             wo.ItemWorkmanship = workmanship;
 
-            double materialMod = LootTables.getMaterialValueModifier(wo);
+            /*double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
             var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
-            wo.Value = value;
+            wo.Value = value;*/
 
             int wield;
             if (profile.Tier > 6 && armorType != LootTables.ArmorType.CovenantArmor && armorType != LootTables.ArmorType.OlthoiArmor)
@@ -221,6 +224,10 @@ namespace ACE.Server.Factories
             if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
                 MutateBurden(wo, profile.Tier, false);
 
+            // try mutate item value, if MutateFilter exists
+            if (wo.HasMutateFilter(MutateFilter.Value))
+                MutateValue(wo, profile.Tier);
+
             RandomizeColor(wo);
         }
 
@@ -233,19 +240,20 @@ namespace ACE.Server.Factories
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
 
-            int gemCount = ThreadSafeRandom.Next(1, 6);
-            int gemType = ThreadSafeRandom.Next(10, 50);
+            if (wo.GemCode != null)
+                wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
+            else
+                wo.GemCount = ThreadSafeRandom.Next(1, 6);
 
-            wo.GemCount = gemCount;
-            wo.GemType = (MaterialType)gemType;
+            wo.GemType = RollGemType(profile.Tier);
 
             int workmanship = GetWorkmanship(profile.Tier);
             wo.ItemWorkmanship = workmanship;
 
-            double materialMod = LootTables.getMaterialValueModifier(wo);
+            /*double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
             var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
-            wo.Value = value;
+            wo.Value = value;*/
 
             // wo.WieldSkillType = (int)Skill.Axe;  // Set by examples from PCAP data
 
@@ -268,6 +276,9 @@ namespace ACE.Server.Factories
             if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
                 MutateBurden(wo, profile.Tier, false);
 
+            // try mutate item value, if MutateFilter exists
+            if (wo.HasMutateFilter(MutateFilter.Value))
+                MutateValue(wo, profile.Tier);
         }
 
         private static bool GetMutateArmorData(uint wcid, out LootTables.ArmorType? armorType)
@@ -737,9 +748,9 @@ namespace ACE.Server.Factories
             wo.Workmanship = ThreadSafeRandom.Next(1, 10);
 
             // Value
-            double materialMod = LootTables.getMaterialValueModifier(wo);
+            /*double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            wo.Value = GetValue(profile.Tier, (int)wo.Workmanship, gemMaterialMod, materialMod);
+            wo.Value = GetValue(profile.Tier, (int)wo.Workmanship, gemMaterialMod, materialMod);*/
 
             // Level and Icons
             wo.ItemMaxLevel = GetCloakMaxLevel(profile);
@@ -791,7 +802,11 @@ namespace ACE.Server.Factories
                     wo.ProcSpellSelfTargeted = false;
                 wo.CloakWeaveProc = 1;
             }
-            
+
+            // try mutate item value, if MutateFilter exists
+            if (wo.HasMutateFilter(MutateFilter.Value))
+                MutateValue(wo, profile.Tier);
+
         }
         private static int GetCloakMaxLevel(TreasureDeath profile)
         {
@@ -859,6 +874,38 @@ namespace ACE.Server.Factories
         private static bool GetMutateCloakData(uint wcid)
         {
             return LootTables.Cloaks.Contains((int)wcid);
+        }
+
+        private static void MutateValue_Armor(WorldObject wo)
+        {
+            // thanks to moro for this function!
+            var armorLevel = wo.ArmorLevel ?? 0;
+
+            // ??
+            // this needs verified...
+            var modVal = Math.Pow(armorLevel, 2.0) / 10.0 - 20.0;
+
+            if (modVal < 10) modVal = 10;
+
+            var sizeMod = wo.SizeMod ?? 1.0f;
+            var bulkMod = wo.BulkMod ?? 1.0f;
+
+            modVal *= sizeMod * bulkMod;
+
+            modVal /= 10.0;
+            modVal = (int)(modVal + 0.5);
+            modVal *= 10.0;
+
+            var materialMod = MaterialTable.GetValueMod(wo.MaterialType);
+            var gemValue = GemMaterialChance.GemValue(wo.GemType);
+
+            var newVal = modVal / 10 * materialMod * 0.016 + gemValue;
+
+            var workmanshipMod = WorkmanshipChance.GetModifier(wo.ItemWorkmanship);
+
+            newVal *= (workmanshipMod /*+ qualityMod*/) / 2.0f;
+
+            wo.Value = (int)Math.Ceiling(newVal + modVal);
         }
     }
 }

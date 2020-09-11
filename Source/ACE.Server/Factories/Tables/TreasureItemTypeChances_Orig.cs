@@ -7,7 +7,7 @@ namespace ACE.Server.Factories.Tables
 {
     public static class TreasureItemTypeChances_Orig
     {
-        private static readonly ChanceTable<TreasureItemType_Orig> profile1 = new ChanceTable<TreasureItemType_Orig>()
+        private static readonly ChanceTable<TreasureItemType_Orig> itemTypeChancesGroup1 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Weapon,    1.0f ),
             ( TreasureItemType_Orig.Armor,     0.0f ),
@@ -18,7 +18,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType_Orig.ArtObject, 0.0f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> profile2 = new ChanceTable<TreasureItemType_Orig>()
+        private static readonly ChanceTable<TreasureItemType_Orig> itemTypeChancesGroup2 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Weapon,    0.0f ),
             ( TreasureItemType_Orig.Armor,     1.0f ),
@@ -29,7 +29,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType_Orig.ArtObject, 0.0f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> profile3 = new ChanceTable<TreasureItemType_Orig>()
+        private static readonly ChanceTable<TreasureItemType_Orig> itemTypeChancesGroup3 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Weapon,    0.0f ),
             ( TreasureItemType_Orig.Armor,     0.0f ),
@@ -40,7 +40,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType_Orig.ArtObject, 0.0f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> profile4 = new ChanceTable<TreasureItemType_Orig>()
+        private static readonly ChanceTable<TreasureItemType_Orig> itemTypeChancesGroup4 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Weapon,    0.0f ),
             ( TreasureItemType_Orig.Armor,     0.0f ),
@@ -51,7 +51,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType_Orig.ArtObject, 0.0f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> profile5 = new ChanceTable<TreasureItemType_Orig>()
+        private static readonly ChanceTable<TreasureItemType_Orig> itemTypeChancesGroup5 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Weapon,    0.0f ),
             ( TreasureItemType_Orig.Armor,     0.0f ),
@@ -62,7 +62,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType_Orig.ArtObject, 0.0f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> profile6 = new ChanceTable<TreasureItemType_Orig>()
+        private static readonly ChanceTable<TreasureItemType_Orig> itemTypeChancesGroup6 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Weapon,    0.0f ),
             ( TreasureItemType_Orig.Armor,     0.0f ),
@@ -73,7 +73,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType_Orig.ArtObject, 0.0f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> profile7 = new ChanceTable<TreasureItemType_Orig>()
+        private static readonly ChanceTable<TreasureItemType_Orig> itemTypeChancesGroup7 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Weapon,    0.0f ),
             ( TreasureItemType_Orig.Armor,     0.0f ),
@@ -84,7 +84,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType_Orig.ArtObject, 1.0f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> profile8 = new ChanceTable<TreasureItemType_Orig>()
+        private static readonly ChanceTable<TreasureItemType_Orig> itemTypeChancesGroup8 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Weapon,    0.15f ),
             ( TreasureItemType_Orig.Armor,     0.15f ),
@@ -95,7 +95,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType_Orig.ArtObject, 0.14f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> profile9 = new ChanceTable<TreasureItemType_Orig>()
+        private static readonly ChanceTable<TreasureItemType_Orig> itemTypeChancesGroup9 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Weapon,    0.30f ),
             ( TreasureItemType_Orig.Armor,     0.30f ),
@@ -106,7 +106,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType_Orig.ArtObject, 0.05f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> profile10 = new ChanceTable<TreasureItemType_Orig>()
+        private static readonly ChanceTable<TreasureItemType_Orig> itemTypeChancesGroup10 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Weapon,    0.40f ),
             ( TreasureItemType_Orig.Armor,     0.40f ),
@@ -117,7 +117,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType_Orig.ArtObject, 0.0f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> profile11 = new ChanceTable<TreasureItemType_Orig>()
+        private static readonly ChanceTable<TreasureItemType_Orig> itemTypeChancesGroup11 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Weapon,    0.0f ),
             ( TreasureItemType_Orig.Armor,     0.0f ),
@@ -129,21 +129,21 @@ namespace ACE.Server.Factories.Tables
         };
 
         /// <summary>
-        /// Index lookup would be treasure_death table, *_Selection_Chances columns
+        /// TreasureDeath.ItemTreasureTypeSelectionChances indexes into these profiles
         /// </summary>
-        public static Dictionary<int, ChanceTable<TreasureItemType_Orig>> Profiles = new Dictionary<int, ChanceTable<TreasureItemType_Orig>>()
+        public static Dictionary<int, ChanceTable<TreasureItemType_Orig>> itemTypeChancesGroups = new Dictionary<int, ChanceTable<TreasureItemType_Orig>>()
         {
-            { 1, profile1 },
-            { 2, profile2 },
-            { 3, profile3 },
-            { 4, profile4 },
-            { 5, profile5 },
-            { 6, profile6 },
-            { 7, profile7 },
-            { 8, profile8 },
-            { 9, profile9 },
-            { 10, profile10 },
-            { 11, profile11 },
+            { 1, itemTypeChancesGroup1 },
+            { 2, itemTypeChancesGroup2 },
+            { 3, itemTypeChancesGroup3 },
+            { 4, itemTypeChancesGroup4 },
+            { 5, itemTypeChancesGroup5 },
+            { 6, itemTypeChancesGroup6 },
+            { 7, itemTypeChancesGroup7 },
+            { 8, itemTypeChancesGroup8 },
+            { 9, itemTypeChancesGroup9 },
+            { 10, itemTypeChancesGroup10 },
+            { 11, itemTypeChancesGroup11 },
         };
     }
 }
