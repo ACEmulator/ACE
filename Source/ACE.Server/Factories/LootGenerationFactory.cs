@@ -1412,126 +1412,38 @@ namespace ACE.Server.Factories
         {
             ///This is just a placeholder. This doesnt return a final value used retail, just a quick value for now.
             ///Will use, tier, material type, amount of gems set into item, type of gems, spells on item
-
             //int value = ThreadSafeRandom.Next(1, tier) * ThreadSafeRandom.Next(1, tier) * ThreadSafeRandom.Next(1, work) * ThreadSafeRandom.Next(1, 250) + ThreadSafeRandom.Next(1, 50);
-
-            int rng = tier switch
+            int value = 0;
+            switch (tier)
             {
-                1 => ThreadSafeRandom.Next(50, 1000),
-                2 => ThreadSafeRandom.Next(200, 1500),
-                3 => ThreadSafeRandom.Next(200, 2000),
-                4 => ThreadSafeRandom.Next(400, 2500),
-                5 => ThreadSafeRandom.Next(400, 3000),
-                6 => ThreadSafeRandom.Next(400, 3500),
-                7 => ThreadSafeRandom.Next(600, 4000),
-                8 => ThreadSafeRandom.Next(600, 4500),
-                _ => 0
-            };
-            return (int)(rng * gemMod * matMod * Math.Ceiling(tier / 2.0f));
-        }
+                case 1:
+                    value = (int)(ThreadSafeRandom.Next(50, 1000) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 2:
+                    value = (int)(ThreadSafeRandom.Next(200, 1500) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 3:
+                    value = (int)(ThreadSafeRandom.Next(200, 2000) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 4:
+                    value = (int)(ThreadSafeRandom.Next(400, 2500) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 5:
+                    value = (int)(ThreadSafeRandom.Next(400, 3000) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 6:
+                    value = (int)(ThreadSafeRandom.Next(400, 3500) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 7:
+                    value = (int)(ThreadSafeRandom.Next(600, 4000) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
+                case 8:
+                    value = (int)(ThreadSafeRandom.Next(600, 4500) * gemMod * matMod * Math.Ceiling((double)tier / 2));
+                    break;
 
-        private static void MutateValue(WorldObject wo, int tier)
-        {
-            if ((wo.Value ?? 0) == 0)
-                return;
-
-            //var weenieValue = wo.Value;
-
-            if (wo is Clothing && wo.ArmorLevel != null)
-                MutateValue_Armor(wo);
-            if (wo is Gem)
-                MutateValue_Gem(wo);
-            else
-                MutateValue_Generic(wo, tier);
-
-            MutateValue_Spells(wo);
-
-            /*Console.WriteLine($"Mutating value for {wo.Name} ({weenieValue:N0} -> {wo.Value:N0})");
-
-            // compare with previous function
-            double matMod = LootTables.getMaterialValueModifier(wo);
-            double gemMod = LootTables.getGemMaterialValueModifier(wo);
-
-            (int MinValue, int MaxValue) rng = tier switch
-            {
-                1 => (50, 1000),
-                2 => (200, 1500),
-                3 => (200, 2000),
-                4 => (400, 2500),
-                5 => (400, 3000),
-                6 => (400, 3500),
-                7 => (600, 4000),
-                8 => (600, 4500),
-                _ => (0, 0)
-            };
-
-            var factor = gemMod * matMod * Math.Ceiling(tier / 2.0f);
-            var minValue = (int)(rng.MinValue * factor);
-            var maxValue = (int)(rng.MaxValue * factor);
-
-            Console.WriteLine($"Previous ACE range: {minValue:N0} - {maxValue:N0}");*/
-        }
-
-        private static void MutateValue_Generic(WorldObject wo, int tier)
-        {
-            // verify
-            // thanks to moro for this function!
-            var materialMod = MaterialTable.GetValueMod(wo.MaterialType);
-            var gemValue = GemMaterialChance.GemValue(wo.GemType);
-
-            var treasureValue = ItemValue_TierMod[Math.Clamp(tier, 1, 8) - 1];
-
-            var newValue = (int)wo.Value / 3.0f + materialMod * treasureValue + gemValue;
-
-            var rng = (float)ThreadSafeRandom.Next(0.7f, 1.25f);
-
-            var workmanshipMod = WorkmanshipChance.GetModifier(wo.ItemWorkmanship);
-
-            newValue *= (workmanshipMod/* + qualityMod*/) * rng;
-            newValue += (int)wo.Value * 2.0f / 3.0f;
-
-            int iValue = (int)Math.Ceiling(newValue);
-
-            // only raise value?
-            if (iValue > wo.Value)
-                wo.Value = iValue;
-        }
-
-        private static void MutateValue_Spells(WorldObject wo)
-        {
-            if (wo.ItemMaxMana != null)
-                wo.Value += wo.ItemMaxMana * 2;
-
-            int spellLevelSum = 0;
-
-            if (wo.SpellDID != null)
-            {
-                var spell = new Server.Entity.Spell(wo.SpellDID.Value);
-                spellLevelSum += (int)spell.Level;
             }
-
-            if (wo.Biota.PropertiesSpellBook != null)
-            {
-                foreach (var spellId in wo.Biota.PropertiesSpellBook.Keys)
-                {
-                    var spell = new Server.Entity.Spell(spellId);
-                    spellLevelSum += (int)spell.Level;
-                }
-            }
-            wo.Value += spellLevelSum * 10;
+            return value;
         }
-
-        private static List<int> ItemValue_TierMod = new List<int>()
-        {
-            25,     // T1
-            50,     // T2
-            100,    // T3
-            250,    // T4
-            500,    // T5
-            1000,   // T6
-            2500,   // T7
-            5000,   // T8
-        };
 
         private static WorldObject AssignValue(WorldObject wo)
         {

@@ -278,10 +278,6 @@ namespace ACE.Server.Factories
                 wo.ItemDifficulty = null;
             }
 
-            // try mutate item value, if MutateFilter exists
-            if (wo.HasMutateFilter(MutateFilter.Value))
-                MutateValue(wo, profile.Tier);
-
             RandomizeColor(wo);
         }
 

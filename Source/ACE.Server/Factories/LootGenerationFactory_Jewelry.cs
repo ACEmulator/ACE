@@ -169,10 +169,10 @@ namespace ACE.Server.Factories
 
             wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
 
-            /*double materialMod = LootTables.getMaterialValueModifier(wo);
+            double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
             var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
-            wo.Value = value;*/
+            wo.Value = value;
 
             wo.ItemSkillLevelLimit = null;
 
@@ -201,10 +201,6 @@ namespace ACE.Server.Factories
                 wo.ManaRate = null;
             }
 
-            // try mutate value, if MutateFilter exists
-            if (wo.HasMutateFilter(MutateFilter.Value))
-                MutateValue(wo, profile.Tier);
-
             RandomizeColor(wo);
         }
 
@@ -216,11 +212,6 @@ namespace ACE.Server.Factories
                     return true;
             }
             return false;
-        }
-
-        private static void MutateValue_Gem(WorldObject wo)
-        {
-            wo.Value = (int)(wo.Value * MaterialTable.GetValueMod(wo.MaterialType) * wo.ItemWorkmanship);
         }
     }
 }
