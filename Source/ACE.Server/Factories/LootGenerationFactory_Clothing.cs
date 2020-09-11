@@ -16,7 +16,7 @@ namespace ACE.Server.Factories
         private static WorldObject CreateArmor(TreasureDeath profile, bool isMagical, bool isArmor, LootBias lootBias = LootBias.UnBiased, bool mutate = true)
         {
             var minType = LootTables.ArmorType.Helms;
-            var maxType = new LootTables.ArmorType();
+            LootTables.ArmorType maxType;
 
             switch (profile.Tier)
             {

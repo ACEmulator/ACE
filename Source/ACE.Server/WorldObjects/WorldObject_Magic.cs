@@ -14,6 +14,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
+using ACE.Server.Factories.Entity;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
@@ -1932,14 +1933,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Dictionary<int, float /* probability */> LegendaryCantrips => Biota.GetMatchingSpells(LootTables.LegendaryCantrips, BiotaDatabaseLock);
 
-        private uint? _maxSpellLevel;
+        private int? _maxSpellLevel;
 
-        public uint GetMaxSpellLevel()
+        public int GetMaxSpellLevel()
         {
             if (_maxSpellLevel == null)
             {
                 _maxSpellLevel = Biota.PropertiesSpellBook != null && Biota.PropertiesSpellBook.Count > 0 ?
-                    Biota.PropertiesSpellBook.Keys.Select(i => new Spell(i)).Max(i => i.Formula.Level) : 0;
+                    Biota.PropertiesSpellBook.Keys.Max(i => SpellLevelCache.GetSpellLevel(i)) : 0;
             }
             return _maxSpellLevel.Value;
         }

@@ -1019,23 +1019,22 @@ namespace ACE.Server.Factories
             int numSpells = GetSpellDistribution(profile, out int minorCantrips, out int majorCantrips, out int epicCantrips, out int legendaryCantrips);
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
             
-
             wo.UiEffects = UiEffects.Magical;
             wo.ManaRate = manaRate;
 
             wo.ItemMaxMana = GetMaxMana(numSpells, profile.Tier);
             wo.ItemCurMana = wo.ItemMaxMana;
 
-            int[] shuffledValues = Enumerable.Range(0, spells.Length).ToArray();
-
-            Shuffle(shuffledValues);
-
             if (numSpells - numCantrips > 0)
             {
+                var indices = Enumerable.Range(0, spells.Length).ToList();
+
                 for (int i = 0; i < numSpells - numCantrips; i++)
                 {
+                    var idx = ThreadSafeRandom.Next(0, indices.Count - 1);
                     int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
-                    SpellId spellID = spells[shuffledValues[i]][col];
+                    SpellId spellID = spells[indices[idx]][col];
+                    indices.RemoveAt(idx);
                     wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
@@ -1065,43 +1064,46 @@ namespace ACE.Server.Factories
 
             if (numCantrips > 0)
             {
-                shuffledValues = Enumerable.Range(0, cantrips.Length).ToArray();
-                Shuffle(shuffledValues);
-
-                int shuffledPlace = 0;
+                var indices = Enumerable.Range(0, cantrips.Length).ToList();
 
                 // minor cantrips
                 for (var i = 0; i < minorCantrips; i++)
                 {
-                    SpellId spellID = cantrips[shuffledValues[shuffledPlace]][0];
-                    shuffledPlace++;
+                    var idx = ThreadSafeRandom.Next(0, indices.Count - 1);
+                    SpellId spellID = cantrips[indices[idx]][0];
+                    indices.RemoveAt(idx);
                     wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
                 // major cantrips
                 for (var i = 0; i < majorCantrips; i++)
                 {
-                    SpellId spellID = cantrips[shuffledValues[shuffledPlace]][1];
-                    shuffledPlace++;
+                    var idx = ThreadSafeRandom.Next(0, indices.Count - 1);
+                    SpellId spellID = cantrips[indices[idx]][1];
+                    indices.RemoveAt(idx);
                     wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
                 // epic cantrips
                 for (var i = 0; i < epicCantrips; i++)
                 {
-                    SpellId spellID = cantrips[shuffledValues[shuffledPlace]][2];
-                    shuffledPlace++;
+                    var idx = ThreadSafeRandom.Next(0, indices.Count - 1);
+                    SpellId spellID = cantrips[indices[idx]][2];
+                    indices.RemoveAt(idx);
                     wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
                 // legendary cantrips
                 for (var i = 0; i < legendaryCantrips; i++)
                 {
-                    SpellId spellID = cantrips[shuffledValues[shuffledPlace]][3];
-                    shuffledPlace++;
+                    var idx = ThreadSafeRandom.Next(0, indices.Count - 1);
+                    SpellId spellID = cantrips[indices[idx]][3];
+                    indices.RemoveAt(idx);
                     wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
             int spellcraft = GetSpellcraft(wo, numSpells, profile.Tier);
             wo.ItemSpellcraft = spellcraft;
-            wo.ItemDifficulty = GetDifficulty(wo, spellcraft);
+
+            wo.ItemDifficulty = GetDifficulty(wo, spellcraft, epicCantrips, legendaryCantrips);
+
             return wo;
         }
 
@@ -1599,7 +1601,7 @@ namespace ACE.Server.Factories
 
         }
 
-        private static int GetDifficulty(WorldObject wo, int itemspellcraft)
+        private static int GetDifficulty(WorldObject wo, int itemspellcraft, int numEpics, int numLegendaries)
         {
             int wieldReq = 1;
             int rank_mod = 0;  
@@ -1609,14 +1611,15 @@ namespace ACE.Server.Factories
 
             num_spells = wo.Biota.PropertiesSpellBook.Count();
 
-            if (wo.EpicCantrips.Count > 0)
-                epicAddon = ThreadSafeRandom.Next(1, 5) * wo.EpicCantrips.Count;
-            if (wo.LegendaryCantrips.Count > 0)
-                legAddon = ThreadSafeRandom.Next(5, 10) * wo.LegendaryCantrips.Count;
+            if (numEpics > 0)
+                epicAddon = ThreadSafeRandom.Next(1, 5) * numEpics;
+            if (numLegendaries > 0)
+                legAddon = ThreadSafeRandom.Next(5, 10) * numLegendaries;
 
-            if (wo.ItemAllegianceRankLimit.HasValue)
+            if (wo.ItemAllegianceRankLimit != null)
                 rank_mod = wo.ItemAllegianceRankLimit.Value;
-            if (wo.WieldDifficulty.HasValue)
+
+            if (wo.WieldDifficulty != null)
             {
                 if (wo.WieldDifficulty == 150 || wo.WieldDifficulty == 180)
                     wieldReq = 1;
@@ -1626,9 +1629,7 @@ namespace ACE.Server.Factories
             else
                 wieldReq = 1;
 
-            float heritage_mod = 1.0f;  
-            if (wo.Heritage.HasValue)
-                heritage_mod = 0.75f;
+            float heritage_mod = wo.Heritage != null ? 0.75f: 1.0f;  
 
             if (rank_mod == 0)
                 rank_mod = 1;
@@ -1647,6 +1648,7 @@ namespace ACE.Server.Factories
             int fArcane = (int)Math.Floor(tArcane);
             if (fArcane < 10)
                 fArcane += 10;
+
             return fArcane;
         }
         private static int GetMaxMana(int spellAmount, int tier)
@@ -2388,7 +2390,7 @@ namespace ACE.Server.Factories
             return rng < chance;
         }
 
-        private static void Shuffle<T>(T[] array)
+        private static void Shuffle(int[] array)
         {
             // verified even distribution
             for (var i = 0; i < array.Length; i++)
