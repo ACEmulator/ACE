@@ -868,6 +868,8 @@ namespace ACE.Database
                     }
                     list.Add(result);
                 }
+
+                // TODO: normalize? group 9 has totals slightly above 1.0
                 cachedTreasureMaterialGroups = table;
             }
         }
