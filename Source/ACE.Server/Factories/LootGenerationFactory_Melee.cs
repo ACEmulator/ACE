@@ -90,7 +90,7 @@ namespace ACE.Server.Factories
             else
                 gemCount = ThreadSafeRandom.Next(1, 5);
 
-            int gemType = ThreadSafeRandom.Next(10, 50);
+            MaterialType gemType = RollGemType(profile.Tier);
             int workmanship = GetWorkmanship(profile.Tier);
             int wieldDiff = GetWieldDifficulty(profile.Tier, WieldType.MeleeWeapon);
             WieldRequirement wieldRequirments = WieldRequirement.RawSkill;
@@ -316,7 +316,7 @@ namespace ACE.Server.Factories
 
             // GemTypes, Material, Workmanship
             wo.GemCount = gemCount;
-            wo.GemType = (MaterialType)gemType;
+            wo.GemType = gemType;
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
