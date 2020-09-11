@@ -146,9 +146,9 @@ namespace ACE.Server.Factories
             //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
             wo.LongDesc = wo.Name;
 
-            int materialType = GetMaterialType(wo, profile.Tier);
+            var materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
-                wo.MaterialType = (MaterialType)materialType;
+                wo.MaterialType = materialType;
 
             if (wo.GemCode != null)
                 wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);

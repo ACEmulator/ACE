@@ -47,10 +47,8 @@ namespace ACE.Server.Factories
 
             wo.LongDesc = wo.Name;
 
-            int materialType = GetMaterialType(wo, tier);
-            wo.MaterialType = (MaterialType)materialType;
-            int workmanship = GetWorkmanship(tier);
-            wo.ItemWorkmanship = workmanship;
+            wo.MaterialType = GetMaterialType(wo, tier);
+            wo.ItemWorkmanship = GetWorkmanship(tier);
 
             //wo = SetAppraisalLongDescDecoration(wo);
 

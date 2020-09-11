@@ -222,9 +222,9 @@ namespace ACE.Server.Factories
             // Setting general traits of weapon
             wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
 
-            int materialType = GetMaterialType(wo, profile.Tier);
+            var materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
-                wo.MaterialType = (MaterialType)materialType;
+                wo.MaterialType = materialType;
 
             if (wo.GemCode != null)
                 wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
