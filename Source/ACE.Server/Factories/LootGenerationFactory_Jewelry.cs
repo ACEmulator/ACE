@@ -204,10 +204,5 @@ namespace ACE.Server.Factories
             }
             return false;
         }
-
-        private static void MutateValue_Gem(WorldObject wo)
-        {
-            wo.Value = (int)(wo.Value * MaterialTable.GetValueMod(wo.MaterialType) * wo.ItemWorkmanship);
-        }
     }
 }
