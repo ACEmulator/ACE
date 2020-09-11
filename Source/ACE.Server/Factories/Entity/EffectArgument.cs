@@ -93,7 +93,7 @@ namespace ACE.Server.Factories.Entity
                 case EffectArgumentType.Double:
                     return DoubleVal;
             }
-            Console.WriteLine($"EffectArgument.ToDouble() - invalid type {Type}");
+            log.Error($"EffectArgument.ToDouble() - invalid type {Type}");
             return 0.0;
         }
 
@@ -106,7 +106,7 @@ namespace ACE.Server.Factories.Entity
                 case EffectArgumentType.Double:
                     return (int)DoubleVal;
             }
-            Console.WriteLine($"EffectArgument.ToDouble() - invalid type {Type}");
+            log.Error($"EffectArgument.ToDouble() - invalid type {Type}");
             return 0;
         }
 
@@ -182,7 +182,7 @@ namespace ACE.Server.Factories.Entity
 
                     this = GTVariables[IntVal];
                     IsValid = true;*/
-                    Console.WriteLine($"TODO: EffectArgumentType.Variable");
+                    log.Error($"TODO: EffectArgumentType.Variable");
                     break;
             }
 
