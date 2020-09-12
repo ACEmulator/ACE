@@ -112,6 +112,17 @@ namespace ACE.Server.WorldObjects
             }
 
             HandleDBUpdates();
+
+            if (ServerManager.ShutdownInitiated)
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(10.0f);
+                actionChain.AddAction(this, () =>
+                {
+                    SendMessage(ServerManager.ShutdownNoticeText(), ChatMessageType.WorldBroadcast);
+                });
+                actionChain.EnqueueChain();
+            }
         }
 
         public void SendTurbineChatChannels(bool breakAllegiance = false)

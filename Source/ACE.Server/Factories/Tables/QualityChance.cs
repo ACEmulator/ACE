@@ -1,14 +1,16 @@
 using System.Collections.Generic;
+
 using log4net;
+
 using ACE.Common;
 
-namespace ACE.Server.Factories
+namespace ACE.Server.Factories.Tables
 {
-    public static class ChanceTables
+    public static class QualityChance
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static List<float> QualityChancePerTier = new List<float>()
+        public static readonly List<float> QualityChancePerTier = new List<float>()
         {
             0.5f,
             0.6f,
@@ -20,7 +22,7 @@ namespace ACE.Server.Factories
             1.0f
         };
 
-        public static List<float> T1_QualityChances = new List<float>()
+        public static readonly List<float> T1_QualityChances = new List<float>()
         {
             1.0f,
             0.0f,
@@ -36,7 +38,7 @@ namespace ACE.Server.Factories
             0.0f,
         };
 
-        public static List<float> T2_QualityChances = new List<float>()
+        public static readonly List<float> T2_QualityChances = new List<float>()
         {
             0.75f,
             1.00f,
@@ -52,7 +54,7 @@ namespace ACE.Server.Factories
             0.0f,
         };
 
-        public static List<float> T3_QualityChances = new List<float>()
+        public static readonly List<float> T3_QualityChances = new List<float>()
         {
             0.20f,
             0.50f,
@@ -68,7 +70,7 @@ namespace ACE.Server.Factories
             0.0f,
         };
 
-        public static List<float> T4_QualityChances = new List<float>()
+        public static readonly List<float> T4_QualityChances = new List<float>()
         {
             0.0f,
             0.10f,
@@ -84,7 +86,7 @@ namespace ACE.Server.Factories
             0.0f,
         };
 
-        public static List<float> T5_QualityChances = new List<float>()
+        public static readonly List<float> T5_QualityChances = new List<float>()
         {
             0.0f,
             0.0f,
@@ -100,7 +102,7 @@ namespace ACE.Server.Factories
             0.0f,
         };
 
-        public static List<float> T6_QualityChances = new List<float>()
+        public static readonly List<float> T6_QualityChances = new List<float>()
         {
             0.0f,
             0.0f,
@@ -116,7 +118,7 @@ namespace ACE.Server.Factories
             0.0f,
         };
 
-        public static List<float> T7_QualityChances = new List<float>()
+        public static readonly List<float> T7_QualityChances = new List<float>()
         {
             0.0f,
             0.0f,
@@ -132,7 +134,7 @@ namespace ACE.Server.Factories
             0.0f,
         };
 
-        public static List<float> T8_QualityChances = new List<float>()
+        public static readonly List<float> T8_QualityChances = new List<float>()
         {
             0.0f,
             0.0f,
@@ -199,10 +201,10 @@ namespace ACE.Server.Factories
 
                     var interval = (rng - prevChance) / dx;
 
-                    return dy * (interval + i);
+                    return (float)(dy * (interval + i));
                 }
             }
-            log.Error($"ChanceTables.Roll - This shouldn't happen");
+            log.Error($"QualityTables.Roll - This shouldn't happen");
             return 0.0f;
         }
     }

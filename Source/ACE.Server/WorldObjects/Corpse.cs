@@ -137,6 +137,16 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// When a permittee opens a locked corpse of a permitter,
+        /// the permitter is removed from the permittee's LootPermissions table by default, as per retail only allowing them to open 1 locked corpse
+        /// however, the permittee still has access to repeatedly open/close this corpse
+        /// Player corpses only become available to all after the corpse owner opens/closes, and not after permittees open/close
+        /// with this combination of factors, a table is required here to keep track of which permittees opened a permitter's locked corpse,
+        /// so they can repeatedly open/close it
+        /// </summary>
+        private HashSet<uint> permitteeOpened = null;
+
+        /// <summary>
         /// Returns TRUE if input player has permission to loot this corpse
         /// </summary>
         public bool HasPermission(Player player)
@@ -149,8 +159,29 @@ namespace ACE.Server.WorldObjects
             if (KillerId != null && player.Guid.Full == KillerId || IsLooted && !CorpseGeneratedRare)
                 return true;
 
+            var victimGuid = new ObjectGuid(VictimId.Value);
+
             // players can /permit other players to loot their corpse if not killed by another player killer.
-            if (player.HasLootPermission(new ObjectGuid(VictimId.Value)) && PkLevel != PKLevel.PK)
+            if (player.HasLootPermission(victimGuid) && PkLevel != PKLevel.PK)
+            {
+                if (!PropertyManager.GetBool("permit_corpse_all").Item)
+                {
+                    // this is the retail default. see the comments for 'permitteeOpened' for an explanation of why this table is needed
+                    if (permitteeOpened == null)
+                        permitteeOpened = new HashSet<uint>();
+
+                    // these are technically side effects, and HasPermission() is not the best place for this logic to mutate state,
+                    // however with the current lone calling pattern for corpse ActOnUse -> TryOpen -> HasPermission -> Open
+                    // if HasPermission returns true, the corpse is always opened, ie. there's no chance of 'the corpse is already in use' or any other failure cases,
+                    // as those pre-verifications have already happened before this function is called
+
+                    permitteeOpened.Add(player.Guid.Full);
+
+                    player.LootPermission.Remove(victimGuid);
+                }
+                return true;
+            }
+            if (permitteeOpened != null && permitteeOpened.Contains(player.Guid.Full))
                 return true;
 
             // all players can loot monster corpses after 1/2 decay time except if corpse generates a rare
@@ -167,7 +198,7 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
-        public bool IsLooted;
+        public bool IsLooted { get; set; }
 
         /// <summary>
         /// The number of seconds before all players can loot a monster corpse
@@ -179,8 +210,23 @@ namespace ACE.Server.WorldObjects
         {
             base.Close(player);
 
-            if (VictimId != null && !new ObjectGuid(VictimId.Value).IsPlayer())
+            if (VictimId == null)
+                return;
+
+            var victimGuid = new ObjectGuid(VictimId.Value);
+
+            if (!victimGuid.IsPlayer())
+            {
+                // monster corpses -- after anyone with access to the locked corpse loots,
+                // becomes open to anyone? or only after the killer loots?
                 IsLooted = true;
+            }
+            else
+            {
+                // player corpses -- after corpse owner loots, becomes open to anyone?
+                if (player != null && player.Guid == victimGuid)
+                    IsLooted = true;
+            }
         }
 
         public bool CorpseGeneratedRare

@@ -130,7 +130,15 @@ namespace ACE.Server.WorldObjects
             {
                 var spell = new Spell((uint)SpellDID);
 
-                TryCastSpell(spell, player, this, false);
+                // should be 'You cast', instead of 'Item cast'
+                // omitting the item caster here, so player is also used for enchantment registry caster,
+                // which could prevent some scenarios with spamming enchantments from multiple gem sources to protect against dispels
+
+                // TODO: figure this out better
+                if (spell.MetaSpellType == SpellType.PortalSummon)
+                    TryCastSpell(spell, player, this, false);
+                else
+                    player.TryCastSpell(spell, player, null, false);
             }
 
             if (UseCreateContractId > 0)

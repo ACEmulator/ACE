@@ -178,6 +178,12 @@ namespace ACE.Server.WorldObjects.Managers
             }
             else
             {
+                // for multiple void casters casting the same DoT,
+                // we might want to sort by StatModValue in GetEnchantments_TopLayer()
+
+                // for the same void caster re-casting the same DoT,
+                // should be update the StatModVal here?
+
                 var duration = spell.Duration;
                 if (caster is Player player && player.AugmentationIncreasedSpellDuration > 0 && spell.DotDuration == 0)
                     duration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
@@ -212,8 +218,6 @@ namespace ACE.Server.WorldObjects.Managers
             entry.SpellCategory = spell.Category;
             entry.PowerLevel = spell.Power;
 
-            // should default duration be 0 or -1 here?
-            // changed from spellBase -> spell for void..
             if (caster is Creature)
             {
                 entry.Duration = spell.Duration;
@@ -223,13 +227,13 @@ namespace ACE.Server.WorldObjects.Managers
             }
             else
             {
-                //if (caster == null || caster.CurrentWieldedLocation == null && !caster.ItemSetContains(spell.Id))
                 if (!equip)
                 {
                     entry.Duration = spell.Duration;
                 }
                 else
                 {
+                    // enchantments from equipping items are active until the item is dequipped
                     entry.Duration = -1.0;
                     entry.StartTime = 0;
                 }
@@ -245,6 +249,24 @@ namespace ACE.Server.WorldObjects.Managers
             entry.StatModType = spell.StatModType;
             entry.StatModKey = spell.StatModKey;
             entry.StatModValue = spell.StatModVal;
+
+            if (spell.DotDuration != 0)
+            {
+                var heartbeatInterval = WorldObject.HeartbeatInterval ?? 5.0f;
+
+                // scale StatModValue for HeartbeatIntervals other than the default 5s
+                if (heartbeatInterval != 5.0f)
+                {
+                    entry.StatModValue = spell.GetDamagePerTick((float)heartbeatInterval);
+                }
+
+                // calculate runtime StatModValue for enchantment
+                if (caster != null)
+                {
+                    entry.StatModValue = caster.CalculateDotEnchantment_StatModValue(spell, WorldObject, entry.StatModValue);
+                }
+                //Console.WriteLine($"enchantment_statModVal: {entry.StatModValue}");
+            }
 
             // handle equipment sets
             if (caster != null && caster.HasItemSet && caster.ItemSetContains(spell.Id))
@@ -1079,25 +1101,24 @@ namespace ACE.Server.WorldObjects.Managers
             return (int)Math.Round(GetAdditiveMod(enchantments));
         }
 
-        public int GetNetherDotDamageRating()
+        public virtual int GetNetherDotDamageRating()
         {
             var type = EnchantmentTypeFlags.Int | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
             var netherDots = GetEnchantments_TopLayer(type, (uint)PropertyInt.NetherOverTime);
 
-            var totalRating = 0.0f;
+            // this function produces a similar value to the original ACE function,
+            // but is using the actual retail calculation method
+            var totalBaseDamage = 0.0f;
             foreach (var netherDot in netherDots)
             {
-                var spell = new Spell(netherDot.SpellId);
-
-                var baseDamage = Math.Max(0.5f, spell.Formula.Level - 1);
-
-                // destructive curse / corruption
-                if (netherDot.SpellCategory == SpellCategory.NetherDamageOverTimeRaising || netherDot.SpellCategory == SpellCategory.NetherDamageOverTimeRaising3)
-                    totalRating += baseDamage;
-                else if (netherDot.SpellCategory == SpellCategory.NetherDamageOverTimeRaising2)    // corrosion
-                    totalRating += Math.Max(baseDamage * 2 - 1, 2);
+                // normally we could just use netherDot.StatModValue here,
+                // but in case WorldObject has a non-default HeartbeatInterval,
+                // we want this value to still be based on the damage per default heartbeat interval
+                totalBaseDamage += GetDamagePerTick(netherDot, 5.0);
             }
-            return totalRating.Round();
+            var rating = (int)Math.Round(totalBaseDamage / 8.0f);   // thanks to Xenocide for this formula!
+            //Console.WriteLine($"{WorldObject.Name}.NetherDotDamageRating: {rating}");
+            return rating;
         }
 
         /// <summary>
@@ -1215,14 +1236,14 @@ namespace ACE.Server.WorldObjects.Managers
             var tickAmountTotal = 0.0f;
             foreach (var enchantment in enchantments)
             {
-                var totalAmount = enchantment.StatModValue;
-                var totalTicks = (int)Math.Ceiling(enchantment.Duration / (WorldObject.HeartbeatInterval ?? 5));
-                var tickAmount = totalAmount / totalTicks;
+                //var totalAmount = enchantment.StatModValue;
+                //var totalTicks = GetNumTicks(enchantment);
+                var tickAmount = enchantment.StatModValue;
 
                 tickAmountTotal += tickAmount;
             }
 
-            // apply healing ratings
+            // apply healing ratings?
             tickAmountTotal *= creature.GetHealingRatingMod();
 
             // do healing
@@ -1245,13 +1266,15 @@ namespace ACE.Server.WorldObjects.Managers
             bool isDead = false;
             var damagers = new Dictionary<WorldObject, float>();
 
+            var targetPlayer = WorldObject as Player;
+
             // get the total tick amount
             var tickAmountTotal = 0.0f;
             foreach (var enchantment in enchantments)
             {
-                var totalAmount = enchantment.StatModValue;
-                var totalTicks = (int)Math.Ceiling(enchantment.Duration / (WorldObject.HeartbeatInterval ?? 5));
-                var tickAmount = totalAmount / totalTicks;
+                //var totalAmount = enchantment.StatModValue;
+                //var totalTicks = GetNumTicks(enchantment);
+                var tickAmount = enchantment.StatModValue;
 
                 // run tick amount through damage calculation functions?
                 // it appears retail might have done an initial damage calc,
@@ -1267,24 +1290,24 @@ namespace ACE.Server.WorldObjects.Managers
                 }
 
                 // if a PKType with Enduring Enchantment has died, ensure they don't continue to take DoT from PK sources
-                if (WorldObject is Player _player && damager is Player && !_player.IsPKType)
+                if (targetPlayer != null && damager is Player && !targetPlayer.IsPKType)
                     continue;
 
-                // get damage / damage resistance rating here for now?
-                var heritageMod = 1.0f;
-                if (damager is Player player)
-                    heritageMod = player.GetHeritageBonus(player.GetEquippedWeapon() ?? player.GetEquippedWand()) ? 1.05f : 1.0f;
+                var resistanceMod = creature.GetResistanceMod(damageType, damager, null);
 
-                var damageRatingMod = Creature.AdditiveCombine(heritageMod, Creature.GetPositiveRatingMod(damager.GetDamageRating()));
+                // with the halvening, this actually seems like the fairest balance currently..
+                var useNetherDotDamageRating = targetPlayer != null;
 
-                var damageResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDamageResistRating(CombatType.Magic, false));    // df?
-                var dotResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDotResistanceRating());
+                var damageResistRatingMod = creature.GetDamageResistRatingMod(CombatType.Magic, useNetherDotDamageRating);   // df?
+
+                var dotResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDotResistanceRating());  // should this be here, or somewhere else?
+                                                                                                            // should this affect NetherDotDamageRating?
 
                 //Console.WriteLine("DR: " + Creature.ModToRating(damageRatingMod));
                 //Console.WriteLine("DRR: " + Creature.NegativeModToRating(damageResistRatingMod));
                 //Console.WriteLine("NRR: " + Creature.NegativeModToRating(netherResistRatingMod));
 
-                tickAmount *= damageRatingMod * damageResistRatingMod * dotResistRatingMod;
+                tickAmount *= resistanceMod * damageResistRatingMod * dotResistRatingMod;
 
                 // make sure the target's current health is not exceeded
                 if (tickAmountTotal + tickAmount >= creature.Health.Current)
@@ -1347,6 +1370,51 @@ namespace ACE.Server.WorldObjects.Managers
             if (Player == null) return;
             var vitae = new Enchantment(Player, GetVitae());
             Player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(Player.Session, vitae));
+        }
+
+        /// <summary>
+        /// Returns the number of ticks for a DoT enchantment
+        /// </summary>
+        public int GetNumTicks(PropertiesEnchantmentRegistry enchantment, double? heartbeatInterval = null)
+        {
+            // assumed to be DoT enchantment
+
+            if (heartbeatInterval == null)
+                heartbeatInterval = WorldObject.HeartbeatInterval ?? 5.0;
+
+            // it's possible retail had a separate ticking mechanism for these,
+            // that ensured ticks every 5s, instead of heartbeat intervals
+            return (int)Math.Ceiling(enchantment.Duration / heartbeatInterval.Value);
+        }
+
+        /// <summary>
+        /// Returns the total damage for a DoT enchantment
+        /// </summary>
+        public float GetTotalDamage(PropertiesEnchantmentRegistry enchantment)
+        {
+            // assumed to be DoT enchantment
+            return enchantment.StatModValue * GetNumTicks(enchantment);
+        }
+
+        public float GetDamagePerTick(PropertiesEnchantmentRegistry enchantment, double? heartbeatInterval = null)
+        {
+            // assumed to be DoT enchantment
+
+            var creatureHeartbeatInterval = WorldObject.HeartbeatInterval ?? 5.0;
+
+            if (heartbeatInterval == null)
+                heartbeatInterval = creatureHeartbeatInterval;
+
+            if (heartbeatInterval == creatureHeartbeatInterval)
+                return enchantment.StatModValue;
+
+            // calculate the total damage w/ creature heartbeat interval
+            var totalDamage = GetTotalDamage(enchantment);
+
+            // divide totalDamage by the requested tick interval
+            var numTicks = GetNumTicks(enchantment, heartbeatInterval);
+
+            return totalDamage / numTicks;
         }
     }
 }

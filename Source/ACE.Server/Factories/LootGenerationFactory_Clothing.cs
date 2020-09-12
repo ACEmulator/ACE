@@ -5,6 +5,7 @@ using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Factories.Tables;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
@@ -136,7 +137,7 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-    private static void MutateArmor(WorldObject wo, TreasureDeath profile, bool isMagical, LootTables.ArmorType armorType)
+        private static void MutateArmor(WorldObject wo, TreasureDeath profile, bool isMagical, LootTables.ArmorType armorType)
         {
             wo.LongDesc = wo.Name;
 
@@ -147,11 +148,12 @@ namespace ACE.Server.Factories
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
 
-            int gemCount = ThreadSafeRandom.Next(1, 6);
-            int gemType = ThreadSafeRandom.Next(10, 50);
+            if (wo.GemCode != null)
+                wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
+            else
+                wo.GemCount = ThreadSafeRandom.Next(1, 6);
 
-            wo.GemCount = gemCount;
-            wo.GemType = (MaterialType)gemType;
+            wo.GemType = RollGemType(profile.Tier);
 
             int workmanship = GetWorkmanship(profile.Tier);
             wo.ItemWorkmanship = workmanship;
@@ -233,11 +235,12 @@ namespace ACE.Server.Factories
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
 
-            int gemCount = ThreadSafeRandom.Next(1, 6);
-            int gemType = ThreadSafeRandom.Next(10, 50);
+            if (wo.GemCode != null)
+                wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
+            else
+                wo.GemCount = ThreadSafeRandom.Next(1, 6);
 
-            wo.GemCount = gemCount;
-            wo.GemType = (MaterialType)gemType;
+            wo.GemType = RollGemType(profile.Tier);
 
             int workmanship = GetWorkmanship(profile.Tier);
             wo.ItemWorkmanship = workmanship;

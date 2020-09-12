@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
 using ACE.DatLoader;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
@@ -157,7 +159,7 @@ namespace ACE.Server.WorldObjects
                 return null;
             }
 
-            var stanceKey = (uint)CurrentMotionState.Stance << 16 | ((uint)MotionCommand.Ready & 0xFFFFF);
+            var stanceKey = (uint)CurrentMotionState.Stance << 16 | ((uint)MotionCommand.Ready & 0xFFFFFF);
             motionTable.Links.TryGetValue(stanceKey, out var motions);
             if (motions == null)
             {
@@ -297,6 +299,10 @@ namespace ACE.Server.WorldObjects
             }*/
         }
 
+        private static readonly List<float> defaultAttackFrames = new List<float>() { 1.0f / 3.0f };
+
+        private static readonly ConcurrentDictionary<AttackFrameParams, bool> missingAttackFrames = new ConcurrentDictionary<AttackFrameParams, bool>();
+
         /// <summary>
         /// Perform the melee attack swing animation
         /// </summary>
@@ -314,6 +320,18 @@ namespace ACE.Server.WorldObjects
             animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, motionCommand, animSpeed);
 
             attackFrames = MotionTable.GetAttackFrames(MotionTableId, CurrentMotionState.Stance, motionCommand);
+
+            if (attackFrames.Count == 0)
+            {
+                var attackFrameParams = new AttackFrameParams(MotionTableId, CurrentMotionState.Stance, motionCommand);
+                if (!missingAttackFrames.ContainsKey(attackFrameParams))
+                {
+                    // only show warning message once for each combo
+                    log.Warn($"{Name} ({Guid}) - no attack frames for MotionTable {MotionTableId:X8}, {CurrentMotionState.Stance}, {motionCommand}, using defaults");
+                    missingAttackFrames.TryAdd(attackFrameParams, true);
+                }
+                attackFrames = defaultAttackFrames;
+            }
 
             var motion = new Motion(this, motionCommand, animSpeed);
             motion.MotionState.TurnSpeed = 2.25f;

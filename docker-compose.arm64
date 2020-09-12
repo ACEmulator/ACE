@@ -2,12 +2,14 @@ version: '3'
 services:
 
   ace-db:
-    image: linuxserver/mariadb:latest
+    #image: linuxserver/mariadb:latest
+    image: mysql/mysql-server:latest
     container_name: ace-db
     env_file:
       - docker.env
     volumes:
-      - ./db-data:/config
+      #- ./db-data:/config
+      - ./db-data:/var/lib/mysql
     ports:
       - "3306:3306/tcp"
     restart: unless-stopped

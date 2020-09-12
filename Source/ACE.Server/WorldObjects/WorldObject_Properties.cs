@@ -2181,6 +2181,16 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.TsysMutationData); else SetProperty(PropertyInt.TsysMutationData, value.Value); }
         }
 
+        // helpers
+        public byte? MaterialCode => (byte?)TsysMutationData;
+
+        public byte? GemCode => (byte?)(TsysMutationData >> 8);
+
+        public byte? ColorCode => (byte?)(TsysMutationData >> 16);
+
+        public byte? SpellSelectionCode => (byte?)(TsysMutationData >> 24);
+
+
         /// <summary>
         /// If TRUE, this is an admin-only visible object, only seen with /adminvision
         /// </summary>
@@ -2943,6 +2953,66 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.CloakWeaveProc);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CloakWeaveProc); else SetProperty(PropertyInt.CloakWeaveProc, value.Value); }
+        }
+
+        /// <summary>
+        /// The Damage Rating on a non-creature item
+        /// </summary>
+        public int? GearDamage
+        {
+            get => GetProperty(PropertyInt.GearDamage);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearDamage); else SetProperty(PropertyInt.GearDamage, value.Value); }
+        }
+
+        /// <summary>
+        /// The Damage Resistance Rating on a non-creature item
+        /// </summary>
+        public int? GearDamageResist
+        {
+            get => GetProperty(PropertyInt.GearDamageResist);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearDamageResist); else SetProperty(PropertyInt.GearDamageResist, value.Value); }
+        }
+
+        /// <summary>
+        /// The Crit Damage Rating on a non-creature item
+        /// </summary>
+        public int? GearCritDamage
+        {
+            get => GetProperty(PropertyInt.GearCritDamage);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearCritDamage); else SetProperty(PropertyInt.GearCritDamage, value.Value); }
+        }
+
+        /// <summary>
+        /// The Crit Damage Resistance Rating on a non-creature item
+        /// </summary>
+        public int? GearCritDamageResist
+        {
+            get => GetProperty(PropertyInt.GearCritDamageResist);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearCritDamageResist); else SetProperty(PropertyInt.GearCritDamageResist, value.Value); }
+        }
+
+        /// <summary>
+        /// The Crit Chance Rating on a non-creature item
+        /// </summary>
+        public int? GearCrit
+        {
+            get => GetProperty(PropertyInt.GearCrit);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearCrit); else SetProperty(PropertyInt.GearCrit, value.Value); }
+        }
+
+        /// <summary>
+        /// The Crit Chance Resistance Rating on a non-creature item
+        /// </summary>
+        public int? GearCritResist
+        {
+            get => GetProperty(PropertyInt.GearCritResist);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearCritResist); else SetProperty(PropertyInt.GearCritResist, value.Value); }
+        }
+
+        public int? ResistItemAppraisal
+        {
+            get => GetProperty(PropertyInt.ResistItemAppraisal);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistItemAppraisal); else SetProperty(PropertyInt.ResistItemAppraisal, value.Value); }
         }
     }
 }

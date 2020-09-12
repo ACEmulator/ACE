@@ -575,7 +575,7 @@ namespace ACE.Server.WorldObjects
 
                     totalProbability += probability;
 
-                    if (rngSelected || rng > totalProbability)
+                    if (rngSelected || rng >= totalProbability)
                         continue;
 
                     rngSelected = true;
@@ -623,7 +623,7 @@ namespace ACE.Server.WorldObjects
 
                     totalProbability += probability;
 
-                    if (rngSelected || rng > totalProbability)
+                    if (rngSelected || rng >= totalProbability)
                         continue;
 
                     rngSelected = true;

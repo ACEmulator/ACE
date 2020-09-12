@@ -235,7 +235,7 @@ namespace ACE.Server.Physics.Animation
                 Cycles.TryGetValue(styleKey | (currState.Substate & 0xFFFFFF), out cycles);
                 if (cycles != null && (cycles.Bitfield & 1) == 0)
                 {
-                    Modifiers.TryGetValue(styleKey | motion, out motionData);
+                    Modifiers.TryGetValue(styleKey | (motion & 0xFFFFFF), out motionData);
                     if (motionData == null)
                         Modifiers.TryGetValue(motion & 0xFFFFFF, out motionData);
                     if (motionData != null)
@@ -392,33 +392,35 @@ namespace ACE.Server.Physics.Animation
 
         public MotionData get_link(uint style, uint substate, float substateSpeed, uint motion, float speed)
         {
-            uint first = motion, second = substate;
-            if (substateSpeed >= 0.0f && speed >= 0.0f)
+            if (speed < 0.0f || substateSpeed < 0.0f)
             {
-                first = substate;
-                second = motion;
+                if (Links.TryGetValue((style << 16) | (motion & 0xFFFFFF), out var link))
+                {
+                    link.TryGetValue(substate, out var result);
+                    return result;
+                }
+
+                if (StyleDefaults.TryGetValue(style, out var defaultMotion) && Links.TryGetValue((style << 16) | (substate & 0xFFFFFF), out var sublink))
+                {
+                    sublink.TryGetValue(defaultMotion, out var result);
+                    return result;
+                }
             }
-            var motionData = get_link_inner(style, first, second);
-            if (motionData != null)
-                return motionData;
+            else
+            {
+                if (Links.TryGetValue((style << 16) | (substate & 0xFFFFFF), out var link))
+                {
+                    link.TryGetValue(motion, out var result);
+                    return result;
+                }
 
-            return get_link_inner(style, first, second, false);
-        }
-
-        public MotionData get_link_inner(uint style, uint first, uint second, bool checkFirst = true)
-        {
-            Dictionary<uint, MotionData> link = null;
-            MotionData motionData = null;
-
-            var key = style << 16;
-            if (checkFirst)
-                key |= first & 0xFFFFF;
-            Links.TryGetValue(key, out link);
-            if (link == null)
-                return null;
-
-            link.TryGetValue(second, out motionData);
-            return motionData;
+                if (Links.TryGetValue(style << 16, out var sublink))
+                {
+                    sublink.TryGetValue(motion, out var result);
+                    return result;
+                }
+            }
+            return null;
         }
 
         public bool is_allowed(uint motion, MotionData motionData, MotionState state)
@@ -456,7 +458,7 @@ namespace ACE.Server.Physics.Animation
         public static List<float> GetAttackFrames(uint motionTableId, MotionStance stance, MotionCommand motion)
         {
             var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableId);
-            return motionTable.GetAttackFrames(motionTableId, stance, motion, null);
+            return motionTable.GetAttackFrames(motionTableId, stance, motion);
         }
 
         public static float GetAnimationLength(uint motionTableId, MotionStance stance, MotionCommand motion, float speed = 1.0f)

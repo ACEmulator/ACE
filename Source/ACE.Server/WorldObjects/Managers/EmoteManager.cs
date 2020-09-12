@@ -1453,7 +1453,7 @@ namespace ACE.Server.WorldObjects.Managers
             if (useRNG)
             {
                 var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-                emoteSet = emoteSet.Where(e => e.Probability >= rng).OrderBy(e => e.Probability);
+                emoteSet = emoteSet.Where(e => e.Probability > rng).OrderBy(e => e.Probability);
                 //emoteSet = emoteSet.Where(e => e.Probability >= rng);
             }
 
@@ -1793,6 +1793,11 @@ namespace ACE.Server.WorldObjects.Managers
         public void OnReceiveCritical(Creature attacker)
         {
             ExecuteEmoteSet(EmoteCategory.ReceiveCritical, null, attacker);
+        }
+
+        public void OnResistSpell(Creature attacker)
+        {
+            ExecuteEmoteSet(EmoteCategory.ResistSpell, null, attacker);
         }
 
         public void OnDeath(DamageHistoryInfo lastDamagerInfo)
