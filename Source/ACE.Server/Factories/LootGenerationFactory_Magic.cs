@@ -2,6 +2,7 @@ using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Database;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
@@ -234,6 +235,7 @@ namespace ACE.Server.Factories
             wo.GemType = RollGemType(profile.Tier);
 
             wo.Value = GetValue(profile.Tier, wo.ItemWorkmanship.Value, LootTables.getMaterialValueModifier(wo), LootTables.getGemMaterialValueModifier(wo));
+
             // Is this right??
             wo.LongDesc = wo.Name;
 

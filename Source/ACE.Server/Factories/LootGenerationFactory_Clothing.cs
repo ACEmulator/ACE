@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 using ACE.Common;
@@ -270,7 +271,6 @@ namespace ACE.Server.Factories
             // try mutate burden, if MutateFilter exists
             if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
                 MutateBurden(wo, profile.Tier, false);
-
         }
 
         private static bool GetMutateArmorData(uint wcid, out LootTables.ArmorType? armorType)
@@ -794,7 +794,6 @@ namespace ACE.Server.Factories
                     wo.ProcSpellSelfTargeted = false;
                 wo.CloakWeaveProc = 1;
             }
-            
         }
         private static int GetCloakMaxLevel(TreasureDeath profile)
         {

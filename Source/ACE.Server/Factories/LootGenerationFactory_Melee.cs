@@ -4,6 +4,7 @@ using System.Linq;
 using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 

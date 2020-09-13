@@ -3,6 +3,7 @@ using System.Linq;
 using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
@@ -157,13 +158,12 @@ namespace ACE.Server.Factories
 
             wo.GemType = RollGemType(profile.Tier);
 
-            int workmanship = GetWorkmanship(profile.Tier);
+            wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
 
             double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
+            var value = GetValue(profile.Tier, wo.ItemWorkmanship.Value, gemMaterialMod, materialMod);
             wo.Value = value;
-            wo.ItemWorkmanship = workmanship;
 
             wo.ItemSkillLevelLimit = null;
 

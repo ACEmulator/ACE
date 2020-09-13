@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using ACE.Entity.Enum;
 using ACE.Server.Factories.Entity;
@@ -93,6 +94,42 @@ namespace ACE.Server.Factories.Tables
             var gemMaterialChance = gemMaterialChances[gemClass - 1];
 
             return gemMaterialChance.Roll();
+        }
+
+        /// <summary>
+        /// A factor in determining the item's monetary value
+        /// </summary>
+        private static readonly List<int> gemClassValue = new List<int>()
+        {
+            10,
+            50,
+            100,
+            250,
+            500,
+            1000
+        };
+
+        private static readonly Dictionary<MaterialType, int> gemMaterialValue = new Dictionary<MaterialType, int>();
+
+        static GemMaterialChance()
+        {
+            // build gemMaterialValue
+            for (var i = 0; i < gemMaterialChances.Count; i++)
+            {
+                foreach (var material in gemMaterialChances[i].Select(i => i.result))
+                    gemMaterialValue.Add(material, gemClassValue[i]);
+            }
+        }
+
+        /// <summary>
+        /// Returns the value for GemType
+        /// </summary>
+        public static int GemValue(MaterialType? gemType)
+        {
+            if (gemType != null && gemMaterialValue.TryGetValue(gemType.Value, out var gemValue))
+                return gemValue;
+            else
+                return 0;   // default?
         }
     }
 }
