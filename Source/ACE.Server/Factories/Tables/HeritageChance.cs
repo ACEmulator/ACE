@@ -209,7 +209,7 @@ namespace ACE.Server.Factories.Tables
 
         public static HeritageGroup Roll(int heritageDistGroup)
         {
-            if (heritageDistGroups.TryGetValue(heritageDistGroup, out var table))
+            if (!heritageDistGroups.TryGetValue(heritageDistGroup, out var table))
                 return HeritageGroup.Invalid;
 
             return table.Roll();

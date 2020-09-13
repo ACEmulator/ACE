@@ -43,13 +43,13 @@ namespace ACE.Database.Models.World
         public uint DataId { get; set; }
         public DateTime LastModified { get; set; }
 
-        public ICollection<CookBook> CookBook { get; set; }
-        public ICollection<RecipeMod> RecipeMod { get; set; }
-        public ICollection<RecipeRequirementsBool> RecipeRequirementsBool { get; set; }
-        public ICollection<RecipeRequirementsDID> RecipeRequirementsDID { get; set; }
-        public ICollection<RecipeRequirementsFloat> RecipeRequirementsFloat { get; set; }
-        public ICollection<RecipeRequirementsIID> RecipeRequirementsIID { get; set; }
-        public ICollection<RecipeRequirementsInt> RecipeRequirementsInt { get; set; }
-        public ICollection<RecipeRequirementsString> RecipeRequirementsString { get; set; }
+        public virtual ICollection<CookBook> CookBook { get; set; }
+        public virtual ICollection<RecipeMod> RecipeMod { get; set; }
+        public virtual ICollection<RecipeRequirementsBool> RecipeRequirementsBool { get; set; }
+        public virtual ICollection<RecipeRequirementsDID> RecipeRequirementsDID { get; set; }
+        public virtual ICollection<RecipeRequirementsFloat> RecipeRequirementsFloat { get; set; }
+        public virtual ICollection<RecipeRequirementsIID> RecipeRequirementsIID { get; set; }
+        public virtual ICollection<RecipeRequirementsInt> RecipeRequirementsInt { get; set; }
+        public virtual ICollection<RecipeRequirementsString> RecipeRequirementsString { get; set; }
     }
 }

@@ -131,6 +131,8 @@ namespace ACE.Server.Entity
 
         public bool IsTracking => !Flags.HasFlag(SpellFlags.NonTrackingProjectile);
 
+        public bool IsFellowshipSpell => Flags.HasFlag(SpellFlags.FellowshipSpell);
+
         public List<uint> TryBurnComponents(Player player)
         {
             var consumed = new List<uint>();

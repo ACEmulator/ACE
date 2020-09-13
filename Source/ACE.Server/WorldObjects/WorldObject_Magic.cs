@@ -380,7 +380,7 @@ namespace ACE.Server.WorldObjects
             var player = this as Player;
             var creature = this as Creature;
 
-            var spellTarget = !spell.IsSelfTargeted ? target as Creature : creature;
+            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
 
             if (this is Gem || this is Food || this is Hook)
                 spellTarget = target as Creature;
@@ -769,7 +769,7 @@ namespace ACE.Server.WorldObjects
                 case SpellType.FellowEnchantment:
 
                     damage = 0;
-                    if (itemCaster != null)
+                    if (itemCaster != null && equip)
                         enchantmentStatus = CreateEnchantment(spellTarget ?? target, itemCaster, spell, equip);
                     else
                         enchantmentStatus = CreateEnchantment(spellTarget ?? target, this, spell, equip);

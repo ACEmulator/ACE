@@ -2181,6 +2181,16 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.TsysMutationData); else SetProperty(PropertyInt.TsysMutationData, value.Value); }
         }
 
+        // helpers
+        public byte? MaterialCode => (byte?)TsysMutationData;
+
+        public byte? GemCode => (byte?)(TsysMutationData >> 8);
+
+        public byte? ColorCode => (byte?)(TsysMutationData >> 16);
+
+        public byte? SpellSelectionCode => (byte?)(TsysMutationData >> 24);
+
+
         /// <summary>
         /// If TRUE, this is an admin-only visible object, only seen with /adminvision
         /// </summary>
