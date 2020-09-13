@@ -160,15 +160,6 @@ namespace ACE.Server.Factories
 
             wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
 
-            if (wo.GemCode != null)
-                wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
-            else
-                wo.GemCount = ThreadSafeRandom.Next(1, 5);
-
-            wo.GemType = RollGemType(profile.Tier);
-
-            wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
-
             double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
             var value = GetValue(profile.Tier, wo.ItemWorkmanship.Value, gemMaterialMod, materialMod);
