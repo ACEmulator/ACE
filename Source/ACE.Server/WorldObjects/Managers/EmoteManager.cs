@@ -1039,10 +1039,8 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.ResetHomePosition:
 
-                    //creature = sourceObject as Creature;
-                    //if (creature != null)
-                    //    creature.Home = emoteAction.Position;
-                    WorldObject.Home = new Position(WorldObject.Location);
+                    if (WorldObject.Location != null)
+                        WorldObject.Home = new Position(WorldObject.Location);
                     break;
 
                 case EmoteType.Say:
