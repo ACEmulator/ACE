@@ -100,7 +100,7 @@ namespace ACE.Server.Command.Handlers
         public static void TestLootGeneratorCorpse(Session session, params string[] parameters)
         {
             // This generates loot items and displays the drop rates of LootFactory
-            int monsterDID = 0;
+            uint monsterDID = 0;
             int numberItemsGenerate = 0;
             string logFile = "";
             string displayTable = "";
@@ -121,7 +121,7 @@ namespace ACE.Server.Command.Handlers
                 default:
                     break;
             }
-            if (!int.TryParse(parameters[0], out monsterDID))
+            if (!uint.TryParse(parameters[0], out monsterDID))
             {
                 Console.WriteLine($" LootFactory Simulator \n ---------------------\n DID specified is not an integer \n");
                 return;
@@ -175,7 +175,7 @@ namespace ACE.Server.Command.Handlers
                     Console.WriteLine("Invalid Option.  To log a file, use option -log");
                     return;
             }
-            Console.WriteLine(LootGenerationFactory_Test.TestLootGenMonster(Convert.ToUInt32(monsterDID), numberItemsGenerate, logstats, displayTable));
+            Console.WriteLine(LootGenerationFactory_Test.TestLootGenMonster(monsterDID, numberItemsGenerate, logstats, displayTable));
         }
     }
 }
