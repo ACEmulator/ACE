@@ -1,16 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Linq;
-using log4net;
-using ACE.Common;
+using System.Diagnostics;
+using System.IO;
+
 using ACE.Database;
 using ACE.Database.Models.World;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
-using ACE.Server.Managers;
+using ACE.Server.Entity;
 using ACE.Server.WorldObjects;
-using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.Factories
 {
@@ -22,7 +19,7 @@ namespace ACE.Server.Factories
 
             Console.WriteLine($"Creating {numItems} items, that are in tier {tier}");
 
-            var ls = SetLootStatsDefaults(new LootStats(), logstats);
+            var ls = new LootStats(logstats);
 
             // Create a dummy treasure profile for passing in tier value
             TreasureDeath profile = new TreasureDeath
@@ -40,10 +37,10 @@ namespace ACE.Server.Factories
             Console.WriteLine(displayHeader);
             Console.WriteLine(DisplayStats(ls, displaytable));
             displayHeader += $" A total of {ls.TotalItems} items were generated in Tier {tier}. \n";
-            if (logstats == true)
+            if (logstats)
             {
                 string myfilename = string.Format("LootSim-{0:hh-mm-ss-tt_MM-dd-yyyy}.csv", DateTime.Now);
-                System.IO.File.WriteAllText(myfilename, displayHeader + DisplayStats(ls, displaytable));
+                File.WriteAllText(myfilename, displayHeader + DisplayStats(ls, displaytable));
             }
 
             return displayHeader;
@@ -53,7 +50,7 @@ namespace ACE.Server.Factories
             string displayHeader = $"\n LootFactory Simulator - Corpses\n ---------------------\n";
 
             var corpseContainer = new List<WorldObject>();
-            var ls = SetLootStatsDefaults(new LootStats(), logstats);
+            var ls = new LootStats(logstats);
 
             Console.WriteLine($"Creating {numberofcorpses} corpses.");
 
@@ -67,32 +64,30 @@ namespace ACE.Server.Factories
                 displayHeader += $" DID {dtDID} you specified is invalid. \n";
                 return displayHeader;
             }
+
             for (int i = 0; i < numberofcorpses; i++)
             {
                 if (deathTreasure != null)
                 {
                     corpseContainer = LootGenerationFactory.CreateRandomLootObjects(deathTreasure);
+
                     if (corpseContainer.Count < ls.MinItemsCreated)
                         ls.MinItemsCreated = corpseContainer.Count;
                     if (corpseContainer.Count > ls.MaxItemsCreated)
                         ls.MaxItemsCreated = corpseContainer.Count;
 
                     foreach (var lootItem in corpseContainer)
-                    {
                         ls = LootStats(lootItem, ls, logstats);
-                    }
-                }
-                else
-                {
                 }
             }
+
             Console.WriteLine(displayHeader);
             Console.WriteLine(DisplayStats(ls, displaytable));
             displayHeader += $" A total of {ls.TotalItems} unique items were generated. \n";
-            if (logstats == true)
+            if (logstats)
             {
                 string myfilename = $"LootSim_DeathTreasureDID-{dtDID}" + string.Format("_{0:hh-mm-ss-tt_MM-dd-yyyy}.csv", DateTime.Now);
-                System.IO.File.WriteAllText(myfilename, displayHeader + DisplayStats(ls, displaytable));
+                File.WriteAllText(myfilename, displayHeader + DisplayStats(ls, displaytable));
             }
 
             return displayHeader;
@@ -111,16 +106,9 @@ namespace ACE.Server.Factories
             for (int i = 0; i < 1; i++)
             {
                 var testItem = wo;
-                if (testItem is null)
+                if (testItem == null)
                 {
                     ls.NullCount++;
-                    continue;
-                }
-                string itemType = testItem.ItemType.ToString();
-                if (itemType == null)
-                {
-                    ls.NullCount++;
-
                     continue;
                 }
 
@@ -150,31 +138,29 @@ namespace ACE.Server.Factories
                             wield = testItem.WieldDifficulty.Value;
                         if (testItem.WeaponSkill == Skill.TwoHandedCombat)
                         {
-                            if (logstats == true)
+                            if (logstats)
                             {
-                                ls.MeleeWeapons += $"{testItem.WeaponSkill},{wield},{testItem.Damage.Value},{strikeType},{testItem.DamageVariance.Value},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{cantrip},{value},{testItem.EncumbranceVal},{testItem.Name}\n";
+                                ls.MeleeWeapons.Add($"{testItem.WeaponSkill},{wield},{testItem.Damage.Value},{strikeType},{testItem.DamageVariance.Value},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{cantrip},{value},{testItem.EncumbranceVal},{testItem.Name}");
                             }
                             else
-                                ls.MeleeWeapons += $" {testItem.WeaponSkill}\t {wield}\t {testItem.Damage.Value}\t\t {strikeType} \t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {cantrip}\t{value}\t{testItem.EncumbranceVal} \t {testItem.Name}\n";
+                                ls.MeleeWeapons.Add($"{testItem.WeaponSkill}\t {wield}\t {testItem.Damage.Value}\t\t {strikeType} \t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {cantrip}\t{value}\t{testItem.EncumbranceVal} \t {testItem.Name}");
                         }
                         else
                         {
-                            AttackType attackType = testItem.W_AttackType;
-                            string at = attackType.ToString("F");
-                            if (at.Contains("DoubleSlash") || at.Contains("DoubleThrust"))
-                            {
-                                strikeType = "2x";
-                            }
-                            else if (at.Contains("TripleSlash") || at.Contains("TripleThrust"))
+                            if ((testItem.W_AttackType & AttackType.TripleStrike) != 0) 
                             {
                                 strikeType = "3x";
                             }
-                            if (logstats == true)
+                            else if ((testItem.W_AttackType & AttackType.DoubleStrike) != 0)
                             {
-                                ls.MeleeWeapons += $"{testItem.WeaponSkill},{wield},{testItem.Damage.Value},{strikeType},{testItem.DamageVariance.Value},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{cantrip},{value},{testItem.EncumbranceVal},{testItem.Name}\n";
+                                strikeType = "2x";
+                            }
+                            if (logstats)
+                            {
+                                ls.MeleeWeapons.Add($"{testItem.WeaponSkill},{wield},{testItem.Damage.Value},{strikeType},{testItem.DamageVariance.Value},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{cantrip},{value},{testItem.EncumbranceVal},{testItem.Name}");
                             }
                             else
-                                ls.MeleeWeapons += $" {testItem.WeaponSkill}\t\t {wield}\t {testItem.Damage.Value}\t\t {strikeType}\t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {cantrip}\t{value}\t{testItem.EncumbranceVal} \t {testItem.Name}\n";
+                                ls.MeleeWeapons.Add($" {testItem.WeaponSkill}\t\t {wield}\t {testItem.Damage.Value}\t\t {strikeType}\t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {cantrip}\t{value}\t{testItem.EncumbranceVal} \t {testItem.Name}");
                         }
                         break;
                     case ItemType.Armor:
@@ -185,23 +171,20 @@ namespace ACE.Server.Factories
                         var epicCantripSpells = testItem.EpicCantrips.Keys;
 
                         if (testItem.EpicCantrips.Count > 0)
-                        {
                             cantrip = true;
-                            
-                        }
                             
                         if (testItem.LegendaryCantrips.Count > 0)
                             cantrip = true;
 
                         if (testItem.EquipmentSetId != null)
-                            equipmentSet = System.Enum.GetName(typeof(EquipmentSet), testItem.EquipmentSetId);
-                        if (logstats == true)
+                            equipmentSet = testItem.EquipmentSetId.ToString();
+                        if (logstats)
                         {
-                            ls.Armor += $"{testItem.ArmorLevel},{testItem.ItemDifficulty},{testItem.Value.Value},{testItem.EncumbranceVal},{testItem.EpicCantrips.Count},{testItem.LegendaryCantrips.Count},{equipmentSet},{testItem.Name}\n";
+                            ls.Armor.Add($"{testItem.ArmorLevel},{testItem.ItemDifficulty},{testItem.Value.Value},{testItem.EncumbranceVal},{testItem.EpicCantrips.Count},{testItem.LegendaryCantrips.Count},{equipmentSet},{testItem.Name}");
                         }
                         else
-                            ls.Armor += $" {testItem.ArmorLevel}\t{testItem.ItemDifficulty}\t{testItem.Value.Value}\t{testItem.EncumbranceVal}\t{testItem.EpicCantrips.Count}\t{testItem.LegendaryCantrips.Count}\t{equipmentSet}\t\t\t{testItem.Name}\n";
-                        if (testItem.Name.Contains("Sheild"))
+                            ls.Armor.Add($" {testItem.ArmorLevel}\t{testItem.ItemDifficulty}\t{testItem.Value.Value}\t{testItem.EncumbranceVal}\t{testItem.EpicCantrips.Count}\t{testItem.LegendaryCantrips.Count}\t{equipmentSet}\t\t\t{testItem.Name}");
+                        if (testItem.Name.Contains("Sheild"))   // typo?
                             break;
                         if (testItem.ArmorLevel > ls.MaxAL)
                         {
@@ -219,14 +202,14 @@ namespace ACE.Server.Factories
                         {
                             string cloakSet = "None ";
                             if (testItem.EquipmentSetId != null)
-                                cloakSet = System.Enum.GetName(typeof(EquipmentSet), testItem.EquipmentSetId);
+                                cloakSet = testItem.EquipmentSetId.ToString();
                             ls.CloakCount++;
-                            if (logstats == true)
+                            if (logstats)
                             {
-                                ls.Cloaks += $"{testItem.ItemMaxLevel},{testItem.WieldDifficulty},{testItem.CloakWeaveProc.Value},{testItem.Value.Value},{cloakSet}\n";
+                                ls.Cloaks.Add($"{testItem.ItemMaxLevel},{testItem.WieldDifficulty},{testItem.CloakWeaveProc.Value},{testItem.Value.Value},{cloakSet}");
                             }
                             else
-                                ls.Cloaks += $" {testItem.ItemMaxLevel}\t {testItem.WieldDifficulty}\t {testItem.CloakWeaveProc.Value}\t {testItem.Value.Value}\t {cloakSet}\n";
+                                ls.Cloaks.Add($" {testItem.ItemMaxLevel}\t {testItem.WieldDifficulty}\t {testItem.CloakWeaveProc.Value}\t {testItem.Value.Value}\t {cloakSet}");
                         }
                         else
                             ls.ClothingCount++;
@@ -234,36 +217,34 @@ namespace ACE.Server.Factories
                     case ItemType.Jewelry:
                         ls.JewelryCount++;
                         string jewelrySlot = "";
-                        if (testItem.Name.Contains("Necklace") || testItem.Name.Contains("Gorget") || testItem.Name.Contains("Amulet"))
+                        switch (testItem.ValidLocations)
                         {
-                            ls.JewelryNecklaceCount++;
-                            jewelrySlot = "Neck";
+                            case EquipMask.NeckWear:
+                                ls.JewelryNecklaceCount++;
+                                jewelrySlot = "Neck";
+                                break;
+                            case EquipMask.WristWear:
+                                ls.JewelryBraceletCount++;
+                                jewelrySlot = "Brace";
+                                break;
+                            case EquipMask.FingerWear:
+                                ls.JewelryRingCount++;
+                                jewelrySlot = "Ring";
+                                break;
+                            case EquipMask.TrinketOne:
+                                ls.JewelryTrinketCount++;
+                                jewelrySlot = "Trink";
+                                break;
+                            default:
+                                // Console.WriteLine(testItem.Name);                            
+                                break;
                         }
-                        else if (testItem.Name.Contains("Bracelet"))
+                        if (logstats)
                         {
-                            ls.JewelryBraceletCount++;
-                            jewelrySlot = "Brace";
-                        }
-                        else if (testItem.Name.Contains("Ring"))
-                        {
-                            ls.JewelryRingCount++;
-                            jewelrySlot = "Ring";
-                        }
-                        else if (testItem.Name.Contains("Compass") || testItem.Name.Contains("Goggles") || testItem.Name.Contains("Mechanical Scarab") || testItem.Name.Contains("Puzzle Box") || testItem.Name.Contains("Pocket Watch") || testItem.Name.Contains("Top"))
-                        {
-                            ls.JewelryTrinketCount++;
-                            jewelrySlot = "Trink";
-                        }
-                        else
-                        {
-                            // Console.WriteLine(testItem.Name);                            
-                        }
-                        if (logstats == true)
-                        {
-                            ls.Jewelry += $"{jewelrySlot},{testItem.ItemDifficulty},{testItem.Value}\n";
+                            ls.Jewelry.Add($"{jewelrySlot},{testItem.ItemDifficulty},{testItem.Value}");
                         }
                         else
-                            ls.Jewelry += $" {jewelrySlot}\t {testItem.ItemDifficulty}\t {testItem.Value}\n";
+                            ls.Jewelry.Add($" {jewelrySlot}\t {testItem.ItemDifficulty}\t {testItem.Value}");
 
 
                         break;
@@ -351,12 +332,12 @@ namespace ACE.Server.Factories
                                 totalRatings += petDevice.GearCritResist.Value;
                                 critResist = petDevice.GearCritResist.Value;
                             }
-                            if (logstats == true)
+                            if (logstats)
                             {
-                                ls.Pets += $"{petLevel},{damage},{damageResist},{crit},{critDamage},{critDamageResist},{critResist},{totalRatings}\n";
+                                ls.Pets.Add($"{petLevel},{damage},{damageResist},{crit},{critDamage},{critDamageResist},{critResist},{totalRatings}");
                             }
                             else
-                                ls.Pets += $" {petLevel}\t {damage}\t {damageResist}\t {crit}\t {critDamage}\t {critDamageResist}\t {critResist}\t {totalRatings}\n";
+                                ls.Pets.Add($" {petLevel}\t {damage}\t {damageResist}\t {crit}\t {critDamage}\t {critDamageResist}\t {critResist}\t {totalRatings}");
 
                             if (totalRatings > 99)
                                 ls.PetRatingsOverHundred++;
@@ -384,7 +365,7 @@ namespace ACE.Server.Factories
                                 ls.PetRatingsEqualZero++;
                         }
                         else if (testItem.Name.Contains(potionA) || testItem.Name.Contains(potionB) || testItem.Name.Contains(potionC) || testItem.Name.Contains(potionD) || testItem.Name.Contains(potionE) || testItem.Name.Contains(potionF) || testItem.Name.Contains(potionG))
-                            ls.Poitions++;
+                            ls.Potions++;
                         else if (testItem.Name.Contains(spellcompGlyph) || testItem.Name.Contains(spellcompInk) || testItem.Name.Contains(spellcompQuill))
                             ls.LevelEightComp++;
                         else if (testItem.Name.Contains(healingKits))
@@ -452,12 +433,12 @@ namespace ACE.Server.Factories
                         }
                         else
                         {
-                            if (logstats == true)
+                            if (logstats)
                             {
-                                ls.MissileWeapons += $"{missileType},{wield},{damageMod},{eleBonus},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{value},{testItem.EncumbranceVal}\n";
+                                ls.MissileWeapons.Add($"{missileType},{wield},{damageMod},{eleBonus},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{value},{testItem.EncumbranceVal}");
                             }
                             else
-                                ls.MissileWeapons += $"{missileType}\t {wield}\t {damageMod}\t\t{eleBonus}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.EncumbranceVal}\n";
+                                ls.MissileWeapons.Add($"{missileType}\t {wield}\t {damageMod}\t\t{eleBonus}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.EncumbranceVal}");
                         }
 
                         break;
@@ -468,7 +449,7 @@ namespace ACE.Server.Factories
                         break;
                     case ItemType.Gem:
                         string aetheriaColor = "None";
-                        if (testItem.Name.Contains("Aetheria"))
+                        if (Aetheria.IsAetheria(testItem.WeenieClassId))
                         {
                             ls.AetheriaCount++;
                             if (testItem.WieldDifficulty == 75)
@@ -477,12 +458,12 @@ namespace ACE.Server.Factories
                                 aetheriaColor = "Yellow";
                             else if (testItem.WieldDifficulty == 225)
                                 aetheriaColor = "Red   ";
-                            if (logstats == true)
+                            if (logstats)
                             {
-                                ls.Aetheria += $"{aetheriaColor},{testItem.ItemMaxLevel}\n";
+                                ls.Aetheria.Add($"{aetheriaColor},{testItem.ItemMaxLevel}");
                             }
                             else
-                                ls.Aetheria += $" {aetheriaColor}\t {testItem.ItemMaxLevel}\n";
+                                ls.Aetheria.Add($" {aetheriaColor}\t {testItem.ItemMaxLevel}");
                         }
                         else
                             ls.GemCount++;
@@ -516,12 +497,12 @@ namespace ACE.Server.Factories
                             eleMod = testItem.ElementalDamageMod.Value;
                         if (testItem.ItemMaxMana != null)
                             ls.ItemMaxMana = testItem.ItemMaxMana.Value;
-                        if (logstats == true)
+                        if (logstats)
                         {
-                            ls.CasterWeapons += $"{wield},{eleMod},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{value},{testItem.EncumbranceVal},{ls.ItemMaxMana}\n";
+                            ls.CasterWeapons.Add($"{wield},{eleMod},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{value},{testItem.EncumbranceVal},{ls.ItemMaxMana}");
                         }
                         else
-                            ls.CasterWeapons += $" {wield}\t {eleMod}\t\t {testItem.WeaponDefense.Value}\t\t  {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.EncumbranceVal} \t {ls.ItemMaxMana}\n";
+                            ls.CasterWeapons.Add($" {wield}\t {eleMod}\t\t {testItem.WeaponDefense.Value}\t\t  {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.EncumbranceVal} \t {ls.ItemMaxMana}");
                         break;
                     case ItemType.Portal:
                         break;
@@ -586,26 +567,25 @@ namespace ACE.Server.Factories
                         ls.OtherCount++;
                         break;
                 }
-                switch (itemType)
+                /*switch (testItem.ItemType)
                 {
-                    case "Armor":
+                    case ItemType.Armor:
                         break;
-                    case "MeleeWeapon":
+                    case ItemType.MeleeWeapon:
                         break;
-                    case "Caster":
+                    case ItemType.Caster:
                         break;
-                    case "MissileWeapon":
+                    case ItemType.MissileWeapon:
                         break;
-                    case "Jewelry":
+                    case ItemType.Jewelry:
                         break;
-                    case "Gem":
+                    case ItemType.Gem:
                         break;
-                    case "Clothing":
+                    case ItemType.Clothing:
                         break;
                     default:
-
                         break;
-                }
+                }*/
                 if (testItem.ItemMaxMana != null)
                 {
                     if (testItem.ItemMaxMana > ls.MaxMana)
@@ -615,15 +595,11 @@ namespace ACE.Server.Factories
                     ls.HasManaCount++;
                     ls.TotalMaxMana += testItem.ItemMaxMana.Value;
                 }
-                if (testItem == null)
+                if (testItem.Name == null)
                 {
                     Console.WriteLine("*Name is Null*");
                     continue;
                 }
-                else
-                {
-                }
-
                 if (testItem.EpicCantrips.Count > 0)
                 {
                     ls.EpicCantripCount++;
@@ -632,8 +608,6 @@ namespace ACE.Server.Factories
                 {
                     ls.LegendaryCantripCount++;
                 }
-
-
             }
             return ls;
         }
@@ -641,41 +615,42 @@ namespace ACE.Server.Factories
         {
             string displayStats = "";
             // Seeing if a table was specified to display
+            // fixme
             switch (displaytable)
             {
                 case "melee":
-                    displayStats += ls.MeleeWeapons + $"\n";
+                    displayStats += string.Join("\n", ls.MeleeWeapons) + $"\n";
                     break;
                 case "missile":
-                    displayStats += ls.MissileWeapons + $"\n";
+                    displayStats += string.Join("\n", ls.MissileWeapons) + $"\n";
                     break;
                 case "caster":
-                    displayStats += ls.CasterWeapons + $"\n";
+                    displayStats += string.Join("\n", ls.CasterWeapons) + $"\n";
                     break;
                 case "jewelry":
-                    displayStats += ls.Jewelry + $"\n";
+                    displayStats += string.Join("\n", ls.Jewelry) + $"\n";
                     break;
                 case "armor":
-                    displayStats += ls.Armor + $"\n";
+                    displayStats += string.Join("\n", ls.Armor) + $"\n";
                     break;
                 case "cloak":
-                    displayStats += ls.Cloaks + $"\n";
+                    displayStats += string.Join("\n", ls.Cloaks) + $"\n";
                     break;
                 case "pet":
-                    displayStats += ls.Pets + $"\n";
+                    displayStats += string.Join("\n", ls.Pets) + $"\n";
                     break;
                 case "aetheria":
-                    displayStats += ls.Aetheria + $"\n";
+                    displayStats += string.Join("\n", ls.Aetheria) + $"\n";
                     break;
                 case "all":
-                    displayStats += ls.MeleeWeapons + $"\n";
-                    displayStats += ls.MissileWeapons + $"\n";
-                    displayStats += ls.CasterWeapons + $"\n";
-                    displayStats += ls.Jewelry + $"\n";
-                    displayStats += ls.Armor + $"\n";
-                    displayStats += ls.Cloaks + $"\n";
-                    displayStats += ls.Pets + $"\n";
-                    displayStats += ls.Aetheria + $"\n";
+                    displayStats += string.Join("\n", ls.MeleeWeapons) + $"\n";
+                    displayStats += string.Join("\n", ls.MissileWeapons) + $"\n";
+                    displayStats += string.Join("\n", ls.CasterWeapons) + $"\n";
+                    displayStats += string.Join("\n", ls.Jewelry) + $"\n";
+                    displayStats += string.Join("\n", ls.Armor) + $"\n";
+                    displayStats += string.Join("\n", ls.Cloaks) + $"\n";
+                    displayStats += string.Join("\n", ls.Pets) + $"\n";
+                    displayStats += string.Join("\n", ls.Aetheria) + $"\n";
                     break;
                 default:
                     displayStats += $"\n No Table(s) was selected to display, showing only general statistics";
@@ -702,14 +677,14 @@ namespace ACE.Server.Factories
                     $"Pets={ls.PetsCount} \n " +
                     $"EncapSpirits={ls.Spirits} \n " +
                     $"Scrolls={ls.Scrolls} \n " +
-                    $"Potions={ls.Poitions} \n " +
+                    $"Potions={ls.Potions} \n " +
                     $"Healing Kits={ls.HealingKit} \n " +
                     $"Level 8 Comps={ls.LevelEightComp} \n " +
                     $"DinnerWare={ls.DinnerWare} \n " +
                     $"Misc={ls.Misc} \n " +
                     $"Other={ls.OtherCount} \n " +
                     $"NullCount={ls.NullCount} \n " +
-                    $"Total Found={ls.ArmorCount + ls.MeleeWeaponCount + ls.CasterCount + ls.MissileWeaponCount + ls.JewelryCount + ls.GemCount + ls.ClothingCount + ls.Food + ls.SpellComponents + ls.Key + ls.ManaStone + ls.PetsCount + ls.Spirits + ls.Scrolls + ls.Poitions + ls.LevelEightComp + ls.HealingKit + ls.DinnerWare + ls.Misc + ls.OtherCount + ls.NullCount} \n " +
+                    $"Total Found={ls.ArmorCount + ls.MeleeWeaponCount + ls.CasterCount + ls.MissileWeaponCount + ls.JewelryCount + ls.GemCount + ls.ClothingCount + ls.Food + ls.SpellComponents + ls.Key + ls.ManaStone + ls.PetsCount + ls.Spirits + ls.Scrolls + ls.Potions + ls.LevelEightComp + ls.HealingKit + ls.DinnerWare + ls.Misc + ls.OtherCount + ls.NullCount} \n " +
                     $"TotalGenerated={ls.TotalItems}\n");
 
             displayStats += $"\n Drop Rates \n ----\n " +
@@ -729,7 +704,7 @@ namespace ACE.Server.Factories
                                 $"Pets= {ls.PetsCount / ls.TotalItems * 100}% \n " +
                                 $"Encap. Spirits= {ls.Spirits / ls.TotalItems * 100}% \n " +
                                 $"Scrolls= {ls.Scrolls / ls.TotalItems * 100}% \n " +
-                                $"Potions= {ls.Poitions / ls.TotalItems * 100}% \n " +
+                                $"Potions= {ls.Potions / ls.TotalItems * 100}% \n " +
                                 $"Healing Kits= {ls.HealingKit / ls.TotalItems * 100}% \n " +
                                 $"Level 8 Comps= {ls.LevelEightComp / ls.TotalItems * 100}% \n " +
                                 $"DinnerWare= {ls.DinnerWare / ls.TotalItems * 100}% \n " +
@@ -781,120 +756,6 @@ namespace ACE.Server.Factories
                 displayStats += $"\n Min Items on a corpse = {ls.MinItemsCreated}, Max Items on coprse = {ls.MaxItemsCreated} \n";
             }
             return displayStats;
-        }
-        public static LootStats SetLootStatsDefaults(LootStats ls, bool logstats)
-        {
-            // Counters
-            ls.ArmorCount = 0;
-            ls.MeleeWeaponCount = 0;
-            ls.CasterCount = 0;
-            ls.MissileWeaponCount = 0;
-            ls.JewelryCount = 0;
-            ls.JewelryNecklaceCount = 0;
-            ls.JewelryBraceletCount = 0;
-            ls.JewelryRingCount = 0;
-            ls.JewelryTrinketCount = 0;
-            ls.GemCount = 0;
-            ls.AetheriaCount = 0;
-            ls.ClothingCount = 0;
-            ls.OtherCount = 0;
-            ls.NullCount = 0;
-            ls.ItemMaxMana = 0;
-            ls.MinMana = 50000;
-            ls.MaxMana = 0;
-            ls.HasManaCount = 0;
-            ls.TotalMaxMana = 0;
-            ls.MinItemsCreated = 100;
-            ls.MaxItemsCreated = 0;
-            ls.ManaStone = 0;
-            ls.Key = 0;
-            ls.Food = 0;
-            ls.Misc = 0;
-            ls.SpellComponents = 0;
-            ls.TotalItems = 0;
-            ls.Scrolls = 0;
-            ls.PetsCount = 0;
-            ls.Spirits = 0;
-            ls.Poitions = 0;
-            ls.HealingKit = 0;
-            ls.DinnerWare = 0;
-            ls.LevelEightComp = 0;
-            ls.MinorCantripCount = 0;
-            ls.MajorCantripCount = 0;
-            ls.EpicCantripCount = 0;
-            ls.LegendaryCantripCount = 0;
-            ls.PetsTotalRatings = 0;
-            ls.PetRatingsEqualZero = 0;
-            ls.PetRatingsEqualOne = 0;
-            ls.PetRatingsOverTen = 0;
-            ls.PetRatingsOverTwenty = 0;
-            ls.PetRatingsOverThirty = 0;
-            ls.PetRatingsOverForty = 0;
-            ls.PetRatingsOverFifty = 0;
-            ls.PetRatingsOverSixty = 0;
-            ls.PetRatingsOverSeventy = 0;
-            ls.PetRatingsOverEighty = 0;
-            ls.PetRatingsOverNinety = 0;
-            ls.PetRatingsOverHundred = 0;
-            ls.MinAL = 1000;
-            ls.MaxAL = 0;
-            ls.CloakCount = 0;
-
-            // Tables
-            if (logstats == true)
-            {
-                ls.MeleeWeapons = $"-----Melee Weapons----\nSkill,Wield,Damage,MStrike,Variance,DefenseMod,MagicDBonus,MissileDBonus,Cantrip,Value,Burden,Type\n";
-            }
-            else
-                ls.MeleeWeapons = $"-----Melee Weapons----\n Skill \t\t\t Wield \t Damage \t MStrike \t Variance \t DefenseMod \t MagicDBonus \t MissileDBonus\tCantrip\t Value\t Burden\t Type \n";
-            if (logstats == true)
-            {
-                ls.MissileWeapons = $"-----Missile Weapons----\nType,Wield,Modifier,ElementBonus,DefenseMod,MagicDBonus,MissileDBonus,Value,Burden\n";
-            }
-            else
-                ls.MissileWeapons = $"-----Missile Weapons----\n Type \t Wield \t Modifier \tElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\t Value\t Burden\n";
-            if (logstats == true)
-            {
-                ls.CasterWeapons = $"-----Caster Weapons----\nWield,ElementBonus,DefenseMod,MagicDBonus,MissileDBonus,Value,MaxMana,Burden\n";
-            }
-            else
-                ls.CasterWeapons = $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus \t Value\t Burden\t MaxMana\n";
-            if (logstats == true)
-            {
-                ls.Armor = $"-----Armor----\nAL,Arcane,Value,Burden,Epic,Legendary,EquipmentSet,Type\n";
-            }
-            else
-                ls.Armor = $"-----Armor----\n AL\tArcane\tValue\tBurden\tEpics\tLegend\tEquipment Set\t\t\tType\n";
-            if (logstats == true)
-            {
-                ls.Pets = $"-----Pet Devices----\nLevel,Dmg,DmgR,Crit,CritD,CDR,CritR,Total\n";
-            }
-            else
-                ls.Pets = $"-----Pet Devices----\n Level \t Dmg \t DmgR \t Crit \t CritD \t CDR \t CritR \t Total \n";
-            if (logstats == true)
-            {
-                ls.Aetheria = $"-----Aetheria----\nColor,Level";
-            }
-            else
-                ls.Aetheria = $"-----Aetheria----\n Color \t Level\n";
-            if (logstats == true)
-            {
-                ls.Cloaks = $"-----Cloaks----\nLevel,Wield,Proc,Value,Set";
-            }
-            else
-                ls.Cloaks = $"-----Cloaks----\n Level\t Wield\t Proc\t Value\t Set \n";
-            if (logstats == true)
-            {
-                ls.Jewelry = $"-----Jewelry----\nSlot,Arcane,Value\n";
-            }
-            else
-                ls.Jewelry = $"-----Jewelry----\n Slot\t Arcane\t Value\n";
-            return ls;
-        }
-        public static string LogStats()
-        {
-            string test = "";
-            return test;
         }
     }
 }

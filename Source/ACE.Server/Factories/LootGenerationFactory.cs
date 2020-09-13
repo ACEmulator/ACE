@@ -224,7 +224,7 @@ namespace ACE.Server.Factories
                     break;
             }
 
-            var treasureItemType = TreasureItemTypeChances.Roll(treasureItemTypeChances);
+            var treasureItemType = treasureItemTypeChances.Roll();
 
             switch (treasureItemType)
             {

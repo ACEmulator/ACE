@@ -804,9 +804,8 @@ namespace ACE.Server.Factories
             }
 
             // try mutate item value, if MutateFilter exists
-            if (wo.HasMutateFilter(MutateFilter.Value))
+               if (wo.HasMutateFilter(MutateFilter.Value))
                 MutateValue(wo, profile.Tier);
-
         }
         private static int GetCloakMaxLevel(TreasureDeath profile)
         {

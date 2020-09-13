@@ -162,6 +162,7 @@ namespace ACE.Server.Factories
 
             /*double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+
             var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
             wo.Value = value;*/
 

@@ -56,6 +56,7 @@ namespace ACE.Server.Factories
                 wo.GemCount = ThreadSafeRandom.Next(1, 5);
 
             wo.GemType = RollGemType(profile.Tier);
+
             wo.LongDesc = wo.Name;
             //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship | AppraisalLongDescDecorations.AppendGemInfo;
 
