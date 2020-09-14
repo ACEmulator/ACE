@@ -422,7 +422,7 @@ namespace ACE.Server.WorldObjects
 
                         if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(equippedCloak, percent))
                         {
-                            var reduced = -Cloak.GetReducedAmount(-tryBoost);
+                            var reduced = -Cloak.GetReducedAmount(this, -tryBoost);
 
                             Cloak.ShowMessage(spellTarget, this, -tryBoost, -reduced);
 
@@ -571,7 +571,7 @@ namespace ACE.Server.WorldObjects
 
                         if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(equippedCloak, percent))
                         {
-                            var reduced = Cloak.GetReducedAmount(srcVitalChange);
+                            var reduced = Cloak.GetReducedAmount(this, srcVitalChange);
 
                             Cloak.ShowMessage(spellTarget, this, srcVitalChange, reduced);
 
