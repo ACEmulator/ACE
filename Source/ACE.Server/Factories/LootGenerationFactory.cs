@@ -227,7 +227,7 @@ namespace ACE.Server.Factories
                     break;
             }
 
-            var treasureItemType = TreasureItemTypeChances.Roll(treasureItemTypeChances);
+            var treasureItemType = treasureItemTypeChances.Roll();
 
             switch (treasureItemType)
             {
@@ -1012,6 +1012,11 @@ namespace ACE.Server.Factories
                     spells = null;
                     cantrips = null;
                     break;
+            }
+            if (wo.IsShield)
+            {
+                spells = ArmorSpells.Table;
+                cantrips = ArmorCantrips.Table;
             }
 
             if (spells == null || cantrips == null)
