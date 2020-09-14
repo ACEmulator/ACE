@@ -54,10 +54,10 @@ namespace ACE.Server.Factories
 
             wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
 
-            /*double materialMod = LootTables.getMaterialValueModifier(wo);
+            double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
-            wo.Value = value;*/
+            var value = GetValue(profile.Tier, wo.ItemWorkmanship.Value, gemMaterialMod, materialMod);
+            wo.Value = value;
 
             wo.ItemSkillLevelLimit = null;
 
@@ -85,10 +85,6 @@ namespace ACE.Server.Factories
                 wo.ItemDifficulty = null;
                 wo.ManaRate = null;
             }
-
-            // try mutate value, if MutateFilter exists
-            if (wo.HasMutateFilter(MutateFilter.Value))
-                MutateValue(wo, profile.Tier);
 
             RandomizeColor(wo);
         }

@@ -380,7 +380,7 @@ namespace ACE.Server.WorldObjects
             var player = this as Player;
             var creature = this as Creature;
 
-            var spellTarget = !spell.IsSelfTargeted ? target as Creature : creature;
+            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
 
             if (this is Gem || this is Food || this is Hook)
                 spellTarget = target as Creature;
@@ -422,7 +422,7 @@ namespace ACE.Server.WorldObjects
 
                         if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(equippedCloak, percent))
                         {
-                            var reduced = -Cloak.GetReducedAmount(-tryBoost);
+                            var reduced = -Cloak.GetReducedAmount(this, -tryBoost);
 
                             Cloak.ShowMessage(spellTarget, this, -tryBoost, -reduced);
 
@@ -571,7 +571,7 @@ namespace ACE.Server.WorldObjects
 
                         if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(equippedCloak, percent))
                         {
-                            var reduced = Cloak.GetReducedAmount(srcVitalChange);
+                            var reduced = Cloak.GetReducedAmount(this, srcVitalChange);
 
                             Cloak.ShowMessage(spellTarget, this, srcVitalChange, reduced);
 
