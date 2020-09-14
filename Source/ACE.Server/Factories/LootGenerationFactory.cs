@@ -1010,6 +1010,11 @@ namespace ACE.Server.Factories
                     cantrips = null;
                     break;
             }
+            if (wo.IsShield)
+            {
+                spells = ArmorSpells.Table;
+                cantrips = ArmorCantrips.Table;
+            }
 
             if (spells == null || cantrips == null)
                 return wo;
