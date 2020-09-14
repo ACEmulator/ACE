@@ -12,6 +12,7 @@ using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
+using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Factories.Enum;
 using ACE.Server.Factories.Tables;
@@ -20,7 +21,6 @@ using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
 using WeenieClassName = ACE.Server.Factories.Enum.WeenieClassName;
-using ACE.Server.Entity;
 
 namespace ACE.Server.Factories
 {
@@ -53,8 +53,6 @@ namespace ACE.Server.Factories
 
         public static List<WorldObject> CreateRandomLootObjects(TreasureDeath profile)
         {
-            return CreateRandomLootObjects_New(profile);
-
             stopwatch.Value.Restart();
 
             try
@@ -2550,10 +2548,6 @@ namespace ACE.Server.Factories
 
                     var weaponType = WeaponTypeChance.Roll(treasureDeath.Tier);
                     weenieClassName = WeaponWcids.Roll(treasureDeath, weaponType);
-                    if (weenieClassName == 0)
-                    {
-                        var debug = true;
-                    }
                     treasureItemType = weaponType;
                     break;
 
@@ -2561,10 +2555,6 @@ namespace ACE.Server.Factories
 
                     var armorType = ArmorTypeChance.Roll(treasureDeath.Tier);
                     weenieClassName = ArmorWcids.Roll(treasureDeath, ref armorType);
-                    if (weenieClassName == 0)
-                    {
-                        var debug = true;
-                    }
                     treasureItemType = armorType;
                     break;
 
@@ -2608,12 +2598,6 @@ namespace ACE.Server.Factories
                     weenieClassName = SpellComponentWcids.Roll(treasureDeath.Tier);
                     break;
             }
-
-            if (weenieClassName == 0)
-            {
-                var debug = true;
-            }
-
             return weenieClassName;
         }
 
