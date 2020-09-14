@@ -18,19 +18,15 @@ namespace ACE.Server.Factories.Enum
         HealKit,
         Lockpick,
         SpellComponent,
+
         LeatherArmor,
         StuddedLeatherArmor,
         ChainMailArmor,
         CovenantArmor,
         PlateMailArmor,
         HeritageLowArmor,
-        CeldonArmor,    // added, temporary
-        AmuliArmor,     // added, temporary
-        KoujiaArmor,    // added, temporary
         HeritageHighArmor,
-        LoricaArmor,    // added, temporary
-        NariyidArmor,   // added, temporary
-        ChiranArmor,    // added, temporary
+
         SwordWeapon,
         MaceWeapon,
         AxeWeapon,
@@ -40,6 +36,34 @@ namespace ACE.Server.Factories.Enum
         DaggerWeapon,
         BowWeapon,
         CrossbowWeapon,
-        AtlatlWeapon
+        AtlatlWeapon,
+
+        // added, temporary
+        CeldonArmor,
+        AmuliArmor,
+        KoujiaArmor,
+
+        LoricaArmor,
+        NariyidArmor,
+        ChiranArmor,
+
+        DiforsaArmor,   
+        TenassaArmor,
+        AlduressaArmor,
+
+        OlthoiArmor,
+        OlthoiHeritageArmor,
+        OlthoiCeldonArmor,
+        OlthoiAmuliArmor,
+        OlthoiKoujiaArmor,
+        OlthoiAlduressaArmor,
+
+        SocietyArmor,
+
+        HaebreanArmor,
+        KnorrAcademyArmor,
+        SedgemailLeatherArmor,
+
+        OverRobe,
     }
 }
