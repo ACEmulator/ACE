@@ -12,8 +12,6 @@ using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
-using ACE.Server.Entity;
-using ACE.Server.Factories;
 using ACE.Server.Factories.Enum;
 using ACE.Server.Factories.Tables;
 using ACE.Server.Factories.Tables.Wcids;
@@ -2646,7 +2644,7 @@ namespace ACE.Server.Factories
 
             if (wo == null)
             {
-                Console.WriteLine($"CreateAndMutateWcid({treasureDeath.TreasureType}, {(int)weenieClassName} - {weenieClassName}, {treasureItemType}, {isMagical}) - failed to create item");
+                log.Error($"CreateAndMutateWcid({treasureDeath.TreasureType}, {(int)weenieClassName} - {weenieClassName}, {treasureItemType}, {isMagical}) - failed to create item");
                 return null;
             }
 
