@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Enum;
 
@@ -43,5 +46,23 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ring,          0.06f ),
             ( WeenieClassName.ringjeweled,   0.24f ),
         };
+
+        private static List<ChanceTable<WeenieClassName>> tierChances = new List<ChanceTable<WeenieClassName>>()
+        {
+            T1_T2_Chances,
+            T1_T2_Chances,
+            T3_T4_Chances,
+            T3_T4_Chances,
+            T5_T6_Chances,
+            T5_T6_Chances,
+        };
+
+        public static WeenieClassName Roll(int tier)
+        {
+            // todo: add unique profiles for t7 / t8?
+            tier = Math.Clamp(tier, 1, 6);
+
+            return tierChances[tier - 1].Roll();
+        }
     }
 }

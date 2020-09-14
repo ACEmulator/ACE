@@ -14,8 +14,11 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Factories.Enum;
 using ACE.Server.Factories.Tables;
+using ACE.Server.Factories.Tables.Wcids;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
+
+using WeenieClassName = ACE.Server.Factories.Enum.WeenieClassName;
 
 namespace ACE.Server.Factories
 {
@@ -2412,6 +2415,118 @@ namespace ACE.Server.Factories
             return wo;
         }
 
+        public static WeenieClassName RollWcid(TreasureDeath treasureDeath, TreasureItemCategory category, int profile)
+        {
+            var treasureItemType = RollItemType(category, profile);
+
+            if (treasureItemType == TreasureItemType_Orig.Undef)
+            {
+                log.Error($"LootGenerationFactory.RollWcid({treasureDeath.TreasureType}, {category}, {profile}): treasureItemType == Undef");
+                return WeenieClassName.undef;
+            }
+
+            var weenieClassName = WeenieClassName.undef;
+
+            // TODO: quality mod
+            switch (treasureItemType)
+            {
+                case TreasureItemType_Orig.Pyreal:
+
+                    weenieClassName = WeenieClassName.coinstack;
+                    break;
+
+                case TreasureItemType_Orig.Gem:
+
+                    var gemClass = GemClassChance.Roll(treasureDeath.Tier);
+                    var gemResult = GemMaterialChance.Roll(gemClass);
+
+                    weenieClassName = gemResult.ClassName;
+                    break;
+
+                case TreasureItemType_Orig.Jewelry:
+
+                    weenieClassName = JewelryWcids.Roll(treasureDeath.Tier);
+                    break;
+
+                case TreasureItemType_Orig.ArtObject:
+
+                    weenieClassName = GenericWcids.Roll(treasureDeath.Tier);
+                    break;
+
+                case TreasureItemType_Orig.Weapon:
+
+                    var weaponType = WeaponTypeChance.Roll(treasureDeath.Tier);
+                    weenieClassName = WeaponWcids.Roll(treasureDeath, weaponType);
+                    break;
+
+                case TreasureItemType_Orig.Armor:
+
+                    var armorType = ArmorTypeChance.Roll(treasureDeath.Tier);
+                    weenieClassName = ArmorWcids.Roll(treasureDeath, armorType);
+                    break;
+
+                case TreasureItemType_Orig.Clothing:
+
+                    weenieClassName = ClothingWcids.Roll(treasureDeath);
+                    break;
+
+                case TreasureItemType_Orig.Scroll:
+
+                    weenieClassName = ScrollWcids.Roll();
+                    break;
+
+                case TreasureItemType_Orig.Caster:
+
+                    weenieClassName = CasterWcids.Roll(treasureDeath.Tier);
+                    break;
+
+                case TreasureItemType_Orig.ManaStone:
+
+                    weenieClassName = ManaStoneWcids.Roll(treasureDeath.Tier);
+                    break;
+
+                case TreasureItemType_Orig.Consumable:
+
+                    weenieClassName = ConsumeWcids.Roll(treasureDeath.Tier);
+                    break;
+
+                case TreasureItemType_Orig.HealKit:
+
+                    weenieClassName = HealKitWcids.Roll(treasureDeath.Tier);
+                    break;
+
+                case TreasureItemType_Orig.Lockpick:
+
+                    weenieClassName = LockpickWcids.Roll(treasureDeath.Tier);
+                    break;
+
+                case TreasureItemType_Orig.SpellComponent:
+
+                    weenieClassName = SpellComponentWcids.Roll(treasureDeath.Tier);
+                    break;
+            }
+            return weenieClassName;
+        }
+
+        /// <summary>
+        /// Rolls for an overall item type, based on the *_Chances columns in the treasure_death profile
+        /// </summary>
+        public static TreasureItemType_Orig RollItemType(TreasureItemCategory category, int profile)
+        {
+            switch (category)
+            {
+                case TreasureItemCategory.Item:
+                    return TreasureItemTypeChances_Orig.Roll(profile);
+
+                case TreasureItemCategory.MagicItem:
+                    return TreasureMagicItemTypeChances_Orig.Roll(profile);
+
+                case TreasureItemCategory.MundaneItem:
+                    return TreasureMundaneItemTypeChances_Orig.Roll(profile);
+            }
+            return TreasureItemType_Orig.Undef;
+        }
+
         public static MaterialType RollGemType(int tier)
         {
             // previous formula
@@ -2420,9 +2535,9 @@ namespace ACE.Server.Factories
             // the gem class value can be further utilized for determining the item's monetary value
             var gemClass = GemClassChance.Roll(tier);
 
-            var gemMaterial = GemMaterialChance.Roll(gemClass);
+            var gemResult = GemMaterialChance.Roll(gemClass);
 
-            return gemMaterial;
+            return gemResult.MaterialType;
         }
     }         
 }

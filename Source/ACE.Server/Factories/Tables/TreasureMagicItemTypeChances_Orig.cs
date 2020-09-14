@@ -7,6 +7,8 @@ namespace ACE.Server.Factories.Tables
 {
     public static class TreasureMagicItemTypeChances_Orig
     {
+        // indexed by TreasureDeath.MagicItemTreasureTypeSelectionChances
+
         private static readonly ChanceTable<TreasureItemType_Orig> magicItemTypeChancesGroup1 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Weapon,    1.0f ),
@@ -142,20 +144,32 @@ namespace ACE.Server.Factories.Tables
         /// <summary>
         /// TreasureDeath.MagicItemTreasureTypeSelectionChances indexes into these profiles
         /// </summary>
-        public static Dictionary<int, ChanceTable<TreasureItemType_Orig>> magicItemTypeChancesGroups = new Dictionary<int, ChanceTable<TreasureItemType_Orig>>()
+        public static List<ChanceTable<TreasureItemType_Orig>> magicItemTypeChancesGroups = new List<ChanceTable<TreasureItemType_Orig>>()
         {
-            { 1, magicItemTypeChancesGroup1 },
-            { 2, magicItemTypeChancesGroup2 },
-            { 3, magicItemTypeChancesGroup3 },
-            { 4, magicItemTypeChancesGroup4 },
-            { 5, magicItemTypeChancesGroup5 },
-            { 6, magicItemTypeChancesGroup6 },
-            { 7, magicItemTypeChancesGroup7 },
-            { 8, magicItemTypeChancesGroup8 },
-            { 9, magicItemTypeChancesGroup9 },
-            { 10, magicItemTypeChancesGroup10 },
-            { 11, magicItemTypeChancesGroup11 },
-            { 12, magicItemTypeChancesGroup12 },
+            magicItemTypeChancesGroup1,
+            magicItemTypeChancesGroup2,
+            magicItemTypeChancesGroup3,
+            magicItemTypeChancesGroup4,
+            magicItemTypeChancesGroup5,
+            magicItemTypeChancesGroup6,
+            magicItemTypeChancesGroup7,
+            magicItemTypeChancesGroup8,
+            magicItemTypeChancesGroup9,
+            magicItemTypeChancesGroup10,
+            magicItemTypeChancesGroup11,
+            magicItemTypeChancesGroup12,
         };
+
+        /// <summary>
+        /// Rolls for a TreasureItemType for a TreasureItemCategory.MagicItem
+        /// </summary>
+        /// <param name="magicItemTypeChancesIdx">From TreasureDeath.MagicItemTreasureTypeSelectionChances</param>
+        public static TreasureItemType_Orig Roll(int magicItemTypeChancesIdx)
+        {
+            if (magicItemTypeChancesIdx < 1 || magicItemTypeChancesIdx > magicItemTypeChancesGroups.Count)
+                return TreasureItemType_Orig.Undef;
+
+            return magicItemTypeChancesGroups[magicItemTypeChancesIdx - 1].Roll();
+        }
     }
 }

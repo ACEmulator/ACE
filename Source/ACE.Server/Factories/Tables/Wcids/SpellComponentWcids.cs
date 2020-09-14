@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Enum;
 
@@ -64,5 +67,23 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.peascarabgold,   0.50f ),
             ( WeenieClassName.peascarabpyreal, 0.25f ),
         };
+
+        private static readonly List<ChanceTable<WeenieClassName>> peaTiers = new List<ChanceTable<WeenieClassName>>()
+        {
+            T1_Chances,
+            T2_Chances,
+            T3_Chances,
+            T4_Chances,
+            T5_Chances,
+            T6_Chances,
+        };
+
+        public static WeenieClassName Roll(int tier)
+        {
+            // todo: add unique profiles for t7 / t8?
+            tier = Math.Clamp(tier, 1, 6);
+
+            return peaTiers[tier - 1].Roll();
+        }
     }
 }

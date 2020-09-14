@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 
-using ACE.Server.Factories.Entity;
+using ACE.Common;
 using ACE.Entity.Enum;
+using ACE.Server.Factories.Entity;
 
 namespace ACE.Server.Factories.Tables
 {
@@ -212,7 +213,14 @@ namespace ACE.Server.Factories.Tables
             if (!heritageDistGroups.TryGetValue(heritageDistGroup, out var table))
                 return HeritageGroup.Invalid;
 
-            return table.Roll();
+            var heritageGroup = table.Roll();
+
+            // until additional heritage tables are in,
+            // return an even chance of aluvian / gharu'ndim / sho for viamontian+
+            if (heritageGroup >= HeritageGroup.Viamontian)
+                heritageGroup = (HeritageGroup)ThreadSafeRandom.Next(1, 3);
+
+            return heritageGroup;
         }
     }
 }

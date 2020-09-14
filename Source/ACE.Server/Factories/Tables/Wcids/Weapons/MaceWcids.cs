@@ -1,5 +1,7 @@
+using ACE.Entity.Enum;
 using ACE.Server.Factories.Entity;
-using ACE.Server.Factories.Enum;
+
+using WeenieClassName = ACE.Server.Factories.Enum.WeenieClassName;
 
 namespace ACE.Server.Factories.Tables.Wcids
 {
@@ -76,5 +78,21 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.clubspikedfire,      0.03f ),
             ( WeenieClassName.clubspikedfrost,     0.03f ),
         };
+
+        public static WeenieClassName Roll(HeritageGroup heritage)
+        {
+            switch (heritage)
+            {
+                case HeritageGroup.Aluvian:
+                    return MaceWcids_Aluvian.Roll();
+
+                case HeritageGroup.Gharundim:
+                    return MaceWcids_Gharundim.Roll();
+
+                case HeritageGroup.Sho:
+                    return MaceWcids_Sho.Roll();
+            }
+            return WeenieClassName.undef;
+        }
     }
 }

@@ -7,6 +7,8 @@ namespace ACE.Server.Factories.Tables
 {
     public static class TreasureMundaneItemTypeChances_Orig
     {
+        // indexed by TreasureDeath.MundaneItemTypeSelectionChances
+
         private static readonly ChanceTable<TreasureItemType_Orig> mundaneItemTypeChancesGroup1 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Pyreal,         0.0f ),
@@ -88,18 +90,30 @@ namespace ACE.Server.Factories.Tables
         };
 
         /// <summary>
-        /// TreasureDeath.MundaneItemTreasureTypeSelectionChances indexes into these profiles
+        /// TreasureDeath.MundaneItemTypeSelectionChances indexes into these profiles
         /// </summary>
-        public static Dictionary<int, ChanceTable<TreasureItemType_Orig>> mundaneItemTypeChancesGroups = new Dictionary<int, ChanceTable<TreasureItemType_Orig>>()
+        public static List<ChanceTable<TreasureItemType_Orig>> mundaneItemTypeChancesGroups = new List<ChanceTable<TreasureItemType_Orig>>()
         {
-            { 1, mundaneItemTypeChancesGroup1 },
-            { 2, mundaneItemTypeChancesGroup2 },
-            { 3, mundaneItemTypeChancesGroup3 },
-            { 4, mundaneItemTypeChancesGroup4 },
-            { 5, mundaneItemTypeChancesGroup5 },
-            { 6, mundaneItemTypeChancesGroup6 },
-            { 7, mundaneItemTypeChancesGroup7 },
-            { 8, mundaneItemTypeChancesGroup8 },
+            mundaneItemTypeChancesGroup1,
+            mundaneItemTypeChancesGroup2,
+            mundaneItemTypeChancesGroup3,
+            mundaneItemTypeChancesGroup4,
+            mundaneItemTypeChancesGroup5,
+            mundaneItemTypeChancesGroup6,
+            mundaneItemTypeChancesGroup7,
+            mundaneItemTypeChancesGroup8,
         };
+
+        /// <summary>
+        /// Rolls for a TreasureItemType for a TreasureItemCategory.MundaneItem
+        /// </summary>
+        /// <param name="mundaneItemTypeChancesIdx">From TreasureDeath.MundaneItemTypeSelectionChances</param>
+        public static TreasureItemType_Orig Roll(int mundaneItemTypeChancesIdx)
+        {
+            if (mundaneItemTypeChancesIdx < 1 || mundaneItemTypeChancesIdx > mundaneItemTypeChancesGroups.Count)
+                return TreasureItemType_Orig.Undef;
+
+            return mundaneItemTypeChancesGroups[mundaneItemTypeChancesIdx - 1].Roll();
+        }
     }
 }
