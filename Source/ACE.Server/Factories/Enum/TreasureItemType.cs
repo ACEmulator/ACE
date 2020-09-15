@@ -1,3 +1,5 @@
+using System;
+
 namespace ACE.Server.Factories.Enum
 {
     public enum TreasureItemType

@@ -39,7 +39,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Returns TRUE If this object has a vitae penalty
         /// </summary>
-        public bool HasVitae => WorldObject.Biota.PropertiesEnchantmentRegistry.HasEnchantment((uint)SpellId.Vitae, WorldObject.BiotaDatabaseLock);
+        public virtual bool HasVitae => WorldObject.Biota.PropertiesEnchantmentRegistry.HasEnchantment((uint)SpellId.Vitae, WorldObject.BiotaDatabaseLock);
 
         /// <summary>
         /// Constructs a new EnchantmentManager for a WorldObject
@@ -82,12 +82,9 @@ namespace ACE.Server.WorldObjects.Managers
         {
             var spells = new List<PropertiesEnchantmentRegistry>();
 
-            var enchantments = from e in WorldObject.Biota.PropertiesEnchantmentRegistry.Clone(WorldObject.BiotaDatabaseLock)
-                group e by e.SpellCategory
-                into categories
-                select categories.OrderByDescending(c => c.LayerId).First();
+            var topLayerEnchantments = WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(WorldObject.BiotaDatabaseLock);
 
-            foreach (var enchantment in enchantments)
+            foreach (var enchantment in topLayerEnchantments)
             {
                 if (enchantment.SpellId > SpellCategory_Cooldown)
                     continue;
