@@ -11,13 +11,15 @@ namespace ACE.Server.Factories.Tables.Wcids
         private static readonly ChanceTable<WeenieClassName> T1_T4_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.crossbowlight,    0.50f ),
-            ( WeenieClassName.crossbowheavy,    0.50f ),
+            ( WeenieClassName.crossbowheavy,    0.25f ),
+            ( WeenieClassName.crossbowarbalest, 0.25f ),
         };
 
         private static readonly ChanceTable<WeenieClassName> T5_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.crossbowlight,                     0.25f ),
-            ( WeenieClassName.crossbowheavy,                     0.26f ),
+            ( WeenieClassName.crossbowheavy,                     0.13f ),
+            ( WeenieClassName.crossbowarbalest,                  0.13f ),
             ( WeenieClassName.crossbowslashing,                  0.035f ),
             ( WeenieClassName.crossbowpiercing,                  0.035f ),
             ( WeenieClassName.crossbowblunt,                     0.035f ),

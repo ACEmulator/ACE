@@ -29,7 +29,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace31818_piercingslingshot, 0.035f ),
             ( WeenieClassName.ace31814_bluntslingshot,    0.035f ),
             ( WeenieClassName.ace31813_acidslingshot,     0.035f ),
-            ( WeenieClassName.ace31813_acidslingshot,     0.035f ),
+            ( WeenieClassName.ace31816_fireslingshot,     0.035f ),
             ( WeenieClassName.ace31817_frostslingshot,    0.035f ),
             ( WeenieClassName.ace31815_electricslingshot, 0.035f ),
         };
@@ -47,7 +47,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace31818_piercingslingshot, 0.075f ),
             ( WeenieClassName.ace31814_bluntslingshot,    0.07f ),
             ( WeenieClassName.ace31813_acidslingshot,     0.07f ),
-            ( WeenieClassName.ace31813_acidslingshot,     0.07f ),
+            ( WeenieClassName.ace31816_fireslingshot,     0.07f ),
             ( WeenieClassName.ace31817_frostslingshot,    0.07f ),
             ( WeenieClassName.ace31815_electricslingshot, 0.07f ),
         };
