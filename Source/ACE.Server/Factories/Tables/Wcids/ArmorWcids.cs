@@ -405,50 +405,50 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace44803_empyreanoverrobe,   0.20f ),     // empyrean? t6+?
         };
 
-        public static WeenieClassName Roll(TreasureDeath treasureDeath, ref TreasureItemType_Orig armorType)
+        public static WeenieClassName Roll(TreasureDeath treasureDeath, ref TreasureArmorType armorType)
         {
             switch (armorType)
             {
-                case TreasureItemType_Orig.LeatherArmor:
+                case TreasureArmorType.Leather:
                     return LeatherWcids.Roll();
 
-                case TreasureItemType_Orig.StuddedLeatherArmor:
+                case TreasureArmorType.StuddedLeather:
                     return StuddedLeatherWcids.Roll();
 
-                case TreasureItemType_Orig.ChainMailArmor:
+                case TreasureArmorType.Chainmail:
                     return ChainmailWcids.Roll();
 
-                case TreasureItemType_Orig.PlateMailArmor:
-                    return RollPlatemailWcid(treasureDeath);
+                case TreasureArmorType.Platemail:
+                    return RollPlatemailWcid(treasureDeath, ref armorType);
 
-                case TreasureItemType_Orig.HeritageLowArmor:
+                case TreasureArmorType.HeritageLow:
                     return RollHeritageLowWcid(treasureDeath, ref armorType);
 
-                case TreasureItemType_Orig.CovenantArmor:
+                case TreasureArmorType.Covenant:
                     return CovenantWcids.Roll();
 
-                case TreasureItemType_Orig.HeritageHighArmor:
+                case TreasureArmorType.HeritageHigh:
                     return RollHeritageHighWcid(treasureDeath, ref armorType);
 
-                case TreasureItemType_Orig.OlthoiArmor:
+                case TreasureArmorType.Olthoi:
                     return OlthoiWcids.Roll();
 
-                case TreasureItemType_Orig.OlthoiHeritageArmor:
+                case TreasureArmorType.OlthoiHeritage:
                     return RollOlthoiHeritageWcid(treasureDeath, ref armorType);
 
-                case TreasureItemType_Orig.SocietyArmor:
-                    return RollSocietyArmor();
+                case TreasureArmorType.Society:
+                    return RollSocietyArmor(ref armorType);
 
-                case TreasureItemType_Orig.HaebreanArmor:
+                case TreasureArmorType.Haebrean:
                     return HaebreanWcids.Roll();
 
-                case TreasureItemType_Orig.KnorrAcademyArmor:
+                case TreasureArmorType.KnorrAcademy:
                     return KnorrAcademyWcids.Roll();
 
-                case TreasureItemType_Orig.SedgemailLeatherArmor:
+                case TreasureArmorType.Sedgemail:
                     return SedgemailLeatherWcids.Roll();
 
-                case TreasureItemType_Orig.OverRobe:
+                case TreasureArmorType.Overrobe:
                     return RollOverRobeWcid(treasureDeath);
             }
             return WeenieClassName.undef;
@@ -459,103 +459,107 @@ namespace ACE.Server.Factories.Tables.Wcids
             return HeritageChance.Roll(treasureDeath.UnknownChances);
         }
 
-        public static WeenieClassName RollPlatemailWcid(TreasureDeath treasureDeath)
+        public static WeenieClassName RollPlatemailWcid(TreasureDeath treasureDeath, ref TreasureArmorType armorType)
         {
             var heritage = RollHeritage(treasureDeath);
 
             switch (heritage)
             {
                 case HeritageGroup.Aluvian:
+                    armorType = TreasureArmorType.Platemail;
                     return PlatemailWcids.Roll();
 
                 case HeritageGroup.Gharundim:
+                    armorType = TreasureArmorType.Scalemail;
                     return ScalemailWcids.Roll();
 
                 case HeritageGroup.Sho:
+                    armorType = TreasureArmorType.Yoroi;
                     return YoroiWcids.Roll();
 
                 case HeritageGroup.Viamontian:
+                    armorType = TreasureArmorType.Diforsa;
                     return DiforsaWcids.Roll();
             }
             return WeenieClassName.undef;
         }
 
-        public static WeenieClassName RollHeritageLowWcid(TreasureDeath treasureDeath, ref TreasureItemType_Orig armorType)
+        public static WeenieClassName RollHeritageLowWcid(TreasureDeath treasureDeath, ref TreasureArmorType armorType)
         {
             var heritage = RollHeritage(treasureDeath);
 
             switch (heritage)
             {
                 case HeritageGroup.Aluvian:
-                    armorType = TreasureItemType_Orig.CeldonArmor;
+                    armorType = TreasureArmorType.Celdon;
                     return CeldonWcids.Roll();
 
                 case HeritageGroup.Gharundim:
-                    armorType = TreasureItemType_Orig.AmuliArmor;
+                    armorType = TreasureArmorType.Amuli;
                     return AmuliWcids.Roll();
 
                 case HeritageGroup.Sho:
-                    armorType = TreasureItemType_Orig.KoujiaArmor;
+                    armorType = TreasureArmorType.Koujia;
                     return KoujiaWcids.Roll();
 
                 case HeritageGroup.Viamontian:
-                    armorType = TreasureItemType_Orig.TenassaArmor;
+                    armorType = TreasureArmorType.Tenassa;
                     return TenassaWcids.Roll();
             }
             return WeenieClassName.undef;
         }
 
-        public static WeenieClassName RollHeritageHighWcid(TreasureDeath treasureDeath, ref TreasureItemType_Orig armorType)
+        public static WeenieClassName RollHeritageHighWcid(TreasureDeath treasureDeath, ref TreasureArmorType armorType)
         {
             var heritage = RollHeritage(treasureDeath);
 
             switch (heritage)
             {
                 case HeritageGroup.Aluvian:
-                    armorType = TreasureItemType_Orig.LoricaArmor;
+                    armorType = TreasureArmorType.Lorica;
                     return LoricaWcids.Roll();
 
                 case HeritageGroup.Gharundim:
-                    armorType = TreasureItemType_Orig.NariyidArmor;
+                    armorType = TreasureArmorType.Nariyid;
                     return NariyidWcids.Roll();
 
                 case HeritageGroup.Sho:
-                    armorType = TreasureItemType_Orig.ChiranArmor;
+                    armorType = TreasureArmorType.Chiran;
                     return ChiranWcids.Roll();
 
                 case HeritageGroup.Viamontian:
-                    armorType = TreasureItemType_Orig.AlduressaArmor;
+                    armorType = TreasureArmorType.Alduressa;
                     return AlduressaWcids.Roll();
             }
             return WeenieClassName.undef;
         }
 
-        public static WeenieClassName RollOlthoiHeritageWcid(TreasureDeath treasureDeath, ref TreasureItemType_Orig armorType)
+        public static WeenieClassName RollOlthoiHeritageWcid(TreasureDeath treasureDeath, ref TreasureArmorType armorType)
         {
             var heritage = RollHeritage(treasureDeath);
 
             switch (heritage)
             {
                 case HeritageGroup.Aluvian:
-                    armorType = TreasureItemType_Orig.OlthoiCeldonArmor;
+                    armorType = TreasureArmorType.OlthoiCeldon;
                     return OlthoiCeldonWcids.Roll();
 
                 case HeritageGroup.Gharundim:
-                    armorType = TreasureItemType_Orig.OlthoiAmuliArmor;
+                    armorType = TreasureArmorType.OlthoiAmuli;
                     return OlthoiAmuliWcids.Roll();
 
                 case HeritageGroup.Sho:
-                    armorType = TreasureItemType_Orig.OlthoiKoujiaArmor;
+                    armorType = TreasureArmorType.OlthoiKoujia;
                     return OlthoiKoujiaWcids.Roll();
 
                 case HeritageGroup.Viamontian:
-                    armorType = TreasureItemType_Orig.OlthoiAlduressaArmor;
+                    armorType = TreasureArmorType.OlthoiAlduressa;
                     return OlthoiAlduressaWcids.Roll();
             }
             return WeenieClassName.undef;
         }
 
-        public static WeenieClassName RollSocietyArmor()
+        public static WeenieClassName RollSocietyArmor(ref TreasureArmorType armorType)
         {
             // no heritage, even chance?
             var rng = ThreadSafeRandom.Next(1, 3);
@@ -563,10 +567,13 @@ namespace ACE.Server.Factories.Tables.Wcids
             switch (rng)
             {
                 case 1:
+                    armorType = TreasureArmorType.CelestialHand;
                     return CelestialHandWcids.Roll();
                 case 2:
+                    armorType = TreasureArmorType.EldrytchWeb;
                     return EldrytchWebWcids.Roll();
                 case 3:
+                    armorType = TreasureArmorType.RadiantBlood;
                     return RadiantBloodWcids.Roll();
             }
             return WeenieClassName.undef;

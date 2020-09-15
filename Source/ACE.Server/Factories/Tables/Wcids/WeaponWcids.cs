@@ -8,39 +8,42 @@ namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class WeaponWcids
     {
-        public static WeenieClassName Roll(TreasureDeath treasureDeath, TreasureItemType_Orig weaponType)
+        public static WeenieClassName Roll(TreasureDeath treasureDeath, TreasureWeaponType weaponType)
         {
             switch (weaponType)
             {
-                case TreasureItemType_Orig.SwordWeapon:
+                case TreasureWeaponType.Sword:
                     return RollSwordWcid(treasureDeath);
 
-                case TreasureItemType_Orig.MaceWeapon:
+                case TreasureWeaponType.Mace:
                     return RollMaceWcid(treasureDeath);
 
-                case TreasureItemType_Orig.AxeWeapon:
+                case TreasureWeaponType.Axe:
                     return RollAxeWcid(treasureDeath);
 
-                case TreasureItemType_Orig.SpearWeapon:
+                case TreasureWeaponType.Spear:
                     return RollSpearWcid(treasureDeath);
 
-                case TreasureItemType_Orig.UnarmedWeapon:
+                case TreasureWeaponType.Unarmed:
                     return RollUnarmedWcid(treasureDeath);
 
-                case TreasureItemType_Orig.StaffWeapon:
+                case TreasureWeaponType.Staff:
                     return RollStaffWcid(treasureDeath);
 
-                case TreasureItemType_Orig.DaggerWeapon:
+                case TreasureWeaponType.Dagger:
                     return RollDaggerWcid(treasureDeath);
 
-                case TreasureItemType_Orig.BowWeapon:
+                case TreasureWeaponType.Bow:
                     return RollBowWcid(treasureDeath);
 
-                case TreasureItemType_Orig.CrossbowWeapon:
+                case TreasureWeaponType.Crossbow:
                     return RollCrossbowWcid(treasureDeath);
 
-                case TreasureItemType_Orig.AtlatlWeapon:
+                case TreasureWeaponType.Atlatl:
                     return RollAtlatlWcid(treasureDeath);
+
+                case TreasureWeaponType.Caster:
+                    return RollCaster(treasureDeath);
             }
             return WeenieClassName.undef;
         }
@@ -145,6 +148,11 @@ namespace ACE.Server.Factories.Tables.Wcids
         public static WeenieClassName RollAtlatlWcid(TreasureDeath treasureDeath)
         {
             return AtlatlWcids.Roll(treasureDeath.Tier);
+        }
+
+        public static WeenieClassName RollCaster(TreasureDeath treasureDeath)
+        {
+            return CasterWcids.Roll(treasureDeath.Tier);
         }
     }
 }

@@ -12,6 +12,7 @@ using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
+using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Enum;
 using ACE.Server.Factories.Tables;
 using ACE.Server.Factories.Tables.Wcids;
@@ -2504,24 +2505,24 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        public static WeenieClassName RollWcid(TreasureDeath treasureDeath, TreasureItemCategory category, out TreasureItemType_Orig treasureItemType)
+        public static TreasureRoll RollWcid(TreasureDeath treasureDeath, TreasureItemCategory category)
         {
-            treasureItemType = RollItemType(treasureDeath, category);
+            var treasureItemType = RollItemType(treasureDeath, category);
 
             if (treasureItemType == TreasureItemType_Orig.Undef)
             {
                 log.Error($"LootGenerationFactory.RollWcid({treasureDeath.TreasureType}, {category}): treasureItemType == Undef");
-                return WeenieClassName.undef;
+                return null;
             }
 
-            var weenieClassName = WeenieClassName.undef;
+            var treasureRoll = new TreasureRoll(treasureItemType);
 
             // TODO: quality mod
             switch (treasureItemType)
             {
                 case TreasureItemType_Orig.Pyreal:
 
-                    weenieClassName = WeenieClassName.coinstack;
+                    treasureRoll.Wcid = WeenieClassName.coinstack;
                     break;
 
                 case TreasureItemType_Orig.Gem:
@@ -2529,74 +2530,72 @@ namespace ACE.Server.Factories
                     var gemClass = GemClassChance.Roll(treasureDeath.Tier);
                     var gemResult = GemMaterialChance.Roll(gemClass);
 
-                    weenieClassName = gemResult.ClassName;
+                    treasureRoll.Wcid = gemResult.ClassName;
                     break;
 
                 case TreasureItemType_Orig.Jewelry:
 
-                    weenieClassName = JewelryWcids.Roll(treasureDeath.Tier);
+                    treasureRoll.Wcid = JewelryWcids.Roll(treasureDeath.Tier);
                     break;
 
                 case TreasureItemType_Orig.ArtObject:
 
-                    weenieClassName = GenericWcids.Roll(treasureDeath.Tier);
+                    treasureRoll.Wcid = GenericWcids.Roll(treasureDeath.Tier);
                     break;
 
                 case TreasureItemType_Orig.Weapon:
 
-                    var weaponType = WeaponTypeChance.Roll(treasureDeath.Tier);
-                    weenieClassName = WeaponWcids.Roll(treasureDeath, weaponType);
-                    treasureItemType = weaponType;
+                    treasureRoll.WeaponType = WeaponTypeChance.Roll(treasureDeath.Tier);
+                    treasureRoll.Wcid = WeaponWcids.Roll(treasureDeath, treasureRoll.WeaponType);
                     break;
 
                 case TreasureItemType_Orig.Armor:
 
-                    var armorType = ArmorTypeChance.Roll(treasureDeath.Tier);
-                    weenieClassName = ArmorWcids.Roll(treasureDeath, ref armorType);
-                    treasureItemType = armorType;
+                    treasureRoll.ArmorType = ArmorTypeChance.Roll(treasureDeath.Tier);
+                    treasureRoll.Wcid = ArmorWcids.Roll(treasureDeath, ref treasureRoll.ArmorType);
                     break;
 
                 case TreasureItemType_Orig.Clothing:
 
-                    weenieClassName = ClothingWcids.Roll(treasureDeath);
+                    treasureRoll.Wcid = ClothingWcids.Roll(treasureDeath);
                     break;
 
                 case TreasureItemType_Orig.Scroll:
 
-                    weenieClassName = ScrollWcids.Roll();
+                    treasureRoll.Wcid = ScrollWcids.Roll();
                     break;
 
                 case TreasureItemType_Orig.Caster:
 
-                    weenieClassName = CasterWcids.Roll(treasureDeath.Tier);
+                    treasureRoll.Wcid = CasterWcids.Roll(treasureDeath.Tier);
                     break;
 
                 case TreasureItemType_Orig.ManaStone:
 
-                    weenieClassName = ManaStoneWcids.Roll(treasureDeath.Tier);
+                    treasureRoll.Wcid = ManaStoneWcids.Roll(treasureDeath.Tier);
                     break;
 
                 case TreasureItemType_Orig.Consumable:
 
-                    weenieClassName = ConsumeWcids.Roll(treasureDeath.Tier);
+                    treasureRoll.Wcid = ConsumeWcids.Roll(treasureDeath.Tier);
                     break;
 
                 case TreasureItemType_Orig.HealKit:
 
-                    weenieClassName = HealKitWcids.Roll(treasureDeath.Tier);
+                    treasureRoll.Wcid = HealKitWcids.Roll(treasureDeath.Tier);
                     break;
 
                 case TreasureItemType_Orig.Lockpick:
 
-                    weenieClassName = LockpickWcids.Roll(treasureDeath.Tier);
+                    treasureRoll.Wcid = LockpickWcids.Roll(treasureDeath.Tier);
                     break;
 
                 case TreasureItemType_Orig.SpellComponent:
 
-                    weenieClassName = SpellComponentWcids.Roll(treasureDeath.Tier);
+                    treasureRoll.Wcid = SpellComponentWcids.Roll(treasureDeath.Tier);
                     break;
             }
-            return weenieClassName;
+            return treasureRoll;
         }
 
         /// <summary>
@@ -2633,22 +2632,26 @@ namespace ACE.Server.Factories
 
         public static WorldObject CreateRandomLootObjects_New(TreasureDeath treasureDeath, TreasureItemCategory category)
         {
-            var wcid = RollWcid(treasureDeath, category, out var treasureItemType);
-            var wo = CreateAndMutateWcid(treasureDeath, wcid, treasureItemType, category == TreasureItemCategory.MagicItem);
+            var treasureRoll = RollWcid(treasureDeath, category);
+
+            if (treasureRoll == null) return null;
+
+            var wo = CreateAndMutateWcid(treasureDeath, treasureRoll, category == TreasureItemCategory.MagicItem);
+
             return wo;
         }
 
-        public static WorldObject CreateAndMutateWcid(TreasureDeath treasureDeath, WeenieClassName weenieClassName, TreasureItemType_Orig treasureItemType, bool isMagical)
+        public static WorldObject CreateAndMutateWcid(TreasureDeath treasureDeath, TreasureRoll treasureRoll, bool isMagical)
         {
-            var wo = WorldObjectFactory.CreateNewWorldObject((uint)weenieClassName);
+            var wo = WorldObjectFactory.CreateNewWorldObject((uint)treasureRoll.Wcid);
 
             if (wo == null)
             {
-                log.Error($"CreateAndMutateWcid({treasureDeath.TreasureType}, {(int)weenieClassName} - {weenieClassName}, {treasureItemType}, {isMagical}) - failed to create item");
+                log.Error($"CreateAndMutateWcid({treasureDeath.TreasureType}, {(int)treasureRoll.Wcid} - {treasureRoll.Wcid}, {treasureRoll.GetItemType()}, {isMagical}) - failed to create item");
                 return null;
             }
 
-            switch (treasureItemType)
+            switch (treasureRoll.ItemType)
             {
                 case TreasureItemType_Orig.Pyreal:
                     // TODO: better algorithm?
@@ -2664,31 +2667,21 @@ namespace ACE.Server.Factories
                     MutateDinnerware(wo, treasureDeath.Tier);
                     break;
 
-                case TreasureItemType_Orig.SwordWeapon:
-                case TreasureItemType_Orig.MaceWeapon:
-                case TreasureItemType_Orig.AxeWeapon:
-                case TreasureItemType_Orig.SpearWeapon:
-                case TreasureItemType_Orig.UnarmedWeapon:
-                case TreasureItemType_Orig.StaffWeapon:
-                case TreasureItemType_Orig.DaggerWeapon:
-                case TreasureItemType_Orig.BowWeapon:
-                case TreasureItemType_Orig.CrossbowWeapon:
-                case TreasureItemType_Orig.AtlatlWeapon:
-                    MutateMeleeWeapon(wo, treasureDeath, isMagical);
+                case TreasureItemType_Orig.Weapon:
+
+                    if (treasureRoll.WeaponType == TreasureWeaponType.Caster)
+                    {
+                        var wield = wo.W_DamageType != DamageType.Undef ? GetWieldDifficulty(treasureDeath.Tier, WieldType.Caster) : 0;
+                        MutateCaster(wo, treasureDeath, isMagical, wield);
+                    }
+                    else
+                        MutateMeleeWeapon(wo, treasureDeath, isMagical);
+
                     break;
 
-                case TreasureItemType_Orig.LeatherArmor:
-                case TreasureItemType_Orig.StuddedLeatherArmor:
-                case TreasureItemType_Orig.ChainMailArmor:
-                case TreasureItemType_Orig.CovenantArmor:
-                case TreasureItemType_Orig.PlateMailArmor:
-                case TreasureItemType_Orig.CeldonArmor:
-                case TreasureItemType_Orig.AmuliArmor:
-                case TreasureItemType_Orig.KoujiaArmor:
-                case TreasureItemType_Orig.LoricaArmor:
-                case TreasureItemType_Orig.NariyidArmor:
-                case TreasureItemType_Orig.ChiranArmor:
-                    var armorType = treasureItemType.ToACEArmor();
+                case TreasureItemType_Orig.Armor:
+
+                    var armorType = treasureRoll.ArmorType.ToACE();
                     MutateArmor(wo, treasureDeath, isMagical, armorType);
                     break;
 
@@ -2698,10 +2691,6 @@ namespace ACE.Server.Factories
 
                 case TreasureItemType_Orig.Scroll:
                     wo = CreateRandomScroll(treasureDeath.Tier);     // using original method
-                    break;
-                case TreasureItemType_Orig.Caster:
-                    var wield = wo.W_DamageType != DamageType.Undef ? GetWieldDifficulty(treasureDeath.Tier, WieldType.Caster) : 0;
-                    MutateCaster(wo, treasureDeath, isMagical, wield);
                     break;
 
                 // other mundane items (mana stones, food/drink, healing kits, lockpicks, and spell components/peas) don't get mutated
