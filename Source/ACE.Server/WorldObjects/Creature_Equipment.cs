@@ -37,6 +37,8 @@ namespace ACE.Server.WorldObjects
                 var worldObject = WorldObjectFactory.CreateWorldObject(biota);
                 EquippedObjects[worldObject.Guid] = worldObject;
 
+                AddItemToEquippedItemsRatingCache(worldObject);
+
                 EncumbranceVal += (worldObject.EncumbranceVal ?? 0);
             }
 
@@ -191,6 +193,39 @@ namespace ACE.Server.WorldObjects
             return weapon;
         }
 
+        private readonly Dictionary<PropertyInt, byte> equippedItemsRatingCache = new Dictionary<PropertyInt, byte>
+        {
+            { PropertyInt.CritRating, 0 },
+            { PropertyInt.CritDamageRating, 0 },
+            { PropertyInt.CritResistRating, 0 },
+            { PropertyInt.CritDamageResistRating, 0 },
+        };
+
+        private void AddItemToEquippedItemsRatingCache(WorldObject wo)
+        {
+            equippedItemsRatingCache[PropertyInt.CritRating] += (byte)(wo.GearCrit ?? 0);
+            equippedItemsRatingCache[PropertyInt.CritDamageRating] += (byte)(wo.GearCritDamage ?? 0);
+            equippedItemsRatingCache[PropertyInt.CritResistRating] += (byte)(wo.GearCritResist ?? 0);
+            equippedItemsRatingCache[PropertyInt.CritDamageResistRating] += (byte)(wo.GearCritDamageResist ?? 0);
+        }
+
+        private void RemoveItemFromEquippedItemsRatingCache(WorldObject wo)
+        {
+            equippedItemsRatingCache[PropertyInt.CritRating] -= (byte)(wo.GearCrit ?? 0);
+            equippedItemsRatingCache[PropertyInt.CritDamageRating] -= (byte)(wo.GearCritDamage ?? 0);
+            equippedItemsRatingCache[PropertyInt.CritResistRating] -= (byte)(wo.GearCritResist ?? 0);
+            equippedItemsRatingCache[PropertyInt.CritDamageResistRating] -= (byte)(wo.GearCritDamageResist ?? 0);
+        }
+
+        public int GetEquippedItemsRatingSum(PropertyInt rating)
+        {
+            if (equippedItemsRatingCache.TryGetValue(rating, out var value))
+                return value;
+
+            log.Error($"Creature_Equipment.GetEquippedItemsRatingsSum() does not support {rating}");
+            return 0;
+        }
+
         /// <summary>
         /// Try to wield an object for non-player creatures
         /// </summary>
@@ -239,6 +274,8 @@ namespace ACE.Server.WorldObjects
             worldObject.Wielder = this;
 
             EquippedObjects[worldObject.Guid] = worldObject;
+
+            AddItemToEquippedItemsRatingCache(worldObject);
 
             EncumbranceVal += (worldObject.EncumbranceVal ?? 0);
             Value += (worldObject.Value ?? 0);
@@ -296,6 +333,8 @@ namespace ACE.Server.WorldObjects
                 wieldedLocation = 0;
                 return false;
             }
+
+            RemoveItemFromEquippedItemsRatingCache(worldObject);
 
             wieldedLocation = worldObject.GetProperty(PropertyInt.CurrentWieldedLocation) ?? 0;
 

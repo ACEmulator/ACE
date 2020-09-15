@@ -305,8 +305,7 @@ namespace ACE.Server.WorldObjects
             var enchantments = EnchantmentManager.GetRating(PropertyInt.CritRating);
 
             // equipment ratings
-            // TODO: caching?
-            var equipment = EquippedObjects.Values.Sum(i => i.GearCrit ?? 0);
+            var equipment = GetEquippedItemsRatingSum(PropertyInt.CritRating);
 
             // augmentations
             var augBonus = 0;
@@ -326,8 +325,7 @@ namespace ACE.Server.WorldObjects
             var enchantments = EnchantmentManager.GetRating(PropertyInt.CritDamageRating);
 
             // equipment ratings
-            // TODO: caching?
-            var equipment = EquippedObjects.Values.Sum(i => i.GearCritDamage ?? 0);
+            var equipment = GetEquippedItemsRatingSum(PropertyInt.CritDamageRating);
 
             // augmentations
             var augBonus = 0;
@@ -353,8 +351,7 @@ namespace ACE.Server.WorldObjects
             var enchantments = EnchantmentManager.GetRating(PropertyInt.CritResistRating);
 
             // equipment ratings
-            // TODO: caching?
-            var equipment = EquippedObjects.Values.Sum(i => i.GearCritResist ?? 0);
+            var equipment = GetEquippedItemsRatingSum(PropertyInt.CritResistRating);
 
             // no augs / lum augs?
             return critResistRating + equipment + enchantments;
@@ -369,8 +366,7 @@ namespace ACE.Server.WorldObjects
             var enchantments = EnchantmentManager.GetRating(PropertyInt.CritDamageResistRating);
 
             // equipment ratings
-            // TODO: caching?
-            var equipment = EquippedObjects.Values.Sum(i => i.GearCritDamageResist ?? 0);
+            var equipment = GetEquippedItemsRatingSum(PropertyInt.CritDamageResistRating);
 
             var lumAugBonus = 0;
             if (this is Player player)
