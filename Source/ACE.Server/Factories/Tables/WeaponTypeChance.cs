@@ -8,37 +8,37 @@ namespace ACE.Server.Factories.Tables
 {
     public static class WeaponTypeChance
     {
-        private static readonly ChanceTable<TreasureItemType_Orig> T1_T4_Chances = new ChanceTable<TreasureItemType_Orig>()
+        private static readonly ChanceTable<TreasureWeaponType> T1_T4_Chances = new ChanceTable<TreasureWeaponType>()
         {
-            ( TreasureItemType_Orig.SwordWeapon,    0.12f ),
-            ( TreasureItemType_Orig.MaceWeapon,     0.12f ),
-            ( TreasureItemType_Orig.AxeWeapon,      0.12f ),
-            ( TreasureItemType_Orig.SpearWeapon,    0.12f ),
-            ( TreasureItemType_Orig.UnarmedWeapon,  0.12f ),
-            ( TreasureItemType_Orig.StaffWeapon,    0.12f ),
-            ( TreasureItemType_Orig.DaggerWeapon,   0.12f ),
-            ( TreasureItemType_Orig.BowWeapon,      0.04f ),
-            ( TreasureItemType_Orig.CrossbowWeapon, 0.04f ),
-            ( TreasureItemType_Orig.AtlatlWeapon,   0.04f ),
-            ( TreasureItemType_Orig.Caster,         0.04f ),
+            ( TreasureWeaponType.Sword,    0.12f ),
+            ( TreasureWeaponType.Mace,     0.12f ),
+            ( TreasureWeaponType.Axe,      0.12f ),
+            ( TreasureWeaponType.Spear,    0.12f ),
+            ( TreasureWeaponType.Unarmed,  0.12f ),
+            ( TreasureWeaponType.Staff,    0.12f ),
+            ( TreasureWeaponType.Dagger,   0.12f ),
+            ( TreasureWeaponType.Bow,      0.04f ),
+            ( TreasureWeaponType.Crossbow, 0.04f ),
+            ( TreasureWeaponType.Atlatl,   0.04f ),
+            ( TreasureWeaponType.Caster,   0.04f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> T5_T6_Chances = new ChanceTable<TreasureItemType_Orig>()
+        private static readonly ChanceTable<TreasureWeaponType> T5_T6_Chances = new ChanceTable<TreasureWeaponType>()
         {
-            ( TreasureItemType_Orig.SwordWeapon,    0.09f ),
-            ( TreasureItemType_Orig.MaceWeapon,     0.09f ),
-            ( TreasureItemType_Orig.AxeWeapon,      0.09f ),
-            ( TreasureItemType_Orig.SpearWeapon,    0.09f ),
-            ( TreasureItemType_Orig.UnarmedWeapon,  0.09f ),
-            ( TreasureItemType_Orig.StaffWeapon,    0.09f ),
-            ( TreasureItemType_Orig.DaggerWeapon,   0.09f ),
-            ( TreasureItemType_Orig.BowWeapon,      0.09f ),
-            ( TreasureItemType_Orig.CrossbowWeapon, 0.09f ),
-            ( TreasureItemType_Orig.AtlatlWeapon,   0.09f ),
-            ( TreasureItemType_Orig.Caster,         0.10f ),
+            ( TreasureWeaponType.Sword,    0.09f ),
+            ( TreasureWeaponType.Mace,     0.09f ),
+            ( TreasureWeaponType.Axe,      0.09f ),
+            ( TreasureWeaponType.Spear,    0.09f ),
+            ( TreasureWeaponType.Unarmed,  0.09f ),
+            ( TreasureWeaponType.Staff,    0.09f ),
+            ( TreasureWeaponType.Dagger,   0.09f ),
+            ( TreasureWeaponType.Bow,      0.09f ),
+            ( TreasureWeaponType.Crossbow, 0.09f ),
+            ( TreasureWeaponType.Atlatl,   0.09f ),
+            ( TreasureWeaponType.Caster,   0.10f ),
         };
 
-        private static readonly List<ChanceTable<TreasureItemType_Orig>> weaponTiers = new List<ChanceTable<TreasureItemType_Orig>>()
+        private static readonly List<ChanceTable<TreasureWeaponType>> weaponTiers = new List<ChanceTable<TreasureWeaponType>>()
         {
             T1_T4_Chances,
             T1_T4_Chances,
@@ -48,7 +48,7 @@ namespace ACE.Server.Factories.Tables
             T5_T6_Chances,
         };
 
-        public static TreasureItemType_Orig Roll(int tier)
+        public static TreasureWeaponType Roll(int tier)
         {
             // todo: add unique profiles for t7 / t8?
             tier = Math.Clamp(tier, 1, 6);
