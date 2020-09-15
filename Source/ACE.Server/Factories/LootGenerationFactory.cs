@@ -49,36 +49,6 @@ namespace ACE.Server.Factories
             return worldObjects;
         }
 
-        // Enum used for adjusting the loot bias for the various types of Mana forge chests
-        // TODO: port this over to TreasureItemTypeChances
-        /*[Flags]
-        public enum LootBias
-        {
-            UnBiased   = 0x0,
-            Armor      = 0x1,
-            Weapons    = 0x2,
-            SpellComps = 0x4,
-            Clothing   = 0x8,
-            Jewelry    = 0x10,
-
-            MagicEquipment = Armor | Weapons | SpellComps | Clothing | Jewelry,
-            MixedEquipment = Armor | Weapons | SpellComps | Clothing | Jewelry
-        }*/
-
-        public enum LootBias
-        {
-            UnBiased,
-
-            Armor,
-            Weapons,
-            SpellComps,
-            Clothing,
-            Jewelry,
-
-            MagicEquipment,
-            MixedEquipment
-        };
-
         public static List<WorldObject> CreateRandomLootObjects(TreasureDeath profile)
         {
             stopwatch.Value.Restart();
@@ -203,6 +173,125 @@ namespace ACE.Server.Factories
             }
         }
 
+        public static List<WorldObject> CreateRandomLootObjects_New(TreasureDeath profile)
+        {
+            stopwatch.Value.Restart();
+
+            try
+            {
+                int numItems;
+                WorldObject lootWorldObject;
+
+                LootBias lootBias = LootBias.UnBiased;
+                var loot = new List<WorldObject>();
+
+                switch (profile.TreasureType)
+                {
+                    case 1001: // Mana Forge Chest, Advanced Equipment Chest, and Mixed Equipment Chest
+                    case 2001:
+                        lootBias = LootBias.MixedEquipment;
+                        break;
+                    case 1002: // Armor Chest
+                    case 2002:
+                        lootBias = LootBias.Armor;
+                        break;
+                    case 1003: // Magic Chest
+                    case 2003:
+                        lootBias = LootBias.MagicEquipment;
+                        break;
+                    case 1004: // Weapon Chest
+                    case 2004:
+                        lootBias = LootBias.Weapons;
+                        break;
+                    default: // Default to unbiased loot profile
+                        break;
+                }
+
+                // For Society Armor - Only generates 2 pieces of Society Armor.
+                // breaking it out here to Generate Armor
+                if (profile.TreasureType >= 2971 && profile.TreasureType <= 2999)
+                {
+                    numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
+
+                    for (var i = 0; i < numItems; i++)
+                    {
+                        lootWorldObject = CreateSocietyArmor(profile, true);
+
+                        if (lootWorldObject != null)
+                            loot.Add(lootWorldObject);
+                    }
+
+                    return loot;
+                }
+
+                var itemChance = ThreadSafeRandom.Next(1, 100);
+                if (itemChance <= profile.ItemChance)
+                {
+                    numItems = ThreadSafeRandom.Next(profile.ItemMinAmount, profile.ItemMaxAmount);
+
+                    for (var i = 0; i < numItems; i++)
+                    {
+                        lootWorldObject = CreateRandomLootObjects_New(profile, TreasureItemCategory.Item);
+
+                        if (lootWorldObject != null)
+                            loot.Add(lootWorldObject);
+                    }
+                }
+
+                itemChance = ThreadSafeRandom.Next(1, 100);
+                if (itemChance <= profile.MagicItemChance)
+                {
+                    numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
+
+                    for (var i = 0; i < numItems; i++)
+                    {
+                        lootWorldObject = CreateRandomLootObjects_New(profile, TreasureItemCategory.MagicItem);
+
+                        if (lootWorldObject != null)
+                            loot.Add(lootWorldObject);
+                    }
+                }
+
+                itemChance = ThreadSafeRandom.Next(1, 100);
+                if (itemChance <= profile.MundaneItemChance)
+                {
+                    double dropRate = PropertyManager.GetDouble("aetheria_drop_rate").Item;
+                    double dropRateMod = 1.0 / dropRate;
+
+                    // Coalesced Aetheria doesn't drop in loot tiers less than 5
+                    // According to wiki, Weapon Mana Forge chests don't drop Aetheria
+                    // An Aetheria drop was in addition to the normal drops of the mundane profile
+                    // https://asheron.fandom.com/wiki/Announcements_-_2010/04_-_Shedding_Skin :: May 5th, 2010 entry
+                    if (profile.Tier > 4 && lootBias != LootBias.Weapons && dropRate > 0)
+                    {
+                        if (ThreadSafeRandom.Next(1, (int)(100 * dropRateMod)) <= 2) // base 1% to drop aetheria?
+                        {
+                            lootWorldObject = CreateAetheria(profile.Tier);
+
+                            if (lootWorldObject != null)
+                                loot.Add(lootWorldObject);
+                        }
+                    }
+
+                    numItems = ThreadSafeRandom.Next(profile.MundaneItemMinAmount, profile.MundaneItemMaxAmount);
+
+                    for (var i = 0; i < numItems; i++)
+                    {
+                        lootWorldObject = CreateRandomLootObjects_New(profile, TreasureItemCategory.MundaneItem);
+
+                        if (lootWorldObject != null)
+                            loot.Add(lootWorldObject);
+                    }
+                }
+
+                return loot;
+            }
+            finally
+            {
+                ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.LootGenerationFactory_CreateRandomLootObjects, stopwatch.Value.Elapsed.TotalSeconds);
+            }
+        }
+
         public static WorldObject CreateRandomLootObjects(TreasureDeath profile, bool isMagical, LootBias lootBias = LootBias.UnBiased)
         {
             WorldObject wo = null;
@@ -232,7 +321,7 @@ namespace ACE.Server.Factories
             switch (treasureItemType)
             {
                 case TreasureItemType.Gem:
-                    wo = CreateJewels(profile.Tier, isMagical);
+                    wo = CreateGem(profile.Tier, isMagical);
                     break;
 
                 case TreasureItemType.Armor:
@@ -297,17 +386,17 @@ namespace ACE.Server.Factories
                 MutateAetheria(item, profile.Tier);
             else if (GetMutateArmorData(item.WeenieClassId, out var armorType))
                 MutateArmor(item, profile, isMagical, armorType.Value);
-            else if (GetMutateCasterData(item.WeenieClassId, out int element))
+            else if (GetMutateCasterData(item.WeenieClassId))
             {
-                var wield = element > -1 ? GetWieldDifficulty(profile.Tier, WieldType.Caster) : 0;
-                MutateCaster(item, profile, isMagical, wield, element);
+                var wieldDifficulty = item.W_DamageType != DamageType.Undef ? GetWieldDifficulty(profile.Tier, WieldType.Caster) : 0;
+                MutateCaster(item, profile, isMagical, wieldDifficulty);
             }
             else if (GetMutateDinnerwareData(item.WeenieClassId))
                 MutateDinnerware(item, profile.Tier);
             else if (GetMutateJewelryData(item.WeenieClassId))
                 MutateJewelry(item, profile, isMagical);
-            else if (GetMutateJewelsData(item.WeenieClassId, out int gemLootMatrixIndex))
-                MutateJewels(item, profile.Tier, isMagical, gemLootMatrixIndex);
+            else if (GetMutateGemData(item.WeenieClassId))
+                MutateGem(item, profile.Tier, isMagical);
             else if (GetMutateMeleeWeaponData(item.WeenieClassId))
             {
                 if (!MutateMeleeWeapon(item, profile, isMagical))
@@ -2415,13 +2504,13 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        public static WeenieClassName RollWcid(TreasureDeath treasureDeath, TreasureItemCategory category, int profile)
+        public static WeenieClassName RollWcid(TreasureDeath treasureDeath, TreasureItemCategory category, out TreasureItemType_Orig treasureItemType)
         {
-            var treasureItemType = RollItemType(category, profile);
+            treasureItemType = RollItemType(treasureDeath, category);
 
             if (treasureItemType == TreasureItemType_Orig.Undef)
             {
-                log.Error($"LootGenerationFactory.RollWcid({treasureDeath.TreasureType}, {category}, {profile}): treasureItemType == Undef");
+                log.Error($"LootGenerationFactory.RollWcid({treasureDeath.TreasureType}, {category}): treasureItemType == Undef");
                 return WeenieClassName.undef;
             }
 
@@ -2457,12 +2546,14 @@ namespace ACE.Server.Factories
 
                     var weaponType = WeaponTypeChance.Roll(treasureDeath.Tier);
                     weenieClassName = WeaponWcids.Roll(treasureDeath, weaponType);
+                    treasureItemType = weaponType;
                     break;
 
                 case TreasureItemType_Orig.Armor:
 
                     var armorType = ArmorTypeChance.Roll(treasureDeath.Tier);
-                    weenieClassName = ArmorWcids.Roll(treasureDeath, armorType);
+                    weenieClassName = ArmorWcids.Roll(treasureDeath, ref armorType);
+                    treasureItemType = armorType;
                     break;
 
                 case TreasureItemType_Orig.Clothing:
@@ -2511,18 +2602,18 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Rolls for an overall item type, based on the *_Chances columns in the treasure_death profile
         /// </summary>
-        public static TreasureItemType_Orig RollItemType(TreasureItemCategory category, int profile)
+        public static TreasureItemType_Orig RollItemType(TreasureDeath treasureDeath, TreasureItemCategory category)
         {
             switch (category)
             {
                 case TreasureItemCategory.Item:
-                    return TreasureItemTypeChances_Orig.Roll(profile);
+                    return TreasureItemTypeChances_Orig.Roll(treasureDeath.ItemTreasureTypeSelectionChances);
 
                 case TreasureItemCategory.MagicItem:
-                    return TreasureMagicItemTypeChances_Orig.Roll(profile);
+                    return TreasureMagicItemTypeChances_Orig.Roll(treasureDeath.MagicItemTreasureTypeSelectionChances);
 
                 case TreasureItemCategory.MundaneItem:
-                    return TreasureMundaneItemTypeChances_Orig.Roll(profile);
+                    return TreasureMundaneItemTypeChances_Orig.Roll(treasureDeath.MundaneItemTypeSelectionChances);
             }
             return TreasureItemType_Orig.Undef;
         }
@@ -2538,6 +2629,84 @@ namespace ACE.Server.Factories
             var gemResult = GemMaterialChance.Roll(gemClass);
 
             return gemResult.MaterialType;
+        }
+
+        public static WorldObject CreateRandomLootObjects_New(TreasureDeath treasureDeath, TreasureItemCategory category)
+        {
+            var wcid = RollWcid(treasureDeath, category, out var treasureItemType);
+            var wo = CreateAndMutateWcid(treasureDeath, wcid, treasureItemType, category == TreasureItemCategory.MagicItem);
+            return wo;
+        }
+
+        public static WorldObject CreateAndMutateWcid(TreasureDeath treasureDeath, WeenieClassName weenieClassName, TreasureItemType_Orig treasureItemType, bool isMagical)
+        {
+            var wo = WorldObjectFactory.CreateNewWorldObject((uint)weenieClassName);
+
+            if (wo == null)
+            {
+                log.Error($"CreateAndMutateWcid({treasureDeath.TreasureType}, {(int)weenieClassName} - {weenieClassName}, {treasureItemType}, {isMagical}) - failed to create item");
+                return null;
+            }
+
+            switch (treasureItemType)
+            {
+                case TreasureItemType_Orig.Pyreal:
+                    // TODO: better algorithm?
+                    wo.SetStackSize(treasureDeath.Tier * 100);
+                    break;
+                case TreasureItemType_Orig.Gem:
+                    MutateGem(wo, treasureDeath.Tier, isMagical);
+                    break;
+                case TreasureItemType_Orig.Jewelry:
+                    MutateJewelry(wo, treasureDeath, isMagical);
+                    break;
+                case TreasureItemType_Orig.ArtObject:
+                    MutateDinnerware(wo, treasureDeath.Tier);
+                    break;
+
+                case TreasureItemType_Orig.SwordWeapon:
+                case TreasureItemType_Orig.MaceWeapon:
+                case TreasureItemType_Orig.AxeWeapon:
+                case TreasureItemType_Orig.SpearWeapon:
+                case TreasureItemType_Orig.UnarmedWeapon:
+                case TreasureItemType_Orig.StaffWeapon:
+                case TreasureItemType_Orig.DaggerWeapon:
+                case TreasureItemType_Orig.BowWeapon:
+                case TreasureItemType_Orig.CrossbowWeapon:
+                case TreasureItemType_Orig.AtlatlWeapon:
+                    MutateMeleeWeapon(wo, treasureDeath, isMagical);
+                    break;
+
+                case TreasureItemType_Orig.LeatherArmor:
+                case TreasureItemType_Orig.StuddedLeatherArmor:
+                case TreasureItemType_Orig.ChainMailArmor:
+                case TreasureItemType_Orig.CovenantArmor:
+                case TreasureItemType_Orig.PlateMailArmor:
+                case TreasureItemType_Orig.CeldonArmor:
+                case TreasureItemType_Orig.AmuliArmor:
+                case TreasureItemType_Orig.KoujiaArmor:
+                case TreasureItemType_Orig.LoricaArmor:
+                case TreasureItemType_Orig.NariyidArmor:
+                case TreasureItemType_Orig.ChiranArmor:
+                    var armorType = treasureItemType.ToACEArmor();
+                    MutateArmor(wo, treasureDeath, isMagical, armorType);
+                    break;
+
+                case TreasureItemType_Orig.Clothing:
+                    MutateArmor(wo, treasureDeath, isMagical, LootTables.ArmorType.MiscClothing);
+                    break;
+
+                case TreasureItemType_Orig.Scroll:
+                    wo = CreateRandomScroll(treasureDeath.Tier);     // using original method
+                    break;
+                case TreasureItemType_Orig.Caster:
+                    var wield = wo.W_DamageType != DamageType.Undef ? GetWieldDifficulty(treasureDeath.Tier, WieldType.Caster) : 0;
+                    MutateCaster(wo, treasureDeath, isMagical, wield);
+                    break;
+
+                // other mundane items (mana stones, food/drink, healing kits, lockpicks, and spell components/peas) don't get mutated
+            }
+            return wo;
         }
     }         
 }

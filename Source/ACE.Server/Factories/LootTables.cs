@@ -1835,6 +1835,7 @@ namespace ACE.Server.Factories
 
         public enum ArmorType
         {
+            Undef,
             MiscClothing,
             Helms,
             Shields,
