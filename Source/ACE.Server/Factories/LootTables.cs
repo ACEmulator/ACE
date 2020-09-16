@@ -215,7 +215,7 @@ namespace ACE.Server.Factories
             new int[] { 353, 3889, 3890, 3891, 3892 },       // 19 - Tachi
             new int[] { 354, 3893, 3894, 3895, 3896 },       // 20 - Takuba
             new int[] { 45108, 45109, 45110, 45111, 45112 }, // 21 - Schlager (MS)
-            new int[] { 4190, 4194, 4192, 4193, 4194 },      // 22 - Cestus
+            new int[] { 4190, 4191, 4192, 4193, 4194 },      // 22 - Cestus
             new int[] { 4195, 4196, 4197, 4198, 4199 },      // 23 - Nekode
         };
 
