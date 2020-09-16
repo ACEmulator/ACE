@@ -29,5 +29,10 @@ namespace ACE.Common
         {
             return random.Value.Next(min, max + 1);
         }
+
+        public static bool NextBool()
+        {
+            return random.Value.Next(0, 2) == 1;
+        }
     }
 }
