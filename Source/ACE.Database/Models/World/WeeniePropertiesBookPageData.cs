@@ -14,6 +14,6 @@ namespace ACE.Database.Models.World
         public bool IgnoreAuthor { get; set; }
         public string PageText { get; set; }
 
-        public Weenie Object { get; set; }
+        public virtual Weenie Object { get; set; }
     }
 }

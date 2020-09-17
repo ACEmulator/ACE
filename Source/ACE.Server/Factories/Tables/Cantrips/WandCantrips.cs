@@ -19,7 +19,7 @@ namespace ACE.Server.Factories.Tables
             SpellId.CANTRIPITEMENCHANTMENTAPTITUDE1,
             SpellId.CANTRIPLIFEMAGICAPTITUDE1,
             SpellId.CANTRIPWARMAGICAPTITUDE1,
-            SpellId.CantripVoidMagicAptitude1,      // missing from original?
+            SpellId.CantripVoidMagicAptitude1,      // missing from original
 
             SpellId.CANTRIPARCANEPROWESS1,
             SpellId.CANTRIPMANACONVERSIONPROWESS1,

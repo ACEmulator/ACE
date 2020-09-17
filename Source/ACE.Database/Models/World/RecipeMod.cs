@@ -26,12 +26,12 @@ namespace ACE.Database.Models.World
         public int Unknown9 { get; set; }
         public int InstanceId { get; set; }
 
-        public Recipe Recipe { get; set; }
-        public ICollection<RecipeModsBool> RecipeModsBool { get; set; }
-        public ICollection<RecipeModsDID> RecipeModsDID { get; set; }
-        public ICollection<RecipeModsFloat> RecipeModsFloat { get; set; }
-        public ICollection<RecipeModsIID> RecipeModsIID { get; set; }
-        public ICollection<RecipeModsInt> RecipeModsInt { get; set; }
-        public ICollection<RecipeModsString> RecipeModsString { get; set; }
+        public virtual Recipe Recipe { get; set; }
+        public virtual ICollection<RecipeModsBool> RecipeModsBool { get; set; }
+        public virtual ICollection<RecipeModsDID> RecipeModsDID { get; set; }
+        public virtual ICollection<RecipeModsFloat> RecipeModsFloat { get; set; }
+        public virtual ICollection<RecipeModsIID> RecipeModsIID { get; set; }
+        public virtual ICollection<RecipeModsInt> RecipeModsInt { get; set; }
+        public virtual ICollection<RecipeModsString> RecipeModsString { get; set; }
     }
 }

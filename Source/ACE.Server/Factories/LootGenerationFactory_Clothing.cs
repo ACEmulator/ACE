@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 using ACE.Common;
@@ -5,6 +6,8 @@ using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Factories.Enum;
+using ACE.Server.Factories.Tables;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
@@ -15,7 +18,7 @@ namespace ACE.Server.Factories
         private static WorldObject CreateArmor(TreasureDeath profile, bool isMagical, bool isArmor, LootBias lootBias = LootBias.UnBiased, bool mutate = true)
         {
             var minType = LootTables.ArmorType.Helms;
-            var maxType = new LootTables.ArmorType();
+            LootTables.ArmorType maxType;
 
             switch (profile.Tier)
             {
@@ -44,7 +47,7 @@ namespace ACE.Server.Factories
 
             // Added for making clothing drops their own drop, and not involved in armor roll chance
             LootTables.ArmorType armorType;
-            if (isArmor == true)
+            if (isArmor)
                 armorType = (LootTables.ArmorType)ThreadSafeRandom.Next((int)minType, (int)maxType);
             else
                 armorType = LootTables.ArmorType.MiscClothing;
@@ -136,7 +139,7 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-    private static void MutateArmor(WorldObject wo, TreasureDeath profile, bool isMagical, LootTables.ArmorType armorType)
+        private static void MutateArmor(WorldObject wo, TreasureDeath profile, bool isMagical, LootTables.ArmorType armorType)
         {
             wo.LongDesc = wo.Name;
 
@@ -147,11 +150,12 @@ namespace ACE.Server.Factories
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
 
-            int gemCount = ThreadSafeRandom.Next(1, 6);
-            int gemType = ThreadSafeRandom.Next(10, 50);
+            if (wo.GemCode != null)
+                wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
+            else
+                wo.GemCount = ThreadSafeRandom.Next(1, 6);
 
-            wo.GemCount = gemCount;
-            wo.GemType = (MaterialType)gemType;
+            wo.GemType = RollGemType(profile.Tier);
 
             int workmanship = GetWorkmanship(profile.Tier);
             wo.ItemWorkmanship = workmanship;
@@ -233,11 +237,12 @@ namespace ACE.Server.Factories
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
 
-            int gemCount = ThreadSafeRandom.Next(1, 6);
-            int gemType = ThreadSafeRandom.Next(10, 50);
+            if (wo.GemCode != null)
+                wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
+            else
+                wo.GemCount = ThreadSafeRandom.Next(1, 6);
 
-            wo.GemCount = gemCount;
-            wo.GemType = (MaterialType)gemType;
+            wo.GemType = RollGemType(profile.Tier);
 
             int workmanship = GetWorkmanship(profile.Tier);
             wo.ItemWorkmanship = workmanship;
@@ -267,7 +272,6 @@ namespace ACE.Server.Factories
             // try mutate burden, if MutateFilter exists
             if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
                 MutateBurden(wo, profile.Tier, false);
-
         }
 
         private static bool GetMutateArmorData(uint wcid, out LootTables.ArmorType? armorType)
@@ -791,7 +795,6 @@ namespace ACE.Server.Factories
                     wo.ProcSpellSelfTargeted = false;
                 wo.CloakWeaveProc = 1;
             }
-            
         }
         private static int GetCloakMaxLevel(TreasureDeath profile)
         {

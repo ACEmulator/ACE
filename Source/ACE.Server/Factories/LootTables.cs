@@ -94,22 +94,15 @@ namespace ACE.Server.Factories
 
         public static double getMaterialValueModifier(WorldObject wo)
         {
-            if (wo.MaterialType == null) return 1;
-            int materialType = (int)wo.MaterialType;
-            if (materialModifier.ContainsKey(materialType))
-                return materialModifier[materialType];
+            if (wo.MaterialType != null && materialModifier.TryGetValue((int)wo.MaterialType, out var materialMod))
+                return materialMod;
             else
-                return 1;
+                return 1.0;
         }
 
         public static double getGemMaterialValueModifier(WorldObject wo)
         {
-            if (wo.MaterialType == null) return 1;
-            int materialType = (int)wo.MaterialType;
-            if (materialModifier.ContainsKey(materialType))
-                return materialModifier[materialType];
-            else
-                return 1;
+            return getMaterialValueModifier(wo);
         }
 
         public static Dictionary<int, int> gemValues = new Dictionary<int, int>()
@@ -1842,6 +1835,7 @@ namespace ACE.Server.Factories
 
         public enum ArmorType
         {
+            Undef,
             MiscClothing,
             Helms,
             Shields,
