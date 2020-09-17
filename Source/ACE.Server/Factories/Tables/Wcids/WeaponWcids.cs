@@ -13,7 +13,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         {
             switch (weaponType)
             {
-                case TreasureWeaponType.Sword:
+                /*case TreasureWeaponType.Sword:
                     return RollSwordWcid(treasureDeath);
 
                 case TreasureWeaponType.Mace:
@@ -32,7 +32,16 @@ namespace ACE.Server.Factories.Tables.Wcids
                     return RollStaffWcid(treasureDeath);
 
                 case TreasureWeaponType.Dagger:
-                    return RollDaggerWcid(treasureDeath);
+                    return RollDaggerWcid(treasureDeath);*/
+
+                case TreasureWeaponType.Sword:
+                case TreasureWeaponType.Mace:
+                case TreasureWeaponType.Axe:
+                case TreasureWeaponType.Spear:
+                case TreasureWeaponType.Unarmed:
+                case TreasureWeaponType.Staff:
+                case TreasureWeaponType.Dagger:
+                    return RollMeleeWeapon();
 
                 case TreasureWeaponType.Bow:
                     return RollBowWcid(treasureDeath);
@@ -45,11 +54,14 @@ namespace ACE.Server.Factories.Tables.Wcids
 
                 case TreasureWeaponType.Caster:
                     return RollCaster(treasureDeath);
+
+                case TreasureWeaponType.TwoHandedWeapon:
+                    return RollTwoHandedWeaponWcid();
             }
             return WeenieClassName.undef;
         }
 
-        public static WeenieClassName Roll()
+        public static WeenieClassName RollMeleeWeapon()
         {
             // retail did something silly here --
             // instead of having an even chance to roll between heavy/light/finesse,
@@ -189,6 +201,11 @@ namespace ACE.Server.Factories.Tables.Wcids
         public static WeenieClassName RollCaster(TreasureDeath treasureDeath)
         {
             return CasterWcids.Roll(treasureDeath.Tier);
+        }
+
+        public static WeenieClassName RollTwoHandedWeaponWcid()
+        {
+            return TwoHandedWeaponWcids.Roll();
         }
     }
 }
