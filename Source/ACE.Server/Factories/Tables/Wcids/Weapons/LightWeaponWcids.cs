@@ -1,224 +1,225 @@
 using System.Collections.Generic;
 
 using ACE.Common;
+using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Enum;
 
 namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class LightWeaponWcids
     {
-        private static readonly List<WeenieClassName> Dolabras = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Dolabras = new ChanceTable<WeenieClassName>()
         {
             // light - axe
-            WeenieClassName.axedolabra,
-            WeenieClassName.axedolabraacid,
-            WeenieClassName.axedolabraelectric,
-            WeenieClassName.axedolabrafire,
-            WeenieClassName.axedolabrafrost,
+            ( WeenieClassName.axedolabra,         0.40f ),
+            ( WeenieClassName.axedolabraacid,     0.15f ),
+            ( WeenieClassName.axedolabraelectric, 0.15f ),
+            ( WeenieClassName.axedolabrafire,     0.15f ),
+            ( WeenieClassName.axedolabrafrost,    0.15f ),
         };
 
-        private static readonly List<WeenieClassName> HandAxes = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> HandAxes = new ChanceTable<WeenieClassName>()
         {
             // light - axe
-            WeenieClassName.axehand,
-            WeenieClassName.axehandacid,
-            WeenieClassName.axehandelectric,
-            WeenieClassName.axehandfire,
-            WeenieClassName.axehandfrost,
+            ( WeenieClassName.axehand,         0.40f ),
+            ( WeenieClassName.axehandacid,     0.15f ),
+            ( WeenieClassName.axehandelectric, 0.15f ),
+            ( WeenieClassName.axehandfire,     0.15f ),
+            ( WeenieClassName.axehandfrost,    0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Onos = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Onos = new ChanceTable<WeenieClassName>()
         {
             // light - axe
-            WeenieClassName.ono,
-            WeenieClassName.onoacid,
-            WeenieClassName.onoelectric,
-            WeenieClassName.onofire,
-            WeenieClassName.onofrost,
+            ( WeenieClassName.ono,         0.40f ),
+            ( WeenieClassName.onoacid,     0.15f ),
+            ( WeenieClassName.onoelectric, 0.15f ),
+            ( WeenieClassName.onofire,     0.15f ),
+            ( WeenieClassName.onofrost,    0.15f ),
         };
 
-        private static readonly List<WeenieClassName> WarHammers = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> WarHammers = new ChanceTable<WeenieClassName>()
         {
             // light - axe
-            WeenieClassName.warhammer,
-            WeenieClassName.warhammeracid,
-            WeenieClassName.warhammerelectric,
-            WeenieClassName.warhammerfire,
-            WeenieClassName.warhammerfrost,
+            ( WeenieClassName.warhammer,         0.40f ),
+            ( WeenieClassName.warhammeracid,     0.15f ),
+            ( WeenieClassName.warhammerelectric, 0.15f ),
+            ( WeenieClassName.warhammerfire,     0.15f ),
+            ( WeenieClassName.warhammerfrost,    0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Daggers = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Daggers = new ChanceTable<WeenieClassName>()
         {
             // light - dagger
-            WeenieClassName.dagger,
-            WeenieClassName.daggeracid,
-            WeenieClassName.daggerelectric,
-            WeenieClassName.daggerfire,
-            WeenieClassName.daggerfrost,
+            ( WeenieClassName.dagger,         0.40f ),
+            ( WeenieClassName.daggeracid,     0.15f ),
+            ( WeenieClassName.daggerelectric, 0.15f ),
+            ( WeenieClassName.daggerfire,     0.15f ),
+            ( WeenieClassName.daggerfrost,    0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Khanjars = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Khanjars = new ChanceTable<WeenieClassName>()
         {
             // light - dagger
-            WeenieClassName.khanjar,
-            WeenieClassName.khanjaracid,
-            WeenieClassName.khanjarelectric,
-            WeenieClassName.khanjarfire,
-            WeenieClassName.khanjarfrost,
+            ( WeenieClassName.khanjar,         0.40f ),
+            ( WeenieClassName.khanjaracid,     0.15f ),
+            ( WeenieClassName.khanjarelectric, 0.15f ),
+            ( WeenieClassName.khanjarfire,     0.15f ),
+            ( WeenieClassName.khanjarfrost,    0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Clubs = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Clubs = new ChanceTable<WeenieClassName>()
         {
             // light - mace
-            WeenieClassName.club,
-            WeenieClassName.clubacid,
-            WeenieClassName.clubelectric,
-            WeenieClassName.clubfire,
-            WeenieClassName.clubfrost,
+            ( WeenieClassName.club,         0.40f ),
+            ( WeenieClassName.clubacid,     0.15f ),
+            ( WeenieClassName.clubelectric, 0.15f ),
+            ( WeenieClassName.clubfire,     0.15f ),
+            ( WeenieClassName.clubfrost,    0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Kasrullahs = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Kasrullahs = new ChanceTable<WeenieClassName>()
         {
             // light - mace
-            WeenieClassName.kasrullah,
-            WeenieClassName.kasrullahacid,
-            WeenieClassName.kasrullahelectric,
-            WeenieClassName.kasrullahfire,
-            WeenieClassName.kasrullahfrost,
+            ( WeenieClassName.kasrullah,         0.40f ),
+            ( WeenieClassName.kasrullahacid,     0.15f ),
+            ( WeenieClassName.kasrullahelectric, 0.15f ),
+            ( WeenieClassName.kasrullahfire,     0.15f ),
+            ( WeenieClassName.kasrullahfrost,    0.15f ),
         };
 
-        private static readonly List<WeenieClassName> SpikedClubs = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> SpikedClubs = new ChanceTable<WeenieClassName>()
         {
             // light - mace
-            WeenieClassName.clubspiked,
-            WeenieClassName.clubspikedacid,
-            WeenieClassName.clubspikedelectric,
-            WeenieClassName.clubspikedfire,
-            WeenieClassName.clubspikedfrost,
+            ( WeenieClassName.clubspiked,         0.40f ),
+            ( WeenieClassName.clubspikedacid,     0.15f ),
+            ( WeenieClassName.clubspikedelectric, 0.15f ),
+            ( WeenieClassName.clubspikedfire,     0.15f ),
+            ( WeenieClassName.clubspikedfrost,    0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Spears = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Spears = new ChanceTable<WeenieClassName>()
         {
             // light - spear
-            WeenieClassName.spear,
-            WeenieClassName.spearacid,
-            WeenieClassName.spearelectric,
-            WeenieClassName.spearflame,
-            WeenieClassName.spearfrost,
+            ( WeenieClassName.spear,         0.40f ),
+            ( WeenieClassName.spearacid,     0.15f ),
+            ( WeenieClassName.spearelectric, 0.15f ),
+            ( WeenieClassName.spearflame,    0.15f ),
+            ( WeenieClassName.spearfrost,    0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Yaris = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Yaris = new ChanceTable<WeenieClassName>()
         {
             // light - spear
-            WeenieClassName.yari,
-            WeenieClassName.yariacid,
-            WeenieClassName.yarielectric,
-            WeenieClassName.yarifire,
-            WeenieClassName.yarifrost,
+            ( WeenieClassName.yari,         0.40f ),
+            ( WeenieClassName.yariacid,     0.15f ),
+            ( WeenieClassName.yarielectric, 0.15f ),
+            ( WeenieClassName.yarifire,     0.15f ),
+            ( WeenieClassName.yarifrost,    0.15f ),
         };
 
-        private static readonly List<WeenieClassName> QuarterStaffs = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> QuarterStaffs = new ChanceTable<WeenieClassName>()
         {
             // light - staff
-            WeenieClassName.quarterstaffnew,
-            WeenieClassName.quarterstaffacidnew,
-            WeenieClassName.quarterstaffelectricnew,
-            WeenieClassName.quarterstaffflamenew,
-            WeenieClassName.quarterstafffrostnew,
+            ( WeenieClassName.quarterstaffnew,         0.40f ),
+            ( WeenieClassName.quarterstaffacidnew,     0.15f ),
+            ( WeenieClassName.quarterstaffelectricnew, 0.15f ),
+            ( WeenieClassName.quarterstaffflamenew,    0.15f ),
+            ( WeenieClassName.quarterstafffrostnew,    0.15f ),
         };
 
-        private static readonly List<WeenieClassName> BroadSwords = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> BroadSwords = new ChanceTable<WeenieClassName>()
         {
             // light - sword
-            WeenieClassName.swordbroad,
-            WeenieClassName.swordbroadacid,
-            WeenieClassName.swordbroadelectric,
-            WeenieClassName.swordbroadfire,
-            WeenieClassName.swordbroadfrost,
+            ( WeenieClassName.swordbroad,         0.40f ),
+            ( WeenieClassName.swordbroadacid,     0.15f ),
+            ( WeenieClassName.swordbroadelectric, 0.15f ),
+            ( WeenieClassName.swordbroadfire,     0.15f ),
+            ( WeenieClassName.swordbroadfrost,    0.15f ),
         };
 
-        private static readonly List<WeenieClassName> DericostBlades = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> DericostBlades = new ChanceTable<WeenieClassName>()
         {
             // light - sword
-            WeenieClassName.ace31759_dericostblade,
-            WeenieClassName.ace31760_aciddericostblade,
-            WeenieClassName.ace31761_lightningdericostblade,
-            WeenieClassName.ace31762_flamingdericostblade,
-            WeenieClassName.ace31758_frostdericostblade,
+            ( WeenieClassName.ace31759_dericostblade,          0.40f ),
+            ( WeenieClassName.ace31760_aciddericostblade,      0.15f ),
+            ( WeenieClassName.ace31761_lightningdericostblade, 0.15f ),
+            ( WeenieClassName.ace31762_flamingdericostblade,   0.15f ),
+            ( WeenieClassName.ace31758_frostdericostblade,     0.15f ),
         };
 
         // epee?
 
-        private static readonly List<WeenieClassName> Kaskaras = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Kaskaras = new ChanceTable<WeenieClassName>()
         {
             // light - sword
-            WeenieClassName.kaskara,
-            WeenieClassName.kaskaraacid,
-            WeenieClassName.kaskaraelectric,
-            WeenieClassName.kaskarafire,
-            WeenieClassName.kaskarafrost,
+            ( WeenieClassName.kaskara,         0.40f ),
+            ( WeenieClassName.kaskaraacid,     0.15f ),
+            ( WeenieClassName.kaskaraelectric, 0.15f ),
+            ( WeenieClassName.kaskarafire,     0.15f ),
+            ( WeenieClassName.kaskarafrost,    0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Shamshirs = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Shamshirs = new ChanceTable<WeenieClassName>()
         {
             // light - sword
-            WeenieClassName.shamshir,
-            WeenieClassName.shamshiracid,
-            WeenieClassName.shamshirelectric,
-            WeenieClassName.shamshirfire,
-            WeenieClassName.shamshirfrost,
+            ( WeenieClassName.shamshir,         0.40f ),
+            ( WeenieClassName.shamshiracid,     0.15f ),
+            ( WeenieClassName.shamshirelectric, 0.15f ),
+            ( WeenieClassName.shamshirfire,     0.15f ),
+            ( WeenieClassName.shamshirfrost,    0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Spadas = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Spadas = new ChanceTable<WeenieClassName>()
         {
             // light - sword
-            WeenieClassName.swordspada,
-            WeenieClassName.swordspadaacid,
-            WeenieClassName.swordspadaelectric,
-            WeenieClassName.swordspadafire,
-            WeenieClassName.swordspadafrost,
+            ( WeenieClassName.swordspada,         0.40f ),
+            ( WeenieClassName.swordspadaacid,     0.15f ),
+            ( WeenieClassName.swordspadaelectric, 0.15f ),
+            ( WeenieClassName.swordspadafire,     0.15f ),
+            ( WeenieClassName.swordspadafrost,    0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Katars = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Katars = new ChanceTable<WeenieClassName>()
         {
             // light - unarmed
-            WeenieClassName.katar,
-            WeenieClassName.kataracid,
-            WeenieClassName.katarelectric,
-            WeenieClassName.katarfire,
-            WeenieClassName.katarfrost,
+            ( WeenieClassName.katar,         0.40f ),
+            ( WeenieClassName.kataracid,     0.15f ),
+            ( WeenieClassName.katarelectric, 0.15f ),
+            ( WeenieClassName.katarfire,     0.15f ),
+            ( WeenieClassName.katarfrost,    0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Knuckles = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Knuckles = new ChanceTable<WeenieClassName>()
         {
             // light - unarmed
-            WeenieClassName.knuckles,
-            WeenieClassName.knucklesacid,
-            WeenieClassName.knuckleselectric,
-            WeenieClassName.knucklesfire,
-            WeenieClassName.knucklesfrost,
+            ( WeenieClassName.knuckles,         0.40f ),
+            ( WeenieClassName.knucklesacid,     0.15f ),
+            ( WeenieClassName.knuckleselectric, 0.15f ),
+            ( WeenieClassName.knucklesfire,     0.15f ),
+            ( WeenieClassName.knucklesfrost,    0.15f ),
         };
 
-        private static readonly List<List<WeenieClassName>> lightWeaponsTables = new List<List<WeenieClassName>>()
+        private static readonly List<ChanceTable<WeenieClassName>> lightWeaponsTables = new List<ChanceTable<WeenieClassName>>()
         {
-            Dolabras,
+            Dolabras,       // axe
             HandAxes,
             Onos,
             WarHammers,
-            Daggers,
+            Daggers,        // dagger
             Khanjars,
-            Clubs,
+            Clubs,          // mace
             Kasrullahs,
             SpikedClubs,
-            Spears,
+            Spears,         // spear
             Yaris,
-            QuarterStaffs,
-            BroadSwords,
+            QuarterStaffs,  // staff
+            BroadSwords,    // sword
             DericostBlades,
             Kaskaras,
             Shamshirs,
             Spadas,
-            Katars,
+            Katars,         // unarmed
             Knuckles,
         };
 
@@ -227,19 +228,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             // even chance of selecting each weapon type
             var weaponType = ThreadSafeRandom.Next(0, lightWeaponsTables.Count - 1);
 
-            var weaponTable = lightWeaponsTables[weaponType];
-
-            // 50/50 chance of selecting elemental/non-elemental
-            // could have been 40/60 in retail?
-            var elemental = ThreadSafeRandom.NextBool();
-
-            if (elemental)
-            {
-                var elementType = ThreadSafeRandom.Next(1, 4);
-                return weaponTable[elementType];
-            }
-            else
-                return weaponTable[0];
+            return lightWeaponsTables[weaponType].Roll();
         }
     }
 }

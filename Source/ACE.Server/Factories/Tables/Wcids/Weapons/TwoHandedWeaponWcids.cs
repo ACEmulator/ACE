@@ -1,144 +1,145 @@
 using System.Collections.Generic;
 
 using ACE.Common;
+using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Enum;
 
 namespace ACE.Server.Factories.Tables.Wcids.Weapons
 {
     public static class TwoHandedWeaponWcids
     {
-        private static readonly List<WeenieClassName> GreatAxes = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> GreatAxes = new ChanceTable<WeenieClassName>()
         {
             // two-handed - axe
-            WeenieClassName.ace41052_greataxe,
-            WeenieClassName.ace41053_acidgreataxe,
-            WeenieClassName.ace41054_lightninggreataxe,
-            WeenieClassName.ace41055_flaminggreataxe,
-            WeenieClassName.ace41056_frostgreataxe,
+            ( WeenieClassName.ace41052_greataxe,          0.40f ),
+            ( WeenieClassName.ace41053_acidgreataxe,      0.15f ),
+            ( WeenieClassName.ace41054_lightninggreataxe, 0.15f ),
+            ( WeenieClassName.ace41055_flaminggreataxe,   0.15f ),
+            ( WeenieClassName.ace41056_frostgreataxe,     0.15f ),
         };
 
-        private static readonly List<WeenieClassName> GreatStarMaces = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> GreatStarMaces = new ChanceTable<WeenieClassName>()
         {
             // two-handed - mace
-            WeenieClassName.ace41057_greatstarmace,
-            WeenieClassName.ace41058_acidgreatstarmace,
-            WeenieClassName.ace41059_lightninggreatstarmace,
-            WeenieClassName.ace41060_flaminggreatstarmace,
-            WeenieClassName.ace41061_frostgreatstarmace,
+            ( WeenieClassName.ace41057_greatstarmace,          0.40f ),
+            ( WeenieClassName.ace41058_acidgreatstarmace,      0.15f ),
+            ( WeenieClassName.ace41059_lightninggreatstarmace, 0.15f ),
+            ( WeenieClassName.ace41060_flaminggreatstarmace,   0.15f ),
+            ( WeenieClassName.ace41061_frostgreatstarmace,     0.15f ),
         };
 
-        private static readonly List<WeenieClassName> KhandaHandledMaces = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> KhandaHandledMaces = new ChanceTable<WeenieClassName>()
         {
             // two-handed - mace
-            WeenieClassName.ace41062_khandahandledmace,
-            WeenieClassName.ace41063_acidkhandahandledmace,
-            WeenieClassName.ace41064_lightningkhandahandledmace,
-            WeenieClassName.ace41065_flamingkhandahandledmace,
-            WeenieClassName.ace41066_frostkhandahandledmace,
+            ( WeenieClassName.ace41062_khandahandledmace,          0.40f ),
+            ( WeenieClassName.ace41063_acidkhandahandledmace,      0.15f ),
+            ( WeenieClassName.ace41064_lightningkhandahandledmace, 0.15f ),
+            ( WeenieClassName.ace41065_flamingkhandahandledmace,   0.15f ),
+            ( WeenieClassName.ace41066_frostkhandahandledmace,     0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Quadrelles = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Quadrelles = new ChanceTable<WeenieClassName>()
         {
             // two-handed - mace
-            WeenieClassName.ace40623_quadrelle,
-            WeenieClassName.ace40624_acidquadrelle,
-            WeenieClassName.ace40625_lightningquadrelle,
-            WeenieClassName.ace40626_flamingquadrelle,
-            WeenieClassName.ace40627_frostquadrelle,
+            ( WeenieClassName.ace40623_quadrelle,          0.40f ),
+            ( WeenieClassName.ace40624_acidquadrelle,      0.15f ),
+            ( WeenieClassName.ace40625_lightningquadrelle, 0.15f ),
+            ( WeenieClassName.ace40626_flamingquadrelle,   0.15f ),
+            ( WeenieClassName.ace40627_frostquadrelle,     0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Tetsubos = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Tetsubos = new ChanceTable<WeenieClassName>()
         {
             // two-handed - mace
-            WeenieClassName.ace40635_tetsubo,
-            WeenieClassName.ace40636_acidtetsubo,
-            WeenieClassName.ace40637_lightningtetsubo,
-            WeenieClassName.ace40638_flamingtetsubo,
-            WeenieClassName.ace40639_frosttetsubo,
+            ( WeenieClassName.ace40635_tetsubo,          0.40f ),
+            ( WeenieClassName.ace40636_acidtetsubo,      0.15f ),
+            ( WeenieClassName.ace40637_lightningtetsubo, 0.15f ),
+            ( WeenieClassName.ace40638_flamingtetsubo,   0.15f ),
+            ( WeenieClassName.ace40639_frosttetsubo,     0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Assagais = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Assagais = new ChanceTable<WeenieClassName>()
         {
             // two-handed - spear
-            WeenieClassName.ace41036_assagai,
-            WeenieClassName.ace41037_acidassagai,
-            WeenieClassName.ace41038_lightningassagai,
-            WeenieClassName.ace41039_flamingassagai,
-            WeenieClassName.ace41040_frostassagai,
+            ( WeenieClassName.ace41036_assagai,          0.40f ),
+            ( WeenieClassName.ace41037_acidassagai,      0.15f ),
+            ( WeenieClassName.ace41038_lightningassagai, 0.15f ),
+            ( WeenieClassName.ace41039_flamingassagai,   0.15f ),
+            ( WeenieClassName.ace41040_frostassagai,     0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Corsecas = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Corsecas = new ChanceTable<WeenieClassName>()
         {
             // two-handed - spear
-            WeenieClassName.ace40818_corsesca,
-            WeenieClassName.ace40819_acidcorsesca,
-            WeenieClassName.ace40820_lightningcorsesca,
-            WeenieClassName.ace40821_flamingcorsesca,
-            WeenieClassName.ace40822_frostcorsesca,
+            ( WeenieClassName.ace40818_corsesca,          0.40f ),
+            ( WeenieClassName.ace40819_acidcorsesca,      0.15f ),
+            ( WeenieClassName.ace40820_lightningcorsesca, 0.15f ),
+            ( WeenieClassName.ace40821_flamingcorsesca,   0.15f ),
+            ( WeenieClassName.ace40822_frostcorsesca,     0.15f ),
         };
 
-        private static readonly List<WeenieClassName> MagariYaris = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> MagariYaris = new ChanceTable<WeenieClassName>()
         {
             // two-handed - spear
-            WeenieClassName.ace41041_magariyari,
-            WeenieClassName.ace41042_acidmagariyari,
-            WeenieClassName.ace41043_lightningmagariyari,
-            WeenieClassName.ace41044_flamingmagariyari,
-            WeenieClassName.ace41045_frostmagariyari,
+            ( WeenieClassName.ace41041_magariyari,          0.40f ),
+            ( WeenieClassName.ace41042_acidmagariyari,      0.15f ),
+            ( WeenieClassName.ace41043_lightningmagariyari, 0.15f ),
+            ( WeenieClassName.ace41044_flamingmagariyari,   0.15f ),
+            ( WeenieClassName.ace41045_frostmagariyari,     0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Pikes = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Pikes = new ChanceTable<WeenieClassName>()
         {
             // two-handed - spear
-            WeenieClassName.ace41046_pike,
-            WeenieClassName.ace41047_acidpike,
-            WeenieClassName.ace41048_lightningpike,
-            WeenieClassName.ace41049_flamingpike,
-            WeenieClassName.ace41050_frostpike,
+            ( WeenieClassName.ace41046_pike,          0.40f ),
+            ( WeenieClassName.ace41047_acidpike,      0.15f ),
+            ( WeenieClassName.ace41048_lightningpike, 0.15f ),
+            ( WeenieClassName.ace41049_flamingpike,   0.15f ),
+            ( WeenieClassName.ace41050_frostpike,     0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Nodachis = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Nodachis = new ChanceTable<WeenieClassName>()
         {
             // two-handed - sword
-            WeenieClassName.ace40760_nodachi,
-            WeenieClassName.ace40761_acidnodachi,
-            WeenieClassName.ace40762_lightningnodachi,
-            WeenieClassName.ace40763_flamingnodachi,
-            WeenieClassName.ace40764_frostnodachi,
+            ( WeenieClassName.ace40760_nodachi,          0.40f ),
+            ( WeenieClassName.ace40761_acidnodachi,      0.15f ),
+            ( WeenieClassName.ace40762_lightningnodachi, 0.15f ),
+            ( WeenieClassName.ace40763_flamingnodachi,   0.15f ),
+            ( WeenieClassName.ace40764_frostnodachi,     0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Shashqas = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Shashqas = new ChanceTable<WeenieClassName>()
         {
             // two-handed - sword
-            WeenieClassName.ace41067_shashqa,
-            WeenieClassName.ace41068_acidshashqa,
-            WeenieClassName.ace41069_lightningshashqa,
-            WeenieClassName.ace41070_flamingshashqa,
-            WeenieClassName.ace41071_frostshashqa,
+            ( WeenieClassName.ace41067_shashqa,          0.40f ),
+            ( WeenieClassName.ace41068_acidshashqa,      0.15f ),
+            ( WeenieClassName.ace41069_lightningshashqa, 0.15f ),
+            ( WeenieClassName.ace41070_flamingshashqa,   0.15f ),
+            ( WeenieClassName.ace41071_frostshashqa,     0.15f ),
         };
 
-        private static readonly List<WeenieClassName> Spadones = new List<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> Spadones = new ChanceTable<WeenieClassName>()
         {
             // two-handed - sword
-            WeenieClassName.ace40618_spadone,
-            WeenieClassName.ace40619_acidspadone,
-            WeenieClassName.ace40620_lightningspadone,
-            WeenieClassName.ace40621_flamingspadone,
-            WeenieClassName.ace40622_frostspadone,
+            ( WeenieClassName.ace40618_spadone,          0.40f ),
+            ( WeenieClassName.ace40619_acidspadone,      0.15f ),
+            ( WeenieClassName.ace40620_lightningspadone, 0.15f ),
+            ( WeenieClassName.ace40621_flamingspadone,   0.15f ),
+            ( WeenieClassName.ace40622_frostspadone,     0.15f ),
         };
 
-        private static readonly List<List<WeenieClassName>> twoHandedWeaponTables = new List<List<WeenieClassName>>()
+        private static readonly List<ChanceTable<WeenieClassName>> twoHandedWeaponTables = new List<ChanceTable<WeenieClassName>>()
         {
-            GreatAxes,
-            GreatStarMaces,
+            GreatAxes,          // axe
+            GreatStarMaces,     // mace
             KhandaHandledMaces,
             Quadrelles,
             Tetsubos,
-            Assagais,
+            Assagais,           // spear
             Corsecas,
             MagariYaris,
             Pikes,
-            Nodachis,
+            Nodachis,           // sword
             Shashqas,
             Spadones,
         };
@@ -148,19 +149,7 @@ namespace ACE.Server.Factories.Tables.Wcids.Weapons
             // even chance of selecting each weapon type
             var weaponType = ThreadSafeRandom.Next(0, twoHandedWeaponTables.Count - 1);
 
-            var weaponTable = twoHandedWeaponTables[weaponType];
-
-            // 50/50 chance of selecting elemental/non-elemental
-            // could have been 40/60 in retail?
-            var elemental = ThreadSafeRandom.NextBool();
-
-            if (elemental)
-            {
-                var elementType = ThreadSafeRandom.Next(1, 4);
-                return weaponTable[elementType];
-            }
-            else
-                return weaponTable[0];
+            return twoHandedWeaponTables[weaponType].Roll();
         }
     }
 }
