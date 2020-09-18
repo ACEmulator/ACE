@@ -121,13 +121,14 @@ namespace ACE.Server.WorldObjects
 
             // check PK status
             var targetPlayer = target as Player;
-            if (targetPlayer != null)
+            if (target != null)
             {
-                var pkError = CheckPKStatusVsTarget(this, targetPlayer, null);
+                var pkError = CheckPKStatusVsTarget(this, target, null);
                 if (pkError != null)
                 {
                     Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, pkError[0], target.Name));
-                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pkError[1], Name));
+                    if (targetPlayer != null)
+                        targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pkError[1], Name));
                     return null;
                 }
             }

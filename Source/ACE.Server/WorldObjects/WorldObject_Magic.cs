@@ -132,39 +132,40 @@ namespace ACE.Server.WorldObjects
                 return null;
 
             var targetPlayer = target as Player;
-            if (targetPlayer == null && target.WielderId != null)
+            var targetCreature = target as Creature;
+            if (targetCreature == null && target.WielderId != null)
             {
                 // handle casting item spells
-                targetPlayer = player.CurrentLandblock.GetObject(target.WielderId.Value) as Player;
+                targetCreature = player.CurrentLandblock.GetObject(target.WielderId.Value) as Player;
             }
-            if (targetPlayer == null)
+            if (targetCreature == null)
                 return null;
 
-            if (player.PlayerKillerStatus == PlayerKillerStatus.Free || targetPlayer.PlayerKillerStatus == PlayerKillerStatus.Free)
+            if (player.PlayerKillerStatus == PlayerKillerStatus.Free || targetCreature.PlayerKillerStatus == PlayerKillerStatus.Free)
                 return null;
 
             if (spell == null || spell.IsHarmful)
             {
                 // Ensure that a non-PK cannot cast harmful spells on another player
-                if (player.PlayerKillerStatus == PlayerKillerStatus.NPK)
+                if (player.PlayerKillerStatus == PlayerKillerStatus.NPK && targetPlayer != null && targetPlayer.PlayerKillerStatus == PlayerKillerStatus.NPK)
                     return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_YouAreNotPK, WeenieErrorWithString._FailsToAffectYou_TheyAreNotPK };
 
-                if (targetPlayer.PlayerKillerStatus == PlayerKillerStatus.NPK)
-                    return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_TheyAreNotPK, WeenieErrorWithString._FailsToAffectYou_YouAreNotPK };
+                //if (targetCreature.PlayerKillerStatus == PlayerKillerStatus.NPK)
+                //    return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_TheyAreNotPK, WeenieErrorWithString._FailsToAffectYou_YouAreNotPK };
 
                 // Ensure not attacking across housing boundary
-                if (!player.CheckHouseRestrictions(targetPlayer))
+                if (targetPlayer != null && !player.CheckHouseRestrictions(targetPlayer))
                     return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_AcrossHouseBoundary, WeenieErrorWithString._FailsToAffectYouAcrossHouseBoundary };
             }
 
             // additional checks for different PKTypes
-            if (player.PlayerKillerStatus != targetPlayer.PlayerKillerStatus)
+            if (player.PlayerKillerStatus != targetCreature.PlayerKillerStatus)
             {
                 // require same pk status, unless beneficial spell being cast on NPK
                 // https://asheron.fandom.com/wiki/Player_Killer
                 // https://asheron.fandom.com/wiki/Player_Killer_Lite
 
-                if (spell == null || spell.IsHarmful || targetPlayer.PlayerKillerStatus != PlayerKillerStatus.NPK)
+                if (spell == null || spell.IsHarmful || targetCreature.PlayerKillerStatus != PlayerKillerStatus.NPK)
                     return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_NotSamePKType, WeenieErrorWithString._FailsToAffectYou_NotSamePKType };
             }
 
