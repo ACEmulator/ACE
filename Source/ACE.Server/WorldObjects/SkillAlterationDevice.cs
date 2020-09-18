@@ -226,6 +226,9 @@ namespace ACE.Server.WorldObjects
                         // exclude None/Undef skill
                         case Skill.None:
 
+                        // exclude Arcane Lore skill
+                        case Skill.ArcaneLore:
+
                         // exclude aug specs
                         case Skill.ArmorTinkering:
                         case Skill.ItemTinkering:
