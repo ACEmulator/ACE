@@ -1,5 +1,3 @@
-USE `ace_shard`;
-
 /* Fix existing heritage specific casino keys */
 
 UPDATE biota_properties_string
