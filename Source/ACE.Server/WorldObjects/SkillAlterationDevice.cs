@@ -226,9 +226,6 @@ namespace ACE.Server.WorldObjects
                         // exclude None/Undef skill
                         case Skill.None:
 
-                        // exclude Arcane Lore skill
-                        case Skill.ArcaneLore:
-
                         // exclude aug specs
                         case Skill.ArmorTinkering:
                         case Skill.ItemTinkering:
@@ -241,6 +238,9 @@ namespace ACE.Server.WorldObjects
                     var skill = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)kvp.Key];
 
                     specializedCreditsTotal += skill.SpecializedCost;
+
+                    if (kvp.Key == Skill.ArcaneLore) // exclude Arcane Lore TrainedCost
+                        specializedCreditsTotal -= skill.TrainedCost;
                 }
             }
 
