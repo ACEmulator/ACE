@@ -4,7 +4,7 @@ using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
+using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
@@ -64,11 +64,12 @@ namespace ACE.Server.Factories
             MutateBurden(wo, profile.Tier, true);
 
             // MeleeD/MagicD/Missile Bonus
-            wo.WeaponMagicDefense = GetMagicMissileDMod(profile.Tier);
-            wo.WeaponMissileDefense = GetMagicMissileDMod(profile.Tier);
             double meleeDMod = GetWieldReqMeleeDMod(wieldDifficulty, profile);
             if (meleeDMod > 0.0f)
                 wo.WeaponDefense = meleeDMod;
+
+            wo.WeaponMissileDefense = MissileMagicDefense.Roll(profile.Tier);
+            wo.WeaponMagicDefense = MissileMagicDefense.Roll(profile.Tier);
 
             // Damage
             wo.DamageMod = GetMissileDamageMod(wieldDifficulty, wo.GetProperty(PropertyInt.WeaponType));

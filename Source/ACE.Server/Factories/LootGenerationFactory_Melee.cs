@@ -4,7 +4,7 @@ using System.Linq;
 using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
-using ACE.Server.Entity;
+using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
@@ -82,8 +82,8 @@ namespace ACE.Server.Factories
             double weaponOffense = 0;
 
             // Properties for weapons
-            double magicD = GetMagicMissileDMod(profile.Tier);
-            double missileD = GetMagicMissileDMod(profile.Tier);
+            var missileD = MissileMagicDefense.Roll(profile.Tier);
+            var magicD = MissileMagicDefense.Roll(profile.Tier);
 
             int gemCount = 0;
             if (wo.GemCode != null)
