@@ -6,7 +6,7 @@ namespace ACE.Server.Factories.Entity
     {
         // WeaponMissileDefense / WeaponMagicDefense
 
-        private static ChanceTable<float> T1_T6_Defense = new ChanceTable<float>()
+        private static readonly ChanceTable<float> T1_T6_Defense = new ChanceTable<float>()
         {
             ( 1.005f, 0.10f ),
             ( 1.010f, 0.20f ),
@@ -15,7 +15,7 @@ namespace ACE.Server.Factories.Entity
             ( 1.025f, 0.10f ),
         };
 
-        private static ChanceTable<float> T7_T8_Defense = new ChanceTable<float>()
+        private static readonly ChanceTable<float> T7_T8_Defense = new ChanceTable<float>()
         {
             ( 1.005f, 0.05f ),
             ( 1.010f, 0.10f ),
