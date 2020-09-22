@@ -10,59 +10,63 @@ namespace ACE.Server.Factories.Tables.Wcids
     {
         private static readonly ChanceTable<WeenieClassName> T1_T4_Chances = new ChanceTable<WeenieClassName>()
         {
-            ( WeenieClassName.atlatl,         0.50f ),
-            ( WeenieClassName.atlatlroyal,    0.50f ),
-            ( WeenieClassName.atlatlslashing, 0.00f ),
-            ( WeenieClassName.atlatlpiercing, 0.00f ),
-            ( WeenieClassName.atlatlblunt,    0.00f ),
-            ( WeenieClassName.atlatlacid,     0.00f ),
-            ( WeenieClassName.atlatlfire,     0.00f ),
-            ( WeenieClassName.atlatlfrost,    0.00f ),
-            ( WeenieClassName.atlatlelectric, 0.00f ),
+            ( WeenieClassName.atlatl,      0.50f ),
+            ( WeenieClassName.atlatlroyal, 0.50f ),
         };
 
         private static readonly ChanceTable<WeenieClassName> T5_Chances = new ChanceTable<WeenieClassName>()
         {
-            ( WeenieClassName.atlatl,         0.25f ),
-            ( WeenieClassName.atlatlroyal,    0.26f ),
-            ( WeenieClassName.atlatlslashing, 0.07f ),
-            ( WeenieClassName.atlatlpiercing, 0.07f ),
-            ( WeenieClassName.atlatlblunt,    0.07f ),
-            ( WeenieClassName.atlatlacid,     0.07f ),
-            ( WeenieClassName.atlatlfire,     0.07f ),
-            ( WeenieClassName.atlatlfrost,    0.07f ),
-            ( WeenieClassName.atlatlelectric, 0.07f ),
+            ( WeenieClassName.atlatl,                     0.25f ),
+            ( WeenieClassName.atlatlroyal,                0.26f ),
+            ( WeenieClassName.atlatlslashing,             0.035f ),
+            ( WeenieClassName.atlatlpiercing,             0.035f ),
+            ( WeenieClassName.atlatlblunt,                0.035f ),
+            ( WeenieClassName.atlatlacid,                 0.035f ),
+            ( WeenieClassName.atlatlfire,                 0.035f ),
+            ( WeenieClassName.atlatlfrost,                0.035f ),
+            ( WeenieClassName.atlatlelectric,             0.035f ),
+            ( WeenieClassName.ace31812_slashingslingshot, 0.035f ),
+            ( WeenieClassName.ace31818_piercingslingshot, 0.035f ),
+            ( WeenieClassName.ace31814_bluntslingshot,    0.035f ),
+            ( WeenieClassName.ace31813_acidslingshot,     0.035f ),
+            ( WeenieClassName.ace31816_fireslingshot,     0.035f ),
+            ( WeenieClassName.ace31817_frostslingshot,    0.035f ),
+            ( WeenieClassName.ace31815_electricslingshot, 0.035f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T6_Chances = new ChanceTable<WeenieClassName>()
+        private static readonly ChanceTable<WeenieClassName> T6_T8_Chances = new ChanceTable<WeenieClassName>()
         {
-            ( WeenieClassName.atlatl,         0.00f ),
-            ( WeenieClassName.atlatlroyal,    0.00f ),
-            ( WeenieClassName.atlatlslashing, 0.15f ),
-            ( WeenieClassName.atlatlpiercing, 0.15f ),
-            ( WeenieClassName.atlatlblunt,    0.14f ),
-            ( WeenieClassName.atlatlacid,     0.14f ),
-            ( WeenieClassName.atlatlfire,     0.14f ),
-            ( WeenieClassName.atlatlfrost,    0.14f ),
-            ( WeenieClassName.atlatlelectric, 0.14f ),
+            ( WeenieClassName.atlatlslashing,             0.075f ),
+            ( WeenieClassName.atlatlpiercing,             0.075f ),
+            ( WeenieClassName.atlatlblunt,                0.07f ),
+            ( WeenieClassName.atlatlacid,                 0.07f ),
+            ( WeenieClassName.atlatlfire,                 0.07f ),
+            ( WeenieClassName.atlatlfrost,                0.07f ),
+            ( WeenieClassName.atlatlelectric,             0.07f ),
+            ( WeenieClassName.ace31812_slashingslingshot, 0.075f ),
+            ( WeenieClassName.ace31818_piercingslingshot, 0.075f ),
+            ( WeenieClassName.ace31814_bluntslingshot,    0.07f ),
+            ( WeenieClassName.ace31813_acidslingshot,     0.07f ),
+            ( WeenieClassName.ace31816_fireslingshot,     0.07f ),
+            ( WeenieClassName.ace31817_frostslingshot,    0.07f ),
+            ( WeenieClassName.ace31815_electricslingshot, 0.07f ),
         };
 
-        private static readonly List<ChanceTable<WeenieClassName>> weaponTiers = new List<ChanceTable<WeenieClassName>>()
+        private static readonly List<ChanceTable<WeenieClassName>> atlatlTiers = new List<ChanceTable<WeenieClassName>>()
         {
             T1_T4_Chances,
             T1_T4_Chances,
             T1_T4_Chances,
             T1_T4_Chances,
             T5_Chances,
-            T6_Chances,
+            T6_T8_Chances,
+            T6_T8_Chances,
+            T6_T8_Chances,
         };
 
         public static WeenieClassName Roll(int tier)
         {
-            // todo: add unique profiles for t7 / t8?
-            tier = Math.Clamp(tier, 1, 6);
-
-            return weaponTiers[tier - 1].Roll();
+            return atlatlTiers[tier - 1].Roll();
         }
     }
 }
