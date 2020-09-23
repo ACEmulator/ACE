@@ -521,7 +521,13 @@ namespace ACE.Server.WorldObjects
             }
 
             if (percent >= 0.1f)
-                EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound1, 1.0f));
+            {
+                // Wound1 - Ahh! - elemental attacks above some threshold
+                // Wound2 - deep Ugh - physical attacks above some threshold
+                var woundSound = (damageType & DamageType.Physical) != 0 ? Sound.Wound2 : Sound.Wound1;
+
+                EnqueueBroadcast(new GameMessageSound(Guid, woundSound, 1.0f));
+            }
 
             if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak))
                 Cloak.TryProcSpell(this, source, equippedCloak, percent);
