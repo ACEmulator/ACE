@@ -522,8 +522,9 @@ namespace ACE.Server.WorldObjects
 
             if (percent >= 0.1f)
             {
-                // Wound1 - Ahh! - elemental attacks above some threshold
-                // Wound2 - deep Ugh - physical attacks above some threshold
+                // Wound1 - Aahhh!    - elemental attacks above some threshold
+                // Wound2 - Deep Ugh! - physical attacks above some threshold
+                // Wound3 - Ooh!      - falling damage
                 var woundSound = (damageType & DamageType.Physical) != 0 ? Sound.Wound2 : Sound.Wound1;
 
                 EnqueueBroadcast(new GameMessageSound(Guid, woundSound, 1.0f));
