@@ -82,6 +82,9 @@ namespace ACE.Server.Factories
             }
             else
             {
+                // thanks to 4eyebiped for helping with the data analysis of magloot retail logs
+                // that went into reversing these mutation scripts
+
                 var weaponSkill = wo.WeaponSkill.ToMeleeWeaponSkill();
 
                 // mutate Damage / WieldDifficulty / Variance
