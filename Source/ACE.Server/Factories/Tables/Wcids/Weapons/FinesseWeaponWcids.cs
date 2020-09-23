@@ -42,7 +42,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         private static readonly ChanceTable<WeenieClassName> Knives = new ChanceTable<WeenieClassName>()
         {
-            // finesse - dagger
+            // finesse - dagger (multi-strike)
             ( WeenieClassName.knife,         0.40f ),
             ( WeenieClassName.knifeacid,     0.15f ),
             ( WeenieClassName.knifeelectric, 0.15f ),
@@ -52,7 +52,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         private static readonly ChanceTable<WeenieClassName> Lancets = new ChanceTable<WeenieClassName>()
         {
-            // finesse - dagger
+            // finesse - dagger (multi-strike)
             ( WeenieClassName.ace31794_lancet,          0.40f ),
             ( WeenieClassName.ace31795_acidlancet,      0.15f ),
             ( WeenieClassName.ace31796_lightninglancet, 0.15f ),
@@ -192,7 +192,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         private static readonly ChanceTable<WeenieClassName> Rapiers = new ChanceTable<WeenieClassName>()
         {
-            // finesse - sword
+            // finesse - sword (multi-strike)
             ( WeenieClassName.swordrapier,              0.40f ),
             ( WeenieClassName.ace45104_acidrapier,      0.15f ),
             ( WeenieClassName.ace45105_lightningrapier, 0.15f ),
@@ -230,38 +230,40 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace45122_frosthandwraps,     0.15f ),
         };
 
-        private static readonly List<ChanceTable<WeenieClassName>> finesseWeaponsTables = new List<ChanceTable<WeenieClassName>>()
+        private static readonly List<(ChanceTable<WeenieClassName> table, TreasureWeaponType weaponType)> finesseWeaponsTables = new List<(ChanceTable<WeenieClassName>, TreasureWeaponType)>()
         {
-            Hatchets,        // axe
-            Shouonos,
-            Tungis,
-            Knives,          // dagger
-            Lancets,
-            Poniards,
-            BoardsWithNails, // mace
-            Dabus,
-            Jittes,
-            Tofuns,
-            Budiaqs,         // spear
-            Naginatas,
-            Bastones,        // staff
-            Jos,
-            Sabras,          // sword
-            Scimitars,
-            ShortSwords,
-            Simis,
-            Rapiers,
-            Yaojis,
-            Claws,           // unarmed
-            HandWraps,
+            ( Hatchets,        TreasureWeaponType.Axe ),
+            ( Shouonos,        TreasureWeaponType.Axe ),
+            ( Tungis,          TreasureWeaponType.Axe ),
+            ( Knives,          TreasureWeaponType.DaggerMS ),
+            ( Lancets,         TreasureWeaponType.DaggerMS ),
+            ( Poniards,        TreasureWeaponType.Dagger ),
+            ( BoardsWithNails, TreasureWeaponType.Mace ),
+            ( Dabus,           TreasureWeaponType.Mace ),
+            ( Jittes,          TreasureWeaponType.MaceJitte ),
+            ( Tofuns,          TreasureWeaponType.Mace ),
+            ( Budiaqs,         TreasureWeaponType.Spear ),
+            ( Naginatas,       TreasureWeaponType.Spear ),
+            ( Bastones,        TreasureWeaponType.Staff ),
+            ( Jos,             TreasureWeaponType.Staff ),
+            ( Sabras,          TreasureWeaponType.Sword ),
+            ( Scimitars,       TreasureWeaponType.Sword ),
+            ( ShortSwords,     TreasureWeaponType.Sword ),
+            ( Simis,           TreasureWeaponType.Sword ),
+            ( Rapiers,         TreasureWeaponType.SwordMS ),
+            ( Yaojis,          TreasureWeaponType.Sword ),
+            ( Claws,           TreasureWeaponType.Unarmed ),
+            ( HandWraps,       TreasureWeaponType.Unarmed ),
         };
 
-        public static WeenieClassName Roll()
+        public static WeenieClassName Roll(out TreasureWeaponType weaponType)
         {
-            // even chance of selecting each weapon type
-            var weaponType = ThreadSafeRandom.Next(0, finesseWeaponsTables.Count - 1);
+            // even chance of selecting each weapon table
+            var weaponTable = finesseWeaponsTables[ThreadSafeRandom.Next(0, finesseWeaponsTables.Count - 1)];
 
-            return finesseWeaponsTables[weaponType].Roll();
+            weaponType = weaponTable.weaponType;
+
+            return weaponTable.table.Roll();
         }
     }
 }

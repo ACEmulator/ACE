@@ -50,7 +50,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         private static readonly ChanceTable<WeenieClassName> Daggers = new ChanceTable<WeenieClassName>()
         {
-            // light - dagger
+            // light - dagger (multi-strike)
             ( WeenieClassName.dagger,         0.40f ),
             ( WeenieClassName.daggeracid,     0.15f ),
             ( WeenieClassName.daggerelectric, 0.15f ),
@@ -200,35 +200,37 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.knucklesfrost,    0.15f ),
         };
 
-        private static readonly List<ChanceTable<WeenieClassName>> lightWeaponsTables = new List<ChanceTable<WeenieClassName>>()
+        private static readonly List<(ChanceTable<WeenieClassName> table, TreasureWeaponType weaponType)> lightWeaponsTables = new List<(ChanceTable<WeenieClassName>, TreasureWeaponType)>()
         {
-            Dolabras,       // axe
-            HandAxes,
-            Onos,
-            WarHammers,
-            Daggers,        // dagger
-            Khanjars,
-            Clubs,          // mace
-            Kasrullahs,
-            SpikedClubs,
-            Spears,         // spear
-            Yaris,
-            QuarterStaffs,  // staff
-            BroadSwords,    // sword
-            DericostBlades,
-            Kaskaras,
-            Shamshirs,
-            Spadas,
-            Katars,         // unarmed
-            Knuckles,
+            ( Dolabras,       TreasureWeaponType.Axe ),
+            ( HandAxes,       TreasureWeaponType.Axe ),
+            ( Onos,           TreasureWeaponType.Axe ),
+            ( WarHammers,     TreasureWeaponType.Axe ),
+            ( Daggers,        TreasureWeaponType.DaggerMS ),
+            ( Khanjars,       TreasureWeaponType.Dagger ),
+            ( Clubs,          TreasureWeaponType.Mace ),
+            ( Kasrullahs,     TreasureWeaponType.Mace ),
+            ( SpikedClubs,    TreasureWeaponType.Mace ),
+            ( Spears,         TreasureWeaponType.Spear ),
+            ( Yaris,          TreasureWeaponType.Spear ),
+            ( QuarterStaffs,  TreasureWeaponType.Staff ),
+            ( BroadSwords,    TreasureWeaponType.Sword ),
+            ( DericostBlades, TreasureWeaponType.Sword ),
+            ( Kaskaras,       TreasureWeaponType.Sword ),
+            ( Shamshirs,      TreasureWeaponType.Sword ),
+            ( Spadas,         TreasureWeaponType.Sword ),
+            ( Katars,         TreasureWeaponType.Unarmed ),
+            ( Knuckles,       TreasureWeaponType.Unarmed ),
         };
 
-        public static WeenieClassName Roll()
+        public static WeenieClassName Roll(out TreasureWeaponType weaponType)
         {
-            // even chance of selecting each weapon type
-            var weaponType = ThreadSafeRandom.Next(0, lightWeaponsTables.Count - 1);
+            // even chance of selecting each weapon table
+            var weaponTable = lightWeaponsTables[ThreadSafeRandom.Next(0, lightWeaponsTables.Count - 1)];
 
-            return lightWeaponsTables[weaponType].Roll();
+            weaponType = weaponTable.weaponType;
+
+            return weaponTable.table.Roll();
         }
     }
 }

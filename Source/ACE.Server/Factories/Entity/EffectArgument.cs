@@ -39,12 +39,14 @@ namespace ACE.Server.Factories.Entity
         {
             Type = EffectArgumentType.Int;
             IntVal = val;
+            IsValid = true;
         }
 
         public EffectArgument(double val)
         {
             Type = EffectArgumentType.Double;
             DoubleVal = val;
+            IsValid = true;
         }
 
         public EffectArgument(float minVal, float maxVal)
@@ -190,11 +192,11 @@ namespace ACE.Server.Factories.Entity
             return IsValid;
         }
 
-        public bool StoreValue(WorldObject item)
+        public bool StoreValue(WorldObject item, EffectArgument result)
         {
             // here the resolved value (result) is applied to the qualities specified by our value
 
-            if (!IsValid)
+            if (!result.IsValid)
                 return false;
 
             switch (Type)
@@ -204,19 +206,19 @@ namespace ACE.Server.Factories.Entity
                     switch (StatType)
                     {
                         case StatType.Int:
-                            item.SetProperty((PropertyInt)StatIdx, ToInt());
+                            item.SetProperty((PropertyInt)StatIdx, result.ToInt());
                             break;
 
                         case StatType.Bool:
-                            item.SetProperty((PropertyBool)StatIdx, Convert.ToBoolean(ToInt()));
+                            item.SetProperty((PropertyBool)StatIdx, Convert.ToBoolean(result.ToInt()));
                             break;
 
                         case StatType.Float:
-                            item.SetProperty((PropertyFloat)StatIdx, ToDouble());
+                            item.SetProperty((PropertyFloat)StatIdx, result.ToDouble());
                             break;
 
                         case StatType.DID:
-                            item.SetProperty((PropertyDataId)StatIdx, (uint)ToInt());
+                            item.SetProperty((PropertyDataId)StatIdx, (uint)result.ToInt());
                             break;
                     }
                     break;

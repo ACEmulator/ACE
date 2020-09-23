@@ -211,7 +211,10 @@ namespace ACE.Server.Factories.Tables
         public static HeritageGroup Roll(int heritageDistGroup)
         {
             if (!heritageDistGroups.TryGetValue(heritageDistGroup, out var table))
-                return HeritageGroup.Invalid;
+            {
+                // fallback method - fix the treasure_death.heritage_chances data for new rows
+                return (HeritageGroup)ThreadSafeRandom.Next(1, 3);
+            }
 
             var heritageGroup = table.Roll();
 

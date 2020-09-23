@@ -9,6 +9,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
+using ACE.Server.Factories.Enum;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
@@ -458,7 +459,7 @@ namespace ACE.Server.Factories
 
             for (int i = 0; i < 12; i++)
             {
-                var item = LootGenerationFactory.CreateMeleeWeapon(profile, true, 0);
+                var item = LootGenerationFactory.CreateMeleeWeapon(profile, true, MeleeWeaponSkill.HeavyWeapons);
                 AddRend(item);
                 player.TryAddToInventory(item);
             }

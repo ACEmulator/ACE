@@ -10,14 +10,12 @@ namespace ACE.Server.Factories.Entity
 
         public bool TryMutate(WorldObject wo, double rng)
         {
-            var success = true;
-
             foreach (var effectList in EffectLists)
             {
                 if (rng < effectList.Chance)
-                    success &= effectList.TryMutate(wo);
+                    return effectList.TryMutate(wo);
             }
-            return success;
+            return false;
         }
     }
 }

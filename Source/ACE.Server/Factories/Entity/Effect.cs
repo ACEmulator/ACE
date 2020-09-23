@@ -110,18 +110,18 @@ namespace ACE.Server.Factories.Entity
                     break;
             }
 
-            result.StoreValue(wo);
+            Quality.StoreValue(wo, result);
 
             return true;
         }
 
         public bool Validate(WorldObject wo, EffectArgument result, EffectArgument arg1, EffectArgument arg2, MutationEffectType type)
         {
-            if (!result.IsValid)
+            /*if (!result.IsValid)
             {
                 log.Error($"{wo.Name} ({wo.Guid}).TryMutate({type}) - result invalid");
                 return false;
-            }
+            }*/
 
             if (!arg1.IsValid)
             {

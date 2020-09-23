@@ -128,28 +128,30 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace40622_frostspadone,     0.15f ),
         };
 
-        private static readonly List<ChanceTable<WeenieClassName>> twoHandedWeaponTables = new List<ChanceTable<WeenieClassName>>()
+        private static readonly List<(ChanceTable<WeenieClassName> table, TreasureWeaponType weaponType)> twoHandedWeaponTables = new List<(ChanceTable<WeenieClassName>, TreasureWeaponType)>()
         {
-            GreatAxes,          // axe
-            GreatStarMaces,     // mace
-            KhandaHandledMaces,
-            Quadrelles,
-            Tetsubos,
-            Assagais,           // spear
-            Corsecas,
-            MagariYaris,
-            Pikes,
-            Nodachis,           // sword
-            Shashqas,
-            Spadones,
+            ( GreatAxes,          TreasureWeaponType.TwoHandedAxe ),
+            ( GreatStarMaces,     TreasureWeaponType.TwoHandedMace ),
+            ( KhandaHandledMaces, TreasureWeaponType.TwoHandedMace ),
+            ( Quadrelles,         TreasureWeaponType.TwoHandedMace ),
+            ( Tetsubos,           TreasureWeaponType.TwoHandedMace ),
+            ( Assagais,           TreasureWeaponType.TwoHandedSpear ),
+            ( Corsecas,           TreasureWeaponType.TwoHandedSpear ),
+            ( MagariYaris,        TreasureWeaponType.TwoHandedSpear ),
+            ( Pikes,              TreasureWeaponType.TwoHandedSpear ),
+            ( Nodachis,           TreasureWeaponType.TwoHandedSword ),
+            ( Shashqas,           TreasureWeaponType.TwoHandedSword ),
+            ( Spadones,           TreasureWeaponType.TwoHandedSword ),
         };
 
-        public static WeenieClassName Roll()
+        public static WeenieClassName Roll(out TreasureWeaponType weaponType)
         {
-            // even chance of selecting each weapon type
-            var weaponType = ThreadSafeRandom.Next(0, twoHandedWeaponTables.Count - 1);
+            // even chance of selecting each weapon table
+            var weaponTable = twoHandedWeaponTables[ThreadSafeRandom.Next(0, twoHandedWeaponTables.Count - 1)];
 
-            return twoHandedWeaponTables[weaponType].Roll();
+            weaponType = weaponTable.weaponType;
+
+            return weaponTable.table.Roll();
         }
     }
 }

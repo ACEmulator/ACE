@@ -210,7 +210,7 @@ namespace ACE.Server.Factories
             if (isMagical)
             {
                 //bool covenantArmor = false || (armorType == LootTables.ArmorType.CovenantArmor || armorType == LootTables.ArmorType.OlthoiArmor);
-                wo = AssignMagic(wo, profile, true);
+                AssignMagic(wo, profile, true);
             }
             else
             {
@@ -225,7 +225,7 @@ namespace ACE.Server.Factories
             if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
                 MutateBurden(wo, profile.Tier, false);
 
-            RandomizeColor(wo);
+            MutateColor(wo);
         }
 
 
@@ -257,7 +257,7 @@ namespace ACE.Server.Factories
             if (isMagical)
             {
                 // looks like society armor always had impen on it
-                wo = AssignMagic(wo, profile, true);
+                AssignMagic(wo, profile, true);
             }
             else
             {

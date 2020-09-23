@@ -18,7 +18,15 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.axebattlefrost,    0.15f ),
         };
 
-        // lugian hammer?
+        private static readonly ChanceTable<WeenieClassName> LugianHammers = new ChanceTable<WeenieClassName>()
+        {
+            // heavy - axe
+            ( WeenieClassName.ace31764_lugianhammer,          0.40f ),
+            ( WeenieClassName.ace31765_acidlugianhammer,      0.15f ),
+            ( WeenieClassName.ace31766_lightninglugianhammer, 0.15f ),
+            ( WeenieClassName.ace31767_flaminglugianhammer,   0.15f ),
+            ( WeenieClassName.ace31763_frostlugianhammer,     0.15f ),
+        };
 
         private static readonly ChanceTable<WeenieClassName> Silifis = new ChanceTable<WeenieClassName>()
         {
@@ -52,7 +60,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         private static readonly ChanceTable<WeenieClassName> Jambiyas = new ChanceTable<WeenieClassName>()
         {
-            // heavy - dagger
+            // heavy - dagger (multi-strike)
             ( WeenieClassName.jambiya,         0.40f ),
             ( WeenieClassName.jambiyaacid,     0.15f ),
             ( WeenieClassName.jambiyaelectric, 0.15f ),
@@ -62,7 +70,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         private static readonly ChanceTable<WeenieClassName> Stilettos = new ChanceTable<WeenieClassName>()
         {
-            // heavy - dagger
+            // heavy - dagger (multi-strike)
             ( WeenieClassName.daggerstiletto,         0.40f ),
             ( WeenieClassName.daggerstilettoacid,     0.15f ),
             ( WeenieClassName.daggerstilettoelectric, 0.15f ),
@@ -240,39 +248,42 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.nekodefrost,    0.15f ),
         };
 
-        private static readonly List<ChanceTable<WeenieClassName>> heavyWeaponsTables = new List<ChanceTable<WeenieClassName>>()
+        private static readonly List<(ChanceTable<WeenieClassName> table, TreasureWeaponType weaponType)> heavyWeaponsTables = new List<(ChanceTable<WeenieClassName>, TreasureWeaponType)>()
         {
-            BattleAxes,     // axe
-            Silifis,
-            WarAxes,
-            Dirks,          // dagger
-            Jambiyas,
-            Stilettos,
-            FlangedMaces,   // mace
-            Maces,
-            Mazules,
-            MorningStars,
-            Partizans,      // spear
-            SpineGlaives,
-            Tridents,
-            Nabuts,         // staff
-            Sticks,
-            Flamberges,     // sword
-            Kens,
-            LongSwords,
-            Schlagers,
-            Tachis,
-            Takubas,
-            Cestus,         // unarmed
-            Nekodes,
+            ( BattleAxes,    TreasureWeaponType.Axe ),
+            ( LugianHammers, TreasureWeaponType.Axe ),
+            ( Silifis,       TreasureWeaponType.Axe ),
+            ( WarAxes,       TreasureWeaponType.Axe ),
+            ( Dirks,         TreasureWeaponType.Dagger ),
+            ( Jambiyas,      TreasureWeaponType.DaggerMS ),
+            ( Stilettos,     TreasureWeaponType.DaggerMS ),
+            ( FlangedMaces,  TreasureWeaponType.Mace ),
+            ( Maces,         TreasureWeaponType.Mace ),
+            ( Mazules,       TreasureWeaponType.Mace ),
+            ( MorningStars,  TreasureWeaponType.Mace ),
+            ( Partizans,     TreasureWeaponType.Spear ),
+            ( SpineGlaives,  TreasureWeaponType.Spear ),
+            ( Tridents,      TreasureWeaponType.Spear ),
+            ( Nabuts,        TreasureWeaponType.Staff ),
+            ( Sticks,        TreasureWeaponType.Staff ),
+            ( Flamberges,    TreasureWeaponType.Sword ),
+            ( Kens,          TreasureWeaponType.Sword ),
+            ( LongSwords,    TreasureWeaponType.Sword ),
+            ( Schlagers,     TreasureWeaponType.SwordMS ),
+            ( Tachis,        TreasureWeaponType.Sword ),
+            ( Takubas,       TreasureWeaponType.Sword ),
+            ( Cestus,        TreasureWeaponType.Unarmed ),
+            ( Nekodes,       TreasureWeaponType.Unarmed ),
         };
 
-        public static WeenieClassName Roll()
+        public static WeenieClassName Roll(out TreasureWeaponType weaponType)
         {
-            // even chance of selecting each weapon type
-            var weaponType = ThreadSafeRandom.Next(0, heavyWeaponsTables.Count - 1);
+            // even chance of selecting each weapon table
+            var weaponTable = heavyWeaponsTables[ThreadSafeRandom.Next(0, heavyWeaponsTables.Count - 1)];
 
-            return heavyWeaponsTables[weaponType].Roll();
+            weaponType = weaponTable.weaponType;
+
+            return weaponTable.table.Roll();
         }
     }
 }
