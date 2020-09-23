@@ -2599,7 +2599,6 @@ namespace ACE.Server.Factories
                     treasureRoll.Wcid = SpellComponentWcids.Roll(treasureDeath.Tier);
                     break;
             }
-
             return treasureRoll;
         }
 
