@@ -2235,9 +2235,9 @@ namespace ACE.Server.Factories
         }
 
         /// <summary>
-        /// Will return correct meleeMod for Missile/Caster wields (some debate on what 375 top out at, leaving at 18 for now). HarliQ 11/17/19
+        /// Rolls for a WeaponDefense for MissileWeapons and Casters
         /// </summary>
-        private static double GetWieldReqMeleeDMod(int wield, TreasureDeath profile)
+        private static double RollWeaponDefense(int wield, TreasureDeath profile)
         {
             double meleeMod = 0;
 
@@ -2696,6 +2696,7 @@ namespace ACE.Server.Factories
 
                         case TreasureWeaponType.Caster:
 
+                            // fixme
                             var wieldDifficulty = wo.W_DamageType != DamageType.Undef ? RollWieldDifficulty(treasureDeath.Tier, WieldType.Caster) : 0;
                             MutateCaster(wo, treasureDeath, isMagical, wieldDifficulty);
                             break;
@@ -2704,9 +2705,7 @@ namespace ACE.Server.Factories
                         case TreasureWeaponType.Crossbow:
                         case TreasureWeaponType.Atlatl:
 
-                            // fixme
-                            wieldDifficulty = RollWieldDifficulty(treasureDeath.Tier, WieldType.MissileWeapon);
-                            MutateMissileWeapon(wo, treasureDeath, isMagical, wieldDifficulty);
+                            MutateMissileWeapon(wo, treasureDeath, isMagical, null, treasureRoll.WeaponType);
                             break;
 
                         default:

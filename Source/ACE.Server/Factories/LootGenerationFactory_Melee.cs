@@ -204,12 +204,12 @@ namespace ACE.Server.Factories
 
         private static string GetDamageScript(MeleeWeaponSkill weaponSkill, TreasureWeaponType weaponType)
         {
-            return "Damage_WieldDifficulty_DamageVariance." + weaponSkill.GetScriptName() + "_" + weaponType.GetScriptName() + ".txt";
+            return "MeleeWeapons.Damage_WieldDifficulty_DamageVariance." + weaponSkill.GetScriptName() + "_" + weaponType.GetScriptName() + ".txt";
         }
 
         private static string GetOffenseDefenseScript(MeleeWeaponSkill weaponSkill, TreasureWeaponType weaponType)
         {
-            return "WeaponOffense_WeaponDefense." + weaponType.GetScriptShortName() + "_offense_defense.txt";
+            return "MeleeWeapons.WeaponOffense_WeaponDefense." + weaponType.GetScriptShortName() + "_offense_defense.txt";
         }
 
         private enum LootWeaponType
