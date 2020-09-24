@@ -1309,7 +1309,7 @@ namespace ACE.Server.Factories
             return highSpellTier;
         }
 
-        private static double GetManaCMod(int tier)
+        private static double RollManaConversionMod(int tier)
         {
             int magicMod = 0;
 
@@ -2696,9 +2696,7 @@ namespace ACE.Server.Factories
 
                         case TreasureWeaponType.Caster:
 
-                            // fixme
-                            var wieldDifficulty = wo.W_DamageType != DamageType.Undef ? RollWieldDifficulty(treasureDeath.Tier, WieldType.Caster) : 0;
-                            MutateCaster(wo, treasureDeath, isMagical, wieldDifficulty);
+                            MutateCaster(wo, treasureDeath, isMagical);
                             break;
 
                         case TreasureWeaponType.Bow:
