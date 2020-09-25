@@ -102,6 +102,13 @@ namespace ACE.Server.Factories
                 mutationFilter.TryMutate(wo, profile.Tier);
             }
 
+            // weapon speed
+            if (wo.WeaponTime != null)
+            {
+                var weaponSpeedMod = RollWeaponSpeedMod(profile);
+                wo.WeaponTime = (int)(wo.WeaponTime * weaponSpeedMod);
+            }
+
             // material type
             var materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
@@ -122,7 +129,7 @@ namespace ACE.Server.Factories
             wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
 
             // burden
-            MutateBurden(wo, profile.Tier, true);
+            MutateBurden(wo, profile, true);
 
             // item value
             var materialMod = LootTables.getMaterialValueModifier(wo);

@@ -223,7 +223,7 @@ namespace ACE.Server.Factories
 
             // try mutate burden, if MutateFilter exists
             if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
-                MutateBurden(wo, profile.Tier, false);
+                MutateBurden(wo, profile, false);
 
             MutateColor(wo);
         }
@@ -271,7 +271,7 @@ namespace ACE.Server.Factories
 
             // try mutate burden, if MutateFilter exists
             if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
-                MutateBurden(wo, profile.Tier, false);
+                MutateBurden(wo, profile, false);
         }
 
         private static bool GetMutateArmorData(uint wcid, out LootTables.ArmorType? armorType)

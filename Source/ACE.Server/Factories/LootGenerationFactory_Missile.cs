@@ -93,6 +93,13 @@ namespace ACE.Server.Factories
                 log.Warn($"LootGenerationFactory_Missile.MutateMissileWeapon({wo.Name}, {profile.TreasureType}, {isMagical}, {wieldDifficulty}, {weaponType}) - unexpected: WieldDifficulty and WeaponType are both null!");
             }
 
+            // weapon speed
+            if (wo.WeaponTime != null)
+            {
+                var weaponSpeedMod = RollWeaponSpeedMod(profile);
+                wo.WeaponTime = (int)(wo.WeaponTime * weaponSpeedMod);
+            }
+
             // material type
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
@@ -113,7 +120,7 @@ namespace ACE.Server.Factories
             wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
 
             // burden
-            MutateBurden(wo, profile.Tier, true);
+            MutateBurden(wo, profile, true);
 
             // item value
             var materialMod = LootTables.getMaterialValueModifier(wo);

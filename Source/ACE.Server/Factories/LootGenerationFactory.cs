@@ -2449,25 +2449,25 @@ namespace ACE.Server.Factories
         public static readonly float WeaponBulk = 0.50f;
         public static readonly float ArmorBulk = 0.25f;
 
-        private static bool MutateBurden(WorldObject wo, int tier, bool isWeapon)
+        private static bool MutateBurden(WorldObject wo, TreasureDeath treasureDeath, bool isWeapon)
         {
             // ensure item has burden
             if (wo.EncumbranceVal == null)
                 return false;
 
-            // initial rng roll - burden mod chance per tier
-            if (!RollBurdenModChance(tier))
+            var qualityInterval = QualityChance.RollInterval(treasureDeath);
+
+            // only continue if the initial roll to modify the quality succeeded
+            if (qualityInterval == 0.0f)
                 return false;
 
-            // secondary rng roll - pseudo curve table per tier
-            var roll = QualityChance.Roll(tier);
-
+            // only continue if initial roll succeeded?
             var bulk = isWeapon ? WeaponBulk : ArmorBulk;
             bulk *= (float)(wo.BulkMod ?? 1.0f);
 
             var maxBurdenMod = 1.0f - bulk;
 
-            var burdenMod = 1.0f - (roll * maxBurdenMod);
+            var burdenMod = 1.0f - (qualityInterval * maxBurdenMod);
 
             // modify burden
             var prevBurden = wo.EncumbranceVal.Value;
@@ -2479,15 +2479,6 @@ namespace ACE.Server.Factories
             //Console.WriteLine($"Modified burden from {prevBurden} to {wo.EncumbranceVal} for {wo.Name} ({wo.WeenieClassId})");
 
             return true;
-        }
-
-        private static bool RollBurdenModChance(int tier)
-        {
-            var chance = QualityChance.QualityChancePerTier[tier - 1];
-
-            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-
-            return rng < chance;
         }
 
         private static void Shuffle<T>(T[] array)
@@ -2729,6 +2720,23 @@ namespace ACE.Server.Factories
                 // other mundane items (mana stones, food/drink, healing kits, lockpicks, and spell components/peas) don't get mutated
             }
             return wo;
+        }
+
+        private static float RollWeaponSpeedMod(TreasureDeath treasureDeath)
+        {
+            var qualityLevel = QualityChance.Roll(treasureDeath);
+
+            if (qualityLevel == 0)
+                return 1.0f;    // no bonus
+
+            var rng = (float)ThreadSafeRandom.Next(-0.025f, 0.025f);
+
+            // min/max range: 67.5% - 100%
+            var weaponSpeedMod = 1.0f - (qualityLevel * 0.025f + rng);
+
+            //Console.WriteLine($"WeaponSpeedMod: {weaponSpeedMod}");
+
+            return weaponSpeedMod;
         }
     }         
 }
