@@ -23,20 +23,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Factories\Entity\Mutations\Casters\caster.txt" />
-    <None Remove="Factories\Entity\Mutations\Casters\caster_elemental.txt" />
-    <None Remove="Factories\Entity\Mutations\Casters\caster_non_elemental.txt" />
-    <None Remove="Factories\Entity\Mutations\Casters\weapon_defense.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_axe.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_dagger.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_dagger_ms.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_mace.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_mace_jitte.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_spear.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_staff.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_sword.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_sword_ms.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_unarmed.txt" />
     <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_axe.txt" />
     <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_dagger.txt" />
     <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_dagger_ms.txt" />
@@ -90,16 +76,6 @@
     <EmbeddedResource Include="Factories\Entity\Mutations\Casters\caster_elemental.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\Casters\caster_non_elemental.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\Casters\weapon_defense.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_axe.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_dagger.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_dagger_ms.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_mace.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_mace_jitte.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_spear.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_staff.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_sword.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_sword_ms.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_unarmed.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_axe.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_dagger.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_dagger_ms.txt" />
@@ -192,12 +168,6 @@
     <None Include="..\..\Database\Base\**" CopyToOutputDirectory="PreserveNewest" LinkBase="DatabaseSetupScripts\Base\" />
     <None Include="..\..\Database\Updates\**" CopyToOutputDirectory="PreserveNewest" LinkBase="DatabaseSetupScripts\Updates\" />
     <None Include="..\..\Database\Optional\**" CopyToOutputDirectory="PreserveNewest" LinkBase="DatabaseSetupScripts\Optional\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Factories\Entity\Mutations\Casters\**" />
-    <EmbeddedResource Remove="Factories\Entity\Mutations\Casters\**" />
-    <None Remove="Factories\Entity\Mutations\Casters\**" />
   </ItemGroup>
 
   <Target Name="ChangeAliasesOfStrongNameAssemblies" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
