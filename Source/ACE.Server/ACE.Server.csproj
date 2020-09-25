@@ -166,12 +166,6 @@
     <None Include="..\..\Database\Optional\**" CopyToOutputDirectory="PreserveNewest" LinkBase="DatabaseSetupScripts\Optional\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="Factories\Entity\Mutations\Casters\**" />
-    <EmbeddedResource Remove="Factories\Entity\Mutations\Casters\**" />
-    <None Remove="Factories\Entity\Mutations\Casters\**" />
-  </ItemGroup>
-
   <Target Name="ChangeAliasesOfStrongNameAssemblies" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
     <ItemGroup>
       <ReferencePath Condition="'%(FileName)' == 'MySqlConnector'">
