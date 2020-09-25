@@ -2742,7 +2742,7 @@ namespace ACE.Server.Factories
         public static string GetLongDesc(WorldObject wo)
         {
             if (wo.Biota.PropertiesSpellBook == null)
-                return null;
+                return wo.Name;
 
             foreach (var spellId in wo.Biota.PropertiesSpellBook.Keys)
             {
@@ -2751,7 +2751,7 @@ namespace ACE.Server.Factories
                 if (spellLevels != null && CasterSlotSpells.descriptors.TryGetValue(spellLevels[0], out var descriptor))
                     return $"{wo.Name} of {descriptor}";
             }
-            return null;
+            return wo.Name;
         }
     }         
 }
