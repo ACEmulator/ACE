@@ -1,489 +1,543 @@
-Unarmed (LightWeapons) Mutation #0:
+MaceJitte (FinesseWeapons) Mutation #0:
 
 Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
 
-    - Chance 100%:
-        Damage = 6
+    - Chance: 100%:
+	    Damage = 7
 
-Unarmed (LightWeapons) Mutation #1 (196 samples):
+MaceJitte (FinesseWeapons) Mutation #1 (33 samples):
 
 Tier chances: 1, 0, 0, 0, 0, 0, 0, 0
 
-    - Chance 3%:
+    - Chance: 3%:
         Damage += 1
 
-    - Chance 7%:
+    - Chance: 7%:
         Damage += 2
 
-    - Chance 10%:
+    - Chance: 10%:
         Damage += 3
 
-    - Chance 30%:
+    - Chance: 30%:
         Damage += 4
 
-    - Chance 15%:
+    - Chance: 15%:
         Damage += 5
 
-    - Chance 15%:
+    - Chance: 15%:
         Damage += 6
 
-    - Chance 10%:
-        Damage += 7
+    - Chance: 10%:
+        Damage += 8
 
-    - Chance 7%:
-        Damage += 9
+    - Chance: 7%:
+        Damage += 10
 
-    - Chance 3%:
-        Damage += 11
+    - Chance: 3%:
+        Damage += 12
 
-Unarmed (LightWeapons) Mutation #2 (328 samples):
+MaceJitte (FinesseWeapons) Mutation #2 (55 samples):
 
 Tier chances: 0, 1, 0, 0, 0, 0, 0, 0
 
-    - Chance 2%:
+    - Chance: 2%:
         Damage += 1
 
-    - Chance 4%:
+    - Chance: 3%:
         Damage += 2
 
-    - Chance 6%:
+    - Chance: 5%:
         Damage += 3
 
-    - Chance 15%:
+    - Chance: 15%:
         Damage += 4
 
-    - Chance 10%:
+    - Chance: 8%:
         Damage += 5
 
-    - Chance 8%:
+    - Chance: 7%:
         Damage += 6
 
-    - Chance 5%:
-        Damage += 7
+    - Chance: 5%:
+        Damage += 8
 
-    - Chance 5%:
-        Damage += 9
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
+    - Chance: 3%:
+        Damage += 10
 
-    - Chance 5%:
+    - Chance: 2%:
+        Damage += 12
+
+    - Chance: 5%:
         Damage += 11
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
-    - Chance 15%:
-        Damage += 12
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance 10%:
+    - Chance: 5%:
         Damage += 13
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
-    - Chance 7%:
-        Damage += 14
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance 3%:
+    - Chance: 5%:
         Damage += 15
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
-    - Chance 3%:
+    - Chance: 10%:
         Damage += 16
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
-    - Chance 2%:
+    - Chance: 10%:
         Damage += 17
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
-Unarmed (LightWeapons) Mutation #3 (298 samples):
+    - Chance: 6%:
+        Damage += 18
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 4%:
+        Damage += 19
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 3%:
+        Damage += 20
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 2%:
+        Damage += 21
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+MaceJitte (FinesseWeapons) Mutation #3 (62 samples):
 
 Tier chances: 0, 0, 1, 0, 0, 0, 0, 0
 
-    - Chance 5%:
-        Damage += 9
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance 5%:
+    - Chance: 2%:
         Damage += 11
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
-    - Chance 12%:
-        Damage += 12
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance 11%:
+    - Chance: 3%:
         Damage += 13
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
-    - Chance 8%:
-        Damage += 14
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance 3%:
+    - Chance: 5%:
         Damage += 15
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
-    - Chance 3%:
+    - Chance: 10%:
         Damage += 16
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
-    - Chance 3%:
+    - Chance: 10%:
         Damage += 17
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
-    - Chance 22%:
+    - Chance: 10%:
         Damage += 18
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 300
+        WieldDifficulty = 250
 
-    - Chance 14%:
+    - Chance: 5%:
         Damage += 19
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 300
+        WieldDifficulty = 250
 
-    - Chance 9%:
+    - Chance: 3%:
         Damage += 20
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 300
+        WieldDifficulty = 250
 
-    - Chance 5%:
+    - Chance: 2%:
         Damage += 21
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 20%:
+        Damage += 22
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 300
 
-Unarmed (LightWeapons) Mutation #4 (678 samples):
+    - Chance: 15%:
+        Damage += 23
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 300
+
+    - Chance: 10%:
+        Damage += 24
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 300
+
+    - Chance: 5%:
+        Damage += 25
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 300
+
+MaceJitte (FinesseWeapons) Mutation #4 (104 samples):
 
 Tier chances: 0, 0, 0, 1, 0, 0, 0, 0
 
-    - Chance 20%:
-        Damage += 18
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 300
-
-    - Chance 15%:
-        Damage += 19
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 300
-
-    - Chance 10%:
-        Damage += 20
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 300
-
-    - Chance 5%:
-        Damage += 21
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 300
-
-    - Chance 20%:
+    - Chance: 20%:
         Damage += 22
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 325
+        WieldDifficulty = 300
 
-    - Chance 10%:
+    - Chance: 15%:
         Damage += 23
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 325
+        WieldDifficulty = 300
 
-    - Chance 15%:
+    - Chance: 10%:
         Damage += 24
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 325
+        WieldDifficulty = 300
 
-    - Chance 5%:
+    - Chance: 5%:
         Damage += 25
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 325
+        WieldDifficulty = 300
 
-Unarmed (LightWeapons) Mutation #5 (655 samples):
-
-Tier chances: 0, 0, 0, 0, 1, 0, 0, 0
-
-    - Chance 20%:
-        Damage += 22
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 325
-
-    - Chance 10%:
-        Damage += 23
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 325
-
-    - Chance 15%:
-        Damage += 24
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 325
-
-    - Chance 5%:
-        Damage += 25
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 325
-
-    - Chance 15%:
+    - Chance: 20%:
         Damage += 26
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 350
+        WieldDifficulty = 325
 
-    - Chance 25%:
+    - Chance: 15%:
         Damage += 27
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 350
+        WieldDifficulty = 325
 
-    - Chance 10%:
+    - Chance: 10%:
         Damage += 28
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 350
+        WieldDifficulty = 325
 
-Unarmed (LightWeapons) Mutation #6 (1,749 samples):
-
-Tier chances: 0, 0, 0, 0, 0, 1, 0, 0
-
-    - Chance 15%:
-        Damage += 26
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 350
-
-    - Chance 20%:
-        Damage += 27
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 350
-
-    - Chance 15%:
-        Damage += 28
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 350
-
-    - Chance 5%:
+    - Chance: 5%:
         Damage += 29
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 370
+        WieldDifficulty = 325
 
-    - Chance 10%:
+MaceJitte (FinesseWeapons) Mutation #5 (93 samples):
+
+Tier chances: 0, 0, 0, 0, 1, 0, 0, 0
+
+    - Chance: 25%:
+        Damage += 26
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 325
+
+    - Chance: 15%:
+        Damage += 27
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 325
+
+    - Chance: 10%:
+        Damage += 28
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 325
+
+    - Chance: 5%:
+        Damage += 29
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 325
+
+    - Chance: 15%:
         Damage += 30
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 370
+        WieldDifficulty = 350
 
-    - Chance 15%:
+    - Chance: 12%:
         Damage += 31
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
+        WieldDifficulty = 350
+
+    - Chance: 10%:
+        Damage += 32
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 350
+
+    - Chance: 8%:
+        Damage += 33
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 350
+
+MaceJitte (FinesseWeapons) Mutation #6 (201 samples):
+
+Tier chances: 0, 0, 0, 0, 0, 1, 0, 0
+
+    - Chance: 15%:
+        Damage += 30
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 350
+
+    - Chance: 15%:
+        Damage += 31
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 350
+
+    - Chance: 10%:
+        Damage += 32
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 350
+
+    - Chance: 10%:
+        Damage += 33
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 350
+
+    - Chance: 5%:
+        Damage += 34
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
         WieldDifficulty = 370
 
-    - Chance 10%:
-        Damage += 32
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance 5%:
-        Damage += 33
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance 3%:
-        Damage += 34
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance 2%:
+    - Chance: 5%:
         Damage += 35
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
+        WieldDifficulty = 370
 
-Unarmed (LightWeapons) Mutation #7 (492 samples):
-
-Tier chances: 0, 0, 0, 0, 0, 0, 1, 0
-
-    - Chance 10%:
-        Damage += 32
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance 25%:
-        Damage += 33
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance 15%:
-        Damage += 34
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance 15%:
-        Damage += 35
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance 10%:
+    - Chance: 10%:
         Damage += 36
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
+        WieldDifficulty = 370
 
-    - Chance 12.5%:
+    - Chance: 10%:
         Damage += 37
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
+        WieldDifficulty = 370
 
-    - Chance 7.5%:
+    - Chance: 5%:
         Damage += 38
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
+        WieldDifficulty = 400
 
-    - Chance 5%:
+    - Chance: 5%:
         Damage += 39
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
-
-Unarmed (LightWeapons) Mutation #8 (623 samples):
-
-Tier chances: 0, 0, 0, 0, 0, 0, 0, 1
-
-    - Chance 1%:
-        Damage += 32
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
         WieldDifficulty = 400
 
-    - Chance 1%:
-        Damage += 33
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance 1%:
-        Damage += 34
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance 1%:
-        Damage += 35
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance 1%:
-        Damage += 36
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance 34%:
-        Damage += 37
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
-
-    - Chance 31%:
-        Damage += 38
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
-
-    - Chance 10%:
-        Damage += 39
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
-
-    - Chance 10%:
+    - Chance: 5%:
         Damage += 40
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 430
+        WieldDifficulty = 400
 
-    - Chance 5%:
+    - Chance: 5%:
         Damage += 41
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 430
+        WieldDifficulty = 400
 
-    - Chance 5%:
+MaceJitte (FinesseWeapons) Mutation #7 (63 samples):
+
+Tier chances: 0, 0, 0, 0, 0, 0, 1, 0
+
+    - Chance: 10%:
+        Damage += 38
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 400
+
+    - Chance: 15%:
+        Damage += 39
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 400
+
+    - Chance: 20%:
+        Damage += 40
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 400
+
+    - Chance: 15%:
+        Damage += 41
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 400
+
+    - Chance: 10%:
         Damage += 42
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 400
+
+    - Chance: 5%:
+        Damage += 43
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 400
+
+    - Chance: 5%:
+        Damage += 44
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 400
+
+    - Chance: 6%:
+        Damage += 43
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 420
+
+    - Chance: 5%:
+        Damage += 44
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 420
+
+    - Chance: 5%:
+        Damage += 45
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 420
+
+    - Chance: 4%:
+        Damage += 46
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 420
+
+MaceJitte (FinesseWeapons) Mutation #8 (86 samples):
+
+Tier chances: 0, 0, 0, 0, 0, 0, 0, 1
+
+    - Chance: 2%:
+        Damage += 39
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 400
+
+    - Chance: 3%:
+        Damage += 40
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 400
+
+    - Chance: 5%:
+        Damage += 41
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 400
+
+    - Chance: 15%:
+        Damage += 43
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 400
+
+    - Chance: 15%:
+        Damage += 44
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 400
+
+    - Chance: 10%:
+        Damage += 43
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 420
+
+    - Chance: 10%:
+        Damage += 44
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 420
+
+    - Chance: 10%:
+        Damage += 45
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 420
+
+    - Chance: 5%:
+        Damage += 46
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 420
+
+    - Chance: 5%:
+        Damage += 47
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 420
+
+    - Chance: 10%:
+        Damage += 47
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 430
 
-Unarmed (LightWeapons) Mutation #9:
+    - Chance: 5%:
+        Damage += 48
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 430
 
-Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
+    - Chance: 3%:
+        Damage += 49
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 430
 
-    - Chance: 10%:
-        DamageVariance = 0.43
+    - Chance: 2%:
+        Damage += 50
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 430
 
-    - Chance: 20%:
-        DamageVariance = 0.48
-
-    - Chance: 40%:
-        DamageVariance = 0.53
-
-    - Chance: 20%:
-        DamageVariance = 0.58
-
-    - Chance: 10%:
-        DamageVariance = 0.6

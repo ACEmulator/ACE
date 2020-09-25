@@ -23,16 +23,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_axe.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_dagger.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_dagger_ms.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_mace.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_mace_jitte.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_spear.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_staff.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_sword.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_sword_ms.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_unarmed.txt" />
     <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_axe.txt" />
     <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_dagger.txt" />
     <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_dagger_ms.txt" />
@@ -42,18 +32,18 @@
     <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_sword.txt" />
     <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_sword_ms.txt" />
     <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_unarmed.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_axe.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_dagger.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_dagger_ms.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_mace.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_spear.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_staff.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_sword.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_unarmed.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\two_handed_axe.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\two_handed_mace.txt" />
+    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_axe.txt" />
+    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_dagger.txt" />
+    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_dagger_ms.txt" />
+    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_mace.txt" />
+    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_mace_jitte.txt" />
+    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_spear.txt" />
+    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_staff.txt" />
+    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_sword.txt" />
+    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_sword_ms.txt" />
+    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_unarmed.txt" />
+    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\two_handed_cleaver.txt" />
     <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\two_handed_spear.txt" />
-    <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\two_handed_sword.txt" />
     <None Remove="Factories\Entity\Mutations\MeleeWeapons\WeaponOffense_WeaponDefense\axe_offense_defense.txt" />
     <None Remove="Factories\Entity\Mutations\MeleeWeapons\WeaponOffense_WeaponDefense\dagger_offense_defense.txt" />
     <None Remove="Factories\Entity\Mutations\MeleeWeapons\WeaponOffense_WeaponDefense\mace_jitte_offense_defense.txt" />
@@ -82,16 +72,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_axe.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_dagger.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_dagger_ms.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_mace.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_mace_jitte.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_spear.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_staff.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_sword.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_sword_ms.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\finesse_unarmed.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_axe.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_dagger.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_dagger_ms.txt" />
@@ -101,18 +81,18 @@
     <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_sword.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_sword_ms.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_unarmed.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_axe.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_dagger.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_dagger_ms.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_mace.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_spear.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_staff.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_sword.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_unarmed.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\two_handed_axe.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\two_handed_mace.txt" />
+    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_axe.txt" />
+    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_dagger.txt" />
+    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_dagger_ms.txt" />
+    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_mace.txt" />
+    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_mace_jitte.txt" />
+    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_spear.txt" />
+    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_staff.txt" />
+    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_sword.txt" />
+    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_sword_ms.txt" />
+    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\light_finesse_unarmed.txt" />
+    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\two_handed_cleaver.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\two_handed_spear.txt" />
-    <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\two_handed_sword.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\WeaponOffense_WeaponDefense\axe_offense_defense.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\WeaponOffense_WeaponDefense\dagger_offense_defense.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\WeaponOffense_WeaponDefense\mace_jitte_offense_defense.txt" />
@@ -187,7 +167,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Factories\Entity\Mutations\Casters\" />
+    <Compile Remove="Factories\Entity\Mutations\Casters\**" />
+    <EmbeddedResource Remove="Factories\Entity\Mutations\Casters\**" />
+    <None Remove="Factories\Entity\Mutations\Casters\**" />
   </ItemGroup>
 
   <Target Name="ChangeAliasesOfStrongNameAssemblies" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
