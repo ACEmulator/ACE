@@ -1,489 +1,369 @@
-Sword (TwoHandedCombat) Mutation #0:
+DaggerMS (LightWeapons, FinesseWeapons) Mutation #0:
 
 Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
 
-    - Chance 100%:
-        Damage = 4
+    - Chance: 100%:
+	    Damage = 1
 
-Sword (TwoHandedCombat) Mutation #1 (182 samples):
+DaggerMS (LightWeapons, FinesseWeapons) Mutation #1 (331 samples):
 
 Tier chances: 1, 0, 0, 0, 0, 0, 0, 0
 
-    - Chance 3%:
+    - Chance: 5%:
         Damage += 1
 
-    - Chance 7%:
+    - Chance: 15%:
         Damage += 2
 
-    - Chance 10%:
+    - Chance: 30%:
         Damage += 3
 
-    - Chance 30%:
+    - Chance: 30%:
         Damage += 4
 
-    - Chance 15%:
+    - Chance: 15%:
         Damage += 5
 
-    - Chance 15%:
+    - Chance: 5%:
         Damage += 6
 
-    - Chance 10%:
-        Damage += 7
-
-    - Chance 7%:
-        Damage += 8
-
-    - Chance 3%:
-        Damage += 9
-
-Sword (TwoHandedCombat) Mutation #2 (287 samples):
+DaggerMS (LightWeapons, FinesseWeapons) Mutation #2 (629 samples):
 
 Tier chances: 0, 1, 0, 0, 0, 0, 0, 0
 
-    - Chance 2%:
+    - Chance: 5%:
         Damage += 1
 
-    - Chance 4%:
+    - Chance: 8%:
         Damage += 2
 
-    - Chance 7%:
+    - Chance: 12%:
         Damage += 3
 
-    - Chance 15%:
+    - Chance: 12%:
         Damage += 4
 
-    - Chance 7%:
+    - Chance: 8%:
         Damage += 5
 
-    - Chance 7%:
+    - Chance: 5%:
         Damage += 6
 
-    - Chance 5%:
+    - Chance: 8%:
+        Damage += 5
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 12%:
+        Damage += 6
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 12%:
         Damage += 7
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
 
-    - Chance 3%:
+    - Chance: 8%:
         Damage += 8
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
 
-    - Chance 4%:
+    - Chance: 6%:
         Damage += 9
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
-    - Chance 5%:
+    - Chance: 4%:
         Damage += 10
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
-    - Chance 15%:
-        Damage += 11
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance 10%:
-        Damage += 12
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance 8%:
-        Damage += 13
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance 4%:
-        Damage += 14
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance 2%:
-        Damage += 15
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance 2%:
-        Damage += 16
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-Sword (TwoHandedCombat) Mutation #3 (279 samples):
+DaggerMS (LightWeapons, FinesseWeapons) Mutation #3 (594 samples):
 
 Tier chances: 0, 0, 1, 0, 0, 0, 0, 0
 
-    - Chance 5%:
+    - Chance: 3%:
+        Damage += 5
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 7%:
+        Damage += 6
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 15%:
+        Damage += 7
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 15%:
+        Damage += 8
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 7%:
         Damage += 9
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
-    - Chance 5%:
+    - Chance: 3%:
         Damage += 10
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
-    - Chance 15%:
+    - Chance: 25%:
+        Damage += 10
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 300
+
+    - Chance: 20%:
         Damage += 11
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
+        WieldDifficulty = 300
 
-    - Chance 10%:
+    - Chance: 5%:
         Damage += 12
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance 7%:
-        Damage += 13
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance 3%:
-        Damage += 14
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance 3%:
-        Damage += 15
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance 2%:
-        Damage += 16
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance 20%:
-        Damage += 17
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
         WieldDifficulty = 300
 
-    - Chance 25%:
-        Damage += 18
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 300
-
-    - Chance 5%:
-        Damage += 19
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 300
-
-Sword (TwoHandedCombat) Mutation #4 (569 samples):
+DaggerMS (LightWeapons, FinesseWeapons) Mutation #4 (1,202 samples):
 
 Tier chances: 0, 0, 0, 1, 0, 0, 0, 0
 
-    - Chance 20%:
-        Damage += 17
+    - Chance: 20%:
+        Damage += 10
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 300
 
-    - Chance 25%:
-        Damage += 18
+    - Chance: 25%:
+        Damage += 11
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 300
 
-    - Chance 5%:
-        Damage += 19
+    - Chance: 5%:
+        Damage += 12
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 300
 
-    - Chance 20%:
-        Damage += 20
+    - Chance: 25%:
+        Damage += 13
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 325
 
-    - Chance 15%:
-        Damage += 21
+    - Chance: 20%:
+        Damage += 14
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 325
 
-    - Chance 10%:
-        Damage += 22
+    - Chance: 5%:
+        Damage += 15
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 325
 
-    - Chance 5%:
-        Damage += 23
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 325
-
-Sword (TwoHandedCombat) Mutation #5 (563 samples):
+DaggerMS (LightWeapons, FinesseWeapons) Mutation #5 (1,005 samples):
 
 Tier chances: 0, 0, 0, 0, 1, 0, 0, 0
 
-    - Chance 20%:
-        Damage += 20
+    - Chance: 20%:
+        Damage += 13
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 325
 
-    - Chance 10%:
-        Damage += 21
+    - Chance: 25%:
+        Damage += 14
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 325
 
-    - Chance 15%:
-        Damage += 22
+    - Chance: 10%:
+        Damage += 15
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 325
 
-    - Chance 5%:
-        Damage += 23
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 325
-
-    - Chance 15%:
-        Damage += 24
+    - Chance: 30%:
+        Damage += 16
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 350
 
-    - Chance 25%:
-        Damage += 25
+    - Chance: 15%:
+        Damage += 17
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 350
 
-    - Chance 10%:
-        Damage += 26
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 350
-
-Sword (TwoHandedCombat) Mutation #6 (1,431 samples):
+DaggerMS (LightWeapons, FinesseWeapons) Mutation #6 (2,972 samples):
 
 Tier chances: 0, 0, 0, 0, 0, 1, 0, 0
 
-    - Chance 15%:
-        Damage += 24
+    - Chance: 15%:
+        Damage += 16
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 350
 
-    - Chance 20%:
-        Damage += 25
+    - Chance: 35%:
+        Damage += 17
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 350
 
-    - Chance 15%:
-        Damage += 26
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 350
-
-    - Chance 5%:
-        Damage += 27
+    - Chance: 10%:
+        Damage += 18
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 370
 
-    - Chance 10%:
-        Damage += 28
+    - Chance: 20%:
+        Damage += 19
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 370
 
-    - Chance 15%:
-        Damage += 29
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 370
-
-    - Chance 10%:
-        Damage += 30
+    - Chance: 10%:
+        Damage += 20
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 400
 
-    - Chance 5%:
-        Damage += 31
+    - Chance: 10%:
+        Damage += 21
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 400
 
-    - Chance 3%:
-        Damage += 32
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance 2%:
-        Damage += 33
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-Sword (TwoHandedCombat) Mutation #7 (389 samples):
+DaggerMS (LightWeapons, FinesseWeapons) Mutation #7 (762 samples):
 
 Tier chances: 0, 0, 0, 0, 0, 0, 1, 0
 
-    - Chance 10%:
-        Damage += 30
+    - Chance: 10%:
+        Damage += 20
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 400
 
-    - Chance 25%:
-        Damage += 31
+    - Chance: 25%:
+        Damage += 21
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 400
 
-    - Chance 15%:
-        Damage += 32
+    - Chance: 30%:
+        Damage += 22
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 400
 
-    - Chance 15%:
-        Damage += 33
+    - Chance: 5%:
+        Damage += 23
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 400
 
-    - Chance 10%:
-        Damage += 34
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance 12.5%:
-        Damage += 35
+    - Chance: 25%:
+        Damage += 23
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 420
 
-    - Chance 7.5%:
-        Damage += 36
+    - Chance: 5%:
+        Damage += 24
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 420
 
-    - Chance 5%:
-        Damage += 37
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
-
-Sword (TwoHandedCombat) Mutation #8 (587 samples):
+DaggerMS (LightWeapons, FinesseWeapons) Mutation #8 (1,048 samples):
 
 Tier chances: 0, 0, 0, 0, 0, 0, 0, 1
 
-    - Chance 2%:
-        Damage += 30
+    - Chance: 2%:
+        Damage += 20
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 400
 
-    - Chance 2%:
-        Damage += 31
+    - Chance: 2%:
+        Damage += 21
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 400
 
-    - Chance 3%:
-        Damage += 32
+    - Chance: 18%:
+        Damage += 22
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 400
 
-    - Chance 3%:
-        Damage += 33
+    - Chance: 18%:
+        Damage += 23
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 400
-
-    - Chance 25%:
-        Damage += 34
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
-
-    - Chance 25%:
-        Damage += 35
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
-
-    - Chance 10%:
-        Damage += 36
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
-
-    - Chance 10%:
-        Damage += 37
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
-
-    - Chance 6%:
-        Damage += 38
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 430
-
-    - Chance 5%:
-        Damage += 39
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 430
-
-    - Chance 5%:
-        Damage += 40
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 430
-
-    - Chance 4%:
-        Damage += 41
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 430
-
-Sword (TwoHandedCombat) Mutation #9:
-
-Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
-
-    - Chance: 5%:
-        DamageVariance = 0.3
 
     - Chance: 15%:
-        DamageVariance = 0.35
+        Damage += 22
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 420
 
-    - Chance: 30%:
-        DamageVariance = 0.4
-
-    - Chance: 30%:
-        DamageVariance = 0.45
-
-    - Chance: 15%:
-        DamageVariance = 0.5
+    - Chance: 20%:
+        Damage += 23
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 420
 
     - Chance: 5%:
-        DamageVariance = 0.55
+        Damage += 24
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 420
+
+    - Chance: 10%:
+        Damage += 24
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 430
+
+    - Chance: 5%:
+        Damage += 25
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 430
+
+    - Chance: 3%:
+        Damage += 26
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 430
+
+    - Chance: 2%:
+        Damage += 27
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 430
+
