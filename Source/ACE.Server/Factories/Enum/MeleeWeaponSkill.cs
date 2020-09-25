@@ -44,5 +44,20 @@ namespace ACE.Server.Factories.Enum
             }
             return null;
         }
+
+        public static string GetScriptName_Combined(this MeleeWeaponSkill weaponSkill)
+        {
+            switch (weaponSkill)
+            {
+                case MeleeWeaponSkill.HeavyWeapons:
+                    return "heavy";
+                case MeleeWeaponSkill.LightWeapons:
+                case MeleeWeaponSkill.FinesseWeapons:
+                    return "light_finesse";
+                case MeleeWeaponSkill.TwoHandedCombat:
+                    return "two_handed";
+            }
+            return null;
+        }
     }
 }

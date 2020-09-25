@@ -3,8 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+
+using log4net;
 
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -14,7 +17,9 @@ namespace ACE.Server.Factories.Entity
 {
     public static class MutationCache
     {
-        private readonly static ConcurrentDictionary<string, MutationFilter> tSysMutationFilters = new ConcurrentDictionary<string, MutationFilter>();
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        private static readonly ConcurrentDictionary<string, MutationFilter> tSysMutationFilters = new ConcurrentDictionary<string, MutationFilter>();
 
         public static MutationFilter GetMutation(string filename)
         {
@@ -34,7 +39,7 @@ namespace ACE.Server.Factories.Entity
 
             if (lines == null)
             {
-                Console.WriteLine($"MutationCache.BuildMutation({filename}) - embedded resource not found");
+                log.Error($"MutationCache.BuildMutation({filename}) - embedded resource not found");
                 return null;
             }
 
@@ -59,6 +64,9 @@ namespace ACE.Server.Factories.Entity
 
                 if (line.Contains("Tier chances", StringComparison.OrdinalIgnoreCase))
                 {
+                    if (outcome != null && outcome.EffectLists.Last().Chance != 1.0f)
+                        log.Error($"MutationCache.BuildMutation({filename}) - {mutationLine} total {outcome.EffectLists.Last().Chance}, expected 1.0");
+
                     mutation = new Mutation();
                     mutationFilter.Mutations.Add(mutation);
 
@@ -73,7 +81,7 @@ namespace ACE.Server.Factories.Entity
                         }
                         else
                         {
-                            Console.WriteLine($"Couldn't parse Tier chances for {mutationLine}: {tierPiece}");
+                            log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse tier chances for {mutationLine}: {tierPiece}");
                             mutation.Chances.Add(0.0f);
                         }
                     }
@@ -101,7 +109,7 @@ namespace ACE.Server.Factories.Entity
                     }
                     else
                     {
-                        Console.WriteLine($"Couldn't parse {line} for {mutationLine}");
+                        log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse {line} for {mutationLine}");
                     }
                     continue;
                 }
@@ -119,7 +127,7 @@ namespace ACE.Server.Factories.Entity
 
                 if (pieces.Length != 2)
                 {
-                    Console.WriteLine($"Couldn't parse {line}");
+                    log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse {line}");
                     continue;
                 }
 
@@ -130,17 +138,17 @@ namespace ACE.Server.Factories.Entity
 
                 /*if (firstStatType == StatType.Undef)
                 {
-                    Console.WriteLine($"Couldn't determine StatType for {pieces[0]} in {line}");
+                    log.Error($"MutationCache.BuildMutation({filename}) - couldn't determine StatType for {pieces[0]} in {line}");
                     continue;
                 }*/
 
-                effect.Quality = ParseEffectArgument(pieces[0]);
+                effect.Quality = ParseEffectArgument(filename, pieces[0]);
 
                 var hasSecondOperator = HasSecondOperator(effect.Type);
 
                 if (!hasSecondOperator)
                 {
-                    effect.Arg1 = ParseEffectArgument(pieces[1]);
+                    effect.Arg1 = ParseEffectArgument(filename, pieces[1]);
                 }
                 else
                 {
@@ -150,19 +158,22 @@ namespace ACE.Server.Factories.Entity
 
                     if (subpieces.Length != 2)
                     {
-                        Console.WriteLine($"Couldn't parse {line}");
+                        log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse {line}");
                         continue;
                     }
 
                     subpieces[0] = subpieces[0].Trim();
                     subpieces[1] = subpieces[1].Trim();
 
-                    effect.Arg1 = ParseEffectArgument(subpieces[0]);
-                    effect.Arg2 = ParseEffectArgument(subpieces[1]);
+                    effect.Arg1 = ParseEffectArgument(filename, subpieces[0]);
+                    effect.Arg2 = ParseEffectArgument(filename, subpieces[1]);
                 }
 
                 effectList.Effects.Add(effect);
             }
+
+            if (outcome != null && outcome.EffectLists.Last().Chance != 1.0f)
+                log.Error($"MutationCache.BuildMutation({filename}) - {mutationLine} total {outcome.EffectLists.Last().Chance}, expected 1.0");
 
             timer.Stop();
 
@@ -172,7 +183,7 @@ namespace ACE.Server.Factories.Entity
             return mutationFilter;
         }
 
-        private static EffectArgument ParseEffectArgument(string operand)
+        private static EffectArgument ParseEffectArgument(string filename, string operand)
         {
             var effectArgument = new EffectArgument();
 
@@ -187,7 +198,7 @@ namespace ACE.Server.Factories.Entity
                         if (System.Enum.TryParse(operand, out WieldRequirement wieldRequirement))
                             effectArgument.IntVal = (int)wieldRequirement;
                         else
-                            Console.WriteLine($"Couldn't parse IntVal {operand}");
+                            log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse IntVal {operand}");
                     }
                     break;
 
@@ -195,7 +206,7 @@ namespace ACE.Server.Factories.Entity
 
                     if (!double.TryParse(operand, out effectArgument.DoubleVal))
                     {
-                        Console.WriteLine($"Couldn't parse DoubleVal {operand}");
+                        log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse DoubleVal {operand}");
                     }
                     break;
 
@@ -210,7 +221,7 @@ namespace ACE.Server.Factories.Entity
                             if (System.Enum.TryParse(operand, out PropertyInt propInt))
                                 effectArgument.StatIdx = (int)propInt;
                             else
-                                Console.WriteLine($"Couldn't parse PropertyInt.{operand}");
+                                log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse PropertyInt.{operand}");
                             break;
 
                         case StatType.Float:
@@ -218,7 +229,7 @@ namespace ACE.Server.Factories.Entity
                             if (System.Enum.TryParse(operand, out PropertyFloat propFloat))
                                 effectArgument.StatIdx = (int)propFloat;
                             else
-                                Console.WriteLine($"Couldn't parse PropertyFloat.{operand}");
+                                log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse PropertyFloat.{operand}");
                             break;
 
                         case StatType.Bool:
@@ -226,7 +237,7 @@ namespace ACE.Server.Factories.Entity
                             if (System.Enum.TryParse(operand, out PropertyBool propBool))
                                 effectArgument.StatIdx = (int)propBool;
                             else
-                                Console.WriteLine($"Couldn't parse PropertyBool.{operand}");
+                                log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse PropertyBool.{operand}");
                             break;
 
                         case StatType.DataID:
@@ -234,11 +245,11 @@ namespace ACE.Server.Factories.Entity
                             if (System.Enum.TryParse(operand, out PropertyDataId propDID))
                                 effectArgument.StatIdx = (int)propDID;
                             else
-                                Console.WriteLine($"Couldn't parse PropertyBool.{operand}");
+                                log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse PropertyBool.{operand}");
                             break;
 
                         default:
-                            Console.WriteLine($"Unknown PropertyType.{operand}");
+                            log.Error($"MutationCache.BuildMutation({filename}) - unknown PropertyType.{operand}");
                             break;
                     }
                     break;
@@ -248,7 +259,7 @@ namespace ACE.Server.Factories.Entity
                     var match = Regex.Match(operand, @"Random\(([\d.-]+), ([\d.-]+)\)");
 
                     if (!match.Success || !float.TryParse(match.Groups[1].Value, out effectArgument.MinVal) || !float.TryParse(match.Groups[2].Value, out effectArgument.MaxVal))
-                        Console.WriteLine($"Couldn't parse {operand}");
+                        log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse {operand}");
 
                     break;
 
@@ -257,7 +268,7 @@ namespace ACE.Server.Factories.Entity
                     match = Regex.Match(operand, @"\[(\d+)\]");
 
                     if (!match.Success || !int.TryParse(match.Groups[1].Value, out effectArgument.IntVal))
-                        Console.WriteLine($"Couldn't parse {operand}");
+                        log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse {operand}");
 
                     break;
             }

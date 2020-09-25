@@ -47,14 +47,12 @@ namespace ACE.Server.Factories.Enum
             switch (weaponType)
             {
                 case TreasureWeaponType.Axe:
-                case TreasureWeaponType.TwoHandedAxe:
                     return "axe";
                 case TreasureWeaponType.Dagger:
                     return "dagger";
                 case TreasureWeaponType.DaggerMS:
                     return "dagger_ms";
                 case TreasureWeaponType.Mace:
-                case TreasureWeaponType.TwoHandedMace:
                     return "mace";
                 case TreasureWeaponType.MaceJitte:
                     return "mace_jitte";
@@ -64,12 +62,16 @@ namespace ACE.Server.Factories.Enum
                 case TreasureWeaponType.Staff:
                     return "staff";
                 case TreasureWeaponType.Sword:
-                case TreasureWeaponType.TwoHandedSword:
                     return "sword";
                 case TreasureWeaponType.SwordMS:
                     return "sword_ms";
                 case TreasureWeaponType.Unarmed:
                     return "unarmed";
+
+                case TreasureWeaponType.TwoHandedAxe:
+                case TreasureWeaponType.TwoHandedMace:
+                case TreasureWeaponType.TwoHandedSword:
+                    return "cleaver";
             }
             return null;
         }
