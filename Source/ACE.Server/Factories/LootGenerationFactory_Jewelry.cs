@@ -38,9 +38,6 @@ namespace ACE.Server.Factories
 
         private static void MutateJewelry(WorldObject wo, TreasureDeath profile, bool isMagical)
         {
-            //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
-            wo.LongDesc = wo.Name;
-
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
@@ -85,6 +82,9 @@ namespace ACE.Server.Factories
                 wo.ItemDifficulty = null;
                 wo.ManaRate = null;
             }
+
+            //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
+            wo.LongDesc = GetLongDesc(wo);
 
             MutateColor(wo);
         }

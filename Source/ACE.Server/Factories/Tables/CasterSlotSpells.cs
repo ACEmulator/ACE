@@ -49,7 +49,7 @@ namespace ACE.Server.Factories.Tables
             return wo.WeenieClassId == (int)WeenieClassName.W_ORB_CLASS;
         }
 
-        private static readonly Dictionary<SpellId, string> descriptors = new Dictionary<SpellId, string>
+        public static readonly Dictionary<SpellId, string> descriptors = new Dictionary<SpellId, string>
         {
             { SpellId.StrengthOther1,                   "Strength" },
             { SpellId.StrengthSelf1,                    "Strength" },
