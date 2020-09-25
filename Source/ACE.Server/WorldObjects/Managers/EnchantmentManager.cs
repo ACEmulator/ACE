@@ -1286,11 +1286,25 @@ namespace ACE.Server.WorldObjects.Managers
                     continue;
                 }
 
-                // if a PKType with Enduring Enchantment has died, ensure they don't continue to take DoT from PK sources
-                if (targetPlayer != null && damager is Player && !targetPlayer.IsPKType)
-                    continue;
-
                 var resistanceMod = creature.GetResistanceMod(damageType, damager, null);
+
+                var sourcePlayer = damager as Player;
+
+                if (sourcePlayer != null && targetPlayer != null)
+                {
+                    // if a PKType with Enduring Enchantment has died, ensure they don't continue to take DoT from PK sources
+                    if (!targetPlayer.IsPKType)
+                        continue;
+
+                    // void spell projectile direct damage was modified to apply this pvp modifier *on top of* the player's natural resistance to nether,
+                    // which supposedly brings the direct damage from void spells in pvp closer to retail
+
+                    // however, dots were already supposedly on par, so we replace resistanceMod with void_pvp_modifier for dots,
+                    // instead of applying it on top like direct damage
+
+                    if (damageType == DamageType.Nether)
+                        resistanceMod = (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
+                }
 
                 // with the halvening, this actually seems like the fairest balance currently..
                 var useNetherDotDamageRating = targetPlayer != null;
