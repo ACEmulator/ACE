@@ -36,9 +36,21 @@ namespace ACE.Server.Factories.Tables
             ( SpellId.LightningBolt1,     0.15f ),
         };
 
+        private static readonly ChanceTable<SpellId> netherSpells = new ChanceTable<SpellId>()
+        {
+            ( SpellId.Corruption1,            0.20f ),
+            ( SpellId.NetherArc1,             0.20f ),
+            ( SpellId.NetherBolt1,            0.20f ),
+            ( SpellId.Corrosion1,             0.15f ),
+            ( SpellId.CurseWeakness1,         0.10f ),
+            ( SpellId.CurseFestering1,        0.10f ),
+            ( SpellId.CurseDestructionOther1, 0.05f ),
+        };
+
         public static SpellId Roll(WorldObject wo)
         {
-            var table = IsOrb(wo) ? orbSpells : wandStaffSpells;
+            var table = IsOrb(wo) ? orbSpells :
+                wo.W_DamageType == DamageType.Nether ? netherSpells : wandStaffSpells;
 
             return table.Roll();
         }
