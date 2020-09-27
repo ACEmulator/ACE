@@ -1,7 +1,10 @@
+using System;
 using System.Linq;
 
 using ACE.Common;
+using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
@@ -9,14 +12,13 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateDinnerware(int tier, bool mutate = true)
+        private static WorldObject CreateDinnerware(TreasureDeath profile, bool mutate = true)
         {
             uint id = 0;
             int chance;
             WorldObject wo;
 
-            if (tier < 1) tier = 1;
-            if (tier > 8) tier = 8;
+            var tier = Math.Clamp(profile.Tier, 1, 8);
 
             int genericLootMatrixIndex = tier - 1;
             int upperLimit = LootTables.DinnerwareLootMatrix.Length - 1;
@@ -27,29 +29,29 @@ namespace ACE.Server.Factories
             wo = WorldObjectFactory.CreateNewWorldObject(id);
 
             if (wo != null && mutate)
-                MutateDinnerware(wo, tier);
+                MutateDinnerware(wo, profile);
 
             return wo;
         }
 
-        private static void MutateDinnerware(WorldObject wo, int tier)
+        private static void MutateDinnerware(WorldObject wo, TreasureDeath profile, TreasureRoll roll = null)
         {
             // Dinnerware has all these options (plates, tankards, etc)
             // This is just a short-term fix until Loot is overhauled
             // TODO - Doesn't handle damage/speed/etc that the mutate engine should for these types of items.
 
             if (wo.GemCode != null)
-                wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, tier);
+                wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
             else
                 wo.GemCount = ThreadSafeRandom.Next(1, 5);
 
-            wo.GemType = RollGemType(tier);
+            wo.GemType = RollGemType(profile.Tier);
 
             wo.LongDesc = wo.Name;
 
-            int materialType = GetMaterialType(wo, tier);
+            int materialType = GetMaterialType(wo, profile.Tier);
             wo.MaterialType = (MaterialType)materialType;
-            int workmanship = GetWorkmanship(tier);
+            int workmanship = GetWorkmanship(profile.Tier);
             wo.ItemWorkmanship = workmanship;
 
             //wo = SetAppraisalLongDescDecoration(wo);
@@ -57,6 +59,8 @@ namespace ACE.Server.Factories
             wo = AssignValue(wo);
 
             MutateColor(wo);
+
+            // TODO: dinnerware could get spells?
         }
 
         private static bool GetMutateDinnerwareData(uint wcid)

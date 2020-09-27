@@ -106,6 +106,7 @@ namespace ACE.Server.Factories.Tables
 
         // original api
         public static readonly SpellId[][] Table = new SpellId[spells.Count][];
+        public static readonly List<SpellId> CreatureLifeTable = new List<SpellId>();
 
         static ArmorSpells()
         {
@@ -138,6 +139,24 @@ namespace ACE.Server.Factories.Tables
 
                 for (var j = 0; j < NumTiers; j++)
                     Table[i][j] = spellLevels[j];
+
+                // build a version of this table w/out item spells
+                switch (spell)
+                {
+                    case SpellId.Impenetrability1:
+                    case SpellId.BladeBane1:
+                    case SpellId.PiercingBane1:
+                    case SpellId.BludgeonBane1:
+                    case SpellId.FlameBane1:
+                    case SpellId.FrostBane1:
+                    case SpellId.AcidBane1:
+                    case SpellId.LightningBane1:
+                        break;
+
+                    default:
+                        CreatureLifeTable.Add(spell);
+                        break;
+                }
             }
         }
 
@@ -161,7 +180,7 @@ namespace ACE.Server.Factories.Tables
 
             foreach (var spell in armorSpells)
             {
-                var rng = ThreadSafeRandom.Next(0.0f, 1.0f) - treasureDeath.LootQualityMod;
+                var rng = ThreadSafeRandom.NextInterval(treasureDeath.LootQualityMod);
 
                 if (rng < spell.chance)
                     spells.Add(spell.spellId);

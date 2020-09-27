@@ -52,6 +52,8 @@ namespace ACE.Server.Factories
 
         public static List<WorldObject> CreateRandomLootObjects(TreasureDeath profile)
         {
+            //return CreateRandomLootObjects_New(profile);
+
             stopwatch.Value.Restart();
 
             try
@@ -326,7 +328,7 @@ namespace ACE.Server.Factories
             switch (treasureItemType)
             {
                 case TreasureItemType.Gem:
-                    wo = CreateGem(profile.Tier, isMagical);
+                    wo = CreateGem(profile, isMagical);
                     break;
 
                 case TreasureItemType.Armor:
@@ -353,7 +355,7 @@ namespace ACE.Server.Factories
                     // Added Dinnerware at tail end of distribution, as
                     // they are mutable loot drops that don't belong with the non-mutable drops
                     // TODO: Will likely need some adjustment/fine tuning
-                    wo = CreateDinnerware(profile.Tier);
+                    wo = CreateDinnerware(profile);
                     break;
             }
             return wo;
@@ -397,11 +399,11 @@ namespace ACE.Server.Factories
                 MutateCaster(item, profile, isMagical, wieldDifficulty);
             }
             else if (GetMutateDinnerwareData(item.WeenieClassId))
-                MutateDinnerware(item, profile.Tier);
+                MutateDinnerware(item, profile);
             else if (GetMutateJewelryData(item.WeenieClassId))
                 MutateJewelry(item, profile, isMagical);
             else if (GetMutateGemData(item.WeenieClassId))
-                MutateGem(item, profile.Tier, isMagical);
+                MutateGem(item, profile, isMagical);
             else if (GetMutateMeleeWeaponData(item.WeenieClassId))
             {
                 if (!MutateMeleeWeapon(item, profile, isMagical))
@@ -1073,15 +1075,41 @@ namespace ACE.Server.Factories
             return -manaRate;
         }
 
-        private static void AssignMagic(WorldObject wo, TreasureDeath profile, bool isArmor = false)
+        private static void AssignMagic(WorldObject wo, TreasureDeath profile, TreasureRoll roll, bool isArmor = false)
+        {
+            int numSpells = 0;
+
+            if (roll == null)
+            {
+                // previous method
+                if (!AssignMagic_Spells(wo, profile, isArmor, out numSpells))
+                    return;
+            }
+            else
+            {
+                // new method
+                if (!AssignMagic_New(wo, profile, roll, out numSpells))
+                    return;
+            }
+
+            wo.UiEffects = UiEffects.Magical;
+            wo.ManaRate = GetManaRate(wo);
+
+            wo.ItemMaxMana = GetMaxMana(numSpells, profile.Tier);
+            wo.ItemCurMana = wo.ItemMaxMana;
+
+            int spellcraft = GetSpellcraft(wo, numSpells, profile.Tier);
+            wo.ItemSpellcraft = spellcraft;
+            wo.ItemDifficulty = GetDifficulty(wo, spellcraft);
+        }
+
+        private static bool AssignMagic_Spells(WorldObject wo, TreasureDeath profile, bool isArmor, out int numSpells)
         {
             SpellId[][] spells;
             SpellId[][] cantrips;
 
             int lowSpellTier = GetLowSpellTier(profile.Tier);
             int highSpellTier = GetHighSpellTier(profile.Tier);
-
-            double manaRate = GetManaRate(wo);
 
             switch (wo.WeenieType)
             {
@@ -1110,26 +1138,22 @@ namespace ACE.Server.Factories
                     cantrips = null;
                     break;
             }
+
             if (wo.IsShield)
             {
                 spells = ArmorSpells.Table;
                 cantrips = ArmorCantrips.Table;
             }
 
+            numSpells = 0;
+
             if (spells == null || cantrips == null)
-                return;
+                return false;
 
             // Refactor 3/2/2020 - HQ
             // Magic stats
-            int numSpells = GetSpellDistribution(profile, out int minorCantrips, out int majorCantrips, out int epicCantrips, out int legendaryCantrips);
+            numSpells = GetSpellDistribution(profile, out int minorCantrips, out int majorCantrips, out int epicCantrips, out int legendaryCantrips);
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
-            
-
-            wo.UiEffects = UiEffects.Magical;
-            wo.ManaRate = manaRate;
-
-            wo.ItemMaxMana = GetMaxMana(numSpells, profile.Tier);
-            wo.ItemCurMana = wo.ItemMaxMana;
 
             int[] shuffledValues = Enumerable.Range(0, spells.Length).ToArray();
 
@@ -1204,9 +1228,7 @@ namespace ACE.Server.Factories
                     wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
-            int spellcraft = GetSpellcraft(wo, numSpells, profile.Tier);
-            wo.ItemSpellcraft = spellcraft;
-            wo.ItemDifficulty = GetDifficulty(wo, spellcraft);
+            return true;
         }
 
         private static int GetSpellDistribution(TreasureDeath profile, out int numMinors, out int numMajors, out int numEpics, out int numLegendaries)
@@ -2653,13 +2675,13 @@ namespace ACE.Server.Factories
                     wo.SetStackSize(treasureDeath.Tier * 100);
                     break;
                 case TreasureItemType_Orig.Gem:
-                    MutateGem(wo, treasureDeath.Tier, isMagical);
+                    MutateGem(wo, treasureDeath, isMagical, treasureRoll);
                     break;
                 case TreasureItemType_Orig.Jewelry:
-                    MutateJewelry(wo, treasureDeath, isMagical);
+                    MutateJewelry(wo, treasureDeath, isMagical, treasureRoll);
                     break;
                 case TreasureItemType_Orig.ArtObject:
-                    MutateDinnerware(wo, treasureDeath.Tier);
+                    MutateDinnerware(wo, treasureDeath, treasureRoll);
                     break;
 
                 case TreasureItemType_Orig.Weapon:
@@ -2682,19 +2704,19 @@ namespace ACE.Server.Factories
                         case TreasureWeaponType.TwoHandedSpear:
                         case TreasureWeaponType.TwoHandedSword:
 
-                            MutateMeleeWeapon(wo, treasureDeath, isMagical, treasureRoll.WeaponType);
+                            MutateMeleeWeapon(wo, treasureDeath, isMagical, treasureRoll);
                             break;
 
                         case TreasureWeaponType.Caster:
 
-                            MutateCaster(wo, treasureDeath, isMagical);
+                            MutateCaster(wo, treasureDeath, isMagical, null, treasureRoll);
                             break;
 
                         case TreasureWeaponType.Bow:
                         case TreasureWeaponType.Crossbow:
                         case TreasureWeaponType.Atlatl:
 
-                            MutateMissileWeapon(wo, treasureDeath, isMagical, null, treasureRoll.WeaponType);
+                            MutateMissileWeapon(wo, treasureDeath, isMagical, null, treasureRoll);
                             break;
 
                         default:
@@ -2706,11 +2728,11 @@ namespace ACE.Server.Factories
                 case TreasureItemType_Orig.Armor:
 
                     var armorType = treasureRoll.ArmorType.ToACE();
-                    MutateArmor(wo, treasureDeath, isMagical, armorType);
+                    MutateArmor(wo, treasureDeath, isMagical, armorType, treasureRoll);
                     break;
 
                 case TreasureItemType_Orig.Clothing:
-                    MutateArmor(wo, treasureDeath, isMagical, LootTables.ArmorType.MiscClothing);
+                    MutateArmor(wo, treasureDeath, isMagical, LootTables.ArmorType.MiscClothing, treasureRoll);
                     break;
 
                 case TreasureItemType_Orig.Scroll:

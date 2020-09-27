@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
@@ -11,6 +12,18 @@ namespace ACE.Server.Factories
 {
     public partial class LootGenerationFactory
     {
+        private static bool AssignMagic_New(WorldObject wo, TreasureDeath profile, TreasureRoll roll, out int numSpells)
+        {
+            var spells = RollSpells(wo, profile, roll);
+
+            foreach (var spell in spells)
+            {
+                wo.Biota.GetOrAddKnownSpell((int)spell, wo.BiotaDatabaseLock, out _);
+            }
+            numSpells = spells.Count;
+            return true;
+        }
+
         private static List<SpellId> RollSpells(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
             var spells = new List<SpellId>();
@@ -94,11 +107,11 @@ namespace ACE.Server.Factories
         private static List<SpellId> RollEnchantments(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
             // TODO: change to ace spell selection tables
-            if (wo.SpellSelectionCode == null)
+            /*if (wo.SpellSelectionCode == null)
             {
                 log.Warn($"RollEnchantments({wo.Name}) - missing spell selection code / PropertyInt.TsysMutationData");
                 return null;
-            }
+            }*/
 
             var numEnchantments = RollNumEnchantments(wo, profile, roll);
 
@@ -111,12 +124,44 @@ namespace ACE.Server.Factories
 
             for (var i = 0; i < numAttempts && spells.Count < numEnchantments; i++)
             {
-                var spell = SpellSelectionTable.Roll(wo.SpellSelectionCode.Value);
+                var spell = RollEnchantment(wo, profile, roll);
 
-                spells.Add(spell);
+                if (spell != SpellId.Undef)
+                    spells.Add(spell);
             }
 
             return RollSpellLevels(wo, profile, spells);
+        }
+
+        private static SpellId RollEnchantment(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
+        {
+            // TODO: change to ace spell selection tables
+            //return SpellSelectionTable.Roll(wo.SpellSelectionCode.Value);
+
+            if (roll.IsJewelry)
+            {
+                var rng = ThreadSafeRandom.Next(0, JewelrySpells.Table.Length - 1);
+                return JewelrySpells.Table[rng][0];
+            }
+
+            List<SpellId> table = null;
+
+            if (roll.IsClothing || roll.IsArmor)
+                table = ArmorSpells.CreatureLifeTable;
+            else if (roll.IsCaster)
+                table = WandSpells.CreatureLifeTable;
+            else if (roll.IsMeleeWeapon)
+                table = MeleeSpells.CreatureLifeTable;
+            else if (roll.IsMissileWeapon)
+                table = MissileSpells.CreatureLifeTable;
+            else
+            {
+                log.Error($"RollEnchantment({wo.Name}, {profile.TreasureType}, {roll.ItemType}) - unknown item type");
+                return SpellId.Undef;
+            }
+            var _rng = ThreadSafeRandom.Next(0, table.Count - 1);
+
+            return table[_rng];
         }
 
         private static int RollNumEnchantments(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
@@ -196,7 +241,7 @@ namespace ACE.Server.Factories
 
         private static List<SpellId> RollCantrips(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
-            var numCantrips = Tables.NumCantrips.RollNumCantrips(profile);
+            var numCantrips = NumCantrips.RollNumCantrips(profile);
 
             if (numCantrips == 0)
                 return null;
@@ -238,45 +283,56 @@ namespace ACE.Server.Factories
 
         private static SpellId RollCantrip(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
-            // TODO: swich to ace cantrip tables
-            if (roll.IsArmor)
+            // TODO: switch to ace cantrip tables
+            SpellId[][] table = null;
+
+            if (roll.IsClothing || roll.IsArmor)
             {
                 if (wo.IsShield)
                 {
                     // shield cantrip
-                    return ArmorCantrips.Roll();
+                    //return ArmorCantrips.Roll();
+                    table = ArmorCantrips.Table;
                 }
                 else
                 {
                     // armor / clothing cantrip
-                    return ArmorCantrips.Roll();
+                    //return ArmorCantrips.Roll();
+                    table = ArmorCantrips.Table;
                 }
             }
             else if (roll.IsCaster)
             {
                 // caster cantrip
-                return WandCantrips.Roll();
+                //return WandCantrips.Roll();
+                table = WandCantrips.Table;
             }
             else if (roll.IsMeleeWeapon)
             {
                 // melee cantrip
-                return MeleeCantrips.Roll();
+                //return MeleeCantrips.Roll();
+                table = MeleeCantrips.Table;
             }
             else if (roll.IsMissileWeapon)
             {
                 // missile cantrip
-                return MissileCantrips.Roll();
+                //return MissileCantrips.Roll();
+                table = MissileCantrips.Table;
             }
             else if (roll.IsJewelry)
             {
                 // jewelry cantrip
-                return JewelryCantrips.Roll();
+                //return JewelryCantrips.Roll();
+                table = JewelryCantrips.Table;
             }
             else
             {
                 log.Error($"RollCantrip({wo.Name}, {profile.TreasureType}, {roll.ItemType}) - unknown item type");
                 return SpellId.Undef;
             }
+
+            var rng = ThreadSafeRandom.Next(0, table.Length - 1);
+            return table[rng][0];
         }
 
         public static SpellId AdjustForWeaponMastery(WorldObject wo, SpellId spell)

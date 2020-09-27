@@ -38,6 +38,7 @@ namespace ACE.Server.Factories.Tables
 
         // original api
         public static readonly SpellId[][] Table = new SpellId[spells.Count][];
+        public static readonly List<SpellId> CreatureLifeTable = new List<SpellId>();
 
         static WandSpells()
         {
@@ -70,6 +71,19 @@ namespace ACE.Server.Factories.Tables
 
                 for (var j = 0; j < NumTiers; j++)
                     Table[i][j] = spellLevels[j];
+
+                // build a version of this table w/out item spells
+                switch (spell)
+                {
+                    case SpellId.DefenderSelf1:
+                    case SpellId.HermeticLinkSelf1:
+                    case SpellId.SpiritDrinkerSelf1:
+                        break;
+
+                    default:
+                        CreatureLifeTable.Add(spell);
+                        break;
+                }
             }
         }
 

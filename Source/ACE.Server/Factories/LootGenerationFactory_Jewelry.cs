@@ -4,6 +4,7 @@ using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
@@ -36,7 +37,7 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static void MutateJewelry(WorldObject wo, TreasureDeath profile, bool isMagical)
+        private static void MutateJewelry(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureRoll roll = null)
         {
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
@@ -72,7 +73,7 @@ namespace ACE.Server.Factories
             }
 
             if (isMagical)
-                AssignMagic(wo, profile);
+                AssignMagic(wo, profile, roll);
             else
             {
                 wo.ItemManaCost = null;
