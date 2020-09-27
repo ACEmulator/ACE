@@ -260,26 +260,35 @@ namespace ACE.Server.Factories.Tables
         };
 
         /// <summary>
-        /// Key is PropertyInt.TsysMutationData >> 24
+        /// Key is (PropertyInt.TsysMutationData >> 24) - 1
         /// </summary>
-        public static readonly Dictionary<int, ChanceTable<SpellId>> Group = new Dictionary<int, ChanceTable<SpellId>>()
+        private static readonly List<ChanceTable<SpellId>> spellSelectionGroup = new List<ChanceTable<SpellId>>()
         {
-            { 1, spellSelectionGroup1 },
-            { 2, spellSelectionGroup2 },
-            { 3, spellSelectionGroup3 },
-            { 4, spellSelectionGroup4 },
-            { 5, spellSelectionGroup5 },
-            { 6, spellSelectionGroup6 },
-            { 7, spellSelectionGroup7 },
-            { 8, spellSelectionGroup8 },
-            { 9, spellSelectionGroup9 },
-            { 10, spellSelectionGroup10 },
-            { 11, spellSelectionGroup11 },
-            { 12, spellSelectionGroup12 },
-            { 13, spellSelectionGroup13 },
-            { 14, spellSelectionGroup14 },
-            { 15, spellSelectionGroup15 },
-            { 16, spellSelectionGroup16 },
+            spellSelectionGroup1,
+            spellSelectionGroup2,
+            spellSelectionGroup3,
+            spellSelectionGroup4,
+            spellSelectionGroup5,
+            spellSelectionGroup6,
+            spellSelectionGroup7,
+            spellSelectionGroup8,
+            spellSelectionGroup9,
+            spellSelectionGroup10,
+            spellSelectionGroup11,
+            spellSelectionGroup12,
+            spellSelectionGroup13,
+            spellSelectionGroup14,
+            spellSelectionGroup15,
+            spellSelectionGroup16,
         };
+
+        /// <summary>
+        /// Rolls for a creature / life spell for an item
+        /// </summary>
+        /// <param name="spellCode">the SpellCode from WorldObject</param>
+        public static SpellId Roll(int spellCode)
+        {
+            return spellSelectionGroup[spellCode - 1].Roll();
+        }
     }
 }

@@ -2,6 +2,8 @@ using System.Collections.Generic;
 
 using log4net;
 
+using ACE.Common;
+using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 
 namespace ACE.Server.Factories.Tables
@@ -64,6 +66,29 @@ namespace ACE.Server.Factories.Tables
                 for (var j = 0; j < NumTiers; j++)
                     Table[i][j] = spellLevels[j];
             }
+        }
+
+        // alt
+
+        private static readonly List<(SpellId spellId, float chance)> weaponMissileSpells = new List<(SpellId, float)>()
+        {
+            ( SpellId.SwiftKillerSelf1,  0.30f ),
+            ( SpellId.DefenderSelf1,     0.25f ),
+            ( SpellId.BloodDrinkerSelf1, 1.00f ),
+        };
+
+        public static List<SpellId> Roll(TreasureDeath treasureDeath)
+        {
+            var spells = new List<SpellId>();
+
+            foreach (var spell in weaponMissileSpells)
+            {
+                var rng = ThreadSafeRandom.Next(0.0f, 1.0f) - treasureDeath.LootQualityMod;
+
+                if (rng < spell.chance)
+                    spells.Add(spell.spellId);
+            }
+            return spells;
         }
     }
 }

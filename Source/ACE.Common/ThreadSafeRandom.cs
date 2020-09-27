@@ -29,5 +29,10 @@ namespace ACE.Common
         {
             return random.Value.Next(min, max + 1);
         }
+
+        public static double NextInterval(float qualityMod)
+        {
+            return Math.Max(0.0, random.Value.NextDouble() - qualityMod);
+        }
     }
 }

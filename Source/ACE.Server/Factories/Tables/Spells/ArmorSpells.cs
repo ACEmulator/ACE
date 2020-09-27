@@ -2,6 +2,8 @@ using System.Collections.Generic;
 
 using log4net;
 
+using ACE.Common;
+using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 
 namespace ACE.Server.Factories.Tables
@@ -137,6 +139,34 @@ namespace ACE.Server.Factories.Tables
                 for (var j = 0; j < NumTiers; j++)
                     Table[i][j] = spellLevels[j];
             }
+        }
+
+        // alt
+
+        private static readonly List<(SpellId spellId, float chance)> armorSpells = new List<(SpellId, float)>()
+        {
+            ( SpellId.PiercingBane1,    0.15f ),
+            ( SpellId.FlameBane1,       0.15f ),
+            ( SpellId.FrostBane1,       0.15f ),
+            ( SpellId.Impenetrability1, 1.00f ),
+            ( SpellId.AcidBane1,        0.15f ),
+            ( SpellId.BladeBane1,       0.15f ),
+            ( SpellId.LightningBane1,   0.15f ),
+            ( SpellId.BludgeonBane1,    0.15f ),
+        };
+
+        public static List<SpellId> Roll(TreasureDeath treasureDeath)
+        {
+            var spells = new List<SpellId>();
+
+            foreach (var spell in armorSpells)
+            {
+                var rng = ThreadSafeRandom.Next(0.0f, 1.0f) - treasureDeath.LootQualityMod;
+
+                if (rng < spell.chance)
+                    spells.Add(spell.spellId);
+            }
+            return spells;
         }
     }
 }
