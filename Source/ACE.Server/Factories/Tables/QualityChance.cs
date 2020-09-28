@@ -217,13 +217,14 @@ namespace ACE.Server.Factories.Tables
             // if the initial roll succeeds, roll for the actual quality level -- also based on tier
             var chances = GetQualityChancesForTier(treasureDeath.Tier);
 
-            var rng = ThreadSafeRandom.NextIntervalMax(treasureDeath.LootQualityMod);
+            //var rng = ThreadSafeRandom.NextIntervalMax(treasureDeath.LootQualityMod);
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
 
             for (var i = 0; i < chances.Count; i++)
             {
                 var curChance = chances[i];
 
-                if (rng < curChance)
+                if (rng < curChance && curChance >= treasureDeath.LootQualityMod)
                     return i + 1;
             }
             log.Error($"QualityTables.Roll({treasureDeath.Tier}, {treasureDeath.LootQualityMod}, {isArmorModVsType}) - this shouldn't happen");
@@ -244,13 +245,14 @@ namespace ACE.Server.Factories.Tables
             // if the initial roll succeeds, roll for the actual quality level -- also based on tier
             var chances = GetQualityChancesForTier(treasureDeath.Tier);
 
-            var rng = ThreadSafeRandom.NextIntervalMax(treasureDeath.LootQualityMod);
+            //var rng = ThreadSafeRandom.NextIntervalMax(treasureDeath.LootQualityMod);
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
 
             for (var i = 0; i < chances.Count; i++)
             {
                 var curChance = chances[i];
 
-                if (rng < curChance)
+                if (rng < curChance && curChance >= treasureDeath.LootQualityMod)
                 {
                     var prevChance = i > 0 ? chances[i - 1] : 0;
 

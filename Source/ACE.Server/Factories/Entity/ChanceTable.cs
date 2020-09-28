@@ -12,13 +12,14 @@ namespace ACE.Server.Factories.Entity
         {
             var total = 0.0f;
 
-            var rng = ThreadSafeRandom.NextIntervalMax(qualityMod);
+            //var rng = ThreadSafeRandom.NextIntervalMax(qualityMod);
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
 
             foreach (var entry in this)
             {
                 total += entry.chance;
 
-                if (rng < total)
+                if (rng < total && total >= qualityMod)
                     return entry.result;
             }
 
