@@ -67,11 +67,19 @@ namespace ACE.Server.Factories.Enum
                     return "sword_ms";
                 case TreasureWeaponType.Unarmed:
                     return "unarmed";
-
                 case TreasureWeaponType.TwoHandedAxe:
                 case TreasureWeaponType.TwoHandedMace:
                 case TreasureWeaponType.TwoHandedSword:
                     return "cleaver";
+
+                case TreasureWeaponType.Bow:
+                    return "bow";
+                case TreasureWeaponType.Crossbow:
+                    return "crossbow";
+                case TreasureWeaponType.Atlatl:
+                    return "atlatl";
+                case TreasureWeaponType.Caster:
+                    return "caster";
             }
             return null;
         }

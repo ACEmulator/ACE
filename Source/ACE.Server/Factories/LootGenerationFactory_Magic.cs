@@ -237,10 +237,9 @@ namespace ACE.Server.Factories
             wo.LongDesc = wo.Name;
 
             // Setting Weapon defensive mods 
-            wo.WeaponDefense = GetWieldReqMeleeDMod(wield, profile);
-
-            wo.WeaponMissileDefense = MissileMagicDefense.Roll(profile.Tier);
-            wo.WeaponMagicDefense = MissileMagicDefense.Roll(profile.Tier);
+            wo.WeaponDefense = RollWeaponDefense(wield, profile);
+            wo.WeaponMagicDefense = RollWeapon_MissileMagicDefense(profile.Tier);
+            wo.WeaponMissileDefense = RollWeapon_MissileMagicDefense(profile.Tier);
 
             // Setting weapon Offensive Mods
             if (elementalDamageMod > 1.0f)
