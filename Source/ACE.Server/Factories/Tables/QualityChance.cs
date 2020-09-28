@@ -200,7 +200,7 @@ namespace ACE.Server.Factories.Tables
             var tierChance = isArmorModVsType ? QualityChancePerTier_ArmorModVsType[treasureDeath.Tier - 1] : QualityChancePerTier[treasureDeath.Tier - 1];
 
             // use for initial roll? logic seems backwards here...
-            var rng = ThreadSafeRandom.Next(0.0f, 1.0f) - treasureDeath.LootQualityMod;
+            var rng = ThreadSafeRandom.NextInterval(treasureDeath.LootQualityMod);
 
             return rng < tierChance;
         }
@@ -217,7 +217,7 @@ namespace ACE.Server.Factories.Tables
             // if the initial roll succeeds, roll for the actual quality level -- also based on tier
             var chances = GetQualityChancesForTier(treasureDeath.Tier);
 
-            var rng = ThreadSafeRandom.Next(treasureDeath.LootQualityMod, 1.0f);
+            var rng = ThreadSafeRandom.NextIntervalMax(treasureDeath.LootQualityMod);
 
             for (var i = 0; i < chances.Count; i++)
             {
@@ -244,7 +244,7 @@ namespace ACE.Server.Factories.Tables
             // if the initial roll succeeds, roll for the actual quality level -- also based on tier
             var chances = GetQualityChancesForTier(treasureDeath.Tier);
 
-            var rng = ThreadSafeRandom.Next(treasureDeath.LootQualityMod, 1.0f);
+            var rng = ThreadSafeRandom.NextIntervalMax(treasureDeath.LootQualityMod);
 
             for (var i = 0; i < chances.Count; i++)
             {

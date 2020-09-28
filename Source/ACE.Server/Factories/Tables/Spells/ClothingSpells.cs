@@ -26,7 +26,7 @@ namespace ACE.Server.Factories.Tables
 
             foreach (var spell in clothingSpells)
             {
-                var rng = ThreadSafeRandom.Next(0.0f, 1.0f) - treasureDeath.LootQualityMod;
+                var rng = ThreadSafeRandom.NextInterval(treasureDeath.LootQualityMod);
 
                 if (rng < spell.chance)
                     spells.Add(spell.spellId);
