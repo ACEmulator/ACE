@@ -17,7 +17,7 @@ namespace ACE.Server.Factories.Entity
 {
     public static class MutationCache
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly ConcurrentDictionary<string, MutationFilter> tSysMutationFilters = new ConcurrentDictionary<string, MutationFilter>();
 
@@ -28,7 +28,7 @@ namespace ACE.Server.Factories.Entity
                 tSysMutationFilter = BuildMutation(filename);
 
                 if (tSysMutationFilter != null)
-                    tSysMutationFilters[filename] = tSysMutationFilter;
+                    tSysMutationFilters.TryAdd(filename, tSysMutationFilter);
             }
             return tSysMutationFilter;
         }
