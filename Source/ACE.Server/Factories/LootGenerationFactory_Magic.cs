@@ -2,7 +2,7 @@ using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Database;
 using ACE.Entity.Enum;
-using ACE.Server.Entity;
+using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
@@ -214,9 +214,6 @@ namespace ACE.Server.Factories
                     wieldSkillType = Skill.WarMagic;
             }
 
-            // Setting MagicD and MissileD Bonuses to null (some weenies have a value)
-            wo.WeaponMagicDefense = null;
-            wo.WeaponMissileDefense = null;
             // Not sure why this is here, guessing some wienies have it by default
             wo.ItemSkillLevelLimit = null;
 
@@ -241,8 +238,9 @@ namespace ACE.Server.Factories
 
             // Setting Weapon defensive mods 
             wo.WeaponDefense = GetWieldReqMeleeDMod(wield, profile);
-            wo.WeaponMagicDefense = RollWeapon_MissileMagicDefense(profile.Tier);
-            wo.WeaponMissileDefense = RollWeapon_MissileMagicDefense(profile.Tier);
+
+            wo.WeaponMissileDefense = MissileMagicDefense.Roll(profile.Tier);
+            wo.WeaponMagicDefense = MissileMagicDefense.Roll(profile.Tier);
 
             // Setting weapon Offensive Mods
             if (elementalDamageMod > 1.0f)

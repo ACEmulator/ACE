@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
@@ -131,8 +130,8 @@ namespace ACE.Server.Factories
             wo.Value = GetValue(profile.Tier, wo.ItemWorkmanship ?? 0, gemMaterialMod, materialMod);
 
             // missile / magic defense
-            wo.WeaponMissileDefense = RollWeapon_MissileMagicDefense(profile.Tier);
-            wo.WeaponMagicDefense = RollWeapon_MissileMagicDefense(profile.Tier);
+            wo.WeaponMissileDefense = MissileMagicDefense.Roll(profile.Tier);
+            wo.WeaponMagicDefense = MissileMagicDefense.Roll(profile.Tier);
 
             // spells
             if (!isMagical)
