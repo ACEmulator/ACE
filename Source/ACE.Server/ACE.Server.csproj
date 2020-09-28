@@ -23,6 +23,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Factories\Entity\Mutations\Casters\caster.txt" />
+    <None Remove="Factories\Entity\Mutations\Casters\caster_elemental.txt" />
+    <None Remove="Factories\Entity\Mutations\Casters\caster_non_elemental.txt" />
+    <None Remove="Factories\Entity\Mutations\Casters\weapon_defense.txt" />      
     <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_axe.txt" />
     <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_dagger.txt" />
     <None Remove="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_dagger_ms.txt" />
@@ -72,6 +76,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Factories\Entity\Mutations\Casters\caster.txt" />
+    <EmbeddedResource Include="Factories\Entity\Mutations\Casters\caster_elemental.txt" />
+    <EmbeddedResource Include="Factories\Entity\Mutations\Casters\caster_non_elemental.txt" />
+    <EmbeddedResource Include="Factories\Entity\Mutations\Casters\weapon_defense.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_axe.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_dagger.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\MeleeWeapons\Damage_WieldDifficulty_DamageVariance\heavy_dagger_ms.txt" />
