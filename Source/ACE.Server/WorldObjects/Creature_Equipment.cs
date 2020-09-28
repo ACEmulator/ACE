@@ -200,24 +200,28 @@ namespace ACE.Server.WorldObjects
 
         private void AddItemToEquippedItemsRatingCache(WorldObject wo)
         {
-            if ((wo.GearCrit ?? 0) == 0 && (wo.GearCritDamage ?? 0) == 0 && (wo.GearCritResist ?? 0) == 0 && (wo.GearCritDamageResist ?? 0) == 0)
+            if ((wo.GearDamage ?? 0) == 0 && (wo.GearDamageResist ?? 0) == 0 && (wo.GearCrit ?? 0) == 0 && (wo.GearCritDamage ?? 0) == 0 && (wo.GearCritResist ?? 0) == 0 && (wo.GearCritDamageResist ?? 0) == 0)
                 return;
 
             if (equippedItemsRatingCache == null)
             {
                 equippedItemsRatingCache = new Dictionary<PropertyInt, int>
                 {
-                    { PropertyInt.CritRating, 0 },
-                    { PropertyInt.CritDamageRating, 0 },
-                    { PropertyInt.CritResistRating, 0 },
-                    { PropertyInt.CritDamageResistRating, 0 },
+                    { PropertyInt.GearDamage, 0 },
+                    { PropertyInt.GearDamageResist, 0 },
+                    { PropertyInt.GearCrit, 0 },
+                    { PropertyInt.GearCritDamage, 0 },
+                    { PropertyInt.GearCritResist, 0 },
+                    { PropertyInt.GearCritDamageResist, 0 },
                 };
             }
 
-            equippedItemsRatingCache[PropertyInt.CritRating] += (wo.GearCrit ?? 0);
-            equippedItemsRatingCache[PropertyInt.CritDamageRating] += (wo.GearCritDamage ?? 0);
-            equippedItemsRatingCache[PropertyInt.CritResistRating] += (wo.GearCritResist ?? 0);
-            equippedItemsRatingCache[PropertyInt.CritDamageResistRating] += (wo.GearCritDamageResist ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearDamage] += (wo.GearDamage ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearDamageResist] += (wo.GearDamageResist ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearCrit] += (wo.GearCrit ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearCritDamage] += (wo.GearCritDamage ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearCritResist] += (wo.GearCritResist ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearCritDamageResist] += (wo.GearCritDamageResist ?? 0);
         }
 
         private void RemoveItemFromEquippedItemsRatingCache(WorldObject wo)
@@ -225,10 +229,12 @@ namespace ACE.Server.WorldObjects
             if (equippedItemsRatingCache == null)
                 return;
 
-            equippedItemsRatingCache[PropertyInt.CritRating] -= (wo.GearCrit ?? 0);
-            equippedItemsRatingCache[PropertyInt.CritDamageRating] -= (wo.GearCritDamage ?? 0);
-            equippedItemsRatingCache[PropertyInt.CritResistRating] -= (wo.GearCritResist ?? 0);
-            equippedItemsRatingCache[PropertyInt.CritDamageResistRating] -= (wo.GearCritDamageResist ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearDamage] -= (wo.GearDamage ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearDamageResist] -= (wo.GearDamageResist ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearCrit] -= (wo.GearCrit ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearCritDamage] -= (wo.GearCritDamage ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearCritResist] -= (wo.GearCritResist ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearCritDamageResist] -= (wo.GearCritDamageResist ?? 0);
         }
 
         public int GetEquippedItemsRatingSum(PropertyInt rating)
