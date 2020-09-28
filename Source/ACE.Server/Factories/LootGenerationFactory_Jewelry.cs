@@ -75,7 +75,7 @@ namespace ACE.Server.Factories
             }
 
             if (isMagical)
-                wo = AssignMagic(wo, profile);
+                AssignMagic(wo, profile);
             else
             {
                 wo.ItemManaCost = null;
@@ -86,7 +86,7 @@ namespace ACE.Server.Factories
                 wo.ManaRate = null;
             }
 
-            RandomizeColor(wo);
+            MutateColor(wo);
         }
 
         private static bool GetMutateJewelryData(uint wcid)

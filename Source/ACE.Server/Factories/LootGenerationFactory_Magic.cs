@@ -153,7 +153,7 @@ namespace ACE.Server.Factories
             int element = 0;
 
             if (wield == -1)
-                wield = GetWieldDifficulty(profile.Tier, WieldType.Caster);
+                wield = RollWieldDifficulty(profile.Tier, WieldType.Caster);
 
             // Getting the caster Weenie needed.
             if (wield == 0)
@@ -266,7 +266,7 @@ namespace ACE.Server.Factories
                 wo.ManaConversionMod = manaConMod;
 
             if (isMagical)
-                wo = AssignMagic(wo, profile);
+                AssignMagic(wo, profile);
             else
             {
                 wo.ItemManaCost = null;
@@ -276,7 +276,7 @@ namespace ACE.Server.Factories
                 wo.ItemDifficulty = null;
             }
 
-            RandomizeColor(wo);
+            MutateColor(wo);
         }
 
         private static bool GetMutateCasterData(uint wcid)

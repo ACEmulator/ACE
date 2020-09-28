@@ -21,7 +21,7 @@ namespace ACE.Server.Factories
         {
             int weaponWeenie;
 
-            int wieldDifficulty = GetWieldDifficulty(profile.Tier, WieldType.MissileWeapon);
+            int wieldDifficulty = RollWieldDifficulty(profile.Tier, WieldType.MissileWeapon);
 
             // Changing based on wield, not tier. Refactored, less code, best results.  HarliQ 11/18/19
             if (wieldDifficulty < 315)
@@ -32,16 +32,16 @@ namespace ACE.Server.Factories
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
 
             if (wo != null && mutate)
-                MutateMissileWeapon(wo, profile, isMagical, wieldDifficulty, wieldDifficulty >= 315);
+                MutateMissileWeapon(wo, profile, isMagical, wieldDifficulty);
             
             return wo;
         }
 
-        private static void MutateMissileWeapon(WorldObject wo, TreasureDeath profile, bool isMagical, int wieldDifficulty, bool isElemental)
+        private static void MutateMissileWeapon(WorldObject wo, TreasureDeath profile, bool isMagical, int wieldDifficulty)
         {
             int elemenatalBonus = 0;
 
-            if (isElemental)
+            if (wo.W_DamageType != DamageType.Undef)
                 elemenatalBonus = GetElementalBonus(wieldDifficulty);
 
             // Item Basics
@@ -92,7 +92,7 @@ namespace ACE.Server.Factories
 
             // Magic
             if (isMagical)
-                wo = AssignMagic(wo, profile);
+                AssignMagic(wo, profile);
             else
             {
                 wo.ItemManaCost = null;
@@ -109,28 +109,20 @@ namespace ACE.Server.Factories
             var value = GetValue(profile.Tier, (int)wo.Workmanship, gemMaterialMod, materialMod);
             wo.Value = value;
 
-            RandomizeColor(wo);
+            MutateColor(wo);
         }
 
-        private static bool GetMutateMissileWeaponData(uint wcid, int tier, out int wieldDifficulty, out bool _isElemental)
+        private static bool GetMutateMissileWeaponData(uint wcid, int tier)
         {
             for (var isElemental = 0; isElemental < LootTables.MissileWeaponsMatrices.Count; isElemental++)
             {
                 var table = LootTables.MissileWeaponsMatrices[isElemental];
                 for (var missileType = 0; missileType < table.Length; missileType++)
                 {
-                    var subtable = table[missileType];
-                    if (subtable.Contains((int)wcid))
-                    {
-                        // roll for unique wield difficulty at this point
-                        wieldDifficulty = GetWieldDifficulty(tier, WieldType.MissileWeapon);
-                        _isElemental = isElemental > 0;
+                    if (table[missileType].Contains((int)wcid))
                         return true;
-                    }
                 }
             }
-            _isElemental = false;
-            wieldDifficulty = -1;
             return false;
         }
 

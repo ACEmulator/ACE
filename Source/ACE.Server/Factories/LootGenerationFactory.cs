@@ -195,6 +195,8 @@ namespace ACE.Server.Factories
                     case 1002: // Armor Chest
                     case 2002:
                         lootBias = LootBias.Armor;
+                        profile.ItemTreasureTypeSelectionChances = 2;           // fixme in data, get rid of lootbias
+                        profile.MagicItemTreasureTypeSelectionChances = 2;
                         break;
                     case 1003: // Magic Chest
                     case 2003:
@@ -203,6 +205,8 @@ namespace ACE.Server.Factories
                     case 1004: // Weapon Chest
                     case 2004:
                         lootBias = LootBias.Weapons;
+                        profile.ItemTreasureTypeSelectionChances = 1;           // fixme in data, get rid of lootbias
+                        profile.MagicItemTreasureTypeSelectionChances = 1;
                         break;
                     default: // Default to unbiased loot profile
                         break;
@@ -389,7 +393,7 @@ namespace ACE.Server.Factories
                 MutateArmor(item, profile, isMagical, armorType.Value);
             else if (GetMutateCasterData(item.WeenieClassId))
             {
-                var wieldDifficulty = item.W_DamageType != DamageType.Undef ? GetWieldDifficulty(profile.Tier, WieldType.Caster) : 0;
+                var wieldDifficulty = item.W_DamageType != DamageType.Undef ? RollWieldDifficulty(profile.Tier, WieldType.Caster) : 0;
                 MutateCaster(item, profile, isMagical, wieldDifficulty);
             }
             else if (GetMutateDinnerwareData(item.WeenieClassId))
@@ -406,8 +410,11 @@ namespace ACE.Server.Factories
                     return false;
                 }
             }
-            else if (GetMutateMissileWeaponData(item.WeenieClassId, profile.Tier, out int wieldDifficulty, out bool isElemental))
-                MutateMissileWeapon(item, profile, isMagical, wieldDifficulty, isElemental);
+            else if (GetMutateMissileWeaponData(item.WeenieClassId, profile.Tier))
+            {
+                var wieldDifficulty = RollWieldDifficulty(profile.Tier, WieldType.MissileWeapon);
+                MutateMissileWeapon(item, profile, isMagical, wieldDifficulty);
+            }
             else if (item is PetDevice petDevice)
                 MutatePetDevice(petDevice, profile.Tier);
             else if (GetMutateCloakData(item.WeenieClassId))
@@ -426,7 +433,7 @@ namespace ACE.Server.Factories
             MeleeWeapon,
         };
 
-        private static int GetWieldDifficulty(int tier, WieldType type)
+        private static int RollWieldDifficulty(int tier, WieldType type)
         {
             int wield = 0;
             int chance = ThreadSafeRandom.Next(1, 100);
@@ -1066,7 +1073,7 @@ namespace ACE.Server.Factories
             return -manaRate;
         }
 
-        private static WorldObject AssignMagic(WorldObject wo, TreasureDeath profile, bool isArmor = false)
+        private static void AssignMagic(WorldObject wo, TreasureDeath profile, bool isArmor = false)
         {
             SpellId[][] spells;
             SpellId[][] cantrips;
@@ -1110,7 +1117,7 @@ namespace ACE.Server.Factories
             }
 
             if (spells == null || cantrips == null)
-                return wo;
+                return;
 
             // Refactor 3/2/2020 - HQ
             // Magic stats
@@ -1200,7 +1207,6 @@ namespace ACE.Server.Factories
             int spellcraft = GetSpellcraft(wo, numSpells, profile.Tier);
             wo.ItemSpellcraft = spellcraft;
             wo.ItemDifficulty = GetDifficulty(wo, spellcraft);
-            return wo;
         }
 
         private static int GetSpellDistribution(TreasureDeath profile, out int numMinors, out int numMajors, out int numEpics, out int numLegendaries)
@@ -1412,7 +1418,7 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Returns Values for Magic & Missile Defense Bonus. Updated HarliQ 11/17/19
         /// </summary>
-        private static double GetMagicMissileDMod(int tier)
+        private static double RollWeapon_MissileMagicDefense(int tier)
         {
             double magicMissileDefenseMod = 0;
             // For seeing if weapon even gets a chance at a modifier
@@ -2109,90 +2115,88 @@ namespace ACE.Server.Factories
         /// Assign a random color (Int.PaletteTemplate and Float.Shade) to a World Object based on the material assigned to it.
         /// </summary>
         /// <returns>WorldObject with a random applicable PaletteTemplate and Shade applied, if available</returns>
-        private static void RandomizeColor(WorldObject wo)
+        private static void MutateColor(WorldObject wo)
         {
-            if (wo.MaterialType > 0 && wo.TsysMutationData != null && wo.ClothingBase != null)
+            if (wo.MaterialType == 0 || wo.TsysMutationData == null || wo.ClothingBase == null)
+                return;
+
+            byte colorCode = (byte)(((uint)wo.TsysMutationData >> 16) & 0xFF);
+
+            // BYTE spellCode = (tsysMutationData >> 24) & 0xFF;
+            // BYTE colorCode = (tsysMutationData >> 16) & 0xFF;
+            // BYTE gemCode = (tsysMutationData >> 8) & 0xFF;
+            // BYTE materialCode = (tsysMutationData >> 0) & 0xFF;
+
+            List<TreasureMaterialColor> colors;
+            // This is a unique situation that typically applies to Under Clothes.
+            // If the Color Code is 0, they can be PaletteTemplate 1-18, assuming there is a MaterialType
+            // (gems have ColorCode of 0, but also no MaterialCode as they are defined by the weenie)
+            if (colorCode == 0 && (uint)wo.MaterialType > 0)
             {
-                byte colorCode = (byte)(((uint)wo.TsysMutationData >> 16) & 0xFF);
-
-                // BYTE spellCode = (tsysMutationData >> 24) & 0xFF;
-                // BYTE colorCode = (tsysMutationData >> 16) & 0xFF;
-                // BYTE gemCode = (tsysMutationData >> 8) & 0xFF;
-                // BYTE materialCode = (tsysMutationData >> 0) & 0xFF;
-
-                List<TreasureMaterialColor> colors;
-                // This is a unique situation that typically applies to Under Clothes.
-                // If the Color Code is 0, they can be PaletteTemplate 1-18, assuming there is a MaterialType
-                // (gems have ColorCode of 0, but also no MaterialCode as they are defined by the weenie)
-                if (colorCode == 0 && (uint)wo.MaterialType > 0)
+                colors = new List<TreasureMaterialColor>();
+                for (uint i = 1; i < 19; i++)
                 {
-                    colors = new List<TreasureMaterialColor>();
-                    for (uint i = 1; i < 19; i++)
+                    TreasureMaterialColor tmc = new TreasureMaterialColor
                     {
-                        TreasureMaterialColor tmc = new TreasureMaterialColor
-                        {
-                            PaletteTemplate = i,
-                            Probability = 1
-                        };
-                        colors.Add(tmc);
-                    }
-                }
-                else
-                {
-                    colors = DatabaseManager.World.GetCachedTreasureMaterialColors((int)wo.MaterialType, colorCode);
-                }
-
-                // Load the clothingBase associated with the WorldObject
-                DatLoader.FileTypes.ClothingTable clothingBase = DatLoader.DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.ClothingTable>((uint)wo.ClothingBase);
-
-                // TODO : Probably better to use an intersect() function here. I defer to someone who knows how these work better than I - Optim
-                // Compare the colors list and the clothingBase PaletteTemplates and remove any invalid items
-                var colorsValid = new List<TreasureMaterialColor>();
-                foreach (var e in colors)
-                    if (clothingBase.ClothingSubPalEffects.ContainsKey((uint)e.PaletteTemplate))
-                        colorsValid.Add(e);
-                colors = colorsValid;
-
-                float totalProbability = GetTotalProbability(colors);
-                // If there's zero chance to get a random color, no point in continuing.
-                if (totalProbability == 0) return;
-
-                var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
-
-                uint paletteTemplate = 0;
-                float probability = 0.0f;
-                // Loop through the colors until we've reach our target value
-                foreach (var color in colors)
-                {
-                    probability += color.Probability;
-                    if (probability > rng || probability == totalProbability)
-                    {
-                        paletteTemplate = color.PaletteTemplate;
-                        break;
-                    }
-                }
-                if (paletteTemplate > 0)
-                {
-                    var cloSubPal = clothingBase.ClothingSubPalEffects[(uint)paletteTemplate];
-                    // Make sure this entry has a valid icon, otherwise there's likely something wrong with the ClothingBase value for this WorldObject (e.g. not supposed to be a loot item)
-                    if (cloSubPal.Icon > 0)
-                    {
-                        // Assign the appropriate Icon and PaletteTemplate
-                        wo.IconId = cloSubPal.Icon;
-                        wo.PaletteTemplate = (int)paletteTemplate;
-
-                        // Throw some shade, at random
-                        wo.Shade = ThreadSafeRandom.Next(0.0f, 1.0f);
-
-                        // Some debug info...
-                        // log.Info($"Color success for {wo.MaterialType}({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}. PaletteTemplate {paletteTemplate} applied.");
-                    }
-                }
-                else
-                {
-                    log.Warn($"[LOOT] Color looked failed for {wo.MaterialType} ({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}.");
+                        PaletteTemplate = i,
+                        Probability = 1
+                    };
+                    colors.Add(tmc);
                 }
             }
+            else
+            {
+                colors = DatabaseManager.World.GetCachedTreasureMaterialColors((int)wo.MaterialType, colorCode);
+            }
+
+            // Load the clothingBase associated with the WorldObject
+            DatLoader.FileTypes.ClothingTable clothingBase = DatLoader.DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.ClothingTable>((uint)wo.ClothingBase);
+
+            // TODO : Probably better to use an intersect() function here. I defer to someone who knows how these work better than I - Optim
+            // Compare the colors list and the clothingBase PaletteTemplates and remove any invalid items
+            var colorsValid = new List<TreasureMaterialColor>();
+            foreach (var e in colors)
+                if (clothingBase.ClothingSubPalEffects.ContainsKey((uint)e.PaletteTemplate))
+                    colorsValid.Add(e);
+            colors = colorsValid;
+
+            float totalProbability = GetTotalProbability(colors);
+            // If there's zero chance to get a random color, no point in continuing.
+            if (totalProbability == 0) return;
+
+            var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
+
+            uint paletteTemplate = 0;
+            float probability = 0.0f;
+            // Loop through the colors until we've reach our target value
+            foreach (var color in colors)
+            {
+                probability += color.Probability;
+                if (probability > rng || probability == totalProbability)
+                {
+                    paletteTemplate = color.PaletteTemplate;
+                    break;
+                }
+            }
+            if (paletteTemplate > 0)
+            {
+                var cloSubPal = clothingBase.ClothingSubPalEffects[(uint)paletteTemplate];
+                // Make sure this entry has a valid icon, otherwise there's likely something wrong with the ClothingBase value for this WorldObject (e.g. not supposed to be a loot item)
+                if (cloSubPal.Icon > 0)
+                {
+                    // Assign the appropriate Icon and PaletteTemplate
+                    wo.IconId = cloSubPal.Icon;
+                    wo.PaletteTemplate = (int)paletteTemplate;
+
+                    // Throw some shade, at random
+                    wo.Shade = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+                    // Some debug info...
+                    // log.Info($"Color success for {wo.MaterialType}({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}. PaletteTemplate {paletteTemplate} applied.");
+                }
+            }
+            else
+                log.Warn($"[LOOT] Color looked failed for {wo.MaterialType} ({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}.");
         }
 
         /// <summary>
@@ -2546,7 +2550,7 @@ namespace ACE.Server.Factories
                 case TreasureItemType_Orig.Weapon:
 
                     treasureRoll.WeaponType = WeaponTypeChance.Roll(treasureDeath.Tier);
-                    treasureRoll.Wcid = WeaponWcids.Roll(treasureDeath, treasureRoll.WeaponType);
+                    treasureRoll.Wcid = WeaponWcids.Roll(treasureDeath, ref treasureRoll.WeaponType);
                     break;
 
                 case TreasureItemType_Orig.Armor:
@@ -2669,14 +2673,46 @@ namespace ACE.Server.Factories
 
                 case TreasureItemType_Orig.Weapon:
 
-                    if (treasureRoll.WeaponType == TreasureWeaponType.Caster)
+                    switch (treasureRoll.WeaponType)
                     {
-                        var wield = wo.W_DamageType != DamageType.Undef ? GetWieldDifficulty(treasureDeath.Tier, WieldType.Caster) : 0;
-                        MutateCaster(wo, treasureDeath, isMagical, wield);
-                    }
-                    else
-                        MutateMeleeWeapon(wo, treasureDeath, isMagical);
+                        case TreasureWeaponType.Axe:
+                        case TreasureWeaponType.Dagger:
+                        case TreasureWeaponType.DaggerMS:
+                        case TreasureWeaponType.Mace:
+                        case TreasureWeaponType.MaceJitte:
+                        case TreasureWeaponType.Spear:
+                        case TreasureWeaponType.Staff:
+                        case TreasureWeaponType.Sword:
+                        case TreasureWeaponType.SwordMS:
+                        case TreasureWeaponType.Unarmed:
 
+                        case TreasureWeaponType.TwoHandedAxe:
+                        case TreasureWeaponType.TwoHandedMace:
+                        case TreasureWeaponType.TwoHandedSpear:
+                        case TreasureWeaponType.TwoHandedSword:
+
+                            MutateMeleeWeapon(wo, treasureDeath, isMagical, treasureRoll.WeaponType);
+                            break;
+
+                        case TreasureWeaponType.Caster:
+
+                            var wieldDifficulty = wo.W_DamageType != DamageType.Undef ? RollWieldDifficulty(treasureDeath.Tier, WieldType.Caster) : 0;
+                            MutateCaster(wo, treasureDeath, isMagical, wieldDifficulty);
+                            break;
+
+                        case TreasureWeaponType.Bow:
+                        case TreasureWeaponType.Crossbow:
+                        case TreasureWeaponType.Atlatl:
+
+                            // fixme
+                            wieldDifficulty = RollWieldDifficulty(treasureDeath.Tier, WieldType.MissileWeapon);
+                            MutateMissileWeapon(wo, treasureDeath, isMagical, wieldDifficulty);
+                            break;
+
+                        default:
+                            log.Error($"CreateAndMutateWcid({treasureDeath.TreasureType}, {(int)treasureRoll.Wcid} - {treasureRoll.Wcid}, {treasureRoll.GetItemType()}, {isMagical}) - unknown weapon type");
+                            break;
+                    }
                     break;
 
                 case TreasureItemType_Orig.Armor:

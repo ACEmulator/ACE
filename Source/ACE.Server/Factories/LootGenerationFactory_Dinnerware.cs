@@ -56,7 +56,7 @@ namespace ACE.Server.Factories
 
             wo = AssignValue(wo);
 
-            RandomizeColor(wo);
+            MutateColor(wo);
         }
 
         private static bool GetMutateDinnerwareData(uint wcid)

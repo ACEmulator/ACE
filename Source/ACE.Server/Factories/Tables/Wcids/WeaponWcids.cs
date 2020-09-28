@@ -9,7 +9,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class WeaponWcids
     {
-        public static WeenieClassName Roll(TreasureDeath treasureDeath, TreasureWeaponType weaponType)
+        public static WeenieClassName Roll(TreasureDeath treasureDeath, ref TreasureWeaponType weaponType)
         {
             switch (weaponType)
             {
@@ -34,14 +34,14 @@ namespace ACE.Server.Factories.Tables.Wcids
                 case TreasureWeaponType.Dagger:
                     return RollDaggerWcid(treasureDeath);*/
 
-                case TreasureWeaponType.Sword:
-                case TreasureWeaponType.Mace:
                 case TreasureWeaponType.Axe:
-                case TreasureWeaponType.Spear:
-                case TreasureWeaponType.Unarmed:
-                case TreasureWeaponType.Staff:
                 case TreasureWeaponType.Dagger:
-                    return RollMeleeWeapon();
+                case TreasureWeaponType.Mace:
+                case TreasureWeaponType.Spear:
+                case TreasureWeaponType.Staff:
+                case TreasureWeaponType.Sword:
+                case TreasureWeaponType.Unarmed:
+                    return RollMeleeWeapon(ref weaponType);
 
                 case TreasureWeaponType.Bow:
                     return RollBowWcid(treasureDeath);
@@ -56,12 +56,12 @@ namespace ACE.Server.Factories.Tables.Wcids
                     return RollCaster(treasureDeath);
 
                 case TreasureWeaponType.TwoHandedWeapon:
-                    return RollTwoHandedWeaponWcid();
+                    return RollTwoHandedWeaponWcid(ref weaponType);
             }
             return WeenieClassName.undef;
         }
 
-        public static WeenieClassName RollMeleeWeapon()
+        public static WeenieClassName RollMeleeWeapon(ref TreasureWeaponType weaponType)
         {
             // retail did something silly here --
             // instead of having an even chance to roll between heavy/light/finesse,
@@ -85,13 +85,13 @@ namespace ACE.Server.Factories.Tables.Wcids
             switch (weaponSkill)
             {
                 case MeleeWeaponSkill.HeavyWeapons:
-                    return HeavyWeaponWcids.Roll();
+                    return HeavyWeaponWcids.Roll(out weaponType);
 
                 case MeleeWeaponSkill.LightWeapons:
-                    return LightWeaponWcids.Roll();
+                    return LightWeaponWcids.Roll(out weaponType);
 
                 case MeleeWeaponSkill.FinesseWeapons:
-                    return FinesseWeaponWcids.Roll();
+                    return FinesseWeaponWcids.Roll(out weaponType);
             }
             return WeenieClassName.undef;
         }
@@ -203,9 +203,9 @@ namespace ACE.Server.Factories.Tables.Wcids
             return CasterWcids.Roll(treasureDeath.Tier);
         }
 
-        public static WeenieClassName RollTwoHandedWeaponWcid()
+        public static WeenieClassName RollTwoHandedWeaponWcid(ref TreasureWeaponType weaponType)
         {
-            return TwoHandedWeaponWcids.Roll();
+            return TwoHandedWeaponWcids.Roll(out weaponType);
         }
     }
 }

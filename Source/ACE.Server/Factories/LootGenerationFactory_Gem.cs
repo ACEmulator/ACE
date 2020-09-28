@@ -101,7 +101,7 @@ namespace ACE.Server.Factories
                 wo.ManaRate = null;
 
             }
-            RandomizeColor(wo);
+            MutateColor(wo);
         }
 
         private static bool GetMutateGemData(uint wcid)
