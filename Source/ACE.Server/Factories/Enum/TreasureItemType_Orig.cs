@@ -18,13 +18,15 @@ namespace ACE.Server.Factories.Enum
         HealKit,
         Lockpick,
         SpellComponent,
-        LeatherArmor,
+
+        /*LeatherArmor,
         StuddedLeatherArmor,
         ChainMailArmor,
         CovenantArmor,
         PlateMailArmor,
         HeritageLowArmor,
         HeritageHighArmor,
+
         SwordWeapon,
         MaceWeapon,
         AxeWeapon,
@@ -34,6 +36,6 @@ namespace ACE.Server.Factories.Enum
         DaggerWeapon,
         BowWeapon,
         CrossbowWeapon,
-        AtlatlWeapon
+        AtlatlWeapon,*/
     }
 }

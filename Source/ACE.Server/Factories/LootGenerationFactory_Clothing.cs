@@ -6,6 +6,7 @@ using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Factories.Enum;
 using ACE.Server.Factories.Tables;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
@@ -17,7 +18,7 @@ namespace ACE.Server.Factories
         private static WorldObject CreateArmor(TreasureDeath profile, bool isMagical, bool isArmor, LootBias lootBias = LootBias.UnBiased, bool mutate = true)
         {
             var minType = LootTables.ArmorType.Helms;
-            var maxType = new LootTables.ArmorType();
+            LootTables.ArmorType maxType;
 
             switch (profile.Tier)
             {
@@ -46,7 +47,7 @@ namespace ACE.Server.Factories
 
             // Added for making clothing drops their own drop, and not involved in armor roll chance
             LootTables.ArmorType armorType;
-            if (isArmor == true)
+            if (isArmor)
                 armorType = (LootTables.ArmorType)ThreadSafeRandom.Next((int)minType, (int)maxType);
             else
                 armorType = LootTables.ArmorType.MiscClothing;

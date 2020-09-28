@@ -176,12 +176,12 @@ namespace ACE.Server.Factories
 
             // Why is this here?  Should not get a null object
             if (wo != null && mutate)
-                MutateCaster(wo, profile, isMagical, wield, element);
+                MutateCaster(wo, profile, isMagical, wield);
 
             return wo;
         }
 
-        private static void MutateCaster(WorldObject wo, TreasureDeath profile, bool isMagical, int wield, int element)
+        private static void MutateCaster(WorldObject wo, TreasureDeath profile, bool isMagical, int wield)
         {
             WieldRequirement wieldRequirement = WieldRequirement.RawSkill;
             Skill wieldSkillType = Skill.None;
@@ -208,7 +208,7 @@ namespace ACE.Server.Factories
                 elementalDamageMod = DetermineElementMod(wield);
 
                 // If element is Nether, Void Magic is required, else War Magic is required for all other elements
-                if (element == 7)
+                if (wo.W_DamageType == DamageType.Nether)
                     wieldSkillType = Skill.VoidMagic;
                 else
                     wieldSkillType = Skill.WarMagic;
@@ -281,24 +281,18 @@ namespace ACE.Server.Factories
             RandomizeColor(wo);
         }
 
-        private static bool GetMutateCasterData(uint wcid, out int element)
+        private static bool GetMutateCasterData(uint wcid)
         {
             for (var i = 0; i < LootTables.CasterWeaponsMatrix.Length; i++)
             {
                 var table = LootTables.CasterWeaponsMatrix[i];
 
-                for (element = 0; element < table.Length; element++)
+                for (var element = 0; element < table.Length; element++)
                 {
                     if (wcid == table[element])
-                    {
-                        if (i == 0)
-                            element = -1;
-
                         return true;
-                    }
                 }
             }
-            element = -1;
             return false;
         }
 
