@@ -154,8 +154,7 @@ namespace ACE.Server.Factories
                 AssignMagic(wo, profile);
 
             // long description
-            // todo: append with ' of ' spell suffixes
-            wo.LongDesc = wo.Name;
+            wo.LongDesc = GetLongDesc(wo);
 
             return true;
         }

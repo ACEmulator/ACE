@@ -141,11 +141,6 @@ namespace ACE.Server.Factories
 
         private static void MutateArmor(WorldObject wo, TreasureDeath profile, bool isMagical, LootTables.ArmorType armorType)
         {
-            wo.LongDesc = wo.Name;
-
-            //wo.AppraisalItemSkill = 7;
-            //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
-
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
@@ -221,6 +216,11 @@ namespace ACE.Server.Factories
                 wo.ItemDifficulty = null;
             }
 
+            wo.LongDesc = GetLongDesc(wo);
+
+            //wo.AppraisalItemSkill = 7;
+            //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
+
             // try mutate burden, if MutateFilter exists
             if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
                 MutateBurden(wo, profile, false);
@@ -231,8 +231,6 @@ namespace ACE.Server.Factories
 
         private static void MutateSocietyArmor(WorldObject wo, TreasureDeath profile, bool isMagical)
         {
-            wo.LongDesc = wo.Name;
-
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
@@ -268,6 +266,8 @@ namespace ACE.Server.Factories
                 wo.ItemDifficulty = null;
             }
             wo = AssignArmorLevel(wo, profile.Tier, LootTables.ArmorType.SocietyArmor);
+
+            wo.LongDesc = GetLongDesc(wo);
 
             // try mutate burden, if MutateFilter exists
             if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))

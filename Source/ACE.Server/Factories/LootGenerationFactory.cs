@@ -2738,5 +2738,20 @@ namespace ACE.Server.Factories
 
             return weaponSpeedMod;
         }
+
+        public static string GetLongDesc(WorldObject wo)
+        {
+            if (wo.Biota.PropertiesSpellBook == null)
+                return wo.Name;
+
+            foreach (var spellId in wo.Biota.PropertiesSpellBook.Keys)
+            {
+                var spellLevels = SpellLevelProgression.GetSpellLevels((SpellId)spellId);
+
+                if (spellLevels != null && CasterSlotSpells.descriptors.TryGetValue(spellLevels[0], out var descriptor))
+                    return $"{wo.Name} of {descriptor}";
+            }
+            return wo.Name;
+        }
     }         
 }
