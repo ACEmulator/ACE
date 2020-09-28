@@ -7,6 +7,7 @@ using ACE.Entity.Models;
 using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
+using Microsoft.EntityFrameworkCore;
 
 namespace ACE.Server.Factories
 {
@@ -28,7 +29,10 @@ namespace ACE.Server.Factories
         {
             var spells = new List<SpellId>();
 
-            if (roll.IsClothing || roll.IsArmor || roll.IsWeapon)
+            // crowns, which are classified as TreasureItemType.Jewelry, should also be getting item spells
+            // perhaps replace this with wo.ArmorLevel check?
+            //if (roll.IsArmor || roll.IsArmorClothing(wo) || roll.IsWeapon)
+            if (roll.HasArmorLevel(wo) || roll.IsWeapon)
             {
                 var itemSpells = RollItemSpells(wo, profile, roll);
 
@@ -53,13 +57,10 @@ namespace ACE.Server.Factories
         {
             List<SpellId> spells = null;
 
-            if (roll.IsArmor)
+            //if (roll.IsArmor || roll.IsArmorClothing(wo))
+            if (roll.HasArmorLevel(wo))
             {
                 spells = ArmorSpells.Roll(profile);
-            }
-            else if (roll.IsClothing)
-            {
-                spells = ClothingSpells.Roll(profile);
             }
             else if (roll.IsMeleeWeapon)
             {
@@ -170,6 +171,9 @@ namespace ACE.Server.Factories
             {
                 return RollNumEnchantments_Armor_Weapon(wo, profile, roll);
             }
+            // confirmed:
+            // - crowns (classified as TreasureItemType.Jewelry) used this table
+            // - clothing w/ al also used this table
             else if (roll.IsClothing || roll.IsJewelry || roll.IsDinnerware)
             {
                 return RollNumEnchantments_Clothing_Jewelry_Dinnerware(wo, profile, roll);

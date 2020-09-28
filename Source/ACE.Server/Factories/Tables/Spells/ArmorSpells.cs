@@ -5,6 +5,7 @@ using log4net;
 using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories.Tables
 {
@@ -162,6 +163,8 @@ namespace ACE.Server.Factories.Tables
 
         // alt
 
+        // this table also applies to clothing w/ AL
+
         private static readonly List<(SpellId spellId, float chance)> armorSpells = new List<(SpellId, float)>()
         {
             ( SpellId.PiercingBane1,    0.15f ),
@@ -176,6 +179,12 @@ namespace ACE.Server.Factories.Tables
 
         public static List<SpellId> Roll(TreasureDeath treasureDeath)
         {
+            // this roll also applies to clothing w/ AL!
+            // ie., shirts and pants would never have item spells on them,
+            // but cloth gloves would
+
+            // thanks to Sapphire Knight and Butterflygolem for helping to figure this part out!
+
             var spells = new List<SpellId>();
 
             foreach (var spell in armorSpells)

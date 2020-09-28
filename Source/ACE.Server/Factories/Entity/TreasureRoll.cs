@@ -1,4 +1,5 @@
 using ACE.Server.Factories.Enum;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories.Entity
 {
@@ -47,6 +48,14 @@ namespace ACE.Server.Factories.Entity
         public bool IsArmor => ArmorType != TreasureArmorType.Undef;
 
         public bool IsClothing => ItemType == TreasureItemType_Orig.Clothing;
+
+        /// <summary>
+        /// Returns TRUE if wo has an ArmorLevel > 0
+        /// </summary>
+        public bool HasArmorLevel(WorldObject wo)
+        {
+            return (wo.ArmorLevel ?? 0) > 0;
+        }
 
         public bool IsJewelry => ItemType == TreasureItemType_Orig.Jewelry;
 
