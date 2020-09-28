@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using log4net;
 
 using ACE.Common;
+using ACE.Database.Models.World;
 
 namespace ACE.Server.Factories.Tables
 {
@@ -10,7 +11,7 @@ namespace ACE.Server.Factories.Tables
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static readonly List<float> QualityChancePerTier = new List<float>()
+        private static readonly List<float> QualityChancePerTier = new List<float>()
         {
             0.5f,
             0.6f,
@@ -22,7 +23,19 @@ namespace ACE.Server.Factories.Tables
             1.0f
         };
 
-        public static readonly List<float> T1_QualityChances = new List<float>()
+        private static readonly List<float> QualityChancePerTier_ArmorModVsType = new List<float>()
+        {
+            0.0f,
+            0.1f,
+            0.2f,
+            0.3f,
+            0.5f,
+            0.6f,
+            0.7f,
+            0.8f
+        };
+
+        private static readonly List<float> T1_QualityChances = new List<float>()
         {
             1.0f,
             0.0f,
@@ -38,7 +51,7 @@ namespace ACE.Server.Factories.Tables
             0.0f,
         };
 
-        public static readonly List<float> T2_QualityChances = new List<float>()
+        private static readonly List<float> T2_QualityChances = new List<float>()
         {
             0.75f,
             1.00f,
@@ -54,7 +67,7 @@ namespace ACE.Server.Factories.Tables
             0.0f,
         };
 
-        public static readonly List<float> T3_QualityChances = new List<float>()
+        private static readonly List<float> T3_QualityChances = new List<float>()
         {
             0.20f,
             0.50f,
@@ -70,7 +83,7 @@ namespace ACE.Server.Factories.Tables
             0.0f,
         };
 
-        public static readonly List<float> T4_QualityChances = new List<float>()
+        private static readonly List<float> T4_QualityChances = new List<float>()
         {
             0.0f,
             0.10f,
@@ -86,7 +99,7 @@ namespace ACE.Server.Factories.Tables
             0.0f,
         };
 
-        public static readonly List<float> T5_QualityChances = new List<float>()
+        private static readonly List<float> T5_QualityChances = new List<float>()
         {
             0.0f,
             0.0f,
@@ -102,7 +115,7 @@ namespace ACE.Server.Factories.Tables
             0.0f,
         };
 
-        public static readonly List<float> T6_QualityChances = new List<float>()
+        private static readonly List<float> T6_QualityChances = new List<float>()
         {
             0.0f,
             0.0f,
@@ -118,7 +131,7 @@ namespace ACE.Server.Factories.Tables
             0.0f,
         };
 
-        public static readonly List<float> T7_QualityChances = new List<float>()
+        private static readonly List<float> T7_QualityChances = new List<float>()
         {
             0.0f,
             0.0f,
@@ -134,7 +147,7 @@ namespace ACE.Server.Factories.Tables
             0.0f,
         };
 
-        public static readonly List<float> T8_QualityChances = new List<float>()
+        private static readonly List<float> T8_QualityChances = new List<float>()
         {
             0.0f,
             0.0f,
@@ -178,15 +191,60 @@ namespace ACE.Server.Factories.Tables
         }
 
         /// <summary>
+        /// Rolls for the initial chance of getting a quality bonus for an item
+        /// </summary>
+        /// <param name="treasureDeath">The chances are based on treasureDeath.Tier, and can be increased with treasureDeath.LootQualityMod</param>
+        /// <param name="isArmorModVsType">ArmorModVsType has a separate chance table</param>
+        private static bool RollTierChance(TreasureDeath treasureDeath, bool isArmorModVsType = false)
+        {
+            var tierChance = isArmorModVsType ? QualityChancePerTier_ArmorModVsType[treasureDeath.Tier - 1] : QualityChancePerTier[treasureDeath.Tier - 1];
+
+            // use for initial roll? logic seems backwards here...
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f) - treasureDeath.LootQualityMod;
+
+            return rng < tierChance;
+        }
+
+        /// <summary>
+        /// Returns a quality level between 0-12
+        /// </summary>
+        public static int Roll(TreasureDeath treasureDeath, bool isArmorModVsType = false)
+        {
+            // roll for the initial chance for any quality modification -- based on tier
+            if (!RollTierChance(treasureDeath, isArmorModVsType))
+                return 0;
+
+            // if the initial roll succeeds, roll for the actual quality level -- also based on tier
+            var chances = GetQualityChancesForTier(treasureDeath.Tier);
+
+            var rng = ThreadSafeRandom.Next(treasureDeath.LootQualityMod, 1.0f);
+
+            for (var i = 0; i < chances.Count; i++)
+            {
+                var curChance = chances[i];
+
+                if (rng < curChance)
+                    return i + 1;
+            }
+            log.Error($"QualityTables.Roll({treasureDeath.Tier}, {treasureDeath.LootQualityMod}, {isArmorModVsType}) - this shouldn't happen");
+            return 0;
+        }
+
+        /// <summary>
         /// Performs a weighted RNG roll
         /// linearly interpolates between discrete values
         /// </summary>
-        /// <returns>A value between 0.0f - 1.0f, higher values = better</returns>
-        public static float Roll(int tier)
+        /// <returns>A quality level between 0.0f - 1.0f, higher values = better</returns>
+        public static float RollInterval(TreasureDeath treasureDeath)
         {
-            var chances = GetQualityChancesForTier(tier);
+            // roll for the initial chance for any quality modification -- based on tier
+            if (!RollTierChance(treasureDeath))
+                return 0.0f;
 
-            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+            // if the initial roll succeeds, roll for the actual quality level -- also based on tier
+            var chances = GetQualityChancesForTier(treasureDeath.Tier);
+
+            var rng = ThreadSafeRandom.Next(treasureDeath.LootQualityMod, 1.0f);
 
             for (var i = 0; i < chances.Count; i++)
             {
@@ -204,7 +262,7 @@ namespace ACE.Server.Factories.Tables
                     return (float)(dy * (interval + i));
                 }
             }
-            log.Error($"QualityTables.Roll - This shouldn't happen");
+            log.Error($"QualityTables.RollInterval({treasureDeath.Tier}, {treasureDeath.LootQualityMod}) - this shouldn't happen");
             return 0.0f;
         }
     }
