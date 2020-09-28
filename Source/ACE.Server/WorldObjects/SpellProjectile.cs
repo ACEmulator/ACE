@@ -504,6 +504,15 @@ namespace ACE.Server.WorldObjects
 
                 resistanceMod = (float)Math.Max(0.0f, target.GetResistanceMod(resistanceType, this, null, weaponResistanceMod));
 
+                if (sourcePlayer != null && targetPlayer != null && Spell.DamageType == DamageType.Nether)
+                {
+                    // for direct damage from void spells in pvp,
+                    // apply void_pvp_modifier *on top of* the player's natural resistance to nether
+
+                    // this supposedly brings the direct damage from void spells in pvp closer to retail
+                    resistanceMod *= (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
+                }
+
                 finalDamage = baseDamage + critDamageBonus + skillBonus;
 
                 finalDamage *= elementalDamageMod * slayerMod * resistanceMod * absorbMod;
