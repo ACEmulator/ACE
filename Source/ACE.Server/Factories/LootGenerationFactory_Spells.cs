@@ -245,7 +245,7 @@ namespace ACE.Server.Factories
 
         private static List<SpellId> RollCantrips(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
-            var numCantrips = NumCantrips.RollNumCantrips(profile);
+            var numCantrips = CantripChance.RollNumCantrips(profile);
 
             if (numCantrips == 0)
                 return null;
@@ -268,7 +268,7 @@ namespace ACE.Server.Factories
 
             foreach (var cantrip in cantrips)
             {
-                var cantripLevel = NumCantrips.RollCantripLevel(profile);
+                var cantripLevel = CantripChance.RollCantripLevel(profile);
 
                 var cantripLevels = SpellLevelProgression.GetSpellLevels(cantrip);
 
