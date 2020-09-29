@@ -2774,21 +2774,21 @@ namespace ACE.Server.Factories
         /// <summary>
         /// The min/max amount of pyreals that can be rolled per tier, from magloot corpse logs
         /// </summary>
-        private static Dictionary<int, (int min, int max)> coinRanges = new Dictionary<int, (int min, int max)>()
+        private static readonly List<(int min, int max)> coinRanges = new List<(int, int)>()
         {
-            { 1, (5,   50) },
-            { 2, (10,  200) },
-            { 3, (10,  500) },
-            { 4, (25,  1000) },
-            { 5, (50,  5000) },
-            { 6, (250, 5000) },
-            { 7, (250, 5000) },
-            { 8, (250, 5000) },
+            (5,   50),   // T1
+            (10,  200),  // T2
+            (10,  500),  // T3
+            (25,  1000), // T4
+            (50,  5000), // T5
+            (250, 5000), // T6
+            (250, 5000), // T7
+            (250, 5000), // T8
         };
 
         private static void MutateCoins(WorldObject wo, TreasureDeath profile)
         {
-            var tierRange = coinRanges[profile.Tier];
+            var tierRange = coinRanges[profile.Tier - 1];
 
             // flat rng range, according to magloot corpse logs
             var rng = ThreadSafeRandom.Next(tierRange.min, tierRange.max);
