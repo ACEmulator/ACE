@@ -176,10 +176,47 @@ namespace ACE.Server.Factories
                 wo.ItemDifficulty = null;
             }
             else
+            {
+                // if a caster was from a MagicItem profile, it always had a SpellDID
+                MutateCaster_SpellDID(wo, profile);
+
                 AssignMagic(wo, profile);
+            }
 
             // long description
             wo.LongDesc = GetLongDesc(wo);
+        }
+
+        private static void MutateCaster_SpellDID(WorldObject wo, TreasureDeath profile)
+        {
+            var firstSpell = CasterSlotSpells.Roll(wo);
+
+            var spellLevels = SpellLevelProgression.GetSpellLevels(firstSpell);
+
+            if (spellLevels == null)
+            {
+                log.Error($"MutateCaster_SpellDID: couldn't find {firstSpell}");
+                return;
+            }
+
+            if (spellLevels.Count != 8)
+            {
+                log.Error($"MutateCaster_SpellDID: found {spellLevels.Count} spell levels for {firstSpell}, expected 8");
+                return;
+            }
+
+            int minSpellLevel = GetLowSpellTier(profile.Tier);
+            int maxSpellLevel = GetHighSpellTier(profile.Tier);
+
+            var spellLevel = ThreadSafeRandom.Next(minSpellLevel, maxSpellLevel);
+
+            wo.SpellDID = (uint)spellLevels[spellLevel - 1];
+
+            var spell = new Server.Entity.Spell(wo.SpellDID.Value);
+
+            wo.ItemManaCost = (int)spell.BaseMana * 5;
+
+            wo.ItemUseable = Usable.SourceWieldedTargetRemoteNeverWalk;
         }
 
         private static string GetCasterScript(bool isElemental = false)

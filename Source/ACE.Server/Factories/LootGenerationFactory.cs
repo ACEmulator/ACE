@@ -2741,17 +2741,35 @@ namespace ACE.Server.Factories
 
         public static string GetLongDesc(WorldObject wo)
         {
-            if (wo.Biota.PropertiesSpellBook == null)
-                return wo.Name;
-
-            foreach (var spellId in wo.Biota.PropertiesSpellBook.Keys)
+            if (wo.SpellDID != null)
             {
-                var spellLevels = SpellLevelProgression.GetSpellLevels((SpellId)spellId);
+                var longDesc = TryGetLongDesc(wo, (SpellId)wo.SpellDID);
 
-                if (spellLevels != null && CasterSlotSpells.descriptors.TryGetValue(spellLevels[0], out var descriptor))
-                    return $"{wo.Name} of {descriptor}";
+                if (longDesc != null)
+                    return longDesc;
+            }
+
+            if (wo.Biota.PropertiesSpellBook != null)
+            {
+                foreach (var spellId in wo.Biota.PropertiesSpellBook.Keys)
+                {
+                    var longDesc = TryGetLongDesc(wo, (SpellId)spellId);
+
+                    if (longDesc != null)
+                        return longDesc;
+                }
             }
             return wo.Name;
+        }
+
+        private static string TryGetLongDesc(WorldObject wo, SpellId spellId)
+        {
+            var spellLevels = SpellLevelProgression.GetSpellLevels(spellId);
+
+            if (spellLevels != null && CasterSlotSpells.descriptors.TryGetValue(spellLevels[0], out var descriptor))
+                return $"{wo.Name} of {descriptor}";
+            else
+                return null;
         }
     }         
 }
