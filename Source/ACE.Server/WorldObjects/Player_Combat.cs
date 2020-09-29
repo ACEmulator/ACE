@@ -521,7 +521,21 @@ namespace ACE.Server.WorldObjects
             }
 
             if (percent >= 0.1f)
-                EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound1, 1.0f));
+            {
+                // Wound1 - Aahhh!    - elemental attacks above some threshold
+                // Wound2 - Deep Ugh! - bludgeoning attacks above some threshold
+                // Wound3 - Ooh!      - slashing / piercing / undef attacks above some threshold
+
+                var woundSound = Sound.Wound3;
+
+                if (damageType == DamageType.Bludgeon)
+                    woundSound = Sound.Wound2;
+
+                else if ((damageType & DamageType.Elemental) != 0)
+                    woundSound = Sound.Wound1;
+
+                EnqueueBroadcast(new GameMessageSound(Guid, woundSound, 1.0f));
+            }
 
             if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak))
                 Cloak.TryProcSpell(this, source, equippedCloak, percent);
