@@ -2649,8 +2649,7 @@ namespace ACE.Server.Factories
             switch (treasureRoll.ItemType)
             {
                 case TreasureItemType_Orig.Pyreal:
-                    // TODO: better algorithm?
-                    wo.SetStackSize(treasureDeath.Tier * 100);
+                    MutateCoins(wo, treasureDeath);
                     break;
                 case TreasureItemType_Orig.Gem:
                     MutateGem(wo, treasureDeath.Tier, isMagical);
@@ -2770,6 +2769,31 @@ namespace ACE.Server.Factories
                 return $"{wo.Name} of {descriptor}";
             else
                 return null;
+        }
+
+        /// <summary>
+        /// The min/max amount of pyreals that can be rolled per tier, from magloot corpse logs
+        /// </summary>
+        private static Dictionary<int, (int min, int max)> coinRanges = new Dictionary<int, (int min, int max)>()
+        {
+            { 1, (5,   50) },
+            { 2, (10,  200) },
+            { 3, (10,  500) },
+            { 4, (25,  1000) },
+            { 5, (50,  5000) },
+            { 6, (250, 5000) },
+            { 7, (250, 5000) },
+            { 8, (250, 5000) },
+        };
+
+        private static void MutateCoins(WorldObject wo, TreasureDeath profile)
+        {
+            var tierRange = coinRanges[profile.Tier];
+
+            // flat rng range, according to magloot corpse logs
+            var rng = ThreadSafeRandom.Next(tierRange.min, tierRange.max);
+
+            wo.SetStackSize(rng);
         }
     }         
 }
