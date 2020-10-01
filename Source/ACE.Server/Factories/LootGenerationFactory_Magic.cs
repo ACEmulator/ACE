@@ -425,17 +425,20 @@ namespace ACE.Server.Factories
             }
             int spellLevel = ScrollLevelChance.Roll(profile);
 
-            var spellID = SpellId.Undef;
-
             // todo: switch to SpellLevelProgression
-            while (spellID == SpellId.Undef)
-                spellID = ScrollSpells.Table[ThreadSafeRandom.Next(0, ScrollSpells.Table.Length - 1)][spellLevel];
+            var spellId = SpellId.Undef;
+            do
+            {
+                var spellIdx = ThreadSafeRandom.Next(0, ScrollSpells.Table.Length - 1);
+                spellId = ScrollSpells.Table[spellIdx][spellLevel - 1];
+            }
+            while (spellId == SpellId.Undef);   // simple way of handling spells that start at level 3 (blasts, volleys)
 
-            var weenie = DatabaseManager.World.GetScrollWeenie((uint)spellID);
+            var weenie = DatabaseManager.World.GetScrollWeenie((uint)spellId);
 
             if (weenie == null)
             {
-                log.DebugFormat("CreateRandomScroll for tier {0} and spellID of {1} returned null from the database.", profile.Tier, spellID);
+                log.DebugFormat("CreateRandomScroll for tier {0} and spellID of {1} returned null from the database.", profile.Tier, spellId);
                 return null;
             }
 
