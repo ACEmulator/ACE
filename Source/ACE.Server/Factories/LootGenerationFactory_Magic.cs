@@ -398,18 +398,20 @@ namespace ACE.Server.Factories
             return baseRating;
         }
 
-        private static WorldObject CreateRandomScroll(int tier)
+        private static WorldObject CreateRandomScroll(TreasureDeath profile)
         {
             WorldObject wo;
 
-            if (tier > 7)
+            // level 8 spell components shouldn't be in here,
+            // they should be associated with TreasureItemType.SpellComponent (peas)
+            if (profile.Tier > 7)
             {
                 int id = CreateLevel8SpellComp();
                 wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
                 return wo;
             }
 
-            if (tier == 7)
+            if (profile.Tier == 7)
             {
                 // According to wiki, Tier 7 has a chance for level 8 spell components or level 7 spell scrolls
                 // No indication of weighting in either direction, so assuming a 50/50 split
@@ -421,23 +423,19 @@ namespace ACE.Server.Factories
                     return wo;
                 }
             }
+            int spellLevel = ScrollLevelChance.Roll(profile);
 
-            if (tier < 1) tier = 1;
-
-            int scrollLootMatrixIndex = tier - 1;
-            int minSpellLevel = LootTables.ScrollLootMatrix[scrollLootMatrixIndex][0];
-            int maxSpellLevel = LootTables.ScrollLootMatrix[scrollLootMatrixIndex][1];
-
-            int scrollLootIndex = ThreadSafeRandom.Next(minSpellLevel, maxSpellLevel);
             var spellID = SpellId.Undef;
 
+            // todo: switch to SpellLevelProgression
             while (spellID == SpellId.Undef)
-                spellID = ScrollSpells.Table[ThreadSafeRandom.Next(0, ScrollSpells.Table.Length - 1)][scrollLootIndex];
+                spellID = ScrollSpells.Table[ThreadSafeRandom.Next(0, ScrollSpells.Table.Length - 1)][spellLevel];
 
             var weenie = DatabaseManager.World.GetScrollWeenie((uint)spellID);
+
             if (weenie == null)
             {
-                log.DebugFormat("CreateRandomScroll for tier {0} and spellID of {1} returned null from the database.", tier, spellID);
+                log.DebugFormat("CreateRandomScroll for tier {0} and spellID of {1} returned null from the database.", profile.Tier, spellID);
                 return null;
             }
 

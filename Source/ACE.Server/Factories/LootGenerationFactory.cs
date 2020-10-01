@@ -159,9 +159,9 @@ namespace ACE.Server.Factories
                     for (var i = 0; i < numItems; i++)
                     {
                         if (lootBias != LootBias.UnBiased)
-                            lootWorldObject = CreateRandomScroll(profile.Tier);
+                            lootWorldObject = CreateRandomScroll(profile);
                         else
-                            lootWorldObject = CreateGenericObjects(profile.Tier);
+                            lootWorldObject = CreateGenericObjects(profile);
 
                         if (lootWorldObject != null)
                             loot.Add(lootWorldObject);
@@ -2736,7 +2736,7 @@ namespace ACE.Server.Factories
                     break;
 
                 case TreasureItemType_Orig.Scroll:
-                    wo = CreateRandomScroll(treasureDeath.Tier);     // using original method
+                    wo = CreateRandomScroll(treasureDeath);     // using original method
                     break;
 
                 // other mundane items (mana stones, food/drink, healing kits, lockpicks, and spell components/peas) don't get mutated
