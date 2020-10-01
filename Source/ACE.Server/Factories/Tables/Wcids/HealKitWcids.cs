@@ -62,7 +62,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         public static WeenieClassName Roll(TreasureDeath profile)
         {
-            // todo: verify t7/t8 chances
+            // todo: verify t7 / t8 chances
             var table = healKitTiers[profile.Tier - 1];
 
             return table.Roll(profile.LootQualityMod);

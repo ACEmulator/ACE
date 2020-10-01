@@ -68,13 +68,15 @@ namespace ACE.Server.Factories.Tables.Wcids
                 // using retail t8 profile here:
                 // - 60% peas
                 // - 40% level 8 spell comps
-                var rng = ThreadSafeRandom.Next(1, 10);
+                var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
 
-                if (rng > 6)
+                if (rng < 0.4f)
                     return Roll_Level8SpellComponent(profile);
             }
 
-            return peaTiers[profile.Tier - 1].Roll(profile.LootQualityMod);
+            var table = peaTiers[profile.Tier - 1];
+
+            return table.Roll(profile.LootQualityMod);
         }
 
         private static readonly ChanceTable<WeenieClassName> Quills = new ChanceTable<WeenieClassName>()
