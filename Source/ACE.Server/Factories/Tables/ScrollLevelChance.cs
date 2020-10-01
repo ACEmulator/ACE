@@ -36,7 +36,7 @@ namespace ACE.Server.Factories.Tables
 
         private static readonly ChanceTable<int> T5_T8_ScrollLevelChances = new ChanceTable<int>()
         {
-            ( 7, 1.00f)
+            ( 7, 1.00f )
         };
 
         private static readonly List<ChanceTable<int>> scrollLevelChances = new List<ChanceTable<int>>()
