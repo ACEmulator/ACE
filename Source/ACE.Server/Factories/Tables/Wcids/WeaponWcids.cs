@@ -200,7 +200,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         public static WeenieClassName RollCaster(TreasureDeath treasureDeath)
         {
-            return CasterWcids.Roll(treasureDeath.Tier);
+            return CasterWcids.Roll(treasureDeath);
         }
 
         public static WeenieClassName RollTwoHandedWeaponWcid(ref TreasureWeaponType weaponType)

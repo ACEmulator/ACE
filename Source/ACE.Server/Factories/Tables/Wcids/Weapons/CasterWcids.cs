@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using ACE.Database.Models.World;
 using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Enum;
 
@@ -164,9 +164,12 @@ namespace ACE.Server.Factories.Tables.Wcids
             T8_Chances
         };
 
-        public static WeenieClassName Roll(int tier)
+        public static WeenieClassName Roll(TreasureDeath profile)
         {
-            return casterTiers[tier - 1].Roll();
+            var table = casterTiers[profile.Tier - 1];
+
+            // quality mod?
+            return table.Roll(profile.LootQualityMod);
         }
     }
 }

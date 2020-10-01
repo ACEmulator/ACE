@@ -5,6 +5,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
+using System.Data;
 
 namespace ACE.Server.Factories
 {
@@ -390,46 +391,40 @@ namespace ACE.Server.Factories
         {
             // thanks to morosity for this formula!
             var baseRating = ThreadSafeRandom.Next(1, 10);
+
+            var chance = 0.4f + tier * 0.02f;
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-            var tierMod = 0.4f + tier * 0.02f;
-            if (rng > tierMod)      // TODO: this might be backwards, review
+            if (rng < chance)
                 baseRating += ThreadSafeRandom.Next(1, 10);
 
             return baseRating;
         }
 
-        private static WorldObject CreateRandomScroll(TreasureDeath profile)
+        private static WorldObject CreateRandomScroll(TreasureDeath profile, TreasureRoll roll = null)
         {
-            WorldObject wo;
-
             // level 8 spell components shouldn't be in here,
             // they should be associated with TreasureItemType.SpellComponent (peas)
-            if (profile.Tier > 7)
+            if (roll == null && profile.Tier >= 7)
             {
-                int id = CreateLevel8SpellComp();
-                wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
-                return wo;
-            }
-
-            if (profile.Tier == 7)
-            {
-                // According to wiki, Tier 7 has a chance for level 8 spell components or level 7 spell scrolls
+                // According to wiki, Tier 7 has a chance for level 8 spell components or level 7 spell scrolls (as does Tier 8)
                 // No indication of weighting in either direction, so assuming a 50/50 split
-                int chance = ThreadSafeRandom.Next(1, 100);
-                if (chance > 50)
+                var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+                if (rng < 0.5f)
                 {
-                    int id = CreateLevel8SpellComp();
-                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
-                    return wo;
+                    var wcid = RollLevel8SpellComp();
+
+                    return WorldObjectFactory.CreateNewWorldObject((uint)wcid);
                 }
             }
-            int spellLevel = ScrollLevelChance.Roll(profile);
+            var spellLevel = ScrollLevelChance.Roll(profile);
 
             // todo: switch to SpellLevelProgression
             var spellId = SpellId.Undef;
             do
             {
                 var spellIdx = ThreadSafeRandom.Next(0, ScrollSpells.Table.Length - 1);
+
                 spellId = ScrollSpells.Table[spellIdx][spellLevel - 1];
             }
             while (spellId == SpellId.Undef);   // simple way of handling spells that start at level 3 (blasts, volleys)
@@ -442,16 +437,14 @@ namespace ACE.Server.Factories
                 return null;
             }
 
-            wo = WorldObjectFactory.CreateNewWorldObject(weenie.WeenieClassId);
-            return wo;
+            return WorldObjectFactory.CreateNewWorldObject(weenie.WeenieClassId);
         }
 
-        private static int CreateLevel8SpellComp()
+        private static int RollLevel8SpellComp()
         {
-            int upperLimit = LootTables.Level8SpellComps.Length - 1;
-            int chance = ThreadSafeRandom.Next(0, upperLimit);
+            var rng = ThreadSafeRandom.Next(0, LootTables.Level8SpellComps.Length - 1);
 
-            return LootTables.Level8SpellComps[chance];
+            return LootTables.Level8SpellComps[rng];
         }
     }
 }
