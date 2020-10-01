@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
+using ACE.Database.Models.World;
 using ACE.Server.Factories.Enum;
 
 namespace ACE.Server.Factories.Tables.Wcids
@@ -489,8 +490,11 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         private static readonly List<List<WeenieClassName>> petDevices = Necromancer_PetDevices.Union(Primalist_PetDevices).Union(Naturalist_PetDevices).ToList();
 
-        public static WeenieClassName Roll(int petLevel)
+        public static WeenieClassName Roll(TreasureDeath profile)
         {
+            // roll for pet level
+            var petLevel = PetDeviceChance.Roll(profile);
+
             // even chance of rolling each pet device type
             var rng = ThreadSafeRandom.Next(0, petDevices.Count - 1);
 

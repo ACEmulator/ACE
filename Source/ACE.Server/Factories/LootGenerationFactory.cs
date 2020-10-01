@@ -2611,6 +2611,16 @@ namespace ACE.Server.Factories
 
                     treasureRoll.Wcid = SpellComponentWcids.Roll(treasureDeath);
                     break;
+
+                case TreasureItemType_Orig.PetDevice:
+
+                    treasureRoll.Wcid = PetDeviceWcids.Roll(treasureDeath);
+                    break;
+
+                case TreasureItemType_Orig.EncapsulatedSpirit:
+
+                    treasureRoll.Wcid = WeenieClassName.ace49485_encapsulatedspirit;
+                    break;
             }
             return treasureRoll;
         }
@@ -2623,13 +2633,13 @@ namespace ACE.Server.Factories
             switch (category)
             {
                 case TreasureItemCategory.Item:
-                    return TreasureItemTypeChances_Orig.Roll(treasureDeath.ItemTreasureTypeSelectionChances);
+                    return TreasureProfile_Item.Roll(treasureDeath.ItemTreasureTypeSelectionChances);
 
                 case TreasureItemCategory.MagicItem:
-                    return TreasureMagicItemTypeChances_Orig.Roll(treasureDeath.MagicItemTreasureTypeSelectionChances);
+                    return TreasureProfile_MagicItem.Roll(treasureDeath.MagicItemTreasureTypeSelectionChances);
 
                 case TreasureItemCategory.MundaneItem:
-                    return TreasureMundaneItemTypeChances_Orig.Roll(treasureDeath.MundaneItemTypeSelectionChances);
+                    return TreasureProfile_Mundane.Roll(treasureDeath.MundaneItemTypeSelectionChances);
             }
             return TreasureItemType_Orig.Undef;
         }
@@ -2737,6 +2747,10 @@ namespace ACE.Server.Factories
 
                 case TreasureItemType_Orig.Scroll:
                     wo = CreateRandomScroll(treasureDeath, treasureRoll);     // using original method
+                    break;
+
+                case TreasureItemType_Orig.PetDevice:
+                    MutatePetDevice(wo, treasureDeath.Tier);
                     break;
 
                 // other mundane items (mana stones, food/drink, healing kits, lockpicks, and spell components/peas) don't get mutated
