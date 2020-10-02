@@ -44,6 +44,8 @@ namespace ACE.Server.Factories.Enum
         // similarly, if a creature didn't drop non-magical or mundane items,
         // it was still found to drop EncapsulatedSpirit
         PetDevice,
-        EncapsulatedSpirit
+        EncapsulatedSpirit,
+
+        Cloak,
     }
 }

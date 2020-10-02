@@ -55,7 +55,8 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType_Orig.Clothing,           0.14f ),
             ( TreasureItemType_Orig.Jewelry,            0.14f ),
             ( TreasureItemType_Orig.Gem,                0.14f ),
-            ( TreasureItemType_Orig.ArtObject,          0.135f ),
+            ( TreasureItemType_Orig.ArtObject,          0.125f ),
+            ( TreasureItemType_Orig.Cloak,              0.01f  ),
             ( TreasureItemType_Orig.EncapsulatedSpirit, 0.005f ),
         };
 
@@ -70,7 +71,8 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType_Orig.Clothing,           0.10f ),
             ( TreasureItemType_Orig.Jewelry,            0.10f ),
             ( TreasureItemType_Orig.Gem,                0.05f ),
-            ( TreasureItemType_Orig.ArtObject,          0.045f ),
+            ( TreasureItemType_Orig.ArtObject,          0.035f ),
+            ( TreasureItemType_Orig.Cloak,              0.01f  ),
             ( TreasureItemType_Orig.EncapsulatedSpirit, 0.005f ),
         };
 
@@ -78,9 +80,10 @@ namespace ACE.Server.Factories.Tables
         {
             ( TreasureItemType_Orig.Weapon,             0.30f ),
             ( TreasureItemType_Orig.Armor,              0.30f ),
-            ( TreasureItemType_Orig.Scroll,             0.195f ),
+            ( TreasureItemType_Orig.Scroll,             0.185f ),
             ( TreasureItemType_Orig.Clothing,           0.10f ),
             ( TreasureItemType_Orig.Jewelry,            0.10f ),
+            ( TreasureItemType_Orig.Cloak,              0.01f  ),
             ( TreasureItemType_Orig.EncapsulatedSpirit, 0.005f ),
         };
 
@@ -88,7 +91,8 @@ namespace ACE.Server.Factories.Tables
         {
             ( TreasureItemType_Orig.Jewelry,            0.33f ),
             ( TreasureItemType_Orig.Gem,                0.34f ),
-            ( TreasureItemType_Orig.ArtObject,          0.325f ),
+            ( TreasureItemType_Orig.ArtObject,          0.315f ),
+            ( TreasureItemType_Orig.Cloak,              0.01f  ),
             ( TreasureItemType_Orig.EncapsulatedSpirit, 0.005f ),
         };
 
@@ -97,7 +101,8 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType_Orig.Scroll,             0.40f ),
             ( TreasureItemType_Orig.Jewelry,            0.20f ),
             ( TreasureItemType_Orig.Gem,                0.20f ),
-            ( TreasureItemType_Orig.ArtObject,          0.195f ),
+            ( TreasureItemType_Orig.ArtObject,          0.185f ),
+            ( TreasureItemType_Orig.Cloak,              0.01f  ),
             ( TreasureItemType_Orig.EncapsulatedSpirit, 0.005f ),
         };
 
