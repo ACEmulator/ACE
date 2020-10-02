@@ -199,6 +199,7 @@ namespace ACE.Server.Factories
                         lootBias = LootBias.Armor;
                         profile.ItemTreasureTypeSelectionChances = 2;           // fixme in data, get rid of lootbias
                         profile.MagicItemTreasureTypeSelectionChances = 2;
+                        profile.MundaneItemChance = 0;
                         break;
                     case 1003: // Magic Chest
                     case 2003:
@@ -209,6 +210,7 @@ namespace ACE.Server.Factories
                         lootBias = LootBias.Weapons;
                         profile.ItemTreasureTypeSelectionChances = 1;           // fixme in data, get rid of lootbias
                         profile.MagicItemTreasureTypeSelectionChances = 1;
+                        profile.MundaneItemChance = 0;
                         break;
                     default: // Default to unbiased loot profile
                         break;
@@ -262,24 +264,6 @@ namespace ACE.Server.Factories
                 itemChance = ThreadSafeRandom.Next(1, 100);
                 if (itemChance <= profile.MundaneItemChance)
                 {
-                    double dropRate = PropertyManager.GetDouble("aetheria_drop_rate").Item;
-                    double dropRateMod = 1.0 / dropRate;
-
-                    // Coalesced Aetheria doesn't drop in loot tiers less than 5
-                    // According to wiki, Weapon Mana Forge chests don't drop Aetheria
-                    // An Aetheria drop was in addition to the normal drops of the mundane profile
-                    // https://asheron.fandom.com/wiki/Announcements_-_2010/04_-_Shedding_Skin :: May 5th, 2010 entry
-                    if (profile.Tier > 4 && lootBias != LootBias.Weapons && dropRate > 0)
-                    {
-                        if (ThreadSafeRandom.Next(1, (int)(100 * dropRateMod)) <= 2) // base 1% to drop aetheria?
-                        {
-                            lootWorldObject = CreateAetheria_New(profile);
-
-                            if (lootWorldObject != null)
-                                loot.Add(lootWorldObject);
-                        }
-                    }
-
                     numItems = ThreadSafeRandom.Next(profile.MundaneItemMinAmount, profile.MundaneItemMaxAmount);
 
                     for (var i = 0; i < numItems; i++)
@@ -289,6 +273,14 @@ namespace ACE.Server.Factories
                         if (lootWorldObject != null)
                             loot.Add(lootWorldObject);
                     }
+
+                    // extra roll for mundane:
+                    // https://asheron.fandom.com/wiki/Announcements_-_2010/04_-_Shedding_Skin :: May 5th, 2010 entry
+                    // aetheria and coalesced mana were handled in here
+                    lootWorldObject = TryRollMundaneAddon(profile);
+
+                    if (lootWorldObject != null)
+                        loot.Add(lootWorldObject);
                 }
 
                 return loot;
@@ -297,6 +289,52 @@ namespace ACE.Server.Factories
             {
                 ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.LootGenerationFactory_CreateRandomLootObjects, stopwatch.Value.Elapsed.TotalSeconds);
             }
+        }
+
+        public static WorldObject TryRollMundaneAddon(TreasureDeath profile)
+        {
+            // coalesced mana only dropped in tiers 1-4
+            if (profile.Tier <= 4)
+                return TryRollCoalescedMana(profile);
+
+            // aetheria dropped in tiers 5+
+            else
+                return TryRollAetheria(profile);
+        }
+
+        public static WorldObject TryRollCoalescedMana(TreasureDeath profile)
+        {
+            // 2% chance in here, which turns out to be less per corpse w/ MundaneItemChance > 0,
+            // when the outer MundaneItemChance roll is factored in
+
+            // loot quality mod?
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            if (rng < 0.02f)
+                return CreateCoalescedMana(profile);
+            else
+                return null;
+        }
+
+        public static WorldObject TryRollAetheria(TreasureDeath profile)
+        {
+            var aetheria_drop_rate = (float)PropertyManager.GetDouble("aetheria_drop_rate").Item;
+
+            if (aetheria_drop_rate <= 0.0f)
+                return null;
+
+            var dropRateMod = 1.0f / aetheria_drop_rate;
+
+            // 2% base chance in here, which turns out to be less per corpse w/ MundaneItemChance > 0,
+            // when the outer MundaneItemChance roll is factored in
+
+            // loot quality mod?
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f * dropRateMod);
+
+            if (rng < 0.02f)
+                return CreateAetheria_New(profile);
+            else
+                return null;
         }
 
         public static WorldObject CreateRandomLootObjects(TreasureDeath profile, bool isMagical, LootBias lootBias = LootBias.UnBiased)
