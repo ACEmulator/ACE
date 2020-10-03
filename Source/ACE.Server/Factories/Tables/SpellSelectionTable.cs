@@ -188,7 +188,7 @@ namespace ACE.Server.Factories.Tables
             ( SpellId.FealtySelf1,               0.05f ),
         };
 
-        // boots, sollerets
+        // boots, chiran sandals, sollerets
         private static readonly ChanceTable<SpellId> spellSelectionGroup11 = new ChanceTable<SpellId>()
         {
             ( SpellId.QuicknessSelf1,             0.23f ),
