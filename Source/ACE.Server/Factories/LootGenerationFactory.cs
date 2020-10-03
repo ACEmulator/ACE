@@ -2584,32 +2584,32 @@ namespace ACE.Server.Factories
 
                 case TreasureItemType_Orig.Caster:
 
-                    treasureRoll.Wcid = CasterWcids.Roll(treasureDeath.Tier);
+                    treasureRoll.Wcid = CasterWcids.Roll(treasureDeath);
                     break;
 
                 case TreasureItemType_Orig.ManaStone:
 
-                    treasureRoll.Wcid = ManaStoneWcids.Roll(treasureDeath.Tier);
+                    treasureRoll.Wcid = ManaStoneWcids.Roll(treasureDeath);
                     break;
 
                 case TreasureItemType_Orig.Consumable:
 
-                    treasureRoll.Wcid = ConsumeWcids.Roll(treasureDeath.Tier);
+                    treasureRoll.Wcid = ConsumeWcids.Roll(treasureDeath);
                     break;
 
                 case TreasureItemType_Orig.HealKit:
 
-                    treasureRoll.Wcid = HealKitWcids.Roll(treasureDeath.Tier);
+                    treasureRoll.Wcid = HealKitWcids.Roll(treasureDeath);
                     break;
 
                 case TreasureItemType_Orig.Lockpick:
 
-                    treasureRoll.Wcid = LockpickWcids.Roll(treasureDeath.Tier);
+                    treasureRoll.Wcid = LockpickWcids.Roll(treasureDeath);
                     break;
 
                 case TreasureItemType_Orig.SpellComponent:
 
-                    treasureRoll.Wcid = SpellComponentWcids.Roll(treasureDeath.Tier);
+                    treasureRoll.Wcid = SpellComponentWcids.Roll(treasureDeath);
                     break;
             }
             return treasureRoll;
@@ -2735,7 +2735,7 @@ namespace ACE.Server.Factories
                     break;
 
                 case TreasureItemType_Orig.Scroll:
-                    wo = CreateRandomScroll(treasureDeath);     // using original method
+                    wo = CreateRandomScroll(treasureDeath, treasureRoll);     // using original method
                     break;
 
                 // other mundane items (mana stones, food/drink, healing kits, lockpicks, and spell components/peas) don't get mutated
