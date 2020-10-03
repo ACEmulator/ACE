@@ -2289,7 +2289,7 @@ namespace ACE.Server.Factories
             44858  // Quartered Cloak
         };
 
-        public static readonly int[] CloakSpells =  // Cloak SpellIDs 12 of them (Damage Reduction is not a spell, but an Interger Property)
+        public static readonly int[] CloakSpells =  // Cloak SpellIDs 12 of them (Damage Reduction is not a spell, but an Integer Property)
         {
             1784,  // Horizon's Blades
             1789,  // Tectonic Rifts

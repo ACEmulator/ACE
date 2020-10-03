@@ -2516,12 +2516,6 @@ namespace ACE.Server.Factories
             }
         }
 
-        private static WorldObject AssignCloakSpells(WorldObject wo, int cloakSpellId)
-        {
-            wo.ProcSpell = (uint)cloakSpellId;
-            return wo;
-        }
-
         public static TreasureRoll RollWcid(TreasureDeath treasureDeath, TreasureItemCategory category)
         {
             var treasureItemType = RollItemType(treasureDeath, category);
@@ -2610,6 +2604,11 @@ namespace ACE.Server.Factories
                 case TreasureItemType_Orig.SpellComponent:
 
                     treasureRoll.Wcid = SpellComponentWcids.Roll(treasureDeath);
+                    break;
+
+                case TreasureItemType_Orig.Cloak:
+
+                    treasureRoll.Wcid = CloakWcids.Roll();
                     break;
 
                 case TreasureItemType_Orig.PetDevice:
@@ -2746,6 +2745,10 @@ namespace ACE.Server.Factories
 
                 case TreasureItemType_Orig.Scroll:
                     wo = CreateRandomScroll(treasureDeath, treasureRoll);     // using original method
+                    break;
+
+                case TreasureItemType_Orig.Cloak:
+                    MutateCloak(wo, treasureDeath);
                     break;
 
                 case TreasureItemType_Orig.PetDevice:

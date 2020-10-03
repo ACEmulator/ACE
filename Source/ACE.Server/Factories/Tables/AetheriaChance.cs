@@ -1,43 +1,12 @@
 using System.Collections.Generic;
 
-using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Server.Factories.Entity;
-using ACE.Server.Factories.Enum;
 
 namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class AetheriaChance
     {
-        private static readonly List<WeenieClassName> aetheriaColors = new List<WeenieClassName>()
-        {
-            WeenieClassName.ace42635_aetheria,  // blue
-            WeenieClassName.ace42637_aetheria,  // yellow
-            WeenieClassName.ace42636_aetheria,  // red
-        };
-
-        public static WeenieClassName RollWcid(int tier)
-        {
-            switch (tier)
-            {
-                // blue only
-                case 5:
-                    return aetheriaColors[0];
-
-                // even chance between blue / yellow
-                case 6:
-                    var rng = ThreadSafeRandom.Next(0, 1);
-                    return aetheriaColors[rng];
-
-                // even chance between blue / yellow / red
-                case 7:
-                case 8:
-                    rng = ThreadSafeRandom.Next(0, 2);
-                    return aetheriaColors[rng];     
-            }
-            return WeenieClassName.undef;
-        }
-
         private static readonly ChanceTable<int> T5_ItemMaxLevel = new ChanceTable<int>()
         {
             ( 1, 0.60f ),
@@ -81,7 +50,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             T8_ItemMaxLevel
         };
 
-        public static int RollItemMaxLevel(TreasureDeath profile)
+        public static int Roll_ItemMaxLevel(TreasureDeath profile)
         {
             if (profile.Tier < 5)
                 return 0;
