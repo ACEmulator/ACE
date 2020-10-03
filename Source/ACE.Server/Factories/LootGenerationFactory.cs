@@ -273,7 +273,7 @@ namespace ACE.Server.Factories
                     {
                         if (ThreadSafeRandom.Next(1, (int)(100 * dropRateMod)) <= 2) // base 1% to drop aetheria?
                         {
-                            lootWorldObject = CreateAetheria(profile.Tier);
+                            lootWorldObject = CreateAetheria_New(profile);
 
                             if (lootWorldObject != null)
                                 loot.Add(lootWorldObject);
