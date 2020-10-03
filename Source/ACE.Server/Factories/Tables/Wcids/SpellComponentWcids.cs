@@ -103,6 +103,8 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         private static readonly List<WeenieClassName> Glyphs = new List<WeenieClassName>()
         {
+            WeenieClassName.ace37343_glyphofalchemy,
+            WeenieClassName.ace37344_glyphofarcanelore,
             WeenieClassName.ace37345_glyphofarmor,
             WeenieClassName.ace37346_glyphofarmortinkering,
             WeenieClassName.ace37347_glyphofbludgeoning,
