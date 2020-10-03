@@ -96,7 +96,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             return WeenieClassName.undef;
         }
 
-        public static HeritageGroup RollHeritage(TreasureDeath treasureDeath)
+        public static TreasureHeritageGroup RollHeritage(TreasureDeath treasureDeath)
         {
             return HeritageChance.Roll(treasureDeath.UnknownChances);
         }
@@ -107,13 +107,13 @@ namespace ACE.Server.Factories.Tables.Wcids
 
             switch (heritage)
             {
-                case HeritageGroup.Aluvian:
+                case TreasureHeritageGroup.Aluvian:
                     return SwordWcids_Aluvian.Roll(treasureDeath.Tier);
 
-                case HeritageGroup.Gharundim:
+                case TreasureHeritageGroup.Gharundim:
                     return SwordWcids_Gharundim.Roll(treasureDeath.Tier);
 
-                case HeritageGroup.Sho:
+                case TreasureHeritageGroup.Sho:
                     return SwordWcids_Sho.Roll(treasureDeath.Tier);
             }
             return WeenieClassName.undef;
@@ -160,11 +160,11 @@ namespace ACE.Server.Factories.Tables.Wcids
 
             switch (heritage)
             {
-                case HeritageGroup.Aluvian:
-                case HeritageGroup.Sho:
+                case TreasureHeritageGroup.Aluvian:
+                case TreasureHeritageGroup.Sho:
                     return DaggerWcids_Aluvian_Sho.Roll(treasureDeath.Tier);
 
-                case HeritageGroup.Gharundim:
+                case TreasureHeritageGroup.Gharundim:
                     return DaggerWcids_Gharundim.Roll(treasureDeath.Tier);
             }
             return WeenieClassName.undef;
@@ -176,13 +176,13 @@ namespace ACE.Server.Factories.Tables.Wcids
 
             switch (heritage)
             {
-                case HeritageGroup.Aluvian:
+                case TreasureHeritageGroup.Aluvian:
                     return BowWcids_Aluvian.Roll(treasureDeath.Tier);
 
-                case HeritageGroup.Gharundim:
+                case TreasureHeritageGroup.Gharundim:
                     return BowWcids_Gharundim.Roll(treasureDeath.Tier);
 
-                case HeritageGroup.Sho:
+                case TreasureHeritageGroup.Sho:
                     return BowWcids_Sho.Roll(treasureDeath.Tier);
             }
             return WeenieClassName.undef;

@@ -1,6 +1,6 @@
 using ACE.Database.Models.World;
-using ACE.Entity.Enum;
 using ACE.Server.Factories.Entity;
+using ACE.Server.Factories.Enum;
 
 using WeenieClassName = ACE.Server.Factories.Enum.WeenieClassName;
 
@@ -100,20 +100,20 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         public static WeenieClassName Roll(TreasureDeath treasureDeath)
         {
-            var heritage = HeritageChance.Roll(treasureDeath.UnknownChances);
+            var heritage = HeritageChance.Roll(treasureDeath.UnknownChances, true);
 
             switch (heritage)
             {
-                case HeritageGroup.Aluvian:
+                case TreasureHeritageGroup.Aluvian:
                     return ClothingWcids_Aluvian.Roll();
 
-                case HeritageGroup.Gharundim:
+                case TreasureHeritageGroup.Gharundim:
                     return ClothingWcids_Gharundim.Roll();
 
-                case HeritageGroup.Sho:
+                case TreasureHeritageGroup.Sho:
                     return ClothingWcids_Sho.Roll();
 
-                case HeritageGroup.Viamontian:
+                case TreasureHeritageGroup.Viamontian:
                     return ClothingWcids_Viamontian.Roll();
             }
             return WeenieClassName.undef;

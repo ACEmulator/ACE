@@ -67,9 +67,8 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static WorldObject CreateSocietyArmor(TreasureDeath profile, bool mutate)
+        private static WorldObject CreateSocietyArmor(TreasureDeath profile, bool mutate = true)
         {
-
             int society = 0;
             int armortype = 0;
 

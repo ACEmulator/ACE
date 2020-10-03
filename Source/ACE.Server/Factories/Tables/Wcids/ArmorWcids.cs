@@ -454,9 +454,9 @@ namespace ACE.Server.Factories.Tables.Wcids
             return WeenieClassName.undef;
         }
 
-        public static HeritageGroup RollHeritage(TreasureDeath treasureDeath)
+        public static TreasureHeritageGroup RollHeritage(TreasureDeath treasureDeath)
         {
-            return HeritageChance.Roll(treasureDeath.UnknownChances);
+            return HeritageChance.Roll(treasureDeath.UnknownChances, true);
         }
 
         public static WeenieClassName RollPlatemailWcid(TreasureDeath treasureDeath, ref TreasureArmorType armorType)
@@ -465,19 +465,19 @@ namespace ACE.Server.Factories.Tables.Wcids
 
             switch (heritage)
             {
-                case HeritageGroup.Aluvian:
+                case TreasureHeritageGroup.Aluvian:
                     armorType = TreasureArmorType.Platemail;
                     return PlatemailWcids.Roll();
 
-                case HeritageGroup.Gharundim:
+                case TreasureHeritageGroup.Gharundim:
                     armorType = TreasureArmorType.Scalemail;
                     return ScalemailWcids.Roll();
 
-                case HeritageGroup.Sho:
+                case TreasureHeritageGroup.Sho:
                     armorType = TreasureArmorType.Yoroi;
                     return YoroiWcids.Roll();
 
-                case HeritageGroup.Viamontian:
+                case TreasureHeritageGroup.Viamontian:
                     armorType = TreasureArmorType.Diforsa;
                     return DiforsaWcids.Roll();
             }
@@ -490,19 +490,19 @@ namespace ACE.Server.Factories.Tables.Wcids
 
             switch (heritage)
             {
-                case HeritageGroup.Aluvian:
+                case TreasureHeritageGroup.Aluvian:
                     armorType = TreasureArmorType.Celdon;
                     return CeldonWcids.Roll();
 
-                case HeritageGroup.Gharundim:
+                case TreasureHeritageGroup.Gharundim:
                     armorType = TreasureArmorType.Amuli;
                     return AmuliWcids.Roll();
 
-                case HeritageGroup.Sho:
+                case TreasureHeritageGroup.Sho:
                     armorType = TreasureArmorType.Koujia;
                     return KoujiaWcids.Roll();
 
-                case HeritageGroup.Viamontian:
+                case TreasureHeritageGroup.Viamontian:
                     armorType = TreasureArmorType.Tenassa;
                     return TenassaWcids.Roll();
             }
@@ -515,19 +515,19 @@ namespace ACE.Server.Factories.Tables.Wcids
 
             switch (heritage)
             {
-                case HeritageGroup.Aluvian:
+                case TreasureHeritageGroup.Aluvian:
                     armorType = TreasureArmorType.Lorica;
                     return LoricaWcids.Roll();
 
-                case HeritageGroup.Gharundim:
+                case TreasureHeritageGroup.Gharundim:
                     armorType = TreasureArmorType.Nariyid;
                     return NariyidWcids.Roll();
 
-                case HeritageGroup.Sho:
+                case TreasureHeritageGroup.Sho:
                     armorType = TreasureArmorType.Chiran;
                     return ChiranWcids.Roll();
 
-                case HeritageGroup.Viamontian:
+                case TreasureHeritageGroup.Viamontian:
                     armorType = TreasureArmorType.Alduressa;
                     return AlduressaWcids.Roll();
             }
@@ -540,19 +540,19 @@ namespace ACE.Server.Factories.Tables.Wcids
 
             switch (heritage)
             {
-                case HeritageGroup.Aluvian:
+                case TreasureHeritageGroup.Aluvian:
                     armorType = TreasureArmorType.OlthoiCeldon;
                     return OlthoiCeldonWcids.Roll();
 
-                case HeritageGroup.Gharundim:
+                case TreasureHeritageGroup.Gharundim:
                     armorType = TreasureArmorType.OlthoiAmuli;
                     return OlthoiAmuliWcids.Roll();
 
-                case HeritageGroup.Sho:
+                case TreasureHeritageGroup.Sho:
                     armorType = TreasureArmorType.OlthoiKoujia;
                     return OlthoiKoujiaWcids.Roll();
 
-                case HeritageGroup.Viamontian:
+                case TreasureHeritageGroup.Viamontian:
                     armorType = TreasureArmorType.OlthoiAlduressa;
                     return OlthoiAlduressaWcids.Roll();
             }

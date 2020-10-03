@@ -52,7 +52,8 @@ namespace ACE.Server.Factories
 
         public static List<WorldObject> CreateRandomLootObjects(TreasureDeath profile)
         {
-            //return CreateRandomLootObjects_New(profile);
+            if (PropertyManager.GetBool("updated_loot_system").Item)
+                return CreateRandomLootObjects_New(profile);
 
             stopwatch.Value.Restart();
 
@@ -90,12 +91,11 @@ namespace ACE.Server.Factories
                 // breaking it out here to Generate Armor
                 if (profile.TreasureType >= 2971 && profile.TreasureType <= 2999)
                 {
-                    bool mutateYes = true;
                     numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
 
                     for (var i = 0; i < numItems; i++)
                     {
-                        lootWorldObject = CreateSocietyArmor(profile, mutateYes);
+                        lootWorldObject = CreateSocietyArmor(profile);
                         if (lootWorldObject != null)
                             loot.Add(lootWorldObject);
                     }
@@ -185,53 +185,7 @@ namespace ACE.Server.Factories
                 int numItems;
                 WorldObject lootWorldObject;
 
-                LootBias lootBias = LootBias.UnBiased;
                 var loot = new List<WorldObject>();
-
-                switch (profile.TreasureType)
-                {
-                    case 1001: // Mana Forge Chest, Advanced Equipment Chest, and Mixed Equipment Chest
-                    case 2001:
-                        lootBias = LootBias.MixedEquipment;
-                        break;
-                    case 1002: // Armor Chest
-                    case 2002:
-                        lootBias = LootBias.Armor;
-                        profile.ItemTreasureTypeSelectionChances = 2;           // fixme in data, get rid of lootbias
-                        profile.MagicItemTreasureTypeSelectionChances = 2;
-                        profile.MundaneItemChance = 0;
-                        break;
-                    case 1003: // Magic Chest
-                    case 2003:
-                        lootBias = LootBias.MagicEquipment;
-                        break;
-                    case 1004: // Weapon Chest
-                    case 2004:
-                        lootBias = LootBias.Weapons;
-                        profile.ItemTreasureTypeSelectionChances = 1;           // fixme in data, get rid of lootbias
-                        profile.MagicItemTreasureTypeSelectionChances = 1;
-                        profile.MundaneItemChance = 0;
-                        break;
-                    default: // Default to unbiased loot profile
-                        break;
-                }
-
-                // For Society Armor - Only generates 2 pieces of Society Armor.
-                // breaking it out here to Generate Armor
-                if (profile.TreasureType >= 2971 && profile.TreasureType <= 2999)
-                {
-                    numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
-
-                    for (var i = 0; i < numItems; i++)
-                    {
-                        lootWorldObject = CreateSocietyArmor(profile, true);
-
-                        if (lootWorldObject != null)
-                            loot.Add(lootWorldObject);
-                    }
-
-                    return loot;
-                }
 
                 var itemChance = ThreadSafeRandom.Next(1, 100);
                 if (itemChance <= profile.ItemChance)
@@ -291,7 +245,7 @@ namespace ACE.Server.Factories
             }
         }
 
-        public static WorldObject TryRollMundaneAddon(TreasureDeath profile)
+        private static WorldObject TryRollMundaneAddon(TreasureDeath profile)
         {
             // coalesced mana only dropped in tiers 1-4
             if (profile.Tier <= 4)
@@ -302,7 +256,7 @@ namespace ACE.Server.Factories
                 return TryRollAetheria(profile);
         }
 
-        public static WorldObject TryRollCoalescedMana(TreasureDeath profile)
+        private static WorldObject TryRollCoalescedMana(TreasureDeath profile)
         {
             // 2% chance in here, which turns out to be less per corpse w/ MundaneItemChance > 0,
             // when the outer MundaneItemChance roll is factored in
@@ -316,7 +270,7 @@ namespace ACE.Server.Factories
                 return null;
         }
 
-        public static WorldObject TryRollAetheria(TreasureDeath profile)
+        private static WorldObject TryRollAetheria(TreasureDeath profile)
         {
             var aetheria_drop_rate = (float)PropertyManager.GetDouble("aetheria_drop_rate").Item;
 
@@ -2644,6 +2598,23 @@ namespace ACE.Server.Factories
                     treasureRoll.Wcid = SpellComponentWcids.Roll(treasureDeath);
                     break;
 
+                case TreasureItemType_Orig.SocietyArmor:
+                case TreasureItemType_Orig.SocietyBreastplate:
+                case TreasureItemType_Orig.SocietyGauntlets:
+                case TreasureItemType_Orig.SocietyGirth:
+                case TreasureItemType_Orig.SocietyGreaves:
+                case TreasureItemType_Orig.SocietyHelm:
+                case TreasureItemType_Orig.SocietyPauldrons:
+                case TreasureItemType_Orig.SocietyTassets:
+                case TreasureItemType_Orig.SocietyVambraces:
+                case TreasureItemType_Orig.SocietySollerets:
+
+                    treasureRoll.ItemType = TreasureItemType_Orig.SocietyArmor;     // collapse for mutation
+                    treasureRoll.ArmorType = TreasureArmorType.Society;
+
+                    treasureRoll.Wcid = SocietyArmorWcids.Roll(treasureDeath, treasureItemType);
+                    break;
+
                 case TreasureItemType_Orig.Cloak:
 
                     treasureRoll.Wcid = CloakWcids.Roll();
@@ -2776,6 +2747,11 @@ namespace ACE.Server.Factories
 
                     var armorType = treasureRoll.ArmorType.ToACE();
                     MutateArmor(wo, treasureDeath, isMagical, armorType, treasureRoll);
+                    break;
+
+                case TreasureItemType_Orig.SocietyArmor:    // collapsed, after rolling for initial wcid
+
+                    MutateSocietyArmor(wo, treasureDeath, isMagical, treasureRoll);
                     break;
 
                 case TreasureItemType_Orig.Clothing:

@@ -111,13 +111,13 @@ namespace ACE.Server.Factories.Tables
         /// <summary>
         /// Rolls for a TreasureItemType for a non-magical TreasureItemCategory.Item
         /// </summary>
-        /// <param name="itemProfileIdx">From TreasureDeath.ItemTreasureTypeSelectionChances</param>
-        public static TreasureItemType_Orig Roll(int itemProfileIdx)
+        /// <param name="itemProfile">From TreasureDeath.ItemTreasureTypeSelectionChances</param>
+        public static TreasureItemType_Orig Roll(int itemProfile)
         {
-            if (itemProfileIdx < 1 || itemProfileIdx > itemProfiles.Count)
+            if (itemProfile < 1 || itemProfile > itemProfiles.Count)
                 return TreasureItemType_Orig.Undef;
 
-            return itemProfiles[itemProfileIdx - 1].Roll();
+            return itemProfiles[itemProfile - 1].Roll();
         }
     }
 }
