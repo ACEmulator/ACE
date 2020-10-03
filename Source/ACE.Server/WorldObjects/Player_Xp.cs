@@ -57,7 +57,8 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            UpdateXpAndLevel(amount, xpType);
+            // Make sure UpdateXpAndLevel is done on this players thread
+            EnqueueAction(new ActionEventDelegate(() => UpdateXpAndLevel(amount, xpType)));
 
             // for passing XP up the allegiance chain,
             // this function is only called at the very beginning, to start the process.
@@ -121,7 +122,16 @@ namespace ACE.Server.WorldObjects
         /// <param name="amount">The amount of XP to apply to the vitae penalty</param>
         private void UpdateXpVitae(long amount)
         {
-            var vitaePenalty = EnchantmentManager.GetVitae().StatModValue;
+            var vitae = EnchantmentManager.GetVitae();
+
+            if (vitae == null)
+            {
+                log.Error($"{Name}.UpdateXpVitae({amount}) vitae null, likely due to cross-thread operation or corrupt EnchantmentManager cache. Please report this.");
+                log.Error(Environment.StackTrace);
+                return;
+            }
+
+            var vitaePenalty = vitae.StatModValue;
             var startPenalty = vitaePenalty;
 
             var maxPool = (int)VitaeCPPoolThreshold(vitaePenalty, DeathLevel.Value);
