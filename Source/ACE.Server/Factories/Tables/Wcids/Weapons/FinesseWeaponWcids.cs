@@ -8,7 +8,15 @@ namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class FinesseWeaponWcids
     {
-        // hammers?
+        private static readonly ChanceTable<WeenieClassName> Hammers = new ChanceTable<WeenieClassName>()
+        {
+            // finesse - axe
+            ( WeenieClassName.ace45113_hammer,          0.40f ),
+            ( WeenieClassName.ace45114_acidhammer,      0.15f ),
+            ( WeenieClassName.ace45115_lightninghammer, 0.15f ),
+            ( WeenieClassName.ace45116_flaminghammer,   0.15f ),
+            ( WeenieClassName.ace45117_frosthammer,     0.15f ),
+        };
 
         private static readonly ChanceTable<WeenieClassName> Hatchets = new ChanceTable<WeenieClassName>()
         {
@@ -232,6 +240,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         private static readonly List<(ChanceTable<WeenieClassName> table, TreasureWeaponType weaponType)> finesseWeaponsTables = new List<(ChanceTable<WeenieClassName>, TreasureWeaponType)>()
         {
+            ( Hammers,         TreasureWeaponType.Axe ),
             ( Hatchets,        TreasureWeaponType.Axe ),
             ( Shouonos,        TreasureWeaponType.Axe ),
             ( Tungis,          TreasureWeaponType.Axe ),
