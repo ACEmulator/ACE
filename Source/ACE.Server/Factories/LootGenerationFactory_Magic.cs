@@ -364,8 +364,10 @@ namespace ACE.Server.Factories
             return petDevice;
         }
 
-        private static void MutatePetDevice(PetDevice petDevice, int tier)
+        private static void MutatePetDevice(WorldObject petDevice, int tier)
         {
+            if (!(petDevice is PetDevice)) return;
+
             var ratingChance = 0.5f;
 
             // add rng ratings to pet device
