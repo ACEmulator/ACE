@@ -66,12 +66,12 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static bool MutateMeleeWeapon(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureWeaponType weaponType = TreasureWeaponType.Undef)
+        private static bool MutateMeleeWeapon(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureRoll roll = null)
         {
             if (!(wo is MeleeWeapon))
                 return false;
 
-            if (weaponType == TreasureWeaponType.Undef)
+            if (roll == null)
             {
                 // previous method
                 var wieldDifficulty = RollWieldDifficulty(profile.Tier, WieldType.MeleeWeapon);
@@ -87,14 +87,14 @@ namespace ACE.Server.Factories
                 var weaponSkill = wo.WeaponSkill.ToMeleeWeaponSkill();
 
                 // mutate Damage / WieldDifficulty / Variance
-                var scriptName = GetDamageScript(weaponSkill, weaponType);
+                var scriptName = GetDamageScript(weaponSkill, roll.WeaponType);
 
                 var mutationFilter = MutationCache.GetMutation(scriptName);
 
                 mutationFilter.TryMutate(wo, profile.Tier);
 
                 // mutate WeaponOffense / WeaponDefense
-                scriptName = GetOffenseDefenseScript(weaponSkill, weaponType);
+                scriptName = GetOffenseDefenseScript(weaponSkill, roll.WeaponType);
 
                 mutationFilter = MutationCache.GetMutation(scriptName);
 
@@ -151,7 +151,7 @@ namespace ACE.Server.Factories
                 wo.ItemDifficulty = null;
             }
             else
-                AssignMagic(wo, profile);
+                AssignMagic(wo, profile, roll);
 
             // long description
             wo.LongDesc = GetLongDesc(wo);

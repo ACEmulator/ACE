@@ -42,6 +42,49 @@ namespace ACE.Server.Factories.Enum
 
     public static class TreasureWeaponTypeExtensions
     {
+        public static bool IsMeleeWeapon(this TreasureWeaponType weaponType)
+        {
+            switch (weaponType)
+            {
+                case TreasureWeaponType.MeleeWeapon:
+                case TreasureWeaponType.Axe:
+                case TreasureWeaponType.Dagger:
+                case TreasureWeaponType.DaggerMS:
+                case TreasureWeaponType.Mace:
+                case TreasureWeaponType.MaceJitte:
+                case TreasureWeaponType.Spear:
+                case TreasureWeaponType.Staff:
+                case TreasureWeaponType.Sword:
+                case TreasureWeaponType.SwordMS:
+                case TreasureWeaponType.Unarmed:
+                case TreasureWeaponType.TwoHandedWeapon:
+                case TreasureWeaponType.TwoHandedAxe:
+                case TreasureWeaponType.TwoHandedMace:
+                case TreasureWeaponType.TwoHandedSpear:
+                case TreasureWeaponType.TwoHandedSword:
+                    return true;
+            }
+            return false;
+        }
+
+        public static bool IsMissileWeapon(this TreasureWeaponType weaponType)
+        {
+            switch (weaponType)
+            {
+                case TreasureWeaponType.MissileWeapon:
+                case TreasureWeaponType.Bow:
+                case TreasureWeaponType.Crossbow:
+                case TreasureWeaponType.Atlatl:
+                    return true;
+            }
+            return false;
+        }
+
+        public static bool IsCaster(this TreasureWeaponType weaponType)
+        {
+            return weaponType == TreasureWeaponType.Caster;
+        }
+
         public static string GetScriptName(this TreasureWeaponType weaponType)
         {
             switch (weaponType)

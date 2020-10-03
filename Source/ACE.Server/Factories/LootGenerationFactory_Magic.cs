@@ -48,7 +48,7 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static void MutateCaster(WorldObject wo, TreasureDeath profile, bool isMagical, int? wieldDifficulty = null)
+        private static void MutateCaster(WorldObject wo, TreasureDeath profile, bool isMagical, int? wieldDifficulty = null, TreasureRoll roll = null)
         {
             if (wieldDifficulty != null)
             {
@@ -180,7 +180,7 @@ namespace ACE.Server.Factories
                 // if a caster was from a MagicItem profile, it always had a SpellDID
                 MutateCaster_SpellDID(wo, profile);
 
-                AssignMagic(wo, profile);
+                AssignMagic(wo, profile, roll);
             }
 
             // long description

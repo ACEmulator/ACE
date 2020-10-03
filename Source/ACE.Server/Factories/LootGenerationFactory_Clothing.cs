@@ -6,6 +6,7 @@ using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Enum;
 using ACE.Server.Factories.Tables;
 using ACE.Server.Managers;
@@ -139,7 +140,7 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static void MutateArmor(WorldObject wo, TreasureDeath profile, bool isMagical, LootTables.ArmorType armorType)
+        private static void MutateArmor(WorldObject wo, TreasureDeath profile, bool isMagical, LootTables.ArmorType armorType, TreasureRoll roll = null)
         {
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
@@ -205,7 +206,7 @@ namespace ACE.Server.Factories
             if (isMagical)
             {
                 //bool covenantArmor = false || (armorType == LootTables.ArmorType.CovenantArmor || armorType == LootTables.ArmorType.OlthoiArmor);
-                AssignMagic(wo, profile, true);
+                AssignMagic(wo, profile, roll, true);
             }
             else
             {
@@ -229,7 +230,7 @@ namespace ACE.Server.Factories
         }
 
 
-        private static void MutateSocietyArmor(WorldObject wo, TreasureDeath profile, bool isMagical)
+        private static void MutateSocietyArmor(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureRoll roll = null)
         {
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
@@ -255,7 +256,7 @@ namespace ACE.Server.Factories
             if (isMagical)
             {
                 // looks like society armor always had impen on it
-                AssignMagic(wo, profile, true);
+                AssignMagic(wo, profile, roll, true);
             }
             else
             {

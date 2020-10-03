@@ -35,9 +35,9 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static void MutateMissileWeapon(WorldObject wo, TreasureDeath profile, bool isMagical, int? wieldDifficulty = null, TreasureWeaponType? weaponType = null)
+        private static void MutateMissileWeapon(WorldObject wo, TreasureDeath profile, bool isMagical, int? wieldDifficulty = null, TreasureRoll roll = null)
         {
-            if (wieldDifficulty != null)
+            if (roll == null)
             {
                 // previous method
 
@@ -71,12 +71,12 @@ namespace ACE.Server.Factories
                 if (meleeDMod > 0.0f)
                     wo.WeaponDefense = meleeDMod;
             }
-            else if (weaponType != null)
+            else
             {
                 // new method / mutation scripts
                 var isElemental = wo.W_DamageType != DamageType.Undef;
 
-                var scriptName = GetMissileScript(weaponType.Value, isElemental);
+                var scriptName = GetMissileScript(roll.WeaponType, isElemental);
 
                 // mutate DamageMod / ElementalDamageBonus / WieldRequirements
                 var mutationFilter = MutationCache.GetMutation(scriptName);
@@ -87,10 +87,6 @@ namespace ACE.Server.Factories
                 mutationFilter = MutationCache.GetMutation("MissileWeapons.weapon_defense.txt");
 
                 mutationFilter.TryMutate(wo, profile.Tier);
-            }
-            else
-            {
-                log.Warn($"LootGenerationFactory_Missile.MutateMissileWeapon({wo.Name}, {profile.TreasureType}, {isMagical}, {wieldDifficulty}, {weaponType}) - unexpected: WieldDifficulty and WeaponType are both null!");
             }
 
             // weapon speed
@@ -143,7 +139,7 @@ namespace ACE.Server.Factories
                 wo.ManaRate = null;
             }
             else
-                AssignMagic(wo, profile);
+                AssignMagic(wo, profile, roll);
 
             // long description
             wo.LongDesc = GetLongDesc(wo);
