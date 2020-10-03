@@ -89,6 +89,14 @@ namespace ACE.Server.Factories
             wo.IconOverlayId = IconOverlay_ItemMaxLevel[wo.ItemMaxLevel.Value - 1];
         }
 
+        private static WorldObject CreateCoalescedMana(TreasureDeath profile)
+        {
+            var wcid = CoalescedManaWcids.Roll(profile);
+
+            return WorldObjectFactory.CreateNewWorldObject((uint)wcid);
+        }
+
+
         private static WorldObject CreateAetheria_New(TreasureDeath profile, bool mutate = true)
         {
             var wcid = AetheriaWcids.Roll(profile.Tier);
