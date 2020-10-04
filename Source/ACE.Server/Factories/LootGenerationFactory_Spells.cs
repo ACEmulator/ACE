@@ -7,7 +7,6 @@ using ACE.Entity.Models;
 using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
-using Microsoft.EntityFrameworkCore;
 
 namespace ACE.Server.Factories
 {
@@ -287,94 +286,90 @@ namespace ACE.Server.Factories
 
         private static SpellId RollCantrip(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
-            // TODO: switch to ace cantrip tables
-            SpellId[][] table = null;
-
-            if (roll.IsClothing || roll.IsArmor)
+            if (roll.HasArmorLevel(wo) || roll.IsClothing)
             {
-                if (wo.IsShield)
-                {
-                    // shield cantrip
-                    //return ArmorCantrips.Roll();
-                    table = ArmorCantrips.Table;
-                }
-                else
-                {
-                    // armor / clothing cantrip
-                    //return ArmorCantrips.Roll();
-                    table = ArmorCantrips.Table;
-                }
+                // armor / clothing cantrip
+                // this table also applies to crowns (treasureitemtype.jewelry w/ al)
+                return ArmorCantrips.Roll();
             }
-            else if (roll.IsCaster)
-            {
-                // caster cantrip
-                //return WandCantrips.Roll();
-                table = WandCantrips.Table;
-            }
-            else if (roll.IsMeleeWeapon)
+            if (roll.IsMeleeWeapon)
             {
                 // melee cantrip
-                //return MeleeCantrips.Roll();
-                table = MeleeCantrips.Table;
+                var meleeCantrip = MeleeCantrips.Roll();
+
+                // adjust for weapon skill
+                if (meleeCantrip == SpellId.CANTRIPLIGHTWEAPONSAPTITUDE1)
+                    meleeCantrip = AdjustForWeaponMastery(wo, meleeCantrip);
+
+                return meleeCantrip;
             }
             else if (roll.IsMissileWeapon)
             {
                 // missile cantrip
-                //return MissileCantrips.Roll();
-                table = MissileCantrips.Table;
+                return MissileCantrips.Roll();
+            }
+            else if (roll.IsCaster)
+            {
+                // caster cantrip
+                var casterCantrip = WandCantrips.Roll();
+
+                if (casterCantrip == SpellId.CANTRIPWARMAGICAPTITUDE1)
+                    casterCantrip = AdjustForDamageType(wo, casterCantrip);
+
+                return casterCantrip;
             }
             else if (roll.IsJewelry)
             {
                 // jewelry cantrip
-                //return JewelryCantrips.Roll();
-                table = JewelryCantrips.Table;
+                return JewelryCantrips.Roll();
             }
             else
             {
                 log.Error($"RollCantrip({wo.Name}, {profile.TreasureType}, {roll.ItemType}) - unknown item type");
                 return SpellId.Undef;
             }
-
-            var rng = ThreadSafeRandom.Next(0, table.Length - 1);
-            return table[rng][0];
         }
 
         public static SpellId AdjustForWeaponMastery(WorldObject wo, SpellId spell)
         {
-            // only weapon aptitude cantrip in tables
-            // indicates adjustment
-            if (spell != SpellId.CANTRIPLIGHTWEAPONSAPTITUDE1)
-                return spell;
+            // handle two-handed weapons
+            if (wo.WeaponSkill == Skill.TwoHandedCombat)
+                return SpellId.CANTRIPTWOHANDEDAPTITUDE1;
 
+            // 10% chance to adjust to dual wielding
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            if (rng < 0.1f)
+                return SpellId.CantripDualWieldAptitude1;
+
+            // heavy/light/finesse weapons
             switch (wo.WeaponSkill)
             {
                 case Skill.HeavyWeapons:
+                    return SpellId.CANTRIPHEAVYWEAPONSAPTITUDE1;
                 case Skill.LightWeapons:
+                    return SpellId.CANTRIPLIGHTWEAPONSAPTITUDE1;
                 case Skill.FinesseWeapons:
-
-                    // 10% chance to adjust to dual wielding
-                    var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-
-                    if (rng < 0.1f)
-                        return SpellId.CantripDualWieldAptitude1;
-
-                    switch (wo.WeaponSkill)
-                    {
-                        case Skill.HeavyWeapons:
-                            return SpellId.CANTRIPHEAVYWEAPONSAPTITUDE1;
-                        case Skill.LightWeapons:
-                            return SpellId.CANTRIPLIGHTWEAPONSAPTITUDE1;
-                        case Skill.FinesseWeapons:
-                            return SpellId.CANTRIPFINESSEWEAPONSAPTITUDE1;
-                    }
-                    break;
-
-                case Skill.MissileWeapons:
-                    return SpellId.CANTRIPMISSILEWEAPONSAPTITUDE1;
-                case Skill.TwoHandedCombat:
-                    return SpellId.CANTRIPTWOHANDEDAPTITUDE1;
+                    return SpellId.CANTRIPFINESSEWEAPONSAPTITUDE1;
             }
             return spell;
+        }
+
+        public static SpellId AdjustForDamageType(WorldObject wo, SpellId spell)
+        {
+            if (wo.W_DamageType == DamageType.Nether)
+                return SpellId.CantripVoidMagicAptitude1;
+
+            if (wo.W_DamageType != DamageType.Undef)
+                return SpellId.CANTRIPWARMAGICAPTITUDE1;
+
+            // even split? retail was broken here
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            if (rng < 0.5f)
+                return SpellId.CANTRIPWARMAGICAPTITUDE1;
+            else
+                return SpellId.CantripVoidMagicAptitude1;
         }
     }
 }
