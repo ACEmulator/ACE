@@ -397,6 +397,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public static HashSet<ushort> NoDrop_Landblocks = new HashSet<ushort>()
         {
+            0x00EA,     // Mhoire Armory
             0x005F,     // Tanada House of Pancakes (Seasonal)
             0x00AF,     // Colosseum Staging Area and Secret Mini-Bosses
             0x00B0,     // Colosseum Arena One
