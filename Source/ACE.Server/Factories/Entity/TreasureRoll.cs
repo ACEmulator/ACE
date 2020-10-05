@@ -11,6 +11,8 @@ namespace ACE.Server.Factories.Entity
 
         public WeenieClassName Wcid;
 
+        public int BaseArmorLevel;
+
         public TreasureRoll() { }
 
         public TreasureRoll(TreasureItemType_Orig itemType)
