@@ -93,8 +93,8 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.hatberet,            0.06f ),
             ( WeenieClassName.hatbandana,          0.06f ),
             ( WeenieClassName.ace44975_hood,       0.06f ),     // ?
-            ( WeenieClassName.shoesviamontloafers, 0.08f ),
-            ( WeenieClassName.shoes,               0.08f ),     // common to all?
+            ( WeenieClassName.shoesviamontloafers, 0.075f ),
+            ( WeenieClassName.shoes,               0.075f ),    // common to all?
             ( WeenieClassName.glovescloth,         0.10f ),
         };
 

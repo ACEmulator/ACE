@@ -319,7 +319,7 @@ namespace ACE.Server.Factories.Tables
         // missile weapons, two-handed weapons
         private static readonly ChanceTable<SpellId> spellSelectionGroup17 = new ChanceTable<SpellId>()
         {
-            ( SpellId.StrengthSelf1,             0.15f ),
+            ( SpellId.StrengthSelf1,             0.16f ),
             ( SpellId.EnduranceSelf1,            0.15f ),
             ( SpellId.CoordinationSelf1,         0.15f ),
             ( SpellId.QuicknessSelf1,            0.15f ),
