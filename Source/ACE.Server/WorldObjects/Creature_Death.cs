@@ -75,7 +75,6 @@ namespace ACE.Server.WorldObjects
                 if (lastDamager is Player playerKiller)
                     playerKiller.Session.Network.EnqueueSend(new GameEventKillerNotification(playerKiller.Session, killerMsg));
             }
-
             return deathMessage;
         }
 
