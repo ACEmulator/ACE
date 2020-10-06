@@ -185,7 +185,36 @@ namespace ACE.Server.Factories
                 int numItems;
                 WorldObject lootWorldObject;
 
+                LootBias lootBias = LootBias.UnBiased;
                 var loot = new List<WorldObject>();
+
+                switch (profile.TreasureType)
+                {
+                    case 1001: // Mana Forge Chest, Advanced Equipment Chest, and Mixed Equipment Chest
+                    case 2001:
+                        lootBias = LootBias.MixedEquipment;
+                        break;
+                    case 1002: // Armor Chest
+                    case 2002:
+                        lootBias = LootBias.Armor;
+                        profile.ItemTreasureTypeSelectionChances = 2;           // fixme in data, get rid of lootbias
+                        profile.MagicItemTreasureTypeSelectionChances = 2;
+                        profile.MundaneItemChance = 0;
+                        break;
+                    case 1003: // Magic Chest
+                    case 2003:
+                        lootBias = LootBias.MagicEquipment;
+                        break;
+                    case 1004: // Weapon Chest
+                    case 2004:
+                        lootBias = LootBias.Weapons;
+                        profile.ItemTreasureTypeSelectionChances = 1;           // fixme in data, get rid of lootbias
+                        profile.MagicItemTreasureTypeSelectionChances = 1;
+                        profile.MundaneItemChance = 0;
+                        break;
+                    default: // Default to unbiased loot profile
+                        break;
+                }
 
                 // For Society Armor - Only generates 2 pieces of Society Armor.
                 // breaking it out here to Generate Armor
