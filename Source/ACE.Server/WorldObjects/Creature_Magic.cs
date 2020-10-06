@@ -225,15 +225,18 @@ namespace ACE.Server.WorldObjects
 
                 return;
             }
+
             var target = spell.School == MagicSchool.ItemEnchantment && !spell.HasItemCategory ? item : this;
 
             // Retrieve enchantment on target and remove it, if present
-            if (target.EnchantmentManager.HasSpell(spellId))
+            var propertiesEnchantmentRegistry = target.EnchantmentManager.GetEnchantment(spellId, item.Guid.Full);
+
+            if (propertiesEnchantmentRegistry != null)
             {
                 if (!silent)
-                    target.EnchantmentManager.Remove(target.EnchantmentManager.GetEnchantment(spellId, item.Guid.Full));
+                    target.EnchantmentManager.Remove(propertiesEnchantmentRegistry);
                 else
-                    target.EnchantmentManager.Dispel(target.EnchantmentManager.GetEnchantment(spellId, item.Guid.Full));
+                    target.EnchantmentManager.Dispel(propertiesEnchantmentRegistry);
             }
         }
 

@@ -2,6 +2,8 @@ using System.Collections.Generic;
 
 using log4net;
 
+using ACE.Common;
+using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 
 namespace ACE.Server.Factories.Tables
@@ -32,6 +34,7 @@ namespace ACE.Server.Factories.Tables
 
         // original api
         public static readonly SpellId[][] Table = new SpellId[spells.Count][];
+        public static readonly List<SpellId> CreatureLifeTable = new List<SpellId>();
 
         static MeleeSpells()
         {
@@ -64,7 +67,45 @@ namespace ACE.Server.Factories.Tables
 
                 for (var j = 0; j < NumTiers; j++)
                     Table[i][j] = spellLevels[j];
+
+                // build a version of this table w/out item spells
+                switch (spell)
+                {
+                    case SpellId.BloodDrinkerSelf1:
+                    case SpellId.DefenderSelf1:
+                    case SpellId.HeartSeekerSelf1:
+                    case SpellId.SwiftKillerSelf1:
+                        break;
+
+                    default:
+                        CreatureLifeTable.Add(spell);
+                        break;
+                }
             }
+        }
+
+        // alt
+
+        private static readonly List<(SpellId spellId, float chance)> weaponMeleeSpells = new List<(SpellId, float)>()
+        {
+            ( SpellId.DefenderSelf1,     0.25f ),
+            ( SpellId.BloodDrinkerSelf1, 1.00f ),
+            ( SpellId.SwiftKillerSelf1,  0.30f ),
+            ( SpellId.HeartSeekerSelf1,  0.25f ),
+        };
+
+        public static List<SpellId> Roll(TreasureDeath treasureDeath)
+        {
+            var spells = new List<SpellId>();
+
+            foreach (var spell in weaponMeleeSpells)
+            {
+                var rng = ThreadSafeRandom.NextInterval(treasureDeath.LootQualityMod);
+
+                if (rng < spell.chance)
+                    spells.Add(spell.spellId);
+            }
+            return spells;
         }
     }
 }

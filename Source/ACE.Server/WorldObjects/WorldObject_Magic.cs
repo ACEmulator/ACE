@@ -422,7 +422,7 @@ namespace ACE.Server.WorldObjects
 
                         if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(equippedCloak, percent))
                         {
-                            var reduced = -Cloak.GetReducedAmount(-tryBoost);
+                            var reduced = -Cloak.GetReducedAmount(this, -tryBoost);
 
                             Cloak.ShowMessage(spellTarget, this, -tryBoost, -reduced);
 
@@ -571,7 +571,7 @@ namespace ACE.Server.WorldObjects
 
                         if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(equippedCloak, percent))
                         {
-                            var reduced = Cloak.GetReducedAmount(srcVitalChange);
+                            var reduced = Cloak.GetReducedAmount(this, srcVitalChange);
 
                             Cloak.ShowMessage(spellTarget, this, srcVitalChange, reduced);
 
@@ -769,7 +769,8 @@ namespace ACE.Server.WorldObjects
                 case SpellType.FellowEnchantment:
 
                     damage = 0;
-                    if (itemCaster != null && equip)
+                    // TODO: replace with some kind of 'rootOwner unless equip' concept?
+                    if (itemCaster != null && (equip || itemCaster is Gem || itemCaster is Food))
                         enchantmentStatus = CreateEnchantment(spellTarget ?? target, itemCaster, spell, equip);
                     else
                         enchantmentStatus = CreateEnchantment(spellTarget ?? target, this, spell, equip);
@@ -1810,14 +1811,22 @@ namespace ACE.Server.WorldObjects
                 message = $"Aetheria surges on {target.Name} with the power of {spell.Name}!";
                 enchantmentStatus.Broadcast = true;
             }
-            else if (caster == this || target == this || caster != target)
+            else
             {
-                var casterName = caster == this ? "You" : caster.Name;
-                var targetName = target.Name;
-                if (target == this)
-                    targetName = caster == this ? "yourself" : "you";
+                // TODO: replace with some kind of 'rootOwner unless equip' concept?
+                // for item casters where the message should be 'You cast', we still need pass the caster as item
+                // down this far, to prevent using player's AugmentationIncreasedSpellDuration
+                var casterCheck = caster == this || caster is Gem || caster is Food;
 
-                message = $"{casterName} cast {spell.Name} on {targetName}{suffix}";
+                if (casterCheck || target == this || caster != target)
+                {
+                    var casterName = casterCheck ? "You" : caster.Name;
+                    var targetName = target.Name;
+                    if (target == this)
+                        targetName = casterCheck ? "yourself" : "you";
+
+                    message = $"{casterName} cast {spell.Name} on {targetName}{suffix}";
+                }
             }
 
             if (message != null)

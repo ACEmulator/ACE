@@ -470,7 +470,7 @@ namespace ACE.Server.WorldObjects
 
             if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(equippedCloak, percent))
             {
-                var reducedAmount = Cloak.GetReducedAmount(amount);
+                var reducedAmount = Cloak.GetReducedAmount(source, amount);
 
                 Cloak.ShowMessage(this, source, amount, reducedAmount);
 
@@ -521,7 +521,21 @@ namespace ACE.Server.WorldObjects
             }
 
             if (percent >= 0.1f)
-                EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound1, 1.0f));
+            {
+                // Wound1 - Aahhh!    - elemental attacks above some threshold
+                // Wound2 - Deep Ugh! - bludgeoning attacks above some threshold
+                // Wound3 - Ooh!      - slashing / piercing / undef attacks above some threshold
+
+                var woundSound = Sound.Wound3;
+
+                if (damageType == DamageType.Bludgeon)
+                    woundSound = Sound.Wound2;
+
+                else if ((damageType & DamageType.Elemental) != 0)
+                    woundSound = Sound.Wound1;
+
+                EnqueueBroadcast(new GameMessageSound(Guid, woundSound, 1.0f));
+            }
 
             if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak))
                 Cloak.TryProcSpell(this, source, equippedCloak, percent);
@@ -846,7 +860,7 @@ namespace ACE.Server.WorldObjects
             // http://acpedia.org/wiki/Announcements_-_11th_Anniversary_Preview#Void_Magic_and_You.21
             // Creatures under Asheron’s protection take half damage from any nether type spell.
             if (damageType == DamageType.Nether)
-                return (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
+                return 0.5f;
 
             // base strength and endurance give the player a natural resistance to damage,
             // which caps at 50% (equivalent to level 5 life prots)

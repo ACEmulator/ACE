@@ -36,9 +36,21 @@ namespace ACE.Server.Factories.Tables
             ( SpellId.LightningBolt1,     0.15f ),
         };
 
+        private static readonly ChanceTable<SpellId> netherSpells = new ChanceTable<SpellId>()
+        {
+            ( SpellId.Corruption1,            0.20f ),
+            ( SpellId.NetherArc1,             0.20f ),
+            ( SpellId.NetherBolt1,            0.20f ),
+            ( SpellId.Corrosion1,             0.15f ),
+            ( SpellId.CurseWeakness1,         0.10f ),
+            ( SpellId.CurseFestering1,        0.10f ),
+            ( SpellId.CurseDestructionOther1, 0.05f ),
+        };
+
         public static SpellId Roll(WorldObject wo)
         {
-            var table = IsOrb(wo) ? orbSpells : wandStaffSpells;
+            var table = IsOrb(wo) ? orbSpells :
+                wo.W_DamageType == DamageType.Nether ? netherSpells : wandStaffSpells;
 
             return table.Roll();
         }
@@ -49,7 +61,7 @@ namespace ACE.Server.Factories.Tables
             return wo.WeenieClassId == (int)WeenieClassName.W_ORB_CLASS;
         }
 
-        private static readonly Dictionary<SpellId, string> descriptors = new Dictionary<SpellId, string>
+        public static readonly Dictionary<SpellId, string> descriptors = new Dictionary<SpellId, string>
         {
             { SpellId.StrengthOther1,                   "Strength" },
             { SpellId.StrengthSelf1,                    "Strength" },
@@ -206,6 +218,16 @@ namespace ACE.Server.Factories.Tables
             { SpellId.SneakAttackMasterySelf1,          "Sneak Attack" },
             { SpellId.SummoningMasteryOther1,           "Summoning" },
             { SpellId.SummoningMasterySelf1,            "Summoning" },
+
+            // added from magloot logs
+            { SpellId.BloodDrinkerSelf1,                "Blood Drinker" },
+            { SpellId.SwiftKillerSelf1,                 "Swift Killer" },
+            { SpellId.DefenderSelf1,                    "Defender" },
+            { SpellId.NetherBolt1,                      "Nether Bolt" },
+            { SpellId.NetherArc1,                       "Nether Arc" },
+            { SpellId.CurseFestering1,                  "Curse Festering" },
+            { SpellId.CurseWeakness1,                   "Curse Weakness" },
+            { SpellId.CurseDestructionOther1,           "Curse Destruction" },
         };
 
         public static string GetDescriptor(SpellId spellId)

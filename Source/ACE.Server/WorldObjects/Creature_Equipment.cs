@@ -37,6 +37,8 @@ namespace ACE.Server.WorldObjects
                 var worldObject = WorldObjectFactory.CreateWorldObject(biota);
                 EquippedObjects[worldObject.Guid] = worldObject;
 
+                AddItemToEquippedItemsRatingCache(worldObject);
+
                 EncumbranceVal += (worldObject.EncumbranceVal ?? 0);
             }
 
@@ -192,6 +194,62 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// This is initialized the first time an item is equipped that has a rating. If it is null, there are no equipped items with ratings.
+        /// </summary>
+        private Dictionary<PropertyInt, int> equippedItemsRatingCache;
+
+        private void AddItemToEquippedItemsRatingCache(WorldObject wo)
+        {
+            if ((wo.GearDamage ?? 0) == 0 && (wo.GearDamageResist ?? 0) == 0 && (wo.GearCrit ?? 0) == 0 && (wo.GearCritDamage ?? 0) == 0 && (wo.GearCritResist ?? 0) == 0 && (wo.GearCritDamageResist ?? 0) == 0)
+                return;
+
+            if (equippedItemsRatingCache == null)
+            {
+                equippedItemsRatingCache = new Dictionary<PropertyInt, int>
+                {
+                    { PropertyInt.GearDamage, 0 },
+                    { PropertyInt.GearDamageResist, 0 },
+                    { PropertyInt.GearCrit, 0 },
+                    { PropertyInt.GearCritDamage, 0 },
+                    { PropertyInt.GearCritResist, 0 },
+                    { PropertyInt.GearCritDamageResist, 0 },
+                };
+            }
+
+            equippedItemsRatingCache[PropertyInt.GearDamage] += (wo.GearDamage ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearDamageResist] += (wo.GearDamageResist ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearCrit] += (wo.GearCrit ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearCritDamage] += (wo.GearCritDamage ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearCritResist] += (wo.GearCritResist ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearCritDamageResist] += (wo.GearCritDamageResist ?? 0);
+        }
+
+        private void RemoveItemFromEquippedItemsRatingCache(WorldObject wo)
+        {
+            if (equippedItemsRatingCache == null)
+                return;
+
+            equippedItemsRatingCache[PropertyInt.GearDamage] -= (wo.GearDamage ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearDamageResist] -= (wo.GearDamageResist ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearCrit] -= (wo.GearCrit ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearCritDamage] -= (wo.GearCritDamage ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearCritResist] -= (wo.GearCritResist ?? 0);
+            equippedItemsRatingCache[PropertyInt.GearCritDamageResist] -= (wo.GearCritDamageResist ?? 0);
+        }
+
+        public int GetEquippedItemsRatingSum(PropertyInt rating)
+        {
+            if (equippedItemsRatingCache == null)
+                return 0;
+
+            if (equippedItemsRatingCache.TryGetValue(rating, out var value))
+                return value;
+
+            log.Error($"Creature_Equipment.GetEquippedItemsRatingsSum() does not support {rating}");
+            return 0;
+        }
+
+        /// <summary>
         /// Try to wield an object for non-player creatures
         /// </summary>
         /// <returns></returns>
@@ -239,6 +297,8 @@ namespace ACE.Server.WorldObjects
             worldObject.Wielder = this;
 
             EquippedObjects[worldObject.Guid] = worldObject;
+
+            AddItemToEquippedItemsRatingCache(worldObject);
 
             EncumbranceVal += (worldObject.EncumbranceVal ?? 0);
             Value += (worldObject.Value ?? 0);
@@ -296,6 +356,8 @@ namespace ACE.Server.WorldObjects
                 wieldedLocation = 0;
                 return false;
             }
+
+            RemoveItemFromEquippedItemsRatingCache(worldObject);
 
             wieldedLocation = worldObject.GetProperty(PropertyInt.CurrentWieldedLocation) ?? 0;
 

@@ -6,6 +6,8 @@ using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Factories.Entity;
+using ACE.Server.Factories.Enum;
 using ACE.Server.Factories.Tables;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
@@ -17,7 +19,7 @@ namespace ACE.Server.Factories
         private static WorldObject CreateArmor(TreasureDeath profile, bool isMagical, bool isArmor, LootBias lootBias = LootBias.UnBiased, bool mutate = true)
         {
             var minType = LootTables.ArmorType.Helms;
-            var maxType = new LootTables.ArmorType();
+            LootTables.ArmorType maxType;
 
             switch (profile.Tier)
             {
@@ -46,7 +48,7 @@ namespace ACE.Server.Factories
 
             // Added for making clothing drops their own drop, and not involved in armor roll chance
             LootTables.ArmorType armorType;
-            if (isArmor == true)
+            if (isArmor)
                 armorType = (LootTables.ArmorType)ThreadSafeRandom.Next((int)minType, (int)maxType);
             else
                 armorType = LootTables.ArmorType.MiscClothing;
@@ -138,17 +140,17 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static void MutateArmor(WorldObject wo, TreasureDeath profile, bool isMagical, LootTables.ArmorType armorType)
+        private static void MutateArmor(WorldObject wo, TreasureDeath profile, bool isMagical, LootTables.ArmorType armorType, TreasureRoll roll = null)
         {
-            wo.LongDesc = wo.Name;
-
-            //wo.AppraisalItemSkill = 7;
-            //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
-
+            // material type
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
 
+            // itemc olor
+            MutateColor(wo);
+
+            // gem count / material
             if (wo.GemCode != null)
                 wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
             else
@@ -156,27 +158,23 @@ namespace ACE.Server.Factories
 
             wo.GemType = RollGemType(profile.Tier);
 
-            int workmanship = GetWorkmanship(profile.Tier);
-            wo.ItemWorkmanship = workmanship;
+            // workmanship
+            wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
 
-            /*double materialMod = LootTables.getMaterialValueModifier(wo);
-            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
-            wo.Value = value;*/
+            // burden
+            if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
+                MutateBurden(wo, profile, false);
 
-            int wield;
             if (profile.Tier > 6 && armorType != LootTables.ArmorType.CovenantArmor && armorType != LootTables.ArmorType.OlthoiArmor)
             {
                 wo.WieldRequirements = WieldRequirement.Level;
                 wo.WieldSkillType = (int)Skill.Axe;  // Set by examples from PCAP data
 
-                wield = profile.Tier switch
+                wo.WieldDifficulty = profile.Tier switch
                 {
                     7 => 150,// In this instance, used for indicating player level, rather than skill level
                     _ => 180,// In this instance, used for indicating player level, rather than skill level
                 };
-
-                wo.WieldDifficulty = wield;
             }
 
             if (armorType == LootTables.ArmorType.CovenantArmor || armorType == LootTables.ArmorType.OlthoiArmor)
@@ -188,11 +186,10 @@ namespace ACE.Server.Factories
                     2 => Skill.MissileDefense,
                     _ => Skill.MeleeDefense,
                 };
-                wield = GetCovenantWieldReq(profile.Tier, wieldSkill);
 
                 wo.WieldRequirements = WieldRequirement.RawSkill;
                 wo.WieldSkillType = (int)wieldSkill;
-                wo.WieldDifficulty = wield;
+                wo.WieldDifficulty = GetCovenantWieldReq(profile.Tier, wieldSkill);
 
                 // used by tinkering requirements for copper/silver
                 wo.ItemSkillLimit = (uint)wieldSkill;
@@ -209,7 +206,7 @@ namespace ACE.Server.Factories
             if (isMagical)
             {
                 //bool covenantArmor = false || (armorType == LootTables.ArmorType.CovenantArmor || armorType == LootTables.ArmorType.OlthoiArmor);
-                wo = AssignMagic(wo, profile, true);
+                AssignMagic(wo, profile, roll, true);
             }
             else
             {
@@ -220,22 +217,16 @@ namespace ACE.Server.Factories
                 wo.ItemDifficulty = null;
             }
 
-            // try mutate burden, if MutateFilter exists
-            if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
-                MutateBurden(wo, profile.Tier, false);
-
             // try mutate item value, if MutateFilter exists
             if (wo.HasMutateFilter(MutateFilter.Value))
                 MutateValue(wo, profile.Tier);
 
-            RandomizeColor(wo);
+            wo.LongDesc = GetLongDesc(wo);
         }
 
 
-        private static void MutateSocietyArmor(WorldObject wo, TreasureDeath profile, bool isMagical)
+        private static void MutateSocietyArmor(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureRoll roll = null)
         {
-            wo.LongDesc = wo.Name;
-
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
@@ -247,8 +238,11 @@ namespace ACE.Server.Factories
 
             wo.GemType = RollGemType(profile.Tier);
 
-            int workmanship = GetWorkmanship(profile.Tier);
-            wo.ItemWorkmanship = workmanship;
+            wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
+
+            // try mutate burden, if MutateFilter exists
+            if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
+                MutateBurden(wo, profile, false);
 
             /*double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
@@ -260,7 +254,7 @@ namespace ACE.Server.Factories
             if (isMagical)
             {
                 // looks like society armor always had impen on it
-                wo = AssignMagic(wo, profile, true);
+                AssignMagic(wo, profile, roll, true);
             }
             else
             {
@@ -272,13 +266,11 @@ namespace ACE.Server.Factories
             }
             wo = AssignArmorLevel(wo, profile.Tier, LootTables.ArmorType.SocietyArmor);
 
-            // try mutate burden, if MutateFilter exists
-            if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
-                MutateBurden(wo, profile.Tier, false);
-
             // try mutate item value, if MutateFilter exists
             if (wo.HasMutateFilter(MutateFilter.Value))
                 MutateValue(wo, profile.Tier);
+
+            wo.LongDesc = GetLongDesc(wo);
         }
 
         private static bool GetMutateArmorData(uint wcid, out LootTables.ArmorType? armorType)
@@ -718,103 +710,86 @@ namespace ACE.Server.Factories
 
             return wo;
         }
+
         private static WorldObject CreateCloak(TreasureDeath profile, bool mutate = true)
         {
-            int cloakWeenie;
-            int cloakType = ThreadSafeRandom.Next(0, 10);  // 11 different types of Cloaks
+            // even chance between 11 different types of cloaks
+            var cloakType = ThreadSafeRandom.Next(0, LootTables.Cloaks.Length - 1);
 
-            cloakWeenie = LootTables.Cloaks[cloakType];
+            var cloakWeenie  = LootTables.Cloaks[cloakType];
 
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)cloakWeenie);
+            var wo = WorldObjectFactory.CreateNewWorldObject((uint)cloakWeenie);
 
             if (wo != null && mutate)
                 MutateCloak(wo, profile);
 
             return wo;
         }
+
         private static void MutateCloak(WorldObject wo, TreasureDeath profile)
         {
-            const uint cloakIconOverlayOne = 100690996;
-            const uint cloakIconOverlayTwo = 100690997;
-            const uint cloakIconOverlayThree = 100690998;
-            const uint cloakIconOverlayFour = 100690999;
-            const uint cloakIconOverlayFive = 100691000;
+            wo.ItemMaxLevel = CloakChance.Roll_ItemMaxLevel(profile);
 
-            EquipmentSet equipSetId = EquipmentSet.Invalid;
-
-            int cloakSpellId;
-
-            // Workmanship - This really doesn't matter, so not making a big fuss about it.
-            wo.Workmanship = ThreadSafeRandom.Next(1, 10);
-
-            // Value
-            /*double materialMod = LootTables.getMaterialValueModifier(wo);
-            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            wo.Value = GetValue(profile.Tier, (int)wo.Workmanship, gemMaterialMod, materialMod);*/
-
-            // Level and Icons
-            wo.ItemMaxLevel = GetCloakMaxLevel(profile);
-
-            if (wo.ItemMaxLevel == 1)
-                wo.IconOverlayId = cloakIconOverlayOne;
-            else if (wo.ItemMaxLevel == 2)
-                wo.IconOverlayId = cloakIconOverlayTwo;
-            else if (wo.ItemMaxLevel == 3)
-                wo.IconOverlayId = cloakIconOverlayThree;
-            else if (wo.ItemMaxLevel == 4)
-                wo.IconOverlayId = cloakIconOverlayFour;
-            else if (wo.ItemMaxLevel == 5)
-                wo.IconOverlayId = cloakIconOverlayFive;
-
-            // Wield Diff
-            // Notes - There is a lvl 180 cloak, but that cloak req has Damage Ratings and is T8 only.  Damage ratings on items are done at this time.
-            if (wo.ItemMaxLevel == 1)
-                wo.WieldDifficulty = 30;
-            else if (wo.ItemMaxLevel == 2)
-                wo.WieldDifficulty = 60;
-            else if (wo.ItemMaxLevel == 3)
-                wo.WieldDifficulty = 90;
-            else if (wo.ItemMaxLevel == 4)
-                wo.WieldDifficulty = 120;
-            else if (wo.ItemMaxLevel == 5)
-                wo.WieldDifficulty = 150;
-
-            // Cloak Set - Doing it this way because the Equipment Set Enum has MoA values duplicates (which would slant the ratios/drops to Light,Missile,Heavy and Finesse Spells
-            int cloakSetValue = ThreadSafeRandom.Next(0, 34);  // 35 different types of Cloak Sets
-            int cloakSet = LootTables.CloakSets[cloakSetValue];
-            equipSetId = (EquipmentSet)cloakSet;
-            wo.EquipmentSetId = equipSetId;
-
-            // Surge Spells
-            int spellRoll = ThreadSafeRandom.Next(0, 12);
-            if (spellRoll == 12)
+            // wield difficulty, based on ItemMaxLevel
+            switch (wo.ItemMaxLevel)
             {
-                // This is for the one "surge" that is not a spell.  Its a property set for the 
-                wo.CloakWeaveProc = 2;
+                case 1:
+                    wo.WieldDifficulty = 30;
+                    break;
+                case 2:
+                    wo.WieldDifficulty = 60;
+                    break;
+                case 3:
+                    wo.WieldDifficulty = 90;
+                    break;
+                case 4:
+                    wo.WieldDifficulty = 120;
+                    break;
+                case 5:
+                    wo.WieldDifficulty = 150;
+                    break;
             }
-            else
+
+            wo.IconOverlayId = IconOverlay_ItemMaxLevel[wo.ItemMaxLevel.Value - 1];
+
+            // equipment set
+            wo.EquipmentSetId = CloakChance.RollEquipmentSet();
+
+            // proc spell
+            var surgeSpell = CloakChance.RollProcSpell();
+
+            if (surgeSpell != SpellId.Undef)
             {
-                cloakSpellId = LootTables.CloakSpells[spellRoll];
-                AssignCloakSpells(wo, cloakSpellId);               
-                if (cloakSpellId == 5753)  // Cloaked in Skill is the only Self Targeted Spell
+                wo.ProcSpell = (uint)surgeSpell;
+
+                // Cloaked In Skill is the only self-targeted spell
+                if (wo.ProcSpell == (uint)SpellId.CloakAllSkill)
                     wo.ProcSpellSelfTargeted = true;
                 else
                     wo.ProcSpellSelfTargeted = false;
+
                 wo.CloakWeaveProc = 1;
             }
+            else
+            {
+                // Damage Reduction proc
+                wo.CloakWeaveProc = 2;
+            }
 
-            // try mutate item value, if MutateFilter exists
-               if (wo.HasMutateFilter(MutateFilter.Value))
+            // workmanship
+            wo.Workmanship = WorkmanshipChance.Roll(profile.Tier);
+
+            // item value
+            //if (wo.HasMutateFilter(MutateFilter.Value))
                 MutateValue(wo, profile.Tier);
         }
-        private static int GetCloakMaxLevel(TreasureDeath profile)
+
+        private static int RollCloak_ItemMaxLevel(TreasureDeath profile)
         {
             //  These Values are just for starting off.  I haven't gotten the numbers yet to confirm these.
-
             int cloakLevel = 1;
-            int chance = 0;
 
-            chance = ThreadSafeRandom.Next(1, 1000);
+            int chance = ThreadSafeRandom.Next(1, 1000);
             switch (profile.Tier)
             {
                 case 1:
@@ -870,6 +845,7 @@ namespace ACE.Server.Factories
             }
             return cloakLevel;
         }
+
         private static bool GetMutateCloakData(uint wcid)
         {
             return LootTables.Cloaks.Contains((int)wcid);
