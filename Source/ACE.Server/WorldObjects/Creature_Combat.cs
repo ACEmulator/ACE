@@ -1042,6 +1042,13 @@ namespace ACE.Server.WorldObjects
                     else
                         return true;
                 }
+
+                // faction mobs
+                if (Faction1Bits != null || target.Faction1Bits != null)
+                {
+                    if (AllowFactionCombat(target))
+                        return true;
+                }
                 return false;
             }
         }
@@ -1305,6 +1312,17 @@ namespace ACE.Server.WorldObjects
         public bool SameFaction(Creature creature)
         {
             return Faction1Bits != null && creature.Faction1Bits != null && (Faction1Bits & creature.Faction1Bits) != 0;
+        }
+
+        public bool AllowFactionCombat(Creature creature)
+        {
+            if (Faction1Bits == null && creature.Faction1Bits == null)
+                return false;
+
+            var factionSelf = Faction1Bits ?? FactionBits.None;
+            var factionOther = creature.Faction1Bits ?? FactionBits.None;
+
+            return (factionSelf & factionOther) == 0;
         }
 
         public void AddRetaliateTarget(WorldObject wo)

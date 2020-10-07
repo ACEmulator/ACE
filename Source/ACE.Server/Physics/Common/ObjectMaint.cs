@@ -1044,7 +1044,7 @@ namespace ACE.Server.Physics.Common
                     //Console.WriteLine($"{PhysicsObj.Name}.AddRetaliateTarget({obj.Name}) - retaliate target already exists");
                     return;
                 }
-                Console.WriteLine($"{PhysicsObj.Name}.AddRetaliateTarget({obj.Name})");
+                //Console.WriteLine($"{PhysicsObj.Name}.AddRetaliateTarget({obj.Name})");
                 RetaliateTargets.Add(obj.ID, obj);
 
                 // we're going to add retaliate targets to the list of visible targets as well,
