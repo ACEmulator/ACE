@@ -921,11 +921,11 @@ namespace ACE.Server.Factories
 
             //Console.WriteLine($"TryMutateGearRating({wo.Name}, {profile.TreasureType}, {roll.ItemType}): rolled gear rating {gearRating}");
 
+            var rng = ThreadSafeRandom.Next(0, 1);
+
             if (roll.HasArmorLevel(wo))
             {
                 // clothing w/ al, and crowns would be included in this group
-                var rng = ThreadSafeRandom.Next(0, 1);
-
                 if (rng == 0)
                     wo.GearCritDamage = gearRating;
                 else
@@ -933,8 +933,6 @@ namespace ACE.Server.Factories
             }
             else if (roll.IsClothing || roll.IsCloak)
             {
-                var rng = ThreadSafeRandom.Next(0, 1);
-
                 if (rng == 0)
                     wo.GearDamage = gearRating;
                 else
@@ -942,7 +940,10 @@ namespace ACE.Server.Factories
             }
             else if (roll.IsJewelry)
             {
-                wo.HealingBoostRating = gearRating;
+                if (rng == 0)
+                    wo.GearHealingBoost = gearRating;
+                else
+                    wo.GearMaxHealth = gearRating;
             }
             else
             {
