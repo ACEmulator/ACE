@@ -223,6 +223,9 @@ namespace ACE.Server.Factories
                     MutateArmorModVsType(wo, profile);
             }
 
+            if (roll != null && profile.Tier == 8)
+                TryMutateGearRating(wo, profile, roll);
+
             // item value
             double materialMod = LootTables.getMaterialValueModifier(wo);
             double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
@@ -730,7 +733,7 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static void MutateCloak(WorldObject wo, TreasureDeath profile)
+        private static void MutateCloak(WorldObject wo, TreasureDeath profile, TreasureRoll roll = null)
         {
             wo.ItemMaxLevel = CloakChance.Roll_ItemMaxLevel(profile);
 
@@ -788,6 +791,9 @@ namespace ACE.Server.Factories
             var gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
 
             wo.Value = GetValue(profile.Tier, wo.ItemWorkmanship ?? 0, gemMaterialMod, materialMod);
+
+            if (roll != null && profile.Tier == 8)
+                TryMutateGearRating(wo, profile, roll);
         }
 
         private static int RollCloak_ItemMaxLevel(TreasureDeath profile)
@@ -900,6 +906,68 @@ namespace ACE.Server.Factories
 
             wo.SetProperty(prop, armorModVsType.Value);
 
+            return true;
+        }
+
+        private static bool TryMutateGearRating(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
+        {
+            if (profile.Tier != 8)
+                return false;
+
+            var gearRating = GearRatingChance.Roll(wo, profile, roll);
+
+            if (gearRating == 0)
+                return false;
+
+            //Console.WriteLine($"TryMutateGearRating({wo.Name}, {profile.TreasureType}, {roll.ItemType}): rolled gear rating {gearRating}");
+
+            if (roll.HasArmorLevel(wo))
+            {
+                // clothing w/ al, and crowns would be included in this group
+                var rng = ThreadSafeRandom.Next(0, 1);
+
+                if (rng == 0)
+                    wo.GearCritDamage = gearRating;
+                else
+                    wo.GearCritDamageResist = gearRating;
+            }
+            else if (roll.IsClothing)
+            {
+                var rng = ThreadSafeRandom.Next(0, 1);
+
+                if (rng == 0)
+                    wo.GearDamage = gearRating;
+                else
+                    wo.GearDamageResist = gearRating;
+            }
+            else if (roll.ItemType == TreasureItemType_Orig.Jewelry)
+            {
+                wo.HealingBoostRating = gearRating;
+            }
+            else
+            {
+                log.Error($"TryMutateGearRating({wo.Name}, {profile.TreasureType}, {roll.ItemType}): unknown item type");
+                return false;
+            }
+
+            // ensure wield requirement is level 180?
+            if (wo.WieldRequirements == WieldRequirement.Invalid)
+            {
+                wo.WieldRequirements = WieldRequirement.Level;
+                wo.WieldSkillType = (int)Skill.Axe;  // set from examples in pcap data
+                wo.WieldDifficulty = 180;
+            }
+            else if (wo.WieldRequirements == WieldRequirement.Level)
+            {
+                if (wo.WieldDifficulty < 180)
+                    wo.WieldDifficulty = 180;
+            }
+            else 
+            {
+                wo.WieldRequirements2 = WieldRequirement.Level;
+                wo.WieldSkillType2 = (int)Skill.Axe;  // set from examples in pcap data
+                wo.WieldDifficulty2 = 180;
+            }
             return true;
         }
     }
