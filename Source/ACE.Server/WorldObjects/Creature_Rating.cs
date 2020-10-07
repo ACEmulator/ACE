@@ -302,16 +302,13 @@ namespace ACE.Server.WorldObjects
             // additive enchantments
             var enchantments = EnchantmentManager.GetRating(PropertyInt.CritRating);
 
-            // equipment ratings
-            var equipment = GetEquippedItemsRatingSum(PropertyInt.GearCrit);
-
             // augmentations
             var augBonus = 0;
 
             if (this is Player player)
                 augBonus = player.AugmentationCriticalExpertise;
 
-            return critChanceRating + equipment + enchantments + augBonus;
+            return critChanceRating + enchantments + augBonus;
         }
 
         public int GetCritDamageRating()
@@ -348,11 +345,8 @@ namespace ACE.Server.WorldObjects
             // additive enchantments
             var enchantments = EnchantmentManager.GetRating(PropertyInt.CritResistRating);
 
-            // equipment ratings
-            var equipment = GetEquippedItemsRatingSum(PropertyInt.GearCritResist);
-
             // no augs / lum augs?
-            return critResistRating + equipment + enchantments;
+            return critResistRating + enchantments;
         }
 
         public int GetCritDamageResistRating()
@@ -381,11 +375,14 @@ namespace ACE.Server.WorldObjects
             // additive enchantments
             var enchantments = EnchantmentManager.GetRating(PropertyInt.HealingBoostRating);
 
+            // equipment ratings
+            var equipment = GetEquippedItemsRatingSum(PropertyInt.GearHealingBoost);
+
             var lumAugBonus = 0;
             if (this is Player player)
                 lumAugBonus = player.LumAugHealingRating;
 
-            return healBoostRating + enchantments + lumAugBonus;
+            return healBoostRating + equipment + enchantments + lumAugBonus;
         }
 
         public int GetHealingResistRating()
