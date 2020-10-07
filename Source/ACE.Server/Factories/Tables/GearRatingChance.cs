@@ -41,7 +41,7 @@ namespace ACE.Server.Factories.Tables
             // roll for rating chance
             ChanceTable<bool> chance = null;
 
-            if (roll.HasArmorLevel(wo) || roll.IsClothing)
+            if (roll.HasArmorLevel(wo) || roll.IsClothing || roll.ItemType == TreasureItemType_Orig.Cloak)
                 chance = ArmorClothing_RatingChance;
             else if (roll.ItemType == TreasureItemType_Orig.Jewelry)
                 chance = Jewelry_RatingChance;
@@ -61,7 +61,7 @@ namespace ACE.Server.Factories.Tables
 
             if (roll.HasArmorLevel(wo))
                 rating = ArmorRating;
-            else if (roll.IsClothing || roll.ItemType == TreasureItemType_Orig.Jewelry)
+            else if (roll.IsClothing || roll.ItemType == TreasureItemType_Orig.Jewelry || roll.ItemType == TreasureItemType_Orig.Cloak)
                 rating = ClothingJewelry_Rating;
 
             return rating.Roll(profile.LootQualityMod);

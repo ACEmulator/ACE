@@ -931,7 +931,7 @@ namespace ACE.Server.Factories
                 else
                     wo.GearCritDamageResist = gearRating;
             }
-            else if (roll.IsClothing)
+            else if (roll.IsClothing || roll.ItemType == TreasureItemType_Orig.Cloak)
             {
                 var rng = ThreadSafeRandom.Next(0, 1);
 
