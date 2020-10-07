@@ -931,7 +931,7 @@ namespace ACE.Server.Factories
                 else
                     wo.GearCritDamageResist = gearRating;
             }
-            else if (roll.IsClothing || roll.ItemType == TreasureItemType_Orig.Cloak)
+            else if (roll.IsClothing || roll.IsCloak)
             {
                 var rng = ThreadSafeRandom.Next(0, 1);
 
@@ -940,7 +940,7 @@ namespace ACE.Server.Factories
                 else
                     wo.GearDamageResist = gearRating;
             }
-            else if (roll.ItemType == TreasureItemType_Orig.Jewelry)
+            else if (roll.IsJewelry)
             {
                 wo.HealingBoostRating = gearRating;
             }

@@ -1,8 +1,6 @@
 using log4net;
-
 using ACE.Database.Models.World;
 using ACE.Server.Factories.Entity;
-using ACE.Server.Factories.Enum;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories.Tables
@@ -10,6 +8,7 @@ namespace ACE.Server.Factories.Tables
     public static class GearRatingChance
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
 
         private static readonly ChanceTable<bool> ArmorClothing_RatingChance = new ChanceTable<bool>()
         {
@@ -23,7 +22,7 @@ namespace ACE.Server.Factories.Tables
             ( true,  0.15f ),
         };
 
-        private static readonly ChanceTable<int> ArmorRating = new ChanceTable<int>()
+        private static readonly ChanceTable<int> Armor_Rating = new ChanceTable<int>()
         {
             ( 1, 0.95f ),
             ( 2, 0.05f ),
@@ -41,10 +40,14 @@ namespace ACE.Server.Factories.Tables
             // roll for rating chance
             ChanceTable<bool> chance = null;
 
-            if (roll.HasArmorLevel(wo) || roll.IsClothing || roll.ItemType == TreasureItemType_Orig.Cloak)
+            if (roll.HasArmorLevel(wo) || roll.IsClothing || roll.IsCloak)
+            {
                 chance = ArmorClothing_RatingChance;
-            else if (roll.ItemType == TreasureItemType_Orig.Jewelry)
+            }
+            else if (roll.IsJewelry)
+            {
                 chance = Jewelry_RatingChance;
+            }
             else
             {
                 log.Error($"GearRatingChance.Roll({wo.Name}, {profile.TreasureType}, {roll.ItemType}): unknown item type");
@@ -60,9 +63,13 @@ namespace ACE.Server.Factories.Tables
             ChanceTable<int> rating = null;
 
             if (roll.HasArmorLevel(wo))
-                rating = ArmorRating;
-            else if (roll.IsClothing || roll.ItemType == TreasureItemType_Orig.Jewelry || roll.ItemType == TreasureItemType_Orig.Cloak)
+            {
+                rating = Armor_Rating;
+            }
+            else if (roll.IsClothing || roll.IsJewelry || roll.IsCloak)
+            {
                 rating = ClothingJewelry_Rating;
+            }
 
             return rating.Roll(profile.LootQualityMod);
         }
