@@ -1,4 +1,5 @@
 using log4net;
+
 using ACE.Database.Models.World;
 using ACE.Server.Factories.Entity;
 using ACE.Server.WorldObjects;
@@ -10,25 +11,19 @@ namespace ACE.Server.Factories.Tables
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 
-        private static readonly ChanceTable<bool> ArmorClothing_RatingChance = new ChanceTable<bool>()
+        private static readonly ChanceTable<bool> RatingChance = new ChanceTable<bool>()
         {
             ( false, 0.75f ),
             ( true,  0.25f ),
         };
 
-        private static readonly ChanceTable<bool> Jewelry_RatingChance = new ChanceTable<bool>()
-        {
-            ( false, 0.85f ),
-            ( true,  0.15f ),
-        };
-
-        private static readonly ChanceTable<int> Armor_Rating = new ChanceTable<int>()
+        private static readonly ChanceTable<int> ArmorRating = new ChanceTable<int>()
         {
             ( 1, 0.95f ),
             ( 2, 0.05f ),
         };
 
-        private static readonly ChanceTable<int> ClothingJewelry_Rating = new ChanceTable<int>()
+        private static readonly ChanceTable<int> ClothingJewelryRating = new ChanceTable<int>()
         {
             ( 1, 0.70f ),
             ( 2, 0.25f ),
@@ -37,26 +32,8 @@ namespace ACE.Server.Factories.Tables
 
         public static int Roll(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
-            // roll for rating chance
-            ChanceTable<bool> chance = null;
-
-            if (roll.HasArmorLevel(wo) || roll.IsClothing || roll.IsCloak)
-            {
-                chance = ArmorClothing_RatingChance;
-            }
-            else if (roll.IsJewelry)
-            {
-                chance = Jewelry_RatingChance;
-            }
-            else
-            {
-                log.Error($"GearRatingChance.Roll({wo.Name}, {profile.TreasureType}, {roll.ItemType}): unknown item type");
-                return 0;
-            }
-
-            var hasRating = chance.Roll(profile.LootQualityMod);
-
-            if (!hasRating)
+            // initial roll for rating chance
+            if (!RatingChance.Roll(profile.LootQualityMod))
                 return 0;
 
             // roll for the actual rating
@@ -64,11 +41,16 @@ namespace ACE.Server.Factories.Tables
 
             if (roll.HasArmorLevel(wo))
             {
-                rating = Armor_Rating;
+                rating = ArmorRating;
             }
             else if (roll.IsClothing || roll.IsJewelry || roll.IsCloak)
             {
-                rating = ClothingJewelry_Rating;
+                rating = ClothingJewelryRating;
+            }
+            else
+            {
+                log.Error($"GearRatingChance.Roll({wo.Name}, {profile.TreasureType}, {roll.ItemType}): unknown item type");
+                return 0;
             }
 
             return rating.Roll(profile.LootQualityMod);
