@@ -1,7 +1,9 @@
 using System.Linq;
 
 using ACE.Common;
+using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
@@ -9,9 +11,9 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateGem(int tier, bool isMagical, bool mutate = true)
+        private static WorldObject CreateGem(TreasureDeath profile, bool isMagical, bool mutate = true)
         {
-            int gemLootMatrixIndex = tier - 1;
+            int gemLootMatrixIndex = profile.Tier - 1;
 
             if (gemLootMatrixIndex > 4) gemLootMatrixIndex = 4;
             int upperLimit = LootTables.GemsMatrix[gemLootMatrixIndex].Length - 1;
@@ -21,12 +23,12 @@ namespace ACE.Server.Factories
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject(gemWCID) as Gem;
 
             if (wo != null && mutate)
-                MutateGem(wo, tier, isMagical);
+                MutateGem(wo, profile, isMagical);
 
             return wo;
         }
 
-        private static void MutateGem(WorldObject wo, int tier, bool isMagical)
+        private static void MutateGem(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureRoll roll = null)
         {
             uint gemType = 0;
             int workmanship = 0;
@@ -37,7 +39,7 @@ namespace ACE.Server.Factories
 
             gemType = (uint)wo.MaterialType;
 
-            workmanship = GetWorkmanship(tier);
+            workmanship = GetWorkmanship(profile.Tier);
             wo.ItemWorkmanship = workmanship;
             int value = LootTables.gemValues[(int)gemType] + ThreadSafeRandom.Next(1, LootTables.gemValues[(int)gemType]);
             wo.Value = value;
@@ -46,7 +48,7 @@ namespace ACE.Server.Factories
             // in retail, each tier could roll different levels of spells. each tier had a spell level chance table
             // for example, tier 8 might have had a 75% chance to roll level 7 spells, and a 25% chance to roll level 8 spells
 
-            var gemLootMatrixIndex = tier - 1;
+            var gemLootMatrixIndex = profile.Tier - 1;
             if (isMagical)
             {
                 wo.ItemUseable = Usable.Contained;
@@ -101,7 +103,7 @@ namespace ACE.Server.Factories
                 wo.ManaRate = null;
 
             }
-            RandomizeColor(wo);
+            MutateColor(wo);
         }
 
         private static bool GetMutateGemData(uint wcid)

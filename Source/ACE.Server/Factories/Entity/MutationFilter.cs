@@ -15,12 +15,12 @@ namespace ACE.Server.Factories.Entity
         {
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
 
-            var success = true;
+            var mutated = false;
 
             foreach (var mutation in Mutations)
-                success &= mutation.TryMutate(wo, tier, rng);
+                mutated |= mutation.TryMutate(wo, tier, rng);
 
-            return success;
+            return mutated;
         }
     }
 }

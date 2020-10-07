@@ -11,12 +11,12 @@ namespace ACE.Server.Factories.Entity
 
         public bool TryMutate(WorldObject wo)
         {
-            var success = true;
+            var mutated = false;
 
             foreach (var effect in Effects)
-                success &= effect.TryMutate(wo);      // stop completely on failure?
+                mutated |= effect.TryMutate(wo);      // stop completely on failure?
 
-            return success;
+            return mutated;
         }
     }
 }

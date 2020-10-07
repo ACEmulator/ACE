@@ -4,6 +4,7 @@ using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
@@ -36,11 +37,8 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static void MutateJewelry(WorldObject wo, TreasureDeath profile, bool isMagical)
+        private static void MutateJewelry(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureRoll roll = null)
         {
-            //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
-            wo.LongDesc = wo.Name;
-
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
@@ -75,7 +73,7 @@ namespace ACE.Server.Factories
             }
 
             if (isMagical)
-                wo = AssignMagic(wo, profile);
+                AssignMagic(wo, profile, roll);
             else
             {
                 wo.ItemManaCost = null;
@@ -86,7 +84,10 @@ namespace ACE.Server.Factories
                 wo.ManaRate = null;
             }
 
-            RandomizeColor(wo);
+            //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
+            wo.LongDesc = GetLongDesc(wo);
+
+            MutateColor(wo);
         }
 
         private static bool GetMutateJewelryData(uint wcid)

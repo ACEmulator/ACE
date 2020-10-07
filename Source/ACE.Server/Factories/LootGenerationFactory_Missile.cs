@@ -3,8 +3,8 @@ using System.Linq;
 using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
+using ACE.Server.Factories.Entity;
+using ACE.Server.Factories.Enum;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
@@ -13,15 +13,13 @@ namespace ACE.Server.Factories
     public static partial class LootGenerationFactory
     {
         /// <summary>
-        /// Creates a Missile weapon object.
+        /// Creates and optionally mutates a new MissileWeapon
         /// </summary>
-        /// <param name="profile"></param><param name="isMagical"></param>
-        /// <returns>Returns Missile WO</returns>
         public static WorldObject CreateMissileWeapon(TreasureDeath profile, bool isMagical, bool mutate = true)
         {
             int weaponWeenie;
 
-            int wieldDifficulty = GetWieldDifficulty(profile.Tier, WieldType.MissileWeapon);
+            int wieldDifficulty = RollWieldDifficulty(profile.Tier, WieldType.MissileWeapon);
 
             // Changing based on wield, not tier. Refactored, less code, best results.  HarliQ 11/18/19
             if (wieldDifficulty < 315)
@@ -32,24 +30,81 @@ namespace ACE.Server.Factories
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
 
             if (wo != null && mutate)
-                MutateMissileWeapon(wo, profile, isMagical, wieldDifficulty, wieldDifficulty >= 315);
+                MutateMissileWeapon(wo, profile, isMagical, wieldDifficulty);
             
             return wo;
         }
 
-        private static void MutateMissileWeapon(WorldObject wo, TreasureDeath profile, bool isMagical, int wieldDifficulty, bool isElemental)
+        private static void MutateMissileWeapon(WorldObject wo, TreasureDeath profile, bool isMagical, int? wieldDifficulty = null, TreasureRoll roll = null)
         {
-            int elemenatalBonus = 0;
+            if (roll == null)
+            {
+                // previous method
 
-            if (isElemental)
-                elemenatalBonus = GetElementalBonus(wieldDifficulty);
+                // DamageMod
+                wo.DamageMod = GetMissileDamageMod(wieldDifficulty.Value, wo.W_WeaponType);
 
-            // Item Basics
-            wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
+                // ElementalDamageBonus
+                if (wo.W_DamageType != DamageType.Undef)
+                {
+                    int elementalBonus = GetElementalDamageBonus(wieldDifficulty.Value);
+                    if (elementalBonus > 0)
+                        wo.ElementalDamageBonus = elementalBonus;
+                }
+
+                // Wield Requirements
+                if (wieldDifficulty > 0)
+                {
+                    wo.WieldDifficulty = wieldDifficulty;
+                    wo.WieldRequirements = WieldRequirement.RawSkill;
+                    wo.WieldSkillType = (int)Skill.MissileWeapons;
+                }
+                else
+                {
+                    wo.WieldDifficulty = null;
+                    wo.WieldRequirements = WieldRequirement.Invalid;
+                    wo.WieldSkillType = null;
+                }
+
+                // WeaponDefense
+                var meleeDMod = RollWeaponDefense(wieldDifficulty.Value, profile);
+                if (meleeDMod > 0.0f)
+                    wo.WeaponDefense = meleeDMod;
+            }
+            else
+            {
+                // new method / mutation scripts
+                var isElemental = wo.W_DamageType != DamageType.Undef;
+
+                var scriptName = GetMissileScript(roll.WeaponType, isElemental);
+
+                // mutate DamageMod / ElementalDamageBonus / WieldRequirements
+                var mutationFilter = MutationCache.GetMutation(scriptName);
+
+                mutationFilter.TryMutate(wo, profile.Tier);
+
+                // mutate WeaponDefense
+                mutationFilter = MutationCache.GetMutation("MissileWeapons.weapon_defense.txt");
+
+                mutationFilter.TryMutate(wo, profile.Tier);
+            }
+
+            // weapon speed
+            if (wo.WeaponTime != null)
+            {
+                var weaponSpeedMod = RollWeaponSpeedMod(profile);
+                wo.WeaponTime = (int)(wo.WeaponTime * weaponSpeedMod);
+            }
+
+            // material type
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
 
+            // item color
+            MutateColor(wo);
+
+            // gem count / gem material
             if (wo.GemCode != null)
                 wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
             else
@@ -57,42 +112,24 @@ namespace ACE.Server.Factories
 
             wo.GemType = RollGemType(profile.Tier);
 
-            wo.LongDesc = wo.Name;
-            //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship | AppraisalLongDescDecorations.AppendGemInfo;
+            // workmanship
+            wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
 
-            // Burden
-            MutateBurden(wo, profile.Tier, true);
+            // burden
+            MutateBurden(wo, profile, true);
 
-            // MeleeD/MagicD/Missile Bonus
-            wo.WeaponMagicDefense = GetMagicMissileDMod(profile.Tier);
-            wo.WeaponMissileDefense = GetMagicMissileDMod(profile.Tier);
-            double meleeDMod = GetWieldReqMeleeDMod(wieldDifficulty, profile);
-            if (meleeDMod > 0.0f)
-                wo.WeaponDefense = meleeDMod;
+            // item value
+            var materialMod = LootTables.getMaterialValueModifier(wo);
+            var gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
 
-            // Damage
-            wo.DamageMod = GetMissileDamageMod(wieldDifficulty, wo.GetProperty(PropertyInt.WeaponType));
-            if (elemenatalBonus > 0)
-                wo.ElementalDamageBonus = elemenatalBonus;
+            wo.Value = GetValue(profile.Tier, (int)wo.Workmanship, gemMaterialMod, materialMod);
 
-            // Wields
-            if (wieldDifficulty > 0)
-            {
-                wo.WieldDifficulty = wieldDifficulty;
-                wo.WieldRequirements = WieldRequirement.RawSkill;
-                wo.WieldSkillType = (int)Skill.MissileWeapons;
-            }
-            else
-            {
-                wo.WieldDifficulty = null;
-                wo.WieldRequirements = WieldRequirement.Invalid;
-                wo.WieldSkillType = null;
-            }
+            // missile / magic defense
+            wo.WeaponMissileDefense = RollWeapon_MissileMagicDefense(profile.Tier);
+            wo.WeaponMagicDefense = RollWeapon_MissileMagicDefense(profile.Tier);
 
-            // Magic
-            if (isMagical)
-                wo = AssignMagic(wo, profile);
-            else
+            // spells
+            if (!isMagical)
             {
                 wo.ItemManaCost = null;
                 wo.ItemMaxMana = null;
@@ -101,35 +138,31 @@ namespace ACE.Server.Factories
                 wo.ItemDifficulty = null;
                 wo.ManaRate = null;
             }
+            else
+                AssignMagic(wo, profile, roll);
 
-            // Material/Value/Color
-            double materialMod = LootTables.getMaterialValueModifier(wo);
-            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(profile.Tier, (int)wo.Workmanship, gemMaterialMod, materialMod);
-            wo.Value = value;
-
-            RandomizeColor(wo);
+            // long description
+            wo.LongDesc = GetLongDesc(wo);
         }
 
-        private static bool GetMutateMissileWeaponData(uint wcid, int tier, out int wieldDifficulty, out bool _isElemental)
+        private static string GetMissileScript(TreasureWeaponType weaponType, bool isElemental = false)
+        {
+            var elementalStr = isElemental ? "elemental" : "non_elemental";
+
+            return "MissileWeapons." + weaponType.GetScriptName() + "_" + elementalStr + ".txt";
+        }
+
+        private static bool GetMutateMissileWeaponData(uint wcid, int tier)
         {
             for (var isElemental = 0; isElemental < LootTables.MissileWeaponsMatrices.Count; isElemental++)
             {
                 var table = LootTables.MissileWeaponsMatrices[isElemental];
                 for (var missileType = 0; missileType < table.Length; missileType++)
                 {
-                    var subtable = table[missileType];
-                    if (subtable.Contains((int)wcid))
-                    {
-                        // roll for unique wield difficulty at this point
-                        wieldDifficulty = GetWieldDifficulty(tier, WieldType.MissileWeapon);
-                        _isElemental = isElemental > 0;
+                    if (table[missileType].Contains((int)wcid))
                         return true;
-                    }
                 }
             }
-            _isElemental = false;
-            wieldDifficulty = -1;
             return false;
         }
 
@@ -156,24 +189,22 @@ namespace ACE.Server.Factories
         }
 
         /// <summary>
-        /// Get Missile Damage based on Missile Weapon Type.
+        /// Rolls for a DamageMod for missile weapons
         /// </summary>
-        /// <param name="wieldDiff"></param><param name="missileType"></param>
-        /// <returns>Missile Damage</returns>
-        private static float GetMissileDamageMod(int wieldDiff, int? missileType)
+        private static float GetMissileDamageMod(int wieldDiff, WeaponType weaponType)
         {
-            WeaponType weaponType = (WeaponType)(missileType ?? 8);
+            // should this be setting defaults?
+            if (weaponType == WeaponType.Undef)
+                weaponType = WeaponType.Bow;
 
-            const int bow = 0;
-            const int crossbow = 1;
-            const int thrown = 2;
             var damageMod = weaponType switch
             {
-                WeaponType.Bow => LootTables.MissileDamageMod[bow][GetMissileWieldToIndex(wieldDiff)],
-                WeaponType.Crossbow => LootTables.MissileDamageMod[crossbow][GetMissileWieldToIndex(wieldDiff)],
-                WeaponType.Thrown => LootTables.MissileDamageMod[thrown][GetMissileWieldToIndex(wieldDiff)],
+                WeaponType.Bow => LootTables.MissileDamageMod[0][GetMissileWieldToIndex(wieldDiff)],
+                WeaponType.Crossbow => LootTables.MissileDamageMod[1][GetMissileWieldToIndex(wieldDiff)],
+                WeaponType.Thrown => LootTables.MissileDamageMod[2][GetMissileWieldToIndex(wieldDiff)],
                 _ => 1.5f, // Default/Else
             };
+
             // Added variance for Damage Modifier.  Full Modifier was rare in retail
             int modChance = ThreadSafeRandom.Next(0, 99);
             if (modChance < 20)
@@ -203,7 +234,7 @@ namespace ACE.Server.Factories
         /// </summary>
         /// <param name="wield"></param>
         /// <returns>Missile Weapon Wield Requirement</returns>
-        private static int GetElementalBonus(int wield)
+        private static int GetElementalDamageBonus(int wield)
         {
             int chance = 0;
             int eleMod = 0;

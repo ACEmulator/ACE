@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using log4net;
 
 using ACE.Entity.Enum;
+using ACE.Server.Factories.Entity;
 
 namespace ACE.Server.Factories.Tables
 {
@@ -65,6 +66,54 @@ namespace ACE.Server.Factories.Tables
                 for (var j = 0; j < NumLevels; j++)
                     Table[i][j] = spellLevels[j];
             }
+        }
+
+        private static readonly ChanceTable<SpellId> meleeCantrips = new ChanceTable<SpellId>()
+        {
+            ( SpellId.CANTRIPALCHEMICALPROWESS1,    0.01f ),
+            ( SpellId.CANTRIPARCANEPROWESS1,        0.05f ),
+            ( SpellId.CANTRIPARMOREXPERTISE1,       0.01f ),
+            ( SpellId.CANTRIPLIGHTWEAPONSAPTITUDE1, 0.11f ),
+            ( SpellId.CANTRIPCOOKINGPROWESS1,       0.01f ),
+            ( SpellId.CANTRIPDECEPTIONPROWESS1,     0.01f ),
+            ( SpellId.CANTRIPFEALTY1,               0.01f ),
+            ( SpellId.CANTRIPFLETCHINGPROWESS1,     0.01f ),
+            ( SpellId.CANTRIPHEALINGPROWESS1,       0.01f ),
+            ( SpellId.CANTRIPIMPREGNABILITY1,       0.03f ),
+            ( SpellId.CANTRIPINVULNERABILITY1,      0.03f ),
+            ( SpellId.CANTRIPITEMEXPERTISE1,        0.01f ),
+            ( SpellId.CANTRIPJUMPINGPROWESS1,       0.01f ),
+            ( SpellId.CANTRIPLEADERSHIP1,           0.01f ),
+            ( SpellId.CANTRIPLOCKPICKPROWESS1,      0.01f ),
+            ( SpellId.CANTRIPMAGICITEMEXPERTISE1,   0.01f ),
+            ( SpellId.CANTRIPMAGICRESISTANCE1,      0.03f ),
+            ( SpellId.CANTRIPMONSTERATTUNEMENT1,    0.01f ),
+            ( SpellId.CANTRIPPERSONATTUNEMENT1,     0.01f ),
+            ( SpellId.CANTRIPSPRINT1,               0.01f ),
+            ( SpellId.CANTRIPWEAPONEXPERTISE1,      0.01f ),
+            ( SpellId.CANTRIPACIDWARD1,             0.01f ),
+            ( SpellId.CANTRIPBLUDGEONINGWARD1,      0.01f ),
+            ( SpellId.CANTRIPFLAMEWARD1,            0.01f ),
+            ( SpellId.CANTRIPFROSTWARD1,            0.01f ),
+            ( SpellId.CANTRIPPIERCINGWARD1,         0.01f ),
+            ( SpellId.CANTRIPSLASHINGWARD1,         0.01f ),
+            ( SpellId.CANTRIPSTORMWARD1,            0.01f ),
+            ( SpellId.CANTRIPBLOODTHIRST1,          0.06f ),
+            ( SpellId.CANTRIPDEFENDER1,             0.06f ),
+            ( SpellId.CANTRIPHEARTTHIRST1,          0.06f ),
+            ( SpellId.CANTRIPSWIFTHUNTER1,          0.06f ),
+            ( SpellId.CANTRIPCOORDINATION1,         0.06f ),
+            ( SpellId.CANTRIPENDURANCE1,            0.06f ),
+            ( SpellId.CANTRIPFOCUS1,                0.01f ),
+            ( SpellId.CANTRIPQUICKNESS1,            0.06f ),
+            ( SpellId.CANTRIPSTRENGTH1,             0.06f ),
+            ( SpellId.CANTRIPWILLPOWER1,            0.01f ),
+            ( SpellId.CANTRIPARMOR1,                0.02f ),
+        };
+
+        public static SpellId Roll()
+        {
+            return meleeCantrips.Roll();
         }
     }
 }

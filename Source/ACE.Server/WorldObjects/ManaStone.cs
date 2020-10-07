@@ -86,7 +86,7 @@ namespace ACE.Server.WorldObjects
                         useResult = WeenieError.ActionCancelled;
                     else
                     {
-                        if (!player.TryConsumeFromInventoryWithNetworking(target) && !player.TryDequipObjectWithNetworking(target.Guid, out _, Player.DequipObjectAction.ConsumeItem))
+                        if (!player.TryConsumeFromInventoryWithNetworking(target, 1) && !player.TryDequipObjectWithNetworking(target.Guid, out _, Player.DequipObjectAction.ConsumeItem))
                         {
                             log.Error($"Failed to remove {target.Name} from player inventory.");
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.ActionCancelled));
