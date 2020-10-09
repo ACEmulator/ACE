@@ -11,6 +11,8 @@ namespace ACE.Server.Factories.Entity
 
         public WeenieClassName Wcid;
 
+        public int BaseArmorLevel;
+
         public TreasureRoll() { }
 
         public TreasureRoll(TreasureItemType_Orig itemType)
@@ -48,6 +50,8 @@ namespace ACE.Server.Factories.Entity
         public bool IsArmor => ArmorType != TreasureArmorType.Undef;
 
         public bool IsClothing => ItemType == TreasureItemType_Orig.Clothing;
+
+        public bool IsCloak => ItemType == TreasureItemType_Orig.Cloak;
 
         /// <summary>
         /// Returns TRUE if wo has an ArmorLevel > 0

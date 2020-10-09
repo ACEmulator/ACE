@@ -8,6 +8,16 @@ namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class JewelryWcids
     {
+        // original headwear:
+        // - crown
+
+        // added 09-2005 - under cover of night
+        // - coronet
+        // - circlet
+        // - diadem
+        // - signet crown
+        // - teardrop crown
+
         // trinkets: drop rate 15% consistently per tier, 2.5% for each of the 6 trinkets
         // scaling the pre-t7 tables to 85% / 15%
 
@@ -52,7 +62,15 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.amulet,        0.0425f ),
             ( WeenieClassName.bracelet,      0.0425f ),
             ( WeenieClassName.braceletheavy, 0.17f ),
-            ( WeenieClassName.crown,         0.085f ),
+
+            //( WeenieClassName.crown,         0.085f ),
+            ( WeenieClassName.crown,                  0.015f ),     // todo: these possibly dropped in all tiers post-ucon
+            ( WeenieClassName.ace31864_teardropcrown, 0.014f ),
+            ( WeenieClassName.ace31865_circlet,       0.014f ),
+            ( WeenieClassName.ace31866_coronet,       0.014f ),
+            ( WeenieClassName.ace31867_diadem,        0.014f ),
+            ( WeenieClassName.ace31868_signetcrown,   0.014f ),
+
             ( WeenieClassName.gorget,        0.085f ),
             ( WeenieClassName.necklace,      0.0425f ),
             ( WeenieClassName.necklaceheavy, 0.1275f ),
