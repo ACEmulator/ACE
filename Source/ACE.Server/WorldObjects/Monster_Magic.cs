@@ -233,7 +233,7 @@ namespace ACE.Server.WorldObjects
                         TryHandleFactionMob(target);
 
                     var targetDeath = LifeMagic(spell, out uint damage, out bool critical, out var msg, target);
-                    if (targetDeath && targetCreature != null)
+                    if (targetDeath && target is Creature targetCreature)
                     {
                         targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
                         targetCreature.Die();
