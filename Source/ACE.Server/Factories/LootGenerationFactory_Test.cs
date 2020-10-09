@@ -75,7 +75,7 @@ namespace ACE.Server.Factories
             {
                 if (deathTreasure != null)
                 {
-                    corpseContainer = LootGenerationFactory.CreateRandomLootObjects_New(deathTreasure);
+                    corpseContainer = LootGenerationFactory.CreateRandomLootObjects(deathTreasure);
 
                     if (corpseContainer.Count < ls.MinItemsCreated)
                         ls.MinItemsCreated = corpseContainer.Count;
