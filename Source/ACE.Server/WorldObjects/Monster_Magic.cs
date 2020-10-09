@@ -215,7 +215,10 @@ namespace ACE.Server.WorldObjects
 
             // try to resist spell, if applicable
             if (TryResistSpell(target, spell))
+            {
+                TryHandleFactionMob(target);
                 return;
+            }
 
             switch (spell.School)
             {
@@ -226,8 +229,11 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
+                    if (spell.MetaSpellType != SpellType.LifeProjectile)
+                        TryHandleFactionMob(target);
+
                     var targetDeath = LifeMagic(spell, out uint damage, out bool critical, out var msg, target);
-                    if (targetDeath && target is Creature targetCreature)
+                    if (targetDeath && targetCreature != null)
                     {
                         targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
                         targetCreature.Die();
@@ -238,6 +244,8 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case MagicSchool.CreatureEnchantment:
+
+                    TryHandleFactionMob(target);
 
                     CreatureMagic(target, spell);
 
@@ -319,6 +327,19 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyFloat.AiUseMagicDelay);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.AiUseMagicDelay); else SetProperty(PropertyFloat.AiUseMagicDelay, value.Value); }
+        }
+
+        public void TryHandleFactionMob(WorldObject target)
+        {
+            if (target == this || target is Player)
+                return;
+
+            var creatureTarget = target as Creature;
+
+            if (creatureTarget == null || !AllowFactionCombat(creatureTarget))
+                return;
+
+            MonsterOnAttackMonster(creatureTarget);
         }
     }
 }

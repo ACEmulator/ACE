@@ -1726,10 +1726,22 @@ namespace ACE.Server.WorldObjects
         protected bool TryApplyEnchantment(WorldObject target, Spell spell, WorldObject caster)
         {
             var player = this as Player;
+
             var targetPlayer = target as Player;
             var targetCreature = target as Creature;
-            if (player != null && targetCreature != null && targetPlayer == null)
-                player.OnAttackMonster(targetCreature);
+
+            if (player != null)
+            {
+                if (targetCreature != null && targetPlayer == null)
+                    player.OnAttackMonster(targetCreature);
+            }
+            else
+            {
+                var creature = this as Creature;
+
+                if (creature != null && targetPlayer == null)
+                    creature.TryHandleFactionMob(target);
+            }
 
             if (TryResistSpell(target, spell, caster))
                 return false;
