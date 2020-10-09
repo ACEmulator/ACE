@@ -12,7 +12,7 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateDinnerware(TreasureDeath profile, bool mutate = true)
+        private static WorldObject CreateDinnerware(TreasureDeath profile, bool isMagical, bool mutate = true)
         {
             var rng = ThreadSafeRandom.Next(0, LootTables.DinnerwareLootMatrix.Length - 1);
 
@@ -21,12 +21,12 @@ namespace ACE.Server.Factories
             var wo = WorldObjectFactory.CreateNewWorldObject(wcid);
 
             if (wo != null && mutate)
-                MutateDinnerware(wo, profile);
+                MutateDinnerware(wo, profile, isMagical);
 
             return wo;
         }
 
-        private static void MutateDinnerware(WorldObject wo, TreasureDeath profile, TreasureRoll roll = null)
+        private static void MutateDinnerware(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureRoll roll = null)
         {
             // Dinnerware has all these options (plates, tankards, etc)
             // This is just a short-term fix until Loot is overhauled
@@ -49,11 +49,14 @@ namespace ACE.Server.Factories
             // workmanship
             wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
-            // TODO: dinnerware could get spells in retail
+            // spells
+            if (isMagical)
+                AssignMagic(wo, profile, roll);
+
+            // item value
+            MutateDinnerware_ItemValue(wo);
 
             wo.LongDesc = wo.Name;
-
-            MutateDinnerware_ItemValue(wo);
         }
 
         private static void MutateDinnerware_ItemValue(WorldObject wo)
