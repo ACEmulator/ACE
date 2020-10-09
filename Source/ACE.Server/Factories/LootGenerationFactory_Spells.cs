@@ -451,7 +451,10 @@ namespace ACE.Server.Factories
             }
             else if (roll.IsDinnerware)
             {
-                return 16;
+                if (roll.Wcid == Enum.WeenieClassName.flasksimple)
+                    return 0;
+                else
+                    return 16;
             }
             else if (roll.IsMissileWeapon || wo.WeaponSkill == Skill.TwoHandedCombat)
             {
