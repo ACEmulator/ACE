@@ -74,7 +74,7 @@ namespace ACE.Server.Factories
             if (roll == null)
             {
                 // previous method
-                var wieldDifficulty = RollWieldDifficulty(profile.Tier, WieldType.MeleeWeapon);
+                var wieldDifficulty = RollWieldDifficulty(profile.Tier, TreasureWeaponType.MeleeWeapon);
 
                 if (!MutateStats_OldMethod(wo, profile, wieldDifficulty))
                     return false;
@@ -125,16 +125,13 @@ namespace ACE.Server.Factories
             wo.GemType = RollGemType(profile.Tier);
 
             // workmanship
-            wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
+            wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
             // burden
             MutateBurden(wo, profile, true);
 
             // item value
-            var materialMod = LootTables.getMaterialValueModifier(wo);
-            var gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-
-            wo.Value = GetValue(profile.Tier, wo.ItemWorkmanship ?? 0, gemMaterialMod, materialMod);
+            wo.Value = Roll_ItemValue(wo, profile.Tier);
 
             // missile / magic defense
             wo.WeaponMissileDefense = MissileMagicDefense.Roll(profile.Tier);

@@ -1,12 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ACE.DatLoader;
-using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Server.Factories;
 using ACE.Server.Network;
+
 namespace ACE.Server.Command.Handlers
 {
     public static class DeveloperLootCommands
@@ -163,8 +159,9 @@ namespace ACE.Server.Command.Handlers
                     return;
                 }
             }
+            var results = LootGenerationFactory_Test.TestLootGenMonster(monsterDID, numItems, logStats, displayTable);
 
-            Console.WriteLine(LootGenerationFactory_Test.TestLootGenMonster(monsterDID, numItems, logStats, displayTable));
+            Console.WriteLine(results);
         }
     }
 }

@@ -19,7 +19,7 @@ namespace ACE.Server.Factories
         {
             int weaponWeenie;
 
-            int wieldDifficulty = RollWieldDifficulty(profile.Tier, WieldType.MissileWeapon);
+            int wieldDifficulty = RollWieldDifficulty(profile.Tier, TreasureWeaponType.MissileWeapon);
 
             // Changing based on wield, not tier. Refactored, less code, best results.  HarliQ 11/18/19
             if (wieldDifficulty < 315)
@@ -113,16 +113,13 @@ namespace ACE.Server.Factories
             wo.GemType = RollGemType(profile.Tier);
 
             // workmanship
-            wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
+            wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
             // burden
             MutateBurden(wo, profile, true);
 
             // item value
-            var materialMod = LootTables.getMaterialValueModifier(wo);
-            var gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-
-            wo.Value = GetValue(profile.Tier, (int)wo.Workmanship, gemMaterialMod, materialMod);
+            wo.Value = Roll_ItemValue(wo, profile.Tier);
 
             // missile / magic defense
             wo.WeaponMissileDefense = RollWeapon_MissileMagicDefense(profile.Tier);
