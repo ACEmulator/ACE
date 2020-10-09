@@ -211,7 +211,9 @@ namespace ACE.Server.Factories
 
             var spell = new Server.Entity.Spell(wo.SpellDID.Value);
 
-            wo.ItemManaCost = (int)spell.BaseMana * 5;
+            var castableMod = CasterSlotSpells.IsOrb(wo) ? 5.0f : 2.5f;
+
+            wo.ItemManaCost = (int)(spell.BaseMana * castableMod);
 
             wo.ItemUseable = Usable.SourceWieldedTargetRemoteNeverWalk;
         }
