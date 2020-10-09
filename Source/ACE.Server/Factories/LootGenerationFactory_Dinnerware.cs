@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
@@ -7,6 +8,8 @@ using ACE.Entity.Enum;
 using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
+
+using WeenieClassName = ACE.Server.Factories.Enum.WeenieClassName;
 
 namespace ACE.Server.Factories
 {
@@ -26,12 +29,23 @@ namespace ACE.Server.Factories
             return wo;
         }
 
+        private static readonly Dictionary<WeenieClassName, int> damageTable = new Dictionary<WeenieClassName, int>()
+        {
+            { WeenieClassName.cup,            8  },
+            { WeenieClassName.chalice,        10 },
+            { WeenieClassName.ewer,           10 },
+            { WeenieClassName.mug,            10 },
+            { WeenieClassName.flagon,         12 },
+            { WeenieClassName.goblet,         14 },
+            { WeenieClassName.tankard,        14 },
+            { WeenieClassName.bowl,           18 },
+            { WeenieClassName.dinnerplate,    20 },
+            { WeenieClassName.ornamentalbowl, 20 },
+            { WeenieClassName.stoup,          22 },
+        };
+
         private static void MutateDinnerware(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureRoll roll = null)
         {
-            // Dinnerware has all these options (plates, tankards, etc)
-            // This is just a short-term fix until Loot is overhauled
-            // TODO - Doesn't handle damage/speed/etc that the mutate engine should for these types of items.
-
             // material type
             wo.MaterialType = (MaterialType)GetMaterialType(wo, profile.Tier);
 
@@ -49,14 +63,36 @@ namespace ACE.Server.Factories
             // workmanship
             wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
-            // spells
-            if (isMagical)
-                AssignMagic(wo, profile, roll);
+            // "mutate" damage - these were always the same values
+            // it would almost make sense to just put these on the base weenies,
+            // however if they appeared in vendor shops w/out these values, maybe loot system added them?
+
+            // "Empty Flask" is the only Dinnerware to not get these mutations
+
+            var wcid = (WeenieClassName)wo.WeenieClassId;
+
+            if (wcid != WeenieClassName.flasksimple)
+            {
+                if (damageTable.TryGetValue(wcid, out var damage))
+                    wo.Damage = damage;
+
+                if (wcid != WeenieClassName.dinnerplate)
+                    wo.W_DamageType = DamageType.Bludgeon;
+                else
+                    wo.W_DamageType = DamageType.Slash;
+
+                wo.DamageVariance = 0.25f;
+                wo.WeaponTime = 10;
+
+                // spells
+                if (isMagical)
+                    AssignMagic(wo, profile, roll);
+            }
 
             // item value
             MutateDinnerware_ItemValue(wo);
 
-            wo.LongDesc = wo.Name;
+            wo.LongDesc = GetLongDesc(wo);
         }
 
         private static void MutateDinnerware_ItemValue(WorldObject wo)
