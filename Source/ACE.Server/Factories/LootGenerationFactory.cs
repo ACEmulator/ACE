@@ -2686,6 +2686,8 @@ namespace ACE.Server.Factories
                 return null;
             }
 
+            treasureRoll.BaseArmorLevel = wo.ArmorLevel ?? 0;
+
             switch (treasureRoll.ItemType)
             {
                 case TreasureItemType_Orig.Pyreal:

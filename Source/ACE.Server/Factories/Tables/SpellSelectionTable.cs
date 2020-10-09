@@ -319,7 +319,7 @@ namespace ACE.Server.Factories.Tables
         // missile weapons, two-handed weapons
         private static readonly ChanceTable<SpellId> spellSelectionGroup17 = new ChanceTable<SpellId>()
         {
-            ( SpellId.StrengthSelf1,             0.15f ),
+            ( SpellId.StrengthSelf1,             0.16f ),
             ( SpellId.EnduranceSelf1,            0.15f ),
             ( SpellId.CoordinationSelf1,         0.15f ),
             ( SpellId.QuicknessSelf1,            0.15f ),
@@ -364,7 +364,41 @@ namespace ACE.Server.Factories.Tables
             ( SpellId.SneakAttackMasterySelf1,         0.06f ),
         };
 
-        // leather cap possibly has a unique profile
+        // leather cap (1 entry?)
+        private static readonly ChanceTable<SpellId> spellSelectionGroup20 = new ChanceTable<SpellId>()
+        {
+            ( SpellId.RecklessnessMasterySelf1,        0.075f ),
+            ( SpellId.LockpickMasterySelf1,            0.075f ),
+            ( SpellId.CookingMasterySelf1,             0.05f ),
+            ( SpellId.FletchingMasterySelf1,           0.05f ),
+            ( SpellId.ItemEnchantmentMasterySelf1,     0.05f ),
+            ( SpellId.CreatureEnchantmentMasterySelf1, 0.04f ),
+            ( SpellId.FealtySelf1,                     0.04f ),
+            ( SpellId.ManaMasterySelf1,                0.04f ),
+            ( SpellId.SneakAttackMasterySelf1,         0.04f ),
+            ( SpellId.WillpowerSelf1,                  0.04f ),
+            ( SpellId.ItemExpertiseSelf1,              0.03f ),
+            ( SpellId.PersonAttunementSelf1,           0.03f ),
+            ( SpellId.RegenerationSelf1,               0.03f ),
+            ( SpellId.VoidMagicMasterySelf1,           0.03f ),
+            ( SpellId.WarMagicMasterySelf1,            0.03f ),
+            ( SpellId.WeaponExpertiseSelf1,            0.03f ),
+            ( SpellId.AlchemyMasterySelf1,             0.025f ),
+            ( SpellId.ArcaneEnlightenmentSelf1,        0.025f ),
+            ( SpellId.ArcanumSalvagingSelf1,           0.025f ),
+            ( SpellId.DeceptionMasterySelf1,           0.025f ),
+            ( SpellId.DualWieldMasterySelf1,           0.025f ),
+            ( SpellId.MonsterAttunementSelf1,          0.025f ),
+            ( SpellId.ArmorExpertiseSelf1,             0.02f ),
+            ( SpellId.DirtyFightingMasterySelf1,       0.02f ),
+            ( SpellId.FocusSelf1,                      0.02f ),
+            ( SpellId.HealingMasterySelf1,             0.02f ),
+            ( SpellId.MagicItemExpertiseSelf1,         0.02f ),
+            ( SpellId.MagicResistanceSelf1,            0.02f ),
+            ( SpellId.ManaRenewalSelf1,                0.02f ),
+            ( SpellId.RejuvenationSelf1,               0.02f ),
+            ( SpellId.LifeMagicMasterySelf1,           0.01f ),
+        };
 
         /// <summary>
         /// Key is (PropertyInt.TsysMutationData >> 24) - 1
@@ -390,6 +424,7 @@ namespace ACE.Server.Factories.Tables
             spellSelectionGroup17,
             spellSelectionGroup18,
             spellSelectionGroup19,
+            spellSelectionGroup20,
         };
 
         /// <summary>

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 using ACE.Common;
@@ -5,6 +6,7 @@ using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Models;
 using ACE.Server.Factories.Entity;
+using ACE.Server.Factories.Enum;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
@@ -113,6 +115,14 @@ namespace ACE.Server.Factories
                 return null;
             }*/
 
+            // test method: determine spell selection code dynamically
+            var spellSelectionCode = GetSpellSelectionCode_Dynamic(wo, roll);
+
+            if (spellSelectionCode == 0)
+                return null;
+
+            //Console.WriteLine($"Using spell selection code {spellSelectionCode} for {wo.Name}");
+
             var numEnchantments = RollNumEnchantments(wo, profile, roll);
 
             if (numEnchantments <= 0)
@@ -124,7 +134,7 @@ namespace ACE.Server.Factories
 
             for (var i = 0; i < numAttempts && spells.Count < numEnchantments; i++)
             {
-                var spell = RollEnchantment(wo, profile, roll);
+                var spell = RollEnchantment(wo, profile, roll, spellSelectionCode);
 
                 if (spell != SpellId.Undef)
                     spells.Add(spell);
@@ -133,12 +143,14 @@ namespace ACE.Server.Factories
             return RollSpellLevels(wo, profile, spells);
         }
 
-        private static SpellId RollEnchantment(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
+        private static SpellId RollEnchantment(WorldObject wo, TreasureDeath profile, TreasureRoll roll, int spellSelectionCode)
         {
             // TODO: change to ace spell selection tables
             //return SpellSelectionTable.Roll(wo.SpellSelectionCode.Value);
 
-            if (roll.IsJewelry)
+            return SpellSelectionTable.Roll(spellSelectionCode);
+
+            /*if (roll.IsJewelry)
             {
                 var rng = ThreadSafeRandom.Next(0, JewelrySpells.Table.Length - 1);
                 return JewelrySpells.Table[rng][0];
@@ -161,7 +173,7 @@ namespace ACE.Server.Factories
             }
             var _rng = ThreadSafeRandom.Next(0, table.Count - 1);
 
-            return table[_rng];
+            return table[_rng];*/
         }
 
         private static int RollNumEnchantments(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
@@ -330,7 +342,7 @@ namespace ACE.Server.Factories
             }
         }
 
-        public static SpellId AdjustForWeaponMastery(WorldObject wo, SpellId spell)
+        private static SpellId AdjustForWeaponMastery(WorldObject wo, SpellId spell)
         {
             // handle two-handed weapons
             if (wo.WeaponSkill == Skill.TwoHandedCombat)
@@ -355,7 +367,7 @@ namespace ACE.Server.Factories
             return spell;
         }
 
-        public static SpellId AdjustForDamageType(WorldObject wo, SpellId spell)
+        private static SpellId AdjustForDamageType(WorldObject wo, SpellId spell)
         {
             if (wo.W_DamageType == DamageType.Nether)
                 return SpellId.CantripVoidMagicAptitude1;
@@ -370,6 +382,114 @@ namespace ACE.Server.Factories
                 return SpellId.CANTRIPWARMAGICAPTITUDE1;
             else
                 return SpellId.CantripVoidMagicAptitude1;
+        }
+
+        /// <summary>
+        /// An alternate method to using the SpellSelectionCode from PropertyInt.TSysMutationdata
+        /// </summary>
+        private static int GetSpellSelectionCode_Dynamic(WorldObject wo, TreasureRoll roll)
+        {
+            if (wo is Gem)
+            {
+                return 1;
+            }
+            else if (roll.ItemType == TreasureItemType_Orig.Jewelry)
+            {
+                if (!roll.HasArmorLevel(wo))
+                    return 2;
+                else
+                    return 3;
+            }
+            else if (roll.Wcid == Enum.WeenieClassName.orb)
+            {
+                return 4;
+            }
+            else if (roll.IsCaster && wo.W_DamageType != DamageType.Nether)
+            {
+                return 5;
+            }
+            else if (roll.IsMeleeWeapon && wo.WeaponSkill != Skill.TwoHandedCombat)
+            {
+                return 6;
+            }
+            else if ((roll.IsArmor || roll.IsClothing) && !wo.IsShield)
+            {
+                return GetSpellCode_Dynamic_ClothingArmor(wo, roll);
+            }
+            else if (wo.IsShield)
+            {
+                return 8;
+            }
+            else if (roll.IsDinnerware)
+            {
+                return 16;
+            }
+            else if (roll.IsMissileWeapon || wo.WeaponSkill == Skill.TwoHandedCombat)
+            {
+                return 17;
+            }
+            else if (roll.IsCaster && wo.W_DamageType == DamageType.Nether)
+            {
+                return 19;
+            }
+
+            log.Error($"GetSpellCode_Dynamic({wo.Name}) - couldn't determine spell selection code");
+
+            return 0;
+        }
+
+        private static readonly CoverageMask upperArmor = CoverageMask.OuterwearChest | CoverageMask.OuterwearUpperArms | CoverageMask.OuterwearLowerArms | CoverageMask.OuterwearAbdomen;
+        private static readonly CoverageMask lowerArmor = CoverageMask.OuterwearUpperLegs | CoverageMask.OuterwearLowerLegs;     // check abdomen
+
+        private static readonly CoverageMask clothing = CoverageMask.UnderwearChest | CoverageMask.UnderwearUpperArms | CoverageMask.UnderwearLowerArms |
+                CoverageMask.UnderwearAbdomen | CoverageMask.UnderwearUpperLegs | CoverageMask.UnderwearLowerLegs;
+
+        private static int GetSpellCode_Dynamic_ClothingArmor(WorldObject wo, TreasureRoll roll)
+        {
+            // special cases
+            switch (roll.Wcid)
+            {
+                case Enum.WeenieClassName.glovescloth:
+                    return 14;
+                case Enum.WeenieClassName.capleather:
+                    return 20;
+            }
+
+            var coverageMask = wo.ClothingPriority ?? 0;
+            var isArmor = roll.IsArmor;
+
+            if ((coverageMask & upperArmor) != 0 && (coverageMask & CoverageMask.OuterwearLowerLegs) == 0)
+                return 7;
+
+            if (coverageMask == CoverageMask.Hands && isArmor)
+                return 9;
+
+            if (coverageMask == CoverageMask.Head && roll.BaseArmorLevel > 20)
+                return 10;
+
+            // base weenie armorLevel > 20
+            if ((coverageMask & CoverageMask.Feet) != 0 && roll.BaseArmorLevel > 20)
+                return 11;
+
+            if ((coverageMask & clothing) != 0)
+                return 12;
+
+            // metal cap?
+            if (coverageMask == CoverageMask.Head && !isArmor)
+                return 13;
+
+            if (coverageMask == CoverageMask.Hands && !isArmor)
+                return 14;
+
+            // leggings
+            if ((coverageMask & lowerArmor) != 0)
+                return 15;
+
+            if (coverageMask == CoverageMask.Feet)
+                return 18;
+
+            log.Error($"GetSpellCode_Dynamic_ClothingArmor({wo.Name}) - couldn't determine spell selection code for {coverageMask}, {isArmor}");
+            return 0;
         }
     }
 }
