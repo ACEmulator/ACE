@@ -405,6 +405,7 @@ namespace ACE.Server.WorldObjects
             0x00B3,     // Colosseum Arena Four
             0x00B4,     // Colosseum Arena Five
             0x00B6,     // Colosseum Arena Mini-Bosses
+            0x00EA,     // Mhoire Armory
             0x5960,     // Gauntlet Arena One (Celestial Hand)
             0x5961,     // Gauntlet Arena Two (Celestial Hand)
             0x5962,     // Gauntlet Arena One (Eldritch Web)
