@@ -2764,7 +2764,7 @@ namespace ACE.Server.Factories
                     break;
 
                 case TreasureItemType_Orig.Cloak:
-                    MutateCloak(wo, treasureDeath);
+                    MutateCloak(wo, treasureDeath, treasureRoll);
                     break;
 
                 case TreasureItemType_Orig.PetDevice:

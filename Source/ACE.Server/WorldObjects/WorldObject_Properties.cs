@@ -3009,6 +3009,24 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.GearCritResist); else SetProperty(PropertyInt.GearCritResist, value.Value); }
         }
 
+        /// <summary>
+        /// The Healing Boost Rating on a non-creature item
+        /// </summary>
+        public int? GearHealingBoost
+        {
+            get => GetProperty(PropertyInt.GearHealingBoost);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearHealingBoost); else SetProperty(PropertyInt.GearHealingBoost, value.Value); }
+        }
+
+        /// <summary>
+        /// The MaxHealth Boost Rating on a creature or item
+        /// </summary>
+        public int? GearMaxHealth
+        {
+            get => GetProperty(PropertyInt.GearMaxHealth);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearMaxHealth); else SetProperty(PropertyInt.GearMaxHealth, value.Value); }
+        }
+
         public int? ResistItemAppraisal
         {
             get => GetProperty(PropertyInt.ResistItemAppraisal);

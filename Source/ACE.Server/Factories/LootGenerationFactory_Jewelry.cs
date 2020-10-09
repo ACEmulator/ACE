@@ -87,6 +87,9 @@ namespace ACE.Server.Factories
             //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
             wo.LongDesc = GetLongDesc(wo);
 
+            if (roll != null && profile.Tier == 8)
+                TryMutateGearRating(wo, profile, roll);
+
             MutateColor(wo);
         }
 
