@@ -419,7 +419,7 @@ namespace ACE.Server.WorldObjects
                             {
                                 var blockDist = PhysicsObj.GetBlockDist(newPosition.Cell, LastGroundPos.Cell);
 
-                                if (blockDist == 0)
+                                if (blockDist <= 1)
                                 {
                                     log.Warn($"z-pos hacking detected for {Name}, lastGroundPos: {LastGroundPos.ToLOCString()} - requestPos: {newPosition.ToLOCString()}");
                                     Location = new ACE.Entity.Position(LastGroundPos);
