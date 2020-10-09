@@ -417,11 +417,16 @@ namespace ACE.Server.WorldObjects
 
                             if (verifyContact && IsJumping)
                             {
-                                log.Warn($"z-pos hacking detected for {Name}, lastGroundPos: {LastGroundPos.ToLOCString()} - requestPos: {newPosition.ToLOCString()}");
-                                Location = new ACE.Entity.Position(LastGroundPos);
-                                Sequences.GetNextSequence(SequenceType.ObjectForcePosition);
-                                SendUpdatePosition();
-                                return false;
+                                var blockDist = PhysicsObj.GetBlockDist(newPosition.Cell, LastGroundPos.Cell);
+
+                                if (blockDist <= 1)
+                                {
+                                    log.Warn($"z-pos hacking detected for {Name}, lastGroundPos: {LastGroundPos.ToLOCString()} - requestPos: {newPosition.ToLOCString()}");
+                                    Location = new ACE.Entity.Position(LastGroundPos);
+                                    Sequences.GetNextSequence(SequenceType.ObjectForcePosition);
+                                    SendUpdatePosition();
+                                    return false;
+                                }
                             }
 
                             CheckMonsters();
