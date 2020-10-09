@@ -48,7 +48,19 @@ namespace ACE.Server.Factories
             }
             else
             {
-                wo.ItemMaxMana = RollItemMaxMana_New(wo, profile, roll, maxBaseMana);
+                var maxSpellMana = maxBaseMana;
+
+                if (wo.SpellDID != null)
+                {
+                    var spell = new Server.Entity.Spell(wo.SpellDID.Value);
+
+                    var castableMana = (int)spell.BaseMana * 5;
+
+                    if (castableMana > maxSpellMana)
+                        maxSpellMana = castableMana;
+                }
+
+                wo.ItemMaxMana = RollItemMaxMana_New(wo, roll, maxSpellMana);
                 wo.ItemCurMana = wo.ItemMaxMana;
 
                 wo.ItemSpellcraft = RollSpellcraft(wo, roll);
@@ -470,15 +482,6 @@ namespace ACE.Server.Factories
         {
             var maxBaseMana = 0;
 
-            if (wo.SpellDID != null)
-            {
-                // added for ItemMaxMana calcs to match eor data
-                var spell = new Server.Entity.Spell(wo.SpellDID.Value);
-
-                if (spell.BaseMana > maxBaseMana)
-                    maxBaseMana = (int)spell.BaseMana;
-            }
-
             if (wo.Biota.PropertiesSpellBook != null)
             {
                 foreach (var spellId in wo.Biota.PropertiesSpellBook.Keys)
@@ -518,7 +521,7 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Rolls the ItemMaxMana for an object
         /// </summary>
-        private static int RollItemMaxMana_New(WorldObject wo, TreasureDeath profile, TreasureRoll roll, int maxBaseMana)
+        private static int RollItemMaxMana_New(WorldObject wo, TreasureRoll roll, int maxSpellMana)
         {
             // verified matches up with magloot eor logs
 
@@ -526,38 +529,10 @@ namespace ACE.Server.Factories
 
             (int min, int max) range;
 
-            if (roll.IsClothing || roll.IsArmor || roll.IsMeleeWeapon || roll.IsMissileWeapon || roll.IsDinnerware)
+            if (roll.IsClothing || roll.IsArmor || roll.IsWeapon || roll.IsDinnerware)
             {
                 range.min = 6;
                 range.max = 15;
-            }
-            else if (roll.IsCaster)
-            {
-                // casters seem to be the only oddity here
-                // they scale evenly per tier / with maxBaseMana still,
-                // however in a much larger 6-75 range, in a non-even distribution,
-                // unlike all of the other tables
-
-                // also verified these semi-rare casters were not outliers,
-                // ie. they all appeared to be standard lootgen casters
-
-                // this is most likely not exactly matched up to whatever retail was doing for casters,
-                // but at least approaches matching the possible range / distribution..
-
-                // the theoretical max (80 base mana * 2.0 ws mod * 75) would be 12k mana
-
-                range.min = 6;
-                range.max = 75;
-
-                var casterRange = range.max - range.min;
-
-                // roll a weighted value between 0-1
-                var interval = CasterItemMaxMana.Roll(profile);
-
-                var caster_rng = range.min + casterRange * interval;
-
-                return (int)Math.Ceiling(maxBaseMana * workmanship * caster_rng);
-
             }
             else if (roll.IsJewelry)
             {
@@ -567,18 +542,18 @@ namespace ACE.Server.Factories
             }
             else if (roll.IsGem)
             {
-                range.min = 5;
-                range.max = 5;
+                range.min = 1;
+                range.max = 1;
             }
             else
             {
-                log.Error($"RollItemMaxMana({wo.Name}, {roll.ItemType}, {maxBaseMana}) - unknown item type");
+                log.Error($"RollItemMaxMana({wo.Name}, {roll.ItemType}, {maxSpellMana}) - unknown item type");
                 return 1;
             }
 
             var rng = ThreadSafeRandom.Next(range.min, range.max);
 
-            return (int)Math.Ceiling(maxBaseMana * workmanship * rng);
+            return (int)Math.Ceiling(maxSpellMana * workmanship * rng);
         }
 
         /// <summary>
@@ -654,7 +629,7 @@ namespace ACE.Server.Factories
         }
 
         /// <summary>
-        /// Returns the maximum power from the spells in item's spellbook
+        /// Returns the maximum power from the spells in item's SpellDID / spellbook
         /// </summary>
         public static int GetMaxSpellPower(WorldObject wo)
         {
