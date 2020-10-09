@@ -57,7 +57,7 @@ namespace ACE.Server.WorldObjects
 
         public DeathMessage GetDeathMessage(DamageHistoryInfo lastDamagerInfo, DamageType damageType, bool criticalHit = false)
         {
-            var lastDamager = lastDamagerInfo.TryGetAttacker();
+            var lastDamager = lastDamagerInfo?.TryGetAttacker();
 
             if (lastDamagerInfo == null || lastDamagerInfo.Guid == Guid || lastDamager is Hotspot)
                 return Strings.General[1];
