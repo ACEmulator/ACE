@@ -256,7 +256,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Casts the current monster spell on target
         /// </summary>
-        private void CastSpell(Spell spell)
+        public void CastSpell(Spell spell)
         {
             if (AttackTarget == null) return;
 
