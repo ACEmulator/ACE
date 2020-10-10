@@ -203,12 +203,10 @@ namespace ACE.Server.WorldObjects
 
             SwitchWeaponsPending = true;
 
-            var nextSwitchTime = NextMoveTime - MissileDelay;
-
-            if (nextSwitchTime > Timers.RunningTime)
+            if (NextMoveTime > Timers.RunningTime)
             {
                 var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(nextSwitchTime - Timers.RunningTime);
+                actionChain.AddDelaySeconds(NextMoveTime - Timers.RunningTime);
                 actionChain.AddAction(this, () => SwitchToMeleeAttack());
                 actionChain.EnqueueChain();
             }
@@ -218,7 +216,6 @@ namespace ACE.Server.WorldObjects
 
         public void SwitchToMeleeAttack()
         {
-            //Console.WriteLine($"{Name}.SwitchToMeleeAttack()");
             if (IsDead) return;
 
             var weapon = GetEquippedMissileWeapon();
@@ -227,36 +224,75 @@ namespace ACE.Server.WorldObjects
             if (weapon == null && ammo == null)
                 return;
 
-            // actually destroys the missile weapon + ammo here,
-            // to ensure they can't be re-selected from inventory
-            if (weapon != null)
-            {
-                TryUnwieldObjectWithBroadcasting(weapon.Guid, out _, out _);
-                weapon.Destroy();
-            }
-
-            if (ammo != null)
-            {
-                TryUnwieldObjectWithBroadcasting(ammo.Guid, out _, out _);
-                ammo.Destroy();
-            }
-
-            EquipInventoryItems(true);
-            DoAttackStance();
-            CurrentAttack = null;
-
-            SwitchWeaponsPending = false;
-
-            // this is an unfortunate hack to fix the following scenario:
-
-            // since this function can be called at any point in time now,
-            // including when LaunchMissile -> EnqueueMotion is in the middle of an action queue,
-            // CurrentMotionState.Stance can get reset to the previous combat stance if that happens
-
-            var combatStance = GetCombatStance();
             var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(2.0f);
-            actionChain.AddAction(this, () => CurrentMotionState.Stance = combatStance);
+
+            EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, (MotionCommand)CurrentMotionState.Stance);
+
+            EnqueueMotion_Force(actionChain, MotionStance.HandCombat, MotionCommand.Ready, MotionCommand.NonCombat);
+
+            actionChain.AddAction(this, () =>
+            {
+                if (IsDead) return;
+
+                // actually destroys the missile weapon + ammo here,
+                // to ensure they can't be re-selected from inventory
+                if (weapon != null)
+                {
+                    TryUnwieldObjectWithBroadcasting(weapon.Guid, out _, out _);
+                    weapon.Destroy();
+                }
+
+                if (ammo != null)
+                {
+                    TryUnwieldObjectWithBroadcasting(ammo.Guid, out _, out _);
+                    ammo.Destroy();
+                }
+
+                EquipInventoryItems(true);
+
+                var innerChain = new ActionChain();
+
+                EnqueueMotion_Force(innerChain, MotionStance.NonCombat, MotionCommand.Ready, (MotionCommand)CurrentMotionState.Stance);
+
+                innerChain.AddAction(this, () =>
+                {
+                    if (IsDead) return;
+
+                    //DoAttackStance();
+
+                    // inlined DoAttackStance() / slightly modified -- do not rely on SetCombatMode() for stance swapping time in 1 action,
+                    // as it doesn't support that anymore
+
+                    var newStanceTime = SetCombatMode(CombatMode.Melee);
+
+                    NextMoveTime = NextAttackTime = Timers.RunningTime + newStanceTime;
+
+                    PrevAttackTime = NextMoveTime - (AiUseMagicDelay ?? 3.0f);
+
+                    PhysicsObj.StartTimer();
+
+                    // end inline
+
+                    ResetAttack();
+
+                    SwitchWeaponsPending = false;
+
+                    // this is an unfortunate hack to fix the following scenario:
+
+                    // since this function can be called at any point in time now,
+                    // including when LaunchMissile -> EnqueueMotion is in the middle of an action queue,
+                    // CurrentMotionState.Stance can get reset to the previous combat stance if that happens
+
+                    var newStance = CurrentMotionState.Stance;
+
+                    var swapChain = new ActionChain();
+                    swapChain.AddDelaySeconds(2.0f);
+                    swapChain.AddAction(this, () => CurrentMotionState.Stance = newStance);
+                    swapChain.EnqueueChain();
+
+                });
+                innerChain.EnqueueChain();
+            });
             actionChain.EnqueueChain();
         }
     }
