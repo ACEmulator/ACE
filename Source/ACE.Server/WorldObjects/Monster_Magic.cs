@@ -55,7 +55,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private Spell CurrentSpell { get; set; }
 
-        private Spell TryRollSpell()
+        private bool TryRollSpell()
         {
             CurrentSpell = null;
 
@@ -69,7 +69,7 @@ namespace ACE.Server.WorldObjects
             // for now, 2.0 base just becomes a 2% chance
 
             if (Biota.PropertiesSpellBook == null)
-                return null;
+                return false;
 
             // We don't use thread safety here. Monster spell books aren't mutated cross-threads.
             // This reduces memory consumption by not cloning the spell book every single TryRollSpell()
@@ -82,10 +82,11 @@ namespace ACE.Server.WorldObjects
 
                 if (rng < probability)
                 {
-                    return CurrentSpell = new Spell(spell.Key);
+                    CurrentSpell = new Spell(spell.Key);
+                    return true;
                 }
             }
-            return null;
+            return false;
         }
 
         /// <summary>
@@ -192,6 +193,7 @@ namespace ACE.Server.WorldObjects
 
         private static readonly float PreCastSpeed = 2.0f;
         private static readonly float PostCastSpeed = 1.0f;
+        private static readonly float PostCastSpeed_Ranged = 1.66f;  // ??
 
         /// <summary>
         /// Perform the first part of monster spell casting animation - spreading arms out
@@ -320,7 +322,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void PostCastMotion()
         {
-            var motion = new Motion(this, MotionCommand.Ready, PostCastSpeed);
+            var animSpeed = IsRanged ? PostCastSpeed_Ranged : PostCastSpeed;
+
+            var motion = new Motion(this, MotionCommand.Ready, animSpeed);
             motion.MotionState.TurnSpeed = 2.25f;
             //motion.HasTarget = true;
             //motion.TargetGuid = target.Guid;
@@ -334,12 +338,16 @@ namespace ACE.Server.WorldObjects
             if (AiUseHumanMagicAnimations && !fallback)
                 return GetPostCastTime_Human(spell);
 
-            return MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, MotionCommand.Ready, PostCastSpeed);
+            var animSpeed = IsRanged ? PostCastSpeed_Ranged : PostCastSpeed;
+
+            return MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, MotionCommand.Ready, animSpeed);
         }
 
         private float GetPostCastTime_Human(Spell spell)
         {
-            var animTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, spell.Formula.CastGesture, MotionCommand.Ready, PostCastSpeed);
+            var animSpeed = IsRanged ? PostCastSpeed_Ranged : PostCastSpeed;
+
+            var animTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, spell.Formula.CastGesture, MotionCommand.Ready, animSpeed);
 
             // FIXME: data
             if (animTime == 0.0f)

@@ -19,14 +19,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns TRUE if monster has physical ranged attacks
         /// </summary>
-        public new bool IsRanged
-        {
-            get
-            {
-                var weapon = GetEquippedMissileWeapon();
-                return weapon != null;
-            }
-        }
+        public new bool IsRanged => GetEquippedMissileWeapon() != null;
 
         /// <summary>
         /// Starts a monster missile attack
