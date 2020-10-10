@@ -1067,7 +1067,7 @@ namespace ACE.Server.WorldObjects
                     else
                         attackType = AttackType.Thrust;
                 }
-                    
+
                 // handle old bugged poniards and newer tachis w/ Thrust, DoubleSlash
                 // and gaerlan sword / py16 (iasparailaun) w/ Thrust, TripleSlash
                 else if (attackType.HasFlag(AttackType.Thrust) && (attackType & (AttackType.DoubleSlash | AttackType.TripleSlash)) != 0)
