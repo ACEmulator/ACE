@@ -201,7 +201,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                         var preCastTime = creature.PreCastMotion(targetObject);
 
-                        delay = preCastTime + creature.GetPostCastTime();
+                        delay = preCastTime + creature.GetPostCastTime(spell);
 
                         var castChain = new ActionChain();
                         castChain.AddDelaySeconds(preCastTime);
