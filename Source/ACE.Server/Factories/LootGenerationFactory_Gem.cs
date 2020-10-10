@@ -53,10 +53,15 @@ namespace ACE.Server.Factories
             }
             else
             {
-                AssignMagic_Gem(wo, profile, roll);
+                if (roll == null)
+                    AssignMagic_Gem(wo, profile);
+                else
+                    AssignMagic_Gem_New(wo, profile, roll);
 
                 wo.UiEffects = UiEffects.Magical;
                 wo.ItemUseable = Usable.Contained;
+
+                wo.LongDesc = GetLongDesc(wo);
             }
 
             // item value, review
@@ -64,10 +69,8 @@ namespace ACE.Server.Factories
             wo.Value = gemValue + ThreadSafeRandom.Next(1, gemValue);
         }
 
-        private static void AssignMagic_Gem(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
+        private static void AssignMagic_Gem(WorldObject wo, TreasureDeath profile)
         {
-            // TODO: move to standard AssignMagic() pipeline
-
             var spellLevelIdx = ThreadSafeRandom.Next(0, 1);
             var spellLevel = LootTables.GemSpellIndexMatrix[profile.Tier - 1][spellLevelIdx];
 
@@ -81,34 +84,50 @@ namespace ACE.Server.Factories
 
             wo.SpellDID = (uint)spell;
 
-            if (roll == null)
+            var baseMana = spellLevel * 50;
+
+            wo.ItemSpellcraft = RollSpellcraft(wo);
+
+            wo.ItemMaxMana = ThreadSafeRandom.Next(baseMana, baseMana + 50);
+            wo.ItemCurMana = wo.ItemMaxMana;
+
+            wo.ItemManaCost = baseMana;
+        }
+
+        private static bool AssignMagic_Gem_New(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
+        {
+            // TODO: move to standard AssignMagic() pipeline
+
+            var spell = SpellSelectionTable.Roll(1);
+
+            var spellLevel = SpellLevelChance.Roll(profile.Tier);
+
+            var spellLevels = SpellLevelProgression.GetSpellLevels(spell);
+
+            if (spellLevels == null || spellLevels.Count != 8)
             {
-                // old method
-                var baseMana = spellLevel * 50;
-
-                wo.ItemSpellcraft = RollSpellcraft(wo);
-
-                wo.ItemMaxMana = ThreadSafeRandom.Next(baseMana, baseMana + 50);
-                wo.ItemCurMana = wo.ItemMaxMana;
-
-                wo.ItemManaCost = baseMana;
+                log.Error($"AssignMagic_Gem_New({wo.Name}, {profile.TreasureType}, {roll.ItemType}) - unknown spell {spell}");
+                return false;
             }
-            else
-            {
-                // new method
-                var _spell = new Server.Entity.Spell(spell);
 
-                // retail spellcraft was capped at 370
-                wo.ItemSpellcraft = Math.Min((int)_spell.Power, 370);
+            var finalSpellId = spellLevels[spellLevel - 1];
 
-                var castableMana = (int)_spell.BaseMana * 5;
+            wo.SpellDID = (uint)finalSpellId;
 
-                wo.ItemMaxMana = RollItemMaxMana_New(wo, roll, castableMana);
-                wo.ItemCurMana = wo.ItemMaxMana;
+            var _spell = new Server.Entity.Spell(finalSpellId);
 
-                // verified
-                wo.ItemManaCost = castableMana;
-            }
+            // retail spellcraft was capped at 370
+            wo.ItemSpellcraft = Math.Min((int)_spell.Power, 370);
+
+            var castableMana = (int)_spell.BaseMana * 5;
+
+            wo.ItemMaxMana = RollItemMaxMana_New(wo, roll, castableMana);
+            wo.ItemCurMana = wo.ItemMaxMana;
+
+            // verified
+            wo.ItemManaCost = castableMana;
+
+            return true;
         }
 
         private static bool GetMutateGemData(uint wcid)
