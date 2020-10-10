@@ -329,11 +329,23 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcastMotion(motion);
         }
 
-        public float GetPostCastTime(Spell spell)
+        public float GetPostCastTime(Spell spell, bool fallback = false)
         {
-            var castMotion = AiUseHumanMagicAnimations ? spell.Formula.CastGesture : MotionCommand.CastSpell;
+            if (AiUseHumanMagicAnimations && !fallback)
+                return GetPostCastTime_Human(spell);
 
-            return MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, castMotion, MotionCommand.Ready, PostCastSpeed);
+            return MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, MotionCommand.Ready, PostCastSpeed);
+        }
+
+        private float GetPostCastTime_Human(Spell spell)
+        {
+            var animTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, spell.Formula.CastGesture, MotionCommand.Ready, PostCastSpeed);
+
+            // FIXME: data
+            if (animTime == 0.0f)
+                return GetPostCastTime(spell, true);
+
+            return animTime;
         }
 
         /// <summary>
