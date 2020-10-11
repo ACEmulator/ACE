@@ -277,9 +277,18 @@ namespace ACE.Server.WorldObjects
 
             switch (spell.School)
             {
-                case MagicSchool.WarMagic:
+                case MagicSchool.CreatureEnchantment:
 
-                    WarMagic(target, spell, this);
+                    CreatureMagic(target, spell);
+
+                    if (target != null)
+                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
+                    break;
+
+                case MagicSchool.ItemEnchantment:
+
+                    TryCastItemEnchantment_WithRedirects(spell, target);
                     break;
 
                 case MagicSchool.LifeMagic:
@@ -296,15 +305,6 @@ namespace ACE.Server.WorldObjects
 
                     break;
 
-                case MagicSchool.CreatureEnchantment:
-
-                    CreatureMagic(target, spell);
-
-                    if (target != null)
-                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
-                    break;
-
                 case MagicSchool.VoidMagic:
 
                     VoidMagic(target, spell, this);
@@ -312,6 +312,11 @@ namespace ACE.Server.WorldObjects
                     if (spell.NumProjectiles == 0 && target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
 
+                    break;
+
+                case MagicSchool.WarMagic:
+
+                    WarMagic(target, spell, this);
                     break;
             }
         }
