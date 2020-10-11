@@ -3287,5 +3287,21 @@ namespace ACE.Server.Command.Handlers
 
             PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has deleveled themselves from {currentLevel} to {session.Player.Level} - unassignedXPRequired: {unassignedXPRequired:N0} | skillCreditsRequired: {skillCreditsRequired:N0}");
         }
+
+        [CommandHandler("debugspellbook", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the spellbook for the last appraised object")]
+        public static void HandleDebugSpellbook(Session session, params string[] parameters)
+        {
+            var creature = CommandHandlerHelper.GetLastAppraisedObject(session) as Creature;
+
+            if (creature == null || creature.Biota.PropertiesSpellBook == null)
+                return;
+
+            var lines = new List<string>();
+
+            foreach (var entry in creature.Biota.PropertiesSpellBook)
+                lines.Add($"{(SpellId)entry.Key} - {entry.Value}");
+
+            CommandHandlerHelper.WriteOutputInfo(session, string.Join('\n', lines));
+        }
     }
 }
