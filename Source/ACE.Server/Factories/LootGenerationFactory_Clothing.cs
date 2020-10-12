@@ -194,10 +194,6 @@ namespace ACE.Server.Factories
                 wo.ItemSkillLimit = wieldSkill;
             }
 
-            // Setting random color
-            wo.PaletteTemplate = ThreadSafeRandom.Next(1, 2047);
-            wo.Shade = .1 * ThreadSafeRandom.Next(0, 9);
-
             wo = AssignArmorLevel(wo, profile.Tier, armorType);
 
             wo = AssignEquipmentSetId(wo, profile);
