@@ -159,12 +159,9 @@ namespace ACE.Server.Factories
 
             // burden?
 
-            // item value
-            wo.Value = Roll_ItemValue(wo, profile.Tier);
-
             // missile defense / magic defense
-            wo.WeaponMissileDefense = RollWeapon_MissileMagicDefense(profile.Tier);
-            wo.WeaponMagicDefense = RollWeapon_MissileMagicDefense(profile.Tier);
+            wo.WeaponMissileDefense = MissileMagicDefense.Roll(profile.Tier);
+            wo.WeaponMagicDefense = MissileMagicDefense.Roll(profile.Tier);
 
             // spells
             if (!isMagical)
@@ -182,6 +179,9 @@ namespace ACE.Server.Factories
 
                 AssignMagic(wo, profile, roll);
             }
+
+            // item value
+            wo.Value = Roll_ItemValue(wo, profile.Tier);
 
             // long description
             wo.LongDesc = GetLongDesc(wo);

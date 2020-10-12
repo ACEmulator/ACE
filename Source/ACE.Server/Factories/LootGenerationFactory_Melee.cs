@@ -130,9 +130,6 @@ namespace ACE.Server.Factories
             // burden
             MutateBurden(wo, profile, true);
 
-            // item value
-            wo.Value = Roll_ItemValue(wo, profile.Tier);
-
             // missile / magic defense
             wo.WeaponMissileDefense = MissileMagicDefense.Roll(profile.Tier);
             wo.WeaponMagicDefense = MissileMagicDefense.Roll(profile.Tier);
@@ -149,6 +146,9 @@ namespace ACE.Server.Factories
             }
             else
                 AssignMagic(wo, profile, roll);
+
+            // item value
+            wo.Value = Roll_ItemValue(wo, profile.Tier);
 
             // long description
             wo.LongDesc = GetLongDesc(wo);
