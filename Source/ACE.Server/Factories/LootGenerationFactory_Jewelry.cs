@@ -39,10 +39,15 @@ namespace ACE.Server.Factories
 
         private static void MutateJewelry(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureRoll roll = null)
         {
+            // material type
             int materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
 
+            // item color
+            MutateColor(wo);
+
+            // gem count / gem material
             if (wo.GemCode != null)
                 wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
             else
@@ -50,15 +55,10 @@ namespace ACE.Server.Factories
 
             wo.GemType = RollGemType(profile.Tier);
 
-            wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
+            // workmanship
+            wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
-            double materialMod = LootTables.getMaterialValueModifier(wo);
-            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(profile.Tier, wo.ItemWorkmanship.Value, gemMaterialMod, materialMod);
-            wo.Value = value;
-
-            wo.ItemSkillLevelLimit = null;
-
+            // wield requirements (verify)
             if (profile.Tier > 6)
             {
                 wo.WieldRequirements = WieldRequirement.Level;
@@ -72,6 +72,7 @@ namespace ACE.Server.Factories
                 wo.WieldDifficulty = wield;
             }
 
+            // assign magic
             if (isMagical)
                 AssignMagic(wo, profile, roll);
             else
@@ -84,13 +85,14 @@ namespace ACE.Server.Factories
                 wo.ManaRate = null;
             }
 
-            //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
-            wo.LongDesc = GetLongDesc(wo);
-
+            // gear rating (t8)
             if (roll != null && profile.Tier == 8)
                 TryMutateGearRating(wo, profile, roll);
 
-            MutateColor(wo);
+            // item value
+            wo.Value = Roll_ItemValue(wo, profile.Tier);
+
+            wo.LongDesc = GetLongDesc(wo);
         }
 
         private static bool GetMutateJewelryData(uint wcid)

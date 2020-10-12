@@ -582,7 +582,10 @@ namespace ACE.Server.WorldObjects
 
                 if (item.ManaRate == null)
                 {
-                    item.ManaRate = LootGenerationFactory.GetManaRate(item);
+                    var maxBaseMana = LootGenerationFactory.GetMaxBaseMana(item);
+
+                    item.ManaRate = LootGenerationFactory.CalculateManaRate(maxBaseMana);
+
                     log.Warn($"{Name}.ManaConsumersTick(): {k.Value.Name} ({k.Value.Guid}) fixed missing ManaRate");
                 }
 
