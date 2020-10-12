@@ -175,9 +175,9 @@ Tier chances: 0, 0, 0, 0, 0, 0, 1, 1
         ArmorLevel += 130
 
     - Chance: 100%:
-        WieldRequirement = Level
+        WieldRequirements = Level
         WieldDifficulty = 150
-        WieldSkill = 1
+        WieldSkillType = 1
 
 Shield Mutation #8:
 
@@ -189,9 +189,9 @@ Tier chances: 0, 0, 0, 0, 0, 0, 0, 1
 
         ArmorLevel += 10
 
-        WieldRequirement = Level
+        WieldRequirements = Level
         WieldDifficulty = 180
-        WieldSkill = 1
+        WieldSkillType = 1
 
 Shield Mutation #9:
 
