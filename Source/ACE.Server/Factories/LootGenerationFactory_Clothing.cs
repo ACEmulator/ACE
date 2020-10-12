@@ -158,7 +158,7 @@ namespace ACE.Server.Factories
             wo.GemType = RollGemType(profile.Tier);
 
             // workmanship
-            wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
+            wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
             // try mutate burden, if MutateFilter exists
             if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
@@ -191,7 +191,7 @@ namespace ACE.Server.Factories
                 wo.WieldDifficulty = GetCovenantWieldReq(profile.Tier, wieldSkill);
 
                 // used by tinkering requirements for copper/silver
-                wo.ItemSkillLimit = (uint)wieldSkill;
+                wo.ItemSkillLimit = wieldSkill;
             }
 
             // Setting random color
@@ -227,9 +227,7 @@ namespace ACE.Server.Factories
                 TryMutateGearRating(wo, profile, roll);
 
             // item value
-            double materialMod = LootTables.getMaterialValueModifier(wo);
-            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            wo.Value = GetValue(profile.Tier, wo.ItemWorkmanship ?? 0, gemMaterialMod, materialMod);
+            wo.Value = Roll_ItemValue(wo, profile.Tier);
 
             wo.LongDesc = GetLongDesc(wo);
         }
@@ -248,13 +246,9 @@ namespace ACE.Server.Factories
 
             wo.GemType = RollGemType(profile.Tier);
 
-            int workmanship = GetWorkmanship(profile.Tier);
-            wo.ItemWorkmanship = workmanship;
+            wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
-            double materialMod = LootTables.getMaterialValueModifier(wo);
-            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
-            wo.Value = value;
+            wo.Value = Roll_ItemValue(wo, profile.Tier);
 
             // wo.WieldSkillType = (int)Skill.Axe;  // Set by examples from PCAP data
 
@@ -787,10 +781,7 @@ namespace ACE.Server.Factories
             wo.Workmanship = WorkmanshipChance.Roll(profile.Tier);
 
             // item value
-            var materialMod = LootTables.getMaterialValueModifier(wo);
-            var gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-
-            wo.Value = GetValue(profile.Tier, wo.ItemWorkmanship ?? 0, gemMaterialMod, materialMod);
+            wo.Value = Roll_ItemValue(wo, profile.Tier);
 
             if (roll != null && profile.Tier == 8)
                 TryMutateGearRating(wo, profile, roll);

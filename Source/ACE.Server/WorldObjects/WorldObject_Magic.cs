@@ -2101,5 +2101,142 @@ namespace ACE.Server.WorldObjects
 
             return enchantment_statModVal;
         }
+
+        protected void TryCastItemEnchantment_WithRedirects(Spell spell, WorldObject target, WorldObject caster = null)
+        {
+            var enchantmentStatus = new EnchantmentStatus(spell);
+
+            caster = caster ?? this;
+
+            var creature = this as Creature;
+            var player = this as Player;
+
+            var targetCreature = target as Creature;
+            var targetPlayer = target as Player;
+
+            // if negative item spell, can be resisted by the wielder
+            if (player != null && spell.IsHarmful)      
+            {
+                var targetResist = targetCreature;
+
+                if (targetResist == null && target?.WielderId != null)
+                    targetResist = CurrentLandblock?.GetObject(target.WielderId.Value) as Creature;
+
+                // skip TryResistSpell() for non-player casters, they already performed it previously
+                if (targetResist != null && TryResistSpell(targetResist, spell, caster))
+                    return;
+            }
+
+            if (spell.IsImpenBaneType)
+            {
+                // impen / bane / brittlemail / lure
+
+                // a lot of these will already be filtered out by IsInvalidTarget()
+                if (targetCreature == null)
+                {
+                    // targeting an individual item / wo
+                    enchantmentStatus = ItemMagic(target, spell);
+
+                    if (target != null)
+                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
+                    if (player != null && enchantmentStatus.Message != null)
+                        player.Session.Network.EnqueueSend(enchantmentStatus.Message);
+                }
+                else
+                {
+                    // targeting a creature
+                    if (targetPlayer == this)
+                    {
+                        // targeting self
+                        if (creature != null)
+                        {
+                            var items = creature.EquippedObjects.Values.Where(i => (i.WeenieType == WeenieType.Clothing || i.IsShield) && i.IsEnchantable);
+
+                            foreach (var item in items)
+                            {
+                                enchantmentStatus = ItemMagic(item, spell);
+                                if (player != null && enchantmentStatus.Message != null)
+                                    player.Session.Network.EnqueueSend(enchantmentStatus.Message);
+                            }
+                            if (items.Count() > 0)
+                                EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
+                        }
+                    }
+                    else
+                    {
+                        // targeting another player or monster
+                        var item = targetCreature.EquippedObjects.Values.FirstOrDefault(i => i.IsShield && i.IsEnchantable);
+
+                        if (item != null)
+                        {
+                            enchantmentStatus = ItemMagic(item, spell);
+                            EnqueueBroadcast(new GameMessageScript(item.Guid, spell.TargetEffect, spell.Formula.Scale));
+                            if (player != null && enchantmentStatus.Message != null)
+                                player.Session.Network.EnqueueSend(enchantmentStatus.Message);
+                        }
+                        else
+                        {
+                            // 'fails to affect'?
+                            if (player != null && targetCreature != null)
+                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetCreature.Name} with {spell.Name}", ChatMessageType.Magic));
+
+                            if (targetPlayer != null && !targetPlayer.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic))
+                                targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} fails to affect you with {spell.Name}", ChatMessageType.Magic));
+                        }
+                    }
+                }
+            }
+            else if (spell.IsOtherNegativeRedirectable)
+            {
+                // blood loather, spirit loather, lure blade, turn blade, leaden weapon, hermetic void
+                if (targetCreature == null)
+                {
+                    // targeting an individual item / wo
+                    enchantmentStatus = ItemMagic(target, spell);
+
+                    if (target != null)
+                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
+                    if (player != null && enchantmentStatus.Message != null)
+                        player.Session.Network.EnqueueSend(enchantmentStatus.Message);
+                }
+                else
+                {
+                    // targeting a creature, try to redirect to primary weapon
+                    var weapon = targetCreature.GetEquippedWeapon() ?? targetCreature.GetEquippedWand();
+
+                    if (weapon != null && weapon.IsEnchantable)
+                    {
+                        enchantmentStatus = ItemMagic(weapon, spell);
+
+                        EnqueueBroadcast(new GameMessageScript(weapon.Guid, spell.TargetEffect, spell.Formula.Scale));
+
+                        if (player != null && enchantmentStatus.Message != null)
+                            player.Session.Network.EnqueueSend(enchantmentStatus.Message);
+                    }
+                    else
+                    {
+                        // 'fails to affect'?
+                        if (player != null)
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetCreature.Name} with {spell.Name}", ChatMessageType.Magic));
+
+                        if (targetPlayer != null && !targetPlayer.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic))
+                            targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} fails to affect you with {spell.Name}", ChatMessageType.Magic));
+                    }
+                }
+            }
+            else
+            {
+                // all other item spells, cast directly on target
+                enchantmentStatus = ItemMagic(target, spell);
+
+                if (target != null)
+                    EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
+                if (player != null && enchantmentStatus.Message != null)
+                    player.Session.Network.EnqueueSend(enchantmentStatus.Message);
+            }
+        }
     }
 }

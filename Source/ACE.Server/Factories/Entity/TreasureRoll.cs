@@ -13,6 +13,11 @@ namespace ACE.Server.Factories.Entity
 
         public int BaseArmorLevel;
 
+        /// <summary>
+        /// A cumulative addon to the ItemDifficulty / Arcane Lore requirement
+        /// </summary>
+        public float ItemDifficulty;
+
         public TreasureRoll() { }
 
         public TreasureRoll(TreasureItemType_Orig itemType)
@@ -60,6 +65,8 @@ namespace ACE.Server.Factories.Entity
         {
             return (wo.ArmorLevel ?? 0) > 0;
         }
+
+        public bool IsGem => ItemType == TreasureItemType_Orig.Gem;
 
         public bool IsJewelry => ItemType == TreasureItemType_Orig.Jewelry;
 
