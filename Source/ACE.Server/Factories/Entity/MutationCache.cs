@@ -55,8 +55,15 @@ namespace ACE.Server.Factories.Entity
 
             var timer = Stopwatch.StartNew();
 
-            foreach (var line in lines)
+            foreach (var _line in lines)
             {
+                var line = _line;
+
+                var commentIdx = line.IndexOf("//");
+
+                if (commentIdx != -1)
+                    line = line.Substring(0, commentIdx);
+
                 if (line.Contains("Mutation #", StringComparison.OrdinalIgnoreCase))
                 {
                     prevMutationLine = mutationLine;
@@ -88,7 +95,6 @@ namespace ACE.Server.Factories.Entity
                         }
                     }
 
-                    // verify
                     outcome = new MutationOutcome();
                     mutation.Outcomes.Add(outcome);
 
@@ -99,6 +105,17 @@ namespace ACE.Server.Factories.Entity
 
                 if (line.Contains("- Chance", StringComparison.OrdinalIgnoreCase))
                 {
+                    if (totalChance >= 1.0M)
+                    {
+                        if (totalChance > 1.0M)
+                            log.Error($"MutationCache.BuildMutation({filename}) - {mutationLine} total {totalChance}, expected 1.0");
+
+                        outcome = new MutationOutcome();
+                        mutation.Outcomes.Add(outcome);
+
+                        totalChance = 0.0M;
+                    }
+
                     effectList = new EffectList();
                     outcome.EffectLists.Add(effectList);
 
