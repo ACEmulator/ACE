@@ -16,7 +16,7 @@ namespace ACE.Server.Factories
         {
             var idx = profile.Tier - 1;
 
-            if (idx < 4) idx = 4;
+            if (idx > 4) idx = 4;
 
             var rng = ThreadSafeRandom.Next(0, LootTables.GemsMatrix[idx].Length - 1);
 
