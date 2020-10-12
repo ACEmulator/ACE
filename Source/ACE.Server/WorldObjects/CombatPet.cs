@@ -112,10 +112,10 @@ namespace ACE.Server.WorldObjects
                 }
 
                 // combat pets do not aggro monsters belonging to the same faction as the pet owner?
-                if (Faction1Bits != null && creature.Faction1Bits != null && (Faction1Bits & creature.Faction1Bits) != 0)
+                if (SameFaction(creature))
                 {
                     // unless the pet owner or the pet is being retaliated against?
-                    if (creature.RetaliateTargets != null && P_PetOwner != null && !creature.RetaliateTargets.Contains(P_PetOwner.Guid.Full) && !creature.RetaliateTargets.Contains(Guid.Full))
+                    if (!creature.HasRetaliateTarget(P_PetOwner) && !creature.HasRetaliateTarget(this))
                         continue;
                 }
 
