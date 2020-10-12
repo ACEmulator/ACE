@@ -142,7 +142,7 @@ namespace ACE.Server.Factories
 
             for (var i = 0; i < numAttempts && spells.Count < numEnchantments; i++)
             {
-                var spell = RollEnchantment(wo, profile, roll, spellSelectionCode);
+                var spell = SpellSelectionTable.Roll(spellSelectionCode);
 
                 if (spell != SpellId.Undef)
                     spells.Add(spell);
@@ -229,11 +229,6 @@ namespace ACE.Server.Factories
                 return 3;
         }
 
-        private static SpellId RollEnchantment(WorldObject wo, TreasureDeath profile, TreasureRoll roll, int spellSelectionCode)
-        {
-            return SpellSelectionTable.Roll(spellSelectionCode);
-        }
-
         private static float RollEnchantmentDifficulty(List<SpellId> spellIds)
         {
             var spells = new List<Server.Entity.Spell>();
@@ -263,6 +258,10 @@ namespace ACE.Server.Factories
 
         private static List<SpellId> RollCantrips(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
+            // no cantrips on dinnerware?
+            if (roll.ItemType == TreasureItemType_Orig.ArtObject)
+                return null;
+
             var numCantrips = CantripChance.RollNumCantrips(profile);
 
             if (numCantrips == 0)
@@ -452,7 +451,10 @@ namespace ACE.Server.Factories
             }
             else if (roll.IsDinnerware)
             {
-                return 16;
+                if (roll.Wcid == Enum.WeenieClassName.flasksimple)
+                    return 0;
+                else
+                    return 16;
             }
             else if (roll.IsMissileWeapon || wo.WeaponSkill == Skill.TwoHandedCombat)
             {

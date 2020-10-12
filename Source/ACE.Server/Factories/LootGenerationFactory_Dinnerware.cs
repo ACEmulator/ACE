@@ -8,11 +8,13 @@ using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
+using WeenieClassName = ACE.Server.Factories.Enum.WeenieClassName;
+
 namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateDinnerware(TreasureDeath profile, bool mutate = true)
+        private static WorldObject CreateDinnerware(TreasureDeath profile, bool isMagical, bool mutate = true)
         {
             var rng = ThreadSafeRandom.Next(0, LootTables.DinnerwareLootMatrix.Length - 1);
 
@@ -21,16 +23,14 @@ namespace ACE.Server.Factories
             var wo = WorldObjectFactory.CreateNewWorldObject(wcid);
 
             if (wo != null && mutate)
-                MutateDinnerware(wo, profile);
+                MutateDinnerware(wo, profile, isMagical);
 
             return wo;
         }
 
-        private static void MutateDinnerware(WorldObject wo, TreasureDeath profile, TreasureRoll roll = null)
+        private static void MutateDinnerware(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureRoll roll = null)
         {
-            // Dinnerware has all these options (plates, tankards, etc)
-            // This is just a short-term fix until Loot is overhauled
-            // TODO - Doesn't handle damage/speed/etc that the mutate engine should for these types of items.
+            // dinnerware did not have its Damage / DamageVariance / WeaponSpeed mutated
 
             // material type
             wo.MaterialType = (MaterialType)GetMaterialType(wo, profile.Tier);
@@ -49,11 +49,14 @@ namespace ACE.Server.Factories
             // workmanship
             wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
-            // TODO: dinnerware could get spells in retail
+            // "Empty Flask" was the only dinnerware that never received spells
+            if (isMagical && wo.WeenieClassId != (uint)WeenieClassName.flasksimple)
+                AssignMagic(wo, profile, roll);
 
-            wo.LongDesc = wo.Name;
-
+            // item value
             MutateDinnerware_ItemValue(wo);
+
+            wo.LongDesc = GetLongDesc(wo);
         }
 
         private static void MutateDinnerware_ItemValue(WorldObject wo)

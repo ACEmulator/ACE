@@ -330,7 +330,7 @@ namespace ACE.Server.Factories
                     // Added Dinnerware at tail end of distribution, as
                     // they are mutable loot drops that don't belong with the non-mutable drops
                     // TODO: Will likely need some adjustment/fine tuning
-                    wo = CreateDinnerware(profile);
+                    wo = CreateDinnerware(profile, isMagical);
                     break;
             }
             return wo;
@@ -358,7 +358,7 @@ namespace ACE.Server.Factories
                 MutateCaster(item, profile, isMagical, wieldDifficulty);
             }
             else if (GetMutateDinnerwareData(item.WeenieClassId))
-                MutateDinnerware(item, profile);
+                MutateDinnerware(item, profile, isMagical);
             else if (GetMutateJewelryData(item.WeenieClassId))
                 MutateJewelry(item, profile, isMagical);
             else if (GetMutateGemData(item.WeenieClassId))
@@ -920,7 +920,7 @@ namespace ACE.Server.Factories
                     MutateJewelry(wo, treasureDeath, isMagical, treasureRoll);
                     break;
                 case TreasureItemType_Orig.ArtObject:
-                    MutateDinnerware(wo, treasureDeath, treasureRoll);
+                    MutateDinnerware(wo, treasureDeath, isMagical, treasureRoll);
                     break;
 
                 case TreasureItemType_Orig.Weapon:
