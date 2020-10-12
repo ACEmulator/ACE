@@ -43,6 +43,7 @@ namespace ACE.Server.Factories.Entity
                 return null;
             }
 
+            string prevMutationLine = null;
             string mutationLine = null;
 
             var mutationFilter = new MutationFilter();
@@ -58,6 +59,7 @@ namespace ACE.Server.Factories.Entity
             {
                 if (line.Contains("Mutation #", StringComparison.OrdinalIgnoreCase))
                 {
+                    prevMutationLine = mutationLine;
                     mutationLine = line;
                     continue;
                 }
@@ -65,7 +67,7 @@ namespace ACE.Server.Factories.Entity
                 if (line.Contains("Tier chances", StringComparison.OrdinalIgnoreCase))
                 {
                     if (outcome != null && outcome.EffectLists.Last().Chance != 1.0f)
-                        log.Error($"MutationCache.BuildMutation({filename}) - {mutationLine} total {outcome.EffectLists.Last().Chance}, expected 1.0");
+                        log.Error($"MutationCache.BuildMutation({filename}) - {prevMutationLine} total {outcome.EffectLists.Last().Chance}, expected 1.0");
 
                     mutation = new Mutation();
                     mutationFilter.Mutations.Add(mutation);
@@ -197,6 +199,8 @@ namespace ACE.Server.Factories.Entity
                     {
                         if (System.Enum.TryParse(operand, out WieldRequirement wieldRequirement))
                             effectArgument.IntVal = (int)wieldRequirement;
+                        else if (System.Enum.TryParse(operand, out Skill skill))
+                            effectArgument.IntVal = (int)skill;
                         else
                             log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse IntVal {operand}");
                     }
@@ -361,7 +365,7 @@ namespace ACE.Server.Factories.Entity
 
         public static EffectArgumentType GetEffectArgumentType(string operand)
         {
-            if (IsNumber(operand) || System.Enum.TryParse(operand, out WieldRequirement wieldRequirement))
+            if (IsNumber(operand) || System.Enum.TryParse(operand, out WieldRequirement wieldRequirement) || System.Enum.TryParse(operand, out Skill skill))
             {
                 if (operand.Contains('.'))
                     return EffectArgumentType.Double;
