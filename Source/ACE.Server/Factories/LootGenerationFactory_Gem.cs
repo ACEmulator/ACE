@@ -39,7 +39,7 @@ namespace ACE.Server.Factories
 
             gemType = (uint)wo.MaterialType;
 
-            workmanship = GetWorkmanship(profile.Tier);
+            workmanship = WorkmanshipChance.Roll(profile.Tier);
             wo.ItemWorkmanship = workmanship;
             int value = LootTables.gemValues[(int)gemType] + ThreadSafeRandom.Next(1, LootTables.gemValues[(int)gemType]);
             wo.Value = value;

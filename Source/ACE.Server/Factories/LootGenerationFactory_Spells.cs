@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using ACE.Common;
 using ACE.Database.Models.World;
@@ -44,12 +45,20 @@ namespace ACE.Server.Factories
             var enchantments = RollEnchantments(wo, profile, roll);
 
             if (enchantments != null)
+            {
                 spells.AddRange(enchantments);
+
+                roll.ItemDifficulty += RollEnchantmentDifficulty(enchantments);
+            }
 
             var cantrips = RollCantrips(wo, profile, roll);
 
             if (cantrips != null)
+            {
                 spells.AddRange(cantrips);
+
+                roll.ItemDifficulty += RollCantripDifficulty(cantrips);
+            }
 
             return spells;
         }
@@ -108,7 +117,6 @@ namespace ACE.Server.Factories
 
         private static List<SpellId> RollEnchantments(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
-            // TODO: change to ace spell selection tables
             /*if (wo.SpellSelectionCode == null)
             {
                 log.Warn($"RollEnchantments({wo.Name}) - missing spell selection code / PropertyInt.TsysMutationData");
@@ -141,39 +149,6 @@ namespace ACE.Server.Factories
             }
 
             return RollSpellLevels(wo, profile, spells);
-        }
-
-        private static SpellId RollEnchantment(WorldObject wo, TreasureDeath profile, TreasureRoll roll, int spellSelectionCode)
-        {
-            // TODO: change to ace spell selection tables
-            //return SpellSelectionTable.Roll(wo.SpellSelectionCode.Value);
-
-            return SpellSelectionTable.Roll(spellSelectionCode);
-
-            /*if (roll.IsJewelry)
-            {
-                var rng = ThreadSafeRandom.Next(0, JewelrySpells.Table.Length - 1);
-                return JewelrySpells.Table[rng][0];
-            }
-
-            List<SpellId> table = null;
-
-            if (roll.IsClothing || roll.IsArmor)
-                table = ArmorSpells.CreatureLifeTable;
-            else if (roll.IsCaster)
-                table = WandSpells.CreatureLifeTable;
-            else if (roll.IsMeleeWeapon)
-                table = MeleeSpells.CreatureLifeTable;
-            else if (roll.IsMissileWeapon)
-                table = MissileSpells.CreatureLifeTable;
-            else
-            {
-                log.Error($"RollEnchantment({wo.Name}, {profile.TreasureType}, {roll.ItemType}) - unknown item type");
-                return SpellId.Undef;
-            }
-            var _rng = ThreadSafeRandom.Next(0, table.Count - 1);
-
-            return table[_rng];*/
         }
 
         private static int RollNumEnchantments(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
@@ -254,6 +229,38 @@ namespace ACE.Server.Factories
                 return 3;
         }
 
+        private static SpellId RollEnchantment(WorldObject wo, TreasureDeath profile, TreasureRoll roll, int spellSelectionCode)
+        {
+            return SpellSelectionTable.Roll(spellSelectionCode);
+        }
+
+        private static float RollEnchantmentDifficulty(List<SpellId> spellIds)
+        {
+            var spells = new List<Server.Entity.Spell>();
+
+            foreach (var spellId in spellIds)
+            {
+                var spell = new Server.Entity.Spell(spellId);
+                spells.Add(spell);
+            }
+
+            spells = spells.OrderBy(i => i.Formula.Level).ToList();
+
+            var itemDifficulty = 0.0f;
+
+            // exclude highest spell
+            for (var i = 0; i < spells.Count - 1; i++)
+            {
+                var spell = spells[i];
+
+                var rng = (float)ThreadSafeRandom.Next(0.5f, 1.5f);
+
+                itemDifficulty += spell.Formula.Level * 5.0f * rng;
+            }
+
+            return itemDifficulty;
+        }
+
         private static List<SpellId> RollCantrips(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
             var numCantrips = CantripChance.RollNumCantrips(profile);
@@ -289,7 +296,6 @@ namespace ACE.Server.Factories
                     continue;
                 }
 
-                // TODO: diffAdjust?
                 finalCantrips.Add(cantripLevels[cantripLevel - 1]);
 
             }
@@ -340,6 +346,30 @@ namespace ACE.Server.Factories
                 log.Error($"RollCantrip({wo.Name}, {profile.TreasureType}, {roll.ItemType}) - unknown item type");
                 return SpellId.Undef;
             }
+        }
+
+        private static float RollCantripDifficulty(List<SpellId> cantripIds)
+        {
+            var itemDifficulty = 0.0f;
+
+            foreach (var cantripId in cantripIds)
+            {
+                var cantripLevels = SpellLevelProgression.GetSpellLevels(cantripId);
+
+                if (cantripLevels == null || cantripLevels.Count != 4)
+                {
+                    log.Error($"RollCantripDifficulty({cantripId}) - unknown cantrip");
+                    continue;
+                }
+
+                var cantripLevel = cantripLevels.IndexOf(cantripId);
+
+                if (cantripLevel == 0)
+                    itemDifficulty += (float)ThreadSafeRandom.Next(5.0f, 10.0f);
+                else
+                    itemDifficulty += (float)ThreadSafeRandom.Next(10.0f, 20.0f);
+            }
+            return itemDifficulty;
         }
 
         private static SpellId AdjustForWeaponMastery(WorldObject wo, SpellId spell)

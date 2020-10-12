@@ -14,19 +14,11 @@ namespace ACE.Server.Factories
     {
         private static WorldObject CreateDinnerware(TreasureDeath profile, bool mutate = true)
         {
-            uint id = 0;
-            int chance;
-            WorldObject wo;
+            var rng = ThreadSafeRandom.Next(0, LootTables.DinnerwareLootMatrix.Length - 1);
 
-            var tier = Math.Clamp(profile.Tier, 1, 8);
+            var wcid = (uint)LootTables.DinnerwareLootMatrix[rng];
 
-            int genericLootMatrixIndex = tier - 1;
-            int upperLimit = LootTables.DinnerwareLootMatrix.Length - 1;
-
-            chance = ThreadSafeRandom.Next(0, upperLimit);
-            id = (uint)LootTables.DinnerwareLootMatrix[chance];
-
-            wo = WorldObjectFactory.CreateNewWorldObject(id);
+            var wo = WorldObjectFactory.CreateNewWorldObject(wcid);
 
             if (wo != null && mutate)
                 MutateDinnerware(wo, profile);
@@ -40,6 +32,13 @@ namespace ACE.Server.Factories
             // This is just a short-term fix until Loot is overhauled
             // TODO - Doesn't handle damage/speed/etc that the mutate engine should for these types of items.
 
+            // material type
+            wo.MaterialType = (MaterialType)GetMaterialType(wo, profile.Tier);
+
+            // item color
+            MutateColor(wo);
+
+            // gem count / gem material
             if (wo.GemCode != null)
                 wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
             else
@@ -47,20 +46,26 @@ namespace ACE.Server.Factories
 
             wo.GemType = RollGemType(profile.Tier);
 
+            // workmanship
+            wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
+
+            // TODO: dinnerware could get spells in retail
+
             wo.LongDesc = wo.Name;
 
-            int materialType = GetMaterialType(wo, profile.Tier);
-            wo.MaterialType = (MaterialType)materialType;
-            int workmanship = GetWorkmanship(profile.Tier);
-            wo.ItemWorkmanship = workmanship;
+            MutateDinnerware_ItemValue(wo);
+        }
 
-            //wo = SetAppraisalLongDescDecoration(wo);
+        private static void MutateDinnerware_ItemValue(WorldObject wo)
+        {
+            var materialMod = LootTables.getMaterialValueModifier(wo);
+            var gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
 
-            wo = AssignValue(wo);
+            var baseValue = ThreadSafeRandom.Next(300, 600);
 
-            MutateColor(wo);
+            var workmanship = wo.ItemWorkmanship ?? 1;
 
-            // TODO: dinnerware could get spells?
+            wo.Value = (int)(baseValue * gemMaterialMod * materialMod * workmanship);
         }
 
         private static bool GetMutateDinnerwareData(uint wcid)
