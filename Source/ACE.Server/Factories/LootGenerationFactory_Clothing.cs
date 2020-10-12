@@ -149,10 +149,6 @@ namespace ACE.Server.Factories
             // item color
             MutateColor(wo);
 
-            // further randomize color?
-            wo.PaletteTemplate = ThreadSafeRandom.Next(1, 2047);
-            wo.Shade = .1 * ThreadSafeRandom.Next(0, 9);
-
             // gem count / gem material
             if (wo.GemCode != null)
                 wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
@@ -409,12 +405,21 @@ namespace ACE.Server.Factories
 
         private static string GetMutationScript_ArmorLevel(WorldObject wo, TreasureRoll roll)
         {
-            if (roll.ArmorType == TreasureArmorType.Covenant)
+            switch (roll.ArmorType)
             {
-                if (wo.IsShield)
-                    return "ArmorLevel.covenant_shield.txt";
+                case TreasureArmorType.Covenant:
 
-                return "ArmorLevel.covenant_armor.txt";
+                    if (wo.IsShield)
+                        return "ArmorLevel.covenant_shield.txt";
+                    else
+                        return "ArmorLevel.covenant_armor.txt";
+
+                case TreasureArmorType.Olthoi:
+
+                    if (wo.IsShield)
+                        return "ArmorLevel.olthoi_shield.txt";
+                    else
+                        return "ArmorLevel.olthoi_armor.txt";
             }
 
             if (wo.IsShield)
