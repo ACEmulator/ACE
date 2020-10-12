@@ -1005,6 +1005,14 @@ namespace ACE.Server.Factories
             }
             else 
             {
+                // this can either be empty, or in the case of covenant / olthoi armor,
+                // it could already contain a level requirement of 180, or possibly 150 in tier 8
+
+                // we want to set this level requirement to 180, in all cases
+
+                // magloot logs indicated that even if covenant / olthoi armor was not upgraded to 180 in its mutation script,
+                // a gear rating could still drop on it, and would "upgrade" the 150 to a 180
+
                 wo.WieldRequirements2 = WieldRequirement.Level;
                 wo.WieldSkillType2 = (int)Skill.Axe;  // set from examples in pcap data
                 wo.WieldDifficulty2 = 180;
