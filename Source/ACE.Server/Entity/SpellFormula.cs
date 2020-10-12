@@ -232,6 +232,14 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
+        /// For monsters with PropertyBool.AiUseHumanMagicAnimations
+        /// </summary>
+        public List<uint> GetMonsterFormula()
+        {
+            return PlayerFormula = SpellTable.GetSpellFormula(SpellTable, Spell.Id, "");
+        }
+
+        /// <summary>
         /// Returns the windup gesture from all the scarabs
         /// </summary>
         public List<MotionCommand> WindupGestures
