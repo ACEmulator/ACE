@@ -35,16 +35,15 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             // if the combat pet's owner belongs to a faction,
-            // and the monster also belongs to the same faction, don't attack the monster?
-            if (Faction1Bits != null && monster.Faction1Bits != null && (Faction1Bits & monster.Faction1Bits) != 0)
+            // and the monster also belongs to the same faction, don't aggro the monster?
+            if (SameFaction(monster))
             {
                 // unless the pet owner or the pet is being retaliated against?
-                if (monster.RetaliateTargets != null && P_PetOwner != null && !monster.RetaliateTargets.Contains(P_PetOwner.Guid.Full) && !monster.RetaliateTargets.Contains(Guid.Full))
+                if (!monster.HasRetaliateTarget(P_PetOwner) && !monster.HasRetaliateTarget(this))
                     return false;
-            }
 
-            if (monster.RetaliateTargets != null)
-                monster.RetaliateTargets.Add(Guid.Full);
+                monster.AddRetaliateTarget(this);
+            }
 
             monster.AttackTarget = this;
             monster.WakeUp();
@@ -61,8 +60,9 @@ namespace ACE.Server.WorldObjects
             Console.WriteLine($"Attackable: {monster.Attackable}");
             Console.WriteLine($"Tolerance: {monster.Tolerance}");*/
 
-            if (monster.RetaliateTargets != null)
-                monster.RetaliateTargets.Add(Guid.Full);
+            // faction mobs will retaliate against combat pets belonging to the same faction
+            if (monster.SameFaction(this))
+                monster.AddRetaliateTarget(this);
 
             if (monster.MonsterState == State.Idle && !monster.Tolerance.HasFlag(Tolerance.NoAttack))
             {
