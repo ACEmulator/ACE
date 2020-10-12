@@ -164,47 +164,43 @@ Tier chances: 0, 0, 0, 0, 0, 0, 1, 1
 
     - Chance: 5%:
         ArmorLevel += 130
-        WieldRequirement = Level
-        WieldDifficulty = 150
 
     - Chance: 30%:
         ArmorLevel += 140
-        WieldRequirement = Level
-        WieldDifficulty = 150
 
     - Chance: 35%:
         ArmorLevel += 150
-        WieldRequirement = Level
-        WieldDifficulty = 150
 
     - Chance: 25%:
         ArmorLevel += 160
-        WieldRequirement = Level
-        WieldDifficulty = 150
 
     - Chance: 3%:
         ArmorLevel += 170
-        WieldRequirement = Level
-        WieldDifficulty = 150
 
     - Chance: 1%:
         ArmorLevel += 180
-        WieldRequirement = Level
-        WieldDifficulty = 150
 
     - Chance: 1%:
         ArmorLevel += 190
+
+    - Chance: 100%:
         WieldRequirement = Level
         WieldDifficulty = 150
+        WieldSkill = 1
 
 Armor Mutation #8:
 
-Tier chances: 0, 0, 0, 0, 0, 0, 0, 0.9
+Tier chances: 0, 0, 0, 0, 0, 0, 0, 1
 
-    - Chance: 100%:
+    - Chance: 10%:
+
+    - Chance: 90%:
+
         ArmorLevel += 10
+
         WieldRequirement = Level
         WieldDifficulty = 180
+        WieldSkill = 1
 
 Armor Mutation #9:
 
