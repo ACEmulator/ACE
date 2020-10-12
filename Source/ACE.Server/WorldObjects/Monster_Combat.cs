@@ -162,9 +162,7 @@ namespace ACE.Server.WorldObjects
             {
                 // select a magic spell
                 //CurrentSpell = GetRandomSpell();
-                var currentSpell = GetCurrentSpell();
-
-                if (currentSpell.IsProjectile)
+                if (CurrentSpell.IsProjectile)
                 {
                     // ensure direct los
                     if (!IsDirectVisible(AttackTarget))
