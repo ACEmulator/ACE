@@ -149,7 +149,7 @@ namespace ACE.Server.Factories
                 AssignMagic(wo, profile, roll);
 
             // item value
-            if (wo.HasMutateFilter(MutateFilter.Value))
+            //if (wo.HasMutateFilter(MutateFilter.Value))   // fixme: data
                 MutateValue(wo, profile.Tier);
 
             // long description

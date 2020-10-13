@@ -721,8 +721,8 @@ namespace ACE.Server.Factories
 
         private static void MutateValue(WorldObject wo, int tier)
         {
-            if (wo.Value == null || wo.Value == 0)
-                return;
+            if (wo.Value == null)
+                wo.Value = 0;   // fixme: data
 
             //var weenieValue = wo.Value;
 

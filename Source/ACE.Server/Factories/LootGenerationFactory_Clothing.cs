@@ -160,8 +160,8 @@ namespace ACE.Server.Factories
             // workmanship
             wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
-            // try mutate burden, if MutateFilter exists
-            if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
+            // burden
+            if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))  // fixme: data
                 MutateBurden(wo, profile, false);
 
             if (profile.Tier > 6 && armorType != LootTables.ArmorType.CovenantArmor && armorType != LootTables.ArmorType.OlthoiArmor)
@@ -212,18 +212,15 @@ namespace ACE.Server.Factories
                 wo.ItemDifficulty = null;
             }
 
-            if (wo.HasMutateFilter(MutateFilter.ArmorModVsType) && wo.ArmorLevel > 0)
-            {
-                // covenant armor and olthoi armor appear to have different mutation methods possibly
-                if (armorType != LootTables.ArmorType.CovenantArmor && armorType != LootTables.ArmorType.OlthoiArmor)
-                    MutateArmorModVsType(wo, profile);
-            }
+            //if (wo.HasMutateFilter(MutateFilter.ArmorModVsType) && wo.ArmorLevel > 0)     // fixme: data
+            if (wo.ArmorLevel > 0 && armorType != LootTables.ArmorType.CovenantArmor && armorType != LootTables.ArmorType.OlthoiArmor)
+                MutateArmorModVsType(wo, profile);
 
             if (roll != null && profile.Tier == 8)
                 TryMutateGearRating(wo, profile, roll);
 
             // item value
-            if (wo.HasMutateFilter(MutateFilter.Value))
+            //if (wo.HasMutateFilter(MutateFilter.Value))   // fixme: data
                 MutateValue(wo, profile.Tier);
 
             wo.LongDesc = GetLongDesc(wo);
