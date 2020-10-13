@@ -67,9 +67,8 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static WorldObject CreateSocietyArmor(TreasureDeath profile, bool mutate)
+        private static WorldObject CreateSocietyArmor(TreasureDeath profile, bool mutate = true)
         {
-
             int society = 0;
             int armortype = 0;
 
@@ -147,10 +146,10 @@ namespace ACE.Server.Factories
             if (materialType > 0)
                 wo.MaterialType = (MaterialType)materialType;
 
-            // itemc olor
+            // item color
             MutateColor(wo);
 
-            // gem count / material
+            // gem count / gem material
             if (wo.GemCode != null)
                 wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
             else
@@ -159,9 +158,9 @@ namespace ACE.Server.Factories
             wo.GemType = RollGemType(profile.Tier);
 
             // workmanship
-            wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
+            wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
-            // burden
+            // try mutate burden, if MutateFilter exists
             if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
                 MutateBurden(wo, profile, false);
 
@@ -192,12 +191,8 @@ namespace ACE.Server.Factories
                 wo.WieldDifficulty = GetCovenantWieldReq(profile.Tier, wieldSkill);
 
                 // used by tinkering requirements for copper/silver
-                wo.ItemSkillLimit = (uint)wieldSkill;
+                wo.ItemSkillLimit = wieldSkill;
             }
-
-            // Setting random color
-            wo.PaletteTemplate = ThreadSafeRandom.Next(1, 2047);
-            wo.Shade = .1 * ThreadSafeRandom.Next(0, 9);
 
             wo = AssignArmorLevel(wo, profile.Tier, armorType);
 
@@ -217,7 +212,17 @@ namespace ACE.Server.Factories
                 wo.ItemDifficulty = null;
             }
 
-            // try mutate item value, if MutateFilter exists
+            if (wo.HasMutateFilter(MutateFilter.ArmorModVsType) && wo.ArmorLevel > 0)
+            {
+                // covenant armor and olthoi armor appear to have different mutation methods possibly
+                if (armorType != LootTables.ArmorType.CovenantArmor && armorType != LootTables.ArmorType.OlthoiArmor)
+                    MutateArmorModVsType(wo, profile);
+            }
+
+            if (roll != null && profile.Tier == 8)
+                TryMutateGearRating(wo, profile, roll);
+
+            // item value
             if (wo.HasMutateFilter(MutateFilter.Value))
                 MutateValue(wo, profile.Tier);
 
@@ -238,16 +243,11 @@ namespace ACE.Server.Factories
 
             wo.GemType = RollGemType(profile.Tier);
 
-            wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
+            wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
             // try mutate burden, if MutateFilter exists
             if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
                 MutateBurden(wo, profile, false);
-
-            /*double materialMod = LootTables.getMaterialValueModifier(wo);
-            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
-            wo.Value = value;*/
 
             // wo.WieldSkillType = (int)Skill.Axe;  // Set by examples from PCAP data
 
@@ -726,7 +726,7 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static void MutateCloak(WorldObject wo, TreasureDeath profile)
+        private static void MutateCloak(WorldObject wo, TreasureDeath profile, TreasureRoll roll = null)
         {
             wo.ItemMaxLevel = CloakChance.Roll_ItemMaxLevel(profile);
 
@@ -779,9 +779,12 @@ namespace ACE.Server.Factories
             // workmanship
             wo.Workmanship = WorkmanshipChance.Roll(profile.Tier);
 
+            if (roll != null && profile.Tier == 8)
+                TryMutateGearRating(wo, profile, roll);
+
             // item value
             //if (wo.HasMutateFilter(MutateFilter.Value))
-                MutateValue(wo, profile.Tier);
+            MutateValue(wo, profile.Tier);
         }
 
         private static int RollCloak_ItemMaxLevel(TreasureDeath profile)
@@ -853,34 +856,131 @@ namespace ACE.Server.Factories
 
         private static void MutateValue_Armor(WorldObject wo)
         {
-            // thanks to moro for this function!
+            var bulkMod = wo.BulkMod ?? 1.0f;
+            var sizeMod = wo.SizeMod ?? 1.0f;
+
             var armorLevel = wo.ArmorLevel ?? 0;
 
-            // ??
-            // this needs verified...
-            var modVal = Math.Pow(armorLevel, 2.0) / 10.0 - 20.0;
+            // from the py16 mutation scripts
+            //wo.Value += (int)(armorLevel * armorLevel / 10.0f * bulkMod * sizeMod);
 
-            if (modVal < 10) modVal = 10;
+            // still probably not how retail did it
+            // modified for armor values to match closer to retail pcaps
+            var minRng = (float)Math.Min(bulkMod, sizeMod);
+            var maxRng = (float)Math.Max(bulkMod, sizeMod);
 
-            var sizeMod = wo.SizeMod ?? 1.0f;
-            var bulkMod = wo.BulkMod ?? 1.0f;
+            var rng = ThreadSafeRandom.Next(minRng, maxRng);
 
-            modVal *= sizeMod * bulkMod;
+            wo.Value += (int)(armorLevel * armorLevel / 10.0f * rng);
+        }
 
-            modVal /= 10.0;
-            modVal = (int)(modVal + 0.5);
-            modVal *= 10.0;
+        private static void MutateArmorModVsType(WorldObject wo, TreasureDeath profile)
+        {
+            // for the PropertyInt.MutateFilters found in py16 data,
+            // items either had all of these, or none of these
 
-            var materialMod = MaterialTable.GetValueMod(wo.MaterialType);
-            var gemValue = GemMaterialChance.GemValue(wo.GemType);
+            // only the elemental types could mutate
+            TryMutateArmorModVsType(wo, profile, PropertyFloat.ArmorModVsFire);
+            TryMutateArmorModVsType(wo, profile, PropertyFloat.ArmorModVsCold);
+            TryMutateArmorModVsType(wo, profile, PropertyFloat.ArmorModVsAcid);
+            TryMutateArmorModVsType(wo, profile, PropertyFloat.ArmorModVsElectric);
+        }
 
-            var newVal = modVal / 10 * materialMod * 0.016 + gemValue;
+        private static bool TryMutateArmorModVsType(WorldObject wo, TreasureDeath profile, PropertyFloat prop)
+        {
+            var armorModVsType = wo.GetProperty(prop);
 
-            var workmanshipMod = WorkmanshipChance.GetModifier(wo.ItemWorkmanship);
+            if (armorModVsType == null)
+                return false;
 
-            newVal *= (workmanshipMod /*+ qualityMod*/) / 2.0f;
+            // perform the initial roll to determine if this ArmorModVsType will mutate
+            var mutate = ArmorModVsTypeChance.Roll(profile.Tier);
 
-            wo.Value = (int)Math.Ceiling(newVal + modVal);
+            if (!mutate)
+                return false;
+
+            // get quality level 1-5 for tier
+            var qualityLevel = ArmorModVsTypeChance.RollQualityLevel(profile);
+
+            // add in rng
+            // for t6+ / max quality level 5, the highest bonus found in eor data was ~0.9
+            var rng = ThreadSafeRandom.Next(-0.05f, 0.15f);
+
+            var bonusRL = qualityLevel * 0.15f + rng;
+
+            //Console.WriteLine($"Boosting {wo.Name}.{prop} by {bonusRL}");
+
+            armorModVsType += bonusRL;
+
+            // ensure between -2.0 / 2.0?
+            armorModVsType = Math.Clamp(armorModVsType.Value, -2.0f, 2.0f);
+
+            wo.SetProperty(prop, armorModVsType.Value);
+
+            return true;
+        }
+
+        private static bool TryMutateGearRating(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
+        {
+            if (profile.Tier != 8)
+                return false;
+
+            var gearRating = GearRatingChance.Roll(wo, profile, roll);
+
+            if (gearRating == 0)
+                return false;
+
+            //Console.WriteLine($"TryMutateGearRating({wo.Name}, {profile.TreasureType}, {roll.ItemType}): rolled gear rating {gearRating}");
+
+            var rng = ThreadSafeRandom.Next(0, 1);
+
+            if (roll.HasArmorLevel(wo))
+            {
+                // clothing w/ al, and crowns would be included in this group
+                if (rng == 0)
+                    wo.GearCritDamage = gearRating;
+                else
+                    wo.GearCritDamageResist = gearRating;
+            }
+            else if (roll.IsClothing || roll.IsCloak)
+            {
+                if (rng == 0)
+                    wo.GearDamage = gearRating;
+                else
+                    wo.GearDamageResist = gearRating;
+            }
+            else if (roll.IsJewelry)
+            {
+                if (rng == 0)
+                    wo.GearHealingBoost = gearRating;
+                else
+                    wo.GearMaxHealth = gearRating;
+            }
+            else
+            {
+                log.Error($"TryMutateGearRating({wo.Name}, {profile.TreasureType}, {roll.ItemType}): unknown item type");
+                return false;
+            }
+
+            // ensure wield requirement is level 180?
+            if (wo.WieldRequirements == WieldRequirement.Invalid)
+            {
+                wo.WieldRequirements = WieldRequirement.Level;
+                wo.WieldSkillType = (int)Skill.Axe;  // set from examples in pcap data
+                wo.WieldDifficulty = 180;
+            }
+            else if (wo.WieldRequirements == WieldRequirement.Level)
+            {
+                if (wo.WieldDifficulty < 180)
+                    wo.WieldDifficulty = 180;
+            }
+            else 
+            {
+                wo.WieldRequirements2 = WieldRequirement.Level;
+                wo.WieldSkillType2 = (int)Skill.Axe;  // set from examples in pcap data
+                wo.WieldDifficulty2 = 180;
+            }
+            return true;
         }
     }
 }

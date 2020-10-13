@@ -47,7 +47,7 @@ namespace ACE.Server.Factories
             // item color
             MutateColor(wo);
 
-            // gem count / material
+            // gem count / gem material
             if (wo.GemCode != null)
                 wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
             else
@@ -56,10 +56,9 @@ namespace ACE.Server.Factories
             wo.GemType = RollGemType(profile.Tier);
 
             // workmanship
-            wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
+            wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
-            wo.ItemSkillLevelLimit = null;
-
+            // wield requirements (verify)
             if (profile.Tier > 6)
             {
                 wo.WieldRequirements = WieldRequirement.Level;
@@ -73,6 +72,7 @@ namespace ACE.Server.Factories
                 wo.WieldDifficulty = wield;
             }
 
+            // assign magic
             if (isMagical)
                 AssignMagic(wo, profile, roll);
             else
@@ -85,7 +85,11 @@ namespace ACE.Server.Factories
                 wo.ManaRate = null;
             }
 
-            // try mutate value, if MutateFilter exists
+            // gear rating (t8)
+            if (roll != null && profile.Tier == 8)
+                TryMutateGearRating(wo, profile, roll);
+
+            // item value
             if (wo.HasMutateFilter(MutateFilter.Value))
                 MutateValue(wo, profile.Tier);
 

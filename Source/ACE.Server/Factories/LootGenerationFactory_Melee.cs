@@ -75,7 +75,7 @@ namespace ACE.Server.Factories
             if (roll == null)
             {
                 // previous method
-                var wieldDifficulty = RollWieldDifficulty(profile.Tier, WieldType.MeleeWeapon);
+                var wieldDifficulty = RollWieldDifficulty(profile.Tier, TreasureWeaponType.MeleeWeapon);
 
                 if (!MutateStats_OldMethod(wo, profile, wieldDifficulty))
                     return false;
@@ -126,7 +126,7 @@ namespace ACE.Server.Factories
             wo.GemType = RollGemType(profile.Tier);
 
             // workmanship
-            wo.ItemWorkmanship = GetWorkmanship(profile.Tier);
+            wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
             // burden
             MutateBurden(wo, profile, true);
@@ -148,7 +148,7 @@ namespace ACE.Server.Factories
             else
                 AssignMagic(wo, profile, roll);
 
-            // try mutate value, if MutateFilter exists
+            // item value
             if (wo.HasMutateFilter(MutateFilter.Value))
                 MutateValue(wo, profile.Tier);
 

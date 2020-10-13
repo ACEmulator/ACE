@@ -11,6 +11,13 @@ namespace ACE.Server.Factories.Entity
 
         public WeenieClassName Wcid;
 
+        public int BaseArmorLevel;
+
+        /// <summary>
+        /// A cumulative addon to the ItemDifficulty / Arcane Lore requirement
+        /// </summary>
+        public float ItemDifficulty;
+
         public TreasureRoll() { }
 
         public TreasureRoll(TreasureItemType_Orig itemType)
@@ -49,6 +56,8 @@ namespace ACE.Server.Factories.Entity
 
         public bool IsClothing => ItemType == TreasureItemType_Orig.Clothing;
 
+        public bool IsCloak => ItemType == TreasureItemType_Orig.Cloak;
+
         /// <summary>
         /// Returns TRUE if wo has an ArmorLevel > 0
         /// </summary>
@@ -56,6 +65,8 @@ namespace ACE.Server.Factories.Entity
         {
             return (wo.ArmorLevel ?? 0) > 0;
         }
+
+        public bool IsGem => ItemType == TreasureItemType_Orig.Gem;
 
         public bool IsJewelry => ItemType == TreasureItemType_Orig.Jewelry;
 

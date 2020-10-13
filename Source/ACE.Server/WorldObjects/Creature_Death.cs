@@ -55,24 +55,24 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public DeathMessage GetDeathMessage(DamageHistoryInfo lastDamager, DamageType damageType, bool criticalHit = false)
+        public DeathMessage GetDeathMessage(DamageHistoryInfo lastDamagerInfo, DamageType damageType, bool criticalHit = false)
         {
-            var deathMessage = Strings.GetDeathMessage(damageType, criticalHit);
+            var lastDamager = lastDamagerInfo?.TryGetAttacker();
 
-            if (lastDamager == null || lastDamager.Guid == Guid)
+            if (lastDamagerInfo == null || lastDamagerInfo.Guid == Guid || lastDamager is Hotspot)
                 return Strings.General[1];
 
+            var deathMessage = Strings.GetDeathMessage(damageType, criticalHit);
+
             // if killed by a player, send them a message
-            if (lastDamager.IsPlayer)
+            if (lastDamagerInfo.IsPlayer)
             {
                 if (criticalHit && this is Player)
                     deathMessage = Strings.PKCritical[0];
 
                 var killerMsg = string.Format(deathMessage.Killer, Name);
 
-                var playerKiller = lastDamager.TryGetAttacker() as Player;
-
-                if (playerKiller != null)
+                if (lastDamager is Player playerKiller)
                     playerKiller.Session.Network.EnqueueSend(new GameEventKillerNotification(playerKiller.Session, killerMsg));
             }
             return deathMessage;

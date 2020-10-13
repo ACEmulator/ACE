@@ -80,13 +80,13 @@ namespace ACE.Server.Factories.Tables
         /// <summary>
         /// Rolls for a TreasureItemType for a TreasureItemCategory.MundaneItem
         /// </summary>
-        /// <param name="mundaneProfileIdx">From TreasureDeath.MundaneItemTypeSelectionChances</param>
-        public static TreasureItemType_Orig Roll(int mundaneProfileIdx)
+        /// <param name="mundaneProfile">From TreasureDeath.MundaneItemTypeSelectionChances</param>
+        public static TreasureItemType_Orig Roll(int mundaneProfile)
         {
-            if (mundaneProfileIdx < 1 || mundaneProfileIdx > mundaneProfiles.Count)
+            if (mundaneProfile < 1 || mundaneProfile > mundaneProfiles.Count)
                 return TreasureItemType_Orig.Undef;
 
-            return mundaneProfiles[mundaneProfileIdx - 1].Roll();
+            return mundaneProfiles[mundaneProfile - 1].Roll();
         }
     }
 }

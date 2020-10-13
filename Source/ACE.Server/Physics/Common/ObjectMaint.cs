@@ -70,6 +70,13 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         private Dictionary<uint, PhysicsObj> VisibleTargets { get; } = new Dictionary<uint, PhysicsObj>();
 
+        /// <summary>
+        /// Handles monsters targeting things they would not normally target
+        /// - For faction mobs, retaliate against same-faction players and combat pets
+        /// - For regular monsters, retaliate against faction mobs
+        /// </summary>
+        private Dictionary<uint, PhysicsObj> RetaliateTargets { get; } = new Dictionary<uint, PhysicsObj>();
+
         // Client structures -
         // When client unloads a cell/landblock, but still knows about objects in those cells?
         //public Dictionary<uint, LostCell> LostCellTable;
@@ -397,10 +404,14 @@ namespace ACE.Server.Physics.Common
             {
                 if (PhysicsObj.WeenieObj.IsCombatPet)
                     results = objs.Where(i => i.WeenieObj.IsMonster);
+                else if (PhysicsObj.WeenieObj.IsFactionMob)
+                    results = objs.Where(i => i.IsPlayer || i.WeenieObj.IsCombatPet || i.WeenieObj.IsMonster && !i.WeenieObj.SameFaction(PhysicsObj));
                 else
-                    results = objs.Where(i => i.IsPlayer || i.WeenieObj.IsCombatPet);
+                {
+                    // adding faction mobs here, even though they are retaliate-only, for inverse visible targets
+                    results = objs.Where(i => i.IsPlayer || i.WeenieObj.IsCombatPet || i.WeenieObj.IsFactionMob);
+                }
             }
-
             return results;
         }
 
@@ -814,6 +825,19 @@ namespace ACE.Server.Physics.Common
             }
         }
 
+        public int GetRetaliateTargetsCount()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return RetaliateTargets.Count;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
         public bool VisibleTargetsContainsKey(uint key)
         {
             rwLock.EnterReadLock();
@@ -827,12 +851,38 @@ namespace ACE.Server.Physics.Common
             }
         }
 
+        public bool RetaliateTargetsContainsKey(uint key)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return RetaliateTargets.ContainsKey(key);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
         public List<PhysicsObj> GetVisibleTargetsValues()
         {
             rwLock.EnterReadLock();
             try
             {
                 return VisibleTargets.Values.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public List<PhysicsObj> GetRetaliateTargetsValues()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return RetaliateTargets.Values.ToList();
             }
             finally
             {
@@ -869,8 +919,26 @@ namespace ACE.Server.Physics.Common
                     return false;
                 }
             }
+            else if (PhysicsObj.WeenieObj.IsFactionMob)
+            {
+                // only tracking players, combat pets, and monsters of differing faction
+                if (!obj.IsPlayer && !obj.WeenieObj.IsCombatPet && (!obj.WeenieObj.IsMonster || PhysicsObj.WeenieObj.SameFaction(obj)))
+                {
+                    Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add a non-player / non-combat pet / non-opposing faction mob");
+                    return false;
+                }
+            }
             else
             {
+                // handle special case:
+                // we want to select faction mobs for monsters inverse targets,
+                // but not add to the original monster
+                if (obj.WeenieObj.IsFactionMob)
+                {
+                    obj.ObjMaint.AddVisibleTarget(PhysicsObj);
+                    return false;
+                }
+
                 // only tracking players and combat pets
                 if (!obj.IsPlayer && !obj.WeenieObj.IsCombatPet)
                 {
@@ -963,6 +1031,57 @@ namespace ACE.Server.Physics.Common
             }
         }
 
+        /// <summary>
+        /// Adds a retaliate target for a monster that it would not normally attack
+        /// </summary>
+        public void AddRetaliateTarget(PhysicsObj obj)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                if (RetaliateTargets.ContainsKey(obj.ID))
+                {
+                    //Console.WriteLine($"{PhysicsObj.Name}.AddRetaliateTarget({obj.Name}) - retaliate target already exists");
+                    return;
+                }
+                //Console.WriteLine($"{PhysicsObj.Name}.AddRetaliateTarget({obj.Name})");
+                RetaliateTargets.Add(obj.ID, obj);
+
+                // we're going to add retaliate targets to the list of visible targets as well,
+                // so that we don't have to traverse both VisibleTargets and RetaliateTargets
+                // in all of the logic based on VisibleTargets
+                if (VisibleTargets.ContainsKey(obj.ID))
+                {
+                    //Console.WriteLine($"{PhysicsObj.Name}.AddRetaliateTarget({obj.Name}) - visible target already exists");
+                    return;
+                }
+                VisibleTargets.Add(obj.ID, obj);
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        /// <summary>
+        /// Called when a monster goes back to sleep
+        /// </summary>
+        public void ClearRetaliateTargets()
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                // remove retaliate targets from visible targets
+                foreach (var retaliateTarget in RetaliateTargets)
+                    VisibleTargets.Remove(retaliateTarget.Key);
+
+                RetaliateTargets.Clear();
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
 
         /// <summary>
         /// Clears all of the ObjMaint tables for an object

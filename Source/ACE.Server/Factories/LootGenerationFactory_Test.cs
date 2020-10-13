@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 
 using ACE.Database;
 using ACE.Database.Models.World;
-using ACE.Entity.Enum;
-using ACE.Server.Entity;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
@@ -75,7 +72,7 @@ namespace ACE.Server.Factories
             {
                 if (deathTreasure != null)
                 {
-                    corpseContainer = LootGenerationFactory.CreateRandomLootObjects_New(deathTreasure);
+                    corpseContainer = LootGenerationFactory.CreateRandomLootObjects(deathTreasure);
 
                     if (corpseContainer.Count < ls.MinItemsCreated)
                         ls.MinItemsCreated = corpseContainer.Count;

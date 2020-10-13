@@ -23,18 +23,6 @@ namespace ACE.Server.Factories.Tables
             1.0f
         };
 
-        private static readonly List<float> QualityChancePerTier_ArmorModVsType = new List<float>()
-        {
-            0.0f,
-            0.1f,
-            0.2f,
-            0.3f,
-            0.5f,
-            0.6f,
-            0.7f,
-            0.8f
-        };
-
         private static readonly List<float> T1_QualityChances = new List<float>()
         {
             1.0f,
@@ -194,10 +182,9 @@ namespace ACE.Server.Factories.Tables
         /// Rolls for the initial chance of getting a quality bonus for an item
         /// </summary>
         /// <param name="treasureDeath">The chances are based on treasureDeath.Tier, and can be increased with treasureDeath.LootQualityMod</param>
-        /// <param name="isArmorModVsType">ArmorModVsType has a separate chance table</param>
-        private static bool RollTierChance(TreasureDeath treasureDeath, bool isArmorModVsType = false)
+        private static bool RollTierChance(TreasureDeath treasureDeath)
         {
-            var tierChance = isArmorModVsType ? QualityChancePerTier_ArmorModVsType[treasureDeath.Tier - 1] : QualityChancePerTier[treasureDeath.Tier - 1];
+            var tierChance = QualityChancePerTier[treasureDeath.Tier - 1];
 
             // use for initial roll? logic seems backwards here...
             var rng = ThreadSafeRandom.NextInterval(treasureDeath.LootQualityMod);
@@ -206,12 +193,12 @@ namespace ACE.Server.Factories.Tables
         }
 
         /// <summary>
-        /// Returns a quality level between 0-12
+        /// Returns a quality level between 1 - 12
         /// </summary>
-        public static int Roll(TreasureDeath treasureDeath, bool isArmorModVsType = false)
+        public static int Roll(TreasureDeath treasureDeath)
         {
             // roll for the initial chance for any quality modification -- based on tier
-            if (!RollTierChance(treasureDeath, isArmorModVsType))
+            if (!RollTierChance(treasureDeath))
                 return 0;
 
             // if the initial roll succeeds, roll for the actual quality level -- also based on tier
@@ -227,7 +214,7 @@ namespace ACE.Server.Factories.Tables
                 if (rng < curChance && curChance >= treasureDeath.LootQualityMod)
                     return i + 1;
             }
-            log.Error($"QualityTables.Roll({treasureDeath.Tier}, {treasureDeath.LootQualityMod}, {isArmorModVsType}) - this shouldn't happen");
+            log.Error($"QualityTables.Roll({treasureDeath.Tier}, {treasureDeath.LootQualityMod}) - this shouldn't happen");
             return 0;
         }
 
