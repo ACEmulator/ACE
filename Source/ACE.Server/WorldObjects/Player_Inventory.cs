@@ -2406,6 +2406,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (target.IsLoggingOut)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.None));
+                return;
+            }
+
             // TODO: this seems a bit backwards here...
             // the item is removed from the source player's inventory,
             // and it tries to add to target player's inventory (which does the slot/burden checks, and can also independently fail)
