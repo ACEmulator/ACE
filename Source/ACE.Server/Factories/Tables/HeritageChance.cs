@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 using ACE.Common;
-using ACE.Entity.Enum;
+using ACE.Server.Factories.Enum;
 using ACE.Server.Factories.Entity;
 
 namespace ACE.Server.Factories.Tables
@@ -10,215 +10,200 @@ namespace ACE.Server.Factories.Tables
     {
         // this maps to TreasureDeath.UnknownChances
 
-        // this is used as a pre-roll into some of the WeaponWcid tables
+        // this is used as a pre-roll into some of the ClothingWcid, ArmorWcid, and WeaponWcid tables
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup1 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile1 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    1.00f ),
-            ( HeritageGroup.Gharundim,  0.00f ),
-            ( HeritageGroup.Sho,        0.00f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Aluvian,    1.00f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup2 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile2 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.00f ),
-            ( HeritageGroup.Gharundim,  1.00f ),
-            ( HeritageGroup.Sho,        0.00f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Gharundim,  1.00f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup3 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile3 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.00f ),
-            ( HeritageGroup.Gharundim,  0.00f ),
-            ( HeritageGroup.Sho,        1.00f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Sho,        1.00f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup4 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile4 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.75f ),
-            ( HeritageGroup.Gharundim,  0.25f ),
-            ( HeritageGroup.Sho,        0.00f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Aluvian,    0.75f ),
+            ( TreasureHeritageGroup.Gharundim,  0.25f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup5 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile5 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.75f ),
-            ( HeritageGroup.Gharundim,  0.00f ),
-            ( HeritageGroup.Sho,        0.25f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Aluvian,    0.75f ),
+            ( TreasureHeritageGroup.Sho,        0.25f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup6 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile6 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.25f ),
-            ( HeritageGroup.Gharundim,  0.75f ),
-            ( HeritageGroup.Sho,        0.00f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Aluvian,    0.25f ),
+            ( TreasureHeritageGroup.Gharundim,  0.75f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup7 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile7 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.00f ),
-            ( HeritageGroup.Gharundim,  0.75f ),
-            ( HeritageGroup.Sho,        0.25f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Gharundim,  0.75f ),
+            ( TreasureHeritageGroup.Sho,        0.25f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup8 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile8 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.25f ),
-            ( HeritageGroup.Gharundim,  0.00f ),
-            ( HeritageGroup.Sho,        0.75f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Aluvian,    0.25f ),
+            ( TreasureHeritageGroup.Sho,        0.75f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup9 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile9 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.00f ),
-            ( HeritageGroup.Gharundim,  0.25f ),
-            ( HeritageGroup.Sho,        0.75f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Gharundim,  0.25f ),
+            ( TreasureHeritageGroup.Sho,        0.75f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup10 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile10 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.50f ),
-            ( HeritageGroup.Gharundim,  0.50f ),
-            ( HeritageGroup.Sho,        0.00f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Aluvian,    0.50f ),
+            ( TreasureHeritageGroup.Gharundim,  0.50f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup11 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile11 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.50f ),
-            ( HeritageGroup.Gharundim,  0.00f ),
-            ( HeritageGroup.Sho,        0.50f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Aluvian,    0.50f ),
+            ( TreasureHeritageGroup.Sho,        0.50f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup12 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile12 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.00f ),
-            ( HeritageGroup.Gharundim,  0.50f ),
-            ( HeritageGroup.Sho,        0.50f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Gharundim,  0.50f ),
+            ( TreasureHeritageGroup.Sho,        0.50f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup13 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile13 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.80f ),
-            ( HeritageGroup.Gharundim,  0.10f ),
-            ( HeritageGroup.Sho,        0.10f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Aluvian,    0.80f ),
+            ( TreasureHeritageGroup.Gharundim,  0.10f ),
+            ( TreasureHeritageGroup.Sho,        0.10f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup14 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile14 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.10f ),
-            ( HeritageGroup.Gharundim,  0.80f ),
-            ( HeritageGroup.Sho,        0.10f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Aluvian,    0.10f ),
+            ( TreasureHeritageGroup.Gharundim,  0.80f ),
+            ( TreasureHeritageGroup.Sho,        0.10f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup15 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile15 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.10f ),
-            ( HeritageGroup.Gharundim,  0.10f ),
-            ( HeritageGroup.Sho,        0.80f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Aluvian,    0.10f ),
+            ( TreasureHeritageGroup.Gharundim,  0.10f ),
+            ( TreasureHeritageGroup.Sho,        0.80f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup16 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile16 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.50f ),
-            ( HeritageGroup.Gharundim,  0.25f ),
-            ( HeritageGroup.Sho,        0.25f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Aluvian,    0.50f ),
+            ( TreasureHeritageGroup.Gharundim,  0.25f ),
+            ( TreasureHeritageGroup.Sho,        0.25f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup17 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile17 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.25f ),
-            ( HeritageGroup.Gharundim,  0.50f ),
-            ( HeritageGroup.Sho,        0.25f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Aluvian,    0.25f ),
+            ( TreasureHeritageGroup.Gharundim,  0.50f ),
+            ( TreasureHeritageGroup.Sho,        0.25f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup18 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile18 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.25f ),
-            ( HeritageGroup.Gharundim,  0.25f ),
-            ( HeritageGroup.Sho,        0.50f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Aluvian,    0.25f ),
+            ( TreasureHeritageGroup.Gharundim,  0.25f ),
+            ( TreasureHeritageGroup.Sho,        0.50f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup19 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile19 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.34f ),
-            ( HeritageGroup.Gharundim,  0.33f ),
-            ( HeritageGroup.Sho,        0.33f ),
-            ( HeritageGroup.Viamontian, 0.00f ),
+            ( TreasureHeritageGroup.Aluvian,    0.34f ),
+            ( TreasureHeritageGroup.Gharundim,  0.33f ),
+            ( TreasureHeritageGroup.Sho,        0.33f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup20 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile20 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.00f ),
-            ( HeritageGroup.Gharundim,  0.00f ),
-            ( HeritageGroup.Sho,        0.00f ),
-            ( HeritageGroup.Viamontian, 1.00f ),
+            ( TreasureHeritageGroup.Viamontian, 1.00f ),
         };
 
-        private static readonly ChanceTable<HeritageGroup> heritageChanceGroup21 = new ChanceTable<HeritageGroup>()
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile21 = new ChanceTable<TreasureHeritageGroup>()
         {
-            ( HeritageGroup.Aluvian,    0.25f ),
-            ( HeritageGroup.Gharundim,  0.25f ),
-            ( HeritageGroup.Sho,        0.25f ),
-            ( HeritageGroup.Viamontian, 0.25f ),
+            ( TreasureHeritageGroup.Aluvian,    0.25f ),
+            ( TreasureHeritageGroup.Gharundim,  0.25f ),
+            ( TreasureHeritageGroup.Sho,        0.25f ),
+            ( TreasureHeritageGroup.Viamontian, 0.25f ),
+        };
+
+        // added
+
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile22 = new ChanceTable<TreasureHeritageGroup>()
+        {
+            ( TreasureHeritageGroup.CelestialHand, 1.0f ),
+        };
+
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile23 = new ChanceTable<TreasureHeritageGroup>()
+        {
+            ( TreasureHeritageGroup.EldrytchWeb,   1.0f ),
+        };
+
+        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile24 = new ChanceTable<TreasureHeritageGroup>()
+        {
+            ( TreasureHeritageGroup.RadiantBlood,  1.0f ),
         };
 
         /// <summary>
         /// Key is TreasureDeath.UnknownChances (todo: rename)
         /// </summary>
-        private static readonly Dictionary<int, ChanceTable<HeritageGroup>> heritageDistGroups = new Dictionary<int, ChanceTable<HeritageGroup>>()
+        private static readonly List<ChanceTable<TreasureHeritageGroup>> heritageProfiles = new List<ChanceTable<TreasureHeritageGroup>>()
         {
-            { 1, heritageChanceGroup1 },
-            { 2, heritageChanceGroup2 },
-            { 3, heritageChanceGroup3 },
-            { 4, heritageChanceGroup4 },
-            { 5, heritageChanceGroup5 },
-            { 6, heritageChanceGroup6 },
-            { 7, heritageChanceGroup7 },
-            { 8, heritageChanceGroup8 },
-            { 9, heritageChanceGroup9 },
-            { 10, heritageChanceGroup10 },
-            { 11, heritageChanceGroup11 },
-            { 12, heritageChanceGroup12 },
-            { 13, heritageChanceGroup13 },
-            { 14, heritageChanceGroup14 },
-            { 15, heritageChanceGroup15 },
-            { 16, heritageChanceGroup16 },
-            { 17, heritageChanceGroup17 },
-            { 18, heritageChanceGroup18 },
-            { 19, heritageChanceGroup19 },
-            { 20, heritageChanceGroup20 },
-            { 21, heritageChanceGroup21 },
+            heritageProfile1,
+            heritageProfile2,
+            heritageProfile3,
+            heritageProfile4,
+            heritageProfile5,
+            heritageProfile6,
+            heritageProfile7,
+            heritageProfile8,
+            heritageProfile9,
+            heritageProfile10,
+            heritageProfile11,
+            heritageProfile12,
+            heritageProfile13,
+            heritageProfile14,
+            heritageProfile15,
+            heritageProfile16,
+            heritageProfile17,
+            heritageProfile18,
+            heritageProfile19,
+            heritageProfile20,
+            heritageProfile21,
+            heritageProfile22,
+            heritageProfile23,
+            heritageProfile24,
         };
 
-        public static HeritageGroup Roll(int heritageDistGroup)
+        public static TreasureHeritageGroup Roll(int heritageProfile, bool addViamontian = false)
         {
-            if (!heritageDistGroups.TryGetValue(heritageDistGroup, out var table))
-                return HeritageGroup.Invalid;
+            if (heritageProfile < 1 || heritageProfile > heritageProfiles.Count)
+            {
+                // fallback method - fix the treasure_death.heritage_chances data for new rows
+                return (TreasureHeritageGroup)ThreadSafeRandom.Next(1, 3);
+            }
 
-            var heritageGroup = table.Roll();
+            // convert profile 19 to 21 at runtime?
+            if (addViamontian && heritageProfile == 19)
+                heritageProfile = 21;
 
-            // until additional heritage tables are in,
-            // return an even chance of aluvian / gharu'ndim / sho for viamontian+
-            if (heritageGroup >= HeritageGroup.Viamontian)
-                heritageGroup = (HeritageGroup)ThreadSafeRandom.Next(1, 3);
+            var heritageGroup = heritageProfiles[heritageProfile - 1].Roll();
 
             return heritageGroup;
         }

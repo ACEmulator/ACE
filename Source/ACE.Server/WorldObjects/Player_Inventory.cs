@@ -262,6 +262,9 @@ namespace ACE.Server.WorldObjects
                 new GameEventWieldItem(Session, item.Guid.Full, wieldedLocation),
                 new GameMessageSound(Guid, Sound.WieldObject));
 
+            if (item.GearMaxHealth != null)
+                HandleMaxHealthUpdate();
+
             TryShuffleStance(wieldedLocation);
 
             // does this item cast enchantments, and currently have mana?
@@ -348,6 +351,9 @@ namespace ACE.Server.WorldObjects
             // handle equipment sets
             if (item.HasItemSet)
                 DequipItemFromSet(item);
+
+            if (item.GearMaxHealth != null)
+                HandleMaxHealthUpdate();
 
             if (dequipObjectAction == DequipObjectAction.ToCorpseOnDeath || dequipObjectAction == DequipObjectAction.TradeItem)
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(item));

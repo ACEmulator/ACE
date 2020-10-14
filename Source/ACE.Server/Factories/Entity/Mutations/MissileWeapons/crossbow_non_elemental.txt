@@ -1,0 +1,179 @@
+Crossbow (MissileWeapons) Mutation #1 (484 samples):
+
+Tier chances: 1, 0, 0, 0, 0, 0, 0, 0
+
+    - Chance: 10%:
+        DamageMod = 1.8
+
+    - Chance: 10%:
+        DamageMod = 1.9
+
+    - Chance: 10%:
+        DamageMod = 2
+
+    - Chance: 20%:
+        DamageMod = 2.1
+
+    - Chance: 25%:
+        DamageMod = 2.2
+
+    - Chance: 15%:
+        DamageMod = 2.3
+
+    - Chance: 10%:
+        DamageMod = 2.4
+
+Crossbow (MissileWeapons) Mutation #2 (831 samples):
+
+Tier chances: 0, 1, 0, 0, 0, 0, 0, 0
+
+    - Chance: 5%:
+        DamageMod = 1.9
+
+    - Chance: 7%:
+        DamageMod = 2
+
+    - Chance: 12%:
+        DamageMod = 2.1
+
+    - Chance: 13%:
+        DamageMod = 2.2
+
+    - Chance: 8%:
+        DamageMod = 2.3
+
+    - Chance: 5%:
+        DamageMod = 2.4
+
+    - Chance: 10%:
+        DamageMod = 2.43
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 20%:
+        DamageMod = 2.45
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 15%:
+        DamageMod = 2.47
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 5%:
+        DamageMod = 2.5
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+Crossbow (MissileWeapons) Mutation #3 (742 samples):
+
+Tier chances: 0, 0, 1, 0, 0, 0, 0, 0
+
+    - Chance: 10%:
+        DamageMod = 2.43
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 20%:
+        DamageMod = 2.45
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 15%:
+        DamageMod = 2.47
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 5%:
+        DamageMod = 2.5
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 38%:
+        DamageMod = 2.53
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 270
+
+    - Chance: 12%:
+        DamageMod = 2.55
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 270
+
+Crossbow (MissileWeapons) Mutation #4 (1,695 samples):
+
+Tier chances: 0, 0, 0, 1, 0, 0, 0, 0
+
+    - Chance: 38%:
+        DamageMod = 2.53
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 270
+
+    - Chance: 12%:
+        DamageMod = 2.55
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 270
+
+    - Chance: 10%:
+        DamageMod = 2.57
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 290
+
+    - Chance: 20%:
+        DamageMod = 2.6
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 290
+
+    - Chance: 15%:
+        DamageMod = 2.63
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 290
+
+    - Chance: 5%:
+        DamageMod = 2.65
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 290
+
+Crossbow (MissileWeapons) Mutation #5 (1,540 samples):
+
+Tier chances: 0, 0, 0, 0, 1, 1, 1, 1
+
+    - Chance: 15%:
+        DamageMod = 2.57
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 290
+
+    - Chance: 35%:
+        DamageMod = 2.6
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 290
+
+    - Chance: 35%:
+        DamageMod = 2.63
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 290
+
+    - Chance: 15%:
+        DamageMod = 2.65
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 290
+

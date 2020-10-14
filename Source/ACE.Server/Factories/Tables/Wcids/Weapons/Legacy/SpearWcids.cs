@@ -1,5 +1,5 @@
-using ACE.Entity.Enum;
 using ACE.Server.Factories.Entity;
+using ACE.Server.Factories.Enum;
 
 using WeenieClassName = ACE.Server.Factories.Enum.WeenieClassName;
 
@@ -64,17 +64,17 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.swordstafffrost,    0.05f ),
         };
 
-        public static WeenieClassName Roll(HeritageGroup heritage)
+        public static WeenieClassName Roll(TreasureHeritageGroup heritage)
         {
             switch (heritage)
             {
-                case HeritageGroup.Aluvian:
+                case TreasureHeritageGroup.Aluvian:
                     return SpearWcids_Aluvian.Roll();
 
-                case HeritageGroup.Gharundim:
+                case TreasureHeritageGroup.Gharundim:
                     return SpearWcids_Gharundim.Roll();
 
-                case HeritageGroup.Sho:
+                case TreasureHeritageGroup.Sho:
                     return SpearWcids_Sho.Roll();
             }
             return WeenieClassName.undef;

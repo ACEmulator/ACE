@@ -1,7 +1,10 @@
+using System;
 using System.Linq;
 
 using ACE.Common;
+using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
@@ -9,87 +12,35 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateGem(int tier, bool isMagical, bool mutate = true)
+        private static WorldObject CreateGem(TreasureDeath profile, bool isMagical, bool mutate = true)
         {
-            int gemLootMatrixIndex = tier - 1;
+            var idx = profile.Tier - 1;
 
-            if (gemLootMatrixIndex > 4) gemLootMatrixIndex = 4;
-            int upperLimit = LootTables.GemsMatrix[gemLootMatrixIndex].Length - 1;
+            if (idx > 4) idx = 4;
 
-            uint gemWCID = (uint)LootTables.GemsWCIDsMatrix[gemLootMatrixIndex][ThreadSafeRandom.Next(0, upperLimit)];
+            var rng = ThreadSafeRandom.Next(0, LootTables.GemsMatrix[idx].Length - 1);
 
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(gemWCID) as Gem;
+            var wcid = (uint)LootTables.GemsMatrix[idx][rng];
+
+            var wo = WorldObjectFactory.CreateNewWorldObject(wcid) as Gem;
 
             if (wo != null && mutate)
-                MutateGem(wo, tier, isMagical);
+                MutateGem(wo, profile, isMagical);
 
             return wo;
         }
 
-        private static void MutateGem(WorldObject wo, int tier, bool isMagical)
+        private static void MutateGem(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureRoll roll = null)
         {
-            uint gemType = 0;
-            int workmanship = 0;
-            int rank = 0;
-            int difficulty = 0;
-            SpellId spellDID = 0;
-            int skill_level_limit = 0;
+            // workmanship
+            wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
-            gemType = (uint)wo.MaterialType;
+            // item color
+            MutateColor(wo);
 
-            workmanship = GetWorkmanship(tier);
-            wo.ItemWorkmanship = workmanship;
-            int value = LootTables.gemValues[(int)gemType] + ThreadSafeRandom.Next(1, LootTables.gemValues[(int)gemType]);
-            wo.Value = value;
-
-            // TODO: here tier N always rolls a level N spell
-            // in retail, each tier could roll different levels of spells. each tier had a spell level chance table
-            // for example, tier 8 might have had a 75% chance to roll level 7 spells, and a 25% chance to roll level 8 spells
-
-            var gemLootMatrixIndex = tier - 1;
-            if (isMagical)
+            if (!isMagical)
             {
-                wo.ItemUseable = Usable.Contained;
-                wo.UiEffects = UiEffects.Magical;
-
-                int gemSpellIndex;
-                int spellChance = 0;
-
-                spellChance = ThreadSafeRandom.Next(0, 3);
-                switch (spellChance)
-                {
-                    case 0:
-                        gemSpellIndex = LootTables.GemSpellIndexMatrix[gemLootMatrixIndex][0];
-                        spellDID = GemSpells.GemCreatureSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, GemSpells.GemCreatureSpellMatrix[gemSpellIndex].Length - 1)];
-                        break;
-                    case 1:
-                        gemSpellIndex = LootTables.GemSpellIndexMatrix[gemLootMatrixIndex][0];
-                        spellDID = GemSpells.GemLifeSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, GemSpells.GemLifeSpellMatrix[gemSpellIndex].Length - 1)];
-                        break;
-                    case 2:
-                        gemSpellIndex = LootTables.GemSpellIndexMatrix[gemLootMatrixIndex][1];
-                        spellDID = GemSpells.GemCreatureSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, GemSpells.GemCreatureSpellMatrix[gemSpellIndex].Length - 1)];
-                        break;
-                    default:
-                        gemSpellIndex = LootTables.GemSpellIndexMatrix[gemLootMatrixIndex][1];
-                        spellDID = GemSpells.GemLifeSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, GemSpells.GemLifeSpellMatrix[gemSpellIndex].Length - 1)];
-                        break;
-                }
-
-                int manaCost = 50 * gemSpellIndex;
-                int spellcraft = 50 * gemSpellIndex;
-                int maxMana = ThreadSafeRandom.Next(manaCost, manaCost + 50);
-
-                wo.SpellDID = (uint)spellDID;
-                wo.ItemAllegianceRankLimit = rank;
-                wo.ItemDifficulty = difficulty;
-                wo.ItemManaCost = manaCost;
-                wo.ItemMaxMana = maxMana;
-                wo.ItemSkillLevelLimit = skill_level_limit;
-                wo.ItemSpellcraft = spellcraft;
-            }
-            else
-            {
+                // TODO: verify if this is needed
                 wo.ItemUseable = Usable.No;
                 wo.SpellDID = null;
                 wo.ItemManaCost = null;
@@ -99,9 +50,84 @@ namespace ACE.Server.Factories
                 wo.ItemDifficulty = null;
                 wo.ItemSkillLevelLimit = null;
                 wo.ManaRate = null;
-
             }
-            RandomizeColor(wo);
+            else
+            {
+                if (roll == null)
+                    AssignMagic_Gem(wo, profile);
+                else
+                    AssignMagic_Gem_New(wo, profile, roll);
+
+                wo.UiEffects = UiEffects.Magical;
+                wo.ItemUseable = Usable.Contained;
+
+                wo.LongDesc = GetLongDesc(wo);
+            }
+
+            // item value, review
+            var gemValue = LootTables.gemValues[(int)wo.MaterialType];
+            wo.Value = gemValue + ThreadSafeRandom.Next(1, gemValue);
+        }
+
+        private static void AssignMagic_Gem(WorldObject wo, TreasureDeath profile)
+        {
+            var spellLevelIdx = ThreadSafeRandom.Next(0, 1);
+            var spellLevel = LootTables.GemSpellIndexMatrix[profile.Tier - 1][spellLevelIdx];
+
+            var magicSchool = ThreadSafeRandom.Next(0, 1);
+
+            var table = magicSchool == 0 ? GemSpells.GemCreatureSpellMatrix[spellLevel] : GemSpells.GemLifeSpellMatrix[spellLevel];
+
+            var rng = ThreadSafeRandom.Next(0, table.Length - 1);
+
+            var spell = table[rng];
+
+            wo.SpellDID = (uint)spell;
+
+            var baseMana = spellLevel * 50;
+
+            wo.ItemSpellcraft = RollSpellcraft(wo);
+
+            wo.ItemMaxMana = ThreadSafeRandom.Next(baseMana, baseMana + 50);
+            wo.ItemCurMana = wo.ItemMaxMana;
+
+            wo.ItemManaCost = baseMana;
+        }
+
+        private static bool AssignMagic_Gem_New(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
+        {
+            // TODO: move to standard AssignMagic() pipeline
+
+            var spell = SpellSelectionTable.Roll(1);
+
+            var spellLevel = SpellLevelChance.Roll(profile.Tier);
+
+            var spellLevels = SpellLevelProgression.GetSpellLevels(spell);
+
+            if (spellLevels == null || spellLevels.Count != 8)
+            {
+                log.Error($"AssignMagic_Gem_New({wo.Name}, {profile.TreasureType}, {roll.ItemType}) - unknown spell {spell}");
+                return false;
+            }
+
+            var finalSpellId = spellLevels[spellLevel - 1];
+
+            wo.SpellDID = (uint)finalSpellId;
+
+            var _spell = new Server.Entity.Spell(finalSpellId);
+
+            // retail spellcraft was capped at 370
+            wo.ItemSpellcraft = Math.Min((int)_spell.Power, 370);
+
+            var castableMana = (int)_spell.BaseMana * 5;
+
+            wo.ItemMaxMana = RollItemMaxMana_New(wo, roll, castableMana);
+            wo.ItemCurMana = wo.ItemMaxMana;
+
+            // verified
+            wo.ItemManaCost = castableMana;
+
+            return true;
         }
 
         private static bool GetMutateGemData(uint wcid)
