@@ -2073,7 +2073,13 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     // targeting a creature, try to redirect to primary weapon
-                    var weapon = targetCreature.GetEquippedWeapon() ?? targetCreature.GetEquippedWand();
+                    var weapon = spell.NonComponentTargetType switch
+                    {
+                        ItemType.Weapon => targetCreature.GetEquippedWeapon(),
+                        ItemType.Caster => targetCreature.GetEquippedWand(),
+                        ItemType.WeaponOrCaster => targetCreature.GetEquippedWeapon() ?? targetCreature.GetEquippedWand(),
+                        _ => null
+                    };
 
                     if (weapon != null && weapon.IsEnchantable)
                     {
