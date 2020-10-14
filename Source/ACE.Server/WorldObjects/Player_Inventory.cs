@@ -2452,6 +2452,10 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
+                // quick fix
+                if (itemToGive is Container)
+                    RushNextPlayerSave(5);
+
                 if (item == itemToGive)
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
 
