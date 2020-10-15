@@ -9,37 +9,37 @@ namespace ACE.Server.Factories.Tables
     {
         // indexed by TreasureDeath.ItemTreasureTypeSelectionChances
 
-        private static readonly ChanceTable<TreasureItemType_Orig> itemProfile1 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType_Orig> itemProfile1 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Weapon,    1.0f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> itemProfile2 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType_Orig> itemProfile2 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Armor,     1.0f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> itemProfile3 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType_Orig> itemProfile3 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Scroll,    1.0f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> itemProfile4 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType_Orig> itemProfile4 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Clothing,  1.0f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> itemProfile5 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType_Orig> itemProfile5 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Jewelry,   1.0f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> itemProfile6 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType_Orig> itemProfile6 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Gem,       1.0f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> itemProfile7 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType_Orig> itemProfile7 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.ArtObject, 1.0f ),
         };
@@ -47,7 +47,7 @@ namespace ACE.Server.Factories.Tables
         /// <summary>
         /// The second most common ItemProfile
         /// </summary>
-        private static readonly ChanceTable<TreasureItemType_Orig> itemProfile8 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType_Orig> itemProfile8 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Weapon,    0.125f ),
             ( TreasureItemType_Orig.Armor,     0.125f ),
@@ -62,7 +62,7 @@ namespace ACE.Server.Factories.Tables
         /// <summary>
         /// The most common ItemProfile
         /// </summary>
-        private static readonly ChanceTable<TreasureItemType_Orig> itemProfile9 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType_Orig> itemProfile9 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Weapon,    0.20f ),
             ( TreasureItemType_Orig.Armor,     0.20f ),
@@ -74,7 +74,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType_Orig.PetDevice, 0.20f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> itemProfile10 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType_Orig> itemProfile10 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Weapon,    0.30f ),
             ( TreasureItemType_Orig.Armor,     0.30f ),
@@ -82,7 +82,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType_Orig.PetDevice, 0.20f ),
         };
 
-        private static readonly ChanceTable<TreasureItemType_Orig> itemProfile11 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType_Orig> itemProfile11 = new ChanceTable<TreasureItemType_Orig>()
         {
             ( TreasureItemType_Orig.Clothing,  0.25f ),
             ( TreasureItemType_Orig.Jewelry,   0.25f ),

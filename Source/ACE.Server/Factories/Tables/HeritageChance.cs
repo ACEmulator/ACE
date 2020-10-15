@@ -12,130 +12,130 @@ namespace ACE.Server.Factories.Tables
 
         // this is used as a pre-roll into some of the ClothingWcid, ArmorWcid, and WeaponWcid tables
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile1 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile1 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Aluvian,    1.00f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile2 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile2 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Gharundim,  1.00f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile3 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile3 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Sho,        1.00f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile4 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile4 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Aluvian,    0.75f ),
             ( TreasureHeritageGroup.Gharundim,  0.25f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile5 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile5 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Aluvian,    0.75f ),
             ( TreasureHeritageGroup.Sho,        0.25f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile6 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile6 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Aluvian,    0.25f ),
             ( TreasureHeritageGroup.Gharundim,  0.75f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile7 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile7 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Gharundim,  0.75f ),
             ( TreasureHeritageGroup.Sho,        0.25f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile8 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile8 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Aluvian,    0.25f ),
             ( TreasureHeritageGroup.Sho,        0.75f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile9 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile9 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Gharundim,  0.25f ),
             ( TreasureHeritageGroup.Sho,        0.75f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile10 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile10 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Aluvian,    0.50f ),
             ( TreasureHeritageGroup.Gharundim,  0.50f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile11 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile11 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Aluvian,    0.50f ),
             ( TreasureHeritageGroup.Sho,        0.50f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile12 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile12 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Gharundim,  0.50f ),
             ( TreasureHeritageGroup.Sho,        0.50f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile13 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile13 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Aluvian,    0.80f ),
             ( TreasureHeritageGroup.Gharundim,  0.10f ),
             ( TreasureHeritageGroup.Sho,        0.10f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile14 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile14 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Aluvian,    0.10f ),
             ( TreasureHeritageGroup.Gharundim,  0.80f ),
             ( TreasureHeritageGroup.Sho,        0.10f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile15 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile15 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Aluvian,    0.10f ),
             ( TreasureHeritageGroup.Gharundim,  0.10f ),
             ( TreasureHeritageGroup.Sho,        0.80f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile16 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile16 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Aluvian,    0.50f ),
             ( TreasureHeritageGroup.Gharundim,  0.25f ),
             ( TreasureHeritageGroup.Sho,        0.25f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile17 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile17 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Aluvian,    0.25f ),
             ( TreasureHeritageGroup.Gharundim,  0.50f ),
             ( TreasureHeritageGroup.Sho,        0.25f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile18 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile18 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Aluvian,    0.25f ),
             ( TreasureHeritageGroup.Gharundim,  0.25f ),
             ( TreasureHeritageGroup.Sho,        0.50f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile19 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile19 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Aluvian,    0.34f ),
             ( TreasureHeritageGroup.Gharundim,  0.33f ),
             ( TreasureHeritageGroup.Sho,        0.33f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile20 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile20 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Viamontian, 1.00f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile21 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile21 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.Aluvian,    0.25f ),
             ( TreasureHeritageGroup.Gharundim,  0.25f ),
@@ -145,17 +145,17 @@ namespace ACE.Server.Factories.Tables
 
         // added
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile22 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile22 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.CelestialHand, 1.0f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile23 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile23 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.EldrytchWeb,   1.0f ),
         };
 
-        private static readonly ChanceTable<TreasureHeritageGroup> heritageProfile24 = new ChanceTable<TreasureHeritageGroup>()
+        private static ChanceTable<TreasureHeritageGroup> heritageProfile24 = new ChanceTable<TreasureHeritageGroup>()
         {
             ( TreasureHeritageGroup.RadiantBlood,  1.0f ),
         };

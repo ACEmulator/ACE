@@ -1,5 +1,3 @@
-using Org.BouncyCastle.Bcpg;
-
 namespace ACE.Server.Factories.Enum
 {
     public enum TreasureArmorType

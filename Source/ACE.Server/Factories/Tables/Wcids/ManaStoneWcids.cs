@@ -8,41 +8,41 @@ namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class ManaStoneWcids
     {
-        private static readonly ChanceTable<WeenieClassName> T1_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T1_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.manastoneminor,   0.75f ),
             ( WeenieClassName.manastonelesser,  0.25f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T2_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T2_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.manastoneminor,   0.25f ),
             ( WeenieClassName.manastonelesser,  0.50f ),
             ( WeenieClassName.manastone,        0.25f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T3_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T3_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.manastonelesser,  0.25f ),
             ( WeenieClassName.manastone,        0.50f ),
             ( WeenieClassName.manastonemedium,  0.25f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T4_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T4_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.manastone,        0.25f ),
             ( WeenieClassName.manastonemedium,  0.50f ),
             ( WeenieClassName.manastonegreater, 0.25f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T5_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T5_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.manastonemedium,  0.25f ),
             ( WeenieClassName.manastonegreater, 0.50f ),
             ( WeenieClassName.manastonemajor,   0.25f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T6_T8_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T6_T8_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.manastonegreater, 0.25f ),
             ( WeenieClassName.manastonemajor,   0.75f ),
