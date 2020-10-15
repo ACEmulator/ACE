@@ -235,8 +235,7 @@ namespace ACE.Server.Physics.Animation
                 Cycles.TryGetValue(styleKey | (currState.Substate & 0xFFFFFF), out cycles);
                 if (cycles != null && (cycles.Bitfield & 1) == 0)
                 {
-                    // todo: investigate
-                    Modifiers.TryGetValue(styleKey | motion, out motionData);
+                    Modifiers.TryGetValue(styleKey | (motion & 0xFFFFFF), out motionData);
                     if (motionData == null)
                         Modifiers.TryGetValue(motion & 0xFFFFFF, out motionData);
                     if (motionData != null)
@@ -336,7 +335,7 @@ namespace ACE.Server.Physics.Animation
             {
                 if (modifier.Value.ID == motion)
                 {
-                    var key = (modifier.Value.ID << 16) | (motion & 0xFFFFFF);
+                    var key = (currState.Style << 16) | (motion & 0xFFFFFF);
 
                     Modifiers.TryGetValue(key, out var motionData);
                     if (motionData == null)
