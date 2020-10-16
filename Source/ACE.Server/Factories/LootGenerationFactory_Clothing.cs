@@ -77,6 +77,10 @@ namespace ACE.Server.Factories
             // item color
             MutateColor(wo);
 
+            // further randomize color?
+            wo.PaletteTemplate = ThreadSafeRandom.Next(1, 2047);
+            wo.Shade = .1 * ThreadSafeRandom.Next(0, 9);
+
             // gem count / gem material
             if (wo.GemCode != null)
                 wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);

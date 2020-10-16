@@ -283,7 +283,7 @@ namespace ACE.Server.WorldObjects
             // if player target, ensure matching PK status
             var targetPlayer = creatureTarget as Player;
 
-            var pkError = CheckPKStatusVsTarget(player, targetPlayer, Spell);
+            var pkError = ProjectileSource?.CheckPKStatusVsTarget(creatureTarget, Spell);
             if (pkError != null)
             {
                 if (player != null)
@@ -342,6 +342,13 @@ namespace ACE.Server.WorldObjects
             // also called on resist
             if (player != null && targetPlayer == null)
                 player.OnAttackMonster(creatureTarget);
+
+            if (player == null && targetPlayer == null)
+            {
+                // check for faction combat
+                if (sourceCreature != null && creatureTarget != null && sourceCreature.AllowFactionCombat(creatureTarget))
+                    sourceCreature.MonsterOnAttackMonster(creatureTarget);
+            }
         }
 
         /// <summary>
