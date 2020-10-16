@@ -203,12 +203,8 @@ namespace ACE.Server.Factories
             else
                 AssignArmorLevel_New(wo, profile, roll);
 
-            if (wo.HasMutateFilter(MutateFilter.ArmorModVsType) && wo.ArmorLevel > 0)
-            {
-                // covenant armor and olthoi armor appear to have different mutation methods possibly
-                if (armorType != LootTables.ArmorType.CovenantArmor && armorType != LootTables.ArmorType.OlthoiArmor)
-                    MutateArmorModVsType(wo, profile);
-            }
+            if (wo.HasMutateFilter(MutateFilter.ArmorModVsType))
+                MutateArmorModVsType(wo, profile);
 
             AssignEquipmentSetId(wo, profile);
 
@@ -396,7 +392,7 @@ namespace ACE.Server.Factories
             if (!roll.HasArmorLevel(wo))
                 return false;
 
-            var scriptName = GetMutationScript_ArmorLevel(wo);
+            var scriptName = GetMutationScript_ArmorLevel(wo, roll);
 
             if (scriptName == null)
             {
@@ -411,8 +407,16 @@ namespace ACE.Server.Factories
             return mutationFilter.TryMutate(wo, profile.Tier);
         }
 
-        private static string GetMutationScript_ArmorLevel(WorldObject wo)
+        private static string GetMutationScript_ArmorLevel(WorldObject wo, TreasureRoll roll)
         {
+            if (roll.ArmorType == TreasureArmorType.Covenant)
+            {
+                if (wo.IsShield)
+                    return "ArmorLevel.covenant_shield.txt";
+
+                return "ArmorLevel.covenant_armor.txt";
+            }
+
             if (wo.IsShield)
                 return "ArmorLevel.shield_level.txt";
 
