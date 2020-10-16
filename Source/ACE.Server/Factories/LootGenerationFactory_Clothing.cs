@@ -149,6 +149,10 @@ namespace ACE.Server.Factories
             // item color
             MutateColor(wo);
 
+            // further randomize color?
+            wo.PaletteTemplate = ThreadSafeRandom.Next(1, 2047);
+            wo.Shade = .1 * ThreadSafeRandom.Next(0, 9);
+
             // gem count / gem material
             if (wo.GemCode != null)
                 wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
@@ -164,7 +168,7 @@ namespace ACE.Server.Factories
             if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
                 MutateBurden(wo, profile, false);
 
-            if (profile.Tier > 6 && armorType != LootTables.ArmorType.CovenantArmor && armorType != LootTables.ArmorType.OlthoiArmor)
+            if (roll == null && profile.Tier > 6 && armorType != LootTables.ArmorType.CovenantArmor && armorType != LootTables.ArmorType.OlthoiArmor)
             {
                 wo.WieldRequirements = WieldRequirement.Level;
                 wo.WieldSkillType = (int)Skill.Axe;  // Set by examples from PCAP data
@@ -194,9 +198,19 @@ namespace ACE.Server.Factories
                 wo.ItemSkillLimit = wieldSkill;
             }
 
-            wo = AssignArmorLevel(wo, profile.Tier, armorType);
+            if (roll == null)
+                AssignArmorLevel(wo, profile.Tier, armorType);
+            else
+                AssignArmorLevel_New(wo, profile, roll);
 
-            wo = AssignEquipmentSetId(wo, profile);
+            if (wo.HasMutateFilter(MutateFilter.ArmorModVsType) && wo.ArmorLevel > 0)
+            {
+                // covenant armor and olthoi armor appear to have different mutation methods possibly
+                if (armorType != LootTables.ArmorType.CovenantArmor && armorType != LootTables.ArmorType.OlthoiArmor)
+                    MutateArmorModVsType(wo, profile);
+            }
+
+            AssignEquipmentSetId(wo, profile);
 
             if (isMagical)
             {
@@ -210,13 +224,6 @@ namespace ACE.Server.Factories
                 wo.ItemCurMana = null;
                 wo.ItemSpellcraft = null;
                 wo.ItemDifficulty = null;
-            }
-
-            if (wo.HasMutateFilter(MutateFilter.ArmorModVsType) && wo.ArmorLevel > 0)
-            {
-                // covenant armor and olthoi armor appear to have different mutation methods possibly
-                if (armorType != LootTables.ArmorType.CovenantArmor && armorType != LootTables.ArmorType.OlthoiArmor)
-                    MutateArmorModVsType(wo, profile);
             }
 
             if (roll != null && profile.Tier == 8)
@@ -261,7 +268,7 @@ namespace ACE.Server.Factories
                 wo.ItemSpellcraft = null;
                 wo.ItemDifficulty = null;
             }
-            wo = AssignArmorLevel(wo, profile.Tier, LootTables.ArmorType.SocietyArmor);
+            AssignArmorLevel(wo, profile.Tier, LootTables.ArmorType.SocietyArmor);
 
             wo.LongDesc = GetLongDesc(wo);
 
@@ -335,7 +342,7 @@ namespace ACE.Server.Factories
             return wield;
         }
 
-        private static WorldObject AssignEquipmentSetId(WorldObject wo, TreasureDeath profile)
+        private static void AssignEquipmentSetId(WorldObject wo, TreasureDeath profile)
         {
             EquipmentSet equipSetId = EquipmentSet.Invalid;
 
@@ -374,8 +381,49 @@ namespace ACE.Server.Factories
                     }
                 }
             }
+        }
 
-            return wo;
+        private static bool AssignArmorLevel_New(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
+        {
+            // retail was only divied up into a few different mutation scripts here
+            // anything with ArmorLevel ran these mutation scripts
+            // anything that covered extremities (head / hand / foot wear) started with a slightly higher base AL,
+            // but otherwise used the same mutation as anything that covered non-extremities
+            // shields also had their own mutation script
+
+            // only exceptions found: covenant armor, olthoi armor, metal cap
+
+            if (!roll.HasArmorLevel(wo))
+                return false;
+
+            var scriptName = GetMutationScript_ArmorLevel(wo);
+
+            if (scriptName == null)
+            {
+                log.Error($"AssignArmorLevel_New({wo.Name}, {profile.TreasureType}, {roll.ItemType}) - unknown item type");
+                return false;
+            }
+
+            //Console.WriteLine($"Mutating {wo.Name} with {scriptName}");
+
+            var mutationFilter = MutationCache.GetMutation(scriptName);
+
+            return mutationFilter.TryMutate(wo, profile.Tier);
+        }
+
+        private static string GetMutationScript_ArmorLevel(WorldObject wo)
+        {
+            if (wo.IsShield)
+                return "ArmorLevel.shield_level.txt";
+
+            var coverage = wo.ClothingPriority ?? 0;
+
+            if ((coverage & (CoverageMask)CoverageMaskHelper.Extremities) != 0)
+                return "ArmorLevel.armor_level_extremity.txt";
+            else if ((coverage & (CoverageMask)CoverageMaskHelper.Outerwear) != 0)
+                return "ArmorLevel.armor_level_non_extremity.txt";
+            else
+                return null;
         }
 
         /// <summary>
@@ -383,12 +431,12 @@ namespace ACE.Server.Factories
         /// Used values given at https://asheron.fandom.com/wiki/Loot#Armor_Levels for setting the AL mod values
         /// so as to not exceed the values listed in that table
         /// </summary>
-        private static WorldObject AssignArmorLevel(WorldObject wo, int tier, LootTables.ArmorType armorType)
+        private static void AssignArmorLevel(WorldObject wo, int tier, LootTables.ArmorType armorType)
         {
             if (wo.ArmorType == null)
             {
                 log.Warn($"[LOOT] Missing PropertyInt.ArmorType on loot item {wo.WeenieClassId} - {wo.Name}");
-                return wo;
+                return;
             }
 
             var baseArmorLevel = wo.ArmorLevel ?? 0;
@@ -399,7 +447,7 @@ namespace ACE.Server.Factories
 
                 // Account for ACE World Databases that have not yet been updated
                 if (wo.ArmorType != (int)ArmorType.Cloth && (wo.GetProperty(PropertyInt.Version) ?? 0) < 3)
-                    return AssignArmorLevelCompat(wo, tier, armorType);
+                    AssignArmorLevelCompat(wo, tier, armorType);
 
                 // Sets AL variations based on weenie ArmorType field, such as cloth, leather, metal, etc.
                 switch (tier)
@@ -542,11 +590,9 @@ namespace ACE.Server.Factories
 
             if ((wo.ResistMagic == null || wo.ResistMagic < 9999) && wo.ArmorLevel >= 345)
                 log.Warn($"[LOOT] Standard armor item exceeding upper AL threshold {wo.WeenieClassId} - {wo.Name}");
-
-            return wo;
         }
 
-        private static WorldObject AssignArmorLevelCompat(WorldObject wo, int tier, LootTables.ArmorType armorType)
+        private static void AssignArmorLevelCompat(WorldObject wo, int tier, LootTables.ArmorType armorType)
         {
             log.Debug($"[LOOT] Using AL Assignment Compatibility layer for item {wo.WeenieClassId} - {wo.Name}.");
 
@@ -704,8 +750,6 @@ namespace ACE.Server.Factories
                 int adjustedArmorLevel = baseArmorLevel + armorModValue;
                 wo.ArmorLevel = adjustedArmorLevel;
             }
-
-            return wo;
         }
 
         private static WorldObject CreateCloak(TreasureDeath profile, bool mutate = true)
