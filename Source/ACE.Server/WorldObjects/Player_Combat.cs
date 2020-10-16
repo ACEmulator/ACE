@@ -1078,11 +1078,11 @@ namespace ACE.Server.WorldObjects
         /// <returns>null if no errors, else pk error list</returns>
         public override List<WeenieErrorWithString> CheckPKStatusVsTarget(WorldObject target, Spell spell)
         {
-            if (target == this)
+            if (target == null ||target == this)
                 return null;
 
             var targetCreature = target as Creature;
-            if (targetCreature != null && target.WielderId != null)
+            if (targetCreature == null && target.WielderId != null)
             {
                 // handle casting item spells
                 targetCreature = CurrentLandblock.GetObject(target.WielderId.Value) as Creature;
