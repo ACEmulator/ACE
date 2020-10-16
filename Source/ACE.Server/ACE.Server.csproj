@@ -27,6 +27,8 @@
     <None Remove="Factories\Entity\Mutations\ArmorLevel\armor_level_non_extremity.txt" />
     <None Remove="Factories\Entity\Mutations\ArmorLevel\covenant_armor.txt" />
     <None Remove="Factories\Entity\Mutations\ArmorLevel\covenant_shield.txt" />
+    <None Remove="Factories\Entity\Mutations\ArmorLevel\olthoi_armor.txt" />
+    <None Remove="Factories\Entity\Mutations\ArmorLevel\olthoi_shield.txt" />
     <None Remove="Factories\Entity\Mutations\ArmorLevel\shield_level.txt" />
     <None Remove="Factories\Entity\Mutations\Casters\caster.txt" />
     <None Remove="Factories\Entity\Mutations\Casters\caster_elemental.txt" />
@@ -85,6 +87,8 @@
     <EmbeddedResource Include="Factories\Entity\Mutations\ArmorLevel\armor_level_non_extremity.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\ArmorLevel\covenant_armor.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\ArmorLevel\covenant_shield.txt" />
+    <EmbeddedResource Include="Factories\Entity\Mutations\ArmorLevel\olthoi_armor.txt" />
+    <EmbeddedResource Include="Factories\Entity\Mutations\ArmorLevel\olthoi_shield.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\ArmorLevel\shield_level.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\Casters\caster.txt" />
     <EmbeddedResource Include="Factories\Entity\Mutations\Casters\caster_elemental.txt" />

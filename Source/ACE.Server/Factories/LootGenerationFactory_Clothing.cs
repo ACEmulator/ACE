@@ -409,12 +409,21 @@ namespace ACE.Server.Factories
 
         private static string GetMutationScript_ArmorLevel(WorldObject wo, TreasureRoll roll)
         {
-            if (roll.ArmorType == TreasureArmorType.Covenant)
+            switch (roll.ArmorType)
             {
-                if (wo.IsShield)
-                    return "ArmorLevel.covenant_shield.txt";
+                case TreasureArmorType.Covenant:
 
-                return "ArmorLevel.covenant_armor.txt";
+                    if (wo.IsShield)
+                        return "ArmorLevel.covenant_shield.txt";
+                    else
+                        return "ArmorLevel.covenant_armor.txt";
+
+                case TreasureArmorType.Olthoi:
+
+                    if (wo.IsShield)
+                        return "ArmorLevel.olthoi_shield.txt";
+                    else
+                        return "ArmorLevel.olthoi_armor.txt";
             }
 
             if (wo.IsShield)
@@ -1000,6 +1009,14 @@ namespace ACE.Server.Factories
             }
             else 
             {
+                // this can either be empty, or in the case of covenant / olthoi armor,
+                // it could already contain a level requirement of 180, or possibly 150 in tier 8
+
+                // we want to set this level requirement to 180, in all cases
+
+                // magloot logs indicated that even if covenant / olthoi armor was not upgraded to 180 in its mutation script,
+                // a gear rating could still drop on it, and would "upgrade" the 150 to a 180
+
                 wo.WieldRequirements2 = WieldRequirement.Level;
                 wo.WieldSkillType2 = (int)Skill.Axe;  // set from examples in pcap data
                 wo.WieldDifficulty2 = 180;
