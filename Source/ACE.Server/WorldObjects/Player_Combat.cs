@@ -1082,7 +1082,7 @@ namespace ACE.Server.WorldObjects
                 return null;
 
             var targetCreature = target as Creature;
-            if (targetCreature != null && target.WielderId != null)
+            if (targetCreature == null && target.WielderId != null)
             {
                 // handle casting item spells
                 targetCreature = CurrentLandblock.GetObject(target.WielderId.Value) as Creature;
