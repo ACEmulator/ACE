@@ -40,7 +40,7 @@ namespace ACE.Server.Factories
 
             if (roll == null)
             {
-                wo.ItemMaxMana = RollItemMaxMana(numSpells, profile.Tier);
+                wo.ItemMaxMana = RollItemMaxMana(profile.Tier, numSpells);
                 wo.ItemCurMana = wo.ItemMaxMana;
 
                 wo.ItemSpellcraft = RollSpellcraft(wo);
