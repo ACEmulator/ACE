@@ -688,8 +688,8 @@ namespace ACE.Server.WorldObjects
             effectiveRL = Math.Clamp(effectiveRL, -2.0f, 2.0f);
 
             // handle negative SL
-            if (effectiveSL < 0)
-                effectiveRL = 1.0f / effectiveRL;
+            //if (effectiveSL < 0 && effectiveRL != 0)
+                //effectiveRL = 1.0f / effectiveRL;
 
             var effectiveLevel = effectiveSL * effectiveRL;
 
@@ -1042,6 +1042,13 @@ namespace ACE.Server.WorldObjects
                     else
                         return true;
                 }
+
+                // faction mobs
+                if (Faction1Bits != null || target.Faction1Bits != null)
+                {
+                    if (AllowFactionCombat(target))
+                        return true;
+                }
                 return false;
             }
         }
@@ -1113,12 +1120,11 @@ namespace ACE.Server.WorldObjects
             if (monster.MonsterState != State.Idle || monster.Tolerance != Tolerance.None)
                 return false;
 
-            // if monster has faction bits set, ensure player doesn't belong to same faction
-            if (Faction1Bits != null && monster.Faction1Bits != null && (Faction1Bits & monster.Faction1Bits) != 0)
+            // for faction mobs, ensure alerter doesn't belong to same faction
+            if (SameFaction(monster))
                 return false;
 
-            if (monster.RetaliateTargets != null)
-                monster.RetaliateTargets.Add(Guid.Full);
+            // add to retaliate targets?
 
             //Console.WriteLine($"[{Timers.RunningTime}] - {monster.Name} ({monster.Guid}) - waking up");
             monster.AttackTarget = this;
@@ -1278,5 +1284,63 @@ namespace ACE.Server.WorldObjects
         /// Returns TRUE if creature has cloak equipped
         /// </summary>
         public bool HasCloakEquipped => EquippedCloak != null;
+
+        /// <summary>
+        /// Called when a monster attacks another monster
+        /// This should only happen between mobs of differing factions
+        /// </summary>
+        public void MonsterOnAttackMonster(Creature monster)
+        {
+            /*Console.WriteLine($"{Name}.MonsterOnAttackMonster({monster.Name})");
+            Console.WriteLine($"Attackable: {monster.Attackable}");
+            Console.WriteLine($"Tolerance: {monster.Tolerance}");*/
+
+            // monsters will retaliate against monsters who don't belong to the same faction
+            if (Faction1Bits != null && (monster.Faction1Bits == null || (Faction1Bits & monster.Faction1Bits) == 0))
+                monster.AddRetaliateTarget(this);
+
+            if (monster.MonsterState == State.Idle && !monster.Tolerance.HasFlag(Tolerance.NoAttack))
+            {
+                monster.AttackTarget = this;
+                monster.WakeUp();
+            }
+        }
+
+        /// <summary>
+        /// Returns TRUE if creatures are both in the same faction
+        /// </summary>
+        public bool SameFaction(Creature creature)
+        {
+            return Faction1Bits != null && creature.Faction1Bits != null && (Faction1Bits & creature.Faction1Bits) != 0;
+        }
+
+        public bool AllowFactionCombat(Creature creature)
+        {
+            if (Faction1Bits == null && creature.Faction1Bits == null)
+                return false;
+
+            var factionSelf = Faction1Bits ?? FactionBits.None;
+            var factionOther = creature.Faction1Bits ?? FactionBits.None;
+
+            return (factionSelf & factionOther) == 0;
+        }
+
+        public void AddRetaliateTarget(WorldObject wo)
+        {
+            PhysicsObj.ObjMaint.AddRetaliateTarget(wo.PhysicsObj);
+        }
+
+        public bool HasRetaliateTarget(WorldObject wo)
+        {
+            if (wo != null)
+                return PhysicsObj.ObjMaint.RetaliateTargetsContainsKey(wo.Guid.Full);
+            else
+                return false;
+        }
+
+        public void ClearRetaliateTargets()
+        {
+            PhysicsObj.ObjMaint.ClearRetaliateTargets();
+        }
     }
 }

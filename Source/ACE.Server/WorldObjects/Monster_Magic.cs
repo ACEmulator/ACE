@@ -273,7 +273,10 @@ namespace ACE.Server.WorldObjects
 
             // try to resist spell, if applicable
             if (TryResistSpell(target, spell))
+            {
+                TryHandleFactionMob(target);
                 return;
+            }
 
             switch (spell.School)
             {
@@ -293,6 +296,9 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
+                    if (spell.MetaSpellType != SpellType.LifeProjectile)
+                        TryHandleFactionMob(target);
+
                     var targetDeath = LifeMagic(spell, out uint damage, out bool critical, out var msg, target);
 
                     if (targetDeath && target is Creature targetCreature)
@@ -304,6 +310,7 @@ namespace ACE.Server.WorldObjects
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
 
                     break;
+
 
                 case MagicSchool.VoidMagic:
 
@@ -374,6 +381,19 @@ namespace ACE.Server.WorldObjects
             // seems like it could be off, player formula uses current + cap?
 
             return skill.InitLevel + skill.Ranks;
+        }
+
+        public void TryHandleFactionMob(WorldObject target)
+        {
+            if (target == this || target is Player)
+                return;
+
+            var creatureTarget = target as Creature;
+
+            if (creatureTarget == null || !AllowFactionCombat(creatureTarget))
+                return;
+
+            MonsterOnAttackMonster(creatureTarget);
         }
     }
 }
