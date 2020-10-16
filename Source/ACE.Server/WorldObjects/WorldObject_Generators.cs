@@ -760,8 +760,8 @@ namespace ACE.Server.WorldObjects
         {
             if (GeneratorId == null) return;
 
-            if (!Generator.GeneratorDisabled)
-            {
+            //if (!Generator.GeneratorDisabled)
+            //{
                 var removeQueueTotal = 0;
 
                 foreach (var generator in Generator.GeneratorProfiles)
@@ -775,7 +775,7 @@ namespace ACE.Server.WorldObjects
                     if (!(Generator is Container) && Generator.InitCreate > 0 && (Generator.CurrentCreate - removeQueueTotal) == 0) // Parent generator is non-container (Container, Corpse, Chest, Slumlord, Storage, Hook, Creature) generator
                         Generator.Destroy(); // Generator's complete spawn count has been wiped out
                 }
-            }
+            //}
 
             Generator = null;
             GeneratorId = null;
