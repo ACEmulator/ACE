@@ -1516,7 +1516,11 @@ namespace ACE.Server.WorldObjects
                     return target is Creature || target is MeleeWeapon || target is MissileLauncher || target is Caster;
 
                 case ItemType.Portal:
-                    return target is Portal;
+
+                    if (spell.MetaSpellType == SpellType.PortalRecall || spell.MetaSpellType == SpellType.PortalSummon)
+                        return target is Creature;
+                    else
+                        return target is Portal;
 
                 case ItemType.LockableMagicTarget:
                     return target is Door || target is Chest;
