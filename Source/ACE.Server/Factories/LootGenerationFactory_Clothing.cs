@@ -67,78 +67,6 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static WorldObject CreateSocietyArmor(TreasureDeath profile, bool mutate = true)
-        {
-            int society = 0;
-            int armortype = 0;
-
-            if (profile.TreasureType >= 2971 && profile.TreasureType <= 2980)
-                society = 0; // CH
-            else if (profile.TreasureType >= 2981 && profile.TreasureType <= 2990)
-                society = 1; // EW
-            else if (profile.TreasureType >= 2991 && profile.TreasureType <= 3000)
-                society = 2; // RB
-
-            switch (profile.TreasureType)
-            {
-                case 2971:
-                case 2981:
-                case 2991:
-                    armortype = 0; // BP
-                    break;
-                case 2972:
-                case 2982:
-                case 2992:
-                    armortype = 1; // Gauntlets
-                    break;
-                case 2973:
-                case 2983:
-                case 2993:
-                    armortype = 2; // Girth
-                    break;
-                case 2974:
-                case 2984:
-                case 2994:
-                    armortype = 3; // Greaves
-                    break;
-                case 2975:
-                case 2985:
-                case 2995:
-                    armortype = 4; // Helm
-                    break;
-                case 2976:
-                case 2986:
-                case 2996:
-                    armortype = 5; // Pauldrons
-                    break;
-                case 2977:
-                case 2987:
-                case 2997:
-                    armortype = 6; // Tassets
-                    break;
-                case 2978:
-                case 2988:
-                case 2998:
-                    armortype = 7; // Vambraces
-                    break;
-                case 2979:
-                case 2989:
-                case 2999:
-                    armortype = 8; // Sollerets
-                    break;
-                default:
-                    break;
-            }
-
-            int societyArmorWeenie = LootTables.SocietyArmorMatrix[armortype][society];
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)societyArmorWeenie);
-
-            if (wo != null && mutate)
-            MutateSocietyArmor(wo, profile, true);
-
-            return wo;
-        }
-
         private static void MutateArmor(WorldObject wo, TreasureDeath profile, bool isMagical, LootTables.ArmorType armorType, TreasureRoll roll = null)
         {
             // material type
@@ -168,34 +96,33 @@ namespace ACE.Server.Factories
             if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
                 MutateBurden(wo, profile, false);
 
-            if (roll == null && profile.Tier > 6 && armorType != LootTables.ArmorType.CovenantArmor && armorType != LootTables.ArmorType.OlthoiArmor)
+            if (roll == null)
             {
-                wo.WieldRequirements = WieldRequirement.Level;
-                wo.WieldSkillType = (int)Skill.Axe;  // Set by examples from PCAP data
-
-                wo.WieldDifficulty = profile.Tier switch
+                if (armorType == LootTables.ArmorType.CovenantArmor || armorType == LootTables.ArmorType.OlthoiArmor)
                 {
-                    7 => 150,// In this instance, used for indicating player level, rather than skill level
-                    _ => 180,// In this instance, used for indicating player level, rather than skill level
-                };
-            }
+                    int chance = ThreadSafeRandom.Next(1, 3);
+                    var wieldSkill = chance switch
+                    {
+                        1 => Skill.MagicDefense,
+                        2 => Skill.MissileDefense,
+                        _ => Skill.MeleeDefense,
+                    };
 
-            if (armorType == LootTables.ArmorType.CovenantArmor || armorType == LootTables.ArmorType.OlthoiArmor)
-            {
-                int chance = ThreadSafeRandom.Next(1, 3);
-                var wieldSkill = chance switch
+                    wo.WieldRequirements = WieldRequirement.RawSkill;
+                    wo.WieldSkillType = (int)wieldSkill;
+                    wo.WieldDifficulty = GetCovenantWieldReq(profile.Tier, wieldSkill);
+                }
+                else if (profile.Tier > 6)
                 {
-                    1 => Skill.MagicDefense,
-                    2 => Skill.MissileDefense,
-                    _ => Skill.MeleeDefense,
-                };
+                    wo.WieldRequirements = WieldRequirement.Level;
+                    wo.WieldSkillType = (int)Skill.Axe;  // Set by examples from PCAP data
 
-                wo.WieldRequirements = WieldRequirement.RawSkill;
-                wo.WieldSkillType = (int)wieldSkill;
-                wo.WieldDifficulty = GetCovenantWieldReq(profile.Tier, wieldSkill);
-
-                // used by tinkering requirements for copper/silver
-                wo.ItemSkillLimit = wieldSkill;
+                    wo.WieldDifficulty = profile.Tier switch
+                    {
+                        7 => 150,  // In this instance, used for indicating player level, rather than skill level
+                        _ => 180,  // In this instance, used for indicating player level, rather than skill level
+                    };
+                }
             }
 
             if (roll == null)
@@ -206,11 +133,8 @@ namespace ACE.Server.Factories
             if (wo.HasMutateFilter(MutateFilter.ArmorModVsType))
                 MutateArmorModVsType(wo, profile);
 
-            AssignEquipmentSetId(wo, profile);
-
             if (isMagical)
             {
-                //bool covenantArmor = false || (armorType == LootTables.ArmorType.CovenantArmor || armorType == LootTables.ArmorType.OlthoiArmor);
                 AssignMagic(wo, profile, roll, true);
             }
             else
@@ -221,6 +145,9 @@ namespace ACE.Server.Factories
                 wo.ItemSpellcraft = null;
                 wo.ItemDifficulty = null;
             }
+
+            if (profile.Tier > 6)
+                TryRollEquipmentSet(wo, profile, roll);
 
             if (roll != null && profile.Tier == 8)
                 TryMutateGearRating(wo, profile, roll);
@@ -229,154 +156,6 @@ namespace ACE.Server.Factories
             wo.Value = Roll_ItemValue(wo, profile.Tier);
 
             wo.LongDesc = GetLongDesc(wo);
-        }
-
-
-        private static void MutateSocietyArmor(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureRoll roll = null)
-        {
-            int materialType = GetMaterialType(wo, profile.Tier);
-            if (materialType > 0)
-                wo.MaterialType = (MaterialType)materialType;
-
-            if (wo.GemCode != null)
-                wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
-            else
-                wo.GemCount = ThreadSafeRandom.Next(1, 6);
-
-            wo.GemType = RollGemType(profile.Tier);
-
-            wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
-
-            wo.Value = Roll_ItemValue(wo, profile.Tier);
-
-            // wo.WieldSkillType = (int)Skill.Axe;  // Set by examples from PCAP data
-
-            if (isMagical)
-            {
-                // looks like society armor always had impen on it
-                AssignMagic(wo, profile, roll, true);
-            }
-            else
-            {
-                wo.ItemManaCost = null;
-                wo.ItemMaxMana = null;
-                wo.ItemCurMana = null;
-                wo.ItemSpellcraft = null;
-                wo.ItemDifficulty = null;
-            }
-            AssignArmorLevel(wo, profile.Tier, LootTables.ArmorType.SocietyArmor);
-
-            wo.LongDesc = GetLongDesc(wo);
-
-            // try mutate burden, if MutateFilter exists
-            if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
-                MutateBurden(wo, profile, false);
-        }
-
-        private static bool GetMutateArmorData(uint wcid, out LootTables.ArmorType? armorType)
-        {
-            foreach (var kvp in LootTables.armorTypeMap)
-            {
-                armorType = kvp.Key;
-                var table = kvp.Value;
-
-                if (kvp.Value.Contains((int)wcid))
-                    return true;
-            }
-            armorType = null;
-            return false;
-        }
-
-        private static int GetCovenantWieldReq(int tier, Skill skill)
-        {
-            var index = tier switch
-            {
-                3 => ThreadSafeRandom.Next(1, 3),
-                4 => ThreadSafeRandom.Next(1, 4),
-                5 => ThreadSafeRandom.Next(1, 5),
-                6 => ThreadSafeRandom.Next(1, 6),
-                7 => ThreadSafeRandom.Next(1, 7),
-                _ => ThreadSafeRandom.Next(1, 8),
-            };
-
-            var wield = skill switch
-            {
-                Skill.MagicDefense => index switch
-                {
-                    1 => 145,
-                    2 => 185,
-                    3 => 225,
-                    4 => 245,
-                    5 => 270,
-                    6 => 290,
-                    7 => 310,
-                    _ => 320,
-                },
-                Skill.MissileDefense => index switch
-                {
-                    1 => 160,
-                    2 => 205,
-                    3 => 245,
-                    4 => 270,
-                    5 => 290,
-                    6 => 305,
-                    7 => 330,
-                    _ => 340,
-                },
-                _ => index switch
-                {
-                    1 => 200,
-                    2 => 250,
-                    3 => 300,
-                    4 => 325,
-                    5 => 350,
-                    6 => 370,
-                    7 => 400,
-                    _ => 410,
-                },
-            };
-            return wield;
-        }
-
-        private static void AssignEquipmentSetId(WorldObject wo, TreasureDeath profile)
-        {
-            EquipmentSet equipSetId = EquipmentSet.Invalid;
-
-            // Last condition included to prevent equipment set Ids being added to armor weenies
-            // that would be assigned AL via AssignArmorLevelCompat()
-            if (PropertyManager.GetBool("equipmentsetid_enabled").Item
-                && wo.ClothingPriority != (CoverageMask)CoverageMaskHelper.Underwear && !wo.IsShield && profile.Tier > 6
-                && (wo.GetProperty(PropertyInt.Version) ?? 0) >= 3)
-            {
-                if (wo.WieldRequirements == WieldRequirement.Level || wo.WieldRequirements == WieldRequirement.RawSkill)
-                {
-                    double dropRate = PropertyManager.GetDouble("equipmentsetid_drop_rate").Item;
-                    double dropRateMod = 1.0 / dropRate;
-
-                    double lootQualityMod = 1.0f;
-                    if (PropertyManager.GetBool("loot_quality_mod").Item && profile.LootQualityMod > 0 && profile.LootQualityMod < 1)
-                        lootQualityMod = 1.0f - profile.LootQualityMod;
-
-                    // Initial base 10% chance to add a random EquipmentSetID, which can be adjusted via property mod
-                    int chance = ThreadSafeRandom.Next(1, (int)(100 * dropRateMod * lootQualityMod));
-                    if (chance < 11)
-                    {
-                        equipSetId = (EquipmentSet)ThreadSafeRandom.Next((int)EquipmentSet.Soldiers, (int)EquipmentSet.Lightningproof);
-
-                        wo.EquipmentSetId = equipSetId;
-
-                        if (PropertyManager.GetBool("equipmentsetid_name_decoration").Item)
-                        {
-                            string name = equipSetId.ToString();
-
-                            if (equipSetId >= EquipmentSet.Soldiers && equipSetId <= EquipmentSet.Crafters)
-                                name = name.TrimEnd('s') + "'s";
-
-                            wo.Name = string.Join(" ", name, wo.Name);
-                        }
-                    }
-                }
-            }
         }
 
         private static bool AssignArmorLevel_New(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
@@ -765,6 +544,215 @@ namespace ACE.Server.Factories
             }
         }
 
+        private static int GetCovenantWieldReq(int tier, Skill skill)
+        {
+            var index = tier switch
+            {
+                3 => ThreadSafeRandom.Next(1, 3),
+                4 => ThreadSafeRandom.Next(1, 4),
+                5 => ThreadSafeRandom.Next(1, 5),
+                6 => ThreadSafeRandom.Next(1, 6),
+                7 => ThreadSafeRandom.Next(1, 7),
+                _ => ThreadSafeRandom.Next(1, 8),
+            };
+
+            var wield = skill switch
+            {
+                Skill.MagicDefense => index switch
+                {
+                    1 => 145,
+                    2 => 185,
+                    3 => 225,
+                    4 => 245,
+                    5 => 270,
+                    6 => 290,
+                    7 => 310,
+                    _ => 320,
+                },
+                Skill.MissileDefense => index switch
+                {
+                    1 => 160,
+                    2 => 205,
+                    3 => 245,
+                    4 => 270,
+                    5 => 290,
+                    6 => 305,
+                    7 => 330,
+                    _ => 340,
+                },
+                _ => index switch
+                {
+                    1 => 200,
+                    2 => 250,
+                    3 => 300,
+                    4 => 325,
+                    5 => 350,
+                    6 => 370,
+                    7 => 400,
+                    _ => 410,
+                },
+            };
+            return wield;
+        }
+
+        private static bool TryRollEquipmentSet(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
+        {
+            if (roll == null)
+            {
+                if (!PropertyManager.GetBool("equipmentsetid_enabled").Item)
+                    return false;
+
+                if (profile.Tier < 6 || !wo.HasArmorLevel())
+                    return false;
+
+                if (wo.ClothingPriority == null || (wo.ClothingPriority & (CoverageMask)CoverageMaskHelper.Outerwear) == 0)
+                    return false;
+
+                var dropRate = PropertyManager.GetDouble("equipmentsetid_drop_rate").Item;
+                var dropRateMod = 1.0 / dropRate;
+
+                var lootQualityMod = 1.0f;
+                if (PropertyManager.GetBool("loot_quality_mod").Item)
+                    lootQualityMod = 1.0f - profile.LootQualityMod;
+
+                // initial base 10% chance to add a random EquipmentSet, which can be adjusted via equipmentsetid_drop_rate
+                var rng = ThreadSafeRandom.Next(1, (int)(100 * dropRateMod * lootQualityMod));
+                if (rng > 10) return false;
+
+                wo.EquipmentSetId = (EquipmentSet)ThreadSafeRandom.Next((int)EquipmentSet.Soldiers, (int)EquipmentSet.Lightningproof);
+            }
+            else
+            {
+                wo.EquipmentSetId = EquipmentSetChance.Roll(wo, profile, roll);
+            }
+
+            if (wo.EquipmentSetId != null && PropertyManager.GetBool("equipmentsetid_name_decoration").Item)
+            {
+                var equipSetId = wo.EquipmentSetId;
+
+                var equipSetName = equipSetId.ToString();
+
+                if (equipSetId >= EquipmentSet.Soldiers && equipSetId <= EquipmentSet.Crafters)
+                    equipSetName = equipSetName.TrimEnd('s') + "'s";
+
+                wo.Name = $"{equipSetName} {wo.Name}";
+            }
+            return true;
+        }
+
+        private static WorldObject CreateSocietyArmor(TreasureDeath profile, bool mutate = true)
+        {
+            int society = 0;
+            int armortype = 0;
+
+            if (profile.TreasureType >= 2971 && profile.TreasureType <= 2980)
+                society = 0; // CH
+            else if (profile.TreasureType >= 2981 && profile.TreasureType <= 2990)
+                society = 1; // EW
+            else if (profile.TreasureType >= 2991 && profile.TreasureType <= 3000)
+                society = 2; // RB
+
+            switch (profile.TreasureType)
+            {
+                case 2971:
+                case 2981:
+                case 2991:
+                    armortype = 0; // BP
+                    break;
+                case 2972:
+                case 2982:
+                case 2992:
+                    armortype = 1; // Gauntlets
+                    break;
+                case 2973:
+                case 2983:
+                case 2993:
+                    armortype = 2; // Girth
+                    break;
+                case 2974:
+                case 2984:
+                case 2994:
+                    armortype = 3; // Greaves
+                    break;
+                case 2975:
+                case 2985:
+                case 2995:
+                    armortype = 4; // Helm
+                    break;
+                case 2976:
+                case 2986:
+                case 2996:
+                    armortype = 5; // Pauldrons
+                    break;
+                case 2977:
+                case 2987:
+                case 2997:
+                    armortype = 6; // Tassets
+                    break;
+                case 2978:
+                case 2988:
+                case 2998:
+                    armortype = 7; // Vambraces
+                    break;
+                case 2979:
+                case 2989:
+                case 2999:
+                    armortype = 8; // Sollerets
+                    break;
+                default:
+                    break;
+            }
+
+            int societyArmorWeenie = LootTables.SocietyArmorMatrix[armortype][society];
+            WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)societyArmorWeenie);
+
+            if (wo != null && mutate)
+                MutateSocietyArmor(wo, profile, true);
+
+            return wo;
+        }
+
+        private static void MutateSocietyArmor(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureRoll roll = null)
+        {
+            // why is this a separate method??
+
+            int materialType = GetMaterialType(wo, profile.Tier);
+            if (materialType > 0)
+                wo.MaterialType = (MaterialType)materialType;
+
+            if (wo.GemCode != null)
+                wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
+            else
+                wo.GemCount = ThreadSafeRandom.Next(1, 6);
+
+            wo.GemType = RollGemType(profile.Tier);
+
+            wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
+
+            wo.Value = Roll_ItemValue(wo, profile.Tier);
+
+            if (isMagical)
+            {
+                // looks like society armor always had impen on it
+                AssignMagic(wo, profile, roll, true);
+            }
+            else
+            {
+                wo.ItemManaCost = null;
+                wo.ItemMaxMana = null;
+                wo.ItemCurMana = null;
+                wo.ItemSpellcraft = null;
+                wo.ItemDifficulty = null;
+            }
+            AssignArmorLevel(wo, profile.Tier, LootTables.ArmorType.SocietyArmor);
+
+            wo.LongDesc = GetLongDesc(wo);
+
+            // try mutate burden, if MutateFilter exists
+            if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
+                MutateBurden(wo, profile, false);
+        }
+
         private static WorldObject CreateCloak(TreasureDeath profile, bool mutate = true)
         {
             // even chance between 11 different types of cloaks
@@ -1022,6 +1010,20 @@ namespace ACE.Server.Factories
                 wo.WieldDifficulty2 = 180;
             }
             return true;
+        }
+
+        private static bool GetMutateArmorData(uint wcid, out LootTables.ArmorType? armorType)
+        {
+            foreach (var kvp in LootTables.armorTypeMap)
+            {
+                armorType = kvp.Key;
+                var table = kvp.Value;
+
+                if (kvp.Value.Contains((int)wcid))
+                    return true;
+            }
+            armorType = null;
+            return false;
         }
     }
 }
