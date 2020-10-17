@@ -560,6 +560,7 @@ namespace ACE.Server.Managers
                 ("updated_loot_system", new Property<bool>(false, "enables the most up-to-date version of the loot system")),
                 ("use_turbine_chat", new Property<bool>(true, "enables or disables global chat channels (General, LFG, Roleplay, Trade, Olthoi, Society, Allegience)")),
                 ("use_wield_requirements", new Property<bool>(true, "disable this to bypass wield requirements. mostly for dev debugging")),
+                ("version_info_enabled", new Property<bool>(false, "toggles the /aceversion player command")),
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
                 );
 
