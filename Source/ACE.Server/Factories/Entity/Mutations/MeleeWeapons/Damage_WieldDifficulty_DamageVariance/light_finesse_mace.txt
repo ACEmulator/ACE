@@ -558,16 +558,16 @@ Mace (LightWeapons, FinesseWeapons) Mutation #9:
 Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
 
     - Chance: 10%:
-        DamageVariance = 0.23
+        DamageVariance = 0.43
 
     - Chance: 20%:
-        DamageVariance = 0.28
+        DamageVariance = 0.37
 
     - Chance: 40%:
         DamageVariance = 0.32
 
     - Chance: 20%:
-        DamageVariance = 0.37
+        DamageVariance = 0.28
 
     - Chance: 10%:
-        DamageVariance = 0.43
+        DamageVariance = 0.23

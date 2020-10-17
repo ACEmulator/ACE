@@ -636,16 +636,16 @@ Staff (HeavyWeapons) Mutation #9:
 Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
 
     - Chance: 10%:
-        DamageVariance = 0.38
+        DamageVariance = 0.52
 
     - Chance: 20%:
-        DamageVariance = 0.42
+        DamageVariance = 0.5
 
     - Chance: 40%:
         DamageVariance = 0.45
 
     - Chance: 20%:
-        DamageVariance = 0.5
+        DamageVariance = 0.42
 
     - Chance: 10%:
-        DamageVariance = 0.52
+        DamageVariance = 0.38

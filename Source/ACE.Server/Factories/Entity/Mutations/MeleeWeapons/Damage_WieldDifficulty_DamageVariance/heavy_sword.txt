@@ -630,16 +630,16 @@ Sword (HeavyWeapons) Mutation #9:
 Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
 
     - Chance: 10%:
-        DamageVariance = 0.47
+        DamageVariance = 0.62
 
     - Chance: 20%:
-        DamageVariance = 0.5
+        DamageVariance = 0.57
 
     - Chance: 40%:
         DamageVariance = 0.53
 
     - Chance: 20%:
-        DamageVariance = 0.57
+        DamageVariance = 0.5
 
     - Chance: 10%:
-        DamageVariance = 0.62
+        DamageVariance = 0.47

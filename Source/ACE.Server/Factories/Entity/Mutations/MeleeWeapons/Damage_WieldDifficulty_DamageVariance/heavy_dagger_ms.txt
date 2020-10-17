@@ -462,16 +462,16 @@ DaggerMS (HeavyWeapons) Mutation #9:
 Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
 
     - Chance: 10%:
-        DamageVariance = 0.4
+        DamageVariance = 0.58
 
     - Chance: 20%:
-        DamageVariance = 0.43
+        DamageVariance = 0.53
 
     - Chance: 40%:
         DamageVariance = 0.48
 
     - Chance: 20%:
-        DamageVariance = 0.53
+        DamageVariance = 0.43
 
     - Chance: 10%:
-        DamageVariance = 0.58
+        DamageVariance = 0.4

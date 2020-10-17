@@ -582,16 +582,16 @@ Unarmed (HeavyWeapons) Mutation #9:
 Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
 
     - Chance: 10%:
-        DamageVariance = 0.44
+        DamageVariance = 0.6
 
     - Chance: 20%:
-        DamageVariance = 0.48
+        DamageVariance = 0.58
 
     - Chance: 40%:
         DamageVariance = 0.53
 
     - Chance: 20%:
-        DamageVariance = 0.58
+        DamageVariance = 0.48
 
     - Chance: 10%:
-        DamageVariance = 0.6
+        DamageVariance = 0.44

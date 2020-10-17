@@ -558,16 +558,16 @@ Sword (LightWeapons, FinesseWeapons) Mutation #9:
 Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
 
     - Chance: 10%:
-        DamageVariance = 0.42
+        DamageVariance = 0.6
 
     - Chance: 20%:
-        DamageVariance = 0.47
+        DamageVariance = 0.56
 
     - Chance: 40%:
         DamageVariance = 0.52
 
     - Chance: 20%:
-        DamageVariance = 0.56
+        DamageVariance = 0.47
 
     - Chance: 10%:
-        DamageVariance = 0.6
+        DamageVariance = 0.42

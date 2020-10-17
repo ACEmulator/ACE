@@ -636,16 +636,16 @@ Axe (HeavyWeapons) Mutation #9:
 Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
 
     - Chance: 10%:
-        DamageVariance = 0.9
+        DamageVariance = 0.99
 
     - Chance: 20%:
-        DamageVariance = 0.93
+        DamageVariance = 0.97
 
     - Chance: 40%:
         DamageVariance = 0.95
 
     - Chance: 20%:
-        DamageVariance = 0.97
+        DamageVariance = 0.93
 
     - Chance: 10%:
-        DamageVariance = 0.99
+        DamageVariance = 0.9

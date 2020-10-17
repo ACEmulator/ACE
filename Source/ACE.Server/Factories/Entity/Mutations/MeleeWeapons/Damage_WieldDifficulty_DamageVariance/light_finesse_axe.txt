@@ -582,16 +582,16 @@ Axe (LightWeapons, FinesseWeapons) Mutation #9:
 Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
 
     - Chance: 10%:
-        DamageVariance = 0.8
+        DamageVariance = 0.95
 
     - Chance: 20%:
-        DamageVariance = 0.83
+        DamageVariance = 0.9
 
     - Chance: 40%:
         DamageVariance = 0.85
 
     - Chance: 20%:
-        DamageVariance = 0.9
+        DamageVariance = 0.83
 
     - Chance: 10%:
-        DamageVariance = 0.95
+        DamageVariance = 0.8

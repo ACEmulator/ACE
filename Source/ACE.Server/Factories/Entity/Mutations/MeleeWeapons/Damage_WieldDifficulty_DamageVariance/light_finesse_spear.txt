@@ -564,16 +564,16 @@ Spear (LightWeapons, FinesseWeapons) Mutation #9:
 Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
 
     - Chance: 10%:
-        DamageVariance = 0.65
+        DamageVariance = 0.8
 
     - Chance: 20%:
-        DamageVariance = 0.68
+        DamageVariance = 0.75
 
     - Chance: 40%:
         DamageVariance = 0.71
 
     - Chance: 20%:
-        DamageVariance = 0.75
+        DamageVariance = 0.68
 
     - Chance: 10%:
-        DamageVariance = 0.8
+        DamageVariance = 0.65

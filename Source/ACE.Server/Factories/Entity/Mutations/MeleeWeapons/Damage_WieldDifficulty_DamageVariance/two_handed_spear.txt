@@ -510,19 +510,19 @@ Spear (TwoHandedCombat) Mutation #9:
 Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
 
     - Chance: 5%:
-        DamageVariance = 0.3
-
-    - Chance: 15%:
-        DamageVariance = 0.35
-
-    - Chance: 30%:
-        DamageVariance = 0.4
-
-    - Chance: 30%:
-        DamageVariance = 0.45
+        DamageVariance = 0.55
 
     - Chance: 15%:
         DamageVariance = 0.5
 
+    - Chance: 30%:
+        DamageVariance = 0.45
+
+    - Chance: 30%:
+        DamageVariance = 0.4
+
+    - Chance: 15%:
+        DamageVariance = 0.35
+
     - Chance: 5%:
-        DamageVariance = 0.55
+        DamageVariance = 0.3
