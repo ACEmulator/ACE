@@ -74,18 +74,5 @@ namespace ACE.Server.Factories.Tables
 
             return gemClassChanceTable.Roll();
         }
-
-        /// <summary>
-        /// A factor in determining the item's monetary value
-        /// </summary>
-        public static readonly List<int> GemClassValue = new List<int>()
-        {
-            10,
-            50,
-            100,
-            250,
-            500,
-            1000
-        };
     }
 }

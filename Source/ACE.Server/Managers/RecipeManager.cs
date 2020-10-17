@@ -438,7 +438,7 @@ namespace ACE.Server.Managers
 
                     // change wield requirement: missile defense -> melee defense
                     target.WieldSkillType = (int)Skill.MeleeDefense;
-                    target.ItemSkillLimit = (int)Skill.MeleeDefense;      // recipe requirements check for this field
+                    target.ItemSkillLimit = Skill.MeleeDefense;      // recipe requirements check for this field
 
                     // increase the wield difficulty
                     if (target.WieldDifficulty != null)
@@ -466,7 +466,7 @@ namespace ACE.Server.Managers
 
                     // change wield requirement: melee defense -> missile defense
                     target.WieldSkillType = (int)Skill.MissileDefense;
-                    target.ItemSkillLimit = (int)Skill.MissileDefense;      // recipe requirements check for this field
+                    target.ItemSkillLimit = Skill.MissileDefense;      // recipe requirements check for this field
 
                     // decrease the wield difficulty
                     if (target.WieldDifficulty != null)

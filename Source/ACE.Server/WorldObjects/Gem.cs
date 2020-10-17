@@ -138,7 +138,7 @@ namespace ACE.Server.WorldObjects
                 if (spell.MetaSpellType == SpellType.PortalSummon)
                     TryCastSpell(spell, player, this, false);
                 else
-                    player.TryCastSpell(spell, player, null, false);
+                    player.TryCastSpell(spell, player, this, false);
             }
 
             if (UseCreateContractId > 0)

@@ -238,6 +238,9 @@ namespace ACE.Server.WorldObjects
                     var skill = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)kvp.Key];
 
                     specializedCreditsTotal += skill.SpecializedCost;
+
+                    if (kvp.Key == Skill.ArcaneLore) // exclude Arcane Lore TrainedCost
+                        specializedCreditsTotal -= skill.TrainedCost;
                 }
             }
 

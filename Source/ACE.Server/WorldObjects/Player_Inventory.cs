@@ -262,6 +262,9 @@ namespace ACE.Server.WorldObjects
                 new GameEventWieldItem(Session, item.Guid.Full, wieldedLocation),
                 new GameMessageSound(Guid, Sound.WieldObject));
 
+            if (item.GearMaxHealth != null)
+                HandleMaxHealthUpdate();
+
             TryShuffleStance(wieldedLocation);
 
             // does this item cast enchantments, and currently have mana?
@@ -348,6 +351,9 @@ namespace ACE.Server.WorldObjects
             // handle equipment sets
             if (item.HasItemSet)
                 DequipItemFromSet(item);
+
+            if (item.GearMaxHealth != null)
+                HandleMaxHealthUpdate();
 
             if (dequipObjectAction == DequipObjectAction.ToCorpseOnDeath || dequipObjectAction == DequipObjectAction.TradeItem)
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
@@ -1920,6 +1926,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (stack.IsAttunedOrContainsAttuned)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.AttunedItem));
+                return;
+            }
+
             if (IsTrading && ItemsInTradeWindow.Contains(stack.Guid))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.TradeItemBeingTraded));
@@ -2394,6 +2406,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (target.IsLoggingOut)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.None));
+                return;
+            }
+
             // TODO: this seems a bit backwards here...
             // the item is removed from the source player's inventory,
             // and it tries to add to target player's inventory (which does the slot/burden checks, and can also independently fail)
@@ -2439,6 +2457,10 @@ namespace ACE.Server.WorldObjects
 
                     return;
                 }
+
+                // quick fix
+                if (itemToGive is Container)
+                    RushNextPlayerSave(5);
 
                 if (item == itemToGive)
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));

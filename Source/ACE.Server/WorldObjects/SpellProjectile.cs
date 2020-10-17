@@ -283,7 +283,7 @@ namespace ACE.Server.WorldObjects
             // if player target, ensure matching PK status
             var targetPlayer = creatureTarget as Player;
 
-            var pkError = CheckPKStatusVsTarget(player, targetPlayer, Spell);
+            var pkError = ProjectileSource?.CheckPKStatusVsTarget(creatureTarget, Spell);
             if (pkError != null)
             {
                 if (player != null)
@@ -342,6 +342,13 @@ namespace ACE.Server.WorldObjects
             // also called on resist
             if (player != null && targetPlayer == null)
                 player.OnAttackMonster(creatureTarget);
+
+            if (player == null && targetPlayer == null)
+            {
+                // check for faction combat
+                if (sourceCreature != null && creatureTarget != null && sourceCreature.AllowFactionCombat(creatureTarget))
+                    sourceCreature.MonsterOnAttackMonster(creatureTarget);
+            }
         }
 
         /// <summary>
@@ -503,6 +510,15 @@ namespace ACE.Server.WorldObjects
                 // only pass if SpellProjectile has it directly, such as 2637 - Invoking Aun Tanua
 
                 resistanceMod = (float)Math.Max(0.0f, target.GetResistanceMod(resistanceType, this, null, weaponResistanceMod));
+
+                if (sourcePlayer != null && targetPlayer != null && Spell.DamageType == DamageType.Nether)
+                {
+                    // for direct damage from void spells in pvp,
+                    // apply void_pvp_modifier *on top of* the player's natural resistance to nether
+
+                    // this supposedly brings the direct damage from void spells in pvp closer to retail
+                    resistanceMod *= (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
+                }
 
                 finalDamage = baseDamage + critDamageBonus + skillBonus;
 
@@ -691,7 +707,7 @@ namespace ACE.Server.WorldObjects
 
                 if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(equippedCloak, percent))
                 {
-                    var reducedDamage = Cloak.GetReducedAmount(damage);
+                    var reducedDamage = Cloak.GetReducedAmount(ProjectileSource, damage);
 
                     Cloak.ShowMessage(target, ProjectileSource, damage, reducedDamage);
 
