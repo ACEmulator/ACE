@@ -88,5 +88,18 @@ namespace ACE.Server.Factories.Tables
 
             return workmanshipChance.Roll();
         }
+
+        /// <summary>
+        /// Returns the workmanship modifier for an item
+        /// </summary>
+        public static float GetModifier(int? workmanship)
+        {
+            var modifier = 1.0f;
+
+            if (workmanship != null)
+                modifier += workmanship.Value / 9.0f;
+
+            return modifier;
+        }
     }
 }

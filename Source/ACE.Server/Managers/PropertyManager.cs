@@ -219,7 +219,7 @@ namespace ACE.Server.Managers
         /// </summary>
         /// <param name="key">The string key for the property</param>
         /// <param name="newVal">The value to replace the old value with</param>
-        public static bool ModifyDouble(string key, double newVal)
+        public static bool ModifyDouble(string key, double newVal, bool init = false)
         {
             if (!DefaultPropertyManager.DefaultDoubleProperties.ContainsKey(key))
                 return false;
@@ -227,6 +227,22 @@ namespace ACE.Server.Managers
                 CachedDoubleSettings[key].Modify(newVal);
             else
                 CachedDoubleSettings[key] = new ConfigurationEntry<double>(true, newVal, DefaultPropertyManager.DefaultDoubleProperties[key].Description);
+
+            if (!init)
+            {
+                switch (key)
+                {
+                    case "cantrip_drop_rate":
+                        Factories.Tables.CantripChance.ApplyNumCantripsMod();
+                        break;
+                    case "minor_cantrip_drop_rate":
+                    case "major_cantrip_drop_rate":
+                    case "epic_cantrip_drop_rate":
+                    case "legendary_cantrip_drop_rate":
+                        Factories.Tables.CantripChance.ApplyCantripLevelsMod();
+                        break;
+                }
+            }
             return true;
         }
 
@@ -464,7 +480,7 @@ namespace ACE.Server.Managers
 
             //float
             foreach (var item in DefaultDoubleProperties)
-                PropertyManager.ModifyDouble(item.Key, item.Value.Item);
+                PropertyManager.ModifyDouble(item.Key, item.Value.Item, true);
 
             //int
             foreach (var item in DefaultLongProperties)
@@ -541,6 +557,7 @@ namespace ACE.Server.Managers
                 ("tailoring_intermediate_uieffects", new Property<bool>(false, "If true, tailoring intermediate icons retain the magical/elemental highlight of the original item")),
                 ("universal_masteries", new Property<bool>(true, "if TRUE, matches end of retail masteries - players wielding almost any weapon get +5 DR, except if the weapon \"seems tough to master\". " +
                                                                  "if FALSE, players start with mastery of 1 melee and 1 ranged weapon type based on heritage, and can later re-select these 2 masteries")),
+                ("updated_loot_system", new Property<bool>(false, "enables the most up-to-date version of the loot system")),
                 ("use_turbine_chat", new Property<bool>(true, "enables or disables global chat channels (General, LFG, Roleplay, Trade, Olthoi, Society, Allegience)")),
                 ("use_wield_requirements", new Property<bool>(true, "disable this to bypass wield requirements. mostly for dev debugging")),
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
@@ -561,10 +578,12 @@ namespace ACE.Server.Managers
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
             DictOf(
 
-                ("minor_cantrip_drop_rate", new Property<double>(1.0, "Modifier for minor cantrip drop rate, 1 being normal")),
-                ("major_cantrip_drop_rate", new Property<double>(1.0, "Modifier for major cantrip drop rate, 1 being normal")),
-                ("epic_cantrip_drop_rate", new Property<double>(1.0, "Modifier for epic cantrip drop rate, 1 being normal")),
-                ("legendary_cantrip_drop_rate", new Property<double>(1.0, "Modifier for legendary cantrip drop rate, 1 being normal")),
+                ("cantrip_drop_rate", new Property<double>(1.0, "Scales the chance for cantrips to drop in each tier. Defaults to 1.0, as per end of retail")),
+
+                ("minor_cantrip_drop_rate", new Property<double>(1.0, "Scales the chance for minor cantrips to drop, relative to other cantrip levels in the tier. Defaults to 1.0, as per end of retail")),
+                ("major_cantrip_drop_rate", new Property<double>(1.0, "Scales the chance for major cantrips to drop, relative to other cantrip levels in the tier. Defaults to 1.0, as per end of retail")),
+                ("epic_cantrip_drop_rate", new Property<double>(1.0, "Scales the chance for epic cantrips to drop, relative to other cantrip levels in the tier. Defaults to 1.0, as per end of retail")),
+                ("legendary_cantrip_drop_rate", new Property<double>(1.0, "Scales the chance for legendary cantrips to drop, relative to other cantrip levels in the tier. Defaults to 1.0, as per end of retail")),
 
                 ("advocate_fane_auto_bestow_level", new Property<double>(1, "the level that advocates are automatically bestowed by Advocate Fane if advocate_fane_auto_bestow is true")),
                 ("aetheria_drop_rate", new Property<double>(1.0, "Modifier for Aetheria drop rate, 1 being normal")),

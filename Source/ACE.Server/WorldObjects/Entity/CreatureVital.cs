@@ -141,7 +141,7 @@ namespace ACE.Server.WorldObjects.Entity
 
                     // everything beyond this point does not get scaled by vitae
                     if (Vital == PropertyAttribute2nd.MaxHealth)
-                        additives += player.Enlightenment * 2;
+                        additives += player.Enlightenment * 2 + player.GetGearMaxHealth();
                 }
 
                 additives += creature.EnchantmentManager.GetVitalMod_Additives(this);

@@ -410,6 +410,9 @@ namespace ACE.Server.Command.Handlers
                         used += skillInfo.UpgradeCostFromTrainedToSpecialized;
 
                         specCreditsSpent += skillInfo.SpecializedCost;
+
+                        if (skill.Key == Skill.ArcaneLore) // exclude Arcane Lore TrainedCost
+                            specCreditsSpent -= skillInfo.TrainedCost;
                     }
                 }
 

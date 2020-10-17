@@ -39,7 +39,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Returns TRUE If this object has a vitae penalty
         /// </summary>
-        public bool HasVitae => WorldObject.Biota.PropertiesEnchantmentRegistry.HasEnchantment((uint)SpellId.Vitae, WorldObject.BiotaDatabaseLock);
+        public virtual bool HasVitae => WorldObject.Biota.PropertiesEnchantmentRegistry.HasEnchantment((uint)SpellId.Vitae, WorldObject.BiotaDatabaseLock);
 
         /// <summary>
         /// Constructs a new EnchantmentManager for a WorldObject
@@ -82,12 +82,9 @@ namespace ACE.Server.WorldObjects.Managers
         {
             var spells = new List<PropertiesEnchantmentRegistry>();
 
-            var enchantments = from e in WorldObject.Biota.PropertiesEnchantmentRegistry.Clone(WorldObject.BiotaDatabaseLock)
-                group e by e.SpellCategory
-                into categories
-                select categories.OrderByDescending(c => c.LayerId).First();
+            var topLayerEnchantments = WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(WorldObject.BiotaDatabaseLock);
 
-            foreach (var enchantment in enchantments)
+            foreach (var enchantment in topLayerEnchantments)
             {
                 if (enchantment.SpellId > SpellCategory_Cooldown)
                     continue;
@@ -1289,11 +1286,25 @@ namespace ACE.Server.WorldObjects.Managers
                     continue;
                 }
 
-                // if a PKType with Enduring Enchantment has died, ensure they don't continue to take DoT from PK sources
-                if (targetPlayer != null && damager is Player && !targetPlayer.IsPKType)
-                    continue;
-
                 var resistanceMod = creature.GetResistanceMod(damageType, damager, null);
+
+                var sourcePlayer = damager as Player;
+
+                if (sourcePlayer != null && targetPlayer != null)
+                {
+                    // if a PKType with Enduring Enchantment has died, ensure they don't continue to take DoT from PK sources
+                    if (!targetPlayer.IsPKType)
+                        continue;
+
+                    // void spell projectile direct damage was modified to apply this pvp modifier *on top of* the player's natural resistance to nether,
+                    // which supposedly brings the direct damage from void spells in pvp closer to retail
+
+                    // however, dots were already supposedly on par, so we replace resistanceMod with void_pvp_modifier for dots,
+                    // instead of applying it on top like direct damage
+
+                    if (damageType == DamageType.Nether)
+                        resistanceMod = (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
+                }
 
                 // with the halvening, this actually seems like the fairest balance currently..
                 var useNetherDotDamageRating = targetPlayer != null;

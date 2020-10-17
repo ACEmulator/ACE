@@ -830,7 +830,7 @@ namespace ACE.Server.Entity
                         wo.NotifyOfEvent(RegenerationType.PickUp); // Notify generator the generated object is effectively destroyed, use Pickup to catch both cases.
                     }
 
-                    else if (wo.ProjectileTarget == null)
+                    else if (wo.ProjectileTarget == null && !(wo is SpellProjectile))
                         log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}]");
 
                     return false;
