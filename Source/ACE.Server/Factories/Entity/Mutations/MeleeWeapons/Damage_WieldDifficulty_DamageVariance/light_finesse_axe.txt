@@ -577,3 +577,21 @@ Tier chances: 0, 0, 0, 0, 0, 0, 0, 1
         WieldSkillType = WeaponSkill
         WieldDifficulty = 430
 
+Axe (LightWeapons, FinesseWeapons) Mutation #9:
+
+Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
+
+    - Chance: 10%:
+        DamageVariance = 0.95
+
+    - Chance: 20%:
+        DamageVariance = 0.9
+
+    - Chance: 40%:
+        DamageVariance = 0.85
+
+    - Chance: 20%:
+        DamageVariance = 0.83
+
+    - Chance: 10%:
+        DamageVariance = 0.8
