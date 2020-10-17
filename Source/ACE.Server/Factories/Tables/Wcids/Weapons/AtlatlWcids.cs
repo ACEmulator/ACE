@@ -8,13 +8,13 @@ namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class AtlatlWcids
     {
-        private static readonly ChanceTable<WeenieClassName> T1_T4_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T1_T4_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.atlatl,      0.50f ),
             ( WeenieClassName.atlatlroyal, 0.50f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T5_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T5_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.atlatl,                     0.25f ),
             ( WeenieClassName.atlatlroyal,                0.26f ),
@@ -34,7 +34,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace31815_electricslingshot, 0.035f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T6_T8_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T6_T8_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.atlatlslashing,             0.075f ),
             ( WeenieClassName.atlatlpiercing,             0.075f ),

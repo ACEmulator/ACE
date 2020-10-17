@@ -7,20 +7,20 @@ namespace ACE.Server.Factories.Tables
 {
     public static class GemClassChance
     {
-        private static readonly ChanceTable<int> T1_Chances = new ChanceTable<int>()
+        private static ChanceTable<int> T1_Chances = new ChanceTable<int>()
         {
             ( 1, 0.9f ),
             ( 2, 0.1f ),
         };
 
-        private static readonly ChanceTable<int> T2_Chances = new ChanceTable<int>()
+        private static ChanceTable<int> T2_Chances = new ChanceTable<int>()
         {
             ( 1, 0.6f ),
             ( 2, 0.3f ),
             ( 3, 0.1f ),
         };
 
-        private static readonly ChanceTable<int> T3_Chances = new ChanceTable<int>()
+        private static ChanceTable<int> T3_Chances = new ChanceTable<int>()
         {
             ( 1, 0.2f ),
             ( 2, 0.5f ),
@@ -28,7 +28,7 @@ namespace ACE.Server.Factories.Tables
             ( 4, 0.1f ),
         };
 
-        private static readonly ChanceTable<int> T4_Chances = new ChanceTable<int>()
+        private static ChanceTable<int> T4_Chances = new ChanceTable<int>()
         {
             ( 1, 0.05f ),
             ( 2, 0.25f ),
@@ -37,7 +37,7 @@ namespace ACE.Server.Factories.Tables
             ( 5, 0.15f ),
         };
 
-        private static readonly ChanceTable<int> T5_Chances = new ChanceTable<int>()
+        private static ChanceTable<int> T5_Chances = new ChanceTable<int>()
         {
             ( 3, 0.2f ),
             ( 4, 0.4f ),
@@ -45,7 +45,7 @@ namespace ACE.Server.Factories.Tables
             ( 6, 0.2f ),
         };
 
-        private static readonly ChanceTable<int> T6_Chances = new ChanceTable<int>()
+        private static ChanceTable<int> T6_Chances = new ChanceTable<int>()
         {
             ( 4, 0.2f ),
             ( 5, 0.3f ),

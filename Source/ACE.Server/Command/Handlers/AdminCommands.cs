@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -17,6 +18,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
+using ACE.Server.Factories.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
@@ -3159,6 +3161,25 @@ namespace ACE.Server.Command.Handlers
             }
 
             obj.SendUpdatePosition(true);
+        }
+
+        [CommandHandler("reload-loot-tables", AccessLevel.Admin, CommandHandlerFlag.None, "reloads the latest data from the loot tables", "optional profile folder")]
+        public static void HandleReloadLootTables(Session session, params string[] parameters)
+        {
+            var sep = Path.DirectorySeparatorChar;
+
+            var folder = $"..{sep}..{sep}..{sep}..{sep}Factories{sep}Tables{sep}";
+            if (parameters.Length > 0)
+                folder = parameters[1];
+
+            var di = new DirectoryInfo(folder);
+
+            if (!di.Exists)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"{folder} not found");
+                return;
+            }
+            LootSwap.UpdateTables(folder);
         }
     }
 }

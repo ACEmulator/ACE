@@ -13,7 +13,7 @@ namespace ACE.Server.Factories.Tables
         // thanks to Sapphire Knight and Butterflygolem for helping to figure this part out!
 
         // gems
-        private static readonly ChanceTable<SpellId> spellSelectionGroup1 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup1 = new ChanceTable<SpellId>()
         {
             ( SpellId.StrengthSelf1,            0.06f ),
             ( SpellId.EnduranceSelf1,           0.06f ),
@@ -35,7 +35,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // jewelry
-        private static readonly ChanceTable<SpellId> spellSelectionGroup2 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup2 = new ChanceTable<SpellId>()
         {
             ( SpellId.MagicResistanceSelf1,     0.08f ),
             ( SpellId.ArmorSelf1,               0.05f ),
@@ -69,7 +69,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // crowns
-        private static readonly ChanceTable<SpellId> spellSelectionGroup3 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup3 = new ChanceTable<SpellId>()
         {
             ( SpellId.LeadershipMasterySelf1,   0.10f ),
             ( SpellId.ImpregnabilitySelf1,      0.10f ),
@@ -90,7 +90,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // orbs
-        private static readonly ChanceTable<SpellId> spellSelectionGroup4 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup4 = new ChanceTable<SpellId>()
         {
             ( SpellId.LifeMagicMasterySelf1,           0.20f ),
             ( SpellId.CreatureEnchantmentMasterySelf1, 0.15f ),
@@ -104,7 +104,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // wands, staffs, sceptres, batons
-        private static readonly ChanceTable<SpellId> spellSelectionGroup5 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup5 = new ChanceTable<SpellId>()
         {
             ( SpellId.WarMagicMasterySelf1,            0.25f ),
             ( SpellId.WillpowerSelf1,                  0.15f ),
@@ -118,7 +118,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // one-handed melee weapons
-        private static readonly ChanceTable<SpellId> spellSelectionGroup6 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup6 = new ChanceTable<SpellId>()
         {
             ( SpellId.QuicknessSelf1,            0.25f ),
             ( SpellId.StrengthSelf1,             0.15f ),
@@ -130,7 +130,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // bracers, breastplates, coats, cuirasses, girths, hauberks, pauldrons, chest armor, sleeves
-        private static readonly ChanceTable<SpellId> spellSelectionGroup7 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup7 = new ChanceTable<SpellId>()
         {
             ( SpellId.StrengthSelf1,         0.25f ),
             ( SpellId.EnduranceSelf1,        0.25f ),
@@ -142,7 +142,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // shields
-        private static readonly ChanceTable<SpellId> spellSelectionGroup8 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup8 = new ChanceTable<SpellId>()
         {
             ( SpellId.ImpregnabilitySelf1,  0.15f ),
             ( SpellId.InvulnerabilitySelf1, 0.15f ),
@@ -155,7 +155,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // gauntlets
-        private static readonly ChanceTable<SpellId> spellSelectionGroup9 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup9 = new ChanceTable<SpellId>()
         {
             ( SpellId.CoordinationSelf1,          0.22f ),
             ( SpellId.ShieldMasterySelf1,         0.12f ),
@@ -168,7 +168,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // helms, basinets, helmets, coifs, cowls, heaumes, kabutons
-        private static readonly ChanceTable<SpellId> spellSelectionGroup10 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup10 = new ChanceTable<SpellId>()
         {
             ( SpellId.MagicResistanceSelf1,      0.15f ),
             ( SpellId.ImpregnabilitySelf1,       0.10f ),
@@ -189,7 +189,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // boots, chiran sandals, sollerets
-        private static readonly ChanceTable<SpellId> spellSelectionGroup11 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup11 = new ChanceTable<SpellId>()
         {
             ( SpellId.QuicknessSelf1,             0.23f ),
             ( SpellId.HeavyWeaponsMasterySelf1,   0.10f ),
@@ -204,7 +204,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // breeches, jerkins, shirts, pants, tunics, doublets, trousers, pantaloons
-        private static readonly ChanceTable<SpellId> spellSelectionGroup12 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup12 = new ChanceTable<SpellId>()
         {
             ( SpellId.ArmorSelf1,               0.30f ),
             ( SpellId.AcidProtectionSelf1,      0.10f ),
@@ -217,7 +217,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // caps, qafiyas, turbans, fezs, berets
-        private static readonly ChanceTable<SpellId> spellSelectionGroup13 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup13 = new ChanceTable<SpellId>()
         {
             ( SpellId.FocusSelf1,                      0.04f ),
             ( SpellId.WillpowerSelf1,                  0.04f ),
@@ -254,7 +254,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // cloth gloves (1 entry?)
-        private static readonly ChanceTable<SpellId> spellSelectionGroup14 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup14 = new ChanceTable<SpellId>()
         {
             ( SpellId.CoordinationSelf1,               0.04f ),
             ( SpellId.QuicknessSelf1,                  0.04f ),
@@ -284,7 +284,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // greaves, leggings, tassets, leather pants
-        private static readonly ChanceTable<SpellId> spellSelectionGroup15 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup15 = new ChanceTable<SpellId>()
         {
             ( SpellId.StrengthSelf1,         0.25f ),
             ( SpellId.QuicknessSelf1,        0.25f ),
@@ -295,7 +295,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // dinnerware
-        private static readonly ChanceTable<SpellId> spellSelectionGroup16 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup16 = new ChanceTable<SpellId>()
         {
             ( SpellId.AlchemyMasterySelf1,     0.09f ),
             ( SpellId.CookingMasterySelf1,     0.09f ),
@@ -317,7 +317,7 @@ namespace ACE.Server.Factories.Tables
         // added
 
         // missile weapons, two-handed weapons
-        private static readonly ChanceTable<SpellId> spellSelectionGroup17 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup17 = new ChanceTable<SpellId>()
         {
             ( SpellId.StrengthSelf1,             0.16f ),
             ( SpellId.EnduranceSelf1,            0.15f ),
@@ -329,7 +329,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // shoes, loafers, slippers, sandals
-        private static readonly ChanceTable<SpellId> spellSelectionGroup18 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup18 = new ChanceTable<SpellId>()
         {
             ( SpellId.StrengthSelf1,              0.06f ),
             ( SpellId.QuicknessSelf1,             0.06f ),
@@ -351,7 +351,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // nether caster
-        private static readonly ChanceTable<SpellId> spellSelectionGroup19 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup19 = new ChanceTable<SpellId>()
         {
             ( SpellId.VoidMagicMasterySelf1,           0.25f ),
             ( SpellId.WillpowerSelf1,                  0.15f ),
@@ -365,7 +365,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // leather cap (1 entry?)
-        private static readonly ChanceTable<SpellId> spellSelectionGroup20 = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> spellSelectionGroup20 = new ChanceTable<SpellId>()
         {
             ( SpellId.RecklessnessMasterySelf1,        0.075f ),
             ( SpellId.LockpickMasterySelf1,            0.075f ),

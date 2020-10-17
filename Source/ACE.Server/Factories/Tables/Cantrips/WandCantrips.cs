@@ -77,7 +77,7 @@ namespace ACE.Server.Factories.Tables
         // war elemental casters: void magic aptitude
         // void elemental casters: war magic aptitude
 
-        private static readonly ChanceTable<SpellId> casterCantrips = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> casterCantrips = new ChanceTable<SpellId>()
         {
             ( SpellId.CANTRIPCREATUREENCHANTMENTAPTITUDE1, 0.05f ),
             ( SpellId.CANTRIPITEMENCHANTMENTAPTITUDE1,     0.05f ),

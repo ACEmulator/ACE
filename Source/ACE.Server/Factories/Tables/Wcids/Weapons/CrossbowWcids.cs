@@ -8,14 +8,14 @@ namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class CrossbowWcids
     {
-        private static readonly ChanceTable<WeenieClassName> T1_T4_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T1_T4_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.crossbowlight,    0.50f ),
             ( WeenieClassName.crossbowheavy,    0.25f ),
             ( WeenieClassName.crossbowarbalest, 0.25f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T5_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T5_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.crossbowlight,                     0.25f ),
             ( WeenieClassName.crossbowheavy,                     0.13f ),
@@ -36,7 +36,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace31808_electriccompoundcrossbow, 0.035f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T6_T8_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T6_T8_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.crossbowslashing,                  0.075f ),
             ( WeenieClassName.crossbowpiercing,                  0.075f ),

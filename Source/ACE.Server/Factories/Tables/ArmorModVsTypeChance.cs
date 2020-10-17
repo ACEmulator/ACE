@@ -44,32 +44,32 @@ namespace ACE.Server.Factories.Tables
 
         // starting with a more conservative table found in the cache, until this data is verified more
 
-        private static readonly ChanceTable<int> ArmorModVsType_T2_QualityLevel = new ChanceTable<int>()
+        private static ChanceTable<int> ArmorModVsType_T2_QualityLevel = new ChanceTable<int>()
         {
             ( 1, 1.0f )
         };
 
-        private static readonly ChanceTable<int> ArmorModVsType_T3_QualityLevel = new ChanceTable<int>()
+        private static ChanceTable<int> ArmorModVsType_T3_QualityLevel = new ChanceTable<int>()
         {
             ( 1, 0.5f ),
             ( 2, 0.5f ),
         };
 
-        private static readonly ChanceTable<int> ArmorModVsType_T4_QualityLevel = new ChanceTable<int>()
+        private static ChanceTable<int> ArmorModVsType_T4_QualityLevel = new ChanceTable<int>()
         {
             ( 1, 0.25f ),
             ( 2, 0.50f ),
             ( 3, 0.25f ),
         };
 
-        private static readonly ChanceTable<int> ArmorModVsType_T5_QualityLevel = new ChanceTable<int>()
+        private static ChanceTable<int> ArmorModVsType_T5_QualityLevel = new ChanceTable<int>()
         {
             ( 2, 0.25f ),
             ( 3, 0.50f ),
             ( 4, 0.25f ),
         };
 
-        private static readonly ChanceTable<int> ArmorModVsType_T6_T8_QualityLevel = new ChanceTable<int>()
+        private static ChanceTable<int> ArmorModVsType_T6_T8_QualityLevel = new ChanceTable<int>()
         {
             ( 2, 0.25f ),
             ( 3, 0.35f ),
