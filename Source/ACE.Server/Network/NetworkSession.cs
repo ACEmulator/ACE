@@ -259,10 +259,32 @@ namespace ACE.Server.Network
             if ((packet.Header.Flags & PacketHeaderFlags.RequestRetransmit) == PacketHeaderFlags.RequestRetransmit
                 && !((packet.Header.Flags & PacketHeaderFlags.EncryptedChecksum) == PacketHeaderFlags.EncryptedChecksum))
             {
+                List<uint> uncached = null;
+
                 foreach (uint sequence in packet.HeaderOptional.RetransmitData)
                 {
-                    Retransmit(sequence);
+                    if (!Retransmit(sequence))
+                    {
+                        if (uncached == null)
+                            uncached = new List<uint>();
+
+                        uncached.Add(sequence);
+                    }
                 }
+                if (uncached != null)
+                {
+                    // send response packet w/ PacketHeaderFlags.RejectRetransmit + uncached list
+                    ServerPacket reqPacket = new ServerPacket();
+                    byte[] reqData = new byte[4 + (uncached.Count * 4)];
+                    MemoryStream msReqData = new MemoryStream(reqData, 0, reqData.Length, true, true);
+                    msReqData.Write(BitConverter.GetBytes((uint)uncached.Count), 0, 4);
+                    uncached.ForEach(k => msReqData.Write(BitConverter.GetBytes(k), 0, 4));
+                    reqPacket.Data = msReqData;
+                    reqPacket.Header.Flags = PacketHeaderFlags.RejectRetransmit;
+
+                    EnqueueSend(reqPacket);
+                }
+
                 NetworkStatistics.C2S_RequestsForRetransmit_Aggregate_Increment();
                 return; //cleartext crc NAK is never accompanied by additional data needed by the rest of the pipeline
             }
@@ -629,7 +651,7 @@ namespace ACE.Server.Network
                 cachedPackets.TryRemove(key, out _);
         }
 
-        private void Retransmit(uint sequence)
+        private bool Retransmit(uint sequence)
         {
             if (cachedPackets.TryGetValue(sequence, out var cachedPacket))
             {
@@ -639,6 +661,8 @@ namespace ACE.Server.Network
                     cachedPacket.Header.Flags |= PacketHeaderFlags.Retransmission;
 
                 SendPacketRaw(cachedPacket);
+
+                return true;
             }
             else
             {
@@ -646,6 +670,8 @@ namespace ACE.Server.Network
                     log.Error($"Session {session.Network?.ClientId}\\{session.EndPoint} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache range {cachedPackets.Keys.Min()} - {cachedPackets.Keys.Max()}.");
                 else
                     log.Error($"Session {session.Network?.ClientId}\\{session.EndPoint} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache is empty.");
+
+                return false;
             }
         }
 
