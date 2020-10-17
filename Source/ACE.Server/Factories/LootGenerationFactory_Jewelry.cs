@@ -40,7 +40,7 @@ namespace ACE.Server.Factories
         private static void MutateJewelry(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureRoll roll = null)
         {
             // material type
-            int materialType = GetMaterialType(wo, profile.Tier);
+            var materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = materialType;
 

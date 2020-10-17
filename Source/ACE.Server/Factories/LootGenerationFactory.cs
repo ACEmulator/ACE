@@ -405,64 +405,59 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Returns an appropriate material type for the World Object based on its loot tier.
         /// </summary>
-        private static int GetMaterialType(WorldObject wo, int tier)
+        private static MaterialType GetMaterialType(WorldObject wo, int tier)
         {
-            int defaultMaterialType = (int)SetDefaultMaterialType(wo);
-
             if (wo.TsysMutationData == null)
             {
                 log.Warn($"[LOOT] Missing PropertyInt.TsysMutationData on loot item {wo.WeenieClassId} - {wo.Name}");
-                return defaultMaterialType;
+                return GetDefaultMaterialType(wo);
             }
 
-            int materialCode = ((int)wo.TsysMutationData >> 0) & 0xFF;
+            int materialCode = (int)wo.TsysMutationData & 0xFF;
 
             // Enforce some bounds
-            if (tier < 1) tier = 1;
             // Data only goes to Tier 6 at the moment... Just in case the loot gem goes above this first, we'll cap it here for now.
-            if (tier > 6)
-                tier = 6;
+            tier = Math.Clamp(tier, 1, 6);
 
             var materialBase = DatabaseManager.World.GetCachedTreasureMaterialBase(materialCode, tier);
 
-            float totalProbability = GetTotalProbability(materialBase);
-            // If there's zero chance, no point in continuing...
-            if (totalProbability == 0) return defaultMaterialType;
+            if (materialBase == null)
+                return GetDefaultMaterialType(wo);
 
-            var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
             float probability = 0.0f;
             foreach (var m in materialBase)
             {
                 probability += m.Probability;
-                if (rng < probability || probability == totalProbability)
+                if (rng < probability)
                 {
                     // Ivory is unique... It doesn't have a group
                     if (m.MaterialId == (uint)MaterialType.Ivory)
-                        return (int)m.MaterialId;
+                        return (MaterialType)m.MaterialId;
 
                     var materialGroup = DatabaseManager.World.GetCachedTreasureMaterialGroup((int)m.MaterialId, tier);
-                    float totalGroupProbability = GetTotalProbability(materialGroup);
-                    // If there's zero chance, no point in continuing...
-                    if (totalGroupProbability == 0) return defaultMaterialType;
 
-                    var groupRng = ThreadSafeRandom.Next(0.0f, totalGroupProbability);
+                    if (materialGroup == null)
+                        return GetDefaultMaterialType(wo);
+
+                    var groupRng = ThreadSafeRandom.Next(0.0f, 1.0f);
                     float groupProbability = 0.0f;
                     foreach (var g in materialGroup)
                     {
                         groupProbability += g.Probability;
-                        if (groupProbability > groupRng || groupProbability == totalGroupProbability)
-                            return (int)g.MaterialId;
+                        if (groupRng < groupProbability)
+                            return (MaterialType)g.MaterialId;
                     }
                     break;
                 }
             }
-            return defaultMaterialType;
+            return GetDefaultMaterialType(wo);
         }
 
         /// <summary>
-        /// Sets a randomized default material type for when a weenie does not have TsysMutationData 
+        /// Gets a randomized default material type for when a weenie does not have TsysMutationData 
         /// </summary>
-        private static MaterialType SetDefaultMaterialType(WorldObject wo)
+        private static MaterialType GetDefaultMaterialType(WorldObject wo)
         {
             if (wo == null)
                 return MaterialType.Unknown;
@@ -558,86 +553,79 @@ namespace ACE.Server.Factories
         /// <returns>WorldObject with a random applicable PaletteTemplate and Shade applied, if available</returns>
         private static void MutateColor(WorldObject wo)
         {
-            if (wo.MaterialType == 0 || wo.TsysMutationData == null || wo.ClothingBase == null)
-                return;
-
-            byte colorCode = (byte)(((uint)wo.TsysMutationData >> 16) & 0xFF);
-
-            // BYTE spellCode = (tsysMutationData >> 24) & 0xFF;
-            // BYTE colorCode = (tsysMutationData >> 16) & 0xFF;
-            // BYTE gemCode = (tsysMutationData >> 8) & 0xFF;
-            // BYTE materialCode = (tsysMutationData >> 0) & 0xFF;
-
-            List<TreasureMaterialColor> colors;
-            // This is a unique situation that typically applies to Under Clothes.
-            // If the Color Code is 0, they can be PaletteTemplate 1-18, assuming there is a MaterialType
-            // (gems have ColorCode of 0, but also no MaterialCode as they are defined by the weenie)
-            if (colorCode == 0 && (uint)wo.MaterialType > 0)
+            if (wo.MaterialType > 0 && wo.TsysMutationData != null && wo.ClothingBase != null)
             {
-                colors = new List<TreasureMaterialColor>();
-                for (uint i = 1; i < 19; i++)
+                byte colorCode = (byte)(wo.TsysMutationData.Value >> 16);
+
+                // BYTE spellCode = (tsysMutationData >> 24) & 0xFF;
+                // BYTE colorCode = (tsysMutationData >> 16) & 0xFF;
+                // BYTE gemCode = (tsysMutationData >> 8) & 0xFF;
+                // BYTE materialCode = (tsysMutationData >> 0) & 0xFF;
+
+                List<TreasureMaterialColor> colors;
+                // This is a unique situation that typically applies to Under Clothes.
+                // If the Color Code is 0, they can be PaletteTemplate 1-18, assuming there is a MaterialType
+                // (gems have ColorCode of 0, but also no MaterialCode as they are defined by the weenie)
+                if (colorCode == 0 && (uint)wo.MaterialType > 0)
+                    colors = clothingColors;
+                else
+                    colors = DatabaseManager.World.GetCachedTreasureMaterialColors((int)wo.MaterialType, colorCode);
+
+                if (colors == null)
+                    return;
+
+                // Load the clothingBase associated with the WorldObject
+                DatLoader.FileTypes.ClothingTable clothingBase = DatLoader.DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.ClothingTable>((uint)wo.ClothingBase);
+
+                // TODO : Probably better to use an intersect() function here. I defer to someone who knows how these work better than I - Optim
+                // Compare the colors list and the clothingBase PaletteTemplates and remove any invalid items
+                var colorsValid = new List<TreasureMaterialColor>();
+                foreach (var e in colors)
+                    if (clothingBase.ClothingSubPalEffects.ContainsKey(e.PaletteTemplate))
+                        colorsValid.Add(e);
+                colors = colorsValid;
+
+                float totalProbability = GetTotalProbability(colors);
+                // If there's zero chance to get a random color, no point in continuing.
+                if (totalProbability == 0) return;
+
+                var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
+
+                uint paletteTemplate = 0;
+                float probability = 0.0f;
+                // Loop through the colors until we've reach our target value
+                foreach (var color in colors)
                 {
-                    TreasureMaterialColor tmc = new TreasureMaterialColor
+                    probability += color.Probability;
+                    if (rng < probability)
                     {
-                        PaletteTemplate = i,
-                        Probability = 1
-                    };
-                    colors.Add(tmc);
+                        paletteTemplate = color.PaletteTemplate;
+                        break;
+                    }
                 }
-            }
-            else
-            {
-                colors = DatabaseManager.World.GetCachedTreasureMaterialColors((int)wo.MaterialType, colorCode);
-            }
 
-            // Load the clothingBase associated with the WorldObject
-            DatLoader.FileTypes.ClothingTable clothingBase = DatLoader.DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.ClothingTable>((uint)wo.ClothingBase);
-
-            // TODO : Probably better to use an intersect() function here. I defer to someone who knows how these work better than I - Optim
-            // Compare the colors list and the clothingBase PaletteTemplates and remove any invalid items
-            var colorsValid = new List<TreasureMaterialColor>();
-            foreach (var e in colors)
-                if (clothingBase.ClothingSubPalEffects.ContainsKey((uint)e.PaletteTemplate))
-                    colorsValid.Add(e);
-            colors = colorsValid;
-
-            float totalProbability = GetTotalProbability(colors);
-            // If there's zero chance to get a random color, no point in continuing.
-            if (totalProbability == 0) return;
-
-            var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
-
-            uint paletteTemplate = 0;
-            float probability = 0.0f;
-            // Loop through the colors until we've reach our target value
-            foreach (var color in colors)
-            {
-                probability += color.Probability;
-                if (probability > rng || probability == totalProbability)
+                if (paletteTemplate > 0)
                 {
-                    paletteTemplate = color.PaletteTemplate;
-                    break;
+                    var cloSubPal = clothingBase.ClothingSubPalEffects[paletteTemplate];
+                    // Make sure this entry has a valid icon, otherwise there's likely something wrong with the ClothingBase value for this WorldObject (e.g. not supposed to be a loot item)
+                    if (cloSubPal.Icon > 0)
+                    {
+                        // Assign the appropriate Icon and PaletteTemplate
+                        wo.IconId = cloSubPal.Icon;
+                        wo.PaletteTemplate = (int)paletteTemplate;
+
+                        // Throw some shade, at random
+                        wo.Shade = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+                        // Some debug info...
+                        // log.Info($"Color success for {wo.MaterialType}({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}. PaletteTemplate {paletteTemplate} applied.");
+                    }
                 }
-            }
-            if (paletteTemplate > 0)
-            {
-                var cloSubPal = clothingBase.ClothingSubPalEffects[(uint)paletteTemplate];
-                // Make sure this entry has a valid icon, otherwise there's likely something wrong with the ClothingBase value for this WorldObject (e.g. not supposed to be a loot item)
-                if (cloSubPal.Icon > 0)
+                else
                 {
-                    // Assign the appropriate Icon and PaletteTemplate
-                    wo.IconId = cloSubPal.Icon;
-                    wo.PaletteTemplate = (int)paletteTemplate;
-
-                    // Throw some shade, at random
-                    wo.Shade = ThreadSafeRandom.Next(0.0f, 1.0f);
-
-                    // Some debug info...
-                    // log.Info($"Color success for {wo.MaterialType}({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}. PaletteTemplate {paletteTemplate} applied.");
+                    log.Warn($"[LOOT] Color looked failed for {wo.MaterialType} ({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}.");
                 }
             }
-            else
-                log.Warn($"[LOOT] Color looked failed for {wo.MaterialType} ({(int)wo.MaterialType}) - {wo.WeenieClassId} - {wo.Name}.");
         }
 
         /// <summary>

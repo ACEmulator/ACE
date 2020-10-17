@@ -70,7 +70,7 @@ namespace ACE.Server.Factories
         private static void MutateArmor(WorldObject wo, TreasureDeath profile, bool isMagical, LootTables.ArmorType armorType, TreasureRoll roll = null)
         {
             // material type
-            int materialType = GetMaterialType(wo, profile.Tier);
+            var materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
                 wo.MaterialType = materialType;
 
@@ -712,9 +712,9 @@ namespace ACE.Server.Factories
         {
             // why is this a separate method??
 
-            int materialType = GetMaterialType(wo, profile.Tier);
+            var materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
-                wo.MaterialType = (MaterialType)materialType;
+                wo.MaterialType = materialType;
 
             if (wo.GemCode != null)
                 wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
