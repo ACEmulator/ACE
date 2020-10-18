@@ -3,7 +3,9 @@ using System.Collections.Generic;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
@@ -12,9 +14,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
-using Microsoft.EntityFrameworkCore.Internal;
-using ACE.Common;
-using ACE.Entity;
+
 
 namespace ACE.Server.Command.Handlers
 {
