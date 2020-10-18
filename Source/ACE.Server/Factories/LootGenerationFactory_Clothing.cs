@@ -150,7 +150,7 @@ namespace ACE.Server.Factories
 
             // item value
             //if (wo.HasMutateFilter(MutateFilter.Value))   // fixme: data
-                MutateValue(wo, profile.Tier);
+                MutateValue(wo, profile.Tier, roll);
 
             wo.LongDesc = GetLongDesc(wo);
         }
@@ -823,7 +823,7 @@ namespace ACE.Server.Factories
 
             // item value
             //if (wo.HasMutateFilter(MutateFilter.Value))
-            MutateValue(wo, profile.Tier);
+                MutateValue(wo, profile.Tier, roll);
         }
 
         private static int RollCloak_ItemMaxLevel(TreasureDeath profile)

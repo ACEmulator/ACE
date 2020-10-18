@@ -719,8 +719,15 @@ namespace ACE.Server.Factories
             return (int)(rng * gemMod * materialMod * Math.Ceiling(tier / 2.0f));
         }
 
-        private static void MutateValue(WorldObject wo, int tier)
+        private static void MutateValue(WorldObject wo, int tier, TreasureRoll roll)
         {
+            if (roll == null)
+            {
+                // use old method
+                wo.Value = Roll_ItemValue(wo, tier);
+                return;
+            }
+
             if (wo.Value == null)
                 wo.Value = 0;   // fixme: data
 

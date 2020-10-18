@@ -56,7 +56,7 @@ namespace ACE.Server.Factories
 
             // item value
             if (wo.HasMutateFilter(MutateFilter.Value))
-                MutateValue(wo, profile.Tier);
+                MutateValue(wo, profile.Tier, roll);
 
             // long desc
             wo.LongDesc = GetLongDesc(wo);
