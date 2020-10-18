@@ -8,7 +8,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class SwordWcids_Sho
     {
-        private static readonly ChanceTable<WeenieClassName> T1_T2_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T1_T2_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.swordrapier,      0.10f ),
             ( WeenieClassName.yaoji,            0.12f ),
@@ -33,7 +33,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.tachifrost,       0.03f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T3_T4_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T3_T4_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.swordrapier,      0.06f ),
             ( WeenieClassName.yaoji,            0.06f ),
@@ -58,7 +58,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.tachifrost,       0.04f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T5_T6_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T5_T6_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.swordrapier,      0.01f ),
             ( WeenieClassName.yaoji,            0.01f ),

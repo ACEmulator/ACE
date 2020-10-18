@@ -161,8 +161,8 @@ namespace ACE.Server.Factories
             // burden?
 
             // missile defense / magic defense
-            wo.WeaponMissileDefense = RollWeapon_MissileMagicDefense(profile.Tier);
-            wo.WeaponMagicDefense = RollWeapon_MissileMagicDefense(profile.Tier);
+            wo.WeaponMissileDefense = MissileMagicDefense.Roll(profile.Tier);
+            wo.WeaponMagicDefense = MissileMagicDefense.Roll(profile.Tier);
 
             // spells
             if (!isMagical)

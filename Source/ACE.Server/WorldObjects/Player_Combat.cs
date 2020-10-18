@@ -119,17 +119,16 @@ namespace ACE.Server.WorldObjects
             if (target.Health.Current <= 0)
                 return null;
 
-            // check PK status
             var targetPlayer = target as Player;
-            if (targetPlayer != null)
+
+            // check PK status
+            var pkError = CheckPKStatusVsTarget(target, null);
+            if (pkError != null)
             {
-                var pkError = CheckPKStatusVsTarget(this, targetPlayer, null);
-                if (pkError != null)
-                {
-                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, pkError[0], target.Name));
+                Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, pkError[0], target.Name));
+                if (targetPlayer != null)
                     targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pkError[1], Name));
-                    return null;
-                }
+                return null;
             }
 
             var damageEvent = DamageEvent.CalculateDamage(this, target, damageSource);
@@ -1071,5 +1070,67 @@ namespace ACE.Server.WorldObjects
         public WorldObject HandArmor => EquippedObjects.Values.FirstOrDefault(i => (i.ClothingPriority & CoverageMask.Hands) > 0);
 
         public WorldObject FootArmor => EquippedObjects.Values.FirstOrDefault(i => (i.ClothingPriority & CoverageMask.Feet) > 0);
+
+
+        /// <summary>
+        /// Determines if player can damage a target via PlayerKillerStatus
+        /// </summary>
+        /// <returns>null if no errors, else pk error list</returns>
+        public override List<WeenieErrorWithString> CheckPKStatusVsTarget(WorldObject target, Spell spell)
+        {
+            if (target == null ||target == this)
+                return null;
+
+            var targetCreature = target as Creature;
+            if (targetCreature == null && target.WielderId != null)
+            {
+                // handle casting item spells
+                targetCreature = CurrentLandblock.GetObject(target.WielderId.Value) as Creature;
+            }
+            if (targetCreature == null)
+                return null;
+
+            if (PlayerKillerStatus == PlayerKillerStatus.Free || targetCreature.PlayerKillerStatus == PlayerKillerStatus.Free)
+                return null;
+
+            var targetPlayer = target as Player;
+
+            if (targetPlayer != null)
+            {
+                if (spell == null || spell.IsHarmful)
+                {
+                    // Ensure that a non-PK cannot cast harmful spells on another player
+                    if (PlayerKillerStatus == PlayerKillerStatus.NPK)
+                        return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_YouAreNotPK, WeenieErrorWithString._FailsToAffectYou_TheyAreNotPK };
+
+                    if (targetPlayer.PlayerKillerStatus == PlayerKillerStatus.NPK)
+                        return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_TheyAreNotPK, WeenieErrorWithString._FailsToAffectYou_YouAreNotPK };
+
+                    // Ensure not attacking across housing boundary
+                    if (!CheckHouseRestrictions(targetPlayer))
+                        return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_AcrossHouseBoundary, WeenieErrorWithString._FailsToAffectYouAcrossHouseBoundary };
+                }
+
+                // additional checks for different PKTypes
+                if (PlayerKillerStatus != targetPlayer.PlayerKillerStatus)
+                {
+                    // require same pk status, unless beneficial spell being cast on NPK
+                    // https://asheron.fandom.com/wiki/Player_Killer
+                    // https://asheron.fandom.com/wiki/Player_Killer_Lite
+
+                    if (spell == null || spell.IsHarmful || targetPlayer.PlayerKillerStatus != PlayerKillerStatus.NPK)
+                        return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_NotSamePKType, WeenieErrorWithString._FailsToAffectYou_NotSamePKType };
+                }
+            }
+            else
+            {
+                // if monster has a non-default pk status, ensure pk types match up
+                if (targetCreature.PlayerKillerStatus != PlayerKillerStatus.NPK && PlayerKillerStatus != targetCreature.PlayerKillerStatus)
+                {
+                    return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_NotSamePKType, WeenieErrorWithString._FailsToAffectYou_NotSamePKType };
+                }
+            }
+            return null;
+        }
     }
 }

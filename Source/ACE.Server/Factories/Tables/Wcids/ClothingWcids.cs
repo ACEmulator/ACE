@@ -13,7 +13,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         // shoes: 20%
         // hat:   14%
         // gloves: 8%
-        private static readonly ChanceTable<WeenieClassName> ClothingWcids_Aluvian = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> ClothingWcids_Aluvian = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.shirtbaggy,   0.06f ),
             ( WeenieClassName.tunicbaggy,   0.06f ),
@@ -35,7 +35,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         // hat: 20%
         // shoes: 17%
         // gloves: 9%
-        private static readonly ChanceTable<WeenieClassName> ClothingWcids_Gharundim = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> ClothingWcids_Gharundim = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.breechesbaggy, 0.07f ),
             ( WeenieClassName.pantsbaggy,    0.07f ),
@@ -60,7 +60,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         // shoes: 17%
         // hat: 16%
         // gloves: 9%
-        private static readonly ChanceTable<WeenieClassName> ClothingWcids_Sho = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> ClothingWcids_Sho = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.shirtbaggy,    0.06f ),
             ( WeenieClassName.capcloth,      0.08f ),
@@ -84,7 +84,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         // hat: 18%
         // shoes: 15%
         // gloves: 10%
-        private static readonly ChanceTable<WeenieClassName> ClothingWcids_Viamontian = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> ClothingWcids_Viamontian = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.shirtviamontfancy,   0.11f ),
             ( WeenieClassName.shirtviamontpoet,    0.11f ),

@@ -8,14 +8,14 @@ namespace ACE.Server.Factories.Tables
 {
     public static class ArmorTypeChance
     {
-        private static readonly ChanceTable<TreasureArmorType> T1_Chances = new ChanceTable<TreasureArmorType>()
+        private static ChanceTable<TreasureArmorType> T1_Chances = new ChanceTable<TreasureArmorType>()
         {
             ( TreasureArmorType.Leather,        0.34f ),
             ( TreasureArmorType.StuddedLeather, 0.33f ),
             ( TreasureArmorType.Chainmail,      0.33f ),
         };
 
-        private static readonly ChanceTable<TreasureArmorType> T2_Chances = new ChanceTable<TreasureArmorType>()
+        private static ChanceTable<TreasureArmorType> T2_Chances = new ChanceTable<TreasureArmorType>()
         {
             ( TreasureArmorType.Leather,        0.25f ),
             ( TreasureArmorType.StuddedLeather, 0.25f ),
@@ -23,7 +23,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureArmorType.Platemail,      0.25f ),
         };
 
-        private static readonly ChanceTable<TreasureArmorType> T3_Chances = new ChanceTable<TreasureArmorType>()
+        private static ChanceTable<TreasureArmorType> T3_Chances = new ChanceTable<TreasureArmorType>()
         {
             ( TreasureArmorType.Leather,        0.22f ),
             ( TreasureArmorType.StuddedLeather, 0.22f ),
@@ -34,7 +34,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureArmorType.Overrobe,       0.02f ),    // added
         };
 
-        private static readonly ChanceTable<TreasureArmorType> T4_Chances = new ChanceTable<TreasureArmorType>()
+        private static ChanceTable<TreasureArmorType> T4_Chances = new ChanceTable<TreasureArmorType>()
         {
             ( TreasureArmorType.Leather,        0.16f ),
             ( TreasureArmorType.StuddedLeather, 0.16f ),
@@ -45,7 +45,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureArmorType.Overrobe,       0.02f ),    // added
         };
 
-        private static readonly ChanceTable<TreasureArmorType> T5_Chances = new ChanceTable<TreasureArmorType>()
+        private static ChanceTable<TreasureArmorType> T5_Chances = new ChanceTable<TreasureArmorType>()
         {
             ( TreasureArmorType.Leather,        0.15f ),
             ( TreasureArmorType.StuddedLeather, 0.15f ),
@@ -57,7 +57,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureArmorType.Overrobe,       0.02f ),    // added
         };
 
-        private static readonly ChanceTable<TreasureArmorType> T6_Chances = new ChanceTable<TreasureArmorType>()
+        private static ChanceTable<TreasureArmorType> T6_Chances = new ChanceTable<TreasureArmorType>()
         {
             ( TreasureArmorType.Leather,        0.12f ),
             ( TreasureArmorType.StuddedLeather, 0.12f ),
@@ -73,7 +73,7 @@ namespace ACE.Server.Factories.Tables
         };
 
         // added, from mag-loot logs
-        private static readonly ChanceTable<TreasureArmorType> T7_Chances = new ChanceTable<TreasureArmorType>()
+        private static ChanceTable<TreasureArmorType> T7_Chances = new ChanceTable<TreasureArmorType>()
         {
             ( TreasureArmorType.Leather,        0.11f ),
             ( TreasureArmorType.StuddedLeather, 0.11f ),
@@ -91,7 +91,7 @@ namespace ACE.Server.Factories.Tables
         };
 
 
-        private static readonly ChanceTable<TreasureArmorType> T8_Chances = new ChanceTable<TreasureArmorType>()
+        private static ChanceTable<TreasureArmorType> T8_Chances = new ChanceTable<TreasureArmorType>()
         {
             ( TreasureArmorType.Leather,        0.10f ),
             ( TreasureArmorType.StuddedLeather, 0.10f ),

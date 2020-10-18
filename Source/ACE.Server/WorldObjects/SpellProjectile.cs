@@ -283,7 +283,7 @@ namespace ACE.Server.WorldObjects
             // if player target, ensure matching PK status
             var targetPlayer = creatureTarget as Player;
 
-            var pkError = CheckPKStatusVsTarget(player, targetPlayer, Spell);
+            var pkError = ProjectileSource?.CheckPKStatusVsTarget(creatureTarget, Spell);
             if (pkError != null)
             {
                 if (player != null)

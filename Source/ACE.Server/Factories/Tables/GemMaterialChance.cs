@@ -11,7 +11,7 @@ namespace ACE.Server.Factories.Tables
 {
     public static class GemMaterialChance
     {
-        private static readonly ChanceTable<GemResult> class1_materialChance = new ChanceTable<GemResult>()
+        private static ChanceTable<GemResult> class1_materialChance = new ChanceTable<GemResult>()
         {
             ( new GemResult(WeenieClassName.gemagate,         MaterialType.Agate),         0.13f ),
             ( new GemResult(WeenieClassName.gemazurite,       MaterialType.Azurite),       0.13f ),
@@ -23,7 +23,7 @@ namespace ACE.Server.Factories.Tables
             ( new GemResult(WeenieClassName.gemwhitequartz,   MaterialType.WhiteQuartz),   0.12f ),
         };
 
-        private static readonly ChanceTable<GemResult> class2_materialChance = new ChanceTable<GemResult>()
+        private static ChanceTable<GemResult> class2_materialChance = new ChanceTable<GemResult>()
         {
             ( new GemResult(WeenieClassName.gemamber,         MaterialType.Amber),         0.10f ),
             ( new GemResult(WeenieClassName.gembloodstone,    MaterialType.Bloodstone),    0.10f ),
@@ -37,7 +37,7 @@ namespace ACE.Server.Factories.Tables
             ( new GemResult(WeenieClassName.gemredjade,       MaterialType.RedJade),       0.10f ),
         };
 
-        private static readonly ChanceTable<GemResult> class3_materialChance = new ChanceTable<GemResult>()
+        private static ChanceTable<GemResult> class3_materialChance = new ChanceTable<GemResult>()
         {
             ( new GemResult(WeenieClassName.gemamethyst,      MaterialType.Amethyst),      0.11f ),
             ( new GemResult(WeenieClassName.gemblackgarnet,   MaterialType.BlackGarnet),   0.11f ),
@@ -50,7 +50,7 @@ namespace ACE.Server.Factories.Tables
             ( new GemResult(WeenieClassName.gemzircon,        MaterialType.Zircon),        0.12f ),
         };
 
-        private static readonly ChanceTable<GemResult> class4_materialChance = new ChanceTable<GemResult>()
+        private static ChanceTable<GemResult> class4_materialChance = new ChanceTable<GemResult>()
         {
             ( new GemResult(WeenieClassName.gemaquamarine,    MaterialType.Aquamarine),    0.20f ),
             ( new GemResult(WeenieClassName.gemgreengarnet,   MaterialType.GreenGarnet),   0.20f ),
@@ -59,7 +59,7 @@ namespace ACE.Server.Factories.Tables
             ( new GemResult(WeenieClassName.gemyellowtopaz,   MaterialType.YellowTopaz),   0.20f ),
         };
 
-        private static readonly ChanceTable<GemResult> class5_materialChance = new ChanceTable<GemResult>()
+        private static ChanceTable<GemResult> class5_materialChance = new ChanceTable<GemResult>()
         {
             ( new GemResult(WeenieClassName.gemblackopal,     MaterialType.BlackOpal),     0.20f ),
             ( new GemResult(WeenieClassName.gemfireopal,      MaterialType.FireOpal),      0.20f ),
@@ -68,7 +68,7 @@ namespace ACE.Server.Factories.Tables
             ( new GemResult(WeenieClassName.gemwhitesapphire, MaterialType.WhiteSapphire), 0.20f ),
         };
 
-        private static readonly ChanceTable<GemResult> class6_materialChance = new ChanceTable<GemResult>()
+        private static ChanceTable<GemResult> class6_materialChance = new ChanceTable<GemResult>()
         {
             ( new GemResult(WeenieClassName.jeweldiamond,     MaterialType.Diamond),       0.13f ),
             ( new GemResult(WeenieClassName.jewelemerald,     MaterialType.Emerald),       0.29f ),

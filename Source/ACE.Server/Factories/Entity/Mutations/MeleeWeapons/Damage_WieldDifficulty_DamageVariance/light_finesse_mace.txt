@@ -553,3 +553,21 @@ Tier chances: 0, 0, 0, 0, 0, 0, 0, 1
         WieldSkillType = WeaponSkill
         WieldDifficulty = 430
 
+Mace (LightWeapons, FinesseWeapons) Mutation #9:
+
+Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
+
+    - Chance: 10%:
+        DamageVariance = 0.43
+
+    - Chance: 20%:
+        DamageVariance = 0.37
+
+    - Chance: 40%:
+        DamageVariance = 0.32
+
+    - Chance: 20%:
+        DamageVariance = 0.28
+
+    - Chance: 10%:
+        DamageVariance = 0.23
