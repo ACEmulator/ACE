@@ -1,0 +1,249 @@
+Olthoi Shield Mutation #1:
+
+Tier chances: 0, 0, 0, 0, 0, 0, 1, 1
+
+    - Chance: 9%:
+        ArmorLevel = 120
+        WieldRequirements = RawSkill
+        WieldSkillType = MeleeDefense
+        WieldDifficulty = 200
+        ArmorLevel += Random(0, 100)
+
+    - Chance: 8%:
+        ArmorLevel = 120
+        WieldRequirements = RawSkill
+        WieldSkillType = MissileDefense
+        WieldDifficulty = 160
+        ArmorLevel += Random(0, 100)
+
+    - Chance: 8%:
+        ArmorLevel = 120
+        WieldRequirements = RawSkill
+        WieldSkillType = MagicDefense
+        WieldDifficulty = 145
+        ArmorLevel += Random(0, 100)
+
+    - Chance: 9%:
+        ArmorLevel = 220
+        WieldRequirements = RawSkill
+        WieldSkillType = MeleeDefense
+        WieldDifficulty = 250
+        ArmorLevel += Random(0, 100)
+
+    - Chance: 8%:
+        ArmorLevel = 220
+        WieldRequirements = RawSkill
+        WieldSkillType = MissileDefense
+        WieldDifficulty = 205
+        ArmorLevel += Random(0, 100)
+
+    - Chance: 8%:
+        ArmorLevel = 220
+        WieldRequirements = RawSkill
+        WieldSkillType = MagicDefense
+        WieldDifficulty = 185
+        ArmorLevel += Random(0, 100)
+
+    - Chance: 9%:
+        ArmorLevel = 310
+        WieldRequirements = RawSkill
+        WieldSkillType = MeleeDefense
+        WieldDifficulty = 300
+        ArmorLevel += Random(0, 50)
+
+    - Chance: 8%:
+        ArmorLevel = 310
+        WieldRequirements = RawSkill
+        WieldSkillType = MissileDefense
+        WieldDifficulty = 245
+        ArmorLevel += Random(0, 50)
+
+    - Chance: 8%:
+        ArmorLevel = 310
+        WieldRequirements = RawSkill
+        WieldSkillType = MagicDefense
+        WieldDifficulty = 225
+        ArmorLevel += Random(0, 50)
+
+    - Chance: 9%:
+        ArmorLevel = 360
+        WieldRequirements = RawSkill
+        WieldSkillType = MeleeDefense
+        WieldDifficulty = 325
+        ArmorLevel += Random(0, 50)
+
+    - Chance: 8%:
+        ArmorLevel = 360
+        WieldRequirements = RawSkill
+        WieldSkillType = MissileDefense
+        WieldDifficulty = 270
+        ArmorLevel += Random(0, 50)
+
+    - Chance: 8%:
+        ArmorLevel = 360
+        WieldRequirements = RawSkill
+        WieldSkillType = MagicDefense
+        WieldDifficulty = 245
+        ArmorLevel += Random(0, 50)
+
+    - Chance: 100%:
+        WieldRequirements2 = Level
+        WieldDifficulty2 = 150
+        WieldSkillType2 = 1
+
+Olthoi Shield Mutation #2:
+
+Tier chances: 0, 0, 0, 0, 0, 0, 0, 1
+
+    - Chance: 10%:
+
+    - Chance: 90%:
+
+        // didn't increase wield difficulty?
+        ArmorLevel += 10
+
+        WieldRequirements2 = Level
+        WieldDifficulty2 = 180
+        WieldSkillType2 = 1
+
+Olthoi Shield Mutation #3:
+
+Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
+
+    - Chance: 60%:
+
+    - Chance: 29%:
+        ArmorModVsSlash += 0.1
+
+    - Chance: 10%:
+        ArmorModVsSlash += 0.2
+
+    - Chance: 1%:
+        ArmorModVsSlash += 0.3
+
+Olthoi Shield Mutation #4:
+
+Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
+
+    - Chance: 60%:
+
+    - Chance: 29%:
+        ArmorModVsPierce += 0.1
+
+    - Chance: 10%:
+        ArmorModVsPierce += 0.2
+
+    - Chance: 1%:
+        ArmorModVsPierce += 0.3
+
+Olthoi Shield Mutation #5:
+
+Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
+
+    - Chance: 60%:
+
+    - Chance: 29%:
+        ArmorModVsBludgeon += 0.1
+
+    - Chance: 10%:
+        ArmorModVsBludgeon += 0.2
+
+    - Chance: 1%:
+        ArmorModVsBludgeon += 0.3
+
+Olthoi Shield Mutation #6:
+
+Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
+
+    - Chance: 45%:
+
+    - Chance: 24%:
+        ArmorModVsCold += 0.2
+
+    - Chance: 15%:
+        ArmorModVsCold += 0.4
+
+    - Chance: 10%:
+        ArmorModVsCold += 0.6
+
+    - Chance: 5%:
+        ArmorModVsCold += 0.8
+
+    - Chance: 1%:
+        ArmorModVsCold += 1
+
+Olthoi Shield Mutation #7:
+
+Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
+
+    - Chance: 45%:
+
+    - Chance: 24%:
+        ArmorModVsFire += 0.2
+
+    - Chance: 15%:
+        ArmorModVsFire += 0.4
+
+    - Chance: 10%:
+        ArmorModVsFire += 0.6
+
+    - Chance: 5%:
+        ArmorModVsFire += 0.8
+
+    - Chance: 1%:
+        ArmorModVsFire += 1
+
+Olthoi Shield Mutation #8:
+
+Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
+
+    - Chance: 45%:
+
+    - Chance: 24%:
+        ArmorModVsAcid += 0.2
+
+    - Chance: 15%:
+        ArmorModVsAcid += 0.4
+
+    - Chance: 10%:
+        ArmorModVsAcid += 0.6
+
+    - Chance: 5%:
+        ArmorModVsAcid += 0.8
+
+    - Chance: 1%:
+        ArmorModVsAcid += 1
+
+Olthoi Shield Mutation #9:
+
+Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
+
+    - Chance: 45%:
+
+    - Chance: 24%:
+        ArmorModVsElectric += 0.2
+
+    - Chance: 15%:
+        ArmorModVsElectric += 0.4
+
+    - Chance: 10%:
+        ArmorModVsElectric += 0.6
+
+    - Chance: 5%:
+        ArmorModVsElectric += 0.8
+
+    - Chance: 1%:
+        ArmorModVsElectric += 1
+
+Olthoi Shield Mutation #10:
+
+Tier chances: 0, 0, 0, 0, 0, 0, 1, 1
+
+    - Chance: 25%:
+        EncumbranceVal *= Random(0.55, 0.65)
+
+    - Chance: 50%:
+        EncumbranceVal *= Random(0.45, 0.55)
+
+    - Chance: 25%:
+        EncumbranceVal *= Random(0.35, 0.45)

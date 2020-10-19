@@ -111,7 +111,7 @@ namespace ACE.Server.WorldObjects
             var protMod = EnchantmentManager.GetProtectionResistanceMod(damageType);
             var vulnMod = EnchantmentManager.GetVulnerabilityResistanceMod(damageType);
 
-            var naturalResistMod = GetNaturalResistance();
+            var naturalResistMod = GetNaturalResistance(damageType);
 
             // protection mod becomes either life protection or natural resistance,
             // whichever is more powerful (more powerful = lower value here)
@@ -151,7 +151,7 @@ namespace ACE.Server.WorldObjects
             return protMod * vulnMod;
         }
 
-        public virtual float GetNaturalResistance()
+        public virtual float GetNaturalResistance(DamageType damageType)
         {
             // overridden for players
             return 1.0f;
@@ -205,15 +205,15 @@ namespace ACE.Server.WorldObjects
                 case ResistanceType.HealthBoost:
                     return (ResistHealthBoost ?? 1.0) * GetHealingRatingMod();
                 case ResistanceType.HealthDrain:
-                    return (ResistHealthDrain ?? 1.0) * GetNaturalResistance() * GetLifeResistRatingMod();
+                    return (ResistHealthDrain ?? 1.0) * GetNaturalResistance(DamageType.Health) * GetLifeResistRatingMod();
                 case ResistanceType.StaminaBoost:
                     return (ResistStaminaBoost ?? 1.0) * GetHealingRatingMod();     // does healing rating affect these?
                 case ResistanceType.StaminaDrain:
-                    return (ResistStaminaDrain ?? 1.0) * GetNaturalResistance();
+                    return (ResistStaminaDrain ?? 1.0) * GetNaturalResistance(DamageType.Stamina);
                 case ResistanceType.ManaBoost:
                     return (ResistManaBoost ?? 1.0) * GetHealingRatingMod();
                 case ResistanceType.ManaDrain:
-                    return (ResistManaDrain ?? 1.0) * GetNaturalResistance();
+                    return (ResistManaDrain ?? 1.0) * GetNaturalResistance(DamageType.Mana);
                 default:
                     return 1.0;
             }
@@ -300,10 +300,10 @@ namespace ACE.Server.WorldObjects
             set { if (value == null) RemoveProperty(PropertyString.KillQuest3); else SetProperty(PropertyString.KillQuest3, value); }
         }
 
-        public int? Faction1Bits
+        public FactionBits? Faction1Bits
         {
-            get => GetProperty(PropertyInt.Faction1Bits);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.Faction1Bits); else SetProperty(PropertyInt.Faction1Bits, value.Value); }
+            get => (FactionBits?)GetProperty(PropertyInt.Faction1Bits);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Faction1Bits); else SetProperty(PropertyInt.Faction1Bits, (int)value); }
         }
 
         public int? Faction2Bits
@@ -354,6 +354,6 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.SocietyRankRadblo); else SetProperty(PropertyInt.SocietyRankRadblo, value.Value); }
         }
 
-        public FactionBits Society => (FactionBits?)Faction1Bits ?? 0;
+        public FactionBits Society => Faction1Bits ?? FactionBits.None;
     }
 }

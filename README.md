@@ -2,15 +2,17 @@
 
 [![Discord](https://img.shields.io/discord/261242462972936192.svg?label=play+now!&style=for-the-badge&logo=discord)](https://discord.gg/C2WzhP9)
 
-Issue status: [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/ACEmulator/ACE.svg)](http://isitmaintained.com/project/ACEmulator/ACE "Average time to resolve an issue")
-[![Percentage of issues still open](http://isitmaintained.com/badge/open/ACEmulator/ACE.svg)](http://isitmaintained.com/project/ACEmulator/ACE "Percentage of issues still open")
+Build status: [![GitHub last commit (master)](https://img.shields.io/github/last-commit/acemulator/ace/master)](https://github.com/ACEmulator/ACE/commits/master) [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda31cgu8u59w/branch/master?svg=true)](https://ci.appveyor.com/project/LtRipley36706/ace/branch/master) [![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/acemulator/ace)](https://hub.docker.com/r/acemulator/ace)
 
-Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda31cgu8u59w/branch/master?svg=true)](https://ci.appveyor.com/project/LtRipley36706/ace)
+[![Download Latest Server Release](https://img.shields.io/github/v/release/ACEmulator/ACE?label=latest%20server%20release) ![GitHub Release Date](https://img.shields.io/github/release-date/acemulator/ace)](https://github.com/ACEmulator/ACE/releases/latest)
+[![Download Latest World Database Release](https://img.shields.io/github/v/release/ACEmulator/ACE-World-16PY-Patches?label=latest%20world%20database%20release) ![GitHub Release Date](https://img.shields.io/github/release-date/acemulator/ACE-World-16PY-Patches)](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest)
+
+[![GitHub All Releases](https://img.shields.io/github/downloads/acemulator/ace/total?label=server%20downloads)](https://github.com/ACEmulator/ACE/releases) [![GitHub All Releases](https://img.shields.io/github/downloads/acemulator/ACE-World-16PY-Patches/total?label=database%20downloads)](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases) [![Docker Pulls](https://img.shields.io/docker/pulls/acemulator/ace)](https://hub.docker.com/r/acemulator/ace)
 
 **ACEmulator is a custom, completely from-scratch open source server implementation for Asheron's Call built on C#**
  * MySQL and MariaDB are used as the database engine.
  * Latest client supported.
- * Currently intended for developers that wish to contribute to the ACEmulator project.
+ * [![License](https://img.shields.io/github/license/acemulator/ace)](https://github.com/ACEmulator/ACE/blob/master/LICENSE)
 
 ***
 ## Disclaimer

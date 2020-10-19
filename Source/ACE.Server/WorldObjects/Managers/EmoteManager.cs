@@ -15,6 +15,7 @@ using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Factories.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -200,7 +201,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                         var preCastTime = creature.PreCastMotion(targetObject);
 
-                        delay = preCastTime + creature.GetPostCastTime();
+                        delay = preCastTime + creature.GetPostCastTime(spell);
 
                         var castChain = new ActionChain();
                         castChain.AddDelaySeconds(preCastTime);
@@ -246,7 +247,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                         // todo: make use of emote.TreasureClass and emote.TreasureType fields.
                         // this emote is primarily seen on fishing holes so defaulting with jewelery as the only pcap showed 2:1 amulet to crown pull (not much to go on) for now
-                        var treasure = LootGenerationFactory.CreateRandomLootObjects(profile, false, LootGenerationFactory.LootBias.Jewelry /* probably treasure type here */);
+                        var treasure = LootGenerationFactory.CreateRandomLootObjects(profile, false, LootBias.Jewelry /* probably treasure type here */);
                         if (treasure != null)
                         {
                             player.TryCreateInInventoryWithNetworking(treasure);
@@ -299,6 +300,15 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (player != null)
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
+
+                    break;
+
+                case EmoteType.Enlightenment:
+
+                    if (player != null)
+                    {
+                        Enlightenment.HandleEnlightenment(WorldObject, player);
+                    }
 
                     break;
 
@@ -530,11 +540,26 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.InqPackSpace:
 
-                    //if (player != null)
-                    //{
-                    //    var freeSpace = player.ContainerCapacity > player.ItemCapacity;
-                    //    InqCategory(freeSpace ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
-                    //}
+                    if (player != null)
+                    {
+                        var numRequired = emote.Amount ?? 1;
+
+                        success = false;
+                        if (numRequired > 10000) // Since emote was not in 16py and we have just the two fields to go on, I will assume you could "mask" the value to pick between free Item Capacity space or free Container Capacity space
+                        {
+                            var freeSpace = player.GetFreeContainerSlots();
+
+                            success = freeSpace >= (numRequired - 10000);
+                        }
+                        else
+                        {
+                            var freeSpace = player.GetFreeInventorySlots(false); // assuming this was only for main pack. makes things easier at this point.
+
+                            success = freeSpace >= numRequired;
+                        }
+
+                        ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+                    }
                     break;
 
                 case EmoteType.InqMyQuest:
@@ -764,8 +789,8 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.KillSelf:
 
-                    if (targetCreature != null)
-                        targetCreature.Smite(targetCreature);
+                    if (creature != null)
+                        creature.Smite(creature);
                     break;
 
                 case EmoteType.LocalBroadcast:
@@ -1015,9 +1040,8 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.ResetHomePosition:
 
-                    //creature = sourceObject as Creature;
-                    //if (creature != null)
-                    //    creature.Home = emoteAction.Position;
+                    if (WorldObject.Location != null)
+                        WorldObject.Home = new Position(WorldObject.Location);
                     break;
 
                 case EmoteType.Say:
@@ -1025,7 +1049,8 @@ namespace ACE.Server.WorldObjects.Managers
                     if (Debug)
                         Console.Write($" - {emote.Message}");
 
-                    WorldObject.EnqueueBroadcast(new GameMessageCreatureMessage(emote.Message, WorldObject.Name, WorldObject.Guid.Full, ChatMessageType.Emote), WorldObject.LocalBroadcastRange);
+                    message = Replace(emote.Message, WorldObject, targetObject, emoteSet.Quest);
+                    WorldObject.EnqueueBroadcast(new GameMessageCreatureMessage(message, WorldObject.Name, WorldObject.Guid.Full, ChatMessageType.Emote), WorldObject.LocalBroadcastRange);
                     break;
 
                 case EmoteType.SetAltRacialSkills:
@@ -1429,7 +1454,7 @@ namespace ACE.Server.WorldObjects.Managers
             if (useRNG)
             {
                 var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-                emoteSet = emoteSet.Where(e => e.Probability >= rng).OrderBy(e => e.Probability);
+                emoteSet = emoteSet.Where(e => e.Probability > rng).OrderBy(e => e.Probability);
                 //emoteSet = emoteSet.Where(e => e.Probability >= rng);
             }
 
@@ -1647,6 +1672,8 @@ namespace ACE.Server.WorldObjects.Managers
                 result = result.Replace("%mxqt", !string.IsNullOrWhiteSpace(quest) ? sourceCreature.QuestManager.GetNextSolveTime(questName).GetFriendlyLongString() : "");
 
                 //result = result.Replace("%CDtime", !string.IsNullOrWhiteSpace(quest) ? sourceCreature.QuestManager.GetNextSolveTime(questName).GetFriendlyString() : "");
+
+                result = result.Replace("%mqc", !string.IsNullOrWhiteSpace(quest) ? sourceCreature.QuestManager.GetCurrentSolves(questName).ToString() : "");
             }
 
             return result;
@@ -1771,9 +1798,16 @@ namespace ACE.Server.WorldObjects.Managers
             ExecuteEmoteSet(EmoteCategory.ReceiveCritical, null, attacker);
         }
 
-        public void OnDeath(WorldObject lastDamager)
+        public void OnResistSpell(Creature attacker)
+        {
+            ExecuteEmoteSet(EmoteCategory.ResistSpell, null, attacker);
+        }
+
+        public void OnDeath(DamageHistoryInfo lastDamagerInfo)
         {
             IsBusy = false;
+
+            var lastDamager = lastDamagerInfo?.TryGetPetOwnerOrAttacker();
 
             ExecuteEmoteSet(EmoteCategory.Death, null, lastDamager);
         }

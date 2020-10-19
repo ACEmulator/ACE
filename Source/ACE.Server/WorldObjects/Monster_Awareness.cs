@@ -57,6 +57,8 @@ namespace ACE.Server.WorldObjects
             MonsterState = State.Idle;
 
             PhysicsObj.CachedVelocity = Vector3.Zero;
+
+            ClearRetaliateTargets();
         }
 
         public Tolerance Tolerance
@@ -251,6 +253,15 @@ namespace ACE.Server.WorldObjects
                 if (PhysicsObj.get_distance_sq_to_object(creature.PhysicsObj, true) > chaseDistSq)
                     continue;
 
+                // if this monster belongs to a faction,
+                // ensure target does not belong to the same faction
+                if (SameFaction(creature))
+                {
+                    // unless they have been provoked
+                    if (!PhysicsObj.ObjMaint.RetaliateTargetsContainsKey(creature.Guid.Full))
+                        continue;
+                }
+
                 visibleTargets.Add(creature);
             }
 
@@ -296,7 +307,7 @@ namespace ACE.Server.WorldObjects
             {
                 invRatio += 1.0f - (targetDistance.Distance / distSum);
 
-                if (rng <= invRatio)
+                if (rng < invRatio)
                     return targetDistance.Target;
             }
             // precision error?
@@ -407,10 +418,53 @@ namespace ACE.Server.WorldObjects
                     if (distSq > nearbyCreature.VisualAwarenessRangeSq)
                         continue;
 
+                    // scenario: spawn a faction mob, and then spawn a non-faction mob next to it, of the same CreatureType
+                    // the spawning mob will become alerted by the faction mob, and will then go to alert its friendly types
+                    // the faction mob happens to be a friendly type, so it in effect becomes alerted to itself
+                    // this is to prevent the faction mob from adding itself to its retaliate targets / visible targets,
+                    // and setting itself to its AttackTarget
+                    if (nearbyCreature == AttackTarget)
+                        continue;
+
+                    if (nearbyCreature.SameFaction(AttackTarget as Creature))
+                        nearbyCreature.AddRetaliateTarget(AttackTarget);
+
                     Alerted = true;
                     nearbyCreature.AttackTarget = AttackTarget;
                     nearbyCreature.WakeUp(false);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Wakes up a faction monster from any non-faction monsters wandering within range
+        /// </summary>
+        public void FactionMob_CheckMonsters()
+        {
+            if (MonsterState != State.Idle) return;
+
+            var creatures = PhysicsObj.ObjMaint.GetVisibleTargetsValuesOfTypeCreature();
+
+            foreach (var creature in creatures)
+            {
+                // ensure type isn't already handled elsewhere
+                if (creature is Player || creature is CombatPet)
+                    continue;
+
+                // ensure attackable
+                if (creature.IsDead || !creature.Attackable || creature.Teleporting)
+                    continue;
+
+                // ensure another faction
+                if (SameFaction(creature))
+                    continue;
+
+                // ensure within detection range
+                if (PhysicsObj.get_distance_sq_to_object(creature.PhysicsObj, true) > VisualAwarenessRangeSq)
+                    continue;
+
+                creature.AlertMonster(this);
+                break;
             }
         }
     }

@@ -377,14 +377,18 @@ namespace ACE.Entity.Enum.Properties
         WieldDifficulty4                         = 278,
         Unique                                   = 279,
         SharedCooldown                           = 280,
+        [SendOnLogin]
         Faction1Bits                             = 281,
         Faction2Bits                             = 282,
         Faction3Bits                             = 283,
         Hatred1Bits                              = 284,
         Hatred2Bits                              = 285,
         Hatred3Bits                              = 286,
+        [SendOnLogin]
         SocietyRankCelhan                        = 287,
+        [SendOnLogin]
         SocietyRankEldweb                        = 288,
+        [SendOnLogin]
         SocietyRankRadblo                        = 289,
         HearLocalSignals                         = 290,
         HearLocalSignalsRadius                   = 291,

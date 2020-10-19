@@ -1,0 +1,211 @@
+Caster Mutation #1 (484 samples):
+
+Tier chances: 1, 0, 0, 0, 0, 0, 0, 0
+
+    - Chance: 5%:
+        WeaponDefense = 1.00
+
+    - Chance: 15%:
+        WeaponDefense = 1.01
+
+    - Chance: 30%:
+        WeaponDefense = 1.02
+
+    - Chance: 30%:
+        WeaponDefense = 1.03
+
+    - Chance: 15%:
+        WeaponDefense = 1.04
+
+    - Chance: 5%:
+        WeaponDefense = 1.05
+
+Caster Mutation #2 (831 samples):
+
+Tier chances: 0, 1, 0, 0, 0, 0, 0, 0
+
+    - Chance: 5%:
+        WeaponDefense = 1.01
+
+    - Chance: 15:
+        WeaponDefense = 1.02
+
+    - Chance: 30%:
+        WeaponDefense = 1.03
+
+    - Chance: 30%:
+        WeaponDefense = 1.04
+
+    - Chance: 15%:
+        WeaponDefense = 1.05
+
+    - Chance: 5%:
+        WeaponDefense = 1.06
+
+Caster Mutation #3 (741 samples):
+
+Tier chances: 0, 0, 1, 0, 0, 0, 0, 0
+
+    - Chance: 2%:
+        WeaponDefense = 1.03
+
+    - Chance: 5%:
+        WeaponDefense = 1.04
+
+    - Chance: 15%:
+        WeaponDefense = 1.05
+
+    - Chance: 25%:
+        WeaponDefense = 1.06
+
+    - Chance: 30%:
+        WeaponDefense = 1.07
+
+    - Chance: 15%:
+        WeaponDefense = 1.08
+
+    - Chance: 5%:
+        WeaponDefense = 1.09
+
+    - Chance: 3%:
+        WeaponDefense = 1.10
+
+Caster Mutation #4 (1695 samples):
+
+Tier chances: 0, 0, 0, 1, 0, 0, 0, 0
+
+    - Chance: 5%:
+        WeaponDefense = 1.05
+
+    - Chance: 15%:
+        WeaponDefense = 1.06
+
+    - Chance: 25%:
+        WeaponDefense = 1.07
+
+    - Chance: 30%:
+        WeaponDefense = 1.08
+
+    - Chance: 15%:
+        WeaponDefense = 1.09
+
+    - Chance: 5%:
+        WeaponDefense = 1.10
+
+    - Chance: 3%:
+        WeaponDefense = 1.11
+
+    - Chance: 2%:
+        WeaponDefense = 1.12
+
+Caster Mutation #5 (777 samples):
+
+Tier chances: 0, 0, 0, 0, 1, 0, 0, 0
+
+    - Chance: 10%:
+        WeaponDefense = 1.07
+
+    - Chance: 15%:
+        WeaponDefense = 1.08
+
+    - Chance: 25%:
+        WeaponDefense = 1.09
+
+    - Chance: 25%:
+        WeaponDefense = 1.10
+
+    - Chance: 15%:
+        WeaponDefense = 1.11
+
+    - Chance: 5%:
+        WeaponDefense = 1.12
+
+    - Chance: 3%:
+        WeaponDefense = 1.13
+
+    - Chance: 2%:
+        WeaponDefense = 1.14
+
+Caster Mutation #6 (3959 samples):
+
+Tier chances: 0, 0, 0, 0, 0, 1, 0, 0
+
+    - Chance: 10%:
+        WeaponDefense = 1.08
+
+    - Chance: 10%:
+        WeaponDefense = 1.09
+
+    - Chance: 15%:
+        WeaponDefense = 1.10
+
+    - Chance: 20%:
+        WeaponDefense = 1.11
+
+    - Chance: 20%:
+        WeaponDefense = 1.12
+
+    - Chance: 15%:
+        WeaponDefense = 1.13
+
+    - Chance: 5%:
+        WeaponDefense = 1.14
+
+    - Chance: 5%:
+        WeaponDefense = 1.15
+
+Caster Mutation #7 (939 samples):
+
+Tier chances: 0, 0, 0, 0, 0, 0, 1, 0
+
+    - Chance: 25%:
+        WeaponDefense = 1.13
+
+    - Chance: 15%:
+        WeaponDefense = 1.14
+
+    - Chance: 20%:
+        WeaponDefense = 1.15
+
+    - Chance: 14%:
+        WeaponDefense = 1.16
+
+    - Chance: 12%:
+        WeaponDefense = 1.17
+
+    - Chance: 8%:
+        WeaponDefense = 1.18
+
+    - Chance: 4%:
+        WeaponDefense = 1.19
+
+    - Chance: 2%:
+        WeaponDefense = 1.20
+
+Caster Mutation #8 (1357 samples):
+
+Tier chances: 0, 0, 0, 0, 0, 0, 0, 1
+
+    - Chance: 25%:
+        WeaponDefense = 1.13
+
+    - Chance: 15%:
+        WeaponDefense = 1.14
+
+    - Chance: 20%:
+        WeaponDefense = 1.15
+
+    - Chance: 14%:
+        WeaponDefense = 1.16
+
+    - Chance: 12%:
+        WeaponDefense = 1.17
+
+    - Chance: 8%:
+        WeaponDefense = 1.18
+
+    - Chance: 4%:
+        WeaponDefense = 1.19
+
+    - Chance: 2%:
+        WeaponDefense = 1.20

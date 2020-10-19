@@ -93,7 +93,7 @@ namespace ACE.Server.Network.Handlers
                 }
                 else if (channelID > TurbineChatChannel.Society) // Channel must be a society restricted channel
                 {
-                    //var senderSociety = session.Player.Society;
+                    var senderSociety = session.Player.Society;
 
                     //var adjustedChatType = senderSociety switch
                     //{
@@ -105,10 +105,16 @@ namespace ACE.Server.Network.Handlers
 
                     //gameMessageTurbineChat = new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_EVENT_BINARY, channelID, session.Player.Name, message, senderID, adjustedChatType);
 
+                    if (senderSociety == FactionBits.None)
+                    {
+                        ChatPacket.SendServerMessage(session, "You do not belong to a society.", ChatMessageType.Broadcast); // I don't know if this is how it was done on the live servers
+                        return;
+                    }
+
                     foreach (var recipient in PlayerManager.GetAllOnline())
                     {
                         // handle filters
-                        if (session.Player.Society != recipient.Society)
+                        if (senderSociety != recipient.Society && !recipient.IsAdmin)
                             continue;
 
                         if (!recipient.GetCharacterOption(CharacterOption.ListenToSocietyChat))
@@ -122,11 +128,11 @@ namespace ACE.Server.Network.Handlers
 
                     session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                 }
-                else if (channelID == TurbineChatChannel.Olthoi) // Channel must be the Olthoi play channel
+                else if (channelID == TurbineChatChannel.Olthoi) // Channel must is the Olthoi play channel
                 {
                     // todo: olthoi play chat (ha! yeah right...)
                 }
-                else // Channel must be available to all players
+                else // Channel must be one of the channels available to all players
                 {
                     foreach (var recipient in PlayerManager.GetAllOnline())
                     {

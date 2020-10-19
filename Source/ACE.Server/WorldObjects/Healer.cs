@@ -128,13 +128,14 @@ namespace ACE.Server.WorldObjects
             var motionCommand = healer.Equals(target) ? MotionCommand.SkillHealSelf : MotionCommand.SkillHealOther;
 
             var motion = new Motion(healer, motionCommand);
-            var animLength = MotionTable.GetAnimationLength(healer.MotionTableId, healer.CurrentMotionState.Stance, motionCommand);
+            var currentStance = healer.CurrentMotionState.Stance;
+            var animLength = MotionTable.GetAnimationLength(healer.MotionTableId, currentStance, motionCommand);
 
             var startPos = new Physics.Common.Position(healer.PhysicsObj.Position);
 
             var actionChain = new ActionChain();
             //actionChain.AddAction(healer, () => healer.EnqueueBroadcastMotion(motion));
-            actionChain.AddAction(healer, () => healer.SendMotionAsCommands(motionCommand));
+            actionChain.AddAction(healer, () => healer.SendMotionAsCommands(motionCommand, currentStance));
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(healer, () =>
             {
@@ -237,7 +238,7 @@ namespace ACE.Server.WorldObjects
             difficulty = (int)Math.Round((vital.MaxValue - vital.Current) * 2 * combatMod);
 
             var skillCheck = SkillCheck.GetSkillChance(effectiveSkill, difficulty);
-            return skillCheck >= ThreadSafeRandom.Next(0.0f, 1.0f);
+            return skillCheck > ThreadSafeRandom.Next(0.0f, 1.0f);
         }
 
         /// <summary>

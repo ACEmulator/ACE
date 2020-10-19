@@ -4,7 +4,7 @@
     {
         None              = 0x00,
         Melee             = 0x01,
-        Missle            = 0x02,
+        Missile           = 0x02,
         Ammo              = 0x03,
         Shield            = 0x04,
         TwoHanded         = 0x05

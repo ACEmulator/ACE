@@ -9,6 +9,6 @@ namespace ACE.Database.Models.World
         public uint ObjectId { get; set; }
         public int Event { get; set; }
 
-        public Weenie Object { get; set; }
+        public virtual Weenie Object { get; set; }
     }
 }

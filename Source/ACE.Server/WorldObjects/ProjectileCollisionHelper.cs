@@ -2,6 +2,8 @@ using System;
 
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -75,12 +77,27 @@ namespace ACE.Server.WorldObjects
 
                             // blood splatter?
                         }
+
+                        if (!(targetCreature is CombatPet))
+                        {
+                            // faction mobs
+                            sourceCreature.MonsterOnAttackMonster(targetCreature);
+                        }
                     }
                 }
 
                 // handle target procs
                 if (damageEvent != null && damageEvent.HasDamage)
-                    sourceCreature?.TryProcEquippedItems(targetCreature, false);
+                {
+                    // Ok... if we got here, we're likely in the parallel landblock physics processing.
+                    // We're currently on the thread for worldObject, but we're wanting to perform some work on sourceCreature which can result in a new spell being created
+                    // and added to the sourceCreature's current landblock, which, could be on a separate thread.
+                    // Any chance of a cross landblock group work (and thus cross thread), should be enqueued onto the target object to maintain thread safety.
+                    if (sourceCreature.CurrentLandblock == null || sourceCreature.CurrentLandblock == worldObject.CurrentLandblock)
+                        sourceCreature.TryProcEquippedItems(targetCreature, false);
+                    else
+                        sourceCreature.EnqueueAction(new ActionEventDelegate(() => sourceCreature.TryProcEquippedItems(targetCreature, false)));
+                }
             }
 
             worldObject.CurrentLandblock?.RemoveWorldObject(worldObject.Guid, showError: !worldObject.PhysicsObj.entering_world);

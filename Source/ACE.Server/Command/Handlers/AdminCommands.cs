@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -17,6 +18,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
+using ACE.Server.Factories.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
@@ -1214,8 +1216,8 @@ namespace ACE.Server.Command.Handlers
 
             var obj = WorldObjectFactory.CreateNewWorldObject(weenie);
 
-            if (!obj.TimeToRot.HasValue)
-                obj.TimeToRot = Double.MaxValue;
+            //if (!obj.TimeToRot.HasValue)
+            //    obj.TimeToRot = Double.MaxValue;
 
             if (obj.WeenieType == WeenieType.Creature)
                 obj.Location = session.Player.Location.InFrontOf(5f, true);
@@ -2464,7 +2466,6 @@ namespace ACE.Server.Command.Handlers
             var offlinePlayer = PlayerManager.GetOfflinePlayer(oldName);
             if (onlinePlayer != null)
             {
-                var success = false;
                 DatabaseManager.Shard.IsCharacterNameAvailable(newName, isAvailable =>
                 {
                     if (!isAvailable)
@@ -2478,19 +2479,13 @@ namespace ACE.Server.Command.Handlers
                     onlinePlayer.Name = newName;
                     onlinePlayer.SavePlayerToDatabase();
 
-                    success = true;
-                });
-
-                if (success)
-                {
                     CommandHandlerHelper.WriteOutputInfo(session, $"Player named \"{oldName}\" renamed to \"{newName}\" succesfully!", ChatMessageType.Broadcast);
 
                     onlinePlayer.Session.LogOffPlayer();
-                }
+                });
             }
             else if (offlinePlayer != null)
             {
-                var success = false;
                 DatabaseManager.Shard.IsCharacterNameAvailable(newName, isAvailable =>
                 {
                     if (!isAvailable)
@@ -2501,16 +2496,23 @@ namespace ACE.Server.Command.Handlers
 
                     var character = DatabaseManager.Shard.BaseDatabase.GetCharacterStubByName(oldName);
 
-                    character.Name = newName;
-                    DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), null);
+                    DatabaseManager.Shard.GetCharacters(character.AccountId, false, result =>
+                    {
+                        var foundCharacterMatch = result.Where(c => c.Id == character.Id).FirstOrDefault();
+
+                        if (foundCharacterMatch == null)
+                        {
+                            CommandHandlerHelper.WriteOutputInfo(session, $"Error, a player named \"{oldName}\" cannot be found.", ChatMessageType.Broadcast);
+                        }
+
+                        DatabaseManager.Shard.RenameCharacter(foundCharacterMatch, newName, new ReaderWriterLockSlim(), null);
+                    });
+
                     offlinePlayer.SetProperty(PropertyString.Name, newName);
                     offlinePlayer.SaveBiotaToDatabase();
 
-                    success = true;
-                });
-
-                if (success)
                     CommandHandlerHelper.WriteOutputInfo(session, $"Player named \"{oldName}\" renamed to \"{newName}\" succesfully!", ChatMessageType.Broadcast);
+                });
             }
             else
             {
@@ -3159,6 +3161,25 @@ namespace ACE.Server.Command.Handlers
             }
 
             obj.SendUpdatePosition(true);
+        }
+
+        [CommandHandler("reload-loot-tables", AccessLevel.Admin, CommandHandlerFlag.None, "reloads the latest data from the loot tables", "optional profile folder")]
+        public static void HandleReloadLootTables(Session session, params string[] parameters)
+        {
+            var sep = Path.DirectorySeparatorChar;
+
+            var folder = $"..{sep}..{sep}..{sep}..{sep}Factories{sep}Tables{sep}";
+            if (parameters.Length > 0)
+                folder = parameters[1];
+
+            var di = new DirectoryInfo(folder);
+
+            if (!di.Exists)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"{folder} not found");
+                return;
+            }
+            LootSwap.UpdateTables(folder);
         }
     }
 }

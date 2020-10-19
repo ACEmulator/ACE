@@ -189,6 +189,10 @@ namespace ACE.Server.WorldObjects
 
             AvailableSkillCredits -= creditsSpent;
 
+            // Tinkering skills can be reset at Asheron's Castle and Enlightenment, so if player has the augmentation when they train the skill again immediately specialize it again.
+            if (IsSkillSpecializedViaAugmentation(skill, out var playerHasAugmentation) && playerHasAugmentation)
+                SpecializeSkill(skill, 0, false);
+
             return true;
         }
 
@@ -599,9 +603,34 @@ namespace ACE.Server.WorldObjects
             return !AlwaysTrained.Contains(skill);
         }
 
-        public static bool IsSkillSpecializedViaAugmentation(Skill skill)
+        public bool IsSkillSpecializedViaAugmentation(Skill skill, out bool playerHasAugmentation)
         {
-            return !AugSpecSkills.Contains(skill);
+            playerHasAugmentation = false;
+
+            switch (skill)
+            {
+                case Skill.ArmorTinkering:
+                    playerHasAugmentation = AugmentationSpecializeArmorTinkering > 0;
+                    break;
+
+                case Skill.ItemTinkering:
+                    playerHasAugmentation = AugmentationSpecializeItemTinkering > 0;
+                    break;
+
+                case Skill.MagicItemTinkering:
+                    playerHasAugmentation = AugmentationSpecializeMagicItemTinkering > 0;
+                    break;
+
+                case Skill.WeaponTinkering:
+                    playerHasAugmentation = AugmentationSpecializeWeaponTinkering > 0;
+                    break;
+
+                case Skill.Salvaging:
+                    playerHasAugmentation = AugmentationSpecializeSalvaging > 0;
+                    break;
+            }
+
+            return AugSpecSkills.Contains(skill);
         }
 
         public override bool GetHeritageBonus(WorldObject weapon)
@@ -804,7 +833,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Resets the skill, refunds all experience and skill credits, if allowed.
         /// </summary>
-        public bool ResetSkill(Skill skill)
+        public bool ResetSkill(Skill skill, bool refund = true)
         {
             var creatureSkill = GetCreatureSkill(skill, false);
 
@@ -818,56 +847,32 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             // salvage / tinkering skills specialized via augmentations
-            // cannot be untrained or unspecialized
-            bool specAug = false;
-
-            switch (creatureSkill.Skill)
-            {
-                case Skill.ArmorTinkering:
-                    specAug = AugmentationSpecializeArmorTinkering > 0;
-                    break;
-
-                case Skill.ItemTinkering:
-                    specAug = AugmentationSpecializeItemTinkering > 0;
-                    break;
-
-                case Skill.MagicItemTinkering:
-                    specAug = AugmentationSpecializeMagicItemTinkering > 0;
-                    break;
-
-                case Skill.WeaponTinkering:
-                    specAug = AugmentationSpecializeWeaponTinkering > 0;
-                    break;
-
-                case Skill.Salvaging:
-                    specAug = AugmentationSpecializeSalvaging > 0;
-                    break;
-            }
-
-            //if (specAug)
-            //    return false;   // send message?
+            // Salvaging cannot be untrained or unspecialized => skillIsSpecializedViaAugmentation && !untrainable
+            IsSkillSpecializedViaAugmentation(creatureSkill.Skill, out var skillIsSpecializedViaAugmentation);
 
             var typeOfSkill = creatureSkill.AdvancementClass.ToString().ToLower() + " ";
             var untrainable = IsSkillUntrainable(skill);
-            var creditRefund = creatureSkill.AdvancementClass == SkillAdvancementClass.Specialized || untrainable;
+            var creditRefund = (creatureSkill.AdvancementClass == SkillAdvancementClass.Specialized && !(skillIsSpecializedViaAugmentation && !untrainable)) || untrainable;
 
-            if (creatureSkill.AdvancementClass == SkillAdvancementClass.Specialized && !specAug)
+            if (creatureSkill.AdvancementClass == SkillAdvancementClass.Specialized && !(skillIsSpecializedViaAugmentation && !untrainable))
             {
                 creatureSkill.AdvancementClass = SkillAdvancementClass.Trained;
                 creatureSkill.InitLevel = 0;
-                AvailableSkillCredits += skillBase.UpgradeCostFromTrainedToSpecialized;
+                if (!skillIsSpecializedViaAugmentation) // Tinkering skills can be unspecialized, but do not refund upgrade cost.
+                    AvailableSkillCredits += skillBase.UpgradeCostFromTrainedToSpecialized;
             }
 
             // temple untraining 'always trained' skills:
             // cannot be untrained, but skill XP can be recovered
-            if (untrainable && !specAug)
+            if (untrainable)
             {
                 creatureSkill.AdvancementClass = SkillAdvancementClass.Untrained;
                 creatureSkill.InitLevel = 0;
                 AvailableSkillCredits += skillBase.TrainedCost;
             }
 
-            RefundXP(creatureSkill.ExperienceSpent);
+            if (refund)
+                RefundXP(creatureSkill.ExperienceSpent);
 
             creatureSkill.ExperienceSpent = 0;
             creatureSkill.Ranks = 0;
@@ -875,10 +880,13 @@ namespace ACE.Server.WorldObjects
             var updateSkill = new GameMessagePrivateUpdateSkill(this, creatureSkill);
             var availableSkillCredits = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.AvailableSkillCredits, AvailableSkillCredits ?? 0);
 
-            var msg = $"Your {(untrainable && !specAug ? $"{typeOfSkill}" : "")}{skill.ToSentence()} skill has been {(untrainable && !specAug ? "removed" : "reset")}. ";
-            msg += $"All the experience {(creditRefund && !specAug ? "and skill credits " : "")}that you spent on this skill have been refunded to you.";
+            var msg = $"Your {(untrainable ? $"{typeOfSkill}" : "")}{skill.ToSentence()} skill has been {(untrainable ? "removed" : "reset")}. ";
+            msg += $"All the experience {(creditRefund ? "and skill credits " : "")}that you spent on this skill have been refunded to you.";
 
-            Session.Network.EnqueueSend(updateSkill, availableSkillCredits, new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+            if (refund)
+                Session.Network.EnqueueSend(updateSkill, availableSkillCredits, new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+            else
+                Session.Network.EnqueueSend(updateSkill, new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
             return true;
         }

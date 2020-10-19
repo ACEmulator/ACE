@@ -1,14 +1,17 @@
 using System.Collections.Generic;
-using log4net;
-using ACE.Common;
 
-namespace ACE.Server.Factories
+using log4net;
+
+using ACE.Common;
+using ACE.Database.Models.World;
+
+namespace ACE.Server.Factories.Tables
 {
-    public static class ChanceTables
+    public static class QualityChance
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static List<float> QualityChancePerTier = new List<float>()
+        private static readonly List<float> QualityChancePerTier = new List<float>()
         {
             0.5f,
             0.6f,
@@ -20,7 +23,7 @@ namespace ACE.Server.Factories
             1.0f
         };
 
-        public static List<float> T1_QualityChances = new List<float>()
+        private static readonly List<float> T1_QualityChances = new List<float>()
         {
             1.0f,
             0.0f,
@@ -36,7 +39,7 @@ namespace ACE.Server.Factories
             0.0f,
         };
 
-        public static List<float> T2_QualityChances = new List<float>()
+        private static readonly List<float> T2_QualityChances = new List<float>()
         {
             0.75f,
             1.00f,
@@ -52,7 +55,7 @@ namespace ACE.Server.Factories
             0.0f,
         };
 
-        public static List<float> T3_QualityChances = new List<float>()
+        private static readonly List<float> T3_QualityChances = new List<float>()
         {
             0.20f,
             0.50f,
@@ -68,7 +71,7 @@ namespace ACE.Server.Factories
             0.0f,
         };
 
-        public static List<float> T4_QualityChances = new List<float>()
+        private static readonly List<float> T4_QualityChances = new List<float>()
         {
             0.0f,
             0.10f,
@@ -84,7 +87,7 @@ namespace ACE.Server.Factories
             0.0f,
         };
 
-        public static List<float> T5_QualityChances = new List<float>()
+        private static readonly List<float> T5_QualityChances = new List<float>()
         {
             0.0f,
             0.0f,
@@ -100,7 +103,7 @@ namespace ACE.Server.Factories
             0.0f,
         };
 
-        public static List<float> T6_QualityChances = new List<float>()
+        private static readonly List<float> T6_QualityChances = new List<float>()
         {
             0.0f,
             0.0f,
@@ -116,7 +119,7 @@ namespace ACE.Server.Factories
             0.0f,
         };
 
-        public static List<float> T7_QualityChances = new List<float>()
+        private static readonly List<float> T7_QualityChances = new List<float>()
         {
             0.0f,
             0.0f,
@@ -132,7 +135,7 @@ namespace ACE.Server.Factories
             0.0f,
         };
 
-        public static List<float> T8_QualityChances = new List<float>()
+        private static readonly List<float> T8_QualityChances = new List<float>()
         {
             0.0f,
             0.0f,
@@ -176,21 +179,67 @@ namespace ACE.Server.Factories
         }
 
         /// <summary>
-        /// Performs a weighted RNG roll
-        /// linearly interpolates between discrete values
+        /// Rolls for the initial chance of getting a quality bonus for an item
         /// </summary>
-        /// <returns>A value between 0.0f - 1.0f, higher values = better</returns>
-        public static float Roll(int tier)
+        /// <param name="treasureDeath">The chances are based on treasureDeath.Tier, and can be increased with treasureDeath.LootQualityMod</param>
+        private static bool RollTierChance(TreasureDeath treasureDeath)
         {
-            var chances = GetQualityChancesForTier(tier);
+            var tierChance = QualityChancePerTier[treasureDeath.Tier - 1];
 
+            // use for initial roll? logic seems backwards here...
+            var rng = ThreadSafeRandom.NextInterval(treasureDeath.LootQualityMod);
+
+            return rng < tierChance;
+        }
+
+        /// <summary>
+        /// Returns a quality level between 1 - 12
+        /// </summary>
+        public static int Roll(TreasureDeath treasureDeath)
+        {
+            // roll for the initial chance for any quality modification -- based on tier
+            if (!RollTierChance(treasureDeath))
+                return 0;
+
+            // if the initial roll succeeds, roll for the actual quality level -- also based on tier
+            var chances = GetQualityChancesForTier(treasureDeath.Tier);
+
+            //var rng = ThreadSafeRandom.NextIntervalMax(treasureDeath.LootQualityMod);
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
 
             for (var i = 0; i < chances.Count; i++)
             {
                 var curChance = chances[i];
 
-                if (rng < curChance)
+                if (rng < curChance && curChance >= treasureDeath.LootQualityMod)
+                    return i + 1;
+            }
+            log.Error($"QualityTables.Roll({treasureDeath.Tier}, {treasureDeath.LootQualityMod}) - this shouldn't happen");
+            return 0;
+        }
+
+        /// <summary>
+        /// Performs a weighted RNG roll
+        /// linearly interpolates between discrete values
+        /// </summary>
+        /// <returns>A quality level between 0.0f - 1.0f, higher values = better</returns>
+        public static float RollInterval(TreasureDeath treasureDeath)
+        {
+            // roll for the initial chance for any quality modification -- based on tier
+            if (!RollTierChance(treasureDeath))
+                return 0.0f;
+
+            // if the initial roll succeeds, roll for the actual quality level -- also based on tier
+            var chances = GetQualityChancesForTier(treasureDeath.Tier);
+
+            //var rng = ThreadSafeRandom.NextIntervalMax(treasureDeath.LootQualityMod);
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            for (var i = 0; i < chances.Count; i++)
+            {
+                var curChance = chances[i];
+
+                if (rng < curChance && curChance >= treasureDeath.LootQualityMod)
                 {
                     var prevChance = i > 0 ? chances[i - 1] : 0;
 
@@ -199,10 +248,10 @@ namespace ACE.Server.Factories
 
                     var interval = (rng - prevChance) / dx;
 
-                    return dy * (interval + i);
+                    return (float)(dy * (interval + i));
                 }
             }
-            log.Error($"ChanceTables.Roll - This shouldn't happen");
+            log.Error($"QualityTables.RollInterval({treasureDeath.Tier}, {treasureDeath.LootQualityMod}) - this shouldn't happen");
             return 0.0f;
         }
     }

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -262,6 +262,9 @@ namespace ACE.Server.WorldObjects
                 new GameEventWieldItem(Session, item.Guid.Full, wieldedLocation),
                 new GameMessageSound(Guid, Sound.WieldObject));
 
+            if (item.GearMaxHealth != null)
+                HandleMaxHealthUpdate();
+
             TryShuffleStance(wieldedLocation);
 
             // does this item cast enchantments, and currently have mana?
@@ -273,6 +276,10 @@ namespace ACE.Server.WorldObjects
                 {
                     if (result.Message != null)
                         Session.Network.EnqueueSend(result.Message);
+
+                    // handle equipment sets
+                    if (item.HasItemSet)
+                        EquipItemFromSet(item);
 
                     return true;
                 }
@@ -344,6 +351,9 @@ namespace ACE.Server.WorldObjects
             // handle equipment sets
             if (item.HasItemSet)
                 DequipItemFromSet(item);
+
+            if (item.GearMaxHealth != null)
+                HandleMaxHealthUpdate();
 
             if (dequipObjectAction == DequipObjectAction.ToCorpseOnDeath || dequipObjectAction == DequipObjectAction.TradeItem)
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
@@ -1540,7 +1550,7 @@ namespace ACE.Server.WorldObjects
                 case WieldRequirement.Skill:
 
                     // verify skill level - current / buffed
-                    var skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute));
+                    var skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute), false);
                     if (skill.Current < difficulty)
                         return WeenieError.SkillTooLow;
                     break;
@@ -1548,7 +1558,7 @@ namespace ACE.Server.WorldObjects
                 case WieldRequirement.RawSkill:
 
                     // verify skill level - base
-                    skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute));
+                    skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute), false);
                     if (skill.Base < difficulty)
                         return WeenieError.SkillTooLow;
                     break;
@@ -1588,14 +1598,14 @@ namespace ACE.Server.WorldObjects
                 case WieldRequirement.Level:
 
                     // verify player level
-                    if (Level < difficulty)
+                    if ((Level ?? 1) < difficulty)
                         return WeenieError.LevelTooLow;
                     break;
 
                 case WieldRequirement.Training:
 
                     // verify skill is trained / specialized
-                    skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute));
+                    skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute), false);
                     if ((int)skill.AdvancementClass < difficulty)
                         return WeenieError.SkillTooLow;
                     break;
@@ -1603,7 +1613,7 @@ namespace ACE.Server.WorldObjects
                 case WieldRequirement.IntStat:      // unused in PY16
 
                     // verify PropertyInt minimum
-                    var propInt = GetProperty((PropertyInt)skillOrAttribute);
+                    var propInt = GetProperty((PropertyInt)skillOrAttribute) ?? 0;
                     if (propInt < difficulty)
                         return WeenieError.SkillTooLow;
                     break;
@@ -1611,7 +1621,7 @@ namespace ACE.Server.WorldObjects
                 case WieldRequirement.BoolStat:     // unused in PY16
 
                     // verify PropertyBool equal
-                    var propBool = GetProperty((PropertyBool)skillOrAttribute);
+                    var propBool = GetProperty((PropertyBool)skillOrAttribute) ?? false;
                     if (propBool != Convert.ToBoolean(difficulty))
                         return WeenieError.SkillTooLow;
                     break;
@@ -1913,6 +1923,12 @@ namespace ACE.Server.WorldObjects
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to split item with invalid amount ({4}) 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name, amount);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Split amount not valid!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
+                return;
+            }
+
+            if (stack.IsAttunedOrContainsAttuned)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.AttunedItem));
                 return;
             }
 
@@ -2390,6 +2406,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (target.IsLoggingOut)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.None));
+                return;
+            }
+
             // TODO: this seems a bit backwards here...
             // the item is removed from the source player's inventory,
             // and it tries to add to target player's inventory (which does the slot/burden checks, and can also independently fail)
@@ -2435,6 +2457,10 @@ namespace ACE.Server.WorldObjects
 
                     return;
                 }
+
+                // quick fix
+                if (itemToGive is Container)
+                    RushNextPlayerSave(5);
 
                 if (item == itemToGive)
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
@@ -2836,6 +2862,12 @@ namespace ACE.Server.WorldObjects
                 //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough pack space to use that!"));
                 //else //if (playerOutOfContainerSlots)
                 //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough container slots to use that!"));
+
+                // Font of Enlightenment and Rebirth tries to give you Attribute Reset Certificate.
+                var itemBeingGiven = DatabaseManager.World.GetCachedWeenie(weenieClassId);
+                var msg = new GameMessageSystemChat($"{emoter.Name} tries to give you {(itemStacks > 1 ? $"{itemStacks} " : "")}{(itemStacks > 1 ? itemBeingGiven.GetPluralName() : itemBeingGiven.GetName())}.", ChatMessageType.Broadcast);
+                Session.Network.EnqueueSend(msg);
+
                 return;
             }
 
@@ -2880,7 +2912,11 @@ namespace ACE.Server.WorldObjects
         public bool TryCreateForGive(WorldObject giver, WorldObject itemBeingGiven)
         {
             if (!TryCreateInInventoryWithNetworking(itemBeingGiven))
+            {
+                var msg = new GameMessageSystemChat($"{giver.Name} tries to give you {(itemBeingGiven.StackSize > 1 ? $"{itemBeingGiven.StackSize} " : "")}{(itemBeingGiven.StackSize > 1 ? itemBeingGiven.GetPluralName() : itemBeingGiven.Name)}.", ChatMessageType.Broadcast);
+                Session.Network.EnqueueSend(msg);
                 return false;
+            }
 
             if (!(giver.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
             {

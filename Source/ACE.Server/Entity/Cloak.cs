@@ -9,7 +9,10 @@ namespace ACE.Server.Entity
 {
     public class Cloak
     {
-        private static readonly float ChanceMod = 2.0f;
+        /// <summary>
+        /// The maximum frequency of cloak procs, in seconds
+        /// </summary>
+        private static readonly float MinDelay = 5.0f;
 
         /// <summary>
         /// Rolls for a chance at procing a cloak spell
@@ -33,21 +36,29 @@ namespace ACE.Server.Entity
         public static bool RollProc(WorldObject cloak, float damage_percent)
         {
             // TODO: find retail formula
-            // TODO: cloak level multiplier - Added 6/19/2020 HQ (Still need retail numbers) Updated with Riggs suggestions
 
-            var itemMaxLevel = cloak.ItemMaxLevel ?? 0;
+            var currentTime = Time.GetUnixTime();
 
-            var chanceMod = ChanceMod + itemMaxLevel * 0.1f;
+            if (currentTime - cloak.UseTimestamp < MinDelay)
+                return false;
 
-            var chance = damage_percent * chanceMod;
+            var itemLevel = cloak.ItemLevel ?? 0;
 
-            if (chance < 1.0f)
+            if (itemLevel < 1) return false;
+
+            var maxProcRate = 0.25f + (itemLevel - 1) * 0.0125f;
+
+            var chance = Math.Min(damage_percent, maxProcRate);
+
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            if (rng < chance)
             {
-                var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-                if (chance < rng)
-                    return false;
+                cloak.UseTimestamp = currentTime;
+                return true;
             }
-            return true;
+            else
+                return false;
         }
 
         /// <summary>
@@ -78,7 +89,7 @@ namespace ACE.Server.Entity
 
             // cloak range?
 
-            var msg = new GameMessageSystemChat($"The cloak of {defender.Name} weaves the power of {spell.Name}!", ChatMessageType.Spellcasting);
+            var msg = new GameMessageSystemChat($"The cloak of {defender.Name} weaves the magic of {spell.Name}!", ChatMessageType.Spellcasting);
 
             defender.EnqueueBroadcast(msg, WorldObject.LocalBroadcastRange, ChatMessageType.Magic);
 
@@ -100,26 +111,44 @@ namespace ACE.Server.Entity
         /// </summary>
         public static readonly int DamageReductionAmount = 200;
 
+        public static int GetDamageReductionAmount(WorldObject source)
+        {
+            var damageReductionAmount = DamageReductionAmount;
+
+            // https://asheron.fandom.com/wiki/Master_of_Arms
+            // Cloaks with the chance to reduce incoming damage by 200 have been reduced to 100 for PvP circumstances.
+            if (source is Player)
+                damageReductionAmount /= 2;
+
+            return damageReductionAmount;
+        }
+
         /// <summary>
         /// Returns the reduced damage amount when a cloak procs
         /// with PropertyInt.CloakWeaveProc=2
         /// </summary>
-        public static uint GetReducedAmount(uint damage)
+        public static uint GetReducedAmount(WorldObject source, uint damage)
         {
-            if (damage > DamageReductionAmount)
-                return (uint)(damage - DamageReductionAmount);
+            var damageReductionAmount = GetDamageReductionAmount(source);
+
+            if (damage > damageReductionAmount)
+                return (uint)(damage - damageReductionAmount);
             else
                 return 0;
         }
 
-        public static int GetReducedAmount(int damage)
+        public static int GetReducedAmount(WorldObject source, int damage)
         {
-            return Math.Max(0, damage - DamageReductionAmount);
+            var damageReductionAmount = GetDamageReductionAmount(source);
+
+            return Math.Max(0, damage - damageReductionAmount);
         }
 
-        public static float GetReducedAmount(float damage)
+        public static float GetReducedAmount(WorldObject source, float damage)
         {
-            return Math.Max(0, damage - DamageReductionAmount);
+            var damageReductionAmount = GetDamageReductionAmount(source);
+
+            return Math.Max(0, damage - damageReductionAmount);
         }
 
         /// <summary>
@@ -127,7 +156,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public static void ShowMessage(Creature defender, WorldObject attacker, int origDamage, int reducedDamage)
         {
-            var suffix = $"reduced the damage from {origDamage} to {reducedDamage}!";
+            var suffix = $"reduced the damage from {origDamage} down to {reducedDamage}!";
 
             if (defender is Player playerDefender)
                 playerDefender.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your cloak {suffix}", ChatMessageType.Magic));

@@ -391,13 +391,25 @@ namespace ACE.Server.Entity
 
         public bool VerifyWalkableSlope(WorldObject obj)
         {
-            if (!obj.Location.Indoors && !obj.Location.IsWalkable())
+            if (!obj.Location.Indoors && !obj.Location.IsWalkable() && !VerifyWalkableSlopeExcludedLandblocks.Contains(obj.Location.LandblockId.Landblock))
             {
                 //log.Debug($"{_generator.Name}.VerifyWalkableSlope({obj.Name}) - spawn location is unwalkable slope");
                 return false;
             }
             return true;
         }
+
+        /// <summary>
+        /// A list of landblocks the excluded from VerifyWalkableSlope check
+        /// 
+        /// TODO gmriggs
+        /// Hack until this can be looked into more.
+        /// </summary>
+        public static HashSet<ushort> VerifyWalkableSlopeExcludedLandblocks = new HashSet<ushort>()
+        {
+            0x9EE5,     // Northwatch Castle
+            0xF92F,     // Freebooter Keep
+        };
 
         /// <summary>
         /// Generates a randomized treasure from LootGenerationFactory

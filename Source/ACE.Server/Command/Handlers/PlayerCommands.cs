@@ -54,7 +54,11 @@ namespace ACE.Server.Command.Handlers
                     Console.WriteLine($"Couldn't find quest {playerQuest.QuestName}");
                     continue;
                 }
-                var minDelta = (uint)(quest.MinDelta * PropertyManager.GetDouble("quest_mindelta_rate").Item);
+
+                var minDelta = quest.MinDelta;
+                if (QuestManager.CanScaleQuestMinDelta(quest))
+                    minDelta = (uint)(quest.MinDelta * PropertyManager.GetDouble("quest_mindelta_rate").Item);
+
                 text += $"{playerQuest.QuestName.ToLower()} - {playerQuest.NumTimesCompleted} solves ({playerQuest.LastTimeCompleted})";
                 text += $"\"{quest.Message}\" {quest.MaxSolves} {minDelta}";
 
@@ -349,6 +353,21 @@ namespace ACE.Server.Command.Handlers
                 session.Player.TrackObject(knownObj);
             }
             session.Player.PrevObjSend = DateTime.UtcNow;
+        }
+
+        // show player ace server versions
+        [CommandHandler("aceversion", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows this server's version data")]
+        public static void HandleACEversion(Session session, params string[] parameters)
+        {
+            if (!PropertyManager.GetBool("version_info_enabled").Item)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("The command \"aceversion\" is not currently enabled on this server.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var msg = ServerBuildInfo.GetVersionInfo();
+
+            session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
         }
     }
 }

@@ -13,6 +13,7 @@ using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.Structure;
+using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
 {
@@ -548,6 +549,11 @@ namespace ACE.Server.WorldObjects
 
             var position = Biota.GetPosition(positionType, BiotaDatabaseLock);
 
+            if (position != null && !position.Rotation.IsRotationValid())
+            {
+                position.AttemptToFixRotation(this, positionType);
+            }
+
             positionCache[positionType] = position;
 
             return position;
@@ -563,6 +569,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetPosition(PositionType positionType, Position position)
         {
+            //if (position != null && !position.Rotation.IsRotationValid())
+                //position.AttemptToFixRotation(this, positionType);
+
             if (EphemeralProperties.PositionTypes.Contains(positionType))
                 ephemeralPositions[positionType] = position;
             else
@@ -1950,10 +1959,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.AppraisalItemSkill); else SetProperty(PropertyInt.AppraisalItemSkill, value.Value); }
         }
 
-        public uint? ItemSkillLimit
+        public Skill? ItemSkillLimit
         {
-            get => GetProperty(PropertyDataId.ItemSkillLimit);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.ItemSkillLimit); else SetProperty(PropertyDataId.ItemSkillLimit, value.Value); }
+            get => (Skill?)GetProperty(PropertyDataId.ItemSkillLimit);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.ItemSkillLimit); else SetProperty(PropertyDataId.ItemSkillLimit, (uint)value); }
         }
 
         public int? ItemSkillLevelLimit
@@ -2171,6 +2180,16 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.TsysMutationData);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.TsysMutationData); else SetProperty(PropertyInt.TsysMutationData, value.Value); }
         }
+
+        // helpers
+        public byte? MaterialCode => (byte?)TsysMutationData;
+
+        public byte? GemCode => (byte?)(TsysMutationData >> 8);
+
+        public byte? ColorCode => (byte?)(TsysMutationData >> 16);
+
+        public byte? SpellSelectionCode => (byte?)(TsysMutationData >> 24);
+
 
         /// <summary>
         /// If TRUE, this is an admin-only visible object, only seen with /adminvision
@@ -2934,6 +2953,84 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.CloakWeaveProc);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CloakWeaveProc); else SetProperty(PropertyInt.CloakWeaveProc, value.Value); }
+        }
+
+        /// <summary>
+        /// The Damage Rating on a non-creature item
+        /// </summary>
+        public int? GearDamage
+        {
+            get => GetProperty(PropertyInt.GearDamage);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearDamage); else SetProperty(PropertyInt.GearDamage, value.Value); }
+        }
+
+        /// <summary>
+        /// The Damage Resistance Rating on a non-creature item
+        /// </summary>
+        public int? GearDamageResist
+        {
+            get => GetProperty(PropertyInt.GearDamageResist);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearDamageResist); else SetProperty(PropertyInt.GearDamageResist, value.Value); }
+        }
+
+        /// <summary>
+        /// The Crit Damage Rating on a non-creature item
+        /// </summary>
+        public int? GearCritDamage
+        {
+            get => GetProperty(PropertyInt.GearCritDamage);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearCritDamage); else SetProperty(PropertyInt.GearCritDamage, value.Value); }
+        }
+
+        /// <summary>
+        /// The Crit Damage Resistance Rating on a non-creature item
+        /// </summary>
+        public int? GearCritDamageResist
+        {
+            get => GetProperty(PropertyInt.GearCritDamageResist);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearCritDamageResist); else SetProperty(PropertyInt.GearCritDamageResist, value.Value); }
+        }
+
+        /// <summary>
+        /// The Crit Chance Rating on a non-creature item
+        /// </summary>
+        public int? GearCrit
+        {
+            get => GetProperty(PropertyInt.GearCrit);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearCrit); else SetProperty(PropertyInt.GearCrit, value.Value); }
+        }
+
+        /// <summary>
+        /// The Crit Chance Resistance Rating on a non-creature item
+        /// </summary>
+        public int? GearCritResist
+        {
+            get => GetProperty(PropertyInt.GearCritResist);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearCritResist); else SetProperty(PropertyInt.GearCritResist, value.Value); }
+        }
+
+        /// <summary>
+        /// The Healing Boost Rating on a non-creature item
+        /// </summary>
+        public int? GearHealingBoost
+        {
+            get => GetProperty(PropertyInt.GearHealingBoost);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearHealingBoost); else SetProperty(PropertyInt.GearHealingBoost, value.Value); }
+        }
+
+        /// <summary>
+        /// The MaxHealth Boost Rating on a creature or item
+        /// </summary>
+        public int? GearMaxHealth
+        {
+            get => GetProperty(PropertyInt.GearMaxHealth);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearMaxHealth); else SetProperty(PropertyInt.GearMaxHealth, value.Value); }
+        }
+
+        public int? ResistItemAppraisal
+        {
+            get => GetProperty(PropertyInt.ResistItemAppraisal);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistItemAppraisal); else SetProperty(PropertyInt.ResistItemAppraisal, value.Value); }
         }
     }
 }
