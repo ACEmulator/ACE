@@ -1,12 +1,17 @@
 using System.Collections.Generic;
 using System.Numerics;
+
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
+
+using log4net;
 
 namespace ACE.Server.Physics.Util
 {
     public class AdjustCell
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public List<Common.EnvCell> EnvCells;
         public static Dictionary<uint, AdjustCell> AdjustCells = new Dictionary<uint, AdjustCell>();
 
@@ -43,8 +48,19 @@ namespace ACE.Server.Physics.Util
             return null;
         }
 
+        public static long UnloadingLandblocks;
+
         public static AdjustCell Get(uint dungeonID)
         {
+            var counterVal = System.Threading.Interlocked.Read(ref UnloadingLandblocks);
+
+            if (counterVal != 0)
+            {
+                log.Error($"AdjustCell entered Get but counterVal: {counterVal} is not 0");
+                log.Error(System.Environment.StackTrace);
+                log.Error("PLEASE REPORT THIS TO THE ACE DEV TEAM !!!");
+            }
+
             AdjustCell adjustCell = null;
             AdjustCells.TryGetValue(dungeonID, out adjustCell);
             if (adjustCell == null)

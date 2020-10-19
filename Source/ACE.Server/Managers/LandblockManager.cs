@@ -254,7 +254,9 @@ namespace ACE.Server.Managers
             ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.LandblockManager_TickSingleThreadedWork);
 
             // clean up inactive landblocks
+            System.Threading.Interlocked.Increment(ref Physics.Util.AdjustCell.UnloadingLandblocks);
             UnloadLandblocks();
+            System.Threading.Interlocked.Decrement(ref Physics.Util.AdjustCell.UnloadingLandblocks);
         }
 
         /// <summary>
