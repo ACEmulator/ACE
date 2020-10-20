@@ -10,6 +10,7 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Enum;
 using ACE.Server.Factories.Tables;
@@ -18,6 +19,7 @@ using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
 using WeenieClassName = ACE.Server.Factories.Enum.WeenieClassName;
+using System.Drawing.Drawing2D;
 
 namespace ACE.Server.Factories
 {
@@ -721,6 +723,113 @@ namespace ACE.Server.Factories
             return (int)(rng * gemMod * materialMod * Math.Ceiling(tier / 2.0f));
         }
 
+        private static void MutateValue(WorldObject wo, int tier, TreasureRoll roll)
+        {
+            if (roll == null)
+            {
+                // use old method
+                wo.Value = Roll_ItemValue(wo, tier);
+                return;
+            }
+
+            if (wo.Value == null)
+                wo.Value = 0;   // fixme: data
+
+            //var weenieValue = wo.Value;
+
+            if (!(wo is Gem))
+            {
+                if (wo.HasArmorLevel())
+                    MutateValue_Armor(wo);
+
+                MutateValue_Generic(wo, tier);
+            }
+            else
+                MutateValue_Gem(wo);
+
+            MutateValue_Spells(wo);
+
+            /*Console.WriteLine($"Mutating value for {wo.Name} ({weenieValue:N0} -> {wo.Value:N0})");
+
+            // compare with previous function
+            var materialMod = LootTables.getMaterialValueModifier(wo);
+            var gemMod = LootTables.getGemMaterialValueModifier(wo);
+
+            var rngRange = itemValue_RandomRange[tier - 1];
+
+            var minValue = (int)(rngRange.min * gemMod * materialMod * Math.Ceiling(tier / 2.0f));
+            var maxValue = (int)(rngRange.max * gemMod * materialMod * Math.Ceiling(tier / 2.0f));
+
+            Console.WriteLine($"Previous ACE range: {minValue:N0} - {maxValue:N0}");*/
+        }
+
+        // increase for a wider variance in item value ranges
+        private static readonly float valueFactor = 1.0f / 3.0f;
+
+        private static readonly float valueNonFactor = 1.0f - valueFactor;
+
+        private static void MutateValue_Generic(WorldObject wo, int tier)
+        {
+            // confirmed from retail magloot logs, matches up relatively closely
+
+            var rng = (float)ThreadSafeRandom.Next(0.7f, 1.25f);
+
+            var workmanshipMod = WorkmanshipChance.GetModifier(wo.ItemWorkmanship);
+
+            var materialMod = MaterialTable.GetValueMod(wo.MaterialType);
+            var gemValue = GemMaterialChance.GemValue(wo.GemType);
+
+            var tierMod = ItemValue_TierMod[Math.Clamp(tier, 1, 8) - 1];
+
+            var newValue = (int)wo.Value * valueFactor + materialMod * tierMod + gemValue;
+
+            newValue *= (workmanshipMod /* + qualityMod */ ) * rng;
+
+            newValue += (int)wo.Value * valueNonFactor;
+
+            int iValue = (int)Math.Ceiling(newValue);
+
+            // only raise value?
+            if (iValue > wo.Value)
+                wo.Value = iValue;
+        }
+
+        private static void MutateValue_Spells(WorldObject wo)
+        {
+            if (wo.ItemMaxMana != null)
+                wo.Value += wo.ItemMaxMana * 2;
+
+            int spellLevelSum = 0;
+
+            if (wo.SpellDID != null)
+            {
+                var spell = new Server.Entity.Spell(wo.SpellDID.Value);
+                spellLevelSum += (int)spell.Level;
+            }
+
+            if (wo.Biota.PropertiesSpellBook != null)
+            {
+                foreach (var spellId in wo.Biota.PropertiesSpellBook.Keys)
+                {
+                    var spell = new Server.Entity.Spell(spellId);
+                    spellLevelSum += (int)spell.Level;
+                }
+            }
+            wo.Value += spellLevelSum * 10;
+        }
+
+        private static readonly List<int> ItemValue_TierMod = new List<int>()
+        {
+            25,     // T1
+            50,     // T2
+            100,    // T3
+            250,    // T4
+            500,    // T5
+            1000,   // T6
+            2000,   // T7
+            3000,   // T8
+        };
+
         /// <summary>
         /// Set the AppraisalLongDescDecoration of the item, which controls the full descriptive text shown in the client on appraisal
         /// </summary>
@@ -921,7 +1030,14 @@ namespace ACE.Server.Factories
                     MutateGem(wo, treasureDeath, isMagical, treasureRoll);
                     break;
                 case TreasureItemType_Orig.Jewelry:
-                    MutateJewelry(wo, treasureDeath, isMagical, treasureRoll);
+
+                    if (!treasureRoll.HasArmorLevel(wo))
+                        MutateJewelry(wo, treasureDeath, isMagical, treasureRoll);
+                    else
+                    {
+                        // crowns, coronets, diadems, etc.
+                        MutateArmor(wo, treasureDeath, isMagical, LootTables.ArmorType.MiscClothing, treasureRoll);
+                    }
                     break;
                 case TreasureItemType_Orig.ArtObject:
                     MutateDinnerware(wo, treasureDeath, isMagical, treasureRoll);

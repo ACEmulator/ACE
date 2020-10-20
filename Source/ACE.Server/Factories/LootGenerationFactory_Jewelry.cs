@@ -90,7 +90,8 @@ namespace ACE.Server.Factories
                 TryMutateGearRating(wo, profile, roll);
 
             // item value
-            wo.Value = Roll_ItemValue(wo, profile.Tier);
+            //  if (wo.HasMutateFilter(MutateFilter.Value))     // fixme: data
+                MutateValue(wo, profile.Tier, roll);
 
             wo.LongDesc = GetLongDesc(wo);
         }
