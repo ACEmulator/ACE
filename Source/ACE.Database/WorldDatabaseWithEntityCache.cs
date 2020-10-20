@@ -761,116 +761,128 @@ namespace ACE.Database
         // =====================================
 
         // The Key is the Material Code (derived from PropertyInt.TsysMaterialData)
-        // The Value is a list of all 
-        private readonly ConcurrentDictionary<int /* Material Code */, List<TreasureMaterialBase>> cachedTreasureMaterialBase = new ConcurrentDictionary<int, List<TreasureMaterialBase>>();
-
-        public void CacheAllTreasuresMaterialBaseInParallel()
+        // The Value is a list of all
+        private Dictionary<int /* Material Code */, Dictionary<int /* Tier */, List<TreasureMaterialBase>>> cachedTreasureMaterialBase;
+        
+        public void CacheAllTreasureMaterialBase()
         {
             using (var context = new WorldDbContext())
             {
-                var results = context.TreasureMaterialBase
-                    .AsNoTracking()
-                    .AsEnumerable()
-                    .GroupBy(r => r.MaterialCode);
+                var table = new Dictionary<int, Dictionary<int, List<TreasureMaterialBase>>>();
+
+                var results = context.TreasureMaterialBase.Where(i => i.Probability > 0).ToList();
 
                 foreach (var result in results)
-                    cachedTreasureMaterialBase[(int)result.Key] = result.ToList();
+                {
+                    if (!table.TryGetValue((int)result.MaterialCode, out var materialCode))
+                    {
+                        materialCode = new Dictionary<int, List<TreasureMaterialBase>>();
+                        table.Add((int)result.MaterialCode, materialCode);
+                    }
+                    if (!materialCode.TryGetValue((int)result.Tier, out var chances))
+                    {
+                        chances = new List<TreasureMaterialBase>();
+                        materialCode.Add((int)result.Tier, chances);
+                    }
+                    chances.Add(result);
+                }
+                cachedTreasureMaterialBase = table;
             }
         }
 
         public List<TreasureMaterialBase> GetCachedTreasureMaterialBase(int materialCode, int tier)
         {
-            if (cachedTreasureMaterialBase.Count == 0)
-                CacheAllTreasuresMaterialBaseInParallel();
+            if (cachedTreasureMaterialBase == null)
+                CacheAllTreasureMaterialBase();
 
-            if (cachedTreasureMaterialBase.TryGetValue(materialCode, out var value))
-            {
-                var results = value.Where(r => r.Tier == tier).Where(r => r.Probability > 0).ToList();
-                return results;
-            }
-
-            return new List<TreasureMaterialBase>();
+            if (cachedTreasureMaterialBase.TryGetValue(materialCode, out var tiers) && tiers.TryGetValue(tier, out var treasureMaterialBase))
+                return treasureMaterialBase;
+            else
+                return null;
         }
 
 
-        private readonly ConcurrentDictionary<int /* Material ID */, List<TreasureMaterialColor>> cachedTreasureMaterialColor = new ConcurrentDictionary<int, List<TreasureMaterialColor>>();
-
-        public void CacheAllTreasuresMaterialColorInParallel()
+        private Dictionary<int /* Material ID */, Dictionary<int /* Color Code */, List<TreasureMaterialColor>>> cachedTreasureMaterialColor;
+        
+        public void CacheAllTreasureMaterialColor()
         {
             using (var context = new WorldDbContext())
             {
-                var results = context.TreasureMaterialColor
-                    .AsNoTracking()
-                    .AsEnumerable()
-                    .GroupBy(r => r.MaterialId);
+                var table = new Dictionary<int, Dictionary<int, List<TreasureMaterialColor>>>();
+
+                var results = context.TreasureMaterialColor.ToList();
 
                 foreach (var result in results)
-                    cachedTreasureMaterialColor[(int)result.Key] = result.ToList();
+                {
+                    if (!table.TryGetValue((int)result.MaterialId, out var colorCodes))
+                    {
+                        colorCodes = new Dictionary<int, List<TreasureMaterialColor>>();
+                        table.Add((int)result.MaterialId, colorCodes);
+                    }
+                    if (!colorCodes.TryGetValue((int)result.ColorCode, out var list))
+                    {
+                        list = new List<TreasureMaterialColor>();
+                        colorCodes.Add((int)result.ColorCode, list);
+                    }
+                    list.Add(result);
+                }
+                cachedTreasureMaterialColor = table;
             }
-        }
-
-        /// <summary>
-        /// Returns the number of TreasureMaterialColor currently cached.
-        /// </summary>
-        public int GetTreasureMaterialColorCacheCount()
-        {
-            return cachedTreasureMaterialColor.Count(r => r.Value != null);
         }
 
         public List<TreasureMaterialColor> GetCachedTreasureMaterialColors(int materialId, int tsysColorCode)
         {
-            if (cachedTreasureMaterialColor.Count == 0)
-                CacheAllTreasuresMaterialColorInParallel();
+            if (cachedTreasureMaterialColor == null)
+                CacheAllTreasureMaterialColor();
 
-            if (cachedTreasureMaterialColor.TryGetValue(materialId, out var value))
-            {
-                var results = value.Where(r => r.ColorCode == tsysColorCode).ToList();
-                return results;
-            }
-
-            return new List<TreasureMaterialColor>();
+            if (cachedTreasureMaterialColor.TryGetValue(materialId, out var colorCodes) && colorCodes.TryGetValue(tsysColorCode, out var result))
+                return result;
+            else
+                return null;
         }
 
 
         // The Key is the Material Group (technically a MaterialId, but more generic...e.g. "Material.Metal", "Material.Cloth", etc.)
-        // The Value is a list of all 
-        private readonly ConcurrentDictionary<int /* Material Group */, List<TreasureMaterialGroups>> cachedTreasureMaterialGroups = new ConcurrentDictionary<int, List<TreasureMaterialGroups>>();
+        // The Value is a list of all
+        private Dictionary<int /* Material Group */, Dictionary<int /* Tier */, List<TreasureMaterialGroups>>> cachedTreasureMaterialGroups;
 
-        public void CacheAllTreasuresMaterialGroupsInParallel()
+        public void CacheAllTreasureMaterialGroups()
         {
             using (var context = new WorldDbContext())
             {
-                var results = context.TreasureMaterialGroups
-                    .AsNoTracking()
-                    .AsEnumerable()
-                    .GroupBy(r => r.MaterialGroup);
+                var table = new Dictionary<int, Dictionary<int, List<TreasureMaterialGroups>>>();
+
+                var results = context.TreasureMaterialGroups.ToList();
 
                 foreach (var result in results)
-                    cachedTreasureMaterialGroups[(int)result.Key] = result.ToList();
-            }
-        }
+                {
+                    if (!table.TryGetValue((int)result.MaterialGroup, out var tiers))
+                    {
+                        tiers = new Dictionary<int, List<TreasureMaterialGroups>>();
+                        table.Add((int)result.MaterialGroup, tiers);
+                    }
+                    if (!tiers.TryGetValue((int)result.Tier, out var list))
+                    {
+                        list = new List<TreasureMaterialGroups>();
+                        tiers.Add((int)result.Tier, list);
+                    }
+                    list.Add(result);
+                }
 
-        /// <summary>
-        /// Returns the number of TreasureMaterialBase currently cached.
-        /// </summary>
-        public int GetTreasureMaterialGroupCacheCount()
-        {
-            return cachedTreasureMaterialGroups.Count(r => r.Value != null);
+                // TODO: normalize? group 9 has totals slightly above 1.0
+                cachedTreasureMaterialGroups = table;
+            }
         }
 
         public List<TreasureMaterialGroups> GetCachedTreasureMaterialGroup(int materialGroup, int tier)
         {
-            if (cachedTreasureMaterialGroups.Count == 0)
-                CacheAllTreasuresMaterialGroupsInParallel();
+            if (cachedTreasureMaterialGroups == null)
+                CacheAllTreasureMaterialGroups();
 
-            if (cachedTreasureMaterialGroups.TryGetValue(materialGroup, out var value))
-            {
-                var results = value.Where(r => r.Tier == tier).ToList();
-                return results;
-            }
-
-            // Something unexpected happened here. Return an empty list!
-            return new List<TreasureMaterialGroups>();
+            if (cachedTreasureMaterialGroups.TryGetValue(materialGroup, out var tiers) && tiers.TryGetValue(tier, out var treasureMaterialGroup))
+                return treasureMaterialGroup;
+            else
+                return null;
         }
 
 
@@ -883,7 +895,7 @@ namespace ACE.Database
         /// <summary>
         /// This takes under 1 second to complete.
         /// </summary>
-        public void CacheAllTreasuresWieldedInParallel()
+        public void CacheAllTreasureWielded()
         {
             using (var context = new WorldDbContext())
             {

@@ -97,9 +97,9 @@ namespace ACE.Server.Factories
             }
 
             // material type
-            int materialType = GetMaterialType(wo, profile.Tier);
+            var materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
-                wo.MaterialType = (MaterialType)materialType;
+                wo.MaterialType = materialType;
 
             // item color
             MutateColor(wo);

@@ -33,7 +33,7 @@ namespace ACE.Server.Factories
             // dinnerware did not have its Damage / DamageVariance / WeaponSpeed mutated
 
             // material type
-            wo.MaterialType = (MaterialType)GetMaterialType(wo, profile.Tier);
+            wo.MaterialType = GetMaterialType(wo, profile.Tier);
 
             // item color
             MutateColor(wo);
