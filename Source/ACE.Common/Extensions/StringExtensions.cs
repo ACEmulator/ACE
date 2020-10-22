@@ -22,6 +22,8 @@ namespace ACE.Common.Extensions
         {
             if (name.EndsWith("ch") || name.EndsWith("s") || name.EndsWith("sh") || name.EndsWith("x") || name.EndsWith("z"))
                 return name + "es";
+            else if (name.EndsWith("th"))
+                return name;
             else
                 return name + "s";
         }
