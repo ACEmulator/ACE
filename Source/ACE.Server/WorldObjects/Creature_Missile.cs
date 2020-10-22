@@ -242,10 +242,13 @@ namespace ACE.Server.WorldObjects
 
         public Vector3 CalculateProjectileVelocity(Vector3 localOrigin, WorldObject target, float projectileSpeed, out Vector3 origin, out Quaternion rotation)
         {
-            var crossLandblock = Location.Landblock != target.Location.Landblock;
+            var sourceLoc = PhysicsObj.Position.ACEPosition();
+            var targetLoc = target.PhysicsObj.Position.ACEPosition();
 
-            var startPos = crossLandblock ? Location.ToGlobal(false) : Location.Pos;
-            var endPos = crossLandblock ? target.Location.ToGlobal(false) : target.Location.Pos;
+            var crossLandblock = sourceLoc.Landblock != targetLoc.Landblock;
+
+            var startPos = crossLandblock ? sourceLoc.ToGlobal(false) : sourceLoc.Pos;
+            var endPos = crossLandblock ? targetLoc.ToGlobal(false) : targetLoc.Pos;
 
             var dir = Vector3.Normalize(endPos - startPos);
 
@@ -253,7 +256,7 @@ namespace ACE.Server.WorldObjects
 
             rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)angle);
 
-            origin = Location.Pos + Vector3.Transform(localOrigin, rotation);
+            origin = sourceLoc.Pos + Vector3.Transform(localOrigin, rotation);
 
             startPos += Vector3.Transform(localOrigin, rotation);
             endPos.Z += target.Height / GetAimHeight(target);
