@@ -588,7 +588,7 @@ namespace ACE.Server.Managers
             var msg = $"You have killed {playerQuest.NumTimesCompleted} {killedCreature.GetPluralName()}!";
 
             if (IsMaxSolves(questName))
-                msg += $" Your task is complete.";
+                msg += $" Your task is complete!";
             else
                 msg += $" You must kill {quest.MaxSolves} to complete your task.";
 
