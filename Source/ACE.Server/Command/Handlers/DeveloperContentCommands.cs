@@ -1592,9 +1592,6 @@ namespace ACE.Server.Command.Handlers.Processors
                 }
             }
 
-            // hack to not save as biota
-            wo.LastRequestedDatabaseSave = DateTime.MinValue;
-
             var success = wo.EnterWorld();
 
             if (!success)
