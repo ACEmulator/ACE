@@ -251,8 +251,6 @@ namespace ACE.Server.WorldObjects
                 CancelMoveTo();
         }
 
-        public static bool ForcePos = true;
-
         public void UpdatePosition()
         {
             stopwatch.Restart();
@@ -260,9 +258,7 @@ namespace ACE.Server.WorldObjects
             ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Monster_Navigation_UpdatePosition_PUO, stopwatch.Elapsed.TotalSeconds);
             UpdatePosition_SyncLocation();
 
-            //SendUpdatePosition(ForcePos);
-            if (ForcePos)
-                SendUpdatePosition();
+            SendUpdatePosition();
 
             if (DebugMove)
                 //Console.WriteLine($"{Name} ({Guid}) - UpdatePosition (velocity: {PhysicsObj.CachedVelocity.Length()})");
