@@ -379,6 +379,11 @@ namespace ACE.Database
             }
         }
 
+        public bool ClearCachedEncountersByLandblock(ushort landblock)
+        {
+            return cachedEncounters.TryRemove(landblock, out _);
+        }
+
 
         // =====================================
         // Event
