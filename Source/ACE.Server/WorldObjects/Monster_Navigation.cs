@@ -97,6 +97,7 @@ namespace ACE.Server.WorldObjects
             IsMoving = true;
             LastMoveTime = Timers.RunningTime;
             NextCancelTime = LastMoveTime + ThreadSafeRandom.Next(2, 4);
+            moveBit = false;
 
             var mvp = GetMovementParameters();
             if (turnTo)
