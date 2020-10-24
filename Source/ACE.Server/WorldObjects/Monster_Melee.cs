@@ -310,7 +310,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void DoSwingMotion(WorldObject target, MotionCommand motionCommand, out float animLength, out List<float> attackFrames)
         {
-            SendUpdatePosition();
+            SendUpdatePosition(true);
 
             //Console.WriteLine($"{maneuver.Style} - {maneuver.Motion} - {maneuver.AttackHeight}");
 

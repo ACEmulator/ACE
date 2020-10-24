@@ -251,14 +251,15 @@ namespace ACE.Server.WorldObjects
                 CancelMoveTo();
         }
 
-        public void UpdatePosition()
+        public void UpdatePosition(bool netsend = true)
         {
             stopwatch.Restart();
             PhysicsObj.update_object();
             ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Monster_Navigation_UpdatePosition_PUO, stopwatch.Elapsed.TotalSeconds);
             UpdatePosition_SyncLocation();
 
-            SendUpdatePosition();
+            if (netsend)
+                SendUpdatePosition();
 
             if (DebugMove)
                 //Console.WriteLine($"{Name} ({Guid}) - UpdatePosition (velocity: {PhysicsObj.CachedVelocity.Length()})");
