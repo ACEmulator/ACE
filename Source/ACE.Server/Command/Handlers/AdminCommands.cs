@@ -1341,7 +1341,7 @@ namespace ACE.Server.Command.Handlers
 
         [CommandHandler("liveopcreate", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Creates an object or objects with lifespans in the world for live events.",
-            "<wcid> (lifespan in seconds) (amount) (palette) (shade)\n" +
+            "<wcid> (amount) (lifespan in seconds) (palette) (shade)\n" +
             "This will attempt to spawn the weenie you specify. If you include a lifespan, this value is in seconds and defaults to 3600 (1hr) if not specfied.\n" +
             "If you include an amount to spawn parameter it will attempt to spawn that many of the weenie otherwise it will spawn one.\n" +
             "Stackable items will spawn in stacks of their max stack size. All spawns will be limited by the physics engine placement algorithim which may prevent the number you specify from actually spawning.\n" +
@@ -1361,17 +1361,17 @@ namespace ACE.Server.Command.Handlers
 
             if (parameters.Length > 1)
             {
-                if (!int.TryParse(parameters[1], out lifespan))
+                if (!int.TryParse(parameters[1], out numToSpawn))
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Lifespan must be a number between {int.MinValue} - {int.MaxValue}.", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Amount to spawn must be a number between {int.MinValue} - {int.MaxValue}.", ChatMessageType.Broadcast));
                     return;
                 }
             }
             if (parameters.Length > 2)
             {
-                if (!int.TryParse(parameters[2], out numToSpawn))
+                if (!int.TryParse(parameters[2], out lifespan))
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Amount to spawn must be a number between {int.MinValue} - {int.MaxValue}.", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Lifespan must be a number between {int.MinValue} - {int.MaxValue}.", ChatMessageType.Broadcast));
                     return;
                 }
             }
