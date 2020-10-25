@@ -136,17 +136,26 @@ namespace ACE.Entity.Models
 
         public static bool IsStackable(this Weenie weenie)
         {
-            var weenieType = (WeenieType)weenie.WeenieType;
+            switch (weenie.WeenieType)
+            {
+                case WeenieType.Stackable:
 
-            return weenieType == WeenieType.Stackable || weenieType == WeenieType.Food || weenieType == WeenieType.Coin || weenieType == WeenieType.CraftTool
-                   || weenieType == WeenieType.SpellComponent || weenieType == WeenieType.Gem || weenieType == WeenieType.Ammunition || weenieType == WeenieType.Missile;
+                case WeenieType.Ammunition:
+                case WeenieType.Coin:
+                case WeenieType.CraftTool:
+                case WeenieType.Food:
+                case WeenieType.Gem:
+                case WeenieType.Missile:
+                case WeenieType.SpellComponent:
+
+                    return true;
+            }
+            return false;
         }
 
         public static bool IsStuck(this Weenie weenie)
         {
-            var stuck = weenie.GetProperty(PropertyBool.Stuck) ?? false;
-
-            return stuck;
+            return weenie.GetProperty(PropertyBool.Stuck) ?? false;
         }
 
         public static bool RequiresBackpackSlotOrIsContainer(this Weenie weenie)
@@ -158,9 +167,7 @@ namespace ACE.Entity.Models
 
         public static bool IsVendorService(this Weenie weenie)
         {
-            var vendorService = weenie.GetProperty(PropertyBool.VendorService) ?? false;
-
-            return vendorService;
+            return weenie.GetProperty(PropertyBool.VendorService) ?? false;
         }
     }
 }
