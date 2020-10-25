@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
@@ -111,7 +112,12 @@ namespace ACE.Server.WorldObjects
                     }
 
                     // ensure player won't exceed limit of 70 specialized credits after operation
-                    if (GetTotalSpecializedCredits(player) + skillBase.SpecializedCost > 70)
+                    var specializedCost = skillBase.SpecializedCost;
+
+                    DatManager.PortalDat.CharGen.HeritageGroups.TryGetValue((uint)player.Heritage, out var heritageGroup);
+                    var heritageAdjustedCost = heritageGroup?.Skills.Where(s => s.SkillNum == (int)skill.Skill).FirstOrDefault(); // check for adjusted costs of Specialization due to player's heritage (e.g. Arcane Lore)
+
+                    if (GetTotalSpecializedCredits(player) + (heritageAdjustedCost?.PrimaryCost ?? specializedCost) > 70)
                     {
                         player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.TooManyCreditsInSpecializedSkills, skill.Skill.ToSentence()));
                         return false;
@@ -237,10 +243,10 @@ namespace ACE.Server.WorldObjects
 
                     var skill = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)kvp.Key];
 
-                    specializedCreditsTotal += skill.SpecializedCost;
+                    DatManager.PortalDat.CharGen.HeritageGroups.TryGetValue((uint)player.Heritage, out var heritageGroup);
+                    var heritageAdjustedCost = heritageGroup?.Skills.Where(s => s.SkillNum == (int)kvp.Key).FirstOrDefault(); // check for adjusted costs of Specialization due to player's heritage (e.g. Arcane Lore)
 
-                    if (kvp.Key == Skill.ArcaneLore) // exclude Arcane Lore TrainedCost
-                        specializedCreditsTotal -= skill.TrainedCost;
+                    specializedCreditsTotal += heritageAdjustedCost?.PrimaryCost ?? skill.SpecializedCost;
                 }
             }
 
