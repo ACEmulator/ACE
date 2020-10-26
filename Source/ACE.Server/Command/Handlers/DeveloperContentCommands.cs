@@ -1268,12 +1268,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 File.Delete(sqlFilename);
 
                 using (var ctx = new WorldDbContext())
-                {
-                    // odd bug: if this is passed in as a literal, it seems to sometimes not work
-                    // moved to separate var beforehand
-                    var sql = $"DELETE FROM `landblock_instance` WHERE `landblock` = 0x{landblock:X4};";
-                    ctx.Database.ExecuteSqlCommand(sql);
-                }
+                    ctx.Database.ExecuteSqlCommand($"DELETE FROM landblock_instance WHERE landblock={landblock}");
             }
 
             // clear landblock instances for this landblock (again)
@@ -1646,12 +1641,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 File.Delete(sqlFilename);
 
                 using (var ctx = new WorldDbContext())
-                {
-                    // odd bug: if this is passed in as a literal, it seems to sometimes not work
-                    // moved to separate var beforehand
-                    var sql = $"DELETE FROM `encounter` WHERE `landblock` = 0x{landblock:X4};";
-                    ctx.Database.ExecuteSqlCommand(sql);
-                }
+                    ctx.Database.ExecuteSqlCommand($"DELETE FROM encounter WHERE landblock={landblock}");
             }
 
             // clear the encounters for this landblock (again)
