@@ -55,7 +55,12 @@ namespace ACE.Common
             {
                 // This is to support for older configs that do not have this property defined
                 if (value == 0)
-                    value = 1 - WorldThreadCountMultiplier;
+                {
+                    var worldThreadCount = (int)Math.Max(Environment.ProcessorCount * WorldThreadCountMultiplier, 1);
+                    var databaseThreadCount = Math.Max(Environment.ProcessorCount - worldThreadCount, 1);
+                    DatabaseParallelOptions.MaxDegreeOfParallelism = databaseThreadCount;
+                    return;
+                }
 
                 databaseThreadCountMultiplier = value;
 
