@@ -272,49 +272,49 @@ namespace ACE.Server.Entity
 
                 if (wo == null) continue;
 
-                var xPos = Math.Clamp(encounter.CellX * 24.0f, 0.5f, 191.5f);
-                var yPos = Math.Clamp(encounter.CellY * 24.0f, 0.5f, 191.5f);
-
-                var pos = new Physics.Common.Position();
-                pos.ObjCellID = (uint)(Id.Landblock << 16) | 1;
-                pos.Frame = new Physics.Animation.AFrame(new Vector3(xPos, yPos, 0), Quaternion.Identity);
-                pos.adjust_to_outside();
-
-                pos.Frame.Origin.Z = PhysicsLandblock.GetZ(pos.Frame.Origin);
-
-                wo.Location = new Position(pos.ObjCellID, pos.Frame.Origin, pos.Frame.Orientation);
-
-                var sortCell = LScape.get_landcell(pos.ObjCellID) as SortCell;
-                if (sortCell != null && sortCell.has_building())
-                    continue;
-
-                if (PropertyManager.GetBool("override_encounter_spawn_rates").Item)
-                {
-                    wo.RegenerationInterval = PropertyManager.GetDouble("encounter_regen_interval").Item;
-
-                    wo.ReinitializeHeartbeats();
-
-                    if (wo.Biota.PropertiesGenerator != null)
-                    {
-                        // While this may be ugly, it's done for performance reasons.
-                        // Common weenie properties are not cloned into the bota on creation. Instead, the biota references simply point to the weenie collections.
-                        // The problem here is that we want to update one of those common collection properties. If the biota is referencing the weenie collection,
-                        // then we'll end up updating the global weenie (from the cache), instead of just this specific biota.
-                        if (wo.Biota.PropertiesGenerator == wo.Weenie.PropertiesGenerator)
-                        {
-                            wo.Biota.PropertiesGenerator = new List<PropertiesGenerator>(wo.Weenie.PropertiesGenerator.Count);
-
-                            foreach (var record in wo.Weenie.PropertiesGenerator)
-                                wo.Biota.PropertiesGenerator.Add(record.Clone());
-                        }
-
-                        foreach (var profile in wo.Biota.PropertiesGenerator)
-                            profile.Delay = (float) PropertyManager.GetDouble("encounter_delay").Item;
-                    }
-                }
-
                 actionQueue.EnqueueAction(new ActionEventDelegate(() =>
                 {
+                    var xPos = Math.Clamp(encounter.CellX * 24.0f, 0.5f, 191.5f);
+                    var yPos = Math.Clamp(encounter.CellY * 24.0f, 0.5f, 191.5f);
+
+                    var pos = new Physics.Common.Position();
+                    pos.ObjCellID = (uint)(Id.Landblock << 16) | 1;
+                    pos.Frame = new Physics.Animation.AFrame(new Vector3(xPos, yPos, 0), Quaternion.Identity);
+                    pos.adjust_to_outside();
+
+                    pos.Frame.Origin.Z = PhysicsLandblock.GetZ(pos.Frame.Origin);
+
+                    wo.Location = new Position(pos.ObjCellID, pos.Frame.Origin, pos.Frame.Orientation);
+
+                    var sortCell = LScape.get_landcell(pos.ObjCellID) as SortCell;
+                    if (sortCell != null && sortCell.has_building())
+                        return;
+
+                    if (PropertyManager.GetBool("override_encounter_spawn_rates").Item)
+                    {
+                        wo.RegenerationInterval = PropertyManager.GetDouble("encounter_regen_interval").Item;
+
+                        wo.ReinitializeHeartbeats();
+
+                        if (wo.Biota.PropertiesGenerator != null)
+                        {
+                            // While this may be ugly, it's done for performance reasons.
+                            // Common weenie properties are not cloned into the bota on creation. Instead, the biota references simply point to the weenie collections.
+                            // The problem here is that we want to update one of those common collection properties. If the biota is referencing the weenie collection,
+                            // then we'll end up updating the global weenie (from the cache), instead of just this specific biota.
+                            if (wo.Biota.PropertiesGenerator == wo.Weenie.PropertiesGenerator)
+                            {
+                                wo.Biota.PropertiesGenerator = new List<PropertiesGenerator>(wo.Weenie.PropertiesGenerator.Count);
+
+                                foreach (var record in wo.Weenie.PropertiesGenerator)
+                                    wo.Biota.PropertiesGenerator.Add(record.Clone());
+                            }
+
+                            foreach (var profile in wo.Biota.PropertiesGenerator)
+                                profile.Delay = (float)PropertyManager.GetDouble("encounter_delay").Item;
+                        }
+                    }
+
                     AddWorldObject(wo);
                 }));
             }
