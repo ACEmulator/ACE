@@ -461,6 +461,47 @@ namespace ACE.Server.Entity
                 ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Landblock_Tick_Monster_Tick, stopwatch.Elapsed.TotalSeconds);
             }
 
+            stopwatch.Restart();
+            while (sortedGeneratorsByNextGeneratorUpdate.Count > 0)
+            {
+                var first = sortedGeneratorsByNextGeneratorUpdate.First.Value;
+
+                // If they wanted to run before or at now
+                if (first.NextGeneratorUpdateTime <= currentUnixTime)
+                {
+                    sortedGeneratorsByNextGeneratorUpdate.RemoveFirst();
+                    first.GeneratorUpdate(currentUnixTime);
+                    //InsertWorldObjectIntoSortedGeneratorUpdateList(first);
+                    sortedGeneratorsByNextGeneratorUpdate.AddLast(first);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Landblock_Tick_GeneratorUpdate, stopwatch.Elapsed.TotalSeconds);
+
+            stopwatch.Restart();
+            while (sortedGeneratorsByNextRegeneration.Count > 0) // GeneratorRegeneration()
+            {
+                var first = sortedGeneratorsByNextRegeneration.First.Value;
+
+                //Console.WriteLine($"{first.Name}.Landblock_Tick_GeneratorRegeneration({currentUnixTime})");
+
+                // If they wanted to run before or at now
+                if (first.NextGeneratorRegenerationTime <= currentUnixTime)
+                {
+                    sortedGeneratorsByNextRegeneration.RemoveFirst();
+                    first.GeneratorRegeneration(currentUnixTime);
+                    InsertWorldObjectIntoSortedGeneratorRegenerationList(first); // Generators can have regnerations at different intervals
+                }
+                else
+                {
+                    break;
+                }
+            }
+            ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Landblock_Tick_GeneratorRegeneration, stopwatch.Elapsed.TotalSeconds);
+
             // Heartbeat
             stopwatch.Restart();
             if (lastHeartBeat + heartbeatInterval <= DateTime.UtcNow)
@@ -561,47 +602,6 @@ namespace ACE.Server.Entity
                 }
             }
             ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Landblock_Tick_WorldObject_Heartbeat, stopwatch.Elapsed.TotalSeconds);
-
-            stopwatch.Restart();
-            while (sortedGeneratorsByNextGeneratorUpdate.Count > 0)
-            {
-                var first = sortedGeneratorsByNextGeneratorUpdate.First.Value;
-
-                // If they wanted to run before or at now
-                if (first.NextGeneratorUpdateTime <= currentUnixTime)
-                {
-                    sortedGeneratorsByNextGeneratorUpdate.RemoveFirst();
-                    first.GeneratorUpdate(currentUnixTime);
-                    //InsertWorldObjectIntoSortedGeneratorUpdateList(first);
-                    sortedGeneratorsByNextGeneratorUpdate.AddLast(first);
-                }
-                else
-                {
-                    break;
-                }
-            }
-            ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Landblock_Tick_GeneratorUpdate, stopwatch.Elapsed.TotalSeconds);
-
-            stopwatch.Restart();
-            while (sortedGeneratorsByNextRegeneration.Count > 0) // GeneratorRegeneration()
-            {
-                var first = sortedGeneratorsByNextRegeneration.First.Value;
-
-                //Console.WriteLine($"{first.Name}.Landblock_Tick_GeneratorRegeneration({currentUnixTime})");
-
-                // If they wanted to run before or at now
-                if (first.NextGeneratorRegenerationTime <= currentUnixTime)
-                {
-                    sortedGeneratorsByNextRegeneration.RemoveFirst();
-                    first.GeneratorRegeneration(currentUnixTime);
-                    InsertWorldObjectIntoSortedGeneratorRegenerationList(first); // Generators can have regnerations at different intervals
-                }
-                else
-                {
-                    break;
-                }
-            }
-            ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Landblock_Tick_GeneratorRegeneration, stopwatch.Elapsed.TotalSeconds);
 
             Monitor5m.RegisterEventEnd();
             Monitor1h.RegisterEventEnd();
