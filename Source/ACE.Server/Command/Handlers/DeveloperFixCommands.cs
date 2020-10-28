@@ -1367,23 +1367,23 @@ namespace ACE.Server.Command.Handlers
                         foundIssues = true;
                     }
 
-                    var item = clothing[objectId];
-
-                    var wieldLevel = 150;
-
-                    if (maxCantripLevel > 3)
-                    {
-                        var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-                        if (rng < 0.9f)
-                            wieldLevel = 180;
-                    }
-
                     if (fix)
                     {
+                        var wieldLevel = 150;
+
+                        if (maxCantripLevel > 3)
+                        {
+                            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+                            if (rng < 0.9f)
+                                wieldLevel = 180;
+                        }
+
                         ctx.Database.ExecuteSqlCommand($"insert into biota_properties_int set object_Id={objectId}, `type`={(ushort)PropertyInt.WieldRequirements}, value={(int)WieldRequirement.Level};");
                         ctx.Database.ExecuteSqlCommand($"insert into biota_properties_int set object_Id={objectId}, `type`={(ushort)PropertyInt.WieldSkillType}, value=1;");
                         ctx.Database.ExecuteSqlCommand($"insert into biota_properties_int set object_Id={objectId}, `type`={(ushort)PropertyInt.WieldDifficulty}, value={wieldLevel};");
                     }
+
+                    var item = clothing[objectId];
 
                     Console.WriteLine($"{item.Id:X8} - {(Factories.Enum.WeenieClassName)item.WeenieClassId} - {maxCantripLevel}{fixStr}");
                 }
