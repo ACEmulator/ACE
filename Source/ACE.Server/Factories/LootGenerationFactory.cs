@@ -1173,5 +1173,29 @@ namespace ACE.Server.Factories
             else
                 return null;
         }
+
+        private static void RollWieldLevelReq_T7_T8(WorldObject wo, TreasureDeath profile)
+        {
+            if (profile.Tier < 7)
+                return;
+
+            var wieldLevelReq = 150;
+
+            if (profile.Tier == 8)
+            {
+                // t8 had a 90% chance for 180
+                // loot quality mod?
+                var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+                if (rng < 0.9f)
+                    wieldLevelReq = 180;
+            }
+
+            wo.WieldRequirements = WieldRequirement.Level;
+            wo.WieldDifficulty = wieldLevelReq;
+
+            // as per retail pcaps, must be set to appear in client
+            wo.WieldSkillType = 1;  
+        }
     }         
 }
