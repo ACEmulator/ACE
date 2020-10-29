@@ -1405,6 +1405,20 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            if (((item.ValidLocations ?? 0) & wieldedLocation) == 0)
+            {
+                if (item.ValidLocations == EquipMask.MeleeWeapon && wieldedLocation == EquipMask.Shield)
+                {
+                    // allow dual wielding
+                }
+                else
+                {
+                    log.Warn($"{Name} tried to wield {item.Name} ({item.Guid}) in slot {wieldedLocation}, which doesn't match valid slots {item.ValidLocations}");
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                    return false;
+                }
+            }
+
             // client bug: equip wand or bow
             // then equip melee weapon instead, then swap melee weapon to offhand slot
             // client automatically sends a request to wield the wand/bow again, only this time with EquipMask.MeleeWeapon
@@ -1449,9 +1463,10 @@ namespace ACE.Server.WorldObjects
             if (!WieldedLocationIsAvailable(item, wieldedLocation))
             {
                 // filtering to just armor here, or else trinkets and dual wielding breaks
-                var existing = GetEquippedClothingArmor(item.ClothingPriority ?? 0).FirstOrDefault();
+                //var existing = GetEquippedClothingArmor(item.ClothingPriority ?? 0).FirstOrDefault();
+                var existing = GetEquippedItems(item, wieldedLocation).FirstOrDefault();
 
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You must remove your {existing?.Name} to wear that"));
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You must remove your {existing?.Name} to wield {item.Name}"));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
                 return false;
             }
