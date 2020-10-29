@@ -213,7 +213,6 @@ namespace ACE.Server.WorldObjects
             if (VictimId == null)
                 return;
 
-            var killerGuid = new ObjectGuid(KillerId ?? 0);
             var victimGuid = new ObjectGuid(VictimId.Value);
 
             if (!victimGuid.IsPlayer())
@@ -224,6 +223,8 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
+                var killerGuid = new ObjectGuid(KillerId ?? 0);
+
                 // player corpses -- after corpse owner or killer loots, becomes open to anyone?
                 if (player != null && (player.Guid == killerGuid || player.Guid == victimGuid))
                     IsLooted = true;
