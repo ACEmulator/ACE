@@ -213,7 +213,7 @@ namespace ACE.Server.WorldObjects
             if (VictimId == null)
                 return;
 
-            var killerGuid = new ObjectGuid(KillerId.Value);
+            var killerGuid = new ObjectGuid(KillerId ?? 0);
             var victimGuid = new ObjectGuid(VictimId.Value);
 
             if (!victimGuid.IsPlayer())
