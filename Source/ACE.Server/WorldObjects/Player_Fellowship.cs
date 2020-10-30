@@ -1,6 +1,7 @@
 
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -44,14 +45,28 @@ namespace ACE.Server.WorldObjects
                 Fellowship.QuitFellowship(this, disband);
         }
 
-        public void FellowshipDismissPlayer(Player player)
+        public void FellowshipDismissPlayer(uint dismissGuid)
         {
             if (Fellowship == null) return;
 
-            if (Guid.Full == Fellowship.FellowshipLeaderGuid)
-                Fellowship.RemoveFellowshipMember(player);
-            else
+            if (Guid.Full != Fellowship.FellowshipLeaderGuid)
+            {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustBeLeaderOfFellowship));
+                return;
+            }
+
+            if (Guid.Full == dismissGuid)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat("You can't dismiss yourself from the fellowship", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var fellowToDismiss = PlayerManager.GetOnlinePlayer(dismissGuid);
+
+            if (fellowToDismiss == null)
+                return;
+
+            Fellowship.RemoveFellowshipMember(fellowToDismiss, this);
         }
 
         public void FellowshipRecruit(Player newPlayer)

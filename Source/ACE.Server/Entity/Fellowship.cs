@@ -176,11 +176,31 @@ namespace ACE.Server.Entity
             UpdateAllMembers();
         }
 
-        public void RemoveFellowshipMember(Player player)
+        public void RemoveFellowshipMember(Player player, Player leader)
         {
             if (player == null) return;
 
             var fellowshipMembers = GetFellowshipMembers();
+
+            if (!fellowshipMembers.ContainsKey(player.Guid.Full))
+            {
+                log.Warn($"{leader.Name} tried to dismiss {player.Name} from the fellowship, but {player.Name} was not found in the fellowship");
+
+                var done = true;
+
+                if (player.Fellowship != null)
+                {
+                    if (player.Fellowship == this)
+                    {
+                        log.Warn($"{player.Name} still has a reference to this fellowship somehow. This shouldn't happen");
+                        done = false;
+                    }
+                    else
+                        log.Warn($"{player.Name} has a reference to a different fellowship. {leader.Name} is possibly sending crafted data!");
+                }
+
+                if (done) return;
+            }
 
             foreach (var member in fellowshipMembers.Values)
             {
