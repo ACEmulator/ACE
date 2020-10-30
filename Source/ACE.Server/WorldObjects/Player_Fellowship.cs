@@ -87,11 +87,28 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void FellowshipNewLeader(Player newLeader)
+        public void FellowshipNewLeader(uint newLeaderGuid)
         {
-            if (Fellowship == null || newLeader == null)
+            if (Fellowship == null) return;
+
+            if (Guid.Full != Fellowship.FellowshipLeaderGuid)
+            {
+                log.Warn($"{Name} tried to assign new fellowship leader from {Fellowship.FellowshipLeaderGuid:X8} to {newLeaderGuid:X8}");
+                return;
+            }
+
+            if (Guid.Full == newLeaderGuid) return;
+
+            var newLeader = PlayerManager.GetOnlinePlayer(newLeaderGuid);
+
+            if (newLeader == null)
                 return;
 
+            if (newLeader.Fellowship != Fellowship)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{newLeader.Name} is not a member of the fellowship!", ChatMessageType.Broadcast));
+                return;
+            }
             Fellowship.AssignNewLeader(this, newLeader);
         }
 
