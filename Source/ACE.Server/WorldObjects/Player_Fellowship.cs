@@ -66,7 +66,7 @@ namespace ACE.Server.WorldObjects
             if (fellowToDismiss == null)
                 return;
 
-            Fellowship.RemoveFellowshipMember(fellowToDismiss);
+            Fellowship.RemoveFellowshipMember(fellowToDismiss, this);
         }
 
         public void FellowshipRecruit(Player newPlayer)
