@@ -1,6 +1,3 @@
-using ACE.Server.WorldObjects;
-using ACE.Server.Managers;
-
 namespace ACE.Server.Network.GameAction.Actions
 {
     public static class GameActionFellowshipAssignNewLeader
@@ -10,7 +7,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             uint newLeaderID = message.Payload.ReadUInt32();
 
-            session.Player.FellowshipNewLeader(newLeader);
+            session.Player.FellowshipNewLeader(newLeaderID);
         }
     }
 }
