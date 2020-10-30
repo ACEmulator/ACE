@@ -747,6 +747,7 @@ namespace ACE.Server.WorldObjects
             0x0007,     // Town Network
             0x0056,     // Augmentation Realm Main Level
             0x005F,     // Tanada House of Pancakes (Seasonal)
+            0x0067,     // PKL Arena
             0x006D,     // Augmentation Realm Upper Level
             0x007D,     // Augmentation Realm Lower Level
             0x00AB,     // Derethian Combat Arena
