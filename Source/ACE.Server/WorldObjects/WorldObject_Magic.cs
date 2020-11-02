@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -1489,7 +1490,7 @@ namespace ACE.Server.WorldObjects
             ProjectileSpeedCache.Clear();
         }
 
-        public static Dictionary<uint, float> ProjectileRadiusCache = new Dictionary<uint, float>();
+        public static readonly ConcurrentDictionary<uint, float> ProjectileRadiusCache = new ConcurrentDictionary<uint, float>();
 
         private float GetProjectileRadius(Spell spell)
         {
@@ -1517,7 +1518,11 @@ namespace ACE.Server.WorldObjects
             if (!weenie.PropertiesFloat.TryGetValue(PropertyFloat.DefaultScale, out var scale))
                 scale = 1.0f;
 
-            return ProjectileRadiusCache[projectileWcid] = (float)(setup.Spheres[0].Radius * scale);
+            var result = (float)(setup.Spheres[0].Radius * scale);
+
+            ProjectileRadiusCache.TryAdd(projectileWcid, result);
+
+            return result;
         }
 
         /// <summary>
@@ -1525,7 +1530,7 @@ namespace ACE.Server.WorldObjects
         /// GetSpellProjectileSpeed() can easily be moved to SpellProjectile.CalculateSpeed()
         /// however the current calling pattern for Rings and Walls needs some work still..
         /// </summary>
-        private static Dictionary<uint, float> ProjectileSpeedCache = new Dictionary<uint, float>();
+        private static readonly ConcurrentDictionary<uint, float> ProjectileSpeedCache = new ConcurrentDictionary<uint, float>();
 
         /// <summary>
         /// Gets the speed of a projectile based on the distance to the target.
@@ -1552,7 +1557,7 @@ namespace ACE.Server.WorldObjects
 
                 baseSpeed = (float)maxVelocity;
 
-                ProjectileSpeedCache[projectileWcid] = baseSpeed;
+                ProjectileSpeedCache.TryAdd(projectileWcid, baseSpeed);
             }
 
             // TODO:
