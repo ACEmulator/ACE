@@ -102,3 +102,38 @@ WHERE biota.weenie_Class_Id=22620 AND biota_properties_float.`type`=44 /* TimeTo
 DELETE biota_properties_float FROM biota_properties_float
 INNER JOIN biota ON biota.id=biota_properties_float.object_Id
 WHERE biota.weenie_Class_Id=25534 AND biota_properties_float.`type`=44 /* TimeToRot */ AND biota_properties_float.value=-1;
+
+/* Pack Asheron */
+DELETE biota_properties_float FROM biota_properties_float
+INNER JOIN biota ON biota.id=biota_properties_float.object_Id
+WHERE biota.weenie_Class_Id=29916 AND biota_properties_float.`type`=44 /* TimeToRot */ AND biota_properties_float.value=-1;
+
+/* Pack Bael'Zharon */
+DELETE biota_properties_float FROM biota_properties_float
+INNER JOIN biota ON biota.id=biota_properties_float.object_Id
+WHERE biota.weenie_Class_Id=29917 AND biota_properties_float.`type`=44 /* TimeToRot */ AND biota_properties_float.value=-1;
+
+/* Pack Gaerlan */
+DELETE biota_properties_float FROM biota_properties_float
+INNER JOIN biota ON biota.id=biota_properties_float.object_Id
+WHERE biota.weenie_Class_Id=29918 AND biota_properties_float.`type`=44 /* TimeToRot */ AND biota_properties_float.value=-1;
+
+/* Pack Burun Kukuur */
+DELETE biota_properties_float FROM biota_properties_float
+INNER JOIN biota ON biota.id=biota_properties_float.object_Id
+WHERE biota.weenie_Class_Id=29919 AND biota_properties_float.`type`=44 /* TimeToRot */ AND biota_properties_float.value=-1;
+
+/* Pack Levistras */
+DELETE biota_properties_float FROM biota_properties_float
+INNER JOIN biota ON biota.id=biota_properties_float.object_Id
+WHERE biota.weenie_Class_Id=29920 AND biota_properties_float.`type`=44 /* TimeToRot */ AND biota_properties_float.value=-1;
+
+/* Pack Martine */
+DELETE biota_properties_float FROM biota_properties_float
+INNER JOIN biota ON biota.id=biota_properties_float.object_Id
+WHERE biota.weenie_Class_Id=29921 AND biota_properties_float.`type`=44 /* TimeToRot */ AND biota_properties_float.value=-1;
+
+/* Pack Ancient Olthoi Queen */
+DELETE biota_properties_float FROM biota_properties_float
+INNER JOIN biota ON biota.id=biota_properties_float.object_Id
+WHERE biota.weenie_Class_Id=29922 AND biota_properties_float.`type`=44 /* TimeToRot */ AND biota_properties_float.value=-1;
