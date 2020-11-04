@@ -1423,7 +1423,7 @@ namespace ACE.Server.WorldObjects
                 mainWeapon = mainWeapon ?? GetEquippedMissileWeapon() ?? GetEquippedWand();
 
                 // special case: instead of sending the typical DequipItem -> GetAndWieldItem here,
-                // the client just sends GetAndWieldItem
+                // the client just sends GetAndWieldItem, and the server is responsible for detecting if DequipItem is needed
 
                 if (mainWeapon != null)
                 {
@@ -1451,7 +1451,7 @@ namespace ACE.Server.WorldObjects
                 var dualWield = GetDualWieldWeapon();
 
                 // special case: instead of sending the typical DequipItem -> GetAndWieldItem here,
-                // the client just sends GetAndWieldItem
+                // the client just sends GetAndWieldItem, and the server is responsible for detecting if DequipItem is needed
 
                 if (dualWield != null)
                 {
