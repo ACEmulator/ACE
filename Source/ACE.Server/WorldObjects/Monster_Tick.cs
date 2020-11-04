@@ -33,10 +33,18 @@ namespace ACE.Server.WorldObjects
 
             NextMonsterTickTime = currentUnixTime + monsterTickInterval;
 
-            if (!IsAwake && MonsterState == State.Return)
-                MonsterState = State.Idle;
+            if (!IsAwake)
+            {
+                if (MonsterState == State.Return)
+                    MonsterState = State.Idle;
 
-            if (!IsAwake || IsDead) return;
+                if (IsFactionMob)
+                    FactionMob_CheckMonsters();
+
+                return;
+            }
+
+            if (IsDead) return;
 
             HandleFindTarget();
 
@@ -106,7 +114,7 @@ namespace ACE.Server.WorldObjects
             }
 
             if (PhysicsObj.IsSticky)
-                UpdatePosition();
+                UpdatePosition(false);
 
             // get distance to target
             var targetDist = GetDistanceToTarget();

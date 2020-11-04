@@ -506,13 +506,13 @@ namespace ACE.Common
         /// <param name="hour">The hour or time (of day) (1 through 16).<para>Each day begins at Darktide and ends at Gloaming-and-Half.</para></param>
         public DerethDateTime(int year = 10, int month = (int)Months.Morningthaw, int day = 1, int hour = (int)Hours.Darktide)
         {
-            if (year < 10 | year > 401)
+            if (year < 10 || year > 401)
                 throw new ArgumentOutOfRangeException("year", "year is less than 10 or greater than 401");
-            if (month < (int)Months.Snowreap | month > (int)Months.Frostfell)
+            if (month < (int)Months.Snowreap || month > (int)Months.Frostfell)
                 throw new ArgumentOutOfRangeException("month", "month is less than " + Months.Snowreap + " or greater than " + Months.Frostfell);
-            if (day < 1 | day > 30)
+            if (day < 1 || day > 30)
                 throw new ArgumentOutOfRangeException("day", "day is less than 1 or greater than 30");
-            if (hour < (int)Hours.Darktide | hour > (int)Hours.Gloaming_and_Half)
+            if (hour < (int)Hours.Darktide || hour > (int)Hours.Gloaming_and_Half)
                 throw new ArgumentOutOfRangeException("hour", "time is less than " + Hours.Darktide + " or greater than " + Hours.Gloaming_and_Half);
 
             Year = year;
@@ -580,20 +580,20 @@ namespace ACE.Common
         /// <param name="time">The hour or time (of day) (<see cref="Hours"/>).<para>Each day begins at Darktide and ends at Gloaming-and-Half.</para></param>
         public DerethDateTime(int year = 10, Months month = Months.Morningthaw, int day = 1, Hours time = Hours.Darktide)
         {
-            if (year < 10 | year > 401)
+            if (year < 10 || year > 401)
                 throw new ArgumentOutOfRangeException("year", "year is less than 10 or greater than 401");
-            if ((int)month < (int)Months.Snowreap | (int)month > (int)Months.Frostfell)
+            if ((int)month < (int)Months.Snowreap || (int)month > (int)Months.Frostfell)
                 throw new ArgumentOutOfRangeException("month", "month is less than " + Months.Snowreap + " or greater than " + Months.Frostfell);
-            if (day < 1 | day > 30)
+            if (day < 1 || day > 30)
                 throw new ArgumentOutOfRangeException("day", "day is less than 1 or greater than 30");
-            if ((int)time < (int)Hours.Darktide | (int)time > (int)Hours.Gloaming_and_Half)
+            if ((int)time < (int)Hours.Darktide || (int)time > (int)Hours.Gloaming_and_Half)
                 throw new ArgumentOutOfRangeException("time", "time is less than " + Hours.Darktide + " or greater than " + Hours.Gloaming_and_Half);
 
             Year = year;
             Month = (int)month;
             Day = day;
 
-            Hour = hour;
+            Hour = (int)time;
 
             if (month == Months.Wintersebb && year > 10)
                 Ticks = GetTicksFromDateTime(true);

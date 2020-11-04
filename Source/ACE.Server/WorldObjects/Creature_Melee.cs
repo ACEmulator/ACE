@@ -100,9 +100,11 @@ namespace ACE.Server.WorldObjects
             return dist1.CompareTo(dist2);
         }
 
-        public static float CleaveRange = 5.0f;
-        public static float CleaveRangeSq = CleaveRange * CleaveRange;
-        public static float CleaveAngle = 180.0f;
+        public static readonly float CleaveRange = 5.0f;
+        public static readonly float CleaveRangeSq = CleaveRange * CleaveRange;
+        public static readonly float CleaveAngle = 180.0f;
+
+        public static readonly float CleaveCylRange = 2.0f;
 
         /// <summary>
         /// Performs a cleaving attack for two-handed weapons
@@ -131,7 +133,7 @@ namespace ACE.Server.WorldObjects
                 var creature = obj.WeenieObj.WorldObject as Creature;
                 if (creature == null || creature.Teleporting || creature.IsDead) continue;
 
-                if (player != null && creature is Player && player.CheckPKStatusVsTarget(player, creature, null) != null)
+                if (player != null && player.CheckPKStatusVsTarget(creature, null) != null)
                     continue;
 
                 if (!creature.Attackable || creature.Teleporting)
@@ -141,8 +143,8 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 // no objects in cleave range
-                var distSquared = Location.SquaredDistanceTo(creature.Location);
-                if (distSquared > CleaveRangeSq)
+                var cylDist = GetCylinderDistance(creature);
+                if (cylDist > CleaveCylRange)
                     return cleaveTargets;
 
                 // only cleave in front of attacker
@@ -156,33 +158,6 @@ namespace ACE.Server.WorldObjects
                     break;
             }
             return cleaveTargets;
-        }
-
-        public bool IsCleaveable(Creature creature)
-        {
-            if (creature == null || !creature.Attackable || creature.Teleporting || creature.IsDead)
-                return false;
-
-            var player = this as Player;
-
-            if (player != null && creature is Player && player.CheckPKStatusVsTarget(player, creature, null) != null)
-                return false;
-
-            if (creature is CombatPet && (player != null || this is CombatPet))
-                return false;
-
-            // no objects in cleave range
-            var distSquared = Location.SquaredDistanceTo(creature.Location);
-            if (distSquared > CleaveRangeSq)
-                return false;
-
-            // only cleave in front of attacker
-            var angle = GetAngle(creature);
-            if (Math.Abs(angle) > CleaveAngle / 2.0f)
-                return false;
-
-            // found cleavable object
-            return true;
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using ACE.Entity.Enum;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -210,6 +211,18 @@ namespace ACE.Server.Physics.Animation
             }
             else
                 command = 0;
+        }
+
+        public MovementParameters(MoveToParameters mvp)
+        {
+            Flags = (MovementParamFlags)mvp.MovementParameters;
+
+            DistanceToObject = mvp.DistanceToObject;
+            MinDistance = mvp.MinDistance;
+            DesiredHeading = mvp.DesiredHeading;
+            Speed = mvp.Speed;
+            FailDistance = mvp.FailDistance;
+            WalkRunThreshold = mvp.WalkRunThreshold;
         }
     }
 }

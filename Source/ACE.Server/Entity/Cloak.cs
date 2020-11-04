@@ -111,26 +111,44 @@ namespace ACE.Server.Entity
         /// </summary>
         public static readonly int DamageReductionAmount = 200;
 
+        public static int GetDamageReductionAmount(WorldObject source)
+        {
+            var damageReductionAmount = DamageReductionAmount;
+
+            // https://asheron.fandom.com/wiki/Master_of_Arms
+            // Cloaks with the chance to reduce incoming damage by 200 have been reduced to 100 for PvP circumstances.
+            if (source is Player)
+                damageReductionAmount /= 2;
+
+            return damageReductionAmount;
+        }
+
         /// <summary>
         /// Returns the reduced damage amount when a cloak procs
         /// with PropertyInt.CloakWeaveProc=2
         /// </summary>
-        public static uint GetReducedAmount(uint damage)
+        public static uint GetReducedAmount(WorldObject source, uint damage)
         {
-            if (damage > DamageReductionAmount)
-                return (uint)(damage - DamageReductionAmount);
+            var damageReductionAmount = GetDamageReductionAmount(source);
+
+            if (damage > damageReductionAmount)
+                return (uint)(damage - damageReductionAmount);
             else
                 return 0;
         }
 
-        public static int GetReducedAmount(int damage)
+        public static int GetReducedAmount(WorldObject source, int damage)
         {
-            return Math.Max(0, damage - DamageReductionAmount);
+            var damageReductionAmount = GetDamageReductionAmount(source);
+
+            return Math.Max(0, damage - damageReductionAmount);
         }
 
-        public static float GetReducedAmount(float damage)
+        public static float GetReducedAmount(WorldObject source, float damage)
         {
-            return Math.Max(0, damage - DamageReductionAmount);
+            var damageReductionAmount = GetDamageReductionAmount(source);
+
+            return Math.Max(0, damage - damageReductionAmount);
         }
 
         /// <summary>

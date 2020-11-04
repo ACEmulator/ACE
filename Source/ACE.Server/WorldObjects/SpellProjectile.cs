@@ -283,7 +283,7 @@ namespace ACE.Server.WorldObjects
             // if player target, ensure matching PK status
             var targetPlayer = creatureTarget as Player;
 
-            var pkError = CheckPKStatusVsTarget(player, targetPlayer, Spell);
+            var pkError = ProjectileSource?.CheckPKStatusVsTarget(creatureTarget, Spell);
             if (pkError != null)
             {
                 if (player != null)
@@ -342,6 +342,13 @@ namespace ACE.Server.WorldObjects
             // also called on resist
             if (player != null && targetPlayer == null)
                 player.OnAttackMonster(creatureTarget);
+
+            if (player == null && targetPlayer == null)
+            {
+                // check for faction combat
+                if (sourceCreature != null && creatureTarget != null && sourceCreature.AllowFactionCombat(creatureTarget))
+                    sourceCreature.MonsterOnAttackMonster(creatureTarget);
+            }
         }
 
         /// <summary>
@@ -483,7 +490,7 @@ namespace ACE.Server.WorldObjects
                 {
                     // per retail stats, level 8 difficulty is capped to 350 instead of 400
                     // without this, level 7s have the potential to deal more damage than level 8s
-                    var difficulty = Math.Min(Spell.Power, 350);
+                    var difficulty = Math.Min(Spell.Power, 350);    // was skillMod possibility capped to 1.3x for level 7 spells in retail, instead of level 8 difficulty cap?
                     var magicSkill = sourcePlayer.GetCreatureSkill(Spell.School).Current;
 
                     if (magicSkill > difficulty)
@@ -503,6 +510,15 @@ namespace ACE.Server.WorldObjects
                 // only pass if SpellProjectile has it directly, such as 2637 - Invoking Aun Tanua
 
                 resistanceMod = (float)Math.Max(0.0f, target.GetResistanceMod(resistanceType, this, null, weaponResistanceMod));
+
+                if (sourcePlayer != null && targetPlayer != null && Spell.DamageType == DamageType.Nether)
+                {
+                    // for direct damage from void spells in pvp,
+                    // apply void_pvp_modifier *on top of* the player's natural resistance to nether
+
+                    // this supposedly brings the direct damage from void spells in pvp closer to retail
+                    resistanceMod *= (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
+                }
 
                 finalDamage = baseDamage + critDamageBonus + skillBonus;
 
@@ -680,7 +696,7 @@ namespace ACE.Server.WorldObjects
                 // DR / DRR applies for magic too?
                 var damageRating = sourceCreature?.GetDamageRating() ?? 0;
                 damageRatingMod = Creature.AdditiveCombine(Creature.GetPositiveRatingMod(damageRating), heritageMod, sneakAttackMod);
-                damageResistRatingMod = Creature.GetNegativeRatingMod(target.GetDamageResistRating(CombatType.Magic));
+                damageResistRatingMod = target.GetDamageResistRatingMod(CombatType.Magic);
                 damage *= damageRatingMod * damageResistRatingMod;
 
                 percent = damage / target.Health.MaxValue;
@@ -691,7 +707,7 @@ namespace ACE.Server.WorldObjects
 
                 if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(equippedCloak, percent))
                 {
-                    var reducedDamage = Cloak.GetReducedAmount(damage);
+                    var reducedDamage = Cloak.GetReducedAmount(ProjectileSource, damage);
 
                     Cloak.ShowMessage(target, ProjectileSource, damage, reducedDamage);
 

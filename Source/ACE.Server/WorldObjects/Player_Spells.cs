@@ -279,6 +279,8 @@ namespace ACE.Server.WorldObjects
                 }
             });
         }
+
+        // TODO: switch this over to SpellProgressionTables
         private static string[] Buffs = new string[] {
 #region spells
             // @ indicates impenetrability or a bane
@@ -291,14 +293,18 @@ namespace ACE.Server.WorldObjects
             "ManaRenewal",
             "Impregnability",
             "MagicResistance",
-            "AxeMastery",    // light weapons
-            "DaggerMastery", // finesse weapons
+            //"AxeMastery",    // light weapons
+            "LightWeaponsMastery",
+            //"DaggerMastery", // finesse weapons
+            "FinesseWeaponsMastery",
             //"MaceMastery",
             //"SpearMastery",
             //"StaffMastery",
-            "SwordMastery",  // heavy weapons
+            //"SwordMastery",  // heavy weapons
+            "HeavyWeaponsMastery",
             //"UnarmedCombatMastery",
-            "BowMastery",    // missile weapons
+            //"BowMastery",    // missile weapons
+            "MissileWeaponsMastery",
             //"CrossbowMastery",
             //"ThrownWeaponMastery",
             "AcidProtection",

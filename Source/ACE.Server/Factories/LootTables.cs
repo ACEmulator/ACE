@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using ACE.Entity.Enum;
+using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
@@ -93,22 +94,15 @@ namespace ACE.Server.Factories
 
         public static double getMaterialValueModifier(WorldObject wo)
         {
-            if (wo.MaterialType == null) return 1;
-            int materialType = (int)wo.MaterialType;
-            if (materialModifier.ContainsKey(materialType))
-                return materialModifier[materialType];
+            if (wo.MaterialType != null && materialModifier.TryGetValue((int)wo.MaterialType, out var materialMod))
+                return materialMod;
             else
-                return 1;
+                return 1.0;
         }
 
         public static double getGemMaterialValueModifier(WorldObject wo)
         {
-            if (wo.MaterialType == null) return 1;
-            int materialType = (int)wo.MaterialType;
-            if (materialModifier.ContainsKey(materialType))
-                return materialModifier[materialType];
-            else
-                return 1;
+            return getMaterialValueModifier(wo);
         }
 
         public static Dictionary<int, int> gemValues = new Dictionary<int, int>()
@@ -221,7 +215,7 @@ namespace ACE.Server.Factories
             new int[] { 353, 3889, 3890, 3891, 3892 },       // 19 - Tachi
             new int[] { 354, 3893, 3894, 3895, 3896 },       // 20 - Takuba
             new int[] { 45108, 45109, 45110, 45111, 45112 }, // 21 - Schlager (MS)
-            new int[] { 4190, 4194, 4192, 4193, 4194 },      // 22 - Cestus
+            new int[] { 4190, 4191, 4192, 4193, 4194 },      // 22 - Cestus
             new int[] { 4195, 4196, 4197, 4198, 4199 },      // 23 - Nekode
         };
 
@@ -379,7 +373,7 @@ namespace ACE.Server.Factories
 
         public static readonly int[] DinnerwareLootMatrix = { 141, 142, 148, 149, 150, 154, 161, 163, 168, 243, 254, 7940 };
 
-        public static readonly int[][] GemCreatureSpellMatrix =
+        /*public static readonly int[][] GemCreatureSpellMatrix =
         {
             new int[] { 2, 18, 256, 274, 298, 322, 5099, 418, 467, 557, 581, 605, 629, 653, 678, 702, 726, 750, 774, 798, 824, 850, 874, 898, 922, 946, 970, 982, 1349, 1373, 1397, 1421, 1445, 1715, 1739, 1763, 5779, 5803, 5827, 5851, 5875, 6116, 5411, 3499 },
             new int[] { 1328, 245, 257, 275, 299, 323, 5100, 419, 468, 558, 582, 606, 630, 654, 679, 703, 727, 751, 775, 799, 825, 851, 875, 899, 923, 947, 971, 983, 1350, 1374, 1398, 1422, 1446, 1716, 1740, 1764, 5780, 5804, 5828, 5852, 5876, 6117, 5412, 3500 },
@@ -401,7 +395,7 @@ namespace ACE.Server.Factories
             new int[] { 170, 193, 217, 520, 1023, 1035, 1071, 1094, 1114, 1138, 1312 },
             new int[] { 2185, 2187, 2183, 2149, 2153, 2155, 2159, 2157, 2151, 2161, 2053 },
             new int[] { 4496, 4498, 4494, 4460, 4464, 4466, 4470, 4468, 4462, 4472, 4291 }
-        };
+        };*/
 
         public static readonly int[][] GemsWCIDsMatrix =
 {
@@ -465,9 +459,9 @@ namespace ACE.Server.Factories
             new int[] { 6, 6 }
         };
 
-        public static readonly int[][] ScrollSpells =
+        /*public static readonly int[][] ScrollSpells =
         {
-            /* CREATURE SPELLS */
+            /// CREATURE SPELLS ///
 
             // ATTRIBUTES //
 
@@ -750,7 +744,7 @@ namespace ACE.Server.Factories
             ////Dispell Other
             new int[] { 1885, 1891, 1897, 1903, 1909, 1915, 3184 },
 
-            /* LIFE SPELLS */
+            /// LIFE SPELLS ///
 
             // VITALS //
 
@@ -875,7 +869,7 @@ namespace ACE.Server.Factories
             ////Dispell Other
             new int[] { 1957, 1963, 1969, 1975, 1981, 1987, 3193 },
 
-            /* ITEM SPELLS */
+            /// ITEM SPELLS ///
 
             // ARMOR //
 
@@ -961,7 +955,7 @@ namespace ACE.Server.Factories
             new int[] { 1921, 1927, 1933, 1939, 1945, 1951, 3190 },
             ////Portal Spells - Dont typically find these in loot.
 
-            /* WAR SPELLS */
+            /// WAR SPELLS ///
 
             // Flame Bolt
             new int[] { 27, 81, 82, 83, 84, 85, 2128 },
@@ -1034,7 +1028,7 @@ namespace ACE.Server.Factories
             // Blade Volley
             new int[] { 0, 0, 151, 152, 153, 154, 2125 },
 
-            /* VOID SPELLS */
+            /// VOID SPELLS ///
 
             // Nether Bolt
             new int[] { 5349, 5350, 5351, 5352, 5353, 5354, 5355 },
@@ -1052,7 +1046,7 @@ namespace ACE.Server.Factories
             new int[] { 5371, 5372, 5373, 5374, 5375, 5376, 5377 },
             // Weakening Curse
             new int[] { 5379, 5380, 5381, 5382, 5383, 5384, 5385 }
-        };
+        };*/
 
         public static readonly int[] WarVoidRingScrollSpells = { 1783, 1784, 1785, 1786, 1787, 1788, 1789, 5361 };
 
@@ -1104,7 +1098,7 @@ namespace ACE.Server.Factories
             { 50, "Zircon" }
         };
 
-        public static readonly int[][] ArmorSpells =
+        /*public static readonly int[][] ArmorSpells =
         {
             ////Strength
             new int[] { 2, 1328, 1329, 1330, 1331, 1332, 2087, 4325 },
@@ -1232,9 +1226,9 @@ namespace ACE.Server.Factories
             new int[] { 1109, 1110, 1111, 1112, 1113, 1114, 2151, 4462 },
             ////Pierce Prot
             new int[] { 1133, 1134, 1135, 1136, 1137, 1138, 2161, 4472 },
-        };
+        };*/
 
-        public static readonly int[][] WandSpells =
+        /*public static readonly int[][] WandSpells =
         {
                 new int[] { 1421, 1422, 1423, 1424, 1425, 1426, 2067, 4305 }, // Focus
                 new int[] { 1445, 1446, 1447, 1448, 1449, 1450, 2091, 4329 }, // Willpower
@@ -1247,9 +1241,9 @@ namespace ACE.Server.Factories
                 new int[] { 629, 630, 631, 632, 633, 634 , 2323, 4638 }, // War Magic Mastery
                 new int[] { 1599, 1601, 1602, 1603, 1604, 1605, 2101, 4400 }, // Defender
                 new int[] { 1475, 1476, 1477, 1478, 1479, 1480, 2117, 4418 }, // Hermetic Link
-        };
+        };*/
 
-        public static readonly int[][] JewelrySpells =
+        /*public static readonly int[][] JewelrySpells =
         {
             ////Strength
             new int[] { 2, 1328, 1329, 1330, 1331, 1332, 2087, 4325 },
@@ -1361,9 +1355,9 @@ namespace ACE.Server.Factories
             new int[] { 1109, 1110, 1111, 1112, 1113, 1114, 2151, 4462 },
             ////Pierce Prot
             new int[] { 1133, 1134, 1135, 1136, 1137, 1138, 2161, 4472 },
-        };
+        };*/
 
-        public static readonly int[][] GemSpells =
+        /*public static readonly int[][] GemSpells =
         {
             ////Strength
             new int[] { 2, 1328, 1329, 1330, 1331, 1332, 2087, 4325 },
@@ -1475,9 +1469,9 @@ namespace ACE.Server.Factories
             new int[] { 1133, 1134, 1135, 1136, 1137, 1138, 2161, 4472 },
             ////Armor Self
             new int[] { 24, 1308, 1309, 1310, 1311, 1312, 2053, 4291 },
-        };
+        };*/
 
-        public static readonly int[][] MeleeSpells =
+        /*public static readonly int[][] MeleeSpells =
         {
             ////Strength
             new int[] { 2, 1328, 1329, 1330, 1331, 1332, 2087, 4325 },
@@ -1501,9 +1495,9 @@ namespace ACE.Server.Factories
             new int[] { 49, 1623, 1624, 1625, 1626, 1627, 2116, 4417 },
             ////Blooddrinker
             new int[] { 35, 1612, 1613, 1614, 1615, 1616, 2096, 4395 },
-        };
+        };*/
 
-        public static readonly int[][] MissileSpells =
+        /*public static readonly int[][] MissileSpells =
         {
             ////Strength
             new int[] { 2, 1328, 1329, 1330, 1331, 1332, 2087, 4325 },
@@ -1525,9 +1519,9 @@ namespace ACE.Server.Factories
             new int[] { 49, 1623, 1624, 1625, 1626, 1627, 2116, 4417 },
             ////Blooddrinker
             new int[] { 35, 1612, 1613, 1614, 1615, 1616, 2096, 4395 },
-        };
+        };*/
 
-        public static readonly int[][] ArmorCantrips =
+        /*public static readonly int[][] ArmorCantrips =
         {
             ////Strength
             new int[] { 2583, 2576, 3965, 6107},
@@ -1649,9 +1643,9 @@ namespace ACE.Server.Factories
             new int[] { 2620, 2613, 4677, 6084},
             ///Shield
             new int[] { 5886, 5891, 5896, 6069},
-        };
+        };*/
 
-        public static readonly int[][] JewelryCantrips =
+        /*public static readonly int[][] JewelryCantrips =
         {
             ////Invuln
             new int[] { 2550, 2515, 4696, 6055},
@@ -1749,9 +1743,9 @@ namespace ACE.Server.Factories
             new int[] { 2620, 2613, 4677, 6084},
             ///Shield
             new int[] { 5886, 5891, 5896, 6069},
-        };
+        };*/
 
-        public static readonly int[][] WandCantrips =
+        /*public static readonly int[][] WandCantrips =
         {
             ////Focus
             new int[] { 2581, 2574, 3964, 6105},
@@ -1777,9 +1771,9 @@ namespace ACE.Server.Factories
             new int[] { 3199, 3200, 6086, 6087},
             ////Spirit Thirst
             new int[] { 3251, 3250, 4670, 6098},
-        };
+        };*/
 
-        public static readonly int[][] MeleeCantrips =
+        /*public static readonly int[][] MeleeCantrips =
         {
             ////Strength
             new int[] { 2583, 2576, 3965, 6107},
@@ -1803,9 +1797,9 @@ namespace ACE.Server.Factories
             new int[] { 2608, 2596, 4672, 6100},
             ////Blooddrinker
             new int[] { 2598, 2586, 4661, 6089},
-        };
+        };*/
 
-        public static readonly int[][] MissileCantrips =
+        /*public static readonly int[][] MissileCantrips =
         {
             ////Strength
             new int[] { 2583, 2576, 3965, 6107},
@@ -1827,7 +1821,7 @@ namespace ACE.Server.Factories
             new int[] { 2608, 2596, 4672, 6100},
             ////Blooddrinker
             new int[] { 2598, 2586, 4661, 6089},
-        };
+        };*/
 
         public static readonly int[][] DefaultMaterial =
         {
@@ -1841,6 +1835,7 @@ namespace ACE.Server.Factories
 
         public enum ArmorType
         {
+            Undef,
             MiscClothing,
             Helms,
             Shields,
@@ -2294,7 +2289,7 @@ namespace ACE.Server.Factories
             44858  // Quartered Cloak
         };
 
-        public static readonly int[] CloakSpells =  // Cloak SpellIDs 12 of them (Damage Reduction is not a spell, but an Interger Property)
+        public static readonly int[] CloakSpells =  // Cloak SpellIDs 12 of them (Damage Reduction is not a spell, but an Integer Property)
         {
             1784,  // Horizon's Blades
             1789,  // Tectonic Rifts
@@ -2355,7 +2350,14 @@ namespace ACE.Server.Factories
         public static HashSet<int> EpicCantrips;
         public static HashSet<int> LegendaryCantrips;
 
-        private static List<int[][]> cantripTables = new List<int[][]>() { ArmorCantrips, JewelryCantrips, WandCantrips, MeleeCantrips, MissileCantrips };
+        private static List<SpellId[][]> cantripTables = new List<SpellId[][]>()
+        {
+            ArmorCantrips.Table,
+            JewelryCantrips.Table,
+            WandCantrips.Table,
+            MeleeCantrips.Table,
+            MissileCantrips.Table
+        };
 
         static LootTables()
         {
@@ -2372,7 +2374,7 @@ namespace ACE.Server.Factories
             foreach (var cantripTable in cantripTables)
             {
                 foreach (var category in cantripTable)
-                    table.Add(category[tier]);
+                    table.Add((int)category[tier]);
             }
         }
 

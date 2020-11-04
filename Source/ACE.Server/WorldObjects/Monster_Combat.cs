@@ -44,12 +44,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         ///  The time when monster started its last attack
         /// </summary>
-        public double PrevAttackTime;
+        public double PrevAttackTime { get; set; }
 
         /// <summary>
         /// The time when monster can perform its next attack
         /// </summary>
-        public double NextAttackTime;
+        public double NextAttackTime { get; set; }
 
         /// <summary>
         /// The time when monster can perform its next magic attack
@@ -103,15 +103,14 @@ namespace ACE.Server.WorldObjects
             if (CombatTable == null)
                 GetCombatTable();
 
+            // if caster, roll for spellcasting chance
+            if (IsCaster && TryRollSpell())
+                return CombatType.Magic;
+
             if (IsRanged)
                 return CombatType.Missile;
-
-            // if caster, roll for spellcasting chance
-            //if (!IsCaster || !RollCastMagic())
-            if (!IsCaster || TryRollSpell() == null)
-                return CombatType.Melee;
             else
-                return CombatType.Magic;
+                return CombatType.Melee;
         }
 
         /// <summary>
@@ -145,7 +144,16 @@ namespace ACE.Server.WorldObjects
                 NextAttackTime = nextTime;
 
             if (IsRanged)
-                NextAttackTime += 1.0f;
+            {
+                PrevAttackTime = NextAttackTime + MissileDelay - (AiUseMagicDelay ?? 3.0f);
+
+                NextAttackTime += MissileDelay;
+            }
+
+            if (NeverAttack)
+            {
+                PrevAttackTime = NextAttackTime = double.MaxValue - (AiUseMagicDelay ?? 3.0f);
+            }
 
             if (DebugMove)
                 Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - DoAttackStance - stanceTime: {stanceTime}, isAnimating: {IsAnimating}");
@@ -162,9 +170,7 @@ namespace ACE.Server.WorldObjects
             {
                 // select a magic spell
                 //CurrentSpell = GetRandomSpell();
-                var currentSpell = GetCurrentSpell();
-
-                if (currentSpell.IsProjectile)
+                if (CurrentSpell.IsProjectile)
                 {
                     // ensure direct los
                     if (!IsDirectVisible(AttackTarget))
@@ -256,8 +262,8 @@ namespace ACE.Server.WorldObjects
         public void ResetAttack()
         {
             // wait for missile to strike
-            if (CurrentAttack == CombatType.Missile)
-                return;
+            //if (CurrentAttack == CombatType.Missile)
+                //return;
 
             IsTurning = false;
             IsMoving = false;
@@ -406,6 +412,15 @@ namespace ACE.Server.WorldObjects
                 BPTableCache[wcid] = bpTable;
             }
             return bpTable;
+        }
+
+        /// <summary>
+        /// Flag indicates if a monster will aggro, but not attack
+        /// </summary>
+        public bool NeverAttack
+        {
+            get => GetProperty(PropertyBool.NeverAttack) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.NeverAttack); else SetProperty(PropertyBool.NeverAttack, value); }
         }
     }
 }

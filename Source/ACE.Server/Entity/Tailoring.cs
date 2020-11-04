@@ -227,7 +227,7 @@ namespace ACE.Server.Entity
             target.ClothingBase = source.ClothingBase;
 
             target.Name = source.Name;
-            target.LongDesc = source.LongDesc;
+            target.LongDesc = LootGenerationFactory.GetLongDesc(target);
 
             target.IgnoreCloIcons = source.IgnoreCloIcons;
             target.IconId = source.IconId;

@@ -93,14 +93,7 @@ namespace ACE.Server.WorldObjects
 
                     if (damageEvent.HasDamage)
                     {
-                        if (combatPet != null || targetPet != null)
-                        {
-                            // combat pet inflicting or receiving damage
-                            //Console.WriteLine($"{target.Name} taking {Math.Round(damage)} {damageType} damage from {Name}");
-                            target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage);
-                            EmitSplatter(target, damageEvent.Damage);
-                        }
-                        else if (targetPlayer != null)
+                        if (targetPlayer != null)
                         {
                             // this is a player taking damage
                             targetPlayer.TakeDamage(this, damageEvent);
@@ -111,12 +104,21 @@ namespace ACE.Server.WorldObjects
                                 Proficiency.OnSuccessUse(targetPlayer, shieldSkill, shieldSkill.Current); // ?
                             }
                         }
+                        else if (combatPet != null || targetPet != null || Faction1Bits != null || target.Faction1Bits != null)
+                        {
+                            // combat pet inflicting or receiving damage
+                            //Console.WriteLine($"{target.Name} taking {Math.Round(damage)} {damageType} damage from {Name}");
+                            target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage);
+                            EmitSplatter(target, damageEvent.Damage);
+                        }
                     }
                     else
                         target.OnEvade(this, CombatType.Melee);
 
                     if (combatPet != null)
                         combatPet.PetOnAttackMonster(target);
+                    else if (targetPlayer == null)
+                        MonsterOnAttackMonster(target);
                 });
             }
             actionChain.EnqueueChain();
@@ -159,7 +161,7 @@ namespace ACE.Server.WorldObjects
                 return null;
             }
 
-            var stanceKey = (uint)CurrentMotionState.Stance << 16 | ((uint)MotionCommand.Ready & 0xFFFFF);
+            var stanceKey = (uint)CurrentMotionState.Stance << 16 | ((uint)MotionCommand.Ready & 0xFFFFFF);
             motionTable.Links.TryGetValue(stanceKey, out var motions);
             if (motions == null)
             {
@@ -303,13 +305,18 @@ namespace ACE.Server.WorldObjects
 
         private static readonly ConcurrentDictionary<AttackFrameParams, bool> missingAttackFrames = new ConcurrentDictionary<AttackFrameParams, bool>();
 
+        private bool moveBit;
+
         /// <summary>
         /// Perform the melee attack swing animation
         /// </summary>
         public void DoSwingMotion(WorldObject target, MotionCommand motionCommand, out float animLength, out List<float> attackFrames)
         {
-            if (ForcePos)
-                SendUpdatePosition();
+            if (!moveBit)
+            {
+                SendUpdatePosition(true);
+                moveBit = true;
+            }
 
             //Console.WriteLine($"{maneuver.Style} - {maneuver.Motion} - {maneuver.AttackHeight}");
 
@@ -489,7 +496,7 @@ namespace ACE.Server.WorldObjects
             effectiveRL = Math.Clamp(effectiveRL, -2.0f, 2.0f);
 
             // TODO: could brittlemail / lures send a piece of armor or clothing's AL into the negatives?
-            //if (effectiveAL < 0)
+            //if (effectiveAL < 0 && effectiveRL != 0)
                 //effectiveRL = 1.0f / effectiveRL;
 
             /*Console.WriteLine("Effective AL: " + effectiveAL);
