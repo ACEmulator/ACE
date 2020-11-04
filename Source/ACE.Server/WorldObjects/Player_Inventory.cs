@@ -842,6 +842,7 @@ namespace ACE.Server.WorldObjects
         public void HandleActionPutItemInContainer(uint itemGuid, uint containerGuid, int placement = 0)
         {
             //Console.WriteLine($"{Name}.HandleActionPutItemInContainer({itemGuid:X8}, {containerGuid:X8}, {placement})");
+
             if (!HandleActionPutItemInContainer_Verify(itemGuid, containerGuid, placement,
                 out Container itemRootOwner, out WorldObject item, out Container containerRootOwner, out Container container, out bool itemWasEquipped))
             {
@@ -1077,7 +1078,7 @@ namespace ACE.Server.WorldObjects
 
         private bool DoHandleActionPutItemInContainer(WorldObject item, Container itemRootOwner, bool itemWasEquipped, Container container, Container containerRootOwner, int placement)
         {
-            //Console.WriteLine($"-> DoHandleActionPutItemInContainer({item.Name}, {container.Name}, {itemWasEquipped}, {placement})");
+            //Console.WriteLine($"-> DoHandleActionPutItemInContainer({item.Name}, {itemRootOwner?.Name}, {itemWasEquipped}, {container?.Name}, {containerRootOwner?.Name}, {placement})");
 
             Position prevLocation = null;
             Landblock prevLandblock = null;
@@ -1397,7 +1398,7 @@ namespace ACE.Server.WorldObjects
 
         private bool DoHandleActionGetAndWieldItem(WorldObject item, Container itemRootOwner, bool wasEquipped, EquipMask wieldedLocation)
         {
-            //Console.WriteLine($"DoHandleActionGetAndWieldItem({item.Name}, {wieldedLocation}, {wasEquipped})");
+            //Console.WriteLine($"-> DoHandleActionGetAndWieldItem({item.Name}, {itemRootOwner?.Name}, {wasEquipped}, {wieldedLocation})");
 
             var wieldError = CheckWieldRequirements(item);
 
@@ -1421,22 +1422,24 @@ namespace ACE.Server.WorldObjects
 
                 mainWeapon = mainWeapon ?? GetEquippedMissileWeapon() ?? GetEquippedWand();
 
+                // special case: instead of sending the typical DequipItem -> GetAndWieldItem here,
+                // the client just sends GetAndWieldItem
+
                 if (mainWeapon != null)
                 {
-                    if (!TryDequipObjectWithNetworking(mainWeapon.Guid, out var dequippedItem, DequipObjectAction.DequipToPack))
+                    if (CombatMode != CombatMode.NonCombat)
                     {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to dequip existing weapon!")); // Custom error message
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
-                        return false;
+                        HandleActionChangeCombatMode(CombatMode.Melee, true, () =>
+                        {
+                            if (!DoHandleActionGetAndWieldItem_DequipItemToInventory(mainWeapon, item))
+                                return;
+
+                            DoHandleActionGetAndWieldItem(item, itemRootOwner, wasEquipped, wieldedLocation);
+                        });
+                        return true;
                     }
-
-                    if (!TryCreateInInventoryWithNetworking(dequippedItem))
+                    else if (!DoHandleActionGetAndWieldItem_DequipItemToInventory(mainWeapon, item))
                     {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to add dequip back into inventory!")); // Custom error message
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
-
-                        // todo: if this happens, we should just put back the dequipped item to where it was
-
                         return false;
                     }
                 }
@@ -1447,22 +1450,24 @@ namespace ACE.Server.WorldObjects
             {
                 var dualWield = GetDualWieldWeapon();
 
+                // special case: instead of sending the typical DequipItem -> GetAndWieldItem here,
+                // the client just sends GetAndWieldItem
+
                 if (dualWield != null)
                 {
-                    if (!TryDequipObjectWithNetworking(dualWield.Guid, out var dequippedItem, DequipObjectAction.DequipToPack))
+                    if (CombatMode != CombatMode.NonCombat)
                     {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to dequip existing weapon!")); // Custom error message
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
-                        return false;
+                        HandleActionChangeCombatMode(CombatMode.Melee, true, () =>
+                        {
+                            if (!DoHandleActionGetAndWieldItem_DequipItemToInventory(dualWield, item))
+                                return;
+
+                            DoHandleActionGetAndWieldItem(item, itemRootOwner, wasEquipped, wieldedLocation);
+                        });
+                        return true;
                     }
-
-                    if (!TryCreateInInventoryWithNetworking(dequippedItem))
+                    else if (!DoHandleActionGetAndWieldItem_DequipItemToInventory(dualWield, item))
                     {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to add dequip back into inventory!")); // Custom error message
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
-
-                        // todo: if this happens, we should just put back the dequipped item to where it was
-
                         return false;
                     }
                 }
@@ -1587,6 +1592,27 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
+            return true;
+        }
+
+        private bool DoHandleActionGetAndWieldItem_DequipItemToInventory(WorldObject mainWeapon, WorldObject item)
+        {
+            if (!TryDequipObjectWithNetworking(mainWeapon.Guid, out var dequippedItem, DequipObjectAction.DequipToPack))
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to dequip existing weapon!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                return false;
+            }
+
+            if (!TryCreateInInventoryWithNetworking(dequippedItem))
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to add dequip back into inventory!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+
+                // todo: if this happens, we should just put back the dequipped item to where it was
+
+                return false;
+            }
             return true;
         }
 
