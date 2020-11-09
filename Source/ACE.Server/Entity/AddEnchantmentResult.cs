@@ -96,10 +96,20 @@ namespace ACE.Server.Entity
                         var spellDuration = equip ? double.PositiveInfinity : spell.Duration;
                         var entryDuration = entry.Duration == -1 ? double.PositiveInfinity : entry.Duration;
 
-                        if (spellDuration >= entryDuration)
+                        if (spellDuration > entryDuration)
                             Surpass.Add(entry);
-                        else
+                        else if (spellDuration < entryDuration)
                             Surpassed.Add(entry);
+                        else
+                        {
+                            // fallback on spell id, for overlapping set spells in multiple sets, where the different 'level' names each have the same spellLevel and powerLevel?
+                            // ie. for Gauntlet Damage Boost I and II
+                            // this bug still exists in acclient visual enchantment display, unknown whether this bug existed on retail server
+                            if (spell.Id > entry.SpellId)
+                                Surpass.Add(entry);
+                            else
+                                Surpassed.Add(entry);
+                        }
                     }
                 }
                 else if (powerLevel < entry.PowerLevel)
