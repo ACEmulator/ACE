@@ -433,7 +433,7 @@ namespace ACE.Server.Managers
                     break;
                 case MaterialType.Copper:
 
-                    if (target.ItemSkillLimit != Skill.MissileDefense)
+                    if (target.ItemSkillLimit != Skill.MissileDefense || target.ItemSkillLevelLimit == null)
                         return;
 
                     // change activation requirement: missile defense -> melee defense
@@ -443,7 +443,7 @@ namespace ACE.Server.Managers
 
                 case MaterialType.Silver:
 
-                    if (target.ItemSkillLimit != Skill.MeleeDefense)
+                    if (target.ItemSkillLimit != Skill.MeleeDefense || target.ItemSkillLevelLimit == null)
                         return;
 
                     // change activation requirement: melee defense -> missile defense
