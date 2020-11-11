@@ -226,6 +226,14 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns TRUE if playerGuid is a member
+        /// </summary>
+        public bool IsMember(ObjectGuid playerGuid)
+        {
+            return Members.ContainsKey(playerGuid);
+        }
+
+        /// <summary>
         /// Returns TRUE if playerGuid is an officer
         /// </summary>
         public bool IsOfficer(ObjectGuid playerGuid)
