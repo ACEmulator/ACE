@@ -20,4 +20,3 @@ Tier chances: 0, 0, 0, 0, 0, 0, 0, 1
         WieldRequirements = Level
         WieldDifficulty = 180
         WieldSkillType = 1
-
