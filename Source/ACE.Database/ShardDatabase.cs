@@ -206,8 +206,6 @@ namespace ACE.Database
 
             PopulatedCollectionFlags populatedCollectionFlags = (PopulatedCollectionFlags)biota.PopulatedCollectionFlags;
 
-            // todo: There are gains to be had here if we can conditionally perform mulitple .Include (.Where) statements in a single query.
-            // todo: Until I figure out how to do that, this is still pretty good. Mag-nus 2018-08-10
             if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAnimPart)) biota.BiotaPropertiesAnimPart = context.BiotaPropertiesAnimPart.Where(r => r.ObjectId == biota.Id).ToList();
             if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAttribute)) biota.BiotaPropertiesAttribute = context.BiotaPropertiesAttribute.Where(r => r.ObjectId == biota.Id).ToList();
             if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAttribute2nd)) biota.BiotaPropertiesAttribute2nd = context.BiotaPropertiesAttribute2nd.Where(r => r.ObjectId == biota.Id).ToList();
@@ -595,13 +593,6 @@ namespace ACE.Database
             var context = new ShardDbContext();
 
             var result = context.Character
-                //.Include(r => r.CharacterPropertiesContract)
-                //.Include(r => r.CharacterPropertiesFillCompBook)
-                //.Include(r => r.CharacterPropertiesFriendList)
-                //.Include(r => r.CharacterPropertiesQuestRegistry)
-                //.Include(r => r.CharacterPropertiesShortcutBar)
-                //.Include(r => r.CharacterPropertiesSpellBar)
-                //.Include(r => r.CharacterPropertiesTitleBook)
                 .FirstOrDefault(r => r.Name == name.ToLower() && !r.IsDeleted);
 
             return result;
@@ -612,13 +603,6 @@ namespace ACE.Database
             var context = new ShardDbContext();
 
             var result = context.Character
-                //.Include(r => r.CharacterPropertiesContract)
-                //.Include(r => r.CharacterPropertiesFillCompBook)
-                //.Include(r => r.CharacterPropertiesFriendList)
-                //.Include(r => r.CharacterPropertiesQuestRegistry)
-                //.Include(r => r.CharacterPropertiesShortcutBar)
-                //.Include(r => r.CharacterPropertiesSpellBar)
-                //.Include(r => r.CharacterPropertiesTitleBook)
                 .FirstOrDefault(r => r.Id == guid);
 
             return result;
