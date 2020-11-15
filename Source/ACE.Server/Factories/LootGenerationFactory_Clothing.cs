@@ -120,6 +120,12 @@ namespace ACE.Server.Factories
                     };
                 }
             }
+            else if (profile.Tier > 6 && !wo.HasArmorLevel())
+            {
+                // normally this is handled in the mutation script for armor
+                // for clothing, just calling the generic method here
+                RollWieldLevelReq_T7_T8(wo, profile);
+            }
 
             if (roll == null)
                 AssignArmorLevel(wo, profile.Tier, armorType);
