@@ -150,6 +150,11 @@ namespace ACE.Server.WorldObjects
                 NextAttackTime += MissileDelay;
             }
 
+            if (NeverAttack)
+            {
+                PrevAttackTime = NextAttackTime = double.MaxValue - (AiUseMagicDelay ?? 3.0f);
+            }
+
             if (DebugMove)
                 Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - DoAttackStance - stanceTime: {stanceTime}, isAnimating: {IsAnimating}");
 
@@ -407,6 +412,15 @@ namespace ACE.Server.WorldObjects
                 BPTableCache[wcid] = bpTable;
             }
             return bpTable;
+        }
+
+        /// <summary>
+        /// Flag indicates if a monster will aggro, but not attack
+        /// </summary>
+        public bool NeverAttack
+        {
+            get => GetProperty(PropertyBool.NeverAttack) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.NeverAttack); else SetProperty(PropertyBool.NeverAttack, value); }
         }
     }
 }

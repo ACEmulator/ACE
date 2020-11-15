@@ -40,9 +40,9 @@ namespace ACE.Server.Factories
         private static void MutateJewelry(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureRoll roll = null)
         {
             // material type
-            int materialType = GetMaterialType(wo, profile.Tier);
+            var materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
-                wo.MaterialType = (MaterialType)materialType;
+                wo.MaterialType = materialType;
 
             // item color
             MutateColor(wo);
@@ -58,19 +58,9 @@ namespace ACE.Server.Factories
             // workmanship
             wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
-            // wield requirements (verify)
+            // wield level requirement for t7+
             if (profile.Tier > 6)
-            {
-                wo.WieldRequirements = WieldRequirement.Level;
-                wo.WieldSkillType = (int)Skill.Axe;  // Set by examples from PCAP data
-
-                var wield = profile.Tier switch
-                {
-                    7 => 150,// In this instance, used for indicating player level, rather than skill level
-                    _ => 180,// In this instance, used for indicating player level, rather than skill level
-                };
-                wo.WieldDifficulty = wield;
-            }
+                RollWieldLevelReq_T7_T8(wo, profile);
 
             // assign magic
             if (isMagical)
@@ -90,7 +80,8 @@ namespace ACE.Server.Factories
                 TryMutateGearRating(wo, profile, roll);
 
             // item value
-            wo.Value = Roll_ItemValue(wo, profile.Tier);
+            //  if (wo.HasMutateFilter(MutateFilter.Value))     // fixme: data
+                MutateValue(wo, profile.Tier, roll);
 
             wo.LongDesc = GetLongDesc(wo);
         }

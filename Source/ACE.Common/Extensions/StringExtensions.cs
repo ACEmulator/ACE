@@ -20,8 +20,13 @@ namespace ACE.Common.Extensions
         /// </summary>
         public static string Pluralize(this string name)
         {
-            if (name.EndsWith("ch") || name.EndsWith("s") || name.EndsWith("sh") || name.EndsWith("x") || name.EndsWith("z"))
+            if (name.EndsWith("us"))
+                return name + "s"; // This should be i but pcap shows "You have killed 4 Sarcophaguss! Your task is complete!"
+                //return name.Substring(0, name.Length - 2) + "i"; // "You have killed 4 Sarcophagi! Your task is complete!"
+            else if (name.EndsWith("ch") || name.EndsWith("s") || name.EndsWith("sh") || name.EndsWith("x") || name.EndsWith("z"))
                 return name + "es";
+            else if (name.EndsWith("th"))
+                return name;
             else
                 return name + "s";
         }

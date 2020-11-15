@@ -4,6 +4,7 @@ using System.Linq;
 using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
@@ -60,13 +61,14 @@ namespace ACE.Server.Factories
 
                 wo.UiEffects = UiEffects.Magical;
                 wo.ItemUseable = Usable.Contained;
-
-                wo.LongDesc = GetLongDesc(wo);
             }
 
-            // item value, review
-            var gemValue = LootTables.gemValues[(int)wo.MaterialType];
-            wo.Value = gemValue + ThreadSafeRandom.Next(1, gemValue);
+            // item value
+            if (wo.HasMutateFilter(MutateFilter.Value))
+                MutateValue(wo, profile.Tier, roll);
+
+            // long desc
+            wo.LongDesc = GetLongDesc(wo);
         }
 
         private static void AssignMagic_Gem(WorldObject wo, TreasureDeath profile)
@@ -142,7 +144,11 @@ namespace ACE.Server.Factories
 
         private static void MutateValue_Gem(WorldObject wo)
         {
-            wo.Value = (int)(wo.Value * MaterialTable.GetValueMod(wo.MaterialType) * wo.ItemWorkmanship);
+            var materialMod = MaterialTable.GetValueMod(wo.MaterialType);
+
+            var workmanshipMod = WorkmanshipChance.GetModifier(wo.ItemWorkmanship);
+
+            wo.Value = (int)(wo.Value * materialMod * workmanshipMod);
         }
     }
 }

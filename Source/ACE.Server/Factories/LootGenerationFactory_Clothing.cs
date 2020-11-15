@@ -70,9 +70,9 @@ namespace ACE.Server.Factories
         private static void MutateArmor(WorldObject wo, TreasureDeath profile, bool isMagical, LootTables.ArmorType armorType, TreasureRoll roll = null)
         {
             // material type
-            int materialType = GetMaterialType(wo, profile.Tier);
+            var materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
-                wo.MaterialType = (MaterialType)materialType;
+                wo.MaterialType = materialType;
 
             // item color
             MutateColor(wo);
@@ -88,8 +88,8 @@ namespace ACE.Server.Factories
             // workmanship
             wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
-            // try mutate burden, if MutateFilter exists
-            if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))
+            // burden
+            if (wo.HasMutateFilter(MutateFilter.EncumbranceVal))  // fixme: data
                 MutateBurden(wo, profile, false);
 
             if (roll == null)
@@ -120,6 +120,12 @@ namespace ACE.Server.Factories
                     };
                 }
             }
+            else if (profile.Tier > 6 && !wo.HasArmorLevel())
+            {
+                // normally this is handled in the mutation script for armor
+                // for clothing, just calling the generic method here
+                RollWieldLevelReq_T7_T8(wo, profile);
+            }
 
             if (roll == null)
                 AssignArmorLevel(wo, profile.Tier, armorType);
@@ -149,7 +155,8 @@ namespace ACE.Server.Factories
                 TryMutateGearRating(wo, profile, roll);
 
             // item value
-            wo.Value = Roll_ItemValue(wo, profile.Tier);
+            //if (wo.HasMutateFilter(MutateFilter.Value))   // fixme: data
+                MutateValue(wo, profile.Tier, roll);
 
             wo.LongDesc = GetLongDesc(wo);
         }
@@ -712,9 +719,9 @@ namespace ACE.Server.Factories
         {
             // why is this a separate method??
 
-            int materialType = GetMaterialType(wo, profile.Tier);
+            var materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
-                wo.MaterialType = (MaterialType)materialType;
+                wo.MaterialType = materialType;
 
             if (wo.GemCode != null)
                 wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
@@ -817,11 +824,12 @@ namespace ACE.Server.Factories
             // workmanship
             wo.Workmanship = WorkmanshipChance.Roll(profile.Tier);
 
-            // item value
-            wo.Value = Roll_ItemValue(wo, profile.Tier);
-
             if (roll != null && profile.Tier == 8)
                 TryMutateGearRating(wo, profile, roll);
+
+            // item value
+            //if (wo.HasMutateFilter(MutateFilter.Value))
+                MutateValue(wo, profile.Tier, roll);
         }
 
         private static int RollCloak_ItemMaxLevel(TreasureDeath profile)
@@ -889,6 +897,26 @@ namespace ACE.Server.Factories
         private static bool GetMutateCloakData(uint wcid)
         {
             return LootTables.Cloaks.Contains((int)wcid);
+        }
+
+        private static void MutateValue_Armor(WorldObject wo)
+        {
+            var bulkMod = wo.BulkMod ?? 1.0f;
+            var sizeMod = wo.SizeMod ?? 1.0f;
+
+            var armorLevel = wo.ArmorLevel ?? 0;
+
+            // from the py16 mutation scripts
+            //wo.Value += (int)(armorLevel * armorLevel / 10.0f * bulkMod * sizeMod);
+
+            // still probably not how retail did it
+            // modified for armor values to match closer to retail pcaps
+            var minRng = (float)Math.Min(bulkMod, sizeMod);
+            var maxRng = (float)Math.Max(bulkMod, sizeMod);
+
+            var rng = ThreadSafeRandom.Next(minRng, maxRng);
+
+            wo.Value += (int)(armorLevel * armorLevel / 10.0f * rng);
         }
 
         private static void MutateArmorModVsType(WorldObject wo, TreasureDeath profile)

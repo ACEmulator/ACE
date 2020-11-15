@@ -4,6 +4,7 @@ using System.Linq;
 using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
@@ -33,7 +34,7 @@ namespace ACE.Server.Factories
             // dinnerware did not have its Damage / DamageVariance / WeaponSpeed mutated
 
             // material type
-            wo.MaterialType = (MaterialType)GetMaterialType(wo, profile.Tier);
+            wo.MaterialType = GetMaterialType(wo, profile.Tier);
 
             // item color
             MutateColor(wo);
@@ -54,8 +55,10 @@ namespace ACE.Server.Factories
                 AssignMagic(wo, profile, roll);
 
             // item value
-            MutateDinnerware_ItemValue(wo);
+            if (wo.HasMutateFilter(MutateFilter.Value))
+                MutateValue(wo, profile.Tier, roll);
 
+            // long desc
             wo.LongDesc = GetLongDesc(wo);
         }
 
