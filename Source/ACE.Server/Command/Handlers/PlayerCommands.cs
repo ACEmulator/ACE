@@ -104,7 +104,7 @@ namespace ACE.Server.Command.Handlers
             // show confirmation popup
             if (!confirmed)
             {
-                var houseType = $"{keepHouse.HouseType}".ToLower(); ;
+                var houseType = $"{keepHouse.HouseType}".ToLower();
                 var loc = HouseManager.GetCoords(keepHouse.SlumLord.Location);
 
                 var msg = $"Are you sure you want to keep the {houseType} at\n{loc}?";
