@@ -62,7 +62,10 @@ namespace ACE.Database.Models.Shard
             {
                 var config = Common.ConfigManager.Config.MySql.Shard;
 
-                optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
+                optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}", builder =>
+                {
+                    builder.EnableRetryOnFailure(10);
+                });
             }
 
             optionsBuilder.EnableSensitiveDataLogging(true);
