@@ -7,6 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Server", "ACE.Server\AC
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root items", "root items", "{1BA67CED-4F8D-433A-90E1-9871DD6A31EF}"
 	ProjectSection(SolutionItems) = preProject
+		..\.editorconfig = ..\.editorconfig
 		..\appveyor.yml = ..\appveyor.yml
 		..\changelog.md = ..\changelog.md
 		..\README.md = ..\README.md
@@ -23,6 +24,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4B0075B4-AC3B-4A20-901E-8D8F3C8C65CF}"
 	ProjectSection(SolutionItems) = preProject
 		..\.gitignore = ..\.gitignore
+		global.json = global.json
 		Settings.StyleCop = Settings.StyleCop
 		test.runsettings = test.runsettings
 	EndProjectSection
@@ -49,6 +51,10 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Debug|x64.ActiveCfg = Debug|x64
+		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Debug|x64.Build.0 = Debug|x64
+		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Release|x64.ActiveCfg = Release|x64
+		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Release|x64.Build.0 = Release|x64
 		{D50B690B-0664-48BD-9D5A-B26B0D869D63}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{D50B690B-0664-48BD-9D5A-B26B0D869D63}.Debug|x64.Build.0 = Debug|Any CPU
 		{D50B690B-0664-48BD-9D5A-B26B0D869D63}.Release|x64.ActiveCfg = Release|Any CPU
@@ -77,10 +83,6 @@ Global
 		{CD2B6DEE-6809-458A-B45A-E0B0BD1308FE}.Debug|x64.Build.0 = Debug|Any CPU
 		{CD2B6DEE-6809-458A-B45A-E0B0BD1308FE}.Release|x64.ActiveCfg = Release|Any CPU
 		{CD2B6DEE-6809-458A-B45A-E0B0BD1308FE}.Release|x64.Build.0 = Release|Any CPU
-		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Debug|x64.ActiveCfg = Debug|x64
-		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Debug|x64.Build.0 = Debug|x64
-		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Release|x64.ActiveCfg = Release|x64
-		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Release|x64.Build.0 = Release|x64
 		{3C925D75-B149-4898-8806-054D3E63A4BE}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{3C925D75-B149-4898-8806-054D3E63A4BE}.Debug|x64.Build.0 = Debug|Any CPU
 		{3C925D75-B149-4898-8806-054D3E63A4BE}.Release|x64.ActiveCfg = Release|Any CPU
