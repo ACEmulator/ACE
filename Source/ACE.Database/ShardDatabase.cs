@@ -245,6 +245,8 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
             {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
                 var results = context.Biota.Where(r => r.WeenieClassId == wcid);
 
                 var biotas = new List<Biota>();
@@ -263,6 +265,8 @@ namespace ACE.Database
             // warning: this query is currently unindexed!
             using (var context = new ShardDbContext())
             {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
                 var iType = (int)type;
 
                 var results = context.Biota.Where(r => r.WeenieType == iType);
