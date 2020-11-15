@@ -76,7 +76,7 @@ namespace ACE.Database.Models.World
             {
                 var config = Common.ConfigManager.Config.MySql.World;
 
-                optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
+                optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database};TreatTinyAsBoolean=False");
             }
 
             optionsBuilder.EnableSensitiveDataLogging(true);
