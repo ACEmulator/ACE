@@ -54,12 +54,12 @@ namespace ACE.Database
         /// </summary>
         public virtual Weenie GetWeenie(WorldDbContext context, uint weenieClassId)
         {
-            // Base properties for every weenie (ACBaseQualities)
             var weenie = context.Weenie.FirstOrDefault(r => r.ClassId == weenieClassId);
 
             if (weenie == null)
                 return null;
 
+            // Base properties for every weenie (ACBaseQualities)
             weenie.WeeniePropertiesBool = context.WeeniePropertiesBool.Where(r => r.ObjectId == weenie.ClassId).ToList();
             weenie.WeeniePropertiesDID = context.WeeniePropertiesDID.Where(r => r.ObjectId == weenie.ClassId).ToList();
             weenie.WeeniePropertiesFloat = context.WeeniePropertiesFloat.Where(r => r.ObjectId == weenie.ClassId).ToList();
