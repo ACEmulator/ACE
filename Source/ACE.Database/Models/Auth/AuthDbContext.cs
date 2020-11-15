@@ -24,7 +24,10 @@ namespace ACE.Database.Models.Auth
             {
                 var config = Common.ConfigManager.Config.MySql.Authentication;
 
-                optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database};TreatTinyAsBoolean=False");
+                optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database};TreatTinyAsBoolean=False", builder =>
+                {
+                    builder.EnableRetryOnFailure(10);
+                });
             }
 
 #if EFAUTHDEBUG

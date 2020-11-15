@@ -345,7 +345,7 @@ namespace ACE.Database
 
                 Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
-                    PurgeCharacter(result, out var charactersPurged, out var playerBiotasPurged, out var posessionsPurged, "No Player biota counterpart found");
+                    PurgeCharacter(result, out var charactersPurged, out var playerBiotasPurged, out var possessionPurged, "No Player biota counterpart found");
 
                     if (charactersPurged != 1)
                         log.Error("[DATABASE][PURGE] PurgeOrphanedBiotasInParallel failed to purge exactly 1 character. This should not happen!");
@@ -355,7 +355,7 @@ namespace ACE.Database
 
                     Interlocked.Add(ref totalNumberOfBiotasPurged, charactersPurged);
                     Interlocked.Add(ref totalNumberOfBiotasPurged, playerBiotasPurged);
-                    Interlocked.Add(ref totalNumberOfBiotasPurged, posessionsPurged);
+                    Interlocked.Add(ref totalNumberOfBiotasPurged, possessionPurged);
                 });
             }
 
@@ -390,7 +390,7 @@ namespace ACE.Database
 
                 Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
-                    PurgePlayer(result, out var charactersPurged, out var playerBiotasPurged, out var posessionsPurged, "No Character record counterpart found");
+                    PurgePlayer(result, out var charactersPurged, out var playerBiotasPurged, out var possessionPurged, "No Character record counterpart found");
 
                     if (charactersPurged != 0)
                         log.Error("[DATABASE][PURGE] PurgeOrphanedBiotasInParallel purged a character record and a player biota. This should not happen!");
@@ -400,7 +400,7 @@ namespace ACE.Database
 
                     Interlocked.Add(ref totalNumberOfBiotasPurged, charactersPurged);
                     Interlocked.Add(ref totalNumberOfBiotasPurged, playerBiotasPurged);
-                    Interlocked.Add(ref totalNumberOfBiotasPurged, posessionsPurged);
+                    Interlocked.Add(ref totalNumberOfBiotasPurged, possessionPurged);
                 });
             }
 
