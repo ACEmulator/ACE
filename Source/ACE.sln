@@ -7,22 +7,33 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Server", "ACE.Server\AC
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root items", "root items", "{1BA67CED-4F8D-433A-90E1-9871DD6A31EF}"
 	ProjectSection(SolutionItems) = preProject
+		..\.editorconfig = ..\.editorconfig
+		..\.gitattributes = ..\.gitattributes
+		..\.gitignore = ..\.gitignore
 		..\appveyor.yml = ..\appveyor.yml
 		..\changelog.md = ..\changelog.md
+		..\CODE_OF_CONDUCT.md = ..\CODE_OF_CONDUCT.md
+		..\Git 101.md = ..\Git 101.md
+		..\LICENSE = ..\LICENSE
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AppVeyor", "AppVeyor", "{27B511EF-7B73-4345-AF4D-9C44DB478080}"
 	ProjectSection(SolutionItems) = preProject
-		AppVeyor\AppVeyorBeforeCompile.bat = AppVeyor\AppVeyorBeforeCompile.bat
-		AppVeyor\Config.js = AppVeyor\Config.js
-		AppVeyor\launcher_config.json = AppVeyor\launcher_config.json
-		AppVeyor\MySqlInstall.bat = AppVeyor\MySqlInstall.bat
+		..\AppVeyor\AppVeyorAfterCompile.bat = ..\AppVeyor\AppVeyorAfterCompile.bat
+		..\AppVeyor\AppVeyorAfterDeploy.bat = ..\AppVeyor\AppVeyorAfterDeploy.bat
+		..\AppVeyor\AppVeyorBeforeCompile.bat = ..\AppVeyor\AppVeyorBeforeCompile.bat
+		..\AppVeyor\AppVeyorBeforePackage.bat = ..\AppVeyor\AppVeyorBeforePackage.bat
+		..\AppVeyor\AppVeyorTestScript.bat = ..\AppVeyor\AppVeyorTestScript.bat
+		..\AppVeyor\Config.js = ..\AppVeyor\Config.js
+		..\AppVeyor\DownloadACEWorld.bat = ..\AppVeyor\DownloadACEWorld.bat
+		..\AppVeyor\launcher_config.json = ..\AppVeyor\launcher_config.json
+		..\AppVeyor\MySqlInstall.bat = ..\AppVeyor\MySqlInstall.bat
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4B0075B4-AC3B-4A20-901E-8D8F3C8C65CF}"
 	ProjectSection(SolutionItems) = preProject
-		..\.gitignore = ..\.gitignore
+		global.json = global.json
 		Settings.StyleCop = Settings.StyleCop
 		test.runsettings = test.runsettings
 	EndProjectSection
@@ -43,12 +54,25 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Database", "ACE.Databas
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Adapter", "ACE.Adapter\ACE.Adapter.csproj", "{3C925D75-B149-4898-8806-054D3E63A4BE}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{60DC64AE-6588-4FCA-955A-76F4512749BD}"
+	ProjectSection(SolutionItems) = preProject
+		..\docker-compose.arm64 = ..\docker-compose.arm64
+		..\docker-compose.yml = ..\docker-compose.yml
+		..\docker.env = ..\docker.env
+		..\Dockerfile = ..\Dockerfile
+		..\Dockerfile.arm64 = ..\Dockerfile.arm64
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Debug|x64.ActiveCfg = Debug|x64
+		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Debug|x64.Build.0 = Debug|x64
+		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Release|x64.ActiveCfg = Release|x64
+		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Release|x64.Build.0 = Release|x64
 		{D50B690B-0664-48BD-9D5A-B26B0D869D63}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{D50B690B-0664-48BD-9D5A-B26B0D869D63}.Debug|x64.Build.0 = Debug|Any CPU
 		{D50B690B-0664-48BD-9D5A-B26B0D869D63}.Release|x64.ActiveCfg = Release|Any CPU
@@ -77,10 +101,6 @@ Global
 		{CD2B6DEE-6809-458A-B45A-E0B0BD1308FE}.Debug|x64.Build.0 = Debug|Any CPU
 		{CD2B6DEE-6809-458A-B45A-E0B0BD1308FE}.Release|x64.ActiveCfg = Release|Any CPU
 		{CD2B6DEE-6809-458A-B45A-E0B0BD1308FE}.Release|x64.Build.0 = Release|Any CPU
-		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Debug|x64.ActiveCfg = Debug|x64
-		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Debug|x64.Build.0 = Debug|x64
-		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Release|x64.ActiveCfg = Release|x64
-		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Release|x64.Build.0 = Release|x64
 		{3C925D75-B149-4898-8806-054D3E63A4BE}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{3C925D75-B149-4898-8806-054D3E63A4BE}.Debug|x64.Build.0 = Debug|Any CPU
 		{3C925D75-B149-4898-8806-054D3E63A4BE}.Release|x64.ActiveCfg = Release|Any CPU
