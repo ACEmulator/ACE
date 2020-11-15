@@ -1028,7 +1028,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 sqlCommands = sqlCommands.Substring(0, idx);
 
             using (var ctx = new WorldDbContext())
-                ctx.Database.ExecuteSqlCommand(sqlCommands);
+                ctx.Database.ExecuteSqlRaw(sqlCommands);
         }
 
         public static LandblockInstanceWriter LandblockInstanceWriter;
@@ -1268,7 +1268,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 File.Delete(sqlFilename);
 
                 using (var ctx = new WorldDbContext())
-                    ctx.Database.ExecuteSqlCommand($"DELETE FROM landblock_instance WHERE landblock={landblock};");
+                    ctx.Database.ExecuteSqlRaw($"DELETE FROM landblock_instance WHERE landblock={landblock};");
             }
 
             // clear landblock instances for this landblock (again)
@@ -1641,7 +1641,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 File.Delete(sqlFilename);
 
                 using (var ctx = new WorldDbContext())
-                    ctx.Database.ExecuteSqlCommand($"DELETE FROM encounter WHERE landblock={landblock};");
+                    ctx.Database.ExecuteSqlRaw($"DELETE FROM encounter WHERE landblock={landblock};");
             }
 
             // clear the encounters for this landblock (again)

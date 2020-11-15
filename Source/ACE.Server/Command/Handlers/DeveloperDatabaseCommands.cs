@@ -64,7 +64,7 @@ namespace ACE.Server.Command.Handlers
             using (var ctx = new ShardDbContext())
             {
                 var results = ctx.CharacterPropertiesShortcutBar
-                    .FromSql("SELECT * FROM character_properties_shortcut_bar ORDER BY character_Id, shortcut_Bar_Index, id")
+                    .FromSqlRaw("SELECT * FROM character_properties_shortcut_bar ORDER BY character_Id, shortcut_Bar_Index, id")
                     .ToList();
 
                 var sqlCommands = new List<string>();
@@ -125,7 +125,7 @@ namespace ACE.Server.Command.Handlers
                     Console.WriteLine("Executing changes...");
 
                     foreach (var cmd in sqlCommands)
-                        ctx.Database.ExecuteSqlCommand(cmd);
+                        ctx.Database.ExecuteSqlRaw(cmd);
                 }
                 else
                     Console.WriteLine("dry run completed. Use fix-shortcut-bars execute to actually run command");
