@@ -503,7 +503,7 @@ namespace ACE.Server.WorldObjects
             if (Fellowship != null)
                 FellowshipQuit(false);
 
-            if (IsTrading && TradePartner != null)
+            if (IsTrading && TradePartner != ObjectGuid.Invalid)
             {
                 var tradePartner = PlayerManager.GetOnlinePlayer(TradePartner);
 
