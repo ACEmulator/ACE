@@ -58,19 +58,9 @@ namespace ACE.Server.Factories
             // workmanship
             wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
-            // wield requirements (verify)
+            // wield level requirement for t7+
             if (profile.Tier > 6)
-            {
-                wo.WieldRequirements = WieldRequirement.Level;
-                wo.WieldSkillType = (int)Skill.Axe;  // Set by examples from PCAP data
-
-                var wield = profile.Tier switch
-                {
-                    7 => 150,// In this instance, used for indicating player level, rather than skill level
-                    _ => 180,// In this instance, used for indicating player level, rather than skill level
-                };
-                wo.WieldDifficulty = wield;
-            }
+                RollWieldLevelReq_T7_T8(wo, profile);
 
             // assign magic
             if (isMagical)

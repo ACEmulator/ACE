@@ -190,7 +190,11 @@ namespace ACE.Server.WorldObjects
             if (!weenie.PropertiesFloat.TryGetValue(PropertyFloat.DefaultScale, out var scale))
                 scale = 1.0f;
 
-            return ProjectileRadiusCache[projectileWcid] = (float)(setup.Spheres[0].Radius * scale);
+            var result = (float)(setup.Spheres[0].Radius * scale);
+
+            ProjectileRadiusCache.TryAdd(projectileWcid, result);
+
+            return result;
         }
 
         // lowest value found in data / for starter bows

@@ -1044,7 +1044,9 @@ namespace ACE.Server.WorldObjects
             }
             else // Movement is within the same pack or between packs in a container on the landblock
             {
-                if (itemRootOwner != null && !itemRootOwner.TryRemoveFromInventory(item.Guid))
+                var itemRootCreature = itemRootOwner as Creature;
+
+                if (itemRootOwner != null && !itemRootOwner.TryRemoveFromInventory(item.Guid) && (itemRootCreature == null || !itemRootCreature.TryDequipObject(item.Guid, out _, out _)))
                 {
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory failed!")); // Custom error message
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
@@ -1405,6 +1407,20 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            if (((item.ValidLocations ?? 0) & wieldedLocation) == 0)
+            {
+                if (item.ValidLocations == EquipMask.MeleeWeapon && wieldedLocation == EquipMask.Shield)
+                {
+                    // allow dual wielding
+                }
+                else
+                {
+                    log.Warn($"{Name} tried to wield {item.Name} ({item.Guid}) in slot {wieldedLocation}, which doesn't match valid slots {item.ValidLocations}");
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                    return false;
+                }
+            }
+
             // client bug: equip wand or bow
             // then equip melee weapon instead, then swap melee weapon to offhand slot
             // client automatically sends a request to wield the wand/bow again, only this time with EquipMask.MeleeWeapon
@@ -1449,9 +1465,10 @@ namespace ACE.Server.WorldObjects
             if (!WieldedLocationIsAvailable(item, wieldedLocation))
             {
                 // filtering to just armor here, or else trinkets and dual wielding breaks
-                var existing = GetEquippedClothingArmor(item.ClothingPriority ?? 0).FirstOrDefault();
+                //var existing = GetEquippedClothingArmor(item.ClothingPriority ?? 0).FirstOrDefault();
+                var existing = GetEquippedItems(item, wieldedLocation).FirstOrDefault();
 
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You must remove your {existing?.Name} to wear that"));
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You must remove your {existing?.Name} to wield {item.Name}"));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
                 return false;
             }
@@ -1659,6 +1676,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, int placementPosition, int amount)
         {
+            //Console.WriteLine($"{Name}.HandleActionStackableSplitToContainer({stackId:X8}, {containerId:X8}, {placementPosition}, {amount})");
+
             if (amount <= 0)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to split item with invalid amount ({3}) 0x{2:X8}.", Guid.Full, Name, stackId, amount);
@@ -1848,6 +1867,8 @@ namespace ACE.Server.WorldObjects
 
         private bool DoHandleActionStackableSplitToContainer(WorldObject stack, Container stackFoundInContainer, Container stackRootOwner, Container container, Container containerRootOwner, WorldObject newStack, int placementPosition, int amount)
         {
+            //Console.WriteLine($"{Name}.DoHandleActionStackableSplitToContainer({stack?.Name}, {stackFoundInContainer?.Name}, {stackRootOwner?.Name}, {container?.Name}, {containerRootOwner?.Name}, {newStack?.Name}, {placementPosition}, {amount})");
+
             // Before we modify the original stack, we make sure we can add the new stack
             if (!container.TryAddToInventory(newStack, placementPosition, true))
             {
@@ -2003,6 +2024,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionStackableMerge(uint mergeFromGuid, uint mergeToGuid, int amount)
         {
+            //Console.WriteLine($"HandleActionStackableMerge({mergeFromGuid:X8}, {mergeToGuid:X8}, {amount})");
+
             if (amount <= 0)
             {
                 log.WarnFormat("Player 0x{0}:{1} tried to merge item with invalid amount ({3}) 0x{2:X8}.", Guid.Full, Name, mergeFromGuid, amount);
@@ -2218,6 +2241,8 @@ namespace ACE.Server.WorldObjects
 
         private bool DoHandleActionStackableMerge(WorldObject sourceStack, WorldObject targetStack, int amount)
         {
+            //Console.WriteLine($"DoHandleActionStackableMerge({sourceStack?.Name}, {targetStack?.Name}, {amount})");
+
             var previousSourceStackCheck = sourceStack;
             //var previousTargetStackCheck = targetStack;
 
@@ -2242,7 +2267,9 @@ namespace ACE.Server.WorldObjects
 
                 if (sourceStackRootOwner != null) // item is contained and not on a landblock
                 {
-                    if (sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out var stackToDestroy, true))
+                    var sourceStackRootCreature = sourceStackRootOwner as Creature;
+
+                    if (sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out var stackToDestroy, true) || sourceStackRootCreature != null && sourceStackRootCreature.TryDequipObject(sourceStack.Guid, out stackToDestroy, out _))
                         stackToDestroy?.Destroy();
                     else
                     {
