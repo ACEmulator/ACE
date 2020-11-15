@@ -149,7 +149,7 @@ namespace ACE.Database
             var deleteLimit = Common.Time.GetUnixTime(DateTime.UtcNow.AddDays(-daysLimiter));
 
             var results = context.Character
-                .Where(r => (r.DeleteTime > 0 && r.DeleteTime < deleteLimit) || (r.IsDeleted && r.DeleteTime == 0))
+                .Where(r => (r.DeleteTime > 0 && r.DeleteTime < (ulong)deleteLimit) || (r.IsDeleted && r.DeleteTime == 0))
                 .AsNoTracking()
                 .ToList();
 
