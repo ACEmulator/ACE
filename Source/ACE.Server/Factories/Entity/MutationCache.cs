@@ -292,6 +292,10 @@ namespace ACE.Server.Factories.Entity
                         log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse {operand}");
 
                     break;
+
+                default:
+                    log.Error($"MutationCache.BuildMutation({filename}) - unknown EffectArgumentType from {operand}");
+                    break;
             }
             return effectArgument;
         }
