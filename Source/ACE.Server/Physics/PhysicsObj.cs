@@ -78,7 +78,7 @@ namespace ACE.Server.Physics
         public Plane ContactPlane;
         public uint ContactPlaneCellID;
         public Vector3 SlidingNormal;
-        public Vector3 CachedVelocity { get; set; }
+        public Vector3 CachedVelocity;
         public Dictionary<uint, CollisionRecord> CollisionTable;
         public bool CollidingWithEnvironment;
         public int[] UpdateTimes;
