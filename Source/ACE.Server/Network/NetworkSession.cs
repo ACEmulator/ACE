@@ -659,15 +659,23 @@ namespace ACE.Server.Network
 
                 return true;
             }
-            else
-            {
-                if (cachedPackets.Count > 0)
-                    log.Error($"Session {session.Network?.ClientId}\\{session.EndPoint} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache range {cachedPackets.Keys.Min()} - {cachedPackets.Keys.Max()}.");
-                else
-                    log.Error($"Session {session.Network?.ClientId}\\{session.EndPoint} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache is empty.");
 
-                return false;
+            if (cachedPackets.Count > 0)
+            {
+                // This is to catch a race condition between .Count and .Min() and .Max()
+                try
+                {
+                    log.Error($"Session {session.Network?.ClientId}\\{session.EndPoint} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache range {cachedPackets.Keys.Min()} - {cachedPackets.Keys.Max()}.");
+                }
+                catch
+                {
+                    log.Error($"Session {session.Network?.ClientId}\\{session.EndPoint} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache is empty. Race condition threw exception.");
+                }
             }
+            else
+                log.Error($"Session {session.Network?.ClientId}\\{session.EndPoint} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache is empty.");
+
+            return false;
         }
 
         private void FlushPackets()
