@@ -80,7 +80,7 @@
 
     // ShardNonPlayerBiotaCacheTime, default: 11
     // The amount of minutes to keep in memory a non player object from shard database.
-    "ShardNonPlayerBiotaCacheTime": "0",
+    "ShardNonPlayerBiotaCacheTime": "11",
 
     // WorldDatabasePrecaching, default: false
     // Development recommendation: false
