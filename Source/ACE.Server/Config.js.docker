@@ -38,6 +38,8 @@
     // Note that for servers running on Windows, a path like c:\ace\ MUST be entered as c:\\ace\\, replacing the single backslashes (\) with double backslashes (\\)
     "DatFilesDirectory": "/ace/Dats",
 
+    // ShutdownInterval, default: 60
+    // Default time it will take for a server to wait before shutting down after shutdown is called from console or in game admin.
     "ShutdownInterval": "60",
 
     // ServerPerformanceMonitorAutoStart, default: false
@@ -73,6 +75,14 @@
       // There is much more cross-landblock group work happening here
       "MultiThreadedLandblockGroupTicking": true
     },
+
+    // ShardPlayerBiotaCacheTime, default: 31
+    // The amount of minutes to keep in memory a player object from shard database.
+    "ShardPlayerBiotaCacheTime": "31",
+
+    // ShardNonPlayerBiotaCacheTime, default: 11
+    // The amount of minutes to keep in memory a non player object from shard database.
+    "ShardNonPlayerBiotaCacheTime": "11",
 
     // WorldDatabasePrecaching, default: false
     // Development recommendation: false
