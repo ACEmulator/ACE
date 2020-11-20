@@ -74,6 +74,14 @@
       "MultiThreadedLandblockGroupTicking": true
     },
 
+    // ShardPlayerBiotaCacheTime, default: 31
+    // The amount of minutes to keep in memory a player object from shard database.
+    "ShardPlayerBiotaCacheTime": "31",
+
+    // ShardNonPlayerBiotaCacheTime, default: 11
+    // The amount of minutes to keep in memory a non player object from shard database.
+    "ShardNonPlayerBiotaCacheTime": "0",
+
     // WorldDatabasePrecaching, default: false
     // Development recommendation: false
     // Server recommendation: true
