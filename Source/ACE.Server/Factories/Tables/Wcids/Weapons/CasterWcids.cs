@@ -164,12 +164,9 @@ namespace ACE.Server.Factories.Tables.Wcids
             T8_Chances
         };
 
-        public static WeenieClassName Roll(TreasureDeath profile)
+        public static WeenieClassName Roll(int tier)
         {
-            var table = casterTiers[profile.Tier - 1];
-
-            // quality mod?
-            return table.Roll(profile.LootQualityMod);
+            return casterTiers[tier - 1].Roll();
         }
     }
 }
