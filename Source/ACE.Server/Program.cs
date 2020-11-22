@@ -222,13 +222,13 @@ namespace ACE.Server
                 log.Info("Precaching Treasures - Death...");
                 DatabaseManager.World.CacheAllTreasuresDeath();
                 log.Info("Precaching Treasures - Material Base...");
-                DatabaseManager.World.CacheAllTreasuresMaterialBaseInParallel();
+                DatabaseManager.World.CacheAllTreasureMaterialBase();
                 log.Info("Precaching Treasures - Material Groups...");
-                DatabaseManager.World.CacheAllTreasuresMaterialGroupsInParallel();
+                DatabaseManager.World.CacheAllTreasureMaterialGroups();
                 log.Info("Precaching Treasures - Material Colors...");
-                DatabaseManager.World.CacheAllTreasuresMaterialColorInParallel();
+                DatabaseManager.World.CacheAllTreasureMaterialColor();
                 log.Info("Precaching Treasures - Wielded...");
-                DatabaseManager.World.CacheAllTreasuresWieldedInParallel();
+                DatabaseManager.World.CacheAllTreasureWielded();
             }
             else
                 log.Info("Precaching World Database Disabled...");

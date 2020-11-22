@@ -1241,24 +1241,35 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var sqlFilename = $"{folder.FullName}{sep}{landblock:X4}.sql";
 
-            var fileWriter = new StreamWriter(sqlFilename);
-
-            if (LandblockInstanceWriter == null)
+            if (instances.Count > 0)
             {
-                LandblockInstanceWriter = new LandblockInstanceWriter();
-                LandblockInstanceWriter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+                var fileWriter = new StreamWriter(sqlFilename);
+
+                if (LandblockInstanceWriter == null)
+                {
+                    LandblockInstanceWriter = new LandblockInstanceWriter();
+                    LandblockInstanceWriter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+                }
+
+                LandblockInstanceWriter.CreateSQLDELETEStatement(instances, fileWriter);
+
+                fileWriter.WriteLine();
+
+                LandblockInstanceWriter.CreateSQLINSERTStatement(instances, fileWriter);
+
+                fileWriter.Close();
+
+                // import into db
+                ImportSQL(sqlFilename);
             }
+            else
+            {
+                // handle special case: deleting the last instance from landblock
+                File.Delete(sqlFilename);
 
-            LandblockInstanceWriter.CreateSQLDELETEStatement(instances, fileWriter);
-
-            fileWriter.WriteLine();
-
-            LandblockInstanceWriter.CreateSQLINSERTStatement(instances, fileWriter);
-
-            fileWriter.Close();
-
-            // import into db
-            ImportSQL(sqlFilename);
+                using (var ctx = new WorldDbContext())
+                    ctx.Database.ExecuteSqlCommand($"DELETE FROM landblock_instance WHERE landblock={landblock};");
+            }
 
             // clear landblock instances for this landblock (again)
             DatabaseManager.World.ClearCachedInstancesByLandblock(landblock);
@@ -1452,6 +1463,8 @@ namespace ACE.Server.Command.Handlers.Processors
                 RemoveChild(session, subLink, instances);
         }
 
+        public static EncounterSQLWriter LandblockEncounterWriter;
+
         [CommandHandler("addenc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Spawns a new wcid or classname in the current outdoor cell as an encounter", "<wcid or classname>")]
         public static void HandleAddEncounter(Session session, params string[] parameters)
         {
@@ -1481,6 +1494,21 @@ namespace ACE.Server.Command.Handlers.Processors
             var cellX = (int)pos.PositionX / 24;
             var cellY = (int)pos.PositionY / 24;
 
+            var landblock = (ushort)pos.Landblock;
+
+            // clear any cached encounters for this landblock
+            DatabaseManager.World.ClearCachedEncountersByLandblock(landblock);
+
+            // get existing encounters for this landblock
+            var encounters = DatabaseManager.World.GetCachedEncountersByLandblock(landblock);
+
+            // check for existing encounter
+            if (encounters.Any(i => i.CellX == cellX && i.CellY == cellY))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("This cell already contains an encounter!", ChatMessageType.Broadcast));
+                return;
+            }
+
             // spawn encounter
             var wo = SpawnEncounter(weenie, cellX, cellY, pos, session);
 
@@ -1488,30 +1516,18 @@ namespace ACE.Server.Command.Handlers.Processors
 
             session.Network.EnqueueSend(new GameMessageSystemChat($"Creating new encounter @ landblock {pos.Landblock:X4}, cellX={cellX}, cellY={cellY}\n{wo.WeenieClassId} - {wo.Name}", ChatMessageType.Broadcast));
 
-            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            // add a new encounter (verifications?)
+            var encounter = new Encounter();
+            encounter.Landblock = (int)pos.Landblock;
+            encounter.CellX = cellX;
+            encounter.CellY = cellY;
+            encounter.WeenieClassId = weenie.ClassId;
+            encounter.LastModified = DateTime.Now;
 
-            var sql = $"INSERT INTO encounter set landblock=0x{pos.Landblock:X4}, weenie_Class_Id={weenie.ClassId} /* {wo.Name} */, cell_X={cellX}, cell_Y={cellY}, last_Modified='{timestamp}';";
+            encounters.Add(encounter);
 
-            Console.WriteLine(sql);
-
-            // serialize to .sql file
-            var contentFolder = VerifyContentFolder(session, false);
-
-            var sep = Path.DirectorySeparatorChar;
-            var folder = new DirectoryInfo($"{contentFolder.FullName}{sep}sql{sep}encounters{sep}");
-
-            if (!folder.Exists)
-                folder.Create();
-
-            var sql_filename = $"{pos.Landblock:X4}.sql";
-
-            using (var file = File.Open($"{folder.FullName}{sep}{sql_filename}", FileMode.OpenOrCreate))
-            {
-                file.Seek(0, SeekOrigin.End);
-
-                using (var stream = new StreamWriter(file))
-                    stream.WriteLine(sql);
-            }
+            // write encounters to sql file / load into db
+            SyncEncounters(session, landblock, encounters);
         }
 
         public static WorldObject SpawnEncounter(Weenie weenie, int cellX, int cellY, Position pos, Session session)
@@ -1520,7 +1536,13 @@ namespace ACE.Server.Command.Handlers.Processors
 
             if (wo == null)
             {
-                Console.WriteLine($"Failed to create encounter weenie");
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Failed to create encounter weenie", ChatMessageType.Broadcast));
+                return null;
+            }
+
+            if (!wo.IsGenerator)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Encounter must be a Generator", ChatMessageType.Broadcast));
                 return null;
             }
 
@@ -1539,7 +1561,7 @@ namespace ACE.Server.Command.Handlers.Processors
             var sortCell = Physics.Common.LScape.get_landcell(newPos.ObjCellID) as Physics.Common.SortCell;
             if (sortCell != null && sortCell.has_building())
             {
-                Console.WriteLine($"Failed to create encounter near building cell");
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Failed to create encounter near building cell", ChatMessageType.Broadcast));
                 return null;
             }
 
@@ -1565,9 +1587,129 @@ namespace ACE.Server.Command.Handlers.Processors
                 }
             }
 
-            wo.EnterWorld();
+            var success = wo.EnterWorld();
 
+            if (!success)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Failed to spawn encounter", ChatMessageType.Broadcast));
+                return null;
+            }
             return wo;
+        }
+
+        /// <summary>
+        /// Serializes encounters to XXYY.sql file,
+        /// import into database, and clears the cached encounters
+        /// </summary>
+        public static void SyncEncounters(Session session, ushort landblock, List<Encounter> encounters)
+        {
+            // serialize to .sql file
+            var contentFolder = VerifyContentFolder(session, false);
+
+            var sep = Path.DirectorySeparatorChar;
+            var folder = new DirectoryInfo($"{contentFolder.FullName}{sep}sql{sep}encounters{sep}");
+
+            if (!folder.Exists)
+                folder.Create();
+
+            var sqlFilename = $"{folder.FullName}{sep}{landblock:X4}.sql";
+
+            if (encounters.Count > 0)
+            {
+                var fileWriter = new StreamWriter(sqlFilename);
+
+                if (LandblockEncounterWriter == null)
+                {
+                    LandblockEncounterWriter = new EncounterSQLWriter();
+                    LandblockEncounterWriter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
+                }
+
+                LandblockEncounterWriter.CreateSQLDELETEStatement(encounters, fileWriter);
+
+                fileWriter.WriteLine();
+
+                LandblockEncounterWriter.CreateSQLINSERTStatement(encounters, fileWriter);
+
+                fileWriter.Close();
+
+                // import into db
+                ImportSQL(sqlFilename);
+            }
+            else
+            {
+                // handle special case: deleting the last encounter from landblock
+                File.Delete(sqlFilename);
+
+                using (var ctx = new WorldDbContext())
+                    ctx.Database.ExecuteSqlCommand($"DELETE FROM encounter WHERE landblock={landblock};");
+            }
+
+            // clear the encounters for this landblock (again)
+            DatabaseManager.World.ClearCachedEncountersByLandblock(landblock);
+        }
+
+        [CommandHandler("removeenc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Removes the last appraised object from the encounters table")]
+        public static void HandleRemoveEnc(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (obj == null)
+                return;
+
+            // find root generator
+            while (obj.Generator != null)
+                obj = obj.Generator;
+
+            var cellX = (int)obj.Location.PositionX / 24;
+            var cellY = (int)obj.Location.PositionY / 24;
+
+            var landblock = (ushort)obj.Location.Landblock;
+
+            // clear any cached encounters for this landblock
+            DatabaseManager.World.ClearCachedEncountersByLandblock(landblock);
+
+            // get existing encounters for this landblock
+            var encounters = DatabaseManager.World.GetCachedEncountersByLandblock(landblock);
+
+            // check for existing encounter
+            var encounter = encounters.FirstOrDefault(i => i.CellX == cellX && i.CellY == cellY && i.WeenieClassId == obj.WeenieClassId);
+
+            if (encounter == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find encounter for {obj.WeenieClassId} - {obj.Name}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Removing encounter @ landblock {obj.Location.Landblock:X4}, cellX={cellX}, cellY={cellY}\n{obj.WeenieClassId} - {obj.Name}", ChatMessageType.Broadcast));
+
+            encounters.Remove(encounter);
+
+            SyncEncounters(session, landblock, encounters);
+
+            // this is needed for any generators that don't have GeneratorDestructionType
+            DestroyAll(obj);
+        }
+
+        /// <summary>
+        /// Destroys a parent generator, and all of its child objects
+        /// </summary>
+        private static void DestroyAll(WorldObject wo)
+        {
+            wo.Destroy();
+
+            if (wo.GeneratorProfiles == null)
+                return;
+
+            foreach (var profile in wo.GeneratorProfiles)
+            {
+                foreach (var kvp in profile.Spawned)
+                {
+                    var child = kvp.Value.TryGetWorldObject();
+
+                    if (child != null)
+                        DestroyAll(child);
+                }
+            }
         }
 
         [CommandHandler("export-json", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Exports content from database to JSON file", "<wcid>")]

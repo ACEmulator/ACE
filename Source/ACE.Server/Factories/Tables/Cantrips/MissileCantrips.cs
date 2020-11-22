@@ -67,7 +67,7 @@ namespace ACE.Server.Factories.Tables
             }
         }
 
-        private static readonly ChanceTable<SpellId> missileCantrips = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> missileCantrips = new ChanceTable<SpellId>()
         {
             ( SpellId.CANTRIPMISSILEWEAPONSAPTITUDE1, 0.10f ),
 

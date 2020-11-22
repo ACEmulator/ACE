@@ -338,17 +338,38 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void MoveTo(Position position, float runRate = 1.0f, bool setLoc = true, float? walkRunThreshold = null, float? speed = null)
         {
+            // build and send MoveToPosition message to client
             var motion = GetMoveToPosition(position, runRate, walkRunThreshold, speed);
-
-            // todo: use physics MoveToManager
-            // todo: handle landblock updates
-            if (setLoc)
-            {
-                Location = new Position(position);
-                PhysicsObj.SetPositionSimple(new Physics.Common.Position(position), true);
-            }
-
             EnqueueBroadcastMotion(motion);
+
+            if (!setLoc) return;
+
+            // start executing MoveTo iterator on server
+            if (!PhysicsObj.IsMovingOrAnimating)
+                PhysicsObj.UpdateTime = Physics.Common.PhysicsTimer.CurrentTime;
+
+            var mvp = new MovementParameters(motion.MoveToParameters);
+            PhysicsObj.MoveToPosition(new Physics.Common.Position(position), mvp);
+
+            AddMoveToTick();
+        }
+
+        private void AddMoveToTick()
+        {
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(monsterTickInterval);
+            actionChain.AddAction(this, () =>
+            {
+                if (!IsDead && PhysicsObj.IsMovingTo())
+                {
+                    PhysicsObj.update_object();
+                    UpdatePosition_SyncLocation();
+                    SendUpdatePosition();
+                    AddMoveToTick();
+                    //Console.WriteLine($"{Name}.Position: {Location}");
+                }
+            });
+            actionChain.EnqueueChain();
         }
 
         public Motion GetMoveToPosition(Position position, float runRate = 1.0f, float? walkRunThreshold = null, float? speed = null)

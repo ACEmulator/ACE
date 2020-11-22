@@ -249,7 +249,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALCOPPER_CLASS:
 
                     // ensure loot-generated item w/ armor level
-                    if ((target.ArmorLevel ?? 0) == 0 || target.Workmanship == null)
+                    if (target.Workmanship == null || !target.HasArmorLevel())
                         return null;
 
                     var allowArmor = target.ItemType == ItemType.Armor;
@@ -279,7 +279,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALACE36636FOOLPROOFZIRCON:
 
                     // ensure clothing/armor w/ AL and workmanship
-                    if (target.WeenieType != WeenieType.Clothing || (target.ArmorLevel ?? 0) == 0 || target.Workmanship == null)
+                    if (target.WeenieType != WeenieType.Clothing || !target.HasArmorLevel() || target.Workmanship == null)
                         return null;
 
                     recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);

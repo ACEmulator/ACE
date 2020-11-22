@@ -7,7 +7,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class StaffWcids
     {
-        private static readonly ChanceTable<WeenieClassName> StaffWcids_Aluvian = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> StaffWcids_Aluvian = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.quarterstaffnew,         0.40f ),
             ( WeenieClassName.quarterstaffacidnew,     0.15f ),
@@ -16,7 +16,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.quarterstafffrostnew,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> StaffWcids_Gharundim = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> StaffWcids_Gharundim = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.nabutnew,         0.40f ),
             ( WeenieClassName.nabutacidnew,     0.15f ),
@@ -25,7 +25,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.nabutfrostnew,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> StaffWcids_Sho = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> StaffWcids_Sho = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.jonew,         0.40f ),
             ( WeenieClassName.joacidnew,     0.15f ),

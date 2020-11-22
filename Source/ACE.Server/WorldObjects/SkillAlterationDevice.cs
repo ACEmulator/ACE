@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
@@ -111,7 +112,18 @@ namespace ACE.Server.WorldObjects
                     }
 
                     // ensure player won't exceed limit of 70 specialized credits after operation
-                    if (GetTotalSpecializedCredits(player) + skillBase.SpecializedCost > 70)
+                    var specializedCost = skillBase.SpecializedCost;
+
+                    if (DatManager.PortalDat.CharGen.HeritageGroups.TryGetValue((uint)player.Heritage, out var heritageGroup))
+                    {
+                        // check for adjusted costs of Specialization due to player's heritage (e.g. Arcane Lore)
+                        var heritageAdjustedCost = heritageGroup.Skills.FirstOrDefault(i => i.SkillNum == (int)skill.Skill);
+
+                        if (heritageAdjustedCost != null)
+                            specializedCost = heritageAdjustedCost.PrimaryCost;
+                    }
+
+                    if (GetTotalSpecializedCredits(player) + specializedCost > 70)
                     {
                         player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.TooManyCreditsInSpecializedSkills, skill.Skill.ToSentence()));
                         return false;
@@ -237,10 +249,17 @@ namespace ACE.Server.WorldObjects
 
                     var skill = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)kvp.Key];
 
-                    specializedCreditsTotal += skill.SpecializedCost;
+                    var specializedCost = skill.SpecializedCost;
 
-                    if (kvp.Key == Skill.ArcaneLore) // exclude Arcane Lore TrainedCost
-                        specializedCreditsTotal -= skill.TrainedCost;
+                    if (DatManager.PortalDat.CharGen.HeritageGroups.TryGetValue((uint)player.Heritage, out var heritageGroup))
+                    {
+                        // check for adjusted costs of Specialization due to player's heritage (e.g. Arcane Lore)
+                        var heritageAdjustedCost = heritageGroup.Skills.FirstOrDefault(i => i.SkillNum == (int)kvp.Key);
+
+                        if (heritageAdjustedCost != null)
+                            specializedCost = heritageAdjustedCost.PrimaryCost;
+                    }
+                    specializedCreditsTotal += specializedCost;
                 }
             }
 

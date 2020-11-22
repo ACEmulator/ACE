@@ -8,14 +8,14 @@ namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class BowWcids_Sho
     {
-        private static readonly ChanceTable<WeenieClassName> T1_T4_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T1_T4_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.bowshort, 0.50f ),
             ( WeenieClassName.shouyumi, 0.25f ),
             ( WeenieClassName.yumi,     0.25f )
         };
 
-        private static readonly ChanceTable<WeenieClassName> T5_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T5_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.bowshort,                     0.25f ),
             ( WeenieClassName.shouyumi,                     0.13f ),
@@ -36,7 +36,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace31801_electriccompoundbow, 0.035f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T6_T8_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T6_T8_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.bowslashing,                  0.075f ),
             ( WeenieClassName.bowpiercing,                  0.075f ),

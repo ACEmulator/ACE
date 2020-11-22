@@ -1443,43 +1443,16 @@ namespace ACE.Server.Command.Handlers
         public static void ToggleMovementDebug(Session session, params string[] parameters)
         {
             // get the last appraised object
-            var targetID = session.Player.CurrentAppraisalTarget;
-            if (targetID == null)
-            {
-                ChatPacket.SendServerMessage(session, "ERROR: no appraisal target", ChatMessageType.System);
-                return;
-            }
-            var targetGuid = new ObjectGuid(targetID.Value);
-            var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
-            if (target == null)
-            {
-                ChatPacket.SendServerMessage(session, "Couldn't find " + targetGuid, ChatMessageType.System);
-                return;
-            }
-            var creature = target as Creature;
+            var creature = CommandHandlerHelper.GetLastAppraisedObject(session) as Creature;
+
             if (creature == null)
-            {
-                ChatPacket.SendServerMessage(session, target.Name + " is not a creature / monster", ChatMessageType.System);
                 return;
-            }
 
             bool enabled = true;
             if (parameters.Length > 0 && parameters[0].Equals("off"))
                 enabled = false;
 
             creature.DebugMove = enabled;
-        }
-
-        [CommandHandler("forcepos", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Toggles server monster position", "forcepos <on/off>")]
-        public static void ToggleForcePos(Session session, params string[] parameters)
-        {
-            bool enabled = true;
-            if (parameters.Length > 0 && parameters[0].Equals("off"))
-                enabled = false;
-
-            CommandHandlerHelper.WriteOutputInfo(session, "Setting forcepos to " + enabled);
-
-            Creature.ForcePos = enabled;
         }
 
         [CommandHandler("lostest", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Tests for direct visibilty with latest appraised object")]
@@ -3231,6 +3204,55 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
+        /// <summary>
+        /// Shows the DeathTreasure tier for the last appraised monster
+        /// </summary>
+        [CommandHandler("showtier", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the DeathTreasure tier for the last appraised monster")]
+        public static void HandleShowTier(Session session, params string[] parameters)
+        {
+            var creature = CommandHandlerHelper.GetLastAppraisedObject(session) as Creature;
+
+            if (creature != null)
+            {
+                var msg = creature.DeathTreasure != null ? $"DeathTreasure - Tier: {creature.DeathTreasure.Tier}" : "doesn't have PropertyDataId.DeathTreasureType";
+
+                CommandHandlerHelper.WriteOutputInfo(session, $"{creature.Name} ({creature.Guid}) {msg}");
+            }
+        }
+
+        /// <summary>
+        /// Shows a list of monsters for a particular tier #
+        /// </summary>
+        [CommandHandler("tiermobs", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Shows a list of monsters for a particular tier #", "tier")]
+        public static void HandleTierMobs(Session session, params string[] parameters)
+        {
+            if (!uint.TryParse(parameters[0], out var tier))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Invalid tier {parameters[0]}");
+                return;
+            }
+            if (tier < 1 || tier > 8)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Please enter a tier between 1-8");
+                return;
+            }
+            using (var ctx = new WorldDbContext())
+            {
+                var query = from weenie in ctx.Weenie
+                            join deathTreasure in ctx.WeeniePropertiesDID on weenie.ClassId equals deathTreasure.ObjectId
+                            join treasureDeath in ctx.TreasureDeath on deathTreasure.Value equals treasureDeath.TreasureType
+                            where weenie.Type == (int)WeenieType.Creature && deathTreasure.Type == (ushort)PropertyDataId.DeathTreasureType && treasureDeath.Tier == tier
+                            select weenie;
+
+                var results = query.ToList();
+
+                CommandHandlerHelper.WriteOutputInfo(session, $"Found {results.Count()} monsters for tier {tier}");
+
+                foreach (var result in results)
+                    CommandHandlerHelper.WriteOutputInfo(session, result.ClassName);
+            }
+        }
+
         [CommandHandler("delevel", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Attempts to delevel the current player. Requires enough unassigned xp and unspent skill credits.", "new level")]
         public static void HandleDelevel(Session session, params string[] parameters)
         {
@@ -3368,6 +3390,32 @@ namespace ACE.Server.Command.Handlers
                 lines.Add($"{(SpellId)entry.Key} - {entry.Value}");
 
             CommandHandlerHelper.WriteOutputInfo(session, string.Join('\n', lines));
+        }
+
+        [CommandHandler("trywield", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2)]
+        public static void HandleTryWield(Session session, params string[] parameters)
+        {
+            if (!uint.TryParse(parameters[0], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var itemGuid))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Invalid item guid {parameters[0]}", ChatMessageType.Broadcast);
+                return;
+            }
+
+            var item = session.Player.FindObject(itemGuid, Player.SearchLocations.MyInventory);
+
+            if (item == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find item guid {parameters[0]}", ChatMessageType.Broadcast);
+                return;
+            }
+
+            if (!Enum.TryParse(parameters[1], out EquipMask equipMask))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Invalid EquipMask {parameters[1]}", ChatMessageType.Broadcast);
+                return;
+            }
+
+            session.Player.HandleActionGetAndWieldItem(itemGuid, equipMask);
         }
     }
 }

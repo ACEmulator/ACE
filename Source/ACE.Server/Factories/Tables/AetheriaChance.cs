@@ -7,13 +7,13 @@ namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class AetheriaChance
     {
-        private static readonly ChanceTable<int> T5_ItemMaxLevel = new ChanceTable<int>()
+        private static ChanceTable<int> T5_ItemMaxLevel = new ChanceTable<int>()
         {
             ( 1, 0.60f ),
             ( 2, 0.40f ),
         };
 
-        private static readonly ChanceTable<int> T6_ItemMaxLevel = new ChanceTable<int>()
+        private static ChanceTable<int> T6_ItemMaxLevel = new ChanceTable<int>()
         {
             ( 1, 0.550f ),
             ( 2, 0.345f ),
@@ -22,7 +22,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         };
 
         // lack of data samples here for 4+
-        private static readonly ChanceTable<int> T7_ItemMaxLevel = new ChanceTable<int>()
+        private static ChanceTable<int> T7_ItemMaxLevel = new ChanceTable<int>()
         {
             ( 1, 0.55000f ),
             ( 2, 0.34475f ),
@@ -33,7 +33,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         // also lack of data samples for level 5,
         // there was possibly no indication it was more common than t7
-        private static readonly ChanceTable<int> T8_ItemMaxLevel = new ChanceTable<int>()
+        private static ChanceTable<int> T8_ItemMaxLevel = new ChanceTable<int>()
         {
             ( 1, 0.0200f ),
             ( 2, 0.5500f ),

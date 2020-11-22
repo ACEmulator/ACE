@@ -114,7 +114,7 @@ namespace ACE.Server.WorldObjects
             }
 
             if (PhysicsObj.IsSticky)
-                UpdatePosition();
+                UpdatePosition(false);
 
             // get distance to target
             var targetDist = GetDistanceToTarget();

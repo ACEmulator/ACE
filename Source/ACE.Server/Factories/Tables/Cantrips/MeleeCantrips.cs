@@ -68,7 +68,7 @@ namespace ACE.Server.Factories.Tables
             }
         }
 
-        private static readonly ChanceTable<SpellId> meleeCantrips = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> meleeCantrips = new ChanceTable<SpellId>()
         {
             ( SpellId.CANTRIPLIGHTWEAPONSAPTITUDE1, 0.11f ),        // gets mutated into weapon skill aptitude,
                                                                     // with a 10% chance to mutate into dual wield aptitude for heavy/light/finesse

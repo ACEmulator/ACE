@@ -8,7 +8,7 @@ namespace ACE.Server.Factories.Tables
 {
     public static class CasterSlotSpells
     {
-        private static readonly ChanceTable<SpellId> orbSpells = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> orbSpells = new ChanceTable<SpellId>()
         {
             ( SpellId.StrengthOther1,     0.05f ),
             ( SpellId.EnduranceOther1,    0.05f ),
@@ -25,7 +25,7 @@ namespace ACE.Server.Factories.Tables
             ( SpellId.ManaRenewalOther1,  0.10f ),
         };
 
-        private static readonly ChanceTable<SpellId> wandStaffSpells = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> wandStaffSpells = new ChanceTable<SpellId>()
         {
             ( SpellId.WhirlingBlade1,     0.14f ),
             ( SpellId.ForceBolt1,         0.14f ),
@@ -36,7 +36,7 @@ namespace ACE.Server.Factories.Tables
             ( SpellId.LightningBolt1,     0.15f ),
         };
 
-        private static readonly ChanceTable<SpellId> netherSpells = new ChanceTable<SpellId>()
+        private static ChanceTable<SpellId> netherSpells = new ChanceTable<SpellId>()
         {
             ( SpellId.Corruption1,            0.20f ),
             ( SpellId.NetherArc1,             0.20f ),

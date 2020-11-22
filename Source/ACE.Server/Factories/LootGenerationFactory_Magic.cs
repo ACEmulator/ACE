@@ -18,11 +18,13 @@ namespace ACE.Server.Factories
         private static void AssignMagic(WorldObject wo, TreasureDeath profile, TreasureRoll roll, bool isArmor = false)
         {
             int numSpells = 0;
+            int numEpics = 0;
+            int numLegendaries = 0;
 
             if (roll == null)
             {
                 // previous method
-                if (!AssignMagic_Spells(wo, profile, isArmor, out numSpells))
+                if (!AssignMagic_Spells(wo, profile, isArmor, out numSpells, out numEpics, out numLegendaries))
                     return;
             }
             else
@@ -40,11 +42,11 @@ namespace ACE.Server.Factories
 
             if (roll == null)
             {
-                wo.ItemMaxMana = RollItemMaxMana(numSpells, profile.Tier);
+                wo.ItemMaxMana = RollItemMaxMana(profile.Tier, numSpells);
                 wo.ItemCurMana = wo.ItemMaxMana;
 
                 wo.ItemSpellcraft = RollSpellcraft(wo);
-                wo.ItemDifficulty = RollItemDifficulty(wo);
+                wo.ItemDifficulty = RollItemDifficulty(wo, numEpics, numLegendaries);
             }
             else
             {
@@ -69,7 +71,7 @@ namespace ACE.Server.Factories
             }
         }
 
-        private static bool AssignMagic_Spells(WorldObject wo, TreasureDeath profile, bool isArmor, out int numSpells)
+        private static bool AssignMagic_Spells(WorldObject wo, TreasureDeath profile, bool isArmor, out int numSpells, out int epicCantrips, out int legendaryCantrips)
         {
             SpellId[][] spells;
             SpellId[][] cantrips;
@@ -112,25 +114,27 @@ namespace ACE.Server.Factories
             }
 
             numSpells = 0;
+            epicCantrips = 0;
+            legendaryCantrips = 0;
 
             if (spells == null || cantrips == null)
                 return false;
 
             // Refactor 3/2/2020 - HQ
             // Magic stats
-            numSpells = GetSpellDistribution(profile, out int minorCantrips, out int majorCantrips, out int epicCantrips, out int legendaryCantrips);
+            numSpells = GetSpellDistribution(profile, out int minorCantrips, out int majorCantrips, out epicCantrips, out legendaryCantrips);
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
-
-            int[] shuffledValues = Enumerable.Range(0, spells.Length).ToArray();
-
-            Shuffle(shuffledValues);
 
             if (numSpells - numCantrips > 0)
             {
+                var indices = Enumerable.Range(0, spells.Length).ToList();
+
                 for (int i = 0; i < numSpells - numCantrips; i++)
                 {
+                    var idx = ThreadSafeRandom.Next(0, indices.Count - 1);
                     int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
-                    SpellId spellID = spells[shuffledValues[i]][col];
+                    SpellId spellID = spells[indices[idx]][col];
+                    indices.RemoveAt(idx);
                     wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
@@ -160,37 +164,38 @@ namespace ACE.Server.Factories
 
             if (numCantrips > 0)
             {
-                shuffledValues = Enumerable.Range(0, cantrips.Length).ToArray();
-                Shuffle(shuffledValues);
-
-                int shuffledPlace = 0;
+                var indices = Enumerable.Range(0, cantrips.Length).ToList();
 
                 // minor cantrips
                 for (var i = 0; i < minorCantrips; i++)
                 {
-                    SpellId spellID = cantrips[shuffledValues[shuffledPlace]][0];
-                    shuffledPlace++;
+                    var idx = ThreadSafeRandom.Next(0, indices.Count - 1);
+                    SpellId spellID = cantrips[indices[idx]][0];
+                    indices.RemoveAt(idx);
                     wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
                 // major cantrips
                 for (var i = 0; i < majorCantrips; i++)
                 {
-                    SpellId spellID = cantrips[shuffledValues[shuffledPlace]][1];
-                    shuffledPlace++;
+                    var idx = ThreadSafeRandom.Next(0, indices.Count - 1);
+                    SpellId spellID = cantrips[indices[idx]][1];
+                    indices.RemoveAt(idx);
                     wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
                 // epic cantrips
                 for (var i = 0; i < epicCantrips; i++)
                 {
-                    SpellId spellID = cantrips[shuffledValues[shuffledPlace]][2];
-                    shuffledPlace++;
+                    var idx = ThreadSafeRandom.Next(0, indices.Count - 1);
+                    SpellId spellID = cantrips[indices[idx]][2];
+                    indices.RemoveAt(idx);
                     wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
                 // legendary cantrips
                 for (var i = 0; i < legendaryCantrips; i++)
                 {
-                    SpellId spellID = cantrips[shuffledValues[shuffledPlace]][3];
-                    shuffledPlace++;
+                    var idx = ThreadSafeRandom.Next(0, indices.Count - 1);
+                    SpellId spellID = cantrips[indices[idx]][3];
+                    indices.RemoveAt(idx);
                     wo.Biota.GetOrAddKnownSpell((int)spellID, wo.BiotaDatabaseLock, out _);
                 }
             }
@@ -462,7 +467,7 @@ namespace ACE.Server.Factories
             return highSpellTier;
         }
 
-        private static void Shuffle<T>(T[] array)
+        private static void Shuffle(int[] array)
         {
             // verified even distribution
             for (var i = 0; i < array.Length; i++)
@@ -720,7 +725,7 @@ namespace ACE.Server.Factories
         // previous method - replaces itemSkillLevelLimit w/ WieldDifficulty,
         // and does not use treasure roll
 
-        private static int RollItemDifficulty(WorldObject wo)
+        private static int RollItemDifficulty(WorldObject wo, int numEpics, int numLegendaries)
         {
             // - # of spells on item
             var num_spells = wo.Biota.PropertiesSpellBook.Count();
@@ -729,8 +734,8 @@ namespace ACE.Server.Factories
             var spellAddon = (float)ThreadSafeRandom.Next(1.0f, spellAddonChance) * num_spells;
 
             // - # of epics / legendaries on item
-            var epicAddon = wo.EpicCantrips.Count > 0 ? ThreadSafeRandom.Next(1, 5) * wo.EpicCantrips.Count : 0;
-            var legAddon = wo.LegendaryCantrips.Count > 0 ? ThreadSafeRandom.Next(5, 10) * wo.LegendaryCantrips.Count : 0;
+            var epicAddon = numEpics > 0 ? ThreadSafeRandom.Next(1, 5) * numEpics : 0;
+            var legAddon = numLegendaries > 0 ? ThreadSafeRandom.Next(5, 10) * numLegendaries : 0;
 
             // wield difficulty - skill requirement
             var wieldFactor = 0.0f;

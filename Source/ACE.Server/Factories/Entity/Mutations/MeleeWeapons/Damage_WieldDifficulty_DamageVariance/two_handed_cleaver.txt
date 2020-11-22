@@ -493,3 +493,24 @@ Tier chances: 0, 0, 0, 0, 0, 0, 0, 1
         WieldSkillType = WeaponSkill
         WieldDifficulty = 430
 
+Axe, Mace, Sword (TwoHandedCombat) Mutation #9:
+
+Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
+
+    - Chance: 5%:
+        DamageVariance = 0.55
+
+    - Chance: 15%:
+        DamageVariance = 0.5
+
+    - Chance: 30%:
+        DamageVariance = 0.45
+
+    - Chance: 30%:
+        DamageVariance = 0.4
+
+    - Chance: 15%:
+        DamageVariance = 0.35
+
+    - Chance: 5%:
+        DamageVariance = 0.3

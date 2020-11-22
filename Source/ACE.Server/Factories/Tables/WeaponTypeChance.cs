@@ -8,7 +8,7 @@ namespace ACE.Server.Factories.Tables
 {
     public static class WeaponTypeChance
     {
-        private static readonly ChanceTable<TreasureWeaponType> T1_T4_Chances = new ChanceTable<TreasureWeaponType>()
+        private static ChanceTable<TreasureWeaponType> T1_T4_Chances = new ChanceTable<TreasureWeaponType>()
         {
             // melee: 84%
             // missile: 12%
@@ -26,7 +26,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureWeaponType.Caster,   0.04f ),
         };
 
-        private static readonly ChanceTable<TreasureWeaponType> T5_T6_Chances = new ChanceTable<TreasureWeaponType>()
+        private static ChanceTable<TreasureWeaponType> T5_T6_Chances = new ChanceTable<TreasureWeaponType>()
         {
             // melee: 63%
             // missile: 27%
@@ -46,7 +46,7 @@ namespace ACE.Server.Factories.Tables
 
         // from magloot corpse logs
         // it appears they might have gotten rid of the tier chances
-        private static readonly ChanceTable<TreasureWeaponType> RetailChances = new ChanceTable<TreasureWeaponType>()
+        private static ChanceTable<TreasureWeaponType> RetailChances = new ChanceTable<TreasureWeaponType>()
         {
             // melee: 63%
             // missile: 20%

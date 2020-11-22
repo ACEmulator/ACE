@@ -305,13 +305,18 @@ namespace ACE.Server.WorldObjects
 
         private static readonly ConcurrentDictionary<AttackFrameParams, bool> missingAttackFrames = new ConcurrentDictionary<AttackFrameParams, bool>();
 
+        private bool moveBit;
+
         /// <summary>
         /// Perform the melee attack swing animation
         /// </summary>
         public void DoSwingMotion(WorldObject target, MotionCommand motionCommand, out float animLength, out List<float> attackFrames)
         {
-            if (ForcePos)
-                SendUpdatePosition();
+            if (!moveBit)
+            {
+                SendUpdatePosition(true);
+                moveBit = true;
+            }
 
             //Console.WriteLine($"{maneuver.Style} - {maneuver.Motion} - {maneuver.AttackHeight}");
 
@@ -491,7 +496,7 @@ namespace ACE.Server.WorldObjects
             effectiveRL = Math.Clamp(effectiveRL, -2.0f, 2.0f);
 
             // TODO: could brittlemail / lures send a piece of armor or clothing's AL into the negatives?
-            //if (effectiveAL < 0)
+            //if (effectiveAL < 0 && effectiveRL != 0)
                 //effectiveRL = 1.0f / effectiveRL;
 
             /*Console.WriteLine("Effective AL: " + effectiveAL);

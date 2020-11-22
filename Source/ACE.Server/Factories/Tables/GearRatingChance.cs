@@ -11,19 +11,19 @@ namespace ACE.Server.Factories.Tables
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 
-        private static readonly ChanceTable<bool> RatingChance = new ChanceTable<bool>()
+        private static ChanceTable<bool> RatingChance = new ChanceTable<bool>()
         {
             ( false, 0.75f ),
             ( true,  0.25f ),
         };
 
-        private static readonly ChanceTable<int> ArmorRating = new ChanceTable<int>()
+        private static ChanceTable<int> ArmorRating = new ChanceTable<int>()
         {
             ( 1, 0.95f ),
             ( 2, 0.05f ),
         };
 
-        private static readonly ChanceTable<int> ClothingJewelryRating = new ChanceTable<int>()
+        private static ChanceTable<int> ClothingJewelryRating = new ChanceTable<int>()
         {
             ( 1, 0.70f ),
             ( 2, 0.25f ),

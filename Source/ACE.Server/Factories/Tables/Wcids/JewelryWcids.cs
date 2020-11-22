@@ -21,7 +21,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         // trinkets: drop rate 15% consistently per tier, 2.5% for each of the 6 trinkets
         // scaling the pre-t7 tables to 85% / 15%
 
-        private static readonly ChanceTable<WeenieClassName> T1_T2_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T1_T2_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.amulet,        0.085f ),
             ( WeenieClassName.bracelet,      0.255f ),
@@ -38,7 +38,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace41488_top,              0.025f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T3_T4_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T3_T4_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.amulet,        0.085f ),
             ( WeenieClassName.bracelet,      0.1275f ),
@@ -57,7 +57,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace41488_top,              0.025f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T5_T6_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T5_T6_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.amulet,        0.0425f ),
             ( WeenieClassName.bracelet,      0.0425f ),

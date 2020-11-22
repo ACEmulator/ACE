@@ -688,8 +688,8 @@ namespace ACE.Server.WorldObjects
             effectiveRL = Math.Clamp(effectiveRL, -2.0f, 2.0f);
 
             // handle negative SL
-            if (effectiveSL < 0)
-                effectiveRL = 1.0f / effectiveRL;
+            //if (effectiveSL < 0 && effectiveRL != 0)
+                //effectiveRL = 1.0f / effectiveRL;
 
             var effectiveLevel = effectiveSL * effectiveRL;
 

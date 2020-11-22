@@ -4,6 +4,7 @@ using System.Linq;
 using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Enum;
 using ACE.Server.Factories.Tables;
@@ -111,7 +112,7 @@ namespace ACE.Server.Factories
             // material type
             var materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
-                wo.MaterialType = (MaterialType)materialType;
+                wo.MaterialType = materialType;
 
             // item color
             MutateColor(wo);
@@ -130,9 +131,6 @@ namespace ACE.Server.Factories
             // burden
             MutateBurden(wo, profile, true);
 
-            // item value
-            wo.Value = Roll_ItemValue(wo, profile.Tier);
-
             // missile / magic defense
             wo.WeaponMissileDefense = MissileMagicDefense.Roll(profile.Tier);
             wo.WeaponMagicDefense = MissileMagicDefense.Roll(profile.Tier);
@@ -149,6 +147,10 @@ namespace ACE.Server.Factories
             }
             else
                 AssignMagic(wo, profile, roll);
+
+            // item value
+            //if (wo.HasMutateFilter(MutateFilter.Value))   // fixme: data
+                MutateValue(wo, profile.Tier, roll);
 
             // long description
             wo.LongDesc = GetLongDesc(wo);

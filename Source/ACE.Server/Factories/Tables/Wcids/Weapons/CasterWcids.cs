@@ -8,7 +8,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class CasterWcids
     {
-        private static readonly ChanceTable<WeenieClassName> T1_T2_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T1_T2_Chances = new ChanceTable<WeenieClassName>()
         {
             (WeenieClassName.orb,     0.25f ),
             (WeenieClassName.sceptre, 0.25f ),
@@ -16,7 +16,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             (WeenieClassName.wand,    0.25f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T3_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T3_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.orb,                    0.17f ),
             ( WeenieClassName.sceptre,                0.17f ),
@@ -40,7 +40,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace43382_netherbaton,   0.02f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T4_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T4_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.orb,                    0.13f ),
             ( WeenieClassName.sceptre,                0.13f ),
@@ -64,7 +64,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace43382_netherbaton,   0.03f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T5_T6_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T5_T6_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.orb,                    0.05f ),
             ( WeenieClassName.sceptre,                0.05f ),
@@ -88,7 +88,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace43382_netherbaton,   0.05f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T7_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T7_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.orb,                    0.04f ),
             ( WeenieClassName.sceptre,                0.04f ),
@@ -120,7 +120,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace43383_netherstaff,   0.015f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T8_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T8_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.orb,                    0.036f ),
             ( WeenieClassName.sceptre,                0.036f ),
@@ -164,12 +164,9 @@ namespace ACE.Server.Factories.Tables.Wcids
             T8_Chances
         };
 
-        public static WeenieClassName Roll(TreasureDeath profile)
+        public static WeenieClassName Roll(int tier)
         {
-            var table = casterTiers[profile.Tier - 1];
-
-            // quality mod?
-            return table.Roll(profile.LootQualityMod);
+            return casterTiers[tier - 1].Roll();
         }
     }
 }

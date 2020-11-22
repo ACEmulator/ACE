@@ -348,6 +348,8 @@ namespace ACE.Server.WorldObjects
 
         public override void OnCollideObject(WorldObject target)
         {
+            //Console.WriteLine($"{Name}.OnCollideObject({target.Name})");
+
             if (target.ReportCollisions == false)
                 return;
 
@@ -359,6 +361,8 @@ namespace ACE.Server.WorldObjects
                 hotspot.OnCollideObject(this);
             else if (target is SpellProjectile spellProjectile)
                 spellProjectile.OnCollideObject(this);
+            else if (target.ProjectileTarget != null)
+                ProjectileCollisionHelper.OnCollideObject(target, this);
         }
 
         public override void OnCollideObjectEnd(WorldObject target)
@@ -497,12 +501,13 @@ namespace ACE.Server.WorldObjects
 
         public void LogOut_Inner(bool clientSessionTerminatedAbruptly = false)
         {
+            IsBusy = true;
             IsLoggingOut = true;
 
             if (Fellowship != null)
                 FellowshipQuit(false);
 
-            if (IsTrading && TradePartner != null)
+            if (IsTrading && TradePartner != ObjectGuid.Invalid)
             {
                 var tradePartner = PlayerManager.GetOnlinePlayer(TradePartner);
 

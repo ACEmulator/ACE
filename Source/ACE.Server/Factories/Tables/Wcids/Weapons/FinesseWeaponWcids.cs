@@ -10,7 +10,7 @@ namespace ACE.Server.Factories.Tables.Wcids
     {
         // hammers?
 
-        private static readonly ChanceTable<WeenieClassName> Hatchets = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Hatchets = new ChanceTable<WeenieClassName>()
         {
             // finesse - axe
             ( WeenieClassName.axehatchet,         0.40f ),
@@ -20,7 +20,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.axehatchetfrost,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Shouonos = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Shouonos = new ChanceTable<WeenieClassName>()
         {
             // finesse - axe
             ( WeenieClassName.shouono,         0.40f ),
@@ -30,7 +30,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.shouonofrost,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Tungis = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Tungis = new ChanceTable<WeenieClassName>()
         {
             // finesse - axe
             ( WeenieClassName.tungi,         0.40f ),
@@ -40,7 +40,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.tungifrost,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Knives = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Knives = new ChanceTable<WeenieClassName>()
         {
             // finesse - dagger (multi-strike)
             ( WeenieClassName.knife,         0.40f ),
@@ -50,7 +50,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.knifefrost,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Lancets = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Lancets = new ChanceTable<WeenieClassName>()
         {
             // finesse - dagger (multi-strike)
             ( WeenieClassName.ace31794_lancet,          0.40f ),
@@ -60,7 +60,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace31793_frostlancet,     0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Poniards = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Poniards = new ChanceTable<WeenieClassName>()
         {
             // finesse - dagger
             ( WeenieClassName.daggerponiard,         0.40f ),
@@ -70,7 +70,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.daggerponiardfrost,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> BoardsWithNails = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> BoardsWithNails = new ChanceTable<WeenieClassName>()
         {
             // finesse - mace
             ( WeenieClassName.ace31774_boardwithnail,         0.40f ),
@@ -80,7 +80,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace31773_frostboardwithnail,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Dabus = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Dabus = new ChanceTable<WeenieClassName>()
         {
             // finesse - mace
             ( WeenieClassName.dabus,         0.40f ),
@@ -90,7 +90,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.dabusfrost,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Jittes = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Jittes = new ChanceTable<WeenieClassName>()
         {
             // finesse - mace
             ( WeenieClassName.jitte,         0.40f ),
@@ -100,7 +100,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.jittefrost,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Tofuns = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Tofuns = new ChanceTable<WeenieClassName>()
         {
             // finesse - mace
             ( WeenieClassName.tofun,         0.40f ),
@@ -110,7 +110,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.tofunfrost,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Budiaqs = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Budiaqs = new ChanceTable<WeenieClassName>()
         {
             // finesse - spear
             ( WeenieClassName.budiaq,         0.40f ),
@@ -120,7 +120,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.budiaqfrost,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Naginatas = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Naginatas = new ChanceTable<WeenieClassName>()
         {
             // finesse - spear
             ( WeenieClassName.swordstaff,         0.40f ),
@@ -130,7 +130,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.swordstafffrost,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Bastones = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Bastones = new ChanceTable<WeenieClassName>()
         {
             // finesse - staff
             ( WeenieClassName.staffmeleebastone,         0.40f ),
@@ -140,7 +140,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.staffmeleebastonefrost,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Jos = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Jos = new ChanceTable<WeenieClassName>()
         {
             // finesse - staff
             ( WeenieClassName.jonew,         0.40f ),
@@ -150,7 +150,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.jofrostnew,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Sabras = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Sabras = new ChanceTable<WeenieClassName>()
         {
             // finesse - sword
             ( WeenieClassName.swordsabra,         0.40f ),
@@ -160,7 +160,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.swordsabrafrost,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Scimitars = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Scimitars = new ChanceTable<WeenieClassName>()
         {
             // finesse - sword
             ( WeenieClassName.scimitar,         0.40f ),
@@ -170,7 +170,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.scimitarfrost,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> ShortSwords = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> ShortSwords = new ChanceTable<WeenieClassName>()
         {
             // finesse - sword
             ( WeenieClassName.swordshort,         0.40f ),
@@ -180,7 +180,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.swordshortfrost,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Simis = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Simis = new ChanceTable<WeenieClassName>()
         {
             // finesse - sword
             ( WeenieClassName.simi,         0.40f ),
@@ -190,7 +190,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.simifrost,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Rapiers = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Rapiers = new ChanceTable<WeenieClassName>()
         {
             // finesse - sword (multi-strike)
             ( WeenieClassName.swordrapier,              0.40f ),
@@ -200,7 +200,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace45107_frostrapier,     0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Yaojis = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Yaojis = new ChanceTable<WeenieClassName>()
         {
             // finesse - sword
             ( WeenieClassName.yaoji,         0.40f ),
@@ -210,7 +210,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.yaojifrost,    0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> Claws = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> Claws = new ChanceTable<WeenieClassName>()
         {
             // finesse - unarmed
             ( WeenieClassName.ace31784_claw,          0.40f ),
@@ -220,7 +220,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace31783_frostclaw,     0.15f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> HandWraps = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> HandWraps = new ChanceTable<WeenieClassName>()
         {
             // finesse - unarmed
             ( WeenieClassName.ace45118_handwraps,          0.40f ),

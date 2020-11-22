@@ -50,7 +50,11 @@ namespace ACE.Server.WorldObjects
         public bool WieldedLocationIsAvailable(WorldObject item, EquipMask wieldedLocation)
         {
             // filtering to just armor here, or else trinkets and dual wielding breaks
-            var existing = this is Player ? GetEquippedClothingArmor(item.ClothingPriority ?? 0) : GetEquippedItems(item, wieldedLocation);
+            // update: cannot repro the break anymore?
+            //var existing = this is Player ? GetEquippedClothingArmor(item.ClothingPriority ?? 0) : GetEquippedItems(item, wieldedLocation);
+            var existing = GetEquippedItems(item, wieldedLocation);
+
+            // TODO: handle overlap from MeleeWeapon / MissileWeapon / Held
 
             return existing.Count == 0;
         }
@@ -91,8 +95,9 @@ namespace ACE.Server.WorldObjects
         {
             if (IsWeaponSlot(wieldedLocation))
             {
+                // TODO: change to coalesced CurrentWieldedLocation
                 GetPlacementLocation(item, wieldedLocation, out var placement, out var parentLocation);
-                return EquippedObjects.Values.Where(i => i.ParentLocation != null && i.ParentLocation == parentLocation).ToList();
+                return EquippedObjects.Values.Where(i => i.ParentLocation != null && i.ParentLocation == parentLocation && i.CurrentWieldedLocation != EquipMask.MissileAmmo).ToList();
             }
 
             if (item is Clothing)

@@ -275,8 +275,6 @@ namespace ACE.Server.Factories
             {
                 var cantrip = RollCantrip(wo, profile, roll);
 
-                cantrip = AdjustForWeaponMastery(wo, cantrip);
-
                 if (cantrip != SpellId.Undef)
                     cantrips.Add(cantrip);
             }
@@ -316,7 +314,7 @@ namespace ACE.Server.Factories
 
                 // adjust for weapon skill
                 if (meleeCantrip == SpellId.CANTRIPLIGHTWEAPONSAPTITUDE1)
-                    meleeCantrip = AdjustForWeaponMastery(wo, meleeCantrip);
+                    meleeCantrip = AdjustForWeaponMastery(wo);
 
                 return meleeCantrip;
             }
@@ -371,7 +369,7 @@ namespace ACE.Server.Factories
             return itemDifficulty;
         }
 
-        private static SpellId AdjustForWeaponMastery(WorldObject wo, SpellId spell)
+        private static SpellId AdjustForWeaponMastery(WorldObject wo)
         {
             // handle two-handed weapons
             if (wo.WeaponSkill == Skill.TwoHandedCombat)
@@ -393,7 +391,7 @@ namespace ACE.Server.Factories
                 case Skill.FinesseWeapons:
                     return SpellId.CANTRIPFINESSEWEAPONSAPTITUDE1;
             }
-            return spell;
+            return SpellId.Undef;
         }
 
         private static SpellId AdjustForDamageType(WorldObject wo, SpellId spell)

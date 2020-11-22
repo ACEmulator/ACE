@@ -7,34 +7,34 @@ namespace ACE.Server.Factories.Tables
 {
     public static class ScrollLevelChance
     {
-        private static readonly ChanceTable<int> T1_ScrollLevelChances = new ChanceTable<int>()
+        private static ChanceTable<int> T1_ScrollLevelChances = new ChanceTable<int>()
         {
             ( 1, 0.25f ),
             ( 2, 0.50f ),
             ( 3, 0.25f )
         };
 
-        private static readonly ChanceTable<int> T2_ScrollLevelChances = new ChanceTable<int>()
+        private static ChanceTable<int> T2_ScrollLevelChances = new ChanceTable<int>()
         {
             ( 3, 0.25f ),
             ( 4, 0.50f ),
             ( 5, 0.25f )
         };
 
-        private static readonly ChanceTable<int> T3_ScrollLevelChances = new ChanceTable<int>()
+        private static ChanceTable<int> T3_ScrollLevelChances = new ChanceTable<int>()
         {
             ( 5, 0.25f ),
             ( 6, 0.50f ),
             ( 7, 0.25f )
         };
 
-        private static readonly ChanceTable<int> T4_ScrollLevelChances = new ChanceTable<int>()
+        private static ChanceTable<int> T4_ScrollLevelChances = new ChanceTable<int>()
         {
             ( 6, 0.50f ),
             ( 7, 0.50f )
         };
 
-        private static readonly ChanceTable<int> T5_T8_ScrollLevelChances = new ChanceTable<int>()
+        private static ChanceTable<int> T5_T8_ScrollLevelChances = new ChanceTable<int>()
         {
             ( 7, 1.00f )
         };

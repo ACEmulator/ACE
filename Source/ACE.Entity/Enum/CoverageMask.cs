@@ -4,7 +4,7 @@ namespace ACE.Entity.Enum
 {
     /// <summary>
     /// Used during Calculation of Damage
-    /// This data is sent in the priority field of the iilst (equiped items) portion of the player description event F7B0 - 0013 Og II
+    /// This data is sent in the priority field of the list (equipped items) portion of the player description event F7B0 - 0013 Og II
     /// </summary>
     /// 
     [Flags]
@@ -42,6 +42,8 @@ namespace ACE.Entity.Enum
 
         // exclude abdomen for searching
         UnderwearShirt = CoverageMask.UnderwearChest | CoverageMask.UnderwearUpperArms | CoverageMask.UnderwearLowerArms,
-        UnderwearPants = CoverageMask.UnderwearUpperLegs | CoverageMask.UnderwearLowerLegs
+        UnderwearPants = CoverageMask.UnderwearUpperLegs | CoverageMask.UnderwearLowerLegs,
+
+        Extremities = CoverageMask.Head | CoverageMask.Hands | CoverageMask.Feet,
     }
 }

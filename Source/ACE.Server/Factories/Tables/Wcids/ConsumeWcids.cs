@@ -8,7 +8,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class ConsumeWcids
     {
-        private static readonly ChanceTable<WeenieClassName> T1_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T1_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.apple,           0.01f ),
             ( WeenieClassName.bread,           0.01f ),
@@ -28,7 +28,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.staminatincture, 0.08f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T2_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T2_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.healthdraught,   0.08f ),
             ( WeenieClassName.manadraught,     0.08f ),
@@ -41,7 +41,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.staminaelixir,   0.08f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T3_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T3_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.healthpotion,    0.08f ),
             ( WeenieClassName.manapotion,      0.08f ),
@@ -54,7 +54,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.staminabrew,     0.08f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T4_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T4_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.healthtincture,  0.08f ),
             ( WeenieClassName.manatincture,    0.08f ),
@@ -67,7 +67,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.staminatonic,    0.08f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T5_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T5_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.healthelixir,    0.08f ),
             ( WeenieClassName.manaelixir,      0.08f ),
@@ -80,7 +80,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.staminaphiltre,  0.08f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T6_T8_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T6_T8_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.healthtonic,     0.08f ),
             ( WeenieClassName.manatonic,       0.08f ),

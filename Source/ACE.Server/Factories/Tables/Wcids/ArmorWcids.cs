@@ -11,7 +11,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class ArmorWcids
     {
-        private static readonly ChanceTable<WeenieClassName> LeatherWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> LeatherWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.buckler,                 0.07f ),
             ( WeenieClassName.capleather,              0.02f ),
@@ -35,7 +35,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.tassetsleathernew,       0.05f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> StuddedLeatherWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> StuddedLeatherWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.shieldkite,                0.04f ),
             ( WeenieClassName.shieldround,               0.04f ),
@@ -56,7 +56,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.tassetsstuddedleather,     0.07f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> ChainmailWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> ChainmailWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.shieldkitelarge,      0.04f ),
             ( WeenieClassName.shieldroundlarge,     0.04f ),
@@ -79,7 +79,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         };
 
         // platemail - aluvian
-        private static readonly ChanceTable<WeenieClassName> PlatemailWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> PlatemailWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.shieldtower,          0.08f ),
             ( WeenieClassName.helmhorned,           0.02f ),
@@ -101,7 +101,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         };
 
         // platemail - gharu'ndim
-        private static readonly ChanceTable<WeenieClassName> ScalemailWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> ScalemailWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.shieldtower,          0.07f ),
             ( WeenieClassName.baigha,               0.02f ),
@@ -125,7 +125,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         };
 
         // platemail - sho
-        private static readonly ChanceTable<WeenieClassName> YoroiWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> YoroiWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.shieldtower,        0.08f ),
             ( WeenieClassName.kabuton,            0.02f ),
@@ -146,7 +146,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         };
 
         // heritage low - aluvian
-        private static readonly ChanceTable<WeenieClassName> CeldonWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> CeldonWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.girthceldon,       0.25f ),
             ( WeenieClassName.breastplateceldon, 0.25f ),
@@ -155,21 +155,21 @@ namespace ACE.Server.Factories.Tables.Wcids
         };
 
         // heritage low - gharu'ndim
-        private static readonly ChanceTable<WeenieClassName> AmuliWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> AmuliWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.coatamullian,     0.50f ),
             ( WeenieClassName.leggingsamullian, 0.50f ),
         };
 
         // heritage low - sho
-        private static readonly ChanceTable<WeenieClassName> KoujiaWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> KoujiaWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.breastplatekoujia, 0.33f ),
             ( WeenieClassName.leggingskoujia,    0.34f ),
             ( WeenieClassName.sleeveskoujia,     0.33f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> CovenantWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> CovenantWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.shieldcovenant,      0.10f ),
             ( WeenieClassName.helmcovenant,        0.10f ),
@@ -184,7 +184,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         };
 
         // heritage high - aluvian
-        private static readonly ChanceTable<WeenieClassName> LoricaWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> LoricaWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.bootslorica,       0.16f ),
             ( WeenieClassName.gauntletslorica,   0.16f ),
@@ -195,7 +195,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         };
 
         // heritage high - gharu'ndim
-        private static readonly ChanceTable<WeenieClassName> NariyidWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> NariyidWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.bootsnariyid,       0.14f ),
             ( WeenieClassName.gauntletsnariyid,   0.14f ),
@@ -207,7 +207,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         };
 
         // heritage high - sho
-        private static readonly ChanceTable<WeenieClassName> ChiranWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> ChiranWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.sandalschiran,   0.20f ),
             ( WeenieClassName.gauntletschiran, 0.20f ),
@@ -221,7 +221,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         // viamontian platemail
         // introduced 07-2005 - throne of destiny
         // equivalent to platemail / scalemail / yoroi
-        private static readonly ChanceTable<WeenieClassName> DiforsaWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> DiforsaWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.shieldtower,        0.08f ),
             ( WeenieClassName.helmdiforsa,        0.02f ),
@@ -246,7 +246,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         // viamontian heritage low
         // introduced 07-2005 - throne of destiny
         // equivalent to celdon / amuli / koujia
-        private static readonly ChanceTable<WeenieClassName> TenassaWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> TenassaWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.breastplatetenassa, 0.33f ),
             ( WeenieClassName.leggingstenassa,    0.34f ),
@@ -256,7 +256,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         // viamontian heritage high
         // introduced 07-2005 - throne of destiny
         // equivalent to lorica / nariyid / chiran
-        private static readonly ChanceTable<WeenieClassName> AlduressaWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> AlduressaWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.bootsalduressa,     0.20f ),
             ( WeenieClassName.gauntletsalduressa, 0.20f ),
@@ -267,7 +267,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         // olthoi armor, t7+
         // introduced 08-2008 - ancient powers
-        private static readonly ChanceTable<WeenieClassName> OlthoiWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> OlthoiWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.ace37191_olthoigauntlets,   0.10f ),
             ( WeenieClassName.ace37193_olthoigirth,       0.10f ),
@@ -283,7 +283,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         // olthoi heritage armor, t7+
         // introduced 08-2008 - ancient powers
-        private static readonly ChanceTable<WeenieClassName> OlthoiCeldonWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> OlthoiCeldonWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.ace37189_olthoiceldongauntlets,   0.14f ),
             ( WeenieClassName.ace37192_olthoiceldongirth,       0.14f ),
@@ -294,7 +294,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace37214_olthoiceldonbreastplate, 0.14f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> OlthoiAmuliWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> OlthoiAmuliWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.ace37188_olthoiamuligauntlets, 0.20f ),
             ( WeenieClassName.ace37196_olthoiamulihelm,      0.20f ),
@@ -303,7 +303,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace37299_olthoiamulicoat,      0.20f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> OlthoiKoujiaWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> OlthoiKoujiaWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.ace37190_olthoikoujiagauntlets,   0.20f ),
             ( WeenieClassName.ace37198_olthoikoujiakabuton,     0.20f ),
@@ -312,7 +312,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace37215_olthoikoujiabreastplate, 0.20f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> OlthoiAlduressaWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> OlthoiAlduressaWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.ace37187_olthoialduressagauntlets, 0.20f ),
             ( WeenieClassName.ace37195_olthoialduressahelm,      0.20f ),
@@ -323,21 +323,21 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         // society armor
         // introduced: 08-2008 - ancient powers
-        private static readonly ChanceTable<WeenieClassName> CelestialHandWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> CelestialHandWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.ace38463_celestialhandbreastplate, 0.34f ),
             ( WeenieClassName.ace38464_celestialhandgauntlets,   0.33f ),
             ( WeenieClassName.ace38465_celestialhandgirth,       0.33f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> EldrytchWebWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> EldrytchWebWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.ace38472_eldrytchwebbreastplate, 0.34f ),
             ( WeenieClassName.ace38473_eldrytchwebgauntlets,   0.33f ),
             ( WeenieClassName.ace38474_eldrytchwebgirth,       0.33f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> RadiantBloodWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> RadiantBloodWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.ace38481_radiantbloodbreastplate, 0.34f ),
             ( WeenieClassName.ace38482_radiantbloodgauntlets,   0.33f ),
@@ -346,7 +346,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         // empyrean, tier 6+
         // introduced 05-2010 - celebration
-        private static readonly ChanceTable<WeenieClassName> HaebreanWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> HaebreanWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.ace42749_haebreanbreastplate, 0.11f ),
             ( WeenieClassName.ace42750_haebreangauntlets,   0.11f ),
@@ -361,7 +361,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         // empyrean, tier 6+
         // introduced 07-2010 - filling in the blanks
-        private static readonly ChanceTable<WeenieClassName> KnorrAcademyWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> KnorrAcademyWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.ace43048_knorracademybreastplate, 0.12f ),
             ( WeenieClassName.ace43049_knorracademygauntlets,   0.11f ),
@@ -376,7 +376,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         // tier 6+ leather
         // introduced: 03-2011 - hidden in shadows
-        private static readonly ChanceTable<WeenieClassName> SedgemailLeatherWcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> SedgemailLeatherWcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.ace43828_sedgemailleathervest,      0.17f ),
             ( WeenieClassName.ace43829_sedgemailleathercowl,      0.17f ),
@@ -388,7 +388,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         // over-robes
         // introduced: 10-2011 - cloak of darkness
-        private static readonly ChanceTable<WeenieClassName> OverRobe_T3_T5_Wcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> OverRobe_T3_T5_Wcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.ace44799_faranoverrobe,      0.25f ),     // aluvian? t3+
             ( WeenieClassName.ace44800_dhovestandoverrobe, 0.25f ),     // gharu'ndim? t3+
@@ -396,7 +396,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace44802_vestirioverrobe,    0.25f ),     // viamontian? t3+
         };
 
-        private static readonly ChanceTable<WeenieClassName> OverRobe_T6_T8_Wcids = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> OverRobe_T6_T8_Wcids = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.ace44799_faranoverrobe,      0.20f ),     // aluvian? t3+
             ( WeenieClassName.ace44800_dhovestandoverrobe, 0.20f ),     // gharu'ndim? t3+

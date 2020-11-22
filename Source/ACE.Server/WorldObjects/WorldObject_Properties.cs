@@ -1899,6 +1899,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.BulkMod); else SetProperty(PropertyFloat.BulkMod, value.Value); }
         }
 
+        public double? SizeMod
+        {
+            get => GetProperty(PropertyFloat.SizeMod);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.SizeMod); else SetProperty(PropertyFloat.SizeMod, value.Value); }
+        }
+
         public uint? PaletteBaseId
         {
             get => GetProperty(PropertyDataId.PaletteBase);

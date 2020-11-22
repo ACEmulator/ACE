@@ -8,18 +8,18 @@ namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class CoalescedManaWcids
     {
-        private static readonly ChanceTable<WeenieClassName> T1_T2_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T1_T2_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.ace42518_coalescedmana, 1.0f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T3_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T3_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.ace42518_coalescedmana, 0.75f ),
             ( WeenieClassName.ace42517_coalescedmana, 0.25f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T4_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T4_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.ace42518_coalescedmana, 0.25f ),
             ( WeenieClassName.ace42517_coalescedmana, 0.50f ),

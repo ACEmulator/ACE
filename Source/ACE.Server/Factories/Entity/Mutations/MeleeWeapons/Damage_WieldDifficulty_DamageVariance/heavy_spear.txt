@@ -643,3 +643,21 @@ Tier chances: 0, 0, 0, 0, 0, 0, 0, 1
         WieldSkillType = WeaponSkill
         WieldDifficulty = 430
 
+Spear (HeavyWeapons) Mutation #9:
+
+Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
+
+    - Chance: 10%:
+        DamageVariance = 0.75
+
+    - Chance: 20%:
+        DamageVariance = 0.72
+
+    - Chance: 40%:
+        DamageVariance = 0.68
+
+    - Chance: 20%:
+        DamageVariance = 0.63
+
+    - Chance: 10%:
+        DamageVariance = 0.59

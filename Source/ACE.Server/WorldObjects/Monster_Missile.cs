@@ -199,7 +199,7 @@ namespace ACE.Server.WorldObjects
         public void TrySwitchToMeleeAttack()
         {
             // 24139 - Invisible Assailant never switches to melee?
-            if (Visibility) return;
+            if (AiAllowedCombatStyle == CombatStyle.StubbornMissile || Visibility) return;
 
             SwitchWeaponsPending = true;
 

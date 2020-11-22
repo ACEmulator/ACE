@@ -216,11 +216,15 @@ namespace ACE.Entity.Models
 
                 var valuesByStatModTypeAndKey = value.Where(e => (e.StatModType & statModType) == statModType && e.StatModKey == statModKey || (handleMultiple && (e.StatModType & multipleStat) == multipleStat && e.StatModKey == 0));
 
+                // 3rd spell id sort added for Gauntlet Damage Boost I / Gauntlet Damage Boost II, which is contained in multiple sets, and can overlap
+                // without this sorting criteria, it's already matched up to the client, but produces logically incorrect results for server spell stacking
+                // confirmed this bug still exists in acclient Enchantment.Duel(), unknown if it existed in retail server
+
                 var results = from e in valuesByStatModTypeAndKey
                     group e by e.SpellCategory
                     into categories
                     //select categories.OrderByDescending(c => c.LayerId).First();
-                    select categories.OrderByDescending(c => c.PowerLevel).ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId)).First();
+                    select categories.OrderByDescending(c => c.PowerLevel).ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId)).ThenByDescending(c => c.SpellId).First();
 
                 return results.ToList();
             }

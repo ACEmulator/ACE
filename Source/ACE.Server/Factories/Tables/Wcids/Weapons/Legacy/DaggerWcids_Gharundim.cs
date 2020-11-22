@@ -8,7 +8,7 @@ namespace ACE.Server.Factories.Tables.Wcids
 {
     public static class DaggerWcids_Gharundim
     {
-        private static readonly ChanceTable<WeenieClassName> T1_T3_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T1_T3_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.jambiya,         0.16f ),
             ( WeenieClassName.jambiyaacid,     0.04f ),
@@ -27,7 +27,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.dirkfrost,       0.05f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T4_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T4_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.jambiya,         0.06f ),
             ( WeenieClassName.jambiyaacid,     0.01f ),
@@ -46,7 +46,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.dirkfrost,       0.10f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T5_T6_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T5_T6_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.jambiya,         0.01f ),
             ( WeenieClassName.jambiyaacid,     0.01f ),
