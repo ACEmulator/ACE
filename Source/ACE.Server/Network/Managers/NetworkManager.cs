@@ -117,6 +117,17 @@ namespace ACE.Server.Network.Managers
                         var ipAllowsUnlimited = ConfigManager.Config.Server.Network.AllowUnlimitedSessionsFromIPAddresses.Contains(endPoint.Address.ToString());
                         if (ipAllowsUnlimited || ConfigManager.Config.Server.Network.MaximumAllowedSessionsPerIPAddress == -1 || GetSessionEndpointTotalByAddressCount(endPoint.Address) < ConfigManager.Config.Server.Network.MaximumAllowedSessionsPerIPAddress)
                         {
+                            // if a character from a previous session is still logged into the world,
+                            // we really want FindOrCreateSession to return the previous session here
+                            // if the previous session is dropped immediately, before the character has completely exited world,
+                            // in-game packets from the previous character will start broadcasting to client @ char select screen,
+                            // which can cause ac client to get into weird state.
+
+                            // for example, if the server responds with 'character already in world' when character tries to log in again,
+                            // if in-game packets from previous session are broadcast @ char select screen,
+                            // it causes client to go into an automatic continuous loop very quickly,
+                            // where the client tries to repeatedly re-enter the world
+
                             var session = FindOrCreateSession(connectionListener, endPoint);
                             if (session != null)
                             {

@@ -564,6 +564,9 @@ namespace ACE.Server.WorldObjects
                     SetPropertiesAtLogOut();
                     SavePlayerToDatabase();
                     PlayerManager.SwitchPlayerFromOnlineToOffline(this);
+
+                    if (Session.PendingTermination != null || ServerManager.ShutdownInProgress)
+                        Session.DropSessionPost();
                 });
 
                 // close any open landblock containers (chests / corpses)
@@ -597,6 +600,9 @@ namespace ACE.Server.WorldObjects
                 SetPropertiesAtLogOut();
                 SavePlayerToDatabase();
                 PlayerManager.SwitchPlayerFromOnlineToOffline(this);
+
+                if (Session.PendingTermination != null || ServerManager.ShutdownInProgress)
+                    Session.DropSessionPost();
             }
         }
 

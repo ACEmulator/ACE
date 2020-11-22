@@ -87,7 +87,6 @@ namespace ACE.Server.Network.Handlers
 
             try
             {
-                log.Debug($"new client connected: {loginRequest.Account}. setting session properties");
                 AccountSelectCallback(account, session, loginRequest);
             }
             catch (Exception ex)
@@ -97,18 +96,9 @@ namespace ACE.Server.Network.Handlers
             }
         }
 
-
-        private static void AccountSelectCallback(Account account, Session session, PacketInboundLoginRequest loginRequest)
+        private static void SendConnectRequest(Session session)
         {
-            packetLog.DebugFormat("ConnectRequest TS: {0}", Timers.PortalYearTicks);
-
-            if (session.Network.ConnectionData.ServerSeed == null || session.Network.ConnectionData.ClientSeed == null)
-            {
-                // these are null if ConnectionData.DiscardSeeds() is called because of some other error condition.
-                session.Terminate(SessionTerminationReason.BadHandshake, new GameMessageCharacterError(CharacterError.ServerCrash1));
-                return;
-            }
-
+            // verify: should this happen if server responds with connection error?
             var connectRequest = new PacketOutboundConnectRequest(
                 Timers.PortalYearTicks,
                 session.Network.ConnectionData.ConnectionCookie,
@@ -119,15 +109,27 @@ namespace ACE.Server.Network.Handlers
             session.Network.ConnectionData.DiscardSeeds();
 
             session.Network.EnqueueSend(connectRequest);
+        }
+
+
+        private static void AccountSelectCallback(Account account, Session session, PacketInboundLoginRequest loginRequest)
+        {
+            packetLog.DebugFormat("ConnectRequest TS: {0}", Timers.PortalYearTicks);
+
+            if (session.State != SessionState.WorldConnected && (session.Network.ConnectionData.ServerSeed == null || session.Network.ConnectionData.ClientSeed == null))
+            {
+                // these are null if ConnectionData.DiscardSeeds() is called because of some other error condition.
+                session.Terminate(SessionTerminationReason.BadHandshake, new GameMessageCharacterError(CharacterError.ServerCrash1));
+                return;
+            }
 
             if (loginRequest.NetAuthType < NetAuthType.AccountPassword)
             {
                 if (loginRequest.Account == "acservertracker:jj9h26hcsggc")
                 {
                     //log.Info($"Incoming ping from a Thwarg-Launcher client... Sending Pong...");
-
+                    SendConnectRequest(session);
                     session.Terminate(SessionTerminationReason.PongSentClosingConnection, new GameMessageCharacterError(CharacterError.ServerCrash1));
-
                     return;
                 }
 
@@ -136,6 +138,7 @@ namespace ACE.Server.Network.Handlers
                 else
                     log.Debug($"client {loginRequest.Account} connected with no Password or GlsTicket included so booting");
 
+                SendConnectRequest(session);
                 session.Terminate(SessionTerminationReason.NotAuthorizedNoPasswordOrGlsTicketIncludedInLoginReq, new GameMessageCharacterError(CharacterError.AccountInvalid));
 
                 return;
@@ -143,6 +146,7 @@ namespace ACE.Server.Network.Handlers
 
             if (account == null)
             {
+                SendConnectRequest(session);
                 session.Terminate(SessionTerminationReason.NotAuthorizedAccountNotFound, new GameMessageCharacterError(CharacterError.AccountDoesntExist));
                 return;
             }
@@ -151,6 +155,7 @@ namespace ACE.Server.Network.Handlers
             {
                 if (NetworkManager.Find(account.AccountName) != null)
                 {
+                    SendConnectRequest(session);
                     session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.Logon));
                     return;
                 }
@@ -165,6 +170,7 @@ namespace ACE.Server.Network.Handlers
                     else
                         log.Debug($"client {loginRequest.Account} connected with non matching password so booting");
 
+                    SendConnectRequest(session);
                     session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageBootAccount(" because the password entered for this account was not correct."));
 
                     // TO-DO: temporary lockout of account preventing brute force password discovery
@@ -179,9 +185,14 @@ namespace ACE.Server.Network.Handlers
 
                     if (previouslyConnectedAccount != null)
                     {
+                        // do not send connection request here, or else vials will fill up on new client,
+                        // and it won't try to repeatedly reconnect until previous char is logged out of world
                         previouslyConnectedAccount.Terminate(SessionTerminationReason.AccountLoggedIn, new GameMessageCharacterError(CharacterError.Logon));
+                        return;
                     }
                 }
+
+                log.Debug($"new client connected: {loginRequest.Account}. setting session properties");
 
                 if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open)
                     log.Info($"client {loginRequest.Account} connected with verified password");
@@ -195,6 +206,7 @@ namespace ACE.Server.Network.Handlers
                 else
                     log.Debug($"client {loginRequest.Account} connected with GlsTicket which is not implemented yet so booting");
 
+                SendConnectRequest(session);
                 session.Terminate(SessionTerminationReason.NotAuthorizedGlsTicketNotImplementedToProcLoginReq, new GameMessageCharacterError(CharacterError.AccountInvalid));
 
                 return;
@@ -206,6 +218,7 @@ namespace ACE.Server.Network.Handlers
                 if (now < account.BanExpireTime.Value)
                 {
                     var reason = account.BanReason;
+                    SendConnectRequest(session);
                     session.Terminate(SessionTerminationReason.AccountBanned, new GameMessageBootAccount($"{(reason != null ? $" - {reason}" : null)}"), null, reason);
                     return;
                 }
@@ -215,9 +228,12 @@ namespace ACE.Server.Network.Handlers
                 }
             }
 
+            SendConnectRequest(session);
+
             account.UpdateLastLogin(session.EndPoint.Address);
 
             session.SetAccount(account.AccountId, account.AccountName, (AccessLevel)account.AccessLevel);
+
             session.State = SessionState.AuthConnectResponse;
         }
 

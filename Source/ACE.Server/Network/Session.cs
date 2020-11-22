@@ -66,8 +66,10 @@ namespace ACE.Server.Network
 
         private bool CheckState(ClientPacket packet)
         {
-            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && State != SessionState.AuthLoginRequest)
-                return false;
+            // if existing session was found in WorldConnected state, it should be pushed through for AccountSelectCallback() to terminate
+
+            //if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && State != SessionState.AuthLoginRequest)
+                //return false;
 
             if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse) && State != SessionState.AuthConnectResponse)
                 return false;
@@ -249,11 +251,14 @@ namespace ACE.Server.Network
             {
                 Network.EnqueueSend(message);
             }
-            PendingTermination = new SessionTerminationDetails()
+            if (PendingTermination == null)
             {
-                ExtraReason = extraReason,
-                Reason = reason
-            };
+                PendingTermination = new SessionTerminationDetails()
+                {
+                    ExtraReason = extraReason,
+                    Reason = reason
+                };
+            }
         }
 
         public void DropSession()
@@ -283,7 +288,12 @@ namespace ACE.Server.Network
 
                 // At this point, if the player was on a landblock, they'll still exist on that landblock until the logout animation completes (~6s).
             }
+            else
+                DropSessionPost();
+        }
 
+        public void DropSessionPost()
+        {
             NetworkManager.RemoveSession(this);
 
             // This is a temp fix to mark the Session.Network portion of the Session as released
