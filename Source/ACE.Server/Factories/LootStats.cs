@@ -95,7 +95,7 @@ namespace ACE.Server.Factories
             {
                 MeleeWeapons = new List<string>() { $"-----Melee Weapons----\nSkill,Wield,Damage,MStrike,Variance,DefenseMod,MagicDBonus,MissileDBonus,Cantrip,Value,Burden,Type" };
                 MissileWeapons = new List<string>() { $"-----Missile Weapons----\nType,Wield,Modifier,ElementBonus,DefenseMod,MagicDBonus,MissileDBonus,Value,Burden" };
-                CasterWeapons = new List<string>() { $"-----Caster Weapons----\nWield,ElementBonus,DefenseMod,MagicDBonus,MissileDBonus,Value,MaxMana,Burden" };
+                CasterWeapons = new List<string>() { $"-----Caster Weapons----\nWield,Element,ElementBonus,DefenseMod,MagicDBonus,MissileDBonus,Value,MaxMana,Burden" };
                 Armor = new List<string>() { $"-----Armor----\nAL,Arcane,Value,Burden,Epic,Legendary,EquipmentSet,Type" };
                 Pets = new List<string>() { $"-----Pet Devices----\nLevel,Dmg,DmgR,Crit,CritD,CDR,CritR,Total" };
                 Aetheria = new List<string>() { $"-----Aetheria----\nColor,Level" };
@@ -106,7 +106,7 @@ namespace ACE.Server.Factories
             {
                 MeleeWeapons = new List<string>() { $"-----Melee Weapons----\n Skill \t\t\t Wield \t Damage \t MStrike \t Variance \t DefenseMod \t MagicDBonus \t MissileDBonus\tCantrip\t Value\t Burden\t Type" };
                 MissileWeapons = new List<string>() { $"-----Missile Weapons----\n Type \t Wield \t Modifier \tElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus\t Value\t Burden" };
-                CasterWeapons = new List<string>() { $"-----Caster Weapons----\n Wield \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus \t Value\t Burden\t MaxMana" };
+                CasterWeapons = new List<string>() { $"-----Caster Weapons----\n Wield \t Element \t ElementBonus \t DefenseMod \t MagicDBonus \t MissileDBonus \t Value\t Burden\t MaxMana" };
                 Armor = new List<string>() { $"-----Armor----\n AL\tArcane\tValue\tBurden\tEpics\tLegend\tEquipment Set\t\t\tType" };
                 Pets = new List<string>() { $"-----Pet Devices----\n Level \t Dmg \t DmgR \t Crit \t CritD \t CDR \t CritR \t Total" };
                 Aetheria = new List<string>() { $"-----Aetheria----\n Color \t Level" };
@@ -522,10 +522,10 @@ namespace ACE.Server.Factories
                             ItemMaxMana = testItem.ItemMaxMana.Value;
                         if (logStats)
                         {
-                            CasterWeapons.Add($"{wield},{eleMod},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{value},{testItem.EncumbranceVal},{ItemMaxMana}");
+                            CasterWeapons.Add($"{wield},{testItem.Name},{eleMod},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{value},{testItem.EncumbranceVal},{ItemMaxMana}");
                         }
                         else
-                            CasterWeapons.Add($" {wield}\t {eleMod}\t\t {testItem.WeaponDefense.Value}\t\t  {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.EncumbranceVal} \t {ItemMaxMana}");
+                            CasterWeapons.Add($" {wield}\t {testItem.Name}\t {eleMod}\t\t {testItem.WeaponDefense.Value}\t\t  {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.EncumbranceVal} \t {ItemMaxMana}");
                         break;
                     case ItemType.Portal:
                         break;
