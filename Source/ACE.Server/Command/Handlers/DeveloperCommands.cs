@@ -3376,6 +3376,22 @@ namespace ACE.Server.Command.Handlers
             monster.AttackTarget = prevAttackTarget;
         }
 
+        [CommandHandler("debugspellbook", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the spellbook for the last appraised object")]
+        public static void HandleDebugSpellbook(Session session, params string[] parameters)
+        {
+            var creature = CommandHandlerHelper.GetLastAppraisedObject(session) as Creature;
+
+            if (creature == null || creature.Biota.PropertiesSpellBook == null)
+                return;
+
+            var lines = new List<string>();
+
+            foreach (var entry in creature.Biota.PropertiesSpellBook)
+                lines.Add($"{(SpellId)entry.Key} - {entry.Value}");
+
+            CommandHandlerHelper.WriteOutputInfo(session, string.Join('\n', lines));
+        }
+
         [CommandHandler("trywield", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2)]
         public static void HandleTryWield(Session session, params string[] parameters)
         {
