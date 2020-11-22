@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using ACE.Common;
 using ACE.Database.Adapter;
 using ACE.Database.Models.World;
+using ACE.Database.Extensions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
@@ -789,9 +790,44 @@ namespace ACE.Database
                         chances = new List<TreasureMaterialBase>();
                         materialCode.Add((int)result.Tier, chances);
                     }
-                    chances.Add(result);
+                    chances.Add(result.Clone());
                 }
+                TreasureMaterialBase_Normalize(table);
+
                 cachedTreasureMaterialBase = table;
+            }
+        }
+
+        private static readonly float NormalizeEpsilon = 0.00001f;
+
+        private void TreasureMaterialBase_Normalize(Dictionary<int, Dictionary<int, List<TreasureMaterialBase>>> materialBase)
+        {
+            foreach (var kvp in materialBase)
+            {
+                var materialCode = kvp.Key;
+                var tiers = kvp.Value;
+
+                foreach (var kvp2 in tiers)
+                {
+                    var tier = kvp2.Key;
+                    var list = kvp2.Value;
+
+                    var totalProbability = list.Sum(i => i.Probability);
+
+                    if (Math.Abs(1.0f - totalProbability) < NormalizeEpsilon)
+                        continue;
+
+                    //Console.WriteLine($"TotalProbability {totalProbability} found for TreasureMaterialBase {materialCode} tier {tier}");
+
+                    var factor = 1.0f / totalProbability;
+
+                    foreach (var item in list)
+                        item.Probability *= factor;
+
+                    /*totalProbability = list.Sum(i => i.Probability);
+
+                    Console.WriteLine($"After: {totalProbability}");*/
+                }
             }
         }
 
@@ -829,9 +865,43 @@ namespace ACE.Database
                         list = new List<TreasureMaterialColor>();
                         colorCodes.Add((int)result.ColorCode, list);
                     }
-                    list.Add(result);
+                    list.Add(result.Clone());
                 }
+
+                TreasureMaterialColor_Normalize(table);
+
                 cachedTreasureMaterialColor = table;
+            }
+        }
+
+        private void TreasureMaterialColor_Normalize(Dictionary<int, Dictionary<int, List<TreasureMaterialColor>>> materialColor)
+        {
+            foreach (var kvp in materialColor)
+            {
+                var material = kvp.Key;
+                var colorCodes = kvp.Value;
+
+                foreach (var kvp2 in colorCodes)
+                {
+                    var colorCode = kvp2.Key;
+                    var list = kvp2.Value;
+
+                    var totalProbability = list.Sum(i => i.Probability);
+
+                    if (Math.Abs(1.0f - totalProbability) < NormalizeEpsilon)
+                        continue;
+
+                    //Console.WriteLine($"TotalProbability {totalProbability} found for TreasureMaterialColor {(MaterialType)material} ColorCode {colorCode}");
+
+                    var factor = 1.0f / totalProbability;
+
+                    foreach (var item in list)
+                        item.Probability *= factor;
+
+                    /*totalProbability = list.Sum(i => i.Probability);
+
+                    Console.WriteLine($"After: {totalProbability}");*/
+                }
             }
         }
 
@@ -871,11 +941,42 @@ namespace ACE.Database
                         list = new List<TreasureMaterialGroups>();
                         tiers.Add((int)result.Tier, list);
                     }
-                    list.Add(result);
+                    list.Add(result.Clone());
                 }
+                TreasureMaterialGroups_Normalize(table);
 
-                // TODO: normalize? group 9 has totals slightly above 1.0
                 cachedTreasureMaterialGroups = table;
+            }
+        }
+
+        private void TreasureMaterialGroups_Normalize(Dictionary<int, Dictionary<int, List<TreasureMaterialGroups>>> materialGroups)
+        {
+            foreach (var kvp in materialGroups)
+            {
+                var materialGroup = kvp.Key;
+                var tiers = kvp.Value;
+
+                foreach (var kvp2 in tiers)
+                {
+                    var tier = kvp2.Key;
+                    var list = kvp2.Value;
+
+                    var totalProbability = list.Sum(i => i.Probability);
+
+                    if (Math.Abs(1.0f - totalProbability) < NormalizeEpsilon)
+                        continue;
+
+                    //Console.WriteLine($"TotalProbability {totalProbability} found for TreasureMaterialGroup {(MaterialType)materialGroup} tier {tier}");
+
+                    var factor = 1.0f / totalProbability;
+
+                    foreach (var item in list)
+                        item.Probability *= factor;
+
+                    /*totalProbability = list.Sum(i => i.Probability);
+
+                    Console.WriteLine($"After: {totalProbability}");*/
+                }
             }
         }
 
