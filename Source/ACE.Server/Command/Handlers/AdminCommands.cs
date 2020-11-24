@@ -548,7 +548,7 @@ namespace ACE.Server.Command.Handlers
             {
                 if (session.Player.HealthQueryTarget.HasValue)
                     objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
-                else if (session.Player.HealthQueryTarget.HasValue)
+                else if (session.Player.ManaQueryTarget.HasValue)
                     objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
                 else
                     objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
@@ -565,19 +565,6 @@ namespace ACE.Server.Command.Handlers
                     wo.GeneratorRegeneration(Time.GetUnixTime());
                 }
             }
-        }
-
-        // reportbug < code | content > < description >
-        [CommandHandler("reportbug", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 2)]
-        public static void HandleReportbug(Session session, params string[] parameters)
-        {
-            // @reportbug < code | content > < description >
-            // This command emails your report to the AC1 Bugs folder at Turbine.
-            // @reportbug - Email a bug report to Turbine.
-
-            // LOL
-
-            // TODO: output
         }
 
         /// <summary>
@@ -985,7 +972,7 @@ namespace ACE.Server.Command.Handlers
             {
                 if (session.Player.HealthQueryTarget.HasValue)
                     objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
-                else if (session.Player.HealthQueryTarget.HasValue)
+                else if (session.Player.ManaQueryTarget.HasValue)
                     objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
                 else
                     objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
@@ -2369,7 +2356,7 @@ namespace ACE.Server.Command.Handlers
 
             if (session.Player.HealthQueryTarget.HasValue)
                 objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
-            else if (session.Player.HealthQueryTarget.HasValue)
+            else if (session.Player.ManaQueryTarget.HasValue)
                 objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
             else if (session.Player.CurrentAppraisalTarget.HasValue)
                 objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
