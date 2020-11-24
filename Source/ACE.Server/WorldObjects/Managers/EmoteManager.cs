@@ -842,6 +842,9 @@ namespace ACE.Server.WorldObjects.Managers
                     if (!WorldObject.PlayersInRange(ClientMaxAnimRange))
                         break;
 
+                    if (WorldObject.PhysicsObj != null && WorldObject.PhysicsObj.IsMovingTo())
+                        break;
+
                     if (WorldObject == null || WorldObject.CurrentMotionState == null) break;
 
                     // TODO: REFACTOR ME
