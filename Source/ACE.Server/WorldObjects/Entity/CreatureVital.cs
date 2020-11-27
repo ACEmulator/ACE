@@ -125,26 +125,37 @@ namespace ACE.Server.WorldObjects.Entity
 
                 uint total = StartingValue + Ranks + attr;
 
+                var player = creature as Player;
+
+                if (player != null)
+                {
+                    // Enlightenment and GearMaxHealth didn't work like other additives
+                    // most additives (ie. from enchantments) were added in *after* multipliers,
+                    // but Enlightenment and GearMaxHealth were an exception, and added in beforehand
+
+                    // this means Enlightenment and GearMaxHealth would get scaled by multipliers,
+                    // including Asheron's Benediction, and oddly enough, vitae as well
+
+                    // it's also possible these were considered "base"
+                    if (Vital == PropertyAttribute2nd.MaxHealth)
+                        total += (uint)(player.Enlightenment * 2 + player.GetGearMaxHealth());
+                }
+
                 // apply multiplicative enchantments first
                 var multiplier = creature.EnchantmentManager.GetVitalMod_Multiplier(this);
 
                 var fTotal = total * multiplier;
 
-                var additives = 0.0f;
-
-                if (creature is Player player)
+                if (player != null)
                 {
                     var vitae = player.Vitae;
 
                     if (vitae != 1.0f)
                         fTotal *= vitae;
-
-                    // everything beyond this point does not get scaled by vitae
-                    if (Vital == PropertyAttribute2nd.MaxHealth)
-                        additives += player.Enlightenment * 2 + player.GetGearMaxHealth();
                 }
 
-                additives += creature.EnchantmentManager.GetVitalMod_Additives(this);
+                // everything beyond this point does not get scaled by vitae
+                var additives = creature.EnchantmentManager.GetVitalMod_Additives(this);
 
                 total = (uint)(fTotal + additives).Round();
 
