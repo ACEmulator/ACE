@@ -360,12 +360,15 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(monsterTickInterval);
             actionChain.AddAction(this, () =>
             {
-                if (!IsDead && PhysicsObj.IsMovingTo())
+                if (!IsDead && PhysicsObj != null && PhysicsObj.IsMovingTo())
                 {
                     PhysicsObj.update_object();
                     UpdatePosition_SyncLocation();
                     SendUpdatePosition();
-                    AddMoveToTick();
+
+                    if (PhysicsObj.MovementManager.MoveToManager.FailProgressCount < 10)
+                        AddMoveToTick();
+
                     //Console.WriteLine($"{Name}.Position: {Location}");
                 }
             });

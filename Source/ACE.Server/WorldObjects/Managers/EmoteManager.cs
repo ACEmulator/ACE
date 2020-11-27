@@ -199,7 +199,9 @@ namespace ACE.Server.WorldObjects.Managers
                             break;
                         }
 
-                        var preCastTime = creature.PreCastMotion(targetObject);
+                        var spellTarget = GetSpellTarget(spell, targetObject);
+
+                        var preCastTime = creature.PreCastMotion(spellTarget);
 
                         delay = preCastTime + creature.GetPostCastTime(spell);
 
@@ -207,7 +209,7 @@ namespace ACE.Server.WorldObjects.Managers
                         castChain.AddDelaySeconds(preCastTime);
                         castChain.AddAction(creature, () =>
                         {
-                            creature.TryCastSpell(spell, targetObject, creature);
+                            creature.TryCastSpell(spell, spellTarget, creature);
                             creature.PostCastMotion();
                         });
                         castChain.EnqueueChain();
@@ -219,8 +221,13 @@ namespace ACE.Server.WorldObjects.Managers
                     if (WorldObject != null)
                     {
                         var spell = new Spell((uint)emote.SpellId);
+
                         if (!spell.NotFound)
-                            WorldObject.TryCastSpell(spell, targetObject, WorldObject);
+                        {
+                            var spellTarget = GetSpellTarget(spell, targetObject);
+
+                            WorldObject.TryCastSpell(spell, spellTarget, WorldObject);
+                        }
                     }
                     break;
 
@@ -833,6 +840,9 @@ namespace ACE.Server.WorldObjects.Managers
 
                     // are there players within emote range?
                     if (!WorldObject.PlayersInRange(ClientMaxAnimRange))
+                        break;
+
+                    if (WorldObject.PhysicsObj != null && WorldObject.PhysicsObj.IsMovingTo())
                         break;
 
                     if (WorldObject == null || WorldObject.CurrentMotionState == null) break;
@@ -1706,6 +1716,20 @@ namespace ACE.Server.WorldObjects.Managers
 
                     return target ?? self;
             }
+        }
+
+        private WorldObject GetSpellTarget(Spell spell, WorldObject target)
+        {
+            var targetSelf = spell.Flags.HasFlag(SpellFlags.SelfTargeted);
+            var untargeted = spell.NonComponentTargetType == ItemType.None;
+
+            var spellTarget = target;
+            if (untargeted)
+                spellTarget = null;
+            else if (targetSelf)
+                spellTarget = WorldObject;
+
+            return spellTarget;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

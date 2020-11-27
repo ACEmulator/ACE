@@ -134,7 +134,15 @@ namespace ACE.Server.WorldObjects
                             ItemCurMana -= adjustedRation;
 
                             if (player.LumAugItemManaGain != 0)
+                            {
                                 adjustedRation = (int)Math.Round(adjustedRation * Creature.GetPositiveRatingMod(player.LumAugItemManaGain * 5));
+                                if (adjustedRation > manaNeededForTopoff)
+                                {
+                                    var diff = adjustedRation - manaNeededForTopoff;
+                                    adjustedRation = manaNeededForTopoff;
+                                    ItemCurMana += diff;
+                                }
+                            }
 
                             item.ItemCurMana += adjustedRation;
                             if (!itemsGivenMana.ContainsKey(item))
@@ -191,6 +199,13 @@ namespace ACE.Server.WorldObjects
 
                         var targetManaNeeded = target.ItemMaxMana.Value - targetItemCurMana;
                         var manaToPour = Math.Min(targetManaNeeded, ItemCurMana.Value);
+
+                        if (player.LumAugItemManaGain != 0)
+                        {
+                            manaToPour = (int)Math.Round(manaToPour * Creature.GetPositiveRatingMod(player.LumAugItemManaGain * 5));
+                            manaToPour = Math.Min(targetManaNeeded, manaToPour);
+                        }
+
                         target.ItemCurMana = targetItemCurMana + manaToPour;
                         var msg = $"The Mana Stone gives {manaToPour:N0} points of mana to the {target.Name}.";
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));

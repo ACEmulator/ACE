@@ -38,7 +38,7 @@ namespace ACE.Server.Factories
 
         public static List<WorldObject> CreateRandomLootObjects(TreasureDeath profile)
         {
-            if (PropertyManager.GetBool("updated_loot_system").Item)
+            if (!PropertyManager.GetBool("legacy_loot_system").Item)
                 return CreateRandomLootObjects_New(profile);
 
             stopwatch.Value.Restart();
@@ -916,7 +916,7 @@ namespace ACE.Server.Factories
 
                 case TreasureItemType_Orig.Caster:
 
-                    treasureRoll.Wcid = CasterWcids.Roll(treasureDeath);
+                    treasureRoll.Wcid = CasterWcids.Roll(treasureDeath.Tier);
                     break;
 
                 case TreasureItemType_Orig.ManaStone:

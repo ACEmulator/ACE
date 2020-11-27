@@ -69,6 +69,7 @@ namespace ACE.Server.Network.Handlers
                     if (allegiance != null)
                     {
                         // is sender booted / gagged?
+                        if (!allegiance.IsMember(session.Player.Guid)) return;
                         if (allegiance.IsFiltered(session.Player.Guid)) return;
 
                         // iterate through all allegiance members
