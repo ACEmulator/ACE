@@ -128,7 +128,7 @@ namespace ACE.Server.WorldObjects.Entity
             {
                 var attr = AttributeFormula.GetFormula(creature, Vital, true);
 
-                uint total = StartingValue + Ranks + attr;
+                var total = StartingValue + Ranks + attr;
 
                 var player = creature as Player;
 
@@ -162,11 +162,11 @@ namespace ACE.Server.WorldObjects.Entity
                 // everything beyond this point does not get scaled by vitae
                 var additives = creature.EnchantmentManager.GetVitalMod_Additives(this);
 
-                total = (uint)(fTotal + additives).Round();
+                var iTotal = (fTotal + additives).Round();
 
-                total = Math.Max(total, 5);     // a creature cannot fall below 5 MaxVital from vitae
+                iTotal = Math.Max(iTotal, 5);   // a creature cannot fall below 5 MaxVital from vitae
 
-                return total;
+                return (uint)iTotal;
             }
         }
 
