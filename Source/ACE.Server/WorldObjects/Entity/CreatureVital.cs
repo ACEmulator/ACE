@@ -164,6 +164,8 @@ namespace ACE.Server.WorldObjects.Entity
 
                 total = (uint)(fTotal + additives).Round();
 
+                total = Math.Max(total, 5);     // a creature cannot fall below 5 MaxVital from vitae
+
                 return total;
             }
         }
