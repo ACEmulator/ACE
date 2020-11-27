@@ -128,7 +128,7 @@ namespace ACE.Server.WorldObjects.Entity
             {
                 var attr = AttributeFormula.GetFormula(creature, Vital, true);
 
-                var total = StartingValue + Ranks + attr;
+                uint total = StartingValue + Ranks + attr;
 
                 var player = creature as Player;
 
