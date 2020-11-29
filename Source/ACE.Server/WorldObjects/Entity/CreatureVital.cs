@@ -107,7 +107,12 @@ namespace ACE.Server.WorldObjects.Entity
             {
                 var attr = AttributeFormula.GetFormula(creature, Vital, false);
 
-                return StartingValue + Ranks + attr;
+                var total = StartingValue + Ranks + attr;
+
+                if (creature is Player player && Vital == PropertyAttribute2nd.MaxHealth)
+                    total += (uint)(player.Enlightenment * 2 + player.GetGearMaxHealth());
+
+                return total;
             }
         }
 
@@ -157,9 +162,11 @@ namespace ACE.Server.WorldObjects.Entity
                 // everything beyond this point does not get scaled by vitae
                 var additives = creature.EnchantmentManager.GetVitalMod_Additives(this);
 
-                total = (uint)(fTotal + additives).Round();
+                var iTotal = (fTotal + additives).Round();
 
-                return total;
+                iTotal = Math.Max(iTotal, 5);   // a creature cannot fall below 5 MaxVital from vitae
+
+                return (uint)iTotal;
             }
         }
 
