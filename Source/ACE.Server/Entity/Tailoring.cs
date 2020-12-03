@@ -305,6 +305,13 @@ namespace ACE.Server.Entity
                 return;
             }
 
+            if (target is MeleeWeapon && target.W_WeaponType == WeaponType.Undef)
+            {
+                // 'difficult to master' weapons were not tailorable
+                player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                return;
+            }
+
             // create intermediate weapon tailoring kit
             var wo = WorldObjectFactory.CreateNewWorldObject(51451);
             SetWeaponProperties(target, wo);
