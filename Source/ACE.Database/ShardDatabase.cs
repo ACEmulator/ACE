@@ -304,23 +304,6 @@ namespace ACE.Database
                 {
                     firstException = ex;
 
-                    if (biota.WeenieType == (int)WeenieType.Corpse && biota.WeenieClassId == (uint)WeenieClassName.W_CORPSE_CLASS && ex.GetFullMessage().Contains("Unknown column 'order' in 'field list'"))
-                    {
-                        // unknown how this column keeps deleting, but it is likely a bug that is a result of auto (world only?) database updates that repros under currently unknown conditions
-                        // attempt to correct shard database missing order column
-
-                        try
-                        {
-                            context.Database.ExecuteSqlCommand("ALTER TABLE `biota_properties_palette` ADD COLUMN `order` TINYINT(3) UNSIGNED NULL DEFAULT NULL AFTER `length`;");
-
-                            log.Debug($"[DATABASE] DoSaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} restored missing order column to biota_properties_palette table");
-                        }
-                        catch (Exception ex2)
-                        {
-                            log.Debug($"[DATABASE] DoSaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed to restore missing order column to biota_properties_palette table: {ex2.GetFullMessage()}");
-                        }
-                    }
-
                     goto retry;
                 }
 
