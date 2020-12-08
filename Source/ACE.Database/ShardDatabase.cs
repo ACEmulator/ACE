@@ -303,7 +303,6 @@ namespace ACE.Database
                 if (firstException == null)
                 {
                     firstException = ex;
-
                     goto retry;
                 }
 
