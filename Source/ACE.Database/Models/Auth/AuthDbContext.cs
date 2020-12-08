@@ -24,7 +24,7 @@ namespace ACE.Database.Models.Auth
             {
                 var config = Common.ConfigManager.Config.MySql.Authentication;
 
-                optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}", builder =>
+                optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database};TreatTinyAsBoolean=False", builder =>
                 {
                     builder.EnableRetryOnFailure(10);
                 });
@@ -39,7 +39,8 @@ namespace ACE.Database.Models.Auth
         {
             modelBuilder.Entity<Accesslevel>(entity =>
             {
-                entity.HasKey(e => e.Level);
+                entity.HasKey(e => e.Level)
+                    .HasName("PRIMARY");
 
                 entity.ToTable("accesslevel");
 
@@ -49,17 +50,21 @@ namespace ACE.Database.Models.Auth
 
                 entity.Property(e => e.Level)
                     .HasColumnName("level")
-                    .HasDefaultValueSql("'0'");
+                    .ValueGeneratedNever();
 
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasColumnName("name")
-                    .HasColumnType("varchar(45)");
+                    .HasColumnType("varchar(45)")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
 
                 entity.Property(e => e.Prefix)
                     .HasColumnName("prefix")
                     .HasColumnType("varchar(45)")
-                    .HasDefaultValueSql("''");
+                    .HasDefaultValueSql("''")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
             });
 
             modelBuilder.Entity<Account>(entity =>
@@ -75,14 +80,14 @@ namespace ACE.Database.Models.Auth
 
                 entity.Property(e => e.AccountId).HasColumnName("accountId");
 
-                entity.Property(e => e.AccessLevel)
-                    .HasColumnName("accessLevel")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.AccessLevel).HasColumnName("accessLevel");
 
                 entity.Property(e => e.AccountName)
                     .IsRequired()
                     .HasColumnName("accountName")
-                    .HasColumnType("varchar(50)");
+                    .HasColumnType("varchar(50)")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
 
                 entity.Property(e => e.BanExpireTime)
                     .HasColumnName("ban_Expire_Time")
@@ -90,7 +95,9 @@ namespace ACE.Database.Models.Auth
 
                 entity.Property(e => e.BanReason)
                     .HasColumnName("ban_Reason")
-                    .HasColumnType("varchar(1000)");
+                    .HasColumnType("varchar(1000)")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
 
                 entity.Property(e => e.BannedByAccountId).HasColumnName("banned_By_Account_Id");
 
@@ -105,11 +112,13 @@ namespace ACE.Database.Models.Auth
                 entity.Property(e => e.CreateTime)
                     .HasColumnName("create_Time")
                     .HasColumnType("datetime")
-                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'");
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                 entity.Property(e => e.EmailAddress)
                     .HasColumnName("email_Address")
-                    .HasColumnType("varchar(320)");
+                    .HasColumnType("varchar(320)")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
 
                 entity.Property(e => e.LastLoginIP)
                     .HasColumnName("last_Login_I_P")
@@ -122,17 +131,21 @@ namespace ACE.Database.Models.Auth
                 entity.Property(e => e.PasswordHash)
                     .IsRequired()
                     .HasColumnName("passwordHash")
-                    .HasColumnType("varchar(88)");
+                    .HasColumnType("varchar(88)")
+                    .HasComment("base64 encoded version of the hashed passwords.  88 characters are needed to base64 encode SHA512 output.")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
 
                 entity.Property(e => e.PasswordSalt)
                     .IsRequired()
                     .HasColumnName("passwordSalt")
                     .HasColumnType("varchar(88)")
-                    .HasDefaultValueSql("'use bcrypt'");
+                    .HasDefaultValueSql("'use bcrypt'")
+                    .HasComment("This is no longer used, except to indicate if bcrypt is being employed for migration purposes. Previously: base64 encoded version of the password salt.  512 byte salts (88 characters when base64 encoded) are recommend for SHA512.")
+                    .HasCharSet("utf8")
+                    .HasCollation("utf8_general_ci");
 
-                entity.Property(e => e.TotalTimesLoggedIn)
-                    .HasColumnName("total_Times_Logged_In")
-                    .HasDefaultValueSql("'0'");
+                entity.Property(e => e.TotalTimesLoggedIn).HasColumnName("total_Times_Logged_In");
 
                 entity.HasOne(d => d.AccessLevelNavigation)
                     .WithMany(p => p.Account)
@@ -140,6 +153,10 @@ namespace ACE.Database.Models.Auth
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_accesslevel");
             });
+
+            OnModelCreatingPartial(modelBuilder);
         }
+
+        partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
     }
 }
