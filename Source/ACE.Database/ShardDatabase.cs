@@ -574,17 +574,18 @@ namespace ACE.Database
         {
             var context = new ShardDbContext();
 
-            var results = context.Character
-                .Include(r => r.CharacterPropertiesContractRegistry)
-                .Include(r => r.CharacterPropertiesFillCompBook)
-                .Include(r => r.CharacterPropertiesFriendList)
-                .Include(r => r.CharacterPropertiesQuestRegistry)
-                .Include(r => r.CharacterPropertiesShortcutBar)
-                .Include(r => r.CharacterPropertiesSpellBar)
-                .Include(r => r.CharacterPropertiesSquelch)
-                .Include(r => r.CharacterPropertiesTitleBook)
-                .Where(r => r.AccountId == accountId && (includeDeleted || !r.IsDeleted))
-                .ToList();
+            var query = context.Character.Where(r => r.AccountId == accountId && (includeDeleted || !r.IsDeleted));
+
+            var results = query.ToList();
+
+            query.Include(r => r.CharacterPropertiesContractRegistry).Load();
+            query.Include(r => r.CharacterPropertiesFillCompBook).Load();
+            query.Include(r => r.CharacterPropertiesFriendList).Load();
+            query.Include(r => r.CharacterPropertiesQuestRegistry).Load();
+            query.Include(r => r.CharacterPropertiesShortcutBar).Load();
+            query.Include(r => r.CharacterPropertiesSpellBar).Load();
+            query.Include(r => r.CharacterPropertiesSquelch).Load();
+            query.Include(r => r.CharacterPropertiesTitleBook).Load();
 
             foreach (var result in results)
                 CharacterContexts.Add(result, context);

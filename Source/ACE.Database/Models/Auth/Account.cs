@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace ACE.Database.Models.Auth
@@ -21,6 +21,6 @@ namespace ACE.Database.Models.Auth
         public DateTime? BanExpireTime { get; set; }
         public string BanReason { get; set; }
 
-        public Accesslevel AccessLevelNavigation { get; set; }
+        public virtual Accesslevel AccessLevelNavigation { get; set; }
     }
 }

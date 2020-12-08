@@ -54,20 +54,20 @@ namespace ACE.Database
         /// </summary>
         public virtual Weenie GetWeenie(WorldDbContext context, uint weenieClassId)
         {
-            // Base properties for every weenie (ACBaseQualities)
-            var weenie = context.Weenie
-                .Include(r => r.WeeniePropertiesBool)
-                .Include(r => r.WeeniePropertiesDID)
-                .Include(r => r.WeeniePropertiesFloat)
-                .Include(r => r.WeeniePropertiesIID)
-                .Include(r => r.WeeniePropertiesInt)
-                .Include(r => r.WeeniePropertiesInt64)
-                .Include(r => r.WeeniePropertiesPosition)
-                .Include(r => r.WeeniePropertiesString)
-                .FirstOrDefault(r => r.ClassId == weenieClassId);
+            var weenie = context.Weenie.FirstOrDefault(r => r.ClassId == weenieClassId);
 
             if (weenie == null)
                 return null;
+
+            // Base properties for every weenie (ACBaseQualities)
+            weenie.WeeniePropertiesBool = context.WeeniePropertiesBool.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            weenie.WeeniePropertiesDID = context.WeeniePropertiesDID.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            weenie.WeeniePropertiesFloat = context.WeeniePropertiesFloat.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            weenie.WeeniePropertiesIID = context.WeeniePropertiesIID.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            weenie.WeeniePropertiesInt = context.WeeniePropertiesInt.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            weenie.WeeniePropertiesInt64 = context.WeeniePropertiesInt64.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            weenie.WeeniePropertiesPosition = context.WeeniePropertiesPosition.Where(r => r.ObjectId == weenie.ClassId).ToList();
+            weenie.WeeniePropertiesString = context.WeeniePropertiesString.Where(r => r.ObjectId == weenie.ClassId).ToList();
 
             var weenieType = (WeenieType)weenie.Type;
 
