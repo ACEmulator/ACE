@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 using ACE.DatLoader.Entity;
+using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -18,12 +21,38 @@ namespace ACE.DatLoader.FileTypes
         /// </summary>
         public Dictionary<uint, SpellSet> SpellSet { get; } = new Dictionary<uint, SpellSet>();
 
+        // this structure doesn't exist in the dat
+        // helper collection for spell sorting
+        public HashSet<int> SetSpells { get; } = new HashSet<int>();
+
         public override void Unpack(BinaryReader reader)
         {
             Id = reader.ReadUInt32();
 
             Spells.UnpackPackedHashTable(reader);
             SpellSet.UnpackPackedHashTable(reader);
+
+            BuildSetSpells();
+        }
+
+        private void BuildSetSpells()
+        {
+            foreach (var spellSet in SpellSet.Values)
+            {
+                foreach (var tier in spellSet.SpellSetTiers.Values)
+                {
+                    foreach (var spell in tier.Spells)
+                    {
+                        // cutoff for enchantment manager bug fix sorting
+                        if (spell >= (uint)SpellId.SetCoordination1)
+                            SetSpells.Add((int)spell);
+                    }
+                }
+            }
+            /*Console.WriteLine($"Added {SetSpells.Count} set spells:");
+
+            foreach (var setSpell in SetSpells.OrderBy(i => i))
+                Console.WriteLine($"{setSpell} - {(SpellId)setSpell}");*/
         }
 
         /// <summary>

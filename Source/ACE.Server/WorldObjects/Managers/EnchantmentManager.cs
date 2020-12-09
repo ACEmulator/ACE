@@ -5,6 +5,7 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.Common.Extensions;
+using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
@@ -76,13 +77,18 @@ namespace ACE.Server.WorldObjects.Managers
         }
 
         /// <summary>
+        /// All of the spell ids that belong to spell sets
+        /// </summary>
+        private static HashSet<int> SetSpells => DatManager.PortalDat.SpellTable.SetSpells;
+
+        /// <summary>
         /// Returns a list of all the active enchantments for a magic school
         /// </summary>
         public List<PropertiesEnchantmentRegistry> GetEnchantments(MagicSchool magicSchool)
         {
             var spells = new List<PropertiesEnchantmentRegistry>();
 
-            var topLayerEnchantments = WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(WorldObject.BiotaDatabaseLock);
+            var topLayerEnchantments = WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(WorldObject.BiotaDatabaseLock, SetSpells);
 
             foreach (var enchantment in topLayerEnchantments)
             {
@@ -117,7 +123,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public List<PropertiesEnchantmentRegistry> GetEnchantments_TopLayer(EnchantmentTypeFlags statModType)
         {
-            return WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayerByStatModType(statModType, WorldObject.BiotaDatabaseLock);
+            return WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayerByStatModType(statModType, WorldObject.BiotaDatabaseLock, SetSpells);
         }
 
         /// <summary>
@@ -125,7 +131,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public List<PropertiesEnchantmentRegistry> GetEnchantments_TopLayer(EnchantmentTypeFlags statModType, uint statModKey, bool handleMultiple = false)
         {
-            return WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayerByStatModType(statModType, statModKey, WorldObject.BiotaDatabaseLock, handleMultiple);
+            return WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayerByStatModType(statModType, statModKey, WorldObject.BiotaDatabaseLock, SetSpells, handleMultiple);
         }
 
         /// <summary>
@@ -1171,7 +1177,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public void HeartBeat(double heartbeatInterval)
         {
-            var topLayerEnchantments = WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(WorldObject.BiotaDatabaseLock);
+            var topLayerEnchantments = WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(WorldObject.BiotaDatabaseLock, SetSpells);
 
             HeartBeat_DamageOverTime(topLayerEnchantments);
 

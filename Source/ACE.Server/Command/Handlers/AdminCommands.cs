@@ -12,6 +12,7 @@ using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.Auth;
+using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -3038,7 +3039,7 @@ namespace ACE.Server.Command.Handlers
             var item = CommandHandlerHelper.GetLastAppraisedObject(session);
             if (item == null) return;
 
-            var enchantments = item.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(item.BiotaDatabaseLock);
+            var enchantments = item.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(item.BiotaDatabaseLock, DatManager.PortalDat.SpellTable.SetSpells);
 
             foreach (var enchantment in enchantments)
             {
