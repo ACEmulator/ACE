@@ -181,6 +181,8 @@ namespace ACE.Server
             // This should only be enabled manually. To enable it, simply uncomment this line
             //ACE.Database.OfflineTools.Shard.BiotaGuidConsolidator.ConsolidateBiotaGuids(0xC0000000, out int numberOfBiotasConsolidated, out int numberOfErrors);
 
+            ShardDatabaseOfflineTools.CheckForBiotaPropertiesPaletteOrderColumnInShard();
+
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();
 
