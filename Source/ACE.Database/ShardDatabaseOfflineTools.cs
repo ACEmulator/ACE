@@ -1003,18 +1003,18 @@ namespace ACE.Database
                 {
                     var result = context.BiotaPropertiesPalette.FirstOrDefault();
                 }
-                catch (Exception ex)
+                catch (MySql.Data.MySqlClient.MySqlException)
                 {
                     log.Warn("order column in biota_properties_palette table in shard database is missing! Attempting to fix...");
                     try
                     {
-                        context.Database.ExecuteSqlCommand("ALTER TABLE `biota_properties_palette` ADD COLUMN `order` TINYINT(3) UNSIGNED NULL DEFAULT NULL AFTER `length`;");
+                        context.Database.ExecuteSqlRaw("ALTER TABLE `biota_properties_palette` ADD COLUMN `order` TINYINT(3) UNSIGNED NULL DEFAULT NULL AFTER `length`;");
 
                         var result = context.BiotaPropertiesPalette.FirstOrDefault();
                     }
-                    catch (Exception ex2)
+                    catch (Exception ex)
                     {
-                        log.Fatal($"Unable to restore order column in biota_properties_palette table in shard database due to following error: {ex2.GetFullMessage()}");
+                        log.Fatal($"Unable to restore order column in biota_properties_palette table in shard database due to following error: {ex.GetFullMessage()}");
                         Environment.Exit(1);
                         return;
                     }
