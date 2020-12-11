@@ -192,6 +192,12 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.CheckUseRequirements({activator.Name})");
 
+            if (activator == null)
+            {
+                log.Error($"0x{Guid}:{Name}.CheckUseRequirements() (wcid: {WeenieClassId}): activator is null");
+                return new ActivationResult(false);
+            }
+
             if (!(activator is Player player))
                 return new ActivationResult(true);
 
