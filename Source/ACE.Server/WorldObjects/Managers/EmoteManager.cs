@@ -255,17 +255,17 @@ namespace ACE.Server.WorldObjects.Managers
                         var profile = new Database.Models.World.TreasureDeath
                         {
                             Tier = treasureTier,
-                            TreasureType = (uint)treasureType,
+                            //TreasureType = (uint)treasureType,
                             LootQualityMod = 0,
-                            ItemChance = 1,
+                            ItemChance = 100,
                             ItemMinAmount = 1,
                             ItemMaxAmount = 1,
                             //ItemTreasureTypeSelectionChances = (int)treasureClass,
-                            MagicItemChance = 1,
+                            MagicItemChance = 100,
                             MagicItemMinAmount = 1,
                             MagicItemMaxAmount = 1,
                             //MagicItemTreasureTypeSelectionChances = (int)treasureClass,
-                            MundaneItemChance = 1,
+                            MundaneItemChance = 100,
                             MundaneItemMinAmount = 1,
                             MundaneItemMaxAmount = 1,
                             //MundaneItemTypeSelectionChances = (int)treasureClass
