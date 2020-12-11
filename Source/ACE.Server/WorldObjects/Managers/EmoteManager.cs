@@ -1438,7 +1438,7 @@ namespace ACE.Server.WorldObjects.Managers
             var emoteSet = _worldObject.Biota.PropertiesEmote.Where(e => e.Category == category);
 
             // optional criteria
-            if (category == EmoteCategory.HearChat && questName != null)
+            if ((category == EmoteCategory.HearChat || category == EmoteCategory.ReceiveTalkDirect) && questName != null)
                 emoteSet = emoteSet.Where(e => e.Quest != null && e.Quest.Equals(questName, StringComparison.OrdinalIgnoreCase) || e.Quest == null);
             else if (questName != null)
                 emoteSet = emoteSet.Where(e => e.Quest != null && e.Quest.Equals(questName, StringComparison.OrdinalIgnoreCase));
