@@ -243,21 +243,38 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.CreateTreasure:
 
-                    if (emote.WealthRating.HasValue)
+                    if (player != null)
                     {
-                        // Create a dummy treasure profile for passing in tier value
+                        var treasureTier = emote.WealthRating ?? 1;
+
+                        var treasureType = (TreasureItemCategory?)emote.TreasureType ?? TreasureItemCategory.Undef;
+
+                        var treasureClass = (TreasureItemType_Orig?)emote.TreasureClass ?? TreasureItemType_Orig.Undef;
+
+                        // Create a dummy treasure profile for passing emote values
                         var profile = new Database.Models.World.TreasureDeath
                         {
-                            Tier = emote.WealthRating ?? 1,
-                            LootQualityMod = 0
+                            Tier = treasureTier,
+                            TreasureType = (uint)treasureType,
+                            LootQualityMod = 0,
+                            ItemChance = 1,
+                            ItemMinAmount = 1,
+                            ItemMaxAmount = 1,
+                            //ItemTreasureTypeSelectionChances = (int)treasureClass,
+                            MagicItemChance = 1,
+                            MagicItemMinAmount = 1,
+                            MagicItemMaxAmount = 1,
+                            //MagicItemTreasureTypeSelectionChances = (int)treasureClass,
+                            MundaneItemChance = 1,
+                            MundaneItemMinAmount = 1,
+                            MundaneItemMaxAmount = 1,
+                            //MundaneItemTypeSelectionChances = (int)treasureClass
                         };
 
-                        // todo: make use of emote.TreasureClass and emote.TreasureType fields.
-                        // this emote is primarily seen on fishing holes so defaulting with jewelery as the only pcap showed 2:1 amulet to crown pull (not much to go on) for now
-                        var treasure = LootGenerationFactory.CreateRandomLootObjects(profile, false, LootBias.Jewelry /* probably treasure type here */);
+                        var treasure = LootGenerationFactory.CreateRandomLootObjects_New(profile, treasureType, treasureClass);
                         if (treasure != null)
                         {
-                            player.TryCreateInInventoryWithNetworking(treasure);
+                            player.TryCreateForGive(WorldObject, treasure);
                         }
                     }
                     break;
