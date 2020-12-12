@@ -268,7 +268,8 @@ namespace ACE.Server.WorldObjects.Managers
                             MundaneItemChance = 100,
                             MundaneItemMinAmount = 1,
                             MundaneItemMaxAmount = 1,
-                            //MundaneItemTypeSelectionChances = (int)treasureClass
+                            //MundaneItemTypeSelectionChances = (int)treasureClass,
+                            UnknownChances = 21
                         };
 
                         var treasure = LootGenerationFactory.CreateRandomLootObjects_New(profile, treasureType, treasureClass);
