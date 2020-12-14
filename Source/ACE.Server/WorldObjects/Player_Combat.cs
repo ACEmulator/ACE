@@ -35,6 +35,8 @@ namespace ACE.Server.WorldObjects
 
         public DateTime NextRefillTime;
 
+        private ObjectGuid lastAttacker; // The last Creature Guid that performed an attack on the player
+
         public double LastPkAttackTimestamp
         {
             get => GetProperty(PropertyFloat.LastPkAttackTimestamp) ?? 0;
@@ -184,11 +186,27 @@ namespace ACE.Server.WorldObjects
                 if (damageEvent.IsCritical)
                     target.EmoteManager.OnReceiveCritical(this);
             }
-
-            if (targetPlayer == null)
+            
+            if (targetPlayer == null) // Target is a Monster
                 OnAttackMonster(target);
+            else // Target is a player
+                targetPlayer.SendCurrentAttackerGuid(this.Guid);
 
             return damageEvent;
+        }
+
+
+        /// <summary>
+        /// Send the current attacker private message to this player, if it differs. The current attacker may be the Invalid Guid.
+        /// This provides "last attacker" functionality to the client. By default this is the "home" key.
+        /// </summary>
+        public void SendCurrentAttackerGuid(ObjectGuid currentAttacker)
+        {
+            if (currentAttacker == this.lastAttacker)
+                return;
+            this.lastAttacker = currentAttacker;
+            var currentAttackerMessage = new GameMessagePrivateUpdateInstanceID(this, PropertyInstanceId.CurrentAttacker, currentAttacker.Full);
+            this.Session.Network.EnqueueSend(currentAttackerMessage);
         }
 
         /// <summary>
