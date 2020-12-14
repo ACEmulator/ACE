@@ -94,9 +94,13 @@ namespace ACE.Server.Entity
                     {
                         // handle special case to prevent message: Pumpkin Shield casts Web of Defense on you, refreshing Aura of Defense
                         var spellDuration = equip ? double.PositiveInfinity : spell.Duration;
+
+                        if (!equip && caster is Player player && player.AugmentationIncreasedSpellDuration > 0)
+                            spellDuration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
+
                         var entryDuration = entry.Duration == -1 ? double.PositiveInfinity : entry.Duration;
 
-                        if (spellDuration > entryDuration)
+                        if (spellDuration > entryDuration || spellDuration == entryDuration && !SpellSet.SetSpells.Contains(entry.SpellId))
                             Surpass.Add(entry);
                         else if (spellDuration < entryDuration)
                             Surpassed.Add(entry);
