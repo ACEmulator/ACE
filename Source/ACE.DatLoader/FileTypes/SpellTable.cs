@@ -1,11 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 using ACE.DatLoader.Entity;
-using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.FileTypes
 {
