@@ -1008,18 +1008,25 @@ namespace ACE.Server.Factories
             }
 
             // ensure wield requirement is level 180?
+            SetWieldLevelReq(wo, 180);
+
+            return true;
+        }
+
+        private static void SetWieldLevelReq(WorldObject wo, int level)
+        {
             if (wo.WieldRequirements == WieldRequirement.Invalid)
             {
                 wo.WieldRequirements = WieldRequirement.Level;
                 wo.WieldSkillType = (int)Skill.Axe;  // set from examples in pcap data
-                wo.WieldDifficulty = 180;
+                wo.WieldDifficulty = level;
             }
             else if (wo.WieldRequirements == WieldRequirement.Level)
             {
-                if (wo.WieldDifficulty < 180)
-                    wo.WieldDifficulty = 180;
+                if (wo.WieldDifficulty < level)
+                    wo.WieldDifficulty = level;
             }
-            else 
+            else
             {
                 // this can either be empty, or in the case of covenant / olthoi armor,
                 // it could already contain a level requirement of 180, or possibly 150 in tier 8
@@ -1031,9 +1038,8 @@ namespace ACE.Server.Factories
 
                 wo.WieldRequirements2 = WieldRequirement.Level;
                 wo.WieldSkillType2 = (int)Skill.Axe;  // set from examples in pcap data
-                wo.WieldDifficulty2 = 180;
+                wo.WieldDifficulty2 = level;
             }
-            return true;
         }
 
         private static bool GetMutateArmorData(uint wcid, out LootTables.ArmorType? armorType)
