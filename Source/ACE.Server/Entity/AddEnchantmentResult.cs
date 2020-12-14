@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.DatLoader;
 using ACE.Entity.Models;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Managers;
@@ -101,7 +100,7 @@ namespace ACE.Server.Entity
 
                         var entryDuration = entry.Duration == -1 ? double.PositiveInfinity : entry.Duration;
 
-                        if (spellDuration > entryDuration || spellDuration == entryDuration && !DatManager.PortalDat.SpellTable.SetSpells.Contains(entry.SpellId))
+                        if (spellDuration > entryDuration || spellDuration == entryDuration && !SpellSet.SetSpells.Contains(entry.SpellId))
                             Surpass.Add(entry);
                         else if (spellDuration < entryDuration)
                             Surpassed.Add(entry);
