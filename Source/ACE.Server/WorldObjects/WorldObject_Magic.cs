@@ -355,7 +355,7 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    if (target is Player && spell.BaseRangeConstant > 0)
+                    if (targetPlayer != null && spell.BaseRangeConstant > 0)
                     {
                         string msg;
                         if (spell.IsBeneficial)
@@ -367,6 +367,9 @@ namespace ACE.Server.WorldObjects
                         {
                             msg = $"{Name} casts {spell.Name} and drains {Math.Abs(boost)} points of your {srcVital}.";
                             targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Magic);
+
+                            if (creature != null)
+                                targetPlayer.SetCurrentAttacker(creature);
                         }
                     }
 
@@ -514,24 +517,27 @@ namespace ACE.Server.WorldObjects
                     // You gain X points of vital due to caster casting spell on you
                     // You lose X points of vital due to caster casting spell on you
 
-                    var playerSource = source is Player;
-                    var playerDestination = destination is Player;
+                    var playerSource = source as Player;
+                    var playerDestination = destination as Player;
 
-                    if (playerSource && playerDestination && source.Guid == destination.Guid)
+                    if (playerSource != null && playerDestination != null && source.Guid == destination.Guid)
                     {
                         enchantmentStatus.Message = new GameMessageSystemChat($"You cast {spell.Name} on yourself and lose {srcVitalChange} points of {srcVital} and also gain {destVitalChange} points of {destVital}", ChatMessageType.Magic);
                     }
                     else
                     {
-                        if (playerSource)
+                        if (playerSource != null)
                         {
                             if (source == this)
                                 enchantmentStatus.Message = new GameMessageSystemChat($"You lose {srcVitalChange} points of {srcVital} due to casting {spell.Name} on {spellTarget.Name}", ChatMessageType.Magic);
                             else
                                 targetMsg = new GameMessageSystemChat($"You lose {srcVitalChange} points of {srcVital} due to {caster.Name} casting {spell.Name} on you", ChatMessageType.Magic);
+
+                            if (destination is Creature creatureDestination)
+                                playerSource.SetCurrentAttacker(creatureDestination);
                         }
 
-                        if (playerDestination)
+                        if (playerDestination != null)
                         {
                             if (destination == this)
                                 enchantmentStatus.Message = new GameMessageSystemChat($"You gain {destVitalChange} points of {destVital} due to casting {spell.Name} on {spellTarget.Name}", ChatMessageType.Magic);
@@ -637,6 +643,8 @@ namespace ACE.Server.WorldObjects
                     {
                         targetMsg = new GameMessageSystemChat($"{Name} casts {spell.Name} on you{suffix.Replace("and dispel", "and dispels")}", ChatMessageType.Magic);
                     }
+
+                    // TODO: set attacker for negative dispels?
                     break;
 
                 case SpellType.Enchantment:
@@ -1734,6 +1742,9 @@ namespace ACE.Server.WorldObjects
                 playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
 
                 playerTarget.HandleSpellHooks(spell);
+
+                if (!spell.IsBeneficial && this is Creature creatureCaster)
+                    playerTarget.SetCurrentAttacker(creatureCaster);
             }
 
             if (playerTarget == null && target.Wielder is Player wielder)

@@ -767,6 +767,9 @@ namespace ACE.Server.WorldObjects
 
                     if (!targetPlayer.SquelchManager.Squelches.Contains(ProjectileSource, ChatMessageType.Magic))
                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat(defenderMsg, ChatMessageType.Magic));
+
+                    if (sourceCreature != null)
+                        targetPlayer.SetCurrentAttacker(sourceCreature);
                 }
 
                 if (!nonHealth)

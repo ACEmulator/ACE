@@ -199,7 +199,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetCurrentAttacker(Creature currentAttacker)
         {
-            if (CurrentAttacker != currentAttacker.Guid.Full)
+            if (currentAttacker == this || CurrentAttacker == currentAttacker.Guid.Full)
                 return;
 
             CurrentAttacker = currentAttacker.Guid.Full;
