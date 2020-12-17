@@ -35,8 +35,6 @@ namespace ACE.Server.WorldObjects
 
         public DateTime NextRefillTime;
 
-        private ObjectGuid lastAttacker; // The last Creature Guid that performed an attack on the player
-
         public double LastPkAttackTimestamp
         {
             get => GetProperty(PropertyFloat.LastPkAttackTimestamp) ?? 0;
@@ -187,26 +185,26 @@ namespace ACE.Server.WorldObjects
                     target.EmoteManager.OnReceiveCritical(this);
             }
             
-            if (targetPlayer == null) // Target is a Monster
+            if (targetPlayer == null)
                 OnAttackMonster(target);
-            else // Target is a player
-                targetPlayer.SendCurrentAttackerGuid(this.Guid);
 
             return damageEvent;
         }
 
-
         /// <summary>
-        /// Send the current attacker private message to this player, if it differs. The current attacker may be the Invalid Guid.
-        /// This provides "last attacker" functionality to the client. By default this is the "home" key.
+        /// Sets the creature that last attacked a player
+        /// This is called when the player takes damage, evades, or resists a spell from a creature
+        /// If the CurrentAttacker has changed, sends a network message to the player's client
+        /// This enables the 'last attacker' functionality in the client, which is bound to the 'home' key by default
         /// </summary>
-        public void SendCurrentAttackerGuid(ObjectGuid currentAttacker)
+        public void SetCurrentAttacker(Creature currentAttacker)
         {
-            if (currentAttacker == this.lastAttacker)
+            if (CurrentAttacker != currentAttacker.Guid.Full)
                 return;
-            this.lastAttacker = currentAttacker;
-            var currentAttackerMessage = new GameMessagePrivateUpdateInstanceID(this, PropertyInstanceId.CurrentAttacker, currentAttacker.Full);
-            this.Session.Network.EnqueueSend(currentAttackerMessage);
+
+            CurrentAttacker = currentAttacker.Guid.Full;
+
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(this, PropertyInstanceId.CurrentAttacker, currentAttacker.Guid.Full));
         }
 
         /// <summary>
@@ -293,6 +291,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void OnEvade(WorldObject attacker, CombatType attackType)
         {
+            var creatureAttacker = attacker as Creature;
+
+            if (creatureAttacker != null)
+                SetCurrentAttacker(creatureAttacker);
+
             if (UnderLifestoneProtection)
                 return;
 
@@ -342,10 +345,10 @@ namespace ACE.Server.WorldObjects
             if (!SquelchManager.Squelches.Contains(attacker, ChatMessageType.CombatEnemy))
                 Session.Network.EnqueueSend(new GameEventEvasionDefenderNotification(Session, attacker.Name));
 
-            var creature = attacker as Creature;
-            if (creature == null) return;
+            if (creatureAttacker == null)
+                return;
 
-            var difficulty = creature.GetCreatureSkill(creature.GetCurrentWeaponSkill()).Current;
+            var difficulty = creatureAttacker.GetCreatureSkill(creatureAttacker.GetCurrentWeaponSkill()).Current;
             // attackMod?
             Proficiency.OnSuccessUse(this, defenseSkill, difficulty);
         }
@@ -472,6 +475,9 @@ namespace ACE.Server.WorldObjects
         public int TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false, AttackConditions attackConditions = AttackConditions.None)
         {
             if (Invincible || IsDead) return 0;
+
+            if (source is Creature creatureAttacker)
+                SetCurrentAttacker(creatureAttacker);
 
             // check lifestone protection
             if (UnderLifestoneProtection)

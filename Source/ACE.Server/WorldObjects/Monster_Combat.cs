@@ -251,12 +251,6 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
-            var targetPlayer = AttackTarget as Player;
-            if (targetPlayer != null)
-            {
-                targetPlayer.SendCurrentAttackerGuid(this.Guid);
-            }
-
             EmoteManager.OnAttack(AttackTarget);
 
             ResetAttack();

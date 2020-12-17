@@ -219,6 +219,9 @@ namespace ACE.Server.WorldObjects
 
                     targetPlayer.Session.Network.EnqueueSend(new GameMessageSound(targetPlayer.Guid, Sound.ResistSpell, 1.0f));
 
+                    if (casterCreature != null)
+                        targetPlayer.SetCurrentAttacker(casterCreature);
+
                     Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MagicDefense), magicSkill);
                 }
 
