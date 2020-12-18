@@ -642,9 +642,12 @@ namespace ACE.Server.WorldObjects
                     if (targetPlayer != null && targetPlayer != player)
                     {
                         targetMsg = new GameMessageSystemChat($"{Name} casts {spell.Name} on you{suffix.Replace("and dispel", "and dispels")}", ChatMessageType.Magic);
-                    }
 
-                    // TODO: set attacker for negative dispels?
+                        // all dispels appear to be listed as non-beneficial, even the ones that only dispel negative spells
+                        // we filter here to positive or all
+                        if (creature != null && spell.Align != DispelType.Negative)
+                            targetPlayer.SetCurrentAttacker(creature);
+                    }
                     break;
 
                 case SpellType.Enchantment:
@@ -2003,8 +2006,9 @@ namespace ACE.Server.WorldObjects
             var targetCreature = target as Creature;
             var targetPlayer = target as Player;
 
+
             // if negative item spell, can be resisted by the wielder
-            if (player != null && spell.IsHarmful)      
+            if (spell.IsHarmful)
             {
                 var targetResist = targetCreature;
 
@@ -2012,8 +2016,14 @@ namespace ACE.Server.WorldObjects
                     targetResist = CurrentLandblock?.GetObject(target.WielderId.Value) as Creature;
 
                 // skip TryResistSpell() for non-player casters, they already performed it previously
-                if (targetResist != null && TryResistSpell(targetResist, spell, caster))
-                    return;
+                if (player != null && targetResist != null)
+                {
+                    if (TryResistSpell(targetResist, spell, caster))
+                        return;
+                }
+                // should this be set if the spell is invalid / 'fails to affect' below?
+                if (creature != null && targetResist is Player playerTargetResist)
+                    playerTargetResist.SetCurrentAttacker(creature);
             }
 
             if (spell.IsImpenBaneType)
