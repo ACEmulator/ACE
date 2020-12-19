@@ -219,6 +219,9 @@ namespace ACE.Server.WorldObjects
 
                     targetPlayer.Session.Network.EnqueueSend(new GameMessageSound(targetPlayer.Guid, Sound.ResistSpell, 1.0f));
 
+                    if (casterCreature != null)
+                        targetPlayer.SetCurrentAttacker(casterCreature);
+
                     Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MagicDefense), magicSkill);
                 }
 
@@ -352,7 +355,7 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    if (target is Player && spell.BaseRangeConstant > 0)
+                    if (targetPlayer != null && spell.BaseRangeConstant > 0)
                     {
                         string msg;
                         if (spell.IsBeneficial)
@@ -364,6 +367,9 @@ namespace ACE.Server.WorldObjects
                         {
                             msg = $"{Name} casts {spell.Name} and drains {Math.Abs(boost)} points of your {srcVital}.";
                             targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Magic);
+
+                            if (creature != null)
+                                targetPlayer.SetCurrentAttacker(creature);
                         }
                     }
 
@@ -511,24 +517,27 @@ namespace ACE.Server.WorldObjects
                     // You gain X points of vital due to caster casting spell on you
                     // You lose X points of vital due to caster casting spell on you
 
-                    var playerSource = source is Player;
-                    var playerDestination = destination is Player;
+                    var playerSource = source as Player;
+                    var playerDestination = destination as Player;
 
-                    if (playerSource && playerDestination && source.Guid == destination.Guid)
+                    if (playerSource != null && playerDestination != null && source.Guid == destination.Guid)
                     {
                         enchantmentStatus.Message = new GameMessageSystemChat($"You cast {spell.Name} on yourself and lose {srcVitalChange} points of {srcVital} and also gain {destVitalChange} points of {destVital}", ChatMessageType.Magic);
                     }
                     else
                     {
-                        if (playerSource)
+                        if (playerSource != null)
                         {
                             if (source == this)
                                 enchantmentStatus.Message = new GameMessageSystemChat($"You lose {srcVitalChange} points of {srcVital} due to casting {spell.Name} on {spellTarget.Name}", ChatMessageType.Magic);
                             else
                                 targetMsg = new GameMessageSystemChat($"You lose {srcVitalChange} points of {srcVital} due to {caster.Name} casting {spell.Name} on you", ChatMessageType.Magic);
+
+                            if (destination is Creature creatureDestination)
+                                playerSource.SetCurrentAttacker(creatureDestination);
                         }
 
-                        if (playerDestination)
+                        if (playerDestination != null)
                         {
                             if (destination == this)
                                 enchantmentStatus.Message = new GameMessageSystemChat($"You gain {destVitalChange} points of {destVital} due to casting {spell.Name} on {spellTarget.Name}", ChatMessageType.Magic);
@@ -633,6 +642,11 @@ namespace ACE.Server.WorldObjects
                     if (targetPlayer != null && targetPlayer != player)
                     {
                         targetMsg = new GameMessageSystemChat($"{Name} casts {spell.Name} on you{suffix.Replace("and dispel", "and dispels")}", ChatMessageType.Magic);
+
+                        // all dispels appear to be listed as non-beneficial, even the ones that only dispel negative spells
+                        // we filter here to positive or all
+                        if (creature != null && spell.Align != DispelType.Negative)
+                            targetPlayer.SetCurrentAttacker(creature);
                     }
                     break;
 
@@ -1731,6 +1745,9 @@ namespace ACE.Server.WorldObjects
                 playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
 
                 playerTarget.HandleSpellHooks(spell);
+
+                if (!spell.IsBeneficial && this is Creature creatureCaster)
+                    playerTarget.SetCurrentAttacker(creatureCaster);
             }
 
             if (playerTarget == null && target.Wielder is Player wielder)
@@ -1989,8 +2006,9 @@ namespace ACE.Server.WorldObjects
             var targetCreature = target as Creature;
             var targetPlayer = target as Player;
 
+
             // if negative item spell, can be resisted by the wielder
-            if (player != null && spell.IsHarmful)      
+            if (spell.IsHarmful)
             {
                 var targetResist = targetCreature;
 
@@ -1998,8 +2016,14 @@ namespace ACE.Server.WorldObjects
                     targetResist = CurrentLandblock?.GetObject(target.WielderId.Value) as Creature;
 
                 // skip TryResistSpell() for non-player casters, they already performed it previously
-                if (targetResist != null && TryResistSpell(targetResist, spell, caster))
-                    return;
+                if (player != null && targetResist != null)
+                {
+                    if (TryResistSpell(targetResist, spell, caster))
+                        return;
+                }
+                // should this be set if the spell is invalid / 'fails to affect' below?
+                if (creature != null && targetResist is Player playerTargetResist)
+                    playerTargetResist.SetCurrentAttacker(creature);
             }
 
             if (spell.IsImpenBaneType)
