@@ -507,6 +507,7 @@ namespace ACE.Database
                              || r.WeenieType == (int)WeenieType.Sentinel
                     )
                     .AsNoTracking()
+                    .ToList()
                     .Select(r => r.GetProperty(PropertyInstanceId.Monarch) ?? 0)
                     .Distinct()
                     .ToList();
