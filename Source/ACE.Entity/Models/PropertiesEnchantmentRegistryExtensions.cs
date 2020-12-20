@@ -138,7 +138,7 @@ namespace ACE.Entity.Models
             (int)SpellId.HermeticLinkSelf8,
         };
 
-        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayer(this ICollection<PropertiesEnchantmentRegistry> value, ReaderWriterLockSlim rwLock)
+        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayer(this ICollection<PropertiesEnchantmentRegistry> value, ReaderWriterLockSlim rwLock, HashSet<int> setSpells)
         {
             if (value == null)
                 return null;
@@ -150,7 +150,9 @@ namespace ACE.Entity.Models
                     group e by e.SpellCategory
                     into categories
                     //select categories.OrderByDescending(c => c.LayerId).First();
-                    select categories.OrderByDescending(c => c.PowerLevel).ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId)).First();
+                    select categories.OrderByDescending(c => c.PowerLevel)
+                        .ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId))
+                        .ThenByDescending(c => setSpells.Contains(c.SpellId) ? c.SpellId : c.StartTime).First();
 
                 return results.ToList();
             }
@@ -163,7 +165,7 @@ namespace ACE.Entity.Models
         /// <summary>
         /// Returns the top layers in each spell category for a StatMod type
         /// </summary>
-        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayerByStatModType(this ICollection<PropertiesEnchantmentRegistry> value, EnchantmentTypeFlags statModType, ReaderWriterLockSlim rwLock)
+        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayerByStatModType(this ICollection<PropertiesEnchantmentRegistry> value, EnchantmentTypeFlags statModType, ReaderWriterLockSlim rwLock, HashSet<int> setSpells)
         {
             if (value == null)
                 return null;
@@ -177,7 +179,9 @@ namespace ACE.Entity.Models
                     group e by e.SpellCategory
                     into categories
                     //select categories.OrderByDescending(c => c.LayerId).First();
-                    select categories.OrderByDescending(c => c.PowerLevel).ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId)).First();
+                    select categories.OrderByDescending(c => c.PowerLevel)
+                        .ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId))
+                        .ThenByDescending(c => setSpells.Contains(c.SpellId) ? c.SpellId : c.StartTime).First();
 
                 return results.ToList();
             }
@@ -196,7 +200,7 @@ namespace ACE.Entity.Models
         /// <summary>
         /// Returns the top layers in each spell category for a StatMod type + key
         /// </summary>
-        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayerByStatModType(this ICollection<PropertiesEnchantmentRegistry> value, EnchantmentTypeFlags statModType, uint statModKey, ReaderWriterLockSlim rwLock, bool handleMultiple = false)
+        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayerByStatModType(this ICollection<PropertiesEnchantmentRegistry> value, EnchantmentTypeFlags statModType, uint statModKey, ReaderWriterLockSlim rwLock, HashSet<int> setSpells, bool handleMultiple = false)
         {
             if (value == null)
                 return null;
@@ -224,7 +228,9 @@ namespace ACE.Entity.Models
                     group e by e.SpellCategory
                     into categories
                     //select categories.OrderByDescending(c => c.LayerId).First();
-                    select categories.OrderByDescending(c => c.PowerLevel).ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId)).ThenByDescending(c => c.SpellId).First();
+                    select categories.OrderByDescending(c => c.PowerLevel)
+                        .ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId))
+                        .ThenByDescending(c => setSpells.Contains(c.SpellId) ? c.SpellId : c.StartTime).First();
 
                 return results.ToList();
             }

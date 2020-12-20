@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using log4net;
 
 using ACE.Common;
+using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -986,6 +987,41 @@ namespace ACE.Database
             }
 
             log.Info($"2020-04-11-00-Update-Character-SpellBars.sql patch has been successfully installed. Before opening world to players, make sure you've run fix-spell-bars command from console");
+        }
+
+        /// <summary>
+        /// <para>unknown how this column keeps deleting, but it is likely a bug that is a result of auto (world only?) database updates that repros under currently unknown conditions</para>
+        /// this checks for and attempts to correct shard database missing order column
+        /// </summary>
+        public static void CheckForBiotaPropertiesPaletteOrderColumnInShard()
+        {
+            log.Info($"Checking for order column in biota_properties_palette table in shard database...");
+
+            using (var context = new ShardDbContext())
+            {
+                try
+                {
+                    var result = context.BiotaPropertiesPalette.FirstOrDefault();
+                }
+                catch (MySql.Data.MySqlClient.MySqlException)
+                {
+                    log.Warn("order column in biota_properties_palette table in shard database is missing! Attempting to fix...");
+                    try
+                    {
+                        context.Database.ExecuteSqlRaw("ALTER TABLE `biota_properties_palette` ADD COLUMN `order` TINYINT(3) UNSIGNED NULL DEFAULT NULL AFTER `length`;");
+
+                        var result = context.BiotaPropertiesPalette.FirstOrDefault();
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Fatal($"Unable to restore order column in biota_properties_palette table in shard database due to following error: {ex.GetFullMessage()}");
+                        Environment.Exit(1);
+                        return;
+                    }
+                }
+            }
+
+            log.Info($"Successfully verified order column in biota_properties_palette table in shard database!");
         }
     }
 }

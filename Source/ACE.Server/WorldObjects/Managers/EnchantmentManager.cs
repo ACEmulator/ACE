@@ -82,7 +82,7 @@ namespace ACE.Server.WorldObjects.Managers
         {
             var spells = new List<PropertiesEnchantmentRegistry>();
 
-            var topLayerEnchantments = WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(WorldObject.BiotaDatabaseLock);
+            var topLayerEnchantments = WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(WorldObject.BiotaDatabaseLock, SpellSet.SetSpells);
 
             foreach (var enchantment in topLayerEnchantments)
             {
@@ -117,7 +117,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public List<PropertiesEnchantmentRegistry> GetEnchantments_TopLayer(EnchantmentTypeFlags statModType)
         {
-            return WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayerByStatModType(statModType, WorldObject.BiotaDatabaseLock);
+            return WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayerByStatModType(statModType, WorldObject.BiotaDatabaseLock, SpellSet.SetSpells);
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public List<PropertiesEnchantmentRegistry> GetEnchantments_TopLayer(EnchantmentTypeFlags statModType, uint statModKey, bool handleMultiple = false)
         {
-            return WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayerByStatModType(statModType, statModKey, WorldObject.BiotaDatabaseLock, handleMultiple);
+            return WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayerByStatModType(statModType, statModKey, WorldObject.BiotaDatabaseLock, SpellSet.SetSpells, handleMultiple);
         }
 
         /// <summary>
@@ -1171,7 +1171,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public void HeartBeat(double heartbeatInterval)
         {
-            var topLayerEnchantments = WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(WorldObject.BiotaDatabaseLock);
+            var topLayerEnchantments = WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(WorldObject.BiotaDatabaseLock, SpellSet.SetSpells);
 
             HeartBeat_DamageOverTime(topLayerEnchantments);
 
