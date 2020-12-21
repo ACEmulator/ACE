@@ -2380,19 +2380,19 @@ namespace ACE.Server.Command.Handlers
             {
                 var plr = PlayerManager.FindByName(playerName);
                 if (plr != null)
-                    target = PlayerManager.GetOnlinePlayer(plr.Guid);
-                else
                 {
-                    if (plr != null)
+                    target = PlayerManager.GetOnlinePlayer(plr.Guid);
+
+                    if (target == null)
                     {
                         CommandHandlerHelper.WriteOutputInfo(session, $"Unable to force log off for {plr.Name}: Player is not online.");
                         return;
                     }
-                    else
-                    {
-                        CommandHandlerHelper.WriteOutputInfo(session, $"Unable to force log off for {playerName}: Player not found in manager.");
-                        return;
-                    }
+                }
+                else
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Unable to force log off for {playerName}: Player not found in manager.");
+                    return;
                 }
             }
             else
