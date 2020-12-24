@@ -1022,6 +1022,8 @@ namespace ACE.Server.Command.Handlers.Processors
         {
             var sqlCommands = File.ReadAllText(sqlFile);
 
+            sqlCommands = sqlCommands.Replace("\r\n", "\n");
+
             // not sure why ExecuteSqlCommand doesn't parse this correctly..
             var idx = sqlCommands.IndexOf($"/* Lifestoned Changelog:");
             if (idx != -1)
