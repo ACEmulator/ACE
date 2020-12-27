@@ -2367,10 +2367,36 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("forcelogoff", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Force log off of last appraised character")]
+        [CommandHandler("forcelogoff", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Force log off of specified character or last appraised character")]
         public static void HandleForceLogoff(Session session, params string[] parameters)
         {
-            var target = CommandHandlerHelper.GetLastAppraisedObject(session);
+            var playerName = "";
+            if (parameters.Length > 0)
+                playerName = string.Join(" ", parameters);
+
+            WorldObject target = null;
+
+            if (!string.IsNullOrEmpty(playerName))
+            {
+                var plr = PlayerManager.FindByName(playerName);
+                if (plr != null)
+                {
+                    target = PlayerManager.GetOnlinePlayer(plr.Guid);
+
+                    if (target == null)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Unable to force log off for {plr.Name}: Player is not online.");
+                        return;
+                    }
+                }
+                else
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Unable to force log off for {playerName}: Player not found in manager.");
+                    return;
+                }
+            }
+            else
+                target = CommandHandlerHelper.GetLastAppraisedObject(session);
 
             if (target != null && target is Player player)
             {
@@ -2380,6 +2406,13 @@ namespace ACE.Server.Command.Handlers
                     player.LogOut();
 
                 PlayerManager.BroadcastToAuditChannel(session?.Player, $"Forcing Log Off of {player.Name}...");
+            }
+            else
+            {
+                if (target != null)
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Unable to force log off for {target.Name}: Target is not a player.");
+                //else
+                //    CommandHandlerHelper.WriteOutputInfo(session, $"Unable to force log off for {playerName}: Player not found in manager.");
             }
         }
 
