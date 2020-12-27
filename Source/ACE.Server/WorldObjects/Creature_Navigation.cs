@@ -360,7 +360,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(monsterTickInterval);
             actionChain.AddAction(this, () =>
             {
-                if (!IsDead && PhysicsObj != null && PhysicsObj.IsMovingTo())
+                if (!IsDead && PhysicsObj?.MovementManager?.MoveToManager != null && PhysicsObj.IsMovingTo())
                 {
                     PhysicsObj.update_object();
                     UpdatePosition_SyncLocation();
