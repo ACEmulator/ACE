@@ -3455,7 +3455,7 @@ namespace ACE.Server.Command.Handlers
 
                 var itemName = wo?.Name ?? "Unknown";
 
-                CommandHandlerHelper.WriteOutputInfo(session, $"{prefix}- {item.Item.WeenieClassId} - {itemName} ({item.Item.Probability * 100}%)"));
+                CommandHandlerHelper.WriteOutputInfo(session, $"{prefix}- {item.Item.WeenieClassId} - {itemName} ({item.Item.Probability * 100}%)");
 
                 if (item.Subset != null)
                     OutputWieldedTreasureSet(session, item.Subset, depth + 1);
