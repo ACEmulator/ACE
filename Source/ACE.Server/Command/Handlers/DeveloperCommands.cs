@@ -3418,8 +3418,8 @@ namespace ACE.Server.Command.Handlers
             session.Player.HandleActionGetAndWieldItem(itemGuid, equipMask);
         }
 
-        [CommandHandler("show-wield-tree", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Shows the WieldedTreasure tree for a Creature")]
-        public static void HandleShowWieldTree(Session session, params string[] parameters)
+        [CommandHandler("show-wielded-treasure", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Shows the WieldedTreasure table for a Creature", "wcid")]
+        public static void HandleShowWieldedTreasure(Session session, params string[] parameters)
         {
             if (!uint.TryParse(parameters[0], out var wcid))
             {
@@ -3449,16 +3449,34 @@ namespace ACE.Server.Command.Handlers
         {
             var prefix = new string(' ', depth * 2);
 
+            var totalProbability = 0.0f;
+            var spacer = false;
+
             foreach (var item in set.Items)
             {
+                if (totalProbability >= 1.0f)
+                {
+                    totalProbability = 0.0f;
+                    //spacer = true;
+                }
+                totalProbability += item.Item.Probability;
+
                 var wo = WorldObjectFactory.CreateNewWorldObject(item.Item.WeenieClassId);
 
                 var itemName = wo?.Name ?? "Unknown";
 
+                if (spacer)
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, "");
+                    spacer = false;
+                }
                 CommandHandlerHelper.WriteOutputInfo(session, $"{prefix}- {item.Item.WeenieClassId} - {itemName} ({item.Item.Probability * 100}%)");
 
                 if (item.Subset != null)
+                {
                     OutputWieldedTreasureSet(session, item.Subset, depth + 1);
+                    //spacer = true;
+                }
             }
         }
     }
