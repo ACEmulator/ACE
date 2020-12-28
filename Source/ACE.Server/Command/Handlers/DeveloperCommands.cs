@@ -3417,5 +3417,49 @@ namespace ACE.Server.Command.Handlers
 
             session.Player.HandleActionGetAndWieldItem(itemGuid, equipMask);
         }
+
+        [CommandHandler("show-wield-tree", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Shows the WieldedTreasure tree for a Creature")]
+        public static void HandleShowWieldTree(Session session, params string[] parameters)
+        {
+            if (!uint.TryParse(parameters[0], out var wcid))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Invalid wcid {parameters[0]}", ChatMessageType.Broadcast);
+                return;
+            }
+            var creature = WorldObjectFactory.CreateNewWorldObject(wcid) as Creature;
+
+            if (creature == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find weenie {wcid}");
+                return;
+            }
+
+            if (creature.WieldedTreasure == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"{creature.Name} ({creature.WeenieClassId}) missing WieldedTreasure");
+                return;
+            }
+            var table = new TreasureWieldedTable(creature.WieldedTreasure);
+
+            foreach (var set in table.Sets)
+                OutputWieldedTreasureSet(session, set);
+        }
+
+        private static void OutputWieldedTreasureSet(Session session, TreasureWieldedSet set, int depth = 0)
+        {
+            var prefix = new string(' ', depth * 2);
+
+            foreach (var item in set.Items)
+            {
+                var wo = WorldObjectFactory.CreateNewWorldObject(item.Item.WeenieClassId);
+
+                var itemName = wo?.Name ?? "Unknown";
+
+                CommandHandlerHelper.WriteOutputInfo(session, $"{prefix}- {item.Item.WeenieClassId} - {itemName} ({item.Item.Probability * 100}%)"));
+
+                if (item.Subset != null)
+                    OutputWieldedTreasureSet(session, item.Subset, depth + 1);
+            }
+        }
     }
 }

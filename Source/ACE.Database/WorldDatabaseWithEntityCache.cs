@@ -1040,5 +1040,10 @@ namespace ACE.Database
                 return results;
             }
         }
+
+        public void ClearWieldedTreasureCache()
+        {
+            cachedWieldedTreasure.Clear();
+        }
     }
 }
