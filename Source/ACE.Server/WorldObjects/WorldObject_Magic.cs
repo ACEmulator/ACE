@@ -139,7 +139,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool TryResistSpell(WorldObject target, Spell spell, WorldObject caster = null, bool projectileHit = false)
         {
-            if (!spell.IsResistable && spell.Category != SpellCategory.ManaConversionModLowering || spell.IsSelfTargeted)
+            // fix hermetic void?
+            //if (!spell.IsResistable && spell.Category != SpellCategory.ManaConversionModLowering || spell.IsSelfTargeted)
+            if (!spell.IsResistable || spell.IsSelfTargeted)
                 return false;
 
             if (spell.NumProjectiles > 0 && !projectileHit)
