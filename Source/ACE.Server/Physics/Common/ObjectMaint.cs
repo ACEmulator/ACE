@@ -944,15 +944,15 @@ namespace ACE.Server.Physics.Common
                 // handle special case:
                 // if obj has a FoeType of this creature, and this creature doesn't have a FoeType for obj,
                 // we only want to perform the inverse
-                if (obj.WeenieObj.HasFoeType && obj.WeenieObj.WorldObject.FoeType == PhysicsObj.WeenieObj.WorldObject.CreatureType &&
-                    (!PhysicsObj.WeenieObj.HasFoeType || PhysicsObj.WeenieObj.WorldObject.FoeType != obj.WeenieObj.WorldObject.CreatureType))
+                if (obj.WeenieObj.FoeType != null && obj.WeenieObj.FoeType == PhysicsObj.WeenieObj.WorldObject?.CreatureType &&
+                    (PhysicsObj.WeenieObj.FoeType == null || obj.WeenieObj.WorldObject != null && PhysicsObj.WeenieObj.FoeType != obj.WeenieObj.WorldObject.CreatureType))
                 {
                     obj.ObjMaint.AddVisibleTarget(PhysicsObj);
                     return false;
                 }
 
                 // only tracking players and combat pets
-                if (!obj.IsPlayer && !obj.WeenieObj.IsCombatPet && !PhysicsObj.WeenieObj.HasFoeType)
+                if (!obj.IsPlayer && !obj.WeenieObj.IsCombatPet && PhysicsObj.WeenieObj.FoeType == null)
                 {
                     Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add a non-player / non-combat pet");
                     return false;
