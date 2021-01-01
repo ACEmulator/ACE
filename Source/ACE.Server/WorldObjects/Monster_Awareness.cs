@@ -262,6 +262,14 @@ namespace ACE.Server.WorldObjects
                         continue;
                 }
 
+                // cannot switch AttackTargets with Tolerance.Target
+                if (Tolerance.HasFlag(Tolerance.Target) && creature != AttackTarget)
+                    continue;
+
+                // can only target other monsters with Tolerance.Monster -- cannot target players or combat pets
+                if (Tolerance.HasFlag(Tolerance.Monster) && (creature is Player || creature is CombatPet))
+                    continue;
+
                 visibleTargets.Add(creature);
             }
 
