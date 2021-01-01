@@ -28,6 +28,8 @@ namespace ACE.Server.Physics.Common
 
         public FactionBits Faction1Bits { get; set; }
 
+        public bool HasFoeType { get; set; }
+
         public WeenieObject() { }
 
         public WeenieObject(WorldObject worldObject)
@@ -44,11 +46,19 @@ namespace ACE.Server.Physics.Common
             Faction1Bits = creature.Faction1Bits ?? FactionBits.None;
 
             IsFactionMob = IsMonster && Faction1Bits != FactionBits.None;
+
+            HasFoeType = IsMonster && creature.FoeType != null;
         }
 
         public bool SameFaction(PhysicsObj obj)
         {
             return (Faction1Bits & obj.WeenieObj.Faction1Bits) != 0;
+        }
+
+        public bool PotentialFoe(PhysicsObj obj)
+        {
+            return HasFoeType && WorldObject.FoeType == obj.WeenieObj.WorldObject.CreatureType ||
+                obj.WeenieObj.HasFoeType && obj.WeenieObj.WorldObject.FoeType == WorldObject.CreatureType;
         }
 
         public bool CanJump(float extent)
