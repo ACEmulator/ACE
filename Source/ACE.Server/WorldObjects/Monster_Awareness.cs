@@ -324,11 +324,17 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// If one of these fields is set, monster scanning for targets when it first spawns in
+        /// is terminated immediately
+        /// </summary>
+        private static readonly Tolerance ExcludeSpawnScan = Tolerance.NoAttack | Tolerance.Appraise | Tolerance.Provoke | Tolerance.Retaliate;
+
+        /// <summary>
         /// Called when a monster is first spawning in
         /// </summary>
         public void CheckTargets()
         {
-            if (!Attackable && TargetingTactic == TargetingTactic.None || Tolerance != Tolerance.None)
+            if (!Attackable && TargetingTactic == TargetingTactic.None || (Tolerance & ExcludeSpawnScan) != 0)
                 return;
 
             var actionChain = new ActionChain();
@@ -345,6 +351,9 @@ namespace ACE.Server.WorldObjects
             foreach (var creature in PhysicsObj.ObjMaint.GetVisibleTargetsValuesOfTypeCreature())
             {
                 if (creature is Player player && (!player.Attackable || player.Teleporting || (player.Hidden ?? false)))
+                    continue;
+
+                if (Tolerance.HasFlag(Tolerance.Monster) && (creature is Player || creature is CombatPet))
                     continue;
 
                 //var distSq = Location.SquaredDistanceTo(creature.Location);

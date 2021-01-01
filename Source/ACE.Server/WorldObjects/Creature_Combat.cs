@@ -1110,10 +1110,31 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// If one of these fields is set, potential aggro from Player or CombatPet movement terminates immediately
+        /// </summary>
+        protected static readonly Tolerance PlayerCombatPat_MoveExclude = Tolerance.NoAttack | Tolerance.Appraise | Tolerance.Provoke | Tolerance.Retaliate | Tolerance.Monster;
+
+        /// <summary>
+        /// If one of these fields is set, potential aggro from other monster movement terminates immediately
+        /// </summary>
+        protected static readonly Tolerance Monster_MoveExclude = Tolerance.NoAttack | Tolerance.Appraise | Tolerance.Provoke | Tolerance.Retaliate;
+
+        /// <summary>
+        /// If one of these fields is set, potential aggro from Player or CombatPet attacks terminates immediately
+        /// </summary>
+        protected static readonly Tolerance PlayerCombatPet_RetaliateExclude = Tolerance.NoAttack | Tolerance.Monster;
+
+        /// <summary>
         /// Wakes up a monster if it can be alerted
         /// </summary>
         public bool AlertMonster(Creature monster)
         {
+            // currently used for proximity checking exclusively:
+
+            // Player_Monster.CheckMonsters() - player movement
+            // Monster_Awareness.CheckTargets_Inner() - monster spawning in
+            // Monster_Awareness.FactionMob_CheckMonsters() - faction mob scanning
+
             // non-attackable creatures do not get aggroed,
             // unless they have a TargetingTactic, such as the invisible archers in Oswald's Dirk Quest
             if (!monster.Attackable && monster.TargetingTactic == TargetingTactic.None)
@@ -1122,7 +1143,9 @@ namespace ACE.Server.WorldObjects
             // ensure monster is currently in idle state to wake up,
             // and it has no tolerance to players running nearby
             // TODO: investigate usage for tolerance
-            if (monster.MonsterState != State.Idle || monster.Tolerance != Tolerance.None)
+            var tolerance = this is Player ? PlayerCombatPat_MoveExclude : Monster_MoveExclude;
+
+            if (monster.MonsterState != State.Idle || (monster.Tolerance & tolerance) != 0)
                 return false;
 
             // for faction mobs, ensure alerter doesn't belong to same faction
@@ -1292,7 +1315,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Called when a monster attacks another monster
-        /// This should only happen between mobs of differing factions
+        /// This should only happen between mobs of differing factions, or from FoeType
         /// </summary>
         public void MonsterOnAttackMonster(Creature monster)
         {
