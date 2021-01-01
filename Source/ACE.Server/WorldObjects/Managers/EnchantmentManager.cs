@@ -1279,7 +1279,7 @@ namespace ACE.Server.WorldObjects.Managers
                 // for each damage tick, this pre-calc would then be multiplied
                 // against the realtime resistances
 
-                var damager = WorldObject.CurrentLandblock?.GetObject(enchantment.CasterObjectId) as Creature;
+                var damager = WorldObject.CurrentLandblock?.GetObject(enchantment.CasterObjectId);
                 if (damager == null)
                 {
                     Console.WriteLine($"{WorldObject.Name}.ApplyDamageTick() - couldn't find damager {enchantment.CasterObjectId:X8}");

@@ -1475,7 +1475,7 @@ namespace ACE.Server.Command.Handlers
                         verified.Add(wieldReq.WieldDiff.ObjectId);
                 }
 
-                var hasLevelReq = hasLevelReq1.Union(hasLevelReq2).ToList();
+                /*var hasLevelReq = hasLevelReq1.Union(hasLevelReq2).ToList();
 
                 if (hasLevelReq.Count != legendaryItems.Count)
                 {
@@ -1497,7 +1497,7 @@ namespace ACE.Server.Command.Handlers
                             updates.Add($"INSERT INTO biota_properties_int SET object_Id=0x{noReq:X8}, `type`={(int)PropertyInt.WieldDifficulty2}, value=180;");
                         }
                     }
-                }
+                }*/
 
                 var numIssues = legendaryItems.Count - verified.Count;
 

@@ -53,13 +53,22 @@ namespace ACE.Server.WorldObjects
         {
             var wieldedTreasure = new List<WorldObject>();
 
-            var rng = ThreadSafeRandom.Next(0.0f, set.TotalProbability);
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
             var probability = 0.0f;
+            var rolled = false;
 
             foreach (var item in set.Items)
             {
+                if (probability >= 1.0f)
+                {
+                    probability = 0.0f;
+                    rolled = false;
+                }
                 probability += item.Item.Probability;
-                if (rng >= probability) continue;
+
+                if (rng >= probability || rolled) continue;
+
+                rolled = true;
 
                 // item roll successful, spawn item in creature inventory
                 var wo = CreateWieldedTreasure(item.Item);
@@ -70,9 +79,8 @@ namespace ACE.Server.WorldObjects
                 // traverse into possible subsets
                 if (item.Subset != null)
                     wieldedTreasure.AddRange(GenerateWieldedTreasureSet(item.Subset));
-
-                break;
             }
+
             return wieldedTreasure;
         }
 
