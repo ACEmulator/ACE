@@ -620,8 +620,15 @@ namespace ACE.Server.Entity
             }
         }
 
+        private long processPendingWorldObjectAdditionsAndRemovalsCounter = 0;
+
         private void ProcessPendingWorldObjectAdditionsAndRemovals()
         {
+            var counterVal = Interlocked.Increment(ref processPendingWorldObjectAdditionsAndRemovalsCounter);
+
+            if (counterVal != 1)
+                log.Error($"Landblock 0x{Id} entered ProcessPendingWorldObjectAdditionsAndRemovals but counterVal: {counterVal} is not 1");
+
             if (pendingAdditions.Count > 0)
             {
                 foreach (var kvp in pendingAdditions)
@@ -671,6 +678,11 @@ namespace ACE.Server.Entity
 
                 pendingRemovals.Clear();
             }
+
+            counterVal = Interlocked.Decrement(ref processPendingWorldObjectAdditionsAndRemovalsCounter);
+
+            if (counterVal != 0)
+                log.Error($"Landblock 0x{Id} exited ProcessPendingWorldObjectAdditionsAndRemovals but counterVal: {counterVal} is not 0");
         }
 
         private void InsertWorldObjectIntoSortedHeartbeatList(WorldObject worldObject)
@@ -810,6 +822,16 @@ namespace ACE.Server.Entity
 
         private bool AddWorldObjectInternal(WorldObject wo)
         {
+            var counterVal = Interlocked.Read(ref processPendingWorldObjectAdditionsAndRemovalsCounter);
+
+            if (counterVal != 0)
+            {
+                log.Error($"Landblock 0x{Id} entered AddWorldObjectInternal but counterVal: {counterVal} is not 0");
+                log.Error($"AddWorldObjectInternal: 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}], previous landblock 0x{wo.CurrentLandblock?.Id}");
+                log.Error(System.Environment.StackTrace);
+                log.Error("PLEASE REPORT THIS TO THE ACE DEV TEAM !!!");
+            }
+
             wo.CurrentLandblock = this;
 
             if (wo.PhysicsObj == null)
@@ -836,6 +858,31 @@ namespace ACE.Server.Entity
 
                     return false;
                 }
+            }
+
+            if (counterVal != 0)
+            {
+                log.Error($"Landblock 0x{Id} middle AddWorldObjectInternal but counterVal: {counterVal} is not 0");
+                log.Error($"AddWorldObjectInternal: 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}], previous landblock 0x{wo.CurrentLandblock?.Id}");
+                log.Error(System.Environment.StackTrace);
+                log.Error("PLEASE REPORT THIS TO THE ACE DEV TEAM !!!");
+
+                if (wo.WeenieType == WeenieType.ProjectileSpell)
+                {
+                    if (wo.ProjectileSource != null)
+                        log.Error($"wo.ProjectileSource: 0x{wo.ProjectileSource?.Guid}:{wo.ProjectileSource?.Name}, position: {wo.ProjectileSource?.Location}");
+                    if (wo is SpellProjectile spellProjectile && spellProjectile.Caster != null)
+                        log.Error($"wo.Caster: 0x{spellProjectile.Caster?.Guid}:{spellProjectile.Caster?.Name}, position: {spellProjectile.Caster?.Location}");
+
+                    wo.CurrentLandblock = null;
+                    wo.PhysicsObj.DestroyObject();
+
+                    return false;
+                }
+
+                // This part might actually prevent the crash
+                while (counterVal != 0)
+                    counterVal = Interlocked.Read(ref processPendingWorldObjectAdditionsAndRemovalsCounter);
             }
 
             if (!worldObjects.ContainsKey(wo.Guid))
@@ -869,6 +916,20 @@ namespace ACE.Server.Entity
 
         private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false, bool showError = true)
         {
+            var counterVal = Interlocked.Read(ref processPendingWorldObjectAdditionsAndRemovalsCounter);
+
+            if (counterVal != 0)
+            {
+                log.Error($"Landblock 0x{Id} entered RemoveWorldObjectInternal but counterVal: {counterVal} is not 0");
+                log.Error($"RemoveWorldObjectInternal: 0x{objectId} {adjacencyMove} {fromPickup} {showError}");
+                log.Error(System.Environment.StackTrace);
+                log.Error("PLEASE REPORT THIS TO THE ACE DEV TEAM !!!");
+
+                // This part might actually prevent the crash
+                while (counterVal != 0)
+                    counterVal = Interlocked.Read(ref processPendingWorldObjectAdditionsAndRemovalsCounter);
+            }
+
             if (worldObjects.TryGetValue(objectId, out var wo))
                 pendingRemovals.Add(objectId);
             else if (!pendingAdditions.Remove(objectId, out wo))
