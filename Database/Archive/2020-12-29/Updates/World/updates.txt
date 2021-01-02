@@ -1,0 +1,14 @@
+12/21/2017
+---------
+- Swapped Placement data with PlacementPosition data
+
+8/03/2017
+---------
+- Added 08-08-03-2017-ace_object_properties_book to store page/book data.
+
+5/17/2017
+===========================================
+Rebased all database scripts.
+
+The scripts in this folder are structure additions/changes that are not contained in the base scripts.  The Base script, which is a SQL Dump, should generally contain this data, though it is not always up to date.
+

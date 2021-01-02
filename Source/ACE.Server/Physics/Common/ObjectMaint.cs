@@ -664,6 +664,7 @@ namespace ACE.Server.Physics.Common
                     RemoveKnownPlayer(obj);
 
                 RemoveVisibleTarget(obj);
+                RemoveRetaliateTarget(obj);
             }
             finally
             {
@@ -1083,6 +1084,11 @@ namespace ACE.Server.Physics.Common
             }
         }
 
+        private bool RemoveRetaliateTarget(PhysicsObj obj)
+        {
+            return RetaliateTargets.Remove(obj.ID);
+        }
+
         /// <summary>
         /// Clears all of the ObjMaint tables for an object
         /// </summary>
@@ -1093,6 +1099,7 @@ namespace ACE.Server.Physics.Common
             DestructionQueue.Clear();
             KnownPlayers.Clear();
             VisibleTargets.Clear();
+            RetaliateTargets.Clear();
         }
 
         /// <summary>
@@ -1113,6 +1120,9 @@ namespace ACE.Server.Physics.Common
                     obj.ObjMaint.RemoveObject(PhysicsObj, false);
 
                 foreach (var obj in VisibleTargets.Values)
+                    obj.ObjMaint.RemoveObject(PhysicsObj, false);
+
+                foreach (var obj in RetaliateTargets.Values)
                     obj.ObjMaint.RemoveObject(PhysicsObj, false);
 
                 RemoveAllObjects();

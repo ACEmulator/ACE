@@ -27,6 +27,7 @@ namespace ACE.Server.Factories
             InvalidSkillRequested,
             FailedToTrainSkill,
             FailedToSpecializeSkill,
+            ClientServerSkillsMismatch
         }
 
         public static CreateResult Create(CharacterCreateInfo characterCreateInfo, Weenie weenie, ObjectGuid guid, uint accountId, WeenieType weenieType, out Player player)
@@ -154,6 +155,9 @@ namespace ACE.Server.Factories
 
             // set initial skill credit amount. 52 for all but "Olthoi", which have 68
             player.SetProperty(PropertyInt.AvailableSkillCredits, (int)heritageGroup.SkillCredits);
+
+            if (characterCreateInfo.SkillAdvancementClasses.Count != 55)
+                return CreateResult.ClientServerSkillsMismatch;
 
             for (int i = 0; i < characterCreateInfo.SkillAdvancementClasses.Count; i++)
             {

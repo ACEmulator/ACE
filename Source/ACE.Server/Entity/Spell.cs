@@ -238,11 +238,16 @@ namespace ACE.Server.Entity
         {
             get
             {
-                return Category == SpellCategory.DamageLowering     // encompasses both blood and spirit loather, inconsistent with spirit drinker in dat
-                    || Category == SpellCategory.DefenseModLowering
-                    || Category == SpellCategory.AttackModLowering
-                    || Category == SpellCategory.WeaponTimeLowering
-                    || Category == SpellCategory.ManaConversionModLowering;    // hermetic void, replaced hide value, unchanged category in dat
+                switch (Category)
+                {
+                    case SpellCategory.DamageLowering:            // encompasses both blood and spirit loather, inconsistent with spirit drinker in dat
+                    case SpellCategory.DefenseModLowering:
+                    case SpellCategory.AttackModLowering:
+                    case SpellCategory.WeaponTimeLowering:        // verified
+                    case SpellCategory.ManaConversionModLowering: // hermetic void, replaced hide value, unchanged category in dat
+                        return true;
+                }
+                return false;
             }
         }
 
@@ -250,11 +255,16 @@ namespace ACE.Server.Entity
         {
             get
             {
-                return MetaSpellType == SpellType.PortalLink
-                    || MetaSpellType == SpellType.PortalRecall
-                    || MetaSpellType == SpellType.PortalSending
-                    || MetaSpellType == SpellType.PortalSummon
-                    || MetaSpellType == SpellType.FellowPortalSending;
+                switch (MetaSpellType)
+                {
+                    case SpellType.PortalLink:
+                    case SpellType.PortalRecall:
+                    case SpellType.PortalSending:
+                    case SpellType.PortalSummon:
+                    case SpellType.FellowPortalSending:
+                        return true;
+                }
+                return false;
             }
         }
 
@@ -265,12 +275,17 @@ namespace ACE.Server.Entity
         {
             get
             {
-                return Category == SpellCategory.AttackModRaising
-                    || Category == SpellCategory.DamageRaising
-                    || Category == SpellCategory.DefenseModRaising
-                    || Category == SpellCategory.WeaponTimeRaising
-                    || Category == SpellCategory.ManaConversionModRaising
-                    || Category == SpellCategory.SpellDamageRaising;
+                switch (Category)
+                {
+                    case SpellCategory.AttackModRaising:
+                    case SpellCategory.DamageRaising:
+                    case SpellCategory.DefenseModRaising:
+                    case SpellCategory.WeaponTimeRaising:        // verified
+                    case SpellCategory.ManaConversionModRaising:
+                    case SpellCategory.SpellDamageRaising:
+                        return true;
+                }
+                return false;
             }
         }
 
