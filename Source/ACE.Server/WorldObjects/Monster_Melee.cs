@@ -208,9 +208,11 @@ namespace ACE.Server.WorldObjects
 
             if (!attackTypes.Table.TryGetValue(AttackType, out var maneuvers) || maneuvers.Count == 0)
             {
-                if (AttackType == AttackType.Kick)
+                if (AttackType == AttackType.Punch && AttackHeight == ACE.Entity.Enum.AttackHeight.Low || AttackType == AttackType.Kick)
                 {
-                    AttackType = AttackType.Punch;
+                    // 27864 - Mosswart Muckstalker w/ a katar, low punch not found in CMT, but contains kick
+                    // might need additional research
+                    AttackType = AttackType == AttackType.Punch ? AttackType.Kick : AttackType.Punch;
 
                     if (!attackTypes.Table.TryGetValue(AttackType, out maneuvers) || maneuvers.Count == 0)
                     {
