@@ -69,7 +69,12 @@ namespace ACE.Server.WorldObjects
 
             var actionChain = new ActionChain();
 
+            // handle self-procs
+            TryProcEquippedItems(this, true);
+
             var prevTime = 0.0f;
+            bool targetProc = false;
+
             for (var i = 0; i < numStrikes; i++)
             {
                 actionChain.AddDelaySeconds(attackFrames[i] * animLength - prevTime);
@@ -110,6 +115,13 @@ namespace ACE.Server.WorldObjects
                             //Console.WriteLine($"{target.Name} taking {Math.Round(damage)} {damageType} damage from {Name}");
                             target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage);
                             EmitSplatter(target, damageEvent.Damage);
+                        }
+
+                        // handle target procs
+                        if (!targetProc)
+                        {
+                            TryProcEquippedItems(target, false);
+                            targetProc = true;
                         }
                     }
                     else
