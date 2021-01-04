@@ -1637,7 +1637,7 @@ namespace ACE.Server.WorldObjects
             if (TryResistSpell(target, spell, caster))
                 return false;
 
-            EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, spell.Formula.Scale));
+            EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
             var enchantmentStatus = CreatureMagic(target, spell);
             if (player != null && enchantmentStatus.Message != null)
                 player.Session.Network.EnqueueSend(enchantmentStatus.Message);
