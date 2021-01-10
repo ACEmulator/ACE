@@ -136,7 +136,7 @@ namespace ACE.Server.WorldObjects
                 if (player != null && player.CheckPKStatusVsTarget(creature, null) != null)
                     continue;
 
-                if (!creature.Attackable || creature.Teleporting)
+                if (!creature.Attackable && creature.TargetingTactic == TargetingTactic.None || creature.Teleporting)
                     continue;
 
                 if (creature is CombatPet && (player != null || this is CombatPet))
