@@ -486,6 +486,12 @@ namespace ACE.Server.WorldObjects
                 return 0;
             }
 
+            if (_amount < 0)
+            {
+                log.Error($"{Name}.TakeDamage({source?.Name} ({source?.Guid}), {damageType}, {_amount}) - negative damage, this shouldn't happen");
+                return 0;
+            }
+
             var amount = (uint)Math.Round(_amount);
             var percent = (float)amount / Health.MaxValue;
 
