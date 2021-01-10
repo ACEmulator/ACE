@@ -404,6 +404,8 @@ namespace ACE.Server.WorldObjects
 
             var visibleObjs = PhysicsObj.ObjMaint.GetVisibleObjects(PhysicsObj.CurCell);
 
+            var targetCreature = AttackTarget as Creature;
+
             foreach (var obj in visibleObjs)
             {
                 var nearbyCreature = obj.WeenieObj.WorldObject as Creature;
@@ -426,8 +428,16 @@ namespace ACE.Server.WorldObjects
                     if (nearbyCreature == AttackTarget)
                         continue;
 
-                    if (nearbyCreature.SameFaction(AttackTarget as Creature))
+                    if (nearbyCreature.SameFaction(targetCreature))
                         nearbyCreature.AddRetaliateTarget(AttackTarget);
+
+                    if (PotentialFoe(targetCreature))
+                    {
+                        if (nearbyCreature.PotentialFoe(targetCreature))
+                            nearbyCreature.AddRetaliateTarget(AttackTarget);
+                        else
+                            continue;
+                    }
 
                     Alerted = true;
                     nearbyCreature.AttackTarget = AttackTarget;
@@ -456,7 +466,7 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 // ensure another faction
-                if (SameFaction(creature))
+                if (SameFaction(creature) && !PotentialFoe(creature))
                     continue;
 
                 // ensure within detection range

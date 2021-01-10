@@ -1049,6 +1049,11 @@ namespace ACE.Server.WorldObjects
                     if (AllowFactionCombat(target))
                         return true;
                 }
+
+                // handle FoeType
+                if (PotentialFoe(target))
+                    return true;
+
                 return false;
             }
         }
@@ -1121,7 +1126,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             // for faction mobs, ensure alerter doesn't belong to same faction
-            if (SameFaction(monster))
+            if (SameFaction(monster) && !PotentialFoe(monster))
                 return false;
 
             // add to retaliate targets?
@@ -1295,8 +1300,12 @@ namespace ACE.Server.WorldObjects
             Console.WriteLine($"Attackable: {monster.Attackable}");
             Console.WriteLine($"Tolerance: {monster.Tolerance}");*/
 
-            // monsters will retaliate against monsters who don't belong to the same faction
+            // when a faction mob attacks a regular mob, the regular mob will retaliate against the faction mob
             if (Faction1Bits != null && (monster.Faction1Bits == null || (Faction1Bits & monster.Faction1Bits) == 0))
+                monster.AddRetaliateTarget(this);
+
+            // when a monster with a FoeType attacks a foe, the foe will retaliate
+            if (FoeType != null && (monster.FoeType == null || monster.FoeType != CreatureType))
                 monster.AddRetaliateTarget(this);
 
             if (monster.MonsterState == State.Idle && !monster.Tolerance.HasFlag(Tolerance.NoAttack))
@@ -1312,6 +1321,15 @@ namespace ACE.Server.WorldObjects
         public bool SameFaction(Creature creature)
         {
             return Faction1Bits != null && creature.Faction1Bits != null && (Faction1Bits & creature.Faction1Bits) != 0;
+        }
+
+        /// <summary>
+        /// Returns TRUE is this creature has a FoeType that matches the input creature's CreatureType,
+        /// or if the input creature has a FoeType that matches this creature's CreatureType
+        /// </summary>
+        public bool PotentialFoe(Creature creature)
+        {
+            return FoeType != null && FoeType == creature.CreatureType || creature.FoeType != null && creature.FoeType == CreatureType;
         }
 
         public bool AllowFactionCombat(Creature creature)
