@@ -308,7 +308,7 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
-                    var targetDeath = LifeMagic(spell, out uint damage, out bool critical, out var msg, target);
+                    var targetDeath = LifeMagic(spell, out uint damage, out var msg, target);
 
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
