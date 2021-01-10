@@ -122,8 +122,6 @@ namespace ACE.Server
             if (IsRunningInContainer)
                 log.Info("ACEmulator is running in a container...");
 
-            Console.Title = @$"ACEmulator - v{ServerBuildInfo.FullVersion}";
-
             var configFile = Path.Combine(exeLocation, "Config.js");
             var configConfigContainer = Path.Combine(containerConfigDirectory, "Config.js");
 
@@ -148,6 +146,8 @@ namespace ACE.Server
 
             log.Info("Initializing ConfigManager...");
             ConfigManager.Initialize();
+
+            Console.Title = @$"{ConfigManager.Config.Server.WorldName} - v{ServerBuildInfo.FullVersion}";
 
             if (ConfigManager.Config.Offline.PurgeDeletedCharacters)
             {
