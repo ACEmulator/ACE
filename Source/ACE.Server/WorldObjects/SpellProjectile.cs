@@ -346,7 +346,7 @@ namespace ACE.Server.WorldObjects
             if (player == null && targetPlayer == null)
             {
                 // check for faction combat
-                if (sourceCreature != null && creatureTarget != null && (sourceCreature.AllowFactionCombat(creatureTarget) || sourceCreature.PotentialFoe(creatureTarget)))
+                if (sourceCreature != null && creatureTarget != null && (sourceCreature.AllowFactionCombat(creatureTarget) || sourceCreature.AllowHatredCombat(creatureTarget) || sourceCreature.PotentialFoe(creatureTarget)))
                     sourceCreature.MonsterOnAttackMonster(creatureTarget);
             }
         }

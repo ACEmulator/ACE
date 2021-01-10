@@ -28,6 +28,8 @@ namespace ACE.Server.Physics.Common
 
         public FactionBits Faction1Bits { get; set; }
 
+        public int Hatred1Bits { get; set; }
+
         public CreatureType? FoeType { get; set; }
 
         public WeenieObject() { }
@@ -47,12 +49,19 @@ namespace ACE.Server.Physics.Common
 
             IsFactionMob = IsMonster && Faction1Bits != FactionBits.None;
 
+            Hatred1Bits = creature.Hatred1Bits ?? 0;
+
             FoeType = creature.FoeType;
         }
 
         public bool SameFaction(PhysicsObj obj)
         {
             return (Faction1Bits & obj.WeenieObj.Faction1Bits) != 0;
+        }
+
+        public bool HatredMob(PhysicsObj obj)
+        {
+            return (Hatred1Bits & obj.WeenieObj.Hatred1Bits) != 0;
         }
 
         public bool PotentialFoe(PhysicsObj obj)

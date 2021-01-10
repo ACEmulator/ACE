@@ -279,8 +279,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private void TryActivateItemSpells(WorldObject item)
         {
-            if (!Attackable)
-                return;
+            if (IsNPC) return;
 
             // check activation requirements?
             foreach (var spell in item.Biota.GetKnownSpellsIds(BiotaDatabaseLock))

@@ -410,7 +410,7 @@ namespace ACE.Server.Physics.Common
                 else
                 {
                     // adding faction mobs here, even though they are retaliate-only, for inverse visible targets
-                    results = objs.Where(i => i.IsPlayer || i.WeenieObj.IsCombatPet || i.WeenieObj.IsFactionMob || i.WeenieObj.PotentialFoe(PhysicsObj));
+                    results = objs.Where(i => i.IsPlayer || i.WeenieObj.IsCombatPet || i.WeenieObj.IsFactionMob || i.WeenieObj.HatredMob(PhysicsObj) || i.WeenieObj.PotentialFoe(PhysicsObj));
                 }
             }
             return results;
@@ -952,7 +952,7 @@ namespace ACE.Server.Physics.Common
                 }
 
                 // only tracking players and combat pets
-                if (!obj.IsPlayer && !obj.WeenieObj.IsCombatPet && PhysicsObj.WeenieObj.FoeType == null)
+                if (!obj.IsPlayer && !obj.WeenieObj.IsCombatPet && PhysicsObj.WeenieObj.Hatred1Bits == 0 && PhysicsObj.WeenieObj.FoeType == null)
                 {
                     Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add a non-player / non-combat pet");
                     return false;

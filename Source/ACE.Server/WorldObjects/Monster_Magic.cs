@@ -409,7 +409,7 @@ namespace ACE.Server.WorldObjects
 
             var creatureTarget = target as Creature;
 
-            if (creatureTarget == null || !AllowFactionCombat(creatureTarget) && !PotentialFoe(creatureTarget))
+            if (creatureTarget == null || !AllowFactionCombat(creatureTarget) && !AllowHatredCombat(creatureTarget) && !PotentialFoe(creatureTarget))
                 return;
 
             MonsterOnAttackMonster(creatureTarget);
