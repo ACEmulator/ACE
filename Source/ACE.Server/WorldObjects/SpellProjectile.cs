@@ -738,7 +738,7 @@ namespace ACE.Server.WorldObjects
 
                 if (sourcePlayer != null)
                 {
-                    var critProt = critDefended ? " Your target's Critical Protection augmentation allows them to avoid your critical hit!" : "";
+                    var critProt = critDefended ? " Your critical hit was avoided with their augmentation!" : "";
 
                     var attackerMsg = $"{critMsg}{overpowerMsg}{sneakMsg}You {verb} {target.Name} for {amount} points with {Spell.Name}.{critProt}";
 
