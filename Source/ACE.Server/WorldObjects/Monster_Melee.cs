@@ -69,7 +69,12 @@ namespace ACE.Server.WorldObjects
 
             var actionChain = new ActionChain();
 
+            // handle self-procs
+            TryProcEquippedItems(this, true);
+
             var prevTime = 0.0f;
+            bool targetProc = false;
+
             for (var i = 0; i < numStrikes; i++)
             {
                 actionChain.AddDelaySeconds(attackFrames[i] * animLength - prevTime);
@@ -104,12 +109,19 @@ namespace ACE.Server.WorldObjects
                                 Proficiency.OnSuccessUse(targetPlayer, shieldSkill, shieldSkill.Current); // ?
                             }
                         }
-                        else if (combatPet != null || targetPet != null || Faction1Bits != null || target.Faction1Bits != null)
+                        else if (combatPet != null || targetPet != null || Faction1Bits != null || target.Faction1Bits != null || PotentialFoe(target))
                         {
                             // combat pet inflicting or receiving damage
                             //Console.WriteLine($"{target.Name} taking {Math.Round(damage)} {damageType} damage from {Name}");
                             target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage);
                             EmitSplatter(target, damageEvent.Damage);
+                        }
+
+                        // handle target procs
+                        if (!targetProc)
+                        {
+                            TryProcEquippedItems(target, false);
+                            targetProc = true;
                         }
                     }
                     else

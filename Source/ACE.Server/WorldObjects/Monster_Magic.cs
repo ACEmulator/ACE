@@ -271,12 +271,18 @@ namespace ACE.Server.WorldObjects
             else if (targetSelf)
                 target = this;
 
+            // handle self procs
+            if (spell.IsHarmful && target != this)
+                TryProcEquippedItems(this, true);
+
             // try to resist spell, if applicable
             if (TryResistSpell(target, spell))
             {
                 TryHandleFactionMob(target);
                 return;
             }
+
+            var targetCreature = target as Creature;
 
             switch (spell.School)
             {
@@ -287,6 +293,12 @@ namespace ACE.Server.WorldObjects
                     if (target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
 
+                    if (spell.IsHarmful)
+                    {
+                        // handle target procs
+                        if (targetCreature != null && targetCreature != this)
+                            TryProcEquippedItems(targetCreature, false);
+                    }
                     break;
 
                 case MagicSchool.ItemEnchantment:
@@ -296,21 +308,28 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
+                    var targetDeath = LifeMagic(spell, out uint damage, out var msg, target);
+
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
+                    {
                         TryHandleFactionMob(target);
 
-                    var targetDeath = LifeMagic(spell, out uint damage, out bool critical, out var msg, target);
+                        if (target != null)
+                            EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
 
-                    if (targetDeath && target is Creature targetCreature)
+                        if (spell.IsHarmful)
+                        {
+                            // handle target procs
+                            if (targetCreature != null && targetCreature != this)
+                                TryProcEquippedItems(targetCreature, false);
+                        }
+                    }
+                    if (targetDeath && targetCreature != null)
                     {
                         targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
                         targetCreature.Die();
                     }
-                    if (target != null)
-                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
                     break;
-
 
                 case MagicSchool.VoidMagic:
 
@@ -390,7 +409,7 @@ namespace ACE.Server.WorldObjects
 
             var creatureTarget = target as Creature;
 
-            if (creatureTarget == null || !AllowFactionCombat(creatureTarget))
+            if (creatureTarget == null || !AllowFactionCombat(creatureTarget) && !PotentialFoe(creatureTarget))
                 return;
 
             MonsterOnAttackMonster(creatureTarget);

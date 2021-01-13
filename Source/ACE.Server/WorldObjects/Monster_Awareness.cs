@@ -262,6 +262,14 @@ namespace ACE.Server.WorldObjects
                         continue;
                 }
 
+                // cannot switch AttackTargets with Tolerance.Target
+                if (Tolerance.HasFlag(Tolerance.Target) && creature != AttackTarget)
+                    continue;
+
+                // can only target other monsters with Tolerance.Monster -- cannot target players or combat pets
+                if (Tolerance.HasFlag(Tolerance.Monster) && (creature is Player || creature is CombatPet))
+                    continue;
+
                 visibleTargets.Add(creature);
             }
 
@@ -316,11 +324,17 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// If one of these fields is set, monster scanning for targets when it first spawns in
+        /// is terminated immediately
+        /// </summary>
+        private static readonly Tolerance ExcludeSpawnScan = Tolerance.NoAttack | Tolerance.Appraise | Tolerance.Provoke | Tolerance.Retaliate;
+
+        /// <summary>
         /// Called when a monster is first spawning in
         /// </summary>
         public void CheckTargets()
         {
-            if (!Attackable && TargetingTactic == TargetingTactic.None || Tolerance != Tolerance.None)
+            if (!Attackable && TargetingTactic == TargetingTactic.None || (Tolerance & ExcludeSpawnScan) != 0)
                 return;
 
             var actionChain = new ActionChain();
@@ -337,6 +351,9 @@ namespace ACE.Server.WorldObjects
             foreach (var creature in PhysicsObj.ObjMaint.GetVisibleTargetsValuesOfTypeCreature())
             {
                 if (creature is Player player && (!player.Attackable || player.Teleporting || (player.Hidden ?? false)))
+                    continue;
+
+                if (Tolerance.HasFlag(Tolerance.Monster) && (creature is Player || creature is CombatPet))
                     continue;
 
                 //var distSq = Location.SquaredDistanceTo(creature.Location);
@@ -404,6 +421,8 @@ namespace ACE.Server.WorldObjects
 
             var visibleObjs = PhysicsObj.ObjMaint.GetVisibleObjects(PhysicsObj.CurCell);
 
+            var targetCreature = AttackTarget as Creature;
+
             foreach (var obj in visibleObjs)
             {
                 var nearbyCreature = obj.WeenieObj.WorldObject as Creature;
@@ -426,8 +445,16 @@ namespace ACE.Server.WorldObjects
                     if (nearbyCreature == AttackTarget)
                         continue;
 
-                    if (nearbyCreature.SameFaction(AttackTarget as Creature))
+                    if (nearbyCreature.SameFaction(targetCreature))
                         nearbyCreature.AddRetaliateTarget(AttackTarget);
+
+                    if (PotentialFoe(targetCreature))
+                    {
+                        if (nearbyCreature.PotentialFoe(targetCreature))
+                            nearbyCreature.AddRetaliateTarget(AttackTarget);
+                        else
+                            continue;
+                    }
 
                     Alerted = true;
                     nearbyCreature.AttackTarget = AttackTarget;
@@ -456,7 +483,7 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 // ensure another faction
-                if (SameFaction(creature))
+                if (SameFaction(creature) && !PotentialFoe(creature))
                     continue;
 
                 // ensure within detection range

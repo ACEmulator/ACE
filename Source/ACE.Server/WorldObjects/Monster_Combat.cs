@@ -362,14 +362,19 @@ namespace ACE.Server.WorldObjects
         /// <param name="amount">The amount of damage rounded</param>
         public virtual uint TakeDamage(WorldObject source, DamageType damageType, float amount, bool crit = false)
         {
-            var tryDamage = (uint)Math.Round(amount);
-            var damage = (uint)-UpdateVitalDelta(Health, (int)-tryDamage);
+            var tryDamage = (int)Math.Round(amount);
+            var damage = -UpdateVitalDelta(Health, -tryDamage);
 
             // TODO: update monster stamina?
 
             // source should only be null for combined DoT ticks from multiple sources
             if (source != null)
-                DamageHistory.Add(source, damageType, damage);
+            {
+                if (damage >= 0)
+                    DamageHistory.Add(source, damageType, (uint)damage);
+                else
+                    DamageHistory.OnHeal((uint)-damage);
+            }
 
             if (Health.Current <= 0)
             {
@@ -377,7 +382,7 @@ namespace ACE.Server.WorldObjects
 
                 Die();
             }
-            return damage;
+            return (uint)Math.Max(0, damage);
         }
 
         public void EmitSplatter(Creature target, float damage)
