@@ -950,8 +950,12 @@ namespace ACE.Server.WorldObjects
             if (spell.NotFound)
             {
                 if (wielder is Player player)
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
-
+                {
+                    if (spell._spellBase == null)
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"SpellId {ProcSpell.Value} Invalid.", ChatMessageType.System));
+                    else
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                }
                 return;
             }
 
