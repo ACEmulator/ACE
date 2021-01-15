@@ -433,58 +433,22 @@ namespace ACE.Server.Managers
                     break;
                 case MaterialType.Copper:
 
-                    if (target.WieldSkillType != (int)Skill.MissileDefense)
+                    if (target.ItemSkillLimit != Skill.MissileDefense || target.ItemSkillLevelLimit == null)
                         return;
 
-                    // change wield requirement: missile defense -> melee defense
-                    target.WieldSkillType = (int)Skill.MeleeDefense;
-                    target.ItemSkillLimit = (int)Skill.MeleeDefense;      // recipe requirements check for this field
-
-                    // increase the wield difficulty
-                    if (target.WieldDifficulty != null)
-                    {
-                        target.WieldDifficulty = target.WieldDifficulty switch
-                        {
-                            // todo: figure out the exact formula for this conversion
-                            160 => 200,
-                            205 => 250,
-                            245 => 300,
-                            270 => 325,
-                            290 => 350,
-                            305 => 370,
-                            330 => 400,
-                            340 => 410,
-                            _ => (int)Math.Round(target.WieldDifficulty.Value * 1.25f)
-                        };
-                    }
+                    // change activation requirement: missile defense -> melee defense
+                    target.ItemSkillLimit = Skill.MeleeDefense;
+                    target.ItemSkillLevelLimit = (int)(target.ItemSkillLevelLimit / 0.7f);
                     break;
 
                 case MaterialType.Silver:
 
-                    if (target.WieldSkillType != (int)Skill.MeleeDefense)
+                    if (target.ItemSkillLimit != Skill.MeleeDefense || target.ItemSkillLevelLimit == null)
                         return;
 
-                    // change wield requirement: melee defense -> missile defense
-                    target.WieldSkillType = (int)Skill.MissileDefense;
-                    target.ItemSkillLimit = (int)Skill.MissileDefense;      // recipe requirements check for this field
-
-                    // decrease the wield difficulty
-                    if (target.WieldDifficulty != null)
-                    {
-                        target.WieldDifficulty = target.WieldDifficulty switch
-                        {
-                            // todo: figure out the exact formula for this conversion
-                            200 => 160,
-                            250 => 205,
-                            300 => 245,
-                            325 => 270,
-                            350 => 290,
-                            370 => 305,
-                            400 => 330,
-                            410 => 340,
-                            _ => (int)Math.Round(target.WieldDifficulty.Value * 0.8f)
-                        };
-                    }
+                    // change activation requirement: melee defense -> missile defense
+                    target.ItemSkillLimit = Skill.MissileDefense;
+                    target.ItemSkillLevelLimit = (int)(target.ItemSkillLevelLimit * 0.7f);
                     break;
 
                 case MaterialType.Silk:

@@ -24,6 +24,19 @@ namespace ACE.Server.WorldObjects.Managers
             }
         }
 
+        private bool? hasVitae;
+
+        public override bool HasVitae
+        {
+            get
+            {
+                if (hasVitae == null)
+                    hasVitae = base.HasVitae;
+
+                return hasVitae.Value;
+            }
+        }
+
         /// <summary>
         /// Constructs a new EnchantmentManager for a WorldObject
         /// </summary>
@@ -145,6 +158,7 @@ namespace ACE.Server.WorldObjects.Managers
         private void ClearCache()
         {
             hasEnchantments = null;
+            hasVitae = null;
 
             attributeModCache.Clear();
             vitalModAdditiveCache.Clear();

@@ -16,6 +16,7 @@ using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
 using ACE.Server.Network.Managers;
+using ACE.Server.Network.Packets;
 
 using log4net;
 
@@ -259,10 +260,26 @@ namespace ACE.Server.Network
             if ((packet.Header.Flags & PacketHeaderFlags.RequestRetransmit) == PacketHeaderFlags.RequestRetransmit
                 && !((packet.Header.Flags & PacketHeaderFlags.EncryptedChecksum) == PacketHeaderFlags.EncryptedChecksum))
             {
+                List<uint> uncached = null;
+
                 foreach (uint sequence in packet.HeaderOptional.RetransmitData)
                 {
-                    Retransmit(sequence);
+                    if (!Retransmit(sequence))
+                    {
+                        if (uncached == null)
+                            uncached = new List<uint>();
+
+                        uncached.Add(sequence);
+                    }
                 }
+
+                if (uncached != null)
+                {
+                    // Sends a response packet w/ PacketHeader.RejectRetransmit
+                    var packetRejectRetransmit = new PacketRejectRetransmit(uncached);
+                    EnqueueSend(packetRejectRetransmit);
+                }
+
                 NetworkStatistics.C2S_RequestsForRetransmit_Aggregate_Increment();
                 return; //cleartext crc NAK is never accompanied by additional data needed by the rest of the pipeline
             }
@@ -629,7 +646,7 @@ namespace ACE.Server.Network
                 cachedPackets.TryRemove(key, out _);
         }
 
-        private void Retransmit(uint sequence)
+        private bool Retransmit(uint sequence)
         {
             if (cachedPackets.TryGetValue(sequence, out var cachedPacket))
             {
@@ -639,11 +656,26 @@ namespace ACE.Server.Network
                     cachedPacket.Header.Flags |= PacketHeaderFlags.Retransmission;
 
                 SendPacketRaw(cachedPacket);
+
+                return true;
+            }
+
+            if (cachedPackets.Count > 0)
+            {
+                // This is to catch a race condition between .Count and .Min() and .Max()
+                try
+                {
+                    log.Error($"Session {session.Network?.ClientId}\\{session.EndPoint} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache range {cachedPackets.Keys.Min()} - {cachedPackets.Keys.Max()}.");
+                }
+                catch
+                {
+                    log.Error($"Session {session.Network?.ClientId}\\{session.EndPoint} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache is empty. Race condition threw exception.");
+                }
             }
             else
-            {
-                log.Error($"Session {session.Network?.ClientId}\\{session.EndPoint} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache range {cachedPackets.Keys.Min()} - {cachedPackets.Keys.Max()}.");
-            }
+                log.Error($"Session {session.Network?.ClientId}\\{session.EndPoint} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache is empty.");
+
+            return false;
         }
 
         private void FlushPackets()

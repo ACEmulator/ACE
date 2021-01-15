@@ -1,165 +1,95 @@
 using System.Collections.Generic;
 
-using log4net;
-
-using ACE.Common;
+using ACE.Server.Factories.Entity;
 
 namespace ACE.Server.Factories.Tables
 {
     public static class SpellLevelChance
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        /*
+            1: 1-3
+            2: 3-5
+            3: 4-6
+            4: 5-6
+            5: 6-7 (should be 5-7)
+            6: 6-7
+            7: 7-8 (should be 6-8)
+            8: 7-8 (should be 6-8)
+        */
 
-        private static readonly List<float> T1_SpellLevelChances = new List<float>()
+        private static ChanceTable<int> T1_SpellLevelChances = new ChanceTable<int>()
         {
-            0.25f,
-            0.5f,
-            0.25f,
-            0,
-            0,
-            0,
-            0,
-            0,
+            // 15/60/25?
+            ( 1, 0.25f ),
+            ( 2, 0.50f ),
+            ( 3, 0.25f ),
         };
 
-        private static readonly List<float> T2_SpellLevelChances = new List<float>()
+        private static ChanceTable<int> T2_SpellLevelChances = new ChanceTable<int>()
         {
-            0,
-            0,
-            0.25f,
-            0.5f,
-            0.25f,
-            0,
-            0,
-            0
+            ( 3, 0.25f ),
+            ( 4, 0.50f ),
+            ( 5, 0.25f ),
         };
 
-        private static readonly List<float> T3_SpellLevelChances = new List<float>()
+        private static ChanceTable<int> T3_SpellLevelChances = new ChanceTable<int>()
         {
-            0,
-            0,
-            0,
-            0.25f,
-            0.5f,
-            0.25f,
-            0,
-            0,
+            ( 4, 0.25f ),
+            ( 5, 0.50f ),
+            ( 6, 0.25f ),
         };
 
-        private static readonly List<float> T4_SpellLevelChances = new List<float>()
+        private static ChanceTable<int> T4_SpellLevelChances = new ChanceTable<int>()
         {
-            0,
-            0,
-            0,
-            0,
-            0.75f,
-            0.25f,
-            0,
-            0,
+            ( 5, 0.75f ),
+            ( 6, 0.25f ),
         };
 
-        private static readonly List<float> T5_SpellLevelChances = new List<float>()
+        private static ChanceTable<int> T5_SpellLevelChances = new ChanceTable<int>()
         {
-            0,
-            0,
-            0,
-            0,
-            0.5f,
-            0.5f,
-            0,
-            0,
+            ( 5, 0.30f ),
+            ( 6, 0.50f ),
+            ( 7, 0.20f ),
         };
 
-        private static readonly List<float> T6_SpellLevelChances = new List<float>()
+        private static ChanceTable<int> T6_SpellLevelChances = new ChanceTable<int>()
         {
-            0,
-            0,
-            0,
-            0,
-            0.25f,
-            0.75f,
-            0,
-            0,
+            ( 6, 0.60f ),
+            ( 7, 0.40f ),
         };
 
-        // TODO: adjust
-        private static readonly List<float> T7_SpellLevelChances = new List<float>()
+        private static ChanceTable<int> T7_SpellLevelChances = new ChanceTable<int>()
         {
-            0,
-            0,
-            0,
-            0,
-            0,
-            0.75f,
-            0.25f,
-            0
+            ( 6, 0.25f ),
+            ( 7, 0.50f ),
+            ( 8, 0.25f ),
         };
 
-        private static readonly List<float> T8_SpellLevelChances = new List<float>()
+        private static ChanceTable<int> T8_SpellLevelChances = new ChanceTable<int>()
         {
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0.75f,
-            0.25f
+            ( 6, 0.15f ),
+            ( 7, 0.50f ),
+            ( 8, 0.35f ),
         };
 
-        /// <summary>
-        /// Returns the spell level chance table for a tier
-        /// </summary>
-        public static List<float> GetSpellLevelChancesForTier(int tier)
+        private static readonly List<ChanceTable<int>> spellLevelChances = new List<ChanceTable<int>>()
         {
-            switch (tier)
-            {
-                case 1:
-                default:
-                    return T1_SpellLevelChances;
-                case 2:
-                    return T2_SpellLevelChances;
-                case 3:
-                    return T3_SpellLevelChances;
-                case 4:
-                    return T4_SpellLevelChances;
-                case 5:
-                    return T5_SpellLevelChances;
-                case 6:
-                    return T6_SpellLevelChances;
-                case 7:
-                    return T7_SpellLevelChances;
-                case 8:
-                    return T8_SpellLevelChances;
-            }
-        }
+            T1_SpellLevelChances,
+            T2_SpellLevelChances,
+            T3_SpellLevelChances,
+            T4_SpellLevelChances,
+            T5_SpellLevelChances,
+            T6_SpellLevelChances,
+            T7_SpellLevelChances,
+            T8_SpellLevelChances
+        };
 
         /// <summary>
         /// Rolls for a spell level for a tier
         /// </summary>
         public static int Roll(int tier)
         {
-            var spellLevelChances = GetSpellLevelChancesForTier(tier);
-
-            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-
-            var total = 0.0f;
-            for (var i = 0; i < spellLevelChances.Count; i++)
-            {
-                total += spellLevelChances[i];
-                if (rng < total)
-                    return i + 1;
-            }
-
-            // this shouldn't normally happen, floating point addition imprecision?
-            log.Error($"LootGenerationFactory - SpellLevel.Roll - This shouldn't happen, tier={tier}, total={total}, rng={rng}");
-            for (var i = spellLevelChances.Count - 1; i >= 0; i--)
-            {
-                if (spellLevelChances[i] > 0)
-                    return i + 1;
-            }
-            log.Error($"LootGenerationFactory - SpellLevel.Roll - This really shouldn't happen");
-            return 1;
+            return spellLevelChances[tier - 1].Roll();
         }
     }
 }

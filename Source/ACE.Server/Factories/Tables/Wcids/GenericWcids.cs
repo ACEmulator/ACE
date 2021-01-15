@@ -1,11 +1,14 @@
+using System;
+using System.Collections.Generic;
+
 using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Enum;
 
 namespace ACE.Server.Factories.Tables.Wcids
 {
-    public static class Dinnerware
+    public static class GenericWcids
     {
-        private static readonly ChanceTable<WeenieClassName> T1_T2_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T1_T2_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.bowl,           0.09f ),
             ( WeenieClassName.chalice,        0.00f ),
@@ -21,7 +24,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.tankard,        0.13f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T3_T4_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T3_T4_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.bowl,           0.08f ),
             ( WeenieClassName.chalice,        0.06f ),
@@ -37,7 +40,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.tankard,        0.05f ),
         };
 
-        private static readonly ChanceTable<WeenieClassName> T5_T6_Chances = new ChanceTable<WeenieClassName>()
+        private static ChanceTable<WeenieClassName> T5_T6_Chances = new ChanceTable<WeenieClassName>()
         {
             ( WeenieClassName.bowl,           0.00f ),
             ( WeenieClassName.chalice,        0.23f ),
@@ -52,5 +55,23 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.stoup,          0.00f ),
             ( WeenieClassName.tankard,        0.00f ),
         };
+
+        private static List<ChanceTable<WeenieClassName>> tierChances = new List<ChanceTable<WeenieClassName>>()
+        {
+            T1_T2_Chances,
+            T1_T2_Chances,
+            T3_T4_Chances,
+            T3_T4_Chances,
+            T5_T6_Chances,
+            T5_T6_Chances,
+        };
+
+        public static WeenieClassName Roll(int tier)
+        {
+            // todo: add unique profiles for t7 / t8?
+            tier = Math.Clamp(tier, 1, 6);
+
+            return tierChances[tier - 1].Roll();
+        }
     }
 }

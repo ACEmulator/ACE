@@ -815,7 +815,7 @@ namespace ACE.Server.WorldObjects
             return 0;
         }
 
-        private void FinishClose(Player player)
+        public virtual void FinishClose(Player player)
         {
             IsOpen = false;
             Viewer = 0;

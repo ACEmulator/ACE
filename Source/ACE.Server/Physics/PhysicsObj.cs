@@ -145,6 +145,9 @@ namespace ACE.Server.Physics
             UpdateTime = PhysicsTimer.CurrentTime;
             UpdateTimes = new int[UpdateTimeLength];
             PhysicsTimer_CurrentTime = PhysicsTimer.CurrentTime;
+
+            // todo: only allocate these for server objects
+            // get rid of 'DatObject', use the existing WeenieObj == null
             WeenieObj = new WeenieObject();
             ObjMaint = new ObjectMaint(this);
 
@@ -3465,6 +3468,8 @@ namespace ACE.Server.Physics
                 }
                 change_cell_server(newCell);
             }
+
+            CachedVelocity = requestCachedVelocity;
         }
 
         /// <summary>
@@ -3860,6 +3865,8 @@ namespace ACE.Server.Physics
             return true;
         }
 
+        private Vector3 requestCachedVelocity;
+
         /// <summary>
         /// Sets the requested position to the AutonomousPosition
         /// received from the client
@@ -3880,6 +3887,8 @@ namespace ACE.Server.Physics
                 RequestPos.ObjCellID = RequestPos.GetCell(CurCell.ID);
             else
                 RequestPos.ObjCellID = cell.ID;
+
+            requestCachedVelocity = CachedVelocity;
         }
 
         public void set_sequence_animation(int animID, bool interrupt, int startFrame, float framerate)

@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
-using ACE.Common;
 using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Enum;
 
@@ -19,43 +15,43 @@ namespace ACE.Server.Factories.Tables
         // - jewelry - 10%
         // - last 8% - is magical, more jewelry, else dinnerware
 
-        public static readonly List<TreasureItemTypeChance> DefaultMagical = new List<TreasureItemTypeChance>()
+        public static readonly ChanceTable<TreasureItemType> DefaultMagical = new ChanceTable<TreasureItemType>()
         {
-            new TreasureItemTypeChance(TreasureItemType.Gem, 0.14f),
-            new TreasureItemTypeChance(TreasureItemType.Armor, 0.24f),
-            new TreasureItemTypeChance(TreasureItemType.Weapon, 0.30f),
-            new TreasureItemTypeChance(TreasureItemType.Clothing, 0.13f),
-            new TreasureItemTypeChance(TreasureItemType.Cloak, 0.01f),
-            new TreasureItemTypeChance(TreasureItemType.Jewelry, 0.18f)
+            ( TreasureItemType.Gem,        0.14f ),
+            ( TreasureItemType.Armor,      0.24f ),
+            ( TreasureItemType.Weapon,     0.30f ),
+            ( TreasureItemType.Clothing,   0.13f ),
+            ( TreasureItemType.Cloak,      0.01f ),
+            ( TreasureItemType.Jewelry,    0.18f )
         };
 
-        public static readonly List<TreasureItemTypeChance> DefaultNonMagical = new List<TreasureItemTypeChance>()
+        public static readonly ChanceTable<TreasureItemType> DefaultNonMagical = new ChanceTable<TreasureItemType>()
         {
-            new TreasureItemTypeChance(TreasureItemType.Gem, 0.14f),
-            new TreasureItemTypeChance(TreasureItemType.Armor, 0.24f),
-            new TreasureItemTypeChance(TreasureItemType.Weapon, 0.30f),
-            new TreasureItemTypeChance(TreasureItemType.Clothing, 0.13f),
-            new TreasureItemTypeChance(TreasureItemType.Cloak, 0.01f),
-            new TreasureItemTypeChance(TreasureItemType.Jewelry, 0.10f),
-            new TreasureItemTypeChance(TreasureItemType.Dinnerware, 0.08f)
+            ( TreasureItemType.Gem,        0.14f ),
+            ( TreasureItemType.Armor,      0.24f ),
+            ( TreasureItemType.Weapon,     0.30f ),
+            ( TreasureItemType.Clothing,   0.13f ),
+            ( TreasureItemType.Cloak,      0.01f ),
+            ( TreasureItemType.Jewelry,    0.10f ),
+            ( TreasureItemType.Dinnerware, 0.08f )
         };
 
         // LootBias.Armor
-        public static readonly List<TreasureItemTypeChance> Armor = new List<TreasureItemTypeChance>()
+        public static readonly ChanceTable<TreasureItemType> Armor = new ChanceTable<TreasureItemType>()
         {
-            new TreasureItemTypeChance(TreasureItemType.Armor, 1.0f)
+            ( TreasureItemType.Armor,   1.0f )
         };
 
         // LootBias.Weapons
-        public static readonly List<TreasureItemTypeChance> Weapons = new List<TreasureItemTypeChance>()
+        public static readonly ChanceTable<TreasureItemType> Weapons = new ChanceTable<TreasureItemType>()
         {
-            new TreasureItemTypeChance(TreasureItemType.Weapon, 1.0f)
+            ( TreasureItemType.Weapon,  1.0f)
         };
 
         // LootBias.Jewelry
-        public static readonly List<TreasureItemTypeChance> Jewelry = new List<TreasureItemTypeChance>()
+        public static readonly ChanceTable<TreasureItemType> Jewelry = new ChanceTable<TreasureItemType>()
         {
-            new TreasureItemTypeChance(TreasureItemType.Jewelry, 1.0f)
+            ( TreasureItemType.Jewelry, 1.0f)
         };
 
         // from Magnus loot logs - Container_Legendary_Chest_T8 (5,826 items)
@@ -63,44 +59,26 @@ namespace ACE.Server.Factories.Tables
 
         // LootBias.MixedEquipment
         // LootBias.MagicEquipment
-        /*public static readonly List<TreasureItemTypeChance> MixedMagicEquipment = new List<TreasureItemTypeChance>()
+        /*public static readonly ChanceTable<TreasureItemType> MixedMagicEquipment = new ChanceTable<TreasureItemType>()
         {
-            new TreasureItemTypeChance(TreasureItemType.Weapon, 0.36f),
-            new TreasureItemTypeChance(TreasureItemType.Armor, 0.40f),
-            new TreasureItemTypeChance(TreasureItemType.Clothing, 0.15f),
-            new TreasureItemTypeChance(TreasureItemType.Jewelry, 0.08f),
-            //new TreasureItemTypeChance(TreasureItemType.Gem, 0.05f),    // 100% aetheria
-            //new TreasureItemTypeChance(TreasureItemType.Dinnerware, 0.05f)
-            new TreasureItemTypeChance(TreasureItemType.Cloak, 0.01f),
+            ( TreasureItemType.Weapon,     0.36f ),
+            ( TreasureItemType.Armor,      0.40f ),
+            ( TreasureItemType.Clothing,   0.15f ),
+            ( TreasureItemType.Jewelry,    0.08f ),
+            //( TreasureItemType.Gem,        0.05f ),    // 100% aetheria
+            //( TreasureItemType.Dinnerware, 0.05f ),
+            ( TreasureItemType.Cloak,      0.01f ),
         };*/
 
-        public static readonly List<TreasureItemTypeChance> MixedMagicEquipment = new List<TreasureItemTypeChance>()
+        public static readonly ChanceTable<TreasureItemType> MixedMagicEquipment = new ChanceTable<TreasureItemType>()
         {
-            new TreasureItemTypeChance(TreasureItemType.Armor, 0.30f),
-            new TreasureItemTypeChance(TreasureItemType.Weapon, 0.35f),
-            new TreasureItemTypeChance(TreasureItemType.Jewelry, 0.20f),
-            new TreasureItemTypeChance(TreasureItemType.Clothing, 0.14f),
-            //new TreasureItemTypeChance(TreasureItemType.Gem, 0.05f),    // 100% aetheria
-            //new TreasureItemTypeChance(TreasureItemType.Dinnerware, 0.05f)
-            new TreasureItemTypeChance(TreasureItemType.Cloak, 0.01f),
+            ( TreasureItemType.Armor,      0.30f ),
+            ( TreasureItemType.Weapon,     0.35f ),
+            ( TreasureItemType.Jewelry,    0.20f ),
+            ( TreasureItemType.Clothing,   0.14f ),
+            //( TreasureItemType.Gem,        0.05f ),    // 100% aetheria
+            //( TreasureItemType.Dinnerware, 0.05f ),
+            ( TreasureItemType.Cloak,      0.01f ),
         };
-
-        public static TreasureItemType Roll(List<TreasureItemTypeChance> chances)
-        {
-            var total = 0.0f;
-
-            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-
-            foreach (var chance in chances)
-            {
-                total += chance.Chance;
-
-                if (rng < total)
-                    return chance.TreasureItemType;
-            }
-
-            // shouldn't happen, floating point imprecision?
-            return chances.Last().TreasureItemType;
-        }
     }
 }

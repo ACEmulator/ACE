@@ -41,10 +41,11 @@ namespace ACE.Server.WorldObjects
             Console.WriteLine($"Attackable: {monster.Attackable}");
             Console.WriteLine($"Tolerance: {monster.Tolerance}");*/
 
-            if (monster.RetaliateTargets != null)
-                monster.RetaliateTargets.Add(Guid.Full);
+            // faction mobs will retaliate against players belonging to the same faction
+            if (SameFaction(monster))
+                monster.AddRetaliateTarget(this);
 
-            if (monster.MonsterState != State.Awake && !monster.Tolerance.HasFlag(Tolerance.NoAttack))
+            if (monster.MonsterState != State.Awake && (monster.Tolerance & PlayerCombatPet_RetaliateExclude) == 0)
             {
                 monster.AttackTarget = this;
                 monster.WakeUp();

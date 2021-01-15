@@ -243,12 +243,11 @@ namespace ACE.Server.WorldObjects
                     var critterBuffsForPlayer = buffsForPlayer.Where(k => k.Spell.School == MagicSchool.CreatureEnchantment).ToList();
                     var itemBuffsForPlayer = buffsForPlayer.Where(k => k.Spell.School == MagicSchool.ItemEnchantment).ToList();
 
-                    bool crit = false;
                     uint dmg = 0;
                     EnchantmentStatus ec;
                     lifeBuffsForPlayer.ForEach(spl =>
                     {
-                        bool casted = targetPlayer.LifeMagic(spl.Spell, out dmg, out crit, out ec, targetPlayer, this);
+                        bool casted = targetPlayer.LifeMagic(spl.Spell, out dmg, out ec, targetPlayer, this);
                     });
                     critterBuffsForPlayer.ForEach(spl =>
                     {

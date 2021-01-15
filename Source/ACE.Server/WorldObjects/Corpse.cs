@@ -155,8 +155,8 @@ namespace ACE.Server.WorldObjects
             if (VictimId == null || player.Guid.Full == VictimId)
                 return true;
 
-            // players can loot monsters they killed
-            if (KillerId != null && player.Guid.Full == KillerId || IsLooted && !CorpseGeneratedRare)
+            // players can loot corpses of creatures they killed or corpses that have previously been looted by killer
+            if (KillerId != null && player.Guid.Full == KillerId || IsLooted)
                 return true;
 
             var victimGuid = new ObjectGuid(VictimId.Value);
@@ -223,8 +223,10 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                // player corpses -- after corpse owner loots, becomes open to anyone?
-                if (player != null && player.Guid == victimGuid)
+                var killerGuid = new ObjectGuid(KillerId ?? 0);
+
+                // player corpses -- after corpse owner or killer loots, becomes open to anyone?
+                if (player != null && (player.Guid == killerGuid || player.Guid == victimGuid))
                     IsLooted = true;
             }
         }
@@ -405,6 +407,8 @@ namespace ACE.Server.WorldObjects
             0x00B3,     // Colosseum Arena Four
             0x00B4,     // Colosseum Arena Five
             0x00B6,     // Colosseum Arena Mini-Bosses
+            0x00EA,     // Mhoire Armory
+            0x33F4,     // Frozen Cave
             0x5960,     // Gauntlet Arena One (Celestial Hand)
             0x5961,     // Gauntlet Arena Two (Celestial Hand)
             0x5962,     // Gauntlet Arena One (Eldritch Web)

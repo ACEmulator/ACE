@@ -909,6 +909,9 @@ namespace ACE.Server.WorldObjects
 
             var material = RecipeManager.GetMaterialName(MaterialType ?? 0);
 
+            if (name.Contains(material))
+                name = name.Replace(material, "");
+
             return $"{material} {name}";
         }
 
@@ -1899,6 +1902,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.BulkMod); else SetProperty(PropertyFloat.BulkMod, value.Value); }
         }
 
+        public double? SizeMod
+        {
+            get => GetProperty(PropertyFloat.SizeMod);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.SizeMod); else SetProperty(PropertyFloat.SizeMod, value.Value); }
+        }
+
         public uint? PaletteBaseId
         {
             get => GetProperty(PropertyDataId.PaletteBase);
@@ -1959,10 +1968,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.AppraisalItemSkill); else SetProperty(PropertyInt.AppraisalItemSkill, value.Value); }
         }
 
-        public uint? ItemSkillLimit
+        public Skill? ItemSkillLimit
         {
-            get => GetProperty(PropertyDataId.ItemSkillLimit);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.ItemSkillLimit); else SetProperty(PropertyDataId.ItemSkillLimit, value.Value); }
+            get => (Skill?)GetProperty(PropertyDataId.ItemSkillLimit);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.ItemSkillLimit); else SetProperty(PropertyDataId.ItemSkillLimit, (uint)value); }
         }
 
         public int? ItemSkillLevelLimit
@@ -1993,6 +2002,12 @@ namespace ACE.Server.WorldObjects
         {
             get => (CreatureType?)GetProperty(PropertyInt.FriendType);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.FriendType); else SetProperty(PropertyInt.FriendType, (int)value.Value); }
+        }
+
+        public CreatureType? FoeType
+        {
+            get => (CreatureType?)GetProperty(PropertyInt.FoeType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.FoeType); else SetProperty(PropertyInt.FoeType, (int)value.Value); }
         }
 
         public string LongDesc
@@ -3007,6 +3022,24 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.GearCritResist);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.GearCritResist); else SetProperty(PropertyInt.GearCritResist, value.Value); }
+        }
+
+        /// <summary>
+        /// The Healing Boost Rating on a non-creature item
+        /// </summary>
+        public int? GearHealingBoost
+        {
+            get => GetProperty(PropertyInt.GearHealingBoost);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearHealingBoost); else SetProperty(PropertyInt.GearHealingBoost, value.Value); }
+        }
+
+        /// <summary>
+        /// The MaxHealth Boost Rating on a creature or item
+        /// </summary>
+        public int? GearMaxHealth
+        {
+            get => GetProperty(PropertyInt.GearMaxHealth);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearMaxHealth); else SetProperty(PropertyInt.GearMaxHealth, value.Value); }
         }
 
         public int? ResistItemAppraisal

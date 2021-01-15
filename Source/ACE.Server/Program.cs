@@ -181,6 +181,8 @@ namespace ACE.Server
             // This should only be enabled manually. To enable it, simply uncomment this line
             //ACE.Database.OfflineTools.Shard.BiotaGuidConsolidator.ConsolidateBiotaGuids(0xC0000000, out int numberOfBiotasConsolidated, out int numberOfErrors);
 
+            ShardDatabaseOfflineTools.CheckForBiotaPropertiesPaletteOrderColumnInShard();
+
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();
 
@@ -222,13 +224,13 @@ namespace ACE.Server
                 log.Info("Precaching Treasures - Death...");
                 DatabaseManager.World.CacheAllTreasuresDeath();
                 log.Info("Precaching Treasures - Material Base...");
-                DatabaseManager.World.CacheAllTreasuresMaterialBaseInParallel();
+                DatabaseManager.World.CacheAllTreasureMaterialBase();
                 log.Info("Precaching Treasures - Material Groups...");
-                DatabaseManager.World.CacheAllTreasuresMaterialGroupsInParallel();
+                DatabaseManager.World.CacheAllTreasureMaterialGroups();
                 log.Info("Precaching Treasures - Material Colors...");
-                DatabaseManager.World.CacheAllTreasuresMaterialColorInParallel();
+                DatabaseManager.World.CacheAllTreasureMaterialColor();
                 log.Info("Precaching Treasures - Wielded...");
-                DatabaseManager.World.CacheAllTreasuresWieldedInParallel();
+                DatabaseManager.World.CacheAllTreasureWielded();
             }
             else
                 log.Info("Precaching World Database Disabled...");

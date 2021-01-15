@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using log4net;
 
 using ACE.Entity.Enum;
+using ACE.Server.Factories.Entity;
 
 namespace ACE.Server.Factories.Tables
 {
@@ -109,6 +110,66 @@ namespace ACE.Server.Factories.Tables
                 for (var j = 0; j < NumLevels; j++)
                     Table[i][j] = spellLevels[j];
             }
+        }
+
+        private static ChanceTable<SpellId> jewelryCantrips = new ChanceTable<SpellId>()
+        {
+            ( SpellId.CANTRIPARMOR1,                       0.03f ),
+            ( SpellId.CANTRIPACIDWARD1,                    0.03f ),
+            ( SpellId.CANTRIPBLUDGEONINGWARD1,             0.03f ),
+            ( SpellId.CANTRIPFLAMEWARD1,                   0.03f ),
+            ( SpellId.CANTRIPFROSTWARD1,                   0.03f ),
+            ( SpellId.CANTRIPPIERCINGWARD1,                0.03f ),
+            ( SpellId.CANTRIPSLASHINGWARD1,                0.03f ),
+            ( SpellId.CANTRIPSTORMWARD1,                   0.03f ),
+
+            ( SpellId.CANTRIPHEAVYWEAPONSAPTITUDE1,        0.02f ),
+            ( SpellId.CANTRIPLIGHTWEAPONSAPTITUDE1,        0.02f ),
+            ( SpellId.CANTRIPFINESSEWEAPONSAPTITUDE1,      0.02f ),
+            ( SpellId.CANTRIPMISSILEWEAPONSAPTITUDE1,      0.02f ),
+            ( SpellId.CANTRIPTWOHANDEDAPTITUDE1,           0.02f ),
+
+            ( SpellId.CANTRIPIMPREGNABILITY1,              0.02f ),
+            ( SpellId.CANTRIPINVULNERABILITY1,             0.02f ),
+            ( SpellId.CANTRIPMAGICRESISTANCE1,             0.02f ),
+
+            ( SpellId.CANTRIPCREATUREENCHANTMENTAPTITUDE1, 0.02f ),
+            ( SpellId.CANTRIPITEMENCHANTMENTAPTITUDE1,     0.02f ),
+            ( SpellId.CANTRIPLIFEMAGICAPTITUDE1,           0.02f ),
+            ( SpellId.CANTRIPWARMAGICAPTITUDE1,            0.02f ),
+            ( SpellId.CantripVoidMagicAptitude1,           0.02f ),
+
+            ( SpellId.CANTRIPALCHEMICALPROWESS1,           0.02f ),
+            ( SpellId.CANTRIPARCANEPROWESS1,               0.02f ),
+            ( SpellId.CANTRIPARMOREXPERTISE1,              0.02f ),
+            ( SpellId.CANTRIPCOOKINGPROWESS1,              0.02f ),
+            ( SpellId.CANTRIPDECEPTIONPROWESS1,            0.02f ),
+            ( SpellId.CANTRIPFEALTY1,                      0.02f ),
+            ( SpellId.CANTRIPFLETCHINGPROWESS1,            0.02f ),
+            ( SpellId.CANTRIPHEALINGPROWESS1,              0.02f ),
+            ( SpellId.CANTRIPITEMEXPERTISE1,               0.02f ),
+            ( SpellId.CANTRIPJUMPINGPROWESS1,              0.02f ),
+            ( SpellId.CANTRIPLEADERSHIP1,                  0.02f ),
+            ( SpellId.CANTRIPLOCKPICKPROWESS1,             0.02f ),
+            ( SpellId.CANTRIPMAGICITEMEXPERTISE1,          0.02f ),
+            ( SpellId.CANTRIPMANACONVERSIONPROWESS1,       0.02f ),
+            ( SpellId.CANTRIPMONSTERATTUNEMENT1,           0.02f ),
+            ( SpellId.CANTRIPPERSONATTUNEMENT1,            0.02f ),
+            ( SpellId.CANTRIPSPRINT1,                      0.02f ),
+            ( SpellId.CANTRIPWEAPONEXPERTISE1,             0.02f ),
+
+            ( SpellId.CantripDirtyFightingProwess1,        0.02f ),
+            ( SpellId.CantripDualWieldAptitude1,           0.02f ),
+            ( SpellId.CantripRecklessnessProwess1,         0.02f ),
+            ( SpellId.CantripSalvaging1,                   0.02f ),
+            ( SpellId.CantripShieldAptitude1,              0.02f ),
+            ( SpellId.CantripSneakAttackProwess1,          0.02f ),
+            ( SpellId.CantripSummoningProwess1,            0.02f ),
+        };
+
+        public static SpellId Roll()
+        {
+            return jewelryCantrips.Roll();
         }
     }
 }

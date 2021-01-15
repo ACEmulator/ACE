@@ -232,6 +232,14 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
+        /// For monsters with PropertyBool.AiUseHumanMagicAnimations
+        /// </summary>
+        public List<uint> GetMonsterFormula()
+        {
+            return PlayerFormula = SpellTable.GetSpellFormula(SpellTable, Spell.Id, "");
+        }
+
+        /// <summary>
         /// Returns the windup gesture from all the scarabs
         /// </summary>
         public List<MotionCommand> WindupGestures
@@ -337,7 +345,7 @@ namespace ACE.Server.Entity
             for (var i = 0; i < Components.Count; i++)
             {
                 var component = Components[i];
-                if (IsScarab(component))
+                if (IsScarab(component) || component == 111)    // added: chorizite, as per client
                     FociFormula.Add(component);
             }
 

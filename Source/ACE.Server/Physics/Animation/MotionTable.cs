@@ -335,7 +335,7 @@ namespace ACE.Server.Physics.Animation
             {
                 if (modifier.Value.ID == motion)
                 {
-                    var key = (modifier.Value.ID << 16) | (motion & 0xFFFFFF);
+                    var key = (currState.Style << 16) | (motion & 0xFFFFFF);
 
                     Modifiers.TryGetValue(key, out var motionData);
                     if (motionData == null)

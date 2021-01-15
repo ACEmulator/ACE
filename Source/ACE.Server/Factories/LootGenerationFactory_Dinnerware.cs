@@ -1,62 +1,77 @@
+using System;
 using System.Linq;
 
 using ACE.Common;
+using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
+using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
+
+using WeenieClassName = ACE.Server.Factories.Enum.WeenieClassName;
 
 namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateDinnerware(int tier, bool mutate = true)
+        private static WorldObject CreateDinnerware(TreasureDeath profile, bool isMagical, bool mutate = true)
         {
-            uint id = 0;
-            int chance;
-            WorldObject wo;
+            var rng = ThreadSafeRandom.Next(0, LootTables.DinnerwareLootMatrix.Length - 1);
 
-            if (tier < 1) tier = 1;
-            if (tier > 8) tier = 8;
+            var wcid = (uint)LootTables.DinnerwareLootMatrix[rng];
 
-            int genericLootMatrixIndex = tier - 1;
-            int upperLimit = LootTables.DinnerwareLootMatrix.Length - 1;
-
-            chance = ThreadSafeRandom.Next(0, upperLimit);
-            id = (uint)LootTables.DinnerwareLootMatrix[chance];
-
-            wo = WorldObjectFactory.CreateNewWorldObject(id);
+            var wo = WorldObjectFactory.CreateNewWorldObject(wcid);
 
             if (wo != null && mutate)
-                MutateDinnerware(wo, tier);
+                MutateDinnerware(wo, profile, isMagical);
 
             return wo;
         }
 
-        private static void MutateDinnerware(WorldObject wo, int tier)
+        private static void MutateDinnerware(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureRoll roll = null)
         {
-            // Dinnerware has all these options (plates, tankards, etc)
-            // This is just a short-term fix until Loot is overhauled
-            // TODO - Doesn't handle damage/speed/etc that the mutate engine should for these types of items.
+            // dinnerware did not have its Damage / DamageVariance / WeaponSpeed mutated
 
+            // material type
+            wo.MaterialType = GetMaterialType(wo, profile.Tier);
+
+            // item color
+            MutateColor(wo);
+
+            // gem count / gem material
             if (wo.GemCode != null)
-                wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, tier);
+                wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
             else
                 wo.GemCount = ThreadSafeRandom.Next(1, 5);
 
-            wo.GemType = RollGemType(tier);
+            wo.GemType = RollGemType(profile.Tier);
 
-            wo.LongDesc = wo.Name;
+            // workmanship
+            wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
 
-            int materialType = GetMaterialType(wo, tier);
-            wo.MaterialType = (MaterialType)materialType;
-            int workmanship = GetWorkmanship(tier);
-            wo.ItemWorkmanship = workmanship;
+            // "Empty Flask" was the only dinnerware that never received spells
+            if (isMagical && wo.WeenieClassId != (uint)WeenieClassName.flasksimple)
+                AssignMagic(wo, profile, roll);
 
-            //wo = SetAppraisalLongDescDecoration(wo);
+            // item value
+            if (wo.HasMutateFilter(MutateFilter.Value))
+                MutateValue(wo, profile.Tier, roll);
 
-            wo = AssignValue(wo);
+            // long desc
+            wo.LongDesc = GetLongDesc(wo);
+        }
 
-            RandomizeColor(wo);
+        private static void MutateDinnerware_ItemValue(WorldObject wo)
+        {
+            var materialMod = LootTables.getMaterialValueModifier(wo);
+            var gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
+
+            var baseValue = ThreadSafeRandom.Next(300, 600);
+
+            var workmanship = wo.ItemWorkmanship ?? 1;
+
+            wo.Value = (int)(baseValue * gemMaterialMod * materialMod * workmanship);
         }
 
         private static bool GetMutateDinnerwareData(uint wcid)

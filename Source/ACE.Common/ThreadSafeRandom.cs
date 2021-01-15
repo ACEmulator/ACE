@@ -29,5 +29,20 @@ namespace ACE.Common
         {
             return random.Value.Next(min, max + 1);
         }
+
+        public static double NextInterval(float qualityMod)
+        {
+            return Math.Max(0.0, random.Value.NextDouble() - qualityMod);
+        }
+
+        /// <summary>
+        /// The maximum possible double < 1.0
+        /// </summary>
+        private static readonly double maxExclusive = 0.9999999999999999;
+
+        public static double NextIntervalMax(float qualityMod)
+        {
+            return Math.Min(maxExclusive, random.Value.NextDouble() + qualityMod);
+        }
     }
 }

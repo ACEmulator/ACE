@@ -219,7 +219,7 @@ namespace ACE.Server.Managers
         /// </summary>
         /// <param name="key">The string key for the property</param>
         /// <param name="newVal">The value to replace the old value with</param>
-        public static bool ModifyDouble(string key, double newVal)
+        public static bool ModifyDouble(string key, double newVal, bool init = false)
         {
             if (!DefaultPropertyManager.DefaultDoubleProperties.ContainsKey(key))
                 return false;
@@ -227,6 +227,22 @@ namespace ACE.Server.Managers
                 CachedDoubleSettings[key].Modify(newVal);
             else
                 CachedDoubleSettings[key] = new ConfigurationEntry<double>(true, newVal, DefaultPropertyManager.DefaultDoubleProperties[key].Description);
+
+            if (!init)
+            {
+                switch (key)
+                {
+                    case "cantrip_drop_rate":
+                        Factories.Tables.CantripChance.ApplyNumCantripsMod();
+                        break;
+                    case "minor_cantrip_drop_rate":
+                    case "major_cantrip_drop_rate":
+                    case "epic_cantrip_drop_rate":
+                    case "legendary_cantrip_drop_rate":
+                        Factories.Tables.CantripChance.ApplyCantripLevelsMod();
+                        break;
+                }
+            }
             return true;
         }
 
@@ -464,7 +480,7 @@ namespace ACE.Server.Managers
 
             //float
             foreach (var item in DefaultDoubleProperties)
-                PropertyManager.ModifyDouble(item.Key, item.Value.Item);
+                PropertyManager.ModifyDouble(item.Key, item.Value.Item, true);
 
             //int
             foreach (var item in DefaultLongProperties)
@@ -513,6 +529,7 @@ namespace ACE.Server.Managers
                 ("house_rent_enabled", new Property<bool>(true, "If FALSE then rent is not required")),
                 ("iou_trades", new Property<bool>(false, "(non-retail function) If enabled, IOUs can be traded for objects that are missing in DB but added/restored later on")),
                 ("item_dispel", new Property<bool>(false, "if enabled, allows players to dispel items. defaults to end of retail, where item dispels could only target creatures")),
+                ("legacy_loot_system", new Property<bool>(false, "use the previous iteration of the ace lootgen system")),
                 ("lifestone_broadcast_death", new Property<bool>(true, "if true, player deaths are additionally broadcast to other players standing near the destination lifestone")),
                 ("log_audit", new Property<bool>(true, "if FALSE then audit channel is not logged")),
                 ("loot_quality_mod", new Property<bool>(true, "if FALSE then the loot quality modifier of a Death Treasure profile does not affect loot generation")),
@@ -528,6 +545,7 @@ namespace ACE.Server.Managers
                 ("rares_real_time", new Property<bool>(true, "allow for second chance roll based on an rng seeded timestamp for a rare on rare eligible kills that do not generate a rare, rares_max_seconds_between defines maximum seconds before second chance kicks in")),
                 ("rares_real_time_v2", new Property<bool>(false, "chances for a rare to be generated on rare eligible kills are modified by the last time one was found per each player, rares_max_days_between defines maximum days before guaranteed rare generation")),
                 ("runrate_add_hooks", new Property<bool>(false, "if TRUE, adds some runrate hooks that were missing from retail (exhaustion done, raise skill/attribute")),
+                ("reportbug_enabled", new Property<bool>(false, "toggles the /reportbug player command")),
                 ("require_spell_comps", new Property<bool>(true, "if FALSE spell components are no longer required to be in inventory to cast spells. defaults to enabled, as in retail")),
                 ("salvage_handle_overages", new Property<bool>(false, "in retail, if 2 salvage bags were combined beyond 100 structure, the overages would be lost")),
                 ("show_dat_warning", new Property<bool>(false, "if TRUE, will alert player (dat_warning_msg) when client attempts to download from server and boot them from game, disabled by default")),
@@ -543,6 +561,7 @@ namespace ACE.Server.Managers
                                                                  "if FALSE, players start with mastery of 1 melee and 1 ranged weapon type based on heritage, and can later re-select these 2 masteries")),
                 ("use_turbine_chat", new Property<bool>(true, "enables or disables global chat channels (General, LFG, Roleplay, Trade, Olthoi, Society, Allegience)")),
                 ("use_wield_requirements", new Property<bool>(true, "disable this to bypass wield requirements. mostly for dev debugging")),
+                ("version_info_enabled", new Property<bool>(false, "toggles the /aceversion player command")),
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
                 );
 
@@ -561,10 +580,12 @@ namespace ACE.Server.Managers
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
             DictOf(
 
-                ("minor_cantrip_drop_rate", new Property<double>(1.0, "Modifier for minor cantrip drop rate, 1 being normal")),
-                ("major_cantrip_drop_rate", new Property<double>(1.0, "Modifier for major cantrip drop rate, 1 being normal")),
-                ("epic_cantrip_drop_rate", new Property<double>(1.0, "Modifier for epic cantrip drop rate, 1 being normal")),
-                ("legendary_cantrip_drop_rate", new Property<double>(1.0, "Modifier for legendary cantrip drop rate, 1 being normal")),
+                ("cantrip_drop_rate", new Property<double>(1.0, "Scales the chance for cantrips to drop in each tier. Defaults to 1.0, as per end of retail")),
+
+                ("minor_cantrip_drop_rate", new Property<double>(1.0, "Scales the chance for minor cantrips to drop, relative to other cantrip levels in the tier. Defaults to 1.0, as per end of retail")),
+                ("major_cantrip_drop_rate", new Property<double>(1.0, "Scales the chance for major cantrips to drop, relative to other cantrip levels in the tier. Defaults to 1.0, as per end of retail")),
+                ("epic_cantrip_drop_rate", new Property<double>(1.0, "Scales the chance for epic cantrips to drop, relative to other cantrip levels in the tier. Defaults to 1.0, as per end of retail")),
+                ("legendary_cantrip_drop_rate", new Property<double>(1.0, "Scales the chance for legendary cantrips to drop, relative to other cantrip levels in the tier. Defaults to 1.0, as per end of retail")),
 
                 ("advocate_fane_auto_bestow_level", new Property<double>(1, "the level that advocates are automatically bestowed by Advocate Fane if advocate_fane_auto_bestow is true")),
                 ("aetheria_drop_rate", new Property<double>(1.0, "Modifier for Aetheria drop rate, 1 being normal")),
