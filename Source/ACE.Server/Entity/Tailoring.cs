@@ -287,7 +287,8 @@ namespace ACE.Server.Entity
 
             player.TryCreateInInventoryWithNetworking(result);
 
-            player.RushNextPlayerSave(5);
+            if (PropertyManager.GetBool("player_receive_immediate_save").Item)
+                player.RushNextPlayerSave(5);
 
             player.SendUseDoneEvent();
         }
@@ -403,7 +404,7 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyInt.ClothingPriority, (int)clothingPriority);
             player.TryConsumeFromInventoryWithNetworking(source, 1);
 
-            player.RushNextPlayerSave(5);
+            target.SaveBiotaToDatabase();
 
             player.SendUseDoneEvent();
         }
@@ -420,7 +421,7 @@ namespace ACE.Server.Entity
 
             player.TryConsumeFromInventoryWithNetworking(source, 1);
 
-            player.RushNextPlayerSave(5);
+            target.SaveBiotaToDatabase();
 
             player.SendUseDoneEvent();
         }
@@ -449,7 +450,7 @@ namespace ACE.Server.Entity
 
             player.TryConsumeFromInventoryWithNetworking(source, 1);
 
-            player.RushNextPlayerSave(5);
+            target.SaveBiotaToDatabase();
 
             player.SendUseDoneEvent();
         }
@@ -508,7 +509,7 @@ namespace ACE.Server.Entity
 
             player.TryConsumeFromInventoryWithNetworking(source, 1);
 
-            player.RushNextPlayerSave(5);
+            target.SaveBiotaToDatabase();
 
             player.SendUseDoneEvent();
         }
