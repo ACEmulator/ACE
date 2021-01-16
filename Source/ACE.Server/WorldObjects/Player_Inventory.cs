@@ -2608,7 +2608,7 @@ namespace ACE.Server.WorldObjects
 
             if (!PropertyManager.GetBool("iou_trades").Item)
             {
-                Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Sorry! I'm not taking IOUs right now, but if you do wish to discard them, drop them in to the garbage barrels found at the Mana Forges in Hebian-To, Zaikhal, and Cragstone.", this, ChatMessageType.Tell));
+                Session.Network.EnqueueSend(new GameEventTell(target, "Sorry! I'm not taking IOUs right now, but if you do wish to discard them, drop them in to the garbage barrels found at the Mana Forges in Hebian-To, Zaikhal, and Cragstone.", this, ChatMessageType.Tell));
                 //Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, (WeenieErrorWithString)WeenieError.TradeAiDoesntWant, target.Name));
                 //var barrel = WorldObjectFactory.CreateNewWorldObject("ace34726-garbagebarrel");
                 //barrel.TimeToRot = 180;
@@ -2634,7 +2634,7 @@ namespace ACE.Server.WorldObjects
 
                         //Console.WriteLine($"{success.ToString()} {wcid}");
 
-                        Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Ahh, an IOU! You know, I collect these for some reason. Let me see if I have something for it somewhere in my pack...", this, ChatMessageType.Tell));
+                        Session.Network.EnqueueSend(new GameEventTell(target, "Ahh, an IOU! You know, I collect these for some reason. Let me see if I have something for it somewhere in my pack...", this, ChatMessageType.Tell));
 
                         if (success)
                         {
@@ -2642,8 +2642,8 @@ namespace ACE.Server.WorldObjects
 
                             if (item != null)
                             {
-                                Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, $"You're in luck! This {item.Name} was just left here the other day.", this, ChatMessageType.Tell));
-                                Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "I'll trade it to you for this IOU.", this, ChatMessageType.Tell));
+                                Session.Network.EnqueueSend(new GameEventTell(target, $"You're in luck! This {item.Name} was just left here the other day.", this, ChatMessageType.Tell));
+                                Session.Network.EnqueueSend(new GameEventTell(target, "I'll trade it to you for this IOU.", this, ChatMessageType.Tell));
                                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {iouToTurnIn.Name}.", ChatMessageType.Broadcast));
                                 target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
 
@@ -2652,7 +2652,7 @@ namespace ACE.Server.WorldObjects
 
                                 if (success)
                                 {
-                                    Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Here you go.", this, ChatMessageType.Tell));
+                                    Session.Network.EnqueueSend(new GameEventTell(target, "Here you go.", this, ChatMessageType.Tell));
                                     Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} gives you {item.Name}.", ChatMessageType.Broadcast));
                                     target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
 
@@ -2665,7 +2665,7 @@ namespace ACE.Server.WorldObjects
                             }
                             else
                             {
-                                Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Sorry, doesn't look I've got one of those yet. Check back again later.", this, ChatMessageType.Tell));
+                                Session.Network.EnqueueSend(new GameEventTell(target, "Sorry, doesn't look I've got one of those yet. Check back again later.", this, ChatMessageType.Tell));
                                 return;
                             }
                         }
@@ -2673,7 +2673,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Hmm... Something isn't quite right with this IOU. I can't seem to make out what its for. I'm sorry!", this, ChatMessageType.Tell));
+            Session.Network.EnqueueSend(new GameEventTell(target, "Hmm... Something isn't quite right with this IOU. I can't seem to make out what its for. I'm sorry!", this, ChatMessageType.Tell));
         }
 
         private bool RemoveItemForGive(WorldObject item, Container itemFoundInContainer, bool itemWasEquipped, Container itemRootOwner, int amount, out WorldObject itemToGive, bool destroy = false)

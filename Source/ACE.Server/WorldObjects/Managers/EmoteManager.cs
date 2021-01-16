@@ -1311,7 +1311,7 @@ namespace ACE.Server.WorldObjects.Managers
                     if (player != null)
                     {
                         message = Replace(emote.Message, WorldObject, player, emoteSet.Quest);
-                        player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(WorldObject, message, player, ChatMessageType.Tell));
+                        player.Session.Network.EnqueueSend(new GameEventTell(WorldObject, message, player, ChatMessageType.Tell));
                     }
                     break;
 
