@@ -192,6 +192,13 @@ namespace ACE.Server
             log.Info("Initializing DatabaseManager...");
             DatabaseManager.Initialize();
 
+            if (DatabaseManager.InitializationFailure)
+            {
+                log.Fatal("DatabaseManager initialization failed. ACEmulator will now abort startup.");
+                ServerManager.StartupAbort();
+                Environment.Exit(0);
+            }
+
             log.Info("Starting DatabaseManager...");
             DatabaseManager.Start();
 
