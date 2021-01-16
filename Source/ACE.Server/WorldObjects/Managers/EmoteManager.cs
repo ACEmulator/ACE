@@ -1078,7 +1078,10 @@ namespace ACE.Server.WorldObjects.Managers
                         Console.Write($" - {emote.Message}");
 
                     message = Replace(emote.Message, WorldObject, targetObject, emoteSet.Quest);
-                    WorldObject.EnqueueBroadcast(new GameMessageCreatureMessage(message, WorldObject.Name, WorldObject.Guid.Full, ChatMessageType.Emote), WorldObject.LocalBroadcastRange);
+                    if (emote.Extent > 0)
+                        WorldObject.EnqueueBroadcast(new GameMessageHearRangedSpeech(message, WorldObject.Name, WorldObject.Guid.Full, emote.Extent, ChatMessageType.Emote), WorldObject.LocalBroadcastRange);
+                    else
+                        WorldObject.EnqueueBroadcast(new GameMessageHearSpeech(message, WorldObject.Name, WorldObject.Guid.Full, ChatMessageType.Emote), WorldObject.LocalBroadcastRange);
                     break;
 
                 case EmoteType.SetAltRacialSkills:
