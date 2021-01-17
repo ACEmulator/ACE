@@ -921,7 +921,7 @@ namespace ACE.Server.Command.Handlers
                 var positionData = new float[7];
                 for (uint i = 0u; i < 7u; i++)
                 {
-                    if (i > 2 && parameters.Length < 5)
+                    if (i > 2 && parameters.Length < 7)
                     {
                         positionData[3] = 1;
                         positionData[4] = 0;
