@@ -260,6 +260,11 @@ namespace ACE.Server.Managers
                 return lastNoticeTime;
         }
 
+        public static void StartupAbort()
+        {
+            ShutdownInitiated = true;
+        }
+
         public static string ShutdownNoticeText()
         {
             var sdt = ShutdownTime - DateTime.UtcNow;
