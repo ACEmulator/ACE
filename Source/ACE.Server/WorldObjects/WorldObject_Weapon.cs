@@ -271,9 +271,14 @@ namespace ACE.Server.WorldObjects
             return critRate;
         }
 
-        // http://acpedia.org/wiki/Announcements_-_2002/08_-_Atonement#Letter_to_the_Players
+        // http://acpedia.org/wiki/Announcements_-_2002/08_-_Atonement#Letter_to_the_Players - 2% originally
 
-        private const float defaultMagicCritFrequency = 0.02f;      // 2% base chance
+        // http://acpedia.org/wiki/Announcements_-_2002/11_-_The_Iron_Coast#Release_Notes
+        // The chance for causing a critical hit with magic, both with and without a Critical Strike wand, has been increased.
+        // what this was actually increased to for base, was never stated directly in the dev notes
+        // speculation is that it was 5%, to align with the minimum that CS magic scales from
+
+        private const float defaultMagicCritFrequency = 0.05f;
 
         /// <summary>
         /// Returns the critical chance for the current magic weapon
@@ -578,7 +583,7 @@ namespace ACE.Server.WorldObjects
         // Critical Strike for War Magic currently scales from 5% critical hit chance to 25% critical hit chance at maximum effectiveness.
         // In July, the maximum effectiveness will be increased to 50% chance.
 
-        public static float MinCriticalStrikeMagicMod = 0.05f;
+        //public static float MinCriticalStrikeMagicMod = 0.05f;
 
         public static float MaxCriticalStrikeMod = 0.5f;
 
@@ -629,12 +634,16 @@ namespace ACE.Server.WorldObjects
             // This code is checking if the player has reached the skill threshold for receiving the 5% bonus
             // (base skill 90 in PvE, base skill 120 in PvP)
 
-            var criticalStrikeMod = skillType == ImbuedSkillType.Magic ? defaultMagicCritFrequency : defaultPhysicalCritFrequency;
+            /*var criticalStrikeMod = skillType == ImbuedSkillType.Magic ? defaultMagicCritFrequency : defaultPhysicalCritFrequency;
 
             var minEffective = skillType == ImbuedSkillType.Magic ? MinCriticalStrikeMagicMod : defaultPhysicalCritFrequency;
 
             if (baseMod >= minEffective)
-                criticalStrikeMod = baseMod;
+                criticalStrikeMod = baseMod;*/
+
+            var defaultCritFrequency = skillType == ImbuedSkillType.Magic ? defaultMagicCritFrequency : defaultPhysicalCritFrequency;
+
+            var criticalStrikeMod = Math.Max(defaultCritFrequency, baseMod);
 
             //Console.WriteLine($"CriticalStrikeMod: {criticalStrikeMod}");
 
@@ -941,8 +950,12 @@ namespace ACE.Server.WorldObjects
             if (spell.NotFound)
             {
                 if (wielder is Player player)
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
-
+                {
+                    if (spell._spellBase == null)
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"SpellId {ProcSpell.Value} Invalid.", ChatMessageType.System));
+                    else
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                }
                 return;
             }
 

@@ -31,7 +31,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private bool PetAlertMonster(Creature monster)
         {
-            if (!monster.Attackable || monster.MonsterState != State.Idle || monster.Tolerance != Tolerance.None)
+            if (!monster.Attackable || monster.MonsterState != State.Idle || (monster.Tolerance & PlayerCombatPat_MoveExclude) != 0)
                 return false;
 
             // if the combat pet's owner belongs to a faction,
@@ -64,7 +64,7 @@ namespace ACE.Server.WorldObjects
             if (monster.SameFaction(this))
                 monster.AddRetaliateTarget(this);
 
-            if (monster.MonsterState == State.Idle && !monster.Tolerance.HasFlag(Tolerance.NoAttack))
+            if (monster.MonsterState == State.Idle && (monster.Tolerance & PlayerCombatPet_RetaliateExclude) == 0)
             {
                 monster.AttackTarget = this;
                 monster.WakeUp();

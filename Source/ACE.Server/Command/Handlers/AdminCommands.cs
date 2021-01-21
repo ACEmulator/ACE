@@ -903,7 +903,7 @@ namespace ACE.Server.Command.Handlers
             "@teleloc follows the same number order as displayed from @loc output\n" +
             "Example: @teleloc 0x7F0401AD [12.319900 -28.482000 0.005000] -0.338946 0.000000 0.000000 -0.940806\n" +
             "Example: @teleloc 0x7F0401AD 12.319900 -28.482000 0.005000 -0.338946 0.000000 0.000000 -0.940806\n" +
-            "Example: @teleloc 7F0401AD 12.319900 - 28.482000 0.005000")]
+            "Example: @teleloc 7F0401AD 12.319900 -28.482000 0.005000")]
         public static void HandleTeleportLOC(Session session, params string[] parameters)
         {
             try
@@ -921,6 +921,15 @@ namespace ACE.Server.Command.Handlers
                 var positionData = new float[7];
                 for (uint i = 0u; i < 7u; i++)
                 {
+                    if (i > 2 && parameters.Length < 8)
+                    {
+                        positionData[3] = 1;
+                        positionData[4] = 0;
+                        positionData[5] = 0;
+                        positionData[6] = 0;
+                        break;
+                    }
+
                     if (!float.TryParse(parameters[i + 1].Trim(new Char[] { ' ', '[', ']' }), out var position))
                         return;
 

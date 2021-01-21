@@ -135,6 +135,40 @@ namespace ACE.Server.Network.Handlers
                 }
                 else // Channel must be one of the channels available to all players
                 {
+                    if (PropertyManager.GetBool("chat_echo_only").Item)
+                    {
+                        session.Network.EnqueueSend(gameMessageTurbineChat);
+                        session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
+                        return;
+                    }
+
+                    if (PropertyManager.GetBool("chat_requires_account_15days").Item && !session.Player.Account15Days)
+                    {
+                        session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
+                        return;
+                    }
+
+                    var chat_requires_account_time_seconds = PropertyManager.GetLong("chat_requires_account_time_seconds").Item;
+                    if (chat_requires_account_time_seconds > 0 && (DateTime.UtcNow - session.Player.Account.CreateTime).TotalSeconds < chat_requires_account_time_seconds)
+                    {
+                        session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
+                        return;
+                    }
+
+                    var chat_requires_player_age = PropertyManager.GetLong("chat_requires_player_age").Item;
+                    if (chat_requires_player_age > 0 && session.Player.Age < chat_requires_player_age)
+                    {
+                        session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
+                        return;
+                    }
+
+                    var chat_requires_player_level = PropertyManager.GetLong("chat_requires_player_level").Item;
+                    if (chat_requires_player_level > 0 && session.Player.Level < chat_requires_player_level)
+                    {
+                        session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
+                        return;
+                    }
+
                     foreach (var recipient in PlayerManager.GetAllOnline())
                     {
                         // handle filters
@@ -143,6 +177,15 @@ namespace ACE.Server.Network.Handlers
                             channelID == TurbineChatChannel.LFG && !recipient.GetCharacterOption(CharacterOption.ListenToLFGChat) ||
                             channelID == TurbineChatChannel.Roleplay && !recipient.GetCharacterOption(CharacterOption.ListenToRoleplayChat))
                             continue;
+
+                        if ((channelID == TurbineChatChannel.General && PropertyManager.GetBool("chat_disable_general").Item)
+                            || (channelID == TurbineChatChannel.Trade && PropertyManager.GetBool("chat_disable_trade").Item)
+                            || (channelID == TurbineChatChannel.LFG && PropertyManager.GetBool("chat_disable_lfg").Item)
+                            || (channelID == TurbineChatChannel.Roleplay && PropertyManager.GetBool("chat_disable_roleplay").Item))
+                        {
+                            session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
+                            return;
+                        }
 
                         if (recipient.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.AllChannels))
                             continue;

@@ -108,6 +108,9 @@ namespace ACE.Server.WorldObjects
             {
                 if (IsDead) return;
 
+                // handle self-procs
+                TryProcEquippedItems(this, true);
+
                 var sound = GetLaunchMissileSound(weapon);
                 EnqueueBroadcast(new GameMessageSound(Guid, sound, 1.0f));
 
