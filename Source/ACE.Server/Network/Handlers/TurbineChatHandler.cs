@@ -144,6 +144,9 @@ namespace ACE.Server.Network.Handlers
 
                     if (PropertyManager.GetBool("chat_requires_account_15days").Item && !session.Player.Account15Days)
                     {
+                        if (PropertyManager.GetBool("chat_echo_reject").Item)
+                            session.Network.EnqueueSend(gameMessageTurbineChat);
+
                         session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                         return;
                     }
@@ -151,6 +154,9 @@ namespace ACE.Server.Network.Handlers
                     var chat_requires_account_time_seconds = PropertyManager.GetLong("chat_requires_account_time_seconds").Item;
                     if (chat_requires_account_time_seconds > 0 && (DateTime.UtcNow - session.Player.Account.CreateTime).TotalSeconds < chat_requires_account_time_seconds)
                     {
+                        if (PropertyManager.GetBool("chat_echo_reject").Item)
+                            session.Network.EnqueueSend(gameMessageTurbineChat);
+
                         session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                         return;
                     }
@@ -158,6 +164,9 @@ namespace ACE.Server.Network.Handlers
                     var chat_requires_player_age = PropertyManager.GetLong("chat_requires_player_age").Item;
                     if (chat_requires_player_age > 0 && session.Player.Age < chat_requires_player_age)
                     {
+                        if (PropertyManager.GetBool("chat_echo_reject").Item)
+                            session.Network.EnqueueSend(gameMessageTurbineChat);
+
                         session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                         return;
                     }
@@ -165,6 +174,9 @@ namespace ACE.Server.Network.Handlers
                     var chat_requires_player_level = PropertyManager.GetLong("chat_requires_player_level").Item;
                     if (chat_requires_player_level > 0 && session.Player.Level < chat_requires_player_level)
                     {
+                        if (PropertyManager.GetBool("chat_echo_reject").Item)
+                            session.Network.EnqueueSend(gameMessageTurbineChat);
+
                         session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                         return;
                     }
@@ -183,6 +195,9 @@ namespace ACE.Server.Network.Handlers
                             || (channelID == TurbineChatChannel.LFG && PropertyManager.GetBool("chat_disable_lfg").Item)
                             || (channelID == TurbineChatChannel.Roleplay && PropertyManager.GetBool("chat_disable_roleplay").Item))
                         {
+                            if (PropertyManager.GetBool("chat_echo_reject").Item)
+                                session.Network.EnqueueSend(gameMessageTurbineChat);
+
                             session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                             return;
                         }
