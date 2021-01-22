@@ -513,6 +513,7 @@ namespace ACE.Server.Managers
                 ("chat_disable_roleplay", new Property<bool>(false, "disable roleplay global chat channel")),
                 ("chat_disable_trade", new Property<bool>(false, "disable trade global chat channel")),
                 ("chat_echo_only", new Property<bool>(false, "global chat returns to sender only")),
+                ("chat_echo_reject", new Property<bool>(false, "global chat returns to sender on reject")),
                 ("chat_requires_account_15days", new Property<bool>(false, "global chat privileges requires accounts to be 15 days or older")),
                 ("chess_enabled", new Property<bool>(true, "if FALSE then chess will be disabled")),
                 ("client_movement_formula", new Property<bool>(false, "If enabled, server uses DoMotion/StopMotion self-client movement methods instead of apply_raw_movement")),
