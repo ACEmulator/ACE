@@ -84,6 +84,15 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
             ObjectDescriptionFlags |= ObjectDescriptionFlag.Vendor;
+
+            if (!PropertyManager.GetBool("vendor_shop_uses_generator").Item)
+            {
+                foreach (var profile in GeneratorProfiles.ToList())
+                {
+                    if (profile.Biota.WhereCreate.HasFlag(RegenLocationType.Shop))
+                        GeneratorProfiles.Remove(profile);
+                }
+            }
         }
 
 
@@ -211,8 +220,31 @@ namespace ACE.Server.WorldObjects
                     if (item.Shade > 0)
                         wo.Shade = item.Shade;
                     wo.ContainerId = Guid.Full;
-                    wo.CalculateObjDesc(); // i don't like firing this but this triggers proper icons, the way vendors load inventory feels off to me in this method.
+                    wo.CalculateObjDesc();
                     DefaultItemsForSale.Add(wo.Guid, wo);
+                }
+            }
+
+            if (!PropertyManager.GetBool("vendor_shop_uses_generator").Item)
+            {
+                foreach (var item in Biota.PropertiesGenerator.Where(x => x.WhereCreate.HasFlag(RegenLocationType.Shop)))
+                {
+                    WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+
+                    if (wo != null)
+                    {
+                        if (item.PaletteId > 0)
+                            wo.PaletteTemplate = (int)item.PaletteId;
+                        if (item.Shade > 0)
+                            wo.Shade = item.Shade;
+                        wo.ContainerId = Guid.Full;
+                        wo.CalculateObjDesc();
+
+                        if (!DefaultItemsForSale.Values.Any(w => w.WeenieClassId == wo.WeenieClassId && ((w.PaletteTemplate ?? 0) == (wo.PaletteTemplate ?? 0)) && ((w.Shade ?? 0) == (wo.Shade ?? 0)))) // skip dupes from weenies that got recreated with both createlist shop items and generated shop items
+                            DefaultItemsForSale.Add(wo.Guid, wo);
+                        else
+                            wo.Destroy(false);
+                    }
                 }
             }
 
