@@ -147,7 +147,10 @@ namespace ACE.Server
             log.Info("Initializing ConfigManager...");
             ConfigManager.Initialize();
 
-            Console.Title = @$"{ConfigManager.Config.Server.WorldName} - v{ServerBuildInfo.FullVersion}";
+            
+            Console.Title = $"ACEmulator - v{ServerBuildInfo.FullVersion}";
+            if (ConfigManager.Config.Server.WorldName != "ACEmulator")
+                Console.Title += $":  {ConfigManager.Config.Server.WorldName}";
 
             if (ConfigManager.Config.Offline.PurgeDeletedCharacters)
             {
