@@ -1435,6 +1435,8 @@ namespace ACE.Server.WorldObjects.Managers
 
                     PlayerManager.BroadcastToAll(new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast));
 
+                    PlayerManager.LogBroadcastChat(Channel.AllBroadcast, WorldObject, message);
+
                     break;
 
                 default:
