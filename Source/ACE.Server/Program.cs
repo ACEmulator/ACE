@@ -40,6 +40,10 @@ namespace ACE.Server
 
         public static void Main(string[] args)
         {
+            var consoleTitle = $"ACEmulator - v{ServerBuildInfo.FullVersion}";
+
+            Console.Title = consoleTitle;
+
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
@@ -121,9 +125,7 @@ namespace ACE.Server
 
             if (IsRunningInContainer)
                 log.Info("ACEmulator is running in a container...");
-
-            Console.Title = @$"ACEmulator - v{ServerBuildInfo.FullVersion}";
-
+            
             var configFile = Path.Combine(exeLocation, "Config.js");
             var configConfigContainer = Path.Combine(containerConfigDirectory, "Config.js");
 
@@ -148,6 +150,12 @@ namespace ACE.Server
 
             log.Info("Initializing ConfigManager...");
             ConfigManager.Initialize();
+
+            if (ConfigManager.Config.Server.WorldName != "ACEmulator")
+            {
+                consoleTitle = $"{ConfigManager.Config.Server.WorldName} | {consoleTitle}";
+                Console.Title = consoleTitle;
+            }
 
             if (ConfigManager.Config.Offline.PurgeDeletedCharacters)
             {
@@ -191,6 +199,13 @@ namespace ACE.Server
 
             log.Info("Initializing DatabaseManager...");
             DatabaseManager.Initialize();
+
+            if (DatabaseManager.InitializationFailure)
+            {
+                log.Fatal("DatabaseManager initialization failed. ACEmulator will now abort startup.");
+                ServerManager.StartupAbort();
+                Environment.Exit(0);
+            }
 
             log.Info("Starting DatabaseManager...");
             DatabaseManager.Start();
