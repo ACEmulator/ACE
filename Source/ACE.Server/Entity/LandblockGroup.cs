@@ -63,6 +63,8 @@ namespace ACE.Server.Entity
         public LandblockGroup(Landblock landblock)
         {
             Add(landblock);
+
+            landblock.CurrentLandblockGroup = this;
         }
 
 
@@ -92,6 +94,8 @@ namespace ACE.Server.Entity
 
             if (landblocks.Add(landblock))
             {
+                landblock.CurrentLandblockGroup = this;
+
                 if (landblocks.Count == 1)
                     IsDungeon = landblock.IsDungeon;
 
@@ -116,6 +120,8 @@ namespace ACE.Server.Entity
         {
             if (landblocks.Remove(landblock))
             {
+                landblock.CurrentLandblockGroup = null;
+
                 // Empty landblock groups will be discarded immediately
                 if (landblocks.Count == 0)
                     return true;
