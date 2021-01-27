@@ -1646,7 +1646,7 @@ namespace ACE.Server.WorldObjects
 
         public House GetHouse(IPlayer player)
         {
-            if (player.HouseInstance == null)
+            if (player?.HouseInstance == null)
                 return null;
 
             // is landblock loaded?
