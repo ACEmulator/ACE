@@ -817,7 +817,7 @@ namespace ACE.Server.Entity
         {
             if (LandblockManager.CurrentlyTickingLandblockGroupsMultiThreaded)
             {
-                if (CurrentLandblockGroup != LandblockManager.CurrentMultiThreadedTickingLandblockGroup.Value)
+                if (CurrentLandblockGroup != null && CurrentLandblockGroup != LandblockManager.CurrentMultiThreadedTickingLandblockGroup.Value)
                 {
                     log.Error($"Landblock 0x{Id} entered AddWorldObjectInternal in a cross-thread operation.");
                     log.Error($"Landblock 0x{Id} CurrentLandblockGroup: {CurrentLandblockGroup}");
@@ -911,7 +911,7 @@ namespace ACE.Server.Entity
         {
             if (LandblockManager.CurrentlyTickingLandblockGroupsMultiThreaded)
             {
-                if (CurrentLandblockGroup != LandblockManager.CurrentMultiThreadedTickingLandblockGroup.Value)
+                if (CurrentLandblockGroup != null && CurrentLandblockGroup != LandblockManager.CurrentMultiThreadedTickingLandblockGroup.Value)
                 {
                     log.Error($"Landblock 0x{Id} entered RemoveWorldObjectInternal in a cross-thread operation.");
                     log.Error($"Landblock 0x{Id} CurrentLandblockGroup: {CurrentLandblockGroup}");
