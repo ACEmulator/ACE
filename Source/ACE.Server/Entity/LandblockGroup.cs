@@ -63,8 +63,6 @@ namespace ACE.Server.Entity
         public LandblockGroup(Landblock landblock)
         {
             Add(landblock);
-
-            landblock.CurrentLandblockGroup = this;
         }
 
 
@@ -128,7 +126,7 @@ namespace ACE.Server.Entity
 
                 uniqueLandblockIdsRemoved.Add(landblock.Id.Raw);
 
-                // If this landblock is on the perimieter of the group, recalculate the boundaries (they may end up the same)
+                // If this landblock is on the perimeter of the group, recalculate the boundaries (they may end up the same)
                 if (landblock.Id.LandblockX == xMin || landblock.Id.LandblockX == xMax ||
                     landblock.Id.LandblockY == yMin || landblock.Id.LandblockY == yMax)
                 {
