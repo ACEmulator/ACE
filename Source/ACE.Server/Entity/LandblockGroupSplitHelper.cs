@@ -23,16 +23,19 @@ namespace ACE.Server.Entity
 
         public void Add(Landblock landblock)
         {
-            if (landblock.Id.LandblockX < xMin) xMin = landblock.Id.LandblockX;
-            if (landblock.Id.LandblockX > xMax) xMax = landblock.Id.LandblockX;
-            if (landblock.Id.LandblockY < yMin) yMin = landblock.Id.LandblockY;
-            if (landblock.Id.LandblockY > yMax) yMax = landblock.Id.LandblockY;
+            if (landblocks.Add(landblock))
+            {
+                if (landblock.Id.LandblockX < xMin) xMin = landblock.Id.LandblockX;
+                if (landblock.Id.LandblockX > xMax) xMax = landblock.Id.LandblockX;
+                if (landblock.Id.LandblockY < yMin) yMin = landblock.Id.LandblockY;
+                if (landblock.Id.LandblockY > yMax) yMax = landblock.Id.LandblockY;
 
-            xCenter = xMin + ((xMax - xMin) / 2.0);
-            yCenter = yMin + ((yMax - yMin) / 2.0);
+                xCenter = xMin + ((xMax - xMin) / 2.0);
+                yCenter = yMin + ((yMax - yMin) / 2.0);
 
-            width = (xMax - xMin) + 1;
-            height = (yMax - yMin) + 1;
+                width = (xMax - xMin) + 1;
+                height = (yMax - yMin) + 1;
+            }
         }
 
         public IEnumerator<Landblock> GetEnumerator()
