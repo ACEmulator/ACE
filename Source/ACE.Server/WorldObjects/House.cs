@@ -93,7 +93,8 @@ namespace ACE.Server.WorldObjects
 
             if (SlumLord == null)
             {
-                Console.WriteLine($"No slumlord found for {Name} ({Guid})");
+                //Console.WriteLine($"No slumlord found for {Name} ({Guid})");
+                log.Warn($"[HOUSE] No slumlord found for {Name} ({Guid})");
             }
             else
             {
@@ -340,7 +341,8 @@ namespace ACE.Server.WorldObjects
                 var player = PlayerManager.FindByGuid(kvp.Key);
                 if (player == null)
                 {
-                    Console.WriteLine($"{Name}.BuildGuests(): couldn't find guest {kvp.Key:X8}");
+                    //Console.WriteLine($"{Name}.BuildGuests(): couldn't find guest {kvp.Key:X8}");
+                    log.Warn($"[HOUSE] {Name}.BuildGuests(): couldn't find guest {kvp.Key:X8}");
 
                     // character has been deleted -- automatically remove?
                     deleted.Add(kvp.Key);
@@ -378,7 +380,8 @@ namespace ACE.Server.WorldObjects
 
             if (existingStorage == null)
             {
-                Console.WriteLine($"{Name}.FindGuest({guest.Guid}): couldn't find {guest.Name}");
+                //Console.WriteLine($"{Name}.FindGuest({guest.Guid}): couldn't find {guest.Name}");
+                log.Warn($"[HOUSE] {Name}.FindGuest({guest.Guid}): couldn't find {guest.Name}");
 
                 return;
             }
@@ -417,7 +420,8 @@ namespace ACE.Server.WorldObjects
                 var player = PlayerManager.FindByGuid(guest);
                 if (player == null)
                 {
-                    Console.WriteLine($"{Name}.ClearPermissions(): couldn't find {guest}");
+                    //Console.WriteLine($"{Name}.ClearPermissions(): couldn't find {guest}");
+                    log.Warn($"[HOUSE] {Name}.ClearPermissions(): couldn't find {guest}");
                     continue;
                 }
                 RemoveGuest(player);
