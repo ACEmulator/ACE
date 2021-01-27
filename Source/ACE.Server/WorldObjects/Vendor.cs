@@ -205,6 +205,8 @@ namespace ACE.Server.WorldObjects
             if (inventoryloaded)
                 return;
 
+            var itemsForSale = new Dictionary<(uint weenieClassId, int paletteTemplate, double shade), uint>();
+
             foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Shop))
             {
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
@@ -217,7 +219,14 @@ namespace ACE.Server.WorldObjects
                         wo.Shade = item.Shade;
                     wo.ContainerId = Guid.Full;
                     wo.CalculateObjDesc();
-                    DefaultItemsForSale.Add(wo.Guid, wo);
+
+                    if (!itemsForSale.ContainsKey((wo.WeenieClassId, wo.PaletteTemplate ?? 0, wo.Shade ?? 0))) // lets skip dupes if there are any
+                    {
+                        DefaultItemsForSale.Add(wo.Guid, wo);
+                        itemsForSale.Add((wo.WeenieClassId, wo.PaletteTemplate ?? 0, wo.Shade ?? 0), wo.Guid.Full);
+                    }
+                    else
+                        wo.Destroy(false);
                 }
             }
 
@@ -236,8 +245,11 @@ namespace ACE.Server.WorldObjects
                         wo.ContainerId = Guid.Full;
                         wo.CalculateObjDesc();
 
-                        if (!DefaultItemsForSale.Values.Any(w => w.WeenieClassId == wo.WeenieClassId && ((w.PaletteTemplate ?? 0) == (wo.PaletteTemplate ?? 0)) && ((w.Shade ?? 0) == (wo.Shade ?? 0)))) // skip dupes from weenies that got recreated with both createlist shop items and generated shop items
+                        if (!itemsForSale.ContainsKey((wo.WeenieClassId, wo.PaletteTemplate ?? 0, wo.Shade ?? 0))) 
+                        {
                             DefaultItemsForSale.Add(wo.Guid, wo);
+                            itemsForSale.Add((wo.WeenieClassId, wo.PaletteTemplate ?? 0, wo.Shade ?? 0), wo.Guid.Full);
+                        }
                         else
                             wo.Destroy(false);
                     }
@@ -246,7 +258,6 @@ namespace ACE.Server.WorldObjects
 
             inventoryloaded = true;
         }
-
 
         public void AddDefaultItem(WorldObject item)
         {
