@@ -87,11 +87,7 @@ namespace ACE.Server.WorldObjects
 
             if (!PropertyManager.GetBool("vendor_shop_uses_generator").Item)
             {
-                foreach (var profile in GeneratorProfiles.ToList())
-                {
-                    if (profile.Biota.WhereCreate.HasFlag(RegenLocationType.Shop))
-                        GeneratorProfiles.Remove(profile);
-                }
+                GeneratorProfiles.RemoveAll(p => p.Biota.WhereCreate.HasFlag(RegenLocationType.Shop));
             }
         }
 
