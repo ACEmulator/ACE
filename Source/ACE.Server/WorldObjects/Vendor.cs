@@ -205,7 +205,7 @@ namespace ACE.Server.WorldObjects
             if (inventoryloaded)
                 return;
 
-            var itemsForSale = new Dictionary<int, uint>();
+            var itemsForSale = new Dictionary<(uint weenieClassId, int paletteTemplate, double shade), uint>();
 
             foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Shop))
             {
@@ -220,11 +220,10 @@ namespace ACE.Server.WorldObjects
                     wo.ContainerId = Guid.Full;
                     wo.CalculateObjDesc();
 
-                    var itemHashCode = GetForSaleItemHashCode(wo);
-                    if (!itemsForSale.ContainsKey(itemHashCode)) // lets skip dupes if there are any
+                    if (!itemsForSale.ContainsKey((wo.WeenieClassId, wo.PaletteTemplate ?? 0, wo.Shade ?? 0))) // lets skip dupes if there are any
                     {
                         DefaultItemsForSale.Add(wo.Guid, wo);
-                        itemsForSale.Add(itemHashCode, wo.Guid.Full);
+                        itemsForSale.Add((wo.WeenieClassId, wo.PaletteTemplate ?? 0, wo.Shade ?? 0), wo.Guid.Full);
                     }
                     else
                         wo.Destroy(false);
@@ -246,11 +245,10 @@ namespace ACE.Server.WorldObjects
                         wo.ContainerId = Guid.Full;
                         wo.CalculateObjDesc();
 
-                        var itemHashCode = GetForSaleItemHashCode(wo);
-                        if (!itemsForSale.ContainsKey(itemHashCode))
+                        if (!itemsForSale.ContainsKey((wo.WeenieClassId, wo.PaletteTemplate ?? 0, wo.Shade ?? 0))) 
                         {
                             DefaultItemsForSale.Add(wo.Guid, wo);
-                            itemsForSale.Add(itemHashCode, wo.Guid.Full);
+                            itemsForSale.Add((wo.WeenieClassId, wo.PaletteTemplate ?? 0, wo.Shade ?? 0), wo.Guid.Full);
                         }
                         else
                             wo.Destroy(false);
@@ -259,17 +257,6 @@ namespace ACE.Server.WorldObjects
             }
 
             inventoryloaded = true;
-        }
-
-        private int GetForSaleItemHashCode(WorldObject worldObject)
-        {
-            int hash = 0;
-
-            hash = (hash * 397) ^ worldObject.WeenieClassId.GetHashCode();
-            hash = (hash * 397) ^ worldObject.PaletteTemplate.GetHashCode();
-            hash = (hash * 397) ^ worldObject.Shade.GetHashCode();
-
-            return hash;
         }
 
         public void AddDefaultItem(WorldObject item)
