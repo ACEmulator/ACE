@@ -131,7 +131,12 @@ namespace ACE.Server.Managers
 
             // logout each player
             foreach (var player in PlayerManager.GetAllOnline())
-                player.Session.LogOffPlayer(true);
+            {
+                if (player.Session != null)
+                    player.Session.LogOffPlayer(true);
+                else
+                    player.LogOut();
+            }
 
             // Wait for all players to log out
             var logUpdateTS = DateTime.MinValue;
