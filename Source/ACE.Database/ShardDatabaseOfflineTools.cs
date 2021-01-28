@@ -996,7 +996,7 @@ namespace ACE.Database
         /// </summary>
         public static void CheckForBiotaPropertiesPaletteOrderColumnInShard()
         {
-            log.Info($"Checking for order column in biota_properties_palette table in shard database...");
+            //log.Info($"Checking for order column in biota_properties_palette table in shard database...");
 
             using (var context = new ShardDbContext())
             {
@@ -1022,7 +1022,7 @@ namespace ACE.Database
                 }
             }
 
-            log.Info($"Successfully verified order column in biota_properties_palette table in shard database!");
+            //log.Info($"Successfully verified order column in biota_properties_palette table in shard database!");
         }
     }
 }
