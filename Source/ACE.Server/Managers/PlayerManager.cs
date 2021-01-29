@@ -564,12 +564,15 @@ namespace ACE.Server.Managers
             if (issuer != null)
                 BroadcastToChannel(Channel.Audit, issuer, message, true, true);
             else
+            {
                 BroadcastToChannelFromConsole(Channel.Audit, message);
+                LogBroadcastChat(Channel.Audit, issuer, message);
+            }
 
             //if (PropertyManager.GetBool("log_audit", true).Item)
                 //log.Info($"[AUDIT] {(issuer != null ? $"{issuer.Name} says on the Audit channel: " : "")}{message}");
 
-            LogBroadcastChat(Channel.Audit, issuer, message);
+            //LogBroadcastChat(Channel.Audit, issuer, message);
         }
 
         public static void BroadcastToChannel(Channel channel, Player sender, string message, bool ignoreSquelch = false, bool ignoreActive = false)
