@@ -682,6 +682,8 @@ namespace ACE.Server.Managers
         {
             foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(channel)))
                 player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, "CONSOLE", message));
+
+            LogBroadcastChat(channel, null, message);
         }
 
         public static void BroadcastToChannelFromEmote(Channel channel, string message)
