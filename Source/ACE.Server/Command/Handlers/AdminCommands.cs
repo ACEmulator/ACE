@@ -2810,33 +2810,34 @@ namespace ACE.Server.Command.Handlers
         }
 
         [CommandHandler("showprops", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Displays the name of all properties configurable via the modify commands")]
-        public static void HandleDisplayProps(Session session, params string[] paramters)
+        public static void HandleDisplayProps(Session session, params string[] parameters)
         {
             CommandHandlerHelper.WriteOutputInfo(session, PropertyManager.ListProperties());
         }
 
         [CommandHandler("modifybool", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a bool", "modifybool (string) (bool)")]
-        public static void HandleModifyServerBoolProperty(Session session, params string[] paramters)
+        public static void HandleModifyServerBoolProperty(Session session, params string[] parameters)
         {
             try
             {
-                var boolVal = bool.Parse(paramters[1]);
+                var boolVal = bool.Parse(parameters[1]);
 
-                var prevState = PropertyManager.GetBool(paramters[0]);
+                var prevState = PropertyManager.GetBool(parameters[0]);
 
                 if (prevState.Item == boolVal && !string.IsNullOrWhiteSpace(prevState.Description))
                 {
-                    CommandHandlerHelper.WriteOutputInfo(session, $"Bool property is already {boolVal} for {paramters[0]}!");
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Bool property is already {boolVal} for {parameters[0]}!");
                     return;
                 }
 
-                if (PropertyManager.ModifyBool(paramters[0], boolVal))
+                if (PropertyManager.ModifyBool(parameters[0], boolVal))
                 {
                     CommandHandlerHelper.WriteOutputInfo(session, "Bool property successfully updated!");
+                    PlayerManager.BroadcastToAuditChannel(session?.Player, $"Successfully changed server bool property {parameters[0]} to {boolVal}");
 
-                    if (paramters[0] == "pk_server" || paramters[0] == "pkl_server")
+                    if (parameters[0] == "pk_server" || parameters[0] == "pkl_server")
                     {
-                        PlayerManager.UpdatePKStatusForAllPlayers(paramters[0], boolVal);
+                        PlayerManager.UpdatePKStatusForAllPlayers(parameters[0], boolVal);
                     }
                 }
                 else
@@ -2849,10 +2850,10 @@ namespace ACE.Server.Command.Handlers
         }
 
         [CommandHandler("fetchbool", AccessLevel.Admin, CommandHandlerFlag.None, 1, "Fetches a server property that is a bool", "fetchbool (string)")]
-        public static void HandleFetchServerBoolProperty(Session session, params string[] paramters)
+        public static void HandleFetchServerBoolProperty(Session session, params string[] parameters)
         {
-            var boolVal = PropertyManager.GetBool(paramters[0], cacheFallback: false);
-            CommandHandlerHelper.WriteOutputInfo(session, $"{paramters[0]} - {boolVal.Description ?? "No Description"}: {boolVal.Item}");
+            var boolVal = PropertyManager.GetBool(parameters[0], cacheFallback: false);
+            CommandHandlerHelper.WriteOutputInfo(session, $"{parameters[0]} - {boolVal.Description ?? "No Description"}: {boolVal.Item}");
         }
 
         [CommandHandler("modifylong", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a long", "modifylong (string) (long)")]
@@ -2860,9 +2861,12 @@ namespace ACE.Server.Command.Handlers
         {
             try
             {
-                var intVal = int.Parse(paramters[1]);
-                if (PropertyManager.ModifyLong(paramters[0], intVal))
+                var longVal = long.Parse(paramters[1]);
+                if (PropertyManager.ModifyLong(paramters[0], longVal))
+                {
                     CommandHandlerHelper.WriteOutputInfo(session, "Long property successfully updated!");
+                    PlayerManager.BroadcastToAuditChannel(session?.Player, $"Successfully changed server long property {paramters[0]} to {longVal}");
+                }
                 else
                     CommandHandlerHelper.WriteOutputInfo(session, "Unknown long property was not updated. Type showprops for a list of properties.");
             }
@@ -2873,20 +2877,23 @@ namespace ACE.Server.Command.Handlers
         }
 
         [CommandHandler("fetchlong", AccessLevel.Admin, CommandHandlerFlag.None, 1, "Fetches a server property that is a long", "fetchlong (string)")]
-        public static void HandleFetchServerLongProperty(Session session, params string[] paramters)
+        public static void HandleFetchServerLongProperty(Session session, params string[] parameters)
         {
-            var intVal = PropertyManager.GetLong(paramters[0], cacheFallback: false);
-            CommandHandlerHelper.WriteOutputInfo(session, $"{paramters[0]} - {intVal.Description ?? "No Description"}: {intVal.Item}");
+            var intVal = PropertyManager.GetLong(parameters[0], cacheFallback: false);
+            CommandHandlerHelper.WriteOutputInfo(session, $"{parameters[0]} - {intVal.Description ?? "No Description"}: {intVal.Item}");
         }
 
         [CommandHandler("modifydouble", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a double", "modifyfloat (string) (double)")]
-        public static void HandleModifyServerFloatProperty(Session session, params string[] paramters)
+        public static void HandleModifyServerFloatProperty(Session session, params string[] parameters)
         {
             try
             {
-                var floatVal = float.Parse(paramters[1]);
-                if (PropertyManager.ModifyDouble(paramters[0], floatVal))
+                var doubleVal = double.Parse(parameters[1]);
+                if (PropertyManager.ModifyDouble(parameters[0], doubleVal))
+                {
                     CommandHandlerHelper.WriteOutputInfo(session, "Double property successfully updated!");
+                    PlayerManager.BroadcastToAuditChannel(session?.Player, $"Successfully changed server double property {parameters[0]} to {doubleVal}");
+                }
                 else
                     CommandHandlerHelper.WriteOutputInfo(session, "Unknown double property was not updated. Type showprops for a list of properties.");
             }
@@ -2897,17 +2904,20 @@ namespace ACE.Server.Command.Handlers
         }
 
         [CommandHandler("fetchdouble", AccessLevel.Admin, CommandHandlerFlag.None, 1, "Fetches a server property that is a double", "fetchdouble (string)")]
-        public static void HandleFetchServerFloatProperty(Session session, params string[] paramters)
+        public static void HandleFetchServerFloatProperty(Session session, params string[] parameters)
         {
-            var floatVal = PropertyManager.GetDouble(paramters[0], cacheFallback: false);
-            CommandHandlerHelper.WriteOutputInfo(session, $"{paramters[0]} - {floatVal.Description ?? "No Description"}: {floatVal.Item}");
+            var floatVal = PropertyManager.GetDouble(parameters[0], cacheFallback: false);
+            CommandHandlerHelper.WriteOutputInfo(session, $"{parameters[0]} - {floatVal.Description ?? "No Description"}: {floatVal.Item}");
         }
 
         [CommandHandler("modifystring", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a string", "modifystring (string) (string)")]
         public static void HandleModifyServerStringProperty(Session session, params string[] parameters)
         {
             if (PropertyManager.ModifyString(parameters[0], parameters[1]))
+            {
                 CommandHandlerHelper.WriteOutputInfo(session, "String property successfully updated!");
+                PlayerManager.BroadcastToAuditChannel(session?.Player, $"Successfully changed server string property {parameters[0]} to {parameters[1]}");
+            }
             else
                 CommandHandlerHelper.WriteOutputInfo(session, "Unknown string property was not updated. Type showprops for a list of properties.");
         }
