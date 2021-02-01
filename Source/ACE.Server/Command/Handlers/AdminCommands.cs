@@ -2833,7 +2833,7 @@ namespace ACE.Server.Command.Handlers
                 if (PropertyManager.ModifyBool(parameters[0], boolVal))
                 {
                     CommandHandlerHelper.WriteOutputInfo(session, "Bool property successfully updated!");
-                    PlayerManager.BroadcastToAuditChannel(session.Player, $"Successfully changed server bool property {parameters[0]} to {boolVal}");
+                    PlayerManager.BroadcastToAuditChannel(session?.Player, $"Successfully changed server bool property {parameters[0]} to {boolVal}");
 
                     if (parameters[0] == "pk_server" || parameters[0] == "pkl_server")
                     {
@@ -2865,7 +2865,7 @@ namespace ACE.Server.Command.Handlers
                 if (PropertyManager.ModifyLong(paramters[0], longVal))
                 {
                     CommandHandlerHelper.WriteOutputInfo(session, "Long property successfully updated!");
-                    PlayerManager.BroadcastToAuditChannel(session.Player, $"Successfully changed server long property {paramters[0]} to {longVal}");
+                    PlayerManager.BroadcastToAuditChannel(session?.Player, $"Successfully changed server long property {paramters[0]} to {longVal}");
                 }
                 else
                     CommandHandlerHelper.WriteOutputInfo(session, "Unknown long property was not updated. Type showprops for a list of properties.");
@@ -2892,7 +2892,7 @@ namespace ACE.Server.Command.Handlers
                 if (PropertyManager.ModifyDouble(parameters[0], doubleVal))
                 {
                     CommandHandlerHelper.WriteOutputInfo(session, "Double property successfully updated!");
-                    PlayerManager.BroadcastToAuditChannel(session.Player, $"Successfully changed server double property {parameters[0]} to {doubleVal}");
+                    PlayerManager.BroadcastToAuditChannel(session?.Player, $"Successfully changed server double property {parameters[0]} to {doubleVal}");
                 }
                 else
                     CommandHandlerHelper.WriteOutputInfo(session, "Unknown double property was not updated. Type showprops for a list of properties.");
@@ -2916,7 +2916,7 @@ namespace ACE.Server.Command.Handlers
             if (PropertyManager.ModifyString(parameters[0], parameters[1]))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, "String property successfully updated!");
-                PlayerManager.BroadcastToAuditChannel(session.Player, $"Successfully changed server string property {parameters[0]} to {parameters[1]}");
+                PlayerManager.BroadcastToAuditChannel(session?.Player, $"Successfully changed server string property {parameters[0]} to {parameters[1]}");
             }
             else
                 CommandHandlerHelper.WriteOutputInfo(session, "Unknown string property was not updated. Type showprops for a list of properties.");
