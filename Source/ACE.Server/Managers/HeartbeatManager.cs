@@ -17,19 +17,31 @@ namespace ACE.Server.Managers
         /// <summary>
         /// The rate at which HeartbeatManager.Tick() executes
         /// </summary>
-        private static readonly RateLimiter updateHeartbeatManagerRateLimiter = new RateLimiter(1, TimeSpan.FromSeconds(10));
+        private static RateLimiter updateHeartbeatManagerRateLimiter;
 
-        private static Uri heartbeatUri;
+        /// <summary>
+        /// Endpoint to send heartbeats to
+        /// </summary>
+        private static Uri endpoint;
 
         public static void Initialize()
         {
+            //if (!ConfigManager.Config.Server.Heartbeat.Enabled)
+            //{
+            //    log.Debug("Not starting HeartbeatManager because it's disabled in config");
 
-            // TODO: Factor out into config
-            heartbeatUri = new Uri("https://servers.treestats.net/heartbeat");
+            //    return;
+            //}
+
+            // endpoint = new Uri(ConfigManager.Config.Server.Heartbeat.Endpoint);
+            endpoint = new Uri("https://treestats-servers.herokuapp.com/");
+
+            // updateHeartbeatManagerRateLimiter = new RateLimiter(1, TimeSpan.FromSeconds(ConfigManager.Config.Server.Heartbeat.Interval));
+            updateHeartbeatManagerRateLimiter = new RateLimiter(1, TimeSpan.FromSeconds(10));
         }
 
         /// <summary>
-        /// One-off class to aid in serializing the heartbeat's JSON payload
+        /// One-off class to help serialize the heartbeat's JSON payload
         /// </summary>
         private class HeartbeatBody
         {
