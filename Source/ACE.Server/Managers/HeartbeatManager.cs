@@ -43,12 +43,10 @@ namespace ACE.Server.Managers
         /// <summary>
         /// One-off class to help serialize the heartbeat's JSON payload
         /// </summary>
-        private class HeartbeatBody
+        private class HeartbeatPayload
         {
-            public string server;
-            public int online;
-            public bool pk_server;
-            public double xp_modifier;
+            public string WorldName;
+            public int OnlineCount;
         }
 
         /// <summary>
@@ -74,16 +72,14 @@ namespace ACE.Server.Managers
 
                 try
                 {
-                    HeartbeatBody body = new HeartbeatBody
+                    HeartbeatPayload body = new HeartbeatPayload
                     {
-                        online = PlayerManager.GetOnlineCount(),
-                        server = ConfigManager.Config.Server.WorldName,
-                        xp_modifier = PropertyManager.GetDouble("xp_modifier").Item,
-                        pk_server = PropertyManager.GetBool("pk_server").Item
+                        OnlineCount = PlayerManager.GetOnlineCount(),
+                        WorldName = ConfigManager.Config.Server.WorldName
                     };
 
                     HttpContent content = new StringContent(JsonConvert.SerializeObject(body));
-                    response = client.PostAsync(heartbeatUri, content).Result;
+                    response = client.PostAsync(endpoint, content).Result;
 
                     if (!response.IsSuccessStatusCode)
                     {
