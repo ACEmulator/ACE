@@ -27,6 +27,7 @@ namespace ACE.Server.Factories
             InvalidSkillRequested,
             FailedToTrainSkill,
             FailedToSpecializeSkill,
+            ClientServerSkillsMismatch
         }
 
         public static CreateResult Create(CharacterCreateInfo characterCreateInfo, Weenie weenie, ObjectGuid guid, uint accountId, WeenieType weenieType, out Player player)
@@ -130,30 +131,18 @@ namespace ACE.Server.Factories
             player.SetProperty(PropertyString.Template, templateName);
             player.AddTitle(heritageGroup.Templates[characterCreateInfo.TemplateOption].Title, true);
 
-            // stats
-            uint totalAttributeCredits = heritageGroup.AttributeCredits;
-            uint usedAttributeCredits = 0;
+            // attributes
+            var result = ValidateAttributeCredits(characterCreateInfo, heritageGroup.AttributeCredits);
 
-            player.Strength.StartingValue = ValidateAttributeCredits(characterCreateInfo.StrengthAbility, usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += player.Strength.StartingValue;
+            if (result != CreateResult.Success)
+                return result;
 
-            player.Endurance.StartingValue = ValidateAttributeCredits(characterCreateInfo.EnduranceAbility, usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += player.Endurance.StartingValue;
-
-            player.Coordination.StartingValue = ValidateAttributeCredits(characterCreateInfo.CoordinationAbility, usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += player.Coordination.StartingValue;
-
-            player.Quickness.StartingValue = ValidateAttributeCredits(characterCreateInfo.QuicknessAbility, usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += player.Quickness.StartingValue;
-
-            player.Focus.StartingValue = ValidateAttributeCredits(characterCreateInfo.FocusAbility, usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += player.Focus.StartingValue;
-
-            player.Self.StartingValue = ValidateAttributeCredits(characterCreateInfo.SelfAbility, usedAttributeCredits, totalAttributeCredits);
-            usedAttributeCredits += player.Self.StartingValue;
-
-            if (usedAttributeCredits > heritageGroup.AttributeCredits)
-                return CreateResult.TooManySkillCreditsUsed;
+            player.Strength.StartingValue = characterCreateInfo.StrengthAbility;
+            player.Endurance.StartingValue = characterCreateInfo.EnduranceAbility;
+            player.Coordination.StartingValue = characterCreateInfo.CoordinationAbility;
+            player.Quickness.StartingValue = characterCreateInfo.QuicknessAbility;
+            player.Focus.StartingValue = characterCreateInfo.FocusAbility;
+            player.Self.StartingValue = characterCreateInfo.SelfAbility;
 
             // data we don't care about
             //characterCreateInfo.CharacterSlot;
@@ -166,6 +155,9 @@ namespace ACE.Server.Factories
 
             // set initial skill credit amount. 52 for all but "Olthoi", which have 68
             player.SetProperty(PropertyInt.AvailableSkillCredits, (int)heritageGroup.SkillCredits);
+
+            if (characterCreateInfo.SkillAdvancementClasses.Count != 55)
+                return CreateResult.ClientServerSkillsMismatch;
 
             for (int i = 0; i < characterCreateInfo.SkillAdvancementClasses.Count; i++)
             {
@@ -583,17 +575,34 @@ namespace ACE.Server.Factories
         }
 
         /// <summary>
-        /// Checks if the total credits is more than this class is allowed.
+        /// Validates character creation attribute info
         /// </summary>
-        /// <returns>The original value or the max allowed.</returns>
-        private static ushort ValidateAttributeCredits(uint attributeValue, uint allAttributes, uint maxAttributes)
+        private static CreateResult ValidateAttributeCredits(CharacterCreateInfo info, uint maxAttributes)
         {
-            attributeValue = Math.Clamp(attributeValue, 10, 100);
+            var attributeValues = new List<uint>()
+            {
+                info.StrengthAbility,
+                info.EnduranceAbility,
+                info.CoordinationAbility,
+                info.QuicknessAbility,
+                info.FocusAbility,
+                info.SelfAbility
+            };
 
-            if ((attributeValue + allAttributes) > maxAttributes)
-                return (ushort)(maxAttributes - allAttributes);
+            uint total = 0;
 
-            return (ushort)attributeValue;
+            foreach (var attributeValue in attributeValues)
+            {
+                if (attributeValue < 10 || attributeValue > 100)
+                    return CreateResult.InvalidSkillRequested;
+
+                total += attributeValue;
+            }
+
+            if (total > maxAttributes)
+                return CreateResult.TooManySkillCreditsUsed;
+
+            return CreateResult.Success;
         }
 
         private static void CharacterCreateSetDefaultCharacterOptions(Player player)

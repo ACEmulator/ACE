@@ -94,12 +94,26 @@ namespace ACE.Server.Entity
                     {
                         // handle special case to prevent message: Pumpkin Shield casts Web of Defense on you, refreshing Aura of Defense
                         var spellDuration = equip ? double.PositiveInfinity : spell.Duration;
+
+                        if (!equip && caster is Player player && player.AugmentationIncreasedSpellDuration > 0)
+                            spellDuration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
+
                         var entryDuration = entry.Duration == -1 ? double.PositiveInfinity : entry.Duration;
 
-                        if (spellDuration >= entryDuration)
+                        if (spellDuration > entryDuration || spellDuration == entryDuration && !SpellSet.SetSpells.Contains(entry.SpellId))
                             Surpass.Add(entry);
-                        else
+                        else if (spellDuration < entryDuration)
                             Surpassed.Add(entry);
+                        else
+                        {
+                            // fallback on spell id, for overlapping set spells in multiple sets, where the different 'level' names each have the same spellLevel and powerLevel?
+                            // ie. for Gauntlet Damage Boost I and II
+                            // this bug still exists in acclient visual enchantment display, unknown whether this bug existed on retail server
+                            if (spell.Id > entry.SpellId)
+                                Surpass.Add(entry);
+                            else
+                                Surpassed.Add(entry);
+                        }
                     }
                 }
                 else if (powerLevel < entry.PowerLevel)

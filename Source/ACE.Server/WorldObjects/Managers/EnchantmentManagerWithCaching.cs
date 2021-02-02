@@ -24,6 +24,19 @@ namespace ACE.Server.WorldObjects.Managers
             }
         }
 
+        private bool? hasVitae;
+
+        public override bool HasVitae
+        {
+            get
+            {
+                if (hasVitae == null)
+                    hasVitae = base.HasVitae;
+
+                return hasVitae.Value;
+            }
+        }
+
         /// <summary>
         /// Constructs a new EnchantmentManager for a WorldObject
         /// </summary>
@@ -145,6 +158,7 @@ namespace ACE.Server.WorldObjects.Managers
         private void ClearCache()
         {
             hasEnchantments = null;
+            hasVitae = null;
 
             attributeModCache.Clear();
             vitalModAdditiveCache.Clear();
@@ -169,6 +183,7 @@ namespace ACE.Server.WorldObjects.Managers
             armorModCache = null;
             armorModVsTypeModCache.Clear();
             ratingCache.Clear();
+            netherDotDamageRatingCache = null;
             xpBonusCache = null;
             resistLockpickCache = null;
         }
@@ -504,6 +519,16 @@ namespace ACE.Server.WorldObjects.Managers
             ratingCache[property] = value;
 
             return value;
+        }
+
+        private int? netherDotDamageRatingCache;
+
+        public override int GetNetherDotDamageRating()
+        {
+            if (netherDotDamageRatingCache == null)
+                netherDotDamageRatingCache = base.GetNetherDotDamageRating();
+
+            return netherDotDamageRatingCache.Value;
         }
 
         private float? xpBonusCache;

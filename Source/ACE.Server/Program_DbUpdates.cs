@@ -42,10 +42,28 @@ namespace ACE.Server
 
                 if (currentVersion.PatchVersion != tag)
                 {
-                    log.Info($"Latest patch version is {tag} -- Update Required!");
-                    UpdateToLatestWorldDatabase(dbURL, dbFileName);
-                    var newVersion = worldDb.GetVersion();
-                    log.Info($"Updated World Database version: Base - {newVersion.BaseVersion} | Patch - {newVersion.PatchVersion}");
+                    var patchVersionSplit = currentVersion.PatchVersion.Split(".");
+                    var tagSplit = tag.Split(".");
+
+                    int.TryParse(patchVersionSplit[0], out var patchMajor);
+                    int.TryParse(patchVersionSplit[1], out var patchMinor);
+                    int.TryParse(patchVersionSplit[2], out var patchBuild);
+
+                    int.TryParse(tagSplit[0], out var tagMajor);
+                    int.TryParse(tagSplit[1], out var tagMinor);
+                    int.TryParse(tagSplit[2], out var tagBuild);
+
+                    if (tagMajor > patchMajor || tagMinor > patchMinor || (tagBuild > patchBuild && patchBuild != 0))
+                    {
+                        log.Info($"Latest patch version is {tag} -- Update Required!");
+                        UpdateToLatestWorldDatabase(dbURL, dbFileName);
+                        var newVersion = worldDb.GetVersion();
+                        log.Info($"Updated World Database version: Base - {newVersion.BaseVersion} | Patch - {newVersion.PatchVersion}");
+                    }
+                    else
+                    {
+                        log.Info($"Latest patch version is {tag} -- No Update Required!");
+                    }
                 }
                 else
                 {

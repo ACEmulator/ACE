@@ -3,115 +3,15 @@ using System.Linq;
 using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
+using ACE.Server.Factories.Entity;
+using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateJewels(int tier, bool isMagical, bool mutate = true)
-        {
-            int gemLootMatrixIndex = tier - 1;
-
-            if (gemLootMatrixIndex > 4) gemLootMatrixIndex = 4;
-            int upperLimit = LootTables.GemsMatrix[gemLootMatrixIndex].Length - 1;
-
-            uint gemWCID = (uint)LootTables.GemsWCIDsMatrix[gemLootMatrixIndex][ThreadSafeRandom.Next(0, upperLimit)];
-
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(gemWCID) as Gem;
-
-            if (wo != null && mutate)
-                MutateJewels(wo, tier, isMagical, gemLootMatrixIndex);
-
-            return wo;
-        }
-
-        private static void MutateJewels(WorldObject wo, int tier, bool isMagical, int gemLootMatrixIndex)
-        {
-            uint gemType = 0;
-            int workmanship = 0;
-            int rank = 0;
-            int difficulty = 0;
-            int spellDID = 0;
-            int skill_level_limit = 0;
-
-            gemType = (uint)wo.MaterialType;
-
-            workmanship = GetWorkmanship(tier);
-            wo.ItemWorkmanship = workmanship;
-            int value = LootTables.gemValues[(int)gemType] + ThreadSafeRandom.Next(1, LootTables.gemValues[(int)gemType]);
-            wo.Value = value;
-
-            gemLootMatrixIndex = tier - 1;
-            if (isMagical)
-            {
-                wo.ItemUseable = Usable.Contained;
-                wo.UiEffects = UiEffects.Magical;
-
-                int gemSpellIndex;
-                int spellChance = 0;
-
-                spellChance = ThreadSafeRandom.Next(0, 3);
-                switch (spellChance)
-                {
-                    case 0:
-                        gemSpellIndex = LootTables.GemSpellIndexMatrix[gemLootMatrixIndex][0];
-                        spellDID = LootTables.GemCreatureSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, LootTables.GemCreatureSpellMatrix[gemSpellIndex].Length - 1)];
-                        break;
-                    case 1:
-                        gemSpellIndex = LootTables.GemSpellIndexMatrix[gemLootMatrixIndex][0];
-                        spellDID = LootTables.GemLifeSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, LootTables.GemLifeSpellMatrix[gemSpellIndex].Length - 1)];
-                        break;
-                    case 2:
-                        gemSpellIndex = LootTables.GemSpellIndexMatrix[gemLootMatrixIndex][1];
-                        spellDID = LootTables.GemCreatureSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, LootTables.GemCreatureSpellMatrix[gemSpellIndex].Length - 1)];
-                        break;
-                    default:
-                        gemSpellIndex = LootTables.GemSpellIndexMatrix[gemLootMatrixIndex][1];
-                        spellDID = LootTables.GemLifeSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, LootTables.GemLifeSpellMatrix[gemSpellIndex].Length - 1)];
-                        break;
-                }
-
-                int manaCost = 50 * gemSpellIndex;
-                int spellcraft = 50 * gemSpellIndex;
-                int maxMana = ThreadSafeRandom.Next(manaCost, manaCost + 50);
-
-                wo.SpellDID = (uint)spellDID;
-                wo.ItemAllegianceRankLimit= rank;
-                wo.ItemDifficulty = difficulty;
-                wo.ItemManaCost = manaCost;
-                wo.ItemMaxMana = maxMana;
-                wo.ItemSkillLevelLimit = skill_level_limit;
-                wo.ItemSpellcraft = spellcraft;
-            }
-            else
-            {
-                wo.ItemUseable = Usable.No;
-                wo.SpellDID = null;
-                wo.ItemManaCost = null;
-                wo.ItemMaxMana = null;
-                wo.ItemCurMana = null;
-                wo.ItemSpellcraft = null;
-                wo.ItemDifficulty = null;
-                wo.ItemSkillLevelLimit = null;
-                wo.ManaRate = null;
-
-            }
-            RandomizeColor(wo);
-        }
-
-        private static bool GetMutateJewelsData(uint wcid, out int gemLootMatrixIndex)
-        {
-            for (gemLootMatrixIndex = 0; gemLootMatrixIndex < LootTables.GemsWCIDsMatrix.Length; gemLootMatrixIndex++)
-            {
-                if (LootTables.GemsWCIDsMatrix[gemLootMatrixIndex].Contains((int)wcid))
-                    return true;
-            }
-            gemLootMatrixIndex = -1;
-            return false;
-        }
-
         private static WorldObject CreateJewelry(TreasureDeath profile, bool isMagical, bool mutate = true)
         {
             // 31% chance ring, 31% chance bracelet, 30% chance necklace 8% chance Trinket
@@ -137,42 +37,34 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static void MutateJewelry(WorldObject wo, TreasureDeath profile, bool isMagical)
+        private static void MutateJewelry(WorldObject wo, TreasureDeath profile, bool isMagical, TreasureRoll roll = null)
         {
-            //wo.AppraisalLongDescDecoration = AppraisalLongDescDecorations.PrependWorkmanship;
-            wo.LongDesc = wo.Name;
-            int materialType = GetMaterialType(wo, profile.Tier);
+            // material type
+            var materialType = GetMaterialType(wo, profile.Tier);
             if (materialType > 0)
-                wo.MaterialType = (MaterialType)materialType;
-            int gemCount = ThreadSafeRandom.Next(1, 5);
-            int gemType = ThreadSafeRandom.Next(10, 50);
-            wo.GemCount = gemCount;
-            wo.GemType = (MaterialType)gemType;
-            int workmanship = GetWorkmanship(profile.Tier);
+                wo.MaterialType = materialType;
 
-            double materialMod = LootTables.getMaterialValueModifier(wo);
-            double gemMaterialMod = LootTables.getGemMaterialValueModifier(wo);
-            var value = GetValue(profile.Tier, workmanship, gemMaterialMod, materialMod);
-            wo.Value = value;
-            wo.ItemWorkmanship = workmanship;
+            // item color
+            MutateColor(wo);
 
-            wo.ItemSkillLevelLimit = null;
+            // gem count / gem material
+            if (wo.GemCode != null)
+                wo.GemCount = GemCountChance.Roll(wo.GemCode.Value, profile.Tier);
+            else
+                wo.GemCount = ThreadSafeRandom.Next(1, 5);
 
+            wo.GemType = RollGemType(profile.Tier);
+
+            // workmanship
+            wo.ItemWorkmanship = WorkmanshipChance.Roll(profile.Tier);
+
+            // wield level requirement for t7+
             if (profile.Tier > 6)
-            {
-                wo.WieldRequirements = WieldRequirement.Level;
-                wo.WieldSkillType = (int)Skill.Axe;  // Set by examples from PCAP data
+                RollWieldLevelReq_T7_T8(wo, profile);
 
-                var wield = profile.Tier switch
-                {
-                    7 => 150,// In this instance, used for indicating player level, rather than skill level
-                    _ => 180,// In this instance, used for indicating player level, rather than skill level
-                };
-                wo.WieldDifficulty = wield;
-            }
-
+            // assign magic
             if (isMagical)
-                wo = AssignMagic(wo, profile);
+                AssignMagic(wo, profile, roll);
             else
             {
                 wo.ItemManaCost = null;
@@ -183,7 +75,15 @@ namespace ACE.Server.Factories
                 wo.ManaRate = null;
             }
 
-            RandomizeColor(wo);
+            // gear rating (t8)
+            if (roll != null && profile.Tier == 8)
+                TryMutateGearRating(wo, profile, roll);
+
+            // item value
+            //  if (wo.HasMutateFilter(MutateFilter.Value))     // fixme: data
+                MutateValue(wo, profile.Tier, roll);
+
+            wo.LongDesc = GetLongDesc(wo);
         }
 
         private static bool GetMutateJewelryData(uint wcid)

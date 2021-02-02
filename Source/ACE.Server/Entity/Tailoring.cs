@@ -227,7 +227,7 @@ namespace ACE.Server.Entity
             target.ClothingBase = source.ClothingBase;
 
             target.Name = source.Name;
-            target.LongDesc = source.LongDesc;
+            target.LongDesc = LootGenerationFactory.GetLongDesc(target);
 
             target.IgnoreCloIcons = source.IgnoreCloIcons;
             target.IconId = source.IconId;
@@ -301,6 +301,13 @@ namespace ACE.Server.Entity
             // ensure target is valid weapon
             if (!(target is MeleeWeapon) && !(target is MissileLauncher) && !(target is Caster))
             {
+                player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                return;
+            }
+
+            if (target is MeleeWeapon && target.W_WeaponType == WeaponType.Undef)
+            {
+                // 'difficult to master' weapons were not tailorable
                 player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                 return;
             }

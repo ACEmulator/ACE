@@ -38,6 +38,8 @@
     // Note that for servers running on Windows, a path like c:\ace\ MUST be entered as c:\\ace\\, replacing the single backslashes (\) with double backslashes (\\)
     "DatFilesDirectory": "c:\\ACE\\Dats\\",
 
+    // ShutdownInterval, default: 60
+    // Default time it will take for a server to wait before shutting down after shutdown is called from console or in game admin.
     "ShutdownInterval": "60",
 
     // ServerPerformanceMonitorAutoStart, default: false
@@ -48,17 +50,16 @@
     // This can greatly help you (and ACE developers) understand what sections of ACE are underperforming.
     "ServerPerformanceMonitorAutoStart": false,
 
-    // Multi-threading the world is disabled by default
-    // Multi-threading the database is enabled in code and cannot be disabled
-    // You may want to enable world multi-threading if your /serverstatus UpdateGameWorld value is >= 0.015
-    // You're better off leaving this disabled unless you require it.
-    // This feature is still in development and bugs may be present when multi-threading is enabled
     "Threading": {
-      // This number is used to determine thread allocation between the two systems, world and database
+      // This number is used to determine thread allocation for world systems (WorldObjects, Physics, etc...)
       // (Total System vCPU * WorldThreadCountMultiplier) = World Thread Count
       // (Total System vCPU - World Thread Count) = Database Thread Count
       // On larger servers, you may want to raise this to 0.5
       "WorldThreadCountMultiplier": 0.34,
+
+      // This number is used to determine thread allocation for database operations
+      // (Total System vCPU * DatabaseThreadCountMultiplier) = Database Thread Count
+      "DatabaseThreadCountMultiplier": 0.66,
 
       // The following to booleans configure the levels of multi-threading enabled on the server
       // The server will group landblocks that are close in distance into LandblockGroups (Dungeons are always 1 per group)
@@ -67,15 +68,21 @@
       // Optionally, if the following booleans are enabled, we can tick LandblockGroups in parallel
 
       // This will multi-thread physics engine
-      // This feature is currently in beta
-      "MultiThreadedLandblockGroupPhysicsTicking": false,
+      "MultiThreadedLandblockGroupPhysicsTicking": true,
 
       // This will multi-thread world object ticking
       // This is a much more involved process as world object ticking interacts with server global constructs like Allegiances, Fellowships, Housing, etc..
       // There is much more cross-landblock group work happening here
-      // This feature is currently in beta
-      "MultiThreadedLandblockGroupTicking": false
+      "MultiThreadedLandblockGroupTicking": true
     },
+
+    // ShardPlayerBiotaCacheTime, default: 31
+    // The amount of minutes to keep in memory a player object from shard database.
+    "ShardPlayerBiotaCacheTime": "31",
+
+    // ShardNonPlayerBiotaCacheTime, default: 11
+    // The amount of minutes to keep in memory a non player object from shard database.
+    "ShardNonPlayerBiotaCacheTime": "11",
 
     // WorldDatabasePrecaching, default: false
     // Development recommendation: false

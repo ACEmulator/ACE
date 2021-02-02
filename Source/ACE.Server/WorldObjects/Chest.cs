@@ -31,6 +31,15 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// This is used for things like Dirty Old Crate
+        /// </summary>
+        public bool ChestClearedWhenClosed
+        {
+            get => GetProperty(PropertyBool.ChestClearedWhenClosed) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.ChestClearedWhenClosed); else SetProperty(PropertyBool.ChestClearedWhenClosed, value); }
+        }
+
+        /// <summary>
         /// This is the default setup for resetting chests
         /// </summary>
         public double ChestResetInterval
@@ -201,6 +210,22 @@ namespace ACE.Server.WorldObjects
 
             if (ChestRegenOnClose && tryReset)
                 Reset(ResetTimestamp);
+        }
+
+        public override void FinishClose(Player player)
+        {
+            base.FinishClose(player);
+
+            if (ChestClearedWhenClosed && InitCreate > 0)
+            {
+                var removeQueueTotal = 0;
+                foreach (var generator in GeneratorProfiles)
+                    removeQueueTotal += generator.RemoveQueue.Count;
+
+                if ((CurrentCreate - removeQueueTotal) == 0)
+                    FadeOutAndDestroy(); // Chest's complete generated inventory count has been wiped out
+                    //Destroy(); // Chest's complete generated inventory count has been wiped out
+            }
         }
 
         public void Reset(double? resetTimestamp)

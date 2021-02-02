@@ -88,7 +88,8 @@ namespace ACE.Database
             // https://stackoverflow.com/questions/50402015/how-to-execute-sqlquery-with-entity-framework-core-2-1
 
             // This query is ugly, but very fast.
-            var sql = "SELECT"                                                                          + Environment.NewLine +
+            var sql = "SET @available_ids=0, @rownum=0;"                                                + Environment.NewLine +
+                      "SELECT"                                                                          + Environment.NewLine +
                       " z.gap_starts_at, z.gap_ends_at_not_inclusive, @available_ids:=@available_ids+(z.gap_ends_at_not_inclusive - z.gap_starts_at) as running_total_available_ids" + Environment.NewLine +
                       "FROM ("                                                                          + Environment.NewLine +
                       " SELECT"                                                                         + Environment.NewLine +
@@ -115,7 +116,7 @@ namespace ACE.Database
 
                 while (reader.Read())
                 {
-                    var gap_starts_at               = reader.GetFieldValue<double>(0);
+                    var gap_starts_at               = reader.GetFieldValue<long>(0);
                     var gap_ends_at_not_inclusive   = reader.GetFieldValue<decimal>(1);
                     //var running_total_available_ids = reader.GetFieldValue<double>(2);
 
@@ -206,8 +207,6 @@ namespace ACE.Database
 
             PopulatedCollectionFlags populatedCollectionFlags = (PopulatedCollectionFlags)biota.PopulatedCollectionFlags;
 
-            // todo: There are gains to be had here if we can conditionally perform mulitple .Include (.Where) statements in a single query.
-            // todo: Until I figure out how to do that, this is still pretty good. Mag-nus 2018-08-10
             if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAnimPart)) biota.BiotaPropertiesAnimPart = context.BiotaPropertiesAnimPart.Where(r => r.ObjectId == biota.Id).ToList();
             if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAttribute)) biota.BiotaPropertiesAttribute = context.BiotaPropertiesAttribute.Where(r => r.ObjectId == biota.Id).ToList();
             if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAttribute2nd)) biota.BiotaPropertiesAttribute2nd = context.BiotaPropertiesAttribute2nd.Where(r => r.ObjectId == biota.Id).ToList();
@@ -247,6 +246,8 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
             {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
                 var results = context.Biota.Where(r => r.WeenieClassId == wcid);
 
                 var biotas = new List<Biota>();
@@ -265,6 +266,8 @@ namespace ACE.Database
             // warning: this query is currently unindexed!
             using (var context = new ShardDbContext())
             {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
                 var iType = (int)type;
 
                 var results = context.Biota.Where(r => r.WeenieType == iType);
@@ -572,17 +575,18 @@ namespace ACE.Database
         {
             var context = new ShardDbContext();
 
-            var results = context.Character
-                .Include(r => r.CharacterPropertiesContractRegistry)
-                .Include(r => r.CharacterPropertiesFillCompBook)
-                .Include(r => r.CharacterPropertiesFriendList)
-                .Include(r => r.CharacterPropertiesQuestRegistry)
-                .Include(r => r.CharacterPropertiesShortcutBar)
-                .Include(r => r.CharacterPropertiesSpellBar)
-                .Include(r => r.CharacterPropertiesSquelch)
-                .Include(r => r.CharacterPropertiesTitleBook)
-                .Where(r => r.AccountId == accountId && (includeDeleted || !r.IsDeleted))
-                .ToList();
+            var query = context.Character.Where(r => r.AccountId == accountId && (includeDeleted || !r.IsDeleted));
+
+            var results = query.ToList();
+
+            query.Include(r => r.CharacterPropertiesContractRegistry).Load();
+            query.Include(r => r.CharacterPropertiesFillCompBook).Load();
+            query.Include(r => r.CharacterPropertiesFriendList).Load();
+            query.Include(r => r.CharacterPropertiesQuestRegistry).Load();
+            query.Include(r => r.CharacterPropertiesShortcutBar).Load();
+            query.Include(r => r.CharacterPropertiesSpellBar).Load();
+            query.Include(r => r.CharacterPropertiesSquelch).Load();
+            query.Include(r => r.CharacterPropertiesTitleBook).Load();
 
             foreach (var result in results)
                 CharacterContexts.Add(result, context);
@@ -595,13 +599,6 @@ namespace ACE.Database
             var context = new ShardDbContext();
 
             var result = context.Character
-                //.Include(r => r.CharacterPropertiesContract)
-                //.Include(r => r.CharacterPropertiesFillCompBook)
-                //.Include(r => r.CharacterPropertiesFriendList)
-                //.Include(r => r.CharacterPropertiesQuestRegistry)
-                //.Include(r => r.CharacterPropertiesShortcutBar)
-                //.Include(r => r.CharacterPropertiesSpellBar)
-                //.Include(r => r.CharacterPropertiesTitleBook)
                 .FirstOrDefault(r => r.Name == name.ToLower() && !r.IsDeleted);
 
             return result;
@@ -612,13 +609,6 @@ namespace ACE.Database
             var context = new ShardDbContext();
 
             var result = context.Character
-                //.Include(r => r.CharacterPropertiesContract)
-                //.Include(r => r.CharacterPropertiesFillCompBook)
-                //.Include(r => r.CharacterPropertiesFriendList)
-                //.Include(r => r.CharacterPropertiesQuestRegistry)
-                //.Include(r => r.CharacterPropertiesShortcutBar)
-                //.Include(r => r.CharacterPropertiesSpellBar)
-                //.Include(r => r.CharacterPropertiesTitleBook)
                 .FirstOrDefault(r => r.Id == guid);
 
             return result;

@@ -1,0 +1,128 @@
+Caster Mutation #1 (500 samples):
+
+Tier chances: 1, 0, 0, 0, 0, 0, 0, 0
+
+    - Chance: 30%:
+        ManaConversionMod = 0
+
+    - Chance: 40%:
+        ManaConversionMod = 0.01
+
+    - Chance: 30%:
+        ManaConversionMod = 0.02
+
+Caster Mutation #2 (807 samples):
+
+Tier chances: 0, 1, 0, 0, 0, 0, 0, 0
+
+    - Chance: 10%:
+        ManaConversionMod = 0
+
+    - Chance: 20%:
+        ManaConversionMod = 0.01
+
+    - Chance: 40%:
+        ManaConversionMod = 0.02
+
+    - Chance: 20%:
+        ManaConversionMod = 0.03
+
+    - Chance: 10%:
+        ManaConversionMod = 0.04
+
+Caster Mutation #3 (781 samples):
+
+Tier chances: 0, 0, 1, 0, 0, 0, 0, 0
+
+    - Chance: 5%:
+        ManaConversionMod = 0
+
+    - Chance: 10%:
+        ManaConversionMod = 0.01
+
+    - Chance: 20%:
+        ManaConversionMod = 0.02
+
+    - Chance: 30%:
+        ManaConversionMod = 0.03
+
+    - Chance: 20%:
+        ManaConversionMod = 0.04
+
+    - Chance: 10%:
+        ManaConversionMod = 0.05
+
+    - Chance: 5%:
+        ManaConversionMod = 0.06
+
+Caster Mutation #4 (712 samples):
+
+Tier chances: 0, 0, 0, 1, 0, 0, 0, 0
+
+    - Chance: 5%:
+        ManaConversionMod = 0.02
+
+    - Chance: 10%:
+        ManaConversionMod = 0.03
+
+    - Chance: 20%:
+        ManaConversionMod = 0.04
+
+    - Chance: 30%:
+        ManaConversionMod = 0.05
+
+    - Chance: 20%:
+        ManaConversionMod = 0.06
+
+    - Chance: 10%:
+        ManaConversionMod = 0.07
+
+    - Chance: 5%:
+        ManaConversionMod = 0.08
+
+Caster Mutation #5 (302 samples):
+
+Tier chances: 0, 0, 0, 0, 1, 0, 0, 0
+
+    - Chance: 5%:
+        ManaConversionMod = 0.04
+
+    - Chance: 10%:
+        ManaConversionMod = 0.05
+
+    - Chance: 20%:
+        ManaConversionMod = 0.06
+
+    - Chance: 30%:
+        ManaConversionMod = 0.07
+
+    - Chance: 20%:
+        ManaConversionMod = 0.08
+
+    - Chance: 10%:
+        ManaConversionMod = 0.09
+
+    - Chance: 5%:
+        ManaConversionMod = 0.1
+
+Caster Mutation #6 (860 samples):
+
+Tier chances: 0, 0, 0, 0, 0, 1, 1, 1
+
+    - Chance: 5%:
+        ManaConversionMod = 0.05
+
+    - Chance: 15%:
+        ManaConversionMod = 0.06
+
+    - Chance: 20%:
+        ManaConversionMod = 0.07
+
+    - Chance: 30%:
+        ManaConversionMod = 0.08
+
+    - Chance: 20%:
+        ManaConversionMod = 0.09
+
+    - Chance: 10%:
+        ManaConversionMod = 0.1

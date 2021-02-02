@@ -176,11 +176,31 @@ namespace ACE.Server.Entity
             UpdateAllMembers();
         }
 
-        public void RemoveFellowshipMember(Player player)
+        public void RemoveFellowshipMember(Player player, Player leader)
         {
             if (player == null) return;
 
             var fellowshipMembers = GetFellowshipMembers();
+
+            if (!fellowshipMembers.ContainsKey(player.Guid.Full))
+            {
+                log.Warn($"{leader.Name} tried to dismiss {player.Name} from the fellowship, but {player.Name} was not found in the fellowship");
+
+                var done = true;
+
+                if (player.Fellowship != null)
+                {
+                    if (player.Fellowship == this)
+                    {
+                        log.Warn($"{player.Name} still has a reference to this fellowship somehow. This shouldn't happen");
+                        done = false;
+                    }
+                    else
+                        log.Warn($"{player.Name} has a reference to a different fellowship. {leader.Name} is possibly sending crafted data!");
+                }
+
+                if (done) return;
+            }
 
             foreach (var member in fellowshipMembers.Values)
             {
@@ -284,8 +304,6 @@ namespace ACE.Server.Entity
                 }
                 else
                 {
-                    // most likely is not hit due to client proactively sending AssignNewLeader msg
-
                     FellowshipMembers.Remove(player.Guid.Full);
 
                     if (IsLocked)
@@ -296,9 +314,12 @@ namespace ACE.Server.Entity
                     }
 
                     player.Fellowship = null;
+
                     player.Session.Network.EnqueueSend(new GameEventFellowshipQuit(player.Session, player.Guid.Full));
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat("You no longer have permission to loot anyone else's kills.", ChatMessageType.Broadcast));
+
                     var fellowshipMembers = GetFellowshipMembers();
+
                     foreach (var member in fellowshipMembers.Values)
                     {
                         member.Session.Network.EnqueueSend(new GameEventFellowshipQuit(member.Session, player.Guid.Full));
@@ -310,6 +331,7 @@ namespace ACE.Server.Entity
                         }
                     }
                     AssignNewLeader(null, null);
+
                     CalculateXPSharing();
                 }
             }
@@ -320,12 +342,15 @@ namespace ACE.Server.Entity
                 if (IsLocked)
                 {
                     var timestamp = (int)Time.GetUnixTime();
+
                     if (!DepartedMembers.TryAdd(player.Guid.Full, timestamp))
                         DepartedMembers[player.Guid.Full] = timestamp;
                 }
 
                 player.Session.Network.EnqueueSend(new GameEventFellowshipQuit(player.Session, player.Guid.Full));
+
                 var fellowshipMembers = GetFellowshipMembers();
+
                 foreach (var member in fellowshipMembers.Values)
                 {
                     member.Session.Network.EnqueueSend(new GameEventFellowshipQuit(member.Session, player.Guid.Full));
@@ -336,36 +361,43 @@ namespace ACE.Server.Entity
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{member.Name} does not have permission to loot your kills.", ChatMessageType.Broadcast));
                     }
                 }
+
                 player.Fellowship = null;
+
                 CalculateXPSharing();
             }
         }
 
         public void AssignNewLeader(Player oldLeader, Player newLeader)
         {
-            string newLeaderName = string.Empty;
             if (newLeader != null)
             {
                 FellowshipLeaderGuid = newLeader.Guid.Full;
-                newLeaderName = newLeader.Name;
+
                 if (oldLeader != null)
-                    oldLeader.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(oldLeader.Session, WeenieErrorWithString.YouHavePassedFellowshipLeadershipTo_, newLeaderName));
-                SendWeenieErrorWithStringAndUpdate(WeenieErrorWithString._IsNowLeaderOfFellowship, newLeaderName);
+                    oldLeader.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(oldLeader.Session, WeenieErrorWithString.YouHavePassedFellowshipLeadershipTo_, newLeader.Name));
+
+                SendWeenieErrorWithStringAndUpdate(WeenieErrorWithString._IsNowLeaderOfFellowship, newLeader.Name);
             }
             else
             {
+                // leader has dropped, assign new random leader
                 var fellowshipMembers = GetFellowshipMembers();
 
-                if (fellowshipMembers.Count > 0)
-                {
-                    int newLeaderIndex = ThreadSafeRandom.Next(0, fellowshipMembers.Count - 1);
-                    var fellowGuids = fellowshipMembers.Keys.ToList();
-                    FellowshipLeaderGuid = fellowGuids[newLeaderIndex];
-                    newLeaderName = fellowshipMembers[FellowshipLeaderGuid].Name;
-                    if (oldLeader != null)
-                        oldLeader.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(oldLeader.Session, WeenieErrorWithString.YouHavePassedFellowshipLeadershipTo_, newLeaderName));
-                    SendWeenieErrorWithStringAndUpdate(WeenieErrorWithString._IsNowLeaderOfFellowship, newLeaderName);
-                }
+                if (fellowshipMembers.Count == 0) return;
+
+                var rng = ThreadSafeRandom.Next(0, fellowshipMembers.Count - 1);
+
+                var fellowGuids = fellowshipMembers.Keys.ToList();
+
+                FellowshipLeaderGuid = fellowGuids[rng];
+
+                var newLeaderName = fellowshipMembers[FellowshipLeaderGuid].Name;
+
+                if (oldLeader != null)
+                    oldLeader.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(oldLeader.Session, WeenieErrorWithString.YouHavePassedFellowshipLeadershipTo_, newLeaderName));
+
+                SendWeenieErrorWithStringAndUpdate(WeenieErrorWithString._IsNowLeaderOfFellowship, newLeaderName);
             }
         }
 

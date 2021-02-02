@@ -14,6 +14,6 @@ namespace ACE.Database.Models.World
         public float Shade { get; set; }
         public bool TryToBond { get; set; }
 
-        public Weenie Object { get; set; }
+        public virtual Weenie Object { get; set; }
     }
 }
