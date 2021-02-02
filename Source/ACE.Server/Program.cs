@@ -196,6 +196,9 @@ namespace ACE.Server
             log.Info("Starting PropertyManager...");
             PropertyManager.Initialize();
 
+            log.Info("Starting HeartbeatManager...");
+            HeartbeatManager.Initialize();
+
             log.Info("Initializing GuidManager...");
             GuidManager.Initialize();
 
