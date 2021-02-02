@@ -88,7 +88,7 @@ namespace ACE.Server.Managers
                 }
                 catch (Exception e)
                 {
-                    log.Debug("Exception: " + e.Message);
+                    log.Debug("Exception while sending Heartbeat: " + e.Message);
                 }
             }
         }
