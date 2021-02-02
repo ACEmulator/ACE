@@ -50,7 +50,7 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Runs every ~1 minute
+        /// Runs at intervals according to config
         /// </summary>
         public static void Tick()
         {
