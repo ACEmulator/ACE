@@ -705,63 +705,71 @@ namespace ACE.Database
             // An error occurred while updating the entries. See the inner exception for details. --> Unknown column 'NaN' in 'field list' --> Unknown column 'NaN' in 'field list'
             // An error occurred while updating the entries. See the inner exception for details. --> Duplicate entry '1342177808-766' for key 'character_properties_title_book.PRIMARY' --> Duplicate entry '1342177808-766' for key 'character_properties_title_book.PRIMARY'
 
-            var innerMessage = exception.InnerException.Message;
-
-            if (innerMessage.StartsWith("Duplicate entry"))
+            try
             {
-                var pattern = @"\'(.*?)\'";
-                var m = Regex.Match(innerMessage, pattern);
+                var innerMessage = exception.InnerException.Message;
 
-                if (m.Groups.Count == 2)
+                if (innerMessage.StartsWith("Duplicate entry"))
                 {
-                    var keys = m.Value;
-                    keys = keys.Substring(1, keys.Length - 2);
-                    var table = m.NextMatch().Value;
-                    table = table.Substring(1, table.Length - 2);
-                    table = table.Replace(".PRIMARY", "");
+                    var pattern = @"\'(.*?)\'";
+                    var m = Regex.Match(innerMessage, pattern);
 
-                    var key = keys.Split("-".ToCharArray());
-
-                    var sqlStatement = "DELETE FROM ";
-
-                    var context = new ShardDbContext();
-
-                    switch (table)
+                    if (m.Groups.Count == 2)
                     {
-                        case "character_properties_quest_registry":
-                            //sqlStatement += $"`{table}` WHERE (`character_Id` = '{key[0]}') AND (`quest_Name` = '{key[1]}')";
-                            var questName = keys.Substring(key[0].Length + 1);
-                            sqlStatement += $"`{table}` WHERE (`character_Id` = '{key[0]}') AND (`quest_Name` = '{questName}')";
+                        var keys = m.Value;
+                        keys = keys.Substring(1, keys.Length - 2);
+                        var table = m.NextMatch().Value;
+                        table = table.Substring(1, table.Length - 2);
+                        table = table.Replace(".PRIMARY", "");
 
-                            // log for investgation (potentially remove this later if it turns out data isn't being lost)
-                            var quest = character.CharacterPropertiesQuestRegistry.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
-                            log.Debug($"[DATABASE] TryFixExceptionOnSave({character.Name})  [PENDING]: Id 0x{character.Id:X8} | QuestName: {quest.QuestName} | NumTimesCompleted: {quest.NumTimesCompleted} | LastTimeCompleted: {quest.LastTimeCompleted}");
-                            var dbQuest = context.CharacterPropertiesQuestRegistry.AsNoTracking().FirstOrDefault(c => c.CharacterId == character.Id && c.QuestName == quest.QuestName);
-                            log.Debug($"[DATABASE] TryFixExceptionOnSave({character.Name}) [EXISTING]: Id 0x{character.Id:X8} | QuestName: {dbQuest.QuestName} | NumTimesCompleted: {dbQuest.NumTimesCompleted} | LastTimeCompleted: {dbQuest.LastTimeCompleted}");
+                        var key = keys.Split("-".ToCharArray());
 
-                            break;
+                        var sqlStatement = "DELETE FROM ";
+
+                        var context = new ShardDbContext();
+
+                        switch (table)
+                        {
+                            case "character_properties_quest_registry":
+                                //sqlStatement += $"`{table}` WHERE (`character_Id` = '{key[0]}') AND (`quest_Name` = '{key[1]}')";
+                                var questName = keys.Substring(key[0].Length + 1);
+                                sqlStatement += $"`{table}` WHERE (`character_Id` = '{key[0]}') AND (`quest_Name` = '{questName}')";
+
+                                // log for investgation (potentially remove this later if it turns out data isn't being lost)
+                                var quest = character.CharacterPropertiesQuestRegistry.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+                                log.Debug($"[DATABASE] TryFixExceptionOnSave({character.Name})  [PENDING]: Id 0x{character.Id:X8} | QuestName: {quest.QuestName} | NumTimesCompleted: {quest.NumTimesCompleted} | LastTimeCompleted: {quest.LastTimeCompleted}");
+                                var dbQuest = context.CharacterPropertiesQuestRegistry.AsNoTracking().FirstOrDefault(c => c.CharacterId == character.Id && c.QuestName == quest.QuestName);
+                                log.Debug($"[DATABASE] TryFixExceptionOnSave({character.Name}) [EXISTING]: Id 0x{character.Id:X8} | QuestName: {dbQuest.QuestName} | NumTimesCompleted: {dbQuest.NumTimesCompleted} | LastTimeCompleted: {dbQuest.LastTimeCompleted}");
+
+                                break;
 
 
-                        // don't bother logging these, we'll just take the servers' version for now.
-                        case "character_properties_shortcut_bar":
-                            sqlStatement += $"`{table}` WHERE (`character_Id` = '{key[0]}') AND (`shortcut_Bar_Index` = '{key[1]}')";
-                            break;
+                            // don't bother logging these, we'll just take the servers' version for now.
+                            case "character_properties_shortcut_bar":
+                                sqlStatement += $"`{table}` WHERE (`character_Id` = '{key[0]}') AND (`shortcut_Bar_Index` = '{key[1]}')";
+                                break;
 
-                        case "character_properties_spell_bar":
-                            sqlStatement += $"`{table}` WHERE (`character_Id` = '{key[0]}') AND (`spell_Bar_Number` = '{key[1]}') AND (`spell_Id` = '{key[2]}')";
-                            break;
+                            case "character_properties_spell_bar":
+                                sqlStatement += $"`{table}` WHERE (`character_Id` = '{key[0]}') AND (`spell_Bar_Number` = '{key[1]}') AND (`spell_Id` = '{key[2]}')";
+                                break;
 
-                        case "character_properties_title_book":
-                            sqlStatement += $"`{table}` WHERE (`character_Id` = '{key[0]}') AND (`title_Id` = '{key[1]}')";
-                            break;
+                            case "character_properties_title_book":
+                                sqlStatement += $"`{table}` WHERE (`character_Id` = '{key[0]}') AND (`title_Id` = '{key[1]}')";
+                                break;
+                        }
+
+
+                        var result = context.Database.ExecuteSqlRaw(sqlStatement);
+
+                        log.Debug($"[DATABASE] TryFixExceptionOnSave({innerMessage}): ExecuteSqlRaw({sqlStatement}) was {(result == 0 ? "un" : "")}successful!");
                     }
-
-                    
-                    var result = context.Database.ExecuteSqlRaw(sqlStatement);
-
-                    log.Debug($"[DATABASE] TryFixExceptionOnSave({innerMessage}): ExecuteSqlRaw({sqlStatement}) was {(result == 0 ? "un" : "")}successful!");
                 }
             }
+            catch (Exception ex)
+            {
+                log.Error($"[DATABASE] TryFixExceptionOnSave({character.Name}, {exception.GetFullMessage()}): Failed due to {ex.GetFullMessage()}");
+            }
+
         }
 
         public bool AddCharacterInParallel(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock)
