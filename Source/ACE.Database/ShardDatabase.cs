@@ -735,7 +735,7 @@ namespace ACE.Database
                                 var questName = keys.Substring(key[0].Length + 1);
                                 sqlStatement += $"`{table}` WHERE (`character_Id` = '{key[0]}') AND (`quest_Name` = '{questName}')";
 
-                                // log for investgation (potentially remove this later if it turns out data isn't being lost)
+                                // log for investigation (potentially remove this later if it turns out data isn't being lost)
                                 var quest = character.CharacterPropertiesQuestRegistry.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
                                 log.Debug($"[DATABASE] TryFixExceptionOnSave({character.Name})  [PENDING]: Id 0x{character.Id:X8} | QuestName: {quest.QuestName} | NumTimesCompleted: {quest.NumTimesCompleted} | LastTimeCompleted: {quest.LastTimeCompleted}");
                                 var dbQuest = context.CharacterPropertiesQuestRegistry.AsNoTracking().FirstOrDefault(c => c.CharacterId == character.Id && c.QuestName == quest.QuestName);
@@ -757,7 +757,7 @@ namespace ACE.Database
                                 sqlStatement += $"`{table}` WHERE (`character_Id` = '{key[0]}') AND (`title_Id` = '{key[1]}')";
                                 break;
                         }
-
+                        sqlStatement += ";";
 
                         var result = context.Database.ExecuteSqlRaw(sqlStatement);
 
