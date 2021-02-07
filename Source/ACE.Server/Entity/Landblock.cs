@@ -810,7 +810,6 @@ namespace ACE.Server.Entity
 
         private bool AddWorldObjectInternal(WorldObject wo)
         {
-            retry:
             wo.CurrentLandblock = this;
 
             if (wo.PhysicsObj == null)
@@ -847,7 +846,7 @@ namespace ACE.Server.Entity
 
                         addWorldObjectInternalRetries[wo.Guid.Full] = retries + 1;
 
-                        goto retry;
+                        return AddWorldObjectInternal(wo);
                     }
                     addWorldObjectInternalRetries.Remove(wo.Guid.Full);
 
