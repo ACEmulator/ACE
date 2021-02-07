@@ -164,8 +164,8 @@ namespace ACE.Server.WorldObjects
                 // if mansion, send house owner from master copy
                 var houseOwner = HouseOwner;
                 var house = this as House;
-                if (house != null && house.HouseType == HouseType.Mansion)
-                    houseOwner = house.LinkedHouses[0].HouseOwner;
+                if (house != null && (house.HouseType == HouseType.Villa || house.HouseType == HouseType.Mansion))
+                    houseOwner = house.RootHouse.HouseOwner;
 
                 writer.Write(houseOwner ?? 0);
             }
@@ -182,9 +182,9 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    // if mansion, send permissions from master copy
-                    if (house.HouseType == HouseType.Mansion)
-                        house = house.LinkedHouses[0];
+                    // if mansion or villa, send permissions from master copy
+                    if (house.HouseType == HouseType.Villa || house.HouseType == HouseType.Mansion)
+                        house = house.RootHouse;
                 }
 
                 writer.Write(new RestrictionDB(house));

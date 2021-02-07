@@ -32,7 +32,7 @@ namespace ACE.Server.WorldObjects
         /// house open/closed status
         /// 0 = closed, 1 = open
         /// </summary>
-        public bool OpenStatus { get => IsOpen; set => IsOpen = value; }
+        public bool OpenStatus { get => OpenToEveryone; set => OpenToEveryone = value; }
 
         /// <summary>
         /// For linking mansions
@@ -319,7 +319,7 @@ namespace ACE.Server.WorldObjects
             if (storage)
                 return StorageAccess.Contains(player.Guid);
             else
-                return Guests.ContainsKey(player.Guid);
+                return OpenToEveryone || Guests.ContainsKey(player.Guid);
         }
 
         public bool? HouseHooksVisible
@@ -426,6 +426,7 @@ namespace ACE.Server.WorldObjects
                 }
                 RemoveGuest(player);
             }
+            OpenToEveryone = true;
         }
 
         /// <summary>
@@ -666,6 +667,12 @@ namespace ACE.Server.WorldObjects
             var restrictionDB = new RestrictionDB();
 
             UpdateRestrictionDB(restrictionDB);
+        }
+
+        public bool OpenToEveryone
+        {
+            get => (GetProperty(PropertyInt.OpenToEveryone) ?? 0) == 1;
+            set { if (!value) RemoveProperty(PropertyInt.OpenToEveryone); else SetProperty(PropertyInt.OpenToEveryone, 1); }
         }
     }
 }
