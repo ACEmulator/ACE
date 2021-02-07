@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 
 namespace ACE.Common
 {
-    public struct HeartbeatDefaults
+    public class HeartbeatSettings
     {
         /// <summary>
         /// Whether hearbeats are enabled
@@ -14,7 +14,7 @@ namespace ACE.Common
         /// <summary>
         /// The heartbeat endpoint
         /// </summary>
-        [System.ComponentModel.DefaultValue("https://heartbeat.treestats.net")]
+        [System.ComponentModel.DefaultValue("https://treestats-servers.herokuapp.com")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public string Endpoint { get; set; }
 

@@ -26,18 +26,15 @@ namespace ACE.Server.Managers
 
         public static void Initialize()
         {
-            //if (!ConfigManager.Config.Server.Heartbeat.Enabled)
-            //{
-            //    log.Debug("Not starting HeartbeatManager because it's disabled in config");
+            if (!ConfigManager.Config.Server.Heartbeat.Enabled)
+            {
+                log.Debug("Not starting HeartbeatManager because it's disabled in config");
 
-            //    return;
-            //}
+                return;
+            }
 
-            // endpoint = new Uri(ConfigManager.Config.Server.Heartbeat.Endpoint);
-            endpoint = new Uri("https://treestats-servers.herokuapp.com/");
-
-            // updateHeartbeatManagerRateLimiter = new RateLimiter(1, TimeSpan.FromSeconds(ConfigManager.Config.Server.Heartbeat.Interval));
-            updateHeartbeatManagerRateLimiter = new RateLimiter(1, TimeSpan.FromSeconds(10));
+            endpoint = new Uri(ConfigManager.Config.Server.Heartbeat.Endpoint);
+            updateHeartbeatManagerRateLimiter = new RateLimiter(1, TimeSpan.FromSeconds(ConfigManager.Config.Server.Heartbeat.Interval));
         }
 
         /// <summary>

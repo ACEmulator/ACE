@@ -36,6 +36,6 @@ namespace ACE.Common
 
         public List<PreloadedLandblocks> PreloadedLandblocks { get; set; }
 
-        public HeartbeatDefaults Heartbeat { get; set; }
+        public HeartbeatSettings Heartbeat { get; set; }
     }
 }
