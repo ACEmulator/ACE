@@ -810,6 +810,7 @@ namespace ACE.Server.Entity
 
         private bool AddWorldObjectInternal(WorldObject wo)
         {
+            retry:
             wo.CurrentLandblock = this;
 
             if (wo.PhysicsObj == null)
@@ -824,6 +825,8 @@ namespace ACE.Server.Entity
                 {
                     wo.CurrentLandblock = null;
 
+                    var retried = addWorldObjectInternalRetries.TryGetValue(wo.Guid.Full, out var retries);
+
                     if (wo.Generator != null)
                     {
                         log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()} from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid}:{wo.Generator.Name}");
@@ -831,10 +834,30 @@ namespace ACE.Server.Entity
                     }
                     else if (wo.IsGenerator) // Some generators will fail random spawns if they're circumference spans over water or cliff edges
                         log.Debug($"AddWorldObjectInternal: couldn't spawn generator 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()}");
-                    else if (wo.ProjectileTarget == null && !(wo is SpellProjectile))
-                        log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()}");
+                    else if (wo.ProjectileTarget == null && !(wo is SpellProjectile) && (retried && retries == 5))
+                        log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}]{(retried ? $", including {retries} retries," : "")} at {wo.Location.ToLOCString()}");
+
+                    if (!retried || retries < 5)
+                    {
+                        log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}]{(retried ? $", including {retries} retries," : "")} at {wo.Location.ToLOCString()}");
+
+                        var retryLOC = new Position(wo.Location);
+                        retryLOC.PositionZ += 0.05f * (wo.ObjScale ?? 1.0f);
+                        wo.Location = retryLOC;
+
+                        addWorldObjectInternalRetries[wo.Guid.Full] = retries + 1;
+
+                        goto retry;
+                    }
+                    addWorldObjectInternalRetries.Remove(wo.Guid.Full);
 
                     return false;
+                }
+                else if (addWorldObjectInternalRetries.TryGetValue(wo.Guid.Full, out var retries))
+                {
+                    log.Debug($"AddWorldObjectInternal: successfully spawned 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] after {retries} retries at {wo.Location.ToLOCString()}");
+
+                    addWorldObjectInternalRetries.Remove(wo.Guid.Full);
                 }
             }
 
@@ -851,6 +874,8 @@ namespace ACE.Server.Entity
 
             return true;
         }
+
+        private Dictionary<uint, int> addWorldObjectInternalRetries = new Dictionary<uint, int>();
 
         public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false, bool showError = true)
         {
