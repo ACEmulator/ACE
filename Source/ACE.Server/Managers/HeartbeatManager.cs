@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Text;
 using ACE.Common;
 using Newtonsoft.Json;
+using System.Threading;
 
 namespace ACE.Server.Managers
 {
@@ -58,11 +59,15 @@ namespace ACE.Server.Managers
             log.Debug($"HeartbeatManager.Tick()");
 
             updateHeartbeatManagerRateLimiter.RegisterEvent();
-            DoHeartbeat();
+
+            Thread mythread = new Thread(DoHeartbeat);
+            mythread.Start();
         }
 
         public static void DoHeartbeat()
         {
+            log.Debug($"HeartbeatManager.DoHeartbeat Called");
+
             using (var client = new HttpClient())
             {
                 HttpResponseMessage response;
@@ -77,15 +82,20 @@ namespace ACE.Server.Managers
 
                     HttpContent content = new StringContent(JsonConvert.SerializeObject(body));
                     response = client.PostAsync(endpoint, content).Result;
+                    response.EnsureSuccessStatusCode();
 
                     if (!response.IsSuccessStatusCode)
                     {
-                        log.Debug("Heartbeat Failed: " + response.Content);
+                        log.Debug($"Heartbeat request failed: {response.Content}");
                     }
+                }
+                catch (HttpRequestException e)
+                {
+                    log.Debug($"HttpRequestException while sending Heartbeat {e.Message}");
                 }
                 catch (Exception e)
                 {
-                    log.Debug("Exception while sending Heartbeat: " + e.Message);
+                    log.Debug($"Exception while sending Heartbeat: {e.Message}");
                 }
             }
         }
