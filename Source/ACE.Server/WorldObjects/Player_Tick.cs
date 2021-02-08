@@ -315,7 +315,7 @@ namespace ACE.Server.WorldObjects
             {
                 // apply latest MoveToState, if applicable
                 //if ((LastMoveToState.RawMotionState.Flags & (RawMotionFlags.ForwardCommand | RawMotionFlags.SideStepCommand | RawMotionFlags.TurnCommand)) != 0)
-                if ((LastMoveToState.RawMotionState.Flags & RawMotionFlags.ForwardCommand) != 0)
+                if ((LastMoveToState.RawMotionState.Flags & RawMotionFlags.ForwardCommand) != 0 && LastMoveToState.RawMotionState.ForwardHoldKey == HoldKey.Invalid)
                 {
                     if (DebugPlayerMoveToStatePhysics)
                         Console.WriteLine("Re-applying movement: " + LastMoveToState.RawMotionState.Flags);
