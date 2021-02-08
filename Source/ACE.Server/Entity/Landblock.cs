@@ -810,7 +810,7 @@ namespace ACE.Server.Entity
 
         private bool AddWorldObjectInternal(WorldObject wo)
         {
-            for (var i = 0; i < 6; i++)
+            for (var i = 0; i <= 5; i++)
             {
                 wo.CurrentLandblock = this;
 
