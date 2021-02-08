@@ -164,8 +164,8 @@ namespace ACE.Server.WorldObjects
                 // if mansion, send house owner from master copy
                 var houseOwner = HouseOwner;
                 var house = this as House;
-                if (house != null && (house.HouseType == HouseType.Villa || house.HouseType == HouseType.Mansion))
-                    houseOwner = house.RootHouse.HouseOwner;
+                if (house != null && house.HouseType == HouseType.Mansion)
+                    houseOwner = house.LinkedHouses[0].HouseOwner;
 
                 writer.Write(houseOwner ?? 0);
             }
