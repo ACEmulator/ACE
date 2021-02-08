@@ -840,9 +840,7 @@ namespace ACE.Server.Entity
                         {
                             log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}]{(i > 0 ? $", including {i} retries," : "")} at {wo.Location.ToLOCString()}{(wo.Generator != null ? $" from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid}:{wo.Generator.Name}" : "")}");
 
-                            var retryLOC = new Position(wo.Location);
-                            retryLOC.PositionZ += 0.05f * (wo.ObjScale ?? 1.0f);
-                            wo.Location = retryLOC;
+                            wo.Location.PositionZ += 0.05f * (wo.ObjScale ?? 1.0f);
 
                             continue;
                         }
