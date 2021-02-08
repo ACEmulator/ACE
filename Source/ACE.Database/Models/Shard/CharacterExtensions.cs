@@ -229,6 +229,8 @@ namespace ACE.Database.Models.Shard
                         QuestName = questName
                     };
 
+                    character.CharacterPropertiesQuestRegistry.Add(entity);
+
                     questRegistryWasCreated = true;
                 }
                 else
