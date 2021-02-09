@@ -84,6 +84,11 @@ namespace ACE.Server.Entity
         private readonly LinkedList<WorldObject> sortedGeneratorsByNextGeneratorUpdate = new LinkedList<WorldObject>();
         private readonly LinkedList<WorldObject> sortedGeneratorsByNextRegeneration = new LinkedList<WorldObject>();
 
+        /// <summary>
+        /// This is used to detect and manage cross-landblock group (which is potentially cross-thread) operations.
+        /// </summary>
+        public LandblockGroup CurrentLandblockGroup { get; internal set; }
+
         public List<Landblock> Adjacents = new List<Landblock>();
 
         private readonly ActionQueue actionQueue = new ActionQueue();
@@ -810,6 +815,41 @@ namespace ACE.Server.Entity
 
         private bool AddWorldObjectInternal(WorldObject wo)
         {
+            if (LandblockManager.CurrentlyTickingLandblockGroupsMultiThreaded)
+            {
+                if (CurrentLandblockGroup != null && CurrentLandblockGroup != LandblockManager.CurrentMultiThreadedTickingLandblockGroup.Value)
+                {
+                    log.Error($"Landblock 0x{Id} entered AddWorldObjectInternal in a cross-thread operation.");
+                    log.Error($"Landblock 0x{Id} CurrentLandblockGroup: {CurrentLandblockGroup}");
+                    log.Error($"LandblockManager.CurrentMultiThreadedTickingLandblockGroup.Value: {LandblockManager.CurrentMultiThreadedTickingLandblockGroup.Value}");
+
+                    log.Error($"wo: 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}], previous landblock 0x{wo.CurrentLandblock?.Id}");
+
+                    if (wo.WeenieType == WeenieType.ProjectileSpell)
+                    {
+                        if (wo.ProjectileSource != null)
+                            log.Error($"wo.ProjectileSource: 0x{wo.ProjectileSource?.Guid}:{wo.ProjectileSource?.Name}, position: {wo.ProjectileSource?.Location}");
+                        if (wo is SpellProjectile spellProjectile)
+                        {
+                            if (spellProjectile.Caster != null)
+                                log.Error($"wo.Caster: 0x{spellProjectile.Caster?.Guid}:{spellProjectile.Caster?.Name}, position: {spellProjectile.Caster?.Location}");
+                            if (spellProjectile.ProjectileTarget != null)
+                                log.Error($"wo.ProjectileTarget: 0x{spellProjectile.ProjectileTarget?.Guid}:{spellProjectile.ProjectileTarget?.Name}, position: {spellProjectile.ProjectileTarget?.Location}");
+                        }
+                    }
+
+                    log.Error(System.Environment.StackTrace);
+
+                    log.Error("PLEASE REPORT THIS TO THE ACE DEV TEAM !!!");
+
+                    // Prevent possible multi-threaded crash
+                    if (wo.WeenieType == WeenieType.ProjectileSpell)
+                        return false;
+
+                    // This may still crash...
+                }
+            }
+
             wo.CurrentLandblock = this;
 
             if (wo.PhysicsObj == null)
@@ -869,6 +909,24 @@ namespace ACE.Server.Entity
 
         private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false, bool showError = true)
         {
+            if (LandblockManager.CurrentlyTickingLandblockGroupsMultiThreaded)
+            {
+                if (CurrentLandblockGroup != null && CurrentLandblockGroup != LandblockManager.CurrentMultiThreadedTickingLandblockGroup.Value)
+                {
+                    log.Error($"Landblock 0x{Id} entered RemoveWorldObjectInternal in a cross-thread operation.");
+                    log.Error($"Landblock 0x{Id} CurrentLandblockGroup: {CurrentLandblockGroup}");
+                    log.Error($"LandblockManager.CurrentMultiThreadedTickingLandblockGroup.Value: {LandblockManager.CurrentMultiThreadedTickingLandblockGroup.Value}");
+
+                    log.Error($"objectId: 0x{objectId}");
+
+                    log.Error(System.Environment.StackTrace);
+
+                    log.Error("PLEASE REPORT THIS TO THE ACE DEV TEAM !!!");
+
+                    // This may still crash...
+                }
+            }
+
             if (worldObjects.TryGetValue(objectId, out var wo))
                 pendingRemovals.Add(objectId);
             else if (!pendingAdditions.Remove(objectId, out wo))
