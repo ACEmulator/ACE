@@ -29,6 +29,7 @@ namespace ACE.Server.WorldObjects
             GameMessageSystemChat sysMessage = new GameMessageSystemChat(message, messageType);
 
             PlayerManager.BroadcastToAll(sysMessage);
+            PlayerManager.LogBroadcastChat(Channel.AllBroadcast, this, message);
         }
 
         public override ACE.Entity.ObjDesc CalculateObjDesc()

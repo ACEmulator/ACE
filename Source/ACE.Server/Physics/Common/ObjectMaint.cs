@@ -74,6 +74,7 @@ namespace ACE.Server.Physics.Common
         /// Handles monsters targeting things they would not normally target
         /// - For faction mobs, retaliate against same-faction players and combat pets
         /// - For regular monsters, retaliate against faction mobs
+        /// - For regular monsters that do *not* have a FoeType, retaliate against monsters that are foes with this creature
         /// </summary>
         private Dictionary<uint, PhysicsObj> RetaliateTargets { get; } = new Dictionary<uint, PhysicsObj>();
 
@@ -409,7 +410,7 @@ namespace ACE.Server.Physics.Common
                 else
                 {
                     // adding faction mobs here, even though they are retaliate-only, for inverse visible targets
-                    results = objs.Where(i => i.IsPlayer || i.WeenieObj.IsCombatPet || i.WeenieObj.IsFactionMob);
+                    results = objs.Where(i => i.IsPlayer || i.WeenieObj.IsCombatPet || i.WeenieObj.IsFactionMob || i.WeenieObj.PotentialFoe(PhysicsObj));
                 }
             }
             return results;
@@ -664,6 +665,7 @@ namespace ACE.Server.Physics.Common
                     RemoveKnownPlayer(obj);
 
                 RemoveVisibleTarget(obj);
+                RemoveRetaliateTarget(obj);
             }
             finally
             {
@@ -908,7 +910,7 @@ namespace ACE.Server.Physics.Common
         /// - for monsters, contains players and combat pets
         /// - for combat pets, contains monsters
         /// </summary>
-        private bool AddVisibleTarget(PhysicsObj obj, bool clamp = true)
+        private bool AddVisibleTarget(PhysicsObj obj, bool clamp = true, bool foeType = false)
         {
             if (PhysicsObj.WeenieObj.IsCombatPet)
             {
@@ -939,8 +941,18 @@ namespace ACE.Server.Physics.Common
                     return false;
                 }
 
+                // handle special case:
+                // if obj has a FoeType of this creature, and this creature doesn't have a FoeType for obj,
+                // we only want to perform the inverse
+                if (obj.WeenieObj.FoeType != null && obj.WeenieObj.FoeType == PhysicsObj.WeenieObj.WorldObject?.CreatureType &&
+                    (PhysicsObj.WeenieObj.FoeType == null || obj.WeenieObj.WorldObject != null && PhysicsObj.WeenieObj.FoeType != obj.WeenieObj.WorldObject.CreatureType))
+                {
+                    obj.ObjMaint.AddVisibleTarget(PhysicsObj);
+                    return false;
+                }
+
                 // only tracking players and combat pets
-                if (!obj.IsPlayer && !obj.WeenieObj.IsCombatPet)
+                if (!obj.IsPlayer && !obj.WeenieObj.IsCombatPet && PhysicsObj.WeenieObj.FoeType == null)
                 {
                     Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add a non-player / non-combat pet");
                     return false;
@@ -1083,6 +1095,11 @@ namespace ACE.Server.Physics.Common
             }
         }
 
+        private bool RemoveRetaliateTarget(PhysicsObj obj)
+        {
+            return RetaliateTargets.Remove(obj.ID);
+        }
+
         /// <summary>
         /// Clears all of the ObjMaint tables for an object
         /// </summary>
@@ -1093,6 +1110,7 @@ namespace ACE.Server.Physics.Common
             DestructionQueue.Clear();
             KnownPlayers.Clear();
             VisibleTargets.Clear();
+            RetaliateTargets.Clear();
         }
 
         /// <summary>
@@ -1113,6 +1131,9 @@ namespace ACE.Server.Physics.Common
                     obj.ObjMaint.RemoveObject(PhysicsObj, false);
 
                 foreach (var obj in VisibleTargets.Values)
+                    obj.ObjMaint.RemoveObject(PhysicsObj, false);
+
+                foreach (var obj in RetaliateTargets.Values)
                     obj.ObjMaint.RemoveObject(PhysicsObj, false);
 
                 RemoveAllObjects();

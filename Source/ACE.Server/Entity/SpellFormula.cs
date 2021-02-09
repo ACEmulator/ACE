@@ -345,7 +345,7 @@ namespace ACE.Server.Entity
             for (var i = 0; i < Components.Count; i++)
             {
                 var component = Components[i];
-                if (IsScarab(component))
+                if (IsScarab(component) || component == 111)    // added: chorizite, as per client
                     FociFormula.Add(component);
             }
 

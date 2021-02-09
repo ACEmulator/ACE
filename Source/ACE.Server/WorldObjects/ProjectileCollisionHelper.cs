@@ -80,7 +80,7 @@ namespace ACE.Server.WorldObjects
 
                         if (!(targetCreature is CombatPet))
                         {
-                            // faction mobs
+                            // faction mobs and foetype
                             sourceCreature.MonsterOnAttackMonster(targetCreature);
                         }
                     }

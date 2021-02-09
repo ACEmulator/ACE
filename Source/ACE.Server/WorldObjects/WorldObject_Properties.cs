@@ -2004,6 +2004,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.FriendType); else SetProperty(PropertyInt.FriendType, (int)value.Value); }
         }
 
+        public CreatureType? FoeType
+        {
+            get => (CreatureType?)GetProperty(PropertyInt.FoeType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.FoeType); else SetProperty(PropertyInt.FoeType, (int)value.Value); }
+        }
+
         public string LongDesc
         {
             get => GetProperty(PropertyString.LongDesc);

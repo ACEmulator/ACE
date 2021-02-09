@@ -1022,6 +1022,8 @@ namespace ACE.Server.Command.Handlers.Processors
         {
             var sqlCommands = File.ReadAllText(sqlFile);
 
+            sqlCommands = sqlCommands.Replace("\r\n", "\n");
+
             // not sure why ExecuteSqlCommand doesn't parse this correctly..
             var idx = sqlCommands.IndexOf($"/* Lifestoned Changelog:");
             if (idx != -1)
@@ -2202,6 +2204,8 @@ namespace ACE.Server.Command.Handlers.Processors
                     mode = CacheType.Spell;
                 if (parameters[0].Contains("weenie", StringComparison.OrdinalIgnoreCase))
                     mode = CacheType.Weenie;
+                if (parameters[0].Contains("wield", StringComparison.OrdinalIgnoreCase))
+                    mode = CacheType.WieldedTreasure;
             }
 
             if (mode.HasFlag(CacheType.Landblock))
@@ -2228,17 +2232,24 @@ namespace ACE.Server.Command.Handlers.Processors
                 CommandHandlerHelper.WriteOutputInfo(session, "Clearing weenie cache");
                 DatabaseManager.World.ClearWeenieCache();
             }
+
+            if (mode.HasFlag(CacheType.WieldedTreasure))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Clearing wielded treasure cache");
+                DatabaseManager.World.ClearWieldedTreasureCache();
+            }
         }
 
         [Flags]
         public enum CacheType
         {
-            None      = 0x0,
-            Landblock = 0x1,
-            Recipe    = 0x2,
-            Spell     = 0x4,
-            Weenie    = 0x8,
-            All       = 0xFFFF
+            None            = 0x0,
+            Landblock       = 0x1,
+            Recipe          = 0x2,
+            Spell           = 0x4,
+            Weenie          = 0x8,
+            WieldedTreasure = 0x10,
+            All             = 0xFFFF
         };
 
         public static FileType GetFileType(string filename)

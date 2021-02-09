@@ -285,7 +285,7 @@ namespace ACE.Server.Entity
                     case SpellCategory.SpellDamageRaising:
                         return true;
                 }
-                return true;
+                return false;
             }
         }
 

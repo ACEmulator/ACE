@@ -38,7 +38,7 @@ namespace ACE.Server.WorldObjects
                 if (MonsterState == State.Return)
                     MonsterState = State.Idle;
 
-                if (IsFactionMob)
+                if (IsFactionMob || HasFoeType)
                     FactionMob_CheckMonsters();
 
                 return;

@@ -19,7 +19,6 @@ using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
 using WeenieClassName = ACE.Server.Factories.Enum.WeenieClassName;
-using System.Drawing.Drawing2D;
 
 namespace ACE.Server.Factories
 {
