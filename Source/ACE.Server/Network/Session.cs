@@ -207,6 +207,8 @@ namespace ACE.Server.Network
 
         private void SendFinalLogOffMessages()
         {
+            if (Player == null) return;
+
             // If we still exist on a landblock, we can't exit yet.
             if (Player.CurrentLandblock != null)
                 return;
