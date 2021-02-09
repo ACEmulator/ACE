@@ -317,7 +317,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                if (Allegiance != null)
+                if (Allegiance?.Sanctuary != null)
                     Teleport(Allegiance.Sanctuary);
             });
 
