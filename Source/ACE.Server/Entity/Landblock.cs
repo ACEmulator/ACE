@@ -850,7 +850,7 @@ namespace ACE.Server.Entity
                 }
             }
           
-            for (var i = 0; i <= 5; i++)
+            for (var i = 0; i < 5; i++)
             {
                 wo.CurrentLandblock = this;
 
@@ -876,9 +876,9 @@ namespace ACE.Server.Entity
                         //else if (wo.ProjectileTarget == null && !(wo is SpellProjectile))
                         //    log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()}");
 
-                        if (i < 5)
+                        if (i < 4)
                         {
-                            log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}]{(i > 0 ? $", including {i} retries," : "")} at {wo.Location.ToLOCString()}{(wo.Generator != null ? $" from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid}:{wo.Generator.Name}" : "")}");
+                            //log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}]{(i > 0 ? $", including {i} retries," : "")} at {wo.Location.ToLOCString()}{(wo.Generator != null ? $" from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid}:{wo.Generator.Name}" : "")}");
 
                             wo.Location.PositionZ += 0.05f * (wo.ObjScale ?? 1.0f);
 
@@ -887,7 +887,7 @@ namespace ACE.Server.Entity
                         else
                         {
                             if (wo.ProjectileTarget == null && !(wo is SpellProjectile))
-                                log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}], including {i} retries, at {wo.Location.ToLOCString()}{(wo.Generator != null ? $" from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid}:{wo.Generator.Name}" : "")}");
+                                log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}], including {i + 1} retries, at {wo.Location.ToLOCString()}{(wo.Generator != null ? $" from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid}:{wo.Generator.Name}" : "")}");
 
                             if (wo.Generator != null)
                                 wo.NotifyOfEvent(RegenerationType.PickUp); // Notify generator the generated object is effectively destroyed, use Pickup to catch both cases.
@@ -897,8 +897,8 @@ namespace ACE.Server.Entity
                     }
                     else
                     {
-                        if (i > 0)
-                            log.Debug($"AddWorldObjectInternal: successfully spawned 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] after {i} retries at {wo.Location.ToLOCString()}{(wo.Generator != null ? $" from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid}:{wo.Generator.Name}" : "")}");
+                        //if (i > 0)
+                        //    log.Debug($"AddWorldObjectInternal: successfully spawned 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] after {i} retries at {wo.Location.ToLOCString()}{(wo.Generator != null ? $" from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid}:{wo.Generator.Name}" : "")}");
                         break;
                     }
                 }
