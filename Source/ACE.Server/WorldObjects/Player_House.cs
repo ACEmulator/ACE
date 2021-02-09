@@ -520,6 +520,7 @@ namespace ACE.Server.WorldObjects
             // set house properties
             house.HouseOwner = Guid.Full;
             house.HouseOwnerName = Name;
+            house.OpenToEveryone = false;
             house.SaveBiotaToDatabase();
             
             // relink
