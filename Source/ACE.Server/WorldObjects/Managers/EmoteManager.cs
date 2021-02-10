@@ -555,6 +555,7 @@ namespace ACE.Server.WorldObjects.Managers
                         var numRequired = emote.StackSize ?? 1;
 
                         var items = player.GetInventoryItemsOfWCID(emote.WeenieClassId ?? 0);
+                        items.AddRange(player.GetEquippedObjectsOfWCID(emote.WeenieClassId ?? 0));
                         var numItems = items.Sum(i => i.StackSize ?? 1);
 
                         success = numItems >= numRequired;
