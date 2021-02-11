@@ -106,6 +106,19 @@ namespace ACE.Database.Models.Shard
         // CharacterPropertiesFriendList
         // =====================================
 
+        public static List<CharacterPropertiesFriendList> GetFriends(this Character character, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesFriendList.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
         public static bool HasAsFriend(this Character character, uint friendId, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
@@ -442,6 +455,19 @@ namespace ACE.Database.Models.Shard
         // =====================================
         // CharacterPropertiesTitleBook
         // =====================================
+
+        public static List<CharacterPropertiesTitleBook> GetTitles(this Character character, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesTitleBook.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
 
         public static void AddTitleToRegistry(this Character character, uint title, ReaderWriterLockSlim rwLock, out bool titleAlreadyExists, out int numCharacterTitles)
         {
