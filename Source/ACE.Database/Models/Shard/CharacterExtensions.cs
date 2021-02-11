@@ -11,6 +11,122 @@ namespace ACE.Database.Models.Shard
         // CharacterPropertiesContract
         // =====================================
 
+        public static List<CharacterPropertiesContractRegistry> GetContracts(this Character character, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesContractRegistry.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static int GetContractsCount(this Character character, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesContractRegistry.Count;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static List<uint> GetContractsIds(this Character character, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesContractRegistry.Select(r => r.ContractId).ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static CharacterPropertiesContractRegistry GetContract(this Character character, uint contractId, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesContractRegistry.FirstOrDefault(c => c.ContractId == contractId);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static CharacterPropertiesContractRegistry GetOrCreateContract(this Character character, uint contractId, ReaderWriterLockSlim rwLock, out bool contractWasCreated)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                var entity = character.CharacterPropertiesContractRegistry.FirstOrDefault(c => c.ContractId == contractId);
+
+                if (entity == null)
+                {
+                    entity = new CharacterPropertiesContractRegistry
+                    {
+                        ContractId = contractId
+                    };
+
+                    character.CharacterPropertiesContractRegistry.Add(entity);
+
+                    contractWasCreated = true;
+                }
+                else
+                    contractWasCreated = false;
+
+                return entity;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        public static bool EraseContract(this Character character, uint contractId, out CharacterPropertiesContractRegistry contractErased, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                contractErased = character.CharacterPropertiesContractRegistry.FirstOrDefault(c => c.ContractId == contractId);
+
+                if (contractErased == null)
+                    return false;
+
+                character.CharacterPropertiesContractRegistry.Remove(contractErased);
+
+                return true;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        public static void EraseAllContracts(this Character character, out List<CharacterPropertiesContractRegistry> contractsErased, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                contractsErased = character.CharacterPropertiesContractRegistry.ToList();
+
+                character.CharacterPropertiesContractRegistry.Clear();
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
 
         // =====================================
         // CharacterPropertiesFillCompBook
