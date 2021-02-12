@@ -208,7 +208,7 @@ namespace ACE.Server.Network
         private void SendFinalLogOffMessages()
         {
             // If we still exist on a landblock, we can't exit yet.
-            if (Player.CurrentLandblock != null)
+            if (Player?.CurrentLandblock != null)
                 return;
 
             logOffRequestTime = DateTime.MinValue;
@@ -217,8 +217,8 @@ namespace ACE.Server.Network
             // This message can be received/processed by the server AFTER LogOfPlayer has been called.
             // What that means is, we could end up with Character changes after the Character has been saved from the initial LogOff request.
             // To make sure we commit these additional changes (if any), we check again here
-            if (Player.CharacterChangesDetected)
-                Player.SaveCharacterToDatabase();
+            if (Player?.CharacterChangesDetected ?? false)
+                Player?.SaveCharacterToDatabase();
 
             Player = null;
 
