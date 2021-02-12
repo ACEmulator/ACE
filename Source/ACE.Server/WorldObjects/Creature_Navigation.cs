@@ -366,7 +366,7 @@ namespace ACE.Server.WorldObjects
                     UpdatePosition_SyncLocation();
                     SendUpdatePosition();
 
-                    if (PhysicsObj.MovementManager.MoveToManager.FailProgressCount < 10)
+                    if (PhysicsObj?.MovementManager?.MoveToManager?.FailProgressCount < 10)
                         AddMoveToTick();
 
                     //Console.WriteLine($"{Name}.Position: {Location}");
