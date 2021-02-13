@@ -1,3 +1,5 @@
+using ACE.Database.Models.Shard;
+
 namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventCharacterTitle : GameEventMessage
@@ -7,9 +9,12 @@ namespace ACE.Server.Network.GameEvent.Events
         {
             Writer.Write(1u);
             Writer.Write(session.Player.CharacterTitleId ?? 0);
-            session.Player.NumCharacterTitles = session.Player.Character.CharacterPropertiesTitleBook.Count;
+
+            var titles = session.Player.Character.GetTitles(session.Player.CharacterDatabaseLock);
+
+            session.Player.NumCharacterTitles = titles.Count;
             Writer.Write(session.Player.NumCharacterTitles ?? 0);
-            foreach (var title in session.Player.Character.CharacterPropertiesTitleBook)
+            foreach (var title in titles)
                 Writer.Write(title.TitleId);
         }
     }
