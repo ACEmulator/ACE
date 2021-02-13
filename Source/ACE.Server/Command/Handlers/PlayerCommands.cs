@@ -41,13 +41,15 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            if (session.Player.QuestManager.Quests.Count == 0)
+            var quests = session.Player.QuestManager.GetQuests();
+
+            if (quests.Count == 0)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat("Quest list is empty.", ChatMessageType.Broadcast));
                 return;
             }
 
-            foreach (var playerQuest in session.Player.QuestManager.Quests)
+            foreach (var playerQuest in quests)
             {
                 var text = "";
                 var questName = QuestManager.GetQuestName(playerQuest.QuestName);

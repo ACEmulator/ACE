@@ -189,6 +189,97 @@ namespace ACE.Database.Models.Shard
         // CharacterPropertiesQuestRegistry
         // =====================================
 
+        public static List<CharacterPropertiesQuestRegistry> GetQuests(this Character character, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesQuestRegistry.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static CharacterPropertiesQuestRegistry GetQuest(this Character character, string questName, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesQuestRegistry.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static CharacterPropertiesQuestRegistry GetOrCreateQuest(this Character character, string questName, ReaderWriterLockSlim rwLock, out bool questRegistryWasCreated)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                var entity = character.CharacterPropertiesQuestRegistry.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+
+                if (entity == null)
+                {
+                    entity = new CharacterPropertiesQuestRegistry
+                    {
+                        QuestName = questName
+                    };
+
+                    character.CharacterPropertiesQuestRegistry.Add(entity);
+
+                    questRegistryWasCreated = true;
+                }
+                else
+                    questRegistryWasCreated = false;
+
+                return entity;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        public static bool EraseQuest(this Character character, string questName, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                var entity = character.CharacterPropertiesQuestRegistry.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+
+                if (entity == null)
+                    return false;
+
+                character.CharacterPropertiesQuestRegistry.Remove(entity);
+
+                return true;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        public static void EraseAllQuests(this Character character, out List<string> questNamesErased, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                questNamesErased = character.CharacterPropertiesQuestRegistry.Select(r => r.QuestName).ToList();
+
+                character.CharacterPropertiesQuestRegistry.Clear();
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+
         // =====================================
         // CharacterPropertiesShortcutBar
         // =====================================

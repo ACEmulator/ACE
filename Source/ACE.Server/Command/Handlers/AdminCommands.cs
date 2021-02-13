@@ -2379,7 +2379,7 @@ namespace ACE.Server.Command.Handlers
                     var questsHdr = $"Quest Registry for {creature.Name} (0x{creature.Guid}):\n";
                     questsHdr += "================================================\n";
                     var quests = "";
-                    foreach (var quest in creature.QuestManager.Quests)
+                    foreach (var quest in creature.QuestManager.GetQuests())
                     {
                         quests += $"Quest Name: {quest.QuestName}\nCompletions: {quest.NumTimesCompleted} | Last Completion: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
                         var nextSolve = creature.QuestManager.GetNextSolveTime(quest.QuestName);
