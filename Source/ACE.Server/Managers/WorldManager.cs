@@ -112,7 +112,7 @@ namespace ACE.Server.Managers
         {
             Player player;
 
-            Player.HandleNoLogLandblock(playerBiota);
+            Player.HandleNoLogLandblock(playerBiota, out var playerLoggedInOnNoLogLandblock);
 
             var stripAdminProperties = false;
             var addAdminProperties = false;
@@ -261,6 +261,9 @@ namespace ACE.Server.Managers
             var server_motd = PropertyManager.GetString("server_motd").Item;
             if (!string.IsNullOrEmpty(server_motd))
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{server_motd}\n", ChatMessageType.Broadcast));
+
+            if (playerLoggedInOnNoLogLandblock) // see http://acpedia.org/wiki/Mount_Elyrii_Hive
+                session.Network.EnqueueSend(new GameMessageSystemChat("The currents of portal space cannot return you from whence you came. Your previous location forbids login.", ChatMessageType.Broadcast));
         }
 
         private static string AppendLines(params string[] lines)
