@@ -889,6 +889,23 @@ namespace ACE.Server.Entity
             if (wo is Player player)
                 player.SetFogColor(FogColor);
 
+            if (wo is Corpse && wo.Level.HasValue)
+            {
+                var corpseLimit = PropertyManager.GetLong("corpse_spam_limit").Item;
+                var corpseList = worldObjects.Values.Union(pendingAdditions.Values).Where(w => w is Corpse && w.Level.HasValue && w.VictimId == wo.VictimId).OrderBy(w => w.CreationTimestamp);
+
+                if (corpseList.Count() > corpseLimit)
+                {
+                    var corpse = GetObject(corpseList.First(w => w.TimeToRot > Corpse.EmptyDecayTime).Guid);
+
+                    if (corpse != null)
+                    {
+                        log.Warn($"[CORPSE] Landblock.AddWorldObjectInternal(): {wo.Name} (0x{wo.Guid}) exceeds the per player limit of {corpseLimit} corpses for 0x{Id.Landblock:X4}. Adjusting TimeToRot for oldest {corpse.Name} (0x{corpse.Guid}), CreationTimestamp: {corpse.CreationTimestamp} ({Common.Time.GetDateTimeFromTimestamp(corpse.CreationTimestamp ?? 0).ToLocalTime():yyyy-MM-dd HH:mm:ss}), to Corpse.EmptyDecayTime({Corpse.EmptyDecayTime}).");
+                        corpse.TimeToRot = Corpse.EmptyDecayTime;
+                    }
+                }
+            }
+
             return true;
         }
 
