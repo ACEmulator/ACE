@@ -179,7 +179,12 @@ namespace ACE.Server.Network.Handlers
 
                     if (previouslyConnectedAccount != null)
                     {
+                        // Boot the existing account
                         previouslyConnectedAccount.Terminate(SessionTerminationReason.AccountLoggedIn, new GameMessageCharacterError(CharacterError.Logon));
+
+                        // We still can't let the new account in. They'll need to retry after the previous account has been successfully booted.
+                        session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.Logon));
+                        return;
                     }
                 }
 
