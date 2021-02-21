@@ -243,7 +243,7 @@ namespace ACE.Server.WorldObjects
 
         public void SendContractTrackerTable()
         {
-            if (ContractManager.Contracts.Count > 0)
+            if (Character.GetContractsCount(CharacterDatabaseLock) > 0)
                 Session.Network.EnqueueSend(new GameEventSendClientContractTrackerTable(Session));
         }
 

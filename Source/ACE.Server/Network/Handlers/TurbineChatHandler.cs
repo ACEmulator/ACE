@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Text;
 
 using ACE.Entity.Enum;
@@ -7,6 +8,8 @@ using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
+
+using log4net;
 
 namespace ACE.Server.Network.Handlers
 {
@@ -210,9 +213,55 @@ namespace ACE.Server.Network.Handlers
 
                     session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                 }
+
+                LogTurbineChat(channelID, session.Player.Name, message, senderID, chatType);
             }
             else
                 Console.WriteLine($"Unhandled TurbineChatHandler ChatNetworkBlobType: 0x{(uint)chatBlobType:X4}");
+        }
+
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private static void LogTurbineChat(uint channelID, string name, string message, uint senderID, ChatType chatType)
+        {
+            switch (chatType)
+            {
+                case ChatType.Allegiance:
+                    if (!PropertyManager.GetBool("chat_log_allegiance").Item)
+                        return;
+                    break;
+                case ChatType.General:
+                    if (!PropertyManager.GetBool("chat_log_general").Item)
+                        return;
+                    break;
+                case ChatType.LFG:
+                    if (!PropertyManager.GetBool("chat_log_lfg").Item)
+                        return;
+                    break;
+                case ChatType.Olthoi:
+                    if (!PropertyManager.GetBool("chat_log_olthoi").Item)
+                        return;
+                    break;
+                case ChatType.Roleplay:
+                    if (!PropertyManager.GetBool("chat_log_roleplay").Item)
+                        return;
+                    break;
+                case ChatType.Society:
+                case ChatType.SocietyCelHan:
+                case ChatType.SocietyEldWeb:
+                case ChatType.SocietyRadBlo:
+                    if (!PropertyManager.GetBool("chat_log_society").Item)
+                        return;
+                    break;
+                case ChatType.Trade:
+                    if (!PropertyManager.GetBool("chat_log_trade").Item)
+                        return;
+                    break;
+                default:
+                    return;
+            }
+
+            log.Info($"[CHAT][{chatType}]{(chatType == ChatType.Allegiance ? $"[{channelID}]" : "")} {name} says, \"{message}\"");
         }
     }
 }
