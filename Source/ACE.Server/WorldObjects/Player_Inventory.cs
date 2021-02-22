@@ -3096,5 +3096,67 @@ namespace ACE.Server.WorldObjects
                 HandleActionPutItemInContainer(dequipItem.Guid.Full, Guid.Full);
             }
         }
+
+        /// <summary>
+        /// Returns the Equipped items matching a weenie class id
+        /// </summary>
+        public List<WorldObject> GetEquippedObjectsOfWCID(uint weenieClassId)
+        {
+            return EquippedObjects.Values.Where(i => i.WeenieClassId == weenieClassId).ToList();
+        }
+
+        public bool TryConsumeFromEquippedObjectsWithNetworking(uint wcid, int amount = int.MaxValue)
+        {
+            var items = GetEquippedObjectsOfWCID(wcid);
+
+            var leftReq = amount;
+            foreach (var item in items)
+            {
+                var removeNum = Math.Min(leftReq, item.StackSize ?? 1);
+                if (!TryConsumeFromEquippedObjectsWithNetworking(item, removeNum))
+                    return false;
+
+                leftReq -= removeNum;
+                if (leftReq <= 0)
+                    break;
+            }
+            return true;
+        }
+
+        public bool TryConsumeFromEquippedObjectsWithNetworking(WorldObject item, int amount = int.MaxValue)
+        {
+            if (amount >= (item.StackSize ?? 1))
+            {
+                if (!TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.ConsumeItem))
+                    return false;
+            }
+            else
+            {
+                var stack = FindObject(item.Guid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out var stackFoundInContainer, out var stackRootOwner, out _);
+
+                if (stack == null || stackRootOwner == null)
+                    return false;
+
+                if (!AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner))
+                    return false;
+
+                Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
+            }
+
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+            if (item.WeenieType == WeenieType.Coin)
+                UpdateCoinValue();
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns the total # of equipped objects matching a wcid
+        /// </summary>
+        public int GetNumEquippedObjectsOfWCID(uint weenieClassId)
+        {
+            return GetEquippedObjectsOfWCID(weenieClassId).Select(i => i.StackSize ?? 1).Sum();
+        }
     }
 }

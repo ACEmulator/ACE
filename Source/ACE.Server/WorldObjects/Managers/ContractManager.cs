@@ -140,7 +140,7 @@ namespace ACE.Server.WorldObjects.Managers
 
             var contract = Player.Character.GetOrCreateContract(contractId, Player.CharacterDatabaseLock, out var contractWasCreated);
 
-            if (!contractWasCreated)
+            if (contractWasCreated)
             {
                 // add new contract entry
                 contract.DeleteContract = false;

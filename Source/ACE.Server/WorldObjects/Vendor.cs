@@ -230,7 +230,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            if (!PropertyManager.GetBool("vendor_shop_uses_generator").Item && Biota.PropertiesGenerator != null)
+            if (Biota.PropertiesGenerator != null && !PropertyManager.GetBool("vendor_shop_uses_generator").Item)
             {
                 foreach (var item in Biota.PropertiesGenerator.Where(x => x.WhereCreate.HasFlag(RegenLocationType.Shop)))
                 {
