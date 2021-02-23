@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
@@ -150,12 +151,18 @@ namespace ACE.Server.WorldObjects
             if (dist <= MeleeDistance || dist <= StickyDistance && IsMeleeVisible(target))
             {
                 // sticky melee
-                var rotateTime = Rotate(target);
+                var angle = GetAngle(target);
+                if (angle > PropertyManager.GetDouble("melee_max_angle").Item)
+                {
+                    var rotateTime = Rotate(target);
 
-                var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(rotateTime);
-                actionChain.AddAction(this, () => Attack(target, attackSequence));
-                actionChain.EnqueueChain();
+                    var actionChain = new ActionChain();
+                    actionChain.AddDelaySeconds(rotateTime);
+                    actionChain.AddAction(this, () => Attack(target, attackSequence));
+                    actionChain.EnqueueChain();
+                }
+                else
+                    Attack(target, attackSequence);
             }
             else
             {
