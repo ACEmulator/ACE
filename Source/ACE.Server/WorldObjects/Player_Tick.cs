@@ -321,6 +321,9 @@ namespace ACE.Server.WorldObjects
                         Console.WriteLine("Re-applying movement: " + LastMoveToState.RawMotionState.Flags);
 
                     OnMoveToState(LastMoveToState);
+
+                    // re-broadcast MoveToState to other clients only
+                    EnqueueBroadcast(false, new GameMessageUpdateMotion(this, CurrentMovementData));
                 }
                 LastMoveToState = null;
             }
