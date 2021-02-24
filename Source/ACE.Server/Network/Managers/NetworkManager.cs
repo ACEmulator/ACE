@@ -151,7 +151,7 @@ namespace ACE.Server.Network.Managers
                         if (session.EndPoint.Equals(endPoint))
                             session.ProcessPacket(packet);
                         else
-                            log.WarnFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
+                            log.DebugFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
                     }
                     else
                     {
