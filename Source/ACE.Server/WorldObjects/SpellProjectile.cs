@@ -32,7 +32,7 @@ namespace ACE.Server.WorldObjects
 
         public SpellProjectileInfo Info { get; set; }
 
-        public bool DebugVelocity;
+        public int DebugVelocity;
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.

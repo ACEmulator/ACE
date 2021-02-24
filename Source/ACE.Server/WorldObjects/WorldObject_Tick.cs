@@ -332,11 +332,13 @@ namespace ACE.Server.WorldObjects
 
                 if (this is SpellProjectile spellProjectile)
                 {
-                    if (spellProjectile.Velocity == Vector3.Zero && !spellProjectile.DebugVelocity)
+                    if (spellProjectile.Velocity == Vector3.Zero && spellProjectile.DebugVelocity < 30)
                     {
                         // todo: ensure this doesn't produce any false positives, then add mitigation code until fully debugged
-                        log.Error($"Spell projectile w/ zero velocity detected @ {spellProjectile.Location.ToLOCString()}, launched by {spellProjectile.Caster?.Name} ({spellProjectile.Caster?.Guid}), spell ID {spellProjectile.Spell?.Id} - {spellProjectile.Spell?.Name}");
-                        spellProjectile.DebugVelocity = true;
+                        spellProjectile.DebugVelocity++;
+
+                        if (spellProjectile.DebugVelocity == 30)
+                            log.Error($"Spell projectile w/ zero velocity detected @ {spellProjectile.Location.ToLOCString()}, launched by {spellProjectile.Caster?.Name} ({spellProjectile.Caster?.Guid}), spell ID {spellProjectile.Spell?.Id} - {spellProjectile.Spell?.Name}");
                     }
 
                     if (spellProjectile.SpellType == ProjectileSpellType.Ring)
