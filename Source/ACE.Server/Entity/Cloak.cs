@@ -28,6 +28,11 @@ namespace ACE.Server.Entity
             return HandleProcSpell(defender, attacker, cloak);
         }
 
+        private static readonly float MaxProcBase = 0.25f;
+        private static readonly float MaxProcBase200 = 0.15f;
+
+        private static readonly float TwoThirds = 2.0f / 3.0f;
+
         /// <summary>
         /// Rolls for a chance at procing a cloak spell
         /// </summary>
@@ -46,7 +51,15 @@ namespace ACE.Server.Entity
 
             if (itemLevel < 1) return false;
 
-            var maxProcRate = 0.25f + (itemLevel - 1) * 0.0125f;
+            var maxProcBase = MaxProcBase;
+
+            if (HasDamageProc(cloak))
+            {
+                maxProcBase = MaxProcBase200;
+                damage_percent *= TwoThirds;
+            }
+
+            var maxProcRate = maxProcBase + (itemLevel - 1) * 0.0125f;
 
             var chance = Math.Min(damage_percent, maxProcRate);
 
