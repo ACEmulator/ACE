@@ -1,6 +1,9 @@
 using System;
+using System.Linq;
+
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -36,9 +39,21 @@ namespace ACE.Server.WorldObjects
         /// Returns a 0.xx rating modifier by default,
         /// or a 1.xx rating modifier if negative
         /// </summary>
-        public static float GetNegativeRatingMod(int rating)
+        public static float GetNegativeRatingMod(int rating, bool allowBug = false)
         {
-            if (rating < 0) return GetPositiveRatingMod(-rating);
+            if (rating < 0 && !allowBug)
+                return GetPositiveRatingMod(-rating);
+
+            if (allowBug)
+            {
+                // with the bug allowed for DRR reduction from void dots,
+                // this method will produce unbalanced modifiers for negative ratings
+                // as negative rating approaches -100, it ramps up in a curve to infinity, eventually getting a divide by 0 crash for -100
+                // values less than -100 would produce negative multipliers, which would result in undefined behavior throughout the system,
+                // such as negative damage numbers. even with the bug enabled, we still limit to -99 on the lower end to prevent system failure
+
+                rating = Math.Max(rating, -99);
+            }
 
             // formula: 100 / (100 + rating) = 0.xx modifier
             var ratingMod = 100.0f / (100 + rating);
@@ -192,6 +207,9 @@ namespace ACE.Server.WorldObjects
             // additive enchantments
             var enchantments = EnchantmentManager.GetRating(PropertyInt.DamageRating);
 
+            // equipment ratings
+            var equipment = GetEquippedItemsRatingSum(PropertyInt.GearDamage);
+
             // weakness as negative damage rating?
             // TODO: this should be factored in as a separate weakness rating...
             var weaknessRating = EnchantmentManager.GetRating(PropertyInt.WeaknessRating);
@@ -206,7 +224,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // heritage / weapon type bonus factored in elsewhere?
-            return damageRating + enchantments - weaknessRating + augBonus + lumAugBonus;
+            return damageRating + equipment + enchantments - weaknessRating + augBonus + lumAugBonus;
         }
 
         public int GetDamageResistRating(CombatType? combatType = null, bool directDamage = true)
@@ -216,6 +234,9 @@ namespace ACE.Server.WorldObjects
 
             // additive enchantments
             var enchantments = EnchantmentManager.GetRating(PropertyInt.DamageResistRating);
+
+            // equipment ratings
+            var equipment = GetEquippedItemsRatingSum(PropertyInt.GearDamageResist);
 
             // nether DoTs as negative DRR?
             // TODO: this should be factored in as a separate nether damage rating...
@@ -232,7 +253,16 @@ namespace ACE.Server.WorldObjects
                 specBonus = GetSpecDefenseBonus(combatType);
             }
 
-            return damageResistRating + enchantments - netherDotDamageRating + augBonus + lumAugBonus + specBonus;
+            return damageResistRating + equipment + enchantments - netherDotDamageRating + augBonus + lumAugBonus + specBonus;
+        }
+
+        public float GetDamageResistRatingMod(CombatType? combatType = null, bool directDamage = true)
+        {
+            var damageResistRating = GetDamageResistRating(combatType, directDamage);
+
+            var allowBug = PropertyManager.GetBool("allow_negative_rating_curve").Item;
+
+            return GetNegativeRatingMod(damageResistRating, allowBug);
         }
 
         public int GetSpecDefenseBonus(CombatType? combatType)
@@ -289,6 +319,9 @@ namespace ACE.Server.WorldObjects
             // additive enchantments
             var enchantments = EnchantmentManager.GetRating(PropertyInt.CritDamageRating);
 
+            // equipment ratings
+            var equipment = GetEquippedItemsRatingSum(PropertyInt.GearCritDamage);
+
             // augmentations
             var augBonus = 0;
             var lumAugBonus = 0;
@@ -299,7 +332,7 @@ namespace ACE.Server.WorldObjects
                 lumAugBonus = player.LumAugCritDamageRating;
             }
 
-            return critDamageRating + enchantments + augBonus + lumAugBonus;
+            return critDamageRating + equipment + enchantments + augBonus + lumAugBonus;
         }
 
         public int GetCritResistRating()
@@ -324,11 +357,14 @@ namespace ACE.Server.WorldObjects
             // additive enchantments
             var enchantments = EnchantmentManager.GetRating(PropertyInt.CritDamageResistRating);
 
+            // equipment ratings
+            var equipment = GetEquippedItemsRatingSum(PropertyInt.GearCritDamageResist);
+
             var lumAugBonus = 0;
             if (this is Player player)
                 lumAugBonus = player.LumAugCritReductionRating;
 
-            return critDamageResistRating + enchantments + lumAugBonus;
+            return critDamageResistRating + equipment + enchantments + lumAugBonus;
         }
 
         public int GetHealingBoostRating()
@@ -339,11 +375,14 @@ namespace ACE.Server.WorldObjects
             // additive enchantments
             var enchantments = EnchantmentManager.GetRating(PropertyInt.HealingBoostRating);
 
+            // equipment ratings
+            var equipment = GetEquippedItemsRatingSum(PropertyInt.GearHealingBoost);
+
             var lumAugBonus = 0;
             if (this is Player player)
                 lumAugBonus = player.LumAugHealingRating;
 
-            return healBoostRating + enchantments + lumAugBonus;
+            return healBoostRating + equipment + enchantments + lumAugBonus;
         }
 
         public int GetHealingResistRating()
@@ -411,8 +450,7 @@ namespace ACE.Server.WorldObjects
 
         public int GetGearMaxHealth()
         {
-            // ??
-            return 0;
+            return GetEquippedItemsRatingSum(PropertyInt.GearMaxHealth);
         }
 
         public int GetPKDamageRating()

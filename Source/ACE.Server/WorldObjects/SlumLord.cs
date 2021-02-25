@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
+
 using ACE.Database;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
@@ -114,7 +114,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<WorldObject> GetBuyItems()
         {
-            return GetCreateList(DestinationType.HouseBuy);
+            return GetCreateListForSlumLord(DestinationType.HouseBuy);
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<WorldObject> GetRentItems()
         {
-            return GetCreateList(DestinationType.HouseRent);
+            return GetCreateListForSlumLord(DestinationType.HouseRent);
         }
 
         /// <summary>
@@ -158,7 +158,7 @@ namespace ACE.Server.WorldObjects
             if (allegianceMinLevel == -1)
                 allegianceMinLevel = AllegianceMinLevel.Value;
 
-            if (player.Allegiance == null || player.AllegianceNode.Rank < allegianceMinLevel)
+            if (allegianceMinLevel > 0 && (player.Allegiance == null || player.AllegianceNode.Rank < allegianceMinLevel))
             {
                 Console.WriteLine($"{Name}.HasRequirements({player.Name}) - allegiance rank {player.AllegianceNode?.Rank ?? 0} < {allegianceMinLevel}");
                 return false;

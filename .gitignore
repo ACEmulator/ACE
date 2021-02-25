@@ -288,6 +288,16 @@ __pycache__/
 *.odx.cs
 *.xsd.cs
 
+# ACEmulator specific folders
+Config/
+Dats/
+Logs/
+db-data/
+AppVeyor/
+
 # ACEmulator specific files
-/Source/ACE.Server/config.js
+Source/ACE.Server/config.js
 Database/tools/password.txt
+Source/ACE.Server/log4net.config
+docker.env
+docker-compose.yml

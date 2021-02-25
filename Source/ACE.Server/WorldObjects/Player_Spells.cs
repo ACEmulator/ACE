@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -18,7 +21,7 @@ namespace ACE.Server.WorldObjects
     {
         public bool SpellIsKnown(uint spellId)
         {
-            return Biota.SpellIsKnown((int)spellId, BiotaDatabaseLock, BiotaPropertySpells);
+            return Biota.SpellIsKnown((int)spellId, BiotaDatabaseLock);
         }
 
         /// <summary>
@@ -26,7 +29,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool AddKnownSpell(uint spellId)
         {
-            Biota.GetOrAddKnownSpell((int)spellId, BiotaDatabaseLock, BiotaPropertySpells, out var spellAdded);
+            Biota.GetOrAddKnownSpell((int)spellId, BiotaDatabaseLock, out var spellAdded);
 
             if (spellAdded)
                 ChangesDetected = true;
@@ -39,7 +42,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool RemoveKnownSpell(uint spellId)
         {
-            return Biota.TryRemoveKnownSpell((int)spellId, out _, BiotaDatabaseLock, BiotaPropertySpells);
+            return Biota.TryRemoveKnownSpell((int)spellId, BiotaDatabaseLock);
         }
 
         public void LearnSpellWithNetworking(uint spellId, bool uiOutput = true)
@@ -102,7 +105,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionMagicRemoveSpellId(uint spellId)
         {
-            if (!Biota.TryRemoveKnownSpell((int)spellId, BiotaDatabaseLock, BiotaPropertySpells))
+            if (!Biota.TryRemoveKnownSpell((int)spellId, BiotaDatabaseLock))
             {
                 log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
                 return;
@@ -240,12 +243,11 @@ namespace ACE.Server.WorldObjects
                     var critterBuffsForPlayer = buffsForPlayer.Where(k => k.Spell.School == MagicSchool.CreatureEnchantment).ToList();
                     var itemBuffsForPlayer = buffsForPlayer.Where(k => k.Spell.School == MagicSchool.ItemEnchantment).ToList();
 
-                    bool crit = false;
                     uint dmg = 0;
                     EnchantmentStatus ec;
                     lifeBuffsForPlayer.ForEach(spl =>
                     {
-                        bool casted = targetPlayer.LifeMagic(spl.Spell, out dmg, out crit, out ec, targetPlayer, this);
+                        bool casted = targetPlayer.LifeMagic(spl.Spell, out dmg, out ec, targetPlayer, this);
                     });
                     critterBuffsForPlayer.ForEach(spl =>
                     {
@@ -276,6 +278,8 @@ namespace ACE.Server.WorldObjects
                 }
             });
         }
+
+        // TODO: switch this over to SpellProgressionTables
         private static string[] Buffs = new string[] {
 #region spells
             // @ indicates impenetrability or a bane
@@ -288,14 +292,18 @@ namespace ACE.Server.WorldObjects
             "ManaRenewal",
             "Impregnability",
             "MagicResistance",
-            "AxeMastery",    // light weapons
-            "DaggerMastery", // finesse weapons
+            //"AxeMastery",    // light weapons
+            "LightWeaponsMastery",
+            //"DaggerMastery", // finesse weapons
+            "FinesseWeaponsMastery",
             //"MaceMastery",
             //"SpearMastery",
             //"StaffMastery",
-            "SwordMastery",  // heavy weapons
+            //"SwordMastery",  // heavy weapons
+            "HeavyWeaponsMastery",
             //"UnarmedCombatMastery",
-            "BowMastery",    // missile weapons
+            //"BowMastery",    // missile weapons
+            "MissileWeaponsMastery",
             //"CrossbowMastery",
             //"ThrownWeaponMastery",
             "AcidProtection",
@@ -454,7 +462,12 @@ namespace ACE.Server.WorldObjects
         public void HandleSpellHooks(Spell spell)
         {
             HandleMaxVitalUpdate(spell);
-            HandleRunRateUpdate(spell);
+
+            // unsure if spell hook was here in retail,
+            // but this has the potential to take the client out of autorun mode
+            // which causes them to stop if they hit a turn key afterwards
+            if (PropertyManager.GetBool("runrate_add_hooks").Item)
+                HandleRunRateUpdate(spell);
         }
 
         /// <summary>
@@ -496,13 +509,19 @@ namespace ACE.Server.WorldObjects
             // cleans up bugged chars with dangling item set spells
             // from previous bugs
 
+            var allPossessions = GetAllPossessions().ToDictionary(i => i.Guid, i => i);
+
+            // this is a legacy method, but is still a decent failsafe to catch any existing issues
+
             // get active item enchantments
-            var enchantments = Biota.GetEnchantments(BiotaDatabaseLock).Where(i => i.Duration == -1 && i.SpellId != (int)SpellId.Vitae).ToList();
+            var enchantments = Biota.PropertiesEnchantmentRegistry.Clone(BiotaDatabaseLock).Where(i => i.Duration == -1 && i.SpellId != (int)SpellId.Vitae).ToList();
 
             foreach (var enchantment in enchantments)
             {
+                var table = enchantment.HasSpellSetId ? allPossessions : EquippedObjects;
+
                 // if this item is not equipped, remove enchantment
-                if (!EquippedObjects.TryGetValue(new ObjectGuid(enchantment.CasterObjectId), out var item))
+                if (!table.TryGetValue(new ObjectGuid(enchantment.CasterObjectId), out var item))
                 {
                     var spell = new Spell(enchantment.SpellId, false);
                     log.Error($"{Name}.AuditItemSpells(): removing spell {spell.Name} from non-equipped item");
@@ -530,7 +549,7 @@ namespace ACE.Server.WorldObjects
                 // remove any item set spells that shouldn't be active
                 foreach (var inactiveSpell in inactiveSpells)
                 {
-                    var removeSpells = enchantments.Where(i => i.SpellSetId == (uint)item.EquipmentSetId && i.SpellId == inactiveSpell.Id).ToList();
+                    var removeSpells = enchantments.Where(i => i.SpellSetId == item.EquipmentSetId && i.SpellId == inactiveSpell.Id).ToList();
 
                     foreach (var removeSpell in removeSpells)
                     {

@@ -112,6 +112,28 @@ namespace ACE.Server.Network.GameMessages.Messages
                 Writer.WritePosition((uint)(Writer.BaseStream.Position - firstSizePos + 4), firstSizePos);
                 Writer.WritePosition((uint)(Writer.BaseStream.Position - secondSizePos + 4), secondSizePos);
             }
+            else if (chatNetworkBlobType == ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY)
+            {
+                var firstSizePos = Writer.BaseStream.Position;
+                Writer.Write(0u); // Bytes to follow
+                Writer.Write((uint)chatNetworkBlobType);
+                Writer.Write(1u);
+                Writer.Write(1u);
+                Writer.Write(0x000B00B5); // Unique ID? Both ID's always match. These numbers change between 0x000B0000 - 0x000B00FF I think.
+                Writer.Write(1u);
+                Writer.Write(0x000B00B5); // Unique ID? Both ID's always match. These numbers change between 0x000B0000 - 0x000B00FF I think.
+                Writer.Write(0u);
+                var secondSizePos = Writer.BaseStream.Position;
+                Writer.Write(0u); // Bytes to follow
+
+                Writer.Write(channel);
+                Writer.Write(2u);
+                Writer.Write(2u);
+                Writer.Write(0u);
+
+                Writer.WritePosition((uint)(Writer.BaseStream.Position - firstSizePos + 4), firstSizePos);
+                Writer.WritePosition((uint)(Writer.BaseStream.Position - secondSizePos + 4), secondSizePos);
+            }
             else
                 Console.WriteLine($"Unhandled GameMessageTurbineChat ChatNetworkBlobType: 0x{(uint)chatNetworkBlobType:X4}");
         }

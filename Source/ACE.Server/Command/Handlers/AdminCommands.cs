@@ -1,26 +1,28 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading;
 
 using log4net;
 
+using ACE.Common;
+using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.Auth;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
+using ACE.Server.Factories.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
-using ACE.Server.Network.Enum;
 using ACE.Server.WorldObjects.Entity;
 
 using Position = ACE.Entity.Position;
@@ -76,147 +78,6 @@ namespace ACE.Server.Command.Handlers
             // This command toggles whether the Admin UI is visible.
 
             // just a placeholder, probably not needed or should be handled by a decal plugin to replicate the admin ui
-        }
-
-        // ban < acct > < days > < hours > < minutes >
-        [CommandHandler("ban", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 4)]
-        public static void HandleBanAccount(Session session, params string[] parameters)
-        {
-            // usage: @ban < acct > < days > < hours > < minutes >
-            // This command bans the specified player account for the specified time.This player will not be able to enter the game with any character until the time expires.
-            // @ban - Bans the specified player account.
-
-            // TODO: output
-        }
-
-        // unban < acct >
-        [CommandHandler("unban", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
-        public static void HandleUnBanAccount(Session session, params string[] parameters)
-        {
-            // usage: @unban acct
-            // This command removes the ban from the specified account.The player will then be able to log into the game.
-            // @unban - Unbans the specified player account.
-
-            // TODO: output
-        }
-
-        // banlist
-        [CommandHandler("banlist", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
-        public static void HandleBanlist(Session session, params string[] parameters)
-        {
-            // @banlist - Lists all banned accounts on this world.
-
-            // TODO: output
-        }
-
-        public enum BootCommandType
-        {
-            //Account,
-            Char,
-            Iid
-        }
-
-        /// <summary>
-        /// Boots the session of the logged in character from the server and displays CoC Violation Warning or supplied reason.
-        /// </summary>
-        /// <remarks>
-        ///     TODO: 1. After the group messages are operational, Send out a message on the Audit Group Chat Channel and alert other admins of this command usage.
-        ///     TODO: 2. boot by account name
-        /// </remarks>
-        [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.None, true, 1,
-            "Boots the session of the logged in character from the server and displays CoC Violation Warning or supplied reason.\n<who> can be either a character iid or character name.",
-            "who, char|iid [ , reason ]\nexamples:\nboot axe man, char, griefing and spamming chat\nboot 1342177281, iid")]
-        public static void HandleBoot(Session session, params string[] parameters)
-        {
-            List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
-            {
-                new CommandParameterHelpers.ACECommandParameter() {
-                    Type = CommandParameterHelpers.ACECommandParameterType.PlayerName,
-                    Required = true,
-                    ErrorMessage = "Please supply the iid or name of the online character to boot"
-                },
-                new CommandParameterHelpers.ACECommandParameter()
-                {
-                    Type = CommandParameterHelpers.ACECommandParameterType.Enum,
-                    PossibleValues = typeof(BootCommandType),
-                    Required = true,
-                    ErrorMessage = "Please supply the boot type: char|iid"
-                },
-                new CommandParameterHelpers.ACECommandParameter()
-                {
-                    Type = CommandParameterHelpers.ACECommandParameterType.CommaPrefixedText,
-                    Required = false
-                }
-            };
-            if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams, true)) return;
-
-            BootCommandType bct = (BootCommandType)aceParams[1].Value;
-            Player plr = null;
-            Session playerSession = null;
-            switch (bct)
-            {
-                case BootCommandType.Char:
-                    List<CommandParameterHelpers.ACECommandParameter> aceParams2 = new List<CommandParameterHelpers.ACECommandParameter>()
-                    {
-                        new CommandParameterHelpers.ACECommandParameter() {
-                            Type = CommandParameterHelpers.ACECommandParameterType.OnlinePlayerName,
-                            ErrorMessage = $"Could not find the online character with name {aceParams[0].AsString}",
-                            Required = true,
-                        }
-                    };
-                    if (!CommandParameterHelpers.ResolveACEParameters(session, new string[1] { aceParams[0].AsString }, aceParams2, true)) return;
-                    plr = aceParams2[0].AsPlayer;
-                    break;
-                case BootCommandType.Iid:
-                    List<CommandParameterHelpers.ACECommandParameter> aceParams3 = new List<CommandParameterHelpers.ACECommandParameter>()
-                    {
-                        new CommandParameterHelpers.ACECommandParameter() {
-                            Type = CommandParameterHelpers.ACECommandParameterType.OnlinePlayerIid,
-                            ErrorMessage = $"Could not find the online character with iid {aceParams[0].AsString}",
-                            Required = true,
-                        }
-                    };
-                    if (!CommandParameterHelpers.ResolveACEParameters(session, new string[1] { aceParams[0].AsString }, aceParams3, true)) return;
-                    plr = aceParams3[0].AsPlayer;
-                    break;
-            }
-            playerSession = plr.Session;
-            string whoDid = (session != null) ? session.Player.Name : "console";
-            string bootText = $"{whoDid} has booted player: {plr.Name} id: { plr.Guid.Full}";
-
-            string specifiedReason = aceParams[2].Value != null ? aceParams[2].AsString : null;
-
-            // Boot the player
-            playerSession.Terminate(SessionTerminationReason.AccountBooted, new GameMessageBootAccount(playerSession, $" - {specifiedReason}"), null, specifiedReason);
-
-            PlayerManager.BroadcastToAuditChannel(session?.Player, bootText);
-
-            // log the boot to file
-            log.Info(bootText);
-
-            // finish execution of command logic
-            return;
-        }
-
-        // deaf < on / off >
-        [CommandHandler("deaf", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
-        public static void HandleDeaf(Session session, params string[] parameters)
-        {
-            // @deaf - Block @tells except for the player you are currently helping.
-            // @deaf on -Make yourself deaf to players.
-            // @deaf off -You can hear players again.
-
-            // TODO: output
-        }
-
-        // deaf < hear | mute > < player >
-        [CommandHandler("deaf", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 2)]
-        public static void HandleDeafHearOrMute(Session session, params string[] parameters)
-        {
-            // @deaf hear[name] -add a player to the list of players that you can hear.
-            // @deaf mute[name] -remove a player from the list of players you can hear.
-
-            // TODO: output
         }
 
         // delete
@@ -340,13 +201,20 @@ namespace ACE.Server.Command.Handlers
 
                 if (account != null)
                 {
-                    message = $"Account '{account.AccountName}' is not banned.\n"; //todo: fix this when banning works
+                    if (account.BannedTime != null)
+                    {
+                        var bannedbyAccount = account.BannedByAccountId > 0 ? $"account {DatabaseManager.Authentication.GetAccountById(account.BannedByAccountId.Value).AccountName}" : "CONSOLE";
+
+                        message = $"Account '{account.AccountName}' was banned by {bannedbyAccount} until server time {account.BanExpireTime.Value.ToLocalTime():MMM dd yyyy  h:mmtt}.\n";
+                    }
+                    else
+                        message = $"Account '{account.AccountName}' is not banned.\n";
                     if (account.AccessLevel > (int)AccessLevel.Player)
                         message += $"Account '{account.AccountName}' has been granted AccessLevel.{((AccessLevel)account.AccessLevel).ToString()} rights.\n";
                     message += $"Account created on {account.CreateTime.ToLocalTime()} by IP: {(account.CreateIP != null ? new IPAddress(account.CreateIP).ToString() : "N/A")} \n";
                     message += $"Account last logged on at {(account.LastLoginTime.HasValue ? account.LastLoginTime.Value.ToLocalTime().ToString() : "N/A")} by IP: {(account.LastLoginIP != null ? new IPAddress(account.LastLoginIP).ToString() : "N/A")}\n";
                     message += $"Account total times logged on {account.TotalTimesLoggedIn}\n";
-                    var characters = DatabaseManager.Shard.GetCharacters(account.AccountId, true);
+                    var characters = DatabaseManager.Shard.BaseDatabase.GetCharacters(account.AccountId, true);
                     message += $"{characters.Count} Character(s) owned by: {account.AccountName}\n";
                     message += "-------------------\n";
                     foreach (var character in characters.Where(x => !x.IsDeleted && x.DeleteTime == 0))
@@ -680,7 +548,7 @@ namespace ACE.Server.Command.Handlers
             {
                 if (session.Player.HealthQueryTarget.HasValue)
                     objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
-                else if (session.Player.HealthQueryTarget.HasValue)
+                else if (session.Player.ManaQueryTarget.HasValue)
                     objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
                 else
                     objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
@@ -694,21 +562,9 @@ namespace ACE.Server.Command.Handlers
                 {
                     wo.ResetGenerator();
                     wo.GeneratorEnteredWorld = false;
+                    wo.GeneratorRegeneration(Time.GetUnixTime());
                 }
             }
-        }
-
-        // reportbug < code | content > < description >
-        [CommandHandler("reportbug", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 2)]
-        public static void HandleReportbug(Session session, params string[] parameters)
-        {
-            // @reportbug < code | content > < description >
-            // This command emails your report to the AC1 Bugs folder at Turbine.
-            // @reportbug - Email a bug report to Turbine.
-
-            // LOL
-
-            // TODO: output
         }
 
         /// <summary>
@@ -888,7 +744,7 @@ namespace ACE.Server.Command.Handlers
                         return;
                     }
 
-                    ChatPacket.SendServerMessage(session, "Select a target and use @smite, or use @smite all to kill all creatures in radar range or @smite [players' name].", ChatMessageType.Broadcast);
+                    ChatPacket.SendServerMessage(session, "Select a target and use @smite, or use @smite all to kill all creatures in radar range or @smite [player's name].", ChatMessageType.Broadcast);
                 }
             }
             else
@@ -903,9 +759,11 @@ namespace ACE.Server.Command.Handlers
                         return;
 
                     if (wo != null)
+                    {
                         wo.Smite(session.Player, PropertyManager.GetBool("smite_uses_takedamage").Item);
 
-                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite on {wo.Name} (0x{wo.Guid:X8})");
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite on {wo.Name} (0x{wo.Guid:X8})");
+                    }
                 }
                 else
                 {
@@ -1045,7 +903,7 @@ namespace ACE.Server.Command.Handlers
             "@teleloc follows the same number order as displayed from @loc output\n" +
             "Example: @teleloc 0x7F0401AD [12.319900 -28.482000 0.005000] -0.338946 0.000000 0.000000 -0.940806\n" +
             "Example: @teleloc 0x7F0401AD 12.319900 -28.482000 0.005000 -0.338946 0.000000 0.000000 -0.940806\n" +
-            "Example: @teleloc 7F0401AD 12.319900 - 28.482000 0.005000")]
+            "Example: @teleloc 7F0401AD 12.319900 -28.482000 0.005000")]
         public static void HandleTeleportLOC(Session session, params string[] parameters)
         {
             try
@@ -1063,6 +921,15 @@ namespace ACE.Server.Command.Handlers
                 var positionData = new float[7];
                 for (uint i = 0u; i < 7u; i++)
                 {
+                    if (i > 2 && parameters.Length < 8)
+                    {
+                        positionData[3] = 1;
+                        positionData[4] = 0;
+                        positionData[5] = 0;
+                        positionData[6] = 0;
+                        break;
+                    }
+
                     if (!float.TryParse(parameters[i + 1].Trim(new Char[] { ' ', '[', ']' }), out var position))
                         return;
 
@@ -1114,7 +981,7 @@ namespace ACE.Server.Command.Handlers
             {
                 if (session.Player.HealthQueryTarget.HasValue)
                     objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
-                else if (session.Player.HealthQueryTarget.HasValue)
+                else if (session.Player.ManaQueryTarget.HasValue)
                     objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
                 else
                     objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
@@ -1125,10 +992,10 @@ namespace ACE.Server.Command.Handlers
                     return;
 
                 var msg = "";
-                if (wo is Creature creature && wo.Biota.BiotaPropertiesCreateList.Count > 0)
+                if (wo is Creature creature && wo.Biota.PropertiesCreateList != null && wo.Biota.PropertiesCreateList.Count > 0)
                 {
-                    var createList = creature.Biota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Contain) != 0 ||
-                        (i.DestinationType & (int)DestinationType.Treasure) != 0 && (i.DestinationType & (int)DestinationType.Wield) == 0).ToList();
+                    var createList = creature.Biota.PropertiesCreateList.Where(i => (i.DestinationType & DestinationType.Contain) != 0 ||
+                        (i.DestinationType & DestinationType.Treasure) != 0 && (i.DestinationType & DestinationType.Wield) == 0).ToList();
 
                     var wieldedTreasure = creature.Inventory.Values.Concat(creature.EquippedObjects.Values).Where(i => i.DestinationType.HasFlag(DestinationType.Treasure)).ToList();
 
@@ -1271,47 +1138,265 @@ namespace ACE.Server.Command.Handlers
             // TODO: output
         }
 
-        public static Position LastSpawnPos;
-
-        // ??
-        public const uint WEENIE_MAX = uint.MaxValue;
-
-        static WorldObject CreateObjectForCommand(Session session, string weenieClassDescription)
+        /// <summary>
+        /// Creates an object or objects in the world
+        /// </summary>
+        [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Creates an object or objects in the world.",
+            "<wcid or classname> (amount) (palette) (shade)\n" +
+            "This will attempt to spawn the weenie you specify. If you include an amount to spawn, it will attempt to create that many of the object.\n" +
+            "Stackable items will spawn in stacks of their max stack size. All spawns will be limited by the physics engine placement, which may prevent the number you specify from actually spawning." +
+            "Be careful with large numbers, especially with ethereal weenies.")]
+        public static void HandleCreate(Session session, params string[] parameters)
         {
-            bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
-            if (wcid)
+            if (ParseCreateParameters(session, parameters, false, out Weenie weenie, out int numToSpawn, out int? palette, out float? shade, out _))
             {
-                if (weenieClassId < 1 || weenieClassId > WEENIE_MAX)
+                TryCreateObject(session, weenie, numToSpawn, palette, shade);
+            }
+        }
+
+        /// <summary>
+        /// Creates an object or objects in the world -- with lifespans for live events
+        /// </summary>
+        [CommandHandler("createliveops", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Creates an object or objects with lifespans in the world for live events.",
+            "<wcid or classname> (amount) (lifespan) (palette) (shade)\n" +
+            "This will attempt to spawn the weenie you specify. If you include an amount to spawn, it will attempt to spawn that many of the object.\n" +
+            "Stackable items will spawn in stacks of their max stack size. All spawns will be limited by the physics engine placement, which may prevent the number you specify from actually spawning.\n" +
+            "Be careful with large numbers, especially with ethereal weenies.\n" +
+            "If you include a lifespan, this value is in seconds, and defaults to 3600 (1 hour) if not specified.")]
+        public static void HandleCreateLiveOps(Session session, params string[] parameters)
+        {
+            if (ParseCreateParameters(session, parameters, true, out Weenie weenie, out int numToSpawn, out int? palette, out float? shade, out int? lifespan))
+            {
+                TryCreateObject(session, weenie, numToSpawn, palette, shade, lifespan);
+            }
+        }
+
+        /// <summary>
+        /// Parses the command-line parameters for /create or /createliveops
+        /// The only difference with /createliveops is that it includes a lifespan parameter in the middle
+        /// </summary>
+        private static bool ParseCreateParameters(Session session, string[] parameters, bool hasLifespan, out Weenie weenie, out int numToSpawn, out int? palette, out float? shade, out int? lifespan)
+        {
+            weenie = GetWeenieForCreate(session, parameters[0]);
+            numToSpawn = 1;
+            palette = null;
+            shade = null;
+            lifespan = null;
+
+            if (weenie == null)
+                return false;
+
+            if (parameters.Length > 1)
+            {
+                if (!int.TryParse(parameters[1], out numToSpawn))
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Not a valid weenie id. Must be a number between 1 and {WEENIE_MAX}.", ChatMessageType.Broadcast));
-                    return null;
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Amount to spawn must be a number between {int.MinValue} - {int.MaxValue}.", ChatMessageType.Broadcast));
+                    return false;
                 }
             }
 
-            WorldObject obj;
-            if (wcid)
-                obj = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
+            var idx = 2;
+
+            if (hasLifespan)
+            {
+                if (parameters.Length > 2)
+                {
+                    if (!int.TryParse(parameters[2], out int _lifespan))
+                    {
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Lifespan must be a number between {int.MinValue} - {int.MaxValue}.", ChatMessageType.Broadcast));
+                        return false;
+                    }
+                    else
+                        lifespan = _lifespan;
+                }
+                else
+                    lifespan = 3600;
+
+                idx++;
+            }
+
+            if (parameters.Length > idx)
+            {
+                if (!int.TryParse(parameters[idx], out int _palette))
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Palette must be number between {int.MinValue} - {int.MaxValue}.", ChatMessageType.Broadcast));
+                    return false;
+                }
+                else
+                    palette = _palette;
+
+                idx++;
+            }
+
+            if (parameters.Length > idx)
+            {
+                if (!float.TryParse(parameters[idx], out float _shade))
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Shade must be number between {float.MinValue} - {float.MaxValue}.", ChatMessageType.Broadcast));
+                    return false;
+                }
+                else
+                    shade = _shade;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns a weenie for a wcid or classname for /create, /createliveops, and /ci
+        /// Performs some basic verifications for weenie types that are safe to spawn with these commands
+        /// </summary>
+        private static Weenie GetWeenieForCreate(Session session, string weenieDesc, bool forInventory = false)
+        {
+            Weenie weenie = null;
+
+            if (uint.TryParse(weenieDesc, out var wcid))
+                weenie = DatabaseManager.World.GetCachedWeenie(wcid);
             else
-                obj = WorldObjectFactory.CreateNewWorldObject(weenieClassDescription);
+                weenie = DatabaseManager.World.GetCachedWeenie(weenieDesc);
 
-            if (obj == null)
+            if (weenie == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieClassDescription} is not a valid weenie.", ChatMessageType.Broadcast));
-                return null;
-            }
-            if (obj is House)
-            {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"You can't spawn a House object.", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{weenieDesc} is not a valid weenie.", ChatMessageType.Broadcast));
                 return null;
             }
 
-            if (!obj.TimeToRot.HasValue)
-                obj.TimeToRot = Double.MaxValue;
+            switch (weenie.WeenieType)
+            {
+                case WeenieType.Admin:
+                case WeenieType.AI:
+                case WeenieType.Allegiance:
+                case WeenieType.BootSpot:
+                case WeenieType.Channel:
+                case WeenieType.CombatPet:
+                case WeenieType.Deed:
+                case WeenieType.Entity:
+                case WeenieType.EventCoordinator:
+                case WeenieType.Game:
+                case WeenieType.GamePiece:
+                case WeenieType.GScoreGatherer:
+                case WeenieType.GScoreKeeper:
+                case WeenieType.GSpellEconomy:
+                case WeenieType.Hook:
+                case WeenieType.House:
+                case WeenieType.HousePortal:
+                case WeenieType.HUD:
+                case WeenieType.InGameStatKeeper:
+                case WeenieType.LScoreKeeper:
+                case WeenieType.LSpellEconomy:
+                case WeenieType.Machine:
+                case WeenieType.Pet:
+                case WeenieType.ProjectileSpell:
+                case WeenieType.Sentinel:
+                case WeenieType.SlumLord:
+                case WeenieType.SocialManager:
+                case WeenieType.Storage:
+                case WeenieType.Undef:
+                case WeenieType.UNKNOWN__GUESSEDNAME32:
+
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot spawn {weenie.ClassName} because it is a {weenie.WeenieType}", ChatMessageType.Broadcast));
+                    return null;
+            }
+
+            if (forInventory && weenie.IsStuck())
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot spawn {weenie.ClassName} in your inventory because it cannot be picked up", ChatMessageType.Broadcast));
+                return null;
+            }
+
+            return weenie;
+        }
+
+        /// <summary>
+        /// Attempts to spawn some # of weenies in the world for /create or /createliveops
+        /// </summary>
+        private static void TryCreateObject(Session session, Weenie weenie, int numToSpawn, int? palette = null, float? shade = null, int? lifespan = null)
+        {
+            var obj = CreateObjectForCommand(session, weenie);
+
+            if (obj == null || numToSpawn < 1)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"No object was created.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var objs = new List<WorldObject>();
+
+            if (numToSpawn == 1)
+            {
+                objs.Add(obj);
+            }
+            else
+            {
+                if (weenie.IsStackable() && obj.MaxStackSize != null)
+                {
+                    var fullStacks = numToSpawn / (int)obj.MaxStackSize;
+                    var lastStackAmount = numToSpawn % (int)obj.MaxStackSize;
+
+                    for (int i = 0; i < fullStacks; i++)
+                    {
+                        var stack = CreateObjectForCommand(session, weenie);
+                        stack.SetStackSize(obj.MaxStackSize);
+                        objs.Add(stack);
+                    }
+                    if (lastStackAmount > 0)
+                    {
+                        obj.SetStackSize(lastStackAmount);
+                        objs.Add(obj);
+                    }
+                }
+                else
+                {
+                    // The number of weenies to spawn will be limited by the physics engine.
+                    for (int i = 0; i < numToSpawn; i++)
+                    {
+                        objs.Add(CreateObjectForCommand(session, weenie));
+                    }
+                }
+            }
+
+            foreach (var w in objs)
+            {
+                if (palette != null)
+                    w.PaletteTemplate = palette;
+
+                if (shade != null)
+                    w.Shade = shade;
+
+                if (lifespan != null)
+                    w.Lifespan = lifespan;
+
+                w.EnterWorld();
+            }
+
+            if (numToSpawn > 1)
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {numToSpawn} {obj.Name} (0x{obj.Guid:X8}) near {obj.Location.ToLOCString()}.");
+            else
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {obj.Name} (0x{obj.Guid:X8}) at {obj.Location.ToLOCString()}.");
+        }
+
+        public static Position LastSpawnPos;
+
+        /// <summary>
+        /// Creates WorldObjects from Weenies for /create, /createliveops, and /ci
+        /// </summary>
+        private static WorldObject CreateObjectForCommand(Session session, Weenie weenie)
+        {
+            var obj = WorldObjectFactory.CreateNewWorldObject(weenie);
+
+            //if (obj.TimeToRot == null)
+                //obj.TimeToRot = double.MaxValue;
 
             if (obj.WeenieType == WeenieType.Creature)
                 obj.Location = session.Player.Location.InFrontOf(5f, true);
             else
-                obj.Location = session.Player.Location.InFrontOf((obj.UseRadius ?? 2) > 2 ? obj.UseRadius.Value : 2);
+            {
+                var dist = Math.Max(2, obj.UseRadius ?? 2);
+
+                obj.Location = session.Player.Location.InFrontOf(dist);
+            }
 
             obj.Location.LandblockId = new LandblockId(obj.Location.GetCell());
 
@@ -1320,151 +1405,45 @@ namespace ACE.Server.Command.Handlers
             return obj;
         }
 
-        // create wclassid (number)
-        [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Creates an object or objects in the world.",
-            "wclassid (string or number), Amount to Spawn (optional [default:1]), Palette (optional), Shade (optional)\n" +
-            "This will attempt to spawn the weenie you specify. If you include an amount to spawn parameter it will attempt to spawn that many of the weenie.\n" +
-            "Stackable items will spawn in stacks of their max stack size. All spawns will be limited by the physics engine placement algorithim which may prevent the number you specify from actually spawning." +
-            "Be careful with large numbers, especially with ethereal weenies...")]
-        public static void HandleCreate(Session session, params string[] parameters)
-        {
-            string weenieClassDescription = parameters[0];
-            int palette = 0;
-            bool hasPalette = false;
-            float shade = 0;
-            bool hasShade = false;
-            int numToSpawn = 1;
-            WorldObject weenieToSpawn;
-            List<WorldObject> weeniesToSpawn = new List<WorldObject>();
-
-            if (parameters.Length > 1)
-            {
-                if (!int.TryParse(parameters[1], out numToSpawn))
-                {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Amount to spawn must be a number between {int.MinValue} - {int.MaxValue}.", ChatMessageType.Broadcast));
-                    return;
-                }
-            }
-            if (parameters.Length > 2)
-            {
-                if (!int.TryParse(parameters[2], out palette))
-                {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Palette must be number between {int.MinValue} - {int.MaxValue}.", ChatMessageType.Broadcast));
-                    return;
-                }
-                else
-                    hasPalette = true;
-            }
-            if (parameters.Length > 3)
-            {
-                if (!float.TryParse(parameters[3], out shade))
-                {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Shade must be number between {float.MinValue} - {float.MaxValue}.", ChatMessageType.Broadcast));
-                    return;
-                }
-                else
-                    hasShade = true;
-            }
-
-            weenieToSpawn = CreateObjectForCommand(session, weenieClassDescription);
-
-            // The number of weenies to spawn will be limited by the physics engine.
-            if (weenieToSpawn != null && numToSpawn == 1)
-            {
-                weeniesToSpawn.Add(weenieToSpawn);
-            }
-            else if (weenieToSpawn != null && numToSpawn > 1)
-            {
-                if (weenieToSpawn.WeenieType is WeenieType.Stackable)
-                {
-                    if (weenieToSpawn.MaxStackSize != null && numToSpawn > weenieToSpawn.MaxStackSize)
-                    {
-                        int numWeeniesRequired = (numToSpawn / (int)weenieToSpawn.MaxStackSize);
-                        int lastStackAmount = numToSpawn % (int)weenieToSpawn.MaxStackSize;
-                        for (int i = 0; i < numWeeniesRequired; i++)
-                        {
-                            weeniesToSpawn.Add(CreateObjectForCommand(session, weenieClassDescription));
-                        }
-                        foreach (var w in weeniesToSpawn)
-                        {
-                            w.SetStackSize(weenieToSpawn.MaxStackSize);
-                        }
-                        weenieToSpawn.SetStackSize(lastStackAmount);
-                        weeniesToSpawn.Add(weenieToSpawn);
-                    }
-                    else if (weenieToSpawn.MaxStackSize != null && numToSpawn <= weenieToSpawn.MaxStackSize)
-                    {
-                        weenieToSpawn.SetStackSize(numToSpawn);
-                        weeniesToSpawn.Add(weenieToSpawn);
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < numToSpawn; i++)
-                    {
-                        weeniesToSpawn.Add(CreateObjectForCommand(session, weenieClassDescription));
-                    }
-                }
-            }
-            else
-            {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"No object was created.", ChatMessageType.Broadcast));
-                return;
-            }
-
-            foreach (var w in weeniesToSpawn)
-            {
-                if (hasPalette)
-                    w.PaletteTemplate = palette;
-                if (hasShade)
-                    w.Shade = shade;
-                w.EnterWorld();
-            }
-
-            if (numToSpawn > 1)
-                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {numToSpawn} {weenieToSpawn.Name} (0x{weenieToSpawn.Guid:X8}) near {weenieToSpawn.Location.ToLOCString()}.");
-            else
-                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {weenieToSpawn.Name} (0x{weenieToSpawn.Guid:X8}) at {weenieToSpawn.Location.ToLOCString()}.");
-        }
-
+        /// <summary>
+        /// Creates a named object in the world
+        /// </summary>
         [CommandHandler("createnamed", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 3,
-            "Creates a named object in the world.", "<wclassid(string or number)> <count> <name ... >")]
+            "Creates a named object in the world.", "<wcid or classname> <count> <name>")]
         public static void HandleCreateNamed(Session session, params string[] parameters)
         {
-            if (!Int32.TryParse(parameters[1], out int count))
+            var weenie = GetWeenieForCreate(session, parameters[0]);
+
+            if (weenie == null)
+                return;
+
+            if (!int.TryParse(parameters[1], out int count))
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"count must be an integer value", ChatMessageType.Broadcast));
                 return;
             }
+
             if (count < 1 || count > ushort.MaxValue)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"count must be a between 1 and {ushort.MaxValue}", ChatMessageType.Broadcast));
                 return;
             }
-            string predefName = null;
-            if (parameters.Length > 1)
-            {
-                predefName = String.Join(" ", parameters, 2, parameters.Length - 2);
-            }
+
+            var named = string.Join(" ", parameters, 2, parameters.Length - 2);
 
             WorldObject first = null;
+
             for (int i = 0; i < count; i++)
             {
-                WorldObject obj = CreateObjectForCommand(session, parameters[0]);
-                if (obj == null)
-                {
-                    // should have already emitted an error message
-                    return;
-                }
-                if (first == null)
-                {
-                    first = obj;
-                }
+                var obj = CreateObjectForCommand(session, weenie);
 
-                // Rename object if specified
-                if (predefName != null)
-                    obj.Name = predefName;
+                if (obj == null)
+                    return;
+
+                if (first == null)
+                    first = obj;
+
+                obj.Name = named;
 
                 obj.EnterWorld();
             }
@@ -1475,65 +1454,71 @@ namespace ACE.Server.Command.Handlers
                 PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {count}x {first.Name} at {first.Location.ToLOCString()}.");
         }
 
-        // ci wclassid (number)
-        [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates an object in your inventory.", "wclassid (string or number), stacksize")]
+        /// <summary>
+        /// Creates an object in your inventory
+        /// </summary>
+        [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates an object in your inventory.", "wclassid (string or number), Amount to Spawn (optional [default:1]), Palette (optional), Shade (optional)\n")]
         public static void HandleCI(Session session, params string[] parameters)
         {
-            string weenieClassDescription = parameters[0];
+            var weenie = GetWeenieForCreate(session, parameters[0], true);
+
+            if (weenie == null)
+                return;
+
             ushort stackSize = 0;
+            int? palette = null;
+            float? shade = null;
+
             if (parameters.Length > 1)
             {
-                var isValidStackSize = ushort.TryParse(parameters[1], out stackSize);
-                if (!isValidStackSize || stackSize == 0)
+                if (!ushort.TryParse(parameters[1], out stackSize) || stackSize == 0)
                 {
                     session.Network.EnqueueSend(new GameMessageSystemChat($"stacksize must be number between 1 - {ushort.MaxValue}", ChatMessageType.Broadcast));
                     return;
                 }
             }
 
-            bool hasPalette = false;
-            int palette = 0;
-            bool hasShade = false;
-            float shade = 0f;
             if (parameters.Length > 2)
             {
-                if (!int.TryParse(parameters[2], out palette))
+                if (!int.TryParse(parameters[2], out int _palette))
                 {
                     session.Network.EnqueueSend(new GameMessageSystemChat($"palette must be number between {int.MinValue} - {int.MaxValue}", ChatMessageType.Broadcast));
                     return;
                 }
                 else
-                    hasPalette = true;
+                    palette = _palette;
             }
+
             if (parameters.Length > 3)
             {
-                if (!float.TryParse(parameters[3], out shade))
+                if (!float.TryParse(parameters[3], out float _shade))
                 {
                     session.Network.EnqueueSend(new GameMessageSystemChat($"shade must be number between {float.MinValue} - {float.MaxValue}", ChatMessageType.Broadcast));
                     return;
                 }
                 else
-                    hasShade = true;
+                    shade = _shade;
             }
 
-            WorldObject obj = CreateObjectForCommand(session, weenieClassDescription);
+            var obj = CreateObjectForCommand(session, weenie);
+
             if (obj == null)
             {
                 // already sent an error message
                 return;
             }
 
-            if (stackSize != 0)
+            if (stackSize != 0 && obj.MaxStackSize != null)
             {
-                if (obj.MaxStackSize != null && stackSize > obj.MaxStackSize)
-                    obj.SetStackSize(obj.MaxStackSize);
-                else if (obj.MaxStackSize != null && stackSize <= obj.MaxStackSize)
-                    obj.SetStackSize(stackSize);
+                stackSize = Math.Min(stackSize, (ushort)obj.MaxStackSize);
+
+                obj.SetStackSize(stackSize);
             }
 
-            if (hasPalette)
+            if (palette != null)
                 obj.PaletteTemplate = palette;
-            if (hasShade)
+
+            if (shade != null)
                 obj.Shade = shade;
 
             session.Player.TryCreateInInventoryWithNetworking(obj);
@@ -1726,9 +1711,7 @@ namespace ACE.Server.Command.Handlers
         {
             // @god - Sets your own stats to a godly level.
             // need to save stats so that we can return with /ungod
-            var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
-            biotas.Add((session.Player.Biota, session.Player.BiotaDatabaseLock));
-            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => DoGodMode(result, session));
+            DatabaseManager.Shard.SaveBiota(session.Player.Biota, session.Player.BiotaDatabaseLock, result => DoGodMode(result, session));
         }
 
         private static void DoGodMode(bool playerSaved, Session session, bool exceptionReturn = false)
@@ -1740,7 +1723,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            Biota biota = session.Player.Biota;
+            var biota = session.Player.Biota;
 
             string godString = session.Player.GodState;
 
@@ -1768,11 +1751,13 @@ namespace ACE.Server.Command.Handlers
 
                 // need all attributes
                 // 1 through 6 str, end, coord, quick, focus, self
-                foreach (var att in biota.BiotaPropertiesAttribute)
+                foreach (var kvp in biota.PropertiesAttribute)
                 {
-                    if (att.Type > 0 && att.Type <= 6)
+                    var att = kvp.Value;
+
+                    if (kvp.Key > 0 && (int)kvp.Key <= 6)
                     {
-                        returnState += $"{att.Type}=";
+                        returnState += $"{(int)kvp.Key}=";
                         returnState += $"{att.InitLevel}=";
                         returnState += $"{att.LevelFromCP}=";
                         returnState += $"{att.CPSpent}=";
@@ -1781,11 +1766,13 @@ namespace ACE.Server.Command.Handlers
 
                 // need all vitals
                 // 1, 3, 5 H,S,M (2,4,6 are current values and are not stored since they will be maxed entering/exiting godmode)
-                foreach (var attSec in biota.BiotaPropertiesAttribute2nd)
+                foreach (var kvp in biota.PropertiesAttribute2nd)
                 {
-                    if (attSec.Type == 1 || attSec.Type == 3 || attSec.Type == 5)
+                    var attSec = kvp.Value;
+
+                    if ((int)kvp.Key == 1 || (int)kvp.Key == 3 || (int)kvp.Key == 5)
                     {
-                        returnState += $"{attSec.Type}=";
+                        returnState += $"{(int)kvp.Key}=";
                         returnState += $"{attSec.InitLevel}=";
                         returnState += $"{attSec.LevelFromCP}=";
                         returnState += $"{attSec.CPSpent}=";
@@ -1794,13 +1781,15 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 // need all skills
-                foreach (var sk in biota.BiotaPropertiesSkill)
+                foreach (var kvp in biota.PropertiesSkill)
                 {
-                    if (SkillHelper.ValidSkills.Contains((Skill)sk.Type))
+                    var sk = kvp.Value;
+
+                    if (SkillHelper.ValidSkills.Contains(kvp.Key))
                     {
-                        returnState += $"{sk.Type}=";
+                        returnState += $"{(int)kvp.Key}=";
                         returnState += $"{sk.LevelFromPP}=";
-                        returnState += $"{sk.SAC}=";
+                        returnState += $"{(uint)sk.SAC}=";
                         returnState += $"{sk.PP}=";
                         returnState += $"{sk.InitLevel}=";
                     }
@@ -1940,7 +1929,18 @@ namespace ACE.Server.Command.Handlers
                             case int n when (n <= 238):
                                 var playerSkill = currentPlayer.Skills[(Skill)int.Parse(returnStringArr[i])];
                                 playerSkill.Ranks = ushort.Parse(returnStringArr[i + 1]);
-                                playerSkill.AdvancementClass = (SkillAdvancementClass)uint.Parse(returnStringArr[i + 2]);
+
+                                // Handle god users stuck in god mode due to bad godstate with Enum string
+                                SkillAdvancementClass advancement;
+                                if (Enum.TryParse(returnStringArr[i + 2], out advancement))
+                                {
+                                    playerSkill.AdvancementClass = advancement;
+                                }
+                                else
+                                {
+                                    playerSkill.AdvancementClass = (SkillAdvancementClass)uint.Parse(returnStringArr[i + 2]);
+                                }
+
                                 playerSkill.ExperienceSpent = uint.Parse(returnStringArr[i + 3]);
                                 playerSkill.InitLevel = uint.Parse(returnStringArr[i + 4]);
                                 currentPlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(currentPlayer, playerSkill));
@@ -2014,7 +2014,8 @@ namespace ACE.Server.Command.Handlers
             }
 
             // determine the vital type
-            if (!Enum.TryParse(parameters[0], out PropertyAttribute2nd vitalAttr)) {
+            if (!Enum.TryParse(parameters[0], out PropertyAttribute2nd vitalAttr))
+            {
                 ChatPacket.SendServerMessage(session, "Invalid vital type, valid values are: Health,Stamina,Mana", ChatMessageType.Broadcast);
                 return;
             }
@@ -2218,44 +2219,36 @@ namespace ACE.Server.Command.Handlers
         {
             // @morph - Morphs your bodily form into that of the specified creature. Be careful with this one!
 
-            string weenieClassDescription = parameters[0];
-            bool wcid = uint.TryParse(weenieClassDescription, out uint weenieClassId);
-            if (wcid)
-            {
-                if (weenieClassId < 1 && weenieClassId > WEENIE_MAX)
-                {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Not a valid weenie id - must be a number between 1 - {WEENIE_MAX}", ChatMessageType.Broadcast));
-                    return;
-                }
-            }
+            var weenieDesc = parameters[0];
 
-            Weenie weenie;
-            if (wcid)
-                weenie = DatabaseManager.World.GetCachedWeenie(weenieClassId);
+            Weenie weenie = null;
+
+            if (uint.TryParse(weenieDesc, out var wcid))
+                weenie = DatabaseManager.World.GetCachedWeenie(wcid);
             else
-                weenie = DatabaseManager.World.GetCachedWeenie(weenieClassDescription);
+                weenie = DatabaseManager.World.GetCachedWeenie(weenieDesc);
 
             if (weenie == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Weenie {weenieClassDescription} not found in database, unable to morph.", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Weenie {weenieDesc} not found in database, unable to morph.", ChatMessageType.Broadcast));
                 return;
             }
 
-            if (weenie.Type != (int)WeenieType.Creature && weenie.Type != (int)WeenieType.Cow
-                && weenie.Type != (int)WeenieType.Admin && weenie.Type != (int)WeenieType.Sentinel && weenie.Type != (int)WeenieType.Vendor
-                && weenie.Type != (int)WeenieType.Pet && weenie.Type != (int)WeenieType.CombatPet)
+            if (weenie.WeenieType != WeenieType.Creature && weenie.WeenieType != WeenieType.Cow
+                && weenie.WeenieType != WeenieType.Admin && weenie.WeenieType != WeenieType.Sentinel && weenie.WeenieType != WeenieType.Vendor
+                && weenie.WeenieType != WeenieType.Pet && weenie.WeenieType != WeenieType.CombatPet)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Weenie {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription}) is of WeenieType.{Enum.GetName(typeof(WeenieType), weenie.Type)} ({weenie.Type}), unable to morph because that is not allowed.", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Weenie {weenie.GetProperty(PropertyString.Name)} ({weenieDesc}) is of WeenieType.{Enum.GetName(typeof(WeenieType), weenie.WeenieType)} ({weenie.WeenieType}), unable to morph because that is not allowed.", ChatMessageType.Broadcast));
                 return;
             }
 
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Morphing you into {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription})... You will be logged out.", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Morphing you into {weenie.GetProperty(PropertyString.Name)} ({weenieDesc})... You will be logged out.", ChatMessageType.Broadcast));
 
             var guid = GuidManager.NewPlayerGuid();
 
             var player = new Player(weenie, guid, session.AccountId);
 
-            player.Biota.WeenieType = (int)session.Player.WeenieType;
+            player.Biota.WeenieType = session.Player.WeenieType;
 
             var name = string.Join(' ', parameters.Skip(1));
             if (parameters.Length > 1)
@@ -2280,48 +2273,57 @@ namespace ACE.Server.Command.Handlers
                 player.Character.CharacterOptions1 = session.Player.Character.CharacterOptions1;
                 player.Character.CharacterOptions2 = session.Player.Character.CharacterOptions2;
 
-                //var wearables = weenie.GetCreateList((sbyte)DestinationType.Wield);
-                var wearables = weenie.WeeniePropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Wield || x.DestinationType == (int)DestinationType.WieldTreasure).ToList();
-                foreach (var wearable in wearables)
+                if (weenie.PropertiesCreateList != null)
                 {
-                    var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(wearable.WeenieClassId);
+                    var wearables = weenie.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Wield || x.DestinationType == DestinationType.WieldTreasure).ToList();
+                    foreach (var wearable in wearables)
+                    {
+                        var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(wearable.WeenieClassId);
 
-                    if (weenieOfWearable == null)
-                        continue;
+                        if (weenieOfWearable == null)
+                            continue;
 
-                    var worldObject = WorldObjectFactory.CreateNewWorldObject(weenieOfWearable);
+                        var worldObject = WorldObjectFactory.CreateNewWorldObject(weenieOfWearable);
 
-                    if (worldObject == null)
-                        continue;
+                        if (worldObject == null)
+                            continue;
 
-                    if (wearable.Palette > 0)
-                        worldObject.PaletteTemplate = wearable.Palette;
-                    if (wearable.Shade > 0)
-                        worldObject.Shade = wearable.Shade;
+                        if (wearable.Palette > 0)
+                            worldObject.PaletteTemplate = wearable.Palette;
+                        if (wearable.Shade > 0)
+                            worldObject.Shade = wearable.Shade;
 
-                    player.TryEquipObjectWithNetworking(worldObject, worldObject.ValidLocations ?? 0);
+                        worldObject.CalculateObjDesc();
+
+                        player.TryEquipObject(worldObject, worldObject.ValidLocations ?? 0);
+                    }
+
+                    var containables = weenie.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Contain || x.DestinationType == DestinationType.Shop
+                    || x.DestinationType == DestinationType.Treasure || x.DestinationType == DestinationType.ContainTreasure || x.DestinationType == DestinationType.ShopTreasure).ToList();
+                    foreach (var containable in containables)
+                    {
+                        var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(containable.WeenieClassId);
+
+                        if (weenieOfWearable == null)
+                            continue;
+
+                        var worldObject = WorldObjectFactory.CreateNewWorldObject(weenieOfWearable);
+
+                        if (worldObject == null)
+                            continue;
+
+                        if (containable.Palette > 0)
+                            worldObject.PaletteTemplate = containable.Palette;
+                        if (containable.Shade > 0)
+                            worldObject.Shade = containable.Shade;
+
+                        worldObject.CalculateObjDesc();
+
+                        player.TryAddToInventory(worldObject);
+                    }
                 }
 
-                var containables = weenie.WeeniePropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Shop
-                || x.DestinationType == (int)DestinationType.Treasure || x.DestinationType == (int)DestinationType.ContainTreasure || x.DestinationType == (int)DestinationType.ShopTreasure).ToList();
-                foreach (var containable in containables)
-                {
-                    var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(containable.WeenieClassId);
-
-                    if (weenieOfWearable == null)
-                        continue;
-
-                    var worldObject = WorldObjectFactory.CreateNewWorldObject(weenieOfWearable);
-
-                    if (worldObject == null)
-                        continue;
-
-                    if (containable.Palette > 0)
-                        worldObject.PaletteTemplate = containable.Palette;
-                    if (containable.Shade > 0)
-                        worldObject.Shade = containable.Shade;
-                    player.TryAddToInventory(worldObject);
-                }
+                player.GenerateNewFace();
 
                 var possessions = player.GetAllPossessions();
                 var possessedBiotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
@@ -2335,7 +2337,6 @@ namespace ACE.Server.Command.Handlers
 
                 session.LogOffPlayer();
             });
-
         }
 
         // qst
@@ -2364,7 +2365,7 @@ namespace ACE.Server.Command.Handlers
 
             if (session.Player.HealthQueryTarget.HasValue)
                 objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
-            else if (session.Player.HealthQueryTarget.HasValue)
+            else if (session.Player.ManaQueryTarget.HasValue)
                 objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
             else if (session.Player.CurrentAppraisalTarget.HasValue)
                 objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
@@ -2378,7 +2379,7 @@ namespace ACE.Server.Command.Handlers
                     var questsHdr = $"Quest Registry for {creature.Name} (0x{creature.Guid}):\n";
                     questsHdr += "================================================\n";
                     var quests = "";
-                    foreach (var quest in creature.QuestManager.Quests)
+                    foreach (var quest in creature.QuestManager.GetQuests())
                     {
                         quests += $"Quest Name: {quest.QuestName}\nCompletions: {quest.NumTimesCompleted} | Last Completion: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
                         var nextSolve = creature.QuestManager.GetNextSolveTime(quest.QuestName);
@@ -2530,7 +2531,6 @@ namespace ACE.Server.Command.Handlers
             var offlinePlayer = PlayerManager.GetOfflinePlayer(oldName);
             if (onlinePlayer != null)
             {
-                var success = false;
                 DatabaseManager.Shard.IsCharacterNameAvailable(newName, isAvailable =>
                 {
                     if (!isAvailable)
@@ -2544,19 +2544,13 @@ namespace ACE.Server.Command.Handlers
                     onlinePlayer.Name = newName;
                     onlinePlayer.SavePlayerToDatabase();
 
-                    success = true;
-                });
-
-                if (success)
-                {
-                    CommandHandlerHelper.WriteOutputInfo(session, $"Player named \"{oldName}\" renamed to \"{newName}\" succesfully!", ChatMessageType.Broadcast);
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Player named \"{oldName}\" renamed to \"{newName}\" successfully!", ChatMessageType.Broadcast);
 
                     onlinePlayer.Session.LogOffPlayer();
-                }
+                });
             }
             else if (offlinePlayer != null)
             {
-                var success = false;
                 DatabaseManager.Shard.IsCharacterNameAvailable(newName, isAvailable =>
                 {
                     if (!isAvailable)
@@ -2565,18 +2559,25 @@ namespace ACE.Server.Command.Handlers
                         return;
                     }
 
-                    var character = DatabaseManager.Shard.GetCharacterByName(oldName);
+                    var character = DatabaseManager.Shard.BaseDatabase.GetCharacterStubByName(oldName);
 
-                    character.Name = newName;
-                    DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), null);
+                    DatabaseManager.Shard.GetCharacters(character.AccountId, false, result =>
+                    {
+                        var foundCharacterMatch = result.Where(c => c.Id == character.Id).FirstOrDefault();
+
+                        if (foundCharacterMatch == null)
+                        {
+                            CommandHandlerHelper.WriteOutputInfo(session, $"Error, a player named \"{oldName}\" cannot be found.", ChatMessageType.Broadcast);
+                        }
+
+                        DatabaseManager.Shard.RenameCharacter(foundCharacterMatch, newName, new ReaderWriterLockSlim(), null);
+                    });
+
                     offlinePlayer.SetProperty(PropertyString.Name, newName);
                     offlinePlayer.SaveBiotaToDatabase();
 
-                    success = true;
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Player named \"{oldName}\" renamed to \"{newName}\" successfully!", ChatMessageType.Broadcast);
                 });
-
-                if (success)
-                    CommandHandlerHelper.WriteOutputInfo(session, $"Player named \"{oldName}\" renamed to \"{newName}\" succesfully!", ChatMessageType.Broadcast);
             }
             else
             {
@@ -2809,33 +2810,34 @@ namespace ACE.Server.Command.Handlers
         }
 
         [CommandHandler("showprops", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Displays the name of all properties configurable via the modify commands")]
-        public static void HandleDisplayProps(Session session, params string[] paramters)
+        public static void HandleDisplayProps(Session session, params string[] parameters)
         {
             CommandHandlerHelper.WriteOutputInfo(session, PropertyManager.ListProperties());
         }
 
         [CommandHandler("modifybool", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a bool", "modifybool (string) (bool)")]
-        public static void HandleModifyServerBoolProperty(Session session, params string[] paramters)
+        public static void HandleModifyServerBoolProperty(Session session, params string[] parameters)
         {
             try
             {
-                var boolVal = bool.Parse(paramters[1]);
+                var boolVal = bool.Parse(parameters[1]);
 
-                var prevState = PropertyManager.GetBool(paramters[0]);
+                var prevState = PropertyManager.GetBool(parameters[0]);
 
                 if (prevState.Item == boolVal && !string.IsNullOrWhiteSpace(prevState.Description))
                 {
-                    CommandHandlerHelper.WriteOutputInfo(session, $"Bool property is already {boolVal} for {paramters[0]}!");
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Bool property is already {boolVal} for {parameters[0]}!");
                     return;
                 }
 
-                if (PropertyManager.ModifyBool(paramters[0], boolVal))
+                if (PropertyManager.ModifyBool(parameters[0], boolVal))
                 {
                     CommandHandlerHelper.WriteOutputInfo(session, "Bool property successfully updated!");
+                    PlayerManager.BroadcastToAuditChannel(session?.Player, $"Successfully changed server bool property {parameters[0]} to {boolVal}");
 
-                    if (paramters[0] == "pk_server" || paramters[0] == "pkl_server")
+                    if (parameters[0] == "pk_server" || parameters[0] == "pkl_server")
                     {
-                        PlayerManager.UpdatePKStatusForAllPlayers(paramters[0], boolVal);
+                        PlayerManager.UpdatePKStatusForAllPlayers(parameters[0], boolVal);
                     }
                 }
                 else
@@ -2848,10 +2850,10 @@ namespace ACE.Server.Command.Handlers
         }
 
         [CommandHandler("fetchbool", AccessLevel.Admin, CommandHandlerFlag.None, 1, "Fetches a server property that is a bool", "fetchbool (string)")]
-        public static void HandleFetchServerBoolProperty(Session session, params string[] paramters)
+        public static void HandleFetchServerBoolProperty(Session session, params string[] parameters)
         {
-            var boolVal = PropertyManager.GetBool(paramters[0], cacheFallback: false);
-            CommandHandlerHelper.WriteOutputInfo(session, $"{paramters[0]} - {boolVal.Description ?? "No Description"}: {boolVal.Item}");
+            var boolVal = PropertyManager.GetBool(parameters[0], cacheFallback: false);
+            CommandHandlerHelper.WriteOutputInfo(session, $"{parameters[0]} - {boolVal.Description ?? "No Description"}: {boolVal.Item}");
         }
 
         [CommandHandler("modifylong", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a long", "modifylong (string) (long)")]
@@ -2859,9 +2861,12 @@ namespace ACE.Server.Command.Handlers
         {
             try
             {
-                var intVal = int.Parse(paramters[1]);
-                if (PropertyManager.ModifyLong(paramters[0], intVal))
+                var longVal = long.Parse(paramters[1]);
+                if (PropertyManager.ModifyLong(paramters[0], longVal))
+                {
                     CommandHandlerHelper.WriteOutputInfo(session, "Long property successfully updated!");
+                    PlayerManager.BroadcastToAuditChannel(session?.Player, $"Successfully changed server long property {paramters[0]} to {longVal}");
+                }
                 else
                     CommandHandlerHelper.WriteOutputInfo(session, "Unknown long property was not updated. Type showprops for a list of properties.");
             }
@@ -2872,20 +2877,23 @@ namespace ACE.Server.Command.Handlers
         }
 
         [CommandHandler("fetchlong", AccessLevel.Admin, CommandHandlerFlag.None, 1, "Fetches a server property that is a long", "fetchlong (string)")]
-        public static void HandleFetchServerLongProperty(Session session, params string[] paramters)
+        public static void HandleFetchServerLongProperty(Session session, params string[] parameters)
         {
-            var intVal = PropertyManager.GetLong(paramters[0], cacheFallback: false);
-            CommandHandlerHelper.WriteOutputInfo(session, $"{paramters[0]} - {intVal.Description ?? "No Description"}: {intVal.Item}");
+            var intVal = PropertyManager.GetLong(parameters[0], cacheFallback: false);
+            CommandHandlerHelper.WriteOutputInfo(session, $"{parameters[0]} - {intVal.Description ?? "No Description"}: {intVal.Item}");
         }
 
         [CommandHandler("modifydouble", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a double", "modifyfloat (string) (double)")]
-        public static void HandleModifyServerFloatProperty(Session session, params string[] paramters)
+        public static void HandleModifyServerFloatProperty(Session session, params string[] parameters)
         {
             try
             {
-                var floatVal = float.Parse(paramters[1]);
-                if (PropertyManager.ModifyDouble(paramters[0], floatVal))
+                var doubleVal = double.Parse(parameters[1]);
+                if (PropertyManager.ModifyDouble(parameters[0], doubleVal))
+                {
                     CommandHandlerHelper.WriteOutputInfo(session, "Double property successfully updated!");
+                    PlayerManager.BroadcastToAuditChannel(session?.Player, $"Successfully changed server double property {parameters[0]} to {doubleVal}");
+                }
                 else
                     CommandHandlerHelper.WriteOutputInfo(session, "Unknown double property was not updated. Type showprops for a list of properties.");
             }
@@ -2896,17 +2904,20 @@ namespace ACE.Server.Command.Handlers
         }
 
         [CommandHandler("fetchdouble", AccessLevel.Admin, CommandHandlerFlag.None, 1, "Fetches a server property that is a double", "fetchdouble (string)")]
-        public static void HandleFetchServerFloatProperty(Session session, params string[] paramters)
+        public static void HandleFetchServerFloatProperty(Session session, params string[] parameters)
         {
-            var floatVal = PropertyManager.GetDouble(paramters[0], cacheFallback: false);
-            CommandHandlerHelper.WriteOutputInfo(session, $"{paramters[0]} - {floatVal.Description ?? "No Description"}: {floatVal.Item}");
+            var floatVal = PropertyManager.GetDouble(parameters[0], cacheFallback: false);
+            CommandHandlerHelper.WriteOutputInfo(session, $"{parameters[0]} - {floatVal.Description ?? "No Description"}: {floatVal.Item}");
         }
 
         [CommandHandler("modifystring", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a string", "modifystring (string) (string)")]
         public static void HandleModifyServerStringProperty(Session session, params string[] parameters)
         {
             if (PropertyManager.ModifyString(parameters[0], parameters[1]))
+            {
                 CommandHandlerHelper.WriteOutputInfo(session, "String property successfully updated!");
+                PlayerManager.BroadcastToAuditChannel(session?.Player, $"Successfully changed server string property {parameters[0]} to {parameters[1]}");
+            }
             else
                 CommandHandlerHelper.WriteOutputInfo(session, "Unknown string property was not updated. Type showprops for a list of properties.");
         }
@@ -3010,12 +3021,18 @@ namespace ACE.Server.Command.Handlers
                     while (patron.PatronId != null)
                         patron = PlayerManager.FindByGuid(patron.PatronId.Value);
 
-                    Console.WriteLine($"{player.Name} has references to {monarch.Name} as monarch, but should be {patron.Name} -- fixing missing player");
+                    if (player.MonarchId != patron.Guid.Full)
+                    {
+                        Console.WriteLine($"{player.Name} has references to {monarch.Name} as monarch, but should be {patron.Name} -- fixing missing player");
 
-                    player.MonarchId = patron.Guid.Full;
-                    player.SaveBiotaToDatabase();
+                        player.MonarchId = patron.Guid.Full;
+                        player.SaveBiotaToDatabase();
+                    }
                 }
             }
+
+            foreach (var allegiance in AllegianceManager.Allegiances.Values.ToList())
+                AllegianceManager.Rebuild(allegiance);
         }
 
         [CommandHandler("show-allegiances", AccessLevel.Admin, CommandHandlerFlag.None, "Shows all of the allegiance chains on the server.")]
@@ -3040,7 +3057,7 @@ namespace ACE.Server.Command.Handlers
             var item = CommandHandlerHelper.GetLastAppraisedObject(session);
             if (item == null) return;
 
-            var enchantments = item.EnchantmentManager.GetEnchantments_TopLayer(item.Biota.GetEnchantments(item.BiotaDatabaseLock));
+            var enchantments = item.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayer(item.BiotaDatabaseLock, SpellSet.SetSpells);
 
             foreach (var enchantment in enchantments)
             {
@@ -3049,13 +3066,13 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
             }
         }
-      
+
         // cm <material type> <quantity> <ave. workmanship>
         [CommandHandler("cm", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
         public static void HandleCM(Session session, params string[] parameters)
         {
             // Format is: @cm <material type> <quantity> <ave. workmanship>
-            HandleCISalvage(session);
+            HandleCISalvage(session, parameters);
         }
 
         [CommandHandler("cisalvage", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
@@ -3174,6 +3191,70 @@ namespace ACE.Server.Command.Handlers
             msg += "Clear resets to default.\nAll options ending with Fog are continuous.\nAll options ending with Fog2 are continuous and blank radar.\nAll options ending with Sound play once and do not repeat.";
 
             return msg;
+        }
+
+        [CommandHandler("movetome", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, "Moves the last appraised object to the current player location.")]
+        public static void HandleMoveToMe(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (obj == null)
+                return;
+
+            if (obj.CurrentLandblock == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}) is not a landblock object", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (obj is Player)
+            {
+                HandleTeleToMe(session, new string[] { obj.Name });
+                return;
+            }
+
+            var prevLoc = obj.Location;
+            var newLoc = new Position(session.Player.Location);
+            newLoc.Rotation = prevLoc.Rotation;     // keep previous rotation
+
+            var setPos = new Physics.Common.SetPosition(newLoc.PhysPosition(), Physics.Common.SetPositionFlags.Teleport | Physics.Common.SetPositionFlags.Slide);
+            var result = obj.PhysicsObj.SetPosition(setPos);
+
+            if (result != Physics.Common.SetPositionError.OK)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Failed to move {obj.Name} ({obj.Guid}) to current location: {result}", ChatMessageType.Broadcast));
+                return;
+
+            }
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Moving {obj.Name} ({obj.Guid}) to current location", ChatMessageType.Broadcast));
+
+            obj.Location = obj.PhysicsObj.Position.ACEPosition();
+
+            if (prevLoc.Landblock != obj.Location.Landblock)
+            {
+                LandblockManager.RelocateObjectForPhysics(obj, true);
+            }
+
+            obj.SendUpdatePosition(true);
+        }
+
+        [CommandHandler("reload-loot-tables", AccessLevel.Admin, CommandHandlerFlag.None, "reloads the latest data from the loot tables", "optional profile folder")]
+        public static void HandleReloadLootTables(Session session, params string[] parameters)
+        {
+            var sep = Path.DirectorySeparatorChar;
+
+            var folder = $"..{sep}..{sep}..{sep}..{sep}Factories{sep}Tables{sep}";
+            if (parameters.Length > 0)
+                folder = parameters[1];
+
+            var di = new DirectoryInfo(folder);
+
+            if (!di.Exists)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"{folder} not found");
+                return;
+            }
+            LootSwap.UpdateTables(folder);
         }
     }
 }

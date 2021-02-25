@@ -1,17 +1,18 @@
-using ACE.Entity;
+
+using ACE.Entity.Models;
 
 namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventBookPageDataResponse : GameEventMessage
     {
-        public GameEventBookPageDataResponse(Session session, uint bookID, PageData pageData)
+        public GameEventBookPageDataResponse(Session session, uint bookID, int pageIndex, PropertiesBookPageData pageData)
             : base(GameEventType.BookPageDataResponse, GameMessageGroup.UIQueue, session)
         {
             // unused?
 
             Writer.Write(bookID);
-            Writer.Write(pageData.PageIdx);
-            Writer.Write(pageData.AuthorID);
+            Writer.Write(pageIndex);
+            Writer.Write(pageData.AuthorId);
             Writer.WriteString16L(pageData.AuthorName);
             // Check if player is admin and hide AuthorAccount if not. Potential security hole if we are sending out account usernames.
             if (session.Player.IsAdmin)

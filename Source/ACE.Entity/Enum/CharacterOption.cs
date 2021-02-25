@@ -126,8 +126,8 @@ namespace ACE.Entity.Enum
         [CharacterOptions2(CharacterOptions2.ListenToLFGChat)]
         ListenToLFGChat                         = 0x25, // HearLFGChat_PlayerOption
 
-        [CharacterOptions2(CharacterOptions2.ListentoRoleplayChat)]
-        ListentoRoleplayChat                    = 0x26, // HearRoleplayChat_PlayerOption
+        [CharacterOptions2(CharacterOptions2.ListenToRoleplayChat)]
+        ListenToRoleplayChat                    = 0x26, // HearRoleplayChat_PlayerOption
 
         [CharacterOptions2(CharacterOptions2.AppearOffline)]
         AppearOffline                           = 0x27, // AppearOffline_PlayerOption

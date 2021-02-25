@@ -111,5 +111,15 @@ namespace ACE.Database.Models.Auth
 
             DatabaseManager.Authentication.UpdateAccount(account);
         }
+
+        public static void UnBan(this Account account)
+        {
+            account.BanExpireTime = null;
+            account.BannedByAccountId = null;
+            account.BannedTime = null;
+            account.BanReason = null;
+
+            DatabaseManager.Authentication.UpdateAccount(account);
+        }
     }
 }

@@ -1,15 +1,14 @@
 using System;
-using System.Linq;
 using System.Numerics;
-using ACE.Database;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
+
+using log4net;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
-using log4net;
 
 namespace ACE.Server.WorldObjects
 {
@@ -87,9 +86,10 @@ namespace ACE.Server.WorldObjects
             var houseOwner = rootHouse.HouseOwner;
 
             if (houseOwner == null)
-                return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
+                //return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
+                return new ActivationResult(true);
 
-            if (rootHouse.IsOpen)
+            if (rootHouse.OpenToEveryone)
                 return new ActivationResult(true);
 
             if (!rootHouse.HasPermission(player))

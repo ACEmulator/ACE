@@ -68,6 +68,8 @@ namespace ACE.Server.Physics.Common
 
         public void PostInit()
         {
+            init_landcell();
+
             init_buildings();
             init_static_objs();
         }
@@ -502,6 +504,20 @@ namespace ACE.Server.Physics.Common
                     obj.add_obj_to_cell(cell, position.Frame);
                     add_static_object(obj);
                 }
+
+                if (Info.RestrictionTables != null)
+                {
+                    foreach (var kvp in Info.RestrictionTables)
+                    {
+                        var lcoord = LandDefs.gid_to_lcoord(kvp.Key);
+
+                        if (lcoord == null) continue;
+
+                        var idx = ((int)lcoord.Value.Y & 7) + ((int)lcoord.Value.X & 7) * SideCellCount;
+
+                        LandCells[idx].RestrictionObj = kvp.Value;
+                    }
+                }
             }
             if (UseSceneFiles)
                 get_land_scenes();
@@ -554,6 +570,16 @@ namespace ACE.Server.Physics.Common
                 // return cached value
                 if (isDungeon != null)
                     return isDungeon.Value;
+
+                // hack for NW island
+                // did a worldwide analysis for adding watercells into the formula,
+                // but they are inconsistently defined for some of the edges of map unfortunately
+                if (BlockCoord.X < 64 && BlockCoord.Y > 1976)
+                {
+                    //Console.WriteLine($"Allowing {ID:X8}");
+                    isDungeon = false;
+                    return isDungeon.Value;
+                }
 
                 // a dungeon landblock is determined by:
                 // - all heights being 0

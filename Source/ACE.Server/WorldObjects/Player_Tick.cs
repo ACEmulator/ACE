@@ -1,9 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -140,6 +144,9 @@ namespace ACE.Server.WorldObjects
                 OnMoveToState_ServerMethod(moveToState);
             else
                 OnMoveToState_ClientMethod(moveToState);
+
+            if (MagicState.IsCasting && MagicState.PendingTurnRelease && moveToState.RawMotionState.TurnCommand == 0)
+                OnTurnRelease();
         }
 
         public void OnMoveToState_ClientMethod(MoveToState moveToState)
@@ -252,7 +259,7 @@ namespace ACE.Server.WorldObjects
                     RequestedLocation = null;
                 }
 
-                if (FastTick && PhysicsObj.IsMovingOrAnimating)
+                if (FastTick && PhysicsObj.IsMovingOrAnimating || PhysicsObj.Velocity != Vector3.Zero)
                     UpdatePlayerPhysics();
 
                 InUpdate = false;
@@ -281,6 +288,22 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.update_object();
 
             // sync ace position?
+            Location.Rotation = PhysicsObj.Position.Frame.Orientation;
+
+            if (!FastTick) return;
+
+            // ensure PKLogout position is synced up for other players
+            if (PKLogout)
+            {
+                EnqueueBroadcast(new GameMessageUpdateMotion(this, new Motion(MotionStance.NonCombat, MotionCommand.Ready)));
+                PhysicsObj.StopCompletely(true);
+
+                if (!PhysicsObj.IsMovingOrAnimating)
+                {
+                    SyncLocation();
+                    EnqueueBroadcast(new GameMessageUpdatePosition(this));
+                }
+            }
 
             // this fixes some differences between client movement (DoMotion/StopMotion) and server movement (apply_raw_movement)
             //
@@ -292,7 +315,7 @@ namespace ACE.Server.WorldObjects
             {
                 // apply latest MoveToState, if applicable
                 //if ((LastMoveToState.RawMotionState.Flags & (RawMotionFlags.ForwardCommand | RawMotionFlags.SideStepCommand | RawMotionFlags.TurnCommand)) != 0)
-                if ((LastMoveToState.RawMotionState.Flags & RawMotionFlags.ForwardCommand) != 0)
+                if ((LastMoveToState.RawMotionState.Flags & RawMotionFlags.ForwardCommand) != 0 && LastMoveToState.RawMotionState.ForwardHoldKey == HoldKey.Invalid)
                 {
                     if (DebugPlayerMoveToStatePhysics)
                         Console.WriteLine("Re-applying movement: " + LastMoveToState.RawMotionState.Flags);
@@ -301,6 +324,9 @@ namespace ACE.Server.WorldObjects
                 }
                 LastMoveToState = null;
             }
+
+            if (MagicState.IsCasting && MagicState.PendingTurnRelease)
+                CheckTurn();
         }
 
         /// <summary>
@@ -331,7 +357,7 @@ namespace ACE.Server.WorldObjects
             // pre-validate movement
             if (!ValidateMovement(newPosition))
             {
-                log.Error($"{Name}.UpdatePlayerPhysics() - movement pre-validation failed from {Location} to {newPosition}");
+                log.Error($"{Name}.UpdatePlayerPosition() - movement pre-validation failed from {Location} to {newPosition}");
                 return false;
             }
 
@@ -368,7 +394,7 @@ namespace ACE.Server.WorldObjects
                             }
 
                             // verify z-pos
-                            if (blockDist == 0 && LastGroundPos != null && newPosition.PositionZ - LastGroundPos.PositionZ > 10 && DateTime.UtcNow - LastJumpTime > TimeSpan.FromSeconds(1))
+                            if (blockDist == 0 && LastGroundPos != null && newPosition.PositionZ - LastGroundPos.PositionZ > 10 && DateTime.UtcNow - LastJumpTime > TimeSpan.FromSeconds(1) && GetCreatureSkill(Skill.Jump).Current < 1000)
                                 verifyContact = true;
                         }
 
@@ -389,18 +415,25 @@ namespace ACE.Server.WorldObjects
                                 PhysicsObj.CurCell = curCell;
                             }
 
-                            if (verifyContact && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+                            if (verifyContact && IsJumping)
                             {
-                                log.Warn($"z-pos hacking detected for {Name}, lastGroundPos: {LastGroundPos.ToLOCString()} - requestPos: {newPosition.ToLOCString()}");
-                                Location = new ACE.Entity.Position(LastGroundPos);
-                                Sequences.GetNextSequence(SequenceType.ObjectForcePosition);
-                                SendUpdatePosition();
-                                return false;
+                                var blockDist = PhysicsObj.GetBlockDist(newPosition.Cell, LastGroundPos.Cell);
+
+                                if (blockDist <= 1)
+                                {
+                                    log.Warn($"z-pos hacking detected for {Name}, lastGroundPos: {LastGroundPos.ToLOCString()} - requestPos: {newPosition.ToLOCString()}");
+                                    Location = new ACE.Entity.Position(LastGroundPos);
+                                    Sequences.GetNextSequence(SequenceType.ObjectForcePosition);
+                                    SendUpdatePosition();
+                                    return false;
+                                }
                             }
 
                             CheckMonsters();
                         }
                     }
+                    else
+                        PhysicsObj.Position.Frame.Orientation = newPosition.Rotation;
                 }
 
                 // double update path: landblock physics update -> updateplayerphysics() -> update_object_server() -> Teleport() -> updateplayerphysics() -> return to end of original branch
@@ -431,13 +464,19 @@ namespace ACE.Server.WorldObjects
                 {
                     var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
                     ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Player_Tick_UpdateObjectPhysics, elapsedSeconds);
-                    if (elapsedSeconds >= 1) // Yea, that ain't good....
-                        log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
+                    if (elapsedSeconds >= 0.100) // Yea, that ain't good....
+                        log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPosition() at loc: {Location}");
                     else if (elapsedSeconds >= 0.010)
-                        log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
+                        log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPosition() at loc: {Location}");
                 }
             }
         }
+
+        private static HashSet<uint> buggedCells = new HashSet<uint>()
+        {
+            0xD6990112,
+            0xD599012C
+        };
 
         public bool ValidateMovement(ACE.Entity.Position newPosition)
         {
@@ -447,7 +486,10 @@ namespace ACE.Server.WorldObjects
             if (!Teleporting && Location.Landblock != newPosition.Cell >> 16)
             {
                 if ((Location.Cell & 0xFFFF) >= 0x100 && (newPosition.Cell & 0xFFFF) >= 0x100)
-                    return false;
+                {
+                    if (!buggedCells.Contains(Location.Cell) || !buggedCells.Contains(newPosition.Cell))
+                        return false;
+                }
 
                 if (CurrentLandblock.IsDungeon)
                 {
@@ -540,7 +582,10 @@ namespace ACE.Server.WorldObjects
 
                 if (item.ManaRate == null)
                 {
-                    item.ManaRate = LootGenerationFactory.GetManaRate(item);
+                    var maxBaseMana = LootGenerationFactory.GetMaxBaseMana(item);
+
+                    item.ManaRate = LootGenerationFactory.CalculateManaRate(maxBaseMana);
+
                     log.Warn($"{Name}.ManaConsumersTick(): {k.Value.Name} ({k.Value.Guid}) fixed missing ManaRate");
                 }
 
@@ -578,7 +623,7 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(msg, sound);
                     if (item.WielderId != null)
                     {
-                        if (item.Biota.BiotaPropertiesSpellBook != null)
+                        if (item.Biota.PropertiesSpellBook != null)
                         {
                             // unsure if these messages / sounds were ever sent in retail,
                             // or if it just purged the enchantments invisibly
@@ -587,10 +632,8 @@ namespace ACE.Server.WorldObjects
                             actionChain.AddDelaySeconds(2.0f);
                             actionChain.AddAction(this, () =>
                             {
-                                for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
-                                {
-                                    RemoveItemSpell(item, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
-                                }
+                                foreach (var spellId in item.Biota.GetKnownSpellsIds(item.BiotaDatabaseLock))
+                                    RemoveItemSpell(item, (uint)spellId);
                             });
                             actionChain.EnqueueChain();
                         }

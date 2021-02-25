@@ -454,5 +454,10 @@ namespace ACE.Server.Physics.Common
             }
             return SeenOutside && blockDist <= 1;
         }
+
+        public override bool handle_move_restriction(Transition transition)
+        {
+            return true;
+        }
     }
 }

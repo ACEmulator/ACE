@@ -163,19 +163,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleTargetVitals()
         {
-            if (selectedTarget == ObjectGuid.Invalid)
-                return;
+            var target = selectedTarget?.TryGetWorldObject() as Creature;
 
-            var target = CurrentLandblock?.GetObject(selectedTarget) as Creature;
-            if (target == null)
-                return;
-
-            if (target.Health.Current <= 0)
+            if (target == null || target.Health.Current <= 0)
                 return;
 
             var healthPercent = (float)target.Health.Current / target.Health.MaxValue;
 
-            Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, selectedTarget.Full, healthPercent));
+            Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, target.Guid.Full, healthPercent));
         }
 
         /// <summary>
@@ -207,6 +202,26 @@ namespace ACE.Server.WorldObjects
                 FellowVitalUpdate = true;
 
             return vitalUpdate;
+        }
+
+        /// <summary>
+        /// Called when a player equips/dequips an item w/ GearMaxHealth
+        /// </summary>
+        public void HandleMaxHealthUpdate()
+        {
+            var gearMaxHealth = GetGearMaxHealth();
+
+            if (gearMaxHealth == 0)
+                GearMaxHealth = null;
+            else
+                GearMaxHealth = gearMaxHealth;
+
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.GearMaxHealth, gearMaxHealth));
+
+            if (Health.Current > Health.MaxValue)
+                Health.Current = Health.MaxValue;
+
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, Health.Current));
         }
     }
 }

@@ -5,16 +5,14 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Managers;
@@ -55,7 +53,7 @@ namespace ACE.Server.WorldObjects
 
         public bool TooBusyToRecall
         {
-            get => IsBusy || Teleporting;
+            get => IsBusy || Teleporting || suicideInProgress;
         }
 
         public void HandleActionTeleToHouse()
@@ -95,7 +93,8 @@ namespace ACE.Server.WorldObjects
             }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling home.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
-            EnqueueBroadcastMotion(motionHouseRecall);
+
+            SendMotionAsCommands(MotionCommand.HouseRecall, MotionStance.NonCombat);
 
             var startPos = new Position(Location);
 
@@ -162,7 +161,8 @@ namespace ACE.Server.WorldObjects
             }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the lifestone.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
-            EnqueueBroadcastMotion(motionLifestoneRecall);
+
+            SendMotionAsCommands(MotionCommand.LifestoneRecall, MotionStance.NonCombat);
 
             var startPos = new Position(Location);
 
@@ -210,11 +210,17 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
+            if (CombatMode != CombatMode.NonCombat)
+            {
+                // this should be handled by a different thing, probably a function that forces player into peacemode
+                var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
+                SetCombatMode(CombatMode.NonCombat);
+                Session.Network.EnqueueSend(updateCombatMode);
+            }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the marketplace.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
-            Session.Network.EnqueueSend(updateCombatMode); // this should be handled by a different thing, probably a function that forces player into peacemode
-            EnqueueBroadcastMotion(motionMarketplaceRecall);
+
+            SendMotionAsCommands(MotionCommand.MarketplaceRecall, MotionStance.NonCombat);
 
             var startPos = new Position(Location);
 
@@ -268,17 +274,8 @@ namespace ACE.Server.WorldObjects
             }
 
             // check if player is in an allegiance
-            if (Allegiance == null)
-            {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
+            if (!VerifyRecallAllegianceHometown())
                 return;
-            }
-
-            if (Allegiance.Sanctuary == null)
-            {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourAllegianceDoesNotHaveHometown));
-                return;
-            }
 
             if (CombatMode != CombatMode.NonCombat)
             {
@@ -289,7 +286,8 @@ namespace ACE.Server.WorldObjects
             }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is going to the Allegiance hometown.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
-            EnqueueBroadcastMotion(motionAllegianceHometownRecall);
+
+            SendMotionAsCommands(MotionCommand.AllegianceHometownRecall, MotionStance.NonCombat);
 
             var startPos = new Position(Location);
 
@@ -310,11 +308,31 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                if (Allegiance != null)
-                    Teleport(Allegiance.Sanctuary);
+                // re-verify
+                if (!VerifyRecallAllegianceHometown())
+                    return;
+
+                Teleport(Allegiance.Sanctuary);
             });
 
             actionChain.EnqueueChain();
+        }
+
+        private bool VerifyRecallAllegianceHometown()
+        {
+            if (Allegiance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
+                return false;
+            }
+
+            if (Allegiance.Sanctuary == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourAllegianceDoesNotHaveHometown));
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -342,33 +360,10 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // check if player is in an allegiance
-            if (Allegiance == null)
-            {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
-                return;
-            }
-
-            var allegianceHouse = Allegiance.GetHouse();
+            var allegianceHouse = VerifyTeleToMansion();
 
             if (allegianceHouse == null)
-            {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchDoesNotOwnAMansionOrVilla));
                 return;
-            }
-
-            if (allegianceHouse.HouseType < HouseType.Villa)
-            {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchsHouseIsNotAMansionOrVilla));
-                return;
-            }
-
-            // ensure allegiance housing has allegiance permissions enabled
-            if (allegianceHouse.MonarchId == null)
-            {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchHasClosedTheMansion));
-                return;
-            }
 
             if (CombatMode != CombatMode.NonCombat)
             {
@@ -379,7 +374,8 @@ namespace ACE.Server.WorldObjects
             }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the Allegiance housing.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
-            EnqueueBroadcastMotion(motionHouseRecall);
+
+            SendMotionAsCommands(MotionCommand.HouseRecall, MotionStance.NonCombat);
 
             var startPos = new Position(Location);
 
@@ -401,10 +397,49 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
+                // re-verify
+                allegianceHouse = VerifyTeleToMansion();
+
+                if (allegianceHouse == null)
+                    return;
+
                 Teleport(allegianceHouse.SlumLord.Location);
             }); 
 
             actionChain.EnqueueChain();
+        }
+
+        private House VerifyTeleToMansion()
+        {
+            // check if player is in an allegiance
+            if (Allegiance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
+                return null;
+            }
+
+            var allegianceHouse = Allegiance.GetHouse();
+
+            if (allegianceHouse == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchDoesNotOwnAMansionOrVilla));
+                return null;
+            }
+
+            if (allegianceHouse.HouseType < HouseType.Villa)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchsHouseIsNotAMansionOrVilla));
+                return null;
+            }
+
+            // ensure allegiance housing has allegiance permissions enabled
+            if (allegianceHouse.MonarchId == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchHasClosedTheMansion));
+                return null;
+            }
+
+            return allegianceHouse;
         }
 
         private static readonly Motion motionPkArenaRecall = new Motion(MotionStance.NonCombat, MotionCommand.PKArenaRecall);
@@ -455,7 +490,8 @@ namespace ACE.Server.WorldObjects
             }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is going to the PK Arena.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
-            EnqueueBroadcastMotion(motionPkArenaRecall);
+
+            SendMotionAsCommands(MotionCommand.PKArenaRecall, MotionStance.NonCombat);
 
             var startPos = new Position(Location);
 
@@ -532,7 +568,8 @@ namespace ACE.Server.WorldObjects
             }
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is going to the PKL Arena.", ChatMessageType.Recall), LocalBroadcastRange, ChatMessageType.Recall);
-            EnqueueBroadcastMotion(motionPkArenaRecall);
+
+            SendMotionAsCommands(MotionCommand.PKArenaRecall, MotionStance.NonCombat);
 
             var startPos = new Position(Location);
 
@@ -561,6 +598,22 @@ namespace ACE.Server.WorldObjects
             });
 
             actionChain.EnqueueChain();
+        }
+
+        public void SendMotionAsCommands(MotionCommand motionCommand, MotionStance motionStance)
+        {
+            if (FastTick)
+            {
+                var actionChain = new ActionChain();
+                EnqueueMotionAction(actionChain, new List<MotionCommand>() { motionCommand }, 1.0f, motionStance);
+                actionChain.EnqueueChain();
+            }
+            else
+            {
+                var motion = new Motion(motionStance, MotionCommand.Ready);
+                motion.MotionState.AddCommand(this, motionCommand);
+                EnqueueBroadcastMotion(motion);
+            }
         }
 
         public DateTime LastTeleportTime;
@@ -616,6 +669,8 @@ namespace ACE.Server.WorldObjects
             if (UnderLifestoneProtection)
                 LifestoneProtectionDispel();
 
+            HandlePreTeleportVisibility(newPosition);
+
             UpdatePlayerPosition(new Position(newPosition), true);
         }
 
@@ -670,14 +725,14 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcastPhysicsState();
         }
 
-        public void SendTeleportedViaMagicMessage(WorldObject itemCaster, Server.Entity.Spell spell)
+        public void SendTeleportedViaMagicMessage(WorldObject itemCaster, Spell spell)
         {
-            if (itemCaster == null)
+            if (itemCaster == null || itemCaster is Gem)
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been teleported.", ChatMessageType.Magic));
-            else if (this != itemCaster && !(itemCaster is Gem))
+            else if (this != itemCaster && !(itemCaster is Gem) && !(itemCaster is Switch) && !(itemCaster.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{itemCaster.Name} teleports you with {spell.Name}.", ChatMessageType.Magic));
-            else if (itemCaster is Gem)
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ITeleported));
+            //else if (itemCaster is Gem)
+            //    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ITeleported));
         }
 
         public void NotifyLandblocks()
@@ -719,6 +774,7 @@ namespace ACE.Server.WorldObjects
             0x0007,     // Town Network
             0x0056,     // Augmentation Realm Main Level
             0x005F,     // Tanada House of Pancakes (Seasonal)
+            0x0067,     // PKL Arena
             0x006D,     // Augmentation Realm Upper Level
             0x007D,     // Augmentation Realm Lower Level
             0x00AB,     // Derethian Combat Arena
@@ -739,34 +795,52 @@ namespace ACE.Server.WorldObjects
             0x9EE5,     // Northwatch Castle Black Market
             0xB5F0,     // Aerfalle's Sanctum
             0xF92F,     // Freebooter Keep Black Market
+            0x00B0,     // Colosseum Arena One
+            0x00B1,     // Colosseum Arena Two
+            0x00B2,     // Colosseum Arena Three
+            0x00B3,     // Colosseum Arena Four
+            0x00B4,     // Colosseum Arena Five
+            0x00B6,     // Colosseum Arena Mini-Bosses
+            0x5960,     // Gauntlet Arena One (Celestial Hand)
+            0x5961,     // Gauntlet Arena Two (Celestial Hand)
+            0x5962,     // Gauntlet Arena One (Eldritch Web)
+            0x5963,     // Gauntlet Arena Two (Eldritch Web)
+            0x5964,     // Gauntlet Arena One (Radiant Blood)
+            0x5965,     // Gauntlet Arena Two (Radiant Blood)
         };
 
         /// <summary>
         /// Called when a player first logs in
         /// </summary>
-        public static void HandleNoLogLandblock(Biota biota)
+        public static void HandleNoLogLandblock(Biota biota, out bool playerWasMovedFromNoLogLandblock)
         {
-            if (biota.WeenieType == (int)WeenieType.Sentinel || biota.WeenieType == (int)WeenieType.Admin) return;
+            playerWasMovedFromNoLogLandblock = false;
 
-            var location = biota.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (ushort)PositionType.Location);
-            if (location == null) return;
+            if (biota.WeenieType == WeenieType.Sentinel || biota.WeenieType == WeenieType.Admin) return;
+
+            if (!biota.PropertiesPosition.TryGetValue(PositionType.Location, out var location))
+                return;
 
             var landblock = (ushort)(location.ObjCellId >> 16);
 
             if (!NoLog_Landblocks.Contains(landblock))
                 return;
 
-            var lifestone = biota.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (ushort)PositionType.Sanctuary);
-            if (lifestone == null) return;
+            if (!biota.PropertiesPosition.TryGetValue(PositionType.Sanctuary, out var lifestone))
+                return;
 
             location.ObjCellId = lifestone.ObjCellId;
-            location.OriginX = lifestone.OriginX;
-            location.OriginY = lifestone.OriginY;
-            location.OriginZ = lifestone.OriginZ;
-            location.AnglesX = lifestone.AnglesX;
-            location.AnglesY = lifestone.AnglesY;
-            location.AnglesZ = lifestone.AnglesZ;
-            location.AnglesW = lifestone.AnglesW;
+            location.PositionX = lifestone.PositionX;
+            location.PositionY = lifestone.PositionY;
+            location.PositionZ = lifestone.PositionZ;
+            location.RotationX = lifestone.RotationX;
+            location.RotationY = lifestone.RotationY;
+            location.RotationZ = lifestone.RotationZ;
+            location.RotationW = lifestone.RotationW;
+
+            playerWasMovedFromNoLogLandblock = true;
+
+            return;
         }
     }
 }

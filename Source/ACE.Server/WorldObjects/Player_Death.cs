@@ -50,7 +50,7 @@ namespace ACE.Server.WorldObjects
             else
                 playerMsg = deathMessage.Victim;
 
-            var msgYourDeath = new GameEventYourDeath(Session, playerMsg);
+            var msgYourDeath = new GameEventVictimNotification(Session, playerMsg);
             Session.Network.EnqueueSend(msgYourDeath);
 
             // broadcast to nearby players
@@ -60,18 +60,15 @@ namespace ACE.Server.WorldObjects
             else
                 nearbyMsg = deathMessage.Broadcast;
 
-            var broadcastMsg = new GameMessageSystemChat(nearbyMsg, ChatMessageType.Broadcast);
+            var broadcastMsg = new GameMessagePlayerKilled(nearbyMsg, Guid, lastDamager?.Guid ?? ObjectGuid.Invalid);
 
             log.Debug("[CORPSE] " + nearbyMsg);
 
             var excludePlayers = new List<Player>();
-            if (lastDamagerObj is Player lastDamagerPlayer)
-                excludePlayers.Add(lastDamagerPlayer);
 
-            var nearbyPlayers = EnqueueBroadcast(excludePlayers, false, broadcastMsg);
+            var nearbyPlayers = EnqueueBroadcast(excludePlayers, true, broadcastMsg);
 
             excludePlayers.AddRange(nearbyPlayers);
-            excludePlayers.Add(this); // exclude self
 
             if (Fellowship != null)
                 Fellowship.OnDeath(this);
@@ -87,7 +84,9 @@ namespace ACE.Server.WorldObjects
                 // instead, we get all of the players in the lifestone landblock + adjacent landblocks,
                 // and possibly limit that to some radius around the landblock?
                 var lifestoneBlock = LandblockManager.GetLandblock(new LandblockId(Sanctuary.Landblock << 16 | 0xFFFF), true);
-                lifestoneBlock.EnqueueBroadcast(excludePlayers, true, Sanctuary, LocalBroadcastRangeSq, broadcastMsg);
+
+                // We enqueue the work onto the target landblock to ensure thread-safety. It's highly likely the lifestoneBlock is far away, and part of a different landblock group (and thus different thread).
+                lifestoneBlock.EnqueueAction(new ActionEventDelegate(() => lifestoneBlock.EnqueueBroadcast(excludePlayers, true, Sanctuary, LocalBroadcastRangeSq, broadcastMsg)));
             }
 
             return deathMessage;
@@ -160,6 +159,9 @@ namespace ACE.Server.WorldObjects
             NumDeaths++;
             suicideInProgress = false;
 
+            if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
+                FailCast(false);
+
             // TODO: instead of setting IsBusy here,
             // eventually all of the places that check for states such as IsBusy || Teleporting
             // might want to use a common function, and IsDead should return a separate error
@@ -200,6 +202,8 @@ namespace ACE.Server.WorldObjects
                 EnchantmentManager.RemoveAllEnchantments();
                 Session.Network.EnqueueSend(msgPurgeEnchantments);
             }
+            else
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Your augmentation prevents the tides of death from ripping away your current enchantments!", ChatMessageType.Broadcast));
 
             // wait for the death animation to finish
             var dieChain = new ActionChain();
@@ -257,13 +261,15 @@ namespace ACE.Server.WorldObjects
 
                     // reset damage history for this player
                     DamageHistory.Reset();
+
+                    OnHealthUpdate();
                 });
 
                 teleportChain.EnqueueChain();
             }));
         }
 
-        private bool suicideInProgress;
+        public bool suicideInProgress;
 
         /// <summary>
         /// Called when player uses the /die command
@@ -303,7 +309,7 @@ namespace ACE.Server.WorldObjects
 
             if (step < SuicideMessages.Count)
             {
-                EnqueueBroadcast(new GameMessageCreatureMessage(SuicideMessages[step], Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
+                EnqueueBroadcast(new GameMessageHearSpeech(SuicideMessages[step], Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
 
                 var suicideChain = new ActionChain();
                 suicideChain.AddDelaySeconds(3.0f);
@@ -503,6 +509,7 @@ namespace ACE.Server.WorldObjects
                         Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
 
                         var dropItem = WorldObjectFactory.CreateNewWorldObject(deathItem.WorldObject.WeenieClassId);
+                        dropItem.SetStackSize(1);
 
                         //Console.WriteLine("Dropping " + deathItem.WorldObject.Name + " (stack)");
                         dropItems.Add(dropItem);
@@ -989,7 +996,7 @@ namespace ACE.Server.WorldObjects
         {
             var allPossessions = GetAllPossessions();
 
-            return allPossessions.Where(i => (i.Bonded ?? 0) == (int)BondedStatus.Slippery).ToList();
+            return allPossessions.Where(i => i.Bonded == BondedStatus.Slippery).ToList();
         }
 
         public List<WorldObject> HandleDestroyBonded()
@@ -997,7 +1004,7 @@ namespace ACE.Server.WorldObjects
             var destroyedItems = new List<WorldObject>();
 
             var allPossessions = GetAllPossessions();
-            foreach (var destroyItem in allPossessions.Where(i => (i.Bonded ?? 0) == (int)BondedStatus.Destroy).ToList())
+            foreach (var destroyItem in allPossessions.Where(i => i.Bonded == BondedStatus.Destroy).ToList())
             {
                 TryConsumeFromInventoryWithNetworking(destroyItem, (destroyItem.StackSize ?? 1));
                 destroyedItems.Add(destroyItem);

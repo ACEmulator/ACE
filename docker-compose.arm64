@@ -1,0 +1,37 @@
+version: '3'
+services:
+
+  ace-db:
+    #image: linuxserver/mariadb:latest
+    image: mysql/mysql-server:latest
+    container_name: ace-db
+    env_file:
+      - docker.env
+    volumes:
+      #- ./db-data:/config
+      - ./db-data:/var/lib/mysql
+    ports:
+      - "3306:3306/tcp"
+    restart: unless-stopped
+    healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+
+  ace-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.arm64
+    image: acemulator/ace:latest-arm64
+    depends_on:
+      - ace-db
+    container_name: ace-server
+    env_file:
+      - docker.env
+    volumes:
+      - ./Config:/ace/Config
+      - ./Content:/ace/Content
+      - ./Dats:/ace/Dats
+      - ./Logs:/ace/Logs
+    ports:
+      - "9000-9001:9000-9001/udp"
+    #restart: unless-stopped
+    restart: on-failure

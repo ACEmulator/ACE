@@ -43,6 +43,12 @@ namespace ACE.Server.Network.GameAction.Actions
                 return;
             }
 
+            if (targetPlayer.IsAfk)
+            {
+                session.Network.EnqueueSend(new GameEventWeenieErrorWithString(session, WeenieErrorWithString.AFK, $"{targetPlayer.Name} is away: " + (string.IsNullOrWhiteSpace(targetPlayer.AfkMessage) ? WorldObjects.Player.DefaultAFKMessage : targetPlayer.AfkMessage)));
+                //return;
+            }
+
             var tell = new GameEventTell(targetPlayer.Session, message, session.Player.Name, session.Player.Guid.Full, targetPlayer.Guid.Full, ChatMessageType.Tell);
             targetPlayer.Session.Network.EnqueueSend(tell);
         }

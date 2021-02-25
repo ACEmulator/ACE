@@ -1,9 +1,11 @@
 using System;
+
 using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
@@ -48,20 +50,47 @@ namespace ACE.Server.WorldObjects
                     Account15Days = true;
             }
 
+            if (PlayerKillerStatus == PlayerKillerStatus.PKLite && !PropertyManager.GetBool("pkl_server").Item)
+            {
+                PlayerKillerStatus = PlayerKillerStatus.NPK;
+
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(3.0f);
+                actionChain.AddAction(this, () =>
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNonPKAgain));
+                });
+                actionChain.EnqueueChain();
+            }
+
             // SendSelf will trigger the entrance into portal space
             SendSelf();
 
             // Update or override certain properties sent to client.
-            SendPropertyUpdatesAndOverrides();
 
-            // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
-            UpdateChatChannels();
+            // bugged: do not send this here, or else a freshly loaded acclient will overrwrite the values
+            // wait until first enter world is completed
 
-            var general = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "General");
-            var trade = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Trade");
-            var lfg = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "LFG");
-            var roleplay = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Roleplay");
-            Session.Network.EnqueueSend(general, trade, lfg, roleplay);
+            //SendPropertyUpdatesAndOverrides();
+
+            if (PropertyManager.GetBool("use_turbine_chat").Item)
+            {
+                // Init the client with the chat channel ID's, and then notify the player that they've joined the associated channels.
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.TurbineChatIsEnabled));
+
+                if (GetCharacterOption(CharacterOption.ListenToAllegianceChat) && Allegiance != null)
+                    JoinTurbineChatChannel("Allegiance");
+                if (GetCharacterOption(CharacterOption.ListenToGeneralChat))
+                    JoinTurbineChatChannel("General");
+                if (GetCharacterOption(CharacterOption.ListenToTradeChat))
+                    JoinTurbineChatChannel("Trade");
+                if (GetCharacterOption(CharacterOption.ListenToLFGChat))
+                    JoinTurbineChatChannel("LFG");
+                if (GetCharacterOption(CharacterOption.ListenToRoleplayChat))
+                    JoinTurbineChatChannel("Roleplay");
+                if (GetCharacterOption(CharacterOption.ListenToSocietyChat) && Society != FactionBits.None)
+                    JoinTurbineChatChannel("Society");
+            }
 
             // check if vassals earned XP while offline
             HandleAllegianceOnLogin();
@@ -73,31 +102,92 @@ namespace ACE.Server.WorldObjects
                 SquelchManager.SendSquelchDB();
 
             AuditItemSpells();
+            AuditEquippedItems();
 
             HandleMissingXp();
             HandleSkillCreditRefund();
+            HandleSkillTemplesReset();
+            HandleSkillSpecCreditRefund();
+            HandleFreeSkillResetRenewal();
+            HandleFreeAttributeResetRenewal();
 
-            if (PlayerKillerStatus == PlayerKillerStatus.PKLite && !PropertyManager.GetBool("pkl_server").Item)
+            HandleDBUpdates();
+
+            if (ServerManager.ShutdownInitiated)
             {
                 var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(3.0f);
+                actionChain.AddDelaySeconds(10.0f);
                 actionChain.AddAction(this, () =>
                 {
-                    UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK, true);
-
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNonPKAgain));
+                    SendMessage(ServerManager.ShutdownNoticeText(), ChatMessageType.WorldBroadcast);
                 });
                 actionChain.EnqueueChain();
             }
-
-            HandleDBUpdates();
         }
 
-        public void UpdateChatChannels()
+        public void SendTurbineChatChannels(bool breakAllegiance = false)
         {
-            var allegianceChannel = Allegiance != null ? Allegiance.Biota.Id : 0u;
+            var allegianceChannel = Allegiance != null && !breakAllegiance ? Allegiance.Biota.Id : 0u;
 
-            Session.Network.EnqueueSend(new GameEventSetTurbineChatChannels(Session, allegianceChannel));
+            var societyChannel = Society switch
+            {
+                FactionBits.CelestialHand => TurbineChatChannel.SocietyCelestialHand,
+                FactionBits.EldrytchWeb => TurbineChatChannel.SocietyEldrytchWeb,
+                FactionBits.RadiantBlood => TurbineChatChannel.SocietyRadiantBlood,
+                _ => 0u
+            };
+
+            Session.Network.EnqueueSend(new GameEventSetTurbineChatChannels(Session, allegianceChannel, societyChannel));
+        }
+
+        public void JoinTurbineChatChannel(string channelName)
+        {
+            if (channelName == "Allegiance" && Allegiance == null)
+                return;
+            else if (channelName == "Society")
+            {
+                if (Society == FactionBits.None)
+                    return;
+
+                channelName = Society switch
+                {
+                    FactionBits.CelestialHand => "Celestial Hand",
+                    FactionBits.EldrytchWeb => "Eldrytch Web",
+                    FactionBits.RadiantBlood => "Radiant Blood",
+                    _ => channelName
+                };
+            }
+            else if (channelName == "Olthoi") //todo: olthoi play
+                return;
+
+            Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, channelName));
+
+            SendTurbineChatChannels();
+        }
+
+        public void LeaveTurbineChatChannel(string channelName, bool breakAllegiance = false)
+        {
+            if (channelName == "Allegiance" && !breakAllegiance && Allegiance == null)
+                return;
+            else if (channelName == "Society")
+            {
+                if (Society == FactionBits.None)
+                    return;
+
+                channelName = Society switch
+                {
+                    FactionBits.CelestialHand => "Celestial Hand",
+                    FactionBits.EldrytchWeb => "Eldrytch Web",
+                    FactionBits.RadiantBlood => "Radiant Blood",
+                    _ => channelName
+                };
+            }
+            else if (channelName == "Olthoi") //todo: olthoi play
+                return;
+
+            Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, channelName));
+
+            SendTurbineChatChannels(breakAllegiance);
         }
 
         private void SendSelf()
@@ -117,7 +207,7 @@ namespace ACE.Server.WorldObjects
             SendContractTrackerTable();
         }
 
-        private void SendPropertyUpdatesAndOverrides()
+        public void SendPropertyUpdatesAndOverrides()
         {
             if (!PropertyManager.GetBool("require_spell_comps").Item)
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyBool(this, PropertyBool.SpellComponentsRequired, false));
@@ -153,7 +243,7 @@ namespace ACE.Server.WorldObjects
 
         public void SendContractTrackerTable()
         {
-            if (ContractManager.Contracts.Count > 0)
+            if (Character.GetContractsCount(CharacterDatabaseLock) > 0)
                 Session.Network.EnqueueSend(new GameEventSendClientContractTrackerTable(Session));
         }
 
@@ -195,9 +285,8 @@ namespace ACE.Server.WorldObjects
             RequestedLocationBroadcast = broadcast;
         }
 
-        //public DateTime LastSoulEmote;
-
-        //private static TimeSpan SoulEmoteTime = TimeSpan.FromSeconds(2);
+        public MotionCommand LastSoulEmote;
+        public DateTime LastSoulEmoteEndTime;
 
         public void BroadcastMovement(MoveToState moveToState)
         {
@@ -225,19 +314,28 @@ namespace ACE.Server.WorldObjects
                     CurrentMotionState.SetForwardCommand(state.Commands[0].MotionCommand);
             }
 
-            /*if (state.HasSoulEmote())
+            if (state.HasSoulEmote(false))
             {
                 // prevent soul emote spam / bug where client sends multiples
-                var elapsed = DateTime.UtcNow - LastSoulEmote;
-                if (elapsed < SoulEmoteTime) return;
+                var soulEmote = state.Commands[0].MotionCommand;
+                if (soulEmote == LastSoulEmote && DateTime.UtcNow < LastSoulEmoteEndTime)
+                {
+                    state.Commands.Clear();
+                    state.CommandListLength = 0;
+                }
+                else
+                {
+                    var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, soulEmote, state.Commands[0].Speed);
 
-                LastSoulEmote = DateTime.UtcNow;
-            }*/
+                    LastSoulEmote = soulEmote;
+                    LastSoulEmoteEndTime = DateTime.UtcNow + TimeSpan.FromSeconds(animLength);
+                }
+            }
 
             var movementData = new MovementData(this, moveToState);
 
             var movementEvent = new GameMessageUpdateMotion(this, movementData);
-            EnqueueBroadcast(false, movementEvent);    // shouldn't need to go to originating player?
+            EnqueueBroadcast(true, movementEvent);    // shouldn't need to go to originating player?
 
             // TODO: use real motion / animation system from physics
             //CurrentMotionCommand = movementData.Invalid.State.ForwardCommand;
@@ -308,6 +406,23 @@ namespace ACE.Server.WorldObjects
         public void SendTransientError(string msg)
         {
             Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, msg));
+        }
+
+        public void HandleActionSetAFKMode(bool afkStatus)
+        {
+            IsAfk = afkStatus;
+
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyBool(this, PropertyBool.Afk, IsAfk));
+        }
+
+        public static string DefaultAFKMessage => "I am currently away from the keyboard."; // client default (/afk msg)
+
+        public void HandleActionSetAFKMessage(string afkMessage)
+        {
+            if (string.IsNullOrWhiteSpace(afkMessage))
+                afkMessage = DefaultAFKMessage; // client default
+
+            AfkMessage = afkMessage;
         }
     }
 }

@@ -4,17 +4,16 @@ using System.Linq;
 
 using log4net;
 
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
+using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Managers;
-using ACE.Database;
 
 namespace ACE.Server.WorldObjects
 {
@@ -28,7 +27,7 @@ namespace ACE.Server.WorldObjects
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static readonly uint CoinStackWCID = DatabaseManager.World.GetCachedWeenie("coinstack").ClassId;
+        public static readonly uint CoinStackWCID = DatabaseManager.World.GetCachedWeenie("coinstack").WeenieClassId;
 
         public readonly Dictionary<ObjectGuid, WorldObject> DefaultItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
 
@@ -85,6 +84,11 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
             ObjectDescriptionFlags |= ObjectDescriptionFlag.Vendor;
+
+            if (!PropertyManager.GetBool("vendor_shop_uses_generator").Item)
+            {
+                GeneratorProfiles.RemoveAll(p => p.Biota.WhereCreate.HasFlag(RegenLocationType.Shop));
+            }
         }
 
 
@@ -201,7 +205,9 @@ namespace ACE.Server.WorldObjects
             if (inventoryloaded)
                 return;
 
-            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Shop))
+            var itemsForSale = new Dictionary<(uint weenieClassId, int paletteTemplate, double shade), uint>();
+
+            foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Shop))
             {
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 
@@ -212,14 +218,46 @@ namespace ACE.Server.WorldObjects
                     if (item.Shade > 0)
                         wo.Shade = item.Shade;
                     wo.ContainerId = Guid.Full;
-                    wo.CalculateObjDesc(); // i don't like firing this but this triggers proper icons, the way vendors load inventory feels off to me in this method.
-                    DefaultItemsForSale.Add(wo.Guid, wo);
+                    wo.CalculateObjDesc();
+
+                    if (!itemsForSale.ContainsKey((wo.WeenieClassId, wo.PaletteTemplate ?? 0, wo.Shade ?? 0))) // lets skip dupes if there are any
+                    {
+                        DefaultItemsForSale.Add(wo.Guid, wo);
+                        itemsForSale.Add((wo.WeenieClassId, wo.PaletteTemplate ?? 0, wo.Shade ?? 0), wo.Guid.Full);
+                    }
+                    else
+                        wo.Destroy(false);
+                }
+            }
+
+            if (Biota.PropertiesGenerator != null && !PropertyManager.GetBool("vendor_shop_uses_generator").Item)
+            {
+                foreach (var item in Biota.PropertiesGenerator.Where(x => x.WhereCreate.HasFlag(RegenLocationType.Shop)))
+                {
+                    WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+
+                    if (wo != null)
+                    {
+                        if (item.PaletteId > 0)
+                            wo.PaletteTemplate = (int)item.PaletteId;
+                        if (item.Shade > 0)
+                            wo.Shade = item.Shade;
+                        wo.ContainerId = Guid.Full;
+                        wo.CalculateObjDesc();
+
+                        if (!itemsForSale.ContainsKey((wo.WeenieClassId, wo.PaletteTemplate ?? 0, wo.Shade ?? 0))) 
+                        {
+                            DefaultItemsForSale.Add(wo.Guid, wo);
+                            itemsForSale.Add((wo.WeenieClassId, wo.PaletteTemplate ?? 0, wo.Shade ?? 0), wo.Guid.Full);
+                        }
+                        else
+                            wo.Destroy(false);
+                    }
                 }
             }
 
             inventoryloaded = true;
         }
-
 
         public void AddDefaultItem(WorldObject item)
         {
@@ -443,21 +481,32 @@ namespace ACE.Server.WorldObjects
                 if (wo.ItemType == ItemType.PromissoryNote)
                     sellRate = 1.15;
 
-                goldcost += Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (wo.Value ?? 0)) - 0.1));
+                var cost = Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (wo.Value ?? 0)) - 0.1));
+
+                if (AlternateCurrency == null)
+                    goldcost += cost;
+                else
+                    altcost += cost;
             }
 
             foreach (WorldObject wo in genlist)
             {
-                if (AlternateCurrency == null)
-                {
-                    var sellRate = SellPrice ?? 1.0;
-                    if (wo.ItemType == ItemType.PromissoryNote)
-                        sellRate = 1.15;
+                var sellRate = SellPrice ?? 1.0;
+                if (wo.ItemType == ItemType.PromissoryNote)
+                    sellRate = 1.15;
 
-                    goldcost += Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (wo.Value ?? 0)) - 0.1));
-                }
+                var cost = Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (wo.Value ?? 0)) - 0.1));
+
+                if (AlternateCurrency == null)
+                    goldcost += cost;
                 else
-                    altcost += (uint)(wo.Value ?? 1);
+                    altcost += cost;
+            }
+
+            if (IsBusy && genlist.Any(i => i.GetProperty(PropertyBool.VendorService) == true))
+            {
+                player.SendWeenieErrorWithString(WeenieErrorWithString._IsTooBusyToAcceptGifts, Name);
+                return;
             }
 
             // send transaction to player for further processing and.
@@ -516,6 +565,10 @@ namespace ACE.Server.WorldObjects
 
                 // don't resell DestroyOnSell
                 if (item.GetProperty(PropertyBool.DestroyOnSell) ?? false)
+                    resellItem = false;
+
+                // don't resell Attuned items that can be sold
+                if (item.Attuned == AttunedStatus.Attuned)
                     resellItem = false;
 
                 // don't resell stackables?

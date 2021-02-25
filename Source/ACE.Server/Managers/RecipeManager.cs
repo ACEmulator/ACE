@@ -1,25 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 using log4net;
 
 using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.WorldObjects;
-using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.WorldObjects.Entity;
-using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Factories;
+using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Managers
 {
@@ -38,7 +38,7 @@ namespace ACE.Server.Managers
             return GetNewRecipe(player, source, target);
         }
 
-        public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target)
+        public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target, bool confirmed = false)
         {
             if (player.IsBusy)
             {
@@ -48,9 +48,8 @@ namespace ACE.Server.Managers
 
             if (source == target)
             {
-                var message = new GameMessageSystemChat($"The {source.Name} cannot be combined with itself.", ChatMessageType.Craft);
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You can't use the {source.Name} on itself."));
-                player.Session.Network.EnqueueSend(message);
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {source.NameWithMaterial} cannot be combined with itself.", ChatMessageType.Craft));
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You can't use the {source.NameWithMaterial} on itself."));
                 player.SendUseDoneEvent();
                 return;
             }
@@ -59,8 +58,7 @@ namespace ACE.Server.Managers
 
             if (recipe == null)
             {
-                var message = new GameMessageSystemChat($"The {source.Name} cannot be used on the {target.Name}.", ChatMessageType.Craft);
-                player.Session.Network.EnqueueSend(message);
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {source.NameWithMaterial} cannot be used on the {target.NameWithMaterial}.", ChatMessageType.Craft));
                 player.SendUseDoneEvent();
                 return;
             }
@@ -72,16 +70,31 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            if (source.ItemType == ItemType.TinkeringMaterial)
+            if ((source.ItemType == ItemType.TinkeringMaterial) || (source.WeenieClassId >= 36619 && source.WeenieClassId <= 36628) || (source.WeenieClassId >= 36634 && source.WeenieClassId <= 36636))
             {
                 HandleTinkering(player, source, target);
                 return;
             }
 
+            var percentSuccess = GetRecipeChance(player, source, target, recipe);
+
+            if (percentSuccess == null)
+            {
+                player.SendUseDoneEvent();
+                return;
+            }
+
+            var showDialog = HasDifficulty(recipe) && player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog);
+
+            if (showDialog && !confirmed)
+            {
+                ShowDialog(player, source, target, (float)percentSuccess);
+                return;
+            }
+
             ActionChain craftChain = new ActionChain();
-            CreatureSkill skill = null;
-            bool success = true; // assume success, unless there's a skill check
-            double percentSuccess = 1;
+
+            var animTime = 0.0f;
 
             player.IsBusy = true;
 
@@ -89,83 +102,106 @@ namespace ACE.Server.Managers
             {
                 var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
                 craftChain.AddDelaySeconds(stanceTime);
+
+                animTime += stanceTime;
             }
 
-            player.EnqueueMotion(craftChain, MotionCommand.ClapHands);
+            animTime += player.EnqueueMotion(craftChain, MotionCommand.ClapHands);
 
-            craftChain.AddAction(player, () =>
-            {
-                // re-verify
-                if (!VerifyRequirements(recipe, player, source, target))
-                {
-                    player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
-                    return;
-                }
-
-                if (recipe.Skill > 0 && recipe.Difficulty > 0)
-                {
-                    // there's a skill associated with this
-                    Skill skillId = (Skill)recipe.Skill;
-
-                    // this shouldn't happen, but sanity check for unexpected nulls
-                    skill = player.GetCreatureSkill(skillId);
-
-                    if (skill == null)
-                    {
-                        log.Warn($"RecipeManager.UseObjectOnTarget({player.Name}, {source.Name}, {target.Name}): recipe {recipe.Id} missing skill");
-                        player.SendUseDoneEvent();
-                        player.IsBusy = false;
-                        return;
-                    }
-
-                    // check for pre-MoA skill
-                    // convert into appropriate post-MoA skill
-                    // pre-MoA melee weapons: get highest melee weapons skill
-                    var newSkill = player.ConvertToMoASkill(skill.Skill);
-                    skill = player.GetCreatureSkill(newSkill);
-
-                    //Console.WriteLine("Required skill: " + skill.Skill);
-
-                    if (skill.AdvancementClass < SkillAdvancementClass.Trained)
-                    {
-                        var message = new GameEventWeenieError(player.Session, WeenieError.YouAreNotTrainedInThatTradeSkill);
-                        player.Session.Network.EnqueueSend(message);
-                        player.SendUseDoneEvent(WeenieError.YouAreNotTrainedInThatTradeSkill);
-                        player.IsBusy = false;
-                        return;
-                    }
-
-                    //Console.WriteLine("Skill difficulty: " + recipe.Recipe.Difficulty);
-
-                    percentSuccess = SkillCheck.GetSkillChance(skill.Current, recipe.Difficulty);
-
-                    success = ThreadSafeRandom.Next(0.0f, 1.0f) <= percentSuccess;
-                }
-
-                CreateDestroyItems(player, recipe, source, target, success);
-
-                // this code was intended for dyes, but UpdateObj seems to remove crafting components
-                // from shortcut bar, if they are hotkeyed
-                // more specifity for this, only if relevant properties are modified?
-                var shortcuts = player.GetShortcuts();
-                if (!shortcuts.Select(i => i.ObjectId).Contains(target.Guid.Full))
-                {
-                    var updateObj = new GameMessageUpdateObject(target);
-                    var updateDesc = new GameMessageObjDescEvent(player);
-
-                    if (target.CurrentWieldedLocation != null)
-                        player.EnqueueBroadcast(updateObj, updateDesc);
-                    else
-                        player.Session.Network.EnqueueSend(updateObj);
-                }
-
-                player.SendUseDoneEvent();
-                player.IsBusy = false;
-            });
+            craftChain.AddAction(player, () => HandleRecipe(player, source, target, recipe, (float)percentSuccess));
 
             player.EnqueueMotion(craftChain, MotionCommand.Ready);
 
+            craftChain.AddAction(player, () =>
+            {
+                if (!showDialog)
+                    player.SendUseDoneEvent();
+
+                player.IsBusy = false;
+            });
+
             craftChain.EnqueueChain();
+
+            player.NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
+        }
+
+        public static bool HasDifficulty(Recipe recipe)
+        {
+            return recipe.Skill > 0 && recipe.Difficulty > 0;
+        }
+
+        public static float? GetRecipeChance(Player player, WorldObject source, WorldObject target, Recipe recipe)
+        {
+            // only for regular recipes atm, tinkering / imbues handled separately
+            // todo: refactor this more
+            if (!HasDifficulty(recipe))
+                return 1.0f;
+
+            var playerSkill = player.GetCreatureSkill((Skill)recipe.Skill);
+
+            if (playerSkill == null)
+            {
+                // this shouldn't happen, but sanity check for unexpected nulls
+                log.Warn($"RecipeManager.GetRecipeChance({player.Name}, {source.Name}, {target.Name}): recipe {recipe.Id} missing skill");
+                return null;
+            }
+
+            // check for pre-MoA skill
+            // convert into appropriate post-MoA skill
+            // pre-MoA melee weapons: get highest melee weapons skill
+            var newSkill = player.ConvertToMoASkill(playerSkill.Skill);
+
+            playerSkill = player.GetCreatureSkill(newSkill);
+
+            //Console.WriteLine("Required skill: " + skill.Skill);
+
+            if (playerSkill.AdvancementClass < SkillAdvancementClass.Trained)
+            {
+                player.SendWeenieError(WeenieError.YouAreNotTrainedInThatTradeSkill);
+                return null;
+            }
+
+            //Console.WriteLine("Skill difficulty: " + recipe.Recipe.Difficulty);
+
+            var chance = (float)SkillCheck.GetSkillChance(playerSkill.Current, recipe.Difficulty);
+
+            return chance;
+        }
+
+        public static void HandleRecipe(Player player, WorldObject source, WorldObject target, Recipe recipe, float successChance)
+        {
+            // re-verify
+            if (!VerifyRequirements(recipe, player, source, target))
+            {
+                player.SendWeenieError(WeenieError.YouDoNotPassCraftingRequirements);
+                return;
+            }
+
+            var success = ThreadSafeRandom.Next(0.0f, 1.0f) < successChance;
+
+            CreateDestroyItems(player, recipe, source, target, success);
+
+            // this code was intended for dyes, but UpdateObj seems to remove crafting components
+            // from shortcut bar, if they are hotkeyed
+            // more specifity for this, only if relevant properties are modified?
+            var shortcuts = player.GetShortcuts();
+
+            if (!shortcuts.Select(i => i.ObjectId).Contains(target.Guid.Full))
+            {
+                var updateObj = new GameMessageUpdateObject(target);
+                var updateDesc = new GameMessageObjDescEvent(player);
+
+                if (target.CurrentWieldedLocation != null)
+                    player.EnqueueBroadcast(updateObj, updateDesc);
+                else
+                    player.Session.Network.EnqueueSend(updateObj);
+            }
+
+            if (success && recipe.Skill > 0 && recipe.Difficulty > 0)
+            {
+                var skill = player.GetCreatureSkill((Skill)recipe.Skill);
+                Proficiency.OnSuccessUse(player, skill, recipe.Difficulty);
+            }
         }
 
         public static float DoMotion(Player player, MotionCommand motionCommand)
@@ -176,6 +212,31 @@ namespace ACE.Server.Managers
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId);
             var craftAnimationLength = motionTable.GetAnimationLength(motionCommand);
             return craftAnimationLength;
+        }
+
+        public static void ShowDialog(Player player, WorldObject source, WorldObject target, float successChance, bool tinkering = false, int numAugs = 0)
+        {
+            var percent = successChance * 100;
+
+            // retail messages:
+
+            // You determine that you have a 100 percent chance to succeed.
+            // You determine that you have a 99 percent chance to succeed.
+            // You determine that you have a 38 percent chance to succeed. 5 percent is due to your augmentation.
+
+            var floorMsg = $"You determine that you have a {percent.Round()}% chance to succeed.";
+            if (numAugs > 0)
+                floorMsg += $"\n{numAugs * 5}% is due to your augmentation.";
+
+            player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, source.Guid, target.Guid, tinkering), floorMsg);
+
+            if (PropertyManager.GetBool("craft_exact_msg").Item)
+            {
+                var exactMsg = $"You have a {percent}% chance of using {source.NameWithMaterial} on {target.NameWithMaterial}.";
+
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
+            }
+            player.SendUseDoneEvent();
         }
 
         public static void HandleTinkering(Player player, WorldObject tool, WorldObject target, bool confirmed = false)
@@ -192,7 +253,7 @@ namespace ACE.Server.Managers
 
             var tinkeredCount = target.NumTimesTinkered;
 
-            var materialType = tool.MaterialType.Value;
+            var materialType = tool.MaterialType ?? MaterialType.Unknown;
             var salvageMod = GetMaterialMod(materialType);
 
             var workmanshipMod = 1.0f;
@@ -204,7 +265,7 @@ namespace ACE.Server.Managers
             var skill = player.GetCreatureSkill(recipeSkill);
 
             // require skill check for everything except ivory / leather / sandstone
-            if (UseSkillCheck(materialType))
+            if (UseSkillCheck(recipeSkill, materialType))
             {
                 // tinkering skill must be trained
                 if (skill.AdvancementClass < SkillAdvancementClass.Trained)
@@ -231,33 +292,15 @@ namespace ACE.Server.Managers
                 }
 
                 // handle rare foolproof material
-                if (tool.WeenieClassId >= 30094 && tool.WeenieClassId <= 30106)
+                if ((tool.WeenieClassId >= 30094 && tool.WeenieClassId <= 30106) || (tool.WeenieClassId >= 36619 && tool.WeenieClassId <= 36628) || (tool.WeenieClassId >= 36634 && tool.WeenieClassId <= 36636))
                     successChance = 1.0f;
 
                 // check for player option: 'Use Crafting Chance of Success Dialog'
                 if (player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) && !confirmed)
                 {
-                    var percent = (float)successChance * 100;
-                    var decimalPlaces = 2;
-                    var truncated = percent.Truncate(decimalPlaces);
+                    var numAugs = recipe.SalvageType == 2 ? player.AugmentationBonusImbueChance : 0;
 
-                    var toolMaterial = GetMaterialName(tool.MaterialType ?? 0);
-
-                    // TODO: retail messages
-                    // You determine that you have a 100 percent chance to succeed.
-                    // You determine that you have a 99 percent chance to succeed.
-                    // You determine that you have a 38 percent chance to succeed. 5 percent is due to your augmentation.
-
-                    var templateMsg = $"You have a % chance of using {toolMaterial} {tool.Name} on {target.NameWithMaterial}.";
-                    var floorMsg = templateMsg.Replace("%", (int)percent + "%");
-                    var truncateMsg = templateMsg.Replace("%", Math.Round(truncated, decimalPlaces) + "%");
-                    var exactMsg = templateMsg.Replace("%", percent + "%");
-
-                    player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, tool.Guid, target.Guid), floorMsg);
-
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
-
-                    player.SendUseDoneEvent();
+                    ShowDialog(player, tool, target, (float)successChance, true, numAugs);
                     return;
                 }
             }
@@ -268,19 +311,28 @@ namespace ACE.Server.Managers
                 incItemTinkered = false;
             }
 
+            player.IsBusy = true;
+
             var animLength = DoMotion(player, MotionCommand.ClapHands);
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(animLength);
-            actionChain.AddAction(player, () => DoTinkering(player, tool, target, recipe, (float)successChance, incItemTinkered));
-            actionChain.AddAction(player, () => DoMotion(player, MotionCommand.Ready));
+            actionChain.AddAction(player, () =>
+            {
+                DoTinkering(player, tool, target, recipe, (float)successChance, incItemTinkered);
+                DoMotion(player, MotionCommand.Ready);
+                player.IsBusy = false;
+            });
             actionChain.EnqueueChain();
+
+            player.NextUseTime = DateTime.UtcNow.AddSeconds(animLength);
         }
 
         public static void DoTinkering(Player player, WorldObject tool, WorldObject target, Recipe recipe, float chance, bool incItemTinkered)
         {
-            var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= chance;
-            var salvageMaterial = GetMaterialName(tool.MaterialType ?? 0);
+            var success = ThreadSafeRandom.Next(0.0f, 1.0f) < chance;
+
+            var sourceName = Regex.Replace(tool.NameWithMaterial, @" \(\d+\)$", "");
 
             if (success)
             {
@@ -288,20 +340,22 @@ namespace ACE.Server.Managers
 
                 // send local broadcast
                 if (incItemTinkered)
-                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
+                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
             }
             else if (incItemTinkered)
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {salvageMaterial} Salvage (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}. The target is destroyed.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}. The target is destroyed.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
 
             CreateDestroyItems(player, recipe, tool, target, success, !incItemTinkered);
 
-            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) || !UseSkillCheck(tool.MaterialType ?? 0))
+            if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) || !UseSkillCheck((Skill)recipe.Skill, tool.MaterialType ?? 0))
                 player.SendUseDoneEvent();
         }
 
         public static void Tinkering_ModifyItem(Player player, WorldObject tool, WorldObject target, bool incItemTinkered = true)
         {
             var recipe = GetRecipe(player, tool, target);
+
+            if (tool.MaterialType == null) return;
 
             var materialType = tool.MaterialType.Value;
 
@@ -379,31 +433,33 @@ namespace ACE.Server.Managers
                     break;
                 case MaterialType.Copper:
 
-                    if ((target.WieldSkillType ?? 0) != (int)Skill.MissileDefense)
+                    if (target.ItemSkillLimit != Skill.MissileDefense || target.ItemSkillLevelLimit == null)
                         return;
-                    // change wield requirement: missile defense -> melee defense (increased)
-                    target.WieldSkillType = (int)Skill.MeleeDefense;
-                    if (target.ItemSkillLevelLimit.HasValue)
-                        target.ItemSkillLevelLimit = (int)Math.Round(target.ItemSkillLevelLimit.Value * 1.2f);
+
+                    // change activation requirement: missile defense -> melee defense
+                    target.ItemSkillLimit = Skill.MeleeDefense;
+                    target.ItemSkillLevelLimit = (int)(target.ItemSkillLevelLimit / 0.7f);
                     break;
 
                 case MaterialType.Silver:
 
-                    if ((target.WieldSkillType ?? 0) != (int)Skill.MeleeDefense)
+                    if (target.ItemSkillLimit != Skill.MeleeDefense || target.ItemSkillLevelLimit == null)
                         return;
-                    // change wield requirement: melee defense -> missile defense (reduced)
-                    target.WieldSkillType = (int)Skill.MissileDefense;
-                    if (target.ItemSkillLevelLimit.HasValue)
-                        target.ItemSkillLevelLimit = (int)Math.Round(target.ItemSkillLevelLimit.Value * 0.85f);
+
+                    // change activation requirement: melee defense -> missile defense
+                    target.ItemSkillLimit = Skill.MissileDefense;
+                    target.ItemSkillLevelLimit = (int)(target.ItemSkillLevelLimit * 0.7f);
                     break;
 
                 case MaterialType.Silk:
 
-                    // remove allegiance rank limit, increase item difficulty by spellcraft?
+                    // remove allegiance rank limit, set difficulty to spellcraft
                     target.ItemAllegianceRankLimit = null;
-                    target.ItemDifficulty = (target.ItemDifficulty ?? 0) + target.ItemSpellcraft;
+                    target.ItemDifficulty = target.ItemSpellcraft;
                     break;
 
+                // armatures / trinkets
+                // these are handled in recipe mod
                 case MaterialType.Amber:
                 case MaterialType.Diamond:
                 case MaterialType.GromnieHide:
@@ -430,41 +486,43 @@ namespace ACE.Server.Managers
                     target.ElementalDamageMod += 0.01f;     // + 1% vs. monsters, + 0.25% vs. players
                     break;
 
+                // these are handled in recipe mods already
+
                 case MaterialType.SmokeyQuartz:
-                    AddSpell(player, target, SpellId.CANTRIPCOORDINATION1);
+                    //AddSpell(player, target, SpellId.CANTRIPCOORDINATION1);
                     break;
                 case MaterialType.RoseQuartz:
-                    AddSpell(player, target, SpellId.CANTRIPQUICKNESS1);
+                    //AddSpell(player, target, SpellId.CANTRIPQUICKNESS1);
                     break;
                 case MaterialType.RedJade:
-                    AddSpell(player, target, SpellId.CANTRIPHEALTHGAIN1);
+                    //AddSpell(player, target, SpellId.CANTRIPHEALTHGAIN1);
                     break;
                 case MaterialType.Malachite:
-                    AddSpell(player, target, SpellId.WarriorsVigor);
+                    //AddSpell(player, target, SpellId.WarriorsVigor);
                     break;
                 case MaterialType.LavenderJade:
-                    AddSpell(player, target, SpellId.CANTRIPMANAGAIN1);
+                    //AddSpell(player, target, SpellId.CANTRIPMANAGAIN1);
                     break;
                 case MaterialType.LapisLazuli:
-                    AddSpell(player, target, SpellId.CANTRIPWILLPOWER1);
+                    //AddSpell(player, target, SpellId.CANTRIPWILLPOWER1);
                     break;
                 case MaterialType.Hematite:
-                    AddSpell(player, target, SpellId.WarriorsVitality);
+                    //AddSpell(player, target, SpellId.WarriorsVitality);
                     break;
                 case MaterialType.Citrine:
-                    AddSpell(player, target, SpellId.CANTRIPSTAMINAGAIN1);
+                    //AddSpell(player, target, SpellId.CANTRIPSTAMINAGAIN1);
                     break;
                 case MaterialType.Carnelian:
-                    AddSpell(player, target, SpellId.CANTRIPSTRENGTH1);
+                    //AddSpell(player, target, SpellId.CANTRIPSTRENGTH1);
                     break;
                 case MaterialType.Bloodstone:
-                    AddSpell(player, target, SpellId.CANTRIPENDURANCE1);
+                    //AddSpell(player, target, SpellId.CANTRIPENDURANCE1);
                     break;
                 case MaterialType.Azurite:
-                    AddSpell(player, target, SpellId.WizardsIntellect);
+                    //AddSpell(player, target, SpellId.WizardsIntellect);
                     break;
                 case MaterialType.Agate:
-                    AddSpell(player, target, SpellId.CANTRIPFOCUS1);
+                    //AddSpell(player, target, SpellId.CANTRIPFOCUS1);
                     break;
 
                 // weapon tinkering
@@ -476,7 +534,7 @@ namespace ACE.Server.Managers
                     target.DamageMod += 0.04f;
                     break;
                 case MaterialType.Granite:
-                    target.DamageVariance *= 0.8f;
+                    //target.DamageVariance *= 0.8f;    // handled w/ lucky rabbits foot below
                     break;
                 case MaterialType.Oak:
                     target.WeaponTime = Math.Max(0, (target.WeaponTime ?? 0) - 50);
@@ -511,7 +569,7 @@ namespace ACE.Server.Managers
                     AddImbuedEffect(player, target, ImbuedEffectType.SlashRending);
                     break;
                 default:
-                    Console.WriteLine($"Unknown material type: {materialType}");
+                    log.Error($"{player.Name}.RecipeManager.Tinkering_ModifyItem({tool.Name} ({tool.Guid}), {target.Name} ({target.Guid})) - Unknown material type: {materialType}");
                     return;
             }
 
@@ -528,7 +586,7 @@ namespace ACE.Server.Managers
 
         public static void AddSpell(Player player, WorldObject target, SpellId spell, int difficulty = 25)
         {
-            target.Biota.GetOrAddKnownSpell((int)spell, target.BiotaDatabaseLock, target.BiotaPropertySpells, out _);
+            target.Biota.GetOrAddKnownSpell((int)spell, target.BiotaDatabaseLock, out _);
             target.ChangesDetected = true;
 
             if (difficulty != 0)
@@ -570,11 +628,11 @@ namespace ACE.Server.Managers
             else
                 return false;
 
-            if (IconUnderlay.TryGetValue(effect, out var icon))
+            /*if (IconUnderlay.TryGetValue(effect, out var icon))
             {
                 target.IconUnderlayId = icon;
                 player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyDataID(target, PropertyDataId.IconUnderlay, target.IconUnderlayId.Value));
-            }
+            }*/
 
             return true;
         }
@@ -586,8 +644,8 @@ namespace ACE.Server.Managers
             { ImbuedEffectType.ElectricRending, 0x06003354 },
             { ImbuedEffectType.AcidRending,     0x06003355 },
             { ImbuedEffectType.ArmorRending,    0x06003356 },
-            { ImbuedEffectType.CriticalStrike,  0x06003357 },
             { ImbuedEffectType.CripplingBlow,   0x06003357 },
+            { ImbuedEffectType.CriticalStrike,  0x06003358 },
             { ImbuedEffectType.FireRending,     0x06003359 },
             { ImbuedEffectType.BludgeonRending, 0x0600335a },
             { ImbuedEffectType.PierceRending,   0x0600335b },
@@ -693,7 +751,7 @@ namespace ACE.Server.Managers
 
         public static bool VerifyUse(Player player, WorldObject source, WorldObject target)
         {
-            var usable = source.Usable ?? Usable.Undef;
+            var usable = source.ItemUseable ?? Usable.Undef;
 
             if (usable == Usable.Undef)
             {
@@ -923,8 +981,18 @@ namespace ACE.Server.Managers
             var destroyTargetChance = success ? recipe.SuccessDestroyTargetChance : recipe.FailDestroyTargetChance;
             var destroySourceChance = success ? recipe.SuccessDestroySourceChance : recipe.FailDestroySourceChance;
 
-            var destroyTarget = ThreadSafeRandom.Next(0.0f, 1.0f) <= destroyTargetChance;
-            var destroySource = ThreadSafeRandom.Next(0.0f, 1.0f) <= destroySourceChance;
+            var destroyTarget = ThreadSafeRandom.Next(0.0f, 1.0f) < destroyTargetChance;
+            var destroySource = ThreadSafeRandom.Next(0.0f, 1.0f) < destroySourceChance;
+
+            var createItem = success ? recipe.SuccessWCID : recipe.FailWCID;
+            var createAmount = success ? recipe.SuccessAmount : recipe.FailAmount;
+
+            if (createItem > 0 && DatabaseManager.World.GetWeenie(createItem) == null)
+            {
+                log.Error($"RecipeManager.CreateDestroyItems: Recipe.Id({recipe.Id}) couldn't find {(success ? "Success" : "Fail")}WCID {createItem} in database.");
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.CraftGeneralErrorUiMsg));
+                return;
+            }
 
             if (destroyTarget)
             {
@@ -941,9 +1009,6 @@ namespace ACE.Server.Managers
 
                 DestroyItem(player, recipe, source, destroySourceAmount, destroySourceMessage);
             }
-
-            var createItem = success ? recipe.SuccessWCID : recipe.FailWCID;
-            var createAmount = success ? recipe.SuccessAmount : recipe.FailAmount;
 
             WorldObject result = null;
 
@@ -1049,10 +1114,27 @@ namespace ACE.Server.Managers
                 // apply base mod
                 switch (mod.DataId)
                 {
-                    // 	Fetish of the Dark Idols
+                    // TODO: add real mutation scripts
+
+                    //  Fetish of the Dark Idols
                     case 0x38000046:
                         AddImbuedEffect(player, target, ImbuedEffectType.IgnoreSomeMagicProjectileDamage);
                         target.SetProperty(PropertyFloat.AbsorbMagicDamage, 0.25f);
+                        break;
+
+                    //  Paragon Weapons (data id is ACE custom/placeholder for unknown real value)
+                    case 0x39000000:
+                        var itemMaxLevel = target.GetProperty(PropertyInt.ItemMaxLevel) ?? 0;
+                        target.SetProperty(PropertyInt.ItemMaxLevel, ++itemMaxLevel);
+                        target.SetProperty(PropertyInt64.ItemBaseXp, 2000000000);
+                        var itemTotalXp = target.GetProperty(PropertyInt64.ItemTotalXp) ?? 0;
+                        target.SetProperty(PropertyInt64.ItemTotalXp, itemTotalXp);
+                        break;
+
+                    // Granite
+                    // Lucky White Rabbit's Foot
+                    case 0x3800001C:
+                        target.DamageVariance *= 0.8f;
                         break;
                 }
 
@@ -1093,7 +1175,7 @@ namespace ACE.Server.Managers
                 log.Warn($"RecipeManager.ModifyBool({source.Name}, {target.Name}): unhandled operation {op}");
                 return;
             }
-            targetMod.SetProperty(prop, value);
+            player.UpdateProperty(targetMod, prop, value);
 
             if (Debug)
                 Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
@@ -1111,29 +1193,26 @@ namespace ACE.Server.Managers
             switch (op)
             {
                 case ModificationOperation.SetValue:
-                    targetMod.SetProperty(prop, value);
+                    player.UpdateProperty(targetMod, prop, value);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.Add:
-                    targetMod.IncProperty(prop, value);
+                    player.UpdateProperty(targetMod, prop, (targetMod.GetProperty(prop) ?? 0) + value);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.IncProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
-                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    player.UpdateProperty(target, prop, sourceMod.GetProperty(prop) ?? 0);
                     if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, player.GetProperty(prop) ?? 0);     // ??
+                    player.UpdateProperty(result, prop, player.GetProperty(prop) ?? 0);     // ??
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.AddSpell:
-                    if (value != -1)
-                    {
-                        targetMod.Biota.GetOrAddKnownSpell(value, target.BiotaDatabaseLock, target.BiotaPropertySpells, out var added);
-                        if (added)
-                            targetMod.ChangesDetected = true;
-                    }
-                    if (Debug) Console.WriteLine($"{targetMod.Name}.AddSpell({value}) - {op}");
+                    targetMod.Biota.GetOrAddKnownSpell(intMod.Stat, target.BiotaDatabaseLock, out var added);
+                    if (added)
+                        targetMod.ChangesDetected = true;
+                    if (Debug) Console.WriteLine($"{targetMod.Name}.AddSpell({intMod.Stat}) - {op}");
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyInt({source.Name}, {target.Name}): unhandled operation {op}");
@@ -1153,19 +1232,19 @@ namespace ACE.Server.Managers
             switch (op)
             {
                 case ModificationOperation.SetValue:
-                    targetMod.SetProperty(prop, value);
+                    player.UpdateProperty(targetMod, prop, value);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.Add:
-                    targetMod.IncProperty(prop, value);
+                    player.UpdateProperty(targetMod, prop, (targetMod.GetProperty(prop) ?? 0) + value);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.IncProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
-                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    player.UpdateProperty(target, prop, sourceMod.GetProperty(prop) ?? 0);
                     if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, player.GetProperty(prop) ?? 0);
+                    player.UpdateProperty(result, prop, player.GetProperty(prop) ?? 0);
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 default:
@@ -1186,15 +1265,15 @@ namespace ACE.Server.Managers
             switch (op)
             {
                 case ModificationOperation.SetValue:
-                    targetMod.SetProperty(prop, value);
+                    player.UpdateProperty(targetMod, prop, value);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
-                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
+                    player.UpdateProperty(target, prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
                     if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? sourceMod.Name}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, player.GetProperty(prop) ?? player.Name);
+                    player.UpdateProperty(result, prop, player.GetProperty(prop) ?? player.Name);
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? player.Name}) - {op}");
                     break;
                 default:
@@ -1215,15 +1294,15 @@ namespace ACE.Server.Managers
             switch (op)
             {
                 case ModificationOperation.SetValue:
-                    targetMod.SetProperty(prop, value);
+                    player.UpdateProperty(targetMod, prop, value);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
-                    target.SetProperty(prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));
+                    player.UpdateProperty(target, prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));
                     if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {ModifyInstanceIDRuleSet(prop, sourceMod, targetMod)}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, ModifyInstanceIDRuleSet(prop, player, targetMod));     // ??
+                    player.UpdateProperty(result, prop, ModifyInstanceIDRuleSet(prop, player, targetMod));     // ??
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {ModifyInstanceIDRuleSet(prop, player, targetMod)}) - {op}");
                     break;
                 default:
@@ -1258,15 +1337,15 @@ namespace ACE.Server.Managers
             switch (op)
             {
                 case ModificationOperation.SetValue:
-                    targetMod.SetProperty(prop, value);
+                    player.UpdateProperty(targetMod, prop, value);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
-                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    player.UpdateProperty(target, prop, sourceMod.GetProperty(prop) ?? 0);
                     if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
-                    result.SetProperty(prop, player.GetProperty(prop) ?? 0);
+                    player.UpdateProperty(result, prop, player.GetProperty(prop) ?? 0);
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 default:
@@ -1290,11 +1369,11 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Returns TRUE if this material requies a skill check
+        /// Returns TRUE if tinker operation requires a skill check
         /// </summary>
-        public static bool UseSkillCheck(MaterialType material)
+        public static bool UseSkillCheck(Skill skill, MaterialType material)
         {
-            return material != MaterialType.Ivory && material != MaterialType.Leather && material != MaterialType.Sandstone;
+            return skill != Skill.None && material != MaterialType.Ivory && material != MaterialType.Leather && material != MaterialType.Sandstone;
         }
     }
 }

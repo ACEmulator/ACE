@@ -70,6 +70,8 @@ namespace ACE.Server.Entity
                 return;
             }
 
+            var animTime = 0.0f;
+
             var actionChain = new ActionChain();
 
             // handle switching to peace mode
@@ -77,14 +79,29 @@ namespace ACE.Server.Entity
             {
                 var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
                 actionChain.AddDelaySeconds(stanceTime);
+
+                animTime += stanceTime;
             }
 
             // perform clapping motion
-            player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
+            animTime += player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
 
-            actionChain.AddAction(player, () => DoTailoring(player, source, target));
+            actionChain.AddAction(player, () =>
+            {
+                // re-verify
+                var useError = VerifyUseRequirements(player, source, target);
+                if (useError != WeenieError.None)
+                {
+                    player.SendUseDoneEvent(useError);
+                    return;
+                }
+
+                DoTailoring(player, source, target);
+            });
 
             actionChain.EnqueueChain();
+
+            player.NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
         }
 
         public static WeenieError VerifyUseRequirements(Player player, WorldObject source, WorldObject target)
@@ -196,6 +213,8 @@ namespace ACE.Server.Entity
                 target.UiEffects = source.UiEffects;
             target.MaterialType = source.MaterialType;
 
+            target.ObjScale = source.ObjScale;
+
             target.Shade = source.Shade;
 
             // This might not even be needed, but we'll do it anyways
@@ -207,8 +226,11 @@ namespace ACE.Server.Entity
             target.PaletteBaseId = source.PaletteBaseId;
             target.ClothingBase = source.ClothingBase;
 
+            target.PhysicsTableId = source.PhysicsTableId;
+            target.SoundTableId = source.SoundTableId;
+
             target.Name = source.Name;
-            target.LongDesc = source.LongDesc;
+            target.LongDesc = LootGenerationFactory.GetLongDesc(target);
 
             target.IgnoreCloIcons = source.IgnoreCloIcons;
             target.IconId = source.IconId;
@@ -243,8 +265,6 @@ namespace ACE.Server.Entity
 
             target.TargetType = source.ItemType;
 
-            target.ObjScale = source.ObjScale;
-
             target.HookType = source.HookType;
             target.HookPlacement = source.HookPlacement;
             target.LightsStatus = source.LightsStatus;
@@ -253,9 +273,9 @@ namespace ACE.Server.Entity
             // These values are all set just for verification purposes. Likely originally handled by unique WCID and recipe system.
             if (source is MeleeWeapon)
             {
-                target.DefaultCombatStyle = source.DefaultCombatStyle;
+                target.DefaultCombatStyle = source.DefaultCombatStyle;  // unused currently, keeping this around in case its needed..
                 target.W_AttackType = source.W_AttackType;
-                target.W_WeaponType = source.W_WeaponType;      // unused currently, keeping this around in case its needed..
+                target.W_WeaponType = source.W_WeaponType;
             }
             else if (source is MissileLauncher)
                 target.DefaultCombatStyle = source.DefaultCombatStyle;
@@ -269,6 +289,9 @@ namespace ACE.Server.Entity
             player.TryConsumeFromInventoryWithNetworking(target, 1);
 
             player.TryCreateInInventoryWithNetworking(result);
+
+            if (PropertyManager.GetBool("player_receive_immediate_save").Item)
+                player.RushNextPlayerSave(5);
 
             player.SendUseDoneEvent();
         }
@@ -284,6 +307,13 @@ namespace ACE.Server.Entity
             // ensure target is valid weapon
             if (!(target is MeleeWeapon) && !(target is MissileLauncher) && !(target is Caster))
             {
+                player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                return;
+            }
+
+            if (target is MeleeWeapon && target.W_WeaponType == WeaponType.Undef)
+            {
+                // 'difficult to master' weapons were not tailorable
                 player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                 return;
             }
@@ -377,6 +407,8 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyInt.ClothingPriority, (int)clothingPriority);
             player.TryConsumeFromInventoryWithNetworking(source, 1);
 
+            target.SaveBiotaToDatabase();
+
             player.SendUseDoneEvent();
         }
 
@@ -391,6 +423,8 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyBool.TopLayerPriority, topLayer);
 
             player.TryConsumeFromInventoryWithNetworking(source, 1);
+
+            target.SaveBiotaToDatabase();
 
             player.SendUseDoneEvent();
         }
@@ -419,6 +453,8 @@ namespace ACE.Server.Entity
 
             player.TryConsumeFromInventoryWithNetworking(source, 1);
 
+            target.SaveBiotaToDatabase();
+
             player.SendUseDoneEvent();
         }
 
@@ -434,8 +470,7 @@ namespace ACE.Server.Entity
             {
                 case ItemType.MeleeWeapon:
 
-                    if (source.DefaultCombatStyle != target.DefaultCombatStyle ||
-                        source.W_AttackType != target.W_AttackType ||
+                    if (source.W_WeaponType != target.W_WeaponType ||
                         source.W_DamageType != target.W_DamageType)
                     {
                         player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
@@ -477,6 +512,8 @@ namespace ACE.Server.Entity
 
             player.TryConsumeFromInventoryWithNetworking(source, 1);
 
+            target.SaveBiotaToDatabase();
+
             player.SendUseDoneEvent();
         }
 
@@ -484,7 +521,10 @@ namespace ACE.Server.Entity
         {
             player.UpdateProperty(target, PropertyInt.PaletteTemplate, source.PaletteTemplate);
             //player.UpdateProperty(target, PropertyInt.UiEffects, (int?)source.UiEffects);
-            player.UpdateProperty(target, PropertyInt.MaterialType, (int?)source.MaterialType);
+            if (source.MaterialType.HasValue)
+                player.UpdateProperty(target, PropertyInt.MaterialType, (int?)source.MaterialType);
+
+            player.UpdateProperty(target, PropertyFloat.DefaultScale, source.ObjScale);
 
             player.UpdateProperty(target, PropertyFloat.Shade, source.Shade);
             player.UpdateProperty(target, PropertyFloat.Shade2, source.Shade2);
@@ -523,8 +563,6 @@ namespace ACE.Server.Entity
         public static void UpdateWeaponProps(Player player, WorldObject source, WorldObject target)
         {
             UpdateCommonProps(player, source, target);
-
-            player.UpdateProperty(target, PropertyFloat.DefaultScale, source.ObjScale);
 
             player.UpdateProperty(target, PropertyInt.HookType, source.HookType);
             player.UpdateProperty(target, PropertyInt.HookPlacement, source.HookPlacement);

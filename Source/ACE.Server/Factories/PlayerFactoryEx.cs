@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using ACE.Database.Models.World;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
+using ACE.Server.Factories.Enum;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
@@ -449,9 +450,16 @@ namespace ACE.Server.Factories
 
             AddCommonInventory(player, RelicAlduressa);
 
+            // Create a dummy treasure profile for passing in tier value
+            var profile = new Database.Models.World.TreasureDeath
+            {
+                Tier = 7,
+                LootQualityMod = 0
+            };
+
             for (int i = 0; i < 12; i++)
             {
-                var item = LootGenerationFactory.CreateMeleeWeapon(7, true, 0);
+                var item = LootGenerationFactory.CreateMeleeWeapon(profile, true, MeleeWeaponSkill.HeavyWeapons);
                 AddRend(item);
                 player.TryAddToInventory(item);
             }
@@ -493,9 +501,16 @@ namespace ACE.Server.Factories
 
             AddCommonInventory(player, NobleRelic);
 
+            // Create a dummy treasure profile for passing in tier value
+            var profile = new Database.Models.World.TreasureDeath
+            {
+                Tier = 7,
+                LootQualityMod = 0
+            };
+
             for (int i = 0; i < 12; i++)
             {
-                var item = LootGenerationFactory.CreateMissileWeapon(7, true);
+                var item = LootGenerationFactory.CreateMissileWeapon(profile, true);
                 AddRend(item);
                 player.TryAddToInventory(item);
             }
@@ -538,9 +553,16 @@ namespace ACE.Server.Factories
 
             AddCommonInventory(player, AncientRelic);
 
+            // Create a dummy treasure profile for passing in tier value
+            var profile = new Database.Models.World.TreasureDeath
+            {
+                Tier = 7,
+                LootQualityMod = 0
+            };
+
             for (int i = 0; i < 12; i++)
             {
-                var item = LootGenerationFactory.CreateCaster(7, true, 1, true);
+                var item = LootGenerationFactory.CreateCaster(profile, true, 1, true);
                 AddRend(item);
                 player.TryAddToInventory(item);
             }
@@ -590,7 +612,7 @@ namespace ACE.Server.Factories
             orb.RemoveProperty(PropertyDataId.TsysMutationFilter);
             // biota_properties_int
             orb.UiEffects = UiEffects.Magical;
-            orb.Bonded = 1;
+            orb.Bonded = BondedStatus.Bonded;
             orb.W_DamageType = DamageType.Slash;
             orb.TargetType = ItemType.Creature;
             orb.ItemSpellcraft = 325;

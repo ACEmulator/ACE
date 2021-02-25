@@ -1,14 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 using log4net;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Factories;
+using ACE.Server.Managers;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects;
 
@@ -31,7 +33,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The biota with all the generator profile info
         /// </summary>
-        public BiotaPropertiesGenerator Biota;
+        public PropertiesGenerator Biota;
 
         /// <summary>
         /// A list of objects that have been spawned by this generator
@@ -109,7 +111,9 @@ namespace ACE.Server.Entity
         {
             get
             {
-                if (Generator is Chest || Generator.RegenerationInterval == 0)
+                // TODO: investigate this logic - why is the RegenerationInterval bit needed here?
+
+                if (Generator is Chest || !(Generator is PressurePlate) && Generator.RegenerationInterval == 0)
                     return 0;
 
                 return Biota.Delay ?? Generator.GeneratorProfiles[0].Biota.Delay ?? 0.0f;
@@ -127,7 +131,7 @@ namespace ACE.Server.Entity
         /// Constructs a new active generator profile
         /// from a biota generator
         /// </summary>
-        public GeneratorProfile(WorldObject generator, BiotaPropertiesGenerator biota, uint profileId)
+        public GeneratorProfile(WorldObject generator, PropertiesGenerator biota, uint profileId)
         {
             Generator = generator;
             Biota = biota;
@@ -315,7 +319,16 @@ namespace ACE.Server.Entity
 
             // offset from generator location
             else
-                obj.Location = new ACE.Entity.Position(Generator.Location.Cell, Generator.Location.PositionX + Biota.OriginX ?? 0, Generator.Location.PositionY + Biota.OriginY ?? 0, Generator.Location.PositionZ + Biota.OriginZ ?? 0, Biota.AnglesX ?? 0, Biota.AnglesY ?? 0, Biota.AnglesZ ?? 0, Biota.AnglesW ?? 0);
+            {
+                if (PropertyManager.GetBool("use_generator_rotation_offset").Item)
+                {
+                    var offset = Vector3.Transform(new Vector3(Biota.OriginX ?? 0, Biota.OriginY ?? 0, Biota.OriginZ ?? 0), Generator.Location.Rotation);
+
+                    obj.Location = new ACE.Entity.Position(Generator.Location.Cell, Generator.Location.PositionX + offset.X, Generator.Location.PositionY + offset.Y, Generator.Location.PositionZ + offset.Z, Biota.AnglesX ?? 0, Biota.AnglesY ?? 0, Biota.AnglesZ ?? 0, Biota.AnglesW ?? 0);
+                }
+                else
+                    obj.Location = new ACE.Entity.Position(Generator.Location.Cell, Generator.Location.PositionX + Biota.OriginX ?? 0, Generator.Location.PositionY + Biota.OriginY ?? 0, Generator.Location.PositionZ + Biota.OriginZ ?? 0, Biota.AnglesX ?? 0, Biota.AnglesY ?? 0, Biota.AnglesZ ?? 0, Biota.AnglesW ?? 0);
+            }
 
             if (!VerifyLandblock(obj) || !VerifyWalkableSlope(obj))
                 return false;
@@ -327,6 +340,7 @@ namespace ACE.Server.Entity
         {
             float genRadius = (float)(Generator.GetProperty(PropertyFloat.GeneratorRadius) ?? 0f);
             obj.Location = new ACE.Entity.Position(Generator.Location);
+            obj.Location.PositionZ += 0.05f;
 
             // we are going to delay this scatter logic until the physics engine,
             // where the remnants of this function are in the client (SetScatterPositionInternal)
@@ -388,13 +402,25 @@ namespace ACE.Server.Entity
 
         public bool VerifyWalkableSlope(WorldObject obj)
         {
-            if (!obj.Location.Indoors && !obj.Location.IsWalkable())
+            if (!obj.Location.Indoors && !obj.Location.IsWalkable() && !VerifyWalkableSlopeExcludedLandblocks.Contains(obj.Location.LandblockId.Landblock))
             {
                 //log.Debug($"{_generator.Name}.VerifyWalkableSlope({obj.Name}) - spawn location is unwalkable slope");
                 return false;
             }
             return true;
         }
+
+        /// <summary>
+        /// A list of landblocks the excluded from VerifyWalkableSlope check
+        /// 
+        /// TODO gmriggs
+        /// Hack until this can be looked into more.
+        /// </summary>
+        public static HashSet<ushort> VerifyWalkableSlopeExcludedLandblocks = new HashSet<ushort>()
+        {
+            0x9EE5,     // Northwatch Castle
+            0xF92F,     // Freebooter Keep
+        };
 
         /// <summary>
         /// Generates a randomized treasure from LootGenerationFactory

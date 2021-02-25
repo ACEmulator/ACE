@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
@@ -146,7 +147,7 @@ namespace ACE.Server.WorldObjects
         public bool TryConsumeFromInventoryWithNetworking(uint wcid, int amount = int.MaxValue)
         {
             var items = GetInventoryItemsOfWCID(wcid);
-            items = items.OrderBy(o => o.Value).ToList();
+            //items = items.OrderBy(o => o.Value).ToList();
 
             var leftReq = amount;
             foreach (var item in items)
@@ -224,7 +225,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"{Name}.TryStanceShuffle({wieldedLocation})");
 
             // do the appropriate combat stance shuffling, based on the item types
-            // todo: instead of switching the weapon immediately, the weapon should be swpped in the middle of the animation chain
+            // todo: instead of switching the weapon immediately, the weapon should be swapped in the middle of the animation chain
 
             if (CombatMode != CombatMode.NonCombat && CombatMode != CombatMode.Undef)
             {
@@ -232,27 +233,15 @@ namespace ACE.Server.WorldObjects
                 {
                     case EquipMask.MissileWeapon:
 
-                        var animTime = SetCombatMode(CombatMode.Missile, out var queueTime);
-
-                        var equippedAmmo = GetEquippedAmmo();
-
-                        if (equippedAmmo == null)
-                        {
-                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
-
-                            var actionChain = new ActionChain();
-                            actionChain.AddDelaySeconds(animTime - queueTime);
-                            actionChain.AddAction(this, () => SetCombatMode(CombatMode.NonCombat));
-                            actionChain.EnqueueChain();
-                        }
+                        HandleActionChangeCombatMode(CombatMode.Missile);
                         break;
 
                     case EquipMask.Held:
-                        SetCombatMode(CombatMode.Magic);
+                        HandleActionChangeCombatMode(CombatMode.Magic);
                         break;
 
                     default:
-                        SetCombatMode(CombatMode.Melee);
+                        HandleActionChangeCombatMode(CombatMode.Melee);
                         break;
                 }
             }
@@ -273,6 +262,9 @@ namespace ACE.Server.WorldObjects
                 new GameEventWieldItem(Session, item.Guid.Full, wieldedLocation),
                 new GameMessageSound(Guid, Sound.WieldObject));
 
+            if (item.GearMaxHealth != null)
+                HandleMaxHealthUpdate();
+
             TryShuffleStance(wieldedLocation);
 
             // does this item cast enchantments, and currently have mana?
@@ -285,18 +277,22 @@ namespace ACE.Server.WorldObjects
                     if (result.Message != null)
                         Session.Network.EnqueueSend(result.Message);
 
+                    // handle equipment sets
+                    if (item.HasItemSet)
+                        EquipItemFromSet(item);
+
                     return true;
                 }
 
-                foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
+                foreach (var spell in item.Biota.GetKnownSpellsIds(BiotaDatabaseLock))
                 {
-                    if (item.HasProcSpell((uint)spell.Spell))
+                    if (item.HasProcSpell((uint)spell))
                         continue;
 
-                    if (spell.Spell == item.SpellDID)
+                    if (spell == item.SpellDID)
                         continue;
 
-                    var enchantmentStatus = CreateItemSpell(item, (uint)spell.Spell);
+                    var enchantmentStatus = CreateItemSpell(item, (uint)spell);
                     if (enchantmentStatus.Success)
                         item.IsAffecting = true;
                 }
@@ -352,21 +348,12 @@ namespace ACE.Server.WorldObjects
                 new GameMessagePickupEvent(item),
                 new GameMessageSound(Guid, Sound.UnwieldObject));
 
-            // If item has any spells, remove them from the registry on unequip
-            if (item.Biota.BiotaPropertiesSpellBook != null)
-            {
-                foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
-                {
-                    if (item.HasProcSpell((uint)spell.Spell))
-                        continue;
-
-                    RemoveItemSpell(item, (uint)spell.Spell, true);
-                }
-            }
-
             // handle equipment sets
             if (item.HasItemSet)
                 DequipItemFromSet(item);
+
+            if (item.GearMaxHealth != null)
+                HandleMaxHealthUpdate();
 
             if (dequipObjectAction == DequipObjectAction.ToCorpseOnDeath || dequipObjectAction == DequipObjectAction.TradeItem)
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
@@ -392,19 +379,43 @@ namespace ACE.Server.WorldObjects
 
             if (dequipObjectAction != DequipObjectAction.ToCorpseOnDeath)
             {
-                if (CombatMode == CombatMode.Missile && wieldedLocation == (int)EquipMask.MissileAmmo)
+                if (RequiresStanceSwap(wieldedLocation))
                 {
-                    SetCombatMode(CombatMode.NonCombat);
-                    return true;
+                    var newCombatMode = CombatMode.Melee;
+
+                    if (CombatMode == CombatMode.Missile && wieldedLocation == EquipMask.MissileAmmo)
+                        newCombatMode = CombatMode.NonCombat;
+
+                    HandleActionChangeCombatMode(newCombatMode);
                 }
-
-                if (CombatMode == CombatMode.NonCombat || (wieldedLocation != (int)EquipMask.MeleeWeapon && wieldedLocation != (int)EquipMask.MissileWeapon && wieldedLocation != (int)EquipMask.Held && wieldedLocation != (int)EquipMask.Shield && !item.IsTwoHanded))
-                    return true;
-
-                SetCombatMode(CombatMode.Melee);
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Returns TRUE if unwielding an item from wieldedLocation
+        /// should cause the player to switch to a new stance
+        /// </summary>
+        public bool RequiresStanceSwap(EquipMask wieldedLocation, bool checkMissile = true)
+        {
+            if (CombatMode == CombatMode.NonCombat)
+                return false;
+
+            switch (wieldedLocation)
+            {
+                case EquipMask.MeleeWeapon:
+                case EquipMask.MissileWeapon:
+                case EquipMask.Held:
+                case EquipMask.Shield:
+                case EquipMask.TwoHanded:
+                    return true;
+            }
+
+            if (checkMissile && CombatMode == CombatMode.Missile && wieldedLocation == EquipMask.MissileAmmo)
+                return true;
+
+            return false;
         }
 
 
@@ -590,9 +601,24 @@ namespace ACE.Server.WorldObjects
             if (objectWereReachingToward.Location == null)
                 return MotionCommand.Invalid;
 
+            // hack for jump looting --
+
+            // in retail, this bug was a result of actions running on motion callbacks,
+            // when the motions exited the animation queue
+
+            // since a 'crouch down' motion cannot be performed while jumping,
+            // this crouch down motion exited the animation queue immediately
+
+            // here we are just skipping the animation if the player is jumping
+            if (IsJumping && PropertyManager.GetBool("allow_jump_loot").Item)
+                return MotionCommand.Invalid;
+
             MotionCommand pickupMotion;
 
             var item_location_z = objectWereReachingToward.Location.PositionZ;
+
+            if (!(objectWereReachingToward is Corpse))
+                item_location_z += objectWereReachingToward.Height * 0.5f;
 
             if (item_location_z >= Location.PositionZ + (Height * 0.90))
                 pickupMotion = MotionCommand.Pickup20; // Reach up
@@ -698,6 +724,108 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
         }
 
+        private bool HandleActionPutItemInContainer_Verify(uint itemGuid, uint containerGuid, int placement,
+            out Container itemRootOwner, out WorldObject item, out Container containerRootOwner, out Container container, out bool itemWasEquipped)
+        {
+            itemRootOwner = null;
+            item = null;
+            container = null;
+            containerRootOwner = null;
+            itemWasEquipped = false;
+
+            if (suicideInProgress)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                return false;
+            }
+
+            if (IsBusy)
+            {
+                if (PickupState != PickupState.Return || NextPickup != null)
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                }
+                else
+                    NextPickup = () => { HandleActionPutItemInContainer(itemGuid, containerGuid, placement); };
+
+                return false;
+            }
+
+            //OnPutItemInContainer(itemGuid, containerGuid, placement);
+
+            item = FindObject(itemGuid, SearchLocations.LocationsICanMove, out _, out itemRootOwner, out itemWasEquipped);
+            container = FindObject(containerGuid, SearchLocations.MyInventory | SearchLocations.Landblock | SearchLocations.LastUsedContainer, out _, out containerRootOwner, out _) as Container;
+
+            if (item == null)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Source item not found!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                return false;
+            }
+
+            if (!item.Guid.IsDynamic() || item is Creature || item.Stuck)
+            {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to move item 0x{2:X8}:{3}.", Guid.Full, Name, item.Guid.Full, item.Name);
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.Stuck));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                return false;
+            }
+
+            if (itemRootOwner != this && containerRootOwner == this && !HasEnoughBurdenToAddToInventory(item))
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to carry that!"));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                return false;
+            }
+
+            if (container == null)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Target container not found!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                return false;
+            }
+
+            if (container is Corpse)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot put {item.Name} in that.")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                return false;
+            }
+
+            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.TradeItemBeingTraded));
+                return false;
+            }
+
+            if (containerRootOwner != this) // Is our target on the landscape?
+            {
+                if (itemRootOwner == this && item.IsAttunedOrContainsAttuned)
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.AttunedItem));
+                    return false;
+                }
+
+                if (containerRootOwner != null && !containerRootOwner.IsOpen)
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.TheContainerIsClosed));
+                    return false;
+                }
+            }
+
+            if (containerRootOwner is Corpse corpse)
+            {
+                if (!corpse.IsMonster)
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.Dead));
+                    return false;
+                }
+            }
+            return true;
+        }
+
         // =========================================
         // Game Action Handlers - Inventory Movement 
         // =========================================
@@ -715,91 +843,13 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.HandleActionPutItemInContainer({itemGuid:X8}, {containerGuid:X8}, {placement})");
 
-            if (IsBusy)
+            if (!HandleActionPutItemInContainer_Verify(itemGuid, containerGuid, placement,
+                out Container itemRootOwner, out WorldObject item, out Container containerRootOwner, out Container container, out bool itemWasEquipped))
             {
-                if (PickupState != PickupState.Return || NextPickup != null)
-                {
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
-                }
-                else
-                    NextPickup = () => { HandleActionPutItemInContainer(itemGuid, containerGuid, placement); };
-
                 return;
             }
 
-            OnPutItemInContainer(itemGuid, containerGuid, placement);
-
-            var item = FindObject(itemGuid, SearchLocations.LocationsICanMove, out _, out var itemRootOwner, out var itemWasEquipped);
-            var container = FindObject(containerGuid, SearchLocations.MyInventory | SearchLocations.Landblock | SearchLocations.LastUsedContainer, out _, out var containerRootOwner, out _) as Container;
-
-            if (item == null)
-            {
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Source item not found!")); // Custom error message
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
-                return;
-            }
-
-            if (!item.Guid.IsDynamic() || item is Creature || item.Stuck)
-            {
-                log.WarnFormat("Player 0x{0:X8}:{1} tried to move item 0x{2:X8}:{3}.", Guid.Full, Name, item.Guid.Full, item.Name);
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.Stuck));
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
-                return;
-            }
-
-            if (itemRootOwner != this && containerRootOwner == this && !HasEnoughBurdenToAddToInventory(item))
-            {
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to carry that!"));
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
-                return;
-            }
-
-            if (container == null)
-            {
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Target container not found!")); // Custom error message
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
-                return;
-            }
-
-            if (container is Corpse)
-            {
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot put {item.Name} in that.")); // Custom error message
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
-                return;
-            }
-
-            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
-            {
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.TradeItemBeingTraded));
-                return;
-            }
-
-            if (containerRootOwner != this) // Is our target on the landscape?
-            {
-                if (itemRootOwner == this && (item.Attuned ?? 0) >= 1)
-                {
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.AttunedItem));
-                    return;
-                }
-
-                if (containerRootOwner != null && !containerRootOwner.IsOpen)
-                {
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.TheContainerIsClosed));
-                    return;
-                }
-            }
-
-            if (containerRootOwner is Corpse corpse)
-            {
-                if (!corpse.IsMonster)
-                {
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.Dead));
-                    return;
-                }
-            }
-
-            if ((itemRootOwner == this && containerRootOwner != this)  || (itemRootOwner != this && containerRootOwner == this)) // Movement is between the player and the world
+            if ((itemRootOwner == this && containerRootOwner != this) || (itemRootOwner != this && containerRootOwner == this)) // Movement is between the player and the world
             {
                 if (itemRootOwner is Vendor)
                 {
@@ -810,21 +860,9 @@ namespace ACE.Server.WorldObjects
 
                 var itemAsContainer = item as Container;
 
-                if (itemAsContainer != null)
-                {
-                    // Checking to see if item to pick is an container itself and IsOpen
-                    if (!VerifyContainerOpenStatus(itemAsContainer, item))
-                        return;
-
-                    foreach (var obj in itemAsContainer.Inventory.Values)
-                    {
-                        if ((obj.Attuned ?? 0) >= 1)
-                        {
-                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.AttunedItem));
-                            return;
-                        }
-                    }
-                }
+                // Checking to see if item to pick is an container itself and IsOpen
+                if (itemAsContainer != null && !VerifyContainerOpenStatus(itemAsContainer, item))
+                    return;
 
                 WorldObject moveToTarget;
                 if (itemRootOwner == this)
@@ -851,6 +889,16 @@ namespace ACE.Server.WorldObjects
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.ActionCancelled));
                         return;
+                    }
+
+                    if (itemRootOwner != this && containerRootOwner == this)
+                    {
+                        // moving from world container to player
+                        if (item.IsUniqueOrContainsUnique && !CheckUniques(item))
+                        {
+                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                            return;
+                        }
                     }
 
                     StartPickup();
@@ -882,39 +930,61 @@ namespace ACE.Server.WorldObjects
                             return;
                         }
 
-                        var questSolve = false;
-                        var isFromMyCorpse = false;
+                        //var questSolve = false;
+                        //var isFromMyCorpse = false;
+                        //var isFromAPlayerCorpse = false;
+                        //var isFromMyHook = false;
+                        //var isFromMyStorage = false;
+
+                        //if (itemRootOwner != this && containerRootOwner == this && item.Quest != null) // We're picking up a quest item
+                        //{
+                        //    if ( itemRootOwner != null && (itemRootOwner.WeenieType == WeenieType.Corpse || itemRootOwner.WeenieType == WeenieType.Hook || itemRootOwner.WeenieType == WeenieType.Storage))
+                        //    {
+                        //        if (itemRootOwner is Corpse && itemRootOwner.VictimId.HasValue && itemRootOwner.VictimId.Value == Guid.Full)
+                        //            isFromMyCorpse = true;
+                        //        if (itemRootOwner is Hook && itemRootOwner.HouseOwner.HasValue && itemRootOwner.HouseOwner.Value == Guid.Full)
+                        //            isFromMyHook = true;
+                        //        if (itemRootOwner is Storage && itemRootOwner.HouseOwner.HasValue && itemRootOwner.HouseOwner.Value == Guid.Full)
+                        //            isFromMyStorage = true;
+                        //    }
+
+                        //    if (!QuestManager.CanSolve(item.Quest) && !isFromMyCorpse && !isFromMyHook && !isFromMyStorage)
+                        //    {
+                        //        QuestManager.HandleSolveError(item.Quest);
+                        //        EnqueuePickupDone(pickupMotion);
+                        //        return;
+                        //    }
+                        //    else
+                        //    {
+                        //        if (!isFromMyCorpse && !isFromMyHook && !isFromMyStorage)
+                        //            questSolve = true;
+                        //    }
+                        //}
+
+                        var itemFoundOnCorpse = itemRootOwner is Corpse;
+
                         var isFromAPlayerCorpse = false;
-                        var isFromMyHook = false;
-                        var isFromMyStorage = false;
+                        if (itemFoundOnCorpse && itemRootOwner.Level > 0)
+                            isFromAPlayerCorpse = true;
 
-                        if (itemRootOwner != this && containerRootOwner == this && item.Quest != null) // We're picking up a quest item
+                        var questSolve = false;
+                        if (item.Quest != null) // We're picking up an item with a quest stamp that can also be a timer/limiter
                         {
-                            if ( itemRootOwner != null && (itemRootOwner.WeenieType == WeenieType.Corpse || itemRootOwner.WeenieType == WeenieType.Hook || itemRootOwner.WeenieType == WeenieType.Storage))
+                            var itemFoundOnMyCorpse = itemFoundOnCorpse && (itemRootOwner.VictimId == Guid.Full);
+                            if (item.GeneratorId != null || (itemFoundOnCorpse && !itemFoundOnMyCorpse)) // item is controlled by a generator or is on a corpse that is not my own
                             {
-                                if (itemRootOwner is Corpse && itemRootOwner.VictimId.HasValue && itemRootOwner.VictimId.Value == Guid.Full)
-                                    isFromMyCorpse = true;
-                                if (itemRootOwner is Hook && itemRootOwner.HouseOwner.HasValue && itemRootOwner.HouseOwner.Value == Guid.Full)
-                                    isFromMyHook = true;
-                                if (itemRootOwner is Storage && itemRootOwner.HouseOwner.HasValue && itemRootOwner.HouseOwner.Value == Guid.Full)
-                                    isFromMyStorage = true;
-                            }
-
-                            if (!QuestManager.CanSolve(item.Quest) && !isFromMyCorpse && !isFromMyHook && !isFromMyStorage)
-                            {
-                                QuestManager.HandleSolveError(item.Quest);
-                                EnqueuePickupDone(pickupMotion);
-                                return;
-                            }
-                            else
-                            {
-                                if (!isFromMyCorpse && !isFromMyHook && !isFromMyStorage)
+                                if (QuestManager.CanSolve(item.Quest))
+                                {
                                     questSolve = true;
+                                }
+                                else
+                                {
+                                    QuestManager.HandleSolveError(item.Quest);
+                                    EnqueuePickupDone(pickupMotion);
+                                    return;
+                                }
                             }
                         }
-
-                        if (itemRootOwner is Corpse && itemRootOwner.Level.HasValue)
-                            isFromAPlayerCorpse = true;
 
                         if (DoHandleActionPutItemInContainer(item, itemRootOwner, itemWasEquipped, container, containerRootOwner, placement))
                         {
@@ -944,7 +1014,7 @@ namespace ACE.Server.WorldObjects
                                 item.NotifyOfEvent(RegenerationType.PickUp);
 
                                 if (questSolve)
-                                    QuestManager.Update(item.Quest);
+                                    item.EmoteManager.OnQuest(this);
 
                                 if (isFromAPlayerCorpse)
                                 {
@@ -962,7 +1032,26 @@ namespace ACE.Server.WorldObjects
             }
             else // This is a self-contained movement
             {
-                DoHandleActionPutItemInContainer(item, itemRootOwner, itemWasEquipped, container, containerRootOwner, placement);
+                var wieldedLocation = item.CurrentWieldedLocation ?? EquipMask.None;
+
+                // note that special sequence for swapping arrows while in missile combat
+                // is not handled here, but is still handled downstream
+                if (RequiresStanceSwap(wieldedLocation, false))
+                {
+                    HandleActionChangeCombatMode(CombatMode.Melee, true, () =>
+                    {
+                        if (!HandleActionPutItemInContainer_Verify(itemGuid, containerGuid, placement,
+                            out Container itemRootOwner, out WorldObject item, out Container containerRootOwner, out Container container, out bool itemWasEquipped))
+                        {
+                            return;
+                        }
+                        DoHandleActionPutItemInContainer(item, itemRootOwner, itemWasEquipped, container, containerRootOwner, placement);
+                    });
+                }
+                else
+                {
+                    DoHandleActionPutItemInContainer(item, itemRootOwner, itemWasEquipped, container, containerRootOwner, placement);
+                }
             }
         }
 
@@ -989,10 +1078,12 @@ namespace ACE.Server.WorldObjects
 
         private bool DoHandleActionPutItemInContainer(WorldObject item, Container itemRootOwner, bool itemWasEquipped, Container container, Container containerRootOwner, int placement)
         {
-            //Console.WriteLine($"DoHandleActionPutItemInContainer({item.Name}, {container.Name}, {itemWasEquipped}, {placement})");
+            //Console.WriteLine($"-> DoHandleActionPutItemInContainer({item.Name}, {itemRootOwner?.Name}, {itemWasEquipped}, {container?.Name}, {containerRootOwner?.Name}, {placement})");
 
             Position prevLocation = null;
             Landblock prevLandblock = null;
+
+            OnPutItemInContainer(item.Guid.Full, container.Guid.Full, placement);
 
             if (item.CurrentLandblock != null) // Movement is an item pickup off the landblock
             {
@@ -1015,7 +1106,9 @@ namespace ACE.Server.WorldObjects
             }
             else // Movement is within the same pack or between packs in a container on the landblock
             {
-                if (itemRootOwner != null && !itemRootOwner.TryRemoveFromInventory(item.Guid))
+                var itemRootCreature = itemRootOwner as Creature;
+
+                if (itemRootOwner != null && !itemRootOwner.TryRemoveFromInventory(item.Guid) && (itemRootCreature == null || !itemRootCreature.TryDequipObject(item.Guid, out _, out _)))
                 {
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory failed!")); // Custom error message
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
@@ -1077,7 +1170,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionDropItem(uint itemGuid)
         {
-            if (IsBusy)
+            if (IsBusy || Teleporting || suicideInProgress)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
@@ -1305,7 +1398,7 @@ namespace ACE.Server.WorldObjects
 
         private bool DoHandleActionGetAndWieldItem(WorldObject item, Container itemRootOwner, bool wasEquipped, EquipMask wieldedLocation)
         {
-            //Console.WriteLine($"DoHandleActionGetAndWieldItem({item.Name}, {wieldedLocation}, {wasEquipped})");
+            //Console.WriteLine($"-> DoHandleActionGetAndWieldItem({item.Name}, {itemRootOwner?.Name}, {wasEquipped}, {wieldedLocation})");
 
             var wieldError = CheckWieldRequirements(item);
 
@@ -1329,22 +1422,24 @@ namespace ACE.Server.WorldObjects
 
                 mainWeapon = mainWeapon ?? GetEquippedMissileWeapon() ?? GetEquippedWand();
 
+                // special case: instead of sending the typical DequipItem -> GetAndWieldItem here,
+                // the client just sends GetAndWieldItem, and the server is responsible for detecting if DequipItem is needed
+
                 if (mainWeapon != null)
                 {
-                    if (!TryDequipObjectWithNetworking(mainWeapon.Guid, out var dequippedItem, DequipObjectAction.DequipToPack))
+                    if (CombatMode != CombatMode.NonCombat)
                     {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to dequip existing weapon!")); // Custom error message
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
-                        return false;
+                        HandleActionChangeCombatMode(CombatMode.Melee, true, () =>
+                        {
+                            if (!DoHandleActionGetAndWieldItem_DequipItemToInventory(mainWeapon, item))
+                                return;
+
+                            DoHandleActionGetAndWieldItem(item, itemRootOwner, wasEquipped, wieldedLocation);
+                        });
+                        return true;
                     }
-
-                    if (!TryCreateInInventoryWithNetworking(dequippedItem))
+                    else if (!DoHandleActionGetAndWieldItem_DequipItemToInventory(mainWeapon, item))
                     {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to add dequip back into inventory!")); // Custom error message
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
-
-                        // todo: if this happens, we should just put back the dequipped item to where it was
-
                         return false;
                     }
                 }
@@ -1355,24 +1450,40 @@ namespace ACE.Server.WorldObjects
             {
                 var dualWield = GetDualWieldWeapon();
 
+                // special case: instead of sending the typical DequipItem -> GetAndWieldItem here,
+                // the client just sends GetAndWieldItem, and the server is responsible for detecting if DequipItem is needed
+
                 if (dualWield != null)
                 {
-                    if (!TryDequipObjectWithNetworking(dualWield.Guid, out var dequippedItem, DequipObjectAction.DequipToPack))
+                    if (CombatMode != CombatMode.NonCombat)
                     {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to dequip existing weapon!")); // Custom error message
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                        HandleActionChangeCombatMode(CombatMode.Melee, true, () =>
+                        {
+                            if (!DoHandleActionGetAndWieldItem_DequipItemToInventory(dualWield, item))
+                                return;
+
+                            DoHandleActionGetAndWieldItem(item, itemRootOwner, wasEquipped, wieldedLocation);
+                        });
+                        return true;
+                    }
+                    else if (!DoHandleActionGetAndWieldItem_DequipItemToInventory(dualWield, item))
+                    {
                         return false;
                     }
+                }
+            }
 
-                    if (!TryCreateInInventoryWithNetworking(dequippedItem))
-                    {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to add dequip back into inventory!")); // Custom error message
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
-
-                        // todo: if this happens, we should just put back the dequipped item to where it was
-
-                        return false;
-                    }
+            if (((item.ValidLocations ?? 0) & wieldedLocation) == 0)
+            {
+                if (item.ValidLocations == EquipMask.MeleeWeapon && wieldedLocation == EquipMask.Shield)
+                {
+                    // allow dual wielding
+                }
+                else
+                {
+                    log.Warn($"{Name} tried to wield {item.Name} ({item.Guid}) in slot {wieldedLocation}, which doesn't match valid slots {item.ValidLocations}");
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                    return false;
                 }
             }
 
@@ -1420,9 +1531,10 @@ namespace ACE.Server.WorldObjects
             if (!WieldedLocationIsAvailable(item, wieldedLocation))
             {
                 // filtering to just armor here, or else trinkets and dual wielding breaks
-                var existing = GetEquippedClothingArmor(item.ClothingPriority ?? 0).FirstOrDefault();
+                //var existing = GetEquippedClothingArmor(item.ClothingPriority ?? 0).FirstOrDefault();
+                var existing = GetEquippedItems(item, wieldedLocation).FirstOrDefault();
 
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You must remove your {existing?.Name} to wear that"));
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You must remove your {existing?.Name} to wield {item.Name}"));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
                 return false;
             }
@@ -1483,6 +1595,27 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+        private bool DoHandleActionGetAndWieldItem_DequipItemToInventory(WorldObject mainWeapon, WorldObject item)
+        {
+            if (!TryDequipObjectWithNetworking(mainWeapon.Guid, out var dequippedItem, DequipObjectAction.DequipToPack))
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to dequip existing weapon!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                return false;
+            }
+
+            if (!TryCreateInInventoryWithNetworking(dequippedItem))
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to add dequip back into inventory!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+
+                // todo: if this happens, we should just put back the dequipped item to where it was
+
+                return false;
+            }
+            return true;
+        }
+
         private WeenieError CheckWieldRequirements(WorldObject item)
         {
             if (!PropertyManager.GetBool("use_wield_requirements").Item)
@@ -1521,7 +1654,7 @@ namespace ACE.Server.WorldObjects
                 case WieldRequirement.Skill:
 
                     // verify skill level - current / buffed
-                    var skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute));
+                    var skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute), false);
                     if (skill.Current < difficulty)
                         return WeenieError.SkillTooLow;
                     break;
@@ -1529,7 +1662,7 @@ namespace ACE.Server.WorldObjects
                 case WieldRequirement.RawSkill:
 
                     // verify skill level - base
-                    skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute));
+                    skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute), false);
                     if (skill.Base < difficulty)
                         return WeenieError.SkillTooLow;
                     break;
@@ -1569,14 +1702,14 @@ namespace ACE.Server.WorldObjects
                 case WieldRequirement.Level:
 
                     // verify player level
-                    if (Level < difficulty)
+                    if ((Level ?? 1) < difficulty)
                         return WeenieError.LevelTooLow;
                     break;
 
                 case WieldRequirement.Training:
 
                     // verify skill is trained / specialized
-                    skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute));
+                    skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute), false);
                     if ((int)skill.AdvancementClass < difficulty)
                         return WeenieError.SkillTooLow;
                     break;
@@ -1584,7 +1717,7 @@ namespace ACE.Server.WorldObjects
                 case WieldRequirement.IntStat:      // unused in PY16
 
                     // verify PropertyInt minimum
-                    var propInt = GetProperty((PropertyInt)skillOrAttribute);
+                    var propInt = GetProperty((PropertyInt)skillOrAttribute) ?? 0;
                     if (propInt < difficulty)
                         return WeenieError.SkillTooLow;
                     break;
@@ -1592,7 +1725,7 @@ namespace ACE.Server.WorldObjects
                 case WieldRequirement.BoolStat:     // unused in PY16
 
                     // verify PropertyBool equal
-                    var propBool = GetProperty((PropertyBool)skillOrAttribute);
+                    var propBool = GetProperty((PropertyBool)skillOrAttribute) ?? false;
                     if (propBool != Convert.ToBoolean(difficulty))
                         return WeenieError.SkillTooLow;
                     break;
@@ -1630,6 +1763,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, int placementPosition, int amount)
         {
+            //Console.WriteLine($"{Name}.HandleActionStackableSplitToContainer({stackId:X8}, {containerId:X8}, {placementPosition}, {amount})");
+
             if (amount <= 0)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to split item with invalid amount ({3}) 0x{2:X8}.", Guid.Full, Name, stackId, amount);
@@ -1768,6 +1903,16 @@ namespace ACE.Server.WorldObjects
                         }
 
                         var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
+
+                        if (newStack == null)
+                        {
+                            // this should never happen under normal circumstances,
+                            // but can happen if the player has an item in their inventory that is no longer in the world database
+                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.ActionCancelled));
+                            EnqueuePickupDone(pickupMotion);
+                            return;
+                        }
+
                         newStack.SetStackSize(amount);
 
                         if (DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, placementPosition, amount))
@@ -1792,6 +1937,15 @@ namespace ACE.Server.WorldObjects
             else // This is a self-contained movement
             {
                 var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
+
+                if (newStack == null)
+                {
+                    // this should never happen under normal circumstances,
+                    // but can happen if the player has an item in their inventory that is no longer in the world database
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
+                    return;
+                }
+
                 newStack.SetStackSize(amount);
 
                 DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, placementPosition, amount);
@@ -1800,6 +1954,8 @@ namespace ACE.Server.WorldObjects
 
         private bool DoHandleActionStackableSplitToContainer(WorldObject stack, Container stackFoundInContainer, Container stackRootOwner, Container container, Container containerRootOwner, WorldObject newStack, int placementPosition, int amount)
         {
+            //Console.WriteLine($"{Name}.DoHandleActionStackableSplitToContainer({stack?.Name}, {stackFoundInContainer?.Name}, {stackRootOwner?.Name}, {container?.Name}, {containerRootOwner?.Name}, {newStack?.Name}, {placementPosition}, {amount})");
+
             // Before we modify the original stack, we make sure we can add the new stack
             if (!container.TryAddToInventory(newStack, placementPosition, true))
             {
@@ -1878,6 +2034,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (stack.IsAttunedOrContainsAttuned)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.AttunedItem));
+                return;
+            }
+
             if (IsTrading && ItemsInTradeWindow.Contains(stack.Guid))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.TradeItemBeingTraded));
@@ -1903,6 +2065,15 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
 
                 var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
+
+                if (newStack == null)
+                {
+                    // this should never happen under normal circumstances,
+                    // but can happen if the player has an item in their inventory that is no longer in the world database
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.ActionCancelled));
+                    return;
+                }
+
                 newStack.SetStackSize(amount);
 
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
@@ -1940,6 +2111,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionStackableMerge(uint mergeFromGuid, uint mergeToGuid, int amount)
         {
+            //Console.WriteLine($"HandleActionStackableMerge({mergeFromGuid:X8}, {mergeToGuid:X8}, {amount})");
+
             if (amount <= 0)
             {
                 log.WarnFormat("Player 0x{0}:{1} tried to merge item with invalid amount ({3}) 0x{2:X8}.", Guid.Full, Name, mergeFromGuid, amount);
@@ -1948,8 +2121,8 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var sourceStack = FindObject(mergeFromGuid, SearchLocations.LocationsICanMove, out var sourceStackFoundInContainer, out var sourceStackRootOwner, out _);
-            var targetStack = FindObject(mergeToGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.LastUsedContainer, out var targetStackFoundInContainer, out var targetStackRootOwner, out _);
+            var sourceStack = FindObject(mergeFromGuid, SearchLocations.LocationsICanMove, out _, out var sourceStackRootOwner, out _);
+            var targetStack = FindObject(mergeToGuid, SearchLocations.LocationsICanMove, out _, out var targetStackRootOwner, out _);
 
             if (sourceStack == null)
             {
@@ -2045,7 +2218,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!CanAddToInventory(sourceStack))
+            if (targetStackRootOwner == this && !CanMergeToInventory(sourceStack, targetStack, amount))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full, WeenieError.None));
                 return;
@@ -2064,12 +2237,6 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
             }
-
-            //if (!targetStackFoundInContainer.CanAddToContainer(sourceStack, false))
-            //{
-            //    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full, WeenieError.None));
-            //    return;
-            //}
 
             if ((sourceStackRootOwner == this && targetStackRootOwner != this)  || (sourceStackRootOwner != this && targetStackRootOwner == this)) // Movement is between the player and the world
             {
@@ -2129,7 +2296,7 @@ namespace ACE.Server.WorldObjects
                             return;
                         }
 
-                        if (DoHandleActionStackableMerge(sourceStack, sourceStackFoundInContainer, sourceStackRootOwner, targetStack, targetStackFoundInContainer, targetStackRootOwner, amount))
+                        if (DoHandleActionStackableMerge(sourceStack, targetStack, amount))
                         {
                             // If the client used the R key to merge a partial stack from the landscape, it also tries to add the "ghosted" item of the picked up stack to the inventory as well.
                             if (sourceStackRootOwner != this && sourceStack.StackSize > 0)
@@ -2155,99 +2322,97 @@ namespace ACE.Server.WorldObjects
             }
             else // This is a self-contained movement
             {
-                DoHandleActionStackableMerge(sourceStack, sourceStackFoundInContainer, sourceStackRootOwner, targetStack, targetStackFoundInContainer, targetStackRootOwner, amount);
+                DoHandleActionStackableMerge(sourceStack, targetStack, amount);
             }
         }
 
-        private bool DoHandleActionStackableMerge(WorldObject sourceStack, Container sourceStackFoundInContainer, Container sourceStackRootOwner, WorldObject targetStack, Container targetStackFoundInContainer, Container targetStackRootOwner, int amount)
+        private bool DoHandleActionStackableMerge(WorldObject sourceStack, WorldObject targetStack, int amount)
         {
+            //Console.WriteLine($"DoHandleActionStackableMerge({sourceStack?.Name}, {targetStack?.Name}, {amount})");
+
+            var previousSourceStackCheck = sourceStack;
+            //var previousTargetStackCheck = targetStack;
+
+            sourceStack = FindObject(sourceStack.Guid, SearchLocations.LocationsICanMove, out _, out var sourceStackRootOwner, out _);
+            targetStack = FindObject(targetStack.Guid, SearchLocations.LocationsICanMove, out var targetStackFoundInContainer, out var targetStackRootOwner, out _);
+
+            if (sourceStack == null || targetStack == null)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousSourceStackCheck.Guid.Full, WeenieError.None));
+                return false;
+            }
+
+            if (targetStack == null || targetStack.MaxStackSize < targetStack.StackSize + amount)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousSourceStackCheck.Guid.Full));
+                return false;
+            }
+
             if (amount == sourceStack.StackSize && sourceStack.StackSize + targetStack.StackSize <= targetStack.MaxStackSize) // The merge will consume the entire source stack
             {
-                var pickedUpFromLandblock = false;
-                var removedFromInventory = false;
-                if (sourceStack.CurrentLandblock != null) // Movement is an item pickup off the landblock
+                Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(sourceStack));
+
+                if (sourceStackRootOwner != null) // item is contained and not on a landblock
                 {
-                    if (DoHandleActionPutItemInContainer(sourceStack, sourceStackFoundInContainer, false, targetStackFoundInContainer, targetStackRootOwner, 0))
-                        pickedUpFromLandblock = true;
+                    var sourceStackRootCreature = sourceStackRootOwner as Creature;
+
+                    if (sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out var stackToDestroy, true) || sourceStackRootCreature != null && sourceStackRootCreature.TryDequipObject(sourceStack.Guid, out stackToDestroy, out _))
+                        stackToDestroy?.Destroy();
                     else
                     {
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full));
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousSourceStackCheck.Guid.Full));
                         return false;
                     }
                 }
-                else if (sourceStackRootOwner != null)
-                {
-                    if (!sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out _) && (!(sourceStackRootOwner is Player playerContainer) || !playerContainer.TryDequipObjectWithNetworking(sourceStack.Guid, out _, DequipObjectAction.DequipToPack)))
-                    {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory failed!")); // Custom error message
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full));
-                        return false;
-                    }
-                    else
-                    {
-                        removedFromInventory = true;
-                    }
-                }
+                else // item is on the landblock and not contained
+                    sourceStack.Destroy();
 
-                if (pickedUpFromLandblock && TryRemoveFromInventory(sourceStack.Guid, true))
-                    Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(sourceStack));
-                else
-                {
-                    var previousStackCheck = sourceStack;
-
-                    sourceStack = FindObject(sourceStack.Guid, SearchLocations.LocationsICanMove, out sourceStackFoundInContainer, out sourceStackRootOwner, out _);
-
-                    if (sourceStack == null && !removedFromInventory)
-                    {
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousStackCheck.Guid.Full));
-                        return false;
-                    }
-
-                    if (removedFromInventory)
-                    {
-                        previousStackCheck.Destroy();
-                        Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(previousStackCheck));
-                    }
-                }
-
-                if (!removedFromInventory)
-                {
-                    if (pickedUpFromLandblock)
-                        sourceStack.NotifyOfEvent(RegenerationType.PickUp);
-                    sourceStack.Destroy(false);
-                }
 
                 if (!AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner))
                     return false;
 
-                Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
+                if (targetStack.CurrentLandblock != null)
+                    targetStack.EnqueueBroadcast(new GameMessageSetStackSize(targetStack));
+                else
+                    Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
             }
             else // The merge will reduce the size of the source stack
             {
-                var previousStackCheck = sourceStack;
-                sourceStack = FindObject(sourceStack.Guid, SearchLocations.LocationsICanMove, out sourceStackFoundInContainer, out sourceStackRootOwner, out _);
+                previousSourceStackCheck = sourceStack;
+                //previousTargetStackCheck = targetStack;
+                sourceStack = FindObject(sourceStack.Guid, SearchLocations.LocationsICanMove, out var sourceStackFoundInContainer, out sourceStackRootOwner, out _);
+                targetStack = FindObject(targetStack.Guid, SearchLocations.LocationsICanMove, out targetStackFoundInContainer, out targetStackRootOwner, out _);
 
                 if (sourceStack == null || sourceStack.StackSize < amount)
                 {
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousStackCheck.Guid.Full));
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousSourceStackCheck.Guid.Full));
+                    return false;
+                }
+
+                if (targetStack == null || targetStack.MaxStackSize < targetStack.StackSize + amount)
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousSourceStackCheck.Guid.Full));
                     return false;
                 }
 
                 if (!AdjustStack(sourceStack, -amount, sourceStackFoundInContainer, sourceStackRootOwner))
                 {
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousStackCheck.Guid.Full));
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousSourceStackCheck.Guid.Full));
                     return false;
                 }
 
-                if (sourceStackRootOwner == null)
-                    EnqueueBroadcast(new GameMessageSetStackSize(sourceStack));
+                if (sourceStack.CurrentLandblock != null)
+                    sourceStack.EnqueueBroadcast(new GameMessageSetStackSize(sourceStack));
                 else
                     Session.Network.EnqueueSend(new GameMessageSetStackSize(sourceStack));
 
                 if (!AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner))
                     return false;
 
-                Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
+                if (targetStack.CurrentLandblock != null)
+                    targetStack.EnqueueBroadcast(new GameMessageSetStackSize(targetStack));
+                else
+                    Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
             }
 
             return true;
@@ -2266,7 +2431,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionGiveObjectRequest(uint targetGuid, uint itemGuid, int amount)
         {
-            if (IsBusy)
+            if (IsBusy || Teleporting || suicideInProgress)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
@@ -2336,7 +2501,7 @@ namespace ACE.Server.WorldObjects
 
         private void GiveObjectToPlayer(Player target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount)
         {
-            if ((item.Attuned ?? 0) >= 1)
+            if (item.IsAttunedOrContainsAttuned)
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.AttunedItem));
                 return;
@@ -2348,22 +2513,16 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (item is Container container)
-            {
-                foreach (var obj in container.Inventory.Values)
-                {
-                    if ((obj.Attuned ?? 0) >= 1)
-                    {
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.AttunedItem));
-                        return;
-                    }
-                }
-            }
-
             if ((target.Character.CharacterOptions1 & (int)CharacterOptions1.LetOtherPlayersGiveYouItems) != (int)CharacterOptions1.LetOtherPlayersGiveYouItems)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                return;
+            }
+
+            if (target.IsLoggingOut)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.None));
                 return;
             }
 
@@ -2373,6 +2532,12 @@ namespace ACE.Server.WorldObjects
             // these slot/burden checks should be done beforehand, before it tries to remove the item from source player
 
             if (!target.CanAddToInventory(item))
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.None));
+                return;
+            }
+
+            if (item.IsUniqueOrContainsUnique && !target.CheckUniques(item, this))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.None));
                 return;
@@ -2406,6 +2571,10 @@ namespace ACE.Server.WorldObjects
 
                     return;
                 }
+
+                // quick fix
+                if (itemToGive is Container)
+                    RushNextPlayerSave(5);
 
                 if (item == itemToGive)
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
@@ -2459,11 +2628,11 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var acceptAll = (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false) && (item.Attuned ?? 0) != (int)AttunedStatus.Sticky;
+            var acceptAll = (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false) && !item.IsStickyAttunedOrContainsStickyAttuned;
 
             if (target.HasGiveOrRefuseEmoteForItem(item, out var emoteResult) || acceptAll)
             {
-                if (acceptAll || emoteResult.Category == (uint)EmoteCategory.Give)
+                if (acceptAll || emoteResult.Category == EmoteCategory.Give)
                 {
                     var isStackable = item is Stackable;
 
@@ -2503,7 +2672,7 @@ namespace ACE.Server.WorldObjects
                         }
                     }
                 }
-                else if (emoteResult.Category == (uint)EmoteCategory.Refuse)
+                else if (emoteResult.Category == EmoteCategory.Refuse)
                 {
                     // Item rejected by npc
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"You allow {target.Name} to examine your {item.NameWithMaterial}.", ChatMessageType.Broadcast));
@@ -2526,7 +2695,7 @@ namespace ACE.Server.WorldObjects
 
             if (!PropertyManager.GetBool("iou_trades").Item)
             {
-                Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Sorry! I'm not taking IOUs right now, but if you do wish to discard them, drop them in to the garbage barrels found at the Mana Forges in Hebian-To, Zaikhal, and Cragstone.", this, ChatMessageType.Tell));
+                Session.Network.EnqueueSend(new GameEventTell(target, "Sorry! I'm not taking IOUs right now, but if you do wish to discard them, drop them in to the garbage barrels found at the Mana Forges in Hebian-To, Zaikhal, and Cragstone.", this, ChatMessageType.Tell));
                 //Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, (WeenieErrorWithString)WeenieError.TradeAiDoesntWant, target.Name));
                 //var barrel = WorldObjectFactory.CreateNewWorldObject("ace34726-garbagebarrel");
                 //barrel.TimeToRot = 180;
@@ -2552,7 +2721,7 @@ namespace ACE.Server.WorldObjects
 
                         //Console.WriteLine($"{success.ToString()} {wcid}");
 
-                        Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Ahh, an IOU! You know, I collect these for some reason. Let me see if I have something for it somewhere in my pack...", this, ChatMessageType.Tell));
+                        Session.Network.EnqueueSend(new GameEventTell(target, "Ahh, an IOU! You know, I collect these for some reason. Let me see if I have something for it somewhere in my pack...", this, ChatMessageType.Tell));
 
                         if (success)
                         {
@@ -2560,8 +2729,8 @@ namespace ACE.Server.WorldObjects
 
                             if (item != null)
                             {
-                                Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, $"You're in luck! This {item.Name} was just left here the other day.", this, ChatMessageType.Tell));
-                                Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "I'll trade it to you for this IOU.", this, ChatMessageType.Tell));
+                                Session.Network.EnqueueSend(new GameEventTell(target, $"You're in luck! This {item.Name} was just left here the other day.", this, ChatMessageType.Tell));
+                                Session.Network.EnqueueSend(new GameEventTell(target, "I'll trade it to you for this IOU.", this, ChatMessageType.Tell));
                                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {iouToTurnIn.Name}.", ChatMessageType.Broadcast));
                                 target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
 
@@ -2570,7 +2739,7 @@ namespace ACE.Server.WorldObjects
 
                                 if (success)
                                 {
-                                    Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Here you go.", this, ChatMessageType.Tell));
+                                    Session.Network.EnqueueSend(new GameEventTell(target, "Here you go.", this, ChatMessageType.Tell));
                                     Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} gives you {item.Name}.", ChatMessageType.Broadcast));
                                     target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
 
@@ -2583,7 +2752,7 @@ namespace ACE.Server.WorldObjects
                             }
                             else
                             {
-                                Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Sorry, doesn't look I've got one of those yet. Check back again later.", this, ChatMessageType.Tell));
+                                Session.Network.EnqueueSend(new GameEventTell(target, "Sorry, doesn't look I've got one of those yet. Check back again later.", this, ChatMessageType.Tell));
                                 return;
                             }
                         }
@@ -2591,7 +2760,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(target, "Hmm... Something isn't quite right with this IOU. I can't seem to make out what its for. I'm sorry!", this, ChatMessageType.Tell));
+            Session.Network.EnqueueSend(new GameEventTell(target, "Hmm... Something isn't quite right with this IOU. I can't seem to make out what its for. I'm sorry!", this, ChatMessageType.Tell));
         }
 
         private bool RemoveItemForGive(WorldObject item, Container itemFoundInContainer, bool itemWasEquipped, Container itemRootOwner, int amount, out WorldObject itemToGive, bool destroy = false)
@@ -2608,6 +2777,16 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
 
                 var newStack = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+
+                if (newStack == null)
+                {
+                    // this should never happen under normal circumstances,
+                    // but can happen if the player has an item in their inventory that is no longer in the world database
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                    itemToGive = null;
+                    return false;
+                }
+
                 newStack.SetStackSize(amount);
 
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
@@ -2797,6 +2976,12 @@ namespace ACE.Server.WorldObjects
                 //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough pack space to use that!"));
                 //else //if (playerOutOfContainerSlots)
                 //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough container slots to use that!"));
+
+                // Font of Enlightenment and Rebirth tries to give you Attribute Reset Certificate.
+                var itemBeingGiven = DatabaseManager.World.GetCachedWeenie(weenieClassId);
+                var msg = new GameMessageSystemChat($"{emoter.Name} tries to give you {(itemStacks > 1 ? $"{itemStacks} " : "")}{(itemStacks > 1 ? itemBeingGiven.GetPluralName() : itemBeingGiven.GetName())}.", ChatMessageType.Broadcast);
+                Session.Network.EnqueueSend(msg);
+
                 return;
             }
 
@@ -2830,19 +3015,26 @@ namespace ACE.Server.WorldObjects
             {
                 log.Warn($"Player.GiveFromEmote: itemStacks <= 0: emoter: {emoter.Name} (0x{emoter.Guid}) - {emoter.WeenieClassId} | weenieClassId: {weenieClassId} | amount: {amount}");
 
-                var item = PlayerFactory.CreateIOU(weenieClassId);
-                TryCreateForGive(emoter, item);
+                if (PropertyManager.GetBool("iou_trades").Item)
+                {
+                    var item = PlayerFactory.CreateIOU(weenieClassId);
+                    TryCreateForGive(emoter, item);
+                }
             }
         }
 
         public bool TryCreateForGive(WorldObject giver, WorldObject itemBeingGiven)
         {
             if (!TryCreateInInventoryWithNetworking(itemBeingGiven))
+            {
+                var msg = new GameMessageSystemChat($"{giver.Name} tries to give you {(itemBeingGiven.StackSize > 1 ? $"{itemBeingGiven.StackSize} " : "")}{itemBeingGiven.GetNameWithMaterial(itemBeingGiven.StackSize)}.", ChatMessageType.Broadcast);
+                Session.Network.EnqueueSend(msg);
                 return false;
+            }
 
             if (!(giver.GetProperty(PropertyBool.NpcInteractsSilently) ?? false))
             {
-                var msg = new GameMessageSystemChat($"{giver.Name} gives you {(itemBeingGiven.StackSize > 1 ? $"{itemBeingGiven.StackSize} " : "")}{(itemBeingGiven.StackSize > 1 ? itemBeingGiven.GetPluralName() : itemBeingGiven.Name)}.", ChatMessageType.Broadcast);
+                var msg = new GameMessageSystemChat($"{giver.Name} gives you {(itemBeingGiven.StackSize > 1 ? $"{itemBeingGiven.StackSize} " : "")}{itemBeingGiven.GetNameWithMaterial(itemBeingGiven.StackSize)}.", ChatMessageType.Broadcast);
                 Session.Network.EnqueueSend(msg);
 
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.ReceiveItem));
@@ -2852,6 +3044,119 @@ namespace ACE.Server.WorldObjects
                 RushNextPlayerSave(5);
 
             return true;
+        }
+
+        /// <summary>
+        /// Verifies a player can pick up an object that is unique,
+        /// or contains uniques.
+        public bool CheckUniques(WorldObject obj, Creature giver = null)
+        {
+            var uniqueObjects = obj.GetUniqueObjects();
+
+            // build dictionary of wcid => count
+            var uniqueTable = new UniqueTable(uniqueObjects);
+
+            // ensure player can add this obj to their inventory
+            foreach (var kvp in uniqueTable.Entries)
+            {
+                var wcid = kvp.Key;
+                var entry = kvp.Value;
+
+                var current = GetNumInventoryItemsOfWCID(wcid);
+
+                if (current + entry.Count > entry.Max)
+                {
+                    var wo = uniqueObjects.FirstOrDefault(i => i.WeenieClassId == wcid);
+
+                    var itemName = entry.Max == 1 ? wo.Name : wo.GetPluralName();
+
+                    var msgTarget = giver is Player player ? player : this;
+
+                    var name = msgTarget == this ? "You" : msgTarget.Name;
+                    var msg = $"{name} cannot pick up more than {entry.Max:N0} {itemName}!";
+
+                    msgTarget.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public void AuditEquippedItems()
+        {
+            // fixes any 'invisible' equipped items, where CurrentWieldedLocation is None
+            // not sure how items could have gotten into this state, possibly from legacy bugs
+
+            var dequipItems = EquippedObjects.Values.Where(i => i.CurrentWieldedLocation == EquipMask.None);
+
+            foreach (var dequipItem in dequipItems)
+            {
+                log.Warn($"{Name}.AuditEquippedItems() - dequipping {dequipItem.Name} ({dequipItem.Guid})");
+                HandleActionPutItemInContainer(dequipItem.Guid.Full, Guid.Full);
+            }
+        }
+
+        /// <summary>
+        /// Returns the Equipped items matching a weenie class id
+        /// </summary>
+        public List<WorldObject> GetEquippedObjectsOfWCID(uint weenieClassId)
+        {
+            return EquippedObjects.Values.Where(i => i.WeenieClassId == weenieClassId).ToList();
+        }
+
+        public bool TryConsumeFromEquippedObjectsWithNetworking(uint wcid, int amount = int.MaxValue)
+        {
+            var items = GetEquippedObjectsOfWCID(wcid);
+
+            var leftReq = amount;
+            foreach (var item in items)
+            {
+                var removeNum = Math.Min(leftReq, item.StackSize ?? 1);
+                if (!TryConsumeFromEquippedObjectsWithNetworking(item, removeNum))
+                    return false;
+
+                leftReq -= removeNum;
+                if (leftReq <= 0)
+                    break;
+            }
+            return true;
+        }
+
+        public bool TryConsumeFromEquippedObjectsWithNetworking(WorldObject item, int amount = int.MaxValue)
+        {
+            if (amount >= (item.StackSize ?? 1))
+            {
+                if (!TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.ConsumeItem))
+                    return false;
+            }
+            else
+            {
+                var stack = FindObject(item.Guid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out var stackFoundInContainer, out var stackRootOwner, out _);
+
+                if (stack == null || stackRootOwner == null)
+                    return false;
+
+                if (!AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner))
+                    return false;
+
+                Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
+            }
+
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+            if (item.WeenieType == WeenieType.Coin)
+                UpdateCoinValue();
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns the total # of equipped objects matching a wcid
+        /// </summary>
+        public int GetNumEquippedObjectsOfWCID(uint weenieClassId)
+        {
+            return GetEquippedObjectsOfWCID(weenieClassId).Select(i => i.StackSize ?? 1).Sum();
         }
     }
 }

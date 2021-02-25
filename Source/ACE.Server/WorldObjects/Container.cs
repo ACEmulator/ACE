@@ -5,11 +5,10 @@ using System.Linq;
 using log4net;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -28,6 +27,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Container(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
 
             InventoryLoaded = true;
@@ -38,9 +38,52 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Container(Biota biota) : base(biota)
         {
-            if (Biota.TryRemoveProperty(PropertyBool.Open, out _, BiotaDatabaseLock))
+            if (Biota.TryRemoveProperty(PropertyBool.Open, BiotaDatabaseLock))
                 ChangesDetected = true;
 
+            // This is a temporary fix for objects that were loaded with this PR when EncumbranceVal was not treated as ephemeral. 2020-03-28
+            // This can be removed later.
+            if (Biota.PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal))
+            {
+                var weenie = DatabaseManager.World.GetCachedWeenie(biota.WeenieClassId);
+
+                if (weenie != null && weenie.PropertiesInt.TryGetValue(PropertyInt.EncumbranceVal, out var value))
+                {
+                    if (biota.PropertiesInt[PropertyInt.EncumbranceVal] != value)
+                    {
+                        biota.PropertiesInt[PropertyInt.EncumbranceVal] = value;
+                        ChangesDetected = true;
+                    }
+                }
+                else
+                {
+                    biota.PropertiesInt.Remove(PropertyInt.EncumbranceVal);
+                    ChangesDetected = true;
+                }
+            }
+
+            // This is a temporary fix for objects that were loaded with this PR when Value was not treated as ephemeral. 2020-03-28
+            // This can be removed later.
+            if (!(this is Creature) && Biota.PropertiesInt.ContainsKey(PropertyInt.Value))
+            {
+                var weenie = DatabaseManager.World.GetCachedWeenie(biota.WeenieClassId);
+
+                if (weenie != null && weenie.PropertiesInt.TryGetValue(PropertyInt.Value, out var value))
+                {
+                    if (biota.PropertiesInt[PropertyInt.Value] != value)
+                    {
+                        biota.PropertiesInt[PropertyInt.Value] = value;
+                        ChangesDetected = true;
+                    }
+                }
+                else
+                {
+                    biota.PropertiesInt.Remove(PropertyInt.Value);
+                    ChangesDetected = true;
+                }
+            }
+
+            InitializePropertyDictionaries();
             SetEphemeralValues();
 
             // A player has their possessions passed via the ctor. All other world objects must load their own inventory
@@ -51,6 +94,12 @@ namespace ACE.Server.WorldObjects
                     EnqueueAction(new ActionEventDelegate(() => SortBiotasIntoInventory(biotas)));
                 });
             }
+        }
+
+        private void InitializePropertyDictionaries()
+        {
+            if (ephemeralPropertyInts == null)
+                ephemeralPropertyInts = new Dictionary<PropertyInt, int?>();
         }
 
         private void SetEphemeralValues()
@@ -87,7 +136,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The only time this should be used is to populate Inventory from the ctor.
         /// </summary>
-        protected void SortBiotasIntoInventory(IEnumerable<Biota> biotas)
+        protected void SortBiotasIntoInventory(IEnumerable<ACE.Database.Models.Shard.Biota> biotas)
         {
             var worldObjects = new List<WorldObject>();
 
@@ -244,12 +293,12 @@ namespace ACE.Server.WorldObjects
             var items = new List<WorldObject>();
 
             // first search me / add all items of type.
-            var localInventory = Inventory.Values.Where(wo => wo.WeenieType == type).ToList();
+            var localInventory = Inventory.Values.Where(wo => wo.WeenieType == type).OrderBy(i => i.PlacementPosition).ToList();
 
             items.AddRange(localInventory);
 
             // next search all containers for type.. run function again for each container.
-            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).ToList();
+            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).OrderBy(i => i.PlacementPosition).ToList();
             foreach (var container in sideContainers)
                 items.AddRange(((Container)container).GetInventoryItemsOfTypeWeenieType(type));
 
@@ -264,12 +313,12 @@ namespace ACE.Server.WorldObjects
             var items = new List<WorldObject>();
 
             // search main pack / creature
-            var localInventory = Inventory.Values.Where(i => i.WeenieClassId == weenieClassId).ToList();
+            var localInventory = Inventory.Values.Where(i => i.WeenieClassId == weenieClassId).OrderBy(i => i.PlacementPosition).ToList();
 
             items.AddRange(localInventory);
 
             // next search any side containers
-            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).Select(i => i as Container).ToList();
+            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).Select(i => i as Container).OrderBy(i => i.PlacementPosition).ToList();
             foreach (var container in sideContainers)
                 items.AddRange(container.GetInventoryItemsOfWCID(weenieClassId));
 
@@ -292,12 +341,12 @@ namespace ACE.Server.WorldObjects
             var items = new List<WorldObject>();
 
             // search main pack / creature
-            var localInventory = Inventory.Values.Where(i => i.WeenieClassName.Equals(weenieClassName, StringComparison.OrdinalIgnoreCase)).ToList();
+            var localInventory = Inventory.Values.Where(i => i.WeenieClassName.Equals(weenieClassName, StringComparison.OrdinalIgnoreCase)).OrderBy(i => i.PlacementPosition).ToList();
 
             items.AddRange(localInventory);
 
             // next search any side containers
-            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).Select(i => i as Container).ToList();
+            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).Select(i => i as Container).OrderBy(i => i.PlacementPosition).ToList();
             foreach (var container in sideContainers)
                 items.AddRange(container.GetInventoryItemsOfWeenieClass(weenieClassName));
 
@@ -321,12 +370,12 @@ namespace ACE.Server.WorldObjects
             var items = new List<WorldObject>();
 
             // search main pack / creature
-            var localInventory = Inventory.Values.Where(i => i.WeenieClassName.StartsWith("tradenote")).ToList();
+            var localInventory = Inventory.Values.Where(i => i.WeenieClassName.StartsWith("tradenote")).OrderBy(i => i.PlacementPosition).ToList();
 
             items.AddRange(localInventory);
 
             // next search any side containers
-            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).Select(i => i as Container).ToList();
+            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).Select(i => i as Container).OrderBy(i => i.PlacementPosition).ToList();
             foreach (var container in sideContainers)
                 items.AddRange(container.GetTradeNotes());
 
@@ -383,6 +432,9 @@ namespace ACE.Server.WorldObjects
             TooEncumbered = false;
             NotEnoughFreeSlots = false;
 
+            if (worldObjects.Count == 0) // There are no objects to add (e.g. 1 way trade)
+                return true;
+
             if (this is Player player && !player.HasEnoughBurdenToAddToInventory(worldObjects))
             {
                 TooEncumbered = true;
@@ -420,6 +472,21 @@ namespace ACE.Server.WorldObjects
                 return GetFreeContainerSlots() > 0;
             else
                 return GetFreeInventorySlots(includeSidePacks) > 0;
+        }
+
+        /// <summary>
+        /// Returns TRUE if there are enough free burden available to merge item and merge target will not exceed maximum stack size
+        /// </summary>
+        public bool CanMergeToInventory(WorldObject worldObject, WorldObject mergeTarget, int mergeAmout)
+        {
+            if (this is Player player && !player.HasEnoughBurdenToAddToInventory(worldObject))
+                return false;
+
+            var currentStackSize = mergeTarget.StackSize;
+            var maxStackSize = mergeTarget.MaxStackSize;
+            var newStackSize = currentStackSize + mergeAmout;
+
+            return newStackSize <= maxStackSize;
         }
 
         /// <summary>
@@ -490,6 +557,7 @@ namespace ACE.Server.WorldObjects
 
             worldObject.OwnerId = Guid.Full;
             worldObject.ContainerId = Guid.Full;
+            worldObject.Container = this;
             worldObject.PlacementPosition = placementPosition; // Server only variable that we use to remember/restore the order in which items exist in a container
 
             // Move all the existing items PlacementPosition over.
@@ -551,6 +619,7 @@ namespace ACE.Server.WorldObjects
 
                 item.OwnerId = null;
                 item.ContainerId = null;
+                item.Container = null;
                 item.PlacementPosition = null;
 
                 // Move all the existing items PlacementPosition over.
@@ -620,17 +689,24 @@ namespace ACE.Server.WorldObjects
                 else if (Viewer == player.Guid.Full)
                     Close(player);
                 else
-                {
-                    var currentViewer = "someone else";
-                    if (PropertyManager.GetBool("container_opener_name").Item)
-                    {
-                        var name = CurrentLandblock?.GetObject(Viewer)?.Name;
-                        if (name != null)
-                            currentViewer = name;
-                    }
+                    player.SendTransientError(InUseMessage);
+            }
+        }
 
-                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is already in use by {currentViewer}!"));
+        public string InUseMessage
+        {
+            get
+            {
+                // verified this message was sent for corpses, instead of WeenieErrorWithString.The_IsCurrentlyInUse
+                var currentViewer = "someone else";
+
+                if (PropertyManager.GetBool("container_opener_name").Item)
+                {
+                    var name = CurrentLandblock?.GetObject(Viewer)?.Name;
+                    if (name != null)
+                        currentViewer = name;
                 }
+                return $"The {Name} is already in use by {currentViewer}!";
             }
         }
 
@@ -739,7 +815,7 @@ namespace ACE.Server.WorldObjects
             return 0;
         }
 
-        private void FinishClose(Player player)
+        public virtual void FinishClose(Player player)
         {
             IsOpen = false;
             Viewer = 0;
@@ -782,7 +858,10 @@ namespace ACE.Server.WorldObjects
 
         private void GenerateContainList()
         {
-            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (sbyte)DestinationType.Contain || x.DestinationType == (sbyte)DestinationType.ContainTreasure))
+            if (Biota.PropertiesCreateList == null)
+                return;
+
+            foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Contain || x.DestinationType == DestinationType.ContainTreasure))
             {
                 var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 
@@ -862,6 +941,23 @@ namespace ACE.Server.WorldObjects
         public virtual MotionCommand MotionPickup => MotionCommand.Pickup;
 
         public override bool IsAttunedOrContainsAttuned => base.IsAttunedOrContainsAttuned || Inventory.Values.Any(i => i.IsAttunedOrContainsAttuned);
+
+        public override bool IsStickyAttunedOrContainsStickyAttuned => base.IsStickyAttunedOrContainsStickyAttuned || Inventory.Values.Any(i => i.IsStickyAttunedOrContainsStickyAttuned);
+
+        public override bool IsUniqueOrContainsUnique => base.IsUniqueOrContainsUnique || Inventory.Values.Any(i => i.IsUniqueOrContainsUnique);
+
+        public override List<WorldObject> GetUniqueObjects()
+        {
+            var uniqueObjects = new List<WorldObject>();
+
+            if (Unique != null)
+                uniqueObjects.Add(this);
+
+            foreach (var item in Inventory.Values)
+                uniqueObjects.AddRange(item.GetUniqueObjects());
+
+            return uniqueObjects;
+        }
 
         public override void OnTalk(WorldObject activator)
         {

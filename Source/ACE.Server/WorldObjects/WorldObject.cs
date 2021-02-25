@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -9,11 +10,10 @@ using log4net;
 using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
@@ -39,6 +39,12 @@ namespace ACE.Server.WorldObjects
     public abstract partial class WorldObject : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        /// <summary>
+        /// If this object was created from a weenie (and not a database biota), this is the source.
+        /// You should never manipulate these values. You should only reference these values in extreme cases.
+        /// </summary>
+        public Weenie Weenie { get; }
 
         /// <summary>
         /// This is object property overrides that should have come from the shard db (or init to defaults of object is new to this instance).
@@ -86,6 +92,8 @@ namespace ACE.Server.WorldObjects
 
         public WorldObject ProjectileLauncher;
 
+        public bool HitMsg;     // FIXME: find a better way to do this for projectiles
+
         public WorldObject Wielder;
 
         public WorldObject() { }
@@ -95,7 +103,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected WorldObject(Weenie weenie, ObjectGuid guid)
         {
-            Biota = weenie.CreateCopyAsBiota(guid.Full);
+            Weenie = weenie;
+            Biota = ACE.Entity.Adapter.WeenieConverter.ConvertToBiota(weenie, guid.Full, false, true);
             Guid = guid;
 
             InitializePropertyDictionaries();
@@ -122,6 +131,8 @@ namespace ACE.Server.WorldObjects
             InitializeGenerator();
             InitializeHeartbeats();
         }
+
+        public bool BumpVelocity { get; set; }
 
         /// <summary>
         /// Initializes a new default physics object
@@ -165,6 +176,9 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.State = defaultState;
 
             //if (creature != null) AllowEdgeSlide = true;
+
+            if (BumpVelocity)
+                PhysicsObj.Velocity = new Vector3(0, 0, 0.5f);
         }
 
         public bool AddPhysicsObj()
@@ -194,7 +208,7 @@ namespace ACE.Server.WorldObjects
 
             var success = PhysicsObj.enter_world(location);
 
-            if (!success)
+            if (!success || PhysicsObj.CurCell == null)
             {
                 PhysicsObj.DestroyObject();
                 PhysicsObj = null;
@@ -219,63 +233,12 @@ namespace ACE.Server.WorldObjects
 
         private void InitializePropertyDictionaries()
         {
-            foreach (var x in Biota.BiotaPropertiesBool)
-                biotaPropertyBools[(PropertyBool)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesDID)
-                biotaPropertyDataIds[(PropertyDataId)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesFloat)
-                biotaPropertyFloats[(PropertyFloat)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesIID)
-                biotaPropertyInstanceIds[(PropertyInstanceId)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesInt)
-                biotaPropertyInts[(PropertyInt)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesInt64)
-                biotaPropertyInt64s[(PropertyInt64)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesString)
-                biotaPropertyStrings[(PropertyString)x.Type] = x;
-
-            foreach (var x in EphemeralProperties.PropertiesBool.ToList())
-                ephemeralPropertyBools.TryAdd((PropertyBool)x, null);
-            foreach (var x in EphemeralProperties.PropertiesDataId.ToList())
-                ephemeralPropertyDataIds.TryAdd((PropertyDataId)x, null);
-            foreach (var x in EphemeralProperties.PropertiesDouble.ToList())
-                ephemeralPropertyFloats.TryAdd((PropertyFloat)x, null);
-            foreach (var x in EphemeralProperties.PropertiesInstanceId.ToList())
-                ephemeralPropertyInstanceIds.TryAdd((PropertyInstanceId)x, null);
-            foreach (var x in EphemeralProperties.PropertiesInt.ToList())
-                ephemeralPropertyInts.TryAdd((PropertyInt)x, null);
-            foreach (var x in EphemeralProperties.PropertiesInt64.ToList())
-                ephemeralPropertyInt64s.TryAdd((PropertyInt64)x, null);
-            foreach (var x in EphemeralProperties.PropertiesString.ToList())
-                ephemeralPropertyStrings.TryAdd((PropertyString)x, null);
-
-            foreach (var x in Biota.BiotaPropertiesSpellBook)
-                BiotaPropertySpells[x.Spell] = x;
+            if (Biota.PropertiesEnchantmentRegistry == null)
+                Biota.PropertiesEnchantmentRegistry = new Collection<PropertiesEnchantmentRegistry>();
         }
 
         private void SetEphemeralValues()
         { 
-            foreach (var x in Biota.BiotaPropertiesBool.Where(i => EphemeralProperties.PropertiesBool.Contains(i.Type)).ToList())
-                ephemeralPropertyBools[(PropertyBool)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesDID.Where(i => EphemeralProperties.PropertiesDataId.Contains(i.Type)).ToList())
-                ephemeralPropertyDataIds[(PropertyDataId)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesFloat.Where(i => EphemeralProperties.PropertiesDouble.Contains(i.Type)).ToList())
-                ephemeralPropertyFloats[(PropertyFloat)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesIID.Where(i => EphemeralProperties.PropertiesInstanceId.Contains(i.Type)).ToList())
-                ephemeralPropertyInstanceIds[(PropertyInstanceId)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesInt.Where(i => EphemeralProperties.PropertiesInt.Contains(i.Type)).ToList())
-                ephemeralPropertyInts[(PropertyInt)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesInt64.Where(i => EphemeralProperties.PropertiesInt64.Contains(i.Type)).ToList())
-                ephemeralPropertyInt64s[(PropertyInt64)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesString.Where(i => EphemeralProperties.PropertiesString.Contains(i.Type)).ToList())
-                ephemeralPropertyStrings[(PropertyString)x.Type] = x.Value;
-
-            foreach (var x in EphemeralProperties.PositionTypes.ToList())
-                ephemeralPositions.TryAdd((PositionType)x, null);
-
-            foreach (var x in Biota.BiotaPropertiesPosition.Where(i => EphemeralProperties.PositionTypes.Contains(i.PositionType)).ToList())
-                ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);
-
             ObjectDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
             EmoteManager = new EmoteManager(this);
@@ -293,7 +256,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool Teleporting { get; set; } = false;
 
-        public bool HasGiveOrRefuseEmoteForItem(WorldObject item, out BiotaPropertiesEmote emote)
+        public bool HasGiveOrRefuseEmoteForItem(WorldObject item, out PropertiesEmote emote)
         {
             // NPC refuses this item, with a custom response
             var refuseItem = EmoteManager.GetEmoteSet(EmoteCategory.Refuse, null, null, item.WeenieClassId);
@@ -339,6 +302,8 @@ namespace ACE.Server.WorldObjects
 
             var SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);
 
+            SightObj.State |= PhysicsState.Missile;
+
             var startPos = new Physics.Common.Position(PhysicsObj.Position);
             var targetPos = new Physics.Common.Position(wo.PhysicsObj.Position);
 
@@ -375,6 +340,8 @@ namespace ACE.Server.WorldObjects
 
             var SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);
 
+            SightObj.State |= PhysicsState.Missile;
+
             var startPos = new Physics.Common.Position(PhysicsObj.Position);
             var targetPos = new Physics.Common.Position(pos);
 
@@ -396,6 +363,57 @@ namespace ACE.Server.WorldObjects
             var transition = SightObj.transition(targetPos, startPos, false);
 
             SightObj.DestroyObject();
+
+            if (transition == null) return false;
+
+            // check if target object was reached
+            var isVisible = transition.CollisionInfo.CollideObject.FirstOrDefault(c => c.ID == PhysicsObj.ID) != null;
+            return isVisible;
+        }
+
+        public bool IsMeleeVisible(WorldObject wo)
+        {
+            if (PhysicsObj == null || wo.PhysicsObj == null)
+                return false;
+
+            var startPos = new Physics.Common.Position(PhysicsObj.Position);
+            var targetPos = new Physics.Common.Position(wo.PhysicsObj.Position);
+
+            PhysicsObj.ProjectileTarget = wo.PhysicsObj;
+
+            // perform line of sight test
+            var transition = PhysicsObj.transition(startPos, targetPos, false);
+
+            PhysicsObj.ProjectileTarget = null;
+
+            if (transition == null) return false;
+
+            // check if target object was reached
+            var isVisible = transition.CollisionInfo.CollideObject.FirstOrDefault(c => c.ID == wo.PhysicsObj.ID) != null;
+            return isVisible;
+        }
+
+        public bool IsProjectileVisible(WorldObject proj)
+        {
+            if (!(this is Creature) || (Ethereal ?? false))
+                return true;
+
+            if (PhysicsObj == null || proj.PhysicsObj == null)
+                return false;
+
+            var startPos = new Physics.Common.Position(proj.PhysicsObj.Position);
+            var targetPos = new Physics.Common.Position(PhysicsObj.Position);
+
+            // set to eye level
+            targetPos.Frame.Origin.Z += PhysicsObj.GetHeight() - proj.PhysicsObj.GetHeight();
+
+            var prevTarget = proj.PhysicsObj.ProjectileTarget;
+            proj.PhysicsObj.ProjectileTarget = PhysicsObj;
+
+            // perform line of sight test
+            var transition = proj.PhysicsObj.transition(startPos, targetPos, false);
+
+            proj.PhysicsObj.ProjectileTarget = prevTarget;
 
             if (transition == null) return false;
 
@@ -488,7 +506,7 @@ namespace ACE.Server.WorldObjects
                         sb.AppendLine($"{prop.Name} = {obj.ContainerType.ToString()}" + " (" + (uint)obj.ContainerType + ")");
                         break;
                     case "usable":
-                        sb.AppendLine($"{prop.Name} = {obj.Usable.ToString()}" + " (" + (uint)obj.Usable + ")");
+                        sb.AppendLine($"{prop.Name} = {obj.ItemUseable.ToString()}" + " (" + (uint)obj.ItemUseable + ")");
                         break;
                     case "radarbehavior":
                         sb.AppendLine($"{prop.Name} = {obj.RadarBehavior.ToString()}" + " (" + (uint)obj.RadarBehavior + ")");
@@ -588,7 +606,7 @@ namespace ACE.Server.WorldObjects
             float healthPercentage = 1f;
 
             if (this is Creature creature)
-                healthPercentage = (float)creature.Health.Current / (float)creature.Health.MaxValue;
+                healthPercentage = (float)creature.Health.Current / creature.Health.MaxValue;
 
             var updateHealth = new GameEventUpdateHealth(examiner, Guid.Full, healthPercentage);
             examiner.Network.EnqueueSend(updateHealth);
@@ -645,8 +663,7 @@ namespace ACE.Server.WorldObjects
             // thrown weapons
             if (ProjectileTarget == null) return;
 
-            var proj = new Projectile(this);
-            proj.OnCollideObject(target);
+            ProjectileCollisionHelper.OnCollideObject(this, target);
         }
 
         public virtual void OnCollideObjectEnd(WorldObject target)
@@ -659,8 +676,7 @@ namespace ACE.Server.WorldObjects
             // thrown weapons
             if (ProjectileTarget == null) return;
 
-            var proj = new Projectile(this);
-            proj.OnCollideEnvironment();
+            ProjectileCollisionHelper.OnCollideEnvironment(this);
         }
 
         public void ApplyVisualEffects(PlayScript effect, float speed = 1)
@@ -688,6 +704,8 @@ namespace ACE.Server.WorldObjects
 
         public virtual void OnGeneration(WorldObject generator)
         {
+            //Console.WriteLine($"{Name}.OnGeneration()");
+
             EmoteManager.OnGeneration();
         }
 
@@ -704,6 +722,8 @@ namespace ACE.Server.WorldObjects
 
             if (Generator != null)
                 OnGeneration(Generator);
+
+            //Console.WriteLine($"{Name}.EnterWorld()");
 
             return true;
         }
@@ -812,7 +832,7 @@ namespace ACE.Server.WorldObjects
         {
             if (IsDestroyed)
             {
-                log.WarnFormat("Item 0x{0:X8}:{1} called destroy more than once.", Guid.Full, Name);
+                //log.WarnFormat("Item 0x{0:X8}:{1} called destroy more than once.", Guid.Full, Name);
                 return;
             }
 
@@ -832,14 +852,14 @@ namespace ACE.Server.WorldObjects
                     item.Destroy();
             }
 
-            if (this is CombatPet combatPet)
-            {
-                if (combatPet.P_PetOwner != null && combatPet.P_PetOwner.CurrentActiveCombatPet == this)
-                    combatPet.P_PetOwner.CurrentActiveCombatPet = null;
-            }
+            if (this is Pet pet && pet.P_PetOwner?.CurrentActivePet == this)
+                pet.P_PetOwner.CurrentActivePet = null;
 
             if (raiseNotifyOfDestructionEvent)
                 NotifyOfEvent(RegenerationType.Destruction);
+
+            if (IsGenerator)
+                OnGeneratorDestroy();
 
             CurrentLandblock?.RemoveWorldObject(Guid);
 
@@ -868,11 +888,6 @@ namespace ACE.Server.WorldObjects
 
             return pluralName;
         }
-
-        /// <summary>
-        /// Returns TRUE if this object has a non-zero velocity
-        /// </summary>
-        public bool IsMoving { get => PhysicsObj != null && (PhysicsObj.Velocity.X != 0 || PhysicsObj.Velocity.Y != 0 || PhysicsObj.Velocity.Z != 0); }
 
         /// <summary>
         /// Returns TRUE if this object has non-cyclic animations in progress
@@ -1005,26 +1020,25 @@ namespace ACE.Server.WorldObjects
             // empty base
         }
 
-        public virtual void OnSticky()
-        {
-            // empty base
-        }
-
-        public virtual void OnUnsticky()
-        {
-            // empty base
-        }
-
-        public virtual bool IsAttunedOrContainsAttuned => (Attuned ?? 0) >= 1;
-
         public bool IsTradeNote => ItemType == ItemType.PromissoryNote;
 
-        /// <summary>
-        /// Returns the wielder or the current object
-        /// </summary>
-        public WorldObject GetCurrentOrWielder(Landblock landblock)
+        public virtual bool IsAttunedOrContainsAttuned => Attuned >= AttunedStatus.Attuned;
+
+        public virtual bool IsStickyAttunedOrContainsStickyAttuned => Attuned >= AttunedStatus.Sticky;
+
+        public virtual bool IsUniqueOrContainsUnique => Unique != null;
+
+        public virtual List<WorldObject> GetUniqueObjects()
         {
-            return WielderId != null ? landblock?.GetObject(WielderId.Value) : this;
+            if (Unique == null)
+                return new List<WorldObject>();
+            else
+                return new List<WorldObject>() { this };
+        }
+
+        public bool HasArmorLevel()
+        {
+            return ArmorLevel > 0;
         }
     }
 }

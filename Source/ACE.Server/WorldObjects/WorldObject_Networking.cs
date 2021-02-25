@@ -4,20 +4,21 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 
-using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Structure;
 using ACE.Server.Network.Sequence;
+using ACE.Server.Network.Structure;
 using ACE.Server.Physics;
 
 namespace ACE.Server.WorldObjects
@@ -99,7 +100,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write(Value ?? 0);
 
             if ((weenieFlags & WeenieHeaderFlag.Usable) != 0)
-                writer.Write((uint?)Usable ?? 0u);
+                writer.Write((uint?)ItemUseable ?? 0u);
 
             if ((weenieFlags & WeenieHeaderFlag.UseRadius) != 0)
                 writer.Write(UseRadius ?? 0u);
@@ -181,9 +182,9 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    // if mansion, send permissions from master copy
-                    if (house.HouseType == HouseType.Mansion)
-                        house = house.LinkedHouses[0];
+                    // if mansion or villa, send permissions from master copy
+                    if (house.HouseType == HouseType.Villa || house.HouseType == HouseType.Mansion)
+                        house = house.RootHouse;
                 }
 
                 writer.Write(new RestrictionDB(house));
@@ -233,9 +234,9 @@ namespace ACE.Server.WorldObjects
 
             foreach (var palette in objDesc.SubPalettes)
             {
-                writer.WritePackedDwordOfKnownType(palette.SubID, 0x4000000);
+                writer.WritePackedDwordOfKnownType(palette.SubPaletteId, 0x4000000);
                 writer.Write((byte)palette.Offset);
-                writer.Write((byte)palette.NumColors);
+                writer.Write((byte)palette.Length);
             }
 
             foreach (var texture in objDesc.TextureChanges)
@@ -247,8 +248,8 @@ namespace ACE.Server.WorldObjects
 
             foreach (var model in objDesc.AnimPartChanges)
             {
-                writer.Write(model.PartIndex);
-                writer.WritePackedDwordOfKnownType(model.PartID, 0x1000000);
+                writer.Write(model.Index);
+                writer.WritePackedDwordOfKnownType(model.AnimationId, 0x1000000);
             }
 
             writer.Align();
@@ -296,6 +297,9 @@ namespace ACE.Server.WorldObjects
                 physicsState &= ~PhysicsState.NoDraw;
                 physicsState &= ~PhysicsState.Cloaked;
             }
+
+            if (this is SpellProjectile && PropertyManager.GetBool("spell_projectile_ethereal").Item)
+                physicsState |= PhysicsState.Ethereal;
 
             writer.Write((uint)physicsState);
 
@@ -362,17 +366,17 @@ namespace ACE.Server.WorldObjects
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Velocity) != 0)
             {
-                writer.Write(Velocity.Value);
+                writer.Write(Velocity);
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Acceleration) != 0)
             {
-                writer.Write(Acceleration.Value);
+                writer.Write(Acceleration);
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Omega) != 0)
             {
-                writer.Write(Omega.Value);
+                writer.Write(Omega);
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScript) != 0)
@@ -400,11 +404,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Broadcast position updates to players within range
         /// </summary>
-        public void SendUpdatePosition()
+        /// <param name="adminMove">only used if admin is teleporting a non-player object</param>
+        public void SendUpdatePosition(bool adminMove = false)
         {
             //Console.WriteLine($"{Name}.SendUpdatePosition({Location.ToLOCString()})");
 
-            EnqueueBroadcast(new GameMessageUpdatePosition(this));
+            EnqueueBroadcast(new GameMessageUpdatePosition(this, adminMove));
 
             LastUpdatePosition = DateTime.UtcNow;
         }
@@ -475,13 +480,13 @@ namespace ACE.Server.WorldObjects
             if ((Translucency != null) && (Math.Abs(Translucency ?? 0) >= 0.001))
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Translucency;
 
-            if (Velocity != null)
+            if (Velocity != Vector3.Zero)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Velocity;
 
-            if (Acceleration != null)
+            if (Acceleration != Vector3.Zero)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Acceleration;
 
-            if (Omega != null)
+            if (Omega != Vector3.Zero)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Omega;
 
             if (DefaultScriptId != null)
@@ -703,7 +708,7 @@ namespace ACE.Server.WorldObjects
             if (Value != null && (Value > 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.Value;
 
-            if (Usable != null)
+            if (ItemUseable != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Usable;
 
             if (UseRadius != null)
@@ -896,10 +901,10 @@ namespace ACE.Server.WorldObjects
                 foreach (CloObjectEffect t in clothingBaseEffect.CloObjectEffects)
                 {
                     byte partNum = (byte)t.Index;
-                    objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = (byte)t.Index, PartID = t.ModelId });
+                    objDesc.AnimPartChanges.Add(new PropertiesAnimPart { Index = (byte)t.Index, AnimationId = t.ModelId });
                     //AddModel((byte)t.Index, (ushort)t.ModelId);
                     foreach (CloTextureEffect t1 in t.CloTextureEffects)
-                        objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = (byte)t.Index, OldTexture = t1.OldTexture, NewTexture = t1.NewTexture });
+                        objDesc.TextureChanges.Add(new PropertiesTextureMap { PartIndex = (byte)t.Index, OldTexture = t1.OldTexture, NewTexture = t1.NewTexture });
                     //AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
                 }
 
@@ -937,10 +942,10 @@ namespace ACE.Server.WorldObjects
 
                         for (int j = 0; j < itemSubPal.CloSubPalettes[i].Ranges.Count; j++)
                         {
-                            uint palOffset = itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8;
-                            uint numColors = itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8;
+                            ushort palOffset = (ushort)(itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8);
+                            ushort numColors = (ushort)(itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8);
                             if (PaletteTemplate.HasValue || Shade.HasValue)
-                                objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = itemPal, Offset = palOffset, NumColors = numColors });
+                                objDesc.SubPalettes.Add(new PropertiesPalette { SubPaletteId = itemPal, Offset = palOffset, Length = numColors });
                             //AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
                         }
                     }
@@ -957,7 +962,7 @@ namespace ACE.Server.WorldObjects
             // if (HeadObjectDID.HasValue && !HairStyle.HasValue)
             // This Heritage check has been added for backwards compatibility. It works around the butthead Gear Knights appearance.
             if (HeadObjectDID.HasValue && !HairStyle.HasValue && Heritage.HasValue && Heritage != (int)HeritageGroup.Gearknight)
-                objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = 0x10, PartID = HeadObjectDID.Value });
+                objDesc.AnimPartChanges.Add(new PropertiesAnimPart { Index = 0x10, AnimationId = HeadObjectDID.Value });
             else if (HairStyle.HasValue && Heritage.HasValue && Gender.HasValue)
             {
                 // This indicates we have a Gear Knight or Olthoi(that is, player types treat "hairstyle" as a "Body Style")
@@ -971,19 +976,19 @@ namespace ACE.Server.WorldObjects
 
                     // Add all the texture changes
                     foreach (var tm in hairstyle.ObjDesc.TextureChanges)
-                        objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = tm.PartIndex, OldTexture = tm.OldTexture, NewTexture = tm.NewTexture });
+                        objDesc.TextureChanges.Add(new PropertiesTextureMap { PartIndex = tm.PartIndex, OldTexture = tm.OldTexture, NewTexture = tm.NewTexture });
 
                     // Add all the animation part changes
                     foreach (var part in hairstyle.ObjDesc.AnimPartChanges)
-                        objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = part.PartIndex, PartID = part.PartID });
+                        objDesc.AnimPartChanges.Add(new PropertiesAnimPart { Index = part.PartIndex, AnimationId = part.PartID });
                 }
             }
 
             if (this is Player player)
-                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = player.Character.DefaultHairTexture, NewTexture = player.Character.HairTexture });
+                objDesc.TextureChanges.Add(new PropertiesTextureMap { PartIndex = 0x10, OldTexture = player.Character.DefaultHairTexture, NewTexture = player.Character.HairTexture });
             //AddTexture(0x10, DefaultHairTextureDID.Value, HairTextureDID.Value);
             if (HairPaletteDID.HasValue)
-                objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = HairPaletteDID.Value, Offset = 0x18, NumColors = 0x8 });
+                objDesc.SubPalettes.Add(new PropertiesPalette { SubPaletteId = HairPaletteDID.Value, Offset = 0x18, Length = 0x8 });
             //AddPalette(HairPaletteDID.Value, 0x18, 0x8);
 
             // Skin
@@ -991,23 +996,23 @@ namespace ACE.Server.WorldObjects
             if (PaletteBaseDID.HasValue)
                 objDesc.PaletteID = PaletteBaseDID.Value;
             if (SkinPaletteDID.HasValue)
-                objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = SkinPaletteDID.Value, Offset = 0x0, NumColors = 0x18 });
+                objDesc.SubPalettes.Add(new PropertiesPalette { SubPaletteId = SkinPaletteDID.Value, Offset = 0x0, Length = 0x18 });
             //AddPalette(SkinPalette.Value, 0x0, 0x18);
 
             // Eyes
             if (DefaultEyesTextureDID.HasValue && EyesTextureDID.HasValue)
-                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultEyesTextureDID.Value, NewTexture = EyesTextureDID.Value });
+                objDesc.TextureChanges.Add(new PropertiesTextureMap { PartIndex = 0x10, OldTexture = DefaultEyesTextureDID.Value, NewTexture = EyesTextureDID.Value });
             //AddTexture(0x10, DefaultEyesTextureDID.Value, EyesTextureDID.Value);
             if (EyesPaletteDID.HasValue)
-                objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = EyesPaletteDID.Value, Offset = 0x20, NumColors = 0x8 });
+                objDesc.SubPalettes.Add(new PropertiesPalette { SubPaletteId = EyesPaletteDID.Value, Offset = 0x20, Length = 0x8 });
             //AddPalette(EyesPaletteDID.Value, 0x20, 0x8);
 
             // Nose & Mouth
             if (DefaultNoseTextureDID.HasValue && NoseTextureDID.HasValue)
-                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultNoseTextureDID.Value, NewTexture = NoseTextureDID.Value });
+                objDesc.TextureChanges.Add(new PropertiesTextureMap { PartIndex = 0x10, OldTexture = DefaultNoseTextureDID.Value, NewTexture = NoseTextureDID.Value });
             //AddTexture(0x10, NoseTextureDID.Value, NoseTextureDID.Value);
             if (DefaultMouthTextureDID.HasValue && MouthTextureDID.HasValue)
-                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultMouthTextureDID.Value, NewTexture = MouthTextureDID.Value });
+                objDesc.TextureChanges.Add(new PropertiesTextureMap { PartIndex = 0x10, OldTexture = DefaultMouthTextureDID.Value, NewTexture = MouthTextureDID.Value });
             //AddTexture(0x10, DefaultMouthTextureDID.Value, MouthTextureDID.Value);
         }
 
@@ -1067,9 +1072,12 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
-        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, MotionCommand? prevCommand = null, bool castGesture = false)
+        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, MotionCommand? prevCommand = null, bool castGesture = false, bool half = false)
         {
             var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
+
+            if (castGesture)
+                stance = MotionStance.Magic;
 
             var motion = new Motion(stance, motionCommand, speed);
             motion.MotionState.TurnSpeed = 2.25f;  // ??
@@ -1091,32 +1099,48 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcastMotion(motion);
             });
 
+            if (half)
+                animLength *= 0.5f;
+
             actionChain.AddDelaySeconds(animLength);
 
             return animLength;
         }
 
-        public float EnqueueMotionAction(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, bool usePrevCommand = false)
+        public float EnqueueMotionAction(ActionChain actionChain, List<MotionCommand> motionCommands, float speed = 1.0f, MotionStance? useStance = null, bool usePrevCommand = false)
         {
-            var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
+            var stance = useStance ?? CurrentMotionState.Stance;
 
             var motion = new Motion(stance, MotionCommand.Ready, speed);
-            motion.MotionState.AddCommand(this, motionCommand, speed);
+
+            foreach (var motionCommand in motionCommands)
+                motion.MotionState.AddCommand(this, motionCommand, speed);
+
             motion.MotionState.TurnSpeed = 2.25f;  // ??
 
             var animLength = 0.0f;
             if (usePrevCommand)
             {
                 var prevCommand = CurrentMotionState.MotionState.ForwardCommand;
-                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand, motionCommand, speed);
+
+                foreach (var motionCommand in motionCommands)
+                    animLength += Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand, motionCommand, speed);
             }
             else
-                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
+            {
+                foreach (var motionCommand in motionCommands)
+                    animLength += Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
+            }
 
             actionChain.AddAction(this, () =>
             {
                 CurrentMotionState = motion;
-                EnqueueBroadcastMotion(motion);
+                EnqueueBroadcastMotion(motion, null, false);
+
+                ApplyPhysicsMotion(new Motion(stance, MotionCommand.Ready, speed));
+
+                foreach (var motionCommand in motionCommands)
+                    ApplyPhysicsMotion(new Motion(stance, motionCommand, speed));
             });
 
             actionChain.AddDelaySeconds(animLength);
@@ -1124,7 +1148,7 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
-        public float EnqueueMotion_Force(ActionChain actionChain, MotionStance stance, MotionCommand motionCommand, MotionCommand? prevCommand = null, float speed = 1.0f)
+        public float EnqueueMotion_Force(ActionChain actionChain, MotionStance stance, MotionCommand motionCommand, MotionCommand? prevCommand = null, float speed = 1.0f, float animMod = 1.0f)
         {
             var motion = new Motion(stance, motionCommand, speed);
 
@@ -1149,7 +1173,7 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcastMotion(motion);
             });
 
-            actionChain.AddDelaySeconds(animLength);
+            actionChain.AddDelaySeconds(animLength * animMod);
             return animLength;
         }
 
@@ -1269,7 +1293,13 @@ namespace ACE.Server.WorldObjects
 
         public List<Player> EnqueueBroadcast(bool sendSelf = true, params GameMessage[] msgs)
         {
-            if (PhysicsObj == null) return null;
+            if (PhysicsObj == null)
+            {
+                if (Container != null)
+                    return Container.EnqueueBroadcast(sendSelf, msgs);
+
+                return null;
+            }
 
             if (sendSelf)
             {

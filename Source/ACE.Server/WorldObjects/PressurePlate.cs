@@ -1,8 +1,8 @@
 using System;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -73,6 +73,11 @@ namespace ACE.Server.WorldObjects
             player.EnqueueBroadcast(new GameMessageSound(player.Guid, UseSound));
 
             base.OnActivate(activator);
+        }
+
+        public override void ActOnUse(WorldObject wo)
+        {
+            // Do nothing
         }
     }
 }

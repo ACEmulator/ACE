@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
@@ -99,10 +99,10 @@ namespace ACE.Server.Network.Structure
                 if (!PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedActivator))
                     PropertiesBool.Add(PropertyBool.AppraisalHasAllowedActivator, true);
 
-            if (PropertiesString.ContainsKey(PropertyString.ScribeAccount) && !examiner.IsAdmin && !examiner.IsSentinel && !examiner.IsArch && !examiner.IsPsr)
+            if (PropertiesString.ContainsKey(PropertyString.ScribeAccount) && !examiner.IsAdmin && !examiner.IsSentinel && !examiner.IsEnvoy && !examiner.IsArch && !examiner.IsPsr)
                 PropertiesString.Remove(PropertyString.ScribeAccount);
 
-            if (PropertiesString.ContainsKey(PropertyString.HouseOwnerAccount) && !examiner.IsAdmin && !examiner.IsSentinel && !examiner.IsArch && !examiner.IsPsr)
+            if (PropertiesString.ContainsKey(PropertyString.HouseOwnerAccount) && !examiner.IsAdmin && !examiner.IsSentinel && !examiner.IsEnvoy && !examiner.IsArch && !examiner.IsPsr)
                 PropertiesString.Remove(PropertyString.HouseOwnerAccount);
 
             if (PropertiesInt.ContainsKey(PropertyInt.Lifespan))
@@ -115,7 +115,7 @@ namespace ACE.Server.Network.Structure
             if (wo is Creature creature)
                 BuildCreature(creature);
 
-            if (wo is MeleeWeapon || wo is Missile || wo is MissileLauncher || wo is Ammunition || wo is Caster)
+            if (wo.Damage != null || wo is MeleeWeapon || wo is Missile || wo is MissileLauncher || wo is Ammunition || wo is Caster)
                 BuildWeapon(wo, wielder);
 
             if (wo is Door || wo is Chest)
@@ -292,6 +292,25 @@ namespace ACE.Server.Network.Structure
                 PropertiesString[PropertyString.Use] = useMessage;
             }
 
+            if (wo is CraftTool && (wo.ItemType == ItemType.TinkeringMaterial || wo.WeenieClassId >= 36619 && wo.WeenieClassId <= 36628 || wo.WeenieClassId >= 36634 && wo.WeenieClassId <= 36636))
+            {
+                if (PropertiesInt.ContainsKey(PropertyInt.Structure))
+                    PropertiesInt.Remove(PropertyInt.Structure);
+            }
+
+            if (!Success)
+            {
+                // todo: what specifically to keep/what to clear
+
+                //PropertiesBool.Clear();
+                //PropertiesDID.Clear();
+                //PropertiesFloat.Clear();
+                //PropertiesIID.Clear();
+                //PropertiesInt.Clear();
+                //PropertiesInt64.Clear();
+                //PropertiesString.Clear();
+            }
+
             BuildFlags();
         }
 
@@ -357,6 +376,8 @@ namespace ACE.Server.Network.Structure
 
             if (wo.ItemSkillLimit != null)
                 PropertiesInt[PropertyInt.AppraisalItemSkill] = (int)wo.ItemSkillLimit;
+            else
+                PropertiesInt.Remove(PropertyInt.AppraisalItemSkill);
 
             if (PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense) && !(wo is Missile) && !(wo is Ammunition))
             {
@@ -399,6 +420,20 @@ namespace ACE.Server.Network.Structure
                     ResistColor = ResistMaskHelper.GetColorMask(wielder, wo);
                 }
             }
+
+            var appraisalLongDescDecoration = AppraisalLongDescDecorations.None;
+
+            if (wo.ItemWorkmanship > 0)
+                appraisalLongDescDecoration |= AppraisalLongDescDecorations.PrependWorkmanship;
+            if (wo.MaterialType > 0)
+                appraisalLongDescDecoration |= AppraisalLongDescDecorations.PrependMaterial;
+            if (wo.GemType > 0 && wo.GemCount > 0)
+                appraisalLongDescDecoration |= AppraisalLongDescDecorations.AppendGemInfo;
+
+            if (appraisalLongDescDecoration > 0 && wo.LongDesc != null && wo.LongDesc.StartsWith(wo.Name))
+                PropertiesInt[PropertyInt.AppraisalLongDescDecoration] = (int)appraisalLongDescDecoration;
+            else
+                PropertiesInt.Remove(PropertyInt.AppraisalLongDescDecoration);
         }
 
         private void BuildSpells(WorldObject wo)
@@ -415,13 +450,15 @@ namespace ACE.Server.Network.Structure
             if (wo.ProcSpell.HasValue)
                 SpellBook.Add(new AppraisalSpellBook { SpellId = (ushort)wo.ProcSpell.Value, EnchantmentState = AppraisalSpellBook._EnchantmentState.Off });
 
-            foreach ( var biotaPropertiesSpellBook in wo.Biota.BiotaPropertiesSpellBook.Where(i => i.Spell != wo.SpellDID && i.Spell != wo.ProcSpell))
-                SpellBook.Add(new AppraisalSpellBook { SpellId = (ushort)biotaPropertiesSpellBook.Spell, EnchantmentState = AppraisalSpellBook._EnchantmentState.Off });
+            var woSpellDID = wo.SpellDID; // Prevent recursive lock
+            var woProcSpell = wo.ProcSpell;
+            foreach (var spellId in wo.Biota.GetKnownSpellsIdsWhere(i => i != woSpellDID && i != woProcSpell, wo.BiotaDatabaseLock))
+                SpellBook.Add(new AppraisalSpellBook { SpellId = (ushort)spellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.Off });
         }
 
         private void AddSpells(List<AppraisalSpellBook> activeSpells, WorldObject worldObject, WorldObject wielder = null)
         {
-            var wielderEnchantments = new List<BiotaPropertiesEnchantmentRegistry>();
+            var wielderEnchantments = new List<PropertiesEnchantmentRegistry>();
             if (worldObject == null) return;
 
             // get all currently active item enchantments on the item
@@ -436,7 +473,7 @@ namespace ACE.Server.Network.Structure
                 // Only show Clothing type item enchantments
                 foreach (var enchantment in woEnchantments)
                 {
-                    if ((enchantment.SpellCategory >= (ushort)SpellCategory.ArmorValueRaising) && (enchantment.SpellCategory <= (ushort)SpellCategory.AcidicResistanceLowering))
+                    if ((enchantment.SpellCategory >= SpellCategory.ArmorValueRaising) && (enchantment.SpellCategory <= SpellCategory.AcidicResistanceLowering))
                         activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                 }
             }
@@ -447,8 +484,8 @@ namespace ACE.Server.Network.Structure
                 {
                     if (worldObject is Caster)
                     {
-                        if ((enchantment.SpellCategory == (uint)SpellCategory.DefenseModLowering)
-                            || (enchantment.SpellCategory == (uint)SpellCategory.ManaConversionModLowering)
+                        if ((enchantment.SpellCategory == SpellCategory.DefenseModLowering)
+                            || (enchantment.SpellCategory == SpellCategory.ManaConversionModLowering)
                             || (GetSpellName((uint)enchantment.SpellId).Contains("Spirit"))) // Spirit Loather spells
                         {
                             activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
@@ -456,15 +493,15 @@ namespace ACE.Server.Network.Structure
                     }
                     else if (worldObject is Missile || worldObject is Ammunition)
                     {
-                        if ((enchantment.SpellCategory == (uint)SpellCategory.DamageLowering))
+                        if ((enchantment.SpellCategory == SpellCategory.DamageLowering))
                             activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                     }
                     else
                     {
-                        if ((enchantment.SpellCategory == (uint)SpellCategory.AttackModLowering)
-                            || (enchantment.SpellCategory == (uint)SpellCategory.DamageLowering)
-                            || (enchantment.SpellCategory == (uint)SpellCategory.DefenseModLowering)
-                            || (enchantment.SpellCategory == (uint)SpellCategory.WeaponTimeLowering))
+                        if ((enchantment.SpellCategory == SpellCategory.AttackModLowering)
+                            || (enchantment.SpellCategory == SpellCategory.DamageLowering)
+                            || (enchantment.SpellCategory == SpellCategory.DefenseModLowering)
+                            || (enchantment.SpellCategory == SpellCategory.WeaponTimeLowering))
                         {
                             activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                         }
@@ -479,31 +516,31 @@ namespace ACE.Server.Network.Structure
                         if (worldObject is Caster)
                         {
                             // Caster weapon only item Auras
-                            if ((enchantment.SpellCategory == (uint)SpellCategory.DefenseModRaising)
-                                || (enchantment.SpellCategory == (uint)SpellCategory.DefenseModRaisingRare)
-                                || (enchantment.SpellCategory == (uint)SpellCategory.ManaConversionModRaising)
-                                || (enchantment.SpellCategory == (uint)SpellCategory.SpellDamageRaising))
+                            if ((enchantment.SpellCategory == SpellCategory.DefenseModRaising)
+                                || (enchantment.SpellCategory == SpellCategory.DefenseModRaisingRare)
+                                || (enchantment.SpellCategory == SpellCategory.ManaConversionModRaising)
+                                || (enchantment.SpellCategory == SpellCategory.SpellDamageRaising))
                             {
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                             }
                         }
                         else if (worldObject is Missile || worldObject is Ammunition)
                         {
-                            if ((enchantment.SpellCategory == (uint)SpellCategory.DamageRaising)
-                                || (enchantment.SpellCategory == (uint)SpellCategory.DamageRaisingRare))
+                            if ((enchantment.SpellCategory == SpellCategory.DamageRaising)
+                                || (enchantment.SpellCategory == SpellCategory.DamageRaisingRare))
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                         }
                         else
                         {
                             // Other weapon type Auras
-                            if ((enchantment.SpellCategory == (uint)SpellCategory.AttackModRaising)
-                                || (enchantment.SpellCategory == (uint)SpellCategory.AttackModRaisingRare)
-                                || (enchantment.SpellCategory == (uint)SpellCategory.DamageRaising)
-                                || (enchantment.SpellCategory == (uint)SpellCategory.DamageRaisingRare)
-                                || (enchantment.SpellCategory == (uint)SpellCategory.DefenseModRaising)
-                                || (enchantment.SpellCategory == (uint)SpellCategory.DefenseModRaisingRare)
-                                || (enchantment.SpellCategory == (uint)SpellCategory.WeaponTimeRaising)
-                                || (enchantment.SpellCategory == (uint)SpellCategory.WeaponTimeRaisingRare))
+                            if ((enchantment.SpellCategory == SpellCategory.AttackModRaising)
+                                || (enchantment.SpellCategory == SpellCategory.AttackModRaisingRare)
+                                || (enchantment.SpellCategory == SpellCategory.DamageRaising)
+                                || (enchantment.SpellCategory == SpellCategory.DamageRaisingRare)
+                                || (enchantment.SpellCategory == SpellCategory.DefenseModRaising)
+                                || (enchantment.SpellCategory == SpellCategory.DefenseModRaisingRare)
+                                || (enchantment.SpellCategory == SpellCategory.WeaponTimeRaising)
+                                || (enchantment.SpellCategory == SpellCategory.WeaponTimeRaisingRare))
                             {
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                             }
@@ -524,6 +561,9 @@ namespace ACE.Server.Network.Structure
 
         private void BuildArmor(WorldObject wo)
         {
+            if (!Success)
+                return;
+
             ArmorProfile = new ArmorProfile(wo);
             ArmorHighlight = ArmorMaskHelper.GetHighlightMask(wo);
             ArmorColor = ArmorMaskHelper.GetColorMask(wo);
@@ -539,16 +579,24 @@ namespace ACE.Server.Network.Structure
             ResistHighlight = ResistMaskHelper.GetHighlightMask(creature);
             ResistColor = ResistMaskHelper.GetColorMask(creature);
 
-            ArmorLevels = new ArmorLevel(creature);
+            if (Success && (creature is Player || !creature.Attackable))
+                ArmorLevels = new ArmorLevel(creature);
 
             AddRatings(creature);
 
             if (PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal))
                 PropertiesInt.Remove(PropertyInt.EncumbranceVal);
+
+            // see notes in CombatPet.Init()
+            if (creature is CombatPet && PropertiesInt.ContainsKey(PropertyInt.Faction1Bits))
+                PropertiesInt.Remove(PropertyInt.Faction1Bits);
         }
 
         private void AddRatings(Creature creature)
         {
+            if (!Success)
+                return;
+
             var damageRating = creature.GetDamageRating();
 
             // include heritage / weapon type rating?
@@ -569,6 +617,7 @@ namespace ACE.Server.Network.Structure
             var critDamageResistRating = creature.GetCritDamageResistRating();
 
             var healingBoostRating = creature.GetHealingBoostRating();
+            var dotResistRating = creature.GetDotResistanceRating();
             var netherResistRating = creature.GetNetherResistRating();
 
             var lifeResistRating = creature.GetLifeResistRating();  // drain / harm resistance
@@ -593,6 +642,8 @@ namespace ACE.Server.Network.Structure
                 PropertiesInt[PropertyInt.HealingBoostRating] = healingBoostRating;
             if (netherResistRating != 0)
                 PropertiesInt[PropertyInt.NetherResistRating] = netherResistRating;
+            if (dotResistRating != 0)
+                PropertiesInt[PropertyInt.DotResistRating] = dotResistRating;
 
             if (lifeResistRating != 0)
                 PropertiesInt[PropertyInt.LifeResistRating] = lifeResistRating;
@@ -604,6 +655,9 @@ namespace ACE.Server.Network.Structure
 
         private void BuildWeapon(WorldObject weapon, WorldObject wielder)
         {
+            if (!Success)
+                return;
+
             var weaponProfile = new WeaponProfile(weapon, wielder);
 
             //WeaponHighlight = WeaponMaskHelper.GetHighlightMask(weapon, wielder);

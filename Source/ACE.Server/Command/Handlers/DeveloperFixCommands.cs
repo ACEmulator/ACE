@@ -2,15 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.EntityFrameworkCore;
 using log4net;
 
+using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
+using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.WorldObjects;
@@ -50,12 +54,12 @@ namespace ACE.Server.Command.Handlers
             {
                 var updated = false;
 
-                foreach (var attr in player.Biota.BiotaPropertiesAttribute.ToList())
+                foreach (var attr in new Dictionary<PropertyAttribute, PropertiesAttribute>(player.Biota.PropertiesAttribute))
                 {
                     // ensure this is a valid attribute
-                    if (attr.Type < (ushort)PropertyAttribute.Strength || attr.Type > (ushort)PropertyAttribute.Self)
+                    if (attr.Key < PropertyAttribute.Strength || attr.Key > PropertyAttribute.Self)
                     {
-                        Console.WriteLine($"{player.Name} has unknown attribute {(PropertyAttribute)attr.Type}{fixStr}");
+                        Console.WriteLine($"{player.Name} has unknown attribute {attr.Key}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
@@ -63,24 +67,24 @@ namespace ACE.Server.Command.Handlers
                             // i have found no instances of this situation being run into,
                             // but if it does happen, verify-xp will refund the player xp properly
 
-                            player.Biota.BiotaPropertiesAttribute.Remove(attr);
+                            player.Biota.PropertiesAttribute.Remove(attr);
                             updated = true;
                         }
                         continue;
                     }
 
-                    var rank = attr.LevelFromCP;
+                    var rank = attr.Value.LevelFromCP;
 
                     // verify attribute rank
-                    var correctRank = Player.CalcAttributeRank(attr.CPSpent);
+                    var correctRank = Player.CalcAttributeRank(attr.Value.CPSpent);
                     if (rank != correctRank)
                     {
-                        Console.WriteLine($"{player.Name}'s {(PropertyAttribute)attr.Type} rank is {rank}, should be {correctRank}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {attr.Key} rank is {rank}, should be {correctRank}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
                         {
-                            attr.LevelFromCP = (ushort)correctRank;
+                            attr.Value.LevelFromCP = (ushort)correctRank;
                             updated = true;
                         }
                     }
@@ -89,9 +93,9 @@ namespace ACE.Server.Command.Handlers
                     var attributeXPTable = DatManager.PortalDat.XpTable.AttributeXpList;
                     var maxAttributeXp = attributeXPTable[attributeXPTable.Count - 1];
 
-                    if (attr.CPSpent > maxAttributeXp)
+                    if (attr.Value.CPSpent > maxAttributeXp)
                     {
-                        Console.WriteLine($"{player.Name}'s {(PropertyAttribute)attr.Type} attribute total xp is {attr.CPSpent:N0}, should be capped at {maxAttributeXp:N0}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {attr.Key} attribute total xp is {attr.Value.CPSpent:N0}, should be capped at {maxAttributeXp:N0}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
@@ -99,7 +103,7 @@ namespace ACE.Server.Command.Handlers
                             // again i have found no instances of this situation being run into,
                             // but if it does happen, verify-xp will refund the player xp properly
 
-                            attr.CPSpent = maxAttributeXp;
+                            attr.Value.CPSpent = maxAttributeXp;
                             updated = true;
                         }
                     }
@@ -128,12 +132,12 @@ namespace ACE.Server.Command.Handlers
             {
                 var updated = false;
 
-                foreach (var vital in player.Biota.BiotaPropertiesAttribute2nd.ToList())
+                foreach (var vital in new Dictionary<PropertyAttribute2nd, PropertiesAttribute2nd>(player.Biota.PropertiesAttribute2nd))
                 {
                     // ensure this is a valid MaxVital
-                    if (vital.Type != (ushort)PropertyAttribute2nd.MaxHealth && vital.Type != (ushort)PropertyAttribute2nd.MaxStamina && vital.Type != (ushort)PropertyAttribute2nd.MaxMana)
+                    if (vital.Key != PropertyAttribute2nd.MaxHealth && vital.Key != PropertyAttribute2nd.MaxStamina && vital.Key != PropertyAttribute2nd.MaxMana)
                     {
-                        Console.WriteLine($"{player.Name} has unknown vita {(PropertyAttribute2nd)vital.Type}{fixStr}");
+                        Console.WriteLine($"{player.Name} has unknown vital {vital.Key}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
@@ -141,24 +145,24 @@ namespace ACE.Server.Command.Handlers
                             // i have found no instances of this situation being run into,
                             // but if it does happen, verify-xp will refund the player xp properly
 
-                            player.Biota.BiotaPropertiesAttribute2nd.Remove(vital);
+                            player.Biota.PropertiesAttribute2nd.Remove(vital.Key);
                             updated = true;
                         }
                         continue;
                     }
 
-                    var rank = vital.LevelFromCP;
+                    var rank = vital.Value.LevelFromCP;
 
                     // verify vital rank
-                    var correctRank = Player.CalcVitalRank(vital.CPSpent);
+                    var correctRank = Player.CalcVitalRank(vital.Value.CPSpent);
                     if (rank != correctRank)
                     {
-                        Console.WriteLine($"{player.Name}'s {(PropertyAttribute2nd)vital.Type} rank is {rank}, should be {correctRank}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {vital.Key} rank is {rank}, should be {correctRank}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
                         {
-                            vital.LevelFromCP = (ushort)correctRank;
+                            vital.Value.LevelFromCP = (ushort)correctRank;
                             updated = true;
                         }
                     }
@@ -167,9 +171,9 @@ namespace ACE.Server.Command.Handlers
                     var vitalXPTable = DatManager.PortalDat.XpTable.VitalXpList;
                     var maxVitalXp = vitalXPTable[vitalXPTable.Count - 1];
 
-                    if (vital.CPSpent > maxVitalXp)
+                    if (vital.Value.CPSpent > maxVitalXp)
                     {
-                        Console.WriteLine($"{player.Name}'s {(PropertyAttribute2nd)vital.Type} vital total xp is {vital.CPSpent:N0}, should be capped at {maxVitalXp:N0}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {vital.Key} vital total xp is {vital.Value.CPSpent:N0}, should be capped at {maxVitalXp:N0}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
@@ -177,7 +181,7 @@ namespace ACE.Server.Command.Handlers
                             // again i have found no instances of this situation being run into,
                             // but if it does happen, verify-xp will refund the player xp properly
 
-                            vital.CPSpent = maxVitalXp;
+                            vital.Value.CPSpent = maxVitalXp;
                             updated = true;
                         }
                     }
@@ -207,39 +211,39 @@ namespace ACE.Server.Command.Handlers
             {
                 var updated = false;
 
-                foreach (var skill in player.Biota.BiotaPropertiesSkill.ToList())
+                foreach (var skill in new Dictionary<Skill, PropertiesSkill>(player.Biota.PropertiesSkill))
                 {
                     // ensure this is a valid player skill
-                    if (!Player.PlayerSkills.Contains((Skill)skill.Type))
+                    if (!Player.PlayerSkills.Contains(skill.Key))
                     {
-                        Console.WriteLine($"{player.Name} has unknown skill {(Skill)skill.Type}{fixStr}");
+                        Console.WriteLine($"{player.Name} has unknown skill {skill.Key}{fixStr}");
                         foundIssues = true;
                         if (fix)
                         {
                             // i have found no instances of these skills ever having xp put into them,
                             // but if there were, verify-xp will fix that
-                            player.Biota.BiotaPropertiesSkill.Remove(skill);
+                            player.Biota.PropertiesSkill.Remove(skill.Key);
                             updated = true;
                         }
                         continue;
                     }
 
-                    var rank = skill.LevelFromPP;
+                    var rank = skill.Value.LevelFromPP;
 
-                    var sac = (SkillAdvancementClass)skill.SAC;
+                    var sac = skill.Value.SAC;
                     if (sac < SkillAdvancementClass.Trained)
                     {
-                        if (skill.PP > 0 || skill.LevelFromPP > 0)
+                        if (skill.Value.PP > 0 || skill.Value.LevelFromPP > 0)
                         {
-                            Console.WriteLine($"{player.Name} has {sac} skill {(Skill)skill.Type} with {skill.PP:N0} xp (rank {skill.LevelFromPP})");
+                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.PP:N0} xp (rank {skill.Value.LevelFromPP}){fixStr}");
                             foundIssues = true;
 
                             if (fix)
                             {
                                 // i have found no instances of this situation being run into,
                                 // but if it does happen, verify-xp will refund the player xp properly
-                                skill.PP = 0;
-                                skill.LevelFromPP = 0;
+                                skill.Value.PP = 0;
+                                skill.Value.LevelFromPP = 0;
 
                                 updated = true;
                             }
@@ -247,16 +251,47 @@ namespace ACE.Server.Command.Handlers
                         continue;
                     }
 
+                    if (sac != SkillAdvancementClass.Specialized)
+                    {
+                        if (skill.Value.InitLevel > 0)
+                        {
+                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel{fixStr}");
+                            foundIssues = true;
+
+                            if (fix)
+                            {
+                                skill.Value.InitLevel = 0;
+
+                                updated = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (skill.Value.InitLevel != 10)
+                        {
+                            Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel{fixStr}");
+                            foundIssues = true;
+
+                            if (fix)
+                            {
+                                skill.Value.InitLevel = 10;
+
+                                updated = true;
+                            }
+                        }
+                    }
+
                     // verify skill rank
-                    var correctRank = Player.CalcSkillRank(sac, skill.PP);
+                    var correctRank = Player.CalcSkillRank(sac, skill.Value.PP);
                     if (rank != correctRank)
                     {
-                        Console.WriteLine($"{player.Name}'s {(Skill)skill.Type} rank is {rank}, should be {correctRank}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {skill.Key} rank is {rank}, should be {correctRank}{fixStr}");
                         foundIssues = true;
 
                         if (fix)
                         {
-                            skill.LevelFromPP = (ushort)correctRank;
+                            skill.Value.LevelFromPP = (ushort)correctRank;
                             updated = true;
                         }
                     }
@@ -273,15 +308,15 @@ namespace ACE.Server.Command.Handlers
                     var skillXPTable = Player.GetSkillXPTable(SkillAdvancementClass.Trained);
                     var maxSkillXp = skillXPTable[skillXPTable.Count - 1];
 
-                    if (skill.PP > maxSkillXp)
+                    if (skill.Value.PP > maxSkillXp)
                     {
-                        Console.WriteLine($"{player.Name}'s {sac} {(Skill)skill.Type} skill total xp is {skill.PP:N0}, should be capped at {maxSkillXp:N0}{fixStr}");
+                        Console.WriteLine($"{player.Name}'s {sac} {skill.Key} skill total xp is {skill.Value.PP:N0}, should be capped at {maxSkillXp:N0}{fixStr}");
                         foundIssues = true;
                         if (fix)
                         {
                             // again i have found no instances of this situation being run into,
                             // but if it does happen, verify-xp will refund the player xp properly
-                            skill.PP = maxSkillXp;
+                            skill.Value.PP = maxSkillXp;
                             updated = true;
                         }
                     }
@@ -307,101 +342,140 @@ namespace ACE.Server.Command.Handlers
             var fixStr = fix ? " -- fixed" : "";
             var foundIssues = false;
 
+            HashSet<uint> oswaldSkillCredit = null;
+            HashSet<uint> ralireaSkillCredit = null;
+            Dictionary<uint, int> lumAugSkillCredits = null;
+
             using (var ctx = new ShardDbContext())
             {
-                foreach (var player in players)
+                // 4 possible skill credits from quests
+                // - ChasingOswaldDone
+                // - ArantahKill1 (no 'turned in' stamp, only if given figurine?)
+                // - LumAugSkillQuest (stamped either 1 or 2 times)
+
+                oswaldSkillCredit = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("ChasingOswaldDone")).Select(i => i.CharacterId).ToHashSet();
+                ralireaSkillCredit = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("ArantahKill1")).Select(i => i.CharacterId).ToHashSet();
+                lumAugSkillCredits = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("LumAugSkillQuest")).ToDictionary(i => i.CharacterId, i => i.NumTimesCompleted);
+            }
+
+            foreach (var player in players)
+            {
+                // skip admins
+                if (player.Account == null || player.Account.AccessLevel == (uint)AccessLevel.Admin)
+                    continue;
+
+                // player starts with 52 skill credits
+                var startCredits = 52;
+
+                // skills that cannot be untrained: arcane lore, jump, loyalty, magic defense, run, salvaging
+                // all of these have '0' cost to train, except for arcane lore, which has 4 (seems to be an outlier?)
+                startCredits += 4;
+
+                var levelCredits = GetAdditionalCredits(player.Level ?? 1);
+
+                var totalCredits = startCredits + levelCredits;
+
+                var used = 0;
+
+                var specCreditsSpent = 0;
+
+                foreach (var skill in new Dictionary<Skill, PropertiesSkill>(player.Biota.PropertiesSkill))
                 {
-                    // skip admins
-                    if (player.Account == null || player.Account.AccessLevel == (uint)AccessLevel.Admin)
+                    var sac = skill.Value.SAC;
+                    if (sac < SkillAdvancementClass.Trained)
                         continue;
 
-                    // player starts with 52 skill credits
-                    var startCredits = 52;
-
-                    // skills that cannot be untrained: arcane lore, jump, loyalty, magic defense, run, salvaging
-                    // all of these have '0' cost to train, except for arcane lore, which has 4 (seems to be an outlier?)
-                    startCredits += 4;
-
-                    var levelCredits = GetAdditionalCredits(player.Level ?? 1);
-
-                    var totalCredits = startCredits + levelCredits;
-
-                    var used = 0;
-
-                    foreach (var skill in player.Biota.BiotaPropertiesSkill)
+                    if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue((uint)skill.Key, out var skillInfo))
                     {
-                        var sac = (SkillAdvancementClass)skill.SAC;
-                        if (sac < SkillAdvancementClass.Trained)
-                            continue;
-
-                        if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue(skill.Type, out var skillInfo))
-                        {
-                            Console.WriteLine($"{player.Name}.HandleVerifySkillCredits({(Skill)skill.Type}): unknown skill");
-                            continue;
-                        }
-
-                        //Console.WriteLine($"{(Skill)skill.Type} trained cost: {skillInfo.TrainedCost}, spec cost: {skillInfo.SpecializedCost}");
-
-                        used += skillInfo.TrainedCost;
-
-                        if (sac == SkillAdvancementClass.Specialized)
-                        {
-                            switch ((Skill)skill.Type)
-                            {
-                                // these can only be speced through augs, they have >= 999 in the spec data
-                                case Skill.ArmorTinkering:
-                                case Skill.ItemTinkering:
-                                case Skill.MagicItemTinkering:
-                                case Skill.WeaponTinkering:
-                                case Skill.Salvaging:
-                                    continue;
-                            }
-
-                            used += skillInfo.UpgradeCostFromTrainedToSpecialized;
-                        }
-                    }
-
-                    // 2 possible skill credits from quests
-                    // - ChasingOswaldDone
-                    // - ArantahKill1 (no 'turned in' stamp, only if given figurine?)
-                    var questCredits = ctx.CharacterPropertiesQuestRegistry.Count(i => i.CharacterId == player.Guid.Full && (i.QuestName.Equals("ChasingOswaldDone") || i.QuestName.Equals("ArantahKill1")));
-
-                    totalCredits += questCredits;
-
-                    // TODO: 2 lum augs
-
-                    var targetCredits = totalCredits - used;
-                    var targetMsg = $"{player.Name} should have {targetCredits} available skill credits";
-
-                    if (targetCredits < 0)
-                    {
-                        // if the player has already spent more skill credits than they should have,
-                        // unfortunately this situation requires a partial reset..
-
-                        Console.WriteLine($"{targetMsg}. To fix this situation, trained skill reset will need to be applied{fixStr}");
-                        foundIssues = true;
-
-                        if (fix)
-                            UntrainSkills(player, targetCredits);
-
+                        Console.WriteLine($"{player.Name}.HandleVerifySkillCredits({skill.Key}): unknown skill");
                         continue;
                     }
 
-                    var availableCredits = player.GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
+                    //Console.WriteLine($"{(Skill)skill.Type} trained cost: {skillInfo.TrainedCost}, spec cost: {skillInfo.SpecializedCost}");
 
-                    if (availableCredits != targetCredits)
+                    used += skillInfo.TrainedCost;
+
+                    if (sac == SkillAdvancementClass.Specialized)
                     {
-                        Console.WriteLine($"{targetMsg}, but they have {availableCredits}{fixStr}");
-                        foundIssues = true;
-
-                        if (fix)
+                        switch (skill.Key)
                         {
-                            player.SetProperty(PropertyInt.AvailableSkillCredits, targetCredits);
-                            player.SaveBiotaToDatabase();
+                            // these can only be speced through augs, they have >= 999 in the spec data
+                            case Skill.ArmorTinkering:
+                            case Skill.ItemTinkering:
+                            case Skill.MagicItemTinkering:
+                            case Skill.WeaponTinkering:
+                            case Skill.Salvaging:
+                                continue;
                         }
+
+                        used += skillInfo.UpgradeCostFromTrainedToSpecialized;
+
+                        specCreditsSpent += skillInfo.SpecializedCost;
+
+                        if (skill.Key == Skill.ArcaneLore) // exclude Arcane Lore TrainedCost
+                            specCreditsSpent -= skillInfo.TrainedCost;
+                    }
+                }
+
+                // 2 possible skill credits from quests
+                // - ChasingOswaldDone
+                if (oswaldSkillCredit.Contains(player.Guid.Full))
+                    totalCredits++;
+
+                // - ArantahKill1 (no 'turned in' stamp, only if given figurine?)
+                if (ralireaSkillCredit.Contains(player.Guid.Full))
+                    totalCredits++;
+
+                // - LumAugSkillQuest (stamped either 1 or 2 times)
+                if (lumAugSkillCredits.TryGetValue(player.Guid.Full, out var lumSkillCredits))
+                    totalCredits += lumSkillCredits;
+
+                var targetCredits = totalCredits - used;
+                var targetMsg = $"{player.Name} should have {targetCredits} available skill credits";
+
+                if (targetCredits < 0)
+                {
+                    // if the player has already spent more skill credits than they should have,
+                    // unfortunately this situation requires a partial reset..
+
+                    Console.WriteLine($"{targetMsg}. To fix this situation, trained skill reset will need to be applied{fixStr}");
+                    foundIssues = true;
+
+                    if (fix)
+                        UntrainSkills(player, targetCredits);
+
+                    continue;
+                }
+
+                if (specCreditsSpent > 70)
+                {
+                    // if the player has already spent more skill credits than they should have,
+                    // unfortunately this situation requires a partial reset..
+
+                    Console.WriteLine($"{player.Name} has spent {specCreditsSpent} skill credits on specalization, {specCreditsSpent - 70} over the limit of 70. To fix this situation, specialized skill reset will need to be applied{fixStr}");
+                    foundIssues = true;
+
+                    if (fix)
+                        UnspecializeSkills(player);
+
+                    continue;
+                }
+
+                var availableCredits = player.GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
+
+                if (availableCredits != targetCredits)
+                {
+                    Console.WriteLine($"{targetMsg}, but they have {availableCredits}{fixStr}");
+                    foundIssues = true;
+
+                    if (fix)
+                    {
+                        player.SetProperty(PropertyInt.AvailableSkillCredits, targetCredits);
+                        player.SaveBiotaToDatabase();
                     }
                 }
             }
+
             if (!fix && foundIssues)
                 Console.WriteLine($"Dry run completed. Type 'verify-skill-credits fix' to fix any issues.");
 
@@ -479,25 +553,25 @@ namespace ACE.Server.Command.Handlers
         {
             long refundXP = 0;
 
-            foreach (var skill in player.Biota.BiotaPropertiesSkill)
+            foreach (var skill in new Dictionary<Skill, PropertiesSkill>(player.Biota.PropertiesSkill))
             {
-                if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue(skill.Type, out var skillBase))
+                if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue((uint)skill.Key, out var skillBase))
                 {
-                    Console.WriteLine($"{player.Name}.UntrainSkills({(Skill)skill.Type}) - unknown skill");
+                    Console.WriteLine($"{player.Name}.UntrainSkills({skill.Key}) - unknown skill");
                     continue;
                 }
 
-                var sac = (SkillAdvancementClass)skill.SAC;
+                var sac = skill.Value.SAC;
 
-                if (sac != SkillAdvancementClass.Trained || !Player.IsSkillUntrainable((Skill)skill.Type))
+                if (sac != SkillAdvancementClass.Trained || !Player.IsSkillUntrainable(skill.Key))
                     continue;
 
-                refundXP += skill.PP;
+                refundXP += skill.Value.PP;
 
-                skill.SAC = (uint)SkillAdvancementClass.Untrained;
-                skill.InitLevel -= 5;
-                skill.PP = 0;
-                skill.LevelFromPP = 0;
+                skill.Value.SAC = SkillAdvancementClass.Untrained;
+                skill.Value.InitLevel = 0;
+                skill.Value.PP = 0;
+                skill.Value.LevelFromPP = 0;
 
                 targetCredits += skillBase.TrainedCost;
             }
@@ -509,6 +583,54 @@ namespace ACE.Server.Command.Handlers
             player.SetProperty(PropertyInt.AvailableSkillCredits, targetCredits);
 
             player.SetProperty(PropertyBool.UntrainedSkills, true);
+
+            player.SaveBiotaToDatabase();
+        }
+
+        /// <summary>
+        /// This method is only required if the player is found to be over the spec skill limit of 70 credits
+        /// </summary>
+        private static void UnspecializeSkills(OfflinePlayer player)
+        {
+            long refundXP = 0;
+
+            int refundedCredits = 0;
+
+            foreach (var skill in new Dictionary<Skill, PropertiesSkill>(player.Biota.PropertiesSkill))
+            {
+                if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue((uint)skill.Key, out var skillBase))
+                {
+                    Console.WriteLine($"{player.Name}.UntrainSkills({skill.Key}) - unknown skill");
+                    continue;
+                }
+
+                var sac = skill.Value.SAC;
+
+                if (sac != SkillAdvancementClass.Specialized || Player.AugSpecSkills.Contains(skill.Key))
+                    continue;
+
+                refundXP += skill.Value.PP;
+
+                skill.Value.SAC = SkillAdvancementClass.Trained;
+                skill.Value.InitLevel = 0;
+                skill.Value.PP = 0;
+                skill.Value.LevelFromPP = 0;
+
+                refundedCredits += skillBase.UpgradeCostFromTrainedToSpecialized;
+            }
+
+            var availableExperience = player.GetProperty(PropertyInt64.AvailableExperience) ?? 0;
+
+            player.SetProperty(PropertyInt64.AvailableExperience, availableExperience + refundXP);
+
+            var availableSkillCredits = player.GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
+
+            player.SetProperty(PropertyInt.AvailableSkillCredits, availableSkillCredits + refundedCredits);
+
+            player.SetProperty(PropertyBool.UnspecializedSkills, true);
+
+            player.SetProperty(PropertyBool.FreeSkillResetRenewed, true);
+            player.SetProperty(PropertyBool.SkillTemplesTimerReset, true);
 
             player.SaveBiotaToDatabase();
         }
@@ -703,6 +825,14 @@ namespace ACE.Server.Command.Handlers
 
             var results = new List<VerifyXpResult>();
 
+            HashSet<uint> lesserBenediction = null;
+
+            using (var ctx = new ShardDbContext())
+            {
+                // Asheron's Lesser Benediction augmentation operates differently than all other augs
+                lesserBenediction = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("LesserBenedictionAug")).Select(i => i.CharacterId).ToHashSet();
+            }
+
             foreach (var player in players)
             {
                 var totalXP = player.GetProperty(PropertyInt64.TotalExperience) ?? 0;
@@ -716,14 +846,14 @@ namespace ACE.Server.Command.Handlers
 
                 long diffXP = Math.Min(0, player.GetProperty(PropertyInt64.VerifyXp) ?? 0);
 
-                foreach (var attribute in player.Biota.BiotaPropertiesAttribute)
-                    attributeXP += attribute.CPSpent;
+                foreach (var attribute in player.Biota.PropertiesAttribute)
+                    attributeXP += attribute.Value.CPSpent;
 
-                foreach (var vital in player.Biota.BiotaPropertiesAttribute2nd)
-                    vitalXP += vital.CPSpent;
+                foreach (var vital in player.Biota.PropertiesAttribute2nd)
+                    vitalXP += vital.Value.CPSpent;
 
-                foreach (var skill in player.Biota.BiotaPropertiesSkill)
-                    skillXP += skill.PP;
+                foreach (var skill in player.Biota.PropertiesSkill)
+                    skillXP += skill.Value.PP;
 
                 // find any xp spent on augs
                 var heritage = (HeritageGroup?)player.GetProperty(PropertyInt.HeritageGroup);
@@ -744,16 +874,21 @@ namespace ACE.Server.Command.Handlers
                         continue;
 
                     var aug = DatabaseManager.World.GetCachedWeenie(kvp.Value);
-                    var costPer = aug.GetProperty(PropertyInt64.AugmentationCost).Value;
+                    aug.PropertiesInt64.TryGetValue(PropertyInt64.AugmentationCost, out var costPer);
 
                     augXP += costPer * numAugs;
                 }
+
+                if (lesserBenediction.Contains(player.Guid.Full))
+                    augXP += 2000000000;
 
                 var calculatedSpent = attributeXP + vitalXP + skillXP + augXP + diffXP;
 
                 var currentSpent = totalXP - unassignedXP;
 
-                if (calculatedSpent != currentSpent)
+                var bonusXp = (currentSpent - calculatedSpent) % 526;
+
+                if (calculatedSpent != currentSpent && bonusXp != 0)
                 {
                     // the results for this data set can be large,
                     // especially due to an earlier ace bug where it wasn't calculating the Proficiency Points correctly
@@ -1001,6 +1136,389 @@ namespace ACE.Server.Command.Handlers
                 hash = (hash * 397) ^ vendorType.GetHashCode();
 
             return hash;
+        }
+
+        [CommandHandler("verify-armor-levels", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Verifies and optionally fixes any existing armor levels above AL cap")]
+        public static void HandleFixArmorLevel(Session session, params string[] parameters)
+        {
+            Console.WriteLine($"Fetching shard armors (this may take awhile on large servers) ...");
+
+            var resistMagic = GetResistMagic();
+            var tinkerLogs = GetTinkerLogs();
+            var numTimesTinkered = GetNumTimesTinkered();
+            var imbuedEffects = GetImbuedEffect();
+
+            var fix = parameters.Length > 0 && parameters[0].Equals("fix");
+            var fixStr = fix ? " -- fixed" : "";
+
+            // get all loot-generated items on server with armor level
+            using (var ctx = new ShardDbContext())
+            {
+                ctx.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
+                var query = from armor in ctx.BiotaPropertiesInt
+                            join workmanship in ctx.BiotaPropertiesInt on armor.ObjectId equals workmanship.ObjectId
+                            join name in ctx.BiotaPropertiesString on armor.ObjectId equals name.ObjectId
+                            join validLocations in ctx.BiotaPropertiesInt on armor.ObjectId equals validLocations.ObjectId
+                            where armor.Type == (int)PropertyInt.ArmorLevel && workmanship.Type == (int)PropertyInt.ItemWorkmanship && name.Type == (int)PropertyString.Name && validLocations.Type == (int)PropertyInt.ValidLocations
+                            orderby armor.Value descending
+                            select new
+                            {
+                                Guid = armor.ObjectId,
+                                ArmorLevel = armor.Value,
+                                Name = name.Value,
+                                ValidLocs = validLocations.Value,
+                                Armor = armor
+                            };
+
+                var armorItems = query.ToList();
+
+                var adjusted = 0;
+
+                foreach (var armorItem in armorItems)
+                {
+                    // ignore unenchantable
+                    if (resistMagic.TryGetValue(armorItem.Guid, out var resist) && resist == 9999)
+                        continue;
+
+                    TinkerLog tinkerLog = null;
+                    if (tinkerLogs.TryGetValue(armorItem.Guid, out var _tinkerLog))
+                        tinkerLog = new TinkerLog(_tinkerLog);
+
+                    numTimesTinkered.TryGetValue(armorItem.Guid, out var numTinkers);
+                    imbuedEffects.TryGetValue(armorItem.Guid, out var imbuedEffect);
+
+                    var numArmorTinkers = tinkerLog != null ? tinkerLog.NumTinkers(MaterialType.Steel) : 0;
+
+                    var numArmorTinkerStr = numArmorTinkers > 0 ? $" ({numArmorTinkers})" : "";
+
+                    var equipMask = (EquipMask)armorItem.ValidLocs;
+
+                    var newArmorLevel = GetArmorLevel(armorItem.ArmorLevel, equipMask, tinkerLog, numTinkers, imbuedEffect);
+
+                    if (newArmorLevel != armorItem.ArmorLevel)
+                    {
+                        if (fix)
+                            armorItem.Armor.Value = newArmorLevel;
+
+                        Console.WriteLine($"{armorItem.Name}, {armorItem.ArmorLevel}{numArmorTinkerStr} => {newArmorLevel}{fixStr}");
+
+                        adjusted++;
+                    }
+                }
+                if (fix)
+                    ctx.SaveChanges();
+
+                var willBe = fix ? " " : " will be ";
+
+                if (adjusted > 0)
+                {
+                    Console.WriteLine($"Found {armorItems.Count:N0} armors, {adjusted:N0}{willBe}adjusted");
+
+                    if (!fix)
+                        Console.WriteLine($"Dry run completed. Type 'verify-armor-levels fix' to fix any issues.");
+                }
+                else
+                    Console.WriteLine($"Verified {armorItems.Count:N0} armors.");
+            }
+        }
+
+        public static Dictionary<uint, int> GetResistMagic()
+        {
+            using (var ctx = new ShardDbContext())
+            {
+                var resistMagic = ctx.BiotaPropertiesInt.Where(i => i.Type == (int)PropertyInt.ResistMagic).ToDictionary(i => i.ObjectId, i => i.Value);
+
+                return resistMagic;
+            }
+        }
+
+        public static Dictionary<uint, string> GetTinkerLogs()
+        {
+            using (var ctx = new ShardDbContext())
+            {
+                var tinkerLogs = ctx.BiotaPropertiesString.Where(i => i.Type == (int)PropertyString.TinkerLog).ToDictionary(i => i.ObjectId, i => i.Value);
+
+                return tinkerLogs;
+            }
+        }
+
+        public static Dictionary<uint, int> GetNumTimesTinkered()
+        {
+            using (var ctx = new ShardDbContext())
+            {
+                var numTimesTinkered = ctx.BiotaPropertiesInt.Where(i => i.Type == (int)PropertyInt.NumTimesTinkered).ToDictionary(i => i.ObjectId, i => i.Value);
+
+                return numTimesTinkered;
+            }
+        }
+
+        public static Dictionary<uint, int> GetImbuedEffect()
+        {
+            using (var ctx = new ShardDbContext())
+            {
+                var imbuedEffect = ctx.BiotaPropertiesInt.Where(i => i.Type == (int)PropertyInt.ImbuedEffect).ToDictionary(i => i.ObjectId, i => i.Value);
+
+                return imbuedEffect;
+            }
+        }
+
+        // head / hands / feet
+        public static readonly int MaxArmorLevel_Extremity = 345;
+
+        // everything else
+        public static readonly int MaxArmorLevel_NonExtremity = 315;
+
+        public static int GetArmorLevel(int armorLevel, EquipMask equipMask, TinkerLog tinkerLog, int numTinkers, int imbuedEffect)
+        {
+            var maxArmorLevel = (equipMask & EquipMask.Extremity) != 0 ? MaxArmorLevel_Extremity : MaxArmorLevel_NonExtremity;
+
+            if (tinkerLog != null && tinkerLog.Tinkers.Count == numTinkers)
+            {
+                // full tinkering log available
+                maxArmorLevel += tinkerLog.NumTinkers(MaterialType.Steel) * 20;
+            }
+            else if (numTinkers > 0)
+            {
+                // partial or no tinkering log available
+                var rngMax = numTinkers;
+                if (imbuedEffect != 0)
+                    rngMax--;
+
+                if (rngMax > 0)
+                {
+                    // prevent further iterations on multiple re-runs
+                    if (armorLevel <= maxArmorLevel + rngMax * 20)
+                        return armorLevel;
+
+                    var rng = ThreadSafeRandom.Next(0, rngMax);
+                    maxArmorLevel += rng * 20;
+                }
+            }
+            return Math.Min(armorLevel, maxArmorLevel);
+        }
+
+        [CommandHandler("verify-clothing-wield-level", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Verifies and optionally fixes any t7/t8 clothing that is missing a wield level requirement")]
+        public static void HandleVerifyClothingWieldLevel(Session session, params string[] parameters)
+        {
+            var fix = parameters.Length > 0 && parameters[0].Equals("fix");
+            var fixStr = fix ? " -- fixed" : "";
+            var foundIssues = false;
+
+            using (var ctx = new ShardDbContext())
+            {
+                ctx.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
+                // get all shard clothing
+                var _clothing = ctx.Biota.Where(i => i.WeenieType == (int)WeenieType.Clothing).ToList();
+
+                // get all shard armor levels
+                var armorLevels = ctx.BiotaPropertiesInt.Where(i => i.Type == (ushort)PropertyInt.ArmorLevel).ToDictionary(i => i.ObjectId, i => i.Value);
+
+                // filter clothing to actual clothing
+                var clothing = new Dictionary<uint, Database.Models.Shard.Biota>();
+                foreach (var item in _clothing)
+                {
+                    if (!armorLevels.TryGetValue(item.Id, out var armorLevel) || armorLevel == 0)
+                    {
+                        clothing.Add(item.Id, item);
+                        //Console.WriteLine($"{item.Id:X8} - {(Factories.Enum.WeenieClassName)item.WeenieClassId}");
+                    }
+                }
+
+                // get shard spells
+                var _spells = ctx.BiotaPropertiesSpellBook.Where(i => clothing.ContainsKey(i.ObjectId)).ToList();
+
+                // filter clothing to those with epics/legendaries
+                var highTierClothing = new Dictionary<uint, int>();
+
+                foreach (var s in _spells)
+                {
+                    var cantripLevel = 0;
+
+                    if (LootTables.EpicCantrips.Contains(s.Spell))
+                        cantripLevel = 3;
+                    else if (LootTables.LegendaryCantrips.Contains(s.Spell))
+                        cantripLevel = 4;
+
+                    if (cantripLevel == 0)
+                        continue;
+
+                    if (highTierClothing.ContainsKey(s.ObjectId))
+                        highTierClothing[s.ObjectId] = Math.Max(highTierClothing[s.ObjectId], cantripLevel);
+                    else
+                        highTierClothing[s.ObjectId] = cantripLevel;
+                }
+
+                // get wield level for these items
+                var wieldLevels = ctx.BiotaPropertiesInt.Where(i => i.Type == (ushort)PropertyInt.WieldDifficulty && highTierClothing.ContainsKey(i.ObjectId)).Select(i => i.ObjectId).ToHashSet();
+
+                foreach (var kvp in highTierClothing)
+                {
+                    var objectId = kvp.Key;
+                    var maxCantripLevel = kvp.Value;
+
+                    if (wieldLevels.Contains(objectId))
+                        continue;
+
+                    if (!foundIssues)
+                    {
+                        Console.WriteLine($"Missing wield difficulty:");
+                        foundIssues = true;
+                    }
+
+                    if (fix)
+                    {
+                        var wieldLevel = 150;
+
+                        if (maxCantripLevel > 3)
+                        {
+                            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+                            if (rng < 0.9f)
+                                wieldLevel = 180;
+                        }
+
+                        ctx.Database.ExecuteSqlRaw($"insert into biota_properties_int set object_Id={objectId}, `type`={(ushort)PropertyInt.WieldRequirements}, value={(int)WieldRequirement.Level};");
+                        ctx.Database.ExecuteSqlRaw($"insert into biota_properties_int set object_Id={objectId}, `type`={(ushort)PropertyInt.WieldSkillType}, value=1;");
+                        ctx.Database.ExecuteSqlRaw($"insert into biota_properties_int set object_Id={objectId}, `type`={(ushort)PropertyInt.WieldDifficulty}, value={wieldLevel};");
+                    }
+
+                    var item = clothing[objectId];
+
+                    Console.WriteLine($"{item.Id:X8} - {(Factories.Enum.WeenieClassName)item.WeenieClassId} - {maxCantripLevel}{fixStr}");
+                }
+
+                if (!fix && foundIssues)
+                    Console.WriteLine($"Dry run completed. Type 'verify-clothing-wield-level fix' to fix any issues.");
+
+                if (!foundIssues)
+                    Console.WriteLine($"Verified wield levels for {highTierClothing.Count:N0} pieces of t7 / t8 clothing");
+            }
+        }
+
+        [CommandHandler("verify-legendary-wield-level", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Verifies and optionally fixes any items with legendary cantrips that have less than 180 wield level requirement")]
+        public static void HandleVerifyLegendaryWieldLevel(Session session, params string[] parameters)
+        {
+            var fix = parameters.Length > 0 && parameters[0].Equals("fix");
+            var fixStr = fix ? " -- fixed" : "";
+            var foundIssues = false;
+
+            using (var ctx = new ShardDbContext())
+            {
+                ctx.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
+                // get all biota spellbooks
+                var spellbook = ctx.BiotaPropertiesSpellBook.Where(i => i.Probability == 2.0f).ToList();
+
+                var legendaryItems = new HashSet<uint>();
+
+                foreach (var spell in spellbook)
+                {
+                    if (LootTables.LegendaryCantrips.Contains(spell.Spell))
+                        legendaryItems.Add(spell.ObjectId);
+                }
+
+                // get wield requirements for these items
+                var query = from wieldReq in ctx.BiotaPropertiesInt
+                            join wieldDiff in ctx.BiotaPropertiesInt on wieldReq.ObjectId equals wieldDiff.ObjectId
+                            where wieldReq.Type.Equals((int)PropertyInt.WieldRequirements) && wieldReq.Value.Equals((int)WieldRequirement.Level) && wieldDiff.Type.Equals((int)PropertyInt.WieldDifficulty) && legendaryItems.Contains(wieldReq.ObjectId)
+                            select new
+                            {
+                                WieldReq = wieldReq,
+                                WieldDiff = wieldDiff
+                            };
+
+                var wieldReq1 = query.ToList();
+
+                query = from wieldReq in ctx.BiotaPropertiesInt
+                            join wieldDiff in ctx.BiotaPropertiesInt on wieldReq.ObjectId equals wieldDiff.ObjectId
+                            where wieldReq.Type.Equals((int)PropertyInt.WieldRequirements2) && wieldReq.Value.Equals((int)WieldRequirement.Level) && wieldDiff.Type.Equals((int)PropertyInt.WieldDifficulty2) && legendaryItems.Contains(wieldReq.ObjectId)
+                            select new
+                            {
+                                WieldReq = wieldReq,
+                                WieldDiff = wieldDiff
+                            };
+
+                var wieldReq2 = query.ToList();
+
+                var verified = new HashSet<uint>();
+                var updated = new HashSet<uint>();
+
+                var hasLevelReq1 = new HashSet<uint>();
+                var hasLevelReq2 = new HashSet<uint>();
+
+                var updates = new List<string>();
+
+                foreach (var wieldReq in wieldReq1)
+                {
+                    hasLevelReq1.Add(wieldReq.WieldReq.ObjectId);
+
+                    if (wieldReq.WieldDiff.Value < 180)
+                    {
+                        foundIssues = true;
+                        updates.Add($"UPDATE biota_properties_int SET value=180 WHERE object_Id=0x{wieldReq.WieldDiff.ObjectId:X8} AND type={(int)PropertyInt.WieldDifficulty};");
+                    }
+                    else
+                        verified.Add(wieldReq.WieldDiff.ObjectId);
+                }
+
+                foreach (var wieldReq in wieldReq2)
+                {
+                    hasLevelReq2.Add(wieldReq.WieldReq.ObjectId);
+
+                    if (wieldReq.WieldDiff.Value < 180)
+                    {
+                        foundIssues = true;
+                        updates.Add($"UPDATE biota_properties_int SET value=180 WHERE object_Id=0x{wieldReq.WieldDiff.ObjectId:X8} AND type={(int)PropertyInt.WieldDifficulty2};");
+                    }
+                    else
+                        verified.Add(wieldReq.WieldDiff.ObjectId);
+                }
+
+                /*var hasLevelReq = hasLevelReq1.Union(hasLevelReq2).ToList();
+
+                if (hasLevelReq.Count != legendaryItems.Count)
+                {
+                    foundIssues = true;
+                    var noReqs = legendaryItems.Except(hasLevelReq).ToList();
+
+                    foreach (var noReq in noReqs)
+                    {
+                        if (!hasLevelReq1.Contains(noReq))
+                        {
+                            updates.Add($"INSERT INTO biota_properties_int SET object_Id=0x{noReq:X8}, `type`={(int)PropertyInt.WieldRequirements}, value={(int)WieldRequirement.Level};");
+                            updates.Add($"INSERT INTO biota_properties_int SET object_Id=0x{noReq:X8}, `type`={(int)PropertyInt.WieldSkillType}, value=1;");
+                            updates.Add($"INSERT INTO biota_properties_int SET object_Id=0x{noReq:X8}, `type`={(int)PropertyInt.WieldDifficulty}, value=180;");
+                        }
+                        else
+                        {
+                            updates.Add($"INSERT INTO biota_properties_int SET object_Id=0x{noReq:X8}, `type`={(int)PropertyInt.WieldRequirements2}, value={(int)WieldRequirement.Level};");
+                            updates.Add($"INSERT INTO biota_properties_int SET object_Id=0x{noReq:X8}, `type`={(int)PropertyInt.WieldSkillType2}, value=1;");
+                            updates.Add($"INSERT INTO biota_properties_int SET object_Id=0x{noReq:X8}, `type`={(int)PropertyInt.WieldDifficulty2}, value=180;");
+                        }
+                    }
+                }*/
+
+                var numIssues = legendaryItems.Count - verified.Count;
+
+                if (numIssues > 0)
+                    Console.WriteLine($"Found issues for {numIssues:N0} of {legendaryItems.Count:N0} legendary items");
+
+                if (!fix && foundIssues)
+                    Console.WriteLine($"Dry run completed. Type 'verify-legendary-wield-level fix' to fix any issues.");
+
+                if (fix)
+                {
+                    foreach (var update in updates)
+                    {
+                        Console.WriteLine(update);
+                        ctx.Database.ExecuteSqlRaw(update);
+                    }
+                }
+
+                if (!foundIssues)
+                    Console.WriteLine($"Verified wield levels for {legendaryItems.Count:N0} legendary items");
+            }
         }
     }
 }

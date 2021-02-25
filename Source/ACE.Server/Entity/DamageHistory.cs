@@ -89,6 +89,8 @@ namespace ACE.Server.Entity
             Log.Add(entry);
 
             AddInternal(attacker, amount);
+
+            Creature.OnHealthUpdate();
         }
 
         /// <summary>
@@ -125,6 +127,8 @@ namespace ACE.Server.Entity
 
             // calculate previous missingHealth
             OnHealInternal(healAmount, Creature.Health.Current, Creature.Health.MaxValue);
+
+            Creature.OnHealthUpdate();
         }
 
         /// <summary>
@@ -230,6 +234,21 @@ namespace ACE.Server.Entity
                 else
                     OnHealInternal((uint)entry.Amount, entry.CurrentHealth, entry.MaxHealth);
             }
+        }
+
+        /// <summary>
+        /// Returns TRUE if damage history contains wo as recent attacker
+        /// </summary>
+        /// <param name="nonZero">If TRUE, attacker must have TotalDamage > 0</param>
+        public bool HasDamager(WorldObject wo, bool nonZero = false)
+        {
+            if (!TotalDamage.TryGetValue(wo.Guid, out var totalDamage))
+                return false;
+
+            if (nonZero)
+                return totalDamage.TotalDamage > 0;
+            else
+                return true;
         }
 
         public override string ToString()

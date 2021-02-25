@@ -1,17 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using Newtonsoft.Json;
+
 using ACE.Adapter.Enum;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace ACE.Adapter.Lifestoned
 {
     public static class LifestonedConverter
     {
+        /// <summary>
+        /// Converts LSD weenie to ACE weenie
+        /// </summary>
         public static bool TryConvert(global::Lifestoned.DataModel.Gdle.Weenie input, out Weenie result, bool correctForEnumShift = false)
         {
             if (input.WeenieId == 0)
@@ -76,16 +80,25 @@ namespace ACE.Adapter.Lifestoned
 
                 if (input.Attributes != null)
                 {
-                    result.WeeniePropertiesAttribute.Add(new WeeniePropertiesAttribute { Type = (ushort)PropertyAttribute.Strength, InitLevel = input.Attributes.Strength.Ranks ?? 0, LevelFromCP = input.Attributes.Strength.LevelFromCp, CPSpent = input.Attributes.Strength.XpSpent ?? 0 });
-                    result.WeeniePropertiesAttribute.Add(new WeeniePropertiesAttribute { Type = (ushort)PropertyAttribute.Endurance, InitLevel = input.Attributes.Endurance.Ranks ?? 0, LevelFromCP = input.Attributes.Endurance.LevelFromCp, CPSpent = input.Attributes.Endurance.XpSpent ?? 0 });
-                    result.WeeniePropertiesAttribute.Add(new WeeniePropertiesAttribute { Type = (ushort)PropertyAttribute.Quickness, InitLevel = input.Attributes.Quickness.Ranks ?? 0, LevelFromCP = input.Attributes.Quickness.LevelFromCp, CPSpent = input.Attributes.Quickness.XpSpent ?? 0 });
-                    result.WeeniePropertiesAttribute.Add(new WeeniePropertiesAttribute { Type = (ushort)PropertyAttribute.Coordination, InitLevel = input.Attributes.Coordination.Ranks ?? 0, LevelFromCP = input.Attributes.Coordination.LevelFromCp, CPSpent = input.Attributes.Coordination.XpSpent ?? 0 });
-                    result.WeeniePropertiesAttribute.Add(new WeeniePropertiesAttribute { Type = (ushort)PropertyAttribute.Focus, InitLevel = input.Attributes.Focus.Ranks ?? 0, LevelFromCP = input.Attributes.Focus.LevelFromCp, CPSpent = input.Attributes.Focus.XpSpent ?? 0 });
-                    result.WeeniePropertiesAttribute.Add(new WeeniePropertiesAttribute { Type = (ushort)PropertyAttribute.Self, InitLevel = input.Attributes.Self.Ranks ?? 0, LevelFromCP = input.Attributes.Self.LevelFromCp, CPSpent = input.Attributes.Self.XpSpent ?? 0 });
+                    if (input.Attributes.Strength != null)
+                        result.WeeniePropertiesAttribute.Add(new WeeniePropertiesAttribute { Type = (ushort)PropertyAttribute.Strength, InitLevel = input.Attributes.Strength.Ranks ?? 0, LevelFromCP = input.Attributes.Strength.LevelFromCp, CPSpent = input.Attributes.Strength.XpSpent ?? 0 });
+                    if (input.Attributes.Endurance != null)
+                        result.WeeniePropertiesAttribute.Add(new WeeniePropertiesAttribute { Type = (ushort)PropertyAttribute.Endurance, InitLevel = input.Attributes.Endurance.Ranks ?? 0, LevelFromCP = input.Attributes.Endurance.LevelFromCp, CPSpent = input.Attributes.Endurance.XpSpent ?? 0 });
+                    if (input.Attributes.Quickness != null)
+                        result.WeeniePropertiesAttribute.Add(new WeeniePropertiesAttribute { Type = (ushort)PropertyAttribute.Quickness, InitLevel = input.Attributes.Quickness.Ranks ?? 0, LevelFromCP = input.Attributes.Quickness.LevelFromCp, CPSpent = input.Attributes.Quickness.XpSpent ?? 0 });
+                    if (input.Attributes.Coordination != null)
+                        result.WeeniePropertiesAttribute.Add(new WeeniePropertiesAttribute { Type = (ushort)PropertyAttribute.Coordination, InitLevel = input.Attributes.Coordination.Ranks ?? 0, LevelFromCP = input.Attributes.Coordination.LevelFromCp, CPSpent = input.Attributes.Coordination.XpSpent ?? 0 });
+                    if (input.Attributes.Focus != null)
+                        result.WeeniePropertiesAttribute.Add(new WeeniePropertiesAttribute { Type = (ushort)PropertyAttribute.Focus, InitLevel = input.Attributes.Focus.Ranks ?? 0, LevelFromCP = input.Attributes.Focus.LevelFromCp, CPSpent = input.Attributes.Focus.XpSpent ?? 0 });
+                    if (input.Attributes.Self != null)
+                        result.WeeniePropertiesAttribute.Add(new WeeniePropertiesAttribute { Type = (ushort)PropertyAttribute.Self, InitLevel = input.Attributes.Self.Ranks ?? 0, LevelFromCP = input.Attributes.Self.LevelFromCp, CPSpent = input.Attributes.Self.XpSpent ?? 0 });
 
-                    result.WeeniePropertiesAttribute2nd.Add(new WeeniePropertiesAttribute2nd { Type = (ushort)PropertyAttribute2nd.MaxHealth, InitLevel = input.Attributes.Health.Ranks ?? 0, LevelFromCP = input.Attributes.Health.LevelFromCp ?? 0, CPSpent = input.Attributes.Health.XpSpent ?? 0, CurrentLevel = input.Attributes.Health.Current ?? 0 });
-                    result.WeeniePropertiesAttribute2nd.Add(new WeeniePropertiesAttribute2nd { Type = (ushort)PropertyAttribute2nd.MaxStamina, InitLevel = input.Attributes.Stamina.Ranks ?? 0, LevelFromCP = input.Attributes.Stamina.LevelFromCp ?? 0, CPSpent = input.Attributes.Stamina.XpSpent ?? 0, CurrentLevel = input.Attributes.Stamina.Current ?? 0 });
-                    result.WeeniePropertiesAttribute2nd.Add(new WeeniePropertiesAttribute2nd { Type = (ushort)PropertyAttribute2nd.MaxMana, InitLevel = input.Attributes.Mana.Ranks ?? 0, LevelFromCP = input.Attributes.Mana.LevelFromCp ?? 0, CPSpent = input.Attributes.Mana.XpSpent ?? 0, CurrentLevel = input.Attributes.Mana.Current ?? 0 });
+                    if (input.Attributes.Health != null)
+                        result.WeeniePropertiesAttribute2nd.Add(new WeeniePropertiesAttribute2nd { Type = (ushort)PropertyAttribute2nd.MaxHealth, InitLevel = input.Attributes.Health.Ranks ?? 0, LevelFromCP = input.Attributes.Health.LevelFromCp ?? 0, CPSpent = input.Attributes.Health.XpSpent ?? 0, CurrentLevel = input.Attributes.Health.Current ?? 0 });
+                    if (input.Attributes.Stamina != null)
+                        result.WeeniePropertiesAttribute2nd.Add(new WeeniePropertiesAttribute2nd { Type = (ushort)PropertyAttribute2nd.MaxStamina, InitLevel = input.Attributes.Stamina.Ranks ?? 0, LevelFromCP = input.Attributes.Stamina.LevelFromCp ?? 0, CPSpent = input.Attributes.Stamina.XpSpent ?? 0, CurrentLevel = input.Attributes.Stamina.Current ?? 0 });
+                    if (input.Attributes.Mana != null)
+                        result.WeeniePropertiesAttribute2nd.Add(new WeeniePropertiesAttribute2nd { Type = (ushort)PropertyAttribute2nd.MaxMana, InitLevel = input.Attributes.Mana.Ranks ?? 0, LevelFromCP = input.Attributes.Mana.LevelFromCp ?? 0, CPSpent = input.Attributes.Mana.XpSpent ?? 0, CurrentLevel = input.Attributes.Mana.Current ?? 0 });
                 }
 
                 if (input.Body != null)
@@ -273,11 +286,11 @@ namespace ACE.Adapter.Lifestoned
                                 // Fix MotionCommand ENUM shift post 16PY data
                                 if (correctForEnumShift && efAction.Motion.HasValue)
                                 {
-                                    var oldMotion = (ACE.Entity.Enum.MotionCommand)efAction.Motion;
+                                    var oldMotion = (MotionCommand)efAction.Motion;
                                     var index = efAction.Motion.Value & 0xFFFF;
                                     if (index >= 0x115)
                                     {
-                                        var newMotion = (ACE.Entity.Enum.MotionCommand)efAction.Motion + 3;
+                                        var newMotion = (MotionCommand)efAction.Motion + 3;
                                         efAction.Motion += 3;
                                     }
                                 }
@@ -469,6 +482,9 @@ namespace ACE.Adapter.Lifestoned
             }
         }
 
+        /// <summary>
+        /// Converts ACE weenie to LSD weenie
+        /// </summary>
         public static bool TryConvert(Weenie input, out global::Lifestoned.DataModel.Gdle.Weenie result, bool correctForEnumShift = false)
         {
             if (input.ClassId == 0)

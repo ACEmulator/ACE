@@ -1,6 +1,8 @@
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
+using System;
+
 using ACE.Entity;
+using ACE.Entity.Models;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -37,9 +39,13 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public override void ActOnUse(WorldObject wo)
+        public override void ActOnUse(WorldObject activator)
         {
-            // Do nothing
+            if (!(activator is Player player))
+                return;
+
+            if (UseSound > 0)
+                player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, UseSound));
         }
     }
 }

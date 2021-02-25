@@ -4,13 +4,12 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -43,9 +42,28 @@ namespace ACE.Server.WorldObjects
         public float MaxRange;
 
         /// <summary>
+        ///  The time when monster started its last attack
+        /// </summary>
+        public double PrevAttackTime { get; set; }
+
+        /// <summary>
         /// The time when monster can perform its next attack
         /// </summary>
-        public double NextAttackTime;
+        public double NextAttackTime { get; set; }
+
+        /// <summary>
+        /// The time when monster can perform its next magic attack
+        /// </summary>
+        public double NextMagicAttackTime
+        {
+            get
+            {
+                // defaults to most common value found in py16 db
+                var magicDelay = AiUseMagicDelay ?? 3.0f;
+
+                return PrevAttackTime + magicDelay;
+            }
+        }
 
         /// <summary>
         /// Returns true if monster is dead
@@ -85,15 +103,14 @@ namespace ACE.Server.WorldObjects
             if (CombatTable == null)
                 GetCombatTable();
 
+            // if caster, roll for spellcasting chance
+            if (IsCaster && TryRollSpell())
+                return CombatType.Magic;
+
             if (IsRanged)
                 return CombatType.Missile;
-
-            // if caster, roll for spellcasting chance
-            //if (!IsCaster || !RollCastMagic())
-            if (!IsCaster || TryRollSpell() == null)
-                return CombatType.Melee;
             else
-                return CombatType.Magic;
+                return CombatType.Melee;
         }
 
         /// <summary>
@@ -127,7 +144,16 @@ namespace ACE.Server.WorldObjects
                 NextAttackTime = nextTime;
 
             if (IsRanged)
-                NextAttackTime += 1.0f;
+            {
+                PrevAttackTime = NextAttackTime + MissileDelay - (AiUseMagicDelay ?? 3.0f);
+
+                NextAttackTime += MissileDelay;
+            }
+
+            if (NeverAttack)
+            {
+                PrevAttackTime = NextAttackTime = double.MaxValue - (AiUseMagicDelay ?? 3.0f);
+            }
 
             if (DebugMove)
                 Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - DoAttackStance - stanceTime: {stanceTime}, isAnimating: {IsAnimating}");
@@ -144,9 +170,7 @@ namespace ACE.Server.WorldObjects
             {
                 // select a magic spell
                 //CurrentSpell = GetRandomSpell();
-                var currentSpell = GetCurrentSpell();
-
-                if (currentSpell.IsProjectile)
+                if (CurrentSpell.IsProjectile)
                 {
                     // ensure direct los
                     if (!IsDirectVisible(AttackTarget))
@@ -195,7 +219,9 @@ namespace ACE.Server.WorldObjects
         /// <returns></returns>
         public bool AttackReady()
         {
-            if (Timers.RunningTime < NextAttackTime || !IsAttackRange())
+            var nextAttackTime = CurrentAttack == CombatType.Magic ? NextMagicAttackTime : NextAttackTime;
+
+            if (Timers.RunningTime < nextAttackTime || !IsAttackRange())
                 return false;
 
             PhysicsObj.update_object();
@@ -224,6 +250,9 @@ namespace ACE.Server.WorldObjects
                     MagicAttack();
                     break;
             }
+
+            EmoteManager.OnAttack(AttackTarget);
+
             ResetAttack();
         }
 
@@ -233,8 +262,8 @@ namespace ACE.Server.WorldObjects
         public void ResetAttack()
         {
             // wait for missile to strike
-            if (CurrentAttack == CombatType.Missile)
-                return;
+            //if (CurrentAttack == CombatType.Missile)
+                //return;
 
             IsTurning = false;
             IsMoving = false;
@@ -243,7 +272,7 @@ namespace ACE.Server.WorldObjects
             MaxRange = 0.0f;
         }
 
-        public DamageType GetDamageType(BiotaPropertiesBodyPart attackPart, CombatType? combatType = null)
+        public DamageType GetDamageType(PropertiesBodyPart attackPart, CombatType? combatType = null)
         {
             var weapon = GetEquippedWeapon();
 
@@ -251,7 +280,7 @@ namespace ACE.Server.WorldObjects
                 return GetDamageType(false, combatType);
             else
             {
-                var damageType = (DamageType)attackPart.DType;
+                var damageType = attackPart.DType;
 
                 if (damageType.IsMultiDamage())
                     damageType = damageType.SelectDamageType();
@@ -287,31 +316,43 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Notifies the damage over time (DoT) source player of the tick damage amount
         /// </summary>
-        public void TakeDamageOverTime_NotifySource(Player source, DamageType damageType, float amount)
+        public void TakeDamageOverTime_NotifySource(Player source, DamageType damageType, float amount, bool aetheria = false)
         {
-            if (PropertyManager.GetBool("show_dot_messages").Item)
+            if (!PropertyManager.GetBool("show_dot_messages").Item)
+                return;
+
+            var iAmount = (uint)Math.Round(amount);
+
+            var notifyType = damageType == DamageType.Undef ? DamageType.Health : damageType;
+
+            string verb = null, plural = null;
+            var percent = amount / Health.MaxValue;
+            Strings.GetAttackVerb(notifyType, percent, ref verb, ref plural);
+
+            string msg = null;
+
+            var type = ChatMessageType.CombatSelf;
+
+            if (damageType == DamageType.Nether)
             {
-                var iAmount = (uint)Math.Round(amount);
-
-                // damage text notification
-                string msg = null;
-                var type = ChatMessageType.CombatSelf;
-
-                if (damageType == DamageType.Nether)
-                {
-                    string verb = null, plural = null;
-                    var percent = amount / Health.MaxValue;
-                    Strings.GetAttackVerb(damageType, percent, ref verb, ref plural);
-                    msg = $"You {verb} {Name} for {iAmount} points of periodic nether damage!";
-                    type = ChatMessageType.Magic;
-                }
-                else
-                    msg = $"You bleed {Name} for {iAmount} points of periodic damage!";
-
-                source.SendMessage(msg, type);
+                msg = $"You {verb} {Name} for {iAmount} points of periodic nether damage!";
+                type = ChatMessageType.Magic;
             }
+            else if (aetheria)
+            {
+                msg = $"With Surge of Affliction you {verb} {iAmount} points of health from {Name}!";
+                type = ChatMessageType.Magic;
+            }
+            else
+            {
+                /*var skill = source.GetCreatureSkill(Skill.DirtyFighting);
+                var attack = skill.AdvancementClass == SkillAdvancementClass.Specialized ? "Bleeding Assault" : "Bleeding Blow";
+                msg = $"With {attack} you {verb} {iAmount} points of health from {Name}!";*/
 
-            source.Session.Network.EnqueueSend(new GameEventUpdateHealth(source.Session, Guid.Full, (float)Health.Current / Health.MaxValue));
+                msg = $"You bleed {Name} for {iAmount} points of periodic health damage!";
+                type = ChatMessageType.CombatSelf;
+            }
+            source.SendMessage(msg, type);
         }
 
         /// <summary>
@@ -321,14 +362,19 @@ namespace ACE.Server.WorldObjects
         /// <param name="amount">The amount of damage rounded</param>
         public virtual uint TakeDamage(WorldObject source, DamageType damageType, float amount, bool crit = false)
         {
-            var tryDamage = (uint)Math.Round(amount);
-            var damage = (uint)-UpdateVitalDelta(Health, (int)-tryDamage);
+            var tryDamage = (int)Math.Round(amount);
+            var damage = -UpdateVitalDelta(Health, -tryDamage);
 
             // TODO: update monster stamina?
 
             // source should only be null for combined DoT ticks from multiple sources
             if (source != null)
-                DamageHistory.Add(source, damageType, damage);
+            {
+                if (damage >= 0)
+                    DamageHistory.Add(source, damageType, (uint)damage);
+                else
+                    DamageHistory.OnHeal((uint)-damage);
+            }
 
             if (Health.Current <= 0)
             {
@@ -336,7 +382,7 @@ namespace ACE.Server.WorldObjects
 
                 Die();
             }
-            return damage;
+            return (uint)Math.Max(0, damage);
         }
 
         public void EmitSplatter(Creature target, float damage)
@@ -371,6 +417,15 @@ namespace ACE.Server.WorldObjects
                 BPTableCache[wcid] = bpTable;
             }
             return bpTable;
+        }
+
+        /// <summary>
+        /// Flag indicates if a monster will aggro, but not attack
+        /// </summary>
+        public bool NeverAttack
+        {
+            get => GetProperty(PropertyBool.NeverAttack) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.NeverAttack); else SetProperty(PropertyBool.NeverAttack, value); }
         }
     }
 }

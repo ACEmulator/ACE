@@ -1,8 +1,9 @@
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
+using System;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -41,7 +42,7 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Creature)) return;
 
             // move this to base?
-            EnqueueBroadcast(new GameMessageSound(Guid, Sound.TriggerActivated));
+            EnqueueBroadcast(new GameMessageSound(activator.Guid, Sound.TriggerActivated));
 
             var actionChain = new ActionChain();
 
@@ -49,7 +50,7 @@ namespace ACE.Server.WorldObjects
             {
                 var useAnimation = UseTargetAnimation != null ? (MotionCommand)UseTargetAnimation : MotionCommand.Twitch1;
 
-                EnqueueMotion(actionChain, useAnimation);
+                EnqueueMotion(actionChain, useAnimation, 1, false);
             }
 
             actionChain.AddAction(this, () => base.OnActivate(activator));

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects.Managers;
 
@@ -13,11 +13,11 @@ namespace ACE.Server.WorldObjects
     public class Creature_BodyPart
     {
         public Creature Creature;
-        public BiotaPropertiesBodyPart Biota;
+        public KeyValuePair<CombatBodyPart, PropertiesBodyPart> Biota;
 
         public EnchantmentManager EnchantmentManager => Creature.EnchantmentManager;
 
-        public Creature_BodyPart(Creature creature, BiotaPropertiesBodyPart biota)
+        public Creature_BodyPart(Creature creature, KeyValuePair<CombatBodyPart, PropertiesBodyPart> biota)
         {
             Creature = creature;
             Biota = biota;
@@ -26,31 +26,26 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Main entry point for getting the armor mod
         /// </summary>
-        public float GetArmorMod(DamageType damageType, List<WorldObject> armorLayers, WorldObject weapon, float armorRendingMod = 1.0f)
+        public float GetArmorMod(DamageType damageType, List<WorldObject> armorLayers, Creature attacker, WorldObject weapon, float armorRendingMod = 1.0f)
         {
-            var effectiveArmorVsType = GetEffectiveArmorVsType(damageType, armorLayers, weapon, armorRendingMod);
+            var effectiveArmorVsType = GetEffectiveArmorVsType(damageType, armorLayers, attacker, weapon, armorRendingMod);
 
             return SkillFormula.CalcArmorMod(effectiveArmorVsType);
         }
 
-        public float GetEffectiveArmorVsType(DamageType damageType, List<WorldObject> armorLayers, WorldObject weapon, float armorRendingMod = 1.0f)
+        public float GetEffectiveArmorVsType(DamageType damageType, List<WorldObject> armorLayers, Creature attacker, WorldObject weapon, float armorRendingMod = 1.0f)
         {
-            var ignoreMagicArmor  = weapon != null ? weapon.IgnoreMagicArmor : false;
-            var ignoreMagicResist = weapon != null ? weapon.IgnoreMagicResist : false;
+            var ignoreMagicArmor = (weapon?.IgnoreMagicArmor ?? false) || (attacker?.IgnoreMagicArmor ?? false);
+            var ignoreMagicResist = (weapon?.IgnoreMagicResist ?? false) || (attacker?.IgnoreMagicResist ?? false);
 
             // get base AL / RL
+            var armorVsType = Biota.Value.BaseArmor * (float)Creature.GetArmorVsType(damageType);
+
+            // additive enchantments:
+            // imperil / armor
             var enchantmentMod = ignoreMagicResist ? 0 : EnchantmentManager.GetBodyArmorMod();
 
-            var baseArmorMod = (float)(Biota.BaseArmor + enchantmentMod);
-
-            // for creatures, can this be modified via enchantments?
-            var armorVsType = Creature.GetArmorVsType(damageType);
-
-            // handle negative baseArmorMod?
-            if (baseArmorMod < 0)
-                armorVsType = 1.0f + (1.0f - armorVsType);
-
-            var effectiveAL = (float)(baseArmorMod * armorVsType);
+            var effectiveAL = armorVsType + enchantmentMod;
 
             // handle monsters w/ multiple layers of armor
             foreach (var armorLayer in armorLayers)
@@ -93,8 +88,8 @@ namespace ACE.Server.WorldObjects
             effectiveRL = Math.Clamp(effectiveRL, -2.0f, 2.0f);
 
             // TODO: could brittlemail / lures send a piece of armor or clothing's AL into the negatives?
-            if (effectiveAL < 0)
-                effectiveRL = 1.0f / effectiveRL;
+            //if (effectiveAL < 0 && effectiveRL != 0)
+                //effectiveRL = 1.0f / effectiveRL;
 
             /*Console.WriteLine("Effective AL: " + effectiveAL);
             Console.WriteLine("Effective RL: " + effectiveRL);

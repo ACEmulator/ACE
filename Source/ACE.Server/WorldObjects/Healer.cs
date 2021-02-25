@@ -1,15 +1,15 @@
 using System;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.WorldObjects.Entity;
 
@@ -48,7 +48,13 @@ namespace ACE.Server.WorldObjects
 
         public override void HandleActionUseOnTarget(Player healer, WorldObject target)
         {
-            if (healer.IsBusy || healer.Teleporting)
+            if (healer.GetCreatureSkill(Skill.Healing).AdvancementClass < SkillAdvancementClass.Trained)
+            {
+                healer.SendUseDoneEvent(WeenieError.YouArentTrainedInHealing);
+                return;
+            }
+
+            if (healer.IsBusy || healer.Teleporting || healer.suicideInProgress)
             {
                 healer.SendUseDoneEvent(WeenieError.YoureTooBusy);
                 return;
@@ -57,6 +63,23 @@ namespace ACE.Server.WorldObjects
             if (!(target is Player targetPlayer) || targetPlayer.Teleporting)
             {
                 healer.SendUseDoneEvent(WeenieError.YouCantHealThat);
+                return;
+            }
+
+            if (healer.IsJumping)
+            {
+                healer.SendUseDoneEvent(WeenieError.YouCantDoThatWhileInTheAir);
+                return;
+            }
+
+            // ensure same PKType, although PK and PKLite players can heal NPKs:
+            // https://asheron.fandom.com/wiki/Player_Killer
+            // https://asheron.fandom.com/wiki/Player_Killer_Lite
+
+            if (targetPlayer.PlayerKillerStatus != healer.PlayerKillerStatus && targetPlayer.PlayerKillerStatus != PlayerKillerStatus.NPK)
+            {
+                healer.SendWeenieErrorWithString(WeenieErrorWithString.YouFailToAffect_NotSamePKType, targetPlayer.Name);
+                healer.SendUseDoneEvent();
                 return;
             }
 
@@ -90,9 +113,11 @@ namespace ACE.Server.WorldObjects
                 DoHealMotion(healer, targetPlayer, true);
         }
 
+        public static readonly float Healing_MaxMove = 5.0f;
+
         public void DoHealMotion(Player healer, Player target, bool success)
         {
-            if (!success || target.IsDead || target.Teleporting)
+            if (!success || target.IsDead || target.Teleporting || target.suicideInProgress)
             {
                 healer.SendUseDoneEvent();
                 return;
@@ -103,21 +128,25 @@ namespace ACE.Server.WorldObjects
             var motionCommand = healer.Equals(target) ? MotionCommand.SkillHealSelf : MotionCommand.SkillHealOther;
 
             var motion = new Motion(healer, motionCommand);
-            var animLength = MotionTable.GetAnimationLength(healer.MotionTableId, healer.CurrentMotionState.Stance, motionCommand);
+            var currentStance = healer.CurrentMotionState.Stance;
+            var animLength = MotionTable.GetAnimationLength(healer.MotionTableId, currentStance, motionCommand);
 
-            var startPos = new Position(healer.Location);
+            var startPos = new Physics.Common.Position(healer.PhysicsObj.Position);
 
             var actionChain = new ActionChain();
-            actionChain.AddAction(healer, () => healer.EnqueueBroadcastMotion(motion));
+            //actionChain.AddAction(healer, () => healer.EnqueueBroadcastMotion(motion));
+            actionChain.AddAction(healer, () => healer.SendMotionAsCommands(motionCommand, currentStance));
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(healer, () =>
             {
                 // check healing move distance cap
-                var endPos = new Position(healer.Location);
-                var dist = startPos.DistanceTo(endPos);
+                var endPos = new Physics.Common.Position(healer.PhysicsObj.Position);
+                var dist = startPos.Distance(endPos);
+
+                //Console.WriteLine($"Dist: {dist}");
 
                 // only PKs affected by these caps?
-                if (dist < Player.Windup_MaxMove || PlayerKillerStatus == PlayerKillerStatus.NPK)
+                if (dist < Healing_MaxMove || healer.PlayerKillerStatus == PlayerKillerStatus.NPK)
                     DoHealing(healer, target);
                 else
                     healer.Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted healing!", ChatMessageType.Broadcast));
@@ -130,6 +159,8 @@ namespace ACE.Server.WorldObjects
             healer.EnqueueMotion(actionChain, MotionCommand.Ready);
 
             actionChain.EnqueueChain();
+
+            healer.NextUseTime = DateTime.UtcNow.AddSeconds(animLength);
         }
 
         public void DoHealing(Player healer, Player target)
@@ -207,7 +238,7 @@ namespace ACE.Server.WorldObjects
             difficulty = (int)Math.Round((vital.MaxValue - vital.Current) * 2 * combatMod);
 
             var skillCheck = SkillCheck.GetSkillChance(effectiveSkill, difficulty);
-            return skillCheck >= ThreadSafeRandom.Next(0.0f, 1.0f);
+            return skillCheck > ThreadSafeRandom.Next(0.0f, 1.0f);
         }
 
         /// <summary>

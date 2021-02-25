@@ -1,10 +1,9 @@
 using System;
-using System.Linq;
 
-using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 
 namespace ACE.Server.WorldObjects.Entity
 {
@@ -15,7 +14,7 @@ namespace ACE.Server.WorldObjects.Entity
         public readonly PropertyAttribute Attribute;
 
         // the underlying database record
-        private readonly BiotaPropertiesAttribute biotaPropertiesAttribute;
+        private readonly PropertiesAttribute propertiesAttribute;
 
         /// <summary>
         /// If the creature's biota does not contain this attribute, a new record will be created.
@@ -25,12 +24,10 @@ namespace ACE.Server.WorldObjects.Entity
             this.creature = creature;
             Attribute = attribute;
 
-            biotaPropertiesAttribute = creature.Biota.BiotaPropertiesAttribute.FirstOrDefault(x => x.Type == (uint)Attribute);
-
-            if (biotaPropertiesAttribute == null)
+            if (!creature.Biota.PropertiesAttribute.TryGetValue(attribute, out propertiesAttribute))
             {
-                biotaPropertiesAttribute = new BiotaPropertiesAttribute { ObjectId = creature.Biota.Id, Type = (ushort)Attribute };
-                creature.Biota.BiotaPropertiesAttribute.Add(biotaPropertiesAttribute);
+                propertiesAttribute = new PropertiesAttribute();
+                creature.Biota.PropertiesAttribute[attribute] = propertiesAttribute;
             }
         }
 
@@ -39,8 +36,8 @@ namespace ACE.Server.WorldObjects.Entity
         /// </summary>
         public uint StartingValue
         {
-            get => biotaPropertiesAttribute.InitLevel;
-            set => biotaPropertiesAttribute.InitLevel = value;
+            get => propertiesAttribute.InitLevel;
+            set => propertiesAttribute.InitLevel = value;
         }
 
         /// <summary>
@@ -48,8 +45,8 @@ namespace ACE.Server.WorldObjects.Entity
         /// </summary>
         public uint ExperienceSpent
         {
-            get => biotaPropertiesAttribute.CPSpent;
-            set => biotaPropertiesAttribute.CPSpent = value;
+            get => propertiesAttribute.CPSpent;
+            set => propertiesAttribute.CPSpent = value;
         }
 
         /// <summary>
@@ -72,8 +69,8 @@ namespace ACE.Server.WorldObjects.Entity
         /// </summary>
         public uint Ranks
         {
-            get => biotaPropertiesAttribute.LevelFromCP;
-            set => biotaPropertiesAttribute.LevelFromCP = value;
+            get => propertiesAttribute.LevelFromCP;
+            set => propertiesAttribute.LevelFromCP = value;
         }
 
         /// <summary>

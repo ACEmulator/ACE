@@ -15,7 +15,20 @@ namespace ACE.Server.Entity
 
         public int ElementalBonus = 0;
 
-        public float MaxDamage => Math.Max(0, (BaseDamage.MaxDamage + DamageBonus + ElementalBonus) * DamageMod);
+        public float MaxDamage
+        {
+            get
+            {
+                var maxDamage = (BaseDamage.MaxDamage + DamageBonus + ElementalBonus) * DamageMod;
+
+                if (BaseDamage.MaxDamage >= 0)
+                    maxDamage = Math.Max(0, maxDamage);
+                else
+                    maxDamage = Math.Min(0, maxDamage);
+
+                return maxDamage;   
+            }
+        }
 
         public float MinDamage => MaxDamage * (1.0f - BaseDamage.Variance * VarianceMod);
 

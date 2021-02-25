@@ -1,15 +1,15 @@
 using System;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics;
 
 namespace ACE.Server.WorldObjects
 {
@@ -54,9 +54,15 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return;
 
-            if (player.IsBusy || player.Teleporting)
+            if (player.IsBusy || player.Teleporting || player.suicideInProgress)
             {
-                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YoureTooBusy));
+                player.SendWeenieError(WeenieError.YoureTooBusy);
+                return;
+            }
+
+            if (player.IsJumping)
+            {
+                player.SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
                 return;
             }
 
@@ -88,6 +94,31 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You may use another timed rare in {remainTime}s", ChatMessageType.Broadcast));
                     return;
                 }
+            }
+
+            if (UseUserAnimation != MotionCommand.Invalid)
+            {
+                // some gems have UseUserAnimation and UseSound, similar to food
+                // eg. 7559 - Condensed Dispel Potion
+
+                // the animation is also weird, and differs from food, in that it is the full animation
+                // instead of stopping at the 'eat/drink' point... so we pass 0.5 here?
+
+                var animMod = (UseUserAnimation == MotionCommand.MimeDrink || UseUserAnimation == MotionCommand.MimeEat) ? 0.5f : 1.0f;
+
+                player.ApplyConsumable(UseUserAnimation, () => UseGem(player), animMod);
+            }
+            else
+                UseGem(player);
+        }
+
+        public void UseGem(Player player)
+        {
+            if (player.IsDead) return;
+
+            if (RareUsesTimer)
+            {
+                var currentTime = Time.GetUnixTime();
 
                 player.LastRareUsedTimestamp = currentTime;
 
@@ -97,102 +128,116 @@ namespace ACE.Server.WorldObjects
 
             if (SpellDID.HasValue)
             {
-                var spell = new Server.Entity.Spell((uint)SpellDID);
+                var spell = new Spell((uint)SpellDID);
 
-                TryCastSpell(spell, player, this);
+                // should be 'You cast', instead of 'Item cast'
+                // omitting the item caster here, so player is also used for enchantment registry caster,
+                // which could prevent some scenarios with spamming enchantments from multiple gem sources to protect against dispels
+
+                // TODO: figure this out better
+                if (spell.MetaSpellType == SpellType.PortalSummon)
+                    TryCastSpell(spell, player, this, false);
+                else
+                    player.TryCastSpell(spell, player, this, false);
             }
 
             if (UseCreateContractId > 0)
             {
                 if (!player.ContractManager.Add(UseCreateContractId.Value))
                     return;
-                else // this wasn't in retail, but the lack of feedback when using a contract gem just seems jarring so...
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} accepted. Click on the quill icon in the lower right corner to open your contract tab to view your active contracts.", ChatMessageType.Broadcast));
+
+                // this wasn't in retail, but the lack of feedback when using a contract gem just seems jarring so...
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} accepted. Click on the quill icon in the lower right corner to open your contract tab to view your active contracts.", ChatMessageType.Broadcast));
             }
 
             if (UseCreateItem > 0)
             {
-                //if (DatabaseManager.World.GetCachedWeenie(UseCreateItem.Value) is null)
-                //{
-                //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "Unable to create object, WCID is not in database !")); // custom error
-                //    return;
-                //}
-
-                var playerFreeInventorySlots = player.GetFreeInventorySlots();
-                var playerFreeContainerSlots = player.GetFreeContainerSlots();
-                var playerAvailableBurden = player.GetAvailableBurden();
-
-                var playerOutOfInventorySlots = false;
-                var playerOutOfContainerSlots = false;
-                var playerExceedsAvailableBurden = false;
-
-                var amount = UseCreateQuantity ?? 1;
-
-                var itemStacks = player.PreCheckItem(UseCreateItem.Value, amount, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemRequiresBackpackSlot);
-
-                if (itemRequiresBackpackSlot)
-                {
-                    playerFreeContainerSlots -= itemStacks;
-                    playerAvailableBurden -= itemEncumberance;
-
-                    playerOutOfContainerSlots = playerFreeContainerSlots < 0;
-                }
-                else
-                {
-                    playerFreeInventorySlots -= itemStacks;
-                    playerAvailableBurden -= itemEncumberance;
-
-                    playerOutOfInventorySlots = playerFreeInventorySlots < 0;
-                }
-
-                playerExceedsAvailableBurden = playerAvailableBurden < 0;
-
-                if (playerOutOfInventorySlots || playerOutOfContainerSlots || playerExceedsAvailableBurden)
-                {
-                    if (playerExceedsAvailableBurden)
-                        player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You are too encumbered to use that!"));
-                    else if (playerOutOfInventorySlots)
-                        player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough pack space to use that!"));
-                    else //if (playerOutOfContainerSlots)
-                        player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough container slots to use that!"));
+                if (!HandleUseCreateItem(player))
                     return;
-                }
-
-                if (itemStacks > 0)
-                {
-                    while (amount > 0)
-                    {
-                        var item = WorldObjectFactory.CreateNewWorldObject(UseCreateItem.Value);
-
-                        if (item is Stackable)
-                        {
-                            // amount contains a max stack
-                            if (item.MaxStackSize <= amount)
-                            {
-                                item.SetStackSize(item.MaxStackSize);
-                                amount -= item.MaxStackSize.Value;
-                            }
-                            else // not a full stack
-                            {
-                                item.SetStackSize(amount);
-                                amount -= amount;
-                            }
-                        }
-                        else
-                            amount -= 1;
-
-                        player.TryCreateInInventoryWithNetworking(item);
-                    }
-                }
-                else
-                {
-                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"Unable to use {Name} at this time!"));
-                    return;
-                }
             }
+
+            if (UseSound > 0)
+                player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, UseSound));
 
             if ((GetProperty(PropertyBool.UnlimitedUse) ?? false) == false)
                 player.TryConsumeFromInventoryWithNetworking(this, 1);
+        }
+
+        public bool HandleUseCreateItem(Player player)
+        {
+            var playerFreeInventorySlots = player.GetFreeInventorySlots();
+            var playerFreeContainerSlots = player.GetFreeContainerSlots();
+            var playerAvailableBurden = player.GetAvailableBurden();
+
+            var playerOutOfInventorySlots = false;
+            var playerOutOfContainerSlots = false;
+            var playerExceedsAvailableBurden = false;
+
+            var amount = UseCreateQuantity ?? 1;
+
+            var itemStacks = player.PreCheckItem(UseCreateItem.Value, amount, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemRequiresBackpackSlot);
+
+            if (itemRequiresBackpackSlot)
+            {
+                playerFreeContainerSlots -= itemStacks;
+                playerAvailableBurden -= itemEncumberance;
+
+                playerOutOfContainerSlots = playerFreeContainerSlots < 0;
+            }
+            else
+            {
+                playerFreeInventorySlots -= itemStacks;
+                playerAvailableBurden -= itemEncumberance;
+
+                playerOutOfInventorySlots = playerFreeInventorySlots < 0;
+            }
+
+            playerExceedsAvailableBurden = playerAvailableBurden < 0;
+
+            if (playerOutOfInventorySlots || playerOutOfContainerSlots || playerExceedsAvailableBurden)
+            {
+                if (playerExceedsAvailableBurden)
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You are too encumbered to use that!"));
+                else if (playerOutOfInventorySlots)
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough pack space to use that!"));
+                else //if (playerOutOfContainerSlots)
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough container slots to use that!"));
+
+                return false;
+            }
+
+            if (itemStacks > 0)
+            {
+                while (amount > 0)
+                {
+                    var item = WorldObjectFactory.CreateNewWorldObject(UseCreateItem.Value);
+
+                    if (item is Stackable)
+                    {
+                        // amount contains a max stack
+                        if (item.MaxStackSize <= amount)
+                        {
+                            item.SetStackSize(item.MaxStackSize);
+                            amount -= item.MaxStackSize.Value;
+                        }
+                        else // not a full stack
+                        {
+                            item.SetStackSize(amount);
+                            amount -= amount;
+                        }
+                    }
+                    else
+                        amount -= 1;
+
+                    player.TryCreateInInventoryWithNetworking(item);
+                }
+            }
+            else
+            {
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"Unable to use {Name} at this time!"));
+                return false;
+            }
+            return true;
         }
 
         public int? RareId

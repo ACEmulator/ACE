@@ -4,8 +4,8 @@ namespace ACE.DatLoader.Entity
 {
     public class AnimationPartChange : IUnpackable
     {
-        public byte PartIndex { get; private set; }
-        public uint PartID { get; private set; }
+        public byte PartIndex { get; set; }
+        public uint PartID { get; set; }
 
         public void Unpack(BinaryReader reader)
         {

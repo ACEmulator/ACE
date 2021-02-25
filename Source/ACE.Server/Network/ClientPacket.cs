@@ -16,19 +16,22 @@ namespace ACE.Server.Network
         public BinaryReader DataReader { get; private set; }
         public PacketHeaderOptional HeaderOptional { get; } = new PacketHeaderOptional();
 
-        public bool Unpack(byte[] data)
+        /// <summary>
+        /// If you pass in a shared buffer, be sure to ReleaseBuffer() after you've processed the packet, and before you use the buffer again for the next job.
+        /// </summary>
+        public bool Unpack(byte[] buffer, int bufferSize)
         {
             try
             {
-                if (data.Length < PacketHeader.HeaderSize)
+                if (bufferSize < PacketHeader.HeaderSize)
                     return false;
 
-                Header.Unpack(data);
+                Header.Unpack(buffer);
 
-                if (Header.Size > data.Length - PacketHeader.HeaderSize)
+                if (Header.Size > bufferSize - PacketHeader.HeaderSize)
                     return false;
 
-                Data = new MemoryStream(data, PacketHeader.HeaderSize, Header.Size, false, true);
+                Data = new MemoryStream(buffer, PacketHeader.HeaderSize, Header.Size, false, true);
                 DataReader = new BinaryReader(Data);
                 HeaderOptional.Unpack(DataReader, Header);
 
@@ -57,7 +60,7 @@ namespace ACE.Server.Network
                     try
                     {
                         var fragment = new ClientPacketFragment();
-                        fragment.Unpack(DataReader);
+                        if (!fragment.Unpack(DataReader)) return false;
 
                         Fragments.Add(fragment);
                     }
@@ -70,6 +73,12 @@ namespace ACE.Server.Network
             }
 
             return true;
+        }
+
+        public void ReleaseBuffer()
+        {
+            Data = null;
+            DataReader = null;
         }
 
         private uint? _fragmentChecksum;
@@ -126,58 +135,20 @@ namespace ACE.Server.Network
                 return _payloadChecksum.Value;
             }
         }
-
-        private bool VerifyChecksum()
-        {
-            return headerChecksum + payloadChecksum == Header.Checksum;
-        }
-
-        private bool VerifyEncryptedCRC(CryptoSystem fq, out string keyOffsetForLogging)
-        {
-            var verifiedKey = new Tuple<int, uint>(0, 0);
-
-            uint receivedKey = (Header.Checksum - headerChecksum) ^ payloadChecksum;
-
-            Func<Tuple<int, uint>, bool> cbSearch = new Func<Tuple<int, uint>, bool>((pair) =>
-            {
-                if (receivedKey == pair.Item2)
-                {
-                    verifiedKey = pair;
-                    return true;
-                }
-
-                return false;
-            });
-
-            if (fq.Search(cbSearch))
-            {
-                keyOffsetForLogging = verifiedKey.Item1.ToString();
-                return true;
-            }
-
-            keyOffsetForLogging = "???";
-            return false;
-        }
-
-        private bool VerifyEncryptedCRCAndLogResult(CryptoSystem fq)
-        {
-            bool result = VerifyEncryptedCRC(fq, out string key);
-
-            key = (key == "") ? "" : $" Key: {key}";
-            packetLog.DebugFormat("{0} {1}{2}", fq, this, key);
-
-            return result;
-        }
         public bool VerifyCRC(CryptoSystem fq)
         {
             if (Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
             {
-                if (VerifyEncryptedCRCAndLogResult(fq))
+                var key = ((Header.Checksum - headerChecksum) ^ payloadChecksum);
+                if (fq.Search(key))
+                {
+                    fq.ConsumeKey(key);
                     return true;
+                }
             }
             else
             {
-                if (VerifyChecksum())
+                if (headerChecksum + payloadChecksum == Header.Checksum)
                 {
                     packetLog.DebugFormat("{0}", this);
                     return true;

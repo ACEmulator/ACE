@@ -9,7 +9,9 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var bookGuid = message.Payload.ReadUInt32();
 
-            Console.WriteLine($"0xAA - BookData({bookGuid:X8}) - unused?");
+            //Console.WriteLine($"0xAA - BookData({bookGuid:X8}) - unused?");
+
+            session.Player.ReadBook(bookGuid);
         }
     }
 }

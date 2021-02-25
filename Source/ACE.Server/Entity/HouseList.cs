@@ -52,7 +52,7 @@ namespace ACE.Server.Entity
         {
             // select * from biota where weenie_Type=53;
 
-            var housesOwned = DatabaseManager.Shard.GetHousesOwned();
+            var housesOwned = DatabaseManager.Shard.BaseDatabase.GetHousesOwned();
 
             Console.WriteLine($"Owned houses: {housesOwned.Count}");
 

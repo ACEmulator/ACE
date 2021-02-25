@@ -127,6 +127,8 @@ namespace ACE.Server.Entity
                 return;
             }
 
+            var animTime = 0.0f;
+
             var actionChain = new ActionChain();
 
             player.IsBusy = true;
@@ -136,18 +138,33 @@ namespace ACE.Server.Entity
             {
                 var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
                 actionChain.AddDelaySeconds(stanceTime);
+
+                animTime += stanceTime;
             }
 
             // perform clapping motion
-            player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
+            animTime += player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
 
-            actionChain.AddAction(player, () => ActivateSigil(player, source, target));
+            actionChain.AddAction(player, () =>
+            {
+                // re-verify
+                var useError = VerifyUseRequirements(player, source, target);
+                if (useError != WeenieError.None)
+                {
+                    player.SendUseDoneEvent(useError);
+                    return;
+                }
+
+                ActivateSigil(player, source, target);
+            });
 
             player.EnqueueMotion(actionChain, MotionCommand.Ready);
 
             actionChain.AddAction(player, () => player.IsBusy = false);
 
             actionChain.EnqueueChain();
+
+            player.NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
         }
 
         public static WeenieError VerifyUseRequirements(Player player, WorldObject source, WorldObject target)

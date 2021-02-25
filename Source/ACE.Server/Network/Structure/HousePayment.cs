@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 
 using ACE.Database;
-using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.WorldObjects;
@@ -50,7 +50,7 @@ namespace ACE.Server.Network.Structure
         {
             var wo = WorldObjectFactory.CreateNewWorldObject(weenie.ClassName);
             wo.SetStackSize(stackSize);
-            WeenieID = weenie.ClassId;
+            WeenieID = weenie.WeenieClassId;
             Init(wo);
         }
 

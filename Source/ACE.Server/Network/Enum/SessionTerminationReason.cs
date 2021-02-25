@@ -26,7 +26,10 @@ namespace ACE.Server.Network.Enum
         SendToSocketException,
         WorldClosed,
         AbnormalSequenceReceived,
-        AccountLoggedIn
+        AccountLoggedIn,
+        ServerShuttingDown,
+        AccountBanned,
+        ClientOutOfDate
     }
     public static class SessionTerminationReasonHelper
     {
@@ -50,7 +53,10 @@ namespace ACE.Server.Network.Enum
             "MainSocket.SendTo exception occured",
             "World is closed",
             "Client supplied an abnormal sequence",
-            "Account was logged in, booting currently connected account in favor of new connection"
+            "Account was logged in, booting currently connected account in favor of new connection",
+            "Server is shutting down",
+            "Account is banned",
+            "Client is not up to date"
         };
         public static string GetDescription(this SessionTerminationReason reason)
         {

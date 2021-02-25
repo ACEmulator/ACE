@@ -11,6 +11,122 @@ namespace ACE.Database.Models.Shard
         // CharacterPropertiesContract
         // =====================================
 
+        public static List<CharacterPropertiesContractRegistry> GetContracts(this Character character, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesContractRegistry.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static int GetContractsCount(this Character character, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesContractRegistry.Count;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static List<uint> GetContractsIds(this Character character, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesContractRegistry.Select(r => r.ContractId).ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static CharacterPropertiesContractRegistry GetContract(this Character character, uint contractId, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesContractRegistry.FirstOrDefault(c => c.ContractId == contractId);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static CharacterPropertiesContractRegistry GetOrCreateContract(this Character character, uint contractId, ReaderWriterLockSlim rwLock, out bool contractWasCreated)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                var entity = character.CharacterPropertiesContractRegistry.FirstOrDefault(c => c.ContractId == contractId);
+
+                if (entity == null)
+                {
+                    entity = new CharacterPropertiesContractRegistry
+                    {
+                        ContractId = contractId
+                    };
+
+                    character.CharacterPropertiesContractRegistry.Add(entity);
+
+                    contractWasCreated = true;
+                }
+                else
+                    contractWasCreated = false;
+
+                return entity;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        public static bool EraseContract(this Character character, uint contractId, out CharacterPropertiesContractRegistry contractErased, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                contractErased = character.CharacterPropertiesContractRegistry.FirstOrDefault(c => c.ContractId == contractId);
+
+                if (contractErased == null)
+                    return false;
+
+                character.CharacterPropertiesContractRegistry.Remove(contractErased);
+
+                return true;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        public static void EraseAllContracts(this Character character, out List<CharacterPropertiesContractRegistry> contractsErased, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                contractsErased = character.CharacterPropertiesContractRegistry.ToList();
+
+                character.CharacterPropertiesContractRegistry.Clear();
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
 
         // =====================================
         // CharacterPropertiesFillCompBook
@@ -106,6 +222,19 @@ namespace ACE.Database.Models.Shard
         // CharacterPropertiesFriendList
         // =====================================
 
+        public static List<CharacterPropertiesFriendList> GetFriends(this Character character, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesFriendList.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
         public static bool HasAsFriend(this Character character, uint friendId, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
@@ -188,6 +317,97 @@ namespace ACE.Database.Models.Shard
         // =====================================
         // CharacterPropertiesQuestRegistry
         // =====================================
+
+        public static List<CharacterPropertiesQuestRegistry> GetQuests(this Character character, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesQuestRegistry.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static CharacterPropertiesQuestRegistry GetQuest(this Character character, string questName, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesQuestRegistry.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static CharacterPropertiesQuestRegistry GetOrCreateQuest(this Character character, string questName, ReaderWriterLockSlim rwLock, out bool questRegistryWasCreated)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                var entity = character.CharacterPropertiesQuestRegistry.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+
+                if (entity == null)
+                {
+                    entity = new CharacterPropertiesQuestRegistry
+                    {
+                        QuestName = questName
+                    };
+
+                    character.CharacterPropertiesQuestRegistry.Add(entity);
+
+                    questRegistryWasCreated = true;
+                }
+                else
+                    questRegistryWasCreated = false;
+
+                return entity;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        public static bool EraseQuest(this Character character, string questName, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                var entity = character.CharacterPropertiesQuestRegistry.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+
+                if (entity == null)
+                    return false;
+
+                character.CharacterPropertiesQuestRegistry.Remove(entity);
+
+                return true;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        public static void EraseAllQuests(this Character character, out List<string> questNamesErased, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                questNamesErased = character.CharacterPropertiesQuestRegistry.Select(r => r.QuestName).ToList();
+
+                character.CharacterPropertiesQuestRegistry.Clear();
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
 
         // =====================================
         // CharacterPropertiesShortcutBar
@@ -273,7 +493,7 @@ namespace ACE.Database.Models.Shard
             rwLock.EnterReadLock();
             try
             {
-                return character.CharacterPropertiesSpellBar.Where(x => x.SpellBarNumber == barNumber).ToList();
+                return character.CharacterPropertiesSpellBar.Where(x => x.SpellBarNumber == barNumber + 1).OrderBy(x => x.SpellBarIndex).ToList();
             }
             finally
             {
@@ -289,21 +509,28 @@ namespace ACE.Database.Models.Shard
             rwLock.EnterWriteLock();
             try
             {
-                var spellCountInThisBar = character.CharacterPropertiesSpellBar.Count(x => x.SpellBarNumber == barNumber);
+                var spellCountInThisBar = character.CharacterPropertiesSpellBar.Count(x => x.SpellBarNumber == barNumber + 1);
 
-                if (indexInBar > spellCountInThisBar + 1)
-                    indexInBar = (uint)(spellCountInThisBar + 1);
+                //Console.WriteLine($"Character.AddSpellToBar.Entry: barNumber = {barNumber} ({barNumber + 1}) | indexInBar = {indexInBar} ({indexInBar + 1}) | spell = {spell} | spellCountInThisBar = {spellCountInThisBar}");
+
+                if (indexInBar > spellCountInThisBar)
+                    indexInBar = (uint)(spellCountInThisBar);
 
                 // We must increment the position of existing spells in the bar that exist on or after this position
-                foreach (var property in character.CharacterPropertiesSpellBar)
+                foreach (var property in character.CharacterPropertiesSpellBar.OrderBy(x => x.SpellBarIndex))
                 {
-                    if (property.SpellBarNumber == barNumber && property.SpellBarIndex >= indexInBar)
+                    if (property.SpellBarNumber == barNumber + 1 && property.SpellBarIndex >= indexInBar + 1)
+                    {
                         property.SpellBarIndex++;
+                        //Console.WriteLine($"Character.AddSpellToBar.Adjust: SpellBarNumber = {property.SpellBarNumber} | SpellBarIndex = {property.SpellBarIndex} ({property.SpellBarIndex - 1}) | SpellId = {property.SpellId}");
+                    }
                 }
 
-                var entity = new CharacterPropertiesSpellBar { CharacterId = character.Id, SpellBarNumber = barNumber, SpellBarIndex = indexInBar, SpellId = spell, Character = character };
+                var entity = new CharacterPropertiesSpellBar { CharacterId = character.Id, SpellBarNumber = barNumber + 1, SpellBarIndex = indexInBar + 1, SpellId = spell, Character = character };
 
                 character.CharacterPropertiesSpellBar.Add(entity);
+
+                //Console.WriteLine($"Character.AddSpellToBar.Add: barNumber = {barNumber + 1} | indexInBar = {indexInBar + 1} | spell = {spell}");
             }
             finally
             {
@@ -319,20 +546,25 @@ namespace ACE.Database.Models.Shard
             rwLock.EnterUpgradeableReadLock();
             try
             {
-                entity = character.CharacterPropertiesSpellBar.FirstOrDefault(x => x.SpellBarNumber == barNumber && x.SpellId == spell);
+                //Console.WriteLine($"Character.TryRemoveSpellFromBar.Entry: barNumber = {barNumber} ({barNumber + 1}) | spell = {spell}");
+                entity = character.CharacterPropertiesSpellBar.FirstOrDefault(x => x.SpellBarNumber == barNumber + 1 && x.SpellId == spell);
                 if (entity != null)
                 {
                     rwLock.EnterWriteLock();
                     try
                     {
+                        //Console.WriteLine($"Character.TryRemoveSpellFromBar.Remove: SpellBarNumber = {entity.SpellBarNumber} | SpellBarIndex = {entity.SpellBarIndex} | SpellId = {entity.SpellId}");
                         character.CharacterPropertiesSpellBar.Remove(entity);
                         entity.Character = null;
 
                         // We must decrement the position of existing spells in the bar that exist after this position
-                        foreach (var property in character.CharacterPropertiesSpellBar)
+                        foreach (var property in character.CharacterPropertiesSpellBar.OrderBy(x => x.SpellBarIndex))
                         {
-                            if (property.SpellBarNumber == barNumber && property.SpellBarIndex > entity.SpellBarIndex)
+                            if (property.SpellBarNumber == barNumber + 1 && property.SpellBarIndex > entity.SpellBarIndex)
+                            {
                                 property.SpellBarIndex--;
+                                //Console.WriteLine($"Character.TryRemoveSpellFromBar.Adjust: SpellBarNumber = {property.SpellBarNumber} | SpellBarIndex = {property.SpellBarIndex} ({property.SpellBarIndex + 1}) | SpellId = {property.SpellId}");
+                            }
                         }
 
                         return true;
@@ -430,6 +662,19 @@ namespace ACE.Database.Models.Shard
         // =====================================
         // CharacterPropertiesTitleBook
         // =====================================
+
+        public static List<CharacterPropertiesTitleBook> GetTitles(this Character character, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesTitleBook.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
 
         public static void AddTitleToRegistry(this Character character, uint title, ReaderWriterLockSlim rwLock, out bool titleAlreadyExists, out int numCharacterTitles)
         {

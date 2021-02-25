@@ -1,7 +1,7 @@
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
-using ACE.Entity;
+using System;
 
+using ACE.Entity;
+using ACE.Entity.Models;
 namespace ACE.Server.WorldObjects
 {
     public class Coin : Stackable

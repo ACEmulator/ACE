@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -95,7 +94,7 @@ namespace ACE.Server.WorldObjects
             {
                 var playerSkill = player.GetCreatureSkill(AugTypeHelper.GetSkill(type));
                 playerSkill.AdvancementClass = SkillAdvancementClass.Specialized;
-                playerSkill.InitLevel += 5;
+                playerSkill.InitLevel = 10;
                 // adjust rank?
                 // handle overages?
                 // if trained skill is maxed, there will be a ~103m xp overage...
@@ -141,6 +140,12 @@ namespace ACE.Server.WorldObjects
         {
             var availableXP = player.AvailableExperience ?? 0;
             var augCost = AugmentationCost ?? 0;
+
+            if (AugmentationCost == null)
+            {
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{Name} is missing AugmentationCost", ChatMessageType.System));
+                return false;
+            }
 
             if (availableXP < augCost)
             {

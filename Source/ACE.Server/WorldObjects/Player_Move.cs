@@ -36,6 +36,12 @@ namespace ACE.Server.WorldObjects
 
         public void CreateMoveToChain(WorldObject target, Action<bool> callback, float? useRadius = null, bool rotate = true)
         {
+            if (FastTick)
+            {
+                CreateMoveToChain2(target, callback, useRadius, rotate);
+                return;
+            }
+
             var thisMoveToChainNumber = GetNextMoveToChainNumber();
 
             if (target.Location == null)
@@ -217,9 +223,8 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 default:
-                    Session.Network.EnqueueSend(new GameEventAttackDone(Session));
-                    SendWeenieError(status);
 
+                    SendWeenieError(status);
                     HandleActionCancelAttack();
                     break;
             }
@@ -248,7 +253,8 @@ namespace ACE.Server.WorldObjects
             //PhysicsObj.WeenieObj.InqJumpVelocity(1.0f, out jumpVelocity);
             var jumpVelocity = 11.25434f;   // TODO: figure out how to scale this better
 
-            var currVelocity = FastTick ? PhysicsObj.Velocity : PhysicsObj.CachedVelocity;
+            //var currVelocity = FastTick ? PhysicsObj.Velocity : PhysicsObj.CachedVelocity;
+            var currVelocity = PhysicsObj.Velocity;
 
             var overspeed = jumpVelocity + currVelocity.Z + 4.5f;     // a little leeway
 
@@ -267,7 +273,8 @@ namespace ACE.Server.WorldObjects
 
                 // bludgeon damage
                 // impact damage
-                if (damage > 0.0f && (FastTick || StartJump == null || StartJump.PositionZ - PhysicsObj.Position.Frame.Origin.Z > 10.0f))
+                //if (damage > 0.0f && (FastTick || StartJump == null || StartJump.PositionZ - PhysicsObj.Position.Frame.Origin.Z > 10.0f))
+                if (damage > 0.0f)
                     TakeDamage_Falling(damage);
             }
         }
@@ -284,7 +291,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // scale by bludgeon protection
-            var resistance = EnchantmentManager.GetResistanceMod(DamageType.Bludgeon);
+            var resistance = GetResistanceMod(DamageType.Bludgeon, null, null);
             var damage = (uint)Math.Round(amount * resistance);
 
             // update health

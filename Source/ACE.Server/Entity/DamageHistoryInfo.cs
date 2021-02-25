@@ -44,5 +44,13 @@ namespace ACE.Server.Entity
 
             return petOwner;
         }
+
+        public WorldObject TryGetPetOwnerOrAttacker()
+        {
+            if (PetOwner != null)
+                return TryGetPetOwner();
+            else
+                return TryGetAttacker();
+        }
     }
 }

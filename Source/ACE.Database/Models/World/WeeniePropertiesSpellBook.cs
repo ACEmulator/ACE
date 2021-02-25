@@ -10,6 +10,6 @@ namespace ACE.Database.Models.World
         public int Spell { get; set; }
         public float Probability { get; set; }
 
-        public Weenie Object { get; set; }
+        public virtual Weenie Object { get; set; }
     }
 }

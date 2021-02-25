@@ -1,14 +1,16 @@
 using System;
 using System.Collections.Generic;
 
+using log4net;
+
 using ACE.Database;
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -20,40 +22,12 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     public class PetDevice : WorldObject
     {
-        public int? GearDamage
-        {
-            get => GetProperty(PropertyInt.GearDamage);
-            set { if (value.HasValue) SetProperty(PropertyInt.GearDamage, value.Value); else RemoveProperty(PropertyInt.GearDamage); }
-        }
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public int? GearDamageResist
+        public int? PetClass
         {
-            get => GetProperty(PropertyInt.GearDamageResist);
-            set { if (value.HasValue) SetProperty(PropertyInt.GearDamageResist, value.Value); else RemoveProperty(PropertyInt.GearDamageResist); }
-        }
-
-        public int? GearCritDamage
-        {
-            get => GetProperty(PropertyInt.GearCritDamage);
-            set { if (value.HasValue) SetProperty(PropertyInt.GearCritDamage, value.Value); else RemoveProperty(PropertyInt.GearCritDamage); }
-        }
-
-        public int? GearCritDamageResist
-        {
-            get => GetProperty(PropertyInt.GearCritDamageResist);
-            set { if (value.HasValue) SetProperty(PropertyInt.GearCritDamageResist, value.Value); else RemoveProperty(PropertyInt.GearCritDamageResist); }
-        }
-
-        public int? GearCrit
-        {
-            get => GetProperty(PropertyInt.GearCrit);
-            set { if (value.HasValue) SetProperty(PropertyInt.GearCrit, value.Value); else RemoveProperty(PropertyInt.GearCrit); }
-        }
-
-        public int? GearCritResist
-        {
-            get => GetProperty(PropertyInt.GearCritResist);
-            set { if (value.HasValue) SetProperty(PropertyInt.GearCritResist, value.Value); else RemoveProperty(PropertyInt.GearCritResist); }
+            get => GetProperty(PropertyInt.PetClass);
+            set { if (value.HasValue) SetProperty(PropertyInt.PetClass, value.Value); else RemoveProperty(PropertyInt.PetClass); }
         }
 
         /// <summary>
@@ -87,28 +61,31 @@ namespace ACE.Server.WorldObjects
             // Good PCAP example of using a PetDevice to summon a pet:
             // Asherons-Call-packets-includes-3-towers\pkt_2017-1-30_1485823896_log.pcap lines 27837 - 27843
 
-            // swap this over to PetClass once all the servers have updated
-            if (!PetDeviceToPetMapping.TryGetValue(WeenieClassId, out var petData))
+            if (PetClass == null)
             {
-                Console.WriteLine($"PetDevice.UseItem(): couldn't find a matching pet for essence wcid {WeenieClassId}");
+                log.Error($"{activator.Name}.ActOnUse({Name}) - PetClass is null for PetDevice {WeenieClassId}");
                 return;
             }
 
             if (Structure == 0)
             {
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You must refill the essence to use it again."));
+                //player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You must refill the essence to use it again."));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat("Your summoning device does not have enough charges to function!", ChatMessageType.Broadcast));
                 return;
             }
 
-            var wcid = petData.Item1;
-            var damageType = petData.Item2;
+            var wcid = (uint)PetClass;
 
-            if (SummonCreature(player, wcid, damageType))
+            if (SummonCreature(player, wcid))
             {
-                // decrease remaining uses
-                Structure--;
+                // CombatPet devices should always have structure
+                if (Structure != null)
+                {
+                    // decrease remaining uses
+                    Structure--;
 
-                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, Structure.Value));
+                    player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, Structure.Value));
+                }
             }
             else
             {
@@ -131,29 +108,42 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must be a {SummoningMastery} to use the {Name}", ChatMessageType.Broadcast));
                 return new ActivationResult(false);
             }
+
+            // duplicating some of this verification logic here from Pet.Init()
+            // since the PetDevice owner and the summoned Pet are separate objects w/ potentially different heartbeat offsets,
+            // the cooldown can still expire before the CombatPet's lifespan
+            // in this case, if the player tries to re-activate the PetDevice while the CombatPet is still in the world,
+            // we want to return an error without re-activating the cooldown
+
+            if (player.CurrentActivePet != null && player.CurrentActivePet is CombatPet)
+            {
+                player.SendTransientError($"{player.CurrentActivePet.Name} is already active");
+                return new ActivationResult(false);
+            }
+
             return new ActivationResult(true);
         }
 
-        public bool SummonCreature(Player player, uint wcid, DamageType damageType)
+        public bool SummonCreature(Player player, uint wcid)
         {
-            // since we are instantiating regular creatures instead of actual CombatPet weenies atm,
-            // bypassing CreateNewWorldObject() here...
-            //var combatPet = WorldObjectFactory.CreateNewWorldObject(wcid) as CombatPet;
-            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
-            if (weenie == null)
+            var wo = WorldObjectFactory.CreateNewWorldObject(wcid);
+
+            if (wo == null)
             {
-                Console.WriteLine($"Couldn't find pet wcid #{wcid}");
+                log.Error($"{player.Name}.SummonCreature({wcid}) - couldn't find wcid for PetDevice {WeenieClassId} - {WeenieClassName}");
                 return false;
             }
 
-            var combatPet = new CombatPet(weenie, GuidManager.NewDynamicGuid());
-            if (combatPet == null)
+            var pet = wo as Pet;
+
+            if (pet == null)
             {
-                Console.WriteLine($"PetDevice.UseItem(): failed to create pet for wcid {wcid}");
+                log.Error($"{player.Name}.SummonCreature({wcid}) - PetDevice {WeenieClassId} - {WeenieClassName} tried to summon {wo.WeenieClassId} - {wo.WeenieClassName} of unknown type {wo.WeenieType}");
                 return false;
             }
-            combatPet.Init(player, damageType, this);
-            return true;
+            var success = pet.Init(player, this);
+
+            return success;
         }
 
         /// <summary>
@@ -515,7 +505,17 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // verify use requirements
+            var useError = VerifyUseRequirements(player, spirit, this);
+            if (useError != WeenieError.None)
+            {
+                player.SendUseDoneEvent(useError);
+                return;
+            }
+
             player.IsBusy = true;
+
+            var animTime = 0.0f;
 
             var actionChain = new ActionChain();
 
@@ -524,13 +524,32 @@ namespace ACE.Server.WorldObjects
             {
                 var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
                 actionChain.AddDelaySeconds(stanceTime);
+
+                animTime += stanceTime;
             }
 
             // perform clapping motion
-            player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
+            animTime += player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
 
             actionChain.AddAction(player, () =>
             {
+                // re-verify
+                var useError = VerifyUseRequirements(player, spirit, this);
+                if (useError != WeenieError.None)
+                {
+                    player.SendUseDoneEvent(useError);
+                    player.IsBusy = false;
+                    return;
+                }
+
+                if (Structure == MaxStructure)
+                {
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("This essence is already full.", ChatMessageType.Broadcast));
+                    player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                    player.IsBusy = false;
+                    return;
+                }
+
                 player.UpdateProperty(this, PropertyInt.Structure, MaxStructure);
 
                 player.TryConsumeFromInventoryWithNetworking(spirit, 1);
@@ -545,6 +564,22 @@ namespace ACE.Server.WorldObjects
             player.EnqueueMotion(actionChain, MotionCommand.Ready);
 
             actionChain.EnqueueChain();
+
+            player.NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
+        }
+
+        public static WeenieError VerifyUseRequirements(Player player, WorldObject source, WorldObject target)
+        {
+            // ensure target is summoning essence? source.TargetType is Misc
+
+            // ensure both source and target are in player's inventory
+            if (player.FindObject(source.Guid.Full, Player.SearchLocations.MyInventory) == null)
+                return WeenieError.YouDoNotPassCraftingRequirements;
+
+            if (player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory) == null)
+                return WeenieError.YouDoNotPassCraftingRequirements;
+
+            return WeenieError.None;
         }
     }
 }

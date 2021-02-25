@@ -8,7 +8,8 @@ using Microsoft.EntityFrameworkCore;
 
 using log4net;
 
-using ACE.Database.Extensions;
+using ACE.Common;
+using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -149,7 +150,7 @@ namespace ACE.Database
             var deleteLimit = Common.Time.GetUnixTime(DateTime.UtcNow.AddDays(-daysLimiter));
 
             var results = context.Character
-                .Where(r => (r.DeleteTime > 0 && r.DeleteTime < deleteLimit) || (r.IsDeleted && r.DeleteTime == 0))
+                .Where(r => (r.DeleteTime > 0 && r.DeleteTime < (ulong)deleteLimit) || (r.IsDeleted && r.DeleteTime == 0))
                 .AsNoTracking()
                 .ToList();
 
@@ -157,7 +158,7 @@ namespace ACE.Database
             int playerBiotasPurgedTotal = 0;
             int possessionsPurgedTotal = 0;
 
-            Parallel.ForEach(results, result =>
+            Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
             {
                 PurgeCharacter(result.Id, out var charactersPurgedResult, out var playerBiotasPurgedResult, out var possessionsPurgedResult);
 
@@ -255,10 +256,10 @@ namespace ACE.Database
         }
 
 
-        public static readonly HashSet<WeenieType> NonPurgeableWeenieTypes = new HashSet<WeenieType>
-        {
-            WeenieType.Allegiance,
-        };
+        //public static readonly HashSet<WeenieType> NonPurgeableWeenieTypes = new HashSet<WeenieType>
+        //{
+        //    WeenieType.Allegiance,
+        //};
 
         public static bool PurgeBiota(ShardDbContext context, uint id, string reason = null)
         {
@@ -274,15 +275,15 @@ namespace ACE.Database
                     message += $":{name}";
                 message += $", WeenieType: {(WeenieType)biota.WeenieType}";
 
-                if (NonPurgeableWeenieTypes.Contains((WeenieType)biota.WeenieType))
-                {
-                    message += ", has NOT been purged due to non-purgeable WeenieType.";
-                    if (!String.IsNullOrWhiteSpace(reason))
-                        message += $" Reason: {reason}.";
-                    log.Debug(message);
+                //if (NonPurgeableWeenieTypes.Contains((WeenieType)biota.WeenieType))
+                //{
+                //    message += ", has NOT been purged due to non-purgeable WeenieType.";
+                //    if (!String.IsNullOrWhiteSpace(reason))
+                //        message += $" Reason: {reason}.";
+                //    log.Debug(message);
 
-                    return false;
-                }
+                //    return false;
+                //}
 
                 message += $", has been purged.";
                 if (!String.IsNullOrWhiteSpace(reason))
@@ -320,14 +321,15 @@ namespace ACE.Database
             {
                 // select * from `character` left join biota on biota.id=`character`.id where biota.id is null;
 
+                /* EF Core 2.2.6 method
                 var query = from character in context.Character
-                    join biota in context.Biota on character.Id equals biota.Id into combined
-                    from b in combined.DefaultIfEmpty()
-                    where b == null
-                    select new
-                    {
-                        id = character.Id,
-                    };
+                            join biota in context.Biota on character.Id equals biota.Id into combined
+                            from b in combined.DefaultIfEmpty()
+                            where b == null
+                            select new
+                            {
+                                id = character.Id,
+                            };
 
                 // SELECT `character`.`id`
                 // FROM `character` AS `character`
@@ -335,10 +337,16 @@ namespace ACE.Database
                 // WHERE `biota`.`id` IS NULL
 
                 var results = query.ToList();
+                */
 
-                Parallel.ForEach(results, result =>
+                var playerBiotaIds = context.Biota.Select(r => r.Id).Where(id => id >= 0x50000000 && id <= 0x5FFFFFFF).ToList();
+                var characterIds = context.Character.Select(r => r.Id).ToList();
+
+                var results = characterIds.Except(playerBiotaIds);
+
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
-                    PurgeCharacter(result.id, out var charactersPurged, out var playerBiotasPurged, out var posessionsPurged, "No Player biota counterpart found");
+                    PurgeCharacter(result, out var charactersPurged, out var playerBiotasPurged, out var possessionPurged, "No Player biota counterpart found");
 
                     if (charactersPurged != 1)
                         log.Error("[DATABASE][PURGE] PurgeOrphanedBiotasInParallel failed to purge exactly 1 character. This should not happen!");
@@ -348,7 +356,7 @@ namespace ACE.Database
 
                     Interlocked.Add(ref totalNumberOfBiotasPurged, charactersPurged);
                     Interlocked.Add(ref totalNumberOfBiotasPurged, playerBiotasPurged);
-                    Interlocked.Add(ref totalNumberOfBiotasPurged, posessionsPurged);
+                    Interlocked.Add(ref totalNumberOfBiotasPurged, possessionPurged);
                 });
             }
 
@@ -356,15 +364,16 @@ namespace ACE.Database
             {
                 // select * from biota left join `character` on character.id=biota.id where biota.id >= 0x50000000 and biota.id <= 0x5FFFFFFF and character.id is null;
 
+                /* EF Core 2.2.6 method
                 var query = from biota in context.Biota
-                    join character in context.Character on biota.Id equals character.Id into combined
-                    where biota.Id >= 0x50000000 && biota.Id <= 0x5FFFFFFF
-                    from c in combined.DefaultIfEmpty()
-                    where c == null
-                    select new
-                    {
-                        id = biota.Id,
-                    };
+                            join character in context.Character on biota.Id equals character.Id into combined
+                            where biota.Id >= 0x50000000 && biota.Id <= 0x5FFFFFFF
+                            from c in combined.DefaultIfEmpty()
+                            where c == null
+                            select new
+                            {
+                                id = biota.Id,
+                            };
 
                 // SELECT `biota`.`id` AS `id0`, `biota`.`populated_Collection_Flags`, `biota`.`weenie_Class_Id`, `biota`.`weenie_Type`, `character`.`id`, `character`.`account_Id`, `character`.`character_Options_1`, `character`.`character_Options_2`, `character`.`default_Hair_Texture`, `character`.`delete_Time`, `character`.`gameplay_Options`, `character`.`hair_Texture`, `character`.`is_Deleted`, `character`.`is_Plussed`, `character`.`last_Login_Timestamp`, `character`.`name`, `character`.`spellbook_Filters`, `character`.`total_Logins`
                 // FROM `biota` AS `biota`
@@ -373,10 +382,16 @@ namespace ACE.Database
                 // ORDER BY `id0`
 
                 var results = query.ToList();
+                */
 
-                Parallel.ForEach(results, result =>
+                var playerBiotaIds = context.Biota.Select(r => r.Id).Where(id => id >= 0x50000000 && id <= 0x5FFFFFFF).ToList();
+                var characterIds = context.Character.Select(r => r.Id).ToList();
+
+                var results = playerBiotaIds.Except(characterIds);
+
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
-                    PurgePlayer(result.id, out var charactersPurged, out var playerBiotasPurged, out var posessionsPurged, "No Character record counterpart found");
+                    PurgePlayer(result, out var charactersPurged, out var playerBiotasPurged, out var possessionPurged, "No Character record counterpart found");
 
                     if (charactersPurged != 0)
                         log.Error("[DATABASE][PURGE] PurgeOrphanedBiotasInParallel purged a character record and a player biota. This should not happen!");
@@ -386,7 +401,7 @@ namespace ACE.Database
 
                     Interlocked.Add(ref totalNumberOfBiotasPurged, charactersPurged);
                     Interlocked.Add(ref totalNumberOfBiotasPurged, playerBiotasPurged);
-                    Interlocked.Add(ref totalNumberOfBiotasPurged, posessionsPurged);
+                    Interlocked.Add(ref totalNumberOfBiotasPurged, possessionPurged);
                 });
             }
 
@@ -394,15 +409,16 @@ namespace ACE.Database
             {
                 // select * from biota_properties_i_i_d iid left join biota on biota.id=iid.`value` where iid.`type`=2 and biota.id is null;
 
+                /* EF Core 2.2.6 method
                 var query = from iid in context.BiotaPropertiesIID
-                    join biota in context.Biota on iid.Value equals biota.Id into combined
-                    where iid.Type == (ushort)PropertyInstanceId.Container
-                    from b in combined.DefaultIfEmpty()
-                    where b == null
-                    select new
-                    {
-                        id = iid.ObjectId,
-                    };
+                            join biota in context.Biota on iid.Value equals biota.Id into combined
+                            where iid.Type == (ushort)PropertyInstanceId.Container
+                            from b in combined.DefaultIfEmpty()
+                            where b == null
+                            select new
+                            {
+                                id = iid.ObjectId,
+                            };
 
                 // SELECT `iid`.`id`, `iid`.`object_Id` AS `id0`, `iid`.`type`, `iid`.`value`, `biota`.`id`, `biota`.`populated_Collection_Flags`, `biota`.`weenie_Class_Id`, `biota`.`weenie_Type`
                 // FROM `biota_properties_i_i_d` AS `iid`
@@ -411,10 +427,16 @@ namespace ACE.Database
                 // ORDER BY `iid`.`value`
 
                 var results = query.ToList();
+                */
 
-                Parallel.ForEach(results, result =>
+                var biotaIds = context.Biota.Select(r => r.Id).ToList();
+                var iidRecords = context.BiotaPropertiesIID.Where(r => r.Type == (ushort)PropertyInstanceId.Container).ToList();
+
+                var results = iidRecords.Where(r => !biotaIds.Contains(r.Value));
+
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
-                    if (PurgeBiota(result.id, "Parent container not found"))
+                    if (PurgeBiota(result.ObjectId, "Parent container not found"))
                         Interlocked.Increment(ref totalNumberOfBiotasPurged);
                 });
 
@@ -424,15 +446,16 @@ namespace ACE.Database
             {
                 // select * from biota_properties_i_i_d iid left join biota on biota.id=iid.`value` where iid.`type`=3 and biota.id is null;
 
+                /* EF Core 2.2.6 method
                 var query = from iid in context.BiotaPropertiesIID
-                    join biota in context.Biota on iid.Value equals biota.Id into combined
-                    where iid.Type == (ushort)PropertyInstanceId.Wielder
-                    from b in combined.DefaultIfEmpty()
-                    where b == null
-                    select new
-                    {
-                        id = iid.ObjectId,
-                    };
+                            join biota in context.Biota on iid.Value equals biota.Id into combined
+                            where iid.Type == (ushort)PropertyInstanceId.Wielder
+                            from b in combined.DefaultIfEmpty()
+                            where b == null
+                            select new
+                            {
+                                id = iid.ObjectId,
+                            };
 
                 // SELECT `iid`.`id`, `iid`.`object_Id` AS `id0`, `iid`.`type`, `iid`.`value`, `biota`.`id`, `biota`.`populated_Collection_Flags`, `biota`.`weenie_Class_Id`, `biota`.`weenie_Type`
                 // FROM `biota_properties_i_i_d` AS `iid`
@@ -441,10 +464,16 @@ namespace ACE.Database
                 // ORDER BY `iid`.`value`
 
                 var results = query.ToList();
+                */
 
-                Parallel.ForEach(results, result =>
+                var biotaIds = context.Biota.Select(r => r.Id).ToList();
+                var iidRecords = context.BiotaPropertiesIID.Where(r => r.Type == (ushort)PropertyInstanceId.Wielder).ToList();
+
+                var results = iidRecords.Where(r => !biotaIds.Contains(r.Value));
+
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
-                    if (PurgeBiota(result.id, "Parent wielder not found"))
+                    if (PurgeBiota(result.ObjectId, "Parent wielder not found"))
                         Interlocked.Increment(ref totalNumberOfBiotasPurged);
                 });
 
@@ -455,15 +484,108 @@ namespace ACE.Database
                 var results = context.Biota
                     .Include(r => r.BiotaPropertiesIID)
                     .Include(r => r.BiotaPropertiesPosition)
+                    .Where(r => r.WeenieType != (int)WeenieType.Allegiance)
                     .Where(r => r.BiotaPropertiesIID.All(y => y.Type != (ushort)PropertyInstanceId.Container && y.Type != (ushort)PropertyInstanceId.Wielder))
                     .Where(r => r.BiotaPropertiesPosition.All(y => y.PositionType != (ushort)PositionType.Location))
                     .AsNoTracking()
                     .ToList();
 
                 // This is very time consuming
-                Parallel.ForEach(results, result =>
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
                     if (PurgeBiota(result.Id, "No parent Container, parent Wielder, or Location"))
+                        Interlocked.Increment(ref totalNumberOfBiotasPurged);
+                });
+            }
+
+            // Purge allegiances biotas that have no valid monarch or are duplicates as a result of double init on first swear
+            {
+                var monarchs = context.Biota
+                    .Include(r => r.BiotaPropertiesIID)
+                    .Where(r => r.WeenieType == (int)WeenieType.Creature
+                             || r.WeenieType == (int)WeenieType.Admin
+                             || r.WeenieType == (int)WeenieType.Sentinel
+                    )
+                    .AsNoTracking()
+                    .ToList()
+                    .Select(r => r.GetProperty(PropertyInstanceId.Monarch) ?? 0)
+                    .Distinct()
+                    .ToList();
+
+                //monarchs = monarchs.OrderBy(r => r).ToList();
+
+                //if (monarchs.Contains(0))
+                //    monarchs.Remove(0);
+
+                var allegiances = context.Biota
+                    .Include(r => r.BiotaPropertiesIID)
+                    .Where(r => r.WeenieType == (int)WeenieType.Allegiance)
+                    .AsNoTracking()
+                    .ToList();
+
+                //var results = new List<Biota>();
+                //foreach (var allegiance in allegiances)
+                //{
+                //    if (results.Contains(allegiance))
+                //        continue;
+
+                //    var monarchIID = allegiance.BiotaPropertiesIID.FirstOrDefault(m => m.Type == (int)PropertyInstanceId.Monarch).Value;
+                //    if (!monarchs.Contains(monarchIID))
+                //        results.Add(allegiance);
+                //    else
+                //    {
+                //        var x = results.Where(a => a.GetProperty(PropertyInstanceId.Monarch) == monarchIID).FirstOrDefault();
+                //        if (x == null)
+                //        {
+                //            var y = allegiances.Where(a => a.GetProperty(PropertyInstanceId.Monarch) == monarchIID).SkipWhile(a => a.Id == allegiance.Id).ToList();
+                //            results.AddRange(y);
+                //        }
+                //    }
+                //}
+
+                //Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
+                //{
+                //    if (PurgeBiota(result.Id, "Allegiance has no valid monarch or is an unused duplicate"))
+                //        Interlocked.Increment(ref totalNumberOfBiotasPurged);
+                //});
+
+                var results = new List<Biota>();
+                foreach (var allegiance in allegiances)
+                {
+                    if (results.Contains(allegiance))
+                        continue;
+
+                    var monarchIID = allegiance.BiotaPropertiesIID.FirstOrDefault(m => m.Type == (int)PropertyInstanceId.Monarch).Value;
+
+                    if (!monarchs.Contains(monarchIID))
+                        results.Add(allegiance);
+                }
+
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
+                {
+                    if (PurgeBiota(result.Id, "Allegiance has no valid monarch"))
+                        Interlocked.Increment(ref totalNumberOfBiotasPurged);
+                });
+
+                results = new List<Biota>();
+                foreach (var allegiance in allegiances)
+                {
+                    if (results.Contains(allegiance))
+                        continue;
+
+                    var monarchIID = allegiance.BiotaPropertiesIID.FirstOrDefault(m => m.Type == (int)PropertyInstanceId.Monarch).Value;
+
+                    //var allegianceToKeep = results.Where(a => a.GetProperty(PropertyInstanceId.Monarch) == monarchIID).FirstOrDefault();
+                    //if (allegianceToKeep == null)
+                    //{
+                        var allegiancesToPurge = allegiances.Where(a => a.GetProperty(PropertyInstanceId.Monarch) == monarchIID).SkipWhile(a => a.Id == allegiance.Id).ToList();
+                        results.AddRange(allegiancesToPurge);
+                    //}
+                }
+
+                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
+                {
+                    if (PurgeBiota(result.Id, "Allegiance is an unused duplicate"))
                         Interlocked.Increment(ref totalNumberOfBiotasPurged);
                 });
             }
@@ -809,6 +931,98 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
                 PurgeOrphanedBiotasInParallel(context, out numberOfBiotasPurged);
+        }
+
+        /// <summary>
+        /// This is temporary and can be removed in the near future, 2020-04-05 Mag-nus
+        /// </summary>
+        public static void FixAnimPartAndTextureMapFromPR2731(out int numberOfRecordsFixed)
+        {
+            numberOfRecordsFixed = 0;
+
+            using (var context = new ShardDbContext())
+            {
+                // BiotaPropertiesAnimPart
+                var animPartNullRecords = context.BiotaPropertiesAnimPart.Where(r => r.Order == null).Select(r => r.ObjectId).ToList();
+
+                var animPartRecordsToRemove = context.BiotaPropertiesAnimPart.Where(r => animPartNullRecords.Contains(r.ObjectId) && r.Order != null).ToList();
+
+                numberOfRecordsFixed += animPartRecordsToRemove.Count;
+
+                foreach (var recordToRemove in animPartRecordsToRemove)
+                    context.BiotaPropertiesAnimPart.Remove(recordToRemove);
+
+                // BiotaPropertiesTextureMap
+                var textureMapNullRecords = context.BiotaPropertiesTextureMap.Where(r => r.Order == null).Select(r => r.ObjectId).ToList();
+
+                var textureMapRecordsToRemove = context.BiotaPropertiesTextureMap.Where(r => textureMapNullRecords.Contains(r.ObjectId) && r.Order != null).ToList();
+
+                numberOfRecordsFixed += textureMapRecordsToRemove.Count;
+
+                foreach (var recordToRemove in textureMapRecordsToRemove)
+                    context.BiotaPropertiesTextureMap.Remove(recordToRemove);
+
+                // Save
+                context.SaveChanges();
+            }
+        }
+
+        /// <summary>
+        /// This is temporary and can be removed in the near future, 2020-04-12 Ripley
+        /// </summary>
+        public static void CheckForPR2918Script()
+        {
+            log.Info($"Checking for 2020-04-11-00-Update-Character-SpellBars.sql patch");
+
+            using (var context = new ShardDbContext())
+            {
+                var characterSpellBarsNotFixed = context.CharacterPropertiesSpellBar.Where(c => c.SpellBarNumber == 0).ToList();
+
+                if (characterSpellBarsNotFixed.Count > 0)
+                {
+                    log.Warn("2020-04-11-00-Update-Character-SpellBars.sql patch not yet applied. Please apply this patch ASAP! Skipping FixSpellBarsPR2918 for now...");
+                    log.Fatal("2020-04-11-00-Update-Character-SpellBars.sql patch not yet applied. You must apply this patch before proceeding further...");
+                    Environment.Exit(1);
+                    return;
+                }
+            }
+
+            log.Info($"2020-04-11-00-Update-Character-SpellBars.sql patch has been successfully installed. Before opening world to players, make sure you've run fix-spell-bars command from console");
+        }
+
+        /// <summary>
+        /// <para>unknown how this column keeps deleting, but it is likely a bug that is a result of auto (world only?) database updates that repros under currently unknown conditions</para>
+        /// this checks for and attempts to correct shard database missing order column
+        /// </summary>
+        public static void CheckForBiotaPropertiesPaletteOrderColumnInShard()
+        {
+            //log.Info($"Checking for order column in biota_properties_palette table in shard database...");
+
+            using (var context = new ShardDbContext())
+            {
+                try
+                {
+                    var result = context.BiotaPropertiesPalette.FirstOrDefault();
+                }
+                catch (MySql.Data.MySqlClient.MySqlException)
+                {
+                    log.Warn("order column in biota_properties_palette table in shard database is missing! Attempting to fix...");
+                    try
+                    {
+                        context.Database.ExecuteSqlRaw("ALTER TABLE `biota_properties_palette` ADD COLUMN `order` TINYINT(3) UNSIGNED NULL DEFAULT NULL AFTER `length`;");
+
+                        var result = context.BiotaPropertiesPalette.FirstOrDefault();
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Fatal($"Unable to restore order column in biota_properties_palette table in shard database due to following error: {ex.GetFullMessage()}");
+                        Environment.Exit(1);
+                        return;
+                    }
+                }
+            }
+
+            //log.Info($"Successfully verified order column in biota_properties_palette table in shard database!");
         }
     }
 }

@@ -285,5 +285,37 @@ namespace ACE.Server.Physics.Common
             Polygon poly = null;
             return find_terrain_poly(point, ref poly);
         }
+
+        public override bool handle_move_restriction(Transition transition)
+        {
+            var offset = Pos.GetOffset(transition.SpherePath.CurPos);
+
+            if (offset.Y >= -LandDefs.HalfSquareLength)
+            {
+                if (offset.Y <= LandDefs.HalfSquareLength)
+                {
+                    offset.Y = 0;
+                    if (offset.X < -LandDefs.HalfSquareLength)
+                        offset.X = -1.0f;
+                    else
+                        offset.X = 1.0f;
+                }
+                else
+                {
+                    offset.X = 0;
+                    offset.Y = 1.0f;
+                }
+            }
+            else
+            {
+                offset.X = 0;
+                offset.Y = -1.0f;
+            }
+            var normal = new Vector3(offset.X, offset.Y, 0);
+
+            transition.CollisionInfo.SetCollisionNormal(normal);
+
+            return true;
+        }
     }
 }

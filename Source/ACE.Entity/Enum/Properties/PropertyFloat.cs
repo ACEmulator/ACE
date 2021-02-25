@@ -69,6 +69,7 @@ namespace ACE.Entity.Enum.Properties
         ReleasedTimestamp              = 56,
         MinHomeRadius                  = 57,
         Facing                         = 58,
+        [Ephemeral]
         ResetTimestamp                 = 59,
         LogoffTimestamp                = 60,
         EconRecoveryInterval           = 61,
@@ -86,7 +87,6 @@ namespace ACE.Entity.Enum.Properties
         ResistStaminaBoost             = 73,
         ResistManaDrain                = 74,
         ResistManaBoost                = 75,
-        [Ephemeral]
         Translucency                   = 76,
         PhysicsScriptIntensity         = 77,
         Friction                       = 78,
@@ -110,6 +110,7 @@ namespace ACE.Entity.Enum.Properties
         CheckpointTimestamp            = 96,
         SoldTimestamp                  = 97,
         UseTimestamp                   = 98,
+        [Ephemeral]
         UseLockTimestamp               = 99,
         HealkitMod                     = 100,
         FrozenTimestamp                = 101,

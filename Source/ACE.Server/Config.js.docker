@@ -1,0 +1,211 @@
+{
+  "Server": {
+    "WorldName": "ACEmulator",
+
+    "Network": {
+      // Host, default: "0.0.0.0"
+      // In most cases, you will not need to change this setting. Special networking conditions, or multiple network adapters would be examples of times where you might need to change this.
+      "Host": "0.0.0.0",
+
+      // Port, default: 9000
+      // This also opens the next port up, 9001, for server to client communications. When changed, it will open the port specified and +1 of that port.
+      // For firewalls, you would need to include opening both ports (9000 and 9001) for communications to work correctly.
+      "Port": 9000,
+
+      "MaximumAllowedSessions": 128,
+      "DefaultSessionTimeout": 60,
+
+      // MaximumAllowedSessionsPerIPAddress, default: -1
+      // -1 means unlimited connections per IP Address.
+      "MaximumAllowedSessionsPerIPAddress": -1,
+
+     // AllowUlimitedSessionsFromIPs, default []
+     // Will allow the given IP addresses to have unlimited sessions - recommend only use this for Admins/Devs
+     // Example: [ "127.0.0.1", "8.8.8.8" ]
+     "AllowUnlimitedSessionsFromIPAddresses": []
+    },
+
+    "Accounts": {
+      "OverrideCharacterPermissions": true,
+      "DefaultAccessLevel": 0,
+      "AllowAutoAccountCreation": true,
+      "PasswordHashWorkFactor": 8,
+      "ForceWorkFactorMigration": true
+    },
+
+    // The folder that contains AC DAT files (client_cell_1.dat, client_portal.dat, client_highres.dat, client_local_English.dat)
+    // Note that for servers running on Linux, the ~ home folder must be fully expanded, ie. /home/user/ace/, instead of ~/ace/
+    // Note that for servers running on Windows, a path like c:\ace\ MUST be entered as c:\\ace\\, replacing the single backslashes (\) with double backslashes (\\)
+    "DatFilesDirectory": "/ace/Dats",
+
+    // ShutdownInterval, default: 60
+    // Default time it will take for a server to wait before shutting down after shutdown is called from console or in game admin.
+    "ShutdownInterval": "60",
+
+    // ServerPerformanceMonitorAutoStart, default: false
+    // Development recommendation: true
+    // Server recommendation: true
+    // Enable this to use the functionality of the command: /serverperformance
+    // Additional overhead is added but it is minimal.
+    // This can greatly help you (and ACE developers) understand what sections of ACE are underperforming.
+    "ServerPerformanceMonitorAutoStart": false,
+
+    "Threading": {
+      // This number is used to determine thread allocation for world systems (WorldObjects, Physics, etc...)
+      // (Total System vCPU * WorldThreadCountMultiplier) = World Thread Count
+      // (Total System vCPU - World Thread Count) = Database Thread Count
+      // On larger servers, you may want to raise this to 0.5
+      "WorldThreadCountMultiplier": 0.34,
+
+      // This number is used to determine thread allocation for database operations
+      // (Total System vCPU * DatabaseThreadCountMultiplier) = Database Thread Count
+      "DatabaseThreadCountMultiplier": 0.66,
+
+      // The following to booleans configure the levels of multi-threading enabled on the server
+      // The server will group landblocks that are close in distance into LandblockGroups (Dungeons are always 1 per group)
+      // This allows us to tick an entire LandblockGroup on a single thread
+      // The thread safety boundary surrounds the LandblockGroup and separates groups from each other
+      // Optionally, if the following booleans are enabled, we can tick LandblockGroups in parallel
+
+      // This will multi-thread physics engine
+      "MultiThreadedLandblockGroupPhysicsTicking": true,
+
+      // This will multi-thread world object ticking
+      // This is a much more involved process as world object ticking interacts with server global constructs like Allegiances, Fellowships, Housing, etc..
+      // There is much more cross-landblock group work happening here
+      "MultiThreadedLandblockGroupTicking": true
+    },
+
+    // ShardPlayerBiotaCacheTime, default: 31
+    // The amount of minutes to keep in memory a player object from shard database.
+    "ShardPlayerBiotaCacheTime": "31",
+
+    // ShardNonPlayerBiotaCacheTime, default: 11
+    // The amount of minutes to keep in memory a non player object from shard database.
+    "ShardNonPlayerBiotaCacheTime": "11",
+
+    // WorldDatabasePrecaching, default: false
+    // Development recommendation: false
+    // Server recommendation: true
+    // Enable this to cache the world database at startup.
+    // This will add about 1-2 minutes to server startup time and will consume about 1.7 GB of RAM
+    // With this disabled, caching happens on an as-requested basis and can cause the server to feel less responsive.
+    "WorldDatabasePrecaching": false,
+
+    // LandblockPreloading, defaut: true
+    // Development recommendation: true
+    // Server recommendation: true
+    // This makes sure that perma-load landblocks are loaded.
+    // Perma-load landblocks are landblocks that can contain server-wide mechanics and should always be active.
+    "LandblockPreloading": true,
+
+    // PreloadedLandblock
+    // These are the default pre-loaded and perma-loaded landblocks.
+    // In most cases you should not need to adjust them.
+    // This section requires LandblockPreloading to be true
+    "PreloadedLandblocks": [
+        {
+            "Id": "E74EFFFF",
+            "Description": "Hebian-To (Global Events)",
+            "Permaload": true,
+            "IncludeAdjacents": false,
+            "Enabled": true
+        },
+        {
+            "Id": "A9B4FFFF",
+            "Description": "Holtburg",
+            "Permaload": true,
+            "IncludeAdjacents": true,
+            "Enabled": false
+        },
+        {
+            "Id": "DA55FFFF",
+            "Description": "Shoushi",
+            "Permaload": true,
+            "IncludeAdjacents": true,
+            "Enabled": false
+        },
+        {
+            "Id": "7D64FFFF",
+            "Description": "Yaraq",
+            "Permaload": true,
+            "IncludeAdjacents": true,
+            "Enabled": false
+        },
+        {
+            "Id": "0007FFFF",
+            "Description": "Town Network",
+            "Permaload": true,
+            "IncludeAdjacents": false,
+            "Enabled": false
+        },
+        {
+            "Id": "00000000",
+            "Description": "Apartment Landblocks",
+            "Permaload": true,
+            "IncludeAdjacents": false,
+            "Enabled": false
+        }
+    ]
+  },
+  "MySql": {
+    "Authentication": {
+      "Host": "ace-db",
+      "Port": 3306,
+      "Database": "ace_auth",
+      "Username": "acedockeruser",
+      "Password": "2020acEmulator2017"
+    },
+    "Shard": {
+      "Host": "ace-db",
+      "Port": 3306,
+      "Database": "ace_shard",
+      "Username": "acedockeruser",
+      "Password": "2020acEmulator2017"
+    },
+    "World": {
+      "Host": "ace-db",
+      "Port": 3306,
+      "Database": "ace_world",
+      "Username": "acedockeruser",
+      "Password": "2020acEmulator2017"
+    }
+  },
+  // This section can trigger events that may happen before the world starts up, or after it shuts down
+  // The shard should be in a disconnected state from any running ACE world
+  "Offline": {
+    // Purge characters that have been deleted longer than PruneDeletedCharactersDays
+    // These characters, and their associated biotas, will be deleted permanantly!
+    "PurgeDeletedCharacters": false,
+
+    // Number of days a character must have been deleted for before eligible for purging
+    "PurgeDeletedCharactersDays": 30,
+
+    // This will purge biotas that are completely disconnected from the world
+    // These may have been items that were never deleted properly, items that were given to the town crier before delete was implemented, etc...
+    // This can be time consuming so it's not something you would have set to true for every server startup. You might run this once every few months
+    "PurgeOrphanedBiotas": false,
+
+    // Automatically apply new updates to databases upon startup if they haven't yet been applied
+    "AutoApplyDatabaseUpdates": true,
+
+    // Automatically check for and update to latest available world database
+    "AutoUpdateWorldDatabase": true,
+
+    // After updating to latest world database, automatically import further customizations
+    // AutoUpdateWorldDatabase must be true for this option to be used
+    // SQL files will be executed given the sort order of the full paths of the files
+    "AutoApplyWorldCustomizations": true,
+
+    // When AutoApplyWorldCustomizations is set to true, the auto apply process will search for
+    // all .sql files in the following directories.
+    // This process will still use ./Content by default, or the the config_properties_string
+    // value for 'content_folder' if it exists
+    // Example: [ "C:\\MyContent", "C:\\FTPRoot\\Editor1Content", "C:\\FTPRoot\\Editor2Content" ]
+    "WorldCustomizationAddedPaths": [],
+
+     // When retrieving a file list of .sql files in the AutoApplyWorldCustomizations process
+     // this will cause the file search to retrieve all files recursively from each directory
+     "RecurseWorldCustomizationPaths": true
+  }
+}

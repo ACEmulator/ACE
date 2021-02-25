@@ -235,7 +235,8 @@ namespace ACE.Server.Physics
         public TransitionState IntersectsSphere(Position position, float scale, Transition transition, bool isCreature)
         {
             var globPos = transition.SpherePath.CheckPos.LocalToGlobal(position, Center * scale);
-            return new Sphere(globPos, Radius * scale).IntersectsSphere(transition, isCreature);
+            var sphere = new Sphere(globPos, Radius * scale);
+            return sphere.IntersectsSphere(transition, isCreature);
         }
 
         /// <summary>

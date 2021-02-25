@@ -265,7 +265,7 @@ namespace ACE.Server.Physics.Animation
             foreach (var hook in animFrame.Hooks)
             {
                 if (hook.Direction == AnimationHookDir.Both || hook.Direction == dir)
-                    HookObj.add_anim_hook(new AnimHook(hook));
+                    HookObj.add_anim_hook(hook);
             }
         }
 
@@ -434,10 +434,7 @@ namespace ACE.Server.Physics.Animation
             {
                 var node = AnimList.First;
                 if (!node.Equals(FirstCyclic))
-                {
-                    var animDoneHook = new AnimDoneHook();  // static?
-                    HookObj.add_anim_hook(animDoneHook);
-                }
+                    HookObj.add_anim_hook(AnimationHook.AnimDoneHook);
             }
 
             advance_to_next_animation(timeElapsed, ref animNode, ref frameNum, ref frame);

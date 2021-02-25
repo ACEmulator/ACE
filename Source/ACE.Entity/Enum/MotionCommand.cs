@@ -421,9 +421,9 @@ namespace ACE.Entity.Enum
 
     public static class MotionCommandHelper
     {
-        public static MotionCommand GetMotion(int motionCommand)
+        public static MotionCommand GetMotion(MotionCommand motionCommand)
         {
-            if (motionCommand == 0x10000162)
+            if ((int)motionCommand == 0x10000162)
                 return MotionCommand.Fishing;
 
             return (MotionCommand)motionCommand;
@@ -531,6 +531,41 @@ namespace ACE.Entity.Enum
 
                 default:
                     return MotionCommand.Invalid;
+            }
+        }
+
+        public static float GetAimAngle(this MotionCommand motion)
+        {
+            switch (motion)
+            {
+                default:
+                    return 0.0f;
+
+                case MotionCommand.AimHigh15:
+                    return 15.0f;
+                case MotionCommand.AimHigh30:
+                    return 30.0f;
+                case MotionCommand.AimHigh45:
+                    return 45.0f;
+                case MotionCommand.AimHigh60:
+                    return 60.0f;
+                case MotionCommand.AimHigh75:
+                    return 75.0f;
+                case MotionCommand.AimHigh90:
+                    return 90.0f;
+
+                case MotionCommand.AimLow15:
+                    return -15.0f;
+                case MotionCommand.AimLow30:
+                    return -30.0f;
+                case MotionCommand.AimLow45:
+                    return -45.0f;
+                case MotionCommand.AimLow60:
+                    return -60.0f;
+                case MotionCommand.AimLow75:
+                    return -75.0f;
+                case MotionCommand.AimLow90:
+                    return -90.0f;
             }
         }
     }
