@@ -37,8 +37,8 @@ namespace ACE.Server.WorldObjects
                 var animSpeed = GetAnimSpeed();
                 //Console.WriteLine($"AnimSpeed: {animSpeed}");
 
-                animLength = EnqueueMotion(actionChain, MotionCommand.Reload, animSpeed);   // start pulling out next arrow
-                EnqueueMotion(actionChain, MotionCommand.Ready);    // finish reloading
+                animLength = EnqueueMotionPersist(actionChain, MotionCommand.Reload, animSpeed);   // start pulling out next arrow
+                EnqueueMotionPersist(actionChain, MotionCommand.Ready);    // finish reloading
             }
 
             // ensure ammo visibility for players

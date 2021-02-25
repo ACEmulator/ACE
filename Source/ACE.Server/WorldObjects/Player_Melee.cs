@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
@@ -381,6 +382,10 @@ namespace ACE.Server.WorldObjects
 
             // broadcast player swing animation to clients
             var motion = new Motion(this, swingAnimation, animSpeed);
+            if (PropertyManager.GetBool("persist_movement").Item)
+            {
+                motion.Persist(CurrentMotionState);
+            }
             motion.MotionState.TurnSpeed = 2.25f;
             motion.MotionFlags |= MotionFlags.StickToObject;
             motion.TargetGuid = target.Guid;

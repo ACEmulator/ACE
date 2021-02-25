@@ -146,5 +146,23 @@ namespace ACE.Server.Entity
             MotionState.ForwardCommand = motion;
             MotionState.ForwardSpeed = speed;
         }
+
+        public void SetSidestepCommand(MotionCommand motion, float speed = 1.0f)
+        {
+            MotionState.SidestepCommand = motion;
+            MotionState.SidestepSpeed = speed;
+        }
+
+        public void SetTurnCommand(MotionCommand motion, float speed = 1.0f)
+        {
+            MotionState.TurnCommand = motion;
+            MotionState.TurnSpeed = speed;
+        }
+
+        public void Persist(Motion motion)
+        {
+            SetSidestepCommand(motion.MotionState.SidestepCommand, motion.MotionState.SidestepSpeed);
+            SetTurnCommand(motion.MotionState.TurnCommand, motion.MotionState.TurnSpeed);
+        }
     }
 }
