@@ -96,7 +96,7 @@ namespace ACE.Server.Entity
 
             var msg = new GameMessageSystemChat($"The cloak of {defender.Name} weaves the magic of {spell.Name}!", ChatMessageType.Spellcasting);
 
-            defender.EnqueueBroadcast(msg, WorldObject.LocalBroadcastRange, ChatMessageType.Magic);
+            defender.EnqueueBroadcast(msg, WorldObject.LocalBroadcastRange, ChatMessageType.Spellcasting);
 
             defender.TryCastSpell(spell, target, cloak, false, false);
 
