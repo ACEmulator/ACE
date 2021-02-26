@@ -244,7 +244,7 @@ namespace ACE.Server.Managers
             double successChance;
             bool incItemTinkered = true;
 
-            log.Debug($"[TINKERING] {player.Name}.HandleTinkering({tool.NameWithMaterial}, {target.NameWithMaterial})");
+            log.Debug($"[TINKERING] {player.Name}.HandleTinkering({tool.NameWithMaterial}, {target.NameWithMaterial}) | Status: {(confirmed ? "" : "un")}confirmed");
 
             // calculate % success chance
 
@@ -1030,7 +1030,7 @@ namespace ACE.Server.Managers
 
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Craft));
 
-                log.Debug($"[CRAFTING] {player.Name} used {source.NameWithMaterial} on {source.NameWithMaterial} {(success ? "" : "un")}successfully. {(destroySource? $"| {source.NameWithMaterial} was destroyed " :"")}{(destroyTarget ? $"| {target.NameWithMaterial} was destroyed " : "")}| {message}");
+                log.Debug($"[CRAFTING] {player.Name} used {source.NameWithMaterial} on {target.NameWithMaterial} {(success ? "" : "un")}successfully. {(destroySource? $"| {source.NameWithMaterial} was destroyed " :"")}{(destroyTarget ? $"| {target.NameWithMaterial} was destroyed " : "")}| {message}");
             }
         }
 
