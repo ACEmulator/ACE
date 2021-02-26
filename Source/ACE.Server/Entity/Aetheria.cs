@@ -230,6 +230,8 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyString.LongDesc, "This aetheria's sigil now shows on the surface.");
             player.Session.Network.EnqueueSend(new GameMessageUpdateObject(target));
 
+            target.SaveBiotaToDatabase();
+
             player.SendUseDoneEvent();
         }
 
