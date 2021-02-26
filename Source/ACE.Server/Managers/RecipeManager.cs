@@ -1029,6 +1029,8 @@ namespace ACE.Server.Managers
                 var message = success ? recipe.SuccessMessage : recipe.FailMessage;
 
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Craft));
+
+                log.Debug($"[CRAFTING] {player.Name} used {source.NameWithMaterial} on {source.NameWithMaterial} {(success ? "" : "un")}successfully. {(destroySource? $"| {source.NameWithMaterial} was destroyed " :"")}{(destroyTarget ? $"| {target.NameWithMaterial} was destroyed " : "")}| {message}");
             }
         }
 
