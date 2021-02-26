@@ -244,7 +244,7 @@ namespace ACE.Server.Managers
             double successChance;
             bool incItemTinkered = true;
 
-            Console.WriteLine($"{player.Name}.HandleTinkering({tool.NameWithMaterial}, {target.NameWithMaterial})");
+            log.Debug($"[TINKERING] {player.Name}.HandleTinkering({tool.NameWithMaterial}, {target.NameWithMaterial})");
 
             // calculate % success chance
 
@@ -349,6 +349,8 @@ namespace ACE.Server.Managers
 
             if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) || !UseSkillCheck((Skill)recipe.Skill, tool.MaterialType ?? 0))
                 player.SendUseDoneEvent();
+
+            log.Debug($"[TINKERING] {player.Name} {(success ? "successfully applies" : "fails to apply")} the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.{(!success && incItemTinkered ? " The target is destroyed." : "")} | Chance: {chance}");
         }
 
         public static void Tinkering_ModifyItem(Player player, WorldObject tool, WorldObject target, bool incItemTinkered = true)
@@ -1027,6 +1029,8 @@ namespace ACE.Server.Managers
                 var message = success ? recipe.SuccessMessage : recipe.FailMessage;
 
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Craft));
+
+                log.Debug($"[CRAFTING] {player.Name} used {source.NameWithMaterial} on {source.NameWithMaterial} {(success ? "" : "un")}successfully. {(destroySource? $"| {source.NameWithMaterial} was destroyed " :"")}{(destroyTarget ? $"| {target.NameWithMaterial} was destroyed " : "")}| {message}");
             }
         }
 
