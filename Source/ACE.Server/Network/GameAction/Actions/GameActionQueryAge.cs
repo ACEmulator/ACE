@@ -1,6 +1,7 @@
-using System;
+using System.Collections.Generic;
 
 using ACE.Common.Extensions;
+using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -9,43 +10,95 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.QueryAge)]
         public static void Handle(ClientMessage message, Session session)
         {
-            var target = message.Payload.ReadString16L(); // unused?
+            var target = message.Payload.ReadString16L();  // unused?
 
-            string ageMsg = "";
+            var ageMsg = CalculateAgeMessage(session.Player.Age ?? 0);
 
-            var ageSeconds = session.Player.Age.Value;
-            var years = ageSeconds / 31536000;
-            var months = ageSeconds % 31536000 / 2592000;
-            var _hours = ageSeconds % 31536000 % 2592000;
-            var weeks = _hours / 604800;
-            _hours %= 604800;
-            var days = _hours / 86400;
-            _hours %= 86400;
-            var hours = _hours / 3600;
-            _hours %= 3600;
-            var seconds = _hours % 60;
-            var minutes = _hours / 60;
+            session.Network.EnqueueSend(new GameEventQueryAgeResponse(session, string.Empty, ageMsg));
+        }
+
+        private static readonly int SecondsPerMinute = 60;
+        private static readonly int MinutesPerHour = 60;
+        private static readonly int HoursPerDay = 24;
+
+        private static readonly int DaysPerWeek = 7;
+        private static readonly int DaysPerMonth = 30;
+        private static readonly int DaysPerYear = 365;
+
+        private static readonly int SecondsPerHour = SecondsPerMinute * MinutesPerHour;     // 3600
+        private static readonly int SecondsPerDay = SecondsPerHour * HoursPerDay;           // 86400
+        private static readonly int SecondsPerWeek = SecondsPerDay * DaysPerWeek;           // 604800
+        private static readonly int SecondsPerMonth = SecondsPerDay * DaysPerMonth;         // 2592000
+        private static readonly int SecondsPerYear = SecondsPerDay * DaysPerYear;           // 31536000
+
+        public static string CalculateAgeMessage(int ageSeconds)
+        {
+            var years = 0;
+            var months = 0;
+            var weeks = 0;
+            var hours = 0;
+            var days = 0;
+            var minutes = 0;
+            var seconds = 0;
+
+            var remaining = ageSeconds;
+
+            if (remaining >= SecondsPerYear)
+            {
+                years = remaining / SecondsPerYear;
+                remaining -= years * SecondsPerYear;
+            }
+
+            if (remaining >= SecondsPerMonth)
+            {
+                months = remaining / SecondsPerMonth;
+                remaining -= months * SecondsPerMonth;
+            }
+
+            if (remaining >= SecondsPerWeek)
+            {
+                weeks = remaining / SecondsPerWeek;
+                remaining -= weeks * SecondsPerWeek;
+            }
+
+            if (remaining >= SecondsPerDay)
+            {
+                days = remaining / SecondsPerDay;
+                remaining -= days * SecondsPerDay;
+            }
+
+            if (remaining >= SecondsPerHour)
+            {
+                hours = remaining / SecondsPerHour;
+                remaining -= hours * SecondsPerHour;
+            }
+
+            if (remaining >= SecondsPerMinute)
+            {
+                minutes = remaining / SecondsPerMinute;
+                remaining -= minutes * SecondsPerMinute;
+            }
+
+            seconds = remaining;
+
+            var pieces = new List<string>();
 
             if (years > 0)
-                ageMsg += $"{years}y ";
+                pieces.Add($"{years}y");
             if (months > 0)
-                ageMsg += $"{months}mo ";
+                pieces.Add($"{months}mo");
             if (weeks > 0)
-                ageMsg += $"{weeks}w ";
+                pieces.Add($"{weeks}w");
             if (days > 0)
-                ageMsg += $"{days}d ";
+                pieces.Add($"{days}d");
             if (hours > 0)
-                ageMsg += $"{hours}h ";
+                pieces.Add($"{hours}h");
             if (minutes > 0)
-                ageMsg += $"{minutes}m ";
+                pieces.Add($"{minutes}m");
             if (seconds > 0)
-                ageMsg += $"{seconds}s";
+                pieces.Add($"{seconds}s");
 
-            ageMsg = ageMsg.TrimEnd();
-
-            var ageEvent = new GameEvent.Events.GameEventQueryAgeResponse(session, "", ageMsg);
-
-            session.Network.EnqueueSend(ageEvent);
+            return string.Join(" ", pieces);
         }
     }
 }
