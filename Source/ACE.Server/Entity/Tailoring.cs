@@ -226,6 +226,9 @@ namespace ACE.Server.Entity
             target.PaletteBaseId = source.PaletteBaseId;
             target.ClothingBase = source.ClothingBase;
 
+            target.PhysicsTableId = source.PhysicsTableId;
+            target.SoundTableId = source.SoundTableId;
+
             target.Name = source.Name;
             target.LongDesc = LootGenerationFactory.GetLongDesc(target);
 

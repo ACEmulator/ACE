@@ -875,7 +875,12 @@ namespace ACE.Server.WorldObjects
                             {
                                 // portal recall
                                 var portal = GetPortal(recallDID.Value);
-                                if (portal == null) break;
+                                if (portal == null || portal.NoRecall)
+                                {
+                                    // You cannot recall that portal!
+                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotRecallPortal));
+                                    break;
+                                }
 
                                 var result = portal.CheckUseRequirements(targetPlayer);
                                 if (!result.Success)

@@ -195,6 +195,7 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(new GameEventAttackDone(Session, WeenieError.ActionCancelled));
 
+            AttackTarget = null;
             MeleeTarget = null;
             MissileTarget = null;
 
@@ -212,7 +213,7 @@ namespace ACE.Server.WorldObjects
 
             if (Attacking)
                 AttackCancelled = true;
-            else
+            else if (AttackTarget != null)
                 OnAttackDone();
 
             PhysicsObj.cancel_moveto();
