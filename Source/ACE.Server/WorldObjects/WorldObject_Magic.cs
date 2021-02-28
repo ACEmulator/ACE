@@ -1414,7 +1414,13 @@ namespace ACE.Server.WorldObjects
 
                 Trajectory.solve_ballistic_arc_lateral(startPos, speed, endPos, targetVelocity, gravity, out var velocity, out var time, out var impactPoint);
 
-                if (velocity != Vector3.Zero)   // intractable?
+                if (velocity == Vector3.Zero && useGravity && targetVelocity != Vector3.Zero)
+                {
+                    // intractable?
+                    // try to solve w/ zero velocity
+                    Trajectory.solve_ballistic_arc_lateral(startPos, speed, endPos, Vector3.Zero, gravity, out velocity, out time, out impactPoint);
+                }
+                if (velocity != Vector3.Zero)
                     return velocity;
             }
 
