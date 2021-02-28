@@ -330,16 +330,28 @@ namespace ACE.Server.WorldObjects
                 //Console.WriteLine("Dist: " + dist);
                 //Console.WriteLine("Velocity: " + PhysicsObj.Velocity);
 
-                if (this is SpellProjectile spellProjectile && spellProjectile.SpellType == ProjectileSpellType.Ring)
+                if (this is SpellProjectile spellProjectile)
                 {
-                    var dist = spellProjectile.SpawnPos.DistanceTo(Location);
-                    var maxRange = spellProjectile.Spell.BaseRangeConstant;
-                    //Console.WriteLine("Max range: " + maxRange);
-                    if (dist > maxRange)
+                    if (spellProjectile.Velocity == Vector3.Zero && spellProjectile.DebugVelocity < 30)
                     {
-                        PhysicsObj.set_active(false);
-                        spellProjectile.ProjectileImpact();
-                        return false;
+                        // todo: ensure this doesn't produce any false positives, then add mitigation code until fully debugged
+                        spellProjectile.DebugVelocity++;
+
+                        if (spellProjectile.DebugVelocity == 30)
+                            log.Error($"Spell projectile w/ zero velocity detected @ {spellProjectile.Location.ToLOCString()}, launched by {spellProjectile.Caster?.Name} ({spellProjectile.Caster?.Guid}), spell ID {spellProjectile.Spell?.Id} - {spellProjectile.Spell?.Name}");
+                    }
+
+                    if (spellProjectile.SpellType == ProjectileSpellType.Ring)
+                    {
+                        var dist = spellProjectile.SpawnPos.DistanceTo(Location);
+                        var maxRange = spellProjectile.Spell.BaseRangeConstant;
+                        //Console.WriteLine("Max range: " + maxRange);
+                        if (dist > maxRange)
+                        {
+                            PhysicsObj.set_active(false);
+                            spellProjectile.ProjectileImpact();
+                            return false;
+                        }
                     }
                 }
 

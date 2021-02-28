@@ -532,7 +532,7 @@ namespace ACE.Server.WorldObjects.Managers
             //var enchantments = GetEnchantments_TopLayer(WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock));
             var enchantments = WorldObject.Biota.PropertiesEnchantmentRegistry.Clone(WorldObject.BiotaDatabaseLock);
 
-            var filtered = enchantments.Where(e => e.PowerLevel <= maxPower);
+            var filtered = enchantments.Where(e => e.PowerLevel >= minPower && e.PowerLevel <= maxPower);
 
             // no dispel for enchantments from item sources (and vitae)
             filtered = filtered.Where(e => e.Duration != -1);
