@@ -1414,10 +1414,17 @@ namespace ACE.Server.WorldObjects
 
                 Trajectory.solve_ballistic_arc_lateral(startPos, speed, endPos, targetVelocity, gravity, out var velocity, out var time, out var impactPoint);
 
-                return velocity;
+                if (velocity == Vector3.Zero && useGravity && targetVelocity != Vector3.Zero)
+                {
+                    // intractable?
+                    // try to solve w/ zero velocity
+                    Trajectory.solve_ballistic_arc_lateral(startPos, speed, endPos, Vector3.Zero, gravity, out velocity, out time, out impactPoint);
+                }
+                if (velocity != Vector3.Zero)
+                    return velocity;
             }
-            else
-                return dir * speed;
+
+            return dir * speed;
         }
 
         public List<SpellProjectile> LaunchSpellProjectiles(Spell spell, WorldObject target, ProjectileSpellType spellType, WorldObject caster, List<Vector3> origins, Vector3 velocity, uint lifeProjectileDamage = 0)
