@@ -53,7 +53,7 @@ namespace ACE.Server.WorldObjects
 
         public bool TooBusyToRecall
         {
-            get => IsBusy || Teleporting || suicideInProgress;
+            get => IsBusy || suicideInProgress;     // recalls could be started from portal space?
         }
 
         public void HandleActionTeleToHouse()

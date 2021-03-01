@@ -1082,7 +1082,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (TooBusyToRecall)
+            if (IsBusy || Teleporting || suicideInProgress)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 return;
