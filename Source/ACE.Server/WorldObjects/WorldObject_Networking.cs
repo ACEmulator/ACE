@@ -74,7 +74,7 @@ namespace ACE.Server.WorldObjects
                 objDescriptionFlags &= ~ObjectDescriptionFlag.UiHidden;
 
             writer.Write((uint)weenieFlags);
-            writer.WriteString16L(Name ?? String.Empty);
+            writer.WriteString16L(Name ?? string.Empty);
             writer.WritePackedDword(WeenieClassId);
             writer.WritePackedDwordOfKnownType(IconId, 0x6000000);
             writer.Write((uint)ItemType);
@@ -1094,6 +1094,48 @@ namespace ACE.Server.WorldObjects
             {
                 if (castGesture && this is Player player && !player.MagicState.IsCasting)
                     return;
+
+                CurrentMotionState = motion;
+                EnqueueBroadcastMotion(motion);
+            });
+
+            if (half)
+                animLength *= 0.5f;
+
+            actionChain.AddDelaySeconds(animLength);
+
+            return animLength;
+        }
+
+        public float EnqueueMotionPersist(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, MotionCommand? prevCommand = null, bool castGesture = false, bool half = false)
+        {
+            if (!PropertyManager.GetBool("persist_movement").Item)
+            {
+                return EnqueueMotion(actionChain, motionCommand, speed, useStance, prevCommand, castGesture, half);
+            }
+
+            var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
+
+            if (castGesture)
+                stance = MotionStance.Magic;
+
+            var animLength = 0.0f;
+            if (prevCommand != null)
+            {
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand.Value, motionCommand, speed);
+            }
+            else
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
+
+            actionChain.AddAction(this, () =>
+            {
+                if (castGesture && this is Player player && !player.MagicState.IsCasting)
+                    return;
+
+                var motion = new Motion(stance, motionCommand, speed);
+                motion.Persist(CurrentMotionState);
+
+                motion.MotionState.TurnSpeed = 2.25f;  // ??
 
                 CurrentMotionState = motion;
                 EnqueueBroadcastMotion(motion);
