@@ -48,24 +48,30 @@ namespace ACE.Server.WorldObjects
                 if (LastCombatMode == CombatMode.Missile)
                     CombatMode = CombatMode.Missile;
                 else
+                {
+                    OnAttackDone();
                     return;
+                }
             }
 
             if (IsBusy || Teleporting || suicideInProgress)
             {
                 SendWeenieError(WeenieError.YoureTooBusy);
+                OnAttackDone();
                 return;
             }
 
             if (IsJumping)
             {
                 SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
+                OnAttackDone();
                 return;
             }
 
             if (PKLogout)
             {
                 SendWeenieError(WeenieError.YouHaveBeenInPKBattleTooRecently);
+                OnAttackDone();
                 return;
             }
 
@@ -75,19 +81,24 @@ namespace ACE.Server.WorldObjects
             // sanity check
             accuracyLevel = Math.Clamp(accuracyLevel, 0.0f, 1.0f);
 
-            if (weapon == null || weapon.IsAmmoLauncher && ammo == null) return;
+            if (weapon == null || weapon.IsAmmoLauncher && ammo == null)
+            {
+                OnAttackDone();
+                return;
+            }
 
             AttackHeight = (AttackHeight)attackHeight;
             AttackQueue.Add(accuracyLevel);
 
             if (MissileTarget == null)
-                AccuracyLevel = accuracyLevel;
+                AccuracyLevel = accuracyLevel;  // verify
 
             // get world object of target guid
             var target = CurrentLandblock?.GetObject(targetGuid) as Creature;
             if (target == null || target.Teleporting)
             {
                 //log.Warn($"{Name}.HandleActionTargetedMissileAttack({targetGuid:X8}, {AttackHeight}, {accuracyLevel}) - couldn't find creature target guid");
+                OnAttackDone();
                 return;
             }
 
@@ -95,7 +106,11 @@ namespace ACE.Server.WorldObjects
                 return;
 
             if (!CanDamage(target))
-                return;     // werror?
+            {
+                SendTransientError($"You cannot attack {target.Name}");
+                OnAttackDone();
+                return;
+            }
 
             //log.Info($"{Name}.HandleActionTargetedMissileAttack({targetGuid:X8}, {attackHeight}, {accuracyLevel})");
 
@@ -159,9 +174,17 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            var actionChain = new ActionChain();
+
+            if (subsequent && !IsFacing(target))
+            {
+                var rotateTime = Rotate(target);
+                actionChain.AddDelaySeconds(rotateTime);
+            }
+
             // launch animation
             // point of no return beyond this point -- cannot be cancelled
-            Attacking = true;
+            actionChain.AddAction(this, () => Attacking = true);
 
             if (subsequent)
             {
@@ -195,7 +218,6 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var actionChain = new ActionChain();
             var launchTime = EnqueueMotionPersist(actionChain, aimLevel);
 
             // launch projectile

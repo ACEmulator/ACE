@@ -408,7 +408,7 @@ namespace ACE.Server.WorldObjects
         /// Returns the percent of damage absorbed by layered armor + clothing
         /// </summary>
         /// <param name="armors">The list of armor/clothing covering the targeted body part</param>
-        public float GetArmorMod(DamageType damageType, List<WorldObject> armors, WorldObject weapon, float armorRendingMod = 1.0f)
+        public float GetArmorMod(Creature defender, DamageType damageType, List<WorldObject> armors, WorldObject weapon, float armorRendingMod = 1.0f)
         {
             var ignoreMagicArmor =  (weapon?.IgnoreMagicArmor ?? false)  || IgnoreMagicArmor;
             var ignoreMagicResist = (weapon?.IgnoreMagicResist ?? false) || IgnoreMagicResist;
@@ -420,7 +420,7 @@ namespace ACE.Server.WorldObjects
 
             // life spells
             // additive: armor/imperil
-            var bodyArmorMod = AttackTarget.EnchantmentManager.GetBodyArmorMod();
+            var bodyArmorMod = defender.EnchantmentManager.GetBodyArmorMod();
             if (ignoreMagicResist)
                 bodyArmorMod = IgnoreMagicResistScaled(bodyArmorMod);
 
@@ -487,8 +487,6 @@ namespace ACE.Server.WorldObjects
             Console.WriteLine("Base RL: " + resistance);*/
 
             // armor level additives
-            var target = AttackTarget as Creature;
-
             var armorMod = armor.EnchantmentManager.GetArmorMod();
 
             if (ignoreMagicArmor)

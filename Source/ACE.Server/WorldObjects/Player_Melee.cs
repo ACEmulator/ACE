@@ -58,24 +58,30 @@ namespace ACE.Server.WorldObjects
                 if (LastCombatMode == CombatMode.Melee)
                     CombatMode = CombatMode.Melee;
                 else
+                {
+                    OnAttackDone();
                     return;
+                }
             }
 
             if (IsBusy || Teleporting || suicideInProgress)
             {
                 SendWeenieError(WeenieError.YoureTooBusy);
+                OnAttackDone();
                 return;
             }
 
             if (IsJumping)
             {
                 SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
+                OnAttackDone();
                 return;
             }
 
             if (PKLogout)
             {
                 SendWeenieError(WeenieError.YouHaveBeenInPKBattleTooRecently);
+                OnAttackDone();
                 return;
             }
 
@@ -98,6 +104,7 @@ namespace ACE.Server.WorldObjects
             if (target == null)
             {
                 //log.Debug($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {AttackHeight}, {powerLevel}) - couldn't find target guid");
+                OnAttackDone();
                 return;
             }
 
@@ -105,11 +112,22 @@ namespace ACE.Server.WorldObjects
             if (creatureTarget == null)
             {
                 log.Warn($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {AttackHeight}, {powerLevel}) - target guid not creature");
+                OnAttackDone();
                 return;
             }
 
-            if (!CanDamage(creatureTarget) || !creatureTarget.IsAlive)
-                return;     // werror?
+            if (!CanDamage(creatureTarget))
+            {
+                SendTransientError($"You cannot attack {creatureTarget.Name}");
+                OnAttackDone();
+                return;
+            }
+
+            if (!creatureTarget.IsAlive)
+            {
+                OnAttackDone();
+                return;
+            }
 
             //log.Info($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {attackHeight}, {powerLevel})");
 
@@ -130,7 +148,11 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddDelaySeconds(delayTime);
                 actionChain.AddAction(this, () =>
                 {
-                    if (!creatureTarget.IsAlive) return;
+                    if (!creatureTarget.IsAlive)
+                    {
+                        OnAttackDone();
+                        return;
+                    }
 
                     HandleActionTargetedMeleeAttack_Inner(target, attackSequence);
                 });
@@ -196,6 +218,7 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(new GameEventAttackDone(Session, WeenieError.ActionCancelled));
 
+            AttackTarget = null;
             MeleeTarget = null;
             MissileTarget = null;
 
@@ -213,7 +236,7 @@ namespace ACE.Server.WorldObjects
 
             if (Attacking)
                 AttackCancelled = true;
-            else
+            else if (AttackTarget != null)
                 OnAttackDone();
 
             PhysicsObj.cancel_moveto();
