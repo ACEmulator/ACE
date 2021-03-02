@@ -150,6 +150,12 @@ namespace ACE.Server.Network.Handlers
                         if (PropertyManager.GetBool("chat_echo_reject").Item)
                             session.Network.EnqueueSend(gameMessageTurbineChat);
 
+                        if (PropertyManager.GetBool("chat_inform_reject").Item)
+                        {
+                            session.Network.EnqueueSend(new GameEvent.Events.GameEventCommunicationTransientString(session, $"{channelID} is currently disabled for you because this account is not 15 days old."));
+                            session.Network.EnqueueSend(new GameMessageSystemChat($"{channelID} is currently disabled for you because this account is not 15 days old.", ChatMessageType.Broadcast));
+                        }
+
                         session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                         return;
                     }
@@ -159,6 +165,12 @@ namespace ACE.Server.Network.Handlers
                     {
                         if (PropertyManager.GetBool("chat_echo_reject").Item)
                             session.Network.EnqueueSend(gameMessageTurbineChat);
+
+                        if (PropertyManager.GetBool("chat_inform_reject").Item)
+                        {
+                            session.Network.EnqueueSend(new GameEvent.Events.GameEventCommunicationTransientString(session, $"{channelID} is currently disabled for you because this account is not old enough."));
+                            session.Network.EnqueueSend(new GameMessageSystemChat($"{channelID} is currently disabled for you because this account is not old enough.", ChatMessageType.Broadcast));
+                        }
 
                         session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                         return;
@@ -170,6 +182,12 @@ namespace ACE.Server.Network.Handlers
                         if (PropertyManager.GetBool("chat_echo_reject").Item)
                             session.Network.EnqueueSend(gameMessageTurbineChat);
 
+                        if (PropertyManager.GetBool("chat_inform_reject").Item)
+                        {
+                            session.Network.EnqueueSend(new GameEvent.Events.GameEventCommunicationTransientString(session, $"{channelID} is currently disabled for you because this character has not been played enough."));
+                            session.Network.EnqueueSend(new GameMessageSystemChat($"{channelID} is currently disabled for you because this character has not been played enough.", ChatMessageType.Broadcast));
+                        }
+
                         session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                         return;
                     }
@@ -179,6 +197,12 @@ namespace ACE.Server.Network.Handlers
                     {
                         if (PropertyManager.GetBool("chat_echo_reject").Item)
                             session.Network.EnqueueSend(gameMessageTurbineChat);
+
+                        if (PropertyManager.GetBool("chat_inform_reject").Item)
+                        {
+                            session.Network.EnqueueSend(new GameEvent.Events.GameEventCommunicationTransientString(session, $"{channelID} is currently disabled for you because this character has reached level {chat_requires_player_level}."));
+                            session.Network.EnqueueSend(new GameMessageSystemChat($"{channelID} is currently disabled for you because this character has reached level {chat_requires_player_level}.", ChatMessageType.Broadcast));
+                        }
 
                         session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                         return;
@@ -200,6 +224,12 @@ namespace ACE.Server.Network.Handlers
                         {
                             if (PropertyManager.GetBool("chat_echo_reject").Item)
                                 session.Network.EnqueueSend(gameMessageTurbineChat);
+
+                            if (PropertyManager.GetBool("chat_inform_reject").Item)
+                            {
+                                session.Network.EnqueueSend(new GameEvent.Events.GameEventCommunicationTransientString(session, $"{channelID} is currently disabled."));
+                                session.Network.EnqueueSend(new GameMessageSystemChat($"{channelID} is currently disabled.", ChatMessageType.Broadcast));
+                            }
 
                             session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, contextId, null, null, 0, chatType));
                             return;

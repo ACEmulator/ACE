@@ -514,6 +514,7 @@ namespace ACE.Server.Managers
                 ("chat_disable_trade", new Property<bool>(false, "disable trade global chat channel")),
                 ("chat_echo_only", new Property<bool>(false, "global chat returns to sender only")),
                 ("chat_echo_reject", new Property<bool>(false, "global chat returns to sender on reject")),
+                ("chat_inform_reject", new Property<bool>(true, "global chat informs sender on reason for reject")),
                 ("chat_log_abuse", new Property<bool>(false, "log abuse chat")),
                 ("chat_log_admin", new Property<bool>(false, "log admin chat")),
                 ("chat_log_advocate", new Property<bool>(false, "log advocate chat")),
