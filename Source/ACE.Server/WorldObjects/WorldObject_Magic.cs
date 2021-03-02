@@ -1408,17 +1408,25 @@ namespace ACE.Server.WorldObjects
 
             var useGravity = spellType == ProjectileSpellType.Arc;
 
+            var velocity = Vector3.Zero;
+
             if (useGravity || targetVelocity != Vector3.Zero)
             {
                 var gravity = useGravity ? PhysicsGlobals.Gravity : 0.0f;
 
-                Trajectory.solve_ballistic_arc_lateral(startPos, speed, endPos, targetVelocity, gravity, out var velocity, out var time, out var impactPoint);
+                if (!PropertyManager.GetBool("trajectory_alt_solver").Item)
+                    Trajectory.solve_ballistic_arc_lateral(startPos, speed, endPos, targetVelocity, gravity, out velocity, out var time, out var impactPoint);
+                else
+                    velocity = Trajectory2.CalculateTrajectory(startPos, endPos, targetVelocity, speed, useGravity);
 
                 if (velocity == Vector3.Zero && useGravity && targetVelocity != Vector3.Zero)
                 {
                     // intractable?
                     // try to solve w/ zero velocity
-                    Trajectory.solve_ballistic_arc_lateral(startPos, speed, endPos, Vector3.Zero, gravity, out velocity, out time, out impactPoint);
+                    if (!PropertyManager.GetBool("trajectory_alt_solver").Item)
+                        Trajectory.solve_ballistic_arc_lateral(startPos, speed, endPos, Vector3.Zero, gravity, out velocity, out var time, out var impactPoint);
+                    else
+                        velocity = Trajectory2.CalculateTrajectory(startPos, endPos, Vector3.Zero, speed, useGravity);
                 }
                 if (velocity != Vector3.Zero)
                     return velocity;
