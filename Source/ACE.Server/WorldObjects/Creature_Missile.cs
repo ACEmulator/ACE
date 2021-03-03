@@ -315,18 +315,28 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     // use movement quartic solver
-                    var numSolutions = Trajectory.solve_ballistic_arc(origin, speed, dest, targetVelocity, gravity, out s0, out _, out time);
+                    if (!PropertyManager.GetBool("trajectory_alt_solver").Item)
+                    {
+                        var numSolutions = Trajectory.solve_ballistic_arc(origin, speed, dest, targetVelocity, gravity, out s0, out _, out time);
 
-                    if (numSolutions > 0)
-                        return s0;
+                        if (numSolutions > 0)
+                            return s0;
+                    }
+                    else
+                        return Trajectory2.CalculateTrajectory(origin, dest, targetVelocity, speed, useGravity);
                 }
             }
 
             // use stationary solver
-            Trajectory.solve_ballistic_arc(origin, speed, dest, gravity, out s0, out _, out t0, out _);
+            if (!PropertyManager.GetBool("trajectory_alt_solver").Item)
+            {
+                Trajectory.solve_ballistic_arc(origin, speed, dest, gravity, out s0, out _, out t0, out _);
 
-            time = t0;
-            return s0;
+                time = t0;
+                return s0;
+            }
+            else
+                return Trajectory2.CalculateTrajectory(origin, dest, Vector3.Zero, speed, useGravity);
         }
 
         /// <summary>
