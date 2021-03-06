@@ -310,8 +310,15 @@ namespace ACE.Server.WorldObjects
             // scenario: start casting a self-spell, and then immediately start holding the run forward key during the windup
             // on client: player will start running forward after the cast has completed
             // on server: player will stand still
-            //
-            if (!PhysicsObj.IsMovingOrAnimating && LastMoveToState != null)
+
+            // this block of code can improve the sync between these 2 methods,
+            // however there are some bugs that originate in acclient that cannot be resolved on the server
+            // for example, equip a wand, and then start running forward in non-combat mode. switch to magic combat mode, and then release forward during the stance swap
+            // the client will never send a 'client released forward' MoveToState in this scenario unfortunately.
+            // because of this, it's better to have the 'client blip forward' bug without it, than to have the client invisibly running forward on the server.
+            // commenting out this block because of this...
+
+            /*if (!PhysicsObj.IsMovingOrAnimating && LastMoveToState != null)
             {
                 // apply latest MoveToState, if applicable
                 //if ((LastMoveToState.RawMotionState.Flags & (RawMotionFlags.ForwardCommand | RawMotionFlags.SideStepCommand | RawMotionFlags.TurnCommand)) != 0)
@@ -321,9 +328,12 @@ namespace ACE.Server.WorldObjects
                         Console.WriteLine("Re-applying movement: " + LastMoveToState.RawMotionState.Flags);
 
                     OnMoveToState(LastMoveToState);
+
+                    // re-broadcast MoveToState to other clients only
+                    EnqueueBroadcast(false, new GameMessageUpdateMotion(this, CurrentMovementData));
                 }
                 LastMoveToState = null;
-            }
+            }*/
 
             if (MagicState.IsCasting && MagicState.PendingTurnRelease)
                 CheckTurn();

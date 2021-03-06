@@ -899,7 +899,7 @@ namespace ACE.Server.WorldObjects
         /// adds to the physics animation system, and broadcasts to nearby players
         /// </summary>
         /// <returns>The amount it takes to execute the motion</returns>
-        public float ExecuteMotion(Motion motion, bool sendClient = true, float? maxRange = null)
+        public float ExecuteMotion(Motion motion, bool sendClient = true, float? maxRange = null, bool persist = false)
         {
             var motionCommand = motion.MotionState.ForwardCommand;
 
@@ -925,6 +925,9 @@ namespace ACE.Server.WorldObjects
                 motionInterp.apply_raw_movement(true, true);
             }
 
+            if (persist && PropertyManager.GetBool("persist_movement").Item)
+                motion.Persist(CurrentMotionState);
+
             // hardcoded ready?
             var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, CurrentMotionState.MotionState.ForwardCommand, motionCommand);
             CurrentMotionState = motion;
@@ -936,9 +939,19 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
+        public float ExecuteMotionPersist(Motion motion, bool sendClient = true, float? maxRange = null)
+        {
+            return ExecuteMotion(motion, sendClient, maxRange, true);
+        }
+
         public void SetStance(MotionStance stance, bool broadcast = true)
         {
-            CurrentMotionState = new Motion(stance);
+            var motion = new Motion(stance);
+
+            if (PropertyManager.GetBool("persist_movement").Item)
+                motion.Persist(CurrentMotionState);
+
+            CurrentMotionState = motion;
 
             if (broadcast)
                 EnqueueBroadcastMotion(CurrentMotionState);
