@@ -340,6 +340,25 @@ namespace ACE.Server.Entity
         {
             float genRadius = (float)(Generator.GetProperty(PropertyFloat.GeneratorRadius) ?? 0f);
             obj.Location = new ACE.Entity.Position(Generator.Location);
+
+            // Skipping using same offset code above for offsetting scatter pos due to issues with rotation that were not expected at time content was rebuilt (Colo, others)
+            // perhaps it should be same or similar but not able to spend time on verifying it out and making rotational adjustments at this time.
+
+            //if (PropertyManager.GetBool("use_generator_rotation_offset").Item)
+            //{
+            //    var offset = Vector3.Transform(new Vector3(Biota.OriginX ?? 0, Biota.OriginY ?? 0, Biota.OriginZ ?? 0), Generator.Location.Rotation);
+
+            //    obj.Location = new ACE.Entity.Position(Generator.Location.Cell, Generator.Location.PositionX + offset.X, Generator.Location.PositionY + offset.Y, Generator.Location.PositionZ + offset.Z, Biota.AnglesX ?? 0, Biota.AnglesY ?? 0, Biota.AnglesZ ?? 0, Biota.AnglesW ?? 0);
+            //}
+            //else
+            //    obj.Location = new ACE.Entity.Position(Generator.Location.Cell, Generator.Location.PositionX + Biota.OriginX ?? 0, Generator.Location.PositionY + Biota.OriginY ?? 0, Generator.Location.PositionZ + Biota.OriginZ ?? 0, Biota.AnglesX ?? 0, Biota.AnglesY ?? 0, Biota.AnglesZ ?? 0, Biota.AnglesW ?? 0);
+
+            // the following allows profile to offset from generators position, with no rotation changes, before then scattering from that position. Use case is mainly to spawn something higher or lower.
+
+            obj.Location.PositionX += Biota.OriginX ?? 0;
+            obj.Location.PositionY += Biota.OriginY ?? 0;
+            obj.Location.PositionZ += Biota.OriginZ ?? 0;
+
             obj.Location.PositionZ += 0.05f;
 
             // we are going to delay this scatter logic until the physics engine,
