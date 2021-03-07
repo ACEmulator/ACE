@@ -103,6 +103,12 @@ namespace ACE.Server.Network.Handlers
                     }
                 }
 
+                if (channelID != adjustedChannelID)
+                    log.Debug($"[CHAT] ChannelID ({channelID}) was adjusted to {adjustedChannelID} | ChatNetworkBlobDispatchType: {chatBlobDispatchType}");
+
+                if (chatType != adjustedchatType)
+                    log.Debug($"[CHAT] ChatType ({chatType}) was adjusted to {chatType} | ChatNetworkBlobDispatchType: {chatBlobDispatchType}");
+
                 var gameMessageTurbineChat = new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_EVENT_BINARY, ChatNetworkBlobDispatchType.ASYNCMETHOD_SENDTOROOMBYNAME, adjustedChannelID, session.Player.Name, message, senderID, adjustedchatType);
 
                 if (adjustedChannelID > TurbineChatChannel.SocietyRadiantBlood || adjustedChannelID == TurbineChatChannel.Allegiance) // Channel must be an allegiance channel
