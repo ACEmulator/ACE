@@ -107,7 +107,7 @@ namespace ACE.Server.Network.Handlers
                     log.Debug($"[CHAT] ChannelID ({channelID}) was adjusted to {adjustedChannelID} | ChatNetworkBlobDispatchType: {chatBlobDispatchType}");
 
                 if (chatType != adjustedchatType)
-                    log.Debug($"[CHAT] ChatType ({chatType}) was adjusted to {chatType} | ChatNetworkBlobDispatchType: {chatBlobDispatchType}");
+                    log.Debug($"[CHAT] ChatType ({chatType}) was adjusted to {adjustedchatType} | ChatNetworkBlobDispatchType: {chatBlobDispatchType}");
 
                 var gameMessageTurbineChat = new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_EVENT_BINARY, ChatNetworkBlobDispatchType.ASYNCMETHOD_SENDTOROOMBYNAME, adjustedChannelID, session.Player.Name, message, senderID, adjustedchatType);
 
