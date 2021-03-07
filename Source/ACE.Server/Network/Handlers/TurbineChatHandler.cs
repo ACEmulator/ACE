@@ -309,7 +309,7 @@ namespace ACE.Server.Network.Handlers
                     return;
             }
 
-            log.Info($"[CHAT]({channelID})[{chatType}] {name} says, \"{message}\"");
+            log.Info($"[CHAT][{chatType}]{(chatType == ChatType.Allegiance ? $"[{channelID}]" : "")} {name} says, \"{message}\"");
         }
     }
 }
