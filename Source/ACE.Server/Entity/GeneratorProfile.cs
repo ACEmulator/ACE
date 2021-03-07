@@ -260,7 +260,7 @@ namespace ACE.Server.Entity
                 }
 
                 if (Biota.PaletteId.HasValue && Biota.PaletteId > 0)
-                    wo.PaletteBaseId = Biota.PaletteId;
+                    wo.PaletteTemplate = (int)Biota.PaletteId;
 
                 if (Biota.Shade.HasValue && Biota.Shade > 0)
                     wo.Shade = Biota.Shade;
