@@ -2378,23 +2378,32 @@ namespace ACE.Server.Command.Handlers
                 {
                     var questsHdr = $"Quest Registry for {creature.Name} (0x{creature.Guid}):\n";
                     questsHdr += "================================================\n";
-                    var quests = "";
-                    foreach (var quest in creature.QuestManager.GetQuests())
+                    session.Player.SendMessage(questsHdr);
+
+                    var quests = creature.QuestManager.GetQuests();
+
+                    if (quests.Count == 0)
                     {
-                        quests += $"Quest Name: {quest.QuestName}\nCompletions: {quest.NumTimesCompleted} | Last Completion: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
+                        session.Player.SendMessage("No quests found.");
+                        return;
+                    }
+
+                    foreach (var quest in quests)
+                    {
+                        var questEntry = "";
+                        questEntry += $"Quest Name: {quest.QuestName}\nCompletions: {quest.NumTimesCompleted} | Last Completion: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
                         var nextSolve = creature.QuestManager.GetNextSolveTime(quest.QuestName);
 
                         if (nextSolve == TimeSpan.MinValue)
-                            quests += "Can Solve: Immediately\n";
+                            questEntry += "Can Solve: Immediately\n";
                         else if (nextSolve == TimeSpan.MaxValue)
-                            quests += "Can Solve: Never again\n";
+                            questEntry += "Can Solve: Never again\n";
                         else
-                            quests += $"Can Solve: In {nextSolve:%d} days, {nextSolve:%h} hours, {nextSolve:%m} minutes and, {nextSolve:%s} seconds. ({(DateTime.UtcNow + nextSolve).ToLocalTime()})\n";
+                            questEntry += $"Can Solve: In {nextSolve:%d} days, {nextSolve:%h} hours, {nextSolve:%m} minutes and, {nextSolve:%s} seconds. ({(DateTime.UtcNow + nextSolve).ToLocalTime()})\n";
 
-                        quests += "--====--\n";
+                        questEntry += "--====--\n";
+                        session.Player.SendMessage(questEntry);
                     }
-
-                    session.Player.SendMessage($"{questsHdr}{(quests != "" ? quests : "No quests found.")}");
                     return;
                 }
 
