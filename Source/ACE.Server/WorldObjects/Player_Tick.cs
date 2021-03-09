@@ -576,7 +576,7 @@ namespace ACE.Server.WorldObjects
 
             var EquippedManaConsumers = EquippedObjects.Where(k =>
                 (k.Value.IsAffecting ?? false) &&
-                //k.Value.ManaRate.HasValue &&
+                k.Value.ManaRate.HasValue &&
                 k.Value.ItemMaxMana.HasValue &&
                 k.Value.ItemCurMana.HasValue &&
                 k.Value.ItemCurMana.Value > 0).ToList();
@@ -590,14 +590,18 @@ namespace ACE.Server.WorldObjects
                 // this retroactively fixes them when equipped
                 // items such as Impious Staff are excluded from this via IsAffecting
 
-                if (item.ManaRate == null)
+                // this bug should hopefully be fixed by now, commenting out this block
+                /*if (item.ManaRate == null)
                 {
+                    if ((item.MaxStackSize ?? 1) > 1)
+                        continue;
+
                     var maxBaseMana = LootGenerationFactory.GetMaxBaseMana(item);
 
                     item.ManaRate = LootGenerationFactory.CalculateManaRate(maxBaseMana);
 
                     log.Warn($"{Name}.ManaConsumersTick(): {k.Value.Name} ({k.Value.Guid}) fixed missing ManaRate");
-                }
+                }*/
 
                 var rate = item.ManaRate.Value;
 
