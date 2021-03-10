@@ -1663,14 +1663,20 @@ namespace ACE.Server.Command.Handlers
             switch (eventCmd)
             {
                 case "start":
-                    if (EventManager.StartEvent(eventName))
+                    if (EventManager.StartEvent(eventName, session.Player, null))
+                    {
                         session.Network.EnqueueSend(new GameMessageSystemChat($"Event {eventName} started successfully.", ChatMessageType.Broadcast));
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has started event {eventName}.");
+                    }
                     else
                         session.Network.EnqueueSend(new GameMessageSystemChat($"Unable to start event named {eventName} .", ChatMessageType.Broadcast));
                     break;
                 case "stop":
-                    if (EventManager.StopEvent(eventName))
+                    if (EventManager.StopEvent(eventName, session.Player, null))
+                    {
                         session.Network.EnqueueSend(new GameMessageSystemChat($"Event {eventName} stopped successfully.", ChatMessageType.Broadcast));
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has stopped event {eventName}.");
+                    }
                     else
                         session.Network.EnqueueSend(new GameMessageSystemChat($"Unable to stop event named {eventName} .", ChatMessageType.Broadcast));
                     break;
