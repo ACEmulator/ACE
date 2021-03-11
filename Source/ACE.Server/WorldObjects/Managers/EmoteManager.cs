@@ -462,7 +462,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.InqEvent:
 
-                    var started = EventManager.IsEventStarted(emote.Message);
+                    var started = EventManager.IsEventStarted(emote.Message, WorldObject, targetObject);
                     ExecuteEmoteSet(started ? EmoteCategory.EventSuccess : EmoteCategory.EventFailure, emote.Message, targetObject, true);
                     break;
 
@@ -1242,12 +1242,12 @@ namespace ACE.Server.WorldObjects.Managers
 
                 case EmoteType.StartEvent:
 
-                    EventManager.StartEvent(emote.Message);
+                    EventManager.StartEvent(emote.Message, WorldObject, targetObject);
                     break;
 
                 case EmoteType.StopEvent:
 
-                    EventManager.StopEvent(emote.Message);
+                    EventManager.StopEvent(emote.Message, WorldObject, targetObject);
                     break;
 
                 case EmoteType.TakeItems:
