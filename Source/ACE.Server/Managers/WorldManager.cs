@@ -170,6 +170,7 @@ namespace ACE.Server.Managers
                 player.IgnoreHouseBarriers = false;
                 player.IgnorePortalRestrictions = false;
                 player.SafeSpellComponents = false;
+                player.ReportCollisions = true;
 
 
                 player.ChangesDetected = true;
