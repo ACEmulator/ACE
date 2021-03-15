@@ -117,22 +117,18 @@ namespace ACE.Server.Network
             if (isReleased) // Session has been removed
                 return;
 
-            messages.GroupBy(k => k.Group).ToList().ForEach(k =>
+            foreach (var message in messages)
             {
-                var grp = k.First().Group;
-                var currentBundleLock = currentBundleLocks[(int)grp];
+                var grp = message.Group;
+                var currentBundleLock = currentBundleLocks[(int) grp];
                 lock (currentBundleLock)
                 {
-                    var currentBundle = currentBundles[(int)grp];
-
-                    foreach (var msg in k)
-                    {
-                        currentBundle.EncryptedChecksum = true;
-                        packetLog.DebugFormat("[{0}] Enqueuing Message {1}", session.LoggingIdentifier, msg.Opcode);
-                        currentBundle.Enqueue(msg);
-                    }
+                    var currentBundle = currentBundles[(int) grp];
+                    currentBundle.EncryptedChecksum = true;
+                    packetLog.DebugFormat("[{0}] Enqueuing Message {1}", session.LoggingIdentifier, message.Opcode);
+                    currentBundle.Enqueue(message);
                 }
-            });
+            }
         }
 
         /// <summary>
