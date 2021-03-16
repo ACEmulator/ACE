@@ -6,6 +6,7 @@ using log4net;
 using ACE.Common;
 using ACE.Database;
 using ACE.Entity.Enum;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Managers;
 
@@ -127,11 +128,14 @@ namespace ACE.Server.Managers
             PropertyManager.ResyncVariables();
             PropertyManager.StopUpdating();
 
-            log.Debug("Logging off all players...");
+            WorldManager.EnqueueAction(new ActionEventDelegate(() =>
+            {
+                log.Debug("Logging off all players...");
 
-            // logout each player
-            foreach (var player in PlayerManager.GetAllOnline())
-                player.Session.LogOffPlayer(true);
+                // logout each player
+                foreach (var player in PlayerManager.GetAllOnline())
+                    player.Session.LogOffPlayer(true);
+            }));
 
             // Wait for all players to log out
             var logUpdateTS = DateTime.MinValue;
@@ -142,10 +146,13 @@ namespace ACE.Server.Managers
                 Thread.Sleep(10);
             }
 
-            log.Debug("Disconnecting all sessions...");
+            WorldManager.EnqueueAction(new ActionEventDelegate(() =>
+            {
+                log.Debug("Disconnecting all sessions...");
 
-            // disconnect each session
-            NetworkManager.DisconnectAllSessionsForShutdown();
+                // disconnect each session
+                NetworkManager.DisconnectAllSessionsForShutdown();
+            }));
 
             // Wait for all sessions to drop out
             logUpdateTS = DateTime.MinValue;
