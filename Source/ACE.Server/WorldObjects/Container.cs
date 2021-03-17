@@ -714,7 +714,7 @@ namespace ACE.Server.WorldObjects
         {
             if (IsOpen)
             {
-                player?.SendTransientError(InUseMessage);
+                player.SendTransientError(InUseMessage);
                 return;
             }
 
