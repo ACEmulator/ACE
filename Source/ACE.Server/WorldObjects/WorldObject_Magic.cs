@@ -1659,7 +1659,7 @@ namespace ACE.Server.WorldObjects
             if (spell.IsHarmful)
             {
                 if (player != null)
-                    Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
+                    Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.VoidMagic), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
 
                 // handle target procs
                 var sourceCreature = this as Creature;
@@ -1670,7 +1670,7 @@ namespace ACE.Server.WorldObjects
                     Player.UpdatePKTimers(player, targetPlayer);
             }
             else if (player != null)
-                Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), difficultyMod);
+                Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.VoidMagic), difficultyMod);
 
             return true;
         }
