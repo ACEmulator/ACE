@@ -334,6 +334,15 @@ namespace ACE.Server.WorldObjects
 
             var movementData = new MovementData(this, moveToState);
 
+            // copy some fields to CurrentMotionState?
+            // this is a mess, fix this whole architecture.
+            CurrentMotionState.MotionState.ForwardCommand = movementData.Invalid.State.ForwardCommand;
+            CurrentMotionState.MotionState.ForwardSpeed = movementData.Invalid.State.ForwardSpeed;
+            CurrentMotionState.MotionState.TurnCommand = movementData.Invalid.State.TurnCommand;
+            CurrentMotionState.MotionState.TurnSpeed = movementData.Invalid.State.TurnSpeed;
+            CurrentMotionState.MotionState.SidestepCommand = movementData.Invalid.State.SidestepCommand;
+            CurrentMotionState.MotionState.SidestepSpeed = movementData.Invalid.State.SidestepSpeed;
+
             var movementEvent = new GameMessageUpdateMotion(this, movementData);
             EnqueueBroadcast(true, movementEvent);    // shouldn't need to go to originating player?
 

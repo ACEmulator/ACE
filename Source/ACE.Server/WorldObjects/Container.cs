@@ -712,7 +712,11 @@ namespace ACE.Server.WorldObjects
 
         public virtual void Open(Player player)
         {
-            if (IsOpen) return;
+            if (IsOpen)
+            {
+                player.SendTransientError(InUseMessage);
+                return;
+            }
 
             player.LastOpenedContainerId = Guid;
 

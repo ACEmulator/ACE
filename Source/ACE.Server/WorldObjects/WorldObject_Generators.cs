@@ -583,7 +583,7 @@ namespace ACE.Server.WorldObjects
                 return;
 
             var enabled = EventManager.IsEventEnabled(GeneratorEvent);
-            var started = EventManager.IsEventStarted(GeneratorEvent);
+            var started = EventManager.IsEventStarted(GeneratorEvent, this, null);
 
             //GeneratorDisabled = !enabled || !started;
             //HandleStatus(prevState);

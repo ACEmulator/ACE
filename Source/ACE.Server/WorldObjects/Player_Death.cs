@@ -210,7 +210,7 @@ namespace ACE.Server.WorldObjects
             var animLength = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Dead);
             dieChain.AddDelaySeconds(animLength + 1.0f);
 
-            dieChain.AddAction(this, () =>
+            dieChain.AddAction(CurrentLandblock, () =>
             {
                 CreateCorpse(topDamager);
 

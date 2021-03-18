@@ -799,6 +799,10 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
+                // verify cast radius before every automatic TurnTo after windup
+                if (!VerifyCastRadius())
+                    return;
+
                 var stopCompletely = !MagicState.CastMotionDone;
                 //var stopCompletely = true;
 
@@ -842,14 +846,15 @@ namespace ACE.Server.WorldObjects
                 TryBurnComponents(spell);
 
             // check windup move distance cap
-            var endPos = new Physics.Common.Position(PhysicsObj.Position);
-            var dist = StartPos.Distance(endPos);
+            var dist = StartPos.Distance(PhysicsObj.Position);
 
             // only PKs affected by these caps?
             if (dist > Windup_MaxMove && PlayerKillerStatus != PlayerKillerStatus.NPK)
             {
                 //player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
                 Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted spell casting!", ChatMessageType.Magic));
+
+                EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Fizzle, 0.5f));
 
                 if (finishCast)
                     FinishCast();
@@ -1463,8 +1468,27 @@ namespace ACE.Server.WorldObjects
                 DoCastSpell(MagicState, true);
         }
 
+        public bool VerifyCastRadius()
+        {
+            if (MagicState.CastGestureStartTime != DateTime.MinValue)
+            {
+                var dist = StartPos.Distance(PhysicsObj.Position);
+
+                if (dist > Windup_MaxMove && PlayerKillerStatus != PlayerKillerStatus.NPK)
+                {
+                    FailCast();
+                    return false;
+                }
+            }
+            return true;
+        }
+
         public void CheckTurn()
         {
+            // verify cast radius while manually moving after windup
+            if (!VerifyCastRadius())
+                return;
+
             if (TurnTarget != null && IsWithinAngle(TurnTarget))
             {
                 if (MagicState.PendingTurnRelease)
