@@ -1385,9 +1385,9 @@ namespace ACE.Server.Command.Handlers
             }    
         }
 
-        private static void DumpHouse(Session session, House house, WorldObject wo)
+        private static void DumpHouse(Session session, House targetHouse, WorldObject wo)
         {
-            HouseManager.GetHouse(house.Guid.Full, (house) =>
+            HouseManager.GetHouse(targetHouse.Guid.Full, (house) =>
             {
                 var msg = "";
                 msg = $"House Dump for {wo.Name} (0x{wo.Guid})\n";
@@ -1559,17 +1559,18 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 house = player.House;
+                //house = HouseManager.GetCharacterHouses(player.Guid.Full).FirstOrDefault();
             }
             else if (target is House house1)
-                house = house1;
+                house = house1.RootHouse;
             else if (target is Hook hook)
-                house = hook.House;
+                house = hook.House.RootHouse;
             else if (target is Storage storage)
-                house = storage.House;
+                house = storage.House.RootHouse;
             else if (target is SlumLord slumLord1)
-                house = slumLord1.House;
+                house = slumLord1.House.RootHouse;
             else if (target is HousePortal housePortal)
-                house = housePortal.House;
+                house = housePortal.House.RootHouse;
             else
             {
                 session.Player.SendMessage("Selected object is not a player or housing object.");
@@ -1582,7 +1583,7 @@ namespace ACE.Server.Command.Handlers
                 return null;
             }
 
-            return house.RootHouse;
+            return house;
         }
 
         private static string AppendHouseLinkDump(House house)
