@@ -401,7 +401,7 @@ namespace ACE.Server.Managers
 
             // clear out slumlord inventory
             var slumlord = playerHouse.House.SlumLord;
-            slumlord.ClearInventory(true);
+            slumlord.ClearInventory();
 
             slumlord.SaveBiotaToDatabase();
 
@@ -435,7 +435,7 @@ namespace ACE.Server.Managers
         {
             // clear out slumlord inventory
             var slumlord = house.SlumLord;
-            slumlord.ClearInventory(true);
+            slumlord.ClearInventory();
 
             var player = PlayerManager.FindByGuid(playerGuid, out bool isOnline);
 
