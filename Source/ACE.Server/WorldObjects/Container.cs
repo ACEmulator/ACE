@@ -588,8 +588,11 @@ namespace ACE.Server.WorldObjects
             var itemGuids = Inventory.Keys.ToList();
             foreach (var itemGuid in itemGuids)
             {
-                if (!TryRemoveFromInventory(itemGuid, forceSave))
+                if (!TryRemoveFromInventory(itemGuid, out var item, forceSave))
                     success = false;
+
+                if (success)
+                    item.Destroy();
             }
             if (forceSave)
                 SaveBiotaToDatabase();
