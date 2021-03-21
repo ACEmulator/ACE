@@ -1115,19 +1115,7 @@ namespace ACE.Server.Command.Handlers
 
             // TODO: output
 
-            if (parameters.Length == 0)
-            {
-                var msg = "@adminhouse dump: dumps info about currently selected house or house owned by currently selected player.\n";
-                msg += "@adminhouse dump name <name>: dumps info about house owned by the account of the named player.\n";
-                msg += "@adminhouse dump account <account_name>: dumps info about house owned by named account.\n";
-                msg += "@adminhouse dump hid <houseID>: dumps info about specified house.\n";
-                msg += "@adminhouse rent pay: fully pay the rent of the selected house.\n";
-                msg += "@adminhouse rent payall: fully pay the rent for all houses.\n";
-                msg += "@adminhouse payrent off / on: sets the targeted house to not require / require normal maintenance payments.\n";
-
-                session.Player.SendMessage(msg);
-            }
-            else if (parameters.Length >= 1 && parameters[0] == "dump")
+            if (parameters.Length >= 1 && parameters[0] == "dump")
             {
                 if (parameters.Length == 1 && parameters[0] == "dump")
                 {
@@ -1239,6 +1227,27 @@ namespace ACE.Server.Command.Handlers
                 else
                 {
                     session.Player.SendMessage("You must specify either \"name\", \"account\" or \"hid\".");
+                }
+            }
+            else if (parameters.Length == 1 && parameters[0] == "dump_all")
+            {
+                for (var i = 1u; i < 6251; i++)
+                {
+                    var msg = $"{i}: ";
+
+                    var house = HouseManager.GetHouseById(i).FirstOrDefault();
+
+                    if (house != null)
+                    {
+                        var houseData = house.GetHouseData(PlayerManager.FindByGuid(new ObjectGuid(house.HouseOwner ?? 0)));
+                        msg += $"{house.HouseType} | {house.HouseOwnerName} (0x{house.HouseOwner:X8}) | BuyTime: {Time.GetDateTimeFromTimestamp(houseData.BuyTime).ToLocalTime()} ({houseData.BuyTime}) | RentTime: {Time.GetDateTimeFromTimestamp(houseData.RentTime).ToLocalTime()} ({houseData.RentTime}) | RentDue: {Time.GetDateTimeFromTimestamp(house.GetRentDue(houseData.RentTime)).ToLocalTime()} ({house.GetRentDue(houseData.RentTime)}) | Rent is {(house.SlumLord.IsRentPaid() ? "" : "NOT ")}paid";
+                    }
+                    else
+                    {
+                        msg += "House is NOT currently owned";
+                    }
+
+                    session.Player.SendMessage(msg);
                 }
             }
             else if (parameters.Length >= 1 && parameters[0] == "rent")
@@ -1361,123 +1370,164 @@ namespace ACE.Server.Command.Handlers
                     session.Player.SendMessage("You must specify either \"on\" or \"off\".");
                 }
             }
+            else
+            {
+                var msg = "@adminhouse dump: dumps info about currently selected house or house owned by currently selected player.\n";
+                msg += "@adminhouse dump name <name>: dumps info about house owned by the account of the named player.\n";
+                msg += "@adminhouse dump account <account_name>: dumps info about house owned by named account.\n";
+                msg += "@adminhouse dump hid <houseID>: dumps info about specified house.\n";
+                msg += "@adminhouse dump_all: dumps one line about each house in the world.\n";
+                msg += "@adminhouse rent pay: fully pay the rent of the selected house.\n";
+                msg += "@adminhouse rent payall: fully pay the rent for all houses.\n";
+                msg += "@adminhouse payrent off / on: sets the targeted house to not require / require normal maintenance payments.\n";
+
+                session.Player.SendMessage(msg);
+            }    
         }
 
         private static void DumpHouse(Session session, House house, WorldObject wo)
         {
-            var msg = "";
-            msg = $"House Dump for {wo.Name} (0x{wo.Guid})\n";
-            msg += $"===House=======================================\n";
-            msg += $"Name: {house.Name} | {house.WeenieClassName} | WCID: {house.WeenieClassId} | GUID: 0x{house.Guid}\n";
-            msg += $"Location: {house.Location.ToLOCString()}\n";
-            msg += $"HouseID: {house.HouseId}\n";
-            msg += $"HouseType: {house.HouseType} ({(int)house.HouseType})\n";
-            msg += $"RestrictionEffect: {(PlayScript)house.GetProperty(PropertyDataId.RestrictionEffect)} ({house.GetProperty(PropertyDataId.RestrictionEffect)})\n";
-            var houseMaxHooksUsable = house.GetProperty(PropertyInt.HouseMaxHooksUsable);
-            msg += $"HouseMaxHooksUsable: {(houseMaxHooksUsable == null ? "null" : $"{houseMaxHooksUsable}")}\n";
-            msg += $"OpenToEveryone: {house.OpenToEveryone}\n";
-
-            msg += $"===SlumLord====================================\n";
-            var slumLord = house.SlumLord;
-            msg += $"Name: {slumLord.Name} | {slumLord.WeenieClassName} | WCID: {slumLord.WeenieClassId} | GUID: 0x{slumLord.Guid}\n";
-            msg += $"Location: {slumLord.Location.ToLOCString()}\n";
-            msg += $"MinLevel: {slumLord.MinLevel}\n";
-            msg += $"AllegianceMinLevel: {slumLord.AllegianceMinLevel ?? 0}\n";
-            msg += $"HouseRequiresMonarch: {slumLord.HouseRequiresMonarch}\n";
-
-            msg += $"===HouseProfile================================\n";
-            var houseProfile = slumLord.GetHouseProfile();
-
-            msg += $"Type: {houseProfile.Type} | Bitmask: {houseProfile.Bitmask}\n";
-
-            msg += $"MinLevel: {houseProfile.MinLevel} | MaxLevel: {houseProfile.MaxLevel}\n";
-            msg += $"MinAllegRank: {houseProfile.MinAllegRank} | MaxAllegRank: {houseProfile.MaxAllegRank}\n";
-
-            msg += $"OwnerID: 0x{houseProfile.OwnerID} | OwnerName: {houseProfile.OwnerName}\n";
-            msg += $"MaintenanceFree: {houseProfile.MaintenanceFree}\n";
-            msg += "--== Buy Cost==--\n";
-            foreach (var cost in houseProfile.Buy)
-                msg += $"{cost.Num:N0} {(cost.Num > 1 ? $"{cost.PluralName}" : $"{cost.Name}")} (WCID: {cost.WeenieID})\n";
-            msg += "--==Rent Cost==--\n";
-            foreach (var cost in houseProfile.Rent)
-                msg += $"{cost.Num:N0} {(cost.Num > 1 ? $"{cost.PluralName}" : $"{cost.Name}")} (WCID: {cost.WeenieID}) | Paid: {cost.Paid:N0}\n";
-
-            var houseData = house.GetHouseData(PlayerManager.FindByGuid(houseProfile.OwnerID));
-            if (houseData != null)
+            HouseManager.GetHouse(house.Guid.Full, (house) =>
             {
-                msg += $"===HouseData===================================\n";
-                msg += $"Location: {houseData.Position.ToLOCString()}\n";
-                msg += $"Type: {houseData.Type}\n";
-                msg += $"BuyTime: {(houseData.BuyTime > 0 ? $"{Time.GetDateTimeFromTimestamp(houseData.BuyTime).ToLocalTime()}" : "N/A")} ({houseData.BuyTime})\n";
-                msg += $"RentTime: {(houseData.RentTime > 0 ? $"{Time.GetDateTimeFromTimestamp(houseData.RentTime).ToLocalTime()}" : "N/A")} ({houseData.RentTime})\n";
-                msg += $"MaintenanceFree: {houseData.MaintenanceFree}\n";
-            }
+                var msg = "";
+                msg = $"House Dump for {wo.Name} (0x{wo.Guid})\n";
+                msg += $"===House=======================================\n";
+                msg += $"Name: {house.Name} | {house.WeenieClassName} | WCID: {house.WeenieClassId} | GUID: 0x{house.Guid}\n";
+                msg += $"Location: {house.Location.ToLOCString()}\n";
+                msg += $"HouseID: {house.HouseId}\n";
+                msg += $"HouseType: {house.HouseType} ({(int)house.HouseType})\n";
+                msg += $"RestrictionEffect: {(PlayScript)house.GetProperty(PropertyDataId.RestrictionEffect)} ({house.GetProperty(PropertyDataId.RestrictionEffect)})\n";
+                var houseMaxHooksUsable = house.GetProperty(PropertyInt.HouseMaxHooksUsable);
+                msg += $"HouseMaxHooksUsable: {(houseMaxHooksUsable == null ? "null" : $"{houseMaxHooksUsable}")}\n";
+                msg += $"OpenToEveryone: {house.OpenToEveryone}\n";
 
-            session.Player.SendMessage(msg, ChatMessageType.System);
-            session.Player.SendMessage(AppendHouseLinkDump(house), ChatMessageType.System);
+                msg += $"===SlumLord====================================\n";
+                var slumLord = house.SlumLord;
+                msg += $"Name: {slumLord.Name} | {slumLord.WeenieClassName} | WCID: {slumLord.WeenieClassId} | GUID: 0x{slumLord.Guid}\n";
+                msg += $"Location: {slumLord.Location.ToLOCString()}\n";
+                msg += $"MinLevel: {slumLord.MinLevel}\n";
+                msg += $"AllegianceMinLevel: {slumLord.AllegianceMinLevel ?? 0}\n";
+                msg += $"HouseRequiresMonarch: {slumLord.HouseRequiresMonarch}\n";
+                msg += $"IsRentPaid: {slumLord.IsRentPaid()}\n";
 
-            if (house.HouseType == HouseType.Villa || house.HouseType == HouseType.Mansion)
-            {
-                var basement = house.GetDungeonHouse();
-                if (basement != null)
+                msg += $"===HouseProfile================================\n";
+                var houseProfile = slumLord.GetHouseProfile();
+
+                msg += $"Type: {houseProfile.Type} | Bitmask: {houseProfile.Bitmask}\n";
+
+                msg += $"MinLevel: {houseProfile.MinLevel} | MaxLevel: {houseProfile.MaxLevel}\n";
+                msg += $"MinAllegRank: {houseProfile.MinAllegRank} | MaxAllegRank: {houseProfile.MaxAllegRank}\n";
+
+                msg += $"OwnerID: 0x{houseProfile.OwnerID} | OwnerName: {houseProfile.OwnerName}\n";
+                msg += $"MaintenanceFree: {houseProfile.MaintenanceFree}\n";
+                msg += "--== Buy Cost==--\n";
+                foreach (var cost in houseProfile.Buy)
+                    msg += $"{cost.Num:N0} {(cost.Num > 1 ? $"{cost.PluralName}" : $"{cost.Name}")} (WCID: {cost.WeenieID})\n";
+                msg += "--==Rent Cost==--\n";
+                foreach (var cost in houseProfile.Rent)
+                    msg += $"{cost.Num:N0} {(cost.Num > 1 ? $"{cost.PluralName}" : $"{cost.Name}")} (WCID: {cost.WeenieID}) | Paid: {cost.Paid:N0}\n";
+
+                var houseData = house.GetHouseData(PlayerManager.FindByGuid(houseProfile.OwnerID));
+                if (houseData != null)
+                {
+                    msg += $"===HouseData===================================\n";
+                    msg += $"Location: {houseData.Position.ToLOCString()}\n";
+                    msg += $"Type: {houseData.Type}\n";
+                    msg += $"BuyTime: {(houseData.BuyTime > 0 ? $"{Time.GetDateTimeFromTimestamp(houseData.BuyTime).ToLocalTime()}" : "N/A")} ({houseData.BuyTime})\n";
+                    msg += $"RentTime: {(houseData.RentTime > 0 ? $"{Time.GetDateTimeFromTimestamp(houseData.RentTime).ToLocalTime()}" : "N/A")} ({houseData.RentTime})\n";
+                    msg += $"RentDue: {Time.GetDateTimeFromTimestamp(house.GetRentDue(houseData.RentTime)).ToLocalTime()} ({house.GetRentDue(houseData.RentTime)})\n";
+                    msg += $"MaintenanceFree: {houseData.MaintenanceFree}\n";
+                }
+
+                session.Player.SendMessage(msg, ChatMessageType.System);
+                session.Player.SendMessage(AppendHouseLinkDump(house), ChatMessageType.System);
+
+                if (house.LinkedHouses.Count > 0)
                 {
                     msg = "";
-                    msg += $"===Basement====================================\n";
+                    msg += $"===LinkedHouses================================\n";
+                    foreach (var link in house.LinkedHouses)
+                    {
+                        msg += $"Name: {link.Name} | {link.WeenieClassName} | WCID: {link.WeenieClassId} | GUID: 0x{link.Guid}\n";
+                        msg += $"Location: {link.Location.ToLOCString()}\n";
+                    }
                     session.Player.SendMessage(msg, ChatMessageType.System);
-                    session.Player.SendMessage(AppendHouseLinkDump(basement), ChatMessageType.System);
                 }
-            }
 
-            var guestList = house.Guests.ToList();
-            if (guestList.Count > 0)
-            {
-                msg = "";
-                msg += $"===GuestList===================================\n";
-                foreach (var guest in guestList)
+                if (house.HouseType == HouseType.Villa || house.HouseType == HouseType.Mansion)
                 {
-                    var player = PlayerManager.FindByGuid(guest.Key);
-                    msg += $"{(player != null ? $"{player.Name}" : "[N/A]")} (0x{guest.Key}){(guest.Value ? " *" : "")}\n";
+                    var basement = house.GetDungeonHouse();
+                    if (basement != null)
+                    {
+                        msg = "";
+                        msg += $"===Basement====================================\n";
+                        msg += $"Name: {basement.Name} | {basement.WeenieClassName} | WCID: {basement.WeenieClassId} | GUID: 0x{basement.Guid}\n";
+                        msg += $"Location: {basement.Location.ToLOCString()}\n";
+                        session.Player.SendMessage(msg, ChatMessageType.System);
+                        session.Player.SendMessage(AppendHouseLinkDump(basement), ChatMessageType.System);
+                    }
                 }
-                msg += "* denotes granted access to the home's storage\n";
+
+                var guestList = house.Guests.ToList();
+                if (guestList.Count > 0)
+                {
+                    msg = "";
+                    msg += $"===GuestList===================================\n";
+                    foreach (var guest in guestList)
+                    {
+                        var player = PlayerManager.FindByGuid(guest.Key);
+                        msg += $"{(player != null ? $"{player.Name}" : "[N/A]")} (0x{guest.Key}){(guest.Value ? " *" : "")}\n";
+                    }
+                    msg += "* denotes granted access to the home's storage\n";
+                    session.Player.SendMessage(msg, ChatMessageType.System);
+                }
+
+                var restrictionDB = new RestrictionDB(house);
+                msg = "";
+                msg += $"===RestrictionDB===============================\n";
+                var owner = PlayerManager.FindByGuid(restrictionDB.HouseOwner);
+                msg += $"HouseOwner: {(owner != null ? $"{owner.Name}" : "N/A")} (0x{restrictionDB.HouseOwner:X8})\n";
+                msg += $"OpenStatus: {restrictionDB.OpenStatus}\n";
+                var monarchRDB = PlayerManager.FindByGuid(restrictionDB.MonarchID);
+                msg += $"MonarchID: {(monarchRDB != null ? $"{monarchRDB.Name}" : "N/A")} (0x{restrictionDB.MonarchID:X8})\n";
+                if (restrictionDB.Table.Count > 0)
+                {
+                    msg += "--==Guests==--\n";
+                    foreach (var guest in restrictionDB.Table)
+                    {
+                        var player = PlayerManager.FindByGuid(guest.Key);
+                        msg += $"{(player != null ? $"{player.Name}" : "[N/A]")} (0x{guest.Key}){(guest.Value == 1 ? " *" : "")}\n";
+                    }
+                    msg += "* denotes granted access to the home's storage\n";
+                }
                 session.Player.SendMessage(msg, ChatMessageType.System);
-            }
 
-            var restrictionDB = new RestrictionDB(house);
-            msg = "";
-            msg += $"===RestrictionDB===============================\n";
-            var owner = PlayerManager.FindByGuid(restrictionDB.HouseOwner);
-            msg += $"HouseOwner: {(owner != null ? $"{owner.Name}" : "N/A")} (0x{restrictionDB.HouseOwner:X8})\n";            
-            msg += $"OpenStatus: {restrictionDB.OpenStatus}\n";
-            var monarchRDB = PlayerManager.FindByGuid(restrictionDB.MonarchID);
-            msg += $"MonarchID: {(monarchRDB != null ? $"{monarchRDB.Name}" : "N/A")} (0x{restrictionDB.MonarchID:X8})\n";
-            msg += "--==Guests==--\n";
-            foreach (var guest in restrictionDB.Table)
-            {
-                var player = PlayerManager.FindByGuid(guest.Key);
-                msg += $"{(player != null ? $"{player.Name}" : "[N/A]")} (0x{guest.Key}){(guest.Value == 1 ? " *" : "")}\n";
-            }
-            msg += "* denotes granted access to the home's storage\n";
-            session.Player.SendMessage(msg, ChatMessageType.System);
-
-            var har = new HouseAccess(house);
-            msg = "";
-            msg += $"===HouseAccess=================================\n";
-            msg += $"Bitmask: {har.Bitmask}\n";
-            var monarchHAR = PlayerManager.FindByGuid(har.MonarchID);
-            msg += $"MonarchID: {(monarchHAR != null ? $"{monarchHAR.Name}" : "N/A")} (0x{har.MonarchID:X8})\n";
-            msg += "--==Guests==--\n";
-            foreach (var guest in har.GuestList)
-            {
-                msg += $"{(guest.Value.GuestName != null ? $"{guest.Value.GuestName}" : "[N/A]")} (0x{guest.Key}){(guest.Value.ItemStoragePermission ? " *" : "")}\n";
-            }
-            msg += "* denotes granted access to the home's storage\n";
-            msg += "--==Roommates==--\n";
-            foreach (var guest in har.Roommates)
-            {
-                var player = PlayerManager.FindByGuid(guest);
-                msg += $"{(player != null ? $"{player.Name}" : "[N/A]")} (0x{guest})\n";
-            }
-            session.Player.SendMessage(msg, ChatMessageType.System);
+                var har = new HouseAccess(house);
+                msg = "";
+                msg += $"===HouseAccess=================================\n";
+                msg += $"Bitmask: {har.Bitmask}\n";
+                var monarchHAR = PlayerManager.FindByGuid(har.MonarchID);
+                msg += $"MonarchID: {(monarchHAR != null ? $"{monarchHAR.Name}" : "N/A")} (0x{har.MonarchID:X8})\n";
+                if (har.GuestList.Count > 0)
+                {
+                    msg += "--==Guests==--\n";
+                    foreach (var guest in har.GuestList)
+                    {
+                        msg += $"{(guest.Value.GuestName != null ? $"{guest.Value.GuestName}" : "[N/A]")} (0x{guest.Key}){(guest.Value.ItemStoragePermission ? " *" : "")}\n";
+                    }
+                    msg += "* denotes granted access to the home's storage\n";
+                }
+                if (har.Roommates.Count > 0)
+                {
+                    msg += "--==Roommates==--\n";
+                    foreach (var guest in har.Roommates)
+                    {
+                        var player = PlayerManager.FindByGuid(guest);
+                        msg += $"{(player != null ? $"{player.Name}" : "[N/A]")} (0x{guest})\n";
+                    }
+                }
+                session.Player.SendMessage(msg, ChatMessageType.System);
+            });
         }
 
         private static House GetSelectedHouse(Session session, out WorldObject target)
