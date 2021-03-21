@@ -2683,6 +2683,21 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
+                if (item.WeenieType == WeenieType.Deed) // http://acpedia.org/wiki/Housing_FAQ#House_deeds
+                {                    
+                    var stackSize = item.StackSize ?? 1;
+
+                    var stackMsg = stackSize != 1 ? $"{stackSize} " : "";
+                    var itemName = item.GetNameWithMaterial(stackSize);
+
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
+                    target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
+
+                    HandleActionAbandonHouse();
+
+                    return;
+                }
+
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, (WeenieErrorWithString)WeenieError.TradeAiDoesntWant, target.Name));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
             }
