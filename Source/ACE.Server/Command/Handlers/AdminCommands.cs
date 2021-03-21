@@ -23,6 +23,7 @@ using ACE.Server.Factories.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
 
@@ -1426,6 +1427,57 @@ namespace ACE.Server.Command.Handlers
                     session.Player.SendMessage(AppendHouseLinkDump(basement), ChatMessageType.System);
                 }
             }
+
+            var guestList = house.Guests.ToList();
+            if (guestList.Count > 0)
+            {
+                msg = "";
+                msg += $"===GuestList===================================\n";
+                foreach (var guest in guestList)
+                {
+                    var player = PlayerManager.FindByGuid(guest.Key);
+                    msg += $"{(player != null ? $"{player.Name}" : "[N/A]")} (0x{guest.Key}){(guest.Value ? " *" : "")}\n";
+                }
+                msg += "* denotes granted access to the home's storage\n";
+                session.Player.SendMessage(msg, ChatMessageType.System);
+            }
+
+            var restrictionDB = new RestrictionDB(house);
+            msg = "";
+            msg += $"===RestrictionDB===============================\n";
+            var owner = PlayerManager.FindByGuid(restrictionDB.HouseOwner);
+            msg += $"HouseOwner: {(owner != null ? $"{owner.Name}" : "N/A")} (0x{restrictionDB.HouseOwner:X8})\n";            
+            msg += $"OpenStatus: {restrictionDB.OpenStatus}\n";
+            var monarchRDB = PlayerManager.FindByGuid(restrictionDB.MonarchID);
+            msg += $"MonarchID: {(monarchRDB != null ? $"{monarchRDB.Name}" : "N/A")} (0x{restrictionDB.MonarchID:X8})\n";
+            msg += "--==Guests==--\n";
+            foreach (var guest in restrictionDB.Table)
+            {
+                var player = PlayerManager.FindByGuid(guest.Key);
+                msg += $"{(player != null ? $"{player.Name}" : "[N/A]")} (0x{guest.Key}){(guest.Value == 1 ? " *" : "")}\n";
+            }
+            msg += "* denotes granted access to the home's storage\n";
+            session.Player.SendMessage(msg, ChatMessageType.System);
+
+            var har = new HouseAccess(house);
+            msg = "";
+            msg += $"===HouseAccess=================================\n";
+            msg += $"Bitmask: {har.Bitmask}\n";
+            var monarchHAR = PlayerManager.FindByGuid(har.MonarchID);
+            msg += $"MonarchID: {(monarchHAR != null ? $"{monarchHAR.Name}" : "N/A")} (0x{har.MonarchID:X8})\n";
+            msg += "--==Guests==--\n";
+            foreach (var guest in har.GuestList)
+            {
+                msg += $"{(guest.Value.GuestName != null ? $"{guest.Value.GuestName}" : "[N/A]")} (0x{guest.Key}){(guest.Value.ItemStoragePermission ? " *" : "")}\n";
+            }
+            msg += "* denotes granted access to the home's storage\n";
+            msg += "--==Roommates==--\n";
+            foreach (var guest in har.Roommates)
+            {
+                var player = PlayerManager.FindByGuid(guest);
+                msg += $"{(player != null ? $"{player.Name}" : "[N/A]")} (0x{guest})\n";
+            }
+            session.Player.SendMessage(msg, ChatMessageType.System);
         }
 
         private static House GetSelectedHouse(Session session, out WorldObject target)

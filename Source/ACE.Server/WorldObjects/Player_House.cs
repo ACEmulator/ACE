@@ -937,7 +937,8 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (Guests.ContainsKey(guest.Guid))
+            var accountPlayers = Player.GetAccountPlayers(Account.AccountId).Select(p => p.Guid).ToList();
+            if (Guests.ContainsKey(guest.Guid) || accountPlayers.Contains(guest.Guid))
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{guest.Name} is already on your guest list.", ChatMessageType.Broadcast));
                 return;
@@ -1046,25 +1047,13 @@ namespace ACE.Server.WorldObjects
 
             var house = GetHouse();
 
-            if (Guests.Count == 0)
+            if (house == null)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"Your house guest list is empty.", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
                 return;
             }
 
-            var sb = new StringBuilder($"{House.SlumLord.Name} guest list:\n");
-            foreach (var kvp in Guests)
-            {
-                var guest = PlayerManager.FindByGuid(kvp.Key);
-                var guestName = guest.Name;
-                if (House.MonarchId != null && guest.Guid.Full == House.MonarchId)
-                    guestName += "'s Allegiance";
-
-                var storage = kvp.Value ? "* " : "";
-                sb.Append(storage + guestName + "\n");
-            }
-
-            Session.Network.EnqueueSend(new GameMessageSystemChat(sb.ToString(), ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameEventUpdateHAR(Session, house));
             return;
         }
 

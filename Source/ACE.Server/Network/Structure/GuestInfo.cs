@@ -10,6 +10,16 @@ namespace ACE.Server.Network.Structure
     {
         public bool ItemStoragePermission;  // False = access to house, True = access to house+storage
         public string GuestName;            // Name of the guest
+
+        public GuestInfo()
+        {
+        }
+
+        public GuestInfo(bool itemStoragePermission, string name)
+        {
+            ItemStoragePermission = itemStoragePermission;
+            GuestName = name;
+        }
     }
 
     public static class GuestInfoExtensions
