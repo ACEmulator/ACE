@@ -19,7 +19,7 @@ namespace ACE.Server.Network.Structure
                                             // Older version started with bitmask, so starting with 0x10000000
                                             // allows them to determine if this is V1 or V2.
                                             // The latter half appears to indicate whether there is a roommate list.
-        public HARBitfield Bitmask;         // 0 = private house, 1 = open to public, 2 = Allegiance has access to house, 3 = Allegiance has access to house and storage
+        public HARBitfield Bitmask;         // 0 = private house, 1 = open to public, 2 = Allegiance has access to house, 4 = Allegiance has access to house and storage
         public ObjectGuid MonarchID;        // populated when any allegiance access is specified
         public Dictionary<ObjectGuid, GuestInfo> GuestList; // Set of guests with their ID as the key and some additional info for them
         public List<ObjectGuid> Roommates;  // The ID list for all of your roommates
