@@ -52,7 +52,7 @@ namespace ACE.Server.Network.Structure
                 var player = PlayerManager.FindByGuid(guest.Key);
 
                 if (player != null && player.Guid != MonarchID)
-                    GuestList.Add(guest.Key, new GuestInfo(Convert.ToBoolean(guest.Value), player.Name));
+                    GuestList.Add(guest.Key, new GuestInfo(guest.Value, player.Name));
 
                 if (player.Guid == MonarchID)
                 {                    
