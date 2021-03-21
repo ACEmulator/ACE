@@ -469,7 +469,7 @@ namespace ACE.Server.WorldObjects
 
                 // player slumlord 'off' animation
                 var slumlord = house.SlumLord;
-                slumlord.ClearInventory(true);
+                slumlord.ClearInventory();
                 slumlord.Off();
 
                 // reset slumlord name
@@ -604,6 +604,8 @@ namespace ACE.Server.WorldObjects
 
             // set house name
             slumlord.SetAndBroadcastName(Name);
+
+            slumlord.ClearInventory();
 
             slumlord.SaveBiotaToDatabase();
             
