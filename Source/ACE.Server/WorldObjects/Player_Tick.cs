@@ -30,6 +30,9 @@ namespace ACE.Server.WorldObjects
         private const double ageUpdateInterval = 7;
         private double nextAgeUpdateTime;
 
+        private double houseRentWarnTimestamp;
+        private const double houseRentWarnInterval = 3600;
+
         public void Player_Tick(double currentUnixTime)
         {
             actionQueue.RunActions();
@@ -54,6 +57,21 @@ namespace ACE.Server.WorldObjects
             {
                 Fellowship.OnVitalUpdate(this);
                 FellowVitalUpdate = false;
+            }
+
+            if (House != null && PropertyManager.GetBool("house_rent_enabled", true).Item)
+            {
+                if (houseRentWarnTimestamp > 0 && currentUnixTime > houseRentWarnTimestamp)
+                {
+                    var house = GetHouse();
+
+                    if (house != null && !house.SlumLord.IsRentPaid())
+                        Session.Network.EnqueueSend(new GameMessageSystemChat($"Warning!  You have not paid your maintenance costs for the last {(House.HouseType == HouseType.Apartment ? "90" : "30")} day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.Broadcast));                        
+
+                    houseRentWarnTimestamp = Time.GetFutureUnixTime(houseRentWarnInterval);
+                }
+                else if (houseRentWarnTimestamp == 0)
+                    houseRentWarnTimestamp = Time.GetFutureUnixTime(houseRentWarnInterval);
             }
         }
 
