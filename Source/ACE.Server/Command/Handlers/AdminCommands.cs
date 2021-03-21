@@ -1122,7 +1122,7 @@ namespace ACE.Server.Command.Handlers
                 msg += "@adminhouse dump hid <houseID>: dumps info about specified house.\n";
                 msg += "@adminhouse rent pay: fully pay the rent of the selected house.\n";
                 msg += "@adminhouse rent payall: fully pay the rent for all houses.\n";
-                msg += "@adminhouse payrent on / off: sets the targeted house to not require / require normal maintenance payments.\n";
+                msg += "@adminhouse payrent off / on: sets the targeted house to not require / require normal maintenance payments.\n";
 
                 session.Player.SendMessage(msg);
             }
