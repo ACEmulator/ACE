@@ -674,5 +674,17 @@ namespace ACE.Server.WorldObjects
             get => (GetProperty(PropertyInt.OpenToEveryone) ?? 0) == 1;
             set { if (!value) RemoveProperty(PropertyInt.OpenToEveryone); else SetProperty(PropertyInt.OpenToEveryone, 1); }
         }
+
+        public int HouseMaxHooksUsable
+        {
+            get => GetProperty(PropertyInt.HouseMaxHooksUsable) ?? 25;
+            set { if (value == 25) RemoveProperty(PropertyInt.HouseMaxHooksUsable); else SetProperty(PropertyInt.HouseMaxHooksUsable, value); }
+        }
+
+        public int HouseCurrentHooksUsable
+        {
+            get => GetProperty(PropertyInt.HouseCurrentHooksUsable) ?? HouseMaxHooksUsable;
+            set { if (value == HouseMaxHooksUsable) RemoveProperty(PropertyInt.HouseCurrentHooksUsable); else SetProperty(PropertyInt.HouseCurrentHooksUsable, value); }
+        }
     }
 }

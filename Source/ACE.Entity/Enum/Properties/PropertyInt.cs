@@ -225,7 +225,9 @@ namespace ACE.Entity.Enum.Properties
         WieldRequirements                        = 158,
         WieldSkillType                           = 159,
         WieldDifficulty                          = 160,
+        [ServerOnly]
         HouseMaxHooksUsable                      = 161,
+        [ServerOnly][Ephemeral]
         HouseCurrentHooksUsable                  = 162,
         AllegianceMinLevel                       = 163,
         AllegianceMaxLevel                       = 164,

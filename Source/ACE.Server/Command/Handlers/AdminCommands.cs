@@ -1397,10 +1397,24 @@ namespace ACE.Server.Command.Handlers
                 msg += $"HouseID: {house.HouseId}\n";
                 msg += $"HouseType: {house.HouseType} ({(int)house.HouseType})\n";
                 msg += $"RestrictionEffect: {(PlayScript)house.GetProperty(PropertyDataId.RestrictionEffect)} ({house.GetProperty(PropertyDataId.RestrictionEffect)})\n";
-                var houseMaxHooksUsable = house.GetProperty(PropertyInt.HouseMaxHooksUsable);
-                msg += $"HouseMaxHooksUsable: {(houseMaxHooksUsable == null ? "null" : $"{houseMaxHooksUsable}")}\n";
+                msg += $"HouseMaxHooksUsable: {house.HouseMaxHooksUsable}\n";
+                msg += $"HouseCurrentHooksUsable: {house.HouseCurrentHooksUsable}\n";
                 msg += $"OpenToEveryone: {house.OpenToEveryone}\n";
+                session.Player.SendMessage(msg, ChatMessageType.System);
 
+                if (house.LinkedHouses.Count > 0)
+                {
+                    msg = "";
+                    msg += $"===LinkedHouses================================\n";
+                    foreach (var link in house.LinkedHouses)
+                    {
+                        msg += $"Name: {link.Name} | {link.WeenieClassName} | WCID: {link.WeenieClassId} | GUID: 0x{link.Guid}\n";
+                        msg += $"Location: {link.Location.ToLOCString()}\n";
+                    }
+                    session.Player.SendMessage(msg, ChatMessageType.System);
+                }
+
+                msg = "";
                 msg += $"===SlumLord====================================\n";
                 var slumLord = house.SlumLord;
                 msg += $"Name: {slumLord.Name} | {slumLord.WeenieClassName} | WCID: {slumLord.WeenieClassId} | GUID: 0x{slumLord.Guid}\n";
@@ -1409,7 +1423,9 @@ namespace ACE.Server.Command.Handlers
                 msg += $"AllegianceMinLevel: {slumLord.AllegianceMinLevel ?? 0}\n";
                 msg += $"HouseRequiresMonarch: {slumLord.HouseRequiresMonarch}\n";
                 msg += $"IsRentPaid: {slumLord.IsRentPaid()}\n";
+                session.Player.SendMessage(msg, ChatMessageType.System);
 
+                msg = "";
                 msg += $"===HouseProfile================================\n";
                 var houseProfile = slumLord.GetHouseProfile();
 
@@ -1426,33 +1442,23 @@ namespace ACE.Server.Command.Handlers
                 msg += "--==Rent Cost==--\n";
                 foreach (var cost in houseProfile.Rent)
                     msg += $"{cost.Num:N0} {(cost.Num > 1 ? $"{cost.PluralName}" : $"{cost.Name}")} (WCID: {cost.WeenieID}) | Paid: {cost.Paid:N0}\n";
+                session.Player.SendMessage(msg, ChatMessageType.System);
 
                 var houseData = house.GetHouseData(PlayerManager.FindByGuid(houseProfile.OwnerID));
                 if (houseData != null)
                 {
+                    msg = "";
                     msg += $"===HouseData===================================\n";
                     msg += $"Location: {houseData.Position.ToLOCString()}\n";
                     msg += $"Type: {houseData.Type}\n";
                     msg += $"BuyTime: {(houseData.BuyTime > 0 ? $"{Time.GetDateTimeFromTimestamp(houseData.BuyTime).ToLocalTime()}" : "N/A")} ({houseData.BuyTime})\n";
                     msg += $"RentTime: {(houseData.RentTime > 0 ? $"{Time.GetDateTimeFromTimestamp(houseData.RentTime).ToLocalTime()}" : "N/A")} ({houseData.RentTime})\n";
-                    msg += $"RentDue: {Time.GetDateTimeFromTimestamp(house.GetRentDue(houseData.RentTime)).ToLocalTime()} ({house.GetRentDue(houseData.RentTime)})\n";
+                    msg += $"RentDue: {(houseData.RentTime > 0 ? $"{Time.GetDateTimeFromTimestamp(house.GetRentDue(houseData.RentTime)).ToLocalTime()} ({house.GetRentDue(houseData.RentTime)})" : " N/A (0)")}\n";
                     msg += $"MaintenanceFree: {houseData.MaintenanceFree}\n";
-                }
-
-                session.Player.SendMessage(msg, ChatMessageType.System);
-                session.Player.SendMessage(AppendHouseLinkDump(house), ChatMessageType.System);
-
-                if (house.LinkedHouses.Count > 0)
-                {
-                    msg = "";
-                    msg += $"===LinkedHouses================================\n";
-                    foreach (var link in house.LinkedHouses)
-                    {
-                        msg += $"Name: {link.Name} | {link.WeenieClassName} | WCID: {link.WeenieClassId} | GUID: 0x{link.Guid}\n";
-                        msg += $"Location: {link.Location.ToLOCString()}\n";
-                    }
                     session.Player.SendMessage(msg, ChatMessageType.System);
                 }
+
+                session.Player.SendMessage(AppendHouseLinkDump(house), ChatMessageType.System);                
 
                 if (house.HouseType == HouseType.Villa || house.HouseType == HouseType.Mansion)
                 {
@@ -1463,6 +1469,8 @@ namespace ACE.Server.Command.Handlers
                         msg += $"===Basement====================================\n";
                         msg += $"Name: {basement.Name} | {basement.WeenieClassName} | WCID: {basement.WeenieClassId} | GUID: 0x{basement.Guid}\n";
                         msg += $"Location: {basement.Location.ToLOCString()}\n";
+                        msg += $"HouseMaxHooksUsable: {basement.HouseMaxHooksUsable}\n";
+                        msg += $"HouseCurrentHooksUsable: {basement.HouseCurrentHooksUsable}\n";
                         session.Player.SendMessage(msg, ChatMessageType.System);
                         session.Player.SendMessage(AppendHouseLinkDump(basement), ChatMessageType.System);
                     }
@@ -1592,7 +1600,7 @@ namespace ACE.Server.Command.Handlers
 
             if (house.Storage.Count > 0)
             {
-                msg += $"===Storage=====================================\n";
+                msg += $"===Storage for House 0x{house.Guid}================\n";
                 msg += $"Storage.Count: {house.Storage.Count}\n";
                 foreach (var chest in house.Storage)
                 {
@@ -1603,7 +1611,7 @@ namespace ACE.Server.Command.Handlers
 
             if (house.Hooks.Count > 0)
             {
-                msg += $"===Hooks=======================================\n";
+                msg += $"===Hooks for House 0x{house.Guid}==================\n";
                 msg += $"Hooks.Count: {house.Hooks.Count}\n";
                 foreach (var hook in house.Hooks)
                 {
@@ -1615,14 +1623,14 @@ namespace ACE.Server.Command.Handlers
 
             if (house.BootSpot != null)
             {
-                msg += $"===BootSpot====================================\n";
+                msg += $"===BootSpot for House 0x{house.Guid}===============\n";
                 msg += $"Name: {house.BootSpot.Name} | {house.BootSpot.WeenieClassName} | WCID: {house.BootSpot.WeenieClassId} | GUID: 0x{house.BootSpot.Guid}\n";
                 msg += $"Location: {house.BootSpot.Location.ToLOCString()}\n";
             }
 
             if (house.HousePortal != null)
             {
-                msg += $"===HousePortal=================================\n";
+                msg += $"===HousePortal for House 0x{house.Guid}============\n";
                 msg += $"Name: {house.HousePortal.Name} | {house.HousePortal.WeenieClassName} | WCID: {house.HousePortal.WeenieClassId} | GUID: 0x{house.HousePortal.Guid}\n";
                 msg += $"Location: {house.HousePortal.Location.ToLOCString()}\n";
                 msg += $"Destination: {house.HousePortal.Destination.ToLOCString()}\n";

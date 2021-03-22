@@ -823,6 +823,16 @@ namespace ACE.Server.WorldObjects
                     return false;
                 }
             }
+
+            if (PropertyManager.GetBool("house_hook_limit").Item && container is Hook hook)
+            {
+                if (hook.House.RootHouse.HouseMaxHooksUsable != -1 && hook.House.HouseCurrentHooksUsable <= 0)
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.YouHaveUsedAllTheHooks));
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -1020,6 +1030,18 @@ namespace ACE.Server.WorldObjects
                                 {
                                     log.Debug($"[CORPSE] {Name} (0x{Guid}) picked up {item.Name} (0x{item.Guid}) from {itemRootOwner.Name} (0x{itemRootOwner.Guid})");
                                     item.SaveBiotaToDatabase();
+                                }
+                            }
+
+                            if (PropertyManager.GetBool("house_hook_limit").Item)
+                            {
+                                if (container is Hook hook && hook.House.HouseMaxHooksUsable != -1 && hook.House.HouseCurrentHooksUsable <= 0)
+                                {
+                                    SendWeenieError(WeenieError.YouAreNowUsingMaxHooks);
+                                }
+                                else if (itemRootOwner is Hook hook2 && hook2.House.HouseMaxHooksUsable != -1 && hook2.House.HouseCurrentHooksUsable == 1)
+                                {
+                                    SendWeenieError(WeenieError.YouAreNoLongerUsingMaxHooks);
                                 }
                             }
                         }
