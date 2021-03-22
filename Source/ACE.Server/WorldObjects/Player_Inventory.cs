@@ -826,7 +826,7 @@ namespace ACE.Server.WorldObjects
 
             if (PropertyManager.GetBool("house_hook_limit").Item && container is Hook hook)
             {
-                if (hook.House.RootHouse.HouseMaxHooksUsable != -1 && hook.House.HouseCurrentHooksUsable <= 0)
+                if (hook.House.HouseMaxHooksUsable != -1 && hook.House.HouseCurrentHooksUsable <= 0)
                 {
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.YouHaveUsedAllTheHooks));
                     return false;
