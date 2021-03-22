@@ -1434,7 +1434,7 @@ namespace ACE.Server.Command.Handlers
                 msg += $"MinLevel: {houseProfile.MinLevel} | MaxLevel: {houseProfile.MaxLevel}\n";
                 msg += $"MinAllegRank: {houseProfile.MinAllegRank} | MaxAllegRank: {houseProfile.MaxAllegRank}\n";
 
-                msg += $"OwnerID: 0x{houseProfile.OwnerID} | OwnerName: {houseProfile.OwnerName}\n";
+                msg += $"OwnerID: 0x{houseProfile.OwnerID} | OwnerName: {(string.IsNullOrEmpty(houseProfile.OwnerName) ? "N/A" : $"{houseProfile.OwnerName}")}\n";
                 msg += $"MaintenanceFree: {houseProfile.MaintenanceFree}\n";
                 msg += "--== Buy Cost==--\n";
                 foreach (var cost in houseProfile.Buy)
