@@ -1256,7 +1256,7 @@ namespace ACE.Server.WorldObjects
                 HandleActionModifyStorage(guest.Name, true, false);
             }
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"You remove item storage permission from all your guests", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You grant item storage permission to all your guests", ChatMessageType.Broadcast));
         }
 
         public void HandleActionRemoveAllStorage()
