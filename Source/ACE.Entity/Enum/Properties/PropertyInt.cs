@@ -268,6 +268,7 @@ namespace ACE.Entity.Enum.Properties
         DeathTimestamp                           = 194,
         PkTimestamp                              = 195,
         VictimTimestamp                          = 196,
+        [ServerOnly]
         HookGroup                                = 197,
         AllegianceSwearTimestamp                 = 198,
         [SendOnLogin]
