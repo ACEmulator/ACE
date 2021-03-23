@@ -824,12 +824,28 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            if (PropertyManager.GetBool("house_hook_limit").Item && container is Hook hook)
+            if (container is Hook hook)
             {
-                if (hook.House.HouseMaxHooksUsable != -1 && hook.House.HouseCurrentHooksUsable <= 0)
+                if (PropertyManager.GetBool("house_hook_limit").Item)
                 {
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.YouHaveUsedAllTheHooks));
-                    return false;
+                    if (hook.House.HouseMaxHooksUsable != -1 && hook.House.HouseCurrentHooksUsable <= 0)
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.YouHaveUsedAllTheHooks));
+                        return false;
+                    }
+                }
+
+                if (PropertyManager.GetBool("house_hookgroup_limit").Item)
+                {
+                    var itemHookGroup = item.HookGroup ?? HookGroupType.Undef;
+                    var houseHookGroupMax = hook.House.GetHookGroupMaxCount(itemHookGroup);
+                    var houseHookGroupCurrent = hook.House.GetHookGroupCurrentCount(itemHookGroup);
+                    if (houseHookGroupMax != -1 && houseHookGroupCurrent >= houseHookGroupMax)
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                        Session.Player.SendWeenieErrorWithString(WeenieErrorWithString.MaxNumberOf_Hooked, itemHookGroup.ToSentence());
+                        return false;
+                    }
                 }
             }
 
@@ -1035,13 +1051,35 @@ namespace ACE.Server.WorldObjects
 
                             if (PropertyManager.GetBool("house_hook_limit").Item)
                             {
-                                if (container is Hook hook && hook.House.HouseMaxHooksUsable != -1 && hook.House.HouseCurrentHooksUsable <= 0)
+                                if (container is Hook toHook && toHook.House.HouseMaxHooksUsable != -1 && toHook.House.HouseCurrentHooksUsable <= 0)
                                 {
                                     SendWeenieError(WeenieError.YouAreNowUsingMaxHooks);
                                 }
-                                else if (itemRootOwner is Hook hook2 && hook2.House.HouseMaxHooksUsable != -1 && hook2.House.HouseCurrentHooksUsable == 1)
+                                else if (itemRootOwner is Hook fromHook && fromHook.House.HouseMaxHooksUsable != -1 && fromHook.House.HouseCurrentHooksUsable == 1)
                                 {
                                     SendWeenieError(WeenieError.YouAreNoLongerUsingMaxHooks);
+                                }
+                            }
+
+                            if (PropertyManager.GetBool("house_hookgroup_limit").Item)
+                            {
+                                if (container is Hook toHook)
+                                {
+                                    var itemHookGroup = item.HookGroup ?? HookGroupType.Undef;
+                                    var houseHookGroupMax = toHook.House.GetHookGroupMaxCount(itemHookGroup);
+                                    var houseHookGroupCurrent = toHook.House.GetHookGroupCurrentCount(itemHookGroup);
+
+                                    if (houseHookGroupMax != -1 && houseHookGroupCurrent >= houseHookGroupMax)
+                                        SendWeenieErrorWithString(WeenieErrorWithString.MaxNumberOf_HookedUntilOneIsRemoved, itemHookGroup.ToSentence());
+                                }
+                                else if (itemRootOwner is Hook fromHook)
+                                {
+                                    var itemHookGroup = item.HookGroup ?? HookGroupType.Undef;
+                                    var houseHookGroupMax = fromHook.House.GetHookGroupMaxCount(itemHookGroup);
+                                    var houseHookGroupCurrent = fromHook.House.GetHookGroupCurrentCount(itemHookGroup);
+
+                                    if (houseHookGroupMax != -1 && houseHookGroupCurrent == houseHookGroupMax - 1)
+                                        SendWeenieErrorWithString(WeenieErrorWithString.NoLongerMaxNumberOf_Hooked, itemHookGroup.ToSentence());
                                 }
                             }
                         }

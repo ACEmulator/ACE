@@ -1613,11 +1613,15 @@ namespace ACE.Server.Command.Handlers
             {
                 msg += $"===Hooks for House 0x{house.Guid}==================\n";
                 msg += $"Hooks.Count: {house.Hooks.Count}\n";
+                foreach (var hookGroup in (HookGroupType[])Enum.GetValues(typeof(HookGroupType)))
+                {
+                    msg += $"HookGroupType.{hookGroup}.Count: {house.GetHookGroupCurrentCount(hookGroup)} / {house.GetHookGroupMaxCount(hookGroup)}\n";
+                }
                 foreach (var hook in house.Hooks)
                 {
                     msg += $"Name: {hook.Name} | {hook.WeenieClassName} | WCID: {hook.WeenieClassId} | GUID: 0x{hook.Guid}\n";
                     // msg += $"Location: {hook.Location.ToLOCString()}\n";
-                    msg += $"HookType: {(HookType)hook.HookType} ({hook.HookType}){(hook.HasItem ? $" | Item on Hook: {hook.Item.Name} (0x{hook.Item.Guid}:{hook.Item.WeenieClassId}:{hook.Item.WeenieType})" : "")}\n";
+                    msg += $"HookType: {(HookType)hook.HookType} ({hook.HookType}){(hook.HasItem ? $" | Item on Hook: {hook.Item.Name} (0x{hook.Item.Guid}:{hook.Item.WeenieClassId}:{hook.Item.WeenieType}) | HookGroup: {hook.Item.HookGroup ?? HookGroupType.Undef} ({(int)(hook.Item.HookGroup ?? 0)})" : "")}\n";
                 }
             }
 
