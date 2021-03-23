@@ -11,7 +11,7 @@ namespace ACE.Entity.Enum
         PortalItems                     = 0x4,
         WriteableItems                  = 0x8,
         SpellCastingItems               = 0x10,
-        SpellTeachingItems    = 0x20
+        SpellTeachingItems              = 0x20
     }
 
     public static class HookGroupTypeExtensions
