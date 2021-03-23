@@ -694,7 +694,7 @@ namespace ACE.Server.WorldObjects
                 { HookGroupType.NoisemakingItems,               -1 },
                 { HookGroupType.TestItems,                      -1 },
                 { HookGroupType.PortalItems,                    -1 },
-                { HookGroupType.WriteableItems,                 -1 },
+                { HookGroupType.WritableItems,                  -1 },
                 { HookGroupType.SpellCastingItems,              -1 },
                 { HookGroupType.SpellTeachingItems,             -1 } }
             },
@@ -703,7 +703,7 @@ namespace ACE.Server.WorldObjects
                 { HookGroupType.NoisemakingItems,               -1 },
                 { HookGroupType.TestItems,                      -1 },
                 { HookGroupType.PortalItems,                    -1 },
-                { HookGroupType.WriteableItems,                  1 },
+                { HookGroupType.WritableItems,                   1 },
                 { HookGroupType.SpellCastingItems,               5 },
                 { HookGroupType.SpellTeachingItems,              0 } }
             },
@@ -712,7 +712,7 @@ namespace ACE.Server.WorldObjects
                 { HookGroupType.NoisemakingItems,               -1 },
                 { HookGroupType.TestItems,                      -1 },
                 { HookGroupType.PortalItems,                    -1 },
-                { HookGroupType.WriteableItems,                  1 },
+                { HookGroupType.WritableItems,                   1 },
                 { HookGroupType.SpellCastingItems,              10 },
                 { HookGroupType.SpellTeachingItems,              0 } }
             },
@@ -721,7 +721,7 @@ namespace ACE.Server.WorldObjects
                 { HookGroupType.NoisemakingItems,               -1 },
                 { HookGroupType.TestItems,                      -1 },
                 { HookGroupType.PortalItems,                    -1 },
-                { HookGroupType.WriteableItems,                  3 },
+                { HookGroupType.WritableItems,                   3 },
                 { HookGroupType.SpellCastingItems,              15 },
                 { HookGroupType.SpellTeachingItems,              1 } }
             },
@@ -730,7 +730,7 @@ namespace ACE.Server.WorldObjects
                 { HookGroupType.NoisemakingItems,               -1 },
                 { HookGroupType.TestItems,                      -1 },
                 { HookGroupType.PortalItems,                     0 },
-                { HookGroupType.WriteableItems,                  0 },
+                { HookGroupType.WritableItems,                   0 },
                 { HookGroupType.SpellCastingItems,              -1 },
                 { HookGroupType.SpellTeachingItems,              0 } }
             }

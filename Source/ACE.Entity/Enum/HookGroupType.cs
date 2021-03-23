@@ -9,7 +9,7 @@ namespace ACE.Entity.Enum
         NoisemakingItems                = 0x1,
         TestItems                       = 0x2,
         PortalItems                     = 0x4,
-        WriteableItems                  = 0x8,
+        WritableItems                   = 0x8,
         SpellCastingItems               = 0x10,
         SpellTeachingItems              = 0x20
     }
