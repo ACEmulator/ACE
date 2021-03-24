@@ -1612,11 +1612,13 @@ namespace ACE.Server.Command.Handlers
             if (house.Hooks.Count > 0)
             {
                 msg += $"===Hooks for House 0x{house.Guid}==================\n";
-                msg += $"Hooks.Count: {house.Hooks.Count}\n";
+                msg += $"Hooks.Count: {house.Hooks.Count(h => h.HasItem)} in use / {house.HouseMaxHooksUsable} max allowed usable / {house.Hooks.Count} total\n";
+                msg += "--==HooksGroups==--\n";
                 foreach (var hookGroup in (HookGroupType[])Enum.GetValues(typeof(HookGroupType)))
                 {
-                    msg += $"HookGroupType.{hookGroup}.Count: {house.GetHookGroupCurrentCount(hookGroup)} / {house.GetHookGroupMaxCount(hookGroup)}\n";
+                    msg += $"{hookGroup}.Count: {house.GetHookGroupCurrentCount(hookGroup)} in use / {house.GetHookGroupMaxCount(hookGroup)} max allowed per group\n";
                 }
+                msg += "--==Hooks==--\n";
                 foreach (var hook in house.Hooks)
                 {
                     msg += $"Name: {hook.Name} | {hook.WeenieClassName} | WCID: {hook.WeenieClassId} | GUID: 0x{hook.Guid}\n";
