@@ -19,7 +19,6 @@ namespace ACE.Entity.Enum
         /// <summary>
         /// Will add a space infront of capital letter words in a string
         /// </summary>
-        /// <param name="skill"></param>
         /// <returns>string with spaces infront of capital letters</returns>
         public static string ToSentence(this HookGroupType hookGroupType)
         {
