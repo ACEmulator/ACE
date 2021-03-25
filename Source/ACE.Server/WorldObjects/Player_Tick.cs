@@ -59,14 +59,15 @@ namespace ACE.Server.WorldObjects
                 FellowVitalUpdate = false;
             }
 
-            if (House != null && PropertyManager.GetBool("house_rent_enabled", true).Item)
+            if (House != null && PropertyManager.GetBool("house_rent_enabled").Item)
             {
                 if (houseRentWarnTimestamp > 0 && currentUnixTime > houseRentWarnTimestamp)
                 {
-                    var house = GetHouse();
-
-                    if (house != null && !house.SlumLord.IsRentPaid())
-                        Session.Network.EnqueueSend(new GameMessageSystemChat($"Warning!  You have not paid your maintenance costs for the last {(House.HouseType == HouseType.Apartment ? "90" : "30")} day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.Broadcast));                        
+                    HouseManager.GetHouse(House.Guid.Full, (house) =>
+                    {
+                        if (house != null && !house.SlumLord.IsRentPaid())
+                            Session.Network.EnqueueSend(new GameMessageSystemChat($"Warning!  You have not paid your maintenance costs for the last {(House.HouseType == HouseType.Apartment ? "90" : "30")} day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.Broadcast));
+                    });
 
                     houseRentWarnTimestamp = Time.GetFutureUnixTime(houseRentWarnInterval);
                 }
