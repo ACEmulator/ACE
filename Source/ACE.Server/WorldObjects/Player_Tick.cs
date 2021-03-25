@@ -66,7 +66,7 @@ namespace ACE.Server.WorldObjects
                     HouseManager.GetHouse(House.Guid.Full, (house) =>
                     {
                         if (house != null && !house.SlumLord.IsRentPaid())
-                            Session.Network.EnqueueSend(new GameMessageSystemChat($"Warning!  You have not paid your maintenance costs for the last {(House.HouseType == HouseType.Apartment ? "90" : "30")} day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.Broadcast));
+                            Session.Network.EnqueueSend(new GameMessageSystemChat($"Warning!  You have not paid your maintenance costs for the last {(house.IsApartment ? "90" : "30")} day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.Broadcast));
                     });
 
                     houseRentWarnTimestamp = Time.GetFutureUnixTime(houseRentWarnInterval);
