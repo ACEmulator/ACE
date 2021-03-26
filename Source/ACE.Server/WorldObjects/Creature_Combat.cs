@@ -1050,6 +1050,13 @@ namespace ACE.Server.WorldObjects
                         return true;
                 }
 
+                // hatred mobs
+                if (Hatred1Bits != null && target.Hatred1Bits != null)
+                {
+                    if (AllowHatredCombat(target))
+                        return true;
+                }
+
                 // handle FoeType
                 if (PotentialFoe(target))
                     return true;
@@ -1149,7 +1156,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             // for faction mobs, ensure alerter doesn't belong to same faction
-            if (SameFaction(monster) && !PotentialFoe(monster))
+            if (SameFaction(monster) && !AllowHatredCombat(monster) && !PotentialFoe(monster))
                 return false;
 
             // add to retaliate targets?
@@ -1364,6 +1371,14 @@ namespace ACE.Server.WorldObjects
             var factionOther = creature.Faction1Bits ?? FactionBits.None;
 
             return (factionSelf & factionOther) == 0;
+        }
+
+        public bool AllowHatredCombat(Creature creature)
+        {
+            if (Hatred1Bits == null || creature.Hatred1Bits == null)
+                return false;
+
+            return (Hatred1Bits & creature.Hatred1Bits) != 0;
         }
 
         public void AddRetaliateTarget(WorldObject wo)

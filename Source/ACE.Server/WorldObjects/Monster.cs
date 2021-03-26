@@ -15,6 +15,8 @@ namespace ACE.Server.WorldObjects
 
         public bool IsFactionMob { get; set; }
 
+        public bool HasHatredBits { get; set; }
+
         public bool HasFoeType { get; set; }
 
         /// <summary>
@@ -47,6 +49,8 @@ namespace ACE.Server.WorldObjects
             IsMonster = Attackable || TargetingTactic != TargetingTactic.None;
 
             IsFactionMob = IsMonster && WeenieType != WeenieType.CombatPet && Faction1Bits != null;
+
+            HasHatredBits = IsMonster && Hatred1Bits != null;
 
             HasFoeType = IsMonster && FoeType != null;
         }

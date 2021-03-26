@@ -109,7 +109,7 @@ namespace ACE.Server.WorldObjects
                                 Proficiency.OnSuccessUse(targetPlayer, shieldSkill, shieldSkill.Current); // ?
                             }
                         }
-                        else if (combatPet != null || targetPet != null || Faction1Bits != null || target.Faction1Bits != null || PotentialFoe(target))
+                        else if (combatPet != null || targetPet != null || Faction1Bits != null || target.Faction1Bits != null || Hatred1Bits != null || target.Hatred1Bits != null || PotentialFoe(target))
                         {
                             // combat pet inflicting or receiving damage
                             //Console.WriteLine($"{target.Name} taking {Math.Round(damage)} {damageType} damage from {Name}");

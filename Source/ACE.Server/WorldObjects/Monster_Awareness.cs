@@ -242,7 +242,7 @@ namespace ACE.Server.WorldObjects
             foreach (var creature in PhysicsObj.ObjMaint.GetVisibleTargetsValuesOfTypeCreature())
             {
                 // ensure attackable
-                if (!creature.Attackable || creature.Teleporting) continue;
+                if (!creature.Attackable && creature.Hatred1Bits == null || creature.Teleporting) continue;
 
                 // ensure within 'detection radius' ?
                 var chaseDistSq = creature == AttackTarget ? MaxChaseRangeSq : VisualAwarenessRangeSq;
@@ -479,11 +479,11 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 // ensure attackable
-                if (creature.IsDead || !creature.Attackable || creature.Teleporting)
+                if (creature.IsDead || !creature.Attackable && creature.Hatred1Bits == null || creature.Teleporting)
                     continue;
 
                 // ensure another faction
-                if (SameFaction(creature) && !PotentialFoe(creature))
+                if (SameFaction(creature) && !AllowHatredCombat(creature) && !PotentialFoe(creature))
                     continue;
 
                 // ensure within detection range
