@@ -235,7 +235,10 @@ namespace ACE.Server.WorldObjects
 
             // TODO: if 'ResetInterval' style, do we want to ensure a minimum amount of time for the last viewer?
 
-            var player = CurrentLandblock?.GetObject(Viewer) as Player;
+            if (CurrentLandblock == null) // chest was removed from landblock (destroy or unload, also possibly reloaded; reset has already occured as a result)
+                return;
+
+            var player = CurrentLandblock.GetObject(Viewer) as Player;
 
             if (IsOpen)
                 Close(player, false);
