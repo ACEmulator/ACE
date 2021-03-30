@@ -235,7 +235,7 @@ namespace ACE.Server.WorldObjects
 
             // TODO: if 'ResetInterval' style, do we want to ensure a minimum amount of time for the last viewer?
 
-            var player = CurrentLandblock.GetObject(Viewer) as Player;
+            var player = CurrentLandblock?.GetObject(Viewer) as Player;
 
             if (IsOpen)
                 Close(player, false);
