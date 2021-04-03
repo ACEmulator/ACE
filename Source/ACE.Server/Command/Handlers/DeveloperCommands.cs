@@ -21,6 +21,7 @@ using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Factories.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
@@ -2308,12 +2309,14 @@ namespace ACE.Server.Command.Handlers
             TreasureDeath profile = new TreasureDeath
             {
                 Tier = tier,
-                LootQualityMod = 0
+                LootQualityMod = 0,
+                MagicItemTreasureTypeSelectionChances = 9,  // 8 or 9?
             };
 
             for (var i = 0; i < numItems; i++)
             {
-                var wo = LootGenerationFactory.CreateRandomLootObjects(profile, true);
+                //var wo = LootGenerationFactory.CreateRandomLootObjects(profile, true);
+                var wo = LootGenerationFactory.CreateRandomLootObjects_New(profile, TreasureItemCategory.MagicItem);
                 if (wo != null)
                     session.Player.TryCreateInInventoryWithNetworking(wo);
                 else
