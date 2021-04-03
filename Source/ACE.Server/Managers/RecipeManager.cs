@@ -989,7 +989,7 @@ namespace ACE.Server.Managers
             var createItem = success ? recipe.SuccessWCID : recipe.FailWCID;
             var createAmount = success ? recipe.SuccessAmount : recipe.FailAmount;
 
-            if (createItem > 0 && DatabaseManager.World.GetWeenie(createItem) == null)
+            if (createItem > 0 && DatabaseManager.World.GetCachedWeenie(createItem) == null)
             {
                 log.Error($"RecipeManager.CreateDestroyItems: Recipe.Id({recipe.Id}) couldn't find {(success ? "Success" : "Fail")}WCID {createItem} in database.");
                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.CraftGeneralErrorUiMsg));
