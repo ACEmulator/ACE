@@ -170,19 +170,28 @@ namespace ACE.Server.WorldObjects
             {
                 // select a magic spell
                 //CurrentSpell = GetRandomSpell();
+                var isVisible = IsDirectVisible(AttackTarget);
+
                 if (CurrentSpell.IsProjectile)
                 {
                     // ensure direct los
-                    if (!IsDirectVisible(AttackTarget))
+                    if (!isVisible)
                     {
                         // reroll attack type
                         CurrentAttack = GetNextAttackType();
                         it++;
 
                         // max iterations to melee?
-                        if (it >= 30)
+                        if (it >= 10)
+                        {
+                            //log.Warn($"{Name} ({Guid}) reached max iterations");
                             CurrentAttack = CombatType.Melee;
 
+                            var powerupTime = (float)(PowerupTime ?? 1.0f);
+                            var failDelay = ThreadSafeRandom.Next(0.0f, powerupTime);
+
+                            NextMoveTime = Timers.RunningTime + failDelay;
+                        }
                         continue;
                     }
                 }
