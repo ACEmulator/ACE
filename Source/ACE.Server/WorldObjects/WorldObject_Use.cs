@@ -94,24 +94,7 @@ namespace ACE.Server.WorldObjects
             }
 
             if (player != null)
-            {
                 player.EnchantmentManager.StartCooldown(this);
-
-                if (OwnerId == player.Guid.Full) // item is contained by player
-                {
-                    if (player.IsBusy || player.Teleporting || player.suicideInProgress)
-                    {
-                        player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YoureTooBusy));
-                        return;
-                    }
-
-                    if (player.IsDead)
-                    {
-                        player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.Dead));
-                        return;
-                    }
-                }
-            }
 
             // perform motion animation - rarely used (only 4 instances in PY16 db)
             if (ActivationResponse.HasFlag(ActivationResponse.Animate))
