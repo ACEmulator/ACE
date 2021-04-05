@@ -165,17 +165,19 @@ namespace ACE.Server.WorldObjects
         {
             // FIXME
             var it = 0;
+            bool? isVisible = null;
 
             while (CurrentAttack == CombatType.Magic)
             {
                 // select a magic spell
                 //CurrentSpell = GetRandomSpell();
-                var isVisible = IsDirectVisible(AttackTarget);
-
                 if (CurrentSpell.IsProjectile)
                 {
+                    if (isVisible == null)
+                        isVisible = IsDirectVisible(AttackTarget);
+
                     // ensure direct los
-                    if (!isVisible)
+                    if (!isVisible.Value)
                     {
                         // reroll attack type
                         CurrentAttack = GetNextAttackType();
