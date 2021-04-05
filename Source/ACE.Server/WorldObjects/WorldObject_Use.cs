@@ -97,16 +97,19 @@ namespace ACE.Server.WorldObjects
             {
                 player.EnchantmentManager.StartCooldown(this);
 
-                if (player.IsBusy || player.Teleporting || player.suicideInProgress)
+                if (OwnerId == player.Guid.Full) // item is contained by player
                 {
-                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YoureTooBusy));
-                    return;
-                }
+                    if (player.IsBusy || player.Teleporting || player.suicideInProgress)
+                    {
+                        player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YoureTooBusy));
+                        return;
+                    }
 
-                if (player.IsDead)
-                {
-                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.Dead));
-                    return;
+                    if (player.IsDead)
+                    {
+                        player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.Dead));
+                        return;
+                    }
                 }
             }
 
