@@ -1767,6 +1767,9 @@ namespace ACE.Server.WorldObjects.Managers
             if (WorldObject is Creature creature && creature.IsAwake)
                 return;
 
+            if (WorldObject.EmotePriority < 1 && (WorldObject.CurrentLandblock?.IsDormant ?? false))
+                return;
+
             ExecuteEmoteSet(EmoteCategory.HeartBeat);
         }
 

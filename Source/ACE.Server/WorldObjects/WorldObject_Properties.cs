@@ -3047,5 +3047,11 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.ResistItemAppraisal);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistItemAppraisal); else SetProperty(PropertyInt.ResistItemAppraisal, value.Value); }
         }
+
+        public double? EmotePriority
+        {
+            get => GetProperty(PropertyFloat.EmotePriority);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.EmotePriority); else SetProperty(PropertyFloat.EmotePriority, value.Value); }
+        }
     }
 }
