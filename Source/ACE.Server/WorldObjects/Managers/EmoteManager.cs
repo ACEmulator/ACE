@@ -956,6 +956,10 @@ namespace ACE.Server.WorldObjects.Managers
                         if (WorldObject.CurrentLandblock?.IsDormant ?? false)
                             break;
 
+                        // are there players within emote range?
+                        if (!WorldObject.PlayersInRange(ClientMaxAnimRange))
+                            break;
+
                         var newPos = new Position(creature.Home);
                         newPos.Pos += new Vector3(emote.OriginX ?? 0, emote.OriginY ?? 0, emote.OriginZ ?? 0);      // uses relative position
 
