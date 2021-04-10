@@ -1117,7 +1117,7 @@ namespace ACE.Server.Command.Handlers
 
             if (parameters.Length >= 1 && parameters[0] == "dump")
             {
-                if (parameters.Length == 1 && parameters[0] == "dump")
+                if (parameters.Length == 1)
                 {
                     if (session.Player.HealthQueryTarget.HasValue || session.Player.ManaQueryTarget.HasValue || session.Player.CurrentAppraisalTarget.HasValue)
                     {
@@ -1229,25 +1229,102 @@ namespace ACE.Server.Command.Handlers
                     session.Player.SendMessage("You must specify either \"name\", \"account\" or \"hid\".");
                 }
             }
-            else if (parameters.Length == 1 && parameters[0] == "dump_all")
+            else if (parameters.Length >= 1 && parameters[0] == "dump_all")
             {
-                for (var i = 1u; i < 6251; i++)
+                if (parameters.Length == 1)
                 {
-                    var msg = $"{i}: ";
-
-                    var house = HouseManager.GetHouseById(i).FirstOrDefault();
-
-                    if (house != null)
+                    for (var i = 1u; i < 6251; i++)
                     {
-                        var houseData = house.GetHouseData(PlayerManager.FindByGuid(new ObjectGuid(house.HouseOwner ?? 0)));
-                        msg += $"{house.HouseType} | Owner: {house.HouseOwnerName} (0x{house.HouseOwner:X8}) | BuyTime: {Time.GetDateTimeFromTimestamp(houseData.BuyTime).ToLocalTime()} ({houseData.BuyTime}) | RentTime: {Time.GetDateTimeFromTimestamp(houseData.RentTime).ToLocalTime()} ({houseData.RentTime}) | RentDue: {Time.GetDateTimeFromTimestamp(house.GetRentDue(houseData.RentTime)).ToLocalTime()} ({house.GetRentDue(houseData.RentTime)}) | Rent is {(house.SlumLord.IsRentPaid() ? "" : "NOT ")}paid";
+                        var msg = $"{i}: ";
+
+                        var house = HouseManager.GetHouseById(i).FirstOrDefault();
+
+                        if (house != null)
+                        {
+                            var houseData = house.GetHouseData(PlayerManager.FindByGuid(new ObjectGuid(house.HouseOwner ?? 0)));
+                            msg += $"{house.HouseType} | Owner: {house.HouseOwnerName} (0x{house.HouseOwner:X8}) | BuyTime: {Time.GetDateTimeFromTimestamp(houseData.BuyTime).ToLocalTime()} ({houseData.BuyTime}) | RentTime: {Time.GetDateTimeFromTimestamp(houseData.RentTime).ToLocalTime()} ({houseData.RentTime}) | RentDue: {Time.GetDateTimeFromTimestamp(house.GetRentDue(houseData.RentTime)).ToLocalTime()} ({house.GetRentDue(houseData.RentTime)}) | Rent is {(house.SlumLord.IsRentPaid() ? "" : "NOT ")}paid";
+                        }
+                        else
+                        {
+                            msg += "House is NOT currently owned";
+                        }
+
+                        session.Player.SendMessage(msg);
                     }
-                    else
+                }
+                else if (parameters.Length > 1 && parameters[1] == "summary")
+                {
+                    var apartmentsTotal = 3000d;
+                    var cottagesTotal   = 2600d;
+                    var villasTotal     = 570d;
+                    var mansionsTotal   = 80d;
+
+                    var cottages   = 0;
+                    var villas     = 0;
+                    var mansions   = 0;
+                    var apartments = 0;
+
+                    for (var i = 1u; i < 6251; i++)
                     {
-                        msg += "House is NOT currently owned";
+                        var house = HouseManager.GetHouseById(i).FirstOrDefault();
+
+                        if (house == null)
+                            continue;
+
+                        //var houseData = house.GetHouseData(PlayerManager.FindByGuid(new ObjectGuid(house.HouseOwner ?? 0)));
+                        switch (house.HouseType)
+                        {
+                            case HouseType.Apartment:
+                                apartments++;
+                                break;
+                            case HouseType.Cottage:
+                                cottages++;
+                                break;
+                            case HouseType.Mansion:
+                                mansions++;
+                                break;
+                            case HouseType.Villa:
+                                villas++;
+                                break;
+                        }
                     }
+
+                    var apartmentsAvail = (apartmentsTotal - apartments) / apartmentsTotal;
+                    var cottagesAvail   = (cottagesTotal - cottages) / cottagesTotal;
+                    var villasAvail     = (villasTotal - villas) / villasTotal;
+                    var mansionsAvail   = (mansionsTotal - mansions) / mansionsTotal;
+
+                    var msg = "HUD Report:\n";
+                    msg += "==================================================\n";
+
+                    msg += string.Format("{0, -13} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Apartments:", apartments, apartmentsTotal, apartmentsAvail);
+                    msg += string.Format("{0, -14} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Cottages:", cottages, cottagesTotal, cottagesAvail);
+                    msg += string.Format("{0, -16} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Villas:", villas, villasTotal, villasAvail);
+                    msg += string.Format("{0, -13} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Mansions:", mansions, mansionsTotal, mansionsAvail);
+
+                    msg += "==================================================\n";
 
                     session.Player.SendMessage(msg);
+                }
+                else if (parameters.Length > 1 && parameters[1] == "dangerous")
+                {
+                    for (var i = 1u; i < 6251; i++)
+                    {
+                        var houses = HouseManager.GetHouseById(i);
+
+                        if (houses.Count == 0)
+                        {
+                            session.Player.SendMessage($"HouseId {i} is not currently owned.");
+                            return;
+                        }
+
+                        foreach (var house in houses)
+                            DumpHouse(session, house, house);
+                    }
+                }
+                else
+                {
+                    session.Player.SendMessage("You must specify either nothing, \"summary\" or \"dangerous\".");
                 }
             }
             else if (parameters.Length >= 1 && parameters[0] == "rent")
