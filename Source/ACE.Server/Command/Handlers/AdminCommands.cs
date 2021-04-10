@@ -1313,7 +1313,7 @@ namespace ACE.Server.Command.Handlers
                         if (houses.Count == 0)
                         {
                             session.Player.SendMessage($"HouseId {i} is not currently owned.");
-                            return;
+                            continue;
                         }
 
                         foreach (var house in houses)
