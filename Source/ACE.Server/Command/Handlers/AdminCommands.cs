@@ -1293,14 +1293,14 @@ namespace ACE.Server.Command.Handlers
                     var mansionsAvail   = (mansionsTotal - mansions) / mansionsTotal;
 
                     var msg = "HUD Report:\n";
-                    msg += "==================================================\n";
+                    msg += "=========================================================\n";
 
-                    msg += string.Format("{0, -13} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Apartments:", apartments, apartmentsTotal, apartmentsAvail);
-                    msg += string.Format("{0, -14} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Cottages:", cottages, cottagesTotal, cottagesAvail);
-                    msg += string.Format("{0, -16} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Villas:", villas, villasTotal, villasAvail);
-                    msg += string.Format("{0, -13} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Mansions:", mansions, mansionsTotal, mansionsAvail);
+                    msg += string.Format("{0, -12} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Apartments:", apartments, apartmentsTotal, apartmentsAvail);
+                    msg += string.Format("{0, -12} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Cottages:", cottages, cottagesTotal, cottagesAvail);
+                    msg += string.Format("{0, -12} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Villas:", villas, villasTotal, villasAvail);
+                    msg += string.Format("{0, -12} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Mansions:", mansions, mansionsTotal, mansionsAvail);
 
-                    msg += "==================================================\n";
+                    msg += "=========================================================\n";
 
                     session.Player.SendMessage(msg);
                 }
