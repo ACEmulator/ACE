@@ -1113,8 +1113,6 @@ namespace ACE.Server.Command.Handlers
             // @adminhouse payrent on / off: sets the targeted house to not require / require normal maintenance payments.
             // @adminhouse - House management tools for admins.
 
-            // TODO: output
-
             if (parameters.Length >= 1 && parameters[0] == "dump")
             {
                 if (parameters.Length == 1)
