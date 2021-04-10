@@ -1476,7 +1476,7 @@ namespace ACE.Server.Command.Handlers
                 msg += $"RestrictionEffect: {(PlayScript)house.GetProperty(PropertyDataId.RestrictionEffect)} ({house.GetProperty(PropertyDataId.RestrictionEffect)})\n";
                 msg += $"HouseMaxHooksUsable: {house.HouseMaxHooksUsable}\n";
                 msg += $"HouseCurrentHooksUsable: {house.HouseCurrentHooksUsable}\n";
-                msg += $"HouseHooksVisible: {house.HouseHooksVisible}\n";
+                msg += $"HouseHooksVisible: {house.HouseHooksVisible ?? false}\n";
                 msg += $"OpenToEveryone: {house.OpenToEveryone}\n";
                 session.Player.SendMessage(msg, ChatMessageType.System);
 
