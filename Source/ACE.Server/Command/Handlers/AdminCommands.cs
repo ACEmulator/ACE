@@ -1300,6 +1300,12 @@ namespace ACE.Server.Command.Handlers
                     msg += string.Format("{0, -12} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Villas:", villas, villasTotal, villasAvail);
                     msg += string.Format("{0, -12} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Mansions:", mansions, mansionsTotal, mansionsAvail);
 
+                    var housesTotal = apartmentsTotal + cottagesTotal + villasTotal + mansionsTotal;
+                    var housesSold = apartments + cottages + villas + mansions;
+                    var housesAvail = (housesTotal - housesSold) / housesTotal;
+
+                    msg += string.Format("{0, -12} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Total:", housesSold, housesTotal, housesAvail);
+
                     msg += "=========================================================\n";
 
                     session.Player.SendMessage(msg);
