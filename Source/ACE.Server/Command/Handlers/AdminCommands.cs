@@ -1454,6 +1454,8 @@ namespace ACE.Server.Command.Handlers
                 msg += "@adminhouse dump account <account_name>: dumps info about house owned by named account.\n";
                 msg += "@adminhouse dump hid <houseID>: dumps info about specified house.\n";
                 msg += "@adminhouse dump_all: dumps one line about each house in the world.\n";
+                msg += "@adminhouse dump_all summary: dumps info about total houses owned for each house type.\n";
+                msg += "@adminhouse dump_all dangerous: dumps full info about all houses. Use with caution.\n";
                 msg += "@adminhouse rent pay: fully pay the rent of the selected house.\n";
                 msg += "@adminhouse rent payall: fully pay the rent for all houses.\n";
                 msg += "@adminhouse payrent off / on: sets the targeted house to not require / require normal maintenance payments.\n";
