@@ -118,8 +118,12 @@ namespace ACE.Server
 
                 var line = string.Empty;
                 var completeSQLline = string.Empty;
+
+                var dbname = ConfigManager.Config.MySql.World.Database;
+
                 while ((line = sr.ReadLine()) != null)
                 {
+                    line = line.Replace("ace_world", dbname);
                     //do minimal amount of work here
                     if (line.EndsWith(";"))
                     {
