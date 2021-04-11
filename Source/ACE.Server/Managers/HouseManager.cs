@@ -361,11 +361,11 @@ namespace ACE.Server.Managers
                 playerHouse.House = house;
 
                 var isInActiveOrDisabled = playerHouse.House.HouseStatus <= HouseStatus.InActive;
-                var isPaid = IsRentPaid(playerHouse) || isInActiveOrDisabled;
-                var hasRequirements = HasRequirements(playerHouse) || isInActiveOrDisabled;
+                var isPaid = IsRentPaid(playerHouse);
+                var hasRequirements = HasRequirements(playerHouse);
                 //log.Info($"{playerHouse.PlayerName}.ProcessRent(): isPaid = {isPaid}");
 
-                if (isPaid && hasRequirements)
+                if (isInActiveOrDisabled || (isPaid && hasRequirements))
                     HandleRentPaid(playerHouse);
                 else
                     HandleEviction(playerHouse);
