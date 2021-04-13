@@ -823,6 +823,32 @@ namespace ACE.Server.WorldObjects
                     return false;
                 }
             }
+
+            if (container is Hook hook)
+            {
+                if (PropertyManager.GetBool("house_hook_limit").Item)
+                {
+                    if (hook.House.HouseMaxHooksUsable != -1 && hook.House.HouseCurrentHooksUsable <= 0)
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.YouHaveUsedAllTheHooks));
+                        return false;
+                    }
+                }
+
+                if (PropertyManager.GetBool("house_hookgroup_limit").Item)
+                {
+                    var itemHookGroup = item.HookGroup ?? HookGroupType.Undef;
+                    var houseHookGroupMax = hook.House.GetHookGroupMaxCount(itemHookGroup);
+                    var houseHookGroupCurrent = hook.House.GetHookGroupCurrentCount(itemHookGroup);
+                    if (houseHookGroupMax != -1 && houseHookGroupCurrent >= houseHookGroupMax)
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                        Session.Player.SendWeenieErrorWithString(WeenieErrorWithString.MaxNumberOf_Hooked, itemHookGroup.ToSentence());
+                        return false;
+                    }
+                }
+            }
+
             return true;
         }
 
@@ -1020,6 +1046,40 @@ namespace ACE.Server.WorldObjects
                                 {
                                     log.Debug($"[CORPSE] {Name} (0x{Guid}) picked up {item.Name} (0x{item.Guid}) from {itemRootOwner.Name} (0x{itemRootOwner.Guid})");
                                     item.SaveBiotaToDatabase();
+                                }
+                            }
+
+                            if (PropertyManager.GetBool("house_hook_limit").Item)
+                            {
+                                if (container is Hook toHook && toHook.House.HouseMaxHooksUsable != -1 && toHook.House.HouseCurrentHooksUsable <= 0)
+                                {
+                                    SendWeenieError(WeenieError.YouAreNowUsingMaxHooks);
+                                }
+                                else if (itemRootOwner is Hook fromHook && fromHook.House.HouseMaxHooksUsable != -1 && fromHook.House.HouseCurrentHooksUsable == 1)
+                                {
+                                    SendWeenieError(WeenieError.YouAreNoLongerUsingMaxHooks);
+                                }
+                            }
+
+                            if (PropertyManager.GetBool("house_hookgroup_limit").Item)
+                            {
+                                if (container is Hook toHook)
+                                {
+                                    var itemHookGroup = item.HookGroup ?? HookGroupType.Undef;
+                                    var houseHookGroupMax = toHook.House.GetHookGroupMaxCount(itemHookGroup);
+                                    var houseHookGroupCurrent = toHook.House.GetHookGroupCurrentCount(itemHookGroup);
+
+                                    if (houseHookGroupMax != -1 && houseHookGroupCurrent >= houseHookGroupMax)
+                                        SendWeenieErrorWithString(WeenieErrorWithString.MaxNumberOf_HookedUntilOneIsRemoved, itemHookGroup.ToSentence());
+                                }
+                                else if (itemRootOwner is Hook fromHook)
+                                {
+                                    var itemHookGroup = item.HookGroup ?? HookGroupType.Undef;
+                                    var houseHookGroupMax = fromHook.House.GetHookGroupMaxCount(itemHookGroup);
+                                    var houseHookGroupCurrent = fromHook.House.GetHookGroupCurrentCount(itemHookGroup);
+
+                                    if (houseHookGroupMax != -1 && houseHookGroupCurrent == houseHookGroupMax - 1)
+                                        SendWeenieErrorWithString(WeenieErrorWithString.NoLongerMaxNumberOf_Hooked, itemHookGroup.ToSentence());
                                 }
                             }
                         }
@@ -2683,6 +2743,21 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
+                if (item.WeenieType == WeenieType.Deed) // http://acpedia.org/wiki/Housing_FAQ#House_deeds
+                {                    
+                    var stackSize = item.StackSize ?? 1;
+
+                    var stackMsg = stackSize != 1 ? $"{stackSize} " : "";
+                    var itemName = item.GetNameWithMaterial(stackSize);
+
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
+                    target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
+
+                    HandleActionAbandonHouse();
+
+                    return;
+                }
+
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, (WeenieErrorWithString)WeenieError.TradeAiDoesntWant, target.Name));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
             }

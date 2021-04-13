@@ -114,7 +114,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<WorldObject> GetBuyItems()
         {
-            return GetCreateListForSlumLord(DestinationType.HouseBuy);
+            var buyList = GetCreateListForSlumLord(DestinationType.HouseBuy);
+
+            buyList.ForEach(item => item.Destroy(false));
+
+            return buyList;
         }
 
         /// <summary>
@@ -122,7 +126,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<WorldObject> GetRentItems()
         {
-            return GetCreateListForSlumLord(DestinationType.HouseRent);
+            var rentList = GetCreateListForSlumLord(DestinationType.HouseRent);
+
+            rentList.ForEach(item => item.Destroy(false));
+
+            return rentList;
         }
 
         /// <summary>
