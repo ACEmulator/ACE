@@ -9,7 +9,10 @@ namespace ACE.Entity.Enum
         None          = 0x0,
         CelestialHand = 0x1,
         EldrytchWeb   = 0x2,
-        RadiantBlood  = 0x4
+        RadiantBlood  = 0x4,
+
+        // helper
+        ValidFactions = CelestialHand | EldrytchWeb | RadiantBlood
     }
 
     public static class FactionBitsExtensions
