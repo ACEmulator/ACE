@@ -82,7 +82,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            if (PropertyManager.GetBool("house_30daylimit").Item && slumlord.House.HouseType != HouseType.Apartment)
+            if (PropertyManager.GetBool("house_30day_cooldown").Item && slumlord.House.HouseType != HouseType.Apartment)
             {
                 var lastPurchaseTime = Time.GetDateTimeFromTimestamp(HousePurchaseTimestamp ?? 0);
                 var lastPurchaseTimePlus30 = lastPurchaseTime.AddDays(30);
