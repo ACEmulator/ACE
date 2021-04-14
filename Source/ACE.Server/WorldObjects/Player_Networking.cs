@@ -48,6 +48,19 @@ namespace ACE.Server.WorldObjects
                 var accountTimeSpan = DateTime.UtcNow - Account.CreateTime;
                 if (accountTimeSpan.TotalDays >= 15)
                     Account15Days = true;
+
+                if (PropertyManager.GetBool("house_15day_account").Item && !HouseRentTimestamp.HasValue) // account was created less than 15 days ago and has NOT purchased a house (HouseRentTimestamp is null because no house has been bought)
+                {
+                    if (!Account15Days) // http://acpedia.org/wiki/Housing_FAQ#Purchase_timer
+                    {
+                        var accountCreateTimeMinus15Days = Account.CreateTime.AddDays(-15);
+                        HousePurchaseTimestamp = (int)Time.GetUnixTime(accountCreateTimeMinus15Days);
+                    }
+                    else // account is now 15+ days old and still has not purchased a house, remove unneeded HousePurchaseTimestamp
+                    {
+                        HousePurchaseTimestamp = null;
+                    }
+                }
             }
 
             if (PlayerKillerStatus == PlayerKillerStatus.PKLite && !PropertyManager.GetBool("pkl_server").Item)
