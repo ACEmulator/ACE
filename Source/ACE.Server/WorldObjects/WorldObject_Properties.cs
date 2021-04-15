@@ -3047,5 +3047,11 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.ResistItemAppraisal);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistItemAppraisal); else SetProperty(PropertyInt.ResistItemAppraisal, value.Value); }
         }
+
+        public HookGroupType? HookGroup
+        {
+            get => (HookGroupType?)GetProperty(PropertyInt.HookGroup);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HookGroup); else SetProperty(PropertyInt.HookGroup, (int)value.Value); }
+        }
     }
 }

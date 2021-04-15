@@ -88,7 +88,8 @@ namespace ACE.Database
             // https://stackoverflow.com/questions/50402015/how-to-execute-sqlquery-with-entity-framework-core-2-1
 
             // This query is ugly, but very fast.
-            var sql = "SELECT"                                                                          + Environment.NewLine +
+            var sql = "SET @available_ids=0, @rownum=0;"                                                + Environment.NewLine +
+                      "SELECT"                                                                          + Environment.NewLine +
                       " z.gap_starts_at, z.gap_ends_at_not_inclusive, @available_ids:=@available_ids+(z.gap_ends_at_not_inclusive - z.gap_starts_at) as running_total_available_ids" + Environment.NewLine +
                       "FROM ("                                                                          + Environment.NewLine +
                       " SELECT"                                                                         + Environment.NewLine +
@@ -115,7 +116,7 @@ namespace ACE.Database
 
                 while (reader.Read())
                 {
-                    var gap_starts_at               = reader.GetFieldValue<double>(0);
+                    var gap_starts_at               = reader.GetFieldValue<long>(0);
                     var gap_ends_at_not_inclusive   = reader.GetFieldValue<decimal>(1);
                     //var running_total_available_ids = reader.GetFieldValue<double>(2);
 
@@ -628,7 +629,7 @@ namespace ACE.Database
                         cachedContext.SaveChanges();
 
                         if (firstException != null)
-                            log.Debug($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+                            log.Debug($"[DATABASE] SaveCharacter-1 0x{character.Id:X8}:{character.Name} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
 
                         return true;
                     }
@@ -641,8 +642,8 @@ namespace ACE.Database
                         }
 
                         // Character name might be in use or some other fault
-                        log.Error($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
-                        log.Error($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
+                        log.Error($"[DATABASE] SaveCharacter-1 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
+                        log.Error($"[DATABASE] SaveCharacter-1 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
                         return false;
                     }
                 }
@@ -669,7 +670,7 @@ namespace ACE.Database
                     context.SaveChanges();
 
                     if (firstException != null)
-                        log.Debug($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+                        log.Debug($"[DATABASE] SaveCharacter-2 0x{character.Id:X8}:{character.Name} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
 
                     return true;
                 }
@@ -682,8 +683,8 @@ namespace ACE.Database
                     }
 
                     // Character name might be in use or some other fault
-                    log.Error($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
-                    log.Error($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
+                    log.Error($"[DATABASE] SaveCharacter-2 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
+                    log.Error($"[DATABASE] SaveCharacter-2 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
                     return false;
                 }
             }

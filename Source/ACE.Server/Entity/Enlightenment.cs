@@ -340,7 +340,9 @@ namespace ACE.Server.Entity
 
             player.GiveFromEmote(npc, AttributeResetCertificate, 1);
 
-            PlayerManager.BroadcastToAll(new GameMessageSystemChat($"{player.Name} has achieved the {lvl} level of Enlightenment!", ChatMessageType.WorldBroadcast));
+            var msg = $"{player.Name} has achieved the {lvl} level of Enlightenment!";
+            PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
+            PlayerManager.LogBroadcastChat(Channel.AllBroadcast, null, msg);
 
             // +2 vitality
             // handled automatically via PropertyInt.Enlightenment * 2

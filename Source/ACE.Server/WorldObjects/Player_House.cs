@@ -30,7 +30,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionBuyHouse(uint slumlord_id, List<uint> item_ids)
         {
-            Console.WriteLine($"\n{Name}.HandleActionBuyHouse()");
+            //Console.WriteLine($"\n{Name}.HandleActionBuyHouse()");
+            log.Info($"[HOUSE] {Name}.HandleActionBuyHouse()");
 
             // verify player doesn't already own a house
             var houseInstance = GetHouseInstance();
@@ -45,7 +46,7 @@ namespace ACE.Server.WorldObjects
             var slumlord = (SlumLord)CurrentLandblock.GetObject(slumlord_id);
             if (slumlord == null)
             {
-                Console.WriteLine("Couldn't find slumlord!");
+                log.Error($"[HOUSE] {Name}.HandleActionBuyHouse: Couldn't find slumlord 0x{slumlord_id:X8}!");
                 return;
             }
 
@@ -81,14 +82,27 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            if (PropertyManager.GetBool("house_30day_cooldown").Item && slumlord.House.HouseType != HouseType.Apartment)
+            {
+                var lastPurchaseTime = Time.GetDateTimeFromTimestamp(HousePurchaseTimestamp ?? 0);
+                var lastPurchaseTimePlus30 = lastPurchaseTime.AddDays(30);
+
+                if (lastPurchaseTimePlus30 > DateTime.UtcNow)
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustWaitToPurchaseHouse));
+                    return;
+                }
+            }
+
             var verified = VerifyPurchase(slumlord, item_ids);
             if (!verified)
             {
-                log.Error($"{Name} tried to purchase house {slumlord.Guid} without the required items!");
+                log.Warn($"[HOUSE] {Name} tried to purchase house {slumlord.Guid} without the required items!");
                 return;
             }
 
-            Console.WriteLine("\nInventory check passed!");
+            //Console.WriteLine("\nInventory check passed!");
+            log.Info($"[HOUSE] {Name}.HandleActionBuyHouse(): Inventory check passed!");
 
             // get the list of items / amounts to consume for purchase
             var houseProfile = slumlord.GetHouseProfile();
@@ -101,7 +115,7 @@ namespace ACE.Server.WorldObjects
                 var item_id_list = string.Join(", ", item_ids.Select(i => i.ToString("X8")));
                 var consumeItemsList = string.Join(", ", consumeItems.Select(i => $"{i.Name} ({i.Guid}) x{i.Value}"));
 
-                log.Error($"{Name}.HandleActionBuyHouse({slumlord_id:X8}, {item_id_list}) - TryConsumePurchaseItems failed with {consumeItemsList}");
+                log.Error($"[HOUSE] {Name}.HandleActionBuyHouse({slumlord_id:X8}, {item_id_list}) - TryConsumePurchaseItems failed with {consumeItemsList}");
 
                 return;
             }
@@ -141,7 +155,7 @@ namespace ACE.Server.WorldObjects
             var deeds = GetInventoryItemsOfWCID(9549);
             if (deeds == null)
             {
-                log.Warn($"{Name}.RemoveDeed(): couldn't find inventory deed");
+                log.Warn($"[HOUSE] {Name}.RemoveDeed(): couldn't find inventory deed");
                 return;
             }
             foreach (var deed in deeds)
@@ -150,7 +164,8 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionRentHouse(uint slumlord_id, List<uint> item_ids)
         {
-            Console.WriteLine($"{Name}.HandleActionRentHouse({slumlord_id:X8}, {string.Join(", ", item_ids.Select(i => i.ToString("X8")))})");
+            //Console.WriteLine($"{Name}.HandleActionRentHouse({slumlord_id:X8}, {string.Join(", ", item_ids.Select(i => i.ToString("X8")))})");
+            log.Info($"[HOUSE] {Name}.HandleActionRentHouse({slumlord_id:X8}, {string.Join(", ", item_ids.Select(i => i.ToString("X8")))})");
 
             var slumlord = FindObject(slumlord_id, SearchLocations.Landblock) as SlumLord;
             if (slumlord == null)
@@ -178,7 +193,48 @@ namespace ACE.Server.WorldObjects
                 }
             }
             else
-                log.Error($"{Name}.HandleActionRentHouse({slumlord_id:X8}): couldn't find house owner {slumlord.HouseOwner}");
+                log.Error($"[HOUSE] {Name}.HandleActionRentHouse({slumlord_id:X8}): couldn't find house owner {slumlord.HouseOwner}");
+
+
+            var logLine = $"[HOUSE] HandleActionRentHouse:" + Environment.NewLine;
+            logLine += $"{slumlord.Name} ({slumlord.Guid})" + Environment.NewLine;
+            var rentItems = slumlord.GetRentItems();
+            //Console.WriteLine("Required items:");
+            logLine += "Required items:";
+            foreach (var buyItem in rentItems)
+            {
+                var stackStr = buyItem.StackSize != null && buyItem.StackSize > 1 ? buyItem.StackSize.ToString() + " " : "";
+                //Console.WriteLine($"{stackStr}{buyItem.Name}");
+                logLine += $"{stackStr}{buyItem.Name}" + Environment.NewLine;
+            }
+
+            //Console.WriteLine("\nSent items:");
+            logLine += Environment.NewLine + "Sent items:" + Environment.NewLine;
+            var sentItems = new List<WorldObject>();
+            foreach (var item_id in item_ids)
+            {
+                var item = GetInventoryItem(new ObjectGuid(item_id));
+                if (item == null)
+                {
+                    //Console.WriteLine($"Couldn't find inventory item {item_id:X8}");
+                    logLine += $"Couldn't find inventory item {item_id:X8}" + Environment.NewLine;
+                    continue;
+                }
+                var stackStr = item.StackSize != null && item.StackSize > 1 ? item.StackSize.ToString() + " " : "";
+                //Console.WriteLine($"{stackStr}{item.Name} ({item.Guid})");
+                logLine += $"{stackStr}{item.Name} ({item.Guid})" + Environment.NewLine;
+
+                if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+                {
+                    //Console.WriteLine($"{stackStr}{item.Name} ({item.Guid}) is currently being traded, skipping.");
+                    logLine += $"{stackStr}{item.Name} ({item.Guid}) is currently being traded, skipping." + Environment.NewLine;
+                    continue;
+                }
+                sentItems.Add(item);
+            }
+            //Console.WriteLine();
+            logLine += Environment.NewLine;
+            log.Info(logLine);
 
             // filter to items found in player's inventory
             var items = GetInventoryItems(item_ids);
@@ -260,7 +316,7 @@ namespace ACE.Server.WorldObjects
             var item = itemInfo.TryGetWorldObject();
             if (item == null)
             {
-                log.Error($"{Name}.TryConsumeItemForRent({itemInfo.Guid:X8}) - couldn't get item");
+                log.Error($"[HOUSE] {Name}.TryConsumeItemForRent({itemInfo.Guid:X8}) - couldn't get item");
                 return false;
             }
 
@@ -269,7 +325,7 @@ namespace ACE.Server.WorldObjects
 
             if (amount > stackSize)
             {
-                log.Error($"{Name}.TryConsumeItemForRent({item.Name} ({item.Guid}) - amount {amount} > stacksize {stackSize}");
+                log.Error($"[HOUSE] {Name}.TryConsumeItemForRent({item.Name} ({item.Guid}) - amount {amount} > stacksize {stackSize}");
                 return false;
             }
 
@@ -291,23 +347,25 @@ namespace ACE.Server.WorldObjects
             // verify slumlord can add item to inventory
             if (!slumlord.CanAddToInventory(item))
             {
-                log.Error($"{Name}.TryMoveItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}) ) - CanAddToInventory failed!");
+                log.Error($"[HOUSE] {Name}.TryMoveItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}) ) - CanAddToInventory failed!");
                 return false;
             }
 
             // remove entire item from player's inventory
             if (!TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.SpendItem))
             {
-                log.Error($"{Name}.TryMoveItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}) ) - TryRemoveFromInventoryWithNetworking failed!");
+                log.Error($"[HOUSE] {Name}.TryMoveItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}) ) - TryRemoveFromInventoryWithNetworking failed!");
                 return false;
             }
 
             // add to slumlord inventory
             if (!slumlord.TryAddToInventory(item))
             {
-                log.Error($"{Name}.TryMoveItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}) ) - TryAddToInventory failed!");
+                log.Error($"[HOUSE] {Name}.TryMoveItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}) ) - TryAddToInventory failed!");
                 return false;
             }
+
+            log.Debug($"[HOUSE] {Name}.TryMoveItemForRent({slumlord.Name} ({slumlord.Guid}), {((item.StackSize ?? 1) > 1 ? $"{item.StackSize}x " : "")}{item.Name} ({item.Guid})) - Successfully moved to Slumlord.");
             return true;
         }
 
@@ -323,21 +381,24 @@ namespace ACE.Server.WorldObjects
             // verify it can be added to slumlord's inventory
             if (!slumlord.CanAddToInventory(newItem))
             {
-                log.Error($"{Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - CanAddToInventory failed for split item {newItem.Name} ({newItem.Guid})!");
+                log.Error($"[HOUSE] {Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - CanAddToInventory failed for split item {newItem.Name} ({newItem.Guid})!");
+                newItem.Destroy();
                 return false;
             }
 
             // fetch container for AdjustStack
             if (GetInventoryItem(item.Guid, out var container) == null)
             {
-                log.Error($"{Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - GetInventoryItem failed!");
+                log.Error($"[HOUSE] {Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - GetInventoryItem failed!");
+                newItem.Destroy();
                 return false;
             }
 
             // subtract amount from player's item stacksize
             if (!AdjustStack(item, -amount, container, this))
             {
-                log.Error($"{Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - failed to adjust stack!");
+                log.Error($"[HOUSE] {Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - failed to adjust stack!");
+                newItem.Destroy();
                 return false;
             }
 
@@ -353,9 +414,12 @@ namespace ACE.Server.WorldObjects
 
             if (!slumlord.TryAddToInventory(newItem))
             {
-                log.Error($"{Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - TryAddToInventory failed for split item {newItem.Name} ({newItem.Guid})!");
+                log.Error($"[HOUSE] {Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - TryAddToInventory failed for split item {newItem.Name} ({newItem.Guid})!");
+                newItem.Destroy();
                 return false;
             }
+
+            log.Debug($"[HOUSE] {Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - Created new item {((newItem.StackSize ?? 1) > 1 ? $"{newItem.StackSize}x " : "")}{newItem.Name} ({newItem.Guid}) and moved to Slumlord.");
 
             // force save of new slumlord stack
             newItem.SaveBiotaToDatabase();
@@ -365,7 +429,8 @@ namespace ACE.Server.WorldObjects
         
         public void HandleActionAbandonHouse()
         {
-            Console.WriteLine($"\n{Name}.HandleActionAbandonHouse()");
+            //Console.WriteLine($"\n{Name}.HandleActionAbandonHouse()");
+            log.Info($"[HOUSE] {Name}.HandleActionAbandonHouse()");
 
             var houseInstance = GetHouseInstance();
 
@@ -404,7 +469,7 @@ namespace ACE.Server.WorldObjects
 
                 // player slumlord 'off' animation
                 var slumlord = house.SlumLord;
-                slumlord.ClearInventory(true);
+                slumlord.ClearInventory();
                 slumlord.Off();
 
                 // reset slumlord name
@@ -419,6 +484,7 @@ namespace ACE.Server.WorldObjects
             HouseRentTimestamp = null;
 
             House = null;
+            houseRentWarnTimestamp = 0;
 
             SaveBiotaToDatabase();
 
@@ -474,7 +540,7 @@ namespace ACE.Server.WorldObjects
 
                 if (House.HouseStatus == HouseStatus.Active && !House.SlumLord.IsRentPaid() && PropertyManager.GetBool("house_rent_enabled", true).Item)
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("Warning!  You have not paid your maintenance costs for the last 30 day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.System));
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"Warning!  You have not paid your maintenance costs for the last {(House.IsApartment ? "90" : "30")} day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.System));
                 }
 
                 if (House.HouseOwner == Guid.Full && !House.SlumLord.HasRequirements(this) && PropertyManager.GetBool("house_purchase_requirements").Item)
@@ -491,7 +557,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleEviction()
         {
-            Session.Network.EnqueueSend(new GameMessageSystemChat("You abandon your house!", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSystemChat("Your house has reverted due to non-payment of the maintenance costs.  All items stored in the house have been lost.", ChatMessageType.Broadcast));
             RemoveDeed();
 
             RemoveProperty(PropertyBool.HouseEvicted);
@@ -504,17 +570,20 @@ namespace ACE.Server.WorldObjects
         {
             var house = slumlord.House;
 
-            Console.WriteLine($"Setting {Name} as owner of {house.Name}");
+            //Console.WriteLine($"Setting {Name} as owner of {house.Name}");
+            log.Info($"[HOUSE] Setting {Name} (0x{Guid}) as owner of {house.Name} (0x{house.Guid:X8})");
 
             // set player properties
             HouseId = house.HouseId;
             HouseInstance = house.Guid.Full;
             HousePurchaseTimestamp = (int)Time.GetUnixTime();
             HouseRentTimestamp = (int)house.GetRentDue((uint)HousePurchaseTimestamp.Value);
+            houseRentWarnTimestamp = 0;
 
             // set house properties
             house.HouseOwner = Guid.Full;
             house.HouseOwnerName = Name;
+            house.OpenToEveryone = false;
             house.SaveBiotaToDatabase();
             
             // relink
@@ -536,9 +605,13 @@ namespace ACE.Server.WorldObjects
             // set house name
             slumlord.SetAndBroadcastName(Name);
 
+            slumlord.ClearInventory();
+
             slumlord.SaveBiotaToDatabase();
             
             SaveBiotaToDatabase();
+
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.HousePurchaseTimestamp, HousePurchaseTimestamp ?? 0));
 
             // set house data
             // why has this changed? use callback?
@@ -553,7 +626,7 @@ namespace ACE.Server.WorldObjects
                 HandleActionBootAll(false);
 
                 HouseManager.AddRentQueue(this, house.Guid.Full);
-
+                slumlord.ActOnUse(this);
             });
             actionChain.EnqueueChain();
         }
@@ -570,7 +643,7 @@ namespace ACE.Server.WorldObjects
                 if (item == null)
                 {
                     // this should never happen, due to previous verifications
-                    log.Error($"{Name}.ConsumeItemsForHousePurchase(): couldn't find {purchaseItem.Guid}!");
+                    log.Error($"[HOUSE] {Name}.ConsumeItemsForHousePurchase(): couldn't find {purchaseItem.Guid}!");
                     return false;
                 }
 
@@ -580,14 +653,14 @@ namespace ACE.Server.WorldObjects
                 if (amount > stackSize)
                 {
                     // this should also never happen, due to previous checks
-                    log.Error($"{Name}.ConsumeItemsForHousePurchase(): {item.Name} ({item.Guid}) amount({amount}) > stackSize({stackSize})!");
+                    log.Error($"[HOUSE] {Name}.ConsumeItemsForHousePurchase(): {item.Name} ({item.Guid}) amount({amount}) > stackSize({stackSize})!");
                     return false;
                 }
 
                 if (!TryConsumeFromInventoryWithNetworking(item, amount))
                 {
                     // all of these things should never happen, just being absolutely certain...
-                    log.Error($"{Name}.ConsumeItemsForHousePurchase(): TryConsumeFromInventoryWithNetworking({item.Name} ({item.Guid}), {amount}) failed!");
+                    log.Error($"[HOUSE] {Name}.ConsumeItemsForHousePurchase(): TryConsumeFromInventoryWithNetworking({item.Name} ({item.Guid}), {amount}) failed!");
                     return false;
                 }
 
@@ -606,37 +679,46 @@ namespace ACE.Server.WorldObjects
             if (slumlord.HouseOwner != null)
                 return false;
 
-            Console.WriteLine($"{slumlord.Name} ({slumlord.Guid})");
+            //Console.WriteLine($"{slumlord.Name} ({slumlord.Guid})");
+            var logLine = $"[HOUSE] VerifyPurchase:" + Environment.NewLine;
+            logLine += $"{slumlord.Name} ({slumlord.Guid})" + Environment.NewLine;
             var buyItems = slumlord.GetBuyItems();
-            Console.WriteLine("Required items:");
+            //Console.WriteLine("Required items:");
+            logLine += "Required items:";
             foreach (var buyItem in buyItems)
             {
                 var stackStr = buyItem.StackSize != null && buyItem.StackSize > 1 ? buyItem.StackSize.ToString() + " " : "";
-                Console.WriteLine($"{stackStr}{buyItem.Name}");
+                //Console.WriteLine($"{stackStr}{buyItem.Name}");
+                logLine += $"{stackStr}{buyItem.Name}" + Environment.NewLine;
             }
 
-            Console.WriteLine("\nSent items:");
+            //Console.WriteLine("\nSent items:");
+            logLine += Environment.NewLine + "Sent items:" + Environment.NewLine;
             var sentItems = new List<WorldObject>();
             foreach (var item_id in item_ids)
             {
                 var item = GetInventoryItem(new ObjectGuid(item_id));
                 if (item == null)
                 {
-                    Console.WriteLine($"Couldn't find inventory item {item_id:X8}");
+                    //Console.WriteLine($"Couldn't find inventory item {item_id:X8}");
+                    logLine += $"Couldn't find inventory item {item_id:X8}" + Environment.NewLine;
                     continue;
                 }
                 var stackStr = item.StackSize != null && item.StackSize > 1 ? item.StackSize.ToString() + " " : "";
-                Console.WriteLine($"{stackStr}{item.Name} ({item.Guid})");
+                //Console.WriteLine($"{stackStr}{item.Name} ({item.Guid})");
+                logLine += $"{stackStr}{item.Name} ({item.Guid})" + Environment.NewLine;
 
                 if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
                 {
-                    Console.WriteLine($"{stackStr}{item.Name} ({item.Guid}) is currently being traded, skipping.");
+                    //Console.WriteLine($"{stackStr}{item.Name} ({item.Guid}) is currently being traded, skipping.");
+                    logLine += $"{stackStr}{item.Name} ({item.Guid}) is currently being traded, skipping." + Environment.NewLine;
                     continue;
                 }
-
                 sentItems.Add(item);
             }
-            Console.WriteLine();
+            //Console.WriteLine();
+            logLine += Environment.NewLine;
+            log.Info(logLine);
 
             // compare list of input items
             // to required items for purchase
@@ -672,7 +754,8 @@ namespace ACE.Server.WorldObjects
         public bool HasItem(List<WorldObject> sentItems, WorldObject buyItem)
         {
             var stackStr = buyItem.StackSize != null && buyItem.StackSize > 1 ? buyItem.StackSize.ToString() + " " : "";
-            Console.WriteLine($"Checking for item: {stackStr}{buyItem.Name}");
+            //Console.WriteLine($"Checking for item: {stackStr}{buyItem.Name}");
+            log.Info($"[HOUSE] Checking for item: {stackStr}{buyItem.Name}");
 
             // get all items of this wcid from inventory
             var itemMatches = sentItems.Where(i => i.WeenieClassId == buyItem.WeenieClassId).ToList();
@@ -680,13 +763,15 @@ namespace ACE.Server.WorldObjects
 
             if (itemMatches.Count == 0)
             {
-                Console.WriteLine("No matching items found.");
+                //Console.WriteLine("No matching items found.");
+                log.Info($"[HOUSE] No matching items found.");
                 return false;
             }
             var required = buyItem.StackSize ?? 1;
             if (totalStack < required)
             {
-                Console.WriteLine($"Found {totalStack} items, requires {required}.");
+                //Console.WriteLine($"Found {totalStack} items, requires {required}.");
+                log.Info($"[HOUSE] Found {totalStack} items, requires {required}.");
                 return false;
             }
             return true;
@@ -699,7 +784,8 @@ namespace ACE.Server.WorldObjects
         /// <param name="useTradeNotes">if TRUE, trade note will also be evaluated</param>
         public bool HasCurrency(List<WorldObject> sentItems, uint amount, bool useTradeNotes = true)
         {
-            Console.WriteLine($"Checking for currency: {amount}");
+            //Console.WriteLine($"Checking for currency: {amount}");
+            log.Info($"[HOUSE] Checking for currency: {amount}");
             var totalCurrency = GetTotalCurrency(sentItems, useTradeNotes);
             return totalCurrency >= amount;
         }
@@ -711,12 +797,14 @@ namespace ACE.Server.WorldObjects
         public uint GetTotalCurrency(List<WorldObject> sentItems, bool useTradeNotes = true)
         {
             var totalPyreals = GetTotalPyreals(sentItems);
-            Console.WriteLine($"Total pyreals: {totalPyreals}");
+            //Console.WriteLine($"Total pyreals: {totalPyreals}");
+            log.Info($"[HOUSE] Total pyreals: {totalPyreals}");
             if (!useTradeNotes)
                 return totalPyreals;
 
             var totalTradeNotes = GetTotalTradeNotes(sentItems);
-            Console.WriteLine($"Total trade notes: {totalTradeNotes}");
+            //Console.WriteLine($"Total trade notes: {totalTradeNotes}");
+            log.Info($"[HOUSE] Total trade notes: {totalTradeNotes}");
 
             return totalPyreals + totalTradeNotes;
         }
@@ -851,7 +939,8 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (Guests.ContainsKey(guest.Guid))
+            var accountPlayers = Player.GetAccountPlayers(Account.AccountId).Select(p => p.Guid).ToList();
+            if (Guests.ContainsKey(guest.Guid) || accountPlayers.Contains(guest.Guid))
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{guest.Name} is already on your guest list.", ChatMessageType.Broadcast));
                 return;
@@ -865,7 +954,7 @@ namespace ACE.Server.WorldObjects
 
             house.AddGuest(guest, false);
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"{guest.Name} added to your guest list.", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"{guest.Name} has been added to your guest list.", ChatMessageType.Broadcast));
 
             // notify online guest for addition
             if (isOnline)
@@ -875,7 +964,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void HandleActionRemoveGuest(string guestName)
+        public void HandleActionRemoveGuest(string guestName, bool sendMsgToOwner = true)
         {
             //Console.WriteLine($"{Name}.HandleActionRemoveGuest({guestName})");
             if (House == null)
@@ -901,13 +990,14 @@ namespace ACE.Server.WorldObjects
 
             if (!Guests.ContainsKey(guest.Guid))
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{guest.Name} isn't on your guest list.", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{guest.Name} is not on your guest list.", ChatMessageType.Broadcast));
                 return;
             }
 
             house.RemoveGuest(guest);
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"{guest.Name} removed from your guest list.", ChatMessageType.Broadcast));
+            if (sendMsgToOwner)
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{guest.Name} removed from your guest list.", ChatMessageType.Broadcast));
 
             // notify online guest removed
             if (isOnline)
@@ -942,8 +1032,10 @@ namespace ACE.Server.WorldObjects
             foreach (var guid in Guests.Keys.ToList())
             {
                 var guest = PlayerManager.FindByGuid(guid);
-                HandleActionRemoveGuest(guest.Name);
+                HandleActionRemoveGuest(guest.Name, false);
             }
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You have removed all the guests from your house.", ChatMessageType.Broadcast));
         }
 
         public void HandleActionGuestList()
@@ -957,25 +1049,13 @@ namespace ACE.Server.WorldObjects
 
             var house = GetHouse();
 
-            if (Guests.Count == 0)
+            if (house == null)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"Your house guest list is empty.", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
                 return;
             }
 
-            var sb = new StringBuilder($"{House.SlumLord.Name} guest list:\n");
-            foreach (var kvp in Guests)
-            {
-                var guest = PlayerManager.FindByGuid(kvp.Key);
-                var guestName = guest.Name;
-                if (House.MonarchId != null && guest.Guid.Full == House.MonarchId)
-                    guestName += "'s Allegiance";
-
-                var storage = kvp.Value ? "* " : "";
-                sb.Append(storage + guestName + "\n");
-            }
-
-            Session.Network.EnqueueSend(new GameMessageSystemChat(sb.ToString(), ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameEventUpdateHAR(Session, house));
             return;
         }
 
@@ -993,9 +1073,9 @@ namespace ACE.Server.WorldObjects
             if (openStatus == house.OpenStatus)
             {
                 if (openStatus)
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("Your house is already open.", ChatMessageType.Broadcast));
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("You already have an open house.", ChatMessageType.Broadcast));
                 else
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("Your house is already restricted to guests only.", ChatMessageType.Broadcast));
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("Your house is already closed to the public.", ChatMessageType.Broadcast));
 
                 return;
             }
@@ -1006,10 +1086,10 @@ namespace ACE.Server.WorldObjects
             house.UpdateRestrictionDB();
 
             if (openStatus)
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Your house is open to everyone now.", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Your house is now open to the public.", ChatMessageType.Broadcast));
             else
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Your house is restricted to guests only.", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Your house is now closed to the public.", ChatMessageType.Broadcast));
 
                 // boot anyone not on the guest list,
                 // else they will be stuck in restricted space
@@ -1064,7 +1144,7 @@ namespace ACE.Server.WorldObjects
                 house.SaveBiotaToDatabase();
         }
 
-        public void HandleActionModifyStorage(string guestName, bool hasPermission)
+        public void HandleActionModifyStorage(string guestName, bool hasPermission, bool sendMsgToOwner = true)
         {
             //Console.WriteLine($"{Name}.HandleActionModifyStorage({guestName}, {hasPermission})");
             if (House == null)
@@ -1104,14 +1184,15 @@ namespace ACE.Server.WorldObjects
                 {
                     if (storageAccess)
                     {
-                        Session.Network.EnqueueSend(new GameMessageSystemChat($"{storage.Name} already has access to your house storage.", ChatMessageType.Broadcast));
+                        Session.Network.EnqueueSend(new GameMessageSystemChat($"{storage.Name} already has access to your home's storage.", ChatMessageType.Broadcast));
                         return;
                     }
                     house.ModifyGuest(storage, true);
                 }
 
                 var andStr = !existing ? "and " : "";
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{storage.Name} granted access to your house {andStr}storage.", ChatMessageType.Broadcast));
+                if (sendMsgToOwner)
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"You have granted {storage.Name} access to your home's storage.  This is denoted by  the asterisk next to their name in the guest list.", ChatMessageType.Broadcast)); // spacing from PCAP
 
                 // notify online storage guest added
                 if (isOnline)
@@ -1172,8 +1253,10 @@ namespace ACE.Server.WorldObjects
             foreach (var guid in noStorage)
             {
                 var guest = PlayerManager.FindByGuid(guid.Key);
-                HandleActionModifyStorage(guest.Name, true);
+                HandleActionModifyStorage(guest.Name, true, false);
             }
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You grant item storage permission to all your guests", ChatMessageType.Broadcast));
         }
 
         public void HandleActionRemoveAllStorage()
@@ -1204,8 +1287,10 @@ namespace ACE.Server.WorldObjects
             foreach (var guid in storage)
             {
                 var guest = PlayerManager.FindByGuid(guid.Key);
-                HandleActionModifyStorage(guest.Name, false);
+                HandleActionModifyStorage(guest.Name, false, false);
             }
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You remove item storage permission from all your guests", ChatMessageType.Broadcast));
         }
 
         public void HandleActionBoot(string playerName, bool allegianceHouse = false)
@@ -1238,7 +1323,7 @@ namespace ACE.Server.WorldObjects
             player.Teleport(house.BootSpot.Location);
 
             owner = allegianceHouse ? "the allegiance" : "your";
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been booted from {owner} house.", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"Booted {player.Name} from {owner} house.", ChatMessageType.Broadcast));
 
             owner = allegianceHouse ? "the allegiance" : "their";
             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} has booted you from {owner} house.", ChatMessageType.Broadcast));
@@ -1290,11 +1375,11 @@ namespace ACE.Server.WorldObjects
                     }
                 }
 
-                if (rootHouse.HouseOwner == null && rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.HasDungeon)
-                {
-                    Teleport(rootHouse.BootSpot.Location);
-                    return true;
-                }
+                //if (rootHouse.HouseOwner == null && rootHouse.HouseType != HouseType.Apartment && CurrentLandblock.HasDungeon)
+                //{
+                //    Teleport(rootHouse.BootSpot.Location);
+                //    return true;
+                //}
             }
             return false;
         }
@@ -1646,7 +1731,7 @@ namespace ACE.Server.WorldObjects
 
         public House GetHouse(IPlayer player)
         {
-            if (player.HouseInstance == null)
+            if (player?.HouseInstance == null)
                 return null;
 
             // is landblock loaded?

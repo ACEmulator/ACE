@@ -454,9 +454,10 @@ namespace ACE.Server.Entity
 
             var fellows = GetFellowshipMembers();
 
-            var allOver50 = !fellows.Values.Any(f => (f.Level ?? 1) < 50);
+            var allEvenShareLevel = PropertyManager.GetLong("fellowship_even_share_level").Item;
+            var allOverEvenShareLevel = !fellows.Values.Any(f => (f.Level ?? 1) < allEvenShareLevel);
 
-            if (allOver50)
+            if (allOverEvenShareLevel)
             {
                 ShareXP = DesiredShareXP;
                 EvenShare = true;

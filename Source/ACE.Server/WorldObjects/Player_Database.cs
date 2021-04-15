@@ -8,6 +8,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Managers;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -97,7 +98,18 @@ namespace ACE.Server.WorldObjects
             CharacterLastRequestedDatabaseSave = DateTime.UtcNow;
             CharacterChangesDetected = false;
 
-            DatabaseManager.Shard.SaveCharacter(Character, CharacterDatabaseLock, null);
+            //DatabaseManager.Shard.SaveCharacter(Character, CharacterDatabaseLock, null);
+            DatabaseManager.Shard.SaveCharacter(Character, CharacterDatabaseLock, result =>
+            {
+                if (!result)
+                {
+                    if (this is Player player)
+                    {
+                        //todo: remove this later?
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("WARNING: A database save for this character has failed. As a result of this failure, it is possible for future saves to also fail. In order to avoid a potentially significant character rollback, please find a safe place, log out of the game and then reconnect & re-login. This error has also been logged to be further reviewed by ACEmulator team.", ChatMessageType.WorldBroadcast));
+                    }
+                }
+            });
         }
     }
 }
