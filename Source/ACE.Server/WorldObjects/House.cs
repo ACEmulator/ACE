@@ -674,5 +674,70 @@ namespace ACE.Server.WorldObjects
             get => (GetProperty(PropertyInt.OpenToEveryone) ?? 0) == 1;
             set { if (!value) RemoveProperty(PropertyInt.OpenToEveryone); else SetProperty(PropertyInt.OpenToEveryone, 1); }
         }
+
+        public int HouseMaxHooksUsable
+        {
+            get => GetProperty(PropertyInt.HouseMaxHooksUsable) ?? 25;
+            set { if (value == 25) RemoveProperty(PropertyInt.HouseMaxHooksUsable); else SetProperty(PropertyInt.HouseMaxHooksUsable, value); }
+        }
+
+        public int HouseCurrentHooksUsable
+        {
+            get => GetProperty(PropertyInt.HouseCurrentHooksUsable) ?? HouseMaxHooksUsable;
+            set { if (value == HouseMaxHooksUsable) RemoveProperty(PropertyInt.HouseCurrentHooksUsable); else SetProperty(PropertyInt.HouseCurrentHooksUsable, value); }
+        }
+
+        public static Dictionary<HouseType, Dictionary<HookGroupType, int>> HookGroupLimits = new Dictionary<HouseType, Dictionary<HookGroupType, int>>()
+        {
+            { HouseType.Undef, new Dictionary<HookGroupType, int> {
+                { HookGroupType.Undef,                          -1 },
+                { HookGroupType.NoisemakingItems,               -1 },
+                { HookGroupType.TestItems,                      -1 },
+                { HookGroupType.PortalItems,                    -1 },
+                { HookGroupType.WritableItems,                  -1 },
+                { HookGroupType.SpellCastingItems,              -1 },
+                { HookGroupType.SpellTeachingItems,             -1 } }
+            },
+            { HouseType.Cottage, new Dictionary<HookGroupType, int> {
+                { HookGroupType.Undef,                          -1 },
+                { HookGroupType.NoisemakingItems,               -1 },
+                { HookGroupType.TestItems,                      -1 },
+                { HookGroupType.PortalItems,                    -1 },
+                { HookGroupType.WritableItems,                   1 },
+                { HookGroupType.SpellCastingItems,               5 },
+                { HookGroupType.SpellTeachingItems,              0 } }
+            },
+            { HouseType.Villa, new Dictionary<HookGroupType, int> {
+                { HookGroupType.Undef,                          -1 },
+                { HookGroupType.NoisemakingItems,               -1 },
+                { HookGroupType.TestItems,                      -1 },
+                { HookGroupType.PortalItems,                    -1 },
+                { HookGroupType.WritableItems,                   1 },
+                { HookGroupType.SpellCastingItems,              10 },
+                { HookGroupType.SpellTeachingItems,              0 } }
+            },
+            { HouseType.Mansion, new Dictionary<HookGroupType, int> {
+                { HookGroupType.Undef,                          -1 },
+                { HookGroupType.NoisemakingItems,               -1 },
+                { HookGroupType.TestItems,                      -1 },
+                { HookGroupType.PortalItems,                    -1 },
+                { HookGroupType.WritableItems,                   3 },
+                { HookGroupType.SpellCastingItems,              15 },
+                { HookGroupType.SpellTeachingItems,              1 } }
+            },
+            { HouseType.Apartment, new Dictionary<HookGroupType, int> {
+                { HookGroupType.Undef,                          -1 },
+                { HookGroupType.NoisemakingItems,               -1 },
+                { HookGroupType.TestItems,                      -1 },
+                { HookGroupType.PortalItems,                     0 },
+                { HookGroupType.WritableItems,                   0 },
+                { HookGroupType.SpellCastingItems,              -1 },
+                { HookGroupType.SpellTeachingItems,              0 } }
+            }
+        };
+
+        public int GetHookGroupCurrentCount(HookGroupType hookGroupType) => Hooks.Count(h => h.HasItem && (h.Item?.HookGroup ?? HookGroupType.Undef) == hookGroupType);
+
+        public int GetHookGroupMaxCount(HookGroupType hookGroupType) => HookGroupLimits[HouseType][hookGroupType];
     }
 }

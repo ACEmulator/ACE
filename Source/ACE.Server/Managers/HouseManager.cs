@@ -360,11 +360,12 @@ namespace ACE.Server.Managers
             {
                 playerHouse.House = house;
 
-                var isPaid = IsRentPaid(playerHouse) || playerHouse.House.HouseStatus <= HouseStatus.InActive;
+                var isInActiveOrDisabled = playerHouse.House.HouseStatus <= HouseStatus.InActive;
+                var isPaid = IsRentPaid(playerHouse);
                 var hasRequirements = HasRequirements(playerHouse);
                 //log.Info($"{playerHouse.PlayerName}.ProcessRent(): isPaid = {isPaid}");
 
-                if (isPaid && hasRequirements)
+                if (isInActiveOrDisabled || (isPaid && hasRequirements))
                     HandleRentPaid(playerHouse);
                 else
                     HandleEviction(playerHouse);
@@ -401,7 +402,7 @@ namespace ACE.Server.Managers
 
             // clear out slumlord inventory
             var slumlord = playerHouse.House.SlumLord;
-            slumlord.ClearInventory(true);
+            slumlord.ClearInventory();
 
             slumlord.SaveBiotaToDatabase();
 
@@ -435,7 +436,7 @@ namespace ACE.Server.Managers
         {
             // clear out slumlord inventory
             var slumlord = house.SlumLord;
-            slumlord.ClearInventory(true);
+            slumlord.ClearInventory();
 
             var player = PlayerManager.FindByGuid(playerGuid, out bool isOnline);
 
@@ -524,7 +525,7 @@ namespace ACE.Server.Managers
             onlinePlayer.House = null;
 
             // send text message
-            onlinePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat("You've been evicted from your house!", ChatMessageType.Broadcast));
+            onlinePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat("Your house has reverted due to non-payment of the maintenance costs.  All items stored in the house have been lost.", ChatMessageType.Broadcast));
             onlinePlayer.RemoveDeed();
 
             onlinePlayer.SaveBiotaToDatabase();
@@ -547,7 +548,7 @@ namespace ACE.Server.Managers
             {
                 if (rentItem.Paid < rentItem.Num)
                 {
-                    log.Debug($"[HOUSE] {playerHouse.PlayerName}.IsRentPaid() - required wcid {rentItem.WeenieID} amount {rentItem.Num:N0}, found {rentItem.Paid:N0}");
+                    log.Debug($"[HOUSE] {playerHouse.PlayerName}.IsRentPaid() - required {rentItem.Num:N0}x {(rentItem.Num > 1 ? $"{rentItem.PluralName}" : $"{rentItem.Name}")} ({rentItem.WeenieID}), found {rentItem.Paid:N0}");
                     return false;
                 }
             }
@@ -654,6 +655,14 @@ namespace ACE.Server.Managers
         private static PlayerHouse FindPlayerHouse(uint playerGuid)
         {
             return RentQueue.FirstOrDefault(i => i.PlayerGuid == playerGuid);
+        }
+
+        /// <summary>
+        /// Returns all of the houses in the rent queue for a house id
+        /// </summary>
+        public static List<House> GetHouseById(uint houseId)
+        {
+            return RentQueue.Where(i => i.House.HouseId == houseId).Select(i => i.House).ToList();
         }
 
         /// <summary>
@@ -812,5 +821,92 @@ namespace ACE.Server.Managers
             { 0x9800, "Victory Residential Halls - Triumphal Gardens" },
             { 0x9900, "Victory Residential Halls - Wilamil Court" },
         };
+
+        /// <summary>
+        /// Pay rent for a house
+        /// </summary>
+        private static void PayRent(PlayerHouse playerHouse)
+        {
+            // load the most up-to-date copy of the house data
+            GetHouse(playerHouse.House.Guid.Full, (house) =>
+            {
+                playerHouse.House = house;
+
+                var isPaid = IsRentPaid(playerHouse) || playerHouse.House.HouseStatus <= HouseStatus.InActive;
+
+                if (!isPaid)
+                {
+                    var houseData = GetHouseData(playerHouse.House);
+
+                    foreach (var rentItem in houseData.Rent)
+                    {
+                        if (rentItem.Paid < rentItem.Num)
+                        {
+                            var amountLeftToPay = rentItem.Num - rentItem.Paid;
+
+                            while (amountLeftToPay > 0)
+                            {
+                                var payment = WorldObjectFactory.CreateNewWorldObject(rentItem.WeenieID);
+
+                                if (payment == null)
+                                {
+                                    log.Error($"[HOUSE] HouseManager.PayRent({house.Guid}): couldn't create payment for WCID {rentItem.WeenieID}");
+                                    return;
+                                }
+
+                                payment.SetStackSize(Math.Min(amountLeftToPay, payment.MaxStackSize ?? 1));
+
+                                if (!house.SlumLord.TryAddToInventory(payment))
+                                {
+                                    log.Error($"[HOUSE] HouseManager.PayRent({house.Guid}): couldn't place {payment.Name} (0x{payment.Guid}) in SlumLord's Inventory");
+                                    return;
+                                }
+
+                                amountLeftToPay -= (payment.StackSize ?? 1);
+                            }
+                        }
+                    }
+
+                    house.SlumLord.MergeAllStackables();
+
+                    house.SlumLord.SaveBiotaToDatabase();
+
+                    var onlinePlayer = PlayerManager.GetOnlinePlayer(playerHouse.PlayerGuid);
+                    if (onlinePlayer != null)
+                    {
+                        var actionChain = new ActionChain();
+                        actionChain.AddDelaySeconds(3.0f);   // wait for slumlord inventory biotas above to save
+                        actionChain.AddAction(onlinePlayer, onlinePlayer.HandleActionQueryHouse);
+                        actionChain.EnqueueChain();
+                    }
+                }
+            });
+        }
+
+        /// <summary>
+        /// Pay rent for a house
+        /// </summary>
+        public static bool PayRent(House house)
+        {
+            var foundHouse = RentQueue.FirstOrDefault(h => h.PlayerGuid == (house.HouseOwner ?? 0));
+
+            if (foundHouse == null)
+                return false;
+
+            PayRent(foundHouse);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Pay rent for all owned housing
+        /// </summary>
+        public static void PayAllRent()
+        {
+            foreach (var house in RentQueue)
+            {
+                PayRent(house);
+            }
+        }
     }
 }

@@ -242,7 +242,7 @@ namespace ACE.Server.WorldObjects
             foreach (var creature in PhysicsObj.ObjMaint.GetVisibleTargetsValuesOfTypeCreature())
             {
                 // ensure attackable
-                if (!creature.Attackable || creature.Teleporting) continue;
+                if (!creature.Attackable && creature.TargetingTactic == TargetingTactic.None || creature.Teleporting) continue;
 
                 // ensure within 'detection radius' ?
                 var chaseDistSq = creature == AttackTarget ? MaxChaseRangeSq : VisualAwarenessRangeSq;
@@ -426,7 +426,7 @@ namespace ACE.Server.WorldObjects
             foreach (var obj in visibleObjs)
             {
                 var nearbyCreature = obj.WeenieObj.WorldObject as Creature;
-                if (nearbyCreature == null || nearbyCreature.IsAwake || !nearbyCreature.Attackable)
+                if (nearbyCreature == null || nearbyCreature.IsAwake || !nearbyCreature.Attackable && nearbyCreature.TargetingTactic == TargetingTactic.None)
                     continue;
 
                 if (CreatureType != null && CreatureType == nearbyCreature.CreatureType ||
@@ -479,7 +479,7 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 // ensure attackable
-                if (creature.IsDead || !creature.Attackable || creature.Teleporting)
+                if (creature.IsDead || !creature.Attackable && creature.TargetingTactic == TargetingTactic.None || creature.Teleporting)
                     continue;
 
                 // ensure another faction

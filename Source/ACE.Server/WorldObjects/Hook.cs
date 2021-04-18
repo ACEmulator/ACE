@@ -160,6 +160,8 @@ namespace ACE.Server.WorldObjects
 
             item.EmoteManager.SetProxy(this);
 
+            House.HouseCurrentHooksUsable--;
+
             // Here we explicitly save the hook to the database to prevent item loss.
             // If the player adds an item to the hook, and the server crashes before the hook has been saved, the item will be lost.
             SaveBiotaToDatabase();
@@ -200,6 +202,8 @@ namespace ACE.Server.WorldObjects
                 CurrentMotionState = null;
 
             removedItem.EmoteManager.ClearProxy();
+
+            House.HouseCurrentHooksUsable++;
 
             EnqueueBroadcast(new GameMessageUpdateObject(this));
 
