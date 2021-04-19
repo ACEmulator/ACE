@@ -40,6 +40,7 @@ namespace ACE.Server.WorldObjects
             {
                 //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.HouseAlreadyOwned));
                 Session.Network.EnqueueSend(new GameMessageSystemChat("You already own a house!", ChatMessageType.Broadcast));
+                log.Info($"[HOUSE] {Name}.HandleActionBuyHouse(): Failed pre-purchase requirement - Already owns another house");
                 return;
             }
 
@@ -56,6 +57,7 @@ namespace ACE.Server.WorldObjects
                 if (playerLevel < slumlord.MinLevel)
                 {
                     Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouMustBeAboveLevel_ToBuyHouse, slumlord.MinLevel.ToString()));
+                    log.Info($"[HOUSE] {Name}.HandleActionBuyHouse(): Failed pre-purchase requirement - MinLevel");
                     return;
                 }
             }
@@ -65,6 +67,7 @@ namespace ACE.Server.WorldObjects
                 if (Allegiance == null || Allegiance.MonarchId != Guid.Full)
                 {
                     Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustBeMonarchToPurchaseDwelling));
+                    log.Info($"[HOUSE] {Name}.HandleActionBuyHouse(): Failed pre-purchase requirement - HouseRequiresMonarch");
                     return;
                 }
             }
@@ -78,19 +81,37 @@ namespace ACE.Server.WorldObjects
                 if (allegianceMinLevel > 0 && (Allegiance == null || AllegianceNode.Rank < allegianceMinLevel))
                 {
                     Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouMustBeAboveAllegianceRank_ToBuyHouse, allegianceMinLevel.ToString()));
+                    log.Info($"[HOUSE] {Name}.HandleActionBuyHouse(): Failed pre-purchase requirement - AllegianceMinLevel");
                     return;
                 }
             }
 
-            if (PropertyManager.GetBool("house_30day_cooldown").Item && slumlord.House.HouseType != HouseType.Apartment)
-            {
-                var lastPurchaseTime = Time.GetDateTimeFromTimestamp(HousePurchaseTimestamp ?? 0);
-                var lastPurchaseTimePlus30 = lastPurchaseTime.AddDays(30);
 
-                if (lastPurchaseTimePlus30 > DateTime.UtcNow)
+            if (slumlord.House.HouseType != HouseType.Apartment)
+            {
+                if (PropertyManager.GetBool("house_15day_account").Item && !Account15Days)
                 {
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustWaitToPurchaseHouse));
-                    return;
+                    var accountTimeSpan = DateTime.UtcNow - Account.CreateTime;
+                    if (accountTimeSpan.TotalDays < 15)
+                    {
+                        var msg = "Your account must be at least 15 days old to purchase this dwelling. This applies to all housing except apartments.";
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, msg), new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                        log.Info($"[HOUSE] {Name}.HandleActionBuyHouse(): Failed pre-purchase requirement - house_15day_account");
+                        return;
+                    }
+                }
+
+                if (PropertyManager.GetBool("house_30day_cooldown").Item)
+                {
+                    var lastPurchaseTime = Time.GetDateTimeFromTimestamp(HousePurchaseTimestamp ?? 0);
+                    var lastPurchaseTimePlus30 = lastPurchaseTime.AddDays(30);
+
+                    if (lastPurchaseTimePlus30 > DateTime.UtcNow)
+                    {
+                        Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustWaitToPurchaseHouse));
+                        log.Info($"[HOUSE] {Name}.HandleActionBuyHouse(): Failed pre-purchase requirement - house_30day_cooldown");
+                        return;
+                    }
                 }
             }
 
