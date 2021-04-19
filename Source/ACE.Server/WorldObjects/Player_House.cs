@@ -82,6 +82,17 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            if (PropertyManager.GetBool("house_15day_account").Item && slumlord.House.HouseType != HouseType.Apartment && !Account15Days)
+            {
+                var accountTimeSpan = DateTime.UtcNow - Account.CreateTime;
+                if (accountTimeSpan.TotalDays < 15)
+                {
+                    var msg = "Your account must be at least 15 days old to purchase this dwelling. This applies to all housing except apartments.";
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, msg), new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+
             if (PropertyManager.GetBool("house_30day_cooldown").Item && slumlord.House.HouseType != HouseType.Apartment)
             {
                 var lastPurchaseTime = Time.GetDateTimeFromTimestamp(HousePurchaseTimestamp ?? 0);
