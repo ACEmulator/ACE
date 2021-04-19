@@ -537,58 +537,64 @@ namespace ACE.Server.WorldObjects
             if (CurrentActivePet != null)
                 CurrentActivePet.Destroy();
 
+            // If we're in the dying animation process, we cannot logout until that animation completes..
+            if (isInDeathProcess)
+                return;
+
+            LogOut_Final();
+        }
+
+        private void LogOut_Final(bool skipAnimations = false)
+        {
             if (CurrentLandblock != null)
             {
-                var logout = new Motion(MotionStance.NonCombat, MotionCommand.LogOut);
-                EnqueueBroadcastMotion(logout);
-
-                EnqueueBroadcastPhysicsState();
-
-                var logoutChain = new ActionChain();
-
-                var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)MotionTableId);
-                float logoutAnimationLength = motionTable.GetAnimationLength(MotionCommand.LogOut);
-                logoutChain.AddDelaySeconds(logoutAnimationLength);
-
-                // remove the player from landblock management -- after the animation has run
-                logoutChain.AddAction(WorldManager.ActionQueue, () =>
+                if (skipAnimations)
                 {
                     CurrentLandblock?.RemoveWorldObject(Guid, false);
                     SetPropertiesAtLogOut();
                     SavePlayerToDatabase();
                     PlayerManager.SwitchPlayerFromOnlineToOffline(this);
-                });
-
-                // close any open landblock containers (chests / corpses)
-                if (LastOpenedContainerId != ObjectGuid.Invalid)
-                {
-                    var container = CurrentLandblock.GetObject(LastOpenedContainerId) as Container;
-
-                    if (container != null)
-                        container.Close(this);
                 }
+                else
+                {
+                    var logout = new Motion(MotionStance.NonCombat, MotionCommand.LogOut);
+                    EnqueueBroadcastMotion(logout);
 
-                logoutChain.EnqueueChain();
+                    EnqueueBroadcastPhysicsState();
+
+                    var logoutChain = new ActionChain();
+
+                    var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint) MotionTableId);
+                    float logoutAnimationLength = motionTable.GetAnimationLength(MotionCommand.LogOut);
+                    logoutChain.AddDelaySeconds(logoutAnimationLength);
+
+                    // remove the player from landblock management -- after the animation has run
+                    logoutChain.AddAction(WorldManager.ActionQueue, () =>
+                    {
+                        // If we're in the dying animation process, we cannot RemoveWorldObject and logout until that animation completes..
+                        if (isInDeathProcess)
+                            return;
+
+                        CurrentLandblock?.RemoveWorldObject(Guid, false);
+                        SetPropertiesAtLogOut();
+                        SavePlayerToDatabase();
+                        PlayerManager.SwitchPlayerFromOnlineToOffline(this);
+                    });
+
+                    // close any open landblock containers (chests / corpses)
+                    if (LastOpenedContainerId != ObjectGuid.Invalid)
+                    {
+                        var container = CurrentLandblock.GetObject(LastOpenedContainerId) as Container;
+
+                        if (container != null)
+                            container.Close(this);
+                    }
+
+                    logoutChain.EnqueueChain();
+                }
             }
             else
             {
-                // todo: verify these debug messages are still necessary.. I suspect they aren't and the entire if/else block can be removed
-                log.Debug($"0x{Guid}:{Name}.LogOut_Inner: CurrentLandblock is null");
-                if (Location != null)
-                {
-                    log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Location is not null, Location = {Location.ToLOCString()}");
-                    var validLoadedLandblock = LandblockManager.GetLandblock(Location.LandblockId, false);
-                    if (validLoadedLandblock.GetObject(Guid.Full) != null)
-                    {
-                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Player is still on landblock, removing...");
-                        validLoadedLandblock.RemoveWorldObject(Guid, false);
-                    }
-                    else
-                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Player is not found on the landblock Location references.");
-                }
-                else
-                    log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Location is null");
-                // todo: verify the above debug code is necessary
                 SetPropertiesAtLogOut();
                 SavePlayerToDatabase();
                 PlayerManager.SwitchPlayerFromOnlineToOffline(this);
