@@ -18,6 +18,18 @@ namespace ACE.Server.Network.Structure
             SetDefaults();
         }
 
+        public MoveToParameters(MoveToParameters parms)
+        {
+            // copy constructor
+            MovementParameters = parms.MovementParameters;
+            DistanceToObject = parms.DistanceToObject;
+            MinDistance = parms.MinDistance;
+            FailDistance = parms.FailDistance;
+            Speed = parms.Speed;
+            WalkRunThreshold = parms.WalkRunThreshold;
+            DesiredHeading = parms.DesiredHeading;
+        }
+
         public void SetDefaults()
         {
             MovementParameters =

@@ -32,6 +32,8 @@ namespace ACE.Server.WorldObjects
 
         public SpellProjectileInfo Info { get; set; }
 
+        public int DebugVelocity;
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -328,14 +330,27 @@ namespace ACE.Server.WorldObjects
                 // ProjectileTarget will be null here, so procs will not apply
                 if (sourceCreature != null && ProjectileTarget != null)
                 {
-                    // Ok... if we got here, we're likely in the parallel landblock physics processing.
-                    // We're currently on the thread for this, but we're wanting to perform some work on sourceCreature which can result in a new spell being created
-                    // and added to the sourceCreature's current landblock, which, could be on a separate thread.
-                    // Any chance of a cross landblock group work (and thus cross thread), should be enqueued onto the target object to maintain thread safety.
-                    if (sourceCreature.CurrentLandblock == null || sourceCreature.CurrentLandblock == CurrentLandblock)
+                    // TODO figure out why cross-landblock group operations are happening here. We shouldn't need this code Mag-nus 2021-02-09
+                    bool threadSafe = true;
+
+                    if (LandblockManager.CurrentlyTickingLandblockGroupsMultiThreaded)
+                    {
+                        // Ok... if we got here, we're likely in the parallel landblock physics processing.
+                        if (sourceCreature.CurrentLandblock == null || creatureTarget.CurrentLandblock == null || sourceCreature.CurrentLandblock.CurrentLandblockGroup != creatureTarget.CurrentLandblock.CurrentLandblockGroup)
+                            threadSafe = false;
+                    }
+
+                    if (threadSafe)
+                        // This can result in spell projectiles being added to either sourceCreature or creatureTargets landblock.
                         sourceCreature.TryProcEquippedItems(creatureTarget, false);
                     else
-                        sourceCreature.EnqueueAction(new ActionEventDelegate(() => sourceCreature.TryProcEquippedItems(creatureTarget, false)));
+                    {
+                        // sourceCreature and creatureTarget are now in different landblock groups.
+                        // What has likely happened is that sourceCreature sent a projectile toward creatureTarget. Before impact, sourceCreature was teleported away.
+                        // To perform this fully thread safe, we would enqueue the work onto worldManager.
+                        // WorldManager.EnqueueAction(new ActionEventDelegate(() => sourceCreature.TryProcEquippedItems(creatureTarget, false)));
+                        // But, to keep it simple, we will just ignore it and not bother with TryProcEquippedItems for this particular impact.
+                    }
                 }
             }
 

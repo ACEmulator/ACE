@@ -32,6 +32,27 @@ namespace ACE.Server.Network.Structure
             ForwardCommand = MotionCommand.Ready;
         }
 
+        public InterpretedMotionState(InterpretedMotionState state)
+        {
+            // copy constructor
+            Flags = state.Flags;
+            MovementData = state.MovementData;
+            CurrentStyle = state.CurrentStyle;
+            ForwardCommand = state.ForwardCommand;
+            SidestepCommand = state.SidestepCommand;
+            TurnCommand = state.TurnCommand;
+            ForwardSpeed = state.ForwardSpeed;
+            SidestepSpeed = state.SidestepSpeed;
+            TurnSpeed = state.TurnSpeed;
+
+            if (state.Commands != null)
+            {
+                Commands = new List<MotionItem>();
+                foreach (var command in state.Commands)
+                    Commands.Add(new MotionItem(command));
+            }
+        }
+
         public InterpretedMotionState(MovementData data)
         {
             MovementData = data;

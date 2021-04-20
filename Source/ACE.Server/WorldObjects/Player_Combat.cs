@@ -737,19 +737,19 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This method processes the Game Action (F7B1) Change Combat Mode (0x0053)
         /// </summary>
-        public void HandleActionChangeCombatMode(CombatMode newCombatMode)
+        public void HandleActionChangeCombatMode(CombatMode newCombatMode, bool forceHandCombat = false, Action callback = null)
         {
             //log.Info($"{Name}.HandleActionChangeCombatMode({newCombatMode})");
 
             LastCombatMode = newCombatMode;
             
             if (DateTime.UtcNow >= NextUseTime.AddSeconds(UseTimeEpsilon))
-                HandleActionChangeCombatMode_Inner(newCombatMode);
+                HandleActionChangeCombatMode_Inner(newCombatMode, forceHandCombat, callback);
             else
             {
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds((NextUseTime - DateTime.UtcNow).TotalSeconds + UseTimeEpsilon);
-                actionChain.AddAction(this, () => HandleActionChangeCombatMode_Inner(newCombatMode));
+                actionChain.AddAction(this, () => HandleActionChangeCombatMode_Inner(newCombatMode, forceHandCombat, callback));
                 actionChain.EnqueueChain();
             }
 
@@ -757,8 +757,10 @@ namespace ACE.Server.WorldObjects
                 HandleActionSetAFKMode(false);
         }
 
-        public void HandleActionChangeCombatMode_Inner(CombatMode newCombatMode)
+        public void HandleActionChangeCombatMode_Inner(CombatMode newCombatMode, bool forceHandCombat = false, Action callback = null)
         {
+            //log.Info($"{Name}.HandleActionChangeCombatMode_Inner({newCombatMode})");
+
             var currentCombatStance = GetCombatStance();
 
             var missileWeapon = GetEquippedMissileWeapon();
@@ -790,7 +792,7 @@ namespace ACE.Server.WorldObjects
                 case CombatMode.Melee:
 
                     // todo expand checks
-                    if (missileWeapon != null || caster != null)
+                    if (!forceHandCombat && (missileWeapon != null || caster != null))
                         return;
 
                     break;
@@ -844,13 +846,23 @@ namespace ACE.Server.WorldObjects
                     break;
 
             }
-            animTime = SetCombatMode(newCombatMode, out queueTime);
+
+            // animTime already includes queueTime
+            animTime = SetCombatMode(newCombatMode, out queueTime, forceHandCombat);
             //log.Info($"{Name}.HandleActionChangeCombatMode_Inner({newCombatMode}) - animTime: {animTime}, queueTime: {queueTime}");
 
             NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
 
             if (MagicState.IsCasting && RecordCast.Enabled)
                 RecordCast.OnSetCombatMode(newCombatMode);
+
+            if (callback != null)
+            {
+                var callbackChain = new ActionChain();
+                callbackChain.AddDelaySeconds(animTime);
+                callbackChain.AddAction(this, callback);
+                callbackChain.EnqueueChain();
+            }
         }
 
         public override bool CanDamage(Creature target)

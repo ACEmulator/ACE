@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
+using System.Linq;
 
 using log4net;
 
@@ -23,22 +23,13 @@ namespace ACE.Server.WorldObjects.Managers
 
         private const int MaxContracts = 100;
 
-        public ICollection<CharacterPropertiesContractRegistry> Contracts
-        {
-            get
-            {
-                if (Player != null)
-                    return Player.Character.CharacterPropertiesContractRegistry;
-                else
-                    return null;
-            }
-        }
-
         public Dictionary<uint, ContractTracker> ContractTrackerTable
         {
             get
             {
-                return Contracts.ToDictionary(c => c.ContractId, c => new ContractTracker(Player, c.ContractId));
+                var contractIds = Player.Character.GetContractsIds(Player.CharacterDatabaseLock);
+
+                return contractIds.ToDictionary(c => c, c => new ContractTracker(Player, c));
             }
         }
 
@@ -60,7 +51,9 @@ namespace ACE.Server.WorldObjects.Managers
         {
             MonitoredQuestFlags.Clear();
 
-            foreach (var contract in Contracts)
+            var contracts = Player.Character.GetContracts(Player.CharacterDatabaseLock);
+
+            foreach (var contract in contracts)
             {
                 var datContract = GetContractFromDat(contract.ContractId);
 
@@ -86,8 +79,8 @@ namespace ACE.Server.WorldObjects.Managers
         {
             if (GetContract(contractId) != null)
                 return new ContractTracker(Player, contractId);
-            else
-                return null;
+
+            return null;
         }
 
         /// <summary>
@@ -104,13 +97,13 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public CharacterPropertiesContractRegistry GetContract(uint contractId)
         {
-            return Contracts.FirstOrDefault(c => c.ContractId == contractId);
+            return Player.Character.GetContract(contractId, Player.CharacterDatabaseLock);
         }
 
         /// <summary>
         /// Returns TRUE if at max capacity for Contracts for this player
         /// </summary>
-        public bool IsFull => Contracts.Count >= MaxContracts;
+        public bool IsFull => Player.Character.GetContractsCount(Player.CharacterDatabaseLock) >= MaxContracts;
 
         /// <summary>
         /// Adds a new contract to the player's registry
@@ -145,25 +138,18 @@ namespace ACE.Server.WorldObjects.Managers
                 return false;
             }
 
-            var existing = GetContract(contractId);
+            var contract = Player.Character.GetOrCreateContract(contractId, Player.CharacterDatabaseLock, out var contractWasCreated);
 
-            if (existing == null)
+            if (contractWasCreated)
             {
                 // add new contract entry
-                var info = new CharacterPropertiesContractRegistry
-                {
-                    CharacterId = Player.Guid.Full,
-                    ContractId = datContract.ContractId,
-                    DeleteContract = false,
-                    SetAsDisplayContract = false,
-                };
+                contract.DeleteContract = false;
+                contract.SetAsDisplayContract = false;
+
                 if (Debug) Console.WriteLine($"{Player.Name}.ContractManager.Add({contractId}): added contract: {datContract.ContractName}");
-                Contracts.Add(info);
-                if (Player != null)
-                {
-                    Player.CharacterChangesDetected = true;
-                    Player.Session.Network.EnqueueSend(new GameEventSendClientContractTracker(Player.Session, info));
-                }
+
+                Player.CharacterChangesDetected = true;
+                Player.Session.Network.EnqueueSend(new GameEventSendClientContractTracker(Player.Session, contract));
 
                 RefreshMonitoredQuestFlags();
             }
@@ -207,17 +193,14 @@ namespace ACE.Server.WorldObjects.Managers
             if (Debug)
                 Console.WriteLine($"{Player.Name}.ContractManager.Erase({contractId})");
 
-            var contract = GetContract(contractId);
+            Player.Character.EraseContract(contractId, out var contractErased, Player.CharacterDatabaseLock);
 
-            if (contract != null)
+            if (contractErased != null)
             {
-                contract.DeleteContract = true;
-                Contracts.Remove(contract);
-                if (Player != null)
-                {
-                    Player.CharacterChangesDetected = true;
-                    Player.Session.Network.EnqueueSend(new GameEventSendClientContractTracker(Player.Session, contract));                    
-                }
+                contractErased.DeleteContract = true;
+
+                Player.CharacterChangesDetected = true;
+                Player.Session.Network.EnqueueSend(new GameEventSendClientContractTracker(Player.Session, contractErased));
 
                 RefreshMonitoredQuestFlags();
             }
@@ -231,16 +214,14 @@ namespace ACE.Server.WorldObjects.Managers
             if (Debug)
                 Console.WriteLine($"{Player.Name}.ContractManager.EraseAll");
 
-            var contracts = Contracts.ToList();
-            foreach (var contract in contracts)
+            Player.Character.EraseAllContracts(out var erasedContracts, Player.CharacterDatabaseLock);
+
+            foreach (var contract in erasedContracts)
             {
                 contract.DeleteContract = true;
-                Contracts.Remove(contract);
-                if (Player != null)
-                {
-                    Player.CharacterChangesDetected = true;
-                    Player.Session.Network.EnqueueSend(new GameEventSendClientContractTracker(Player.Session, contract));                    
-                }
+
+                Player.CharacterChangesDetected = true;
+                Player.Session.Network.EnqueueSend(new GameEventSendClientContractTracker(Player.Session, contract));
             }
 
             RefreshMonitoredQuestFlags();
@@ -262,10 +243,8 @@ namespace ACE.Server.WorldObjects.Managers
 
             var contract = GetContract(contractId);
 
-            if (Player != null && contract != null)
-            {
+            if (contract != null)
                 Player.Session.Network.EnqueueSend(new GameEventSendClientContractTracker(Player.Session, contract));
-            }
         }
     }
 

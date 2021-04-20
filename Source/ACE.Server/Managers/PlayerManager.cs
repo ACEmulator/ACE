@@ -569,7 +569,7 @@ namespace ACE.Server.Managers
             //if (PropertyManager.GetBool("log_audit", true).Item)
                 //log.Info($"[AUDIT] {(issuer != null ? $"{issuer.Name} says on the Audit channel: " : "")}{message}");
 
-            LogBroadcastChat(Channel.Audit, issuer, message);
+            //LogBroadcastChat(Channel.Audit, issuer, message);
         }
 
         public static void BroadcastToChannel(Channel channel, Player sender, string message, bool ignoreSquelch = false, bool ignoreActive = false)
@@ -682,6 +682,8 @@ namespace ACE.Server.Managers
         {
             foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(channel)))
                 player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, "CONSOLE", message));
+
+            LogBroadcastChat(channel, null, message);
         }
 
         public static void BroadcastToChannelFromEmote(Channel channel, string message)

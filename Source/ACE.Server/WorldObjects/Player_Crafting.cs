@@ -132,13 +132,13 @@ namespace ACE.Server.WorldObjects
                 var item = GetInventoryItem(itemGuid);
                 if (item == null)
                 {
-                    log.Debug($"[CRAFTING] {Name}.HandleSalvaging({itemGuid:X8}): couldn't find inventory item");
+                    //log.Debug($"[CRAFTING] {Name}.HandleSalvaging({itemGuid:X8}): couldn't find inventory item");
                     continue;
                 }
 
                 if (item.MaterialType == null)
                 {
-                    log.Warn($"{Name}.HandleSalvaging({item.Name}): no material type");
+                    log.Warn($"[CRAFTING] {Name}.HandleSalvaging({item.Name}): no material type");
                     continue;
                 }
 

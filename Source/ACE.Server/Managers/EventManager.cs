@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-
+using ACE.Common;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Server.WorldObjects;
 
 using log4net;
 
@@ -30,13 +31,13 @@ namespace ACE.Server.Managers
                 Events.Add(evnt.Name, evnt);
 
                 if (evnt.State == (int)GameEventState.On)
-                    StartEvent(evnt.Name);
+                    StartEvent(evnt.Name, null, null);
             }
 
             log.DebugFormat("EventManager Initalized.");
         }
 
-        public static bool StartEvent(string e)
+        public static bool StartEvent(string e, WorldObject source, WorldObject target)
         {
             var eventName = GetEventName(e);
 
@@ -54,16 +55,17 @@ namespace ACE.Server.Managers
             if (state == GameEventState.Enabled || state == GameEventState.Off)
             {
                 evnt.State = (int)GameEventState.On;
-                //evnt.StartTime = DateTime.UtcNow.Ticks;
 
                 if (Debug)
                     Console.WriteLine($"Starting event {evnt.Name}");
             }
 
+            log.Debug($"[EVENT] {(source == null ? "SYSTEM" : $"{source.Name} (0x{source.Guid}|{source.WeenieClassId})")}{(target == null ? "" : $", triggered by {target.Name} (0x{target.Guid}|{target.WeenieClassId}),")} started an event: {evnt.Name}{((int)state == evnt.State ? (source == null ? ", which is the default state for this event." : ", which had already been started.") : "")}");
+
             return true;
         }
 
-        public static bool StopEvent(string e)
+        public static bool StopEvent(string e, WorldObject source, WorldObject target)
         {
             var eventName = GetEventName(e);
 
@@ -81,16 +83,17 @@ namespace ACE.Server.Managers
             if (state == GameEventState.Enabled || state == GameEventState.On)
             {
                 evnt.State = (int)GameEventState.Off;
-                //evnt.StartTime = DateTime.UtcNow.Ticks;
 
                 if (Debug)
                     Console.WriteLine($"Stopping event {evnt.Name}");
             }
 
+            log.Debug($"[EVENT] {(source == null ? "SYSTEM" : $"{source.Name} (0x{source.Guid}|{source.WeenieClassId})")}{(target == null ? "" : $", triggered by {target.Name} (0x{target.Guid}|{target.WeenieClassId}),")} stopped an event: {evnt.Name}{((int)state == evnt.State ? (source == null ? ", which is the default state for this event." : ", which had already been stopped.") : "")}");
+
             return true;
         }
 
-        public static bool IsEventStarted(string e)
+        public static bool IsEventStarted(string e, WorldObject source, WorldObject target)
         {
             var eventName = GetEventName(e);
 
@@ -104,6 +107,21 @@ namespace ACE.Server.Managers
             if (!Events.TryGetValue(eventName, out Event evnt))
                 return false;
 
+            if (evnt.State != (int)GameEventState.Disabled && (evnt.StartTime != -1 || evnt.EndTime != -1))
+            {
+                var prevState = (GameEventState)evnt.State;
+
+                var now = (int)Time.GetUnixTime();
+
+                var start = (now > evnt.StartTime) && (evnt.StartTime > -1);
+                var end = (now > evnt.EndTime) && (evnt.EndTime > -1);
+
+                if (prevState == GameEventState.On && end)
+                    return !StopEvent(evnt.Name, source, target);
+                else if ((prevState == GameEventState.Off || prevState == GameEventState.Enabled) && start && !end)
+                    return StartEvent(evnt.Name, source, target);
+            }
+
             return evnt.State == (int)GameEventState.On;
         }
 
@@ -114,7 +132,7 @@ namespace ACE.Server.Managers
             if (!Events.TryGetValue(eventName, out Event evnt))
                 return false;
 
-            return evnt.State == (int)GameEventState.Enabled || evnt.State == (int)GameEventState.On || evnt.State == (int)GameEventState.Off;
+            return evnt.State != (int)GameEventState.Disabled;
         }
 
         public static bool IsEventAvailable(string e)

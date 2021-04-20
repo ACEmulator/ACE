@@ -10,6 +10,7 @@ using log4net;
 using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
@@ -20,6 +21,7 @@ using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Factories.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
@@ -1282,7 +1284,7 @@ namespace ACE.Server.Command.Handlers
                 {
                     var contractsHdr = $"Contract Registry for {player.Name} (0x{player.Guid}):\n";
                     contractsHdr += "================================================\n";
-                    contractsHdr += $"Contracts.Count: {player.ContractManager.Contracts.Count}\n";
+                    contractsHdr += $"Contracts.Count: {player.Character.GetContractsCount(player.CharacterDatabaseLock)}\n";
                     contractsHdr += "================================================\n";
                     var contracts = "";
                     foreach (var contract in player.ContractManager.ContractTrackerTable)
@@ -2307,12 +2309,14 @@ namespace ACE.Server.Command.Handlers
             TreasureDeath profile = new TreasureDeath
             {
                 Tier = tier,
-                LootQualityMod = 0
+                LootQualityMod = 0,
+                MagicItemTreasureTypeSelectionChances = 9,  // 8 or 9?
             };
 
             for (var i = 0; i < numItems; i++)
             {
-                var wo = LootGenerationFactory.CreateRandomLootObjects(profile, true);
+                //var wo = LootGenerationFactory.CreateRandomLootObjects(profile, true);
+                var wo = LootGenerationFactory.CreateRandomLootObjects_New(profile, TreasureItemCategory.MagicItem);
                 if (wo != null)
                     session.Player.TryCreateInInventoryWithNetworking(wo);
                 else
