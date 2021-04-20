@@ -591,7 +591,8 @@ namespace ACE.Server.WorldObjects
                 parts = Biota.PropertiesBodyPart.Where(b => b.Key == CombatBodyPart.Breath).ToList(); // always use Breath?
             }
 
-            if (parts == null)
+            // added parts.Count check for monsters wielding weapons -- should we be getting a body part here?
+            if (parts == null || parts.Count == 0)
                 //parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH != 0).ToList();
                 parts = Biota.PropertiesBodyPart.Where(b => b.Value.DVal != 0 && b.Key != CombatBodyPart.Breath).ToList();
 
