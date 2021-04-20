@@ -653,7 +653,7 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, Property<string>> DefaultStringProperties =
             DictOf(
-                ("content_folder", new Property<string>(".\\Content", "for content creators to live edit weenies. defaults to Content folder found in same directory as ACE.Server.dll")),
+                ("content_folder", new Property<string>("Content", "for content creators to live edit weenies. defaults to Content folder found in same directory as ACE.Server.dll")),
                 ("dat_warning_msg", new Property<string>("Your DAT files are incomplete.\nACEmulator does not support dynamic DAT updating at this time.\nPlease visit https://emulator.ac/how-to-play to download the complete DAT files.", "Warning message displayed (if show_dat_warning is true) to player if client attempts DAT download from server")),
                 ("popup_header", new Property<string>("Welcome to Asheron's Call!", "Welcome message displayed when you log in")),
                 ("popup_welcome", new Property<string>("To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.", "Welcome message popup in training halls")),
