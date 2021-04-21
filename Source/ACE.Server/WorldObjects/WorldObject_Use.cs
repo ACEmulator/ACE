@@ -11,7 +11,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        protected double? UseTimestamp
+        public double? UseTimestamp
         {
             get => GetProperty(PropertyFloat.UseTimestamp);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.UseTimestamp); else SetProperty(PropertyFloat.UseTimestamp, value.Value); }
@@ -191,6 +191,12 @@ namespace ACE.Server.WorldObjects
         public virtual ActivationResult CheckUseRequirements(WorldObject activator)
         {
             //Console.WriteLine($"{Name}.CheckUseRequirements({activator.Name})");
+
+            if (activator == null)
+            {
+                log.Error($"0x{Guid}:{Name}.CheckUseRequirements() (wcid: {WeenieClassId}): activator is null");
+                return new ActivationResult(false);
+            }
 
             if (!(activator is Player player))
                 return new ActivationResult(true);

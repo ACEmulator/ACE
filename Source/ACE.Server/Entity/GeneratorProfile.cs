@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 using log4net;
 
@@ -9,6 +10,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Factories;
+using ACE.Server.Managers;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects;
 
@@ -258,7 +260,7 @@ namespace ACE.Server.Entity
                 }
 
                 if (Biota.PaletteId.HasValue && Biota.PaletteId > 0)
-                    wo.PaletteBaseId = Biota.PaletteId;
+                    wo.PaletteTemplate = (int)Biota.PaletteId;
 
                 if (Biota.Shade.HasValue && Biota.Shade > 0)
                     wo.Shade = Biota.Shade;
@@ -317,7 +319,16 @@ namespace ACE.Server.Entity
 
             // offset from generator location
             else
-                obj.Location = new ACE.Entity.Position(Generator.Location.Cell, Generator.Location.PositionX + Biota.OriginX ?? 0, Generator.Location.PositionY + Biota.OriginY ?? 0, Generator.Location.PositionZ + Biota.OriginZ ?? 0, Biota.AnglesX ?? 0, Biota.AnglesY ?? 0, Biota.AnglesZ ?? 0, Biota.AnglesW ?? 0);
+            {
+                if (PropertyManager.GetBool("use_generator_rotation_offset").Item)
+                {
+                    var offset = Vector3.Transform(new Vector3(Biota.OriginX ?? 0, Biota.OriginY ?? 0, Biota.OriginZ ?? 0), Generator.Location.Rotation);
+
+                    obj.Location = new ACE.Entity.Position(Generator.Location.Cell, Generator.Location.PositionX + offset.X, Generator.Location.PositionY + offset.Y, Generator.Location.PositionZ + offset.Z, Biota.AnglesX ?? 0, Biota.AnglesY ?? 0, Biota.AnglesZ ?? 0, Biota.AnglesW ?? 0);
+                }
+                else
+                    obj.Location = new ACE.Entity.Position(Generator.Location.Cell, Generator.Location.PositionX + Biota.OriginX ?? 0, Generator.Location.PositionY + Biota.OriginY ?? 0, Generator.Location.PositionZ + Biota.OriginZ ?? 0, Biota.AnglesX ?? 0, Biota.AnglesY ?? 0, Biota.AnglesZ ?? 0, Biota.AnglesW ?? 0);
+            }
 
             if (!VerifyLandblock(obj) || !VerifyWalkableSlope(obj))
                 return false;
@@ -329,6 +340,25 @@ namespace ACE.Server.Entity
         {
             float genRadius = (float)(Generator.GetProperty(PropertyFloat.GeneratorRadius) ?? 0f);
             obj.Location = new ACE.Entity.Position(Generator.Location);
+
+            // Skipping using same offset code above for offsetting scatter pos due to issues with rotation that were not expected at time content was rebuilt (Colo, others)
+            // perhaps it should be same or similar but not able to spend time on verifying it out and making rotational adjustments at this time.
+
+            //if (PropertyManager.GetBool("use_generator_rotation_offset").Item)
+            //{
+            //    var offset = Vector3.Transform(new Vector3(Biota.OriginX ?? 0, Biota.OriginY ?? 0, Biota.OriginZ ?? 0), Generator.Location.Rotation);
+
+            //    obj.Location = new ACE.Entity.Position(Generator.Location.Cell, Generator.Location.PositionX + offset.X, Generator.Location.PositionY + offset.Y, Generator.Location.PositionZ + offset.Z, Biota.AnglesX ?? 0, Biota.AnglesY ?? 0, Biota.AnglesZ ?? 0, Biota.AnglesW ?? 0);
+            //}
+            //else
+            //    obj.Location = new ACE.Entity.Position(Generator.Location.Cell, Generator.Location.PositionX + Biota.OriginX ?? 0, Generator.Location.PositionY + Biota.OriginY ?? 0, Generator.Location.PositionZ + Biota.OriginZ ?? 0, Biota.AnglesX ?? 0, Biota.AnglesY ?? 0, Biota.AnglesZ ?? 0, Biota.AnglesW ?? 0);
+
+            // the following allows profile to offset from generators position, with no rotation changes, before then scattering from that position. Use case is mainly to spawn something higher or lower.
+
+            obj.Location.PositionX += Biota.OriginX ?? 0;
+            obj.Location.PositionY += Biota.OriginY ?? 0;
+            obj.Location.PositionZ += Biota.OriginZ ?? 0;
+
             obj.Location.PositionZ += 0.05f;
 
             // we are going to delay this scatter logic until the physics engine,
@@ -391,13 +421,25 @@ namespace ACE.Server.Entity
 
         public bool VerifyWalkableSlope(WorldObject obj)
         {
-            if (!obj.Location.Indoors && !obj.Location.IsWalkable())
+            if (!obj.Location.Indoors && !obj.Location.IsWalkable() && !VerifyWalkableSlopeExcludedLandblocks.Contains(obj.Location.LandblockId.Landblock))
             {
                 //log.Debug($"{_generator.Name}.VerifyWalkableSlope({obj.Name}) - spawn location is unwalkable slope");
                 return false;
             }
             return true;
         }
+
+        /// <summary>
+        /// A list of landblocks the excluded from VerifyWalkableSlope check
+        /// 
+        /// TODO gmriggs
+        /// Hack until this can be looked into more.
+        /// </summary>
+        public static HashSet<ushort> VerifyWalkableSlopeExcludedLandblocks = new HashSet<ushort>()
+        {
+            0x9EE5,     // Northwatch Castle
+            0xF92F,     // Freebooter Keep
+        };
 
         /// <summary>
         /// Generates a randomized treasure from LootGenerationFactory

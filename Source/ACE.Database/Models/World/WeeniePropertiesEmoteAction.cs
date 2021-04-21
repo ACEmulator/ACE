@@ -47,6 +47,6 @@ namespace ACE.Database.Models.World
         public float? AnglesY { get; set; }
         public float? AnglesZ { get; set; }
 
-        public WeeniePropertiesEmote Emote { get; set; }
+        public virtual WeeniePropertiesEmote Emote { get; set; }
     }
 }

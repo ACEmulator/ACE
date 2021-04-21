@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using ACE.Entity.Enum;
+using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
@@ -93,22 +94,15 @@ namespace ACE.Server.Factories
 
         public static double getMaterialValueModifier(WorldObject wo)
         {
-            if (wo.MaterialType == null) return 1;
-            int materialType = (int)wo.MaterialType;
-            if (materialModifier.ContainsKey(materialType))
-                return materialModifier[materialType];
+            if (wo.MaterialType != null && materialModifier.TryGetValue((int)wo.MaterialType, out var materialMod))
+                return materialMod;
             else
-                return 1;
+                return 1.0;
         }
 
         public static double getGemMaterialValueModifier(WorldObject wo)
         {
-            if (wo.MaterialType == null) return 1;
-            int materialType = (int)wo.MaterialType;
-            if (materialModifier.ContainsKey(materialType))
-                return materialModifier[materialType];
-            else
-                return 1;
+            return getMaterialValueModifier(wo);
         }
 
         public static Dictionary<int, int> gemValues = new Dictionary<int, int>()
@@ -199,96 +193,97 @@ namespace ACE.Server.Factories
 
         public static readonly int[][] HeavyWeaponsMatrix =
         {
-            new int[] { 301, 3750, 3751, 3752, 3753 }, // Battle Axe
-            new int[] { 344, 3865, 3866, 3867, 3868 }, // Silifi
-            new int[] { 31769, 31770, 31771, 31772, 31768 }, // War Axe
-            new int[] { 22440, 22441, 22442, 22443, 22444 }, // Dirk
-            new int[] { 30601, 30602, 30603, 30604, 30605 }, // Stiletto
-            new int[] { 319, 3794, 3795, 3796, 3797 }, // Jambiya
-            new int[] { 30586, 30587, 30588, 30589, 30590 }, // Flanged Mace
-            new int[] { 331, 3834, 3835, 3836, 3837 }, // Mace
-            new int[] { 30581, 30582, 30583, 30584, 30585 }, // Mazule
-            new int[] { 332, 3937, 3938, 3939, 3940 }, // Morning Star
-            new int[] { 31778, 31779, 31780, 31781, 31782 }, // Spine Glaive
-            new int[] { 30591, 30592, 30593, 30594, 30595 }, // Partizan
-            new int[] { 7772, 7791, 7792, 7793, 7794 }, // Trident
-            new int[] { 333, 22159, 22160, 22161, 22162 }, // Nabut
-            new int[] { 31788, 31789, 31790, 31791, 31792 }, // Stick
-            new int[] { 30576, 30577, 30578, 30579, 30580 }, // Flamberge
-            new int[] { 327, 3822, 3823, 3824, 3825 }, // Ken
-            new int[] { 351, 3881, 3882, 3883, 3884 }, // Long Sword
-            new int[] { 353, 3889, 3890, 3891, 3892 }, // Tachi
-            new int[] { 354, 3893, 3894, 3895, 3896 }, // Takuba
-            new int[] { 45108, 45109, 45110, 45111, 45112 }, // Schlager
-            new int[] { 4190, 4194, 4192, 4193, 4194 }, // Cestus
-            new int[] { 4195, 4196, 4197, 4198, 4199 }, // Nekode
+            new int[] { 301, 3750, 3751, 3752, 3753 },       //  0 - Battle Axe
+            new int[] { 344, 3865, 3866, 3867, 3868 },       //  1 - Silifi
+            new int[] { 31769, 31770, 31771, 31772, 31768 }, //  2 - War Axe
+            new int[] { 31764, 31765, 31766, 31767, 31763 }, //  3 - Lugian Hammer
+            new int[] { 22440, 22441, 22442, 22443, 22444 }, //  4 - Dirk
+            new int[] { 30601, 30602, 30603, 30604, 30605 }, //  5 - Stiletto (MS)
+            new int[] { 319, 3794, 3795, 3796, 3797 },       //  6 - Jambiya (MS)
+            new int[] { 30586, 30587, 30588, 30589, 30590 }, //  7 - Flanged Mace
+            new int[] { 331, 3834, 3835, 3836, 3837 },       //  8 - Mace
+            new int[] { 30581, 30582, 30583, 30584, 30585 }, //  9 - Mazule
+            new int[] { 332, 3937, 3938, 3939, 3940 },       // 10 - Morning Star
+            new int[] { 31778, 31779, 31780, 31781, 31782 }, // 11 - Spine Glaive
+            new int[] { 30591, 30592, 30593, 30594, 30595 }, // 12 - Partizan
+            new int[] { 7772, 7791, 7792, 7793, 7794 },      // 13 - Trident
+            new int[] { 333, 22159, 22160, 22161, 22162 },   // 14 - Nabut
+            new int[] { 31788, 31789, 31790, 31791, 31792 }, // 15 - Stick
+            new int[] { 30576, 30577, 30578, 30579, 30580 }, // 16 - Flamberge
+            new int[] { 327, 3822, 3823, 3824, 3825 },       // 17 - Ken
+            new int[] { 351, 3881, 3882, 3883, 3884 },       // 18 - Long Sword
+            new int[] { 353, 3889, 3890, 3891, 3892 },       // 19 - Tachi
+            new int[] { 354, 3893, 3894, 3895, 3896 },       // 20 - Takuba
+            new int[] { 45108, 45109, 45110, 45111, 45112 }, // 21 - Schlager (MS)
+            new int[] { 4190, 4191, 4192, 4193, 4194 },      // 22 - Cestus
+            new int[] { 4195, 4196, 4197, 4198, 4199 },      // 23 - Nekode
         };
 
         public static readonly int[][] LightWeaponsMatrix =
         {
-            new int[] { 30561, 30562, 30563, 30564, 30565 }, // Dolabra
-            new int[] { 303, 3754, 3755, 3756, 3757 }, // Hand Axe
-            new int[] { 336, 3842, 3843, 3844, 3845 }, // Ono
-            new int[] { 359, 3905, 3906, 3907, 3908 }, // War Hammer
-            new int[] { 314, 3778, 3779, 3780, 3781 }, // Dagger
-            new int[] { 328, 3826, 3827, 3828, 3829 }, // Khanjar
-            new int[] { 309, 3766, 3767, 3768, 3769 }, // Club
-            new int[] { 325, 3814, 3815, 3816, 3817 }, // Kasrullah
-            new int[] { 7768, 7787, 7788, 7789, 7790 }, // Spiked Club
-            new int[] { 348, 3873, 3874, 3875, 3876 }, // Spear
-            new int[] { 362, 3913, 3914, 3915, 3916 }, // Yari
-            new int[] { 338, 22164, 22165, 22166, 22167 }, // Quarter Staff
-            new int[] { 350, 3877, 3878, 3879, 3880 }, // Broad Sword
-            new int[] { 31759, 31760, 31761, 31762, 31758 }, // Dericost Blade
-            new int[] { 45099, 45099, 45099, 45099, 45099 }, // Epee - Placeholders, as not yet in database
-            new int[] { 324, 3810, 3811, 3812, 3813 }, // Kaskara
-            new int[] { 30571, 30572, 30573, 30574, 30575 }, // Spada
-            new int[] { 340, 3853, 3854, 3855, 3856 },// Shamshir
-            new int[] { 30611, 30612, 30613, 30614, 30615 }, // Knuckles
-            new int[] { 326, 3818, 3819, 3820, 3821 } // Katar
+            new int[] { 30561, 30562, 30563, 30564, 30565 }, //  0 - Dolabra
+            new int[] { 303, 3754, 3755, 3756, 3757 },       //  1 - Hand Axe
+            new int[] { 336, 3842, 3843, 3844, 3845 },       //  2 - Ono
+            new int[] { 359, 3905, 3906, 3907, 3908 },       //  3 - War Hammer
+            new int[] { 314, 3778, 3779, 3780, 3781 },       //  4 - Dagger (MS)
+            new int[] { 328, 3826, 3827, 3828, 3829 },       //  5 - Khanjar
+            new int[] { 309, 3766, 3767, 3768, 3769 },       //  6 - Club
+            new int[] { 325, 3814, 3815, 3816, 3817 },       //  7 - Kasrullah
+            new int[] { 7768, 7787, 7788, 7789, 7790 },      //  8 - Spiked Club
+            new int[] { 348, 3873, 3874, 3875, 3876 },       //  9 - Spear
+            new int[] { 362, 3913, 3914, 3915, 3916 },       // 10 - Yari
+            new int[] { 338, 22164, 22165, 22166, 22167 },   // 11 - Quarter Staff
+            new int[] { 350, 3877, 3878, 3879, 3880 },       // 12 - Broad Sword
+            new int[] { 31759, 31760, 31761, 31762, 31758 }, // 13 - Dericost Blade
+            new int[] { 45099, 45099, 45099, 45099, 45099 }, // 14 - Epee (MS)
+            new int[] { 324, 3810, 3811, 3812, 3813 },       // 15 - Kaskara
+            new int[] { 30571, 30572, 30573, 30574, 30575 }, // 16 - Spada
+            new int[] { 340, 3853, 3854, 3855, 3856 },       // 17 - Shamshir
+            new int[] { 30611, 30612, 30613, 30614, 30615 }, // 18 - Knuckles
+            new int[] { 326, 3818, 3819, 3820, 3821 }        // 19 - Katar
         };
 
         public static readonly int[][] FinesseWeaponsMatrix =
         {
-            new int[] { 342, 3857, 3858, 3859, 3860 }, // Shou-ono
-            new int[] { 30556, 30557, 30558, 30559, 30560 }, // Hatchet
-            new int[] { 357, 3901, 3902, 3903, 3904 }, // Tungi
-            new int[] { 329, 3830, 3831, 3832, 3833 }, // Knife
-            new int[] { 31794, 31795, 31796, 31797, 31793 }, // Lancet
-            new int[] { 30596, 30597, 30598, 30599, 30600 }, // Poniard
-            new int[] { 31774, 31775, 31776, 31777, 31773 }, // Board with Nail
-            new int[] { 313, 3774, 3775, 3776, 3777 }, // Dabus
-            new int[] { 356, 3897, 3898, 3899, 3900 }, // Tofun
-            new int[] { 321, 3802, 3803, 3804, 3805 }, // Jitte
-            new int[] { 31774, 31775, 31776, 31777, 31773 }, // Stone Mace
-            new int[] { 308, 3762, 3763, 3764, 3765 }, // Budiaq
-            new int[] { 7771, 7795, 7796, 7797, 7798 }, // Naginata
-            new int[] { 30606, 30607, 30608, 30609, 30610 }, // Bastone
-            new int[] { 322, 3806, 3807, 3808, 3809 }, // Jo
-            new int[] { 6853, 45104, 45105, 45106, 45107 }, // Rapier
-            new int[] { 30566, 30567, 30568, 30569, 30570 }, // Sabra
-            new int[] { 339, 3849, 3850, 3851, 3852 }, // Scimitar
-            new int[] { 352, 3885, 3886, 3887, 3888 }, // Short Sword
-            new int[] { 345, 3869, 3870, 3871, 3872 }, // Simi
-            new int[] { 361, 3909, 3910, 3911, 3912 }, // Yaoji
-            new int[] { 31784, 31785, 31786, 31787, 31783 }, // Claw
-            new int[] { 45118, 45119, 45120, 45121, 45122 } // Hand Wraps
+            new int[] { 45113, 45114, 45115, 45116, 45117 }, //  0 - Hammer
+            new int[] { 30556, 30557, 30558, 30559, 30560 }, //  1 - Hatchet
+            new int[] { 342, 3857, 3858, 3859, 3860 },       //  2 - Shou-ono
+            new int[] { 357, 3901, 3902, 3903, 3904 },       //  3 - Tungi
+            new int[] { 329, 3830, 3831, 3832, 3833 },       //  4 - Knife (MS)
+            new int[] { 31794, 31795, 31796, 31797, 31793 }, //  5 - Lancet (MS)
+            new int[] { 30596, 30597, 30598, 30599, 30600 }, //  6 - Poniard
+            new int[] { 31774, 31775, 31776, 31777, 31773 }, //  7 - Board with Nail
+            new int[] { 313, 3774, 3775, 3776, 3777 },       //  8 - Dabus
+            new int[] { 356, 3897, 3898, 3899, 3900 },       //  9 - Tofun
+            new int[] { 321, 3802, 3803, 3804, 3805 },       // 10 - Jitte
+            new int[] { 308, 3762, 3763, 3764, 3765 },       // 11 - Budiaq
+            new int[] { 7771, 7795, 7796, 7797, 7798 },      // 12 - Naginata
+            new int[] { 30606, 30607, 30608, 30609, 30610 }, // 13 - Bastone
+            new int[] { 322, 3806, 3807, 3808, 3809 },       // 14 - Jo
+            new int[] { 6853, 45104, 45105, 45106, 45107 },  // 15 - Rapier (MS)
+            new int[] { 30566, 30567, 30568, 30569, 30570 }, // 16 - Sabra
+            new int[] { 339, 3849, 3850, 3851, 3852 },       // 17 - Scimitar
+            new int[] { 352, 3885, 3886, 3887, 3888 },       // 18 - Short Sword
+            new int[] { 345, 3869, 3870, 3871, 3872 },       // 19 - Simi
+            new int[] { 361, 3909, 3910, 3911, 3912 },       // 20 - Yaoji
+            new int[] { 31784, 31785, 31786, 31787, 31783 }, // 21 - Claw
+            new int[] { 45118, 45119, 45120, 45121, 45122 }  // 22 - Hand Wraps
         };
 
         public static readonly int[][] TwoHandedWeaponsMatrix =
         {
-            new int[] { 40760, 40761, 40762, 40763, 40764 }, // Nodachi
-            new int[] { 41067, 41068, 41069, 41070, 41071 }, // Shashqa
-            new int[] { 40618, 40619, 40620, 40621, 40622 }, // Spadone
-            new int[] { 41057, 41058, 41059, 41060, 41061 }, // Great Star Mace
-            new int[] { 40623, 40624, 40625, 40626, 40627 }, // Quadrelle
-            new int[] { 41062, 41063, 41064, 41065, 41066 }, // Khanda-handled Mace
-            new int[] { 40635, 40636, 40637, 40638, 40639 }, // Tetsubo
-            new int[] { 41052, 41053, 41054, 41055, 41056 }, // Great Axe
-            new int[] { 41036, 41037, 41038, 41039, 41040 }, // Assagai
-            new int[] { 41046, 41047, 41048, 41049, 41050 }, // Pike
-            new int[] { 40818, 40819, 40820, 40821, 40822 }, // Corsesca
-            new int[] { 41041, 41042, 41043, 41044, 41045 } // Magari Yari
+            new int[] { 40760, 40761, 40762, 40763, 40764 }, //  0 - Nodachi
+            new int[] { 41067, 41068, 41069, 41070, 41071 }, //  1 - Shashqa
+            new int[] { 40618, 40619, 40620, 40621, 40622 }, //  2 - Spadone
+            new int[] { 41057, 41058, 41059, 41060, 41061 }, //  3 - Great Star Mace
+            new int[] { 40623, 40624, 40625, 40626, 40627 }, //  4 - Quadrelle
+            new int[] { 41062, 41063, 41064, 41065, 41066 }, //  5 - Khanda-handled Mace
+            new int[] { 40635, 40636, 40637, 40638, 40639 }, //  6 - Tetsubo
+            new int[] { 41052, 41053, 41054, 41055, 41056 }, //  7 - Great Axe
+            new int[] { 41036, 41037, 41038, 41039, 41040 }, //  8 - Assagai
+            new int[] { 41046, 41047, 41048, 41049, 41050 }, //  9 - Pike
+            new int[] { 40818, 40819, 40820, 40821, 40822 }, // 10 - Corsesca
+            new int[] { 41041, 41042, 41043, 41044, 41045 }  // 11 - Magari Yari
         };
 
         public static readonly List<int[][]> MeleeWeaponsMatrices = new List<int[][]>()
@@ -301,41 +296,41 @@ namespace ACE.Server.Factories
 
         public static readonly HashSet<uint> AetheriaWcids = new HashSet<uint>()
         {
-            Entity.Aetheria.AetheriaBlue,
-            Entity.Aetheria.AetheriaYellow,
-            Entity.Aetheria.AetheriaRed,
+            Server.Entity.Aetheria.AetheriaBlue,
+            Server.Entity.Aetheria.AetheriaYellow,
+            Server.Entity.Aetheria.AetheriaRed,
         };
 
         public static readonly int[,] HeavyWeaponDamageTable =
-        {
-                { 26, 33, 40, 47, 54, 61, 68, 71, 74 },
-                { 24, 31, 38, 45, 51, 58, 65, 68, 71 },
-                { 13, 16, 20, 23, 26, 30, 33, 36, 38 },
-                { 22, 29, 36, 43, 49, 56, 63, 66, 69 },
-                { 25, 32, 39, 46, 52, 59, 66, 69, 72 },
-                { 24, 31, 38, 45, 51, 58, 65, 68, 71 },
-                { 12, 16, 19, 23, 26, 30, 33, 36, 38 },
-                { 23, 30, 36, 43, 50, 56, 63, 66, 70 },
-                { 20, 26, 31, 37, 43, 48, 54, 56, 59 }
+        {      //  0|250|300|325|350|370|400|420|430
+                { 26, 33, 40, 47, 54, 61, 68, 71, 74 }, // Axe
+                { 24, 31, 38, 45, 51, 58, 65, 68, 71 }, // Dagger
+                { 13, 16, 20, 23, 26, 30, 33, 36, 38 }, // MultiDagger
+                { 22, 29, 36, 43, 49, 56, 63, 66, 69 }, // Mace
+                { 25, 32, 39, 46, 52, 59, 66, 69, 72 }, // Spear
+                { 24, 31, 38, 45, 51, 58, 65, 68, 71 }, // Sword
+                { 12, 16, 19, 23, 26, 30, 33, 36, 38 }, // MultiSword
+                { 23, 30, 36, 43, 50, 56, 63, 66, 70 }, // Staff
+                { 20, 26, 31, 37, 43, 48, 54, 56, 59 }  // UA
         };
 
         public static readonly int[,] LightWeaponDamageTable =
-        {
-                { 22, 28, 33, 39, 44, 50, 55, 57, 61},
-                { 18, 24, 29, 35, 40, 46, 51, 54, 58},
-                {  7, 10, 13, 16, 18, 21, 24, 27, 28},
-                { 19, 24, 29, 35, 40, 45, 50, 52, 57},
-                { 21, 26, 32, 37, 42, 48, 53, 56, 60},
-                { 20, 25, 31, 36, 41, 47, 52, 55, 58},
-                {  7, 10, 13, 16, 18, 21, 24, 25, 28},
-                { 19, 24, 30, 35, 40, 46, 51, 54, 57},
-                { 17, 22, 26, 31, 35, 40, 44, 46, 48}
+        {      //  0|250|300|325|350|370|400|420|430
+                { 22, 28, 33, 39, 44, 50, 55, 58, 61 }, // Axe
+                { 18, 24, 29, 35, 40, 46, 51, 54, 58 }, // Dagger
+                {  7, 10, 13, 16, 18, 21, 24, 27, 28 }, // MultiDagger
+                { 19, 24, 29, 35, 40, 45, 50, 53, 57 }, // Mace
+                { 21, 26, 32, 37, 43, 48, 53, 56, 60 }, // Spear
+                { 20, 25, 31, 36, 41, 47, 52, 55, 58 }, // Sword
+                {  7, 10, 13, 16, 18, 21, 24, 25, 28 }, // MultiSword
+                { 19, 24, 30, 35, 40, 46, 51, 54, 57 }, // Staff
+                { 17, 22, 26, 31, 35, 40, 44, 46, 48 }  // UA
         };
 
         public static readonly int[,] TwoHandedWeaponDamageTable =
-        {
-                { 13, 17, 22, 26, 30, 35, 39, 42, 45 },
-                { 14, 19, 23, 28, 33, 37, 42, 45, 48 }
+        {      //  0|250|300|325|350|370|400|420|430
+                { 13, 17, 22, 26, 30, 35, 39, 42, 45 }, // Cleaving
+                { 14, 19, 23, 28, 33, 37, 42, 45, 48 }  // Spears
         };
 
         public static readonly int[][] CasterWeaponsMatrix =
@@ -378,7 +373,7 @@ namespace ACE.Server.Factories
 
         public static readonly int[] DinnerwareLootMatrix = { 141, 142, 148, 149, 150, 154, 161, 163, 168, 243, 254, 7940 };
 
-        public static readonly int[][] GemCreatureSpellMatrix =
+        /*public static readonly int[][] GemCreatureSpellMatrix =
         {
             new int[] { 2, 18, 256, 274, 298, 322, 5099, 418, 467, 557, 581, 605, 629, 653, 678, 702, 726, 750, 774, 798, 824, 850, 874, 898, 922, 946, 970, 982, 1349, 1373, 1397, 1421, 1445, 1715, 1739, 1763, 5779, 5803, 5827, 5851, 5875, 6116, 5411, 3499 },
             new int[] { 1328, 245, 257, 275, 299, 323, 5100, 419, 468, 558, 582, 606, 630, 654, 679, 703, 727, 751, 775, 799, 825, 851, 875, 899, 923, 947, 971, 983, 1350, 1374, 1398, 1422, 1446, 1716, 1740, 1764, 5780, 5804, 5828, 5852, 5876, 6117, 5412, 3500 },
@@ -400,7 +395,7 @@ namespace ACE.Server.Factories
             new int[] { 170, 193, 217, 520, 1023, 1035, 1071, 1094, 1114, 1138, 1312 },
             new int[] { 2185, 2187, 2183, 2149, 2153, 2155, 2159, 2157, 2151, 2161, 2053 },
             new int[] { 4496, 4498, 4494, 4460, 4464, 4466, 4470, 4468, 4462, 4472, 4291 }
-        };
+        };*/
 
         public static readonly int[][] GemsWCIDsMatrix =
 {
@@ -464,9 +459,9 @@ namespace ACE.Server.Factories
             new int[] { 6, 6 }
         };
 
-        public static readonly int[][] ScrollSpells =
+        /*public static readonly int[][] ScrollSpells =
         {
-            /* CREATURE SPELLS */
+            /// CREATURE SPELLS ///
 
             // ATTRIBUTES //
 
@@ -749,7 +744,7 @@ namespace ACE.Server.Factories
             ////Dispell Other
             new int[] { 1885, 1891, 1897, 1903, 1909, 1915, 3184 },
 
-            /* LIFE SPELLS */
+            /// LIFE SPELLS ///
 
             // VITALS //
 
@@ -874,7 +869,7 @@ namespace ACE.Server.Factories
             ////Dispell Other
             new int[] { 1957, 1963, 1969, 1975, 1981, 1987, 3193 },
 
-            /* ITEM SPELLS */
+            /// ITEM SPELLS ///
 
             // ARMOR //
 
@@ -960,7 +955,7 @@ namespace ACE.Server.Factories
             new int[] { 1921, 1927, 1933, 1939, 1945, 1951, 3190 },
             ////Portal Spells - Dont typically find these in loot.
 
-            /* WAR SPELLS */
+            /// WAR SPELLS ///
 
             // Flame Bolt
             new int[] { 27, 81, 82, 83, 84, 85, 2128 },
@@ -1033,7 +1028,7 @@ namespace ACE.Server.Factories
             // Blade Volley
             new int[] { 0, 0, 151, 152, 153, 154, 2125 },
 
-            /* VOID SPELLS */
+            /// VOID SPELLS ///
 
             // Nether Bolt
             new int[] { 5349, 5350, 5351, 5352, 5353, 5354, 5355 },
@@ -1051,7 +1046,7 @@ namespace ACE.Server.Factories
             new int[] { 5371, 5372, 5373, 5374, 5375, 5376, 5377 },
             // Weakening Curse
             new int[] { 5379, 5380, 5381, 5382, 5383, 5384, 5385 }
-        };
+        };*/
 
         public static readonly int[] WarVoidRingScrollSpells = { 1783, 1784, 1785, 1786, 1787, 1788, 1789, 5361 };
 
@@ -1103,7 +1098,7 @@ namespace ACE.Server.Factories
             { 50, "Zircon" }
         };
 
-        public static readonly int[][] ArmorSpells =
+        /*public static readonly int[][] ArmorSpells =
         {
             ////Strength
             new int[] { 2, 1328, 1329, 1330, 1331, 1332, 2087, 4325 },
@@ -1231,9 +1226,9 @@ namespace ACE.Server.Factories
             new int[] { 1109, 1110, 1111, 1112, 1113, 1114, 2151, 4462 },
             ////Pierce Prot
             new int[] { 1133, 1134, 1135, 1136, 1137, 1138, 2161, 4472 },
-        };
+        };*/
 
-        public static readonly int[][] WandSpells =
+        /*public static readonly int[][] WandSpells =
         {
                 new int[] { 1421, 1422, 1423, 1424, 1425, 1426, 2067, 4305 }, // Focus
                 new int[] { 1445, 1446, 1447, 1448, 1449, 1450, 2091, 4329 }, // Willpower
@@ -1246,9 +1241,9 @@ namespace ACE.Server.Factories
                 new int[] { 629, 630, 631, 632, 633, 634 , 2323, 4638 }, // War Magic Mastery
                 new int[] { 1599, 1601, 1602, 1603, 1604, 1605, 2101, 4400 }, // Defender
                 new int[] { 1475, 1476, 1477, 1478, 1479, 1480, 2117, 4418 }, // Hermetic Link
-        };
+        };*/
 
-        public static readonly int[][] JewelrySpells =
+        /*public static readonly int[][] JewelrySpells =
         {
             ////Strength
             new int[] { 2, 1328, 1329, 1330, 1331, 1332, 2087, 4325 },
@@ -1360,9 +1355,9 @@ namespace ACE.Server.Factories
             new int[] { 1109, 1110, 1111, 1112, 1113, 1114, 2151, 4462 },
             ////Pierce Prot
             new int[] { 1133, 1134, 1135, 1136, 1137, 1138, 2161, 4472 },
-        };
+        };*/
 
-        public static readonly int[][] GemSpells =
+        /*public static readonly int[][] GemSpells =
         {
             ////Strength
             new int[] { 2, 1328, 1329, 1330, 1331, 1332, 2087, 4325 },
@@ -1474,9 +1469,9 @@ namespace ACE.Server.Factories
             new int[] { 1133, 1134, 1135, 1136, 1137, 1138, 2161, 4472 },
             ////Armor Self
             new int[] { 24, 1308, 1309, 1310, 1311, 1312, 2053, 4291 },
-        };
+        };*/
 
-        public static readonly int[][] MeleeSpells =
+        /*public static readonly int[][] MeleeSpells =
         {
             ////Strength
             new int[] { 2, 1328, 1329, 1330, 1331, 1332, 2087, 4325 },
@@ -1500,9 +1495,9 @@ namespace ACE.Server.Factories
             new int[] { 49, 1623, 1624, 1625, 1626, 1627, 2116, 4417 },
             ////Blooddrinker
             new int[] { 35, 1612, 1613, 1614, 1615, 1616, 2096, 4395 },
-        };
+        };*/
 
-        public static readonly int[][] MissileSpells =
+        /*public static readonly int[][] MissileSpells =
         {
             ////Strength
             new int[] { 2, 1328, 1329, 1330, 1331, 1332, 2087, 4325 },
@@ -1524,9 +1519,9 @@ namespace ACE.Server.Factories
             new int[] { 49, 1623, 1624, 1625, 1626, 1627, 2116, 4417 },
             ////Blooddrinker
             new int[] { 35, 1612, 1613, 1614, 1615, 1616, 2096, 4395 },
-        };
+        };*/
 
-        public static readonly int[][] ArmorCantrips =
+        /*public static readonly int[][] ArmorCantrips =
         {
             ////Strength
             new int[] { 2583, 2576, 3965, 6107},
@@ -1648,9 +1643,9 @@ namespace ACE.Server.Factories
             new int[] { 2620, 2613, 4677, 6084},
             ///Shield
             new int[] { 5886, 5891, 5896, 6069},
-        };
+        };*/
 
-        public static readonly int[][] JewelryCantrips =
+        /*public static readonly int[][] JewelryCantrips =
         {
             ////Invuln
             new int[] { 2550, 2515, 4696, 6055},
@@ -1748,9 +1743,9 @@ namespace ACE.Server.Factories
             new int[] { 2620, 2613, 4677, 6084},
             ///Shield
             new int[] { 5886, 5891, 5896, 6069},
-        };
+        };*/
 
-        public static readonly int[][] WandCantrips =
+        /*public static readonly int[][] WandCantrips =
         {
             ////Focus
             new int[] { 2581, 2574, 3964, 6105},
@@ -1776,9 +1771,9 @@ namespace ACE.Server.Factories
             new int[] { 3199, 3200, 6086, 6087},
             ////Spirit Thirst
             new int[] { 3251, 3250, 4670, 6098},
-        };
+        };*/
 
-        public static readonly int[][] MeleeCantrips =
+        /*public static readonly int[][] MeleeCantrips =
         {
             ////Strength
             new int[] { 2583, 2576, 3965, 6107},
@@ -1802,9 +1797,9 @@ namespace ACE.Server.Factories
             new int[] { 2608, 2596, 4672, 6100},
             ////Blooddrinker
             new int[] { 2598, 2586, 4661, 6089},
-        };
+        };*/
 
-        public static readonly int[][] MissileCantrips =
+        /*public static readonly int[][] MissileCantrips =
         {
             ////Strength
             new int[] { 2583, 2576, 3965, 6107},
@@ -1826,7 +1821,7 @@ namespace ACE.Server.Factories
             new int[] { 2608, 2596, 4672, 6100},
             ////Blooddrinker
             new int[] { 2598, 2586, 4661, 6089},
-        };
+        };*/
 
         public static readonly int[][] DefaultMaterial =
         {
@@ -1840,6 +1835,7 @@ namespace ACE.Server.Factories
 
         public enum ArmorType
         {
+            Undef,
             MiscClothing,
             Helms,
             Shields,
@@ -2293,7 +2289,7 @@ namespace ACE.Server.Factories
             44858  // Quartered Cloak
         };
 
-        public static readonly int[] CloakSpells =  // Cloak SpellIDs 12 of them (Damage Reduction is not a spell, but an Interger Property)
+        public static readonly int[] CloakSpells =  // Cloak SpellIDs 12 of them (Damage Reduction is not a spell, but an Integer Property)
         {
             1784,  // Horizon's Blades
             1789,  // Tectonic Rifts
@@ -2354,7 +2350,14 @@ namespace ACE.Server.Factories
         public static HashSet<int> EpicCantrips;
         public static HashSet<int> LegendaryCantrips;
 
-        private static List<int[][]> cantripTables = new List<int[][]>() { ArmorCantrips, JewelryCantrips, WandCantrips, MeleeCantrips, MissileCantrips };
+        private static List<SpellId[][]> cantripTables = new List<SpellId[][]>()
+        {
+            ArmorCantrips.Table,
+            JewelryCantrips.Table,
+            WandCantrips.Table,
+            MeleeCantrips.Table,
+            MissileCantrips.Table
+        };
 
         static LootTables()
         {
@@ -2371,7 +2374,7 @@ namespace ACE.Server.Factories
             foreach (var cantripTable in cantripTables)
             {
                 foreach (var category in cantripTable)
-                    table.Add(category[tier]);
+                    table.Add((int)category[tier]);
             }
         }
 

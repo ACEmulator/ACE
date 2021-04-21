@@ -15,7 +15,7 @@ namespace ACE.Server.Network.Structure
     {
         public uint HouseOwner;
         public uint Version = 0x10000002;   // If high word is not 0, this value indicates the version of the message.
-        public uint OpenStatus;             // 0 = private dwelling, 1 = open to public
+        public bool OpenStatus;             // 0 = private dwelling, 1 = open to public
         public ObjectGuid MonarchID;        // Allegiance monarch (if allegiance access granted)
         public Dictionary<ObjectGuid, uint> Table;  // Set of permissions on a per user basis. Key is the character id,
                                                     // value is 0 = dwelling access only, 1 = storage access as well
@@ -34,7 +34,7 @@ namespace ACE.Server.Network.Structure
 
             HouseOwner = house.HouseOwner ?? 0;
 
-            OpenStatus = Convert.ToUInt32(house.OpenStatus);
+            OpenStatus = house.OpenStatus;
 
             if (house.MonarchId != null)
                 MonarchID = new ObjectGuid(house.MonarchId.Value);      // for allegiance guest/storage access
@@ -60,7 +60,12 @@ namespace ACE.Server.Network.Structure
             var accountPlayers = Player.GetAccountPlayers(owner.Account.AccountId);
 
             foreach (var accountPlayer in accountPlayers)
+            {
+                if (accountPlayer.Guid.Full == HouseOwner)
+                    continue;
+
                 Table.TryAdd(accountPlayer.Guid, 1);
+            }
         }
     }
 
@@ -69,7 +74,7 @@ namespace ACE.Server.Network.Structure
         public static void Write(this BinaryWriter writer, RestrictionDB restrictions)
         {
             writer.Write(restrictions.Version);
-            writer.Write(restrictions.OpenStatus);
+            writer.Write(Convert.ToUInt32(restrictions.OpenStatus));
             writer.Write(restrictions.MonarchID.Full);
             writer.Write(restrictions.Table);
         }

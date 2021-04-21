@@ -118,10 +118,51 @@ namespace ACE.Server.Entity
             SetForwardCommand(motion, speed);
         }
 
+        public Motion(Motion motion)
+        {
+            // copy constructor
+            IsAutonomous = motion.IsAutonomous;
+            MovementType = motion.MovementType;
+            MotionFlags = motion.MotionFlags;
+            Stance = motion.Stance;
+
+            if (motion.MotionState != null)
+                MotionState = new InterpretedMotionState(motion.MotionState);
+
+            TargetGuid = motion.TargetGuid;
+
+            if (motion.Position != null)
+                Position = new Position(motion.Position);
+
+            if (motion.MoveToParameters != null)
+                MoveToParameters = new MoveToParameters(motion.MoveToParameters);
+
+            RunRate = motion.RunRate;
+            DesiredHeading = motion.DesiredHeading;
+        }
+
         public void SetForwardCommand(MotionCommand motion, float speed = 1.0f)
         {
             MotionState.ForwardCommand = motion;
             MotionState.ForwardSpeed = speed;
+        }
+
+        public void SetSidestepCommand(MotionCommand motion, float speed = 1.0f)
+        {
+            MotionState.SidestepCommand = motion;
+            MotionState.SidestepSpeed = speed;
+        }
+
+        public void SetTurnCommand(MotionCommand motion, float speed = 1.0f)
+        {
+            MotionState.TurnCommand = motion;
+            MotionState.TurnSpeed = speed;
+        }
+
+        public void Persist(Motion motion)
+        {
+            SetSidestepCommand(motion.MotionState.SidestepCommand, motion.MotionState.SidestepSpeed);
+            SetTurnCommand(motion.MotionState.TurnCommand, motion.MotionState.TurnSpeed);
         }
     }
 }

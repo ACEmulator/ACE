@@ -18,7 +18,10 @@ namespace ACE.Server.WorldObjects
 
             var modifier = PropertyManager.GetDouble("luminance_modifier").Item;
 
-            var m_amount = (long)Math.Round(amount * modifier);
+            // should this be passed upstream to fellowship?
+            var enchantment = GetXPAndLuminanceModifier(xpType);
+
+            var m_amount = (long)Math.Round(amount * enchantment * modifier);
 
             GrantLuminance(m_amount, xpType, shareType);
         }

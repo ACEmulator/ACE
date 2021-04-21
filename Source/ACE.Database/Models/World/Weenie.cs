@@ -35,27 +35,27 @@ namespace ACE.Database.Models.World
         public int Type { get; set; }
         public DateTime LastModified { get; set; }
 
-        public WeeniePropertiesBook WeeniePropertiesBook { get; set; }
-        public ICollection<WeeniePropertiesAnimPart> WeeniePropertiesAnimPart { get; set; }
-        public ICollection<WeeniePropertiesAttribute> WeeniePropertiesAttribute { get; set; }
-        public ICollection<WeeniePropertiesAttribute2nd> WeeniePropertiesAttribute2nd { get; set; }
-        public ICollection<WeeniePropertiesBodyPart> WeeniePropertiesBodyPart { get; set; }
-        public ICollection<WeeniePropertiesBookPageData> WeeniePropertiesBookPageData { get; set; }
-        public ICollection<WeeniePropertiesBool> WeeniePropertiesBool { get; set; }
-        public ICollection<WeeniePropertiesCreateList> WeeniePropertiesCreateList { get; set; }
-        public ICollection<WeeniePropertiesDID> WeeniePropertiesDID { get; set; }
-        public ICollection<WeeniePropertiesEmote> WeeniePropertiesEmote { get; set; }
-        public ICollection<WeeniePropertiesEventFilter> WeeniePropertiesEventFilter { get; set; }
-        public ICollection<WeeniePropertiesFloat> WeeniePropertiesFloat { get; set; }
-        public ICollection<WeeniePropertiesGenerator> WeeniePropertiesGenerator { get; set; }
-        public ICollection<WeeniePropertiesIID> WeeniePropertiesIID { get; set; }
-        public ICollection<WeeniePropertiesInt> WeeniePropertiesInt { get; set; }
-        public ICollection<WeeniePropertiesInt64> WeeniePropertiesInt64 { get; set; }
-        public ICollection<WeeniePropertiesPalette> WeeniePropertiesPalette { get; set; }
-        public ICollection<WeeniePropertiesPosition> WeeniePropertiesPosition { get; set; }
-        public ICollection<WeeniePropertiesSkill> WeeniePropertiesSkill { get; set; }
-        public ICollection<WeeniePropertiesSpellBook> WeeniePropertiesSpellBook { get; set; }
-        public ICollection<WeeniePropertiesString> WeeniePropertiesString { get; set; }
-        public ICollection<WeeniePropertiesTextureMap> WeeniePropertiesTextureMap { get; set; }
+        public virtual WeeniePropertiesBook WeeniePropertiesBook { get; set; }
+        public virtual ICollection<WeeniePropertiesAnimPart> WeeniePropertiesAnimPart { get; set; }
+        public virtual ICollection<WeeniePropertiesAttribute> WeeniePropertiesAttribute { get; set; }
+        public virtual ICollection<WeeniePropertiesAttribute2nd> WeeniePropertiesAttribute2nd { get; set; }
+        public virtual ICollection<WeeniePropertiesBodyPart> WeeniePropertiesBodyPart { get; set; }
+        public virtual ICollection<WeeniePropertiesBookPageData> WeeniePropertiesBookPageData { get; set; }
+        public virtual ICollection<WeeniePropertiesBool> WeeniePropertiesBool { get; set; }
+        public virtual ICollection<WeeniePropertiesCreateList> WeeniePropertiesCreateList { get; set; }
+        public virtual ICollection<WeeniePropertiesDID> WeeniePropertiesDID { get; set; }
+        public virtual ICollection<WeeniePropertiesEmote> WeeniePropertiesEmote { get; set; }
+        public virtual ICollection<WeeniePropertiesEventFilter> WeeniePropertiesEventFilter { get; set; }
+        public virtual ICollection<WeeniePropertiesFloat> WeeniePropertiesFloat { get; set; }
+        public virtual ICollection<WeeniePropertiesGenerator> WeeniePropertiesGenerator { get; set; }
+        public virtual ICollection<WeeniePropertiesIID> WeeniePropertiesIID { get; set; }
+        public virtual ICollection<WeeniePropertiesInt> WeeniePropertiesInt { get; set; }
+        public virtual ICollection<WeeniePropertiesInt64> WeeniePropertiesInt64 { get; set; }
+        public virtual ICollection<WeeniePropertiesPalette> WeeniePropertiesPalette { get; set; }
+        public virtual ICollection<WeeniePropertiesPosition> WeeniePropertiesPosition { get; set; }
+        public virtual ICollection<WeeniePropertiesSkill> WeeniePropertiesSkill { get; set; }
+        public virtual ICollection<WeeniePropertiesSpellBook> WeeniePropertiesSpellBook { get; set; }
+        public virtual ICollection<WeeniePropertiesString> WeeniePropertiesString { get; set; }
+        public virtual ICollection<WeeniePropertiesTextureMap> WeeniePropertiesTextureMap { get; set; }
     }
 }

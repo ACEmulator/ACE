@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using log4net;
 
 using ACE.Common;
+using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -149,7 +150,7 @@ namespace ACE.Database
             var deleteLimit = Common.Time.GetUnixTime(DateTime.UtcNow.AddDays(-daysLimiter));
 
             var results = context.Character
-                .Where(r => (r.DeleteTime > 0 && r.DeleteTime < deleteLimit) || (r.IsDeleted && r.DeleteTime == 0))
+                .Where(r => (r.DeleteTime > 0 && r.DeleteTime < (ulong)deleteLimit) || (r.IsDeleted && r.DeleteTime == 0))
                 .AsNoTracking()
                 .ToList();
 
@@ -320,6 +321,7 @@ namespace ACE.Database
             {
                 // select * from `character` left join biota on biota.id=`character`.id where biota.id is null;
 
+                /* EF Core 2.2.6 method
                 var query = from character in context.Character
                             join biota in context.Biota on character.Id equals biota.Id into combined
                             from b in combined.DefaultIfEmpty()
@@ -335,10 +337,16 @@ namespace ACE.Database
                 // WHERE `biota`.`id` IS NULL
 
                 var results = query.ToList();
+                */
+
+                var playerBiotaIds = context.Biota.Select(r => r.Id).Where(id => id >= 0x50000000 && id <= 0x5FFFFFFF).ToList();
+                var characterIds = context.Character.Select(r => r.Id).ToList();
+
+                var results = characterIds.Except(playerBiotaIds);
 
                 Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
-                    PurgeCharacter(result.id, out var charactersPurged, out var playerBiotasPurged, out var posessionsPurged, "No Player biota counterpart found");
+                    PurgeCharacter(result, out var charactersPurged, out var playerBiotasPurged, out var possessionPurged, "No Player biota counterpart found");
 
                     if (charactersPurged != 1)
                         log.Error("[DATABASE][PURGE] PurgeOrphanedBiotasInParallel failed to purge exactly 1 character. This should not happen!");
@@ -348,7 +356,7 @@ namespace ACE.Database
 
                     Interlocked.Add(ref totalNumberOfBiotasPurged, charactersPurged);
                     Interlocked.Add(ref totalNumberOfBiotasPurged, playerBiotasPurged);
-                    Interlocked.Add(ref totalNumberOfBiotasPurged, posessionsPurged);
+                    Interlocked.Add(ref totalNumberOfBiotasPurged, possessionPurged);
                 });
             }
 
@@ -356,6 +364,7 @@ namespace ACE.Database
             {
                 // select * from biota left join `character` on character.id=biota.id where biota.id >= 0x50000000 and biota.id <= 0x5FFFFFFF and character.id is null;
 
+                /* EF Core 2.2.6 method
                 var query = from biota in context.Biota
                             join character in context.Character on biota.Id equals character.Id into combined
                             where biota.Id >= 0x50000000 && biota.Id <= 0x5FFFFFFF
@@ -373,10 +382,16 @@ namespace ACE.Database
                 // ORDER BY `id0`
 
                 var results = query.ToList();
+                */
+
+                var playerBiotaIds = context.Biota.Select(r => r.Id).Where(id => id >= 0x50000000 && id <= 0x5FFFFFFF).ToList();
+                var characterIds = context.Character.Select(r => r.Id).ToList();
+
+                var results = playerBiotaIds.Except(characterIds);
 
                 Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
-                    PurgePlayer(result.id, out var charactersPurged, out var playerBiotasPurged, out var posessionsPurged, "No Character record counterpart found");
+                    PurgePlayer(result, out var charactersPurged, out var playerBiotasPurged, out var possessionPurged, "No Character record counterpart found");
 
                     if (charactersPurged != 0)
                         log.Error("[DATABASE][PURGE] PurgeOrphanedBiotasInParallel purged a character record and a player biota. This should not happen!");
@@ -386,7 +401,7 @@ namespace ACE.Database
 
                     Interlocked.Add(ref totalNumberOfBiotasPurged, charactersPurged);
                     Interlocked.Add(ref totalNumberOfBiotasPurged, playerBiotasPurged);
-                    Interlocked.Add(ref totalNumberOfBiotasPurged, posessionsPurged);
+                    Interlocked.Add(ref totalNumberOfBiotasPurged, possessionPurged);
                 });
             }
 
@@ -394,6 +409,7 @@ namespace ACE.Database
             {
                 // select * from biota_properties_i_i_d iid left join biota on biota.id=iid.`value` where iid.`type`=2 and biota.id is null;
 
+                /* EF Core 2.2.6 method
                 var query = from iid in context.BiotaPropertiesIID
                             join biota in context.Biota on iid.Value equals biota.Id into combined
                             where iid.Type == (ushort)PropertyInstanceId.Container
@@ -411,10 +427,16 @@ namespace ACE.Database
                 // ORDER BY `iid`.`value`
 
                 var results = query.ToList();
+                */
+
+                var biotaIds = context.Biota.Select(r => r.Id).ToList();
+                var iidRecords = context.BiotaPropertiesIID.Where(r => r.Type == (ushort)PropertyInstanceId.Container).ToList();
+
+                var results = iidRecords.Where(r => !biotaIds.Contains(r.Value));
 
                 Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
-                    if (PurgeBiota(result.id, "Parent container not found"))
+                    if (PurgeBiota(result.ObjectId, "Parent container not found"))
                         Interlocked.Increment(ref totalNumberOfBiotasPurged);
                 });
 
@@ -424,6 +446,7 @@ namespace ACE.Database
             {
                 // select * from biota_properties_i_i_d iid left join biota on biota.id=iid.`value` where iid.`type`=3 and biota.id is null;
 
+                /* EF Core 2.2.6 method
                 var query = from iid in context.BiotaPropertiesIID
                             join biota in context.Biota on iid.Value equals biota.Id into combined
                             where iid.Type == (ushort)PropertyInstanceId.Wielder
@@ -441,10 +464,16 @@ namespace ACE.Database
                 // ORDER BY `iid`.`value`
 
                 var results = query.ToList();
+                */
+
+                var biotaIds = context.Biota.Select(r => r.Id).ToList();
+                var iidRecords = context.BiotaPropertiesIID.Where(r => r.Type == (ushort)PropertyInstanceId.Wielder).ToList();
+
+                var results = iidRecords.Where(r => !biotaIds.Contains(r.Value));
 
                 Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
-                    if (PurgeBiota(result.id, "Parent wielder not found"))
+                    if (PurgeBiota(result.ObjectId, "Parent wielder not found"))
                         Interlocked.Increment(ref totalNumberOfBiotasPurged);
                 });
 
@@ -478,6 +507,7 @@ namespace ACE.Database
                              || r.WeenieType == (int)WeenieType.Sentinel
                     )
                     .AsNoTracking()
+                    .ToList()
                     .Select(r => r.GetProperty(PropertyInstanceId.Monarch) ?? 0)
                     .Distinct()
                     .ToList();
@@ -958,6 +988,41 @@ namespace ACE.Database
             }
 
             log.Info($"2020-04-11-00-Update-Character-SpellBars.sql patch has been successfully installed. Before opening world to players, make sure you've run fix-spell-bars command from console");
+        }
+
+        /// <summary>
+        /// <para>unknown how this column keeps deleting, but it is likely a bug that is a result of auto (world only?) database updates that repros under currently unknown conditions</para>
+        /// this checks for and attempts to correct shard database missing order column
+        /// </summary>
+        public static void CheckForBiotaPropertiesPaletteOrderColumnInShard()
+        {
+            //log.Info($"Checking for order column in biota_properties_palette table in shard database...");
+
+            using (var context = new ShardDbContext())
+            {
+                try
+                {
+                    var result = context.BiotaPropertiesPalette.FirstOrDefault();
+                }
+                catch (MySql.Data.MySqlClient.MySqlException)
+                {
+                    log.Warn("order column in biota_properties_palette table in shard database is missing! Attempting to fix...");
+                    try
+                    {
+                        context.Database.ExecuteSqlRaw("ALTER TABLE `biota_properties_palette` ADD COLUMN `order` TINYINT(3) UNSIGNED NULL DEFAULT NULL AFTER `length`;");
+
+                        var result = context.BiotaPropertiesPalette.FirstOrDefault();
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Fatal($"Unable to restore order column in biota_properties_palette table in shard database due to following error: {ex.GetFullMessage()}");
+                        Environment.Exit(1);
+                        return;
+                    }
+                }
+            }
+
+            //log.Info($"Successfully verified order column in biota_properties_palette table in shard database!");
         }
     }
 }

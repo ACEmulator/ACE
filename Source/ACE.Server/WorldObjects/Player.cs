@@ -308,8 +308,11 @@ namespace ACE.Server.WorldObjects
                 if ((this is Admin || this is Sentinel) && CloakStatus == CloakStatus.On)
                     chance = 1.0f;
 
-                success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);
+                success = chance > ThreadSafeRandom.Next(0.0f, 1.0f);
             }
+
+            if (obj.ResistItemAppraisal >= 999)
+                success = false;
 
             if (creature is Pet || creature is CombatPet)
                 success = true;
@@ -345,6 +348,8 @@ namespace ACE.Server.WorldObjects
 
         public override void OnCollideObject(WorldObject target)
         {
+            //Console.WriteLine($"{Name}.OnCollideObject({target.Name})");
+
             if (target.ReportCollisions == false)
                 return;
 
@@ -356,6 +361,8 @@ namespace ACE.Server.WorldObjects
                 hotspot.OnCollideObject(this);
             else if (target is SpellProjectile spellProjectile)
                 spellProjectile.OnCollideObject(this);
+            else if (target.ProjectileTarget != null)
+                ProjectileCollisionHelper.OnCollideObject(target, this);
         }
 
         public override void OnCollideObjectEnd(WorldObject target)
@@ -494,12 +501,13 @@ namespace ACE.Server.WorldObjects
 
         public void LogOut_Inner(bool clientSessionTerminatedAbruptly = false)
         {
+            IsBusy = true;
             IsLoggingOut = true;
 
             if (Fellowship != null)
                 FellowshipQuit(false);
 
-            if (IsTrading && TradePartner != null)
+            if (IsTrading && TradePartner != ObjectGuid.Invalid)
             {
                 var tradePartner = PlayerManager.GetOnlinePlayer(TradePartner);
 
@@ -543,15 +551,8 @@ namespace ACE.Server.WorldObjects
                 logoutChain.AddDelaySeconds(logoutAnimationLength);
 
                 // remove the player from landblock management -- after the animation has run
-                logoutChain.AddAction(this, () =>
+                logoutChain.AddAction(WorldManager.ActionQueue, () =>
                 {
-                    if (CurrentLandblock == null)
-                    {
-                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner.logoutChain: CurrentLandblock is null, unable to remove from a landblock...");
-                        if (Location != null)
-                            log.Debug($"0x{Guid}:{Name}.LogOut_Inner.logoutChain: Location is not null, Location = {Location.ToLOCString()}");
-                    }
-
                     CurrentLandblock?.RemoveWorldObject(Guid, false);
                     SetPropertiesAtLogOut();
                     SavePlayerToDatabase();
@@ -571,6 +572,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
+                // todo: verify these debug messages are still necessary.. I suspect they aren't and the entire if/else block can be removed
                 log.Debug($"0x{Guid}:{Name}.LogOut_Inner: CurrentLandblock is null");
                 if (Location != null)
                 {
@@ -586,6 +588,7 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                     log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Location is null");
+                // todo: verify the above debug code is necessary
                 SetPropertiesAtLogOut();
                 SavePlayerToDatabase();
                 PlayerManager.SwitchPlayerFromOnlineToOffline(this);
@@ -791,7 +794,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsGagged)
             {
-                EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, ChatMessageType.Speech);
+                EnqueueBroadcast(new GameMessageHearSpeech(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, ChatMessageType.Speech);
 
                 OnTalk(message);
             }
@@ -1079,62 +1082,70 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (TooBusyToRecall)
+            if (IsBusy || Teleporting || suicideInProgress)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 return;
             }
 
-            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast), LocalBroadcastRange);
-
-            // perform pk lite entry motion / effect
-
-            IsBusy = true;
-
-            var prevStance = CurrentMotionState.Stance;
-
-            var actionChain = new ActionChain();
-
             var animTime = 0.0f;
 
-            animTime += EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.EnterPKLite);
+            if (CombatMode != CombatMode.NonCombat)
+            {
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat));
+                animTime += SetCombatMode(CombatMode.NonCombat);
+            }
 
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(animTime);
             actionChain.AddAction(this, () =>
             {
-                if (PropertyManager.GetBool("allow_pkl_bump").Item)
+                IsBusy = true;
+
+                EnqueueBroadcast(new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast), LocalBroadcastRange);
+
+                // perform pk lite entry motion / effect
+                SendMotionAsCommands(MotionCommand.EnterPKLite, MotionStance.NonCombat);
+
+                var innerChain = new ActionChain();
+
+                // wait for animation to complete
+                animTime = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.EnterPKLite);
+                innerChain.AddDelaySeconds(animTime);
+                innerChain.AddAction(this, () =>
                 {
-                    // check for collisions
-                    PlayerKillerStatus = PlayerKillerStatus.PKLite;
+                    IsBusy = false;
 
-                    var colliding = PhysicsObj.ethereal_check_for_collisions();
-
-                    if (colliding)
+                    if (PropertyManager.GetBool("allow_pkl_bump").Item)
                     {
-                        // try initial placement
-                        var result = PhysicsObj.SetPositionSimple(PhysicsObj.Position, true);
+                        // check for collisions
+                        PlayerKillerStatus = PlayerKillerStatus.PKLite;
 
-                        if (result == SetPositionError.OK)
+                        var colliding = PhysicsObj.ethereal_check_for_collisions();
+
+                        if (colliding)
                         {
-                            // handle landblock update?
-                            SyncLocation();
+                            // try initial placement
+                            var result = PhysicsObj.SetPositionSimple(PhysicsObj.Position, true);
 
-                            // force broadcast
-                            Sequences.GetNextSequence(SequenceType.ObjectForcePosition);
-                            SendUpdatePosition();
+                            if (result == SetPositionError.OK)
+                            {
+                                // handle landblock update?
+                                SyncLocation();
+
+                                // force broadcast
+                                Sequences.GetNextSequence(SequenceType.ObjectForcePosition);
+                                SendUpdatePosition();
+                            }
                         }
                     }
-                }
-                UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite, true);
+                    UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite, true);
 
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNowPKLite));
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNowPKLite));
+                });
+
+                innerChain.EnqueueChain();
             });
-
-            // return to previous stance, if applicable
-            if (prevStance != MotionStance.NonCombat)
-                animTime += EnqueueMotion_Force(actionChain, prevStance, MotionCommand.Ready, MotionCommand.NonCombat);
-
-            actionChain.AddAction(this, () => IsBusy = false);
-
             actionChain.EnqueueChain();
         }
     }

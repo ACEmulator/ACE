@@ -243,12 +243,11 @@ namespace ACE.Server.WorldObjects
                     var critterBuffsForPlayer = buffsForPlayer.Where(k => k.Spell.School == MagicSchool.CreatureEnchantment).ToList();
                     var itemBuffsForPlayer = buffsForPlayer.Where(k => k.Spell.School == MagicSchool.ItemEnchantment).ToList();
 
-                    bool crit = false;
                     uint dmg = 0;
                     EnchantmentStatus ec;
                     lifeBuffsForPlayer.ForEach(spl =>
                     {
-                        bool casted = targetPlayer.LifeMagic(spl.Spell, out dmg, out crit, out ec, targetPlayer, this);
+                        bool casted = targetPlayer.LifeMagic(spl.Spell, out dmg, out ec, targetPlayer, this);
                     });
                     critterBuffsForPlayer.ForEach(spl =>
                     {
@@ -279,6 +278,8 @@ namespace ACE.Server.WorldObjects
                 }
             });
         }
+
+        // TODO: switch this over to SpellProgressionTables
         private static string[] Buffs = new string[] {
 #region spells
             // @ indicates impenetrability or a bane
@@ -291,14 +292,18 @@ namespace ACE.Server.WorldObjects
             "ManaRenewal",
             "Impregnability",
             "MagicResistance",
-            "AxeMastery",    // light weapons
-            "DaggerMastery", // finesse weapons
+            //"AxeMastery",    // light weapons
+            "LightWeaponsMastery",
+            //"DaggerMastery", // finesse weapons
+            "FinesseWeaponsMastery",
             //"MaceMastery",
             //"SpearMastery",
             //"StaffMastery",
-            "SwordMastery",  // heavy weapons
+            //"SwordMastery",  // heavy weapons
+            "HeavyWeaponsMastery",
             //"UnarmedCombatMastery",
-            "BowMastery",    // missile weapons
+            //"BowMastery",    // missile weapons
+            "MissileWeaponsMastery",
             //"CrossbowMastery",
             //"ThrownWeaponMastery",
             "AcidProtection",

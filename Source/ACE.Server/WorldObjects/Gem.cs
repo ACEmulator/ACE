@@ -130,7 +130,15 @@ namespace ACE.Server.WorldObjects
             {
                 var spell = new Spell((uint)SpellDID);
 
-                TryCastSpell(spell, player, this, false);
+                // should be 'You cast', instead of 'Item cast'
+                // omitting the item caster here, so player is also used for enchantment registry caster,
+                // which could prevent some scenarios with spamming enchantments from multiple gem sources to protect against dispels
+
+                // TODO: figure this out better
+                if (spell.MetaSpellType == SpellType.PortalSummon)
+                    TryCastSpell(spell, player, this, false);
+                else
+                    player.TryCastSpell(spell, player, this, false);
             }
 
             if (UseCreateContractId > 0)
@@ -268,6 +276,34 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyString.UseSendsSignal);
             set { if (value == null) RemoveProperty(PropertyString.UseSendsSignal); else SetProperty(PropertyString.UseSendsSignal, value); }
+        }
+
+        public override void OnActivate(WorldObject activator)
+        {
+            if (ItemUseable == Usable.Contained && activator is Player player)
+            {               
+                var containedItem = player.FindObject(Guid.Full, Player.SearchLocations.MyInventory | Player.SearchLocations.MyEquippedItems);
+                if (containedItem != null) // item is contained by player
+                {
+                    if (player.IsBusy || player.Teleporting || player.suicideInProgress)
+                    {
+                        player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YoureTooBusy));
+                        player.EnchantmentManager.StartCooldown(this);
+                        return;
+                    }
+
+                    if (player.IsDead)
+                    {
+                        player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.Dead));
+                        player.EnchantmentManager.StartCooldown(this);
+                        return;
+                    }
+                }
+                else
+                    return;
+            }
+
+            base.OnActivate(activator);
         }
     }
 }

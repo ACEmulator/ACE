@@ -10,6 +10,6 @@ namespace ACE.Database.Models.World
         public ushort Type { get; set; }
         public long Value { get; set; }
 
-        public Weenie Object { get; set; }
+        public virtual Weenie Object { get; set; }
     }
 }

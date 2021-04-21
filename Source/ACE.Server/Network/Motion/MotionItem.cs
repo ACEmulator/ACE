@@ -50,6 +50,17 @@ namespace ACE.Server.Network.Structure
             Speed = reader.ReadSingle();
         }
 
+        public MotionItem(MotionItem motionItem)
+        {
+            // copy constructor
+            WorldObject = motionItem.WorldObject;
+            MotionCommand = motionItem.MotionCommand;
+            PackedSequence = motionItem.PackedSequence;
+            ServerActionSequence = motionItem.ServerActionSequence;
+            IsAutonomous = motionItem.IsAutonomous;
+            Speed = motionItem.Speed;
+        }
+
         public override string ToString()
         {
             var sb = new StringBuilder();
