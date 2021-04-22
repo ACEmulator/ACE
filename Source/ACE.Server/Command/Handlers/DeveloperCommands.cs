@@ -2152,12 +2152,15 @@ namespace ACE.Server.Command.Handlers
         {
             var landblock = session.Player.Location.Landblock;
 
+            var blockStart = landblock << 16;
+            var blockEnd = blockStart | 0xFFFF;
+
             using (var ctx = new WorldDbContext())
             {
                 var query = from weenie in ctx.Weenie
                             join wstr in ctx.WeeniePropertiesString on weenie.ClassId equals wstr.ObjectId
                             join wpos in ctx.WeeniePropertiesPosition on weenie.ClassId equals wpos.ObjectId
-                            where weenie.Type == (int)WeenieType.Portal && wpos.PositionType == (int)PositionType.Destination && wpos.ObjCellId >> 16 == landblock
+                            where weenie.Type == (int)WeenieType.Portal && wpos.PositionType == (int)PositionType.Destination && wpos.ObjCellId >= blockStart && wpos.ObjCellId <= blockEnd
                             select wstr;
 
                 var results = query.ToList();
