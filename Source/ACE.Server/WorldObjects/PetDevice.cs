@@ -115,12 +115,29 @@ namespace ACE.Server.WorldObjects
             // in this case, if the player tries to re-activate the PetDevice while the CombatPet is still in the world,
             // we want to return an error without re-activating the cooldown
 
-            if (player.CurrentActivePet != null && player.CurrentActivePet is CombatPet)
+            if (player.CurrentActivePet != null)
             {
-                player.SendTransientError($"{player.CurrentActivePet.Name} is already active");
-                return new ActivationResult(false);
-            }
+                if (PropertyManager.GetBool("pet_stow_replace").Item)
+                {
+                    // original ace
+                    if (player.CurrentActivePet is CombatPet)
+                    {
+                        player.SendTransientError($"{player.CurrentActivePet.Name} is already active");
+                        return new ActivationResult(false);
+                    }
+                }
+                else
+                {
+                    // retail stow
+                    var pet = WorldObjectFactory.CreateNewWorldObject((uint)PetClass) as Pet;
 
+                    if (pet == null || !pet.IsPassivePet)
+                    {
+                        player.SendTransientError($"{player.CurrentActivePet.Name} is already active");
+                        return new ActivationResult(false);
+                    }
+                }
+            }
             return new ActivationResult(true);
         }
 
