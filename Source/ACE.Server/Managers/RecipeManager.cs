@@ -70,7 +70,9 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            if ((source.ItemType == ItemType.TinkeringMaterial) || (source.WeenieClassId >= 36619 && source.WeenieClassId <= 36628) || (source.WeenieClassId >= 36634 && source.WeenieClassId <= 36636))
+            if (source.ItemType == ItemType.TinkeringMaterial || source.WeenieClassId == (uint)WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS ||
+                source.WeenieClassId >= (uint)WeenieClassName.W_MATERIALACE36619FOOLPROOFAQUAMARINE && source.WeenieClassId <= (uint)WeenieClassName.W_MATERIALACE36628FOOLPROOFWHITESAPPHIRE ||
+                source.WeenieClassId >= (uint)WeenieClassName.W_MATERIALACE36634FOOLPROOFPERIDOT && source.WeenieClassId <= (uint)WeenieClassName.W_MATERIALACE36636FOOLPROOFZIRCON)
             {
                 HandleTinkering(player, source, target);
                 return;
@@ -262,11 +264,12 @@ namespace ACE.Server.Managers
 
             var recipe = GetRecipe(player, tool, target);
             var recipeSkill = (Skill)recipe.Skill;
-            var skill = player.GetCreatureSkill(recipeSkill);
 
             // require skill check for everything except ivory / leather / sandstone
             if (UseSkillCheck(recipeSkill, materialType))
             {
+                var skill = player.GetCreatureSkill(recipeSkill);
+
                 // tinkering skill must be trained
                 if (skill.AdvancementClass < SkillAdvancementClass.Trained)
                 {
@@ -357,9 +360,12 @@ namespace ACE.Server.Managers
         {
             var recipe = GetRecipe(player, tool, target);
 
-            if (tool.MaterialType == null) return;
+            var materialType = tool.MaterialType;
 
-            var materialType = tool.MaterialType.Value;
+            if (tool.WeenieClassId == (uint)WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS)
+                materialType = MaterialType.Leather;
+
+            if (materialType == null) return;
 
             switch (materialType)
             {
