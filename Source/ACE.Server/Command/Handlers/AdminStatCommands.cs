@@ -230,7 +230,7 @@ namespace ACE.Server.Command.Handlers
         {
             var sb = new StringBuilder();
 
-            sb.Append($"GC.GetTotalAllocatedBytes: {(GC.GetTotalAllocatedBytes() >> 20):N0} MB, GC.GetTotalMemory: {(GC.GetTotalMemory(false) >> 20):N0} MB{'\n'}");
+            sb.Append($"GC.GetTotalMemory: {(GC.GetTotalMemory(false) >> 20):N0} MB, GC.GetTotalAllocatedBytes: {(GC.GetTotalAllocatedBytes() >> 20):N0} MB{'\n'}");
 
             // https://docs.microsoft.com/en-us/dotnet/api/system.gcmemoryinfo?view=net-5.0
             var gcmi = GC.GetGCMemoryInfo();
@@ -242,7 +242,7 @@ namespace ACE.Server.Command.Handlers
                 sb.Append($"GCMI.PauseDurations[{i}] {gcmi.PauseDurations[i].TotalMilliseconds:N0} ms{'\n'}");
             sb.Append($"GCMI PinnedObjectsCount: {gcmi.PinnedObjectsCount}, FinalizationPendingCount {gcmi.FinalizationPendingCount:N0}{'\n'}");
 
-            sb.Append($"GCMI FragmentedBytes {(gcmi.FragmentedBytes >> 20):N0} MB, HeapSizeBytes {(gcmi.HeapSizeBytes >> 20):N0} MB, PromotedBytes: {(gcmi.PromotedBytes >> 20):N0} MB, TotalCommittedBytes {(gcmi.TotalCommittedBytes >> 20):N0} MB{'\n'}");
+            sb.Append($"GCMI FragmentedBytes {(gcmi.FragmentedBytes >> 20):N0} MB, PromotedBytes: {(gcmi.PromotedBytes >> 20):N0} MB, HeapSizeBytes {(gcmi.HeapSizeBytes >> 20):N0} MB, TotalCommittedBytes {(gcmi.TotalCommittedBytes >> 20):N0} MB{'\n'}");
             sb.Append($"GCMI MemoryLoadBytes: {(gcmi.MemoryLoadBytes >> 20):N0} MB, HighMemoryLoadThresholdBytes {(gcmi.HighMemoryLoadThresholdBytes >> 20):N0} MB, TotalAvailableMemoryBytes {(gcmi.TotalAvailableMemoryBytes >> 20):N0} MB{'\n'}");
 
             CommandHandlerHelper.WriteOutputInfo(session, sb.ToString());
