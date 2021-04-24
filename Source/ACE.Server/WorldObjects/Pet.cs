@@ -50,10 +50,12 @@ namespace ACE.Server.WorldObjects
             SuppressGenerateEffect = true;
         }
 
-        public virtual bool Init(Player player, PetDevice petDevice)
+        public virtual bool? Init(Player player, PetDevice petDevice)
         {
-            if (!HandleCurrentActivePet(player))
-                return false;
+            var result = HandleCurrentActivePet(player);
+
+            if (result == null || !result.Value)
+                return result;
 
             if (IsPassivePet)
             {
@@ -93,7 +95,7 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        public bool HandleCurrentActivePet(Player player)
+        public bool? HandleCurrentActivePet(Player player)
         {
             if (PropertyManager.GetBool("pet_stow_replace").Item)
                 return HandleCurrentActivePet_Replace(player);
@@ -122,7 +124,7 @@ namespace ACE.Server.WorldObjects
             return !stowPet;
         }
 
-        public bool HandleCurrentActivePet_Retail(Player player)
+        public bool? HandleCurrentActivePet_Retail(Player player)
         {
             if (player.CurrentActivePet == null)
                 return true;
@@ -144,9 +146,11 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     // stow currently active passive pet
-                    // stowing the currently active passive pet w/ a combat pet device will unfortunately start the cooldown timer on the combat pet device, as per retail
+                    // stowing the currently active passive pet w/ a combat pet device will unfortunately start the cooldown timer (and decrease the structure?) on the combat pet device, as per retail
                     // spawning the combat pet will require another double click in ~45s, as per retail
                     player.CurrentActivePet.Destroy();
+
+                    return null;
                 }
             }
             return false;

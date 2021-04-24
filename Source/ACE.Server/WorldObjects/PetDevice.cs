@@ -76,7 +76,9 @@ namespace ACE.Server.WorldObjects
 
             var wcid = (uint)PetClass;
 
-            if (SummonCreature(player, wcid))
+            var result = SummonCreature(player, wcid);
+
+            if (result == null || result.Value)
             {
                 // CombatPet devices should always have structure
                 if (Structure != null)
@@ -115,16 +117,13 @@ namespace ACE.Server.WorldObjects
             // in this case, if the player tries to re-activate the PetDevice while the CombatPet is still in the world,
             // we want to return an error without re-activating the cooldown
 
-            if (player.CurrentActivePet != null)
+            if (player.CurrentActivePet != null && player.CurrentActivePet is CombatPet)
             {
                 if (PropertyManager.GetBool("pet_stow_replace").Item)
                 {
                     // original ace
-                    if (player.CurrentActivePet is CombatPet)
-                    {
-                        player.SendTransientError($"{player.CurrentActivePet.Name} is already active");
-                        return new ActivationResult(false);
-                    }
+                    player.SendTransientError($"{player.CurrentActivePet.Name} is already active");
+                    return new ActivationResult(false);
                 }
                 else
                 {
@@ -141,7 +140,7 @@ namespace ACE.Server.WorldObjects
             return new ActivationResult(true);
         }
 
-        public bool SummonCreature(Player player, uint wcid)
+        public bool? SummonCreature(Player player, uint wcid)
         {
             var wo = WorldObjectFactory.CreateNewWorldObject(wcid);
 
