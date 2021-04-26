@@ -3876,7 +3876,7 @@ namespace ACE.Server.Command.Handlers
 
             var folder = $"..{sep}..{sep}..{sep}..{sep}Factories{sep}Tables{sep}";
             if (parameters.Length > 0)
-                folder = parameters[1];
+                folder = parameters[0];
 
             var di = new DirectoryInfo(folder);
 
