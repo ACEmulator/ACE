@@ -280,7 +280,7 @@ namespace ACE.Server.WorldObjects
             {
                 var playerVital = player.Vitals[ItemAttribute2ndLimit.Value];
 
-                if (playerVital.Current < ItemAttribute2ndLevelLimit)
+                if (playerVital.MaxValue < ItemAttribute2ndLevelLimit)
                     return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerVital.Vital.ToSentence()));
             }
 
