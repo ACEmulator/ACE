@@ -898,6 +898,9 @@ namespace ACE.Server.WorldObjects
 
         public override float GetNaturalResistance(DamageType damageType)
         {
+            if (damageType == DamageType.Undef)
+                return 1.0f;
+
             // http://acpedia.org/wiki/Announcements_-_11th_Anniversary_Preview#Void_Magic_and_You.21
             // Creatures under Asheron’s protection take half damage from any nether type spell.
             if (damageType == DamageType.Nether)
