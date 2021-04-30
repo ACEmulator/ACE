@@ -132,7 +132,7 @@ namespace ACE.Server.WorldObjects
             EquipDequipItemFromSet(item, spells, prevSpells);
         }
 
-        public void EquipDequipItemFromSet(WorldObject item, List<Spell> spells, List<Spell> prevSpells)
+        public void EquipDequipItemFromSet(WorldObject item, List<Spell> spells, List<Spell> prevSpells, WorldObject surrogateItem = null)
         {
             // compare these 2 spell sets -
             // see which spells are being added, and which are being removed
@@ -145,8 +145,10 @@ namespace ACE.Server.WorldObjects
             foreach (var spell in removeSpells)
                 EnchantmentManager.Dispel(EnchantmentManager.GetEnchantment(spell.Id, item.EquipmentSetId.Value));
 
+            var addItem = surrogateItem ?? item;
+
             foreach (var spell in addSpells)
-                CreateItemSpell(item, spell.Id);
+                CreateItemSpell(addItem, spell.Id);
         }
 
         public void DequipItemFromSet(WorldObject item)
@@ -155,13 +157,25 @@ namespace ACE.Server.WorldObjects
 
             var setItems = EquippedObjects.Values.Where(i => i.HasItemSet && i.EquipmentSetId == item.EquipmentSetId).ToList();
 
+            // for better bookkeeping, and to avoid a rarish error with AuditItemSpells detecting -1 duration item enchantments where
+            // the CasterGuid is no longer in the player's possession
+            var surrogateItem = setItems.LastOrDefault();
+
             var spells = GetSpellSet(setItems);
 
             // get the spells from before / with this item
             setItems.Add(item);
             var prevSpells = GetSpellSet(setItems);
 
-            EquipDequipItemFromSet(item, spells, prevSpells);
+            if (surrogateItem == null)
+            {
+                var addSpells = spells.Except(prevSpells);
+
+                if (addSpells.Count() != 0)
+                    log.Error($"{Name}.DequipItemFromSet({item.Name}) -- last item in set dequipped, but addSpells still contains {string.Join(", ", addSpells.Select(i => i.Name))} -- this shouldn't happen!");
+            }
+
+            EquipDequipItemFromSet(item, spells, prevSpells, surrogateItem);
         }
 
         public void OnItemLevelUp(WorldObject item, int prevItemLevel)
@@ -524,7 +538,7 @@ namespace ACE.Server.WorldObjects
                 if (!table.TryGetValue(new ObjectGuid(enchantment.CasterObjectId), out var item))
                 {
                     var spell = new Spell(enchantment.SpellId, false);
-                    log.Error($"{Name}.AuditItemSpells(): removing spell {spell.Name} from non-equipped item");
+                    log.Error($"{Name}.AuditItemSpells(): removing spell {spell.Name} from {(enchantment.HasSpellSetId ? "non-possessed" : "non-equipped")} item");
 
                     EnchantmentManager.Dispel(enchantment);
                     continue;
