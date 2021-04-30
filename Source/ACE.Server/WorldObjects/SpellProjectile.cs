@@ -462,8 +462,13 @@ namespace ACE.Server.WorldObjects
                 // if so, did they use the same 1.5x formula as war magic, instead of 2.0x?
                 if (criticalHit)
                 {
+                    // TODO: review how this is factored in
+                    // should this apply to just the crit bonus, or everything?
+                    // should this be additively combined with DR?
                     weaponCritDamageMod = GetWeaponCritDamageMod(sourceCreature, attackSkill, target);
-                    critDamageBonus = lifeMagicDamage * 0.5f * weaponCritDamageMod;
+
+                    //critDamageBonus = lifeMagicDamage * 0.5f * weaponCritDamageMod;
+                    critDamageBonus = lifeMagicDamage * 0.5f;
                 }
 
                 weaponResistanceMod = GetWeaponResistanceModifier(sourceCreature, attackSkill, Spell.DamageType);
@@ -473,7 +478,7 @@ namespace ACE.Server.WorldObjects
 
                 resistanceMod = (float)Math.Max(0.0f, target.GetResistanceMod(resistanceType, this, null, weaponResistanceMod));
 
-                finalDamage = (lifeMagicDamage + critDamageBonus) * elementalDamageMod * slayerMod * resistanceMod * absorbMod;
+                finalDamage = (lifeMagicDamage + critDamageBonus) * weaponCritDamageMod * elementalDamageMod * slayerMod * resistanceMod * absorbMod;
             }
             // war/void magic projectiles
             else
@@ -501,9 +506,12 @@ namespace ACE.Server.WorldObjects
                     else   // PvE: 50% of the MAX damage added to normal damage roll
                         critDamageBonus = Spell.MaxDamage * 0.5f;
 
+                    // TODO: review how this is factored in
+                    // should this apply to just the crit bonus, or everything?
+                    // should this be additively combined with DR?
                     weaponCritDamageMod = GetWeaponCritDamageMod(sourceCreature, attackSkill, target);
 
-                    critDamageBonus *= weaponCritDamageMod;
+                    //critDamageBonus *= weaponCritDamageMod;
                 }
 
                 /* War Magic skill-based damage bonus
@@ -545,7 +553,7 @@ namespace ACE.Server.WorldObjects
 
                 finalDamage = baseDamage + critDamageBonus + skillBonus;
 
-                finalDamage *= elementalDamageMod * slayerMod * resistanceMod * absorbMod;
+                finalDamage *= weaponCritDamageMod * elementalDamageMod * slayerMod * resistanceMod * absorbMod;
             }
 
             // show debug info

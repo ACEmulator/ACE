@@ -331,6 +331,7 @@ namespace ACE.Server.WorldObjects
                 critDamageMod = Math.Max(critDamageMod, cripplingBlowMod); 
             }
 
+            // TODO: investigate if CriticalMultiplier / CripplingBlow should be separated more from CD/CDR
             if (wielder != null)
                 critDamageMod += wielder.GetCritDamageRating() * 0.01f;
 

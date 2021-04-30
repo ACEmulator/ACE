@@ -256,6 +256,8 @@ namespace ACE.Server.Entity
                     // recklessness excluded from crits
                     RecklessnessMod = 1.0f;
                     DamageRatingMod = Creature.AdditiveCombine(DamageRatingBaseMod, SneakAttackMod, HeritageMod);
+
+                    // should DR and CDR be combined additively instead of multiplicatively?
                     DamageBeforeMitigation = BaseDamageMod.MaxDamage * AttributeMod * PowerMod * SlayerMod * DamageRatingMod * CriticalDamageMod;
                 }
             }
