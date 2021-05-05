@@ -3053,5 +3053,29 @@ namespace ACE.Server.WorldObjects
             get => (HookGroupType?)GetProperty(PropertyInt.HookGroup);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.HookGroup); else SetProperty(PropertyInt.HookGroup, (int)value.Value); }
         }
+
+        public PropertyAttribute? ItemAttributeLimit
+        {
+            get => (PropertyAttribute?)GetProperty(PropertyInt.ItemAttributeLimit);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemAttributeLimit); else SetProperty(PropertyInt.ItemAttributeLimit, (int)value.Value); }
+        }
+
+        public int? ItemAttributeLevelLimit
+        {
+            get => GetProperty(PropertyInt.ItemAttributeLevelLimit);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemAttributeLevelLimit); else SetProperty(PropertyInt.ItemAttributeLevelLimit, value.Value); }
+        }
+
+        public PropertyAttribute2nd? ItemAttribute2ndLimit
+        {
+            get => (PropertyAttribute2nd?)GetProperty(PropertyInt.ItemAttribute2ndLimit);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemAttribute2ndLimit); else SetProperty(PropertyInt.ItemAttribute2ndLimit, (int)value.Value); }
+        }
+
+        public int? ItemAttribute2ndLevelLimit
+        {
+            get => GetProperty(PropertyInt.ItemAttribute2ndLevelLimit);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemAttribute2ndLevelLimit); else SetProperty(PropertyInt.ItemAttribute2ndLevelLimit, value.Value); }
+        }
     }
 }
