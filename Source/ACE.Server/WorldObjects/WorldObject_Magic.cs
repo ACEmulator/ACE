@@ -144,6 +144,9 @@ namespace ACE.Server.WorldObjects
             //if (!spell.IsResistable || spell.IsSelfTargeted)
                 return false;
 
+            if (spell.MetaSpellType == SpellType.Dispel && spell.Align == DispelType.Negative && !PropertyManager.GetBool("allow_negative_dispel_resist").Item)
+                return false;
+
             if (spell.NumProjectiles > 0 && !projectileHit)
                 return false;
 
@@ -706,7 +709,7 @@ namespace ACE.Server.WorldObjects
 
             if (targetPlayer != null && targetPlayer.PKTimerActive)
             {
-                if (casterPlayer != null || caster is Gem || caster is Food)
+                if (/* casterPlayer != null || */ caster is Gem || caster is Food)
                 {
                     if (casterPlayer != null)
                         casterPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{targetPlayer.Name} has been involved in a player killer battle too recently to do that!", ChatMessageType.Magic));
