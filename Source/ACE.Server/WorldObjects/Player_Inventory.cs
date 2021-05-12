@@ -3124,12 +3124,20 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+        public bool CheckUniques(WorldObject obj, WorldObject giver = null)
+        {
+            return CheckUniques(new List<WorldObject>() { obj }, giver);
+        }
+
         /// <summary>
         /// Verifies a player can pick up an object that is unique,
         /// or contains uniques.
-        public bool CheckUniques(WorldObject obj, WorldObject giver = null)
+        public bool CheckUniques(List<WorldObject> objs, WorldObject giver = null)
         {
-            var uniqueObjects = obj.GetUniqueObjects();
+            var uniqueObjects = new List<WorldObject>();
+
+            foreach (var obj in objs)
+                uniqueObjects.AddRange(obj.GetUniqueObjects());
 
             // build dictionary of wcid => count
             var uniqueTable = new UniqueTable(uniqueObjects);

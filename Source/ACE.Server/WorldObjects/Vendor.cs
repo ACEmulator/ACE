@@ -445,6 +445,35 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
+            if (!playerOutOfInventorySlots && !playerOutOfContainerSlots && !playerExceedsAvailableBurden)
+            {
+                foreach (WorldObject item in uqlist)
+                {
+                    // can partial stacks from unique items be purchased?
+                    var itemAmount = player.PreCheckItem(item.WeenieClassId, item.StackSize ?? 1, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemRequiresBackpackSlot);
+
+                    if (itemRequiresBackpackSlot)
+                    {
+                        playerFreeContainerSlots -= itemAmount;
+                        playerAvailableBurden -= itemEncumberance;
+
+                        playerOutOfContainerSlots = playerFreeContainerSlots < 0;
+                    }
+                    else
+                    {
+                        playerFreeInventorySlots -= itemAmount;
+                        playerAvailableBurden -= itemEncumberance;
+
+                        playerOutOfInventorySlots = playerFreeInventorySlots < 0;
+                    }
+
+                    playerExceedsAvailableBurden = playerAvailableBurden < 0;
+
+                    if (playerOutOfInventorySlots || playerOutOfContainerSlots || playerExceedsAvailableBurden)
+                        break;
+                }
+            }
+
             if (playerOutOfInventorySlots || playerOutOfContainerSlots || playerExceedsAvailableBurden)
             {
                 if (playerExceedsAvailableBurden)
@@ -456,15 +485,14 @@ namespace ACE.Server.WorldObjects
 
                 player.Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(player.Session, player.Guid.Full));
 
-                if (uqlist.Count > 0)
+                foreach (var item in uqlist)
                 {
-                    foreach (var item in uqlist)
-                    {
-                        //item.SetProperty(PropertyFloat.SoldTimestamp, Common.Time.GetUnixTime());
-                        UniqueItemsForSale.Add(item.Guid, item);
-                    }
-                }
+                    // shouldn't have been removed from UniqueItemsForSale in the first place.
+                    // the logic in these commerce/vendor functions is a terrible mess, and needs to be improved.
 
+                    //item.SetProperty(PropertyFloat.SoldTimestamp, Common.Time.GetUnixTime());
+                    UniqueItemsForSale.Add(item.Guid, item);
+                }
                 return;
             }
 
@@ -474,22 +502,23 @@ namespace ACE.Server.WorldObjects
                 genlist.AddRange(ItemProfileToWorldObjects(fitem));
             }
 
-            // calculate price. (both unique and item profile)
-            foreach (WorldObject wo in uqlist)
+            var combined = genlist.Concat(uqlist).ToList();
+
+            if (!player.CheckUniques(combined, this))
             {
-                var sellRate = SellPrice ?? 1.0;
-                if (wo.ItemType == ItemType.PromissoryNote)
-                    sellRate = 1.15;
+                foreach (var item in uqlist)
+                {
+                    // shouldn't have been removed from UniqueItemsForSale in the first place.
+                    // the logic in these commerce/vendor functions is a terrible mess, and needs to be improved.
 
-                var cost = Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (wo.Value ?? 0)) - 0.1));
-
-                if (AlternateCurrency == null)
-                    goldcost += cost;
-                else
-                    altcost += cost;
+                    //item.SetProperty(PropertyFloat.SoldTimestamp, Common.Time.GetUnixTime());
+                    UniqueItemsForSale.Add(item.Guid, item);
+                }
+                return;
             }
 
-            foreach (WorldObject wo in genlist)
+            // calculate price. (both unique and item profile)
+            foreach (WorldObject wo in combined)
             {
                 var sellRate = SellPrice ?? 1.0;
                 if (wo.ItemType == ItemType.PromissoryNote)
@@ -506,10 +535,20 @@ namespace ACE.Server.WorldObjects
             if (IsBusy && genlist.Any(i => i.GetProperty(PropertyBool.VendorService) == true))
             {
                 player.SendWeenieErrorWithString(WeenieErrorWithString._IsTooBusyToAcceptGifts, Name);
+
+                foreach (var item in uqlist)
+                {
+                    // shouldn't have been removed from UniqueItemsForSale in the first place.
+                    // the logic in these commerce/vendor functions is a terrible mess, and needs to be improved.
+
+                    //item.SetProperty(PropertyFloat.SoldTimestamp, Common.Time.GetUnixTime());
+                    UniqueItemsForSale.Add(item.Guid, item);
+                }
                 return;
             }
 
             // send transaction to player for further processing and.
+            // BUG: should return an error code -- if false, UniqueItemsForSale needs to be restored
             player.FinalizeBuyTransaction(this, uqlist, genlist, goldcost, altcost);
         }
 
