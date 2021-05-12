@@ -56,6 +56,16 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // trying to use a dispel potion while pk timer is active
+            // do not perform animation, do not consume item?
+            if (SpellDID != null)
+            {
+                var spell = new Spell(SpellDID.Value);
+
+                if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(this, player))
+                    return;
+            }
+
             var motionCommand = GetUseSound() == Sound.Eat1 ? MotionCommand.Eat : MotionCommand.Drink;
 
             player.ApplyConsumable(motionCommand, () => ApplyConsumable(player));
