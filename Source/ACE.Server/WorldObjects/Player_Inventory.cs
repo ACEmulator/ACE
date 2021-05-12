@@ -3100,6 +3100,9 @@ namespace ACE.Server.WorldObjects
 
         public bool TryCreateForGive(WorldObject giver, WorldObject itemBeingGiven)
         {
+            if (itemBeingGiven.IsUniqueOrContainsUnique && !CheckUniques(itemBeingGiven, giver))
+                return false;
+
             if (!TryCreateInInventoryWithNetworking(itemBeingGiven))
             {
                 var msg = new GameMessageSystemChat($"{giver.Name} tries to give you {(itemBeingGiven.StackSize > 1 ? $"{itemBeingGiven.StackSize} " : "")}{itemBeingGiven.GetNameWithMaterial(itemBeingGiven.StackSize)}.", ChatMessageType.Broadcast);
@@ -3124,7 +3127,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Verifies a player can pick up an object that is unique,
         /// or contains uniques.
-        public bool CheckUniques(WorldObject obj, Creature giver = null)
+        public bool CheckUniques(WorldObject obj, WorldObject giver = null)
         {
             var uniqueObjects = obj.GetUniqueObjects();
 
