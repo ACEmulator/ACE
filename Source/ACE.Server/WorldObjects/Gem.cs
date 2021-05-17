@@ -116,6 +116,16 @@ namespace ACE.Server.WorldObjects
         {
             if (player.IsDead) return;
 
+            // trying to use a dispel potion while pk timer is active
+            // send error message and cancel - do not consume item
+            if (SpellDID != null)
+            {
+                var spell = new Spell(SpellDID.Value);
+
+                if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(this, player))
+                    return;
+            }
+
             if (RareUsesTimer)
             {
                 var currentTime = Time.GetUnixTime();
@@ -276,6 +286,34 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyString.UseSendsSignal);
             set { if (value == null) RemoveProperty(PropertyString.UseSendsSignal); else SetProperty(PropertyString.UseSendsSignal, value); }
+        }
+
+        public override void OnActivate(WorldObject activator)
+        {
+            if (ItemUseable == Usable.Contained && activator is Player player)
+            {               
+                var containedItem = player.FindObject(Guid.Full, Player.SearchLocations.MyInventory | Player.SearchLocations.MyEquippedItems);
+                if (containedItem != null) // item is contained by player
+                {
+                    if (player.IsBusy || player.Teleporting || player.suicideInProgress)
+                    {
+                        player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YoureTooBusy));
+                        player.EnchantmentManager.StartCooldown(this);
+                        return;
+                    }
+
+                    if (player.IsDead)
+                    {
+                        player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.Dead));
+                        player.EnchantmentManager.StartCooldown(this);
+                        return;
+                    }
+                }
+                else
+                    return;
+            }
+
+            base.OnActivate(activator);
         }
     }
 }

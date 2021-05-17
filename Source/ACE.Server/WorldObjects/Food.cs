@@ -69,6 +69,16 @@ namespace ACE.Server.WorldObjects
         {
             if (player.IsDead) return;
 
+            // trying to use a dispel potion while pk timer is active
+            // send error message and cancel - do not consume item
+            if (SpellDID != null)
+            {
+                var spell = new Spell(SpellDID.Value);
+
+                if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(this, player))
+                    return;
+            }
+
             if (BoosterEnum != PropertyAttribute2nd.Undef)
             {
                 BoostVital(player);

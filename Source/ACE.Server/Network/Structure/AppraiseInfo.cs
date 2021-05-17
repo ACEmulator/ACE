@@ -91,13 +91,11 @@ namespace ACE.Server.Network.Structure
             // Help us make sure the item identify properly
             NPCLooksLikeObject = wo.GetProperty(PropertyBool.NpcLooksLikeObject) ?? false;
 
-            if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedWielder))
-                if (!PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedWielder))
-                    PropertiesBool.Add(PropertyBool.AppraisalHasAllowedWielder, true);
+            if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedWielder) && !PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedWielder))
+                PropertiesBool.Add(PropertyBool.AppraisalHasAllowedWielder, true);
 
-            if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedActivator))
-                if (!PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedActivator))
-                    PropertiesBool.Add(PropertyBool.AppraisalHasAllowedActivator, true);
+            if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedActivator) && !PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedActivator))
+                PropertiesBool.Add(PropertyBool.AppraisalHasAllowedActivator, true);
 
             if (PropertiesString.ContainsKey(PropertyString.ScribeAccount) && !examiner.IsAdmin && !examiner.IsSentinel && !examiner.IsEnvoy && !examiner.IsArch && !examiner.IsPsr)
                 PropertiesString.Remove(PropertyString.ScribeAccount);
@@ -107,6 +105,20 @@ namespace ACE.Server.Network.Structure
 
             if (PropertiesInt.ContainsKey(PropertyInt.Lifespan))
                 PropertiesInt[PropertyInt.RemainingLifespan] = wo.GetRemainingLifespan();
+
+            if (PropertiesInt.TryGetValue(PropertyInt.Faction1Bits, out var faction1Bits))
+            {
+                // hide any non-default factions, prevent client from displaying ???
+                // this is only needed for non-standard faction creatures that use templates, to hide the ??? in the client
+                var sendBits = faction1Bits & (int)FactionBits.ValidFactions;
+                if (sendBits != faction1Bits)
+                {
+                    if (sendBits != 0)
+                        PropertiesInt[PropertyInt.Faction1Bits] = sendBits;
+                    else
+                        PropertiesInt.Remove(PropertyInt.Faction1Bits);
+                }
+            }
 
             // armor / clothing / shield
             if (wo is Clothing || wo.IsShield)
@@ -473,8 +485,12 @@ namespace ACE.Server.Network.Structure
                 // Only show Clothing type item enchantments
                 foreach (var enchantment in woEnchantments)
                 {
-                    if ((enchantment.SpellCategory >= SpellCategory.ArmorValueRaising) && (enchantment.SpellCategory <= SpellCategory.AcidicResistanceLowering))
+                    // TODO this still needs to be fixed for rare banes
+                    if ((enchantment.SpellCategory >= SpellCategory.ArmorValueRaising && enchantment.SpellCategory <= SpellCategory.AcidicResistanceLowering) ||
+                        (enchantment.SpellCategory >= SpellCategory.ExtraAcidResistanceRaising && enchantment.SpellCategory <= SpellCategory.ExtraElectricResistanceLowering))
+                    {
                         activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
+                    }
                 }
             }
             else

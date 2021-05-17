@@ -267,6 +267,23 @@ namespace ACE.Server.WorldObjects
                     return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBe_ToUseItemMagic, $"level {UseRequiresLevel.Value}"));
             }
 
+            // verify attribute / vital limits
+            if (ItemAttributeLimit != null)
+            {
+                var playerAttr = player.Attributes[ItemAttributeLimit.Value];
+
+                if (playerAttr.Current < ItemAttributeLevelLimit)
+                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerAttr.Attribute.ToString()));
+            }
+
+            if (ItemAttribute2ndLimit != null)
+            {
+                var playerVital = player.Vitals[ItemAttribute2ndLimit.Value];
+
+                if (playerVital.MaxValue < ItemAttribute2ndLevelLimit)
+                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerVital.Vital.ToSentence()));
+            }
+
             // Check for a cooldown
             if (!player.EnchantmentManager.CheckCooldown(CooldownId))
             {

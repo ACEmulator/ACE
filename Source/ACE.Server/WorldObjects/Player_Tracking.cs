@@ -179,6 +179,7 @@ namespace ACE.Server.WorldObjects
                 Cloaked = false;
                 Ethereal = false;
                 NoDraw = false;
+                ReportCollisions = true;
                 EnqueueBroadcastPhysicsState();
             });
 
@@ -197,6 +198,7 @@ namespace ACE.Server.WorldObjects
                 Cloaked = true;
                 Ethereal = true;
                 NoDraw = true;
+                ReportCollisions = false;
                 EnqueueBroadcastPhysicsState();
             });
             actionChain.AddAction(this, () =>
