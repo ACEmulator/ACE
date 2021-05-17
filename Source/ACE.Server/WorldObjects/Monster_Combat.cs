@@ -165,7 +165,6 @@ namespace ACE.Server.WorldObjects
         {
             // FIXME
             var it = 0;
-            bool? isVisible = null;
 
             while (CurrentAttack == CombatType.Magic)
             {
@@ -173,27 +172,17 @@ namespace ACE.Server.WorldObjects
                 //CurrentSpell = GetRandomSpell();
                 if (CurrentSpell.IsProjectile)
                 {
-                    if (isVisible == null)
-                        isVisible = IsDirectVisible(AttackTarget);
-
                     // ensure direct los
-                    if (!isVisible.Value)
+                    if (!IsDirectVisible(AttackTarget))
                     {
                         // reroll attack type
                         CurrentAttack = GetNextAttackType();
                         it++;
 
                         // max iterations to melee?
-                        if (it >= 10)
-                        {
-                            //log.Warn($"{Name} ({Guid}) reached max iterations");
+                        if (it >= 30)
                             CurrentAttack = CombatType.Melee;
 
-                            var powerupTime = (float)(PowerupTime ?? 1.0f);
-                            var failDelay = ThreadSafeRandom.Next(0.0f, powerupTime);
-
-                            NextMoveTime = Timers.RunningTime + failDelay;
-                        }
                         continue;
                     }
                 }

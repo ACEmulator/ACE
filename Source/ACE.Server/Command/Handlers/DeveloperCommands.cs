@@ -10,7 +10,6 @@ using log4net;
 using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
@@ -21,7 +20,6 @@ using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
-using ACE.Server.Factories.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
@@ -1284,7 +1282,7 @@ namespace ACE.Server.Command.Handlers
                 {
                     var contractsHdr = $"Contract Registry for {player.Name} (0x{player.Guid}):\n";
                     contractsHdr += "================================================\n";
-                    contractsHdr += $"Contracts.Count: {player.Character.GetContractsCount(player.CharacterDatabaseLock)}\n";
+                    contractsHdr += $"Contracts.Count: {player.ContractManager.Contracts.Count}\n";
                     contractsHdr += "================================================\n";
                     var contracts = "";
                     foreach (var contract in player.ContractManager.ContractTrackerTable)
@@ -2152,15 +2150,12 @@ namespace ACE.Server.Command.Handlers
         {
             var landblock = session.Player.Location.Landblock;
 
-            var blockStart = landblock << 16;
-            var blockEnd = blockStart | 0xFFFF;
-
             using (var ctx = new WorldDbContext())
             {
                 var query = from weenie in ctx.Weenie
                             join wstr in ctx.WeeniePropertiesString on weenie.ClassId equals wstr.ObjectId
                             join wpos in ctx.WeeniePropertiesPosition on weenie.ClassId equals wpos.ObjectId
-                            where weenie.Type == (int)WeenieType.Portal && wpos.PositionType == (int)PositionType.Destination && wpos.ObjCellId >= blockStart && wpos.ObjCellId <= blockEnd
+                            where weenie.Type == (int)WeenieType.Portal && wpos.PositionType == (int)PositionType.Destination && wpos.ObjCellId >> 16 == landblock
                             select wstr;
 
                 var results = query.ToList();
@@ -2312,14 +2307,12 @@ namespace ACE.Server.Command.Handlers
             TreasureDeath profile = new TreasureDeath
             {
                 Tier = tier,
-                LootQualityMod = 0,
-                MagicItemTreasureTypeSelectionChances = 9,  // 8 or 9?
+                LootQualityMod = 0
             };
 
             for (var i = 0; i < numItems; i++)
             {
-                //var wo = LootGenerationFactory.CreateRandomLootObjects(profile, true);
-                var wo = LootGenerationFactory.CreateRandomLootObjects_New(profile, TreasureItemCategory.MagicItem);
+                var wo = LootGenerationFactory.CreateRandomLootObjects(profile, true);
                 if (wo != null)
                     session.Player.TryCreateInInventoryWithNetworking(wo);
                 else

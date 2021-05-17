@@ -84,11 +84,6 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
             ObjectDescriptionFlags |= ObjectDescriptionFlag.Vendor;
-
-            if (!PropertyManager.GetBool("vendor_shop_uses_generator").Item)
-            {
-                GeneratorProfiles.RemoveAll(p => p.Biota.WhereCreate.HasFlag(RegenLocationType.Shop));
-            }
         }
 
 
@@ -205,8 +200,6 @@ namespace ACE.Server.WorldObjects
             if (inventoryloaded)
                 return;
 
-            var itemsForSale = new Dictionary<(uint weenieClassId, int paletteTemplate, double shade), uint>();
-
             foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Shop))
             {
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
@@ -218,46 +211,14 @@ namespace ACE.Server.WorldObjects
                     if (item.Shade > 0)
                         wo.Shade = item.Shade;
                     wo.ContainerId = Guid.Full;
-                    wo.CalculateObjDesc();
-
-                    if (!itemsForSale.ContainsKey((wo.WeenieClassId, wo.PaletteTemplate ?? 0, wo.Shade ?? 0))) // lets skip dupes if there are any
-                    {
-                        DefaultItemsForSale.Add(wo.Guid, wo);
-                        itemsForSale.Add((wo.WeenieClassId, wo.PaletteTemplate ?? 0, wo.Shade ?? 0), wo.Guid.Full);
-                    }
-                    else
-                        wo.Destroy(false);
-                }
-            }
-
-            if (Biota.PropertiesGenerator != null && !PropertyManager.GetBool("vendor_shop_uses_generator").Item)
-            {
-                foreach (var item in Biota.PropertiesGenerator.Where(x => x.WhereCreate.HasFlag(RegenLocationType.Shop)))
-                {
-                    WorldObject wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
-
-                    if (wo != null)
-                    {
-                        if (item.PaletteId > 0)
-                            wo.PaletteTemplate = (int)item.PaletteId;
-                        if (item.Shade > 0)
-                            wo.Shade = item.Shade;
-                        wo.ContainerId = Guid.Full;
-                        wo.CalculateObjDesc();
-
-                        if (!itemsForSale.ContainsKey((wo.WeenieClassId, wo.PaletteTemplate ?? 0, wo.Shade ?? 0))) 
-                        {
-                            DefaultItemsForSale.Add(wo.Guid, wo);
-                            itemsForSale.Add((wo.WeenieClassId, wo.PaletteTemplate ?? 0, wo.Shade ?? 0), wo.Guid.Full);
-                        }
-                        else
-                            wo.Destroy(false);
-                    }
+                    wo.CalculateObjDesc(); // i don't like firing this but this triggers proper icons, the way vendors load inventory feels off to me in this method.
+                    DefaultItemsForSale.Add(wo.Guid, wo);
                 }
             }
 
             inventoryloaded = true;
         }
+
 
         public void AddDefaultItem(WorldObject item)
         {

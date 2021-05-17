@@ -551,8 +551,15 @@ namespace ACE.Server.WorldObjects
                 logoutChain.AddDelaySeconds(logoutAnimationLength);
 
                 // remove the player from landblock management -- after the animation has run
-                logoutChain.AddAction(WorldManager.ActionQueue, () =>
+                logoutChain.AddAction(this, () =>
                 {
+                    if (CurrentLandblock == null)
+                    {
+                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner.logoutChain: CurrentLandblock is null, unable to remove from a landblock...");
+                        if (Location != null)
+                            log.Debug($"0x{Guid}:{Name}.LogOut_Inner.logoutChain: Location is not null, Location = {Location.ToLOCString()}");
+                    }
+
                     CurrentLandblock?.RemoveWorldObject(Guid, false);
                     SetPropertiesAtLogOut();
                     SavePlayerToDatabase();
@@ -572,7 +579,6 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                // todo: verify these debug messages are still necessary.. I suspect they aren't and the entire if/else block can be removed
                 log.Debug($"0x{Guid}:{Name}.LogOut_Inner: CurrentLandblock is null");
                 if (Location != null)
                 {
@@ -588,7 +594,6 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                     log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Location is null");
-                // todo: verify the above debug code is necessary
                 SetPropertiesAtLogOut();
                 SavePlayerToDatabase();
                 PlayerManager.SwitchPlayerFromOnlineToOffline(this);
@@ -1082,7 +1087,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsBusy || Teleporting || suicideInProgress)
+            if (TooBusyToRecall)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 return;

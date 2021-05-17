@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
@@ -58,30 +57,24 @@ namespace ACE.Server.WorldObjects
                 if (LastCombatMode == CombatMode.Melee)
                     CombatMode = CombatMode.Melee;
                 else
-                {
-                    OnAttackDone();
                     return;
-                }
             }
 
             if (IsBusy || Teleporting || suicideInProgress)
             {
                 SendWeenieError(WeenieError.YoureTooBusy);
-                OnAttackDone();
                 return;
             }
 
             if (IsJumping)
             {
                 SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
-                OnAttackDone();
                 return;
             }
 
             if (PKLogout)
             {
                 SendWeenieError(WeenieError.YouHaveBeenInPKBattleTooRecently);
-                OnAttackDone();
                 return;
             }
 
@@ -104,7 +97,6 @@ namespace ACE.Server.WorldObjects
             if (target == null)
             {
                 //log.Debug($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {AttackHeight}, {powerLevel}) - couldn't find target guid");
-                OnAttackDone();
                 return;
             }
 
@@ -112,22 +104,11 @@ namespace ACE.Server.WorldObjects
             if (creatureTarget == null)
             {
                 log.Warn($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {AttackHeight}, {powerLevel}) - target guid not creature");
-                OnAttackDone();
                 return;
             }
 
-            if (!CanDamage(creatureTarget))
-            {
-                SendTransientError($"You cannot attack {creatureTarget.Name}");
-                OnAttackDone();
-                return;
-            }
-
-            if (!creatureTarget.IsAlive)
-            {
-                OnAttackDone();
-                return;
-            }
+            if (!CanDamage(creatureTarget) || !creatureTarget.IsAlive)
+                return;     // werror?
 
             //log.Info($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {attackHeight}, {powerLevel})");
 
@@ -148,11 +129,7 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddDelaySeconds(delayTime);
                 actionChain.AddAction(this, () =>
                 {
-                    if (!creatureTarget.IsAlive)
-                    {
-                        OnAttackDone();
-                        return;
-                    }
+                    if (!creatureTarget.IsAlive) return;
 
                     HandleActionTargetedMeleeAttack_Inner(target, attackSequence);
                 });
@@ -173,18 +150,12 @@ namespace ACE.Server.WorldObjects
             if (dist <= MeleeDistance || dist <= StickyDistance && IsMeleeVisible(target))
             {
                 // sticky melee
-                var angle = GetAngle(target);
-                if (angle > PropertyManager.GetDouble("melee_max_angle").Item)
-                {
-                    var rotateTime = Rotate(target);
+                var rotateTime = Rotate(target);
 
-                    var actionChain = new ActionChain();
-                    actionChain.AddDelaySeconds(rotateTime);
-                    actionChain.AddAction(this, () => Attack(target, attackSequence));
-                    actionChain.EnqueueChain();
-                }
-                else
-                    Attack(target, attackSequence);
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(rotateTime);
+                actionChain.AddAction(this, () => Attack(target, attackSequence));
+                actionChain.EnqueueChain();
             }
             else
             {
@@ -224,7 +195,6 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(new GameEventAttackDone(Session, WeenieError.ActionCancelled));
 
-            AttackTarget = null;
             MeleeTarget = null;
             MissileTarget = null;
 
@@ -242,7 +212,7 @@ namespace ACE.Server.WorldObjects
 
             if (Attacking)
                 AttackCancelled = true;
-            else if (AttackTarget != null)
+            else
                 OnAttackDone();
 
             PhysicsObj.cancel_moveto();
@@ -411,10 +381,6 @@ namespace ACE.Server.WorldObjects
 
             // broadcast player swing animation to clients
             var motion = new Motion(this, swingAnimation, animSpeed);
-            if (PropertyManager.GetBool("persist_movement").Item)
-            {
-                motion.Persist(CurrentMotionState);
-            }
             motion.MotionState.TurnSpeed = 2.25f;
             motion.MotionFlags |= MotionFlags.StickToObject;
             motion.TargetGuid = target.Guid;

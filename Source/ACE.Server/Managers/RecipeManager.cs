@@ -70,9 +70,7 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            if (source.ItemType == ItemType.TinkeringMaterial || source.WeenieClassId == (uint)WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS ||
-                source.WeenieClassId >= (uint)WeenieClassName.W_MATERIALACE36619FOOLPROOFAQUAMARINE && source.WeenieClassId <= (uint)WeenieClassName.W_MATERIALACE36628FOOLPROOFWHITESAPPHIRE ||
-                source.WeenieClassId >= (uint)WeenieClassName.W_MATERIALACE36634FOOLPROOFPERIDOT && source.WeenieClassId <= (uint)WeenieClassName.W_MATERIALACE36636FOOLPROOFZIRCON)
+            if ((source.ItemType == ItemType.TinkeringMaterial) || (source.WeenieClassId >= 36619 && source.WeenieClassId <= 36628) || (source.WeenieClassId >= 36634 && source.WeenieClassId <= 36636))
             {
                 HandleTinkering(player, source, target);
                 return;
@@ -246,7 +244,7 @@ namespace ACE.Server.Managers
             double successChance;
             bool incItemTinkered = true;
 
-            log.Debug($"[TINKERING] {player.Name}.HandleTinkering({tool.NameWithMaterial}, {target.NameWithMaterial}) | Status: {(confirmed ? "" : "un")}confirmed");
+            Console.WriteLine($"{player.Name}.HandleTinkering({tool.NameWithMaterial}, {target.NameWithMaterial})");
 
             // calculate % success chance
 
@@ -264,12 +262,11 @@ namespace ACE.Server.Managers
 
             var recipe = GetRecipe(player, tool, target);
             var recipeSkill = (Skill)recipe.Skill;
+            var skill = player.GetCreatureSkill(recipeSkill);
 
             // require skill check for everything except ivory / leather / sandstone
             if (UseSkillCheck(recipeSkill, materialType))
             {
-                var skill = player.GetCreatureSkill(recipeSkill);
-
                 // tinkering skill must be trained
                 if (skill.AdvancementClass < SkillAdvancementClass.Trained)
                 {
@@ -352,20 +349,15 @@ namespace ACE.Server.Managers
 
             if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) || !UseSkillCheck((Skill)recipe.Skill, tool.MaterialType ?? 0))
                 player.SendUseDoneEvent();
-
-            log.Debug($"[TINKERING] {player.Name} {(success ? "successfully applies" : "fails to apply")} the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.{(!success && incItemTinkered ? " The target is destroyed." : "")} | Chance: {chance}");
         }
 
         public static void Tinkering_ModifyItem(Player player, WorldObject tool, WorldObject target, bool incItemTinkered = true)
         {
             var recipe = GetRecipe(player, tool, target);
 
-            var materialType = tool.MaterialType;
+            if (tool.MaterialType == null) return;
 
-            if (tool.WeenieClassId == (uint)WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS)
-                materialType = MaterialType.Leather;
-
-            if (materialType == null) return;
+            var materialType = tool.MaterialType.Value;
 
             switch (materialType)
             {
@@ -995,7 +987,7 @@ namespace ACE.Server.Managers
             var createItem = success ? recipe.SuccessWCID : recipe.FailWCID;
             var createAmount = success ? recipe.SuccessAmount : recipe.FailAmount;
 
-            if (createItem > 0 && DatabaseManager.World.GetCachedWeenie(createItem) == null)
+            if (createItem > 0 && DatabaseManager.World.GetWeenie(createItem) == null)
             {
                 log.Error($"RecipeManager.CreateDestroyItems: Recipe.Id({recipe.Id}) couldn't find {(success ? "Success" : "Fail")}WCID {createItem} in database.");
                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.CraftGeneralErrorUiMsg));
@@ -1035,8 +1027,6 @@ namespace ACE.Server.Managers
                 var message = success ? recipe.SuccessMessage : recipe.FailMessage;
 
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Craft));
-
-                log.Debug($"[CRAFTING] {player.Name} used {source.NameWithMaterial} on {target.NameWithMaterial} {(success ? "" : "un")}successfully. {(destroySource? $"| {source.NameWithMaterial} was destroyed " :"")}{(destroyTarget ? $"| {target.NameWithMaterial} was destroyed " : "")}| {message}");
             }
         }
 

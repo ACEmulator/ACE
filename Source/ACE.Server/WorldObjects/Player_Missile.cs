@@ -5,6 +5,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
@@ -48,30 +49,24 @@ namespace ACE.Server.WorldObjects
                 if (LastCombatMode == CombatMode.Missile)
                     CombatMode = CombatMode.Missile;
                 else
-                {
-                    OnAttackDone();
                     return;
-                }
             }
 
             if (IsBusy || Teleporting || suicideInProgress)
             {
                 SendWeenieError(WeenieError.YoureTooBusy);
-                OnAttackDone();
                 return;
             }
 
             if (IsJumping)
             {
                 SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
-                OnAttackDone();
                 return;
             }
 
             if (PKLogout)
             {
                 SendWeenieError(WeenieError.YouHaveBeenInPKBattleTooRecently);
-                OnAttackDone();
                 return;
             }
 
@@ -81,24 +76,19 @@ namespace ACE.Server.WorldObjects
             // sanity check
             accuracyLevel = Math.Clamp(accuracyLevel, 0.0f, 1.0f);
 
-            if (weapon == null || weapon.IsAmmoLauncher && ammo == null)
-            {
-                OnAttackDone();
-                return;
-            }
+            if (weapon == null || weapon.IsAmmoLauncher && ammo == null) return;
 
             AttackHeight = (AttackHeight)attackHeight;
             AttackQueue.Add(accuracyLevel);
 
             if (MissileTarget == null)
-                AccuracyLevel = accuracyLevel;  // verify
+                AccuracyLevel = accuracyLevel;
 
             // get world object of target guid
             var target = CurrentLandblock?.GetObject(targetGuid) as Creature;
             if (target == null || target.Teleporting)
             {
                 //log.Warn($"{Name}.HandleActionTargetedMissileAttack({targetGuid:X8}, {AttackHeight}, {accuracyLevel}) - couldn't find creature target guid");
-                OnAttackDone();
                 return;
             }
 
@@ -106,11 +96,7 @@ namespace ACE.Server.WorldObjects
                 return;
 
             if (!CanDamage(target))
-            {
-                SendTransientError($"You cannot attack {target.Name}");
-                OnAttackDone();
-                return;
-            }
+                return;     // werror?
 
             //log.Info($"{Name}.HandleActionTargetedMissileAttack({targetGuid:X8}, {attackHeight}, {accuracyLevel})");
 
@@ -174,17 +160,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var actionChain = new ActionChain();
-
-            if (subsequent && !IsFacing(target))
-            {
-                var rotateTime = Rotate(target);
-                actionChain.AddDelaySeconds(rotateTime);
-            }
-
             // launch animation
             // point of no return beyond this point -- cannot be cancelled
-            actionChain.AddAction(this, () => Attacking = true);
+            Attacking = true;
 
             if (subsequent)
             {
@@ -218,7 +196,8 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var launchTime = EnqueueMotionPersist(actionChain, aimLevel);
+            var actionChain = new ActionChain();
+            var launchTime = EnqueueMotion(actionChain, aimLevel);
 
             // launch projectile
             actionChain.AddAction(this, () =>
@@ -256,10 +235,10 @@ namespace ACE.Server.WorldObjects
 
             // reload animation
             var animSpeed = GetAnimSpeed();
-            var reloadTime = EnqueueMotionPersist(actionChain, MotionCommand.Reload, animSpeed);
+            var reloadTime = EnqueueMotion(actionChain, MotionCommand.Reload, animSpeed);
 
             // reset for next projectile
-            EnqueueMotionPersist(actionChain, MotionCommand.Ready);
+            EnqueueMotion(actionChain, MotionCommand.Ready);
             var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload, MotionCommand.Ready);
             //var cycleTime = MotionTable.GetCycleLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready);
 

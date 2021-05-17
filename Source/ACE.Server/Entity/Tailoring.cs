@@ -226,9 +226,6 @@ namespace ACE.Server.Entity
             target.PaletteBaseId = source.PaletteBaseId;
             target.ClothingBase = source.ClothingBase;
 
-            target.PhysicsTableId = source.PhysicsTableId;
-            target.SoundTableId = source.SoundTableId;
-
             target.Name = source.Name;
             target.LongDesc = LootGenerationFactory.GetLongDesc(target);
 
@@ -289,9 +286,6 @@ namespace ACE.Server.Entity
             player.TryConsumeFromInventoryWithNetworking(target, 1);
 
             player.TryCreateInInventoryWithNetworking(result);
-
-            if (PropertyManager.GetBool("player_receive_immediate_save").Item)
-                player.RushNextPlayerSave(5);
 
             player.SendUseDoneEvent();
         }
@@ -407,8 +401,6 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyInt.ClothingPriority, (int)clothingPriority);
             player.TryConsumeFromInventoryWithNetworking(source, 1);
 
-            target.SaveBiotaToDatabase();
-
             player.SendUseDoneEvent();
         }
 
@@ -423,8 +415,6 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyBool.TopLayerPriority, topLayer);
 
             player.TryConsumeFromInventoryWithNetworking(source, 1);
-
-            target.SaveBiotaToDatabase();
 
             player.SendUseDoneEvent();
         }
@@ -452,8 +442,6 @@ namespace ACE.Server.Entity
             player.Session.Network.EnqueueSend(new GameMessageUpdateObject(target));
 
             player.TryConsumeFromInventoryWithNetworking(source, 1);
-
-            target.SaveBiotaToDatabase();
 
             player.SendUseDoneEvent();
         }
@@ -511,8 +499,6 @@ namespace ACE.Server.Entity
             player.Session.Network.EnqueueSend(new GameMessageUpdateObject(target));
 
             player.TryConsumeFromInventoryWithNetworking(source, 1);
-
-            target.SaveBiotaToDatabase();
 
             player.SendUseDoneEvent();
         }

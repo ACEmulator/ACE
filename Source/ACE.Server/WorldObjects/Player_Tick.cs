@@ -30,9 +30,6 @@ namespace ACE.Server.WorldObjects
         private const double ageUpdateInterval = 7;
         private double nextAgeUpdateTime;
 
-        private double houseRentWarnTimestamp;
-        private const double houseRentWarnInterval = 3600;
-
         public void Player_Tick(double currentUnixTime)
         {
             actionQueue.RunActions();
@@ -57,22 +54,6 @@ namespace ACE.Server.WorldObjects
             {
                 Fellowship.OnVitalUpdate(this);
                 FellowVitalUpdate = false;
-            }
-
-            if (House != null && PropertyManager.GetBool("house_rent_enabled").Item)
-            {
-                if (houseRentWarnTimestamp > 0 && currentUnixTime > houseRentWarnTimestamp)
-                {
-                    HouseManager.GetHouse(House.Guid.Full, (house) =>
-                    {
-                        if (house != null && !house.SlumLord.IsRentPaid())
-                            Session.Network.EnqueueSend(new GameMessageSystemChat($"Warning!  You have not paid your maintenance costs for the last {(house.IsApartment ? "90" : "30")} day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.Broadcast));
-                    });
-
-                    houseRentWarnTimestamp = Time.GetFutureUnixTime(houseRentWarnInterval);
-                }
-                else if (houseRentWarnTimestamp == 0)
-                    houseRentWarnTimestamp = Time.GetFutureUnixTime(houseRentWarnInterval);
             }
         }
 
@@ -329,30 +310,20 @@ namespace ACE.Server.WorldObjects
             // scenario: start casting a self-spell, and then immediately start holding the run forward key during the windup
             // on client: player will start running forward after the cast has completed
             // on server: player will stand still
-
-            // this block of code can improve the sync between these 2 methods,
-            // however there are some bugs that originate in acclient that cannot be resolved on the server
-            // for example, equip a wand, and then start running forward in non-combat mode. switch to magic combat mode, and then release forward during the stance swap
-            // the client will never send a 'client released forward' MoveToState in this scenario unfortunately.
-            // because of this, it's better to have the 'client blip forward' bug without it, than to have the client invisibly running forward on the server.
-            // commenting out this block because of this...
-
-            /*if (!PhysicsObj.IsMovingOrAnimating && LastMoveToState != null)
+            //
+            if (!PhysicsObj.IsMovingOrAnimating && LastMoveToState != null)
             {
                 // apply latest MoveToState, if applicable
                 //if ((LastMoveToState.RawMotionState.Flags & (RawMotionFlags.ForwardCommand | RawMotionFlags.SideStepCommand | RawMotionFlags.TurnCommand)) != 0)
-                if ((LastMoveToState.RawMotionState.Flags & RawMotionFlags.ForwardCommand) != 0 && LastMoveToState.RawMotionState.ForwardHoldKey == HoldKey.Invalid)
+                if ((LastMoveToState.RawMotionState.Flags & RawMotionFlags.ForwardCommand) != 0)
                 {
                     if (DebugPlayerMoveToStatePhysics)
                         Console.WriteLine("Re-applying movement: " + LastMoveToState.RawMotionState.Flags);
 
                     OnMoveToState(LastMoveToState);
-
-                    // re-broadcast MoveToState to other clients only
-                    EnqueueBroadcast(false, new GameMessageUpdateMotion(this, CurrentMovementData));
                 }
                 LastMoveToState = null;
-            }*/
+            }
 
             if (MagicState.IsCasting && MagicState.PendingTurnRelease)
                 CheckTurn();
@@ -595,7 +566,7 @@ namespace ACE.Server.WorldObjects
 
             var EquippedManaConsumers = EquippedObjects.Where(k =>
                 (k.Value.IsAffecting ?? false) &&
-                k.Value.ManaRate.HasValue &&
+                //k.Value.ManaRate.HasValue &&
                 k.Value.ItemMaxMana.HasValue &&
                 k.Value.ItemCurMana.HasValue &&
                 k.Value.ItemCurMana.Value > 0).ToList();
@@ -609,18 +580,14 @@ namespace ACE.Server.WorldObjects
                 // this retroactively fixes them when equipped
                 // items such as Impious Staff are excluded from this via IsAffecting
 
-                // this bug should hopefully be fixed by now, commenting out this block
-                /*if (item.ManaRate == null)
+                if (item.ManaRate == null)
                 {
-                    if ((item.MaxStackSize ?? 1) > 1)
-                        continue;
-
                     var maxBaseMana = LootGenerationFactory.GetMaxBaseMana(item);
 
                     item.ManaRate = LootGenerationFactory.CalculateManaRate(maxBaseMana);
 
                     log.Warn($"{Name}.ManaConsumersTick(): {k.Value.Name} ({k.Value.Guid}) fixed missing ManaRate");
-                }*/
+                }
 
                 var rate = item.ManaRate.Value;
 

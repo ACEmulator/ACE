@@ -43,7 +43,7 @@ namespace ACE.Server.Managers
 
         public static WorldStatusState WorldStatus { get; private set; } = WorldStatusState.Closed;
 
-        public static readonly ActionQueue ActionQueue = new ActionQueue();
+        private static readonly ActionQueue actionQueue = new ActionQueue();
         public static readonly DelayManager DelayManager = new DelayManager();
 
         static WorldManager()
@@ -104,7 +104,7 @@ namespace ACE.Server.Managers
             {
                 log.Debug($"GetPossessedBiotasInParallel for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
 
-                ActionQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, offlinePlayer.Biota, biotas)));
+                actionQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, offlinePlayer.Biota, biotas)));
             });
         }
 
@@ -112,7 +112,7 @@ namespace ACE.Server.Managers
         {
             Player player;
 
-            Player.HandleNoLogLandblock(playerBiota, out var playerLoggedInOnNoLogLandblock);
+            Player.HandleNoLogLandblock(playerBiota);
 
             var stripAdminProperties = false;
             var addAdminProperties = false;
@@ -170,7 +170,6 @@ namespace ACE.Server.Managers
                 player.IgnoreHouseBarriers = false;
                 player.IgnorePortalRestrictions = false;
                 player.SafeSpellComponents = false;
-                player.ReportCollisions = true;
 
 
                 player.ChangesDetected = true;
@@ -262,9 +261,6 @@ namespace ACE.Server.Managers
             var server_motd = PropertyManager.GetString("server_motd").Item;
             if (!string.IsNullOrEmpty(server_motd))
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{server_motd}\n", ChatMessageType.Broadcast));
-
-            if (playerLoggedInOnNoLogLandblock) // see http://acpedia.org/wiki/Mount_Elyrii_Hive
-                session.Network.EnqueueSend(new GameMessageSystemChat("The currents of portal space cannot return you from whence you came. Your previous location forbids login.", ChatMessageType.Broadcast));
         }
 
         private static string AppendLines(params string[] lines)
@@ -297,7 +293,7 @@ namespace ACE.Server.Managers
 
         public static void EnqueueAction(IAction action)
         {
-            ActionQueue.EnqueueAction(action);
+            actionQueue.EnqueueAction(action);
         }
 
         private static readonly RateLimiter updateGameWorldRateLimiter = new RateLimiter(60, TimeSpan.FromSeconds(1));
@@ -355,7 +351,7 @@ namespace ACE.Server.Managers
 
                 // This will consist of PlayerEnterWorld actions, as well as other game world actions that require thread safety
                 ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.actionQueue_RunActions);
-                ActionQueue.RunActions();
+                actionQueue.RunActions();
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.actionQueue_RunActions);
 
                 ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.DelayManager_RunActions);

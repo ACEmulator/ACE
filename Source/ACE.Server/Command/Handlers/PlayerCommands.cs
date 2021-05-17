@@ -28,7 +28,7 @@ namespace ACE.Server.Command.Handlers
             "")]
         public static void HandlePop(Session session, params string[] parameters)
         {
-            CommandHandlerHelper.WriteOutputInfo(session, $"Current world population: {PlayerManager.GetOnlineCount():N0}", ChatMessageType.Broadcast);
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Current world population: {PlayerManager.GetOnlineCount().ToString()}\n", ChatMessageType.Broadcast));
         }
 
         // quest info (uses GDLe formatting to match plugin expectations)
@@ -41,15 +41,13 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            var quests = session.Player.QuestManager.GetQuests();
-
-            if (quests.Count == 0)
+            if (session.Player.QuestManager.Quests.Count == 0)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat("Quest list is empty.", ChatMessageType.Broadcast));
                 return;
             }
 
-            foreach (var playerQuest in quests)
+            foreach (var playerQuest in session.Player.QuestManager.Quests)
             {
                 var text = "";
                 var questName = QuestManager.GetQuestName(playerQuest.QuestName);

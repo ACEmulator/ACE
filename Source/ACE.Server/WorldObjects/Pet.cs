@@ -76,8 +76,6 @@ namespace ACE.Server.WorldObjects
                 var spawnDist = playerRadius + petRadius + MinDistance;
 
                 Location = player.Location.InFrontOf(spawnDist, true);
-
-                TimeToRot = -1;
             }
             else
             {

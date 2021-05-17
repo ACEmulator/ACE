@@ -8,7 +8,6 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
-using log4net;
 
 namespace ACE.Server.Entity
 {
@@ -231,11 +230,7 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyString.LongDesc, "This aetheria's sigil now shows on the surface.");
             player.Session.Network.EnqueueSend(new GameMessageUpdateObject(target));
 
-            target.SaveBiotaToDatabase();
-
             player.SendUseDoneEvent();
-
-            log.Debug($"[CRAFTING] {player.Name} revealed a {color} {randSigil} with a surge of {surgeSpell} on {target.Name}:0x{target.Guid}");
         }
 
         public static Dictionary<Sigil, EquipmentSet> SigilToEquipmentSet = new Dictionary<Sigil, EquipmentSet>()
@@ -297,7 +292,5 @@ namespace ACE.Server.Entity
         {
             return wo.WeenieClassId == AetheriaManaStone;
         }
-
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     }
 }

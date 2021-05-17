@@ -194,19 +194,12 @@ namespace ACE.Entity.Enum.Properties
         ScoreNumScores                           = 138,
         [SendOnLogin]
         DeathLevel                               = 139,
-        [ServerOnly]
         AiOptions                                = 140,
-        [ServerOnly]
         OpenToEveryone                           = 141,
-        [ServerOnly]
         GeneratorTimeType                        = 142,
-        [ServerOnly]
         GeneratorStartTime                       = 143,
-        [ServerOnly]
         GeneratorEndTime                         = 144,
-        [ServerOnly]
         GeneratorEndDestructionType              = 145,
-        [ServerOnly]
         XpOverride                               = 146,
         NumCrashAndTurns                         = 147,
         ComponentWarningThreshold                = 148,
@@ -225,9 +218,7 @@ namespace ACE.Entity.Enum.Properties
         WieldRequirements                        = 158,
         WieldSkillType                           = 159,
         WieldDifficulty                          = 160,
-        [ServerOnly]
         HouseMaxHooksUsable                      = 161,
-        [ServerOnly][Ephemeral]
         HouseCurrentHooksUsable                  = 162,
         AllegianceMinLevel                       = 163,
         AllegianceMaxLevel                       = 164,
@@ -268,7 +259,6 @@ namespace ACE.Entity.Enum.Properties
         DeathTimestamp                           = 194,
         PkTimestamp                              = 195,
         VictimTimestamp                          = 196,
-        [ServerOnly]
         HookGroup                                = 197,
         AllegianceSwearTimestamp                 = 198,
         [SendOnLogin]

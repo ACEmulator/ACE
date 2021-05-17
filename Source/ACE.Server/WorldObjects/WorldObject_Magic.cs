@@ -144,9 +144,6 @@ namespace ACE.Server.WorldObjects
             //if (!spell.IsResistable || spell.IsSelfTargeted)
                 return false;
 
-            if (spell.MetaSpellType == SpellType.Dispel && spell.Align == DispelType.Negative && !PropertyManager.GetBool("allow_negative_dispel_resist").Item)
-                return false;
-
             if (spell.NumProjectiles > 0 && !projectileHit)
                 return false;
 
@@ -709,7 +706,7 @@ namespace ACE.Server.WorldObjects
 
             if (targetPlayer != null && targetPlayer.PKTimerActive)
             {
-                if (/* casterPlayer != null || */ caster is Gem || caster is Food)
+                if (casterPlayer != null || caster is Gem || caster is Food)
                 {
                     if (casterPlayer != null)
                         casterPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{targetPlayer.Name} has been involved in a player killer battle too recently to do that!", ChatMessageType.Magic));
@@ -878,12 +875,7 @@ namespace ACE.Server.WorldObjects
                             {
                                 // portal recall
                                 var portal = GetPortal(recallDID.Value);
-                                if (portal == null || portal.NoRecall)
-                                {
-                                    // You cannot recall that portal!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotRecallPortal));
-                                    break;
-                                }
+                                if (portal == null) break;
 
                                 var result = portal.CheckUseRequirements(targetPlayer);
                                 if (!result.Success)
@@ -1411,31 +1403,16 @@ namespace ACE.Server.WorldObjects
 
             var useGravity = spellType == ProjectileSpellType.Arc;
 
-            var velocity = Vector3.Zero;
-
             if (useGravity || targetVelocity != Vector3.Zero)
             {
                 var gravity = useGravity ? PhysicsGlobals.Gravity : 0.0f;
 
-                if (!PropertyManager.GetBool("trajectory_alt_solver").Item)
-                    Trajectory.solve_ballistic_arc_lateral(startPos, speed, endPos, targetVelocity, gravity, out velocity, out var time, out var impactPoint);
-                else
-                    velocity = Trajectory2.CalculateTrajectory(startPos, endPos, targetVelocity, speed, useGravity);
+                Trajectory.solve_ballistic_arc_lateral(startPos, speed, endPos, targetVelocity, gravity, out var velocity, out var time, out var impactPoint);
 
-                if (velocity == Vector3.Zero && useGravity && targetVelocity != Vector3.Zero)
-                {
-                    // intractable?
-                    // try to solve w/ zero velocity
-                    if (!PropertyManager.GetBool("trajectory_alt_solver").Item)
-                        Trajectory.solve_ballistic_arc_lateral(startPos, speed, endPos, Vector3.Zero, gravity, out velocity, out var time, out var impactPoint);
-                    else
-                        velocity = Trajectory2.CalculateTrajectory(startPos, endPos, Vector3.Zero, speed, useGravity);
-                }
-                if (velocity != Vector3.Zero)
-                    return velocity;
+                return velocity;
             }
-
-            return dir * speed;
+            else
+                return dir * speed;
         }
 
         public List<SpellProjectile> LaunchSpellProjectiles(Spell spell, WorldObject target, ProjectileSpellType spellType, WorldObject caster, List<Vector3> origins, Vector3 velocity, uint lifeProjectileDamage = 0)
@@ -1670,7 +1647,7 @@ namespace ACE.Server.WorldObjects
             if (spell.IsHarmful)
             {
                 if (player != null)
-                    Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.VoidMagic), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
+                    Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
 
                 // handle target procs
                 var sourceCreature = this as Creature;
@@ -1681,7 +1658,7 @@ namespace ACE.Server.WorldObjects
                     Player.UpdatePKTimers(player, targetPlayer);
             }
             else if (player != null)
-                Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.VoidMagic), difficultyMod);
+                Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), difficultyMod);
 
             return true;
         }

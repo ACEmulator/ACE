@@ -64,7 +64,6 @@ namespace ACE.Server.Network.GameMessages
         PlayEffect                      = 0xF755,
         GameEvent                       = 0xF7B0,
         GameAction                      = 0xF7B1,
-        AccountBanned                   = 0xF7C1,
         CharacterEnterWorldRequest      = 0xF7C8,
         GetServerVersion                = 0xF7CC,
         FriendsOld                      = 0xF7CD,

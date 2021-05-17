@@ -37,8 +37,8 @@ namespace ACE.Server.WorldObjects
                 var animSpeed = GetAnimSpeed();
                 //Console.WriteLine($"AnimSpeed: {animSpeed}");
 
-                animLength = EnqueueMotionPersist(actionChain, MotionCommand.Reload, animSpeed);   // start pulling out next arrow
-                EnqueueMotionPersist(actionChain, MotionCommand.Ready);    // finish reloading
+                animLength = EnqueueMotion(actionChain, MotionCommand.Reload, animSpeed);   // start pulling out next arrow
+                EnqueueMotion(actionChain, MotionCommand.Ready);    // finish reloading
             }
 
             // ensure ammo visibility for players
@@ -315,28 +315,18 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     // use movement quartic solver
-                    if (!PropertyManager.GetBool("trajectory_alt_solver").Item)
-                    {
-                        var numSolutions = Trajectory.solve_ballistic_arc(origin, speed, dest, targetVelocity, gravity, out s0, out _, out time);
+                    var numSolutions = Trajectory.solve_ballistic_arc(origin, speed, dest, targetVelocity, gravity, out s0, out _, out time);
 
-                        if (numSolutions > 0)
-                            return s0;
-                    }
-                    else
-                        return Trajectory2.CalculateTrajectory(origin, dest, targetVelocity, speed, useGravity);
+                    if (numSolutions > 0)
+                        return s0;
                 }
             }
 
             // use stationary solver
-            if (!PropertyManager.GetBool("trajectory_alt_solver").Item)
-            {
-                Trajectory.solve_ballistic_arc(origin, speed, dest, gravity, out s0, out _, out t0, out _);
+            Trajectory.solve_ballistic_arc(origin, speed, dest, gravity, out s0, out _, out t0, out _);
 
-                time = t0;
-                return s0;
-            }
-            else
-                return Trajectory2.CalculateTrajectory(origin, dest, Vector3.Zero, speed, useGravity);
+            time = t0;
+            return s0;
         }
 
         /// <summary>

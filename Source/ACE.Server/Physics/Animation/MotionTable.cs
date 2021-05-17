@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
-
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
@@ -456,28 +455,20 @@ namespace ACE.Server.Physics.Animation
             }
         }
 
-        private static readonly List<float> emptyList = new List<float>();
-
         public static List<float> GetAttackFrames(uint motionTableId, MotionStance stance, MotionCommand motion)
         {
-            if (motionTableId == 0) return emptyList;
-
             var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableId);
             return motionTable.GetAttackFrames(motionTableId, stance, motion);
         }
 
         public static float GetAnimationLength(uint motionTableId, MotionStance stance, MotionCommand motion, float speed = 1.0f)
         {
-            if (motionTableId == 0) return 0;
-
             var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableId);
             return motionTable.GetAnimationLength(stance, motion, null) / speed;
         }
 
         public static float GetAnimationLength(uint motionTableId, MotionStance stance, MotionCommand currentMotion, MotionCommand motion, float speed = 1.0f)
         {
-            if (motionTableId == 0) return 0;
-
             var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableId);
 
             var animLength = 0.0f;
@@ -493,8 +484,6 @@ namespace ACE.Server.Physics.Animation
 
         public static float GetCycleLength(uint motionTableId, MotionStance stance, MotionCommand motion, float speed = 1.0f)
         {
-            if (motionTableId == 0) return 0;
-
             var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableId);
             return motionTable.GetCycleLength(stance, motion) / speed;
         }
@@ -540,8 +529,6 @@ namespace ACE.Server.Physics.Animation
         /// </summary>
         public static MotionData GetMotionData(uint motionTableID, uint motion, uint? currentStyle = null)
         {
-            if (motionTableID == 0) return null;
-
             var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableID);
             if (currentStyle == null)
                 currentStyle = motionTable.DefaultStyle;
@@ -553,8 +540,6 @@ namespace ACE.Server.Physics.Animation
 
         public static MotionData GetLinkData(uint motionTableID, uint motion, uint? currentStyle = null)
         {
-            if (motionTableID == 0) return null;
-
             var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableID);
             if (currentStyle == null)
                 currentStyle = motionTable.DefaultStyle;

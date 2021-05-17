@@ -92,8 +92,6 @@ namespace ACE.Server.Entity
 
             if (landblocks.Add(landblock))
             {
-                landblock.CurrentLandblockGroup = this;
-
                 if (landblocks.Count == 1)
                     IsDungeon = landblock.IsDungeon;
 
@@ -118,15 +116,13 @@ namespace ACE.Server.Entity
         {
             if (landblocks.Remove(landblock))
             {
-                landblock.CurrentLandblockGroup = null;
-
                 // Empty landblock groups will be discarded immediately
                 if (landblocks.Count == 0)
                     return true;
 
                 uniqueLandblockIdsRemoved.Add(landblock.Id.Raw);
 
-                // If this landblock is on the perimeter of the group, recalculate the boundaries (they may end up the same)
+                // If this landblock is on the perimieter of the group, recalculate the boundaries (they may end up the same)
                 if (landblock.Id.LandblockX == xMin || landblock.Id.LandblockX == xMax ||
                     landblock.Id.LandblockY == yMin || landblock.Id.LandblockY == yMax)
                 {
@@ -175,11 +171,11 @@ namespace ACE.Server.Entity
 
         private LandblockGroup DoTrySplit()
         {
-            var landblockGroupSplitHelper = new LandblockGroupSplitHelper();
+            var newLandblockGroup = new LandblockGroup();
 
             var remainingLandblocks = new List<Landblock>(landblocks);
 
-            landblockGroupSplitHelper.Add(remainingLandblocks[remainingLandblocks.Count - 1]);
+            newLandblockGroup.Add(remainingLandblocks[remainingLandblocks.Count - 1]);
             remainingLandblocks.RemoveAt(remainingLandblocks.Count - 1);
 
             doAnotherPass:
@@ -187,9 +183,9 @@ namespace ACE.Server.Entity
 
             for (int i = remainingLandblocks.Count - 1; i >= 0; i--)
             {
-                if (landblockGroupSplitHelper.BoundaryDistance(remainingLandblocks[i]) < LandblockGroupMinSpacing)
+                if (newLandblockGroup.BoundaryDistance(remainingLandblocks[i]) < LandblockGroupMinSpacing)
                 {
-                    landblockGroupSplitHelper.Add(remainingLandblocks[i]);
+                    newLandblockGroup.Add(remainingLandblocks[i]);
                     remainingLandblocks.RemoveAt(i);
                     needsAnotherPass = true;
                 }
@@ -199,20 +195,12 @@ namespace ACE.Server.Entity
                 goto doAnotherPass;
 
             // If they're the same size, there's no split possible
-            if (Count == landblockGroupSplitHelper.Count)
+            if (Count == newLandblockGroup.Count)
                 return null;
 
-            // Split was a success
-            var newLandblockGroup = new LandblockGroup();
-
-            foreach (var landblock in landblockGroupSplitHelper)
-            {
-                // Remove the split landblocks. Do this manually, not through the public Remove() function
+            // Remove the split landblocks. Do this manually, not through the public Remove() function
+            foreach (var landblock in newLandblockGroup)
                 landblocks.Remove(landblock);
-
-                // Add them through the proper .Add() method to the new LandblockGroup
-                newLandblockGroup.Add(landblock);
-            }
 
             RecalculateBoundaries();
 

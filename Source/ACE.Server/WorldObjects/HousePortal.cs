@@ -86,10 +86,9 @@ namespace ACE.Server.WorldObjects
             var houseOwner = rootHouse.HouseOwner;
 
             if (houseOwner == null)
-                //return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
-                return new ActivationResult(true);
+                return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
 
-            if (rootHouse.OpenToEveryone)
+            if (rootHouse.IsOpen)
                 return new ActivationResult(true);
 
             if (!rootHouse.HasPermission(player))

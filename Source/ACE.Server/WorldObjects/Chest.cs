@@ -302,18 +302,12 @@ namespace ACE.Server.WorldObjects
 
         protected override float DoOnOpenMotionChanges()
         {
-            if (MotionTableId != 0)
-                return ExecuteMotion(motionOpen);
-            else
-                return 0;
+            return ExecuteMotion(motionOpen);
         }
 
         protected override float DoOnCloseMotionChanges()
         {
-            if (MotionTableId != 0)
-                return ExecuteMotion(motionClosed);
-            else
-                return 0;
+            return ExecuteMotion(motionClosed);
         }
 
         public string LockCode

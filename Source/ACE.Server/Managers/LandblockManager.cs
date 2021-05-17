@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 using log4net;
@@ -259,16 +258,6 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Used to debug cross-landblock group (and potentially cross-thread) operations
-        /// </summary>
-        public static bool CurrentlyTickingLandblockGroupsMultiThreaded { get; private set; }
-
-        /// <summary>
-        /// Used to debug cross-landblock group (and potentially cross-thread) operations
-        /// </summary>
-        public static readonly ThreadLocal<LandblockGroup> CurrentMultiThreadedTickingLandblockGroup = new ThreadLocal<LandblockGroup>();
-
-        /// <summary>
         /// Processes physics objects in all active landblocks for updating
         /// </summary>
         private static void TickPhysics(double portalYearTicks)
@@ -279,19 +268,11 @@ namespace ACE.Server.Managers
 
             if (ConfigManager.Config.Server.Threading.MultiThreadedLandblockGroupPhysicsTicking)
             {
-                CurrentlyTickingLandblockGroupsMultiThreaded = true;
-
                 Parallel.ForEach(landblockGroups, ConfigManager.Config.Server.Threading.LandblockManagerParallelOptions, landblockGroup =>
                 {
-                    CurrentMultiThreadedTickingLandblockGroup.Value = landblockGroup;
-
                     foreach (var landblock in landblockGroup)
                         landblock.TickPhysics(portalYearTicks, movedObjects);
-
-                    CurrentMultiThreadedTickingLandblockGroup.Value = null;
                 });
-
-                CurrentlyTickingLandblockGroupsMultiThreaded = false;
             }
             else
             {
@@ -320,19 +301,11 @@ namespace ACE.Server.Managers
 
             if (ConfigManager.Config.Server.Threading.MultiThreadedLandblockGroupTicking)
             {
-                CurrentlyTickingLandblockGroupsMultiThreaded = true;
-
                 Parallel.ForEach(landblockGroups, ConfigManager.Config.Server.Threading.LandblockManagerParallelOptions, landblockGroup =>
                 {
-                    CurrentMultiThreadedTickingLandblockGroup.Value = landblockGroup;
-
                     foreach (var landblock in landblockGroup)
                         landblock.TickMultiThreadedWork(Time.GetUnixTime());
-
-                    CurrentMultiThreadedTickingLandblockGroup.Value = null;
                 });
-
-                CurrentlyTickingLandblockGroupsMultiThreaded = false;
             }
             else
             {

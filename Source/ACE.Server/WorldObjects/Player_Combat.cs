@@ -737,19 +737,19 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This method processes the Game Action (F7B1) Change Combat Mode (0x0053)
         /// </summary>
-        public void HandleActionChangeCombatMode(CombatMode newCombatMode, bool forceHandCombat = false, Action callback = null)
+        public void HandleActionChangeCombatMode(CombatMode newCombatMode)
         {
             //log.Info($"{Name}.HandleActionChangeCombatMode({newCombatMode})");
 
             LastCombatMode = newCombatMode;
             
             if (DateTime.UtcNow >= NextUseTime.AddSeconds(UseTimeEpsilon))
-                HandleActionChangeCombatMode_Inner(newCombatMode, forceHandCombat, callback);
+                HandleActionChangeCombatMode_Inner(newCombatMode);
             else
             {
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds((NextUseTime - DateTime.UtcNow).TotalSeconds + UseTimeEpsilon);
-                actionChain.AddAction(this, () => HandleActionChangeCombatMode_Inner(newCombatMode, forceHandCombat, callback));
+                actionChain.AddAction(this, () => HandleActionChangeCombatMode_Inner(newCombatMode));
                 actionChain.EnqueueChain();
             }
 
@@ -757,10 +757,8 @@ namespace ACE.Server.WorldObjects
                 HandleActionSetAFKMode(false);
         }
 
-        public void HandleActionChangeCombatMode_Inner(CombatMode newCombatMode, bool forceHandCombat = false, Action callback = null)
+        public void HandleActionChangeCombatMode_Inner(CombatMode newCombatMode)
         {
-            //log.Info($"{Name}.HandleActionChangeCombatMode_Inner({newCombatMode})");
-
             var currentCombatStance = GetCombatStance();
 
             var missileWeapon = GetEquippedMissileWeapon();
@@ -792,7 +790,7 @@ namespace ACE.Server.WorldObjects
                 case CombatMode.Melee:
 
                     // todo expand checks
-                    if (!forceHandCombat && (missileWeapon != null || caster != null))
+                    if (missileWeapon != null || caster != null)
                         return;
 
                     break;
@@ -846,23 +844,13 @@ namespace ACE.Server.WorldObjects
                     break;
 
             }
-
-            // animTime already includes queueTime
-            animTime = SetCombatMode(newCombatMode, out queueTime, forceHandCombat);
+            animTime = SetCombatMode(newCombatMode, out queueTime);
             //log.Info($"{Name}.HandleActionChangeCombatMode_Inner({newCombatMode}) - animTime: {animTime}, queueTime: {queueTime}");
 
             NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
 
             if (MagicState.IsCasting && RecordCast.Enabled)
                 RecordCast.OnSetCombatMode(newCombatMode);
-
-            if (callback != null)
-            {
-                var callbackChain = new ActionChain();
-                callbackChain.AddDelaySeconds(animTime);
-                callbackChain.AddAction(this, callback);
-                callbackChain.EnqueueChain();
-            }
         }
 
         public override bool CanDamage(Creature target)
@@ -898,9 +886,6 @@ namespace ACE.Server.WorldObjects
 
         public override float GetNaturalResistance(DamageType damageType)
         {
-            if (damageType == DamageType.Undef)
-                return 1.0f;
-
             // http://acpedia.org/wiki/Announcements_-_11th_Anniversary_Preview#Void_Magic_and_You.21
             // Creatures under Asheron’s protection take half damage from any nether type spell.
             if (damageType == DamageType.Nether)

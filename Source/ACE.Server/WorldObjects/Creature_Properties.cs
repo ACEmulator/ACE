@@ -51,8 +51,8 @@ namespace ACE.Server.WorldObjects
 
         public double? ResistHealthDrain
         {
-            get => GetProperty(PropertyFloat.ResistHealthDrain);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ResistHealthDrain); else SetProperty(PropertyFloat.ResistHealthDrain, value.Value); }
+            get => GetProperty(PropertyFloat.ResistHealthBoost);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ResistHealthBoost); else SetProperty(PropertyFloat.ResistHealthBoost, value.Value); }
         }
 
         public double? ResistHealthBoost

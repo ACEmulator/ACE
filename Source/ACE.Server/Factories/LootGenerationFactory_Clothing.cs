@@ -821,9 +821,6 @@ namespace ACE.Server.Factories
                 wo.CloakWeaveProc = 2;
             }
 
-            // material type
-            wo.MaterialType = GetMaterialType(wo, profile.Tier);
-
             // workmanship
             wo.Workmanship = WorkmanshipChance.Roll(profile.Tier);
 
