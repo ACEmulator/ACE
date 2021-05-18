@@ -63,6 +63,7 @@ namespace ACE.Entity.Enum.Properties
         MinimumTimeSincePk             = 50,
         DeprecatedHousekeepingPriority = 51,
         AbuseLoggingTimestamp          = 52,
+        [Ephemeral]
         LastPortalTeleportTimestamp    = 53,
         UseRadius                      = 54,
         HomeRadius                     = 55,
