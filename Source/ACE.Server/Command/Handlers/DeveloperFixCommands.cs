@@ -1594,7 +1594,6 @@ namespace ACE.Server.Command.Handlers
                     }
                 }
 
-
                 if (!fix && foundIssues)
                     Console.WriteLine($"Dry run completed. Type 'verify-shield-rating fix' to fix any issues.");
 
