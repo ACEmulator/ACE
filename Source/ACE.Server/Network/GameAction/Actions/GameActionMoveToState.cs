@@ -25,14 +25,12 @@ namespace ACE.Server.Network.GameAction.Actions
             if (session.Player.IsPlayerMovingTo2)
                 session.Player.StopExistingMoveToChains2();
 
-            if (!session.Player.Teleporting)
-            {
-                session.Player.OnMoveToState(moveToState);
-                session.Player.LastMoveToState = moveToState;
+            // MoveToState - UpdatePosition broadcasts were capped to 1 per second in retail
+            session.Player.OnMoveToState(moveToState);
+            session.Player.LastMoveToState = moveToState;
 
-                // MoveToState - UpdatePosition broadcasts were capped to 1 per second in retail
+            if (!session.Player.Teleporting)
                 session.Player.SetRequestedLocation(moveToState.Position, false);
-            }
 
             //if (!moveToState.StandingLongJump)
                 session.Player.BroadcastMovement(moveToState);
