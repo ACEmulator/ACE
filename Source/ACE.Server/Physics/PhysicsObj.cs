@@ -619,7 +619,7 @@ namespace ACE.Server.Physics
 
         public float GetStartConstraintDistance()
         {
-            return (Position.ObjCellID & 0xFFFF) < 0x100 ? 5.0f : 10.0f;
+            return (Position.ObjCellID & 0xFFFF) < 0x100 ? 10.0f : 5.0f;
         }
 
         public float GetStepDownHeight()
