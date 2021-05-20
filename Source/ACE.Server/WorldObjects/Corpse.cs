@@ -351,6 +351,8 @@ namespace ACE.Server.WorldObjects
                 killerName = killer.Name.TrimStart('+');
                 CorpseGeneratedRare = true;
                 LongDesc += " This corpse generated a rare item!";
+                TimeToRot = 900;  // guesstimated 15 mins from hells
+
                 if (killerPlayer != null)
                 {
                     if (realTimeRares)
