@@ -612,9 +612,9 @@ namespace ACE.Server.Factories.Tables.Wcids
             BuildCombined(OlthoiAmuliWcids, TreasureArmorType.OlthoiAmuli);
             BuildCombined(OlthoiKoujiaWcids, TreasureArmorType.OlthoiKoujia);
             BuildCombined(OlthoiAlduressaWcids, TreasureArmorType.OlthoiAlduressa);
-            BuildCombined(CelestialHandWcids, TreasureArmorType.CelestialHand);
-            BuildCombined(EldrytchWebWcids, TreasureArmorType.EldrytchWeb);
-            BuildCombined(RadiantBloodWcids, TreasureArmorType.RadiantBlood);
+            //BuildCombined(CelestialHandWcids, TreasureArmorType.CelestialHand);   // handled in SocietyArmor
+            //BuildCombined(EldrytchWebWcids, TreasureArmorType.EldrytchWeb);
+            //BuildCombined(RadiantBloodWcids, TreasureArmorType.RadiantBlood);
             BuildCombined(HaebreanWcids, TreasureArmorType.Haebrean);
             BuildCombined(KnorrAcademyWcids, TreasureArmorType.KnorrAcademy);
             BuildCombined(SedgemailLeatherWcids, TreasureArmorType.Sedgemail);
