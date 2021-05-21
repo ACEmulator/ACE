@@ -104,7 +104,29 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            sourceItem.HandleActionUseOnTarget(this, target);
+            if (target.CurrentLandblock != null && target != this)
+            {
+                // todo: verify target can be used remotely
+                // move RecipeManager.VerifyUse logic into base Player_Use
+                // this was avoided because i didn't want to deal with the ramifications of random items missing the correct ItemUseable flags,
+                // and because there are still some ItemUseable flags with missing logic we haven't quite figured out yet
+
+                if (IsBusy)
+                {
+                    SendUseDoneEvent(WeenieError.YoureTooBusy);
+                    return;
+                }
+
+                CreateMoveToChain(target, (success) =>
+                {
+                    if (success)
+                        sourceItem.HandleActionUseOnTarget(this, target);
+                    else
+                        SendUseDoneEvent();
+                });
+            }
+            else
+                sourceItem.HandleActionUseOnTarget(this, target);
         }
 
         /// <summary>

@@ -104,13 +104,16 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!healer.Equals(targetPlayer))
+            /*if (!healer.Equals(targetPlayer))
             {
                 // perform moveto
                 healer.CreateMoveToChain(target, (success) => DoHealMotion(healer, targetPlayer, success));
             }
             else
-                DoHealMotion(healer, targetPlayer, true);
+                DoHealMotion(healer, targetPlayer, true);*/
+
+            // MoveTo is now handled in base Player_Use
+            DoHealMotion(healer, targetPlayer, true);
         }
 
         public static readonly float Healing_MaxMove = 5.0f;
