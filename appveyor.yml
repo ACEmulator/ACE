@@ -39,7 +39,7 @@ environment:
   APPVEYOR_RDP_PASSWORD:
     secure: huM6kANmgP1OdlmHulXVZA==
   access_token:
-    secure: k8Q9MwG7UgKbocfdJvD4iBwL1K2AsdjZs6B34/vFqkoukW9p3tJ3uRacb1Zmclyp
+    secure: lGLpqex+Weod6ZiPw34RwTv999QvoSZ+imTcmYhiJWQL6XkfkVUYcqOO6pJDuAYt
 services: mysql
 before_build:
 - cmd: AppVeyor\AppVeyorBeforeCompile.bat
@@ -68,7 +68,7 @@ deploy:
   release: ACEmulator Server - v$(appveyor_build_version)
   description: <h1> ACEmulator Server - v$(appveyor_build_version) </h1> <blockquote>The following changes are included in this release:</<blockquote> <h1></h1>$(APPVEYOR_REPO_COMMIT_MESSAGE) <p>$(APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED)<p><a href="https://github.com/ACEmulator/ACE/compare/v1.0.XXXX...v1.1.XXXX">Click here to see the detailed changes</a></p><h1><h6>automated server build - $(APPVEYOR_REPO_COMMIT_TIMESTAMP)
   auth_token:
-    secure: k8Q9MwG7UgKbocfdJvD4iBwL1K2AsdjZs6B34/vFqkoukW9p3tJ3uRacb1Zmclyp
+    secure: lGLpqex+Weod6ZiPw34RwTv999QvoSZ+imTcmYhiJWQL6XkfkVUYcqOO6pJDuAYt
   artifact: AppVeyor\ACE.Server-v$(appveyor_build_version).zip
   draft: true
   prerelease: false
