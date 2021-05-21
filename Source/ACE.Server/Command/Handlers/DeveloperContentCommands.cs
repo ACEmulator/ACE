@@ -2644,9 +2644,11 @@ namespace ACE.Server.Command.Handlers.Processors
 
             var replaceChars = new Dictionary<string, string>()
             {
+                { " ", "_" },
                 { "-", "_" },
                 { "!", "" },
                 { "#", "" },
+                { "?", "" },
             };
 
             using (var ctx = new WorldDbContext())
