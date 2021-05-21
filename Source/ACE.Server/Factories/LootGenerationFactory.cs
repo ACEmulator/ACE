@@ -350,38 +350,106 @@ namespace ACE.Server.Factories
             // if this needs to be used in high performance scenarios, the collections for the loot tables will
             // will need to be updated to support o(1) queries
 
-            if (GetMutateAetheriaData(item.WeenieClassId))
-                MutateAetheria(item, profile.Tier);
-            else if (GetMutateArmorData(item.WeenieClassId, out var armorType))
-                MutateArmor(item, profile, isMagical, armorType.Value);
-            else if (GetMutateCasterData(item.WeenieClassId))
+            // update: most of the o(n) lookup issues have been fixed,
+            // however this is still looking into more hashtables than necessary.
+            // ideally there should only be 1 hashtable that gets the roll.ItemType,
+            // and any other necessary info (armorType / weaponType)
+            // then just call the existing mutation method
+
+            var roll = new TreasureRoll();
+
+            roll.Wcid = (WeenieClassName)item.WeenieClassId;
+
+            if (roll.Wcid == WeenieClassName.coinstack)
             {
-                var wieldDifficulty = item.W_DamageType != DamageType.Undef ? RollWieldDifficulty(profile.Tier, TreasureWeaponType.Caster) : 0;
-                MutateCaster(item, profile, isMagical, wieldDifficulty);
+                roll.ItemType = TreasureItemType_Orig.Pyreal;
+                MutateCoins(item, profile);
             }
-            else if (GetMutateDinnerwareData(item.WeenieClassId))
-                MutateDinnerware(item, profile, isMagical);
-            else if (GetMutateJewelryData(item.WeenieClassId))
-                MutateJewelry(item, profile, isMagical);
-            else if (GetMutateGemData(item.WeenieClassId))
-                MutateGem(item, profile, isMagical);
-            else if (GetMutateMeleeWeaponData(item.WeenieClassId))
+            else if (GemMaterialChance.Contains(roll.Wcid))
             {
-                if (!MutateMeleeWeapon(item, profile, isMagical))
+                roll.ItemType = TreasureItemType_Orig.Gem;
+                MutateGem(item, profile, isMagical, roll);
+            }
+            else if (JewelryWcids.Contains(roll.Wcid))
+            {
+                roll.ItemType = TreasureItemType_Orig.Jewelry;
+
+                if (!roll.HasArmorLevel(item))
+                    MutateJewelry(item, profile, isMagical, roll);
+                else
                 {
-                    log.Warn($"[LOOT] Missing needed melee weapon properties on loot item {item.WeenieClassId} - {item.Name} for mutations");
-                    return false;
+                    // crowns, coronets, diadems, etc.
+                    MutateArmor(item, profile, isMagical, LootTables.ArmorType.MiscClothing, roll);
                 }
             }
-            else if (GetMutateMissileWeaponData(item.WeenieClassId, profile.Tier))
+            else if (GenericWcids.Contains(roll.Wcid))
             {
-                var wieldDifficulty = RollWieldDifficulty(profile.Tier, TreasureWeaponType.MissileWeapon);
-                MutateMissileWeapon(item, profile, isMagical, wieldDifficulty);
+                roll.ItemType = TreasureItemType_Orig.ArtObject;
+                MutateDinnerware(item, profile, isMagical, roll);
             }
-            else if (item is PetDevice petDevice)
-                MutatePetDevice(petDevice, profile.Tier);
-            else if (GetMutateCloakData(item.WeenieClassId))
-                MutateCloak(item, profile);
+            else if (HeavyWeaponWcids.TryGetValue(roll.Wcid, out var weaponType) ||
+                LightWeaponWcids.TryGetValue(roll.Wcid, out weaponType) ||
+                FinesseWeaponWcids.TryGetValue(roll.Wcid, out weaponType) ||
+                TwoHandedWeaponWcids.TryGetValue(roll.Wcid, out weaponType))
+            {
+                roll.ItemType = TreasureItemType_Orig.Weapon;
+                roll.WeaponType = weaponType;
+                MutateMeleeWeapon(item, profile, isMagical, roll);
+            }
+            else if (BowWcids_Aluvian.TryGetValue(roll.Wcid, out weaponType) ||
+                BowWcids_Gharundim.TryGetValue(roll.Wcid, out weaponType) ||
+                BowWcids_Sho.TryGetValue(roll.Wcid, out weaponType) ||
+                CrossbowWcids.TryGetValue(roll.Wcid, out weaponType) ||
+                AtlatlWcids.TryGetValue(roll.Wcid, out weaponType))
+            {
+                roll.ItemType = TreasureItemType_Orig.Weapon;
+                roll.WeaponType = weaponType;
+                MutateMissileWeapon(item, profile, isMagical, null, roll);
+            }
+            else if (CasterWcids.Contains(roll.Wcid))
+            {
+                roll.ItemType = TreasureItemType_Orig.Weapon;
+                roll.WeaponType = TreasureWeaponType.Caster;
+                MutateCaster(item, profile, isMagical, null, roll);
+            }
+            else if (ArmorWcids.TryGetValue(roll.Wcid, out var armorType))
+            {
+                roll.ItemType = TreasureItemType_Orig.Armor;
+                roll.ArmorType = armorType;
+                var legacyArmorType = roll.ArmorType.ToACE();
+                MutateArmor(item, profile, isMagical, legacyArmorType, roll);
+            }
+            else if (SocietyArmorWcids.Contains(roll.Wcid))
+            {
+                roll.ItemType = TreasureItemType_Orig.SocietyArmor;     // collapsed for mutation
+                roll.ArmorType = TreasureArmorType.Society;
+                MutateSocietyArmor(item, profile, isMagical, roll);
+            }
+            else if (ClothingWcids.Contains(roll.Wcid))
+            {
+                roll.ItemType = TreasureItemType_Orig.Clothing;
+                MutateArmor(item, profile, isMagical, LootTables.ArmorType.MiscClothing, roll);
+            }
+            // scrolls don't really get mutated, even though they are in the main mutation method still
+            else if (CloakWcids.Contains(roll.Wcid))
+            {
+                roll.ItemType = TreasureItemType_Orig.Cloak;
+                MutateCloak(item, profile, roll);
+            }
+            else if (PetDeviceWcids.Contains(roll.Wcid))
+            {
+                roll.ItemType = TreasureItemType_Orig.PetDevice;
+                MutatePetDevice(item, profile.Tier);
+            }
+            else if (AetheriaWcids.Contains(roll.Wcid))
+            {
+                // mundane add-on
+                MutateAetheria_New(item, profile);
+            }
+            // other mundane items (mana stones, food/drink, healing kits, lockpicks, and spell components/peas) don't get mutated
+            // it should be safe to return false here, for the 1 caller that currently uses this method
+            // since it's not this function's responsibility to determine if an item is a lootgen item,
+            // and only returns true if the item has been mutated.
             else
                 return false;
 

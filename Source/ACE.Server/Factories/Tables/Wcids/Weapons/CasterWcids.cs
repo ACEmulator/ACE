@@ -168,5 +168,21 @@ namespace ACE.Server.Factories.Tables.Wcids
         {
             return casterTiers[tier - 1].Roll();
         }
+
+        private static readonly HashSet<WeenieClassName> _combined = new HashSet<WeenieClassName>();
+
+        static CasterWcids()
+        {
+            foreach (var casterTier in casterTiers)
+            {
+                foreach (var entry in casterTier)
+                    _combined.Add(entry.result);
+            }
+        }
+
+        public static bool Contains(WeenieClassName wcid)
+        {
+            return _combined.Contains(wcid);
+        }
     }
 }

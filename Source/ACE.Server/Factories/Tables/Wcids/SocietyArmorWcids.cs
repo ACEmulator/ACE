@@ -86,5 +86,21 @@ namespace ACE.Server.Factories.Tables.Wcids
 
             return heritage.ToSociety();
         }
+
+        private static readonly HashSet<WeenieClassName> _combined = new HashSet<WeenieClassName>();
+
+        static SocietyArmorWcids()
+        {
+            foreach (var table in societyArmorTables)
+            {
+                foreach (var wcid in table)
+                    _combined.Add(wcid);
+            }
+        }
+
+        public static bool Contains(WeenieClassName wcid)
+        {
+            return _combined.Contains(wcid);
+        }
     }
 }

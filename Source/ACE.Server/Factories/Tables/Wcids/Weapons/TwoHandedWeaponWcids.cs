@@ -153,5 +153,21 @@ namespace ACE.Server.Factories.Tables.Wcids
 
             return weaponTable.table.Roll();
         }
+
+        private static readonly Dictionary<WeenieClassName, TreasureWeaponType> _combined = new Dictionary<WeenieClassName, TreasureWeaponType>();
+
+        static TwoHandedWeaponWcids()
+        {
+            foreach (var twoHandedWeaponsTable in twoHandedWeaponTables)
+            {
+                foreach (var wcid in twoHandedWeaponsTable.table)
+                    _combined.TryAdd(wcid.result, twoHandedWeaponsTable.weaponType);
+            }
+        }
+
+        public static bool TryGetValue(WeenieClassName wcid, out TreasureWeaponType weaponType)
+        {
+            return _combined.TryGetValue(wcid, out weaponType);
+        }
     }
 }

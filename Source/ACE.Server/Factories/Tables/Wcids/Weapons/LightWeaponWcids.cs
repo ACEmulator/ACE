@@ -232,5 +232,21 @@ namespace ACE.Server.Factories.Tables.Wcids
 
             return weaponTable.table.Roll();
         }
+
+        private static readonly Dictionary<WeenieClassName, TreasureWeaponType> _combined = new Dictionary<WeenieClassName, TreasureWeaponType>();
+
+        static LightWeaponWcids()
+        {
+            foreach (var lightWeaponsTable in lightWeaponsTables)
+            {
+                foreach (var wcid in lightWeaponsTable.table)
+                    _combined.TryAdd(wcid.result, lightWeaponsTable.weaponType);
+            }
+        }
+
+        public static bool TryGetValue(WeenieClassName wcid, out TreasureWeaponType weaponType)
+        {
+            return _combined.TryGetValue(wcid, out weaponType);
+        }
     }
 }

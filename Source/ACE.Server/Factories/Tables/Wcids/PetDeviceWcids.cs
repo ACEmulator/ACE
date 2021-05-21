@@ -504,5 +504,21 @@ namespace ACE.Server.Factories.Tables.Wcids
 
             return table[petLevelIdx];
         }
+
+        private static readonly HashSet<WeenieClassName> _combined = new HashSet<WeenieClassName>();
+
+        static PetDeviceWcids()
+        {
+            foreach (var petDevice in petDevices)
+            {
+                foreach (var wcid in petDevice)
+                    _combined.Add(wcid);
+            }
+        }
+
+        public static bool Contains(WeenieClassName wcid)
+        {
+            return _combined.Contains(wcid);
+        }
     }
 }
