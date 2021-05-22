@@ -780,6 +780,7 @@ namespace ACE.Server.WorldObjects
             if (spell.IsPortalSpell)
             {
                 var targetPlayer = target as Player;
+                var targetCreature = target as Creature;
 
                 switch (spell.MetaSpellType)
                 {
@@ -902,7 +903,7 @@ namespace ACE.Server.WorldObjects
                                 portalRecall.AddAction(targetPlayer, () =>
                                 {
                                     var teleportDest = new Position(portal.Destination);
-                                    WorldObject.AdjustDungeon(teleportDest);
+                                    AdjustDungeon(teleportDest);
 
                                     targetPlayer.Teleport(teleportDest);
                                 });
@@ -927,13 +928,22 @@ namespace ACE.Server.WorldObjects
                             portalSendingChain.AddAction(targetPlayer, () =>
                             {
                                 var teleportDest = new Position(spell.Position);
-                                WorldObject.AdjustDungeon(teleportDest);
+                                AdjustDungeon(teleportDest);
 
                                 targetPlayer.Teleport(teleportDest);
 
                                 targetPlayer.SendTeleportedViaMagicMessage(itemCaster, spell);
                             });
                             portalSendingChain.EnqueueChain();
+                        }
+                        else if (targetCreature != null)
+                        {
+                            // monsters can cast some portal spells on themselves too, possibly?
+                            // under certain circumstances, such as ensuring the destination is the same landblock
+                            var teleportDest = new Position(spell.Position);
+                            AdjustDungeon(teleportDest);
+
+                            targetCreature.FakeTeleport(teleportDest);
                         }
                         break;
 
@@ -962,7 +972,7 @@ namespace ACE.Server.WorldObjects
                                 portalSendingChain.AddAction(targetPlayer, () =>
                                 {
                                     var teleportDest = new Position(spell.Position);
-                                    WorldObject.AdjustDungeon(teleportDest);
+                                    AdjustDungeon(teleportDest);
 
                                     targetPlayer.Teleport(teleportDest);
 
