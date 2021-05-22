@@ -176,6 +176,9 @@ namespace ACE.Database
 
                         weenies = new List<ACE.Entity.Models.Weenie>();
 
+                        if (results.Count == 0)
+                            return weenies;
+
                         for (int i = 0; i < count; i++)
                         {
                             var index = ThreadSafeRandom.Next(0, results.Count - 1);

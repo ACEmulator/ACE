@@ -1063,53 +1063,46 @@ namespace ACE.Server.Command.Handlers
             AddWeeniesToInventory(session, weenieIds);
         }
 
-        [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates random objects in your inventory.", "type (string or number) <num to create> defaults to 10 if omitted max 50")]
+        [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates random objects in your inventory.", "type (string or number) <num to create> defaults to 10 if omitted, max 50")]
         public static void HandleCIRandom(Session session, params string[] parameters)
         {
-            string weenieTypeName = parameters[0];
-            bool isNumericType = uint.TryParse(weenieTypeName, out uint weenieTypeNumber);
-
-            if (!isNumericType)
+            if (!Enum.TryParse(parameters[0], true, out WeenieType weenieType) || !Enum.IsDefined(typeof(WeenieType), weenieType))
             {
-                try
-                {
-                    weenieTypeNumber = (uint)Enum.Parse(typeof(WeenieType), weenieTypeName);
-                }
-                catch
-                {
-                    ChatPacket.SendServerMessage(session, "Not a valid type name", ChatMessageType.Broadcast);
-                    return;
-                }
-            }
-
-            if (weenieTypeNumber == 0)
-            {
-                ChatPacket.SendServerMessage(session, "Not a valid type id - must be a number between 0 - 2,147,483,647", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, $"{parameters[0]} is not a valid WeenieType", ChatMessageType.Broadcast);
                 return;
             }
 
-            byte numItems = 10;
-
-            if (parameters.Length == 2)
+            if (!AdminCommands.VerifyCreateWeenieType(weenieType))
             {
-                try
-                {
-                    numItems = Convert.ToByte(parameters[1]);
+                ChatPacket.SendServerMessage(session, $"{weenieType} is not a valid WeenieType for create commands", ChatMessageType.Broadcast);
+                return;
+            }
 
-                    if (numItems < 1) numItems = 1;
-                    if (numItems > 50) numItems = 50;
-                }
-                catch (Exception)
+            var numItems = 10;
+
+            if (parameters.Length > 1)
+            {
+                if (!int.TryParse(parameters[1], out numItems) || numItems < 1 || numItems > 50)
                 {
-                    ChatPacket.SendServerMessage(session, "Not a valid number - must be a number between 1 - 50", ChatMessageType.Broadcast);
+                    ChatPacket.SendServerMessage(session, $"<num to create> must be a number between 1 - 50", ChatMessageType.Broadcast);
                     return;
                 }
             }
 
-            var items = LootGenerationFactory.CreateRandomObjectsOfType((WeenieType)weenieTypeNumber, numItems);
+            var items = LootGenerationFactory.CreateRandomObjectsOfType(weenieType, numItems);
+
+            var stuck = new List<WorldObject>();
 
             foreach (var item in items)
-                session.Player.TryCreateInInventoryWithNetworking(item);
+            {
+                if (!item.Stuck)
+                    session.Player.TryCreateInInventoryWithNetworking(item);
+                else
+                    stuck.Add(item);    
+            }
+
+            if (stuck.Count != 0)
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot spawn {string.Join(", ", stuck.Select(i => i.WeenieClassName))} in your inventory because it cannot be picked up", ChatMessageType.Broadcast));
         }
 
 
