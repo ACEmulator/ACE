@@ -462,7 +462,13 @@ namespace ACE.Server.WorldObjects
                 // if so, did they use the same 1.5x formula as war magic, instead of 2.0x?
                 if (criticalHit)
                 {
+                    // TODO: review how CD/CDR is factored in
+                    // there is evidence to indicate that CriticalMultiplier did indeed factor in only for the critDamageBonus portion
+                    // however, CD/CDR might have been applied to the total damage (base damage + crit portion) for crits
+                    // also investigate if damage and crit damage ratings should be combined additively, instead of multiplicatively
+
                     weaponCritDamageMod = GetWeaponCritDamageMod(sourceCreature, attackSkill, target);
+
                     critDamageBonus = lifeMagicDamage * 0.5f * weaponCritDamageMod;
                 }
 
@@ -500,6 +506,11 @@ namespace ACE.Server.WorldObjects
                         critDamageBonus = Spell.MinDamage * 0.5f;
                     else   // PvE: 50% of the MAX damage added to normal damage roll
                         critDamageBonus = Spell.MaxDamage * 0.5f;
+
+                    // TODO: review how CD/CDR is factored in
+                    // there is evidence to indicate that CriticalMultiplier did indeed factor in only for the critDamageBonus portion
+                    // however, CD/CDR might have been applied to the total damage (base damage + crit portion) for crits
+                    // also investigate if damage and crit damage ratings should be combined additively, instead of multiplicatively
 
                     weaponCritDamageMod = GetWeaponCritDamageMod(sourceCreature, attackSkill, target);
 
