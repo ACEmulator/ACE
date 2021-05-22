@@ -5,6 +5,7 @@ using System.Linq;
 using log4net;
 
 using ACE.Common;
+using ACE.DatLoader.Entity.AnimationHooks;
 using ACE.Entity.Enum;
 using ACE.Entity.Models;
 using ACE.Server.Managers;
@@ -97,6 +98,7 @@ namespace ACE.Server.Entity
 
         // creature attacker
         public MotionCommand? AttackMotion;
+        public AttackHook AttackHook;
         public KeyValuePair<CombatBodyPart, PropertiesBodyPart> AttackPart;      // the body part this monster is attacking with
 
         // creature defender
@@ -138,10 +140,11 @@ namespace ACE.Server.Entity
             40301,  // Verdant Moar
         };
 
-        public static DamageEvent CalculateDamage(Creature attacker, Creature defender, WorldObject damageSource, MotionCommand? attackMotion = null)
+        public static DamageEvent CalculateDamage(Creature attacker, Creature defender, WorldObject damageSource, MotionCommand? attackMotion = null, AttackHook attackHook = null)
         {
             var damageEvent = new DamageEvent();
             damageEvent.AttackMotion = attackMotion;
+            damageEvent.AttackHook = attackHook;
             if (damageSource == null)
                 damageSource = attacker;
 
@@ -199,7 +202,7 @@ namespace ACE.Server.Entity
             if (playerAttacker != null)
                 GetBaseDamage(playerAttacker);
             else
-                GetBaseDamage(attacker, AttackMotion ?? MotionCommand.Invalid);
+                GetBaseDamage(attacker, AttackMotion ?? MotionCommand.Invalid, AttackHook);
 
             if (DamageType == DamageType.Undef && !AllowDamageTypeUndef.Contains(damageSource.WeenieClassId))
             {
@@ -391,9 +394,9 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Returns the base damage for a non-player attacker
         /// </summary>
-        public void GetBaseDamage(Creature attacker, MotionCommand motionCommand)
+        public void GetBaseDamage(Creature attacker, MotionCommand motionCommand, AttackHook attackHook)
         {
-            AttackPart = attacker.GetAttackPart(motionCommand);
+            AttackPart = attacker.GetAttackPart(motionCommand, attackHook);
             if (AttackPart.Value == null)
             {
                 GeneralFailure = true;
