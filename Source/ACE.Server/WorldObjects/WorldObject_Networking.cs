@@ -1118,6 +1118,9 @@ namespace ACE.Server.WorldObjects
 
             actionChain.AddAction(this, () =>
             {
+                // if no longer in missile combat, don't bother
+                if (this is Player player && player.CombatMode != CombatMode.Missile) return;
+
                 // retain original profile of function, but if something else has changed the stance (such as weapon swapping),
                 // do not thrash CurrentMotionState.Stance
                 if (CurrentMotionState.Stance == stance)
@@ -1146,6 +1149,9 @@ namespace ACE.Server.WorldObjects
 
             actionChain.AddAction(this, () =>
             {
+                // if no longer in missile combat, don't bother
+                if (this is Player player && player.CombatMode != CombatMode.Missile) return;
+
                 // retain original profile of function, but if something else has changed the stance (such as weapon swapping),
                 // do not thrash CurrentMotionState.Stance
                 if (CurrentMotionState.Stance == stance)

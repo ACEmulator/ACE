@@ -267,8 +267,11 @@ namespace ACE.Server.WorldObjects
             var linkTime = MotionTable.GetAnimationLength(MotionTableId, stance, MotionCommand.Reload, MotionCommand.Ready);
             //var cycleTime = MotionTable.GetCycleLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready);
 
-            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, ACE.Entity.Enum.ParentLocation.RightHand,
-                ACE.Entity.Enum.Placement.RightHandCombat)));
+            actionChain.AddAction(this, () =>
+            {
+                if (CombatMode == CombatMode.Missile)
+                    EnqueueBroadcast(new GameMessageParentEvent(this, ammo, ACE.Entity.Enum.ParentLocation.RightHand, ACE.Entity.Enum.Placement.RightHandCombat));
+            }); 
 
             actionChain.AddDelaySeconds(linkTime);
 
