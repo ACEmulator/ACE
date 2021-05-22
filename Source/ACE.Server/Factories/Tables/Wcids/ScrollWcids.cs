@@ -1409,5 +1409,18 @@ namespace ACE.Server.Factories.Tables.Wcids
 
             return scrollWcids[rng];
         }
+
+        private static readonly HashSet<WeenieClassName> _combined = new HashSet<WeenieClassName>();
+
+        static ScrollWcids()
+        {
+            foreach (var scrollWcid in scrollWcids)
+                _combined.Add(scrollWcid);
+        }
+
+        public static bool Contains(WeenieClassName wcid)
+        {
+            return _combined.Contains(wcid);
+        }
     }
 }

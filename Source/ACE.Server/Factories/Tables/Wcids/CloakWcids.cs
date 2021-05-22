@@ -29,5 +29,18 @@ namespace ACE.Server.Factories.Tables.Wcids
 
             return cloakWcids[rng];
         }
+
+        private static readonly HashSet<WeenieClassName> _combined = new HashSet<WeenieClassName>();
+
+        static CloakWcids()
+        {
+            foreach (var cloakWcid in cloakWcids)
+                _combined.Add(cloakWcid);
+        }
+
+        public static bool Contains(WeenieClassName wcid)
+        {
+            return _combined.Contains(wcid);
+        }
     }
 }

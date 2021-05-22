@@ -70,5 +70,21 @@ namespace ACE.Server.Factories.Tables.Wcids
         {
             return bowTiers[tier - 1].Roll();
         }
+
+        private static readonly Dictionary<WeenieClassName, TreasureWeaponType> _combined = new Dictionary<WeenieClassName, TreasureWeaponType>();
+
+        static BowWcids_Gharundim()
+        {
+            foreach (var bowTier in bowTiers)
+            {
+                foreach (var entry in bowTier)
+                    _combined.TryAdd(entry.result, TreasureWeaponType.Bow);
+            }
+        }
+
+        public static bool TryGetValue(WeenieClassName wcid, out TreasureWeaponType weaponType)
+        {
+            return _combined.TryGetValue(wcid, out weaponType);
+        }
     }
 }

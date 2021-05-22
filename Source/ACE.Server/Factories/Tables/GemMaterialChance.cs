@@ -113,6 +113,8 @@ namespace ACE.Server.Factories.Tables
 
         private static readonly Dictionary<MaterialType, int> gemMaterialValue = new Dictionary<MaterialType, int>();
 
+        private static readonly HashSet<WeenieClassName> _combined = new HashSet<WeenieClassName>();
+
         static GemMaterialChance()
         {
             // build gemMaterialValue
@@ -120,6 +122,13 @@ namespace ACE.Server.Factories.Tables
             {
                 foreach (var material in gemMaterialChances[i].Select(i => i.result))
                     gemMaterialValue.Add(material.MaterialType, gemClassValue[i]);
+            }
+
+            // build wcid hashset for lootgen command
+            foreach (var gemMaterialChance in gemMaterialChances)
+            {
+                foreach (var entry in gemMaterialChance)
+                    _combined.Add(entry.result.ClassName);
             }
         }
 
@@ -132,6 +141,11 @@ namespace ACE.Server.Factories.Tables
                 return gemValue;
             else
                 return 0;   // default?
+        }
+
+        public static bool Contains(WeenieClassName wcid)
+        {
+            return _combined.Contains(wcid);
         }
     }
 }

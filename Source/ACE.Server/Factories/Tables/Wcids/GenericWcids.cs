@@ -73,5 +73,21 @@ namespace ACE.Server.Factories.Tables.Wcids
 
             return tierChances[tier - 1].Roll();
         }
+
+        private static readonly HashSet<WeenieClassName> _combined = new HashSet<WeenieClassName>();
+
+        static GenericWcids()
+        {
+            foreach (var tierChance in tierChances)
+            {
+                foreach (var entry in tierChance)
+                    _combined.Add(entry.result);
+            }
+        }
+
+        public static bool Contains(WeenieClassName wcid)
+        {
+            return _combined.Contains(wcid);
+        }
     }
 }
