@@ -279,7 +279,12 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (FastTick && PhysicsObj.IsMovingOrAnimating || PhysicsObj.Velocity != Vector3.Zero)
+                {
                     UpdatePlayerPhysics();
+
+                    if (MoveToParams?.Callback != null && !PhysicsObj.IsMovingOrAnimating)
+                        HandleMoveToCallback();
+                }
 
                 InUpdate = false;
 
