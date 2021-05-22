@@ -34,6 +34,10 @@ namespace ACE.Server.WorldObjects
             if (IsGenerator || Generator != null)
                 return false;
 
+            // Don't rot items with lifespan, they'll handle their own version of decay.
+            if (Lifespan.HasValue)
+                return false;
+
             if (TimeToRot.HasValue)
                 return TimeToRot != -1; // -1 = Never Rot
 
@@ -116,6 +120,7 @@ namespace ACE.Server.WorldObjects
                     if (corpse.TryRemoveFromInventory(guid, out var item))
                     {
                         item.Location = new Position(corpse.Location);
+                        item.Location.PositionZ += 0.05f * (item.ObjScale ?? 1.0f);
                         item.Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
                         CurrentLandblock.AddWorldObject(item);
                         item.SaveBiotaToDatabase();

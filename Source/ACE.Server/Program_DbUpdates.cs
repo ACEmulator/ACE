@@ -19,37 +19,61 @@ namespace ACE.Server
         private static void CheckForWorldDatabaseUpdate()
         {
             log.Info($"Automatic World Database Update started...");
-            var worldDb = new Database.WorldDatabase();
-            var currentVersion = worldDb.GetVersion();
-            log.Info($"Current World Database version: Base - {currentVersion.BaseVersion} | Patch - {currentVersion.PatchVersion}");
-
-            var url = "https://api.github.com/repos/ACEmulator/ACE-World-16PY-Patches/releases";
-            var request = (HttpWebRequest)WebRequest.Create(url);
-            request.UserAgent = "ACE.Server";
-
-            var response = request.GetResponse();
-            var reader = new StreamReader(response.GetResponseStream(), System.Text.Encoding.UTF8);
-            var html = reader.ReadToEnd();
-            reader.Close();
-            response.Close();
-
-            dynamic json = JsonConvert.DeserializeObject(html);
-            string tag = json[0].tag_name;
-            string dbURL = json[0].assets[0].browser_download_url;
-            string dbFileName = json[0].assets[0].name;
-
-            if (currentVersion.PatchVersion != tag)
+            try
             {
-                log.Info($"Latest patch version is {tag} -- Update Required!");
-                UpdateToLatestWorldDatabase(dbURL, dbFileName);
-                var newVersion = worldDb.GetVersion();
-                log.Info($"Updated World Database version: Base - {newVersion.BaseVersion} | Patch - {newVersion.PatchVersion}");
-            }
-            else
-            {
-                log.Info($"Latest patch version is {tag} -- No Update Required!");
-            }
+                var worldDb = new Database.WorldDatabase();
+                var currentVersion = worldDb.GetVersion();
+                log.Info($"Current World Database version: Base - {currentVersion.BaseVersion} | Patch - {currentVersion.PatchVersion}");
 
+                var url = "https://api.github.com/repos/ACEmulator/ACE-World-16PY-Patches/releases";
+                var request = (HttpWebRequest)WebRequest.Create(url);
+                request.UserAgent = "ACE.Server";
+
+                var response = request.GetResponse();
+                var reader = new StreamReader(response.GetResponseStream(), System.Text.Encoding.UTF8);
+                var html = reader.ReadToEnd();
+                reader.Close();
+                response.Close();
+
+                dynamic json = JsonConvert.DeserializeObject(html);
+                string tag = json[0].tag_name;
+                string dbURL = json[0].assets[0].browser_download_url;
+                string dbFileName = json[0].assets[0].name;
+
+                if (currentVersion.PatchVersion != tag)
+                {
+                    var patchVersionSplit = currentVersion.PatchVersion.Split(".");
+                    var tagSplit = tag.Split(".");
+
+                    int.TryParse(patchVersionSplit[0], out var patchMajor);
+                    int.TryParse(patchVersionSplit[1], out var patchMinor);
+                    int.TryParse(patchVersionSplit[2], out var patchBuild);
+
+                    int.TryParse(tagSplit[0], out var tagMajor);
+                    int.TryParse(tagSplit[1], out var tagMinor);
+                    int.TryParse(tagSplit[2], out var tagBuild);
+
+                    if (tagMajor > patchMajor || tagMinor > patchMinor || (tagBuild > patchBuild && patchBuild != 0))
+                    {
+                        log.Info($"Latest patch version is {tag} -- Update Required!");
+                        UpdateToLatestWorldDatabase(dbURL, dbFileName);
+                        var newVersion = worldDb.GetVersion();
+                        log.Info($"Updated World Database version: Base - {newVersion.BaseVersion} | Patch - {newVersion.PatchVersion}");
+                    }
+                    else
+                    {
+                        log.Info($"Latest patch version is {tag} -- No Update Required!");
+                    }
+                }
+                else
+                {
+                    log.Info($"Latest patch version is {tag} -- No Update Required!");
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Info($"Unable to continue with Automatic World Database Update due to the following error: {ex}");
+            }
             log.Info($"Automatic World Database Update complete.");
         }
 
@@ -94,8 +118,12 @@ namespace ACE.Server
 
                 var line = string.Empty;
                 var completeSQLline = string.Empty;
+
+                var dbname = ConfigManager.Config.MySql.World.Database;
+
                 while ((line = sr.ReadLine()) != null)
                 {
+                    line = line.Replace("ace_world", dbname);
                     //do minimal amount of work here
                     if (line.EndsWith(";"))
                     {
@@ -180,6 +208,7 @@ namespace ACE.Server
                         Console.Write($"Found {file.FullName} .... ");
                         var sqlDBFile = File.ReadAllText(file.FullName);
                         var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={ConfigManager.Config.MySql.World.Host};port={ConfigManager.Config.MySql.World.Port};user={ConfigManager.Config.MySql.World.Username};password={ConfigManager.Config.MySql.World.Password};database={ConfigManager.Config.MySql.World.Database};DefaultCommandTimeout=120");
+                        sqlDBFile = sqlDBFile.Replace("ace_world", ConfigManager.Config.MySql.World.Database);
                         var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
 
                         Console.Write($"Importing into World database on SQL server at {ConfigManager.Config.MySql.World.Host}:{ConfigManager.Config.MySql.World.Port} .... ");
@@ -237,6 +266,18 @@ namespace ACE.Server
                 Console.Write($"Found {file.Name} .... ");
                 var sqlDBFile = File.ReadAllText(file.FullName);
                 var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={host};port={port};user={username};password={password};database={database};DefaultCommandTimeout=120");
+                switch (dbType)
+                {
+                    case "Authentication":
+                        sqlDBFile = sqlDBFile.Replace("ace_auth", database);
+                        break;
+                    case "Shard":
+                        sqlDBFile = sqlDBFile.Replace("ace_shard", database);
+                        break;
+                    case "World":
+                        sqlDBFile = sqlDBFile.Replace("ace_world", database);
+                        break;
+                }
                 var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
 
                 Console.Write($"Importing into {database} database on SQL server at {host}:{port} .... ");
@@ -255,7 +296,7 @@ namespace ACE.Server
                 File.AppendAllText(updatesFile, file.Name + Environment.NewLine);
             }
 
-            if (IsRunningInContainer && File.Exists(containerUpdatesFile))
+            if (IsRunningInContainer && File.Exists(updatesFile))
                 File.Copy(updatesFile, containerUpdatesFile, true);
 
             Console.WriteLine($"{dbType} update SQL scripts import complete!");

@@ -48,6 +48,32 @@ namespace ACE.Server.WorldObjects
                 var accountTimeSpan = DateTime.UtcNow - Account.CreateTime;
                 if (accountTimeSpan.TotalDays >= 15)
                     Account15Days = true;
+
+                if (PropertyManager.GetBool("house_15day_account").Item && !HouseRentTimestamp.HasValue) // account was created less than 15 days ago and has NOT purchased a house (HouseRentTimestamp is null because no house has been bought)
+                {
+                    if (!Account15Days) // http://acpedia.org/wiki/Housing_FAQ#Purchase_timer
+                    {
+                        var accountCreateTimeMinus15Days = Account.CreateTime.AddDays(-15);
+                        HousePurchaseTimestamp = (int)Time.GetUnixTime(accountCreateTimeMinus15Days);
+                    }
+                    else // account is now 15+ days old and still has not purchased a house, remove unneeded HousePurchaseTimestamp
+                    {
+                        HousePurchaseTimestamp = null;
+                    }
+                }
+            }
+
+            if (PlayerKillerStatus == PlayerKillerStatus.PKLite && !PropertyManager.GetBool("pkl_server").Item)
+            {
+                PlayerKillerStatus = PlayerKillerStatus.NPK;
+
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(3.0f);
+                actionChain.AddAction(this, () =>
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNonPKAgain));
+                });
+                actionChain.EnqueueChain();
             }
 
             // SendSelf will trigger the entrance into portal space
@@ -98,20 +124,18 @@ namespace ACE.Server.WorldObjects
             HandleFreeSkillResetRenewal();
             HandleFreeAttributeResetRenewal();
 
-            if (PlayerKillerStatus == PlayerKillerStatus.PKLite && !PropertyManager.GetBool("pkl_server").Item)
+            HandleDBUpdates();
+
+            if (ServerManager.ShutdownInitiated)
             {
                 var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(3.0f);
+                actionChain.AddDelaySeconds(10.0f);
                 actionChain.AddAction(this, () =>
                 {
-                    UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK, true);
-
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNonPKAgain));
+                    SendMessage(ServerManager.ShutdownNoticeText(), ChatMessageType.WorldBroadcast);
                 });
                 actionChain.EnqueueChain();
             }
-
-            HandleDBUpdates();
         }
 
         public void SendTurbineChatChannels(bool breakAllegiance = false)
@@ -232,7 +256,7 @@ namespace ACE.Server.WorldObjects
 
         public void SendContractTrackerTable()
         {
-            if (ContractManager.Contracts.Count > 0)
+            if (Character.GetContractsCount(CharacterDatabaseLock) > 0)
                 Session.Network.EnqueueSend(new GameEventSendClientContractTrackerTable(Session));
         }
 
@@ -322,6 +346,15 @@ namespace ACE.Server.WorldObjects
             }
 
             var movementData = new MovementData(this, moveToState);
+
+            // copy some fields to CurrentMotionState?
+            // this is a mess, fix this whole architecture.
+            CurrentMotionState.MotionState.ForwardCommand = movementData.Invalid.State.ForwardCommand;
+            CurrentMotionState.MotionState.ForwardSpeed = movementData.Invalid.State.ForwardSpeed;
+            CurrentMotionState.MotionState.TurnCommand = movementData.Invalid.State.TurnCommand;
+            CurrentMotionState.MotionState.TurnSpeed = movementData.Invalid.State.TurnSpeed;
+            CurrentMotionState.MotionState.SidestepCommand = movementData.Invalid.State.SidestepCommand;
+            CurrentMotionState.MotionState.SidestepSpeed = movementData.Invalid.State.SidestepSpeed;
 
             var movementEvent = new GameMessageUpdateMotion(this, movementData);
             EnqueueBroadcast(true, movementEvent);    // shouldn't need to go to originating player?

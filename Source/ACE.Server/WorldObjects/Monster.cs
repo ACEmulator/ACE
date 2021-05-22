@@ -13,6 +13,10 @@ namespace ACE.Server.WorldObjects
 
         public bool IsPassivePet { get; set; }
 
+        public bool IsFactionMob { get; set; }
+
+        public bool HasFoeType { get; set; }
+
         /// <summary>
         /// The exclusive state of the monster
         /// </summary>
@@ -41,6 +45,10 @@ namespace ACE.Server.WorldObjects
 
             // includes CombatPets
             IsMonster = Attackable || TargetingTactic != TargetingTactic.None;
+
+            IsFactionMob = IsMonster && WeenieType != WeenieType.CombatPet && Faction1Bits != null;
+
+            HasFoeType = IsMonster && FoeType != null;
         }
     }
 }

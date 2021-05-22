@@ -2,6 +2,8 @@ using System;
 
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -75,12 +77,39 @@ namespace ACE.Server.WorldObjects
 
                             // blood splatter?
                         }
+
+                        if (!(targetCreature is CombatPet))
+                        {
+                            // faction mobs and foetype
+                            sourceCreature.MonsterOnAttackMonster(targetCreature);
+                        }
                     }
                 }
 
                 // handle target procs
                 if (damageEvent != null && damageEvent.HasDamage)
-                    sourceCreature?.TryProcEquippedItems(targetCreature, false);
+                {
+                    bool threadSafe = true;
+
+                    if (LandblockManager.CurrentlyTickingLandblockGroupsMultiThreaded)
+                    {
+                        // Ok... if we got here, we're likely in the parallel landblock physics processing.
+                        if (sourceCreature.CurrentLandblock == null || targetCreature.CurrentLandblock == null || sourceCreature.CurrentLandblock.CurrentLandblockGroup != targetCreature.CurrentLandblock.CurrentLandblockGroup)
+                            threadSafe = false;
+                    }
+
+                    if (threadSafe)
+                        // This can result in spell projectiles being added to either sourceCreature or targetCreature landblock.
+                        sourceCreature.TryProcEquippedItems(targetCreature, false);
+                    else
+                    {
+                        // sourceCreature and creatureTarget are now in different landblock groups.
+                        // What has likely happened is that sourceCreature sent a projectile toward creatureTarget. Before impact, sourceCreature was teleported away.
+                        // To perform this fully thread safe, we would enqueue the work onto worldManager.
+                        // WorldManager.EnqueueAction(new ActionEventDelegate(() => sourceCreature.TryProcEquippedItems(targetCreature, false)));
+                        // But, to keep it simple, we will just ignore it and not bother with TryProcEquippedItems for this particular impact.
+                    }
+                }
             }
 
             worldObject.CurrentLandblock?.RemoveWorldObject(worldObject.Guid, showError: !worldObject.PhysicsObj.entering_world);

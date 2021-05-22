@@ -32,12 +32,12 @@ namespace ACE.Server.WorldObjects
         {
         }
 
-        public override bool Init(Player player, PetDevice petDevice)
+        public override bool? Init(Player player, PetDevice petDevice)
         {
             var success = base.Init(player, petDevice);
 
-            if (!success)
-                return false;
+            if (success == null || !success.Value)
+                return success;
 
             SetCombatMode(CombatMode.Melee);
             MonsterState = State.Awake;
@@ -112,10 +112,10 @@ namespace ACE.Server.WorldObjects
                 }
 
                 // combat pets do not aggro monsters belonging to the same faction as the pet owner?
-                if (Faction1Bits != null && creature.Faction1Bits != null && (Faction1Bits & creature.Faction1Bits) != 0)
+                if (SameFaction(creature))
                 {
                     // unless the pet owner or the pet is being retaliated against?
-                    if (creature.RetaliateTargets != null && P_PetOwner != null && !creature.RetaliateTargets.Contains(P_PetOwner.Guid.Full) && !creature.RetaliateTargets.Contains(Guid.Full))
+                    if (!creature.HasRetaliateTarget(P_PetOwner) && !creature.HasRetaliateTarget(this))
                         continue;
                 }
 

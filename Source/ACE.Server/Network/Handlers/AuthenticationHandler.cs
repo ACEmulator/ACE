@@ -165,7 +165,7 @@ namespace ACE.Server.Network.Handlers
                     else
                         log.Debug($"client {loginRequest.Account} connected with non matching password so booting");
 
-                    session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageBootAccount(" because the password entered for this account was not correct."));
+                    session.Terminate(SessionTerminationReason.NotAuthorizedPasswordMismatch, new GameMessageBootAccount(" because the password entered for this account was not correct"));
 
                     // TO-DO: temporary lockout of account preventing brute force password discovery
                     // exponential duration of lockout for targeted account
@@ -179,7 +179,12 @@ namespace ACE.Server.Network.Handlers
 
                     if (previouslyConnectedAccount != null)
                     {
+                        // Boot the existing account
                         previouslyConnectedAccount.Terminate(SessionTerminationReason.AccountLoggedIn, new GameMessageCharacterError(CharacterError.Logon));
+
+                        // We still can't let the new account in. They'll need to retry after the previous account has been successfully booted.
+                        session.Terminate(SessionTerminationReason.AccountInUse, new GameMessageCharacterError(CharacterError.Logon));
+                        return;
                     }
                 }
 
@@ -206,7 +211,7 @@ namespace ACE.Server.Network.Handlers
                 if (now < account.BanExpireTime.Value)
                 {
                     var reason = account.BanReason;
-                    session.Terminate(SessionTerminationReason.AccountBanned, new GameMessageBootAccount($"{(reason != null ? $" - {reason}" : null)}"), null, reason);
+                    session.Terminate(SessionTerminationReason.AccountBanned, new GameMessageAccountBanned(account.BanExpireTime.Value, $"{(reason != null ? $" - {reason}" : null)}"), null, reason);
                     return;
                 }
                 else

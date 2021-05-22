@@ -432,6 +432,9 @@ namespace ACE.Server.WorldObjects
             TooEncumbered = false;
             NotEnoughFreeSlots = false;
 
+            if (worldObjects.Count == 0) // There are no objects to add (e.g. 1 way trade)
+                return true;
+
             if (this is Player player && !player.HasEnoughBurdenToAddToInventory(worldObjects))
             {
                 TooEncumbered = true;
@@ -585,8 +588,11 @@ namespace ACE.Server.WorldObjects
             var itemGuids = Inventory.Keys.ToList();
             foreach (var itemGuid in itemGuids)
             {
-                if (!TryRemoveFromInventory(itemGuid, forceSave))
+                if (!TryRemoveFromInventory(itemGuid, out var item, forceSave))
                     success = false;
+
+                if (success)
+                    item.Destroy();
             }
             if (forceSave)
                 SaveBiotaToDatabase();
@@ -709,7 +715,11 @@ namespace ACE.Server.WorldObjects
 
         public virtual void Open(Player player)
         {
-            if (IsOpen) return;
+            if (IsOpen)
+            {
+                player.SendTransientError(InUseMessage);
+                return;
+            }
 
             player.LastOpenedContainerId = Guid;
 
@@ -812,7 +822,7 @@ namespace ACE.Server.WorldObjects
             return 0;
         }
 
-        private void FinishClose(Player player)
+        public virtual void FinishClose(Player player)
         {
             IsOpen = false;
             Viewer = 0;

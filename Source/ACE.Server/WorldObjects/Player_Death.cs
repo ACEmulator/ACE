@@ -84,7 +84,9 @@ namespace ACE.Server.WorldObjects
                 // instead, we get all of the players in the lifestone landblock + adjacent landblocks,
                 // and possibly limit that to some radius around the landblock?
                 var lifestoneBlock = LandblockManager.GetLandblock(new LandblockId(Sanctuary.Landblock << 16 | 0xFFFF), true);
-                lifestoneBlock.EnqueueBroadcast(excludePlayers, true, Sanctuary, LocalBroadcastRangeSq, broadcastMsg);
+
+                // We enqueue the work onto the target landblock to ensure thread-safety. It's highly likely the lifestoneBlock is far away, and part of a different landblock group (and thus different thread).
+                lifestoneBlock.EnqueueAction(new ActionEventDelegate(() => lifestoneBlock.EnqueueBroadcast(excludePlayers, true, Sanctuary, LocalBroadcastRangeSq, broadcastMsg)));
             }
 
             return deathMessage;
@@ -139,12 +141,16 @@ namespace ACE.Server.WorldObjects
         }
 
 
+        private bool isInDeathProcess;
+
         /// <summary>
         /// Broadcasts the player death animation, updates vitae, and sends network messages for player death
         /// Queues the action to call TeleportOnDeath and enter portal space soon
         /// </summary>
         protected override void Die(DamageHistoryInfo lastDamager, DamageHistoryInfo topDamager)
         {
+            isInDeathProcess = true;
+
             if (topDamager?.Guid == Guid && IsPKType)
             {
                 var topDamagerOther = DamageHistory.GetTopDamager(false);
@@ -239,7 +245,8 @@ namespace ACE.Server.WorldObjects
                 SetLifestoneProtection();
 
                 var teleportChain = new ActionChain();
-                teleportChain.AddDelaySeconds(3.0f);
+                if (!IsLoggingOut) // If we're in the process of logging out, we skip the delay
+                    teleportChain.AddDelaySeconds(3.0f);
                 teleportChain.AddAction(this, () =>
                 {
                     // currently happens while in portal space
@@ -261,6 +268,11 @@ namespace ACE.Server.WorldObjects
                     DamageHistory.Reset();
 
                     OnHealthUpdate();
+
+                    isInDeathProcess = false;
+
+                    if (IsLoggingOut)
+                        LogOut_Final(true);
                 });
 
                 teleportChain.EnqueueChain();
@@ -307,7 +319,7 @@ namespace ACE.Server.WorldObjects
 
             if (step < SuicideMessages.Count)
             {
-                EnqueueBroadcast(new GameMessageCreatureMessage(SuicideMessages[step], Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
+                EnqueueBroadcast(new GameMessageHearSpeech(SuicideMessages[step], Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
 
                 var suicideChain = new ActionChain();
                 suicideChain.AddDelaySeconds(3.0f);

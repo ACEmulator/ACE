@@ -30,42 +30,6 @@ namespace ACE.Server.WorldObjects
             set { if (value.HasValue) SetProperty(PropertyInt.PetClass, value.Value); else RemoveProperty(PropertyInt.PetClass); }
         }
 
-        public int? GearDamage
-        {
-            get => GetProperty(PropertyInt.GearDamage);
-            set { if (value.HasValue) SetProperty(PropertyInt.GearDamage, value.Value); else RemoveProperty(PropertyInt.GearDamage); }
-        }
-
-        public int? GearDamageResist
-        {
-            get => GetProperty(PropertyInt.GearDamageResist);
-            set { if (value.HasValue) SetProperty(PropertyInt.GearDamageResist, value.Value); else RemoveProperty(PropertyInt.GearDamageResist); }
-        }
-
-        public int? GearCritDamage
-        {
-            get => GetProperty(PropertyInt.GearCritDamage);
-            set { if (value.HasValue) SetProperty(PropertyInt.GearCritDamage, value.Value); else RemoveProperty(PropertyInt.GearCritDamage); }
-        }
-
-        public int? GearCritDamageResist
-        {
-            get => GetProperty(PropertyInt.GearCritDamageResist);
-            set { if (value.HasValue) SetProperty(PropertyInt.GearCritDamageResist, value.Value); else RemoveProperty(PropertyInt.GearCritDamageResist); }
-        }
-
-        public int? GearCrit
-        {
-            get => GetProperty(PropertyInt.GearCrit);
-            set { if (value.HasValue) SetProperty(PropertyInt.GearCrit, value.Value); else RemoveProperty(PropertyInt.GearCrit); }
-        }
-
-        public int? GearCritResist
-        {
-            get => GetProperty(PropertyInt.GearCritResist);
-            set { if (value.HasValue) SetProperty(PropertyInt.GearCritResist, value.Value); else RemoveProperty(PropertyInt.GearCritResist); }
-        }
-
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -112,7 +76,9 @@ namespace ACE.Server.WorldObjects
 
             var wcid = (uint)PetClass;
 
-            if (SummonCreature(player, wcid))
+            var result = SummonCreature(player, wcid);
+
+            if (result == null || result.Value)
             {
                 // CombatPet devices should always have structure
                 if (Structure != null)
@@ -153,14 +119,28 @@ namespace ACE.Server.WorldObjects
 
             if (player.CurrentActivePet != null && player.CurrentActivePet is CombatPet)
             {
-                player.SendTransientError($"{player.CurrentActivePet.Name} is already active");
-                return new ActivationResult(false);
-            }
+                if (PropertyManager.GetBool("pet_stow_replace").Item)
+                {
+                    // original ace
+                    player.SendTransientError($"{player.CurrentActivePet.Name} is already active");
+                    return new ActivationResult(false);
+                }
+                else
+                {
+                    // retail stow
+                    var pet = WorldObjectFactory.CreateNewWorldObject((uint)PetClass) as Pet;
 
+                    if (pet == null || !pet.IsPassivePet)
+                    {
+                        player.SendTransientError($"{player.CurrentActivePet.Name} is already active");
+                        return new ActivationResult(false);
+                    }
+                }
+            }
             return new ActivationResult(true);
         }
 
-        public bool SummonCreature(Player player, uint wcid)
+        public bool? SummonCreature(Player player, uint wcid)
         {
             var wo = WorldObjectFactory.CreateNewWorldObject(wcid);
 

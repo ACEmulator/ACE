@@ -130,12 +130,19 @@ namespace ACE.Entity.Adapter
                     result.PropertiesAttribute2nd.Add(kvp.Key, kvp.Value.Clone());
             }
 
-            if (weenie.PropertiesBodyPart != null && (instantiateEmptyCollections || weenie.PropertiesBodyPart.Count > 0))
+            if (referenceWeenieCollectionsForCommonProperties)
             {
-                result.PropertiesBodyPart = new Dictionary<CombatBodyPart, PropertiesBodyPart>(weenie.PropertiesBodyPart.Count);
+                result.PropertiesBodyPart = weenie.PropertiesBodyPart;
+            }
+            else
+            {
+                if (weenie.PropertiesBodyPart != null && (instantiateEmptyCollections || weenie.PropertiesBodyPart.Count > 0))
+                {
+                    result.PropertiesBodyPart = new Dictionary<CombatBodyPart, PropertiesBodyPart>(weenie.PropertiesBodyPart.Count);
 
-                foreach (var kvp in weenie.PropertiesBodyPart)
-                    result.PropertiesBodyPart.Add(kvp.Key, kvp.Value.Clone());
+                    foreach (var kvp in weenie.PropertiesBodyPart)
+                        result.PropertiesBodyPart.Add(kvp.Key, kvp.Value.Clone());
+                }
             }
 
             if (weenie.PropertiesSkill != null && (instantiateEmptyCollections || weenie.PropertiesSkill.Count > 0))

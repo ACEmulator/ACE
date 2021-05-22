@@ -11,7 +11,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        protected double? UseTimestamp
+        public double? UseTimestamp
         {
             get => GetProperty(PropertyFloat.UseTimestamp);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.UseTimestamp); else SetProperty(PropertyFloat.UseTimestamp, value.Value); }
@@ -192,6 +192,12 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.CheckUseRequirements({activator.Name})");
 
+            if (activator == null)
+            {
+                log.Error($"0x{Guid}:{Name}.CheckUseRequirements() (wcid: {WeenieClassId}): activator is null");
+                return new ActivationResult(false);
+            }
+
             if (!(activator is Player player))
                 return new ActivationResult(true);
 
@@ -259,6 +265,23 @@ namespace ACE.Server.WorldObjects
                 var playerLevel = player.Level ?? 1;
                 if (playerLevel < UseRequiresLevel.Value)
                     return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBe_ToUseItemMagic, $"level {UseRequiresLevel.Value}"));
+            }
+
+            // verify attribute / vital limits
+            if (ItemAttributeLimit != null)
+            {
+                var playerAttr = player.Attributes[ItemAttributeLimit.Value];
+
+                if (playerAttr.Current < ItemAttributeLevelLimit)
+                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerAttr.Attribute.ToString()));
+            }
+
+            if (ItemAttribute2ndLimit != null)
+            {
+                var playerVital = player.Vitals[ItemAttribute2ndLimit.Value];
+
+                if (playerVital.MaxValue < ItemAttribute2ndLevelLimit)
+                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerVital.Vital.ToSentence()));
             }
 
             // Check for a cooldown

@@ -22,7 +22,7 @@ namespace ACE.Database.Models.World
         public float? MinHealth { get; set; }
         public float? MaxHealth { get; set; }
 
-        public Weenie Object { get; set; }
-        public ICollection<WeeniePropertiesEmoteAction> WeeniePropertiesEmoteAction { get; set; }
+        public virtual Weenie Object { get; set; }
+        public virtual ICollection<WeeniePropertiesEmoteAction> WeeniePropertiesEmoteAction { get; set; }
     }
 }

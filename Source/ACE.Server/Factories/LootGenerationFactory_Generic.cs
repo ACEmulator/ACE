@@ -1,4 +1,5 @@
 using ACE.Common;
+using ACE.Database.Models.World;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
@@ -11,13 +12,10 @@ namespace ACE.Server.Factories
             return WorldObjectFactory.CreateNewWorldObject(foodType);
         }
 
-        private static WorldObject CreateGenericObjects(int tier)
+        private static WorldObject CreateGenericObjects(TreasureDeath profile)
         {
             int chance;
             WorldObject wo;
-
-            if (tier < 1) tier = 1;
-            if (tier > 8) tier = 8;
 
             chance = ThreadSafeRandom.Next(1, 100);
 
@@ -27,16 +25,16 @@ namespace ACE.Server.Factories
                     wo = WorldObjectFactory.CreateNewWorldObject(49485); // Encapsulated Spirit
                     break;
                 case var rate when (rate < 10):
-                    wo = CreateSummoningEssence(tier);
+                    wo = CreateSummoningEssence(profile.Tier);
                     break;
                 case var rate when (rate < 28):
-                    wo = CreateRandomScroll(tier);
+                    wo = CreateRandomScroll(profile);
                     break;
                 case var rate when (rate < 57):
                     wo = CreateFood();
                     break;
                 default:
-                    int genericLootMatrixIndex = tier - 1;
+                    int genericLootMatrixIndex = profile.Tier - 1;
                     int upperLimit = LootTables.GenericLootMatrix[genericLootMatrixIndex].Length - 1;
 
                     chance = ThreadSafeRandom.Next(0, upperLimit);

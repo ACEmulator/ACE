@@ -6,6 +6,7 @@ using log4net;
 using ACE.Common;
 using ACE.Database;
 using ACE.Entity.Enum;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Managers;
 
@@ -127,11 +128,14 @@ namespace ACE.Server.Managers
             PropertyManager.ResyncVariables();
             PropertyManager.StopUpdating();
 
-            log.Debug("Logging off all players...");
+            WorldManager.EnqueueAction(new ActionEventDelegate(() =>
+            {
+                log.Debug("Logging off all players...");
 
-            // logout each player
-            foreach (var player in PlayerManager.GetAllOnline())
-                player.Session.LogOffPlayer(true);
+                // logout each player
+                foreach (var player in PlayerManager.GetAllOnline())
+                    player.Session.LogOffPlayer(true);
+            }));
 
             // Wait for all players to log out
             var logUpdateTS = DateTime.MinValue;
@@ -142,10 +146,13 @@ namespace ACE.Server.Managers
                 Thread.Sleep(10);
             }
 
-            log.Debug("Disconnecting all sessions...");
+            WorldManager.EnqueueAction(new ActionEventDelegate(() =>
+            {
+                log.Debug("Disconnecting all sessions...");
 
-            // disconnect each session
-            NetworkManager.DisconnectAllSessionsForShutdown();
+                // disconnect each session
+                NetworkManager.DisconnectAllSessionsForShutdown();
+            }));
 
             // Wait for all sessions to drop out
             logUpdateTS = DateTime.MinValue;
@@ -258,6 +265,25 @@ namespace ACE.Server.Managers
             }
             else
                 return lastNoticeTime;
+        }
+
+        public static void StartupAbort()
+        {
+            ShutdownInitiated = true;
+        }
+
+        public static string ShutdownNoticeText()
+        {
+            var sdt = ShutdownTime - DateTime.UtcNow;
+
+            var timeToShutdown = $"{(sdt.Hours > 0 ? $"{sdt.Hours} hour{(sdt.Hours > 1 ? "s" : "")}" : "")}";
+            timeToShutdown += $"{(timeToShutdown.Length > 0 ? ", " : "")}{(sdt.Minutes > 0 ? $"{sdt.Minutes} minute{(sdt.Minutes > 1 ? "s" : "")}" : "")}";
+            timeToShutdown += $"{(timeToShutdown.Length > 0 ? " and " : "")}{(sdt.Seconds > 0 ? $"{sdt.Seconds} second{(sdt.Seconds > 1 ? "s" : "")}" : "")}";
+
+            if (sdt.TotalSeconds > 10)
+               return $"Broadcast from System> {(sdt.TotalMinutes > 1.5 ? "ATTENTION" : "WARNING")} - This Asheron's Call Server is shutting down in {timeToShutdown}.{(sdt.TotalMinutes <= 3 ? " Please log out." : "")}";
+            else
+               return $"Broadcast from System> ATTENTION - This Asheron's Call Server is shutting down NOW!!!!";
         }
     }
 }

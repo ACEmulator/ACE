@@ -55,18 +55,19 @@ namespace ACE.Server.Managers
             // These are all found in Landblock.TickLandblockGroupThreadSafeWork()
             Landblock_Tick_RunActions,
             Landblock_Tick_Monster_Tick,
+            Landblock_Tick_GeneratorUpdate,
+            Landblock_Tick_GeneratorRegeneration,
             Landblock_Tick_Heartbeat,
             Landblock_Tick_Database_Save,
 
             // These are all found in Landblock.TickSingleThreadedWork()
             Landblock_Tick_Player_Tick,
             Landblock_Tick_WorldObject_Heartbeat,
-            Landblock_Tick_GeneratorUpdate,
-            Landblock_Tick_GeneratorRegeneration,
 
             // These are all found in various places and are cumulative per Landblock_Tick
             Monster_Awareness_FindNextTarget,
             Monster_Navigation_UpdatePosition_PUO,
+            LootGenerationFactory_CreateRandomLootObjects,
 
             MaxItems // Keep this at the end to properly size our monitors array
         }
@@ -288,11 +289,11 @@ namespace ACE.Server.Managers
                 AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType)i).ToString(), sb);
 
             sb.Append($"Calls from Landblock.TickLandblockGroupThreadSafeWork() - Misc - Cumulative over a single UpdateGameWorld Tick{'\n'}");
-            for (int i = (int)CumulativeEventHistoryType.Monster_Awareness_FindNextTarget; i <= (int)CumulativeEventHistoryType.Monster_Navigation_UpdatePosition_PUO; i++)
+            for (int i = (int)CumulativeEventHistoryType.Monster_Awareness_FindNextTarget; i <= (int)CumulativeEventHistoryType.LootGenerationFactory_CreateRandomLootObjects; i++)
                 AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType)i).ToString(), sb);
 
             sb.Append($"Calls from Landblock.TickSingleThreadedWork() - Cumulative over a single UpdateGameWorld Tick{'\n'}");
-            for (int i = (int)CumulativeEventHistoryType.Landblock_Tick_Player_Tick; i <= (int)CumulativeEventHistoryType.Landblock_Tick_GeneratorRegeneration; i++)
+            for (int i = (int)CumulativeEventHistoryType.Landblock_Tick_Player_Tick; i <= (int)CumulativeEventHistoryType.Landblock_Tick_WorldObject_Heartbeat; i++)
                 AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType)i).ToString(), sb);
 
             sb.Append($"Calls from NetworkManager.DoSessionWork(){'\n'}");

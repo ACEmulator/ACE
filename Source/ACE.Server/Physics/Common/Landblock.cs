@@ -68,6 +68,8 @@ namespace ACE.Server.Physics.Common
 
         public void PostInit()
         {
+            init_landcell();
+
             init_buildings();
             init_static_objs();
         }
@@ -568,6 +570,16 @@ namespace ACE.Server.Physics.Common
                 // return cached value
                 if (isDungeon != null)
                     return isDungeon.Value;
+
+                // hack for NW island
+                // did a worldwide analysis for adding watercells into the formula,
+                // but they are inconsistently defined for some of the edges of map unfortunately
+                if (BlockCoord.X < 64 && BlockCoord.Y > 1976)
+                {
+                    //Console.WriteLine($"Allowing {ID:X8}");
+                    isDungeon = false;
+                    return isDungeon.Value;
+                }
 
                 // a dungeon landblock is determined by:
                 // - all heights being 0

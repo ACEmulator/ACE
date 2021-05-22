@@ -141,6 +141,12 @@ namespace ACE.Server.WorldObjects
             var availableXP = player.AvailableExperience ?? 0;
             var augCost = AugmentationCost ?? 0;
 
+            if (AugmentationCost == null)
+            {
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{Name} is missing AugmentationCost", ChatMessageType.System));
+                return false;
+            }
+
             if (availableXP < augCost)
             {
                 player.SendWeenieError(WeenieError.AugmentationNotEnoughExperience);
