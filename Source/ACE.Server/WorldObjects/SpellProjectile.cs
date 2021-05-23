@@ -462,11 +462,8 @@ namespace ACE.Server.WorldObjects
                 // if so, did they use the same 1.5x formula as war magic, instead of 2.0x?
                 if (criticalHit)
                 {
-                    // TODO: review how CD/CDR is factored in
-                    // there is evidence to indicate that CriticalMultiplier did indeed factor in only for the critDamageBonus portion
-                    // however, CD/CDR might have been applied to the total damage (base damage + crit portion) for crits
-                    // also investigate if damage and crit damage ratings should be combined additively, instead of multiplicatively
-
+                    // verify: CriticalMultiplier only applied to the additional crit damage,
+                    // whereas CD/CDR applied to the total damage (base damage + additional crit damage)
                     weaponCritDamageMod = GetWeaponCritDamageMod(sourceCreature, attackSkill, target);
 
                     critDamageBonus = lifeMagicDamage * 0.5f * weaponCritDamageMod;
@@ -507,11 +504,8 @@ namespace ACE.Server.WorldObjects
                     else   // PvE: 50% of the MAX damage added to normal damage roll
                         critDamageBonus = Spell.MaxDamage * 0.5f;
 
-                    // TODO: review how CD/CDR is factored in
-                    // there is evidence to indicate that CriticalMultiplier did indeed factor in only for the critDamageBonus portion
-                    // however, CD/CDR might have been applied to the total damage (base damage + crit portion) for crits
-                    // also investigate if damage and crit damage ratings should be combined additively, instead of multiplicatively
-
+                    // verify: CriticalMultiplier only applied to the additional crit damage,
+                    // whereas CD/CDR applied to the total damage (base damage + additional crit damage)
                     weaponCritDamageMod = GetWeaponCritDamageMod(sourceCreature, attackSkill, target);
 
                     critDamageBonus *= weaponCritDamageMod;
@@ -696,10 +690,14 @@ namespace ACE.Server.WorldObjects
 
             var amount = 0u;
             var percent = 0.0f;
+
+            var damageRatingMod = 1.0f;
             var heritageMod = 1.0f;
             var sneakAttackMod = 1.0f;
-            var damageRatingMod = 1.0f;
+            var critDamageRatingMod = 1.0f;
+
             var damageResistRatingMod = 1.0f;
+            var critDamageResistRatingMod = 1.0f;
 
             WorldObject equippedCloak = null;
 
@@ -727,10 +725,20 @@ namespace ACE.Server.WorldObjects
                     heritageMod = sourcePlayer.GetHeritageBonus(sourcePlayer.GetEquippedWand()) ? 1.05f : 1.0f;
                 }
 
-                // DR / DRR applies for magic too?
                 var damageRating = sourceCreature?.GetDamageRating() ?? 0;
                 damageRatingMod = Creature.AdditiveCombine(Creature.GetPositiveRatingMod(damageRating), heritageMod, sneakAttackMod);
+
                 damageResistRatingMod = target.GetDamageResistRatingMod(CombatType.Magic);
+
+                if (critical)
+                {
+                    critDamageRatingMod = Creature.GetPositiveRatingMod(sourceCreature?.GetCritDamageRating() ?? 0);
+                    critDamageResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritDamageResistRating());
+
+                    damageRatingMod = Creature.AdditiveCombine(damageRatingMod, critDamageRatingMod);
+                    damageResistRatingMod = Creature.AdditiveCombine(damageResistRatingMod, critDamageResistRatingMod);
+                }
+
                 damage *= damageRatingMod * damageResistRatingMod;
 
                 percent = damage / target.Health.MaxValue;
@@ -827,11 +835,11 @@ namespace ACE.Server.WorldObjects
             // show debug info
             if (sourceCreature != null && sourceCreature.DebugDamage.HasFlag(Creature.DebugDamageType.Attacker))
             {
-                ShowInfo(sourceCreature, heritageMod, sneakAttackMod, damageRatingMod, damageResistRatingMod, damage);
+                ShowInfo(sourceCreature, heritageMod, sneakAttackMod, damageRatingMod, damageResistRatingMod, critDamageRatingMod, critDamageResistRatingMod, damage);
             }
             if (target.DebugDamage.HasFlag(Creature.DebugDamageType.Defender))
             {
-                ShowInfo(target, heritageMod, sneakAttackMod, damageRatingMod, damageResistRatingMod, damage);
+                ShowInfo(target, heritageMod, sneakAttackMod, damageRatingMod, damageResistRatingMod, critDamageRatingMod, critDamageResistRatingMod, damage);
             }
         }
 
@@ -866,7 +874,7 @@ namespace ACE.Server.WorldObjects
         }
 
         public static void ShowInfo(Creature observed, Spell spell, CreatureSkill skill, float criticalChance, bool criticalHit, bool critDefended, bool overpower, float weaponCritDamageMod,
-            float magicSkillBonus, int baseDamage, float damageBonus, float elementalDamageMod, float slayerMod,
+            float magicSkillBonus, int baseDamage, float critDamageBonus, float elementalDamageMod, float slayerMod,
             float weaponResistanceMod, float resistanceMod, float absorbMod,
             float lifeProjectileDamage, float lifeMagicDamage, float finalDamage)
         {
@@ -880,7 +888,10 @@ namespace ACE.Server.WorldObjects
             var info = $"Skill: {skill.Skill.ToSentence()}\n";
             info += $"CriticalChance: {criticalChance}\n";
             info += $"CriticalHit: {criticalHit}\n";
-            info += $"CriticalDefended: {critDefended}\n";
+
+            if (critDefended)
+                info += $"CriticalDefended: {critDefended}\n";
+
             info += $"Overpower: {overpower}\n";
         
             if (spell.MetaSpellType == ACE.Entity.Enum.SpellType.LifeProjectile)
@@ -895,24 +906,41 @@ namespace ACE.Server.WorldObjects
                 // war/void projectile
                 var difficulty = Math.Min(spell.Power, 350);
                 info += $"Difficulty: {difficulty}\n";
-                info += $"SkillBonus: {magicSkillBonus}\n";
+
+                if (magicSkillBonus != 0.0f)
+                    info += $"SkillBonus: {magicSkillBonus}\n";
+
                 info += $"BaseDamageRange: {spell.MinDamage} - {spell.MaxDamage}\n";
                 info += $"BaseDamage: {baseDamage}\n";
                 info += $"DamageType: {spell.DamageType}\n";
             }
 
-            info += $"WeaponCritDamageMod: {weaponCritDamageMod}\n";
-            info += $"DamageBonus: {damageBonus}\n";
-            info += $"ElementalDamageMod: {elementalDamageMod}\n";
-            info += $"SlayerMod: {slayerMod}\n";
-            info += $"WeaponResistanceMod: {weaponResistanceMod}\n";
-            info += $"ResistanceMod: {resistanceMod}\n";
-            info += $"AbsorbMod: {absorbMod}";
+            if (weaponCritDamageMod != 1.0f)
+                info += $"WeaponCritDamageMod: {weaponCritDamageMod}\n";
+
+            if (critDamageBonus != 0)
+                info += $"CritDamageBonus: {critDamageBonus}\n";
+
+            if (elementalDamageMod != 1.0f)
+                info += $"ElementalDamageMod: {elementalDamageMod}\n";
+
+            if (slayerMod != 1.0f)
+                info += $"SlayerMod: {slayerMod}\n";
+
+            if (weaponResistanceMod != 1.0f)
+                info += $"WeaponResistanceMod: {weaponResistanceMod}\n";
+
+            if (resistanceMod != 1.0f)
+                info += $"ResistanceMod: {resistanceMod}\n";
+
+            if (absorbMod != 1.0f)
+                info += $"AbsorbMod: {absorbMod}";
 
             observer.Session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
         }
 
-        public static void ShowInfo(Creature observed, float heritageMod, float sneakAttackMod, float damageRatingMod, float damageResistRatingMod, float damage)
+        public static void ShowInfo(Creature observed, float heritageMod, float sneakAttackMod, float damageRatingMod, float damageResistRatingMod,
+            float critDamageRatingMod, float critDamageResistRatingMod, float damage)
         {
             var observer = PlayerManager.GetOnlinePlayer(observed.DebugDamageTarget);
             if (observer == null)
@@ -920,11 +948,26 @@ namespace ACE.Server.WorldObjects
                 observed.DebugDamage = Creature.DebugDamageType.None;
                 return;
             }
+            var info = "";
 
-            var info = $"HeritageMod: {heritageMod}\n";
-            info += $"SneakAttackMod: {sneakAttackMod}\n";
-            info += $"DamageRatingMod: {damageRatingMod}\n";
-            info += $"DamageResistRatingMod: {damageResistRatingMod}\n";
+            if (heritageMod != 1.0f)
+                info += $"HeritageMod: {heritageMod}\n";
+
+            if (sneakAttackMod != 1.0f)
+                info += $"SneakAttackMod: {sneakAttackMod}\n";
+
+            if (critDamageRatingMod != 1.0f)
+                info += $"CritDamageRatingMod: {critDamageRatingMod}\n";
+
+            if (damageRatingMod != 1.0f)
+                info += $"DamageRatingMod: {damageRatingMod}\n";
+
+            if (critDamageResistRatingMod != 1.0f)
+                 info += $"CritDamageResistRatingMod: {critDamageResistRatingMod}\n";
+
+            if (damageResistRatingMod != 1.0f)
+                info += $"DamageResistRatingMod: {damageResistRatingMod}\n";
+
             info += $"Final damage: {damage}";
 
             observer.Session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
