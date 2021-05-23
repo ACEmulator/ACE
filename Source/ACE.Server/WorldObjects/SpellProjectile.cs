@@ -766,6 +766,16 @@ namespace ACE.Server.WorldObjects
 
             amount = (uint)Math.Round(damage);    // full amount for debugging
 
+            // show debug info
+            if (sourceCreature != null && sourceCreature.DebugDamage.HasFlag(Creature.DebugDamageType.Attacker))
+            {
+                ShowInfo(sourceCreature, heritageMod, sneakAttackMod, damageRatingMod, damageResistRatingMod, critDamageRatingMod, critDamageResistRatingMod, damage);
+            }
+            if (target.DebugDamage.HasFlag(Creature.DebugDamageType.Defender))
+            {
+                ShowInfo(target, heritageMod, sneakAttackMod, damageRatingMod, damageResistRatingMod, critDamageRatingMod, critDamageResistRatingMod, damage);
+            }
+
             if (target.IsAlive)
             {
                 string verb = null, plural = null;
@@ -830,16 +840,6 @@ namespace ACE.Server.WorldObjects
                 var lastDamager = ProjectileSource != null ? new DamageHistoryInfo(ProjectileSource) : null;
                 target.OnDeath(lastDamager, Spell.DamageType, critical);
                 target.Die();
-            }
-
-            // show debug info
-            if (sourceCreature != null && sourceCreature.DebugDamage.HasFlag(Creature.DebugDamageType.Attacker))
-            {
-                ShowInfo(sourceCreature, heritageMod, sneakAttackMod, damageRatingMod, damageResistRatingMod, critDamageRatingMod, critDamageResistRatingMod, damage);
-            }
-            if (target.DebugDamage.HasFlag(Creature.DebugDamageType.Defender))
-            {
-                ShowInfo(target, heritageMod, sneakAttackMod, damageRatingMod, damageResistRatingMod, critDamageRatingMod, critDamageResistRatingMod, damage);
             }
         }
 
@@ -934,9 +934,10 @@ namespace ACE.Server.WorldObjects
                 info += $"ResistanceMod: {resistanceMod}\n";
 
             if (absorbMod != 1.0f)
-                info += $"AbsorbMod: {absorbMod}";
+                info += $"AbsorbMod: {absorbMod}\n";
 
-            observer.Session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
+            //observer.Session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
+            observer.DebugDamageBuffer += info;
         }
 
         public static void ShowInfo(Creature observed, float heritageMod, float sneakAttackMod, float damageRatingMod, float damageResistRatingMod,
@@ -970,7 +971,9 @@ namespace ACE.Server.WorldObjects
 
             info += $"Final damage: {damage}";
 
-            observer.Session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
+            observer.Session.Network.EnqueueSend(new GameMessageSystemChat(observer.DebugDamageBuffer + info, ChatMessageType.Broadcast));
+
+            observer.DebugDamageBuffer = null;
         }
     }
 }

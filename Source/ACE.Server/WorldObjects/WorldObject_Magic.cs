@@ -1894,6 +1894,7 @@ namespace ACE.Server.WorldObjects
         public static void ShowResistInfo(Creature observed, WorldObject attacker, WorldObject defender, Spell spell, uint attackSkill, uint defenseSkill, float resistChance, bool resisted)
         {
             var targetInfo = PlayerManager.GetOnlinePlayer(observed.DebugDamageTarget);
+
             if (targetInfo == null)
             {
                 observed.DebugDamage = Creature.DebugDamageType.None;
@@ -1915,7 +1916,10 @@ namespace ACE.Server.WorldObjects
 
             info += $"Resisted: {resisted}";
 
-            targetInfo.Session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
+            if (resisted || spell.NumProjectiles == 0)
+                targetInfo.Session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
+            else
+                targetInfo.DebugDamageBuffer = $"{info}\n";
         }
 
 
