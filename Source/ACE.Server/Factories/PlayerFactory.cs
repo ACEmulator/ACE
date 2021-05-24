@@ -32,7 +32,7 @@ namespace ACE.Server.Factories
 
         public static CreateResult Create(CharacterCreateInfo characterCreateInfo, Weenie weenie, ObjectGuid guid, uint accountId, WeenieType weenieType, out Player player)
         {
-            var heritageGroup = DatManager.PortalDat.CharGen.HeritageGroups[characterCreateInfo.Heritage];
+            var heritageGroup = DatManager.PortalDat.CharGen.HeritageGroups[(uint)characterCreateInfo.Heritage];
 
             if (weenieType == WeenieType.Admin)
                 player = new Admin(weenie, guid, accountId);
@@ -59,160 +59,176 @@ namespace ACE.Server.Factories
             player.SetProperty(PropertyDataId.CombatTable, sex.CombatTable);
 
             // Check the character scale
-            if (sex.Scale != 100u)
-                player.SetProperty(PropertyFloat.DefaultScale, (sex.Scale / 100f)); // Scale is stored as a percentage
+            if (sex.Scale != 100)
+                player.SetProperty(PropertyFloat.DefaultScale, sex.Scale / 100.0f); // Scale is stored as a percentage
 
             // Get the hair first, because we need to know if you're bald, and that's the name of that tune!
-            var hairstyle = sex.HairStyleList[Convert.ToInt32(characterCreateInfo.Apperance.HairStyle)];
+            var hairstyle = sex.HairStyleList[(int)characterCreateInfo.Appearance.HairStyle];
 
             // Olthoi and Gear Knights have a "Body Style" instead of a hair style. These styles have multiple model/texture changes, instead of a single head/hairstyle.
             // Storing this value allows us to send the proper appearance ObjDesc
             if (hairstyle.ObjDesc.AnimPartChanges.Count > 1)
-                player.SetProperty(PropertyInt.Hairstyle, (int)characterCreateInfo.Apperance.HairStyle);
+                player.SetProperty(PropertyInt.Hairstyle, (int)characterCreateInfo.Appearance.HairStyle);
 
             // Certain races (Undead, Tumeroks, Others?) have multiple body styles available. This is controlled via the "hair style".
             if (hairstyle.AlternateSetup > 0)
                 player.SetProperty(PropertyDataId.Setup, hairstyle.AlternateSetup);
 
-            player.SetProperty(PropertyDataId.EyesTexture, sex.GetEyeTexture(characterCreateInfo.Apperance.Eyes, hairstyle.Bald));
-            player.SetProperty(PropertyDataId.DefaultEyesTexture, sex.GetDefaultEyeTexture(characterCreateInfo.Apperance.Eyes, hairstyle.Bald));
-            player.SetProperty(PropertyDataId.NoseTexture, sex.GetNoseTexture(characterCreateInfo.Apperance.Nose));
-            player.SetProperty(PropertyDataId.DefaultNoseTexture, sex.GetDefaultNoseTexture(characterCreateInfo.Apperance.Nose));
-            player.SetProperty(PropertyDataId.MouthTexture, sex.GetMouthTexture(characterCreateInfo.Apperance.Mouth));
-            player.SetProperty(PropertyDataId.DefaultMouthTexture, sex.GetDefaultMouthTexture(characterCreateInfo.Apperance.Mouth));
-            player.Character.HairTexture = sex.GetHairTexture(characterCreateInfo.Apperance.HairStyle);
-            player.Character.DefaultHairTexture = sex.GetDefaultHairTexture(characterCreateInfo.Apperance.HairStyle);
+            player.SetProperty(PropertyDataId.EyesTexture, sex.GetEyeTexture(characterCreateInfo.Appearance.Eyes, hairstyle.Bald));
+            player.SetProperty(PropertyDataId.DefaultEyesTexture, sex.GetDefaultEyeTexture(characterCreateInfo.Appearance.Eyes, hairstyle.Bald));
+            player.SetProperty(PropertyDataId.NoseTexture, sex.GetNoseTexture(characterCreateInfo.Appearance.Nose));
+            player.SetProperty(PropertyDataId.DefaultNoseTexture, sex.GetDefaultNoseTexture(characterCreateInfo.Appearance.Nose));
+            player.SetProperty(PropertyDataId.MouthTexture, sex.GetMouthTexture(characterCreateInfo.Appearance.Mouth));
+            player.SetProperty(PropertyDataId.DefaultMouthTexture, sex.GetDefaultMouthTexture(characterCreateInfo.Appearance.Mouth));
+            player.Character.HairTexture = sex.GetHairTexture(characterCreateInfo.Appearance.HairStyle) ?? 0;
+            player.Character.DefaultHairTexture = sex.GetDefaultHairTexture(characterCreateInfo.Appearance.HairStyle) ?? 0;
             // HeadObject can be null if we're dealing with GearKnight or Olthoi
-            var headObject = sex.GetHeadObject(characterCreateInfo.Apperance.HairStyle);
+            var headObject = sex.GetHeadObject(characterCreateInfo.Appearance.HairStyle);
             if (headObject != null)
                 player.SetProperty(PropertyDataId.HeadObject, (uint)headObject);
 
             // Skin is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
             var skinPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(sex.SkinPalSet);
-            player.SetProperty(PropertyDataId.SkinPalette, skinPalSet.GetPaletteID(characterCreateInfo.Apperance.SkinHue));
-            player.SetProperty(PropertyFloat.Shade, characterCreateInfo.Apperance.SkinHue);
+            player.SetProperty(PropertyDataId.SkinPalette, skinPalSet.GetPaletteID(characterCreateInfo.Appearance.SkinHue));
+            player.SetProperty(PropertyFloat.Shade, characterCreateInfo.Appearance.SkinHue);
 
             // Hair is stored as PaletteSet (list of Palettes), so we need to read in the set to get the specific palette
-            var hairPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(sex.HairColorList[Convert.ToInt32(characterCreateInfo.Apperance.HairColor)]);
-            player.SetProperty(PropertyDataId.HairPalette, hairPalSet.GetPaletteID(characterCreateInfo.Apperance.HairHue));
+            var hairPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(sex.HairColorList[(int)characterCreateInfo.Appearance.HairColor]);
+            player.SetProperty(PropertyDataId.HairPalette, hairPalSet.GetPaletteID(characterCreateInfo.Appearance.HairHue));
 
             // Eye Color
-            player.SetProperty(PropertyDataId.EyesPalette, sex.EyeColorList[Convert.ToInt32(characterCreateInfo.Apperance.EyeColor)]);
+            player.SetProperty(PropertyDataId.EyesPalette, sex.EyeColorList[(int)characterCreateInfo.Appearance.EyeColor]);
 
-            if (characterCreateInfo.Apperance.HeadgearStyle < 0xFFFFFFFF) // No headgear is max UINT
+            // do olthoi get clothing?
+            if (characterCreateInfo.Appearance.HeadgearStyle < uint.MaxValue) // No headgear is max UINT
             {
-                var hat = GetClothingObject(sex.GetHeadgearWeenie(characterCreateInfo.Apperance.HeadgearStyle), characterCreateInfo.Apperance.HeadgearColor, characterCreateInfo.Apperance.HeadgearHue);
+                var hat = GetClothingObject(sex.GetHeadgearWeenie(characterCreateInfo.Appearance.HeadgearStyle), characterCreateInfo.Appearance.HeadgearColor, characterCreateInfo.Appearance.HeadgearHue);
                 if (hat != null)
                     player.TryEquipObject(hat, hat.ValidLocations ?? 0);
                 else
-                    player.TryAddToInventory(CreateIOU(sex.GetHeadgearWeenie(characterCreateInfo.Apperance.HeadgearStyle)));
+                    player.TryAddToInventory(CreateIOU(sex.GetHeadgearWeenie(characterCreateInfo.Appearance.HeadgearStyle)));
             }
 
-            var shirt = GetClothingObject(sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle), characterCreateInfo.Apperance.ShirtColor, characterCreateInfo.Apperance.ShirtHue);
+            var shirt = GetClothingObject(sex.GetShirtWeenie(characterCreateInfo.Appearance.ShirtStyle), characterCreateInfo.Appearance.ShirtColor, characterCreateInfo.Appearance.ShirtHue);
             if (shirt != null)
                 player.TryEquipObject(shirt, shirt.ValidLocations ?? 0);
             else
-                player.TryAddToInventory(CreateIOU(sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle)));
+                player.TryAddToInventory(CreateIOU(sex.GetShirtWeenie(characterCreateInfo.Appearance.ShirtStyle)));
 
-            var pants = GetClothingObject(sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle), characterCreateInfo.Apperance.PantsColor, characterCreateInfo.Apperance.PantsHue);
+            var pants = GetClothingObject(sex.GetPantsWeenie(characterCreateInfo.Appearance.PantsStyle), characterCreateInfo.Appearance.PantsColor, characterCreateInfo.Appearance.PantsHue);
             if (pants != null)
                 player.TryEquipObject(pants, pants.ValidLocations ?? 0);
             else
-                player.TryAddToInventory(CreateIOU(sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle)));
+                player.TryAddToInventory(CreateIOU(sex.GetPantsWeenie(characterCreateInfo.Appearance.PantsStyle)));
 
-            var shoes = GetClothingObject(sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle), characterCreateInfo.Apperance.FootwearColor, characterCreateInfo.Apperance.FootwearHue);
+            var shoes = GetClothingObject(sex.GetFootwearWeenie(characterCreateInfo.Appearance.FootwearStyle), characterCreateInfo.Appearance.FootwearColor, characterCreateInfo.Appearance.FootwearHue);
             if (shoes != null)
                 player.TryEquipObject(shoes, shoes.ValidLocations ?? 0);
             else
-                player.TryAddToInventory(CreateIOU(sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle)));
+                player.TryAddToInventory(CreateIOU(sex.GetFootwearWeenie(characterCreateInfo.Appearance.FootwearStyle)));
 
             string templateName = heritageGroup.Templates[characterCreateInfo.TemplateOption].Name;
-            //player.SetProperty(PropertyString.Title, templateName);
             player.SetProperty(PropertyString.Template, templateName);
-            player.AddTitle(heritageGroup.Templates[characterCreateInfo.TemplateOption].Title, true);
 
-            // attributes
-            var result = ValidateAttributeCredits(characterCreateInfo, heritageGroup.AttributeCredits);
-
-            if (result != CreateResult.Success)
-                return result;
-
-            player.Strength.StartingValue = characterCreateInfo.StrengthAbility;
-            player.Endurance.StartingValue = characterCreateInfo.EnduranceAbility;
-            player.Coordination.StartingValue = characterCreateInfo.CoordinationAbility;
-            player.Quickness.StartingValue = characterCreateInfo.QuicknessAbility;
-            player.Focus.StartingValue = characterCreateInfo.FocusAbility;
-            player.Self.StartingValue = characterCreateInfo.SelfAbility;
-
-            // data we don't care about
-            //characterCreateInfo.CharacterSlot;
-            //characterCreateInfo.ClassId;
-
-            // characters start with max vitals
-            player.Health.Current = player.Health.Base;
-            player.Stamina.Current = player.Stamina.Base;
-            player.Mana.Current = player.Mana.Base;
-
-            // set initial skill credit amount. 52 for all but "Olthoi", which have 68
-            player.SetProperty(PropertyInt.AvailableSkillCredits, (int)heritageGroup.SkillCredits);
-
-            if (characterCreateInfo.SkillAdvancementClasses.Count != 55)
-                return CreateResult.ClientServerSkillsMismatch;
-
-            for (int i = 0; i < characterCreateInfo.SkillAdvancementClasses.Count; i++)
+            if (!player.IsOlthoiPlayer)
             {
-                var sac = characterCreateInfo.SkillAdvancementClasses[i];
-
-                if (sac == SkillAdvancementClass.Inactive)
-                    continue;
-
-                if (!DatManager.PortalDat.SkillTable.SkillBaseHash.ContainsKey((uint)i))
-                {
-                    log.ErrorFormat("Character {0} tried to create with skill {1} that was not found in Portal dat.", characterCreateInfo.Name, i);
-                    return CreateResult.InvalidSkillRequested;
-                }
-
-                var skill = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)i];
-
-                var trainedCost = skill.TrainedCost;
-                var specializedCost = skill.UpgradeCostFromTrainedToSpecialized;
-
-                foreach (var skillGroup in heritageGroup.Skills)
-                {
-                    if (skillGroup.SkillNum == i)
-                    {
-                        trainedCost = skillGroup.NormalCost;
-                        specializedCost = skillGroup.PrimaryCost;
-                        break;
-                    }
-                }
-
-                if (sac == SkillAdvancementClass.Specialized)
-                {
-                    if (!player.TrainSkill((Skill)i, trainedCost))
-                        return CreateResult.FailedToTrainSkill;
-                    if (!player.SpecializeSkill((Skill)i, specializedCost))
-                        return CreateResult.FailedToSpecializeSkill;
-                }
-                else if (sac == SkillAdvancementClass.Trained)
-                {
-                    if (!player.TrainSkill((Skill)i, trainedCost, true))
-                        return CreateResult.FailedToTrainSkill;
-                }
-                else if (sac == SkillAdvancementClass.Untrained)
-                    player.UntrainSkill((Skill)i, 0);
+                player.AddTitle(heritageGroup.Templates[characterCreateInfo.TemplateOption].Title, true);
+            }
+            else
+            {
+                // olthoi templates don't contain the correct titles for some reason
+                if (player.HeritageGroup == HeritageGroup.Olthoi)
+                    player.AddTitle(CharacterTitle.Ripper, true);
+                else if (player.HeritageGroup == HeritageGroup.OlthoiAcid)
+                    player.AddTitle(CharacterTitle.AcidSpitter, true);
             }
 
-            var isDualWieldTrainedOrSpecialized = player.Skills[Skill.DualWield].AdvancementClass > SkillAdvancementClass.Untrained;
+            // skip over this for olthoi, use the weenie defaults
+            if (!player.IsOlthoiPlayer)
+            {
+                // attributes
+                var result = ValidateAttributeCredits(characterCreateInfo, heritageGroup.AttributeCredits);
 
-            // Set Heritage based Melee and Ranged Masteries
-            GetMasteries(player.HeritageGroup, out WeaponType meleeMastery, out WeaponType rangedMastery);
+                if (result != CreateResult.Success)
+                    return result;
 
-            player.SetProperty(PropertyInt.MeleeMastery, (int)meleeMastery);
-            player.SetProperty(PropertyInt.RangedMastery, (int)rangedMastery);
+                player.Strength.StartingValue = characterCreateInfo.StrengthAbility;
+                player.Endurance.StartingValue = characterCreateInfo.EnduranceAbility;
+                player.Coordination.StartingValue = characterCreateInfo.CoordinationAbility;
+                player.Quickness.StartingValue = characterCreateInfo.QuicknessAbility;
+                player.Focus.StartingValue = characterCreateInfo.FocusAbility;
+                player.Self.StartingValue = characterCreateInfo.SelfAbility;
 
-            // Set innate augs
-            SetInnateAugmentations(player);
+                // data we don't care about
+                //characterCreateInfo.CharacterSlot;
+                //characterCreateInfo.ClassId;
+
+                // characters start with max vitals
+                player.Health.Current = player.Health.Base;
+                player.Stamina.Current = player.Stamina.Base;
+                player.Mana.Current = player.Mana.Base;
+
+                // set initial skill credit amount. 52 for all but "Olthoi", which have 68
+                player.SetProperty(PropertyInt.AvailableSkillCredits, (int)heritageGroup.SkillCredits);
+
+                if (characterCreateInfo.SkillAdvancementClasses.Count != 55)
+                    return CreateResult.ClientServerSkillsMismatch;
+
+                for (int i = 0; i < characterCreateInfo.SkillAdvancementClasses.Count; i++)
+                {
+                    var sac = characterCreateInfo.SkillAdvancementClasses[i];
+
+                    if (sac == SkillAdvancementClass.Inactive)
+                        continue;
+
+                    if (!DatManager.PortalDat.SkillTable.SkillBaseHash.ContainsKey((uint)i))
+                    {
+                        log.ErrorFormat("Character {0} tried to create with skill {1} that was not found in Portal dat.", characterCreateInfo.Name, i);
+                        return CreateResult.InvalidSkillRequested;
+                    }
+
+                    var skill = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)i];
+
+                    var trainedCost = skill.TrainedCost;
+                    var specializedCost = skill.UpgradeCostFromTrainedToSpecialized;
+
+                    foreach (var skillGroup in heritageGroup.Skills)
+                    {
+                        if (skillGroup.SkillNum == i)
+                        {
+                            trainedCost = skillGroup.NormalCost;
+                            specializedCost = skillGroup.PrimaryCost;
+                            break;
+                        }
+                    }
+
+                    if (sac == SkillAdvancementClass.Specialized)
+                    {
+                        if (!player.TrainSkill((Skill)i, trainedCost))
+                            return CreateResult.FailedToTrainSkill;
+                        if (!player.SpecializeSkill((Skill)i, specializedCost))
+                            return CreateResult.FailedToSpecializeSkill;
+                    }
+                    else if (sac == SkillAdvancementClass.Trained)
+                    {
+                        if (!player.TrainSkill((Skill)i, trainedCost, true))
+                            return CreateResult.FailedToTrainSkill;
+                    }
+                    else if (sac == SkillAdvancementClass.Untrained)
+                        player.UntrainSkill((Skill)i, 0);
+                }
+
+                // Set Heritage based Melee and Ranged Masteries
+                GetMasteries(player.HeritageGroup, out WeaponType meleeMastery, out WeaponType rangedMastery);
+
+                player.SetProperty(PropertyInt.MeleeMastery, (int)meleeMastery);
+                player.SetProperty(PropertyInt.RangedMastery, (int)rangedMastery);
+
+                // Set innate augs
+                SetInnateAugmentations(player);
+            }
+
+            var isDualWieldTrainedOrSpecialized = player.Skills.TryGetValue(Skill.DualWield, out var dualWield) && dualWield.AdvancementClass > SkillAdvancementClass.Untrained;
 
             // grant starter items based on skills
             var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
@@ -220,7 +236,10 @@ namespace ACE.Server.Factories
 
             foreach (var skillGear in starterGearConfig.Skills)
             {
-                var charSkill = player.Skills[(Skill)skillGear.SkillId];
+                //var charSkill = player.Skills[(Skill)skillGear.SkillId];
+                if (!player.Skills.TryGetValue((Skill)skillGear.SkillId, out var charSkill))
+                    continue;
+
                 if (charSkill.AdvancementClass == SkillAdvancementClass.Trained || charSkill.AdvancementClass == SkillAdvancementClass.Specialized)
                 {
                     foreach (var item in skillGear.Gear)
@@ -266,7 +285,7 @@ namespace ACE.Server.Factories
                         }
                     }
 
-                    var heritageLoot = skillGear.Heritage.FirstOrDefault(sh => sh.HeritageId == characterCreateInfo.Heritage);
+                    var heritageLoot = skillGear.Heritage.FirstOrDefault(i => i.HeritageId == (ushort)characterCreateInfo.Heritage);
                     if (heritageLoot != null)
                     {
                         foreach (var item in heritageLoot.Gear)
@@ -316,7 +335,7 @@ namespace ACE.Server.Factories
                     foreach (var spell in skillGear.Spells)
                     {
                         // Olthoi Spitter is a special case
-                        if (characterCreateInfo.Heritage == (int)HeritageGroup.OlthoiAcid)
+                        if (characterCreateInfo.Heritage == HeritageGroup.OlthoiAcid)
                         {
                             player.AddKnownSpell(spell.SpellId);
                             // Continue to next spell as Olthoi spells do not have the SpecializedOnly field
@@ -345,7 +364,7 @@ namespace ACE.Server.Factories
                 starterArea.Locations[0].Frame.Orientation.X, starterArea.Locations[0].Frame.Orientation.Y, starterArea.Locations[0].Frame.Orientation.Z, starterArea.Locations[0].Frame.Orientation.W);
 
             var instantiation = new Position(0xA9B40019, 84, 7.1f, 94, 0, 0, -0.0784591f, 0.996917f); // ultimate fallback.
-            var spellFreeRide = new ACE.Database.Models.World.Spell();
+            var spellFreeRide = new Database.Models.World.Spell();
             switch (starterArea.Name)
             {
                 case "OlthoiLair": //todo: check this when olthoi play is allowed in ace

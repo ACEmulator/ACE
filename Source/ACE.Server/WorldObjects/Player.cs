@@ -141,7 +141,7 @@ namespace ACE.Server.WorldObjects
             // radius for object updates
             ListeningRadius = 5f;
 
-            if (Session != null && Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
+            if (Session != null && ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
                 if (Session.AccessLevel == AccessLevel.Admin)
                     IsAdmin = true;
@@ -157,6 +157,8 @@ namespace ACE.Server.WorldObjects
                 if (Session.AccessLevel == AccessLevel.Advocate)
                     IsAdvocate = true;
             }
+
+            IsOlthoiPlayer = HeritageGroup == HeritageGroup.Olthoi || HeritageGroup == HeritageGroup.OlthoiAcid;
 
             ContainerCapacity = (byte)(7 + AugmentationExtraPackSlot);
 

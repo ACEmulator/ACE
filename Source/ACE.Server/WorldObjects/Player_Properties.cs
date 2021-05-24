@@ -61,6 +61,9 @@ namespace ACE.Server.WorldObjects
             get => (Character != null && Character.IsPlussed) || (Session != null && ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && Session.AccessLevel > AccessLevel.Advocate);
         }
 
+        public bool IsOlthoiPlayer { get; set; }
+
+
         public string GodState
         {
             get => GetProperty(PropertyString.GodState);
@@ -268,7 +271,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.SafeSpellComponents); else SetProperty(PropertyBool.SafeSpellComponents, value); }
         }
 
-        public bool IsOlthoiPlayer()
+        /*public bool IsOlthoiPlayer()
         {
             switch (WeenieClassId)
             {
@@ -279,7 +282,7 @@ namespace ACE.Server.WorldObjects
                     return true;
             }
             return false;
-        }
+        }*/
 
         /// <summary>
         /// The timestamp when the player last generated a rare
@@ -1271,6 +1274,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyFloat.LastPortalTeleportTimestamp);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.LastPortalTeleportTimestamp); else SetProperty(PropertyFloat.LastPortalTeleportTimestamp, value.Value); }
+        }
+
+        public bool OlthoiPk
+        {
+            get => GetProperty(PropertyBool.OlthoiPk) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.OlthoiPk); else SetProperty(PropertyBool.OlthoiPk, value); }
         }
 
         /// <summary>
