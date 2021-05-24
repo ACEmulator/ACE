@@ -44,6 +44,8 @@ namespace ACE.Server.WorldObjects
 
         public bool DebugSpell { get; set; }
 
+        public string DebugDamageBuffer { get; set; }
+
         public RecordCast RecordCast { get; set; }
 
         /// <summary>
