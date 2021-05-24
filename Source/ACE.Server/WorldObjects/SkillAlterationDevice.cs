@@ -140,14 +140,6 @@ namespace ACE.Server.WorldObjects
                         return false;
                     }
 
-                    // salvage / tinkering skills specialized via augmentations
-                    // Salvaging cannot be untrained or unspecialized, specialized tinkering skills can be reset at Asheron's Castle only.
-                    if (player.IsSkillSpecializedViaAugmentation(skill.Skill, out var playerHasAugmentation) && playerHasAugmentation)
-                    {
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot lower your {skill.Skill.ToSentence()} augmented skill.", ChatMessageType.Broadcast));
-                        return false;
-                    }
-
                     // Check for equipped items that have requirements in the skill we're lowering
                     if (CheckWieldedItems(player))
                     {
@@ -187,13 +179,16 @@ namespace ACE.Server.WorldObjects
                     // specialized => trained
                     if (skill.AdvancementClass == SkillAdvancementClass.Specialized)
                     {
+                        var specializedViaAugmentation = player.IsSkillSpecializedViaAugmentation(skill.Skill, out var playerHasAugmentation) && playerHasAugmentation;
+
                         if (player.UnspecializeSkill(skill.Skill, skillBase.UpgradeCostFromTrainedToSpecialized))
                         {
                             var updateSkill = new GameMessagePrivateUpdateSkill(player, skill);
                             var availableSkillCredits = new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AvailableSkillCredits, player.AvailableSkillCredits ?? 0);
-                            var msg = new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouHaveSucceededUnspecializing_Skill, skill.Skill.ToSentence());
+                            var msg = specializedViaAugmentation ? WeenieErrorWithString.YouSucceededRecoveringXPFromSkill_AugmentationNotUntrainable : WeenieErrorWithString.YouHaveSucceededUnspecializing_Skill;
+                            var message = new GameEventWeenieErrorWithString(player.Session, msg, skill.Skill.ToSentence());
 
-                            player.Session.Network.EnqueueSend(updateSkill, availableSkillCredits, msg);
+                            player.Session.Network.EnqueueSend(updateSkill, availableSkillCredits, message);
 
                             player.TryConsumeFromInventoryWithNetworking(this, 1);
                         }
