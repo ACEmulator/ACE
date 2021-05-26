@@ -208,7 +208,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void OnDeath_HandleKillTask(string killQuest)
         {
-            var receivers = KillTask_GetEligibleReceivers(killQuest);
+            /*var receivers = KillTask_GetEligibleReceivers(killQuest);
 
             foreach (var receiver in receivers)
             {
@@ -221,7 +221,98 @@ namespace ACE.Server.WorldObjects
 
                 if (player != null)
                     player.QuestManager.HandleKillTask(killQuest, this);
+            }*/
+
+            // new method
+
+            // with full fellowship support and new config option for capping,
+            // building a pre-flattened structure is no longer really necessary,
+            // and we can do this more iteratively.
+
+            // one caveat to do this, we need to keep track of player and summoning caps separately
+            // this is to prevent ordering bugs, such as a player being processed after a summon,
+            // and already being at the 1 cap for players
+
+            var summon_credit_cap = (int)PropertyManager.GetLong("summoning_killtask_multicredit_cap").Item - 1;
+
+            var playerCredits = new Dictionary<ObjectGuid, int>();
+            var summonCredits = new Dictionary<ObjectGuid, int>();
+
+            // this option isn't really needed anymore, but keeping it around for compatibility
+            // it is now synonymous with summoning_killtask_multicredit_cap <= 1
+            if (!PropertyManager.GetBool("allow_summoning_killtask_multicredit").Item)
+                summon_credit_cap = 0;
+
+            foreach (var kvp in DamageHistory.TotalDamage)
+            {
+                if (kvp.Value.TotalDamage <= 0)
+                    continue;
+
+                var damager = kvp.Value.TryGetAttacker();
+
+                var combatPet = false;
+
+                var playerDamager = damager as Player;
+
+                if (playerDamager == null && kvp.Value.PetOwner != null)
+                {
+                    playerDamager = kvp.Value.TryGetPetOwner();
+                    combatPet = true;
+                }
+
+                if (playerDamager == null)
+                    continue;
+
+                var killTaskCredits = combatPet ? summonCredits : playerCredits;
+
+                var cap = combatPet ? summon_credit_cap : 1;
+
+                if (cap <= 0)
+                {
+                    // handle special case: use playerCredits
+                    killTaskCredits = playerCredits;
+                    cap = 1;
+                }
+
+                if (playerDamager.QuestManager.HasQuest(killQuest))
+                {
+                    TryHandleKillTask(playerDamager, killQuest, killTaskCredits, cap);
+                }
+                // check option that requires killer to have killtask to pass to fellows
+                else if (!PropertyManager.GetBool("fellow_kt_killer").Item)   
+                {
+                    continue;
+                }
+
+                if (playerDamager.Fellowship == null)
+                    continue;
+
+                // share with fellows in kill task range
+                var fellows = playerDamager.Fellowship.WithinRange(playerDamager);
+
+                foreach (var fellow in fellows)
+                {
+                    if (fellow.QuestManager.HasQuest(killQuest))
+                        TryHandleKillTask(fellow, killQuest, killTaskCredits, cap);
+                }
             }
+        }
+
+        public bool TryHandleKillTask(Player player, string killTask, Dictionary<ObjectGuid, int> killTaskCredits, int cap)
+        {
+            if (killTaskCredits.TryGetValue(player.Guid, out var currentCredits))
+            {
+                if (currentCredits >= cap)
+                    return false;
+
+                killTaskCredits[player.Guid]++;
+            }
+            else
+                killTaskCredits[player.Guid] = 1;
+
+            player.QuestManager.HandleKillTask(killTask, this);
+
+            return true;
         }
 
         /// <summary>
@@ -256,9 +347,9 @@ namespace ACE.Server.WorldObjects
                     {
                         // only add combat pet to eligible receivers if player has quest, and allow_summoning_killtask_multicredit = true (default, retail)
                         if (DamageHistory.HasDamager(playerDamager, true) && PropertyManager.GetBool("allow_summoning_killtask_multicredit").Item)
-                            receivers[kvp.Value.Guid] = kvp.Value;
+                            receivers[kvp.Value.Guid] = kvp.Value;  // add CombatPet
                         else
-                            receivers[playerDamager.Guid] = new DamageHistoryInfo(playerDamager);
+                            receivers[playerDamager.Guid] = new DamageHistoryInfo(playerDamager);   // add dummy profile for PetOwner
                     }
 
                     // regardless if combat pet is eligible, we still want to continue traversing to the pet owner, and possibly fellows
@@ -305,9 +396,11 @@ namespace ACE.Server.WorldObjects
 
                 // - my combatpet does 50% damage to monster, and i do 50% damage
                 // result: i get 2 killtask credits (1 if allow_summoning_killtask_multicredit server option is disabled), and my fellow gets 1 killtask credit
+                // after update should be 2/2, instead of 2/1
 
                 // - my combatpet does 33% damage to monster, i do 33% damage, and fellow does 33% damage
                 // result: same as previous scenario
+                // after update should be 2/2, instead of 2/1 again
 
                 // 2 players not in a fellowship both have a killtask
                 // they each do 50% damage to monster
