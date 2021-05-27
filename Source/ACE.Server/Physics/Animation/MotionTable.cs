@@ -398,8 +398,8 @@ namespace ACE.Server.Physics.Animation
             {
                 if (Links.TryGetValue((style << 16) | (motion & 0xFFFFFF), out var link))
                 {
-                    link.TryGetValue(substate, out var result);
-                    return result;
+                    if (link.TryGetValue(substate, out var result))
+                        return result;
                 }
 
                 if (StyleDefaults.TryGetValue(style, out var defaultMotion) && Links.TryGetValue((style << 16) | (substate & 0xFFFFFF), out var sublink))
@@ -412,8 +412,8 @@ namespace ACE.Server.Physics.Animation
             {
                 if (Links.TryGetValue((style << 16) | (substate & 0xFFFFFF), out var link))
                 {
-                    link.TryGetValue(motion, out var result);
-                    return result;
+                    if (link.TryGetValue(motion, out var result))
+                        return result;
                 }
 
                 if (Links.TryGetValue(style << 16, out var sublink))
