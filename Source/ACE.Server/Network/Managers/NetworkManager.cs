@@ -95,7 +95,7 @@ namespace ACE.Server.Network.Managers
                 if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
                 {
                     packetLog.Debug($"{packet}, {endPoint}");
-                    if (GetSessionCount() >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
+                    if (GetAuthenticatedSessionCount() >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
                     {
                         log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
                         SendLoginRequestReject(connectionListener, endPoint, CharacterError.LogonServerFull);
@@ -197,6 +197,19 @@ namespace ACE.Server.Network.Managers
             try
             {
                 return sessionMap.Count(s => s != null);
+            }
+            finally
+            {
+                sessionLock.ExitReadLock();
+            }
+        }
+
+        public static int GetAuthenticatedSessionCount()
+        {
+            sessionLock.EnterReadLock();
+            try
+            {
+                return sessionMap.Count(s => s != null && s.AccountId != 0);
             }
             finally
             {
