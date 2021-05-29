@@ -330,14 +330,6 @@ namespace ACE.Server.WorldObjects
 
                 critDamageMod = Math.Max(critDamageMod, cripplingBlowMod); 
             }
-
-            if (wielder != null)
-                critDamageMod += wielder.GetCritDamageRating() * 0.01f;
-
-            // mitigation
-            var critDamageResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritDamageResistRating());
-            critDamageMod *= critDamageResistRatingMod;
-
             return critDamageMod;
         }
 

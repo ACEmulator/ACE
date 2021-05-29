@@ -5,6 +5,7 @@ using System.IO;
 using System.Numerics;
 
 using ACE.DatLoader.Entity;
+using ACE.DatLoader.Entity.AnimationHooks;
 using ACE.Entity.Enum;
 
 using AttackFrameParams = ACE.Entity.AttackFrameParams;
@@ -81,9 +82,9 @@ namespace ACE.DatLoader.FileTypes
             return length;
         }
 
-        private static readonly ConcurrentDictionary<AttackFrameParams, List<float>> attackFrameCache = new ConcurrentDictionary<AttackFrameParams, List<float>>();
+        private static readonly ConcurrentDictionary<AttackFrameParams, List<(float time, AttackHook attackHook)>> attackFrameCache = new ConcurrentDictionary<AttackFrameParams, List<(float time, AttackHook attackHook)>>();
 
-        public List<float> GetAttackFrames(uint motionTableId, MotionStance stance, MotionCommand motion)
+        public List<(float time, AttackHook attackHook)> GetAttackFrames(uint motionTableId, MotionStance stance, MotionCommand motion)
         {
             // could also do uint, and then a packed ulong, but would be more complicated maybe?
             var attackFrameParams = new AttackFrameParams(motionTableId, stance, motion);
@@ -97,6 +98,7 @@ namespace ACE.DatLoader.FileTypes
             var animData = GetAnimData(stance, motion, defaultMotion);
 
             var frameNums = new List<int>();
+            var attackHooks = new List<AttackHook>();
             var totalFrames = 0;
 
             foreach (var anim in animData)
@@ -107,15 +109,18 @@ namespace ACE.DatLoader.FileTypes
                 {
                     foreach (var hook in frame.Hooks)
                     {
-                        if (hook.HookType == AnimationHookType.Attack)
+                        if (hook is AttackHook attackHook)
+                        {
                             frameNums.Add(totalFrames);
+                            attackHooks.Add(attackHook);
+                        }
                     }
                     totalFrames++;
                 }
             }
-            attackFrames = new List<float>();
-            foreach (var frameNum in frameNums)
-                attackFrames.Add((float)frameNum / totalFrames);    // div 0?
+            attackFrames = new List<(float time, AttackHook attackHook)>();
+            for (var i = 0; i < frameNums.Count; i++)
+                attackFrames.Add(((float)frameNums[i] / totalFrames, attackHooks[i]));    // div 0?
 
             attackFrameCache.TryAdd(attackFrameParams, attackFrames);
 

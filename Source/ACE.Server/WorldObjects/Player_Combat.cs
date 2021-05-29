@@ -769,6 +769,8 @@ namespace ACE.Server.WorldObjects
             if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
                 FailCast();
 
+            HandleActionCancelAttack();
+
             float animTime = 0.0f, queueTime = 0.0f;
 
             switch (newCombatMode)

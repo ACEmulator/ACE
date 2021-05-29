@@ -5,6 +5,7 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.DatLoader;
+using ACE.DatLoader.Entity.AnimationHooks;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -77,8 +78,8 @@ namespace ACE.Server.WorldObjects
 
             for (var i = 0; i < numStrikes; i++)
             {
-                actionChain.AddDelaySeconds(attackFrames[i] * animLength - prevTime);
-                prevTime = attackFrames[i] * animLength;
+                actionChain.AddDelaySeconds(attackFrames[i].time * animLength - prevTime);
+                prevTime = attackFrames[i].time * animLength;
 
                 actionChain.AddAction(this, () =>
                 {
@@ -92,7 +93,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     var weapon = GetEquippedWeapon();
-                    var damageEvent = DamageEvent.CalculateDamage(this, target, weapon, motionCommand);
+                    var damageEvent = DamageEvent.CalculateDamage(this, target, weapon, motionCommand, attackFrames[0].attackHook);
 
                     //var damage = CalculateDamage(ref damageType, maneuver, bodyPart, ref critical, ref shieldMod);
 
@@ -315,7 +316,7 @@ namespace ACE.Server.WorldObjects
             }*/
         }
 
-        private static readonly List<float> defaultAttackFrames = new List<float>() { 1.0f / 3.0f };
+        private static readonly List<(float time, AttackHook attackHook)> defaultAttackFrames = new List<(float time, AttackHook attackHook)>() { ( 1.0f / 3.0f, null ) };
 
         private static readonly ConcurrentDictionary<AttackFrameParams, bool> missingAttackFrames = new ConcurrentDictionary<AttackFrameParams, bool>();
 
@@ -324,7 +325,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Perform the melee attack swing animation
         /// </summary>
-        public void DoSwingMotion(WorldObject target, MotionCommand motionCommand, out float animLength, out List<float> attackFrames)
+        public void DoSwingMotion(WorldObject target, MotionCommand motionCommand, out float animLength, out List<(float time, AttackHook attackHook)> attackFrames)
         {
             if (!moveBit)
             {
@@ -573,16 +574,23 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the monster body part performing the next attack
         /// </summary>
-        public KeyValuePair<CombatBodyPart, PropertiesBodyPart> GetAttackPart(MotionCommand motionCommand)
+        public KeyValuePair<CombatBodyPart, PropertiesBodyPart> GetAttackPart(MotionCommand motionCommand, AttackHook attackHook)
         {
             List<KeyValuePair<CombatBodyPart, PropertiesBodyPart>> parts = null;
-            var attackHeight = (uint)AttackHeight;
 
-            if (motionCommand >= MotionCommand.SpecialAttack1 && motionCommand <= MotionCommand.SpecialAttack3)
+            // todo: speed up key lookup?
+            if (attackHook != null)
+            {
+                parts = Biota.PropertiesBodyPart.Where(b => (uint)b.Key == attackHook.AttackCone.PartIndex).ToList();
+            }
+            else if (motionCommand >= MotionCommand.SpecialAttack1 && motionCommand <= MotionCommand.SpecialAttack3)
+            {
                 //parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH == 0).ToList();
                 parts = Biota.PropertiesBodyPart.Where(b => b.Key == CombatBodyPart.Breath).ToList(); // always use Breath?
+            }
 
-            if (parts == null)
+            // added parts.Count check for monsters wielding weapons -- should we be getting a body part here?
+            if (parts == null || parts.Count == 0)
                 //parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH != 0).ToList();
                 parts = Biota.PropertiesBodyPart.Where(b => b.Value.DVal != 0 && b.Key != CombatBodyPart.Breath).ToList();
 

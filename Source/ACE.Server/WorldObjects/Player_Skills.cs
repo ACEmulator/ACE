@@ -292,12 +292,18 @@ namespace ACE.Server.WorldObjects
 
             // refund xp and skill credits
             RefundXP(creatureSkill.ExperienceSpent);
-            AvailableSkillCredits += creditsSpent;
 
-            creatureSkill.AdvancementClass = SkillAdvancementClass.Trained;
-            creatureSkill.InitLevel = 0;
-            creatureSkill.ExperienceSpent = 0;
+            // salvaging / tinkering skills specialized through augmentation only
+            // cannot be unspecialized here, only refund xp
+            if (!IsSkillSpecializedViaAugmentation(skill, out var playerHasAugmentation) || !playerHasAugmentation)
+            {
+                creatureSkill.AdvancementClass = SkillAdvancementClass.Trained;
+                creatureSkill.InitLevel = 0;
+                AvailableSkillCredits += creditsSpent;
+            }
+
             creatureSkill.Ranks = 0;
+            creatureSkill.ExperienceSpent = 0;
 
             return true;
         }

@@ -119,6 +119,10 @@ namespace ACE.Server.WorldObjects
 
             var attackSequence = ++AttackSequence;
 
+            // record stance here and pass it along
+            // accounts for odd client behavior with swapping bows during repeat attacks
+            var stance = CurrentMotionState.Stance;
+
             // turn if required
             var rotateTime = Rotate(target);
             var actionChain = new ActionChain();
@@ -130,14 +134,14 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(delayTime);
 
             // do missile attack
-            actionChain.AddAction(this, () => LaunchMissile(target, attackSequence));
+            actionChain.AddAction(this, () => LaunchMissile(target, attackSequence, stance));
             actionChain.EnqueueChain();
         }
 
         /// <summary>
         /// Launches a missile attack from player to target
         /// </summary>
-        public void LaunchMissile(WorldObject target, int attackSequence, bool subsequent = false)
+        public void LaunchMissile(WorldObject target, int attackSequence, MotionStance stance, bool subsequent = false)
         {
             if (AttackSequence != attackSequence)
                 return;
@@ -256,15 +260,18 @@ namespace ACE.Server.WorldObjects
 
             // reload animation
             var animSpeed = GetAnimSpeed();
-            var reloadTime = EnqueueMotionPersist(actionChain, MotionCommand.Reload, animSpeed);
+            var reloadTime = EnqueueMotionPersist(actionChain, stance, MotionCommand.Reload, animSpeed);
 
             // reset for next projectile
-            EnqueueMotionPersist(actionChain, MotionCommand.Ready);
-            var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload, MotionCommand.Ready);
+            EnqueueMotionPersist(actionChain, stance, MotionCommand.Ready);
+            var linkTime = MotionTable.GetAnimationLength(MotionTableId, stance, MotionCommand.Reload, MotionCommand.Ready);
             //var cycleTime = MotionTable.GetCycleLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready);
 
-            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, ACE.Entity.Enum.ParentLocation.RightHand,
-                ACE.Entity.Enum.Placement.RightHandCombat)));
+            actionChain.AddAction(this, () =>
+            {
+                if (CombatMode == CombatMode.Missile)
+                    EnqueueBroadcast(new GameMessageParentEvent(this, ammo, ACE.Entity.Enum.ParentLocation.RightHand, ACE.Entity.Enum.Placement.RightHandCombat));
+            }); 
 
             actionChain.AddDelaySeconds(linkTime);
 
@@ -287,7 +294,7 @@ namespace ACE.Server.WorldObjects
                     nextAttack.AddDelaySeconds(nextRefillTime);
 
                     // perform next attack
-                    nextAttack.AddAction(this, () => { LaunchMissile(target, attackSequence, true); });
+                    nextAttack.AddAction(this, () => { LaunchMissile(target, attackSequence, stance, true); });
                     nextAttack.EnqueueChain();
                 }
                 else

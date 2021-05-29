@@ -144,6 +144,9 @@ namespace ACE.Server.WorldObjects
             //if (!spell.IsResistable || spell.IsSelfTargeted)
                 return false;
 
+            if (spell.MetaSpellType == SpellType.Dispel && spell.Align == DispelType.Negative && !PropertyManager.GetBool("allow_negative_dispel_resist").Item)
+                return false;
+
             if (spell.NumProjectiles > 0 && !projectileHit)
                 return false;
 
@@ -706,7 +709,7 @@ namespace ACE.Server.WorldObjects
 
             if (targetPlayer != null && targetPlayer.PKTimerActive)
             {
-                if (casterPlayer != null || caster is Gem || caster is Food)
+                if (/* casterPlayer != null || */ caster is Gem || caster is Food)
                 {
                     if (casterPlayer != null)
                         casterPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{targetPlayer.Name} has been involved in a player killer battle too recently to do that!", ChatMessageType.Magic));
@@ -777,6 +780,7 @@ namespace ACE.Server.WorldObjects
             if (spell.IsPortalSpell)
             {
                 var targetPlayer = target as Player;
+                var targetCreature = target as Creature;
 
                 switch (spell.MetaSpellType)
                 {
@@ -899,7 +903,7 @@ namespace ACE.Server.WorldObjects
                                 portalRecall.AddAction(targetPlayer, () =>
                                 {
                                     var teleportDest = new Position(portal.Destination);
-                                    WorldObject.AdjustDungeon(teleportDest);
+                                    AdjustDungeon(teleportDest);
 
                                     targetPlayer.Teleport(teleportDest);
                                 });
@@ -924,13 +928,22 @@ namespace ACE.Server.WorldObjects
                             portalSendingChain.AddAction(targetPlayer, () =>
                             {
                                 var teleportDest = new Position(spell.Position);
-                                WorldObject.AdjustDungeon(teleportDest);
+                                AdjustDungeon(teleportDest);
 
                                 targetPlayer.Teleport(teleportDest);
 
                                 targetPlayer.SendTeleportedViaMagicMessage(itemCaster, spell);
                             });
                             portalSendingChain.EnqueueChain();
+                        }
+                        else if (targetCreature != null)
+                        {
+                            // monsters can cast some portal spells on themselves too, possibly?
+                            // under certain circumstances, such as ensuring the destination is the same landblock
+                            var teleportDest = new Position(spell.Position);
+                            AdjustDungeon(teleportDest);
+
+                            targetCreature.FakeTeleport(teleportDest);
                         }
                         break;
 
@@ -959,7 +972,7 @@ namespace ACE.Server.WorldObjects
                                 portalSendingChain.AddAction(targetPlayer, () =>
                                 {
                                     var teleportDest = new Position(spell.Position);
-                                    WorldObject.AdjustDungeon(teleportDest);
+                                    AdjustDungeon(teleportDest);
 
                                     targetPlayer.Teleport(teleportDest);
 
@@ -1881,6 +1894,7 @@ namespace ACE.Server.WorldObjects
         public static void ShowResistInfo(Creature observed, WorldObject attacker, WorldObject defender, Spell spell, uint attackSkill, uint defenseSkill, float resistChance, bool resisted)
         {
             var targetInfo = PlayerManager.GetOnlinePlayer(observed.DebugDamageTarget);
+
             if (targetInfo == null)
             {
                 observed.DebugDamage = Creature.DebugDamageType.None;
@@ -1902,7 +1916,10 @@ namespace ACE.Server.WorldObjects
 
             info += $"Resisted: {resisted}";
 
-            targetInfo.Session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
+            if (resisted || spell.NumProjectiles == 0)
+                targetInfo.Session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
+            else
+                targetInfo.DebugDamageBuffer = $"{info}\n";
         }
 
 

@@ -1486,7 +1486,13 @@ namespace ACE.Server.WorldObjects
 
                 if (mainWeapon != null)
                 {
-                    if (CombatMode != CombatMode.NonCombat)
+                    // this wasn't a thing in retail, and can bug out the client during laggy conditions
+
+                    // if main-hand slot is filled with anything other than a 1-handed melee weapon, send error
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.ConflictingInventoryLocation));
+                    return false;
+
+                    /*if (CombatMode != CombatMode.NonCombat)
                     {
                         HandleActionChangeCombatMode(CombatMode.Melee, true, () =>
                         {
@@ -1500,7 +1506,7 @@ namespace ACE.Server.WorldObjects
                     else if (!DoHandleActionGetAndWieldItem_DequipItemToInventory(mainWeapon, item))
                     {
                         return false;
-                    }
+                    }*/
                 }
             }
 
@@ -1514,7 +1520,13 @@ namespace ACE.Server.WorldObjects
 
                 if (dualWield != null)
                 {
-                    if (CombatMode != CombatMode.NonCombat)
+                    // this wasn't a thing in retail, and can bug out the client during laggy conditions
+
+                    // if wielding an off-hand weapon, send error
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.ConflictingInventoryLocation));
+                    return false;
+
+                    /*if (CombatMode != CombatMode.NonCombat)
                     {
                         HandleActionChangeCombatMode(CombatMode.Melee, true, () =>
                         {
@@ -1528,7 +1540,7 @@ namespace ACE.Server.WorldObjects
                     else if (!DoHandleActionGetAndWieldItem_DequipItemToInventory(dualWield, item))
                     {
                         return false;
-                    }
+                    }*/
                 }
             }
 

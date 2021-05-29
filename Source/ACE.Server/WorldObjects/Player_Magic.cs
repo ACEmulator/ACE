@@ -44,6 +44,8 @@ namespace ACE.Server.WorldObjects
 
         public bool DebugSpell { get; set; }
 
+        public string DebugDamageBuffer { get; set; }
+
         public RecordCast RecordCast { get; set; }
 
         /// <summary>
@@ -806,7 +808,7 @@ namespace ACE.Server.WorldObjects
                 var stopCompletely = !MagicState.CastMotionDone;
                 //var stopCompletely = true;
 
-                CreateTurnToChain2(target, null, stopCompletely, MagicState.AlwaysTurn);
+                CreateTurnToChain2(target, null, null, stopCompletely, MagicState.AlwaysTurn);
 
                 MagicState.AlwaysTurn = false;
             }

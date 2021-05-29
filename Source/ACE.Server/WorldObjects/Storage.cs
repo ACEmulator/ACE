@@ -1,4 +1,4 @@
-using System.Numerics;
+using log4net;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -11,6 +11,8 @@ namespace ACE.Server.WorldObjects
 {
     public class Storage : Chest
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public House House { get => ParentLink as House; }
 
         public override double Default_ChestResetInterval => double.PositiveInfinity;
@@ -55,7 +57,15 @@ namespace ACE.Server.WorldObjects
             if (player.IgnoreHouseBarriers)
                 return new ActivationResult(true);
 
-            if (!House.RootHouse.HasPermission(player, true))
+            var rootHouse = House?.RootHouse;
+
+            if (rootHouse == null)
+            {
+                log.Error($"[HOUSE] {player.Name} tried to use Storage chest @ {Location}, couldn't find RootHouse (this shouldn't happen)");
+                return new ActivationResult(false);
+            }
+
+            if (!rootHouse.HasPermission(player, true))
             {
                 player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You do not have permission to access {Name}"));
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));

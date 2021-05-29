@@ -265,5 +265,21 @@ namespace ACE.Server.Factories.Tables.Wcids
 
             return weaponTable.table.Roll();
         }
+
+        private static readonly Dictionary<WeenieClassName, TreasureWeaponType> _combined = new Dictionary<WeenieClassName, TreasureWeaponType>();
+
+        static FinesseWeaponWcids()
+        {
+            foreach (var finesseWeaponsTable in finesseWeaponsTables)
+            {
+                foreach (var wcid in finesseWeaponsTable.table)
+                    _combined.TryAdd(wcid.result, finesseWeaponsTable.weaponType);
+            }
+        }
+
+        public static bool TryGetValue(WeenieClassName wcid, out TreasureWeaponType weaponType)
+        {
+            return _combined.TryGetValue(wcid, out weaponType);
+        }
     }
 }

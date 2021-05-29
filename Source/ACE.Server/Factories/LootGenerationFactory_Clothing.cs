@@ -973,6 +973,9 @@ namespace ACE.Server.Factories
             if (profile.Tier != 8)
                 return false;
 
+            // shields don't have gear ratings
+            if (wo.IsShield) return false;
+
             var gearRating = GearRatingChance.Roll(wo, profile, roll);
 
             if (gearRating == 0)
