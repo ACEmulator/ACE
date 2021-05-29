@@ -2,7 +2,9 @@ using System;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.WorldObjects
@@ -229,6 +231,12 @@ namespace ACE.Server.WorldObjects
 
         public void ApplyConsumable(MotionCommand useMotion, Action action, float animMod = 1.0f)
         {
+            if (PropertyManager.GetBool("allow_fast_chug").Item && FastTick)
+            {
+                ApplyConsumableWithAnimationCallbacks(useMotion, action, animMod);
+                return;
+            }
+
             IsBusy = true;
 
             var actionChain = new ActionChain();
@@ -265,6 +273,76 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
 
             LastUseTime = animTime;
+        }
+
+        /// <summary>
+        /// Fast chugging state variable
+        /// </summary>
+        public FoodState FoodState { get; set; }
+
+        public void ApplyConsumableWithAnimationCallbacks(MotionCommand useMotion, Action action, float animMod = 1.0f)
+        {
+            IsBusy = true;
+
+            var actionChain = new ActionChain();
+
+            // if combat mode, temporarily drop to non-combat
+            var prevStance = CurrentMotionState.Stance;
+
+            var animTime = 0.0f;
+
+            if (prevStance != MotionStance.NonCombat)
+                animTime = EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, (MotionCommand)prevStance);
+
+            // start the eat/drink motion
+            var useAnimTime = EnqueueMotion_Force(actionChain, MotionStance.NonCombat, useMotion, null, 1.0f, animMod);
+
+            animTime += useAnimTime;
+
+            // the rest is based on animation callback now
+            FoodState.StartChugging(useMotion, action, animMod, useAnimTime, prevStance);
+
+            actionChain.EnqueueChain();
+
+            LastUseTime = animTime;
+        }
+
+        public void HandleMotionDone_UseConsumable(uint motionID, bool success)
+        {
+            //Console.WriteLine($"HandleMotionDone_UseConsumable({(MotionCommand)motionID}, {success})");
+
+            if (!FastTick || !FoodState.IsChugging) return;
+
+            if (motionID != (uint)FoodState.UseMotion)
+                return;
+
+            if (FoodState.Callback != null)
+                FoodState.Callback();
+
+            // restore state vars
+            var animMod = FoodState.AnimMod;
+            var animTime = 0.0f;
+            var actionChain = new ActionChain();
+            var useMotion = FoodState.UseMotion;
+            var useAnimTime = FoodState.UseAnimTime;
+            var prevStance = FoodState.PrevStance;
+
+            FoodState.FinishChugging();
+
+            if (animMod == 1.0f)
+            {
+                // return to ready stance
+                animTime += EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, useMotion);
+            }
+            else
+                actionChain.AddDelaySeconds(useAnimTime * (1.0f - animMod));
+
+            if (prevStance != MotionStance.NonCombat)
+                animTime += EnqueueMotion_Force(actionChain, prevStance, MotionCommand.Ready, MotionCommand.NonCombat);
+
+            actionChain.AddAction(this, () => { IsBusy = false; });
+
+            actionChain.EnqueueChain();
         }
     }
 }

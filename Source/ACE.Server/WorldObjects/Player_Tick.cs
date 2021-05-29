@@ -694,7 +694,12 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.HandleMotionDone({(MotionCommand)motionID}, {success})");
 
-            if (FastTick && MagicState.IsCasting)
+            if (!FastTick) return;
+
+            if (FoodState.IsChugging)
+                HandleMotionDone_UseConsumable(motionID, success);
+
+            if (MagicState.IsCasting)
                 HandleMotionDone_Magic(motionID, success);
         }
     }
