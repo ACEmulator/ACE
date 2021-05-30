@@ -9,7 +9,7 @@ namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventApproachVendor : GameEventMessage
     {
-        public GameEventApproachVendor(Session session, Vendor vendor, List<WorldObject> items, uint altCurrencySpent)
+        public GameEventApproachVendor(Session session, Vendor vendor, uint altCurrencySpent)
             : base(GameEventType.ApproachVendor, GameMessageGroup.UIQueue, session)
         {        
             Writer.Write(vendor.Guid.Full);
@@ -42,17 +42,19 @@ namespace ACE.Server.Network.GameEvent.Events
             }
             else
             {
-                Writer.Write((uint)0);
-                Writer.WriteString16L("");
+                Writer.Write(0);
+                Writer.WriteString16L(string.Empty);
             }
 
-            Writer.Write((uint)items.Count);    
+            var numItems = vendor.DefaultItemsForSale.Count + vendor.UniqueItemsForSale.Count;
 
-            foreach (WorldObject obj in items)
+            Writer.Write(numItems);
+
+            vendor.forEachItem((obj) =>
             {
                 Writer.Write(-1);   // -1 = unlimited supply?
                 obj.SerializeGameDataOnly(Writer);
-            }
+            });
 
             Writer.Align();
         }

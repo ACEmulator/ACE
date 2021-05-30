@@ -498,7 +498,7 @@ namespace ACE.Server.WorldObjects
             if (numCoinsDropped > 0)
             {
                 // add pyreals to dropped items
-                var pyreals = SpendCurrency(Vendor.CoinStackWCID, (uint)numCoinsDropped);
+                var pyreals = SpendCurrency(coinStackWcid, (uint)numCoinsDropped);
                 dropItems.AddRange(pyreals);
                 //Console.WriteLine($"Dropping {numCoinsDropped} pyreals");
             }

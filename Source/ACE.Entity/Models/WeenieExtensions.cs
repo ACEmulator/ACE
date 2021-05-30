@@ -169,5 +169,29 @@ namespace ACE.Entity.Models
         {
             return weenie.GetProperty(PropertyBool.VendorService) ?? false;
         }
+
+        public static int GetStackUnitEncumbrance(this Weenie weenie)
+        {
+            if (weenie.IsStackable())
+            {
+                var stackUnitEncumbrance = weenie.GetProperty(PropertyInt.StackUnitEncumbrance);
+
+                if (stackUnitEncumbrance != null)
+                    return stackUnitEncumbrance.Value;
+            }
+            return weenie.GetProperty(PropertyInt.EncumbranceVal) ?? 0;
+        }
+
+        public static int GetMaxStackSize(this Weenie weenie)
+        {
+            if (weenie.IsStackable())
+            {
+                var maxStackSize = weenie.GetProperty(PropertyInt.MaxStackSize);
+
+                if (maxStackSize != null)
+                    return maxStackSize.Value;
+            }
+            return 1;
+        }
     }
 }
