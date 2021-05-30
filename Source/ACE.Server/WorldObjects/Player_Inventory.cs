@@ -2700,7 +2700,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var acceptAll = (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false) && !item.IsStickyAttunedOrContainsStickyAttuned;
+            var acceptAll = target.AiAcceptEverything && !item.IsStickyAttunedOrContainsStickyAttuned;
 
             if (target.HasGiveOrRefuseEmoteForItem(item, out var emoteResult) || acceptAll)
             {
@@ -2755,7 +2755,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                if (item.WeenieType == WeenieType.Deed) // http://acpedia.org/wiki/Housing_FAQ#House_deeds
+                if (item.WeenieType == WeenieType.Deed && target.AiAcceptEverything) // http://acpedia.org/wiki/Housing_FAQ#House_deeds
                 {                    
                     var stackSize = item.StackSize ?? 1;
 

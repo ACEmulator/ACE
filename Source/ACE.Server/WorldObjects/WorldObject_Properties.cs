@@ -3077,5 +3077,11 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.ItemAttribute2ndLevelLimit);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemAttribute2ndLevelLimit); else SetProperty(PropertyInt.ItemAttribute2ndLevelLimit, value.Value); }
         }
+
+        public bool AiAcceptEverything
+        {
+            get => GetProperty(PropertyBool.AiAcceptEverything) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.AiAcceptEverything); else SetProperty(PropertyBool.AiAcceptEverything, value); }
+        }
     }
 }
