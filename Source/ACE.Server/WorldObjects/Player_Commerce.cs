@@ -238,7 +238,7 @@ namespace ACE.Server.WorldObjects
                     continue;
                 }
 
-                if (sellItem.Amount < 1)
+                if (!sellItem.IsValidAmount)
                 {
                     log.Warn($"[VENDOR] {Name} tried to sell {sellItem.Amount}x {wo.Name} ({wo.Guid}) to {vendor.Name}");
                     continue;
