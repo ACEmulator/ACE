@@ -477,11 +477,11 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        public int CalculatePayoutCoinAmount(List<WorldObject> items)
+        public int CalculatePayoutCoinAmount(Dictionary<uint, WorldObject> items)
         {
             var payout = 0;
 
-            foreach (WorldObject item in items)
+            foreach (WorldObject item in items.Values)
             {
                 var buyRate = BuyPrice ?? 1;
 
@@ -500,9 +500,9 @@ namespace ACE.Server.WorldObjects
         /// In both cases, the item will be removed from the database.<para />
         /// The item should already have been removed from the players inventory
         /// </summary>
-        public void ProcessItemsForPurchase(Player player, List<WorldObject> items)
+        public void ProcessItemsForPurchase(Player player, Dictionary<uint, WorldObject> items)
         {
-            foreach (var item in items)
+            foreach (var item in items.Values)
             {
                 var resellItem = true;
 
@@ -524,7 +524,7 @@ namespace ACE.Server.WorldObjects
 
                     if (!UniqueItemsForSale.TryAdd(item.Guid, item))
                     {
-                        var sellItems = string.Join(", ", items.Select(i => $"{i.Name} ({i.Guid})"));
+                        var sellItems = string.Join(", ", items.Values.Select(i => $"{i.Name} ({i.Guid})"));
                         log.Error($"[VENDOR] {Name}.ProcessItemsForPurchase({player.Name}): duplicate item found, sell list: {sellItems}");
                     }
 

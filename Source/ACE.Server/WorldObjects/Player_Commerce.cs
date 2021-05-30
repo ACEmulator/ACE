@@ -129,55 +129,16 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // perform some initial validations on the sell items,
-            // and filter item profiles to validated items
+            // perform validations on requested sell items,
+            // and filter to list of validated items
 
             // one difference between sell and buy is here.
             // when an itemProfile is invalid in buy, the entire transaction is failed immediately.
             // when an itemProfile is invalid in sell, we just remove the invalid itemProfiles, and continue onwards
-            // this might not be the best for safety, and it's a tradeoff between being safety and player convenience
-            // should we fail the valid itemProfiles (similar to buy), if there are any invalids in the transaction request?
+            // this might not be the best for safety, and it's a tradeoff between safety and player convenience
+            // should we fail the entire transaction (similar to buy), if there are any invalids in the transaction request?
 
-            itemProfiles = VerifySellItems(itemProfiles, vendor);
-
-            var acceptedItemTypes = (ItemType)(vendor.MerchandiseItemTypes ?? 0);
-
-            var allPossessions = GetAllPossessions().ToDictionary(i => i.Guid.Full, i => i);
-
-            var sellList = new List<WorldObject>();
-
-            // a second layer of validations
-            // why does this happen in 2 separate layers? it might make more conceptual sense to have all of the validations together,
-            // and it could also possibly be more efficient as 1 validation function...
-
-            foreach (var itemProfile in itemProfiles)
-            {
-                if (!allPossessions.TryGetValue(itemProfile.ObjectGuid, out var item))
-                    continue;
-
-                if ((acceptedItemTypes & item.ItemType) == 0 || !item.IsSellable || item.Retained)
-                {
-                    var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} is unsellable.")); // retail message did not include item name, leaving in that for now.
-                    continue;
-                }
-
-                if (item.Value < 1)
-                {
-                    var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} has no value and cannot be sold.")); // retail message did not include item name, leaving in that for now.
-                    continue;
-                }
-
-                if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
-                {
-                    var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot sell that! The {itemName} is currently being traded.")); // custom message?
-                    continue;
-                }
-
-                sellList.Add(item);
-            }
+            var sellList = VerifySellItems(itemProfiles, vendor);
 
             if (sellList.Count == 0)
             {
@@ -186,6 +147,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // calculate pyreals to receive
             var payoutCoinAmount = vendor.CalculatePayoutCoinAmount(sellList);
 
             if (payoutCoinAmount < 0)
@@ -200,6 +162,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // verify player has enough pack slots / burden to receive these pyreals
             var itemsToReceive = new ItemsToReceive(this);
 
             itemsToReceive.Add((uint)ACE.Entity.Enum.WeenieClassName.W_COINSTACK_CLASS, payoutCoinAmount);
@@ -219,7 +182,7 @@ namespace ACE.Server.WorldObjects
             var payoutCoinStacks = CreatePayoutCoinStacks(payoutCoinAmount);
 
             // remove sell items from player inventory
-            foreach (var item in sellList)
+            foreach (var item in sellList.Values)
             {
                 if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.SellItem) || TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.SellItem))
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, vendor));
@@ -227,43 +190,49 @@ namespace ACE.Server.WorldObjects
                     log.WarnFormat("[VENDOR] Item 0x{0:X8}:{1} for player {2} not found in HandleActionSellItem.", item.Guid.Full, item.Name, Name); // This shouldn't happen
             }
 
-            // send the list of items to the vendor to complete the transaction
+            // send the list of items to the vendor
+            // for the vendor to determine what to do with each item (resell, destroy)
             vendor.ProcessItemsForPurchase(this, sellList);
 
             // add coins to player inventory
             foreach (var item in payoutCoinStacks)
             {
-                if (!TryCreateInInventoryWithNetworking(item))  // this shouldn't happen
+                if (!TryCreateInInventoryWithNetworking(item))  // this shouldn't happen because of pre-validations in itemsToReceive
                 {
                     log.WarnFormat("[VENDOR] Payout 0x{0:X8}:{1} for player {2} failed to add to inventory HandleActionSellItem.", item.Guid.Full, item.Name, Name);
                     item.Destroy();
                 }
             }
 
-            UpdateCoinValue(false);
+            // UpdateCoinValue removed -- already handled in TryCreateInInventoryWithNetworking
 
             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
 
             SendUseDoneEvent();
         }
 
-        private List<ItemProfile> VerifySellItems(List<ItemProfile> sellItems, Vendor vendor)
+        /// <summary>
+        /// Filters the list of ItemProfiles the player is attempting to sell to the vendor
+        /// to the list of verified WorldObjects in the player's inventory w/ validations
+        /// </summary>
+        private Dictionary<uint, WorldObject> VerifySellItems(List<ItemProfile> sellItems, Vendor vendor)
         {
-            var uniques = new HashSet<uint>();
+            var allPossessions = GetAllPossessions().ToDictionary(i => i.Guid.Full, i => i);
 
-            var verified = new List<ItemProfile>();
+            var acceptedItemTypes = (ItemType)(vendor.MerchandiseItemTypes ?? 0);
+
+            var verified = new Dictionary<uint, WorldObject>();
 
             foreach (var sellItem in sellItems)
             {
-                var wo = FindObject(sellItem.ObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems);
-
-                if (wo == null)
+                if (!allPossessions.TryGetValue(sellItem.ObjectGuid, out var wo))
                 {
                     log.Warn($"[VENDOR] {Name} tried to sell item {sellItem.ObjectGuid:X8} not in their inventory to {vendor.Name}");
                     continue;
                 }
 
-                if (uniques.Contains(sellItem.ObjectGuid))
+                // verify item profile (unique guids, amount)
+                if (verified.ContainsKey(wo.Guid.Full))
                 {
                     log.Warn($"[VENDOR] {Name} tried to sell duplicate item {wo.Name} ({wo.Guid}) to {vendor.Name}");
                     continue;
@@ -281,9 +250,29 @@ namespace ACE.Server.WorldObjects
                     continue;
                 }
 
-                uniques.Add(sellItem.ObjectGuid);
+                // verify wo / vendor / player properties
+                if ((acceptedItemTypes & wo.ItemType) == 0 || !wo.IsSellable || wo.Retained)
+                {
+                    var itemName = (wo.StackSize ?? 1) > 1 ? wo.GetPluralName() : wo.Name;
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} is unsellable.")); // retail message did not include item name, leaving in that for now.
+                    continue;
+                }
 
-                verified.Add(sellItem);
+                if (wo.Value < 1)
+                {
+                    var itemName = (wo.StackSize ?? 1) > 1 ? wo.GetPluralName() : wo.Name;
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} has no value and cannot be sold.")); // retail message did not include item name, leaving in that for now.
+                    continue;
+                }
+
+                if (IsTrading && ItemsInTradeWindow.Contains(wo.Guid))
+                {
+                    var itemName = (wo.StackSize ?? 1) > 1 ? wo.GetPluralName() : wo.Name;
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot sell that! The {itemName} is currently being traded.")); // custom message?
+                    continue;
+                }
+
+                verified.Add(wo.Guid.Full, wo);
             }
 
             return verified;
