@@ -155,7 +155,6 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the currently equipped missile launcher
         /// </summary>
-        /// <returns></returns>
         public WorldObject GetEquippedMissileLauncher()
         {
             return EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileWeapon && e is MissileLauncher);
