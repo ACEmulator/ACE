@@ -580,17 +580,17 @@ namespace ACE.Server.WorldObjects
 
                 case CombatMode.Missile:
 
-                    var weapon = target.GetEquippedMissileWeapon();
-                    if (weapon != null && weapon.AbsorbMagicDamage != null)
-                        return AbsorbMagic(target, weapon);
+                    var missileLauncherOrShield = target.GetEquippedMissileLauncher() ?? target.GetEquippedShield();
+                    if (missileLauncherOrShield != null && missileLauncherOrShield.AbsorbMagicDamage != null)
+                        return AbsorbMagic(target, missileLauncherOrShield);
 
                     break;
 
                 case CombatMode.Magic:
 
-                    weapon = target.GetEquippedWand();
-                    if (weapon != null && weapon.AbsorbMagicDamage != null)
-                        return AbsorbMagic(target, weapon);
+                    var caster = target.GetEquippedWand();
+                    if (caster != null && caster.AbsorbMagicDamage != null)
+                        return AbsorbMagic(target, caster);
 
                     break;
             }
