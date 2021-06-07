@@ -1086,12 +1086,20 @@ namespace ACE.Server.WorldObjects
         /// Iterates through all of the equipped objects that have proc spells
         /// matching the 'selfTarget' bool, and tries procing them w/ rng chance
         /// </summary>
-        public void TryProcEquippedItems(Creature target, bool selfTarget)
+        public void TryProcEquippedItems(Creature target, bool selfTarget, WorldObject restrictMelee = null)
         {
             var tryProcItems = EquippedObjects.Values.Where(i => i.HasProc && i.ProcSpellSelfTargeted == selfTarget);
 
             foreach (var tryProcItem in tryProcItems)
+            {
+                if (restrictMelee != null)
+                {
+                    // for melee attacks, we want to restrict this to the weapon that dealt the damage
+                    if (tryProcItem != restrictMelee && tryProcItem is MeleeWeapon)
+                        continue;
+                }
                 tryProcItem.TryProcItem(this, target);
+            }
         }
 
         public static Skill GetDefenseSkill(CombatType combatType)
@@ -1112,7 +1120,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// If one of these fields is set, potential aggro from Player or CombatPet movement terminates immediately
         /// </summary>
-        protected static readonly Tolerance PlayerCombatPat_MoveExclude = Tolerance.NoAttack | Tolerance.Appraise | Tolerance.Provoke | Tolerance.Retaliate | Tolerance.Monster;
+        protected static readonly Tolerance PlayerCombatPet_MoveExclude = Tolerance.NoAttack | Tolerance.Appraise | Tolerance.Provoke | Tolerance.Retaliate | Tolerance.Monster;
 
         /// <summary>
         /// If one of these fields is set, potential aggro from other monster movement terminates immediately
@@ -1143,7 +1151,7 @@ namespace ACE.Server.WorldObjects
             // ensure monster is currently in idle state to wake up,
             // and it has no tolerance to players running nearby
             // TODO: investigate usage for tolerance
-            var tolerance = this is Player ? PlayerCombatPat_MoveExclude : Monster_MoveExclude;
+            var tolerance = this is Player ? PlayerCombatPet_MoveExclude : Monster_MoveExclude;
 
             if (monster.MonsterState != State.Idle || (monster.Tolerance & tolerance) != 0)
                 return false;
