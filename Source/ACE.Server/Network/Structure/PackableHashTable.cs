@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using ACE.Database.Models.Shard;
 
@@ -29,13 +30,20 @@ namespace ACE.Server.Network.Structure
             writer.Write((ushort)size);
         }
 
-        public static void WriteOld(this BinaryWriter writer, List<CharacterPropertiesFillCompBook> fillComps)
+        private static readonly HashComparer FillCompsComparer = new HashComparer(256);
+
+        public static void Write(this BinaryWriter writer, List<CharacterPropertiesFillCompBook> _fillComps)
         {
-            WriteHeaderOld(writer, fillComps.Count);
-            foreach (var fillComp in fillComps)
+            WriteHeader(writer, _fillComps.Count, FillCompsComparer.NumBuckets);
+
+            var fillComps = _fillComps.ToDictionary(i => (uint)i.SpellComponentId, i => (uint)i.QuantityToRebuy);
+
+            var sorted = new SortedDictionary<uint, uint>(fillComps, FillCompsComparer);
+
+            foreach (var fillComp in sorted)
             {
-                writer.Write((uint)fillComp.SpellComponentId);
-                writer.Write((uint)fillComp.QuantityToRebuy);
+                writer.Write(fillComp.Key);
+                writer.Write(fillComp.Value);
             }
         }
 

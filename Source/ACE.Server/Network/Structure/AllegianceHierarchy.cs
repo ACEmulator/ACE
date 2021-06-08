@@ -48,7 +48,7 @@ namespace ACE.Server.Network.Structure
             // 2 in data for small allegiances?
             ushort recordCount = 0;
             ushort oldVersion = 0x000B;
-            var officers = new Dictionary<ObjectGuid, AllegianceOfficerLevel>();
+            var officers = new Dictionary<uint, AllegianceOfficerLevel>();
             var officerTitles = new List<string>();
             uint monarchBroadcastTime = 0;
             uint monarchBroadcastsToday = 0;
@@ -72,7 +72,7 @@ namespace ACE.Server.Network.Structure
             {
                 // only send these to monarch?
                 //foreach (var officer in allegiance.Officers)
-                    //officers.Add(officer.Key, (AllegianceOfficerLevel)officer.Value.Player.AllegianceOfficerRank);
+                    //officers.Add(officer.Key.Full, (AllegianceOfficerLevel)officer.Value.Player.AllegianceOfficerRank);
 
                 // not in retail packets, breaks decal
                 /*if (allegiance.HasCustomTitles)
@@ -161,13 +161,17 @@ namespace ACE.Server.Network.Structure
                 writer.Write(records);
         }
 
-        public static void Write(this BinaryWriter writer, Dictionary<ObjectGuid, AllegianceOfficerLevel> officers)
+        private static readonly HashComparer hashComparer = new HashComparer(256);
+
+        public static void Write(this BinaryWriter writer, Dictionary<uint, AllegianceOfficerLevel> _officers)
         {
-            PHashTable.WriteHeader(writer, officers.Count);     // verify
+            PackableHashTable.WriteHeader(writer, _officers.Count, hashComparer.NumBuckets);
+
+            var officers = new SortedDictionary<uint, AllegianceOfficerLevel>(_officers, hashComparer);
 
             foreach (var officer in officers)
             {
-                writer.Write(officer.Key.Full);
+                writer.Write(officer.Key);
                 writer.Write((uint)officer.Value);
             }
         }
@@ -209,14 +213,6 @@ namespace ACE.Server.Network.Structure
                 writer.Write(record.Item1.Full);
                 writer.Write(record.Item2);
             }
-        }
-
-        /// <summary>
-        /// Returns the number of bits required to store the input number
-        /// </summary>
-        public static uint GetNumBits(uint num)
-        {
-            return (uint)Math.Log(num, 2) + 1;
         }
     }
 }

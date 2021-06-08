@@ -802,17 +802,17 @@ namespace ACE.Server.Network.Structure
                 writer.Write(info.ArmorLevels);
         }
 
-        private static readonly PropertyIntComparer PropertyIntComparer = new PropertyIntComparer();
-        private static readonly PropertyInt64Comparer PropertyInt64Comparer = new PropertyInt64Comparer();
-        private static readonly PropertyBoolComparer PropertyBoolComparer = new PropertyBoolComparer();
-        private static readonly PropertyFloatComparer PropertyFloatComparer = new PropertyFloatComparer();
-        private static readonly PropertyStringComparer PropertyStringComparer = new PropertyStringComparer();
-        private static readonly PropertyDataIdComparer PropertyDataIdComparer = new PropertyDataIdComparer();
+        private static readonly PropertyIntComparer PropertyIntComparer = new PropertyIntComparer(16);
+        private static readonly PropertyInt64Comparer PropertyInt64Comparer = new PropertyInt64Comparer(8);
+        private static readonly PropertyBoolComparer PropertyBoolComparer = new PropertyBoolComparer(8);
+        private static readonly PropertyFloatComparer PropertyFloatComparer = new PropertyFloatComparer(8);
+        private static readonly PropertyStringComparer PropertyStringComparer = new PropertyStringComparer(8);
+        private static readonly PropertyDataIdComparer PropertyDataIdComparer = new PropertyDataIdComparer(8);
 
         // TODO: generics
         public static void Write(this BinaryWriter writer, Dictionary<PropertyInt, int> _properties)
         {
-            PackableHashTable.WriteHeader(writer, _properties.Count, 16);
+            PackableHashTable.WriteHeader(writer, _properties.Count, PropertyIntComparer.NumBuckets);
 
             var properties = new SortedDictionary<PropertyInt, int>(_properties, PropertyIntComparer);
 
@@ -825,7 +825,7 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<PropertyInt64, long> _properties)
         {
-            PackableHashTable.WriteHeader(writer, _properties.Count, 8);
+            PackableHashTable.WriteHeader(writer, _properties.Count, PropertyInt64Comparer.NumBuckets);
 
             var properties = new SortedDictionary<PropertyInt64, long>(_properties, PropertyInt64Comparer);
 
@@ -838,7 +838,7 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<PropertyBool, bool> _properties)
         {
-            PackableHashTable.WriteHeader(writer, _properties.Count, 8);
+            PackableHashTable.WriteHeader(writer, _properties.Count, PropertyBoolComparer.NumBuckets);
 
             var properties = new SortedDictionary<PropertyBool, bool>(_properties, PropertyBoolComparer);
 
@@ -851,7 +851,7 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<PropertyFloat, double> _properties)
         {
-            PackableHashTable.WriteHeader(writer, _properties.Count, 8);
+            PackableHashTable.WriteHeader(writer, _properties.Count, PropertyFloatComparer.NumBuckets);
 
             var properties = new SortedDictionary<PropertyFloat, double>(_properties, PropertyFloatComparer);
 
@@ -864,7 +864,7 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<PropertyString, string> _properties)
         {
-            PackableHashTable.WriteHeader(writer, _properties.Count, 8);
+            PackableHashTable.WriteHeader(writer, _properties.Count, PropertyStringComparer.NumBuckets);
 
             var properties = new SortedDictionary<PropertyString, string>(_properties, PropertyStringComparer);
 
@@ -877,7 +877,7 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<PropertyDataId, uint> _properties)
         {
-            PackableHashTable.WriteHeader(writer, _properties.Count, 8);
+            PackableHashTable.WriteHeader(writer, _properties.Count, PropertyDataIdComparer.NumBuckets);
 
             var properties = new SortedDictionary<PropertyDataId, uint>(_properties, PropertyDataIdComparer);
 
