@@ -22,6 +22,8 @@ namespace ACE.Server.Network.Structure
         /// </summary>
         private static int GetNumBits(int num)
         {
+            if (num == 0) return 1;
+
             return (int)Math.Log(num, 2) + 1;
         }
     }
