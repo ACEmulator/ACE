@@ -353,7 +353,7 @@ namespace ACE.Server.Network.GameEvent.Events
             }
 
             if ((optionFlags & CharacterOptionDataFlag.DesiredComps) != 0)
-                Writer.Write(fillComps);
+                Writer.WriteOld(fillComps);     // verify
 
             //if ((optionFlags & CharacterOptionDataFlag.SpellbookFilters) != 0)
             Writer.Write(Session.Player.Character.SpellbookFilters);
