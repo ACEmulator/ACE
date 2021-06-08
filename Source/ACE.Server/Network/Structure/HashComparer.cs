@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
@@ -233,6 +234,29 @@ namespace ACE.Server.Network.Structure
 
             if (result == 0)
                 result = a.CompareTo(b);
+
+            return result;
+        }
+    }
+
+    public class GuidComparer : IComparer<ObjectGuid>
+    {
+        public ushort NumBuckets;
+
+        public GuidComparer(ushort numBuckets)
+        {
+            NumBuckets = numBuckets;
+        }
+
+        public int Compare(ObjectGuid a, ObjectGuid b)
+        {
+            var keyA = a.Full % NumBuckets;
+            var keyB = b.Full % NumBuckets;
+
+            var result = keyA.CompareTo(keyB);
+
+            if (result == 0)
+                result = a.Full.CompareTo(b.Full);
 
             return result;
         }
