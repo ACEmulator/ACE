@@ -96,47 +96,36 @@ namespace ACE.Server.Network.Structure
             writer.Write(har.Roommates);
         }
 
-        public static void Write(this BinaryWriter writer, Dictionary<ObjectGuid, GuestInfo> db)
+        private static readonly ushort headerNumBuckets = 768;  // from retail pcaps, constant
+
+        private static readonly ushort actualNumBuckets = 89;   // why this is different from what it sends in header, i have no idea
+                                                                // investigate further how client derives 89 from 768
+
+        private static readonly GuidComparer GuidComparer = new GuidComparer(actualNumBuckets);
+
+        public static void Write(this BinaryWriter writer, Dictionary<ObjectGuid, GuestInfo> guestList)
         {
-            //PHashTable.WriteHeader(writer, db.Count);
+            PackableHashTable.WriteHeader(writer, guestList.Count, headerNumBuckets);
 
-            writer.Write((ushort)db.Count);
-            writer.Write((ushort)768);  // from retail pcaps, TODO: determine how this is calculated
+            var sorted = new SortedDictionary<ObjectGuid, GuestInfo>(guestList, GuidComparer);
 
-            // reorder
-            var _db = new List<Tuple<ObjectGuid, GuestInfo>>();
-            foreach (var entry in db)
-                _db.Add(new Tuple<ObjectGuid, GuestInfo>(entry.Key, entry.Value));
-
-            // sort by client function - hashKey % tableSize - how it gets tableSize 89 from 768, no idea
-            _db = _db.OrderBy(i => i.Item1.Full % 89).ToList();
-
-            foreach (var entry in _db)
+            foreach (var kvp in sorted)
             {
-                writer.Write(entry.Item1.Full);
-                writer.Write(entry.Item2);
+                writer.Write(kvp.Key.Full);
+                writer.Write(kvp.Value);
             }
         }
 
-        public static void Write(this BinaryWriter writer, List<ObjectGuid> db)
+        public static void Write(this BinaryWriter writer, List<ObjectGuid> roommates)
         {
-            //PHashTable.WriteHeader(writer, db.Count);
+            // investigate -- odd structure, seeing possible 64 in client
 
-            writer.Write((ushort)db.Count);
-            writer.Write((ushort)768);  // from retail pcaps, TODO: determine how this is calculated
+            PackableHashTable.WriteHeader(writer, roommates.Count, headerNumBuckets);
 
-            // reorder
-            var _db = new List<ObjectGuid>();
-            foreach (var entry in db)
-                _db.Add(new ObjectGuid(entry.Full));
+            var sorted = roommates.OrderBy(i => i.Full % actualNumBuckets);
 
-            // sort by client function - hashKey % tableSize - how it gets tableSize 89 from 768, no idea
-            _db = _db.OrderBy(i => i.Full % 89).ToList();
-
-            foreach (var entry in _db)
-            {
-                writer.Write(entry.Full);
-            }
+            foreach (var roommate in sorted)
+                writer.Write(roommate.Full);
         }
     }
 }

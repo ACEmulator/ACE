@@ -47,7 +47,7 @@ namespace ACE.Server.Network.GameEvent.Events
         private static readonly PropertyInt64Comparer PropertyInt64Comparer = new PropertyInt64Comparer(64);
         private static readonly PropertyBoolComparer PropertyBoolComparer = new PropertyBoolComparer(32);
         private static readonly PropertyFloatComparer PropertyDoubleComparer = new PropertyFloatComparer(32);
-        private static readonly PropertyStringComparer PropertyStringComparer = new PropertyStringComparer(32);
+        private static readonly PropertyStringComparer PropertyStringComparer = new PropertyStringComparer(32);  // 16 in client, 32 sent across wire
         private static readonly PropertyDataIdComparer PropertyDataIdComparer = new PropertyDataIdComparer(32);
         private static readonly PropertyInstanceIdComparer PropertyInstanceIdComparer = new PropertyInstanceIdComparer(32);
         private static readonly SkillComparer SkillComparer = new SkillComparer(32);
@@ -205,7 +205,7 @@ namespace ACE.Server.Network.GameEvent.Events
             {
                 propertyFlags |= DescriptionPropertyFlag.Position;
 
-                PackableHashTable.WriteHeader(Writer, 1, 32);
+                PackableHashTable.WriteHeader(Writer, 1, 16);
 
                 Writer.Write((uint)PositionType.LastOutsideDeath);
                 lastOutsideDeath.Serialize(Writer);

@@ -163,6 +163,8 @@ namespace ACE.Server.Network.Structure
         }
 
         // retail used either 32 or 128 here, but i could find no fully consistent pattern to discern them
+
+        // seems to be 128 in client constructor?
         public static HashComparer HashComparer = new HashComparer(32);
 
         public static void Write(this BinaryWriter writer, Dictionary<uint, SquelchInfo> characterHash)

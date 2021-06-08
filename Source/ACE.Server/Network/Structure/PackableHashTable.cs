@@ -17,20 +17,18 @@ namespace ACE.Server.Network.Structure
             writer.Write((ushort)numBuckets);
         }
 
-        private static readonly HashComparer fillCompsComparer = new HashComparer(256);
-
-        public static void Write(this BinaryWriter writer, List<CharacterPropertiesFillCompBook> _fillComps)
+        public static void Write(this BinaryWriter writer, List<CharacterPropertiesFillCompBook> fillComps)
         {
-            WriteHeader(writer, _fillComps.Count, fillCompsComparer.NumBuckets);
+            const int numBuckets = 256; // constant from retail pcaps
 
-            var table = _fillComps.ToDictionary(i => (uint)i.SpellComponentId, i => (uint)i.QuantityToRebuy);
+            WriteHeader(writer, fillComps.Count, numBuckets);
 
-            var sorted = new SortedDictionary<uint, uint>(table, fillCompsComparer);
+            var sorted = fillComps.OrderBy(i => i.SpellComponentId % numBuckets);
 
             foreach (var fillComp in sorted)
             {
-                writer.Write(fillComp.Key);
-                writer.Write(fillComp.Value);
+                writer.Write(fillComp.SpellComponentId);
+                writer.Write(fillComp.QuantityToRebuy);
             }
         }
     }
