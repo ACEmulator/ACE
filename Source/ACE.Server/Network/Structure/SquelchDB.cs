@@ -150,7 +150,8 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<string, uint> accountHash)
         {
-            PackableHashTable.WriteHeaderOld(writer, accountHash.Count);    // verify
+            PHashTable.WriteHeader(writer, accountHash.Count);    // verify
+
             foreach (var kvp in accountHash)
             {
                 writer.WriteString16L(kvp.Key);
