@@ -79,10 +79,15 @@ namespace ACE.Server.Network.Structure
             writer.Write(restrictions.Table);
         }
 
-        private static readonly ushort headerNumBuckets = 768;  // from retail pcaps, constant
+        private static readonly ushort headerNumBuckets = 768;  // this # of buckets was sent over the wire in retail header
+                                                                // however, this value ends up being unused, and the "real" # of buckets originates
+                                                                // from a hardcoded value in g_bucketSizeArray in the client constant data
 
-        private static readonly ushort actualNumBuckets = 89;   // why this is different from what it sends in header, i have no idea
-                                                                // investigate further how client derives 89 from 768
+        private static readonly ushort actualNumBuckets = 89;   // in RestrictionDB constructor in acclient,
+                                                                // client uses PHashTable for this (as opposed to the typical PackableHashTable)
+
+                                                                // which inits an IntrusiveHashTable with size 64
+                                                                // this gets bumped up to the next largest value in a hardcoded g_bucketSizeArray, which is 89
 
         private static readonly GuidComparer guidComparer = new GuidComparer(actualNumBuckets);
 
