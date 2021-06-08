@@ -48,7 +48,7 @@ namespace ACE.Server.Network.Structure
             // 2 in data for small allegiances?
             ushort recordCount = 0;
             ushort oldVersion = 0x000B;
-            var officers = new Dictionary<uint, AllegianceOfficerLevel>();
+            var officers = new Dictionary<ObjectGuid, AllegianceOfficerLevel>();
             var officerTitles = new List<string>();
             uint monarchBroadcastTime = 0;
             uint monarchBroadcastsToday = 0;
@@ -72,7 +72,7 @@ namespace ACE.Server.Network.Structure
             {
                 // only send these to monarch?
                 //foreach (var officer in allegiance.Officers)
-                    //officers.Add(officer.Key.Full, (AllegianceOfficerLevel)officer.Value.Player.AllegianceOfficerRank);
+                    //officers.Add(officer.Key, (AllegianceOfficerLevel)officer.Value.Player.AllegianceOfficerRank);
 
                 // not in retail packets, breaks decal
                 /*if (allegiance.HasCustomTitles)
@@ -161,17 +161,17 @@ namespace ACE.Server.Network.Structure
                 writer.Write(records);
         }
 
-        private static readonly HashComparer hashComparer = new HashComparer(256);
+        private static readonly GuidComparer guidComparer = new GuidComparer(256);
 
-        public static void Write(this BinaryWriter writer, Dictionary<uint, AllegianceOfficerLevel> _officers)
+        public static void Write(this BinaryWriter writer, Dictionary<ObjectGuid, AllegianceOfficerLevel> _officers)
         {
-            PackableHashTable.WriteHeader(writer, _officers.Count, hashComparer.NumBuckets);
+            PackableHashTable.WriteHeader(writer, _officers.Count, guidComparer.NumBuckets);
 
-            var officers = new SortedDictionary<uint, AllegianceOfficerLevel>(_officers, hashComparer);
+            var officers = new SortedDictionary<ObjectGuid, AllegianceOfficerLevel>(_officers, guidComparer);
 
             foreach (var officer in officers)
             {
-                writer.Write(officer.Key);
+                writer.Write(officer.Key.Full);
                 writer.Write((uint)officer.Value);
             }
         }

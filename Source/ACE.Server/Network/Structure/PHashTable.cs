@@ -8,10 +8,10 @@ namespace ACE.Server.Network.Structure
         /// <summary>
         /// Deprecated
         /// </summary>
-        public static void WriteHeader(BinaryWriter writer, int count)
+        public static void WriteHeader(BinaryWriter writer, uint count)
         {
             var numBits = GetNumBits(count);
-            var numBuckets = 1 << (numBits - 1);
+            var numBuckets = 1 << ((int)numBits - 1);
 
             writer.Write((ushort)count);
             writer.Write((ushort)numBuckets);
@@ -20,11 +20,9 @@ namespace ACE.Server.Network.Structure
         /// <summary>
         /// Returns the number of bits required to store the input number
         /// </summary>
-        private static int GetNumBits(int num)
+        private static uint GetNumBits(uint num)
         {
-            if (num == 0) return 1;
-
-            return (int)Math.Log(num, 2) + 1;
+            return (uint)Math.Log(num, 2) + 1;
         }
     }
 }
