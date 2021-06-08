@@ -84,13 +84,13 @@ namespace ACE.Server.Network.Structure
         private static readonly ushort actualNumBuckets = 89;   // why this is different from what it sends in header, i have no idea
                                                                 // investigate further how client derives 89 from 768
 
-        private static readonly GuidComparer GuidComparer = new GuidComparer(actualNumBuckets);
+        private static readonly GuidComparer guidComparer = new GuidComparer(actualNumBuckets);
 
         public static void Write(this BinaryWriter writer, Dictionary<ObjectGuid, uint> db)
         {
             PackableHashTable.WriteHeader(writer, db.Count, headerNumBuckets);
 
-            var sorted = new SortedDictionary<ObjectGuid, uint>(db, GuidComparer);
+            var sorted = new SortedDictionary<ObjectGuid, uint>(db, guidComparer);
 
             foreach (var kvp in sorted)
             {

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -96,18 +95,14 @@ namespace ACE.Server.Network.Structure
             writer.Write(har.Roommates);
         }
 
-        private static readonly ushort headerNumBuckets = 768;  // from retail pcaps, constant
-
-        private static readonly ushort actualNumBuckets = 89;   // why this is different from what it sends in header, i have no idea
-                                                                // investigate further how client derives 89 from 768
-
-        private static readonly GuidComparer GuidComparer = new GuidComparer(actualNumBuckets);
+        // not found in retail pcaps, using client HAR constructor default
+        private static readonly GuidComparer guestComparer = new GuidComparer(64);
 
         public static void Write(this BinaryWriter writer, Dictionary<ObjectGuid, GuestInfo> guestList)
         {
-            PackableHashTable.WriteHeader(writer, guestList.Count, headerNumBuckets);
+            PackableHashTable.WriteHeader(writer, guestList.Count, guestComparer.NumBuckets);
 
-            var sorted = new SortedDictionary<ObjectGuid, GuestInfo>(guestList, GuidComparer);
+            var sorted = new SortedDictionary<ObjectGuid, GuestInfo>(guestList, guestComparer);
 
             foreach (var kvp in sorted)
             {
@@ -118,13 +113,11 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, List<ObjectGuid> roommates)
         {
-            // investigate -- odd structure, seeing possible 64 in client
+            // unused in client ui
 
-            PackableHashTable.WriteHeader(writer, roommates.Count, headerNumBuckets);
+            writer.Write(roommates.Count);
 
-            var sorted = roommates.OrderBy(i => i.Full % actualNumBuckets);
-
-            foreach (var roommate in sorted)
+            foreach (var roommate in roommates)
                 writer.Write(roommate.Full);
         }
     }
