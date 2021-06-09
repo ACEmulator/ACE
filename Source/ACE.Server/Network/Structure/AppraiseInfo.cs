@@ -459,107 +459,75 @@ namespace ACE.Server.Network.Structure
             if (wo.SpellDID.HasValue)
                 SpellBook.Add(new AppraisalSpellBook { SpellId = (ushort)wo.SpellDID.Value, EnchantmentState = AppraisalSpellBook._EnchantmentState.Off });
 
+            // add proc spell, if exists
             if (wo.ProcSpell.HasValue)
                 SpellBook.Add(new AppraisalSpellBook { SpellId = (ushort)wo.ProcSpell.Value, EnchantmentState = AppraisalSpellBook._EnchantmentState.Off });
 
-            var woSpellDID = wo.SpellDID; // Prevent recursive lock
+            var woSpellDID = wo.SpellDID;   // prevent recursive lock
             var woProcSpell = wo.ProcSpell;
+
             foreach (var spellId in wo.Biota.GetKnownSpellsIdsWhere(i => i != woSpellDID && i != woProcSpell, wo.BiotaDatabaseLock))
                 SpellBook.Add(new AppraisalSpellBook { SpellId = (ushort)spellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.Off });
         }
 
-        private void AddSpells(List<AppraisalSpellBook> activeSpells, WorldObject worldObject, WorldObject wielder = null)
+        private void AddSpells(List<AppraisalSpellBook> activeSpells, WorldObject wo, WorldObject wielder = null)
         {
-            var wielderEnchantments = new List<PropertiesEnchantmentRegistry>();
-            if (worldObject == null) return;
+            if (wo == null) return;
 
-            // get all currently active item enchantments on the item
-            var woEnchantments = worldObject.EnchantmentManager.GetEnchantments(MagicSchool.ItemEnchantment);
-
-            // get all currently active item enchantment auras on the player
-            if (wielder != null && worldObject.IsEnchantable)
-                wielderEnchantments = wielder.EnchantmentManager.GetEnchantments(MagicSchool.ItemEnchantment);
-
-            if (worldObject.WeenieType == WeenieType.Clothing || worldObject.IsShield)
+            // ensure item is currently activated
+            if (wo.IsAffecting == true)
             {
-                // Only show Clothing type item enchantments
+                // get all currently active item enchantments on the item
+                var woEnchantments = wo.EnchantmentManager.GetEnchantments(MagicSchool.ItemEnchantment);
+
                 foreach (var enchantment in woEnchantments)
-                {
-                    // TODO this still needs to be fixed for rare banes
-                    if ((enchantment.SpellCategory >= SpellCategory.ArmorValueRaising && enchantment.SpellCategory <= SpellCategory.AcidicResistanceLowering) ||
-                        (enchantment.SpellCategory >= SpellCategory.ExtraAcidResistanceRaising && enchantment.SpellCategory <= SpellCategory.ExtraElectricResistanceLowering))
-                    {
-                        activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
-                    }
-                }
+                    activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
             }
-            else
+
+            // show auras from wielder, if applicable
+
+            // this technically wasn't a feature in retail
+
+            if (wielder != null && wo.IsEnchantable && wo.WeenieType != WeenieType.Clothing && !wo.IsShield)
             {
-                // Show debuff item enchantments on weapons
-                foreach (var enchantment in woEnchantments)
+                // get all currently active item enchantment auras on the player
+                var wielderEnchantments = wielder.EnchantmentManager.GetEnchantments(MagicSchool.ItemEnchantment);
+
+                // Only show reflected Auras from player appropriate for wielded weapons
+                foreach (var enchantment in wielderEnchantments)
                 {
-                    if (worldObject is Caster)
+                    if (wo is Caster)
                     {
-                        if ((enchantment.SpellCategory == SpellCategory.DefenseModLowering)
-                            || (enchantment.SpellCategory == SpellCategory.ManaConversionModLowering)
-                            || (GetSpellName((uint)enchantment.SpellId).Contains("Spirit"))) // Spirit Loather spells
+                        // Caster weapon only item Auras
+                        if ((enchantment.SpellCategory == SpellCategory.DefenseModRaising)
+                            || (enchantment.SpellCategory == SpellCategory.DefenseModRaisingRare)
+                            || (enchantment.SpellCategory == SpellCategory.ManaConversionModRaising)
+                            || (enchantment.SpellCategory == SpellCategory.SpellDamageRaising))
                         {
                             activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                         }
                     }
-                    else if (worldObject is Missile || worldObject is Ammunition)
+                    else if (wo is Missile || wo is Ammunition)
                     {
-                        if ((enchantment.SpellCategory == SpellCategory.DamageLowering))
+                        if ((enchantment.SpellCategory == SpellCategory.DamageRaising)
+                            || (enchantment.SpellCategory == SpellCategory.DamageRaisingRare))
+                        {
                             activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
+                        }
                     }
                     else
                     {
-                        if ((enchantment.SpellCategory == SpellCategory.AttackModLowering)
-                            || (enchantment.SpellCategory == SpellCategory.DamageLowering)
-                            || (enchantment.SpellCategory == SpellCategory.DefenseModLowering)
-                            || (enchantment.SpellCategory == SpellCategory.WeaponTimeLowering))
+                        // Other weapon type Auras
+                        if ((enchantment.SpellCategory == SpellCategory.AttackModRaising)
+                            || (enchantment.SpellCategory == SpellCategory.AttackModRaisingRare)
+                            || (enchantment.SpellCategory == SpellCategory.DamageRaising)
+                            || (enchantment.SpellCategory == SpellCategory.DamageRaisingRare)
+                            || (enchantment.SpellCategory == SpellCategory.DefenseModRaising)
+                            || (enchantment.SpellCategory == SpellCategory.DefenseModRaisingRare)
+                            || (enchantment.SpellCategory == SpellCategory.WeaponTimeRaising)
+                            || (enchantment.SpellCategory == SpellCategory.WeaponTimeRaisingRare))
                         {
                             activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
-                        }
-                    }
-                }
-
-                if (wielder != null)
-                {
-                    // Only show reflected Auras from player appropriate for wielded weapons
-                    foreach (var enchantment in wielderEnchantments)
-                    {
-                        if (worldObject is Caster)
-                        {
-                            // Caster weapon only item Auras
-                            if ((enchantment.SpellCategory == SpellCategory.DefenseModRaising)
-                                || (enchantment.SpellCategory == SpellCategory.DefenseModRaisingRare)
-                                || (enchantment.SpellCategory == SpellCategory.ManaConversionModRaising)
-                                || (enchantment.SpellCategory == SpellCategory.SpellDamageRaising))
-                            {
-                                activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
-                            }
-                        }
-                        else if (worldObject is Missile || worldObject is Ammunition)
-                        {
-                            if ((enchantment.SpellCategory == SpellCategory.DamageRaising)
-                                || (enchantment.SpellCategory == SpellCategory.DamageRaisingRare))
-                                activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
-                        }
-                        else
-                        {
-                            // Other weapon type Auras
-                            if ((enchantment.SpellCategory == SpellCategory.AttackModRaising)
-                                || (enchantment.SpellCategory == SpellCategory.AttackModRaisingRare)
-                                || (enchantment.SpellCategory == SpellCategory.DamageRaising)
-                                || (enchantment.SpellCategory == SpellCategory.DamageRaisingRare)
-                                || (enchantment.SpellCategory == SpellCategory.DefenseModRaising)
-                                || (enchantment.SpellCategory == SpellCategory.DefenseModRaisingRare)
-                                || (enchantment.SpellCategory == SpellCategory.WeaponTimeRaising)
-                                || (enchantment.SpellCategory == SpellCategory.WeaponTimeRaisingRare))
-                            {
-                                activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
-                            }
                         }
                     }
                 }
