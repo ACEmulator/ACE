@@ -106,6 +106,8 @@ namespace ACE.Database
 
             using (var context = new ShardDbContext())
             {
+                context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
                 var connection = context.Database.GetDbConnection();
                 connection.Open();
                 var command = connection.CreateCommand();
