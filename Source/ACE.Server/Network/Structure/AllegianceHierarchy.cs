@@ -161,12 +161,18 @@ namespace ACE.Server.Network.Structure
                 writer.Write(records);
         }
 
-        private static readonly GuidComparer guidComparer = new GuidComparer(256);
+        // aside from RestrictionDB, this appears to be the only other place in the client that calls PHashTable/IntrusiveHashTable constructor directly
+        // 256 is ignored, and 23 is used
+        private static readonly ushort headerNumBuckets = 256;
+        private static readonly ushort actualNumBuckets = 23;
+
+        private static readonly GuidComparer guidComparer = new GuidComparer(actualNumBuckets);
 
         public static void Write(this BinaryWriter writer, Dictionary<ObjectGuid, AllegianceOfficerLevel> _officers)
         {
-            PackableHashTable.WriteHeader(writer, _officers.Count, guidComparer.NumBuckets);
+            PackableHashTable.WriteHeader(writer, _officers.Count, headerNumBuckets);
 
+            // always sent as empty in retail?
             var officers = new SortedDictionary<ObjectGuid, AllegianceOfficerLevel>(_officers, guidComparer);
 
             foreach (var officer in officers)
