@@ -58,6 +58,8 @@ namespace ACE.Server.WorldObjects
             if (CurrentMotionState.Stance == MotionStance.NonCombat)
                 DoAttackStance();
 
+            var weapon = GetEquippedWeapon();
+
             // select combat maneuver
             var motionCommand = GetCombatManeuver();
             if (motionCommand == null)
@@ -71,7 +73,7 @@ namespace ACE.Server.WorldObjects
             var actionChain = new ActionChain();
 
             // handle self-procs
-            TryProcEquippedItems(this, true);
+            TryProcEquippedItems(this, true, weapon);
 
             var prevTime = 0.0f;
             bool targetProc = false;
@@ -92,7 +94,6 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var weapon = GetEquippedWeapon();
                     var damageEvent = DamageEvent.CalculateDamage(this, target, weapon, motionCommand, attackFrames[0].attackHook);
 
                     //var damage = CalculateDamage(ref damageType, maneuver, bodyPart, ref critical, ref shieldMod);
@@ -121,7 +122,7 @@ namespace ACE.Server.WorldObjects
                         // handle target procs
                         if (!targetProc)
                         {
-                            TryProcEquippedItems(target, false);
+                            TryProcEquippedItems(target, false, weapon);
                             targetProc = true;
                         }
                     }
