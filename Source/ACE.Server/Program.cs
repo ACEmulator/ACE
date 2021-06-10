@@ -225,9 +225,9 @@ namespace ACE.Server
             if (ConfigManager.Config.Server.WorldDatabasePrecaching)
             {
                 log.Info("Precaching Weenies...");
-                DatabaseManager.World.CacheAllWeeniesInParallel();
+                DatabaseManager.World.CacheAllWeeniesNew();
                 log.Info("Precaching Cookbooks...");
-                DatabaseManager.World.CacheAllCookbooksInParallel();
+                DatabaseManager.World.CacheAllCookbooksNew();
                 log.Info("Precaching Events...");
                 DatabaseManager.World.GetAllEvents();
                 log.Info("Precaching House Portals...");

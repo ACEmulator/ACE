@@ -68,6 +68,124 @@ namespace ACE.Database
             PopulateWeenieSpecificCaches();
         }
 
+        public void CacheAllWeeniesNew()
+        {
+            using (var ctx = new WorldDbContext())
+            {
+                ctx.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
+                var weenies = ctx.Weenie.ToDictionary(i => i.ClassId, i => i);
+                var animParts = ctx.WeeniePropertiesAnimPart.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var attributes = ctx.WeeniePropertiesAttribute.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var vitals = ctx.WeeniePropertiesAttribute2nd.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var bodyParts = ctx.WeeniePropertiesBodyPart.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var books = ctx.WeeniePropertiesBook.ToDictionary(i => i.ObjectId, i => i);
+                var pages = ctx.WeeniePropertiesBookPageData.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var bools = ctx.WeeniePropertiesBool.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var createLists = ctx.WeeniePropertiesCreateList.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var dids = ctx.WeeniePropertiesDID.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var emotes = ctx.WeeniePropertiesEmote.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var emoteActions = ctx.WeeniePropertiesEmoteAction.AsEnumerable().GroupBy(i => i.EmoteId).ToDictionary(i => i.Key, i => i.ToList());
+                var filters = ctx.WeeniePropertiesEventFilter.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var floats = ctx.WeeniePropertiesFloat.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var generators = ctx.WeeniePropertiesGenerator.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var iids = ctx.WeeniePropertiesIID.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var ints = ctx.WeeniePropertiesInt.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var int64s = ctx.WeeniePropertiesInt64.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var palettes = ctx.WeeniePropertiesPalette.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var positions = ctx.WeeniePropertiesPosition.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var skills = ctx.WeeniePropertiesSkill.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var spellbooks = ctx.WeeniePropertiesSpellBook.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var strings = ctx.WeeniePropertiesString.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+                var textureMaps = ctx.WeeniePropertiesTextureMap.AsEnumerable().GroupBy(i => i.ObjectId).ToDictionary(i => i.Key, i => i.ToList());
+
+                foreach (var kvp in weenies)
+                {
+                    var wcid = kvp.Key;
+                    var weenie = kvp.Value;
+
+                    if (animParts.TryGetValue(wcid, out var animPart))
+                        weenie.WeeniePropertiesAnimPart = animPart;
+
+                    if (attributes.TryGetValue(wcid, out var attribute))
+                        weenie.WeeniePropertiesAttribute = attribute;
+
+                    if (vitals.TryGetValue(wcid, out var vital))
+                        weenie.WeeniePropertiesAttribute2nd = vital;
+
+                    if (bodyParts.TryGetValue(wcid, out var bodyPart))
+                        weenie.WeeniePropertiesBodyPart = bodyPart;
+
+                    if (books.TryGetValue(wcid, out var book))
+                        weenie.WeeniePropertiesBook = book;
+
+                    if (pages.TryGetValue(wcid, out var page))
+                        weenie.WeeniePropertiesBookPageData = page;
+
+                    if (bools.TryGetValue(wcid, out var _bool))
+                        weenie.WeeniePropertiesBool = _bool;
+
+                    if (createLists.TryGetValue(wcid, out var createList))
+                        weenie.WeeniePropertiesCreateList = createList;
+
+                    if (dids.TryGetValue(wcid, out var did))
+                        weenie.WeeniePropertiesDID = did;
+
+                    if (emotes.TryGetValue(wcid, out var emote))
+                    {
+                        foreach (var e in emote)
+                        {
+                            if (emoteActions.TryGetValue(e.Id, out var action))
+                                e.WeeniePropertiesEmoteAction = action;
+                        }
+                        weenie.WeeniePropertiesEmote = emote;
+                    }
+
+                    if (filters.TryGetValue(wcid, out var filter))
+                        weenie.WeeniePropertiesEventFilter = filter;
+
+                    if (floats.TryGetValue(wcid, out var _float))
+                        weenie.WeeniePropertiesFloat = _float;
+
+                    if (generators.TryGetValue(wcid, out var gen))
+                        weenie.WeeniePropertiesGenerator = gen;
+
+                    if (iids.TryGetValue(wcid, out var iid))
+                        weenie.WeeniePropertiesIID = iid;
+
+                    if (ints.TryGetValue(wcid, out var _int))
+                        weenie.WeeniePropertiesInt = _int;
+
+                    if (int64s.TryGetValue(wcid, out var _int64))
+                        weenie.WeeniePropertiesInt64 = _int64;
+
+                    if (palettes.TryGetValue(wcid, out var palette))
+                        weenie.WeeniePropertiesPalette = palette;
+
+                    if (positions.TryGetValue(wcid, out var pos))
+                        weenie.WeeniePropertiesPosition = pos;
+
+                    if (skills.TryGetValue(wcid, out var skill))
+                        weenie.WeeniePropertiesSkill = skill;
+
+                    if (spellbooks.TryGetValue(wcid, out var spellbook))
+                        weenie.WeeniePropertiesSpellBook = spellbook;
+
+                    if (strings.TryGetValue(wcid, out var str))
+                        weenie.WeeniePropertiesString = str;
+
+                    if (textureMaps.TryGetValue(wcid, out var textureMap))
+                        weenie.WeeniePropertiesTextureMap = textureMap;
+
+                    weenieCache[wcid] = WeenieConverter.ConvertToEntityWeenie(weenie);
+
+                    weenieClassNameToClassIdCache[weenie.ClassName.ToLower()] = weenie.ClassId;
+                }
+
+                PopulateWeenieSpecificCaches();
+            }
+        }
+
         /// <summary>
         /// Returns the number of weenies currently cached.
         /// </summary>
@@ -319,6 +437,107 @@ namespace ACE.Database
                 {
                     GetCookbook(result.SourceWCID, result.TargetWCID);  // This will add the result into the cache
                 });
+            }
+        }
+
+        public void CacheAllCookbooksNew()
+        {
+            using (var ctx = new WorldDbContext())
+            {
+                ctx.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
+                // 19402 -> 19515 has multiple recipes?
+                // original handles with FirstOrDefault()
+
+                // this can be used if db is normalized
+                //var cookbooks = ctx.CookBook.AsEnumerable().GroupBy(i => i.SourceWCID).ToDictionary(i => i.Key, i => i.ToDictionary(j => j.TargetWCID, j => j));
+
+                var cookbooks = ctx.CookBook.AsEnumerable().GroupBy(i => i.SourceWCID).ToDictionary(i => i.Key, i => i.GroupBy(j => j.TargetWCID).Select(j => j.FirstOrDefault()).ToDictionary(j => j.TargetWCID, j => j));
+
+                var recipes = ctx.Recipe.AsEnumerable().ToDictionary(i => i.Id, i => i);
+
+                var recipeMods = ctx.RecipeMod.AsEnumerable().GroupBy(i => i.RecipeId).ToDictionary(i => i.Key, i => i.ToList());
+                var recipeModBools = ctx.RecipeModsBool.AsEnumerable().GroupBy(i => i.RecipeModId).ToDictionary(i => i.Key, i => i.ToList());
+                var recipeModDIDs = ctx.RecipeModsDID.AsEnumerable().GroupBy(i => i.RecipeModId).ToDictionary(i => i.Key, i => i.ToList());
+                var recipeModFloats = ctx.RecipeModsFloat.AsEnumerable().GroupBy(i => i.RecipeModId).ToDictionary(i => i.Key, i => i.ToList());
+                var recipeModInts = ctx.RecipeModsInt.AsEnumerable().GroupBy(i => i.RecipeModId).ToDictionary(i => i.Key, i => i.ToList());
+                var recipeModIIDs = ctx.RecipeModsIID.AsEnumerable().GroupBy(i => i.RecipeModId).ToDictionary(i => i.Key, i => i.ToList());
+                var recipeModStrings = ctx.RecipeModsString.AsEnumerable().GroupBy(i => i.RecipeModId).ToDictionary(i => i.Key, i => i.ToList());
+
+                var recipeReqBools = ctx.RecipeRequirementsBool.AsEnumerable().GroupBy(i => i.RecipeId).ToDictionary(i => i.Key, i => i.ToList());
+                var recipeReqDIDs = ctx.RecipeRequirementsDID.AsEnumerable().GroupBy(i => i.RecipeId).ToDictionary(i => i.Key, i => i.ToList());
+                var recipeReqFloats = ctx.RecipeRequirementsFloat.AsEnumerable().GroupBy(i => i.RecipeId).ToDictionary(i => i.Key, i => i.ToList());
+                var recipeReqInts = ctx.RecipeRequirementsInt.AsEnumerable().GroupBy(i => i.RecipeId).ToDictionary(i => i.Key, i => i.ToList());
+                var recipeReqIIDs = ctx.RecipeRequirementsIID.AsEnumerable().GroupBy(i => i.RecipeId).ToDictionary(i => i.Key, i => i.ToList());
+                var recipeReqStrings = ctx.RecipeRequirementsString.AsEnumerable().GroupBy(i => i.RecipeId).ToDictionary(i => i.Key, i => i.ToList());
+
+                foreach (var kvp in cookbooks)
+                {
+                    var sourceWcid = kvp.Key;
+                    var targetCookbook = kvp.Value;
+
+                    foreach (var kvp2 in targetCookbook)
+                    {
+                        var targetWcid = kvp2.Key;
+                        var cookbook = kvp2.Value;
+
+                        if (!recipes.TryGetValue(cookbook.RecipeId, out var recipe))
+                            continue;
+
+                        cookbook.Recipe = recipe;
+
+                        if (recipeReqBools.TryGetValue(cookbook.RecipeId, out var reqBool))
+                            recipe.RecipeRequirementsBool = reqBool;
+
+                        if (recipeReqDIDs.TryGetValue(cookbook.RecipeId, out var reqDID))
+                            recipe.RecipeRequirementsDID = reqDID;
+
+                        if (recipeReqFloats.TryGetValue(cookbook.RecipeId, out var reqFloat))
+                            recipe.RecipeRequirementsFloat = reqFloat;
+
+                        if (recipeReqInts.TryGetValue(cookbook.RecipeId, out var reqInt))
+                            recipe.RecipeRequirementsInt = reqInt;
+
+                        if (recipeReqIIDs.TryGetValue(cookbook.RecipeId, out var reqIID))
+                            recipe.RecipeRequirementsIID = reqIID;
+
+                        if (recipeReqStrings.TryGetValue(cookbook.RecipeId, out var reqString))
+                            recipe.RecipeRequirementsString = reqString;
+
+                        if (recipeMods.TryGetValue(cookbook.RecipeId, out var _recipeMod))
+                        {
+                            recipe.RecipeMod = _recipeMod;
+
+                            foreach (var recipeMod in _recipeMod)
+                            {
+                                if (recipeModBools.TryGetValue(recipeMod.Id, out var modBool))
+                                    recipeMod.RecipeModsBool = modBool;
+
+                                if (recipeModDIDs.TryGetValue(recipeMod.Id, out var modDID))
+                                    recipeMod.RecipeModsDID = modDID;
+
+                                if (recipeModFloats.TryGetValue(recipeMod.Id, out var modFloat))
+                                    recipeMod.RecipeModsFloat = modFloat;
+
+                                if (recipeModInts.TryGetValue(recipeMod.Id, out var modInt))
+                                    recipeMod.RecipeModsInt = modInt;
+
+                                if (recipeModIIDs.TryGetValue(recipeMod.Id, out var modIID))
+                                    recipeMod.RecipeModsIID = modIID;
+
+                                if (recipeModStrings.TryGetValue(recipeMod.Id, out var modString))
+                                    recipeMod.RecipeModsString = modString;
+                            }
+                        }
+
+                        if (!cookbookCache.TryGetValue(sourceWcid, out var targetCookbooks))
+                        {
+                            targetCookbooks = new Dictionary<uint, CookBook>();
+                            cookbookCache.Add(sourceWcid, targetCookbooks);
+                        }
+                        targetCookbooks[targetWcid] = cookbook;
+                    }
+                }
             }
         }
 
