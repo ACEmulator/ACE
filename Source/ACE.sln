@@ -33,6 +33,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AppVeyor", "AppVeyor", "{27
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4B0075B4-AC3B-4A20-901E-8D8F3C8C65CF}"
 	ProjectSection(SolutionItems) = preProject
+		.vsconfig = .vsconfig
 		global.json = global.json
 		Settings.StyleCop = Settings.StyleCop
 		test.runsettings = test.runsettings
