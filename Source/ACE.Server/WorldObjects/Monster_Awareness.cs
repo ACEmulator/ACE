@@ -411,13 +411,23 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Monsters can only alert other monsters once?
+        /// A monster can only alert friendly mobs to the presence of each attack target
+        /// once every AlertThreshold
         /// </summary>
-        public bool Alerted;
+        private static readonly TimeSpan AlertThreshold = TimeSpan.FromMinutes(2);
+
+        /// <summary>
+        /// AttackTarget => last alerted time
+        /// </summary>
+        private Dictionary<uint, DateTime> Alerted;
 
         public void AlertFriendly()
         {
-            //if (Alerted) return;
+            if (Alerted == null)
+                Alerted = new Dictionary<uint, DateTime>();
+
+            if (Alerted.TryGetValue(AttackTarget.Guid.Full, out var alerted) && DateTime.UtcNow - alerted < AlertThreshold)
+                return;
 
             var visibleObjs = PhysicsObj.ObjMaint.GetVisibleObjects(PhysicsObj.CurCell);
 
@@ -456,7 +466,8 @@ namespace ACE.Server.WorldObjects
                             continue;
                     }
 
-                    Alerted = true;
+                    Alerted[AttackTarget.Guid.Full] = DateTime.UtcNow;
+
                     nearbyCreature.AttackTarget = AttackTarget;
                     nearbyCreature.WakeUp(false);
                 }
