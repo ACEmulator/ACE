@@ -1143,6 +1143,8 @@ namespace ACE.Server.WorldObjects
             Position prevLocation = null;
             Landblock prevLandblock = null;
 
+            var prevContainer = item.Container;
+
             OnPutItemInContainer(item.Guid.Full, container.Guid.Full, placement);
 
             if (item.CurrentLandblock != null) // Movement is an item pickup off the landblock
@@ -1214,6 +1216,11 @@ namespace ACE.Server.WorldObjects
                 containerRootOwner.EncumbranceVal += (item.EncumbranceVal ?? 0);
                 containerRootOwner.Value += (item.Value ?? 0);
             }
+
+            // when moving from a non-stuck container to a different container,
+            // the database must be synced immediately
+            if (prevContainer != null && !prevContainer.Stuck && container != prevContainer)
+                item.SaveBiotaToDatabase();
 
             Session.Network.EnqueueSend(
                 new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
@@ -2643,10 +2650,6 @@ namespace ACE.Server.WorldObjects
 
                     return;
                 }
-
-                // quick fix
-                if (itemToGive is Container)
-                    RushNextPlayerSave(5);
 
                 if (item == itemToGive)
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
