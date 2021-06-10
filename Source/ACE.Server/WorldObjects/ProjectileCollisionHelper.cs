@@ -46,6 +46,7 @@ namespace ACE.Server.WorldObjects
                 }
                 else if (sourceCreature != null && sourceCreature.AttackTarget != null)
                 {
+                    // todo: clean this up
                     var targetPlayer = sourceCreature.AttackTarget as Player;
 
                     damageEvent = DamageEvent.CalculateDamage(sourceCreature, targetCreature, worldObject);
@@ -64,6 +65,10 @@ namespace ACE.Server.WorldObjects
                                 var shieldSkill = targetPlayer.GetCreatureSkill(Skill.Shield);
                                 Proficiency.OnSuccessUse(targetPlayer, shieldSkill, shieldSkill.Current);   // ??
                             }
+
+                            // handle Dirty Fighting
+                            if (sourceCreature.GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
+                                sourceCreature.FightDirty(targetPlayer);
                         }
                         else
                             targetPlayer.OnEvade(sourceCreature, CombatType.Missile);
@@ -76,6 +81,10 @@ namespace ACE.Server.WorldObjects
                             targetCreature.TakeDamage(sourceCreature, damageEvent.DamageType, damageEvent.Damage);
 
                             // blood splatter?
+
+                            // handle Dirty Fighting
+                            if (sourceCreature.GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
+                                sourceCreature.FightDirty(targetCreature);
                         }
 
                         if (!(targetCreature is CombatPet))
