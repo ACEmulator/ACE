@@ -567,7 +567,7 @@ namespace ACE.Server.Physics
             return PartArray.GetHeight();
         }
 
-        public double GetMaxConstraintDistance()
+        public float GetMaxConstraintDistance()
         {
             return (Position.ObjCellID & 0xFFFF) < 0x100 ? 50.0f : 20.0f;
         }
@@ -617,9 +617,9 @@ namespace ACE.Server.Physics
             return PartArray.GetSetupID();
         }
 
-        public double GetStartConstraintDistance()
+        public float GetStartConstraintDistance()
         {
-            return (Position.ObjCellID & 0xFFFF) < 0x100 ? 5.0f : 10.0f;
+            return (Position.ObjCellID & 0xFFFF) < 0x100 ? 10.0f : 5.0f;
         }
 
         public float GetStepDownHeight()
@@ -4345,6 +4345,14 @@ namespace ACE.Server.Physics
                 }
 
                 set_current_pos(RequestPos);
+
+                if (PropertyManager.GetBool("use_constraint_manager").Item)
+                {
+                    var startDist = GetStartConstraintDistance();
+                    var maxDist = GetMaxConstraintDistance();
+
+                    ConstrainTo(RequestPos, startDist, maxDist);
+                }
             }
 
             // for teleport, use SetPosition?
