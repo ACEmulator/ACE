@@ -423,15 +423,16 @@ namespace ACE.Server.WorldObjects
 
         public void AlertFriendly()
         {
-            if (Alerted == null)
-                Alerted = new Dictionary<uint, DateTime>();
-
-            if (Alerted.TryGetValue(AttackTarget.Guid.Full, out var alerted) && DateTime.UtcNow - alerted < AlertThreshold)
+            // if current attacker has already alerted this monster recently,
+            // don't re-alert friendlies
+            if (Alerted != null && Alerted.TryGetValue(AttackTarget.Guid.Full, out var lastAlertTime) && DateTime.UtcNow - lastAlertTime < AlertThreshold)
                 return;
 
             var visibleObjs = PhysicsObj.ObjMaint.GetVisibleObjects(PhysicsObj.CurCell);
 
             var targetCreature = AttackTarget as Creature;
+
+            var alerted = false;
 
             foreach (var obj in visibleObjs)
             {
@@ -466,11 +467,19 @@ namespace ACE.Server.WorldObjects
                             continue;
                     }
 
-                    Alerted[AttackTarget.Guid.Full] = DateTime.UtcNow;
+                    alerted = true;
 
                     nearbyCreature.AttackTarget = AttackTarget;
                     nearbyCreature.WakeUp(false);
                 }
+            }
+            // only set alerted if monsters were actually alerted
+            if (alerted)
+            {
+                if (Alerted == null)
+                    Alerted = new Dictionary<uint, DateTime>();
+
+                Alerted[AttackTarget.Guid.Full] = DateTime.UtcNow;
             }
         }
 
