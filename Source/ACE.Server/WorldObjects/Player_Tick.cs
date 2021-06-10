@@ -595,99 +595,80 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void ManaConsumersTick()
         {
-            if (!EquippedObjectsLoaded)
-                return;
+            if (!EquippedObjectsLoaded) return;
 
-            var EquippedManaConsumers = EquippedObjects.Where(k =>
-                (k.Value.IsAffecting ?? false) &&
-                k.Value.ManaRate.HasValue &&
-                k.Value.ItemMaxMana.HasValue &&
-                k.Value.ItemCurMana.HasValue &&
-                k.Value.ItemCurMana.Value > 0).ToList();
-
-            foreach (var k in EquippedManaConsumers)
+            foreach (var item in EquippedObjects.Values)
             {
-                var item = k.Value;
-
-                // this was a bug in lootgen until 7/11/2019, mostly for clothing/armor/shields
-                // tons of existing items on servers are in this bugged state, where they aren't ticking mana.
-                // this retroactively fixes them when equipped
-                // items such as Impious Staff are excluded from this via IsAffecting
-
-                // this bug should hopefully be fixed by now, commenting out this block
-                /*if (item.ManaRate == null)
-                {
-                    if ((item.MaxStackSize ?? 1) > 1)
-                        continue;
-
-                    var maxBaseMana = LootGenerationFactory.GetMaxBaseMana(item);
-
-                    item.ManaRate = LootGenerationFactory.CalculateManaRate(maxBaseMana);
-
-                    log.Warn($"{Name}.ManaConsumersTick(): {k.Value.Name} ({k.Value.Guid}) fixed missing ManaRate");
-                }*/
-
-                var rate = item.ManaRate.Value;
-
-                if (LumAugItemManaUsage != 0)
-                    rate *= GetNegativeRatingMod(LumAugItemManaUsage * 5);
-
-                if (!item.ItemManaConsumptionTimestamp.HasValue) item.ItemManaConsumptionTimestamp = DateTime.UtcNow;
-                DateTime mostRecentBurn = item.ItemManaConsumptionTimestamp.Value;
-
-                var timePerBurn = -1 / rate;
-
-                var secondsSinceLastBurn = (DateTime.UtcNow - mostRecentBurn).TotalSeconds;
-
-                var delta = secondsSinceLastBurn / timePerBurn;
-
-                var deltaChopped = (int)Math.Floor(delta);
-                var deltaExtra = delta - deltaChopped;
-
-                if (deltaChopped <= 0)
+                if (!item.IsAffecting)
                     continue;
 
-                var timeToAdd = (int)Math.Floor(deltaChopped * timePerBurn);
-                item.ItemManaConsumptionTimestamp = mostRecentBurn + new TimeSpan(0, 0, timeToAdd);
-                var manaToBurn = Math.Min(item.ItemCurMana.Value, deltaChopped);
-                deltaChopped = Math.Clamp(deltaChopped, 0, 10);
-                item.ItemCurMana -= deltaChopped;
+                if (item.ItemCurMana == null || item.ItemMaxMana == null || item.ManaRate == null)
+                    continue;
 
-                if (item.ItemCurMana < 1 || item.ItemCurMana == null)
-                {
-                    item.IsAffecting = false;
-                    var msg = new GameMessageSystemChat($"Your {item.Name} is out of Mana.", ChatMessageType.Magic);
-                    var sound = new GameMessageSound(Guid, Sound.ItemManaDepleted);
-                    Session.Network.EnqueueSend(msg, sound);
-                    if (item.WielderId != null)
-                    {
-                        if (item.Biota.PropertiesSpellBook != null)
-                        {
-                            // unsure if these messages / sounds were ever sent in retail,
-                            // or if it just purged the enchantments invisibly
-                            // doing a delay here to prevent 'SpellExpired' sounds from overlapping with 'ItemManaDepleted'
-                            var actionChain = new ActionChain();
-                            actionChain.AddDelaySeconds(2.0f);
-                            actionChain.AddAction(this, () =>
-                            {
-                                foreach (var spellId in item.Biota.GetKnownSpellsIds(item.BiotaDatabaseLock))
-                                    RemoveItemSpell(item, (uint)spellId);
-                            });
-                            actionChain.EnqueueChain();
-                        }
-                    }
-                }
+                var burnRate = -item.ManaRate.Value;
+
+                if (LumAugItemManaUsage != 0)
+                    burnRate *= GetNegativeRatingMod(LumAugItemManaUsage * 5);
+
+                item.ItemManaRateAccumulator += (float)(burnRate * CachedHeartbeatInterval);
+
+                if (item.ItemManaRateAccumulator < 1)
+                    continue;
+
+                var manaToBurn = (int)Math.Floor(item.ItemManaRateAccumulator);
+
+                if (manaToBurn > item.ItemCurMana)
+                    manaToBurn = item.ItemCurMana.Value;
+
+                item.ItemCurMana -= manaToBurn;
+
+                item.ItemManaRateAccumulator -= manaToBurn;
+
+                if (item.ItemCurMana > 0)
+                    CheckLowMana(item, burnRate);
                 else
-                {
-                    // get time until empty
-                    var secondsUntilEmpty = ((item.ItemCurMana - deltaExtra) * timePerBurn);
-                    if (secondsUntilEmpty <= 120 && (!item.ItemManaDepletionMessageTimestamp.HasValue || (DateTime.UtcNow - item.ItemManaDepletionMessageTimestamp.Value).TotalSeconds > 120))
-                    {
-                        item.ItemManaDepletionMessageTimestamp = DateTime.UtcNow;
-                        Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {item.Name} is low on Mana.", ChatMessageType.Magic));
-                    }
-                }
+                    HandleManaDepleted(item);
             }
+        }
+
+        private bool CheckLowMana(WorldObject item, double burnRate)
+        {
+            const int lowManaWarningSeconds = 120;
+
+            var secondsUntilEmpty = item.ItemCurMana / burnRate;
+
+            if (secondsUntilEmpty > lowManaWarningSeconds)
+            {
+                item.ItemManaDepletionMessage = false;
+                return false;
+            }
+            if (!item.ItemManaDepletionMessage)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {item.Name} is low on Mana.", ChatMessageType.Magic));
+                item.ItemManaDepletionMessage = true;
+            }
+            return true;
+        }
+
+        private void HandleManaDepleted(WorldObject item)
+        {
+            var msg = new GameMessageSystemChat($"Your {item.Name} is out of Mana.", ChatMessageType.Magic);
+            var sound = new GameMessageSound(Guid, Sound.ItemManaDepleted);
+            Session.Network.EnqueueSend(msg, sound);
+
+            // unsure if these messages / sounds were ever sent in retail,
+            // or if it just purged the enchantments invisibly
+            // doing a delay here to prevent 'SpellExpired' sounds from overlapping with 'ItemManaDepleted'
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(2.0f);
+            actionChain.AddAction(this, () =>
+            {
+                foreach (var spellId in item.Biota.GetKnownSpellsIds(item.BiotaDatabaseLock))
+                    RemoveItemSpell(item, (uint)spellId);
+            });
+            actionChain.EnqueueChain();
+
+            item.OnSpellsDeactivated();
         }
 
         public override void HandleMotionDone(uint motionID, bool success)

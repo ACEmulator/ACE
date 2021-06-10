@@ -2181,5 +2181,21 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(enchantmentStatus.Message);
             }
         }
+
+        public float ItemManaRateAccumulator { get; set; }
+
+        public bool ItemManaDepletionMessage { get; set; }
+
+        public void OnSpellsActivated()
+        {
+            IsAffecting = true;
+            ItemManaRateAccumulator = 0;
+            ItemManaDepletionMessage = false;
+        }
+
+        public void OnSpellsDeactivated()
+        {
+            IsAffecting = false;
+        }
     }
 }
