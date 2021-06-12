@@ -2840,26 +2840,26 @@ namespace ACE.Server.Command.Handlers
         public static void HandleFast(Session session, params string[] parameters)
         {
             var spell = new Spell(SpellId.QuicknessSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
 
             spell = new Spell(SpellId.SprintSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
 
             spell = new Spell(SpellId.StrengthSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
         }
 
         [CommandHandler("slow", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void HandleSlow(Session session, params string[] parameters)
         {
             var spell = new Spell(SpellId.SlownessSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
 
             spell = new Spell(SpellId.LeadenFeetSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
 
             spell = new Spell(SpellId.WeaknessSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
         }
 
         [CommandHandler("rip", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]

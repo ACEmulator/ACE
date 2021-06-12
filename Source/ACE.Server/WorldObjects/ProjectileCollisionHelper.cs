@@ -68,7 +68,7 @@ namespace ACE.Server.WorldObjects
 
                             // handle Dirty Fighting
                             if (sourceCreature.GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
-                                sourceCreature.FightDirty(targetPlayer);
+                                sourceCreature.FightDirty(targetPlayer, damageEvent.Weapon);
                         }
                         else
                             targetPlayer.OnEvade(sourceCreature, CombatType.Missile);
@@ -84,7 +84,7 @@ namespace ACE.Server.WorldObjects
 
                             // handle Dirty Fighting
                             if (sourceCreature.GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
-                                sourceCreature.FightDirty(targetCreature);
+                                sourceCreature.FightDirty(targetCreature, damageEvent.Weapon);
                         }
 
                         if (!(targetCreature is CombatPet))

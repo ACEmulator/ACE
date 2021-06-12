@@ -146,9 +146,9 @@ namespace ACE.Server.WorldObjects
 
                 // TODO: figure this out better
                 if (spell.MetaSpellType == SpellType.PortalSummon)
-                    TryCastSpell(spell, player, this, false);
+                    TryCastSpell(spell, player, this, this, false);
                 else
-                    player.TryCastSpell(spell, player, this, false);
+                    player.TryCastSpell(spell, player, this, this, false);
             }
 
             if (UseCreateContractId > 0)

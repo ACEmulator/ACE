@@ -177,7 +177,7 @@ namespace ACE.Server.WorldObjects
 
                 // handle Dirty Fighting
                 if (GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
-                    FightDirty(target);
+                    FightDirty(target, damageEvent.Weapon);
                 
                 target.EmoteManager.OnDamage(this);
 

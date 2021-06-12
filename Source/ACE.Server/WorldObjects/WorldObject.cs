@@ -84,10 +84,11 @@ namespace ACE.Server.WorldObjects
         public EmoteManager EmoteManager;
         public EnchantmentManagerWithCaching EnchantmentManager;
 
-        public WorldObject ProjectileSource;
-        public WorldObject ProjectileTarget;
+        // todo: move these to a base projectile class
+        public WorldObject ProjectileSource { get; set; }
+        public WorldObject ProjectileTarget { get; set; }
 
-        public WorldObject ProjectileLauncher;
+        public WorldObject ProjectileLauncher { get; set; }
 
         public bool HitMsg;     // FIXME: find a better way to do this for projectiles
 

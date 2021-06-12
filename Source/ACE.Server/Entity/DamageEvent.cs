@@ -219,7 +219,7 @@ namespace ACE.Server.Entity
             // get damage modifiers
             PowerMod = attacker.GetPowerMod(Weapon);
             AttributeMod = attacker.GetAttributeMod(Weapon);
-            SlayerMod = WorldObject.GetWeaponCreatureSlayerModifier(attacker, defender);
+            SlayerMod = WorldObject.GetWeaponCreatureSlayerModifier(Weapon, attacker, defender);
 
             // ratings
             DamageRatingBaseMod = Creature.GetPositiveRatingMod(attacker.GetDamageRating());
@@ -234,7 +234,7 @@ namespace ACE.Server.Entity
 
             // critical hit?
             var attackSkill = attacker.GetCreatureSkill(attacker.GetCurrentWeaponSkill());
-            CriticalChance = WorldObject.GetWeaponCriticalChance(attacker, attackSkill, defender);
+            CriticalChance = WorldObject.GetWeaponCriticalChance(Weapon, attacker, attackSkill, defender);
 
             // https://asheron.fandom.com/wiki/Announcements_-_2002/08_-_Atonement
             // It should be noted that any time a character is logging off, PK or not, all physical attacks against them become automatically critical.
@@ -260,7 +260,7 @@ namespace ACE.Server.Entity
 
                     // verify: CriticalMultiplier only applied to the additional crit damage,
                     // whereas CD/CDR applied to the total damage (base damage + additional crit damage)
-                    CriticalDamageMod = 1.0f + WorldObject.GetWeaponCritDamageMod(attacker, attackSkill, defender);
+                    CriticalDamageMod = 1.0f + WorldObject.GetWeaponCritDamageMod(Weapon, attacker, attackSkill, defender);
 
                     CriticalDamageRatingMod = Creature.GetPositiveRatingMod(attacker.GetCritDamageRating());
 
@@ -313,7 +313,7 @@ namespace ACE.Server.Entity
                 ArmorMod = 1.0f;
 
             // get resistance modifiers
-            WeaponResistanceMod = WorldObject.GetWeaponResistanceModifier(attacker, attackSkill, DamageType);
+            WeaponResistanceMod = WorldObject.GetWeaponResistanceModifier(Weapon, attacker, attackSkill, DamageType);
 
             if (playerDefender != null)
             {
@@ -403,7 +403,7 @@ namespace ACE.Server.Entity
                 BaseDamageMod.DamageBonus += Weapon.Damage ?? 0;
 
             if (DamageSource.ItemType == ItemType.MissileWeapon)
-                BaseDamageMod.ElementalBonus = WorldObject.GetMissileElementalDamageBonus(attacker, DamageType);
+                BaseDamageMod.ElementalBonus = WorldObject.GetMissileElementalDamageBonus(Weapon, attacker, DamageType);
 
             BaseDamage = (float)ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
         }
