@@ -770,12 +770,20 @@ namespace ACE.Server.Network.Structure
                 writer.Write(info.ArmorLevels);
         }
 
+        private static readonly PropertyIntComparer PropertyIntComparer = new PropertyIntComparer();
+        private static readonly PropertyInt64Comparer PropertyInt64Comparer = new PropertyInt64Comparer();
+        private static readonly PropertyBoolComparer PropertyBoolComparer = new PropertyBoolComparer();
+        private static readonly PropertyFloatComparer PropertyFloatComparer = new PropertyFloatComparer();
+        private static readonly PropertyStringComparer PropertyStringComparer = new PropertyStringComparer();
+        private static readonly PropertyDataIdComparer PropertyDataIdComparer = new PropertyDataIdComparer();
+
         // TODO: generics
         public static void Write(this BinaryWriter writer, Dictionary<PropertyInt, int> _properties)
         {
-            var properties = new SortedDictionary<PropertyInt, int>(_properties);
+            PackableHashTable.WriteHeader(writer, _properties.Count, 16);
 
-            PHashTable.WriteHeader(writer, properties.Count);
+            var properties = new SortedDictionary<PropertyInt, int>(_properties, PropertyIntComparer);
+
             foreach (var kvp in properties)
             {
                 writer.Write((uint)kvp.Key);
@@ -785,9 +793,10 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<PropertyInt64, long> _properties)
         {
-            var properties = new SortedDictionary<PropertyInt64, long>(_properties);
+            PackableHashTable.WriteHeader(writer, _properties.Count, 8);
 
-            PHashTable.WriteHeader(writer, properties.Count);
+            var properties = new SortedDictionary<PropertyInt64, long>(_properties, PropertyInt64Comparer);
+
             foreach (var kvp in properties)
             {
                 writer.Write((uint)kvp.Key);
@@ -797,9 +806,10 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<PropertyBool, bool> _properties)
         {
-            var properties = new SortedDictionary<PropertyBool, bool>(_properties);
+            PackableHashTable.WriteHeader(writer, _properties.Count, 8);
 
-            PHashTable.WriteHeader(writer, properties.Count);
+            var properties = new SortedDictionary<PropertyBool, bool>(_properties, PropertyBoolComparer);
+
             foreach (var kvp in properties)
             {
                 writer.Write((uint)kvp.Key);
@@ -809,9 +819,10 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<PropertyFloat, double> _properties)
         {
-            var properties = new SortedDictionary<PropertyFloat, double>(_properties);
+            PackableHashTable.WriteHeader(writer, _properties.Count, 8);
 
-            PHashTable.WriteHeader(writer, properties.Count);
+            var properties = new SortedDictionary<PropertyFloat, double>(_properties, PropertyFloatComparer);
+
             foreach (var kvp in properties)
             {
                 writer.Write((uint)kvp.Key);
@@ -821,9 +832,10 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<PropertyString, string> _properties)
         {
-            var properties = new SortedDictionary<PropertyString, string>(_properties);
+            PackableHashTable.WriteHeader(writer, _properties.Count, 8);
 
-            PHashTable.WriteHeader(writer, properties.Count);
+            var properties = new SortedDictionary<PropertyString, string>(_properties, PropertyStringComparer);
+
             foreach (var kvp in properties)
             {
                 writer.Write((uint)kvp.Key);
@@ -833,9 +845,10 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<PropertyDataId, uint> _properties)
         {
-            var properties = new SortedDictionary<PropertyDataId, uint>(_properties);
+            PackableHashTable.WriteHeader(writer, _properties.Count, 8);
 
-            PHashTable.WriteHeader(writer, properties.Count);
+            var properties = new SortedDictionary<PropertyDataId, uint>(_properties, PropertyDataIdComparer);
+
             foreach (var kvp in properties)
             {
                 writer.Write((uint)kvp.Key);
@@ -846,6 +859,7 @@ namespace ACE.Server.Network.Structure
         public static void Write(this BinaryWriter writer, List<AppraisalSpellBook> spells)
         {
             writer.Write((uint)spells.Count);
+
             foreach (var spell in spells)
             {
                 writer.Write((uint)spell.EnchantmentState | spell.SpellId);

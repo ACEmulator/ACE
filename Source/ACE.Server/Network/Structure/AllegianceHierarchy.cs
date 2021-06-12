@@ -163,7 +163,7 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<ObjectGuid, AllegianceOfficerLevel> officers)
         {
-            PHashTable.WriteHeader(writer, officers.Count);
+            PHashTable.WriteHeader(writer, officers.Count);     // verify
 
             foreach (var officer in officers)
             {

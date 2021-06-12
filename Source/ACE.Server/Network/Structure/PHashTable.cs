@@ -11,6 +11,8 @@ namespace ACE.Server.Network.Structure
         /// <param name="count">The number of entries in the HashTable</param>
         public static void WriteHeader(BinaryWriter writer, int count)
         {
+            // PHashTable is a deprecated structure
+
             // uint uint uint - packedSize - write: (buckets) | (count & 0xFFFFFF)
             // uint - buckets - read: 1 << (packedSize >> 24)
             // uint - count - read: packedSize & 0xFFFFFF
