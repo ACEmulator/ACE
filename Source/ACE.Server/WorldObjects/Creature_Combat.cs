@@ -825,7 +825,7 @@ namespace ACE.Server.WorldObjects
             return sneakAttackMod;
         }
 
-        public void FightDirty(WorldObject target)
+        public void FightDirty(WorldObject target, WorldObject weapon)
         {
             // Skill description:
             // Your melee and missile attacks have a chance to weaken your opponent.
@@ -882,13 +882,13 @@ namespace ACE.Server.WorldObjects
             switch (AttackHeight)
             {
                 case ACE.Entity.Enum.AttackHeight.Low:
-                    FightDirty_ApplyLowAttack(creatureTarget);
+                    FightDirty_ApplyLowAttack(creatureTarget, weapon);
                     break;
                 case ACE.Entity.Enum.AttackHeight.Medium:
-                    FightDirty_ApplyMediumAttack(creatureTarget);
+                    FightDirty_ApplyMediumAttack(creatureTarget, weapon);
                     break;
                 case ACE.Entity.Enum.AttackHeight.High:
-                    FightDirty_ApplyHighAttack(creatureTarget);
+                    FightDirty_ApplyHighAttack(creatureTarget, weapon);
                     break;
             }
         }
@@ -897,7 +897,7 @@ namespace ACE.Server.WorldObjects
         /// Reduces the defense skills of the opponent by
         /// -10 if trained, or -20 if specialized
         /// </summary>
-        public void FightDirty_ApplyLowAttack(Creature target)
+        public void FightDirty_ApplyLowAttack(Creature target, WorldObject weapon)
         {
             var spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
                 SpellId.DF_Specialized_DefenseDebuff : SpellId.DF_Trained_DefenseDebuff;
@@ -905,7 +905,7 @@ namespace ACE.Server.WorldObjects
             var spell = new Spell(spellID);
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
-            target.EnchantmentManager.Add(spell, this);
+            target.EnchantmentManager.Add(spell, this, weapon);
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingDefenseDebuff));
 
             FightDirty_SendMessage(target, spell);
@@ -916,7 +916,7 @@ namespace ACE.Server.WorldObjects
         /// 120 damage per 20 seconds if specialized
         /// </summary>
         /// <returns></returns>
-        public void FightDirty_ApplyMediumAttack(Creature target)
+        public void FightDirty_ApplyMediumAttack(Creature target, WorldObject weapon)
         {
             var spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
                 SpellId.DF_Specialized_Bleed : SpellId.DF_Trained_Bleed;
@@ -924,7 +924,7 @@ namespace ACE.Server.WorldObjects
             var spell = new Spell(spellID);
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
-            target.EnchantmentManager.Add(spell, this);
+            target.EnchantmentManager.Add(spell, this, weapon);
 
             // only send if not already applied?
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingDamageOverTime));
@@ -936,7 +936,7 @@ namespace ACE.Server.WorldObjects
         /// Reduces the attack skills and healing rating for opponent
         /// by -10 if trained, or -20 if specialized
         /// </summary>
-        public void FightDirty_ApplyHighAttack(Creature target)
+        public void FightDirty_ApplyHighAttack(Creature target, WorldObject weapon)
         {
             // attack debuff
             var spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
@@ -945,7 +945,7 @@ namespace ACE.Server.WorldObjects
             var spell = new Spell(spellID);
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
-            target.EnchantmentManager.Add(spell, this);
+            target.EnchantmentManager.Add(spell, this, weapon);
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingAttackDebuff));
 
             FightDirty_SendMessage(target, spell);
@@ -957,7 +957,7 @@ namespace ACE.Server.WorldObjects
             spell = new Spell(spellID);
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
-            target.EnchantmentManager.Add(spell, this);
+            target.EnchantmentManager.Add(spell, this, weapon);
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingHealDebuff));
 
             FightDirty_SendMessage(target, spell);

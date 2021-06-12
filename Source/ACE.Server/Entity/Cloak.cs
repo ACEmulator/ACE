@@ -111,7 +111,7 @@ namespace ACE.Server.Entity
 
             defender.EnqueueBroadcast(msg, WorldObject.LocalBroadcastRange, ChatMessageType.Spellcasting);
 
-            defender.TryCastSpell(spell, target, cloak, false, false);
+            defender.TryCastSpell(spell, target, cloak, cloak, false, false);
 
             return true;
         }

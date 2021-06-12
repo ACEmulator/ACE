@@ -32,8 +32,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Instantly casts a spell for a WorldObject (ie. spell traps)
         /// </summary>
-        public void TryCastSpell(Spell spell, WorldObject target, WorldObject caster = null, bool tryResist = true, bool showMsg = true)
+        public void TryCastSpell(Spell spell, WorldObject target, WorldObject caster = null, WorldObject weapon = null, bool tryResist = true, bool showMsg = true)
         {
+            // TODO: look into further normalizing this / caster / weapon
+
             // verify spell exists in database
             if (spell._spell == null)
             {
@@ -52,13 +54,13 @@ namespace ACE.Server.WorldObjects
                 var fellows = targetPlayer.Fellowship.GetFellowshipMembers();
 
                 foreach (var fellow in fellows.Values)
-                    TryCastSpell_Inner(spell, fellow, caster, tryResist, showMsg);
+                    TryCastSpell_Inner(spell, fellow, caster, weapon, tryResist, showMsg);
             }
             else
-                TryCastSpell_Inner(spell, target, caster, tryResist, showMsg);
+                TryCastSpell_Inner(spell, target, caster, weapon, tryResist, showMsg);
         }
 
-        public void TryCastSpell_Inner(Spell spell, WorldObject target, WorldObject caster = null, bool tryResist = true, bool showMsg = true)
+        public void TryCastSpell_Inner(Spell spell, WorldObject target, WorldObject caster = null, WorldObject weapon = null, bool tryResist = true, bool showMsg = true)
         {
             // verify before resist, still consumes source item
             if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(caster, target))
@@ -74,7 +76,7 @@ namespace ACE.Server.WorldObjects
             switch (spell.School)
             {
                 case MagicSchool.WarMagic:
-                    WarMagic(target, spell, caster ?? this);
+                    WarMagic(target, spell, weapon, false);
                     break;
 
                 case MagicSchool.LifeMagic:
@@ -95,7 +97,7 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case MagicSchool.VoidMagic:
-                    VoidMagic(target, spell, caster ?? this);
+                    VoidMagic(target, spell, weapon, false);
                     break;
             }
 
@@ -249,7 +251,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Launches a Life Magic spell
         /// </summary>
-        protected bool LifeMagic(Spell spell, out uint damage, out EnchantmentStatus enchantmentStatus, WorldObject target = null, WorldObject itemCaster = null, bool equip = false)
+        protected bool LifeMagic(Spell spell, out uint damage, out EnchantmentStatus enchantmentStatus, WorldObject target = null, WorldObject itemCaster = null, WorldObject weapon = null, bool equip = false)
         {
             string srcVital, destVital;
             enchantmentStatus = new EnchantmentStatus(spell);
@@ -577,7 +579,7 @@ namespace ACE.Server.WorldObjects
                 case SpellType.Projectile:
 
                     damage = 0;
-                    var projectiles = CreateSpellProjectiles(spell, target, itemCaster);
+                    var projectiles = CreateSpellProjectiles(spell, target, weapon, false);
                     break;
 
                 case SpellType.LifeProjectile:
@@ -608,7 +610,7 @@ namespace ACE.Server.WorldObjects
                             //player.Fellowship.OnVitalUpdate(player);
                     }
 
-                    var lifeProjectiles = CreateSpellProjectiles(spell, target, itemCaster, damage);
+                    var lifeProjectiles = CreateSpellProjectiles(spell, target, weapon, false, damage);
 
                     if (caster.Health.Current <= 0)
                     {
@@ -660,9 +662,9 @@ namespace ACE.Server.WorldObjects
                     damage = 0;
                     // TODO: replace with some kind of 'rootOwner unless equip' concept?
                     if (itemCaster != null && (equip || itemCaster is Gem || itemCaster is Food))
-                        enchantmentStatus = CreateEnchantment(spellTarget ?? target, itemCaster, spell, equip);
+                        enchantmentStatus = CreateEnchantment(spellTarget ?? target, itemCaster, itemCaster, spell, equip);
                     else
-                        enchantmentStatus = CreateEnchantment(spellTarget ?? target, this, spell, equip);
+                        enchantmentStatus = CreateEnchantment(spellTarget ?? target, this, this, spell, equip);
                     break;
 
                 default:
@@ -757,20 +759,23 @@ namespace ACE.Server.WorldObjects
                 LifeMagic(spell, out uint damage, out var enchantmentStatus, target);
                 return enchantmentStatus;
             }
-            return CreateEnchantment(target ?? itemCaster ?? this, itemCaster ?? this, spell, equip);
+
+            var caster = itemCaster ?? this;
+
+            return CreateEnchantment(target ?? caster, caster, caster, spell, equip);
         }
 
         /// <summary>
         /// Handles casting Item Magic spells
         /// </summary>
-        protected EnchantmentStatus ItemMagic(WorldObject target, Spell spell, WorldObject itemCaster = null, bool equip = false)
+        protected EnchantmentStatus ItemMagic(WorldObject target, Spell spell, WorldObject itemCaster = null, WorldObject weapon = null, bool equip = false)
         {
             var enchantmentStatus = new EnchantmentStatus(spell);
 
             // redirect item dispels to life magic
             if (spell.MetaSpellType == SpellType.Dispel)
             {
-                LifeMagic(spell, out uint damage, out enchantmentStatus, target, itemCaster, equip);
+                LifeMagic(spell, out uint damage, out enchantmentStatus, target, itemCaster, weapon, equip);
                 return enchantmentStatus;
             }
 
@@ -1141,9 +1146,9 @@ namespace ACE.Server.WorldObjects
             else if (spell.MetaSpellType == SpellType.Enchantment)
             {
                 if (itemCaster != null)
-                    return CreateEnchantment(target, itemCaster, spell, equip);
+                    return CreateEnchantment(target, itemCaster, itemCaster, spell, equip);
 
-                return CreateEnchantment(target, this, spell, equip);
+                return CreateEnchantment(target, this, this, spell, equip);
             }
 
             enchantmentStatus.Success = true;
@@ -1198,7 +1203,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Creates and launches the projectiles for a spell
         /// </summary>
-        public List<SpellProjectile> CreateSpellProjectiles(Spell spell, WorldObject target, WorldObject caster, uint lifeProjectileDamage = 0)
+        public List<SpellProjectile> CreateSpellProjectiles(Spell spell, WorldObject target, WorldObject weapon, bool isWeaponSpell, uint lifeProjectileDamage = 0)
         {
             if (spell.NumProjectiles == 0)
             {
@@ -1212,7 +1217,7 @@ namespace ACE.Server.WorldObjects
 
             var velocity = CalculateProjectileVelocity(spell, target, spellType, origins[0]);
 
-            return LaunchSpellProjectiles(spell, target, spellType, caster, origins, velocity, lifeProjectileDamage);
+            return LaunchSpellProjectiles(spell, target, spellType, weapon, isWeaponSpell, origins, velocity, lifeProjectileDamage);
         }
 
         public static readonly float ProjHeight = 2.0f / 3.0f;
@@ -1448,7 +1453,7 @@ namespace ACE.Server.WorldObjects
             return dir * speed;
         }
 
-        public List<SpellProjectile> LaunchSpellProjectiles(Spell spell, WorldObject target, ProjectileSpellType spellType, WorldObject caster, List<Vector3> origins, Vector3 velocity, uint lifeProjectileDamage = 0)
+        public List<SpellProjectile> LaunchSpellProjectiles(Spell spell, WorldObject target, ProjectileSpellType spellType, WorldObject weapon, bool isWeaponSpell, List<Vector3> origins, Vector3 velocity, uint lifeProjectileDamage = 0)
         {
             var useGravity = spellType == ProjectileSpellType.Arc;
 
@@ -1499,11 +1504,13 @@ namespace ACE.Server.WorldObjects
                 sp.Location.Rotation = sp.PhysicsObj.Position.Frame.Orientation;
 
                 sp.ProjectileSource = this;
-                sp.Caster = caster;
 
                 // side projectiles always untargeted?
                 if (i == 0)     
                     sp.ProjectileTarget = target;
+
+                sp.ProjectileLauncher = weapon;
+                sp.IsWeaponSpell = isWeaponSpell;
 
                 sp.SetProjectilePhysicsState(sp.ProjectileTarget, useGravity);
                 sp.SpawnPos = new Position(sp.Location);
@@ -1626,27 +1633,27 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Launches a targeted War Magic spell projectile
         /// </summary>
-        protected void WarMagic(WorldObject target, Spell spell, WorldObject caster)
+        protected void WarMagic(WorldObject target, Spell spell, WorldObject weapon, bool isWeaponSpell)
         {
-            CreateSpellProjectiles(spell, target, caster);
+            CreateSpellProjectiles(spell, target, weapon, isWeaponSpell);
         }
 
         /// <summary>
         /// Launches a Void Magic spell attack
         /// </summary>
-        protected void VoidMagic(WorldObject target, Spell spell, WorldObject caster)
+        protected void VoidMagic(WorldObject target, Spell spell, WorldObject weapon, bool isWeaponSpell)
         {
             if (spell.NumProjectiles > 0)
-                CreateSpellProjectiles(spell, target, caster);
+                CreateSpellProjectiles(spell, target, weapon, isWeaponSpell);
             else
                 // curses - apply with code similar to creature/life magic?
-                TryApplyEnchantment(target, spell, caster);
+                TryApplyEnchantment(target, spell, weapon, isWeaponSpell);
         }
 
         /// <summary>
         /// Attempts to apply an enchantment (added for Void Magic)
         /// </summary>
-        protected bool TryApplyEnchantment(WorldObject target, Spell spell, WorldObject caster)
+        protected bool TryApplyEnchantment(WorldObject target, Spell spell, WorldObject weapon, bool isWeaponSpell)
         {
             var player = this as Player;
 
@@ -1666,7 +1673,9 @@ namespace ACE.Server.WorldObjects
                     creature.TryHandleFactionMob(target);
             }
 
-            if (TryResistSpell(target, spell, caster))
+            var resistSource = isWeaponSpell ? weapon : this;
+
+            if (TryResistSpell(target, spell, resistSource))
                 return false;
 
             EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
@@ -1700,7 +1709,7 @@ namespace ACE.Server.WorldObjects
         /// Creates an enchantment and interacts with the Enchantment registry.
         /// Used by Life, Creature, Item, and Void magic
         /// </summary>
-        public EnchantmentStatus CreateEnchantment(WorldObject target, WorldObject caster, Spell spell, bool equip = false)
+        public EnchantmentStatus CreateEnchantment(WorldObject target, WorldObject caster, WorldObject weapon, Spell spell, bool equip = false)
         {
             var enchantmentStatus = new EnchantmentStatus(spell);
 
@@ -1722,7 +1731,7 @@ namespace ACE.Server.WorldObjects
                     cloakProc = true;
                 }
             }
-            addResult = target.EnchantmentManager.Add(spell, caster, equip);
+            addResult = target.EnchantmentManager.Add(spell, caster, weapon, equip);
 
             // build message
             var suffix = "";
@@ -1927,7 +1936,7 @@ namespace ACE.Server.WorldObjects
         /// Calculates the StatModVal x buffs to enter into the enchantment registry
         /// </summary>
         /// <param name="spell">A spell with a DotDuration</param>
-        public float CalculateDotEnchantment_StatModValue(Spell spell, WorldObject target, float statModVal)
+        public float CalculateDotEnchantment_StatModValue(Spell spell, WorldObject target, WorldObject weapon, float statModVal)
         {
             // here are all the dots with current content:
 
@@ -2004,7 +2013,7 @@ namespace ACE.Server.WorldObjects
             if (creatureSource != null)
             {
                 // elemental damage mod
-                elementalDamageMod = GetCasterElementalDamageModifier(creatureSource, creatureTarget, spell.DamageType);
+                elementalDamageMod = GetCasterElementalDamageModifier(weapon, creatureSource, creatureTarget, spell.DamageType);
 
                 // skillMod only applied to projectiles -- no destructive curse
                 if (spell.NumProjectiles > 0)   

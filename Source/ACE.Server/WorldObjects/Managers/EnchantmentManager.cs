@@ -131,7 +131,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Add/update an enchantment in this object's registry
         /// </summary>
-        public virtual AddEnchantmentResult Add(Spell spell, WorldObject caster, bool equip = false)
+        public virtual AddEnchantmentResult Add(Spell spell, WorldObject caster, WorldObject weapon, bool equip = false)
         {
             var result = new AddEnchantmentResult();
 
@@ -141,7 +141,7 @@ namespace ACE.Server.WorldObjects.Managers
             // if none, add new record
             if (entries.Count == 0)
             {
-                var newEntry = BuildEntry(spell, caster, equip);
+                var newEntry = BuildEntry(spell, caster, weapon, equip);
                 newEntry.LayerId = 1;
                 WorldObject.Biota.PropertiesEnchantmentRegistry.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
                 WorldObject.ChangesDetected = true;
@@ -167,7 +167,7 @@ namespace ACE.Server.WorldObjects.Managers
 
             if (refreshSpell == null)
             {
-                var newEntry = BuildEntry(spell, caster, equip);
+                var newEntry = BuildEntry(spell, caster, weapon, equip);
                 newEntry.LayerId = result.NextLayerId;
                 WorldObject.Biota.PropertiesEnchantmentRegistry.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
 
@@ -206,7 +206,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Builds an enchantment registry entry from a spell ID
         /// </summary>
-        private PropertiesEnchantmentRegistry BuildEntry(Spell spell, WorldObject caster = null, bool equip = false)
+        private PropertiesEnchantmentRegistry BuildEntry(Spell spell, WorldObject caster = null, WorldObject weapon = null, bool equip = false)
         {
             var entry = new PropertiesEnchantmentRegistry();
 
@@ -260,7 +260,7 @@ namespace ACE.Server.WorldObjects.Managers
                 // calculate runtime StatModValue for enchantment
                 if (caster != null)
                 {
-                    entry.StatModValue = caster.CalculateDotEnchantment_StatModValue(spell, WorldObject, entry.StatModValue);
+                    entry.StatModValue = caster.CalculateDotEnchantment_StatModValue(spell, WorldObject, weapon, entry.StatModValue);
                 }
                 //Console.WriteLine($"enchantment_statModVal: {entry.StatModValue}");
             }

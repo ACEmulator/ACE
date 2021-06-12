@@ -831,12 +831,12 @@ namespace ACE.Server.WorldObjects
             }
 
             // consume mana
-            WorldObject caster = this;
+            var caster = GetEquippedWand();  // TODO: persist this from the beginning, since this is done with delay
+
             if (!isWeaponSpell)
                 UpdateVitalDelta(Mana, -(int)manaUsed);
             else
             {
-                caster = GetEquippedWand();     // TODO: persist this from the beginning, since this is done with delay
                 if (caster != null)
                     caster.ItemCurMana -= (int)manaUsed;
                 else
@@ -894,13 +894,13 @@ namespace ACE.Server.WorldObjects
                         switch (spell.School)
                         {
                             case MagicSchool.WarMagic:
-                                WarMagic(target, spell, caster);
+                                WarMagic(target, spell, caster, isWeaponSpell);
                                 break;
                             case MagicSchool.VoidMagic:
-                                VoidMagic(target, spell, caster);
+                                VoidMagic(target, spell, caster, isWeaponSpell);
                                 break;
                             case MagicSchool.LifeMagic:
-                                LifeMagic(spell, out uint damage, out var enchantmentStatus, target, caster);
+                                LifeMagic(spell, out uint damage, out var enchantmentStatus, target, caster, caster, isWeaponSpell);
                                 break;
                         }
                     }
@@ -1063,9 +1063,7 @@ namespace ACE.Server.WorldObjects
             LastSuccessCast_School = spell.School;
             LastSuccessCast_Time = Time.GetUnixTime();
 
-            WorldObject caster = this;
-            if (isWeaponSpell)
-                caster = GetEquippedWand();
+            var caster = GetEquippedWand();
 
             // verify after windup, still consumes mana
             if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(this, target))
@@ -1074,10 +1072,10 @@ namespace ACE.Server.WorldObjects
             switch (spell.School)
             {
                 case MagicSchool.WarMagic:
-                    WarMagic(target, spell, caster);
+                    WarMagic(target, spell, caster, isWeaponSpell);
                     break;
                 case MagicSchool.VoidMagic:
-                    VoidMagic(target, spell, caster);
+                    VoidMagic(target, spell, caster, isWeaponSpell);
                     break;
 
                 case MagicSchool.CreatureEnchantment:

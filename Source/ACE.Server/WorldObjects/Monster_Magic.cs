@@ -287,6 +287,8 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            var caster = GetEquippedWand();
+
             var targetCreature = target as Creature;
 
             switch (spell.School)
@@ -338,7 +340,7 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.VoidMagic:
 
-                    VoidMagic(target, spell, this);
+                    VoidMagic(target, spell, caster, false);
 
                     if (spell.NumProjectiles == 0 && target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
@@ -347,7 +349,7 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.WarMagic:
 
-                    WarMagic(target, spell, this);
+                    WarMagic(target, spell, caster, false);
                     break;
             }
         }
