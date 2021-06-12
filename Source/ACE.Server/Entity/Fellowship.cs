@@ -769,20 +769,18 @@ namespace ACE.Server.Entity
 
     public static class FellowshipExtensions
     {
-        public static ushort NumBuckets = 32;
+        private static readonly HashComparer hashComparer = new HashComparer(32);
 
-        public static HashComparer HashComparer = new HashComparer(NumBuckets);
-
-        public static void Write(this BinaryWriter writer, Dictionary<uint, int> departedMembersHash)
+        public static void Write(this BinaryWriter writer, Dictionary<uint, int> departedFellows)
         {
-            writer.Write((ushort)departedMembersHash.Count);
-            writer.Write(NumBuckets);
+            PackableHashTable.WriteHeader(writer, departedFellows.Count, hashComparer.NumBuckets);
 
-            var departedMembers = new SortedDictionary<uint, int>(departedMembersHash, HashComparer);
-            foreach (var member in departedMembers)
+            var sorted = new SortedDictionary<uint, int>(departedFellows, hashComparer);
+
+            foreach (var departed in sorted)
             {
-                writer.Write(member.Key);
-                writer.Write(member.Value);
+                writer.Write(departed.Key);
+                writer.Write(departed.Value);
             }
         }
     }
