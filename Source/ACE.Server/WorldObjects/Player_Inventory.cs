@@ -267,46 +267,59 @@ namespace ACE.Server.WorldObjects
 
             TryShuffleStance(wieldedLocation);
 
-            // does this item cast enchantments, and currently have mana?
-            if (item.ItemCurMana > 1 || item.ItemCurMana == null) // TODO: Once Item Current Mana is fixed for loot generated items, '|| item.ItemCurMana == null' can be removed
+            // handle item spells
+            if (item.ItemCurMana > 0)
+                TryActivateSpells(item);
+
+            // handle equipment sets
+            if (item.HasItemSet)
+                EquipItemFromSet(item);
+
+            return true;
+        }
+
+        private bool TryActivateSpells(WorldObject item)
+        {
+            // check activation requirements
+            var result = item.CheckUseRequirements(this);
+
+            if (!result.Success)
             {
-                // check activation requirements
-                var result = item.CheckUseRequirements(this);
-                if (!result.Success)
-                {
-                    if (result.Message != null)
-                        Session.Network.EnqueueSend(result.Message);
+                if (result.Message != null)
+                    Session.Network.EnqueueSend(result.Message);
 
-                    // handle equipment sets
-                    if (item.HasItemSet)
-                        EquipItemFromSet(item);
-
-                    return true;
-                }
-
-                foreach (var spell in item.Biota.GetKnownSpellsIds(BiotaDatabaseLock))
-                {
-                    if (item.HasProcSpell((uint)spell))
-                        continue;
-
-                    if (spell == item.SpellDID)
-                        continue;
-
-                    var enchantmentStatus = CreateItemSpell(item, (uint)spell);
-                    if (enchantmentStatus.Success)
-                        item.IsAffecting = true;
-                }
-
-                // handle equipment sets
-                if (item.HasItemSet)
-                    EquipItemFromSet(item);
-
-                if (item.IsAffecting ?? false)
-                {
-                    if (item.ItemCurMana.HasValue)
-                        item.ItemCurMana--;     // ?
-                }
+                return false;
             }
+
+            // handle special case
+            if (item.ItemCurMana == 1)
+            {
+                item.ItemCurMana = 0;
+                return false;
+            }
+
+            var isAffecting = true;
+
+            foreach (var spell in item.Biota.GetKnownSpellsIds(BiotaDatabaseLock))
+            {
+                if (item.HasProcSpell((uint)spell))
+                    continue;
+
+                if (spell == item.SpellDID)
+                    continue;
+
+                var enchantmentStatus = CreateItemSpell(item, (uint)spell);
+
+                if (enchantmentStatus.Success)
+                    isAffecting = true;
+            }
+
+            if (isAffecting)
+            {
+                item.OnSpellsActivated();
+                item.ItemCurMana--;
+            }
+
             return true;
         }
 
@@ -1143,6 +1156,8 @@ namespace ACE.Server.WorldObjects
             Position prevLocation = null;
             Landblock prevLandblock = null;
 
+            var prevContainer = item.Container;
+
             OnPutItemInContainer(item.Guid.Full, container.Guid.Full, placement);
 
             if (item.CurrentLandblock != null) // Movement is an item pickup off the landblock
@@ -1214,6 +1229,11 @@ namespace ACE.Server.WorldObjects
                 containerRootOwner.EncumbranceVal += (item.EncumbranceVal ?? 0);
                 containerRootOwner.Value += (item.Value ?? 0);
             }
+
+            // when moving from a non-stuck container to a different container,
+            // the database must be synced immediately
+            if (prevContainer != null && !prevContainer.Stuck && container != prevContainer)
+                item.SaveBiotaToDatabase();
 
             Session.Network.EnqueueSend(
                 new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
@@ -2643,10 +2663,6 @@ namespace ACE.Server.WorldObjects
 
                     return;
                 }
-
-                // quick fix
-                if (itemToGive is Container)
-                    RushNextPlayerSave(5);
 
                 if (item == itemToGive)
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));

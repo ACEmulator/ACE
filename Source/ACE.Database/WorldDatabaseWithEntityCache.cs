@@ -25,7 +25,7 @@ namespace ACE.Database
 
         private readonly ConcurrentDictionary<string /* Class Name */, uint /* WCID */> weenieClassNameToClassIdCache = new ConcurrentDictionary<string, uint>();
 
-         /// <summary>
+        /// <summary>
         /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest<para />
         /// This will also update the weenie cache.
         /// </summary>
@@ -45,25 +45,32 @@ namespace ACE.Database
             return weenie;
         }
 
+        /// <summary>
+        /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest<para />
+        /// This will also update the weenie cache.
+        /// </summary>
+        public override List<Weenie> GetAllWeenies()
+        {
+            var weenies = base.GetAllWeenies();
+
+            // Add the weenies to the cache
+            foreach (var weenie in weenies)
+            {
+                weenieCache[weenie.ClassId] = WeenieConverter.ConvertToEntityWeenie(weenie);
+                weenieClassNameToClassIdCache[weenie.ClassName.ToLower()] = weenie.ClassId;
+            }
+
+            return weenies;
+        }
+
 
         /// <summary>
         /// This will make sure every weenie in the database has been read and cached.<para />
-        /// This function may take 2+ minutes to complete.
+        /// This function may take 10+ seconds to complete.
         /// </summary>
-        public void CacheAllWeeniesInParallel()
+        public void CacheAllWeenies()
         {
-            using (var context = new WorldDbContext())
-            {
-                var results = context.Weenie
-                    .AsNoTracking()
-                    .ToList();
-
-                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
-                {
-                    if (!weenieCache.ContainsKey(result.ClassId))
-                        GetWeenie(result.ClassId); // This will add the result into the caches
-                });
-            }
+            GetAllWeenies();
 
             PopulateWeenieSpecificCaches();
         }
@@ -304,22 +311,37 @@ namespace ACE.Database
             return cookbook;
         }
 
+        public override List<CookBook> GetAllCookbooks()
+        {
+            var cookbooks = base.GetAllCookbooks();
+
+            // Add the cookbooks to the cache
+            lock (cookbookCache)
+            {
+                foreach (var cookbook in cookbooks)
+                {
+                    // We double check before commiting the recipe.
+                    // We could be in this lock, and queued up behind us is an attempt to add a result for the same source:target pair.
+                    if (cookbookCache.TryGetValue(cookbook.SourceWCID, out var sourceRecipes))
+                    {
+                        if (!sourceRecipes.ContainsKey(cookbook.TargetWCID))
+                            sourceRecipes.Add(cookbook.TargetWCID, cookbook);
+                    }
+                    else
+                        cookbookCache.Add(cookbook.SourceWCID, new Dictionary<uint, CookBook>() { { cookbook.TargetWCID, cookbook } });
+                }
+            }
+
+            return cookbooks;
+        }
+
+
         /// <summary>
         /// This can take 1-2 minutes to complete.
         /// </summary>
-        public void CacheAllCookbooksInParallel()
+        public void CacheAllCookbooks()
         {
-            using (var context = new WorldDbContext())
-            {
-                var results = context.CookBook
-                    .AsNoTracking()
-                    .ToList();
-
-                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
-                {
-                    GetCookbook(result.SourceWCID, result.TargetWCID);  // This will add the result into the cache
-                });
-            }
+            GetAllCookbooks();
         }
 
         /// <summary>

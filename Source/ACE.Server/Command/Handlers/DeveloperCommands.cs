@@ -2544,13 +2544,16 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("fellow-info", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows debug info for fellowships.")]
         public static void HandleFellowInfo(Session session, params string[] parameters)
         {
-            var player = session.Player;
+            var player = CommandHandlerHelper.GetLastAppraisedObject(session) as Player;
+
+            if (player == null)
+                player = session.Player;
 
             var fellowship = player.Fellowship;
 
             if (fellowship == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat("You must be in a fellowship to use this command.", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat("Player target must be in a fellowship to use this command.", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -2567,6 +2570,22 @@ namespace ACE.Server.Command.Handlers
 
                 //session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(levelScale * 100, 2)}% / {Math.Round(levelXPScale * 100, 2)}%", ChatMessageType.Broadcast));
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(levelXPScale * 100, 2)}%", ChatMessageType.Broadcast));
+            }
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"----------", ChatMessageType.Broadcast));
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"ShareXP: {fellowship.ShareXP}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"EvenShare: {fellowship.EvenShare}", ChatMessageType.Broadcast));
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Distance scale:", ChatMessageType.Broadcast));
+
+            foreach (var fellow in fellows.Values)
+            {
+                var dist = player.Location.Distance2D(fellow.Location);
+
+                var distanceScalar = fellowship.GetDistanceScalar(player, fellow, XpType.Kill);
+
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(dist):N0} ({distanceScalar:F2}) - {fellow.Location}", ChatMessageType.Broadcast));
             }
         }
 
@@ -2840,26 +2859,26 @@ namespace ACE.Server.Command.Handlers
         public static void HandleFast(Session session, params string[] parameters)
         {
             var spell = new Spell(SpellId.QuicknessSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
 
             spell = new Spell(SpellId.SprintSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
 
             spell = new Spell(SpellId.StrengthSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
         }
 
         [CommandHandler("slow", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void HandleSlow(Session session, params string[] parameters)
         {
             var spell = new Spell(SpellId.SlownessSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
 
             spell = new Spell(SpellId.LeadenFeetSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
 
             spell = new Spell(SpellId.WeaknessSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
         }
 
         [CommandHandler("rip", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]

@@ -17,7 +17,7 @@ namespace ACE.Server.Network.Structure
             writer.Write((ushort)numBuckets);
         }
 
-        public static void Write(this BinaryWriter writer, List<CharacterPropertiesFillCompBook> fillComps)
+        public static void WriteOld(this BinaryWriter writer, List<CharacterPropertiesFillCompBook> fillComps)
         {
             const int numBuckets = 256; // constant from retail pcaps
 

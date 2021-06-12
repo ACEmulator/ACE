@@ -157,9 +157,9 @@ namespace ACE.Server.Managers
             // Wait for all sessions to drop out
             logUpdateTS = DateTime.MinValue;
             int sessionCount;
-            while ((sessionCount = NetworkManager.GetSessionCount()) > 0)
+            while ((sessionCount = NetworkManager.GetAuthenticatedSessionCount()) > 0)
             {
-                logUpdateTS = LogStatusUpdate(logUpdateTS, $"Waiting for {sessionCount} session{(sessionCount > 1 ? "s" : "")} to disconnect...");
+                logUpdateTS = LogStatusUpdate(logUpdateTS, $"Waiting for {sessionCount} authenticated session{(sessionCount > 1 ? "s" : "")} to disconnect...");
                 Thread.Sleep(10);
             }
 

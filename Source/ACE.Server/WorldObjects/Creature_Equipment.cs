@@ -379,7 +379,7 @@ namespace ACE.Server.WorldObjects
             worldObject.RemoveProperty(PropertyInstanceId.Wielder);
             worldObject.Wielder = null;
 
-            worldObject.IsAffecting = false;
+            worldObject.OnSpellsDeactivated();
 
             EncumbranceVal -= (worldObject.EncumbranceVal ?? 0);
             Value -= (worldObject.Value ?? 0);
