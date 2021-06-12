@@ -1692,9 +1692,9 @@ namespace ACE.Server.WorldObjects
                     Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.VoidMagic), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
 
                 // handle target procs
-                var sourceCreature = this as Creature;
-                if (sourceCreature != null && targetCreature != null && sourceCreature != targetCreature)
-                    sourceCreature.TryProcEquippedItems(targetCreature, false);
+                //var sourceCreature = this as Creature;
+                //if (sourceCreature != null && targetCreature != null && sourceCreature != targetCreature)
+                    //sourceCreature.TryProcEquippedItems(targetCreature, false);
 
                 if (player != null && targetPlayer != null)
                     Player.UpdatePKTimers(player, targetPlayer);
