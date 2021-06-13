@@ -20,8 +20,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Iterates through all of the equipped objects that have proc spells
-        /// matching the 'selfTarget' bool, and tries procing them w/ rng chance
+        /// Tries to proc any relevant items for the attack
         /// </summary>
         public void TryProcEquippedItems(WorldObject attacker, Creature target, bool selfTarget, WorldObject weapon)
         {
