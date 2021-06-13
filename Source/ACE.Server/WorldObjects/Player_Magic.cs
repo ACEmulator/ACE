@@ -882,8 +882,8 @@ namespace ACE.Server.WorldObjects
                     }
 
                     // handle self procs
-                    //if (spell.IsHarmful && target != this)
-                        //TryProcEquippedItems(this, true);
+                    if (spell.IsHarmful && target != this)
+                        TryProcEquippedItems(this, true);
 
                     break;
 
@@ -1103,8 +1103,8 @@ namespace ACE.Server.WorldObjects
                             Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.CreatureEnchantment), targetCreature.GetCreatureSkill(Skill.MagicDefense).Current);
 
                         // handle target procs
-                        //if (targetCreature != null && targetCreature != this)
-                            //TryProcEquippedItems(targetCreature, false);
+                        if (targetCreature != null && targetCreature != this)
+                            TryProcEquippedItems(targetCreature, false);
 
                         if (targetPlayer != null)
                             UpdatePKTimers(this, targetPlayer);
@@ -1144,8 +1144,8 @@ namespace ACE.Server.WorldObjects
                                 Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.LifeMagic), targetCreature.GetCreatureSkill(Skill.MagicDefense).Current);
 
                             // handle target procs
-                            //if (targetCreature != null && targetCreature != this)
-                                //TryProcEquippedItems(targetCreature, false);
+                            if (targetCreature != null && targetCreature != this)
+                                TryProcEquippedItems(targetCreature, false);
 
                             if (targetPlayer != null)
                                 UpdatePKTimers(this, targetPlayer);
