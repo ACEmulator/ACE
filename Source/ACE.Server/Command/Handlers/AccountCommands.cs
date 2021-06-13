@@ -177,12 +177,12 @@ namespace ACE.Server.Command.Handlers
 
             var currentTime = DateTime.UtcNow;
 
-            if (currentTime - session.Player.LastPassTime < PasswdInterval)
+            if (currentTime - session.LastPassTime < PasswdInterval)
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"This command may only be run once every {PasswdInterval.TotalSeconds} seconds.", ChatMessageType.Broadcast);
                 return;
             }
-            session.Player.LastPassTime = currentTime;
+            session.LastPassTime = currentTime;
 
             if (parameters.Length <= 0)
             {

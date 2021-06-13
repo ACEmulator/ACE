@@ -1154,10 +1154,5 @@ namespace ACE.Server.WorldObjects
             });
             actionChain.EnqueueChain();
         }
-
-        /// <summary>
-        /// Rate limiter for /passwd command
-        /// </summary>
-        public DateTime LastPassTime { get; set; }
     }
 }
