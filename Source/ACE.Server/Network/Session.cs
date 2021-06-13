@@ -57,6 +57,11 @@ namespace ACE.Server.Network
         public bool DatWarnPortal;
         public bool DatWarnLanguage;
 
+        /// <summary>
+        /// Rate limiter for /passwd command
+        /// </summary>
+        public DateTime LastPassTime { get; set; }
+
         public Session(ConnectionListener connectionListener, IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
             EndPoint = endPoint;
