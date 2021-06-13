@@ -271,9 +271,11 @@ namespace ACE.Server.WorldObjects
             else if (targetSelf)
                 target = this;
 
+            var caster = GetEquippedWand();
+
             // handle self procs
-            //if (spell.IsHarmful && target != this)
-                //TryProcEquippedItems(this, true);
+            if (spell.IsHarmful && target != this)
+                TryProcEquippedItems(this, this, true, caster);
 
             // If the target is too far away, don't cast. This checks to see of this monster and the target are on separate landblock groups, and potentially separate threads.
             // This also fixes cross-threading issues
@@ -287,8 +289,6 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var caster = GetEquippedWand();
-
             var targetCreature = target as Creature;
 
             switch (spell.School)
@@ -300,12 +300,12 @@ namespace ACE.Server.WorldObjects
                     if (target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
 
-                    /*if (spell.IsHarmful)
+                    if (spell.IsHarmful)
                     {
                         // handle target procs
                         if (targetCreature != null && targetCreature != this)
-                            TryProcEquippedItems(targetCreature, false);
-                    }*/
+                            TryProcEquippedItems(this, targetCreature, false, caster);
+                    }
                     break;
 
                 case MagicSchool.ItemEnchantment:
@@ -315,7 +315,7 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
-                    var targetDeath = LifeMagic(spell, out uint damage, out var msg, target);
+                    var targetDeath = LifeMagic(spell, out uint damage, out var msg, target, null, caster);
 
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
@@ -324,12 +324,12 @@ namespace ACE.Server.WorldObjects
                         if (target != null)
                             EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
 
-                        /*if (spell.IsHarmful)
+                        if (spell.IsHarmful)
                         {
                             // handle target procs
                             if (targetCreature != null && targetCreature != this)
-                                TryProcEquippedItems(targetCreature, false);
-                        }*/
+                                TryProcEquippedItems(this, targetCreature, false, caster);
+                        }
                     }
                     if (targetDeath && targetCreature != null)
                     {
@@ -340,7 +340,7 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.VoidMagic:
 
-                    VoidMagic(target, spell, caster, false);
+                    VoidMagic(target, spell, caster);
 
                     if (spell.NumProjectiles == 0 && target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
@@ -349,7 +349,7 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.WarMagic:
 
-                    WarMagic(target, spell, caster, false);
+                    WarMagic(target, spell, caster);
                     break;
             }
         }

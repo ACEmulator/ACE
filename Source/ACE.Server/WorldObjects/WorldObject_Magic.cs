@@ -32,7 +32,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Instantly casts a spell for a WorldObject (ie. spell traps)
         /// </summary>
-        public void TryCastSpell(Spell spell, WorldObject target, WorldObject caster = null, WorldObject weapon = null, bool tryResist = true, bool showMsg = true)
+        public void TryCastSpell(Spell spell, WorldObject target, WorldObject caster = null, WorldObject weapon = null, bool tryResist = true, bool showMsg = true, bool fromProc = false)
         {
             // TODO: look into further normalizing this / caster / weapon
 
@@ -54,13 +54,13 @@ namespace ACE.Server.WorldObjects
                 var fellows = targetPlayer.Fellowship.GetFellowshipMembers();
 
                 foreach (var fellow in fellows.Values)
-                    TryCastSpell_Inner(spell, fellow, caster, weapon, tryResist, showMsg);
+                    TryCastSpell_Inner(spell, fellow, caster, weapon, tryResist, showMsg, fromProc);
             }
             else
-                TryCastSpell_Inner(spell, target, caster, weapon, tryResist, showMsg);
+                TryCastSpell_Inner(spell, target, caster, weapon, tryResist, showMsg, fromProc);
         }
 
-        public void TryCastSpell_Inner(Spell spell, WorldObject target, WorldObject caster = null, WorldObject weapon = null, bool tryResist = true, bool showMsg = true)
+        public void TryCastSpell_Inner(Spell spell, WorldObject target, WorldObject caster = null, WorldObject weapon = null, bool tryResist = true, bool showMsg = true, bool fromProc = false)
         {
             // verify before resist, still consumes source item
             if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(caster, target))
@@ -76,11 +76,11 @@ namespace ACE.Server.WorldObjects
             switch (spell.School)
             {
                 case MagicSchool.WarMagic:
-                    WarMagic(target, spell, weapon, false);
+                    WarMagic(target, spell, weapon, false, fromProc);
                     break;
 
                 case MagicSchool.LifeMagic:
-                    var targetDeath = LifeMagic(spell, out uint damage, out status, target, caster);
+                    var targetDeath = LifeMagic(spell, out uint damage, out status, target, caster, fromProc: fromProc);
                     if (targetDeath && target is Creature targetCreature)
                     {
                         targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
@@ -97,7 +97,7 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case MagicSchool.VoidMagic:
-                    VoidMagic(target, spell, weapon, false);
+                    VoidMagic(target, spell, weapon, false, fromProc);
                     break;
             }
 
@@ -251,7 +251,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Launches a Life Magic spell
         /// </summary>
-        protected bool LifeMagic(Spell spell, out uint damage, out EnchantmentStatus enchantmentStatus, WorldObject target = null, WorldObject itemCaster = null, WorldObject weapon = null, bool equip = false)
+        protected bool LifeMagic(Spell spell, out uint damage, out EnchantmentStatus enchantmentStatus, WorldObject target = null, WorldObject itemCaster = null, WorldObject weapon = null, bool isWeaponSpell = false, bool equip = false, bool fromProc = false)
         {
             string srcVital, destVital;
             enchantmentStatus = new EnchantmentStatus(spell);
@@ -579,7 +579,7 @@ namespace ACE.Server.WorldObjects
                 case SpellType.Projectile:
 
                     damage = 0;
-                    var projectiles = CreateSpellProjectiles(spell, target, weapon, false);
+                    var projectiles = CreateSpellProjectiles(spell, target, weapon, isWeaponSpell, fromProc);
                     break;
 
                 case SpellType.LifeProjectile:
@@ -610,7 +610,7 @@ namespace ACE.Server.WorldObjects
                             //player.Fellowship.OnVitalUpdate(player);
                     }
 
-                    var lifeProjectiles = CreateSpellProjectiles(spell, target, weapon, false, damage);
+                    var lifeProjectiles = CreateSpellProjectiles(spell, target, weapon, isWeaponSpell, fromProc, damage);
 
                     if (caster.Health.Current <= 0)
                     {
@@ -775,7 +775,7 @@ namespace ACE.Server.WorldObjects
             // redirect item dispels to life magic
             if (spell.MetaSpellType == SpellType.Dispel)
             {
-                LifeMagic(spell, out uint damage, out enchantmentStatus, target, itemCaster, weapon, equip);
+                LifeMagic(spell, out uint damage, out enchantmentStatus, target, itemCaster, weapon, false, equip);
                 return enchantmentStatus;
             }
 
@@ -1203,7 +1203,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Creates and launches the projectiles for a spell
         /// </summary>
-        public List<SpellProjectile> CreateSpellProjectiles(Spell spell, WorldObject target, WorldObject weapon, bool isWeaponSpell, uint lifeProjectileDamage = 0)
+        public List<SpellProjectile> CreateSpellProjectiles(Spell spell, WorldObject target, WorldObject weapon, bool isWeaponSpell = false, bool fromProc = false, uint lifeProjectileDamage = 0)
         {
             if (spell.NumProjectiles == 0)
             {
@@ -1217,7 +1217,7 @@ namespace ACE.Server.WorldObjects
 
             var velocity = CalculateProjectileVelocity(spell, target, spellType, origins[0]);
 
-            return LaunchSpellProjectiles(spell, target, spellType, weapon, isWeaponSpell, origins, velocity, lifeProjectileDamage);
+            return LaunchSpellProjectiles(spell, target, spellType, weapon, isWeaponSpell, fromProc, origins, velocity, lifeProjectileDamage);
         }
 
         public static readonly float ProjHeight = 2.0f / 3.0f;
@@ -1453,7 +1453,7 @@ namespace ACE.Server.WorldObjects
             return dir * speed;
         }
 
-        public List<SpellProjectile> LaunchSpellProjectiles(Spell spell, WorldObject target, ProjectileSpellType spellType, WorldObject weapon, bool isWeaponSpell, List<Vector3> origins, Vector3 velocity, uint lifeProjectileDamage = 0)
+        public List<SpellProjectile> LaunchSpellProjectiles(Spell spell, WorldObject target, ProjectileSpellType spellType, WorldObject weapon, bool isWeaponSpell, bool fromProc, List<Vector3> origins, Vector3 velocity, uint lifeProjectileDamage = 0)
         {
             var useGravity = spellType == ProjectileSpellType.Arc;
 
@@ -1504,6 +1504,7 @@ namespace ACE.Server.WorldObjects
                 sp.Location.Rotation = sp.PhysicsObj.Position.Frame.Orientation;
 
                 sp.ProjectileSource = this;
+                sp.FromProc = fromProc;
 
                 // side projectiles always untargeted?
                 if (i == 0)     
@@ -1633,27 +1634,27 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Launches a targeted War Magic spell projectile
         /// </summary>
-        protected void WarMagic(WorldObject target, Spell spell, WorldObject weapon, bool isWeaponSpell)
+        protected void WarMagic(WorldObject target, Spell spell, WorldObject weapon, bool isWeaponSpell = false, bool fromProc = false)
         {
-            CreateSpellProjectiles(spell, target, weapon, isWeaponSpell);
+            CreateSpellProjectiles(spell, target, weapon, isWeaponSpell, fromProc);
         }
 
         /// <summary>
         /// Launches a Void Magic spell attack
         /// </summary>
-        protected void VoidMagic(WorldObject target, Spell spell, WorldObject weapon, bool isWeaponSpell)
+        protected void VoidMagic(WorldObject target, Spell spell, WorldObject weapon, bool isWeaponSpell = false, bool fromProc = false)
         {
             if (spell.NumProjectiles > 0)
-                CreateSpellProjectiles(spell, target, weapon, isWeaponSpell);
+                CreateSpellProjectiles(spell, target, weapon, isWeaponSpell, fromProc);
             else
                 // curses - apply with code similar to creature/life magic?
-                TryApplyEnchantment(target, spell, weapon, isWeaponSpell);
+                TryApplyEnchantment(target, spell, weapon, isWeaponSpell, fromProc);
         }
 
         /// <summary>
         /// Attempts to apply an enchantment (added for Void Magic)
         /// </summary>
-        protected bool TryApplyEnchantment(WorldObject target, Spell spell, WorldObject weapon, bool isWeaponSpell)
+        protected bool TryApplyEnchantment(WorldObject target, Spell spell, WorldObject weapon, bool isWeaponSpell = false, bool fromProc = false)
         {
             var player = this as Player;
 
@@ -1692,9 +1693,9 @@ namespace ACE.Server.WorldObjects
                     Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.VoidMagic), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
 
                 // handle target procs
-                //var sourceCreature = this as Creature;
-                //if (sourceCreature != null && targetCreature != null && sourceCreature != targetCreature)
-                    //sourceCreature.TryProcEquippedItems(targetCreature, false);
+                var sourceCreature = this as Creature;
+                if (sourceCreature != null && targetCreature != null && sourceCreature != targetCreature && !fromProc)
+                    sourceCreature.TryProcEquippedItems(sourceCreature, targetCreature, false, weapon);
 
                 if (player != null && targetPlayer != null)
                     Player.UpdatePKTimers(player, targetPlayer);

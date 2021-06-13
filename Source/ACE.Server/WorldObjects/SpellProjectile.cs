@@ -31,6 +31,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool IsWeaponSpell { get; set; }
 
+        /// <summary>
+        /// If a spell projectile is from a proc source,
+        /// make sure there is no attempt to re-proc again when the spell projectile hits
+        /// </summary>
+        public bool FromProc { get; set; }
+
         public int DebugVelocity;
 
         /// <summary>
@@ -332,10 +338,7 @@ namespace ACE.Server.WorldObjects
                 // TODO: instead of ProjectileLauncher is Caster, perhaps a SpellProjectile.CanProc bool that defaults to true,
                 // but is set to false if the source of a spell is from a proc, to prevent multi procs?
 
-                // caster procs don't appear to be a thing in current db
-                // commenting out this code for now, as the intention is unneeded for current db, until if / when it's discovered it was a thing in retail
-
-                /*if (sourceCreature != null && ProjectileTarget != null && ProjectileLauncher is Caster)
+                if (sourceCreature != null && ProjectileTarget != null && !FromProc)
                 {
                     // TODO figure out why cross-landblock group operations are happening here. We shouldn't need this code Mag-nus 2021-02-09
                     bool threadSafe = true;
@@ -349,7 +352,7 @@ namespace ACE.Server.WorldObjects
 
                     if (threadSafe)
                         // This can result in spell projectiles being added to either sourceCreature or creatureTargets landblock.
-                        sourceCreature.TryProcEquippedItems(creatureTarget, false);
+                        sourceCreature.TryProcEquippedItems(sourceCreature, creatureTarget, false, ProjectileLauncher);
                     else
                     {
                         // sourceCreature and creatureTarget are now in different landblock groups.
@@ -358,7 +361,7 @@ namespace ACE.Server.WorldObjects
                         // WorldManager.EnqueueAction(new ActionEventDelegate(() => sourceCreature.TryProcEquippedItems(creatureTarget, false)));
                         // But, to keep it simple, we will just ignore it and not bother with TryProcEquippedItems for this particular impact.
                     }
-                }*/
+                }
             }
 
             // also called on resist
