@@ -272,8 +272,8 @@ namespace ACE.Server.WorldObjects
                 target = this;
 
             // handle self procs
-            if (spell.IsHarmful && target != this)
-                TryProcEquippedItems(this, true);
+            //if (spell.IsHarmful && target != this)
+                //TryProcEquippedItems(this, true);
 
             // If the target is too far away, don't cast. This checks to see of this monster and the target are on separate landblock groups, and potentially separate threads.
             // This also fixes cross-threading issues
@@ -300,12 +300,12 @@ namespace ACE.Server.WorldObjects
                     if (target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
 
-                    if (spell.IsHarmful)
+                    /*if (spell.IsHarmful)
                     {
                         // handle target procs
                         if (targetCreature != null && targetCreature != this)
                             TryProcEquippedItems(targetCreature, false);
-                    }
+                    }*/
                     break;
 
                 case MagicSchool.ItemEnchantment:
@@ -324,12 +324,12 @@ namespace ACE.Server.WorldObjects
                         if (target != null)
                             EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
 
-                        if (spell.IsHarmful)
+                        /*if (spell.IsHarmful)
                         {
                             // handle target procs
                             if (targetCreature != null && targetCreature != this)
                                 TryProcEquippedItems(targetCreature, false);
-                        }
+                        }*/
                     }
                     if (targetDeath && targetCreature != null)
                     {

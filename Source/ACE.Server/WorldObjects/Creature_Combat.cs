@@ -1088,6 +1088,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void TryProcEquippedItems(Creature target, bool selfTarget, WorldObject restrictMelee = null)
         {
+            // monsters -- try to proc directly on mob
+            if (HasProc && ProcSpellSelfTargeted == selfTarget)
+            {
+                // ignore weapon?
+                TryProcItem(this, target);
+            }
+
             var tryProcItems = EquippedObjects.Values.Where(i => i.HasProc && i.ProcSpellSelfTargeted == selfTarget);
 
             foreach (var tryProcItem in tryProcItems)
