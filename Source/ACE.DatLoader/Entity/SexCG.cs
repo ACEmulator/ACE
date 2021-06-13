@@ -84,15 +84,26 @@ namespace ACE.DatLoader.Entity
             else
                 return null;
         }
-        public uint GetHairTexture(uint hairStyle)
+        public uint? GetHairTexture(uint hairStyle)
         {
             HairStyleCG hairstyle = HairStyleList[Convert.ToInt32(hairStyle)];
-            return hairstyle.ObjDesc.TextureChanges[0].NewTexture;
+
+            // OlthoiAcid has no TextureChanges
+            if (hairstyle.ObjDesc.TextureChanges.Count > 0)
+                return hairstyle.ObjDesc.TextureChanges[0].NewTexture;
+            else
+                return null;
+
         }
-        public uint GetDefaultHairTexture(uint hairStyle)
+        public uint? GetDefaultHairTexture(uint hairStyle)
         {
             HairStyleCG hairstyle = HairStyleList[Convert.ToInt32(hairStyle)];
-            return hairstyle.ObjDesc.TextureChanges[0].OldTexture;
+
+            // OlthoiAcid has no TextureChanges
+            if (hairstyle.ObjDesc.TextureChanges.Count > 0)
+                return hairstyle.ObjDesc.TextureChanges[0].OldTexture;
+            else
+                return null;
         }
 
         // Headgear

@@ -76,21 +76,21 @@ namespace ACE.Server.Factories
 
         private static void RandomizeHeritage(CharacterCreateInfo characterCreateInfo)
         {
-            var heritage = (uint)rand.Next(1, 12);
-            var heritageGroup = DatManager.PortalDat.CharGen.HeritageGroups[heritage];
+            var heritage = (HeritageGroup)rand.Next(1, 13);
+            var heritageGroup = DatManager.PortalDat.CharGen.HeritageGroups[(uint)heritage];
 
             characterCreateInfo.Heritage = heritage;
             characterCreateInfo.Gender = (uint)heritageGroup.Genders.ElementAt(rand.Next(0, heritageGroup.Genders.Count)).Key;
 
             var sex = heritageGroup.Genders[(int)characterCreateInfo.Gender];
 
-            characterCreateInfo.Apperance.HairColor = (uint)rand.Next(0, sex.HairColorList.Count);
-            characterCreateInfo.Apperance.HairStyle = (uint)rand.Next(0, sex.HairStyleList.Count);
+            characterCreateInfo.Appearance.HairColor = (uint)rand.Next(0, sex.HairColorList.Count);
+            characterCreateInfo.Appearance.HairStyle = (uint)rand.Next(0, sex.HairStyleList.Count);
 
-            characterCreateInfo.Apperance.Eyes = (uint)rand.Next(0, sex.EyeStripList.Count);
-            characterCreateInfo.Apperance.EyeColor = (uint)rand.Next(0, sex.EyeColorList.Count);
-            characterCreateInfo.Apperance.Nose = (uint)rand.Next(0, sex.NoseStripList.Count);
-            characterCreateInfo.Apperance.Mouth = (uint)rand.Next(0, sex.MouthStripList.Count);
+            characterCreateInfo.Appearance.Eyes = (uint)rand.Next(0, sex.EyeStripList.Count);
+            characterCreateInfo.Appearance.EyeColor = (uint)rand.Next(0, sex.EyeColorList.Count);
+            characterCreateInfo.Appearance.Nose = (uint)rand.Next(0, sex.NoseStripList.Count);
+            characterCreateInfo.Appearance.Mouth = (uint)rand.Next(0, sex.MouthStripList.Count);
 
             // todo randomize skin
         }
