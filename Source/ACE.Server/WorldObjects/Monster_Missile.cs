@@ -62,6 +62,8 @@ namespace ACE.Server.WorldObjects
             var ammo = weapon.IsAmmoLauncher ? GetEquippedAmmo() : weapon;
             if (ammo == null) return;
 
+            var launcher = GetEquippedMissileLauncher();
+
             /*if (!IsDirectVisible(AttackTarget))
             {
                 // ensure direct line of sight
@@ -118,7 +120,7 @@ namespace ACE.Server.WorldObjects
 
                 if (AttackTarget != null)
                 {
-                    var projectile = LaunchProjectile(weapon, ammo, AttackTarget, origin, orientation, velocity);
+                    var projectile = LaunchProjectile(launcher, ammo, AttackTarget, origin, orientation, velocity);
                     UpdateAmmoAfterLaunch(ammo);
                 }
             });
