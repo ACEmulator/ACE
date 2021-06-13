@@ -883,7 +883,7 @@ namespace ACE.Server.WorldObjects
 
                     // handle self procs
                     if (spell.IsHarmful && target != this)
-                        TryProcEquippedItems(this, true);
+                        TryProcEquippedItems(this, this, true, caster);
 
                     break;
 
@@ -1104,7 +1104,7 @@ namespace ACE.Server.WorldObjects
 
                         // handle target procs
                         if (targetCreature != null && targetCreature != this)
-                            TryProcEquippedItems(targetCreature, false);
+                            TryProcEquippedItems(this, targetCreature, false, caster);
 
                         if (targetPlayer != null)
                             UpdatePKTimers(this, targetPlayer);
@@ -1131,7 +1131,7 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    targetDeath = LifeMagic(spell, out uint damage, out enchantmentStatus, target, caster);
+                    targetDeath = LifeMagic(spell, out uint damage, out enchantmentStatus, target, null, caster, isWeaponSpell);
 
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
@@ -1145,7 +1145,7 @@ namespace ACE.Server.WorldObjects
 
                             // handle target procs
                             if (targetCreature != null && targetCreature != this)
-                                TryProcEquippedItems(targetCreature, false);
+                                TryProcEquippedItems(this, targetCreature, false, caster);
 
                             if (targetPlayer != null)
                                 UpdatePKTimers(this, targetPlayer);

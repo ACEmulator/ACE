@@ -73,7 +73,7 @@ namespace ACE.Server.WorldObjects
             var actionChain = new ActionChain();
 
             // handle self-procs
-            TryProcEquippedItems(this, true, weapon);
+            TryProcEquippedItems(this, this, true, weapon);
 
             var prevTime = 0.0f;
             bool targetProc = false;
@@ -131,7 +131,7 @@ namespace ACE.Server.WorldObjects
                         // handle target procs
                         if (!targetProc)
                         {
-                            TryProcEquippedItems(target, false, weapon);
+                            TryProcEquippedItems(this, target, false, weapon);
                             targetProc = true;
                         }
                     }

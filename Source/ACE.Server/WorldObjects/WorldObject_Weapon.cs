@@ -909,13 +909,13 @@ namespace ACE.Server.WorldObjects
             return HasProc && ProcSpell == spellID;
         }
 
-        public void TryProcItem(Creature wielder, Creature target)
+        public void TryProcItem(WorldObject attacker, Creature target)
         {
             // roll for a chance of casting spell
             var chance = ProcSpellRate ?? 0.0f;
 
             // special handling for aetheria
-            if (Aetheria.IsAetheria(WeenieClassId))
+            if (Aetheria.IsAetheria(WeenieClassId) && attacker is Creature wielder)
                 chance = Aetheria.CalcProcRate(this, wielder);
 
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
@@ -926,7 +926,7 @@ namespace ACE.Server.WorldObjects
 
             if (spell.NotFound)
             {
-                if (wielder is Player player)
+                if (attacker is Player player)
                 {
                     if (spell._spellBase == null)
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"SpellId {ProcSpell.Value} Invalid.", ChatMessageType.System));
@@ -937,9 +937,9 @@ namespace ACE.Server.WorldObjects
             }
 
             if (spell.NonComponentTargetType == ItemType.None)
-                wielder.TryCastSpell(spell, null, this);
+                attacker.TryCastSpell(spell, null, this, fromProc: true);
             else
-                wielder.TryCastSpell(spell, target, this);
+                attacker.TryCastSpell(spell, target, this, fromProc: true);
         }
 
         private bool? isMasterable;

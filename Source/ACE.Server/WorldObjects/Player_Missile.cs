@@ -228,7 +228,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(this, () =>
             {
                 // handle self-procs
-                TryProcEquippedItems(this, true);
+                TryProcEquippedItems(this, this, true, weapon);
 
                 var sound = GetLaunchMissileSound(weapon);
                 EnqueueBroadcast(new GameMessageSound(Guid, sound, 1.0f));

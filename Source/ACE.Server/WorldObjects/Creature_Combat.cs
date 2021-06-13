@@ -1058,57 +1058,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        /// <summary>
-        /// Called when a player or creature starts an attack
-        /// </summary>
-        public void OnAttack(Creature target)
-        {
-            // self-procs happen on attack, regardless if the attack is successfully landed
-            TryProcEquippedItems(this, true);
-        }
-
-        /// <summary>
-        /// Called when a targeted attack hits successfully
-        /// </summary>
-        public void OnHitTarget(Creature target)
-        {
-            // target-procs happen when the target is successfully hit.
-
-            // this should only be called when targeted attacks are landed.
-
-            // untargeted attacks, such as multi-projectile spells,
-            // should not call this method.
-
-            TryProcEquippedItems(target, false);
-        }
-
-        /// <summary>
-        /// Iterates through all of the equipped objects that have proc spells
-        /// matching the 'selfTarget' bool, and tries procing them w/ rng chance
-        /// </summary>
-        public void TryProcEquippedItems(Creature target, bool selfTarget, WorldObject restrictMelee = null)
-        {
-            // monsters -- try to proc directly on mob
-            if (HasProc && ProcSpellSelfTargeted == selfTarget)
-            {
-                // ignore weapon?
-                TryProcItem(this, target);
-            }
-
-            var tryProcItems = EquippedObjects.Values.Where(i => i.HasProc && i.ProcSpellSelfTargeted == selfTarget);
-
-            foreach (var tryProcItem in tryProcItems)
-            {
-                if (restrictMelee != null)
-                {
-                    // for melee attacks, we want to restrict this to the weapon that dealt the damage
-                    if (tryProcItem != restrictMelee && tryProcItem is MeleeWeapon)
-                        continue;
-                }
-                tryProcItem.TryProcItem(this, target);
-            }
-        }
-
         public static Skill GetDefenseSkill(CombatType combatType)
         {
             switch (combatType)
