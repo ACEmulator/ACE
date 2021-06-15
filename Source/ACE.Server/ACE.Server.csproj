@@ -115,6 +115,7 @@
     <None Remove="Entity\Mutations\Recipes\38000043 - Leather.txt" />
     <None Remove="Entity\Mutations\Recipes\38000046 - Fetish of the Dark Idols.txt" />
     <None Remove="Entity\Mutations\Recipes\3800004B - Green Garnet.txt" />
+    <None Remove="Entity\Mutations\Recipes\3800004E - Sandstone.txt" />
     <None Remove="Entity\Mutations\Recipes\39000000 - Paragon Weapons.txt" />
     <None Remove="starterGear.json" />
     <None Include="..\..\LICENSE">
@@ -217,6 +218,7 @@
     <EmbeddedResource Include="Entity\Mutations\Recipes\38000043 - Leather.txt" />
     <EmbeddedResource Include="Entity\Mutations\Recipes\38000046 - Fetish of the Dark Idols.txt" />
     <EmbeddedResource Include="Entity\Mutations\Recipes\3800004B - Green Garnet.txt" />
+    <EmbeddedResource Include="Entity\Mutations\Recipes\3800004E - Sandstone.txt" />
     <EmbeddedResource Include="Entity\Mutations\Recipes\39000000 - Paragon Weapons.txt" />
     <EmbeddedResource Include="starterGear.json" />
   </ItemGroup>

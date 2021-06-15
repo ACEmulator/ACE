@@ -424,7 +424,7 @@ namespace ACE.Server.Managers
                 case 0x38000043:    // Leather
                     target.Retained = true;
                     break;
-                case 0x39000043:    // Sandstone -- clash w/ leather, fixme
+                case 0x3900004E:    // Sandstone: 43 -> 4E
                     target.Retained = false;
                     break;
                 case 0x3800002F:    // Moonstone
