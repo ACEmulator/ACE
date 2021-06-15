@@ -1428,6 +1428,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.IconOverlay); else SetProperty(PropertyDataId.IconOverlay, value.Value); }
         }
 
+        public uint? IconOverlaySecondary
+        {
+            get => GetProperty(PropertyDataId.IconOverlaySecondary);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.IconOverlaySecondary); else SetProperty(PropertyDataId.IconOverlaySecondary, value.Value); }
+        }
+
         public MaterialType? MaterialType
         {
             get => (MaterialType?)GetProperty(PropertyInt.MaterialType);
@@ -3057,6 +3063,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyBool.AiAcceptEverything) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.AiAcceptEverything); else SetProperty(PropertyBool.AiAcceptEverything, value); }
+        }
+
+        public ImbuedEffectType ImbuedEffect
+        {
+            get => (ImbuedEffectType)(GetProperty(PropertyInt.ImbuedEffect) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.ImbuedEffect); else SetProperty(PropertyInt.ImbuedEffect, (int)value); }
         }
     }
 }

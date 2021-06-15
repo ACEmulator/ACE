@@ -110,11 +110,12 @@
     <None Remove="Entity\Mutations\Recipes\3800003E - Red Garnet.txt" />
     <None Remove="Entity\Mutations\Recipes\3800003F - Black Garnet.txt" />
     <None Remove="Entity\Mutations\Recipes\38000040 - Imperial Topaz.txt" />
-    <None Remove="Entity\Mutations\Recipes\38000041 - Armature.txt" />
-    <None Remove="Entity\Mutations\Recipes\38000042 - Cantrip.txt" />
+    <None Remove="Entity\Mutations\Recipes\38000041 - Cantrip.txt" />
+    <None Remove="Entity\Mutations\Recipes\38000042 - HeritageGroup.txt" />
     <None Remove="Entity\Mutations\Recipes\38000043 - Leather.txt" />
     <None Remove="Entity\Mutations\Recipes\38000046 - Fetish of the Dark Idols.txt" />
     <None Remove="Entity\Mutations\Recipes\3800004B - Green Garnet.txt" />
+    <None Remove="Entity\Mutations\Recipes\39000000 - Paragon Weapons.txt" />
     <None Remove="starterGear.json" />
     <None Include="..\..\LICENSE">
       <Pack>True</Pack>
@@ -211,17 +212,19 @@
     <EmbeddedResource Include="Entity\Mutations\Recipes\3800003E - Red Garnet.txt" />
     <EmbeddedResource Include="Entity\Mutations\Recipes\3800003F - Black Garnet.txt" />
     <EmbeddedResource Include="Entity\Mutations\Recipes\38000040 - Imperial Topaz.txt" />
-    <EmbeddedResource Include="Entity\Mutations\Recipes\38000041 - Armature.txt" />
-    <EmbeddedResource Include="Entity\Mutations\Recipes\38000042 - Cantrip.txt" />
+    <EmbeddedResource Include="Entity\Mutations\Recipes\38000041 - Cantrip.txt" />
+    <EmbeddedResource Include="Entity\Mutations\Recipes\38000042 - HeritageGroup.txt" />
     <EmbeddedResource Include="Entity\Mutations\Recipes\38000043 - Leather.txt" />
     <EmbeddedResource Include="Entity\Mutations\Recipes\38000046 - Fetish of the Dark Idols.txt" />
     <EmbeddedResource Include="Entity\Mutations\Recipes\3800004B - Green Garnet.txt" />
+    <EmbeddedResource Include="Entity\Mutations\Recipes\39000000 - Paragon Weapons.txt" />
     <EmbeddedResource Include="starterGear.json" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.12" />
     <PackageReference Include="Log4Net.Async.Standard" Version="3.1.0" />
+    <PackageReference Include="Microsoft.VisualStudio.VsixColorCompiler" Version="16.0.0" />
     <PackageReference Include="MySql.Data" Version="8.0.22" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
