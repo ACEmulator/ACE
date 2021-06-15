@@ -343,7 +343,7 @@ namespace ACE.Server.Managers
                     player.Session.Network.EnqueueSend(updateObj);
             }
 
-            if (success && HasDifficulty(recipe))
+            if (success && recipe.Skill > 0 && recipe.Difficulty > 0)
             {
                 var skill = player.GetCreatureSkill((Skill)recipe.Skill);
                 Proficiency.OnSuccessUse(player, skill, recipe.Difficulty);
