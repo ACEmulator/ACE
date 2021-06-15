@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using ACE.Common;
 using ACE.Server.WorldObjects;
 
-namespace ACE.Server.Factories.Entity
+namespace ACE.Server.Entity.Mutations
 {
     public class Mutation
     {

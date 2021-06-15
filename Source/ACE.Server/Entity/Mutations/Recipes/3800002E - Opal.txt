@@ -1,0 +1,8 @@
+0x3800002E Mutation #1:
+
+Tier chances: 1
+
+    - Chance: 100%:
+        ManaConversionMod (>= 0.01 ? add : set) 0.01
+        NumTimesTinkered (>= 1 ? add : set) 1
+

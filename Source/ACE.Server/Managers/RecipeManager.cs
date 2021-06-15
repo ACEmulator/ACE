@@ -16,6 +16,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Entity.Mutations;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -70,9 +71,7 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            if (source.ItemType == ItemType.TinkeringMaterial || source.WeenieClassId == (uint)WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS ||
-                source.WeenieClassId >= (uint)WeenieClassName.W_MATERIALACE36619FOOLPROOFAQUAMARINE && source.WeenieClassId <= (uint)WeenieClassName.W_MATERIALACE36628FOOLPROOFWHITESAPPHIRE ||
-                source.WeenieClassId >= (uint)WeenieClassName.W_MATERIALACE36634FOOLPROOFPERIDOT && source.WeenieClassId <= (uint)WeenieClassName.W_MATERIALACE36636FOOLPROOFZIRCON)
+            if (recipe.SalvageType > 0)
             {
                 HandleTinkering(player, source, target);
                 return;
@@ -295,8 +294,13 @@ namespace ACE.Server.Managers
                 }
 
                 // handle rare foolproof material
-                if ((tool.WeenieClassId >= 30094 && tool.WeenieClassId <= 30106) || (tool.WeenieClassId >= 36619 && tool.WeenieClassId <= 36628) || (tool.WeenieClassId >= 36634 && tool.WeenieClassId <= 36636))
+                // TODO: rare foolproof material should probably be marked as salvage_Type=0, difficulty=0
+                if (tool.WeenieClassId >= (uint)WeenieClassName.W_MATERIALRAREFOOLPROOFAQUAMARINE_CLASS && tool.WeenieClassId <= (uint)WeenieClassName.W_MATERIALRAREFOOLPROOFZIRCON_CLASS
+                    || tool.WeenieClassId >= (uint)WeenieClassName.W_MATERIALACE36619FOOLPROOFAQUAMARINE && tool.WeenieClassId <= (uint)WeenieClassName.W_MATERIALACE36628FOOLPROOFWHITESAPPHIRE
+                    || tool.WeenieClassId >= (uint)WeenieClassName.W_MATERIALACE36634FOOLPROOFPERIDOT && tool.WeenieClassId <= (uint)WeenieClassName.W_MATERIALACE36636FOOLPROOFZIRCON)
+                {
                     successChance = 1.0f;
+                }
 
                 // check for player option: 'Use Crafting Chance of Success Dialog'
                 if (player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) && !confirmed)
@@ -358,7 +362,9 @@ namespace ACE.Server.Managers
 
         public static void Tinkering_ModifyItem(Player player, WorldObject tool, WorldObject target, bool incItemTinkered = true)
         {
-            var recipe = GetRecipe(player, tool, target);
+            // now handled in mutations
+
+            /*var recipe = GetRecipe(player, tool, target);
 
             var materialType = tool.MaterialType;
 
@@ -415,31 +421,31 @@ namespace ACE.Server.Managers
                     target.EncumbranceVal = (int)Math.Round((target.EncumbranceVal ?? 1) * 0.75f);
                     break;
                 case MaterialType.Ivory:
-                    // Recipe already handles this correctly
+                    // recipe mod already handles this correctly
                     //target.SetProperty(PropertyInt.Attuned, 0);
                     break;
                 case MaterialType.Leather:
                     target.Retained = true;
                     break;
-                case MaterialType.Sandstone:
+                case MaterialType.Sandstone:    // fixme: clash with leather
                     target.Retained = false;
                     break;
                 case MaterialType.Moonstone:
                     target.ItemMaxMana += 500;
                     break;
                 case MaterialType.Teak:
-                    target.HeritageGroup = HeritageGroup.Aluvian;
+                    target.HeritageGroup = HeritageGroup.Aluvian;       // legacy
                     break;
                 case MaterialType.Ebony:
-                    target.HeritageGroup = HeritageGroup.Gharundim;
+                    target.HeritageGroup = HeritageGroup.Gharundim;     // legacy
                     break;
                 case MaterialType.Porcelain:
-                    target.HeritageGroup = HeritageGroup.Sho;
+                    target.HeritageGroup = HeritageGroup.Sho;           // legacy
                     break;
                 case MaterialType.Satin:
-                    target.HeritageGroup = HeritageGroup.Viamontian;
+                    target.HeritageGroup = HeritageGroup.Viamontian;    // legacy
                     break;
-                case MaterialType.Copper:
+                case MaterialType.Copper:   // check req
 
                     if (target.ItemSkillLimit != Skill.MissileDefense || target.ItemSkillLevelLimit == null)
                         return;
@@ -449,7 +455,7 @@ namespace ACE.Server.Managers
                     target.ItemSkillLevelLimit = (int)(target.ItemSkillLevelLimit / 0.7f);
                     break;
 
-                case MaterialType.Silver:
+                case MaterialType.Silver:   // check req
 
                     if (target.ItemSkillLimit != Skill.MeleeDefense || target.ItemSkillLevelLimit == null)
                         return;
@@ -490,7 +496,7 @@ namespace ACE.Server.Managers
                 case MaterialType.Opal:
                     target.ManaConversionMod += 0.01f;
                     break;
-                case MaterialType.GreenGarnet:
+                case MaterialType.GreenGarnet:  // 44 -> 4B
                     target.ElementalDamageMod += 0.01f;     // + 1% vs. monsters, + 0.25% vs. players
                     break;
 
@@ -589,7 +595,7 @@ namespace ACE.Server.Managers
                 if (target.TinkerLog != null)
                     target.TinkerLog += ",";
                 target.TinkerLog += (int)materialType;
-            }
+            }*/
         }
 
         public static void AddSpell(Player player, WorldObject target, SpellId spell, int difficulty = 25)
@@ -1121,33 +1127,6 @@ namespace ACE.Server.Managers
                 if (mod.ExecutesOnSuccess != success)
                     continue;
 
-                // apply base mod
-                switch (mod.DataId)
-                {
-                    // TODO: add real mutation scripts
-
-                    //  Fetish of the Dark Idols
-                    case 0x38000046:
-                        AddImbuedEffect(player, target, ImbuedEffectType.IgnoreSomeMagicProjectileDamage);
-                        target.SetProperty(PropertyFloat.AbsorbMagicDamage, 0.25f);
-                        break;
-
-                    //  Paragon Weapons (data id is ACE custom/placeholder for unknown real value)
-                    case 0x39000000:
-                        var itemMaxLevel = target.GetProperty(PropertyInt.ItemMaxLevel) ?? 0;
-                        target.SetProperty(PropertyInt.ItemMaxLevel, ++itemMaxLevel);
-                        target.SetProperty(PropertyInt64.ItemBaseXp, 2000000000);
-                        var itemTotalXp = target.GetProperty(PropertyInt64.ItemTotalXp) ?? 0;
-                        target.SetProperty(PropertyInt64.ItemTotalXp, itemTotalXp);
-                        break;
-
-                    // Granite
-                    // Lucky White Rabbit's Foot
-                    case 0x3800001C:
-                        target.DamageVariance *= 0.8f;
-                        break;
-                }
-
                 // adjust vitals, but all appear to be 0 in current database?
 
                 // apply type mods
@@ -1168,6 +1147,10 @@ namespace ACE.Server.Managers
 
                 foreach (var didMod in mod.RecipeModsDID)
                     ModifyDataID(player, didMod, source, target, result);
+
+                // run mutation script, if applicable
+                if (mod.DataId != 0)
+                    TryMutate(source, target, (uint)mod.DataId);
             }
         }
 
@@ -1362,6 +1345,40 @@ namespace ACE.Server.Managers
                     log.Warn($"RecipeManager.ModifyDataID({source.Name}, {target.Name}): unhandled operation {op}");
                     break;
             }
+        }
+
+        public static bool TryMutate(WorldObject source, WorldObject target, uint dataId)
+        {
+            // hack for tinker log
+            var prevTinkers = target.NumTimesTinkered;
+
+            var mutationScript = MutationCache.GetMutation(dataId);
+
+            if (mutationScript == null)
+            {
+                log.Error($"RecipeManager.TryApplyMutation({dataId:X8}, {target.Name}) - couldn't find mutation script");
+                return false;
+            }
+
+            var result = mutationScript.TryMutate(target);
+
+            if (prevTinkers != target.NumTimesTinkered)
+                HandleTinkerLog(source, target);
+
+            return result;
+        }
+
+        private static void HandleTinkerLog(WorldObject source, WorldObject target)
+        {
+            var materialType = source.MaterialType;
+
+            if (source.WeenieClassId == (uint)WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS)
+                materialType = MaterialType.Leather;
+
+            if (target.TinkerLog != null)
+                target.TinkerLog += ",";
+
+            target.TinkerLog += (int)materialType;
         }
 
         public static uint MaterialDualDID = 0x27000000;
