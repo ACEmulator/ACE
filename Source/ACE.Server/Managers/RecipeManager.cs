@@ -213,7 +213,7 @@ namespace ACE.Server.Managers
                     successChance += player.AugmentationBonusImbueChance * 0.05f;
             }
 
-            // todo: remove this once foolproof salvage recipes are added
+            // todo: remove this once foolproof salvage recipes are updated
             if (foolproofTinkers.Contains((WeenieClassName)tool.WeenieClassId))
                 successChance = 1.0;
 
@@ -1368,9 +1368,25 @@ namespace ACE.Server.Managers
             return materialName.Replace("_", " ");
         }
 
-        // todo: remove this once foolproof salvage recipes are added
+        // todo: remove this once foolproof salvage recipes are updated
         private static readonly HashSet<WeenieClassName> foolproofTinkers = new HashSet<WeenieClassName>()
         {
+            // rare foolproof
+            WeenieClassName.W_MATERIALRAREFOOLPROOFAQUAMARINE_CLASS,
+            WeenieClassName.W_MATERIALRAREFOOLPROOFBLACKGARNET_CLASS,
+            WeenieClassName.W_MATERIALRAREFOOLPROOFBLACKOPAL_CLASS,
+            WeenieClassName.W_MATERIALRAREFOOLPROOFEMERALD_CLASS,
+            WeenieClassName.W_MATERIALRAREFOOLPROOFFIREOPAL_CLASS,
+            WeenieClassName.W_MATERIALRAREFOOLPROOFIMPERIALTOPAZ_CLASS,
+            WeenieClassName.W_MATERIALRAREFOOLPROOFJET_CLASS,
+            WeenieClassName.W_MATERIALRAREFOOLPROOFPERIDOT_CLASS,
+            WeenieClassName.W_MATERIALRAREFOOLPROOFREDGARNET_CLASS,
+            WeenieClassName.W_MATERIALRAREFOOLPROOFSUNSTONE_CLASS,
+            WeenieClassName.W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS,
+            WeenieClassName.W_MATERIALRAREFOOLPROOFYELLOWTOPAZ_CLASS,
+            WeenieClassName.W_MATERIALRAREFOOLPROOFZIRCON_CLASS,
+
+            // regular foolproof
             WeenieClassName.W_MATERIALACE36619FOOLPROOFAQUAMARINE,
             WeenieClassName.W_MATERIALACE36620FOOLPROOFBLACKGARNET,
             WeenieClassName.W_MATERIALACE36621FOOLPROOFBLACKOPAL,
