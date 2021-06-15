@@ -213,6 +213,10 @@ namespace ACE.Server.Managers
                     successChance += player.AugmentationBonusImbueChance * 0.05f;
             }
 
+            // todo: remove this once foolproof salvage recipes are added
+            if (foolproofTinkers.Contains((WeenieClassName)tool.WeenieClassId))
+                successChance = 1.0;
+
             return successChance;
         }
 
@@ -604,11 +608,56 @@ namespace ACE.Server.Managers
                     return false;
             }
 
-            if (recipe.IsTinkering())
+            if (incItemTinkered.Contains(dataId))
                 HandleTinkerLog(source, target);
 
             return true;
         }
+
+        // only needed for legacy method
+        // ideally this wouldn't even be needed for the legacy method, and recipe.IsTinkering() would suffice
+        // however, that would break for rare salvages, which have 0 difficulty and salvage_Type 0
+        private static readonly HashSet<uint> incItemTinkered = new HashSet<uint>()
+        {
+            0x38000011, // Steel
+            0x38000012, // Armoredillo Hide
+            0x38000013, // Marble
+            0x38000014, // Wool
+            0x38000015, // Reedshark Hide
+            0x38000016, // Ceramic
+            0x38000017, // Alabaster
+            0x38000018, // Bronze
+            0x38000019, // Linen
+            0x3800001A, // Iron
+            0x3800001B, // Mahogany
+            0x3800001C, // Granite
+            0x3800001D, // Oak
+            0x3800001E, // Pine
+            0x3800001F, // Gold
+            0x38000020, // Brass
+            0x38000021, // Velvet
+            0x38000023, // Black Opal
+            0x38000024, // Fire Opal
+            0x38000025, // Sunstone
+            0x3800002E, // Opal
+            0x3800002F, // Moonstone
+            0x38000034, // Silver
+            0x38000035, // Copper
+            0x38000036, // Silk
+            0x38000037, // Zircon
+            0x38000038, // Peridot
+            0x38000039, // Yellow Topaz
+            0x3800003A, // Emerald
+            0x3800003B, // White Sapphire
+            0x3800003C, // Aquamarine
+            0x3800003D, // Jet
+            0x3800003E, // Red Garnet
+            0x3800003F, // Black Garnet
+            0x38000040, // Imperial Topaz
+            0x38000041, // Cantrips
+            0x38000042, // Heritage
+            0x3800004B, // Green Garnet
+        };
 
         public static void AddSpell(Player player, WorldObject target, SpellId spell, int difficulty = 25)
         {
@@ -1271,6 +1320,8 @@ namespace ACE.Server.Managers
             if (useMutateNative)
                 return TryMutateNative(player, source, target, recipe, dataId);
 
+            var numTimesTinkered = target.NumTimesTinkered;
+
             var mutationScript = MutationCache.GetMutation(dataId);
 
             if (mutationScript == null)
@@ -1281,7 +1332,7 @@ namespace ACE.Server.Managers
 
             var result = mutationScript.TryMutate(target);
 
-            if (recipe.IsTinkering())
+            if (numTimesTinkered != target.NumTimesTinkered)
                 HandleTinkerLog(source, target);
 
             return result;
@@ -1313,6 +1364,24 @@ namespace ACE.Server.Managers
             }
             return materialName.Replace("_", " ");
         }
+
+        // todo: remove this once foolproof salvage recipes are added
+        private static readonly HashSet<WeenieClassName> foolproofTinkers = new HashSet<WeenieClassName>()
+        {
+            WeenieClassName.W_MATERIALACE36619FOOLPROOFAQUAMARINE,
+            WeenieClassName.W_MATERIALACE36620FOOLPROOFBLACKGARNET,
+            WeenieClassName.W_MATERIALACE36621FOOLPROOFBLACKOPAL,
+            WeenieClassName.W_MATERIALACE36622FOOLPROOFEMERALD,
+            WeenieClassName.W_MATERIALACE36623FOOLPROOFFIREOPAL,
+            WeenieClassName.W_MATERIALACE36624FOOLPROOFIMPERIALTOPAZ,
+            WeenieClassName.W_MATERIALACE36625FOOLPROOFJET,
+            WeenieClassName.W_MATERIALACE36626FOOLPROOFREDGARNET,
+            WeenieClassName.W_MATERIALACE36627FOOLPROOFSUNSTONE,
+            WeenieClassName.W_MATERIALACE36628FOOLPROOFWHITESAPPHIRE,
+            WeenieClassName.W_MATERIALACE36634FOOLPROOFPERIDOT,
+            WeenieClassName.W_MATERIALACE36635FOOLPROOFYELLOWTOPAZ,
+            WeenieClassName.W_MATERIALACE36636FOOLPROOFZIRCON,
+        };
     }
 
     public static class RecipeExtensions
