@@ -474,8 +474,6 @@ namespace ACE.Server.Managers
             return recipe;
         }
 
-        // todo: get rid of these recipe ids, link to appropriate source materials instead, and use cached / unaltered recipes.
-
         public static Dictionary<WeenieClassName, uint> SourceToRecipe = new Dictionary<WeenieClassName, uint>()
         {
             { WeenieClassName.W_MATERIALIRON100_CLASS,         3853 },
