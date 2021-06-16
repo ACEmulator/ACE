@@ -42,6 +42,23 @@ namespace ACE.Server.Managers
 
             switch ((WeenieClassName)source.WeenieClassId)
             {
+                case WeenieClassName.W_POTDYEDARKGREEN_CLASS:
+                case WeenieClassName.W_POTDYEDARKRED_CLASS:
+                case WeenieClassName.W_POTDYEDARKYELLOW_CLASS:
+                case WeenieClassName.W_POTDYEWINTERBLUE_CLASS:
+                case WeenieClassName.W_POTDYEWINTERGREEN_CLASS:
+                case WeenieClassName.W_POTDYEWINTERSILVER_CLASS:
+                case WeenieClassName.W_POTDYESPRINGBLACK_CLASS:
+                case WeenieClassName.W_POTDYESPRINGBLUE_CLASS:
+                case WeenieClassName.W_POTDYESPRINGPURPLE_CLASS:
+
+                    // ensure item is armor/clothing and dyeable
+                    if (target.WeenieType != WeenieType.Clothing || !(target.GetProperty(PropertyBool.Dyable) ?? false))
+                        return null;
+
+                    recipe = DatabaseManager.World.GetCachedRecipe(3844);     // base dye recipe
+                    break;
+
                 case WeenieClassName.W_DYERAREETERNALFOOLPROOFBLUE_CLASS:
                 case WeenieClassName.W_DYERAREETERNALFOOLPROOFBLACK_CLASS:
                 case WeenieClassName.W_DYERAREETERNALFOOLPROOFBOTCHED_CLASS:
@@ -57,9 +74,7 @@ namespace ACE.Server.Managers
                     if (target.WeenieType != WeenieType.Clothing || !(target.GetProperty(PropertyBool.Dyable) ?? false))
                         return null;
 
-                    // use dye recipe as base, cleared
-                    recipe = DatabaseManager.World.GetRecipe(3844);
-                    ClearRecipe(recipe);
+                    recipe = DatabaseManager.World.GetCachedRecipe(9068);     // rare eternal dye recipe
                     break;
 
                 case WeenieClassName.W_MATERIALIVORY_CLASS:
@@ -70,7 +85,7 @@ namespace ACE.Server.Managers
                         return null;
 
                     // use ivory recipe as base
-                    recipe = DatabaseManager.World.GetRecipe(3977);
+                    recipe = DatabaseManager.World.GetCachedRecipe(3977);
 
                     if (source.WeenieClassId == (int)WeenieClassName.W_MATERIALRAREETERNALIVORY_CLASS)
                         ClearRecipe(recipe);
@@ -85,7 +100,7 @@ namespace ACE.Server.Managers
                         return null;
 
                     // use leather recipe as base
-                    recipe = DatabaseManager.World.GetRecipe(4426);
+                    recipe = DatabaseManager.World.GetCachedRecipe(4426);
 
                     if (source.WeenieClassId == (int)WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS)
                         ClearRecipe(recipe);
@@ -100,7 +115,7 @@ namespace ACE.Server.Managers
                         return null;
 
                     // use sandstone recipe as base
-                    recipe = DatabaseManager.World.GetRecipe(8003);
+                    recipe = DatabaseManager.World.GetCachedRecipe(8003);
 
                     break;
 
@@ -111,7 +126,7 @@ namespace ACE.Server.Managers
                         return null;
 
                     // use gold recipe as base
-                    recipe = DatabaseManager.World.GetRecipe(3851);
+                    recipe = DatabaseManager.World.GetCachedRecipe(3851);
                     break;
 
                 case WeenieClassName.W_MATERIALLINEN_CLASS:
@@ -121,7 +136,7 @@ namespace ACE.Server.Managers
                         return null;
 
                     // use linen recipe as base
-                    recipe = DatabaseManager.World.GetRecipe(3854);
+                    recipe = DatabaseManager.World.GetCachedRecipe(3854);
                     break;
 
                 case WeenieClassName.W_MATERIALMOONSTONE_CLASS:
@@ -131,7 +146,7 @@ namespace ACE.Server.Managers
                         return null;
 
                     // use moonstone recipe as base
-                    recipe = DatabaseManager.World.GetRecipe(3978);
+                    recipe = DatabaseManager.World.GetCachedRecipe(3978);
                     break;
 
                 case WeenieClassName.W_MATERIALPINE_CLASS:
@@ -141,7 +156,7 @@ namespace ACE.Server.Managers
                         return null;
 
                     // use pine recipe as base
-                    recipe = DatabaseManager.World.GetRecipe(3858);
+                    recipe = DatabaseManager.World.GetCachedRecipe(3858);
                     break;
 
                 case WeenieClassName.W_MATERIALIRON100_CLASS:
@@ -159,7 +174,7 @@ namespace ACE.Server.Managers
                         return null;
 
                     // grab correct recipe to use as base
-                    recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
+                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
                     break;
 
                 case WeenieClassName.W_MATERIALMAHOGANY100_CLASS:
@@ -170,7 +185,7 @@ namespace ACE.Server.Managers
                         return null;
 
                     // use mahogany recipe as base
-                    recipe = DatabaseManager.World.GetRecipe(3855);
+                    recipe = DatabaseManager.World.GetCachedRecipe(3855);
                     break;
 
                 case WeenieClassName.W_MATERIALOAK_CLASS:
@@ -180,7 +195,7 @@ namespace ACE.Server.Managers
                         return null;
 
                     // use oak recipe as base
-                    recipe = DatabaseManager.World.GetRecipe(3857);
+                    recipe = DatabaseManager.World.GetCachedRecipe(3857);
                     break;
 
                 case WeenieClassName.W_MATERIALOPAL100_CLASS:
@@ -191,7 +206,7 @@ namespace ACE.Server.Managers
                         return null;
 
                     // use opal recipe as base
-                    recipe = DatabaseManager.World.GetRecipe(3979);
+                    recipe = DatabaseManager.World.GetCachedRecipe(3979);
                     break;
 
                 case WeenieClassName.W_MATERIALGREENGARNET100_CLASS:
@@ -202,7 +217,7 @@ namespace ACE.Server.Managers
                         return null;
 
                     // use green garnet recipe as base
-                    recipe = DatabaseManager.World.GetRecipe(5202);
+                    recipe = DatabaseManager.World.GetCachedRecipe(5202);
                     break;
 
                 case WeenieClassName.W_MATERIALBRASS100_CLASS:
@@ -212,7 +227,7 @@ namespace ACE.Server.Managers
                     if (target.Workmanship == null) return null;
 
                     // use brass recipe as base
-                    recipe = DatabaseManager.World.GetRecipe(3848);
+                    recipe = DatabaseManager.World.GetCachedRecipe(3848);
                     break;
 
                 case WeenieClassName.W_MATERIALROSEQUARTZ_CLASS:
@@ -231,7 +246,7 @@ namespace ACE.Server.Managers
                     if (target.WeenieType != WeenieType.Generic || target.Workmanship == null || target.ValidLocations == EquipMask.TrinketOne)
                         return null;
 
-                    recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
+                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
                     break;
 
                 //case WeenieClassName.W_MATERIALSTEEL50_CLASS:
@@ -265,7 +280,7 @@ namespace ACE.Server.Managers
                     if (source.MaterialType == MaterialType.Steel && !target.IsEnchantable)
                         return null;
 
-                    recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
+                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
                     break;
 
                 case WeenieClassName.W_MATERIALPERIDOT_CLASS:
@@ -283,24 +298,7 @@ namespace ACE.Server.Managers
                     if (target.WeenieType != WeenieType.Clothing || !target.HasArmorLevel() || target.Workmanship == null)
                         return null;
 
-                    recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
-                    break;
-
-                case WeenieClassName.W_POTDYEDARKGREEN_CLASS:
-                case WeenieClassName.W_POTDYEDARKRED_CLASS:
-                case WeenieClassName.W_POTDYEDARKYELLOW_CLASS:
-                case WeenieClassName.W_POTDYEWINTERBLUE_CLASS:
-                case WeenieClassName.W_POTDYEWINTERGREEN_CLASS:
-                case WeenieClassName.W_POTDYEWINTERSILVER_CLASS:
-                case WeenieClassName.W_POTDYESPRINGBLACK_CLASS:
-                case WeenieClassName.W_POTDYESPRINGBLUE_CLASS:
-                case WeenieClassName.W_POTDYESPRINGPURPLE_CLASS:
-
-                    // ensure dyeable armor/clothing
-                    if (target.WeenieType != WeenieType.Clothing || !(target.GetProperty(PropertyBool.Dyable) ?? false))
-                        return null;
-
-                    recipe = DatabaseManager.World.GetRecipe(3844);
+                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
                     break;
 
                 // imbues - foolproof handled in regular imbue code
@@ -353,7 +351,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALACE36627FOOLPROOFSUNSTONE:
                 case WeenieClassName.W_MATERIALACE36628FOOLPROOFWHITESAPPHIRE:
 
-                    recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
+                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
                     break;
 
                 // Society Shields
@@ -389,7 +387,7 @@ namespace ACE.Server.Managers
                     if (target.WeenieType != WeenieType.Generic || target.ItemType != ItemType.Armor || !target.IsShield)
                         return null;
 
-                    recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
+                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
                     break;
 
                 // Slayer stones
@@ -398,7 +396,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_SPECTRALSKULL_CLASS:
                 case WeenieClassName.W_ANEKSHAYSLAYERSTONE_CLASS:
 
-                    recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
+                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
                     break;
 
                 // Paragon Weapons
@@ -407,15 +405,15 @@ namespace ACE.Server.Managers
                     switch (target.WeenieType)
                     {
                         case WeenieType.Caster:
-                            recipe = DatabaseManager.World.GetRecipe(8700);
+                            recipe = DatabaseManager.World.GetCachedRecipe(8700);
                             break;
 
                         case WeenieType.MeleeWeapon:
-                            recipe = DatabaseManager.World.GetRecipe(8701);
+                            recipe = DatabaseManager.World.GetCachedRecipe(8701);
                             break;
 
                         case WeenieType.MissileLauncher:
-                            recipe = DatabaseManager.World.GetRecipe(8699);
+                            recipe = DatabaseManager.World.GetCachedRecipe(8699);
                             break;
 
                         default:
@@ -473,7 +471,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_LUMINOUSAMBEROFTHE48THTIERPARAGON_CLASS:
                 case WeenieClassName.W_LUMINOUSAMBEROFTHE49THTIERPARAGON_CLASS:
                 case WeenieClassName.W_LUMINOUSAMBEROFTHE50THTIERPARAGON_CLASS:
-                    recipe = DatabaseManager.World.GetRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
+                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
                     break;
             }
 
