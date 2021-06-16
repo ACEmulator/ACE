@@ -84,11 +84,9 @@ namespace ACE.Server.Managers
                     if (!(target.GetProperty(PropertyBool.Ivoryable) ?? false))
                         return null;
 
-                    // use ivory recipe as base
-                    recipe = DatabaseManager.World.GetCachedRecipe(3977);
+                    var recipeId = source.WeenieClassId == (int)WeenieClassName.W_MATERIALRAREETERNALIVORY_CLASS ? 9069 : 3977;
 
-                    if (source.WeenieClassId == (int)WeenieClassName.W_MATERIALRAREETERNALIVORY_CLASS)
-                        ClearRecipe(recipe);
+                    recipe = DatabaseManager.World.GetCachedRecipe((uint)recipeId);
 
                     break;
 
@@ -99,11 +97,9 @@ namespace ACE.Server.Managers
                     if (target.Retained || !target.IsSellable)
                         return null;
 
-                    // use leather recipe as base
-                    recipe = DatabaseManager.World.GetCachedRecipe(4426);
+                    recipeId = source.WeenieClassId == (int)WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS ? 9070 : 4426;
 
-                    if (source.WeenieClassId == (int)WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS)
-                        ClearRecipe(recipe);
+                    recipe = DatabaseManager.World.GetCachedRecipe((uint)recipeId);
 
                     break;
 
@@ -478,24 +474,6 @@ namespace ACE.Server.Managers
             return recipe;
         }
 
-        public static void ClearRecipe(Recipe recipe)
-        {
-            // todo: this function shouldn't be a thing
-            // this function is responsible for all of RecipeManager_New fetching uncached recipes each time
-            // turn these into proper rare / eternal / foolproof recipes.
-
-            recipe.SalvageType = 0;
-            recipe.Difficulty = 0;
-            recipe.FailAmount = 0;
-            recipe.FailDestroySourceAmount = 0;
-            recipe.FailDestroySourceChance = 0;
-            recipe.SuccessAmount = 0;
-            recipe.SuccessDestroySourceChance = 0;
-            recipe.SuccessDestroySourceChance = 0;
-            recipe.SuccessWCID = 0;
-            recipe.FailWCID = 0;
-        }
-
         // todo: get rid of these recipe ids, link to appropriate source materials instead, and use cached / unaltered recipes.
 
         public static Dictionary<WeenieClassName, uint> SourceToRecipe = new Dictionary<WeenieClassName, uint>()
@@ -570,24 +548,25 @@ namespace ACE.Server.Managers
             { WeenieClassName.W_MATERIALWHITESAPPHIRE_CLASS,              4453 },
 
             { WeenieClassName.W_MATERIALRAREFOOLPROOFAQUAMARINE_CLASS,    8004 },
-            { WeenieClassName.W_MATERIALACE36619FOOLPROOFAQUAMARINE,      8004 },
             { WeenieClassName.W_MATERIALRAREFOOLPROOFBLACKGARNET_CLASS,   8005 },
-            { WeenieClassName.W_MATERIALACE36620FOOLPROOFBLACKGARNET,     8005 },
             { WeenieClassName.W_MATERIALRAREFOOLPROOFBLACKOPAL_CLASS,     8011 },
-            { WeenieClassName.W_MATERIALACE36621FOOLPROOFBLACKOPAL,       8011 },
             { WeenieClassName.W_MATERIALRAREFOOLPROOFEMERALD_CLASS,       8006 },
-            { WeenieClassName.W_MATERIALACE36622FOOLPROOFEMERALD,         8006 },
             { WeenieClassName.W_MATERIALRAREFOOLPROOFFIREOPAL_CLASS,      8012 },
-            { WeenieClassName.W_MATERIALACE36623FOOLPROOFFIREOPAL,        8012 },
             { WeenieClassName.W_MATERIALRAREFOOLPROOFIMPERIALTOPAZ_CLASS, 8010 },
-            { WeenieClassName.W_MATERIALACE36624FOOLPROOFIMPERIALTOPAZ,   8010 },
             { WeenieClassName.W_MATERIALRAREFOOLPROOFJET_CLASS,           8007 },
-            { WeenieClassName.W_MATERIALACE36625FOOLPROOFJET,             8007 },
             { WeenieClassName.W_MATERIALRAREFOOLPROOFREDGARNET_CLASS,     8008 },
-            { WeenieClassName.W_MATERIALACE36626FOOLPROOFREDGARNET,       8008 },
             { WeenieClassName.W_MATERIALRAREFOOLPROOFSUNSTONE_CLASS,      8013 },
-            { WeenieClassName.W_MATERIALACE36627FOOLPROOFSUNSTONE,        8013 },
             { WeenieClassName.W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS, 8009 },
+
+            { WeenieClassName.W_MATERIALACE36619FOOLPROOFAQUAMARINE,      8004 },
+            { WeenieClassName.W_MATERIALACE36620FOOLPROOFBLACKGARNET,     8005 },
+            { WeenieClassName.W_MATERIALACE36621FOOLPROOFBLACKOPAL,       8011 },
+            { WeenieClassName.W_MATERIALACE36622FOOLPROOFEMERALD,         8006 },
+            { WeenieClassName.W_MATERIALACE36623FOOLPROOFFIREOPAL,        8012 },
+            { WeenieClassName.W_MATERIALACE36624FOOLPROOFIMPERIALTOPAZ,   8010 },
+            { WeenieClassName.W_MATERIALACE36625FOOLPROOFJET,             8007 },
+            { WeenieClassName.W_MATERIALACE36626FOOLPROOFREDGARNET,       8008 },
+            { WeenieClassName.W_MATERIALACE36627FOOLPROOFSUNSTONE,        8013 },
             { WeenieClassName.W_MATERIALACE36628FOOLPROOFWHITESAPPHIRE,   8009 },
 
             { WeenieClassName.W_LEFTHANDTETHER_CLASS,                     6798 },
