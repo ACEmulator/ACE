@@ -80,7 +80,7 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case MagicSchool.LifeMagic:
-                    var targetDeath = LifeMagic(spell, out uint damage, out status, target, caster, fromProc: fromProc);
+                    var targetDeath = LifeMagic(spell, out uint damage, out status, target, caster, weapon, fromProc: fromProc);
                     if (targetDeath && target is Creature targetCreature)
                     {
                         targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
@@ -139,7 +139,7 @@ namespace ACE.Server.WorldObjects
         /// If this spell has a chance to be resisted, rolls for a chance
         /// Returns TRUE if spell is resistable and was resisted for this attempt
         /// </summary>
-        public bool TryResistSpell(WorldObject target, Spell spell, WorldObject caster = null, bool projectileHit = false)
+        public bool TryResistSpell(WorldObject target, Spell spell, WorldObject itemCaster = null, bool projectileHit = false)
         {
             // fix hermetic void?
             if (!spell.IsResistable && spell.Category != SpellCategory.ManaConversionModLowering || spell.IsSelfTargeted)
@@ -152,13 +152,12 @@ namespace ACE.Server.WorldObjects
             if (spell.NumProjectiles > 0 && !projectileHit)
                 return false;
 
-            if (caster != null && Cloak.IsCloak(caster))
+            if (itemCaster != null && Cloak.IsCloak(itemCaster))
                 return false;
 
             uint magicSkill = 0;
 
-            if (caster == null)
-                caster = this;
+            var caster = itemCaster ?? this;
 
             var casterCreature = caster as Creature;
 
@@ -2042,11 +2041,11 @@ namespace ACE.Server.WorldObjects
             return enchantment_statModVal;
         }
 
-        protected void TryCastItemEnchantment_WithRedirects(Spell spell, WorldObject target, WorldObject caster = null)
+        protected void TryCastItemEnchantment_WithRedirects(Spell spell, WorldObject target, WorldObject itemCaster = null)
         {
             var enchantmentStatus = new EnchantmentStatus(spell);
 
-            caster = caster ?? this;
+            var caster = itemCaster ?? this;
 
             var creature = this as Creature;
             var player = this as Player;
