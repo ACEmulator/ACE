@@ -1135,7 +1135,7 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    targetDeath = LifeMagic(spell, out uint damage, out enchantmentStatus, target, null, itemCaster, isWeaponSpell);
+                    targetDeath = LifeMagic(spell, out uint damage, out enchantmentStatus, target, itemCaster, caster, isWeaponSpell);
 
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
