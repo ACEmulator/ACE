@@ -271,6 +271,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALPERIDOT_CLASS:
                 case WeenieClassName.W_MATERIALYELLOWTOPAZ_CLASS:
                 case WeenieClassName.W_MATERIALZIRCON_CLASS:
+
                 case WeenieClassName.W_MATERIALRAREFOOLPROOFPERIDOT_CLASS:
                 case WeenieClassName.W_MATERIALRAREFOOLPROOFYELLOWTOPAZ_CLASS:
                 case WeenieClassName.W_MATERIALRAREFOOLPROOFZIRCON_CLASS:
@@ -303,40 +304,44 @@ namespace ACE.Server.Managers
                     break;
 
                 // imbues - foolproof handled in regular imbue code
-                case WeenieClassName.W_MATERIALRAREFOOLPROOFAQUAMARINE_CLASS:
                 case WeenieClassName.W_MATERIALAQUAMARINE100_CLASS:
                 case WeenieClassName.W_MATERIALAQUAMARINE_CLASS:
-                case WeenieClassName.W_MATERIALRAREFOOLPROOFBLACKGARNET_CLASS:
                 case WeenieClassName.W_MATERIALBLACKGARNET100_CLASS:
                 case WeenieClassName.W_MATERIALBLACKGARNET_CLASS:
-                case WeenieClassName.W_MATERIALRAREFOOLPROOFBLACKOPAL_CLASS:
                 case WeenieClassName.W_MATERIALBLACKOPAL100_CLASS:
                 case WeenieClassName.W_MATERIALBLACKOPAL_CLASS:
-                case WeenieClassName.W_MATERIALRAREFOOLPROOFEMERALD_CLASS:
                 case WeenieClassName.W_MATERIALEMERALD100_CLASS:
                 case WeenieClassName.W_MATERIALEMERALD_CLASS:
-                case WeenieClassName.W_MATERIALRAREFOOLPROOFFIREOPAL_CLASS:
                 case WeenieClassName.W_MATERIALFIREOPAL100_CLASS:
                 case WeenieClassName.W_MATERIALFIREOPAL_CLASS:
-                case WeenieClassName.W_MATERIALRAREFOOLPROOFIMPERIALTOPAZ_CLASS:
                 case WeenieClassName.W_MATERIALIMPERIALTOPAZ100_CLASS:
                 case WeenieClassName.W_MATERIALIMPERIALTOPAZ_CLASS:
-                case WeenieClassName.W_MATERIALRAREFOOLPROOFJET_CLASS:
                 case WeenieClassName.W_MATERIALJET100_CLASS:
                 case WeenieClassName.W_MATERIALJET_CLASS:
-                case WeenieClassName.W_MATERIALRAREFOOLPROOFREDGARNET_CLASS:
                 case WeenieClassName.W_MATERIALREDGARNET100_CLASS:
                 case WeenieClassName.W_MATERIALREDGARNET_CLASS:
-                case WeenieClassName.W_MATERIALRAREFOOLPROOFSUNSTONE_CLASS:
                 case WeenieClassName.W_MATERIALSUNSTONE100_CLASS:
                 case WeenieClassName.W_MATERIALSUNSTONE_CLASS:
-                case WeenieClassName.W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS:
                 case WeenieClassName.W_MATERIALWHITESAPPHIRE100_CLASS:
                 case WeenieClassName.W_MATERIALWHITESAPPHIRE_CLASS:
+
                 case WeenieClassName.W_LEFTHANDTETHER_CLASS:
                 case WeenieClassName.W_LEFTHANDTETHERREMOVER_CLASS:
+
                 case WeenieClassName.W_COREPLATINGINTEGRATOR_CLASS:
                 case WeenieClassName.W_COREPLATINGDISINTEGRATOR_CLASS:
+
+                case WeenieClassName.W_MATERIALRAREFOOLPROOFAQUAMARINE_CLASS:
+                case WeenieClassName.W_MATERIALRAREFOOLPROOFBLACKGARNET_CLASS:
+                case WeenieClassName.W_MATERIALRAREFOOLPROOFBLACKOPAL_CLASS:
+                case WeenieClassName.W_MATERIALRAREFOOLPROOFEMERALD_CLASS:
+                case WeenieClassName.W_MATERIALRAREFOOLPROOFFIREOPAL_CLASS:
+                case WeenieClassName.W_MATERIALRAREFOOLPROOFIMPERIALTOPAZ_CLASS:
+                case WeenieClassName.W_MATERIALRAREFOOLPROOFJET_CLASS:
+                case WeenieClassName.W_MATERIALRAREFOOLPROOFREDGARNET_CLASS:
+                case WeenieClassName.W_MATERIALRAREFOOLPROOFSUNSTONE_CLASS:
+                case WeenieClassName.W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS:
+
                 case WeenieClassName.W_MATERIALACE36619FOOLPROOFAQUAMARINE:
                 case WeenieClassName.W_MATERIALACE36620FOOLPROOFBLACKGARNET:
                 case WeenieClassName.W_MATERIALACE36621FOOLPROOFBLACKOPAL:
@@ -477,6 +482,11 @@ namespace ACE.Server.Managers
 
         public static void ClearRecipe(Recipe recipe)
         {
+            // todo: this function shouldn't be a thing
+            // this function is responsible for all of RecipeManager_New fetching uncached recipes each time
+            // turn these into proper rare / eternal / foolproof recipes.
+
+            recipe.SalvageType = 0;
             recipe.Difficulty = 0;
             recipe.FailAmount = 0;
             recipe.FailDestroySourceAmount = 0;
@@ -487,6 +497,8 @@ namespace ACE.Server.Managers
             recipe.SuccessWCID = 0;
             recipe.FailWCID = 0;
         }
+
+        // todo: get rid of these recipe ids, link to appropriate source materials instead, and use cached / unaltered recipes.
 
         public static Dictionary<WeenieClassName, uint> SourceToRecipe = new Dictionary<WeenieClassName, uint>()
         {
@@ -530,55 +542,59 @@ namespace ACE.Server.Managers
             { WeenieClassName.W_MATERIALPERIDOT_CLASS,         4435 },
             { WeenieClassName.W_MATERIALYELLOWTOPAZ_CLASS,     4434 },
             { WeenieClassName.W_MATERIALZIRCON_CLASS,          4433 },
-            { WeenieClassName.W_MATERIALRAREFOOLPROOFPERIDOT_CLASS,     4435 },
-            { WeenieClassName.W_MATERIALACE36634FOOLPROOFPERIDOT,       4435 },
-            { WeenieClassName.W_MATERIALRAREFOOLPROOFYELLOWTOPAZ_CLASS, 4434 },
-            { WeenieClassName.W_MATERIALACE36635FOOLPROOFYELLOWTOPAZ,   4434 },
-            { WeenieClassName.W_MATERIALRAREFOOLPROOFZIRCON_CLASS,      4433 },
-            { WeenieClassName.W_MATERIALACE36636FOOLPROOFZIRCON,        4433 },
 
-            { WeenieClassName.W_MATERIALRAREFOOLPROOFAQUAMARINE_CLASS,    4436 },
-            { WeenieClassName.W_MATERIALACE36619FOOLPROOFAQUAMARINE,      4436 },
+            { WeenieClassName.W_MATERIALRAREFOOLPROOFPERIDOT_CLASS,     8016 },
+            { WeenieClassName.W_MATERIALACE36634FOOLPROOFPERIDOT,       8016 },
+            { WeenieClassName.W_MATERIALRAREFOOLPROOFYELLOWTOPAZ_CLASS, 8015 },
+            { WeenieClassName.W_MATERIALACE36635FOOLPROOFYELLOWTOPAZ,   8015 },
+            { WeenieClassName.W_MATERIALRAREFOOLPROOFZIRCON_CLASS,      8014 },
+            { WeenieClassName.W_MATERIALACE36636FOOLPROOFZIRCON,        8014 },
+
             { WeenieClassName.W_MATERIALAQUAMARINE100_CLASS,              4436 },
             { WeenieClassName.W_MATERIALAQUAMARINE_CLASS,                 4436 },
-            { WeenieClassName.W_MATERIALRAREFOOLPROOFBLACKGARNET_CLASS,   4449 },
-            { WeenieClassName.W_MATERIALACE36620FOOLPROOFBLACKGARNET,     4449 },
             { WeenieClassName.W_MATERIALBLACKGARNET100_CLASS,             4449 },
             { WeenieClassName.W_MATERIALBLACKGARNET_CLASS,                4449 },
-            { WeenieClassName.W_MATERIALRAREFOOLPROOFBLACKOPAL_CLASS,     3863 },
-            { WeenieClassName.W_MATERIALACE36621FOOLPROOFBLACKOPAL,       3863 },
             { WeenieClassName.W_MATERIALBLACKOPAL100_CLASS,               3863 },
             { WeenieClassName.W_MATERIALBLACKOPAL_CLASS,                  3863 },
-            { WeenieClassName.W_MATERIALRAREFOOLPROOFEMERALD_CLASS,       4450 },
-            { WeenieClassName.W_MATERIALACE36622FOOLPROOFEMERALD,         4450 },
             { WeenieClassName.W_MATERIALEMERALD100_CLASS,                 4450 },
             { WeenieClassName.W_MATERIALEMERALD_CLASS,                    4450 },
-            { WeenieClassName.W_MATERIALRAREFOOLPROOFFIREOPAL_CLASS,      3864 },
-            { WeenieClassName.W_MATERIALACE36623FOOLPROOFFIREOPAL,        3864 },
             { WeenieClassName.W_MATERIALFIREOPAL100_CLASS,                3864 },
             { WeenieClassName.W_MATERIALFIREOPAL_CLASS,                   3864 },
-            { WeenieClassName.W_MATERIALRAREFOOLPROOFIMPERIALTOPAZ_CLASS, 4454 },
-            { WeenieClassName.W_MATERIALACE36624FOOLPROOFIMPERIALTOPAZ,   4454 },
             { WeenieClassName.W_MATERIALIMPERIALTOPAZ100_CLASS,           4454 },
             { WeenieClassName.W_MATERIALIMPERIALTOPAZ_CLASS,              4454 },
-            { WeenieClassName.W_MATERIALRAREFOOLPROOFJET_CLASS,           4451 },
-            { WeenieClassName.W_MATERIALACE36625FOOLPROOFJET,             4451 },
             { WeenieClassName.W_MATERIALJET100_CLASS,                     4451 },
             { WeenieClassName.W_MATERIALJET_CLASS,                        4451 },
-            { WeenieClassName.W_MATERIALRAREFOOLPROOFREDGARNET_CLASS,     4452 },
-            { WeenieClassName.W_MATERIALACE36626FOOLPROOFREDGARNET,       4452 },
             { WeenieClassName.W_MATERIALREDGARNET100_CLASS,               4452 },
             { WeenieClassName.W_MATERIALREDGARNET_CLASS,                  4452 },
-            { WeenieClassName.W_MATERIALRAREFOOLPROOFSUNSTONE_CLASS,      3865 },
-            { WeenieClassName.W_MATERIALACE36627FOOLPROOFSUNSTONE,        3865 },
             { WeenieClassName.W_MATERIALSUNSTONE100_CLASS,                3865 },
             { WeenieClassName.W_MATERIALSUNSTONE_CLASS,                   3865 },
-            { WeenieClassName.W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS, 4453 },
-            { WeenieClassName.W_MATERIALACE36628FOOLPROOFWHITESAPPHIRE,   4453 },
             { WeenieClassName.W_MATERIALWHITESAPPHIRE100_CLASS,           4453 },
             { WeenieClassName.W_MATERIALWHITESAPPHIRE_CLASS,              4453 },
+
+            { WeenieClassName.W_MATERIALRAREFOOLPROOFAQUAMARINE_CLASS,    8004 },
+            { WeenieClassName.W_MATERIALACE36619FOOLPROOFAQUAMARINE,      8004 },
+            { WeenieClassName.W_MATERIALRAREFOOLPROOFBLACKGARNET_CLASS,   8005 },
+            { WeenieClassName.W_MATERIALACE36620FOOLPROOFBLACKGARNET,     8005 },
+            { WeenieClassName.W_MATERIALRAREFOOLPROOFBLACKOPAL_CLASS,     8011 },
+            { WeenieClassName.W_MATERIALACE36621FOOLPROOFBLACKOPAL,       8011 },
+            { WeenieClassName.W_MATERIALRAREFOOLPROOFEMERALD_CLASS,       8006 },
+            { WeenieClassName.W_MATERIALACE36622FOOLPROOFEMERALD,         8006 },
+            { WeenieClassName.W_MATERIALRAREFOOLPROOFFIREOPAL_CLASS,      8012 },
+            { WeenieClassName.W_MATERIALACE36623FOOLPROOFFIREOPAL,        8012 },
+            { WeenieClassName.W_MATERIALRAREFOOLPROOFIMPERIALTOPAZ_CLASS, 8010 },
+            { WeenieClassName.W_MATERIALACE36624FOOLPROOFIMPERIALTOPAZ,   8010 },
+            { WeenieClassName.W_MATERIALRAREFOOLPROOFJET_CLASS,           8007 },
+            { WeenieClassName.W_MATERIALACE36625FOOLPROOFJET,             8007 },
+            { WeenieClassName.W_MATERIALRAREFOOLPROOFREDGARNET_CLASS,     8008 },
+            { WeenieClassName.W_MATERIALACE36626FOOLPROOFREDGARNET,       8008 },
+            { WeenieClassName.W_MATERIALRAREFOOLPROOFSUNSTONE_CLASS,      8013 },
+            { WeenieClassName.W_MATERIALACE36627FOOLPROOFSUNSTONE,        8013 },
+            { WeenieClassName.W_MATERIALRAREFOOLPROOFWHITESAPPHIRE_CLASS, 8009 },
+            { WeenieClassName.W_MATERIALACE36628FOOLPROOFWHITESAPPHIRE,   8009 },
+
             { WeenieClassName.W_LEFTHANDTETHER_CLASS,                     6798 },
             { WeenieClassName.W_LEFTHANDTETHERREMOVER_CLASS,              6799 },
+
             { WeenieClassName.W_COREPLATINGINTEGRATOR_CLASS,              6800 },
             { WeenieClassName.W_COREPLATINGDISINTEGRATOR_CLASS,           6801 },
 
