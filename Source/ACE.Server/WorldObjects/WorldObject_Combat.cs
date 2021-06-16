@@ -28,6 +28,8 @@ namespace ACE.Server.WorldObjects
             // this could also be monsters with the proc spell directly on the creature
             if (HasProc && ProcSpellSelfTargeted == selfTarget)
             {
+                // projectile
+                // monster
                 TryProcItem(attacker, target);
             }
 
@@ -35,12 +37,14 @@ namespace ACE.Server.WorldObjects
             // this could be a melee weapon, or a missile launcher
             if (weapon != null && weapon.HasProc && weapon.ProcSpellSelfTargeted == selfTarget)
             {
+                // weapon
                 weapon.TryProcItem(attacker, target);
             }
 
             if (attacker != this && attacker.HasProc && attacker.ProcSpellSelfTargeted == selfTarget)
             {
                 // handle special case -- missile projectiles from monsters w/ a proc directly on the mob
+                // monster
                 attacker.TryProcItem(attacker, target);
             }
 
@@ -49,8 +53,9 @@ namespace ACE.Server.WorldObjects
             {
                 var equippedAetheria = wielder.EquippedObjects.Values.Where(i => Aetheria.IsAetheria(i.WeenieClassId) && i.HasProc && i.ProcSpellSelfTargeted == selfTarget);
 
+                // aetheria
                 foreach (var aetheria in equippedAetheria)
-                    aetheria.TryProcItem(this, target);
+                    aetheria.TryProcItem(attacker, target);
             }
         }
     }
