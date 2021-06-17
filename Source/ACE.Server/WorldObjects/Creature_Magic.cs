@@ -187,7 +187,7 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
-                    LifeMagic(spell, out uint damage, out enchantmentStatus, this, item, item, equip: true);
+                    LifeMagic(spell, out uint damage, out enchantmentStatus, this, item, equip: true);
                     if (enchantmentStatus.Message != null)
                         EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
 

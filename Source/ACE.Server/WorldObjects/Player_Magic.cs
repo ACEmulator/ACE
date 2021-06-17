@@ -833,12 +833,14 @@ namespace ACE.Server.WorldObjects
             // consume mana
             var caster = GetEquippedWand();  // TODO: persist this from the beginning, since this is done with delay
 
+            var itemCaster = isWeaponSpell ? caster : null;
+
             if (!isWeaponSpell)
                 UpdateVitalDelta(Mana, -(int)manaUsed);
             else
             {
-                if (caster != null)
-                    caster.ItemCurMana -= (int)manaUsed;
+                if (itemCaster != null)
+                    itemCaster.ItemCurMana -= (int)manaUsed;
                 else
                     castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
             }
@@ -900,7 +902,7 @@ namespace ACE.Server.WorldObjects
                                 VoidMagic(target, spell, caster, isWeaponSpell);
                                 break;
                             case MagicSchool.LifeMagic:
-                                LifeMagic(spell, out uint damage, out var enchantmentStatus, target, caster, caster, isWeaponSpell);
+                                LifeMagic(spell, out uint damage, out var enchantmentStatus, target, itemCaster, caster, isWeaponSpell);
                                 break;
                         }
                     }
@@ -1065,6 +1067,8 @@ namespace ACE.Server.WorldObjects
 
             var caster = GetEquippedWand();
 
+            var itemCaster = isWeaponSpell ? caster : null;
+
             // verify after windup, still consumes mana
             if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(this, target))
                 return;
@@ -1083,7 +1087,7 @@ namespace ACE.Server.WorldObjects
                     if (targetPlayer == null)
                         OnAttackMonster(targetCreature);
 
-                    if (TryResistSpell(target, spell, caster))
+                    if (TryResistSpell(target, spell, itemCaster))
                         break;
 
                     if (targetCreature != null && targetCreature.NonProjectileMagicImmune)
@@ -1121,7 +1125,7 @@ namespace ACE.Server.WorldObjects
                         if (targetPlayer == null)
                             OnAttackMonster(targetCreature);
 
-                        if (TryResistSpell(target, spell, caster))
+                        if (TryResistSpell(target, spell, itemCaster))
                             break;
 
                         if (targetCreature != null && targetCreature.NonProjectileMagicImmune)
@@ -1131,7 +1135,7 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    targetDeath = LifeMagic(spell, out uint damage, out enchantmentStatus, target, null, caster, isWeaponSpell);
+                    targetDeath = LifeMagic(spell, out uint damage, out enchantmentStatus, target, itemCaster, caster, isWeaponSpell);
 
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
@@ -1168,7 +1172,7 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.ItemEnchantment:
 
-                    TryCastItemEnchantment_WithRedirects(spell, target, caster);
+                    TryCastItemEnchantment_WithRedirects(spell, target, itemCaster);
 
                     // use target resistance?
                     Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.ItemEnchantment), spell.PowerMod);
