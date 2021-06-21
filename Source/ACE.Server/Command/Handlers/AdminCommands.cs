@@ -1747,8 +1747,6 @@ namespace ACE.Server.Command.Handlers
             // If needed, you can specify an account name as a third parameter if the character should be restored to an account other than its original owner.  Again, use a comma between the arguments.
             // @bornagain - Restores a deleted character to an account.
 
-            // TODO: output
-
             var hexNumber = parameters[0];
 
             if (hexNumber.StartsWith("0x"))
@@ -1769,11 +1767,6 @@ namespace ACE.Server.Command.Handlers
                     if (newCharName.StartsWith("+"))
                         newCharName = newCharName.Substring(1);
                     newCharName = newCharName.First().ToString().ToUpper() + newCharName.Substring(1);
-
-                    //var newAccountName = names[2].TrimStart(' ').TrimEnd(' ');
-                    //if (newAccountName.StartsWith("+"))
-                    //newAccountName = newAccountName.Substring(1);
-                    //newAccountName = newAccountName.First().ToString().ToUpper() + newAccountName.Substring(1);
 
                     string newAccountName;
                     if (twoCommas)
