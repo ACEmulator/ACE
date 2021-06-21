@@ -29,6 +29,7 @@ using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
 
 using Position = ACE.Entity.Position;
+using System.Globalization;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -1732,7 +1733,12 @@ namespace ACE.Server.Command.Handlers
         }
 
         // bornagain deletedCharID[, newCharName[, accountName]]
-        [CommandHandler("bornagain", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("bornagain", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 1,
+            "Restores a deleted character to an account.",
+            "deletedCharID(, newCharName)(, accountName)\n" +
+            "Given the ID of a deleted character, this command restores that character to its owner.  (You can find the ID of a deleted character using the @finger command.)\n" +
+            "If the deleted character's name has since been taken by a new character, you can specify a new name for the restored character as the second parameter.  (You can find if the name has been taken by also using the @finger command.)  Use a comma to separate the arguments.\n" +
+            "If needed, you can specify an account name as a third parameter if the character should be restored to an account other than its original owner.  Again, use a comma between the arguments.")]
         public static void HandleBornAgain(Session session, params string[] parameters)
         {
             // usage: @bornagain deletedCharID[, newCharName[, accountName]]
@@ -1742,6 +1748,62 @@ namespace ACE.Server.Command.Handlers
             // @bornagain - Restores a deleted character to an account.
 
             // TODO: output
+
+            var hexNumber = parameters[0];
+
+            if (hexNumber.StartsWith("0x"))
+                hexNumber = hexNumber.Substring(2);
+
+            if (uint.TryParse(hexNumber, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var existingCharIID))
+            {
+                var args = string.Join(" ", parameters);
+
+                if (args.Contains(','))
+                {
+                    var twoCommas = args.Count(c => c == ',') == 2;
+
+                    var names = string.Join(" ", parameters).Split(",");
+
+                    var newCharName = names[1].TrimStart(' ').TrimEnd(' ');                    
+
+                    if (newCharName.StartsWith("+"))
+                        newCharName = newCharName.Substring(1);
+                    newCharName = newCharName.First().ToString().ToUpper() + newCharName.Substring(1);
+
+                    //var newAccountName = names[2].TrimStart(' ').TrimEnd(' ');
+                    //if (newAccountName.StartsWith("+"))
+                    //newAccountName = newAccountName.Substring(1);
+                    //newAccountName = newAccountName.First().ToString().ToUpper() + newAccountName.Substring(1);
+
+                    string newAccountName;
+                    if (twoCommas)
+                    {
+                        newAccountName = names[2].TrimStart(' ').TrimEnd(' ').ToLower();
+
+                        var account = DatabaseManager.Authentication.GetAccountByName(newAccountName);
+
+                        if (account == null)
+                        {
+                            CommandHandlerHelper.WriteOutputInfo(session, $"Error, cannot restore. Account \"{newAccountName}\" is not in database.", ChatMessageType.Broadcast);
+                            return;
+                        }
+
+                        DoCopyChar(session, $"0x{existingCharIID:X8}", existingCharIID, newCharName, account.AccountId);
+                    }
+                    else
+                    {
+                        DoCopyChar(session, $"0x{existingCharIID:X8}", existingCharIID, newCharName);
+                    }
+                }
+                else
+                {
+                    DoCopyChar(session, $"0x{existingCharIID:X8}", existingCharIID);
+                }
+            }
+            else
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Error, cannot restore. You must include an existing character id in hex form.\nExample: @copychar 0x500000AC\n         @copychar 0x500000AC, Newly Restored\n         @copychar 0x500000AC, Newly Restored, differentaccount\n", ChatMessageType.Broadcast);
+            }
         }
 
         // copychar < character name >, < copy name >
@@ -1775,20 +1837,27 @@ namespace ACE.Server.Command.Handlers
 
             var existingPlayer = PlayerManager.FindByName(existingCharName);
 
-            if (existingPlayer == null)
+            if (existingPlayer == null || session.Characters.Count >= PropertyManager.GetLong("max_chars_per_account").Item)
             {
                 //CommandHandlerHelper.WriteOutputInfo(session, $"Failed to copy the character \"{existingCharName}\" to a new character \"{newCharName}\" for the account \"{session.Account}\"! Does the character exist _AND_ is not currently logged in? Is the new character name already taken, or is the account out of free character slots?", ChatMessageType.Broadcast);
                 CommandHandlerHelper.WriteOutputInfo(session, $"Failed to copy the character \"{existingCharName}\" to a new character \"{newCharName}\" for the account \"{session.Account}\"! Does the character exist? Is the new character name already taken, or is the account out of free character slots?", ChatMessageType.Broadcast);
                 return;
             }
 
-            DatabaseManager.Shard.GetCharacter(existingPlayer.Guid.Full, existingCharacter =>
+            DoCopyChar(session, existingCharName, existingPlayer.Guid.Full, newCharName);
+        }
+
+        private static void DoCopyChar(Session session, string existingCharName, uint existingCharId, string newCharacterName = null, uint newAccountId = 0)
+        {
+            DatabaseManager.Shard.GetCharacter(existingCharId, existingCharacter =>
             {
                 if (existingCharacter != null)
                 {
-                    var existingPlayerBiota = DatabaseManager.Shard.BaseDatabase.GetBiota(existingPlayer.Guid.Full);
+                    var newCharName = newCharacterName ?? existingCharacter.Name;
 
-                    DatabaseManager.Shard.GetPossessedBiotasInParallel(existingPlayer.Guid.Full, existingPossessions =>
+                    var existingPlayerBiota = DatabaseManager.Shard.BaseDatabase.GetBiota(existingCharId);
+
+                    DatabaseManager.Shard.GetPossessedBiotasInParallel(existingCharId, existingPossessions =>
                     {
                         DatabaseManager.Shard.IsCharacterNameAvailable(newCharName, isAvailable =>
                         {
@@ -1803,7 +1872,7 @@ namespace ACE.Server.Command.Handlers
                             var newCharacter = new Database.Models.Shard.Character
                             {
                                 Id = newPlayerGuid.Full,
-                                AccountId = session.Player.Account.AccountId,
+                                AccountId = newAccountId > 0 ? newAccountId : session.Player.Account.AccountId,
                                 Name = newCharName,
                                 CharacterOptions1 = existingCharacter.CharacterOptions1,
                                 CharacterOptions2 = existingCharacter.CharacterOptions2,
@@ -1812,7 +1881,7 @@ namespace ACE.Server.Command.Handlers
                                 HairTexture = existingCharacter.HairTexture,
                                 IsPlussed = existingCharacter.IsPlussed,
                                 SpellbookFilters = existingCharacter.SpellbookFilters,
-                                TotalLogins = 1
+                                TotalLogins = 1 // existingCharacter.TotalLogins
                             };
 
                             foreach (var entry in existingCharacter.CharacterPropertiesContractRegistry)
@@ -2048,12 +2117,18 @@ namespace ACE.Server.Command.Handlers
                                 }
 
                                 PlayerManager.AddOfflinePlayer(newPlayer);
-                                session.Characters.Add(newPlayer.Character);
+
+                                if (newAccountId == 0)
+                                    session.Characters.Add(newPlayer.Character);
 
                                 CommandHandlerHelper.WriteOutputInfo(session, $"Successfully copied the character \"{(existingCharacter.IsPlussed ? "+" : "")}{existingCharacter.Name}\" to a new character \"{newPlayer.Name}\" for the account \"{newPlayer.Account.AccountName}\".", ChatMessageType.Broadcast);
                             });
                         });
                     });
+                }
+                else
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Failed to copy the character \"{existingCharName}\" to a new character \"{newCharacterName}\" for the account \"{session.Account}\"! Does the character exist? Is the new character name already taken, or is the account out of free character slots?", ChatMessageType.Broadcast);
                 }
             });
         }
