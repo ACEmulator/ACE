@@ -589,6 +589,26 @@ namespace ACE.Database
             return results;
         }
 
+        public Character GetCharacter(uint characterId)
+        {
+            var context = new ShardDbContext();
+
+            var result = context.Character.Where(r => r.Id == characterId)
+                .Include(r => r.CharacterPropertiesContractRegistry)
+                .Include(r => r.CharacterPropertiesFillCompBook)
+                .Include(r => r.CharacterPropertiesFriendList)
+                .Include(r => r.CharacterPropertiesQuestRegistry)
+                .Include(r => r.CharacterPropertiesShortcutBar)
+                .Include(r => r.CharacterPropertiesSpellBar)
+                .Include(r => r.CharacterPropertiesSquelch)
+                .Include(r => r.CharacterPropertiesTitleBook)
+                .FirstOrDefault();
+
+            CharacterContexts.Add(result, context);
+
+            return result;
+        }
+
         public Character GetCharacterStubByName(string name) // When searching by name, only non-deleted characters matter
         {
             var context = new ShardDbContext();
