@@ -1781,16 +1781,34 @@ namespace ACE.Server.Command.Handlers
                             return;
                         }
 
-                        DoCopyChar(session, $"0x{existingCharIID:X8}", existingCharIID, newCharName, account.AccountId);
+                        if (PlayerManager.IsAccountAtMaxCharacterSlots(account.AccountName))
+                        {
+                            CommandHandlerHelper.WriteOutputInfo(session, $"Error, cannot restore. Account \"{newAccountName}\" has no free character slots.", ChatMessageType.Broadcast);
+                            return;
+                        }
+
+                        DoCopyChar(session, $"0x{existingCharIID:X8}", existingCharIID, true, newCharName, account.AccountId);
                     }
                     else
                     {
-                        DoCopyChar(session, $"0x{existingCharIID:X8}", existingCharIID, newCharName);
+                        if (PlayerManager.IsAccountAtMaxCharacterSlots(session.Player.Account.AccountName))
+                        {
+                            CommandHandlerHelper.WriteOutputInfo(session, $"Error, cannot restore. Account \"{session.Player.Account.AccountName}\" has no free character slots.", ChatMessageType.Broadcast);
+                            return;
+                        }
+
+                        DoCopyChar(session, $"0x{existingCharIID:X8}", existingCharIID, true, newCharName);
                     }
                 }
                 else
                 {
-                    DoCopyChar(session, $"0x{existingCharIID:X8}", existingCharIID);
+                    if (PlayerManager.IsAccountAtMaxCharacterSlots(session.Player.Account.AccountName))
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Error, cannot restore. Account \"{session.Player.Account.AccountName}\" has no free character slots.", ChatMessageType.Broadcast);
+                        return;
+                    }
+
+                    DoCopyChar(session, $"0x{existingCharIID:X8}", existingCharIID, true);
                 }
             }
             else
@@ -1837,10 +1855,10 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            DoCopyChar(session, existingCharName, existingPlayer.Guid.Full, newCharName);
+            DoCopyChar(session, existingCharName, existingPlayer.Guid.Full, false, newCharName);
         }
 
-        private static void DoCopyChar(Session session, string existingCharName, uint existingCharId, string newCharacterName = null, uint newAccountId = 0)
+        private static void DoCopyChar(Session session, string existingCharName, uint existingCharId, bool isDeletedChar, string newCharacterName = null, uint newAccountId = 0)
         {
             DatabaseManager.Shard.GetCharacter(existingCharId, existingCharacter =>
             {
@@ -1856,7 +1874,7 @@ namespace ACE.Server.Command.Handlers
                         {
                             if (!isAvailable)
                             {
-                                CommandHandlerHelper.WriteOutputInfo(session, $"{newCharName} is not available to use for the copied character character, try another name.", ChatMessageType.Broadcast);
+                                CommandHandlerHelper.WriteOutputInfo(session, $"{newCharName} is not available to use for the {(isDeletedChar ? "restored" : "copied")} character name, try another name.", ChatMessageType.Broadcast);
                                 return;
                             }
 
@@ -2105,7 +2123,7 @@ namespace ACE.Server.Command.Handlers
                                 if (!saveSuccess)
                                 {
                                     //CommandHandlerHelper.WriteOutputInfo(session, $"Failed to copy the character \"{(existingCharacter.IsPlussed ? "+" : "")}{existingCharacter.Name}\" to a new character \"{newPlayer.Name}\" for the account \"{newPlayer.Account.AccountName}\"! Does the character exist _AND_ is not currently logged in? Is the new character name already taken, or is the account out of free character slots?", ChatMessageType.Broadcast);
-                                    CommandHandlerHelper.WriteOutputInfo(session, $"Failed to copy the character \"{(existingCharacter.IsPlussed ? "+" : "")}{existingCharacter.Name}\" to a new character \"{newPlayer.Name}\" for the account \"{newPlayer.Account.AccountName}\"! Does the character exist? Is the new character name already taken, or is the account out of free character slots?", ChatMessageType.Broadcast);
+                                    CommandHandlerHelper.WriteOutputInfo(session, $"Failed to {(isDeletedChar ? "restore" : "copy")} the character \"{(existingCharacter.IsPlussed ? "+" : "")}{existingCharacter.Name}\" to a new character \"{newPlayer.Name}\" for the account \"{newPlayer.Account.AccountName}\"! Does the character exist? Is the new character name already taken, or is the account out of free character slots?", ChatMessageType.Broadcast);
                                     return;
                                 }
 
@@ -2121,14 +2139,16 @@ namespace ACE.Server.Command.Handlers
                                         foundActiveSession.Characters.Add(newPlayer.Character);
                                 }
 
-                                CommandHandlerHelper.WriteOutputInfo(session, $"Successfully copied the character \"{(existingCharacter.IsPlussed ? "+" : "")}{existingCharacter.Name}\" to a new character \"{newPlayer.Name}\" for the account \"{newPlayer.Account.AccountName}\".", ChatMessageType.Broadcast);
+                                var msg = $"Successfully {(isDeletedChar ? "restored" : "copied")} the character \"{(existingCharacter.IsPlussed ? "+" : "")}{existingCharacter.Name}\" to a new character \"{newPlayer.Name}\" for the account \"{newPlayer.Account.AccountName}\".";
+                                CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.Broadcast);
+                                PlayerManager.BroadcastToAuditChannel(session.Player, msg);
                             });
                         });
                     });
                 }
                 else
                 {
-                    CommandHandlerHelper.WriteOutputInfo(session, $"Failed to copy the character \"{existingCharName}\" to a new character \"{newCharacterName}\" for the account \"{session.Account}\"! Does the character exist? Is the new character name already taken, or is the account out of free character slots?", ChatMessageType.Broadcast);
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Failed to {(isDeletedChar ? "restore" : "copy")} the character \"{existingCharName}\" to a new character \"{newCharacterName}\" for the account \"{session.Account}\"! Does the character exist? Is the new character name already taken, or is the account out of free character slots?", ChatMessageType.Broadcast);
                 }
             });
         }
