@@ -2113,6 +2113,13 @@ namespace ACE.Server.Command.Handlers
 
                                 if (newAccountId == 0)
                                     session.Characters.Add(newPlayer.Character);
+                                else
+                                {
+                                    var foundActiveSession = Network.Managers.NetworkManager.Find(newAccountId);
+
+                                    if (foundActiveSession != null)
+                                        foundActiveSession.Characters.Add(newPlayer.Character);
+                                }
 
                                 CommandHandlerHelper.WriteOutputInfo(session, $"Successfully copied the character \"{(existingCharacter.IsPlussed ? "+" : "")}{existingCharacter.Name}\" to a new character \"{newPlayer.Name}\" for the account \"{newPlayer.Account.AccountName}\".", ChatMessageType.Broadcast);
                             });
