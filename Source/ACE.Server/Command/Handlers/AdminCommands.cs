@@ -1752,6 +1752,9 @@ namespace ACE.Server.Command.Handlers
             if (hexNumber.StartsWith("0x"))
                 hexNumber = hexNumber.Substring(2);
 
+            if (hexNumber.EndsWith(","))
+                hexNumber = hexNumber[..^1];
+
             if (uint.TryParse(hexNumber, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var existingCharIID))
             {
                 var args = string.Join(" ", parameters);
