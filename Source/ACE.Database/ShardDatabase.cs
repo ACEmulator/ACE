@@ -593,20 +593,23 @@ namespace ACE.Database
         {
             var context = new ShardDbContext();
 
-            var result = context.Character.Where(r => r.Id == characterId)
-                .Include(r => r.CharacterPropertiesContractRegistry)
-                .Include(r => r.CharacterPropertiesFillCompBook)
-                .Include(r => r.CharacterPropertiesFriendList)
-                .Include(r => r.CharacterPropertiesQuestRegistry)
-                .Include(r => r.CharacterPropertiesShortcutBar)
-                .Include(r => r.CharacterPropertiesSpellBar)
-                .Include(r => r.CharacterPropertiesSquelch)
-                .Include(r => r.CharacterPropertiesTitleBook)
-                .FirstOrDefault();
+            var query = context.Character.Where(r => r.Id == characterId);
 
-            CharacterContexts.Add(result, context);
+            var results = query.ToList();
 
-            return result;
+            query.Include(r => r.CharacterPropertiesContractRegistry).Load();
+            query.Include(r => r.CharacterPropertiesFillCompBook).Load();
+            query.Include(r => r.CharacterPropertiesFriendList).Load();
+            query.Include(r => r.CharacterPropertiesQuestRegistry).Load();
+            query.Include(r => r.CharacterPropertiesShortcutBar).Load();
+            query.Include(r => r.CharacterPropertiesSpellBar).Load();
+            query.Include(r => r.CharacterPropertiesSquelch).Load();
+            query.Include(r => r.CharacterPropertiesTitleBook).Load();
+
+            foreach (var result in results)
+                CharacterContexts.Add(result, context);
+
+            return results.FirstOrDefault();
         }
 
         public Character GetCharacterStubByName(string name) // When searching by name, only non-deleted characters matter
