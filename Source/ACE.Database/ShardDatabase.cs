@@ -568,9 +568,24 @@ namespace ACE.Database
 
         public List<Character> GetCharacters(uint accountId, bool includeDeleted)
         {
+            return GetCharacterList(accountId, includeDeleted);
+        }
+
+        public Character GetCharacter(uint characterId)
+        {
+            return GetCharacterList(0, true, characterId).FirstOrDefault();
+        }
+
+        private static List<Character> GetCharacterList(uint accountID, bool includeDeleted, uint characterID = 0)
+        {
             var context = new ShardDbContext();
 
-            var query = context.Character.Where(r => r.AccountId == accountId && (includeDeleted || !r.IsDeleted));
+            IQueryable<Character> query;
+
+            if (accountID > 0)
+                query = context.Character.Where(r => r.AccountId == accountID && (includeDeleted || !r.IsDeleted));
+            else
+                query = context.Character.Where(r => r.Id == characterID && (includeDeleted || !r.IsDeleted));
 
             var results = query.ToList();
 
@@ -587,29 +602,6 @@ namespace ACE.Database
                 CharacterContexts.Add(result, context);
 
             return results;
-        }
-
-        public Character GetCharacter(uint characterId)
-        {
-            var context = new ShardDbContext();
-
-            var query = context.Character.Where(r => r.Id == characterId);
-
-            var results = query.ToList();
-
-            query.Include(r => r.CharacterPropertiesContractRegistry).Load();
-            query.Include(r => r.CharacterPropertiesFillCompBook).Load();
-            query.Include(r => r.CharacterPropertiesFriendList).Load();
-            query.Include(r => r.CharacterPropertiesQuestRegistry).Load();
-            query.Include(r => r.CharacterPropertiesShortcutBar).Load();
-            query.Include(r => r.CharacterPropertiesSpellBar).Load();
-            query.Include(r => r.CharacterPropertiesSquelch).Load();
-            query.Include(r => r.CharacterPropertiesTitleBook).Load();
-
-            foreach (var result in results)
-                CharacterContexts.Add(result, context);
-
-            return results.FirstOrDefault();
         }
 
         public Character GetCharacterStubByName(string name) // When searching by name, only non-deleted characters matter
