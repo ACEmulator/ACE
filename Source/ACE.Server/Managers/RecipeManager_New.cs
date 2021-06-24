@@ -290,8 +290,8 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALACE36635FOOLPROOFYELLOWTOPAZ:
                 case WeenieClassName.W_MATERIALACE36636FOOLPROOFZIRCON:
 
-                    // ensure clothing/armor w/ AL and workmanship
-                    if (target.WeenieType != WeenieType.Clothing || !target.HasArmorLevel() || target.Workmanship == null)
+                    // can be applied to anything with AL, including shields (according to base recipe)
+                    if (!target.HasArmorLevel() || target.Workmanship == null)
                         return null;
 
                     recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
