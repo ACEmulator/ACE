@@ -211,6 +211,15 @@ namespace ACE.Database
             }));
         }
 
+        public void GetCharacter(uint characterId, Action<Character> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = BaseDatabase.GetCharacter(characterId);
+                callback?.Invoke(result);
+            }));
+        }
+
         public void SaveCharacter(Character character, ReaderWriterLockSlim rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
