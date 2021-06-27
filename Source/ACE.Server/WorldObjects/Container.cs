@@ -161,6 +161,8 @@ namespace ACE.Server.WorldObjects
                 if ((worldObjects[i].ContainerId ?? 0) == Biota.Id)
                 {
                     Inventory[worldObjects[i].Guid] = worldObjects[i];
+                    worldObjects[i].Container = this;
+
                     if (worldObjects[i].WeenieType != WeenieType.Container) // We skip over containers because we'll add their burden/value in the next loop.
                     {
                         EncumbranceVal += (worldObjects[i].EncumbranceVal ?? 0);

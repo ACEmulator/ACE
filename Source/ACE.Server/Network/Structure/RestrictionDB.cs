@@ -79,25 +79,28 @@ namespace ACE.Server.Network.Structure
             writer.Write(restrictions.Table);
         }
 
+        private static readonly ushort headerNumBuckets = 768;  // this # of buckets was sent over the wire in retail header
+                                                                // however, this value ends up being unused, and the "real" # of buckets originates
+                                                                // from a hardcoded value in g_bucketSizeArray in the client constant data
+
+        private static readonly ushort actualNumBuckets = 89;   // in RestrictionDB constructor in acclient,
+                                                                // client uses PHashTable for this (as opposed to the typical PackableHashTable)
+
+                                                                // which inits an IntrusiveHashTable with size 64
+                                                                // this gets bumped up to the next largest value in a hardcoded g_bucketSizeArray, which is 89
+
+        private static readonly GuidComparer guidComparer = new GuidComparer(actualNumBuckets);
+
         public static void Write(this BinaryWriter writer, Dictionary<ObjectGuid, uint> db)
         {
-            //PHashTable.WriteHeader(writer, db.Count);
+            PackableHashTable.WriteHeader(writer, db.Count, headerNumBuckets);
 
-            writer.Write((ushort)db.Count);
-            writer.Write((ushort)768);  // from retail pcaps, TODO: determine how this is calculated
+            var sorted = new SortedDictionary<ObjectGuid, uint>(db, guidComparer);
 
-            // reorder
-            var _db = new List<Tuple<ObjectGuid, uint>>();
-            foreach (var entry in db)
-                _db.Add(new Tuple<ObjectGuid, uint>(entry.Key, entry.Value));
-
-            // sort by client function - hashKey % tableSize - how it gets tableSize 89 from 768, no idea
-            _db = _db.OrderBy(i => i.Item1.Full % 89).ToList();
-
-            foreach (var entry in _db)
+            foreach (var kvp in sorted)
             {
-                writer.Write(entry.Item1.Full);
-                writer.Write(entry.Item2);
+                writer.Write(kvp.Key.Full);
+                writer.Write(kvp.Value);
             }
         }
     }

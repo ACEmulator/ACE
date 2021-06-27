@@ -246,12 +246,10 @@ namespace ACE.Server.WorldObjects
         private const float defaultPhysicalCritFrequency = 0.1f;    // 10% base chance
 
         /// <summary>
-        /// Returns the critical chance for the current weapon
+        /// Returns the critical chance for the attack weapon
         /// </summary>
-        public static float GetWeaponCriticalChance(Creature wielder, CreatureSkill skill, Creature target)
+        public static float GetWeaponCriticalChance(WorldObject weapon, Creature wielder, CreatureSkill skill, Creature target)
         {
-            WorldObject weapon = GetWeapon(wielder);
-
             var critRate = (float)(weapon?.CriticalFrequency ?? defaultPhysicalCritFrequency);
 
             if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.CriticalStrike))
@@ -281,14 +279,11 @@ namespace ACE.Server.WorldObjects
         private const float defaultMagicCritFrequency = 0.05f;
 
         /// <summary>
-        /// Returns the critical chance for the current magic weapon
+        /// Returns the critical chance for the caster weapon
         /// </summary>
-        public static float GetWeaponMagicCritFrequency(Creature wielder, CreatureSkill skill, Creature target)
+        public static float GetWeaponMagicCritFrequency(WorldObject weapon, Creature wielder, CreatureSkill skill, Creature target)
         {
             // TODO : merge with above function
-            // FIXME: do not use GetWeapon for spell projectiles
-
-            WorldObject weapon = GetWeapon(wielder as Player);
 
             if (weapon == null)
                 return defaultMagicCritFrequency;
@@ -316,12 +311,10 @@ namespace ACE.Server.WorldObjects
         private const float defaultCritDamageMultiplier = 1.0f;
 
         /// <summary>
-        /// Returns the critical damage multiplier for the current weapon
+        /// Returns the critical damage multiplier for the attack weapon
         /// </summary>
-        public static float GetWeaponCritDamageMod(Creature wielder, CreatureSkill skill, Creature target)
+        public static float GetWeaponCritDamageMod(WorldObject weapon, Creature wielder, CreatureSkill skill, Creature target)
         {
-            WorldObject weapon = GetWeapon(wielder);
-
             var critDamageMod = (float)(weapon?.GetProperty(PropertyFloat.CriticalMultiplier) ?? defaultCritDamageMultiplier);
 
             if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
@@ -330,14 +323,6 @@ namespace ACE.Server.WorldObjects
 
                 critDamageMod = Math.Max(critDamageMod, cripplingBlowMod); 
             }
-
-            if (wielder != null)
-                critDamageMod += wielder.GetCritDamageRating() * 0.01f;
-
-            // mitigation
-            var critDamageResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritDamageResistRating());
-            critDamageMod *= critDamageResistRatingMod;
-
             return critDamageMod;
         }
 
@@ -349,10 +334,8 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns a multiplicative elemental damage modifier for the magic caster weapon type
         /// </summary>
-        public static float GetCasterElementalDamageModifier(Creature wielder, Creature target, DamageType damageType)
+        public static float GetCasterElementalDamageModifier(WorldObject weapon, Creature wielder, Creature target, DamageType damageType)
         {
-            var weapon = GetWeapon(wielder as Player);
-
             if (wielder == null || !(weapon is Caster) || weapon.W_DamageType != damageType)
                 return 1.0f;
 
@@ -375,10 +358,8 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns an additive elemental damage bonus for the missile launcher weapon type
         /// </summary>
-        public static int GetMissileElementalDamageBonus(Creature wielder, DamageType damageType)
+        public static int GetMissileElementalDamageBonus(WorldObject weapon, Creature wielder, DamageType damageType)
         {
-            WorldObject weapon = GetWeapon(wielder as Player);
-
             if (weapon is MissileLauncher && weapon.ElementalDamageBonus != null)
             {
                 var elementalDamageType = weapon.W_DamageType;
@@ -402,13 +383,11 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the slayer damage multiplier for the current weapon
+        /// Returns the slayer damage multiplier for the attack weapon
         /// against a particular creature type
         /// </summary>
-        public static float GetWeaponCreatureSlayerModifier(Creature wielder, Creature target)
+        public static float GetWeaponCreatureSlayerModifier(WorldObject weapon, Creature wielder, Creature target)
         {
-            WorldObject weapon = GetWeapon(wielder as Player);
-
             if (weapon != null && weapon.SlayerCreatureType != null && weapon.SlayerDamageBonus != null &&
                 target != null && weapon.SlayerCreatureType == target.CreatureType)
             {
@@ -434,11 +413,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the resistance modifier or rending modifier
         /// </summary>
-        public static float GetWeaponResistanceModifier(Creature wielder, CreatureSkill skill, DamageType damageType)
+        public static float GetWeaponResistanceModifier(WorldObject weapon, Creature wielder, CreatureSkill skill, DamageType damageType)
         {
             float resistMod = defaultModifier;
-
-            WorldObject weapon = GetWeapon(wielder as Player);
 
             if (wielder == null || weapon == null)
                 return defaultModifier;
@@ -932,13 +909,13 @@ namespace ACE.Server.WorldObjects
             return HasProc && ProcSpell == spellID;
         }
 
-        public void TryProcItem(Creature wielder, Creature target)
+        public void TryProcItem(WorldObject attacker, Creature target)
         {
             // roll for a chance of casting spell
             var chance = ProcSpellRate ?? 0.0f;
 
             // special handling for aetheria
-            if (Aetheria.IsAetheria(WeenieClassId))
+            if (Aetheria.IsAetheria(WeenieClassId) && attacker is Creature wielder)
                 chance = Aetheria.CalcProcRate(this, wielder);
 
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
@@ -949,7 +926,7 @@ namespace ACE.Server.WorldObjects
 
             if (spell.NotFound)
             {
-                if (wielder is Player player)
+                if (attacker is Player player)
                 {
                     if (spell._spellBase == null)
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"SpellId {ProcSpell.Value} Invalid.", ChatMessageType.System));
@@ -959,10 +936,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            var itemCaster = this is Creature ? null : this;
+
             if (spell.NonComponentTargetType == ItemType.None)
-                wielder.TryCastSpell(spell, null, this);
+                attacker.TryCastSpell(spell, null, itemCaster, itemCaster, true, true);
             else
-                wielder.TryCastSpell(spell, target, this);
+                attacker.TryCastSpell(spell, target, itemCaster, itemCaster, true, true);
         }
 
         private bool? isMasterable;

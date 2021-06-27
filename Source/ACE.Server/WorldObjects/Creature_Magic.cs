@@ -187,7 +187,7 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
-                    LifeMagic(spell, out uint damage, out enchantmentStatus, this, item, true);
+                    LifeMagic(spell, out uint damage, out enchantmentStatus, this, item, equip: true);
                     if (enchantmentStatus.Message != null)
                         EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
 
@@ -196,9 +196,9 @@ namespace ACE.Server.WorldObjects
                 case MagicSchool.ItemEnchantment:
 
                     if (spell.HasItemCategory || spell.IsPortalSpell)
-                        enchantmentStatus = ItemMagic(this, spell, item, true);
+                        enchantmentStatus = ItemMagic(this, spell, item, item, true);
                     else
-                        enchantmentStatus = ItemMagic(item, spell, item, true);
+                        enchantmentStatus = ItemMagic(item, spell, item, item, true);
 
                     var playScript = spell.IsPortalSpell && spell.CasterEffect > 0 ? spell.CasterEffect : spell.TargetEffect;
                     EnqueueBroadcast(new GameMessageScript(Guid, playScript, spell.Formula.Scale));

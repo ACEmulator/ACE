@@ -978,38 +978,13 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Persistent boolean value that tracks whether an equipped item is affecting (the item's spells are in effect and its mana is burning) or not.
+        /// Flag indicates if an equipped item w/ built-in spells is currently activated, and mana is burning on item
         /// </summary>
-        public bool? IsAffecting
+        public bool IsAffecting
         {
-            get => GetProperty(PropertyBool.IsAffecting);
-            set
-            {
-                if (!value.HasValue)
-                {
-                    if (GetProperty(PropertyBool.IsAffecting).HasValue)
-                        RemoveProperty(PropertyBool.IsAffecting);
-                }
-                else
-                {
-                    var h = GetProperty(PropertyBool.IsAffecting);
-                    if (!h.HasValue || h.HasValue && h.Value != value.Value)
-                        SetProperty(PropertyBool.IsAffecting, value.Value);
-                }
-
-                if (!(value ?? false))
-                {
-                    ItemManaDepletionMessageTimestamp = null;
-                    ItemManaConsumptionTimestamp = null;
-                }
-                else
-                {
-                    ItemManaDepletionMessageTimestamp = null;
-                    ItemManaConsumptionTimestamp = DateTime.UtcNow;
-                }
-            }
+            get => GetProperty(PropertyBool.IsAffecting) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsAffecting); else SetProperty(PropertyBool.IsAffecting, value); }
         }
-
 
         public Usable? ItemUseable
         {
@@ -3052,6 +3027,36 @@ namespace ACE.Server.WorldObjects
         {
             get => (HookGroupType?)GetProperty(PropertyInt.HookGroup);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.HookGroup); else SetProperty(PropertyInt.HookGroup, (int)value.Value); }
+        }
+
+        public PropertyAttribute? ItemAttributeLimit
+        {
+            get => (PropertyAttribute?)GetProperty(PropertyInt.ItemAttributeLimit);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemAttributeLimit); else SetProperty(PropertyInt.ItemAttributeLimit, (int)value.Value); }
+        }
+
+        public int? ItemAttributeLevelLimit
+        {
+            get => GetProperty(PropertyInt.ItemAttributeLevelLimit);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemAttributeLevelLimit); else SetProperty(PropertyInt.ItemAttributeLevelLimit, value.Value); }
+        }
+
+        public PropertyAttribute2nd? ItemAttribute2ndLimit
+        {
+            get => (PropertyAttribute2nd?)GetProperty(PropertyInt.ItemAttribute2ndLimit);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemAttribute2ndLimit); else SetProperty(PropertyInt.ItemAttribute2ndLimit, (int)value.Value); }
+        }
+
+        public int? ItemAttribute2ndLevelLimit
+        {
+            get => GetProperty(PropertyInt.ItemAttribute2ndLevelLimit);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemAttribute2ndLevelLimit); else SetProperty(PropertyInt.ItemAttribute2ndLevelLimit, value.Value); }
+        }
+
+        public bool AiAcceptEverything
+        {
+            get => GetProperty(PropertyBool.AiAcceptEverything) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.AiAcceptEverything); else SetProperty(PropertyBool.AiAcceptEverything, value); }
         }
     }
 }

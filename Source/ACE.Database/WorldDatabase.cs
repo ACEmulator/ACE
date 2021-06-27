@@ -117,6 +117,62 @@ namespace ACE.Database
         /// <summary>
         /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest
         /// </summary>
+        public virtual List<Weenie> GetAllWeenies()
+        {
+            using (var context = new WorldDbContext())
+            {
+                context.Weenie.Load();
+
+                // Base properties for every weenie (ACBaseQualities)
+                context.WeeniePropertiesBool.Load();
+                context.WeeniePropertiesDID.Load();
+                context.WeeniePropertiesFloat.Load();
+                context.WeeniePropertiesIID.Load();
+                context.WeeniePropertiesInt.Load();
+                context.WeeniePropertiesInt64.Load();
+                context.WeeniePropertiesPosition.Load();
+                context.WeeniePropertiesString.Load();
+
+                context.WeeniePropertiesAnimPart.Load();
+
+                //if (isCreature)
+                {
+                    context.WeeniePropertiesAttribute.Load();
+                    context.WeeniePropertiesAttribute2nd.Load();
+
+                    context.WeeniePropertiesBodyPart.Load();
+                }
+
+                //if (weenieType == WeenieType.Book)
+                {
+                    context.WeeniePropertiesBook.Load();
+                    context.WeeniePropertiesBookPageData.Load();
+                }
+
+                context.WeeniePropertiesCreateList.Load();
+                context.WeeniePropertiesEmote.Load();
+                context.WeeniePropertiesEmoteAction.Load();
+                context.WeeniePropertiesEventFilter.Load();
+
+                context.WeeniePropertiesGenerator.Load();
+                context.WeeniePropertiesPalette.Load();
+
+                //if (isCreature)
+                {
+                    context.WeeniePropertiesSkill.Load();
+                }
+
+                context.WeeniePropertiesSpellBook.Load();
+
+                context.WeeniePropertiesTextureMap.Load();
+
+                return context.Weenie.ToList();
+            }
+        }
+
+        /// <summary>
+        /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest
+        /// </summary>
         public Weenie GetWeenie(uint weenieClassId)
         {
             using (var context = new WorldDbContext())
@@ -233,6 +289,33 @@ namespace ACE.Database
                 .FirstOrDefault(r => r.SourceWCID == sourceWeenieClassId && r.TargetWCID == targetWeenieClassId);
 
             return result;
+        }
+
+        public virtual List<CookBook> GetAllCookbooks()
+        {
+            using (var context = new WorldDbContext())
+            {
+                context.CookBook.Load();
+
+                context.Recipe.Load();
+
+                context.RecipeMod.Load();
+                context.RecipeModsBool.Load();
+                context.RecipeModsDID.Load();
+                context.RecipeModsFloat.Load();
+                context.RecipeModsIID.Load();
+                context.RecipeModsInt.Load();
+                context.RecipeModsString.Load();
+
+                context.RecipeRequirementsBool.Load();
+                context.RecipeRequirementsDID.Load();
+                context.RecipeRequirementsFloat.Load();
+                context.RecipeRequirementsIID.Load();
+                context.RecipeRequirementsInt.Load();
+                context.RecipeRequirementsString.Load();
+
+                return context.CookBook.ToList();
+            }
         }
 
         public CookBook GetCookbook(uint sourceWeenieClassId, uint targetWeenieClassId)

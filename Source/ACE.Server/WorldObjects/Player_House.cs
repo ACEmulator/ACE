@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using ACE.Common;
 using ACE.Entity;
@@ -40,6 +39,7 @@ namespace ACE.Server.WorldObjects
             {
                 //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.HouseAlreadyOwned));
                 Session.Network.EnqueueSend(new GameMessageSystemChat("You already own a house!", ChatMessageType.Broadcast));
+                log.Info($"[HOUSE] {Name}.HandleActionBuyHouse(): Failed pre-purchase requirement - Already owns another house");
                 return;
             }
 
@@ -56,6 +56,7 @@ namespace ACE.Server.WorldObjects
                 if (playerLevel < slumlord.MinLevel)
                 {
                     Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouMustBeAboveLevel_ToBuyHouse, slumlord.MinLevel.ToString()));
+                    log.Info($"[HOUSE] {Name}.HandleActionBuyHouse(): Failed pre-purchase requirement - MinLevel");
                     return;
                 }
             }
@@ -65,6 +66,7 @@ namespace ACE.Server.WorldObjects
                 if (Allegiance == null || Allegiance.MonarchId != Guid.Full)
                 {
                     Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustBeMonarchToPurchaseDwelling));
+                    log.Info($"[HOUSE] {Name}.HandleActionBuyHouse(): Failed pre-purchase requirement - HouseRequiresMonarch");
                     return;
                 }
             }
@@ -78,19 +80,39 @@ namespace ACE.Server.WorldObjects
                 if (allegianceMinLevel > 0 && (Allegiance == null || AllegianceNode.Rank < allegianceMinLevel))
                 {
                     Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouMustBeAboveAllegianceRank_ToBuyHouse, allegianceMinLevel.ToString()));
+                    log.Info($"[HOUSE] {Name}.HandleActionBuyHouse(): Failed pre-purchase requirement - AllegianceMinLevel");
                     return;
                 }
             }
 
-            if (PropertyManager.GetBool("house_30day_cooldown").Item && slumlord.House.HouseType != HouseType.Apartment)
+            if (slumlord.House.HouseType != HouseType.Apartment)
             {
-                var lastPurchaseTime = Time.GetDateTimeFromTimestamp(HousePurchaseTimestamp ?? 0);
-                var lastPurchaseTimePlus30 = lastPurchaseTime.AddDays(30);
-
-                if (lastPurchaseTimePlus30 > DateTime.UtcNow)
+                if (PropertyManager.GetBool("house_15day_account").Item && !Account15Days)
                 {
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustWaitToPurchaseHouse));
-                    return;
+                    var accountTimeSpan = DateTime.UtcNow - Account.CreateTime;
+                    if (accountTimeSpan.TotalDays < 15)
+                    {
+                        var msg = "Your account must be at least 15 days old to purchase this dwelling. This applies to all housing except apartments.";
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, msg), new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                        log.Info($"[HOUSE] {Name}.HandleActionBuyHouse(): Failed pre-purchase requirement - house_15day_account");
+                        return;
+                    }
+                }
+
+                if (PropertyManager.GetBool("house_30day_cooldown").Item)
+                {
+                    // fix gap
+                    if (!Account15Days) ManageAccount15Days_HousePurchaseTimestamp();
+
+                    var lastPurchaseTime = Time.GetDateTimeFromTimestamp(HousePurchaseTimestamp ?? 0);
+                    var lastPurchaseTimePlus30 = lastPurchaseTime.AddDays(30);
+
+                    if (lastPurchaseTimePlus30 > DateTime.UtcNow)
+                    {
+                        Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustWaitToPurchaseHouse));
+                        log.Info($"[HOUSE] {Name}.HandleActionBuyHouse(): Failed pre-purchase requirement - house_30day_cooldown");
+                        return;
+                    }
                 }
             }
 
@@ -1805,6 +1827,38 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{i + 1}. {coords}", ChatMessageType.Broadcast));
             }
             Session.Network.EnqueueSend(new GameMessageSystemChat($"Please choose the house you want to keep with /house-select # , where # is 1-{houses.Count}", ChatMessageType.Broadcast));
+        }
+
+        /// <summary>
+        /// When house_15day_account is true (retail server default),
+        /// new characters logging in on accounts less than 15 days old
+        /// have their HousePurchaseTimestamp set to 15 days before account creation.
+        /// 
+        /// This is for the House panel to show the correct date the character may purchase a house,
+        /// which the client automatically calculates as 30 days after HousePurchaseTimestamp
+        /// </summary>
+        private int FifteenDaysBeforeAccountCreation => (int)Time.GetUnixTime(Account.CreateTime.AddDays(-15));
+
+        /// <summary>
+        /// Munges the HousePurchaseTimestamp for new accounts for correct display on House panel
+        /// </summary>
+        private void ManageAccount15Days_HousePurchaseTimestamp()
+        {
+            // http://acpedia.org/wiki/Housing_FAQ#Purchase_timer
+
+            if (HouseRentTimestamp != null) return;
+
+            if (PropertyManager.GetBool("house_15day_account").Item && !Account15Days)
+            {
+                // this is set so the next purchase time displays properly on house tab
+                HousePurchaseTimestamp = FifteenDaysBeforeAccountCreation;
+            }
+            else if (HousePurchaseTimestamp == FifteenDaysBeforeAccountCreation)
+            {
+                // account is now 15+ days old and still has not purchased a house, remove unneeded HousePurchaseTimestamp
+                // also if server admin sets house_15day_account to false, this corrects the next purchase time on the House panel 
+                HousePurchaseTimestamp = null;
+            }
         }
     }
 }

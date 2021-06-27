@@ -177,7 +177,7 @@ namespace ACE.Server.WorldObjects
 
                 // handle Dirty Fighting
                 if (GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
-                    FightDirty(target);
+                    FightDirty(target, damageEvent.Weapon);
                 
                 target.EmoteManager.OnDamage(this);
 
@@ -769,6 +769,8 @@ namespace ACE.Server.WorldObjects
             if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
                 FailCast();
 
+            HandleActionCancelAttack();
+
             float animTime = 0.0f, queueTime = 0.0f;
 
             switch (newCombatMode)
@@ -898,6 +900,9 @@ namespace ACE.Server.WorldObjects
 
         public override float GetNaturalResistance(DamageType damageType)
         {
+            if (damageType == DamageType.Undef)
+                return 1.0f;
+
             // http://acpedia.org/wiki/Announcements_-_11th_Anniversary_Preview#Void_Magic_and_You.21
             // Creatures under Asheron’s protection take half damage from any nether type spell.
             if (damageType == DamageType.Nether)

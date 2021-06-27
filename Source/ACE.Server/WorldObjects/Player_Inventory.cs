@@ -267,46 +267,59 @@ namespace ACE.Server.WorldObjects
 
             TryShuffleStance(wieldedLocation);
 
-            // does this item cast enchantments, and currently have mana?
-            if (item.ItemCurMana > 1 || item.ItemCurMana == null) // TODO: Once Item Current Mana is fixed for loot generated items, '|| item.ItemCurMana == null' can be removed
+            // handle item spells
+            if (item.ItemCurMana > 0)
+                TryActivateSpells(item);
+
+            // handle equipment sets
+            if (item.HasItemSet)
+                EquipItemFromSet(item);
+
+            return true;
+        }
+
+        private bool TryActivateSpells(WorldObject item)
+        {
+            // check activation requirements
+            var result = item.CheckUseRequirements(this);
+
+            if (!result.Success)
             {
-                // check activation requirements
-                var result = item.CheckUseRequirements(this);
-                if (!result.Success)
-                {
-                    if (result.Message != null)
-                        Session.Network.EnqueueSend(result.Message);
+                if (result.Message != null)
+                    Session.Network.EnqueueSend(result.Message);
 
-                    // handle equipment sets
-                    if (item.HasItemSet)
-                        EquipItemFromSet(item);
-
-                    return true;
-                }
-
-                foreach (var spell in item.Biota.GetKnownSpellsIds(BiotaDatabaseLock))
-                {
-                    if (item.HasProcSpell((uint)spell))
-                        continue;
-
-                    if (spell == item.SpellDID)
-                        continue;
-
-                    var enchantmentStatus = CreateItemSpell(item, (uint)spell);
-                    if (enchantmentStatus.Success)
-                        item.IsAffecting = true;
-                }
-
-                // handle equipment sets
-                if (item.HasItemSet)
-                    EquipItemFromSet(item);
-
-                if (item.IsAffecting ?? false)
-                {
-                    if (item.ItemCurMana.HasValue)
-                        item.ItemCurMana--;     // ?
-                }
+                return false;
             }
+
+            // handle special case
+            if (item.ItemCurMana == 1)
+            {
+                item.ItemCurMana = 0;
+                return false;
+            }
+
+            var isAffecting = true;
+
+            foreach (var spell in item.Biota.GetKnownSpellsIds(BiotaDatabaseLock))
+            {
+                if (item.HasProcSpell((uint)spell))
+                    continue;
+
+                if (spell == item.SpellDID)
+                    continue;
+
+                var enchantmentStatus = CreateItemSpell(item, (uint)spell);
+
+                if (enchantmentStatus.Success)
+                    isAffecting = true;
+            }
+
+            if (isAffecting)
+            {
+                item.OnSpellsActivated();
+                item.ItemCurMana--;
+            }
+
             return true;
         }
 
@@ -1143,6 +1156,8 @@ namespace ACE.Server.WorldObjects
             Position prevLocation = null;
             Landblock prevLandblock = null;
 
+            var prevContainer = item.Container;
+
             OnPutItemInContainer(item.Guid.Full, container.Guid.Full, placement);
 
             if (item.CurrentLandblock != null) // Movement is an item pickup off the landblock
@@ -1214,6 +1229,11 @@ namespace ACE.Server.WorldObjects
                 containerRootOwner.EncumbranceVal += (item.EncumbranceVal ?? 0);
                 containerRootOwner.Value += (item.Value ?? 0);
             }
+
+            // when moving from a non-stuck container to a different container,
+            // the database must be synced immediately
+            if (prevContainer != null && !prevContainer.Stuck && container != prevContainer)
+                item.SaveBiotaToDatabase();
 
             Session.Network.EnqueueSend(
                 new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
@@ -1487,7 +1507,13 @@ namespace ACE.Server.WorldObjects
 
                 if (mainWeapon != null)
                 {
-                    if (CombatMode != CombatMode.NonCombat)
+                    // this wasn't a thing in retail, and can bug out the client during laggy conditions
+
+                    // if main-hand slot is filled with anything other than a 1-handed melee weapon, send error
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.ConflictingInventoryLocation));
+                    return false;
+
+                    /*if (CombatMode != CombatMode.NonCombat)
                     {
                         HandleActionChangeCombatMode(CombatMode.Melee, true, () =>
                         {
@@ -1501,7 +1527,7 @@ namespace ACE.Server.WorldObjects
                     else if (!DoHandleActionGetAndWieldItem_DequipItemToInventory(mainWeapon, item))
                     {
                         return false;
-                    }
+                    }*/
                 }
             }
 
@@ -1515,7 +1541,13 @@ namespace ACE.Server.WorldObjects
 
                 if (dualWield != null)
                 {
-                    if (CombatMode != CombatMode.NonCombat)
+                    // this wasn't a thing in retail, and can bug out the client during laggy conditions
+
+                    // if wielding an off-hand weapon, send error
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.ConflictingInventoryLocation));
+                    return false;
+
+                    /*if (CombatMode != CombatMode.NonCombat)
                     {
                         HandleActionChangeCombatMode(CombatMode.Melee, true, () =>
                         {
@@ -1529,7 +1561,7 @@ namespace ACE.Server.WorldObjects
                     else if (!DoHandleActionGetAndWieldItem_DequipItemToInventory(dualWield, item))
                     {
                         return false;
-                    }
+                    }*/
                 }
             }
 
@@ -2632,10 +2664,6 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                // quick fix
-                if (itemToGive is Container)
-                    RushNextPlayerSave(5);
-
                 if (item == itemToGive)
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
 
@@ -2688,7 +2716,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var acceptAll = (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false) && !item.IsStickyAttunedOrContainsStickyAttuned;
+            var acceptAll = target.AiAcceptEverything && !item.IsStickyAttunedOrContainsStickyAttuned;
 
             if (target.HasGiveOrRefuseEmoteForItem(item, out var emoteResult) || acceptAll)
             {
@@ -2743,7 +2771,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                if (item.WeenieType == WeenieType.Deed) // http://acpedia.org/wiki/Housing_FAQ#House_deeds
+                if (item.WeenieType == WeenieType.Deed && target.AiAcceptEverything) // http://acpedia.org/wiki/Housing_FAQ#House_deeds
                 {                    
                     var stackSize = item.StackSize ?? 1;
 
@@ -3100,6 +3128,9 @@ namespace ACE.Server.WorldObjects
 
         public bool TryCreateForGive(WorldObject giver, WorldObject itemBeingGiven)
         {
+            if (itemBeingGiven.IsUniqueOrContainsUnique && !CheckUniques(itemBeingGiven, giver))
+                return false;
+
             if (!TryCreateInInventoryWithNetworking(itemBeingGiven))
             {
                 var msg = new GameMessageSystemChat($"{giver.Name} tries to give you {(itemBeingGiven.StackSize > 1 ? $"{itemBeingGiven.StackSize} " : "")}{itemBeingGiven.GetNameWithMaterial(itemBeingGiven.StackSize)}.", ChatMessageType.Broadcast);
@@ -3124,7 +3155,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Verifies a player can pick up an object that is unique,
         /// or contains uniques.
-        public bool CheckUniques(WorldObject obj, Creature giver = null)
+        public bool CheckUniques(WorldObject obj, WorldObject giver = null)
         {
             var uniqueObjects = obj.GetUniqueObjects();
 

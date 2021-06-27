@@ -35,5 +35,18 @@ namespace ACE.Server.Factories.Tables
             }
             return WeenieClassName.undef;
         }
+
+        private static readonly HashSet<WeenieClassName> _combined = new HashSet<WeenieClassName>();
+
+        static AetheriaWcids()
+        {
+            foreach (var aetheriaWcid in aetheriaColors)
+                _combined.Add(aetheriaWcid);
+        }
+
+        public static bool Contains(WeenieClassName wcid)
+        {
+            return _combined.Contains(wcid);
+        }
     }
 }

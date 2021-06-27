@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 
+using ACE.DatLoader.Entity.AnimationHooks;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
@@ -307,7 +308,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // handle self-procs
-            TryProcEquippedItems(this, true);
+            TryProcEquippedItems(this, this, true, weapon);
 
             var prevTime = 0.0f;
             bool targetProc = false;
@@ -317,8 +318,8 @@ namespace ACE.Server.WorldObjects
                 // are there animation hooks for damage frames?
                 //if (numStrikes > 1 && !TwoHandedCombat)
                 //actionChain.AddDelaySeconds(swingTime);
-                actionChain.AddDelaySeconds(attackFrames[i] * animLength - prevTime);
-                prevTime = attackFrames[i] * animLength;
+                actionChain.AddDelaySeconds(attackFrames[i].time * animLength - prevTime);
+                prevTime = attackFrames[i].time * animLength;
 
                 actionChain.AddAction(this, () =>
                 {
@@ -334,7 +335,7 @@ namespace ACE.Server.WorldObjects
                     // handle target procs
                     if (damageEvent != null && damageEvent.HasDamage && !targetProc)
                     {
-                        TryProcEquippedItems(creature, false);
+                        TryProcEquippedItems(this, creature, false, weapon);
                         targetProc = true;
                     }
 
@@ -394,7 +395,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Performs the player melee swing animation
         /// </summary>
-        public float DoSwingMotion(WorldObject target, out List<float> attackFrames)
+        public float DoSwingMotion(WorldObject target, out List<(float time, AttackHook attackHook)> attackFrames)
         {
             // get the proper animation speed for this attack,
             // based on weapon speed and player quickness

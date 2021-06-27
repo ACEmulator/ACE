@@ -57,23 +57,16 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
             {
-                var results = context.Biota
+                var result = context.Biota
                     .AsNoTracking()
                     .Where(r => r.Id >= min && r.Id <= max)
-                    .ToList();
+                    .OrderByDescending(r => r.Id)
+                    .FirstOrDefault();
 
-                if (!results.Any())
+                if (result == null)
                     return uint.MaxValue;
 
-                var maxId = min;
-
-                foreach (var result in results)
-                {
-                    if (result.Id > maxId)
-                        maxId = result.Id;
-                }
-
-                return maxId;
+                return result.Id;
             }
         }
 
@@ -106,6 +99,8 @@ namespace ACE.Database
 
             using (var context = new ShardDbContext())
             {
+                context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
                 var connection = context.Database.GetDbConnection();
                 connection.Open();
                 var command = connection.CreateCommand();

@@ -1107,6 +1107,65 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
+        public float EnqueueMotion(ActionChain actionChain, MotionStance stance, MotionCommand motionCommand, float speed = 1.0f)
+        {
+            // specialized function to mitigate odd client behavior w/ swapping bows during repeat attacks
+            // TODO: fix the CurrentMotionState mess
+            var motion = new Motion(stance, motionCommand, speed);
+            motion.MotionState.TurnSpeed = 2.25f;  // ??
+
+            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
+
+            actionChain.AddAction(this, () =>
+            {
+                // if no longer in missile combat, don't bother
+                if (this is Player player && player.CombatMode != CombatMode.Missile) return;
+
+                // retain original profile of function, but if something else has changed the stance (such as weapon swapping),
+                // do not thrash CurrentMotionState.Stance
+                if (CurrentMotionState.Stance == stance)
+                    CurrentMotionState = motion;
+
+                EnqueueBroadcastMotion(motion);
+            });
+            actionChain.AddDelaySeconds(animLength);
+
+            return animLength;
+        }
+
+        public float EnqueueMotionPersist(ActionChain actionChain, MotionStance stance, MotionCommand motionCommand, float speed = 1.0f)
+        {
+            if (!PropertyManager.GetBool("persist_movement").Item)
+            {
+                return EnqueueMotion(actionChain, stance, motionCommand, speed);
+            }
+
+            // specialized function to mitigate odd client behavior w/ swapping bows during repeat attacks
+            // TODO: fix the CurrentMotionState mess
+            var motion = new Motion(stance, motionCommand, speed);
+            motion.MotionState.TurnSpeed = 2.25f;  // ??
+
+            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
+
+            actionChain.AddAction(this, () =>
+            {
+                // if no longer in missile combat, don't bother
+                if (this is Player player && player.CombatMode != CombatMode.Missile) return;
+
+                // retain original profile of function, but if something else has changed the stance (such as weapon swapping),
+                // do not thrash CurrentMotionState.Stance
+                if (CurrentMotionState.Stance == stance)
+                    CurrentMotionState = motion;
+
+                motion.Persist(CurrentMotionState);
+
+                EnqueueBroadcastMotion(motion);
+            });
+            actionChain.AddDelaySeconds(animLength);
+
+            return animLength;
+        }
+
         public float EnqueueMotionPersist(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, MotionCommand? prevCommand = null, bool castGesture = false, bool half = false)
         {
             if (!PropertyManager.GetBool("persist_movement").Item)

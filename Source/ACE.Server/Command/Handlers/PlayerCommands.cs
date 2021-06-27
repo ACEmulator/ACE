@@ -28,7 +28,7 @@ namespace ACE.Server.Command.Handlers
             "")]
         public static void HandlePop(Session session, params string[] parameters)
         {
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Current world population: {PlayerManager.GetOnlineCount().ToString()}\n", ChatMessageType.Broadcast));
+            CommandHandlerHelper.WriteOutputInfo(session, $"Current world population: {PlayerManager.GetOnlineCount():N0}", ChatMessageType.Broadcast);
         }
 
         // quest info (uses GDLe formatting to match plugin expectations)

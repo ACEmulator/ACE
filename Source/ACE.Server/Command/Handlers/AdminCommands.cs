@@ -1879,7 +1879,24 @@ namespace ACE.Server.Command.Handlers
                 return null;
             }
 
-            switch (weenie.WeenieType)
+            if (!VerifyCreateWeenieType(weenie.WeenieType))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot spawn {weenie.ClassName} because it is a {weenie.WeenieType}", ChatMessageType.Broadcast));
+                return null;
+            }
+
+            if (forInventory && weenie.IsStuck())
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot spawn {weenie.ClassName} in your inventory because it cannot be picked up", ChatMessageType.Broadcast));
+                return null;
+            }
+
+            return weenie;
+        }
+
+        public static bool VerifyCreateWeenieType(WeenieType weenieType)
+        {
+            switch (weenieType)
             {
                 case WeenieType.Admin:
                 case WeenieType.AI:
@@ -1912,17 +1929,10 @@ namespace ACE.Server.Command.Handlers
                 case WeenieType.Undef:
                 case WeenieType.UNKNOWN__GUESSEDNAME32:
 
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot spawn {weenie.ClassName} because it is a {weenie.WeenieType}", ChatMessageType.Broadcast));
-                    return null;
-            }
+                    return false;
 
-            if (forInventory && weenie.IsStuck())
-            {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot spawn {weenie.ClassName} in your inventory because it cannot be picked up", ChatMessageType.Broadcast));
-                return null;
             }
-
-            return weenie;
+            return true;
         }
 
         /// <summary>
@@ -3876,7 +3886,7 @@ namespace ACE.Server.Command.Handlers
 
             var folder = $"..{sep}..{sep}..{sep}..{sep}Factories{sep}Tables{sep}";
             if (parameters.Length > 0)
-                folder = parameters[1];
+                folder = parameters[0];
 
             var di = new DirectoryInfo(folder);
 

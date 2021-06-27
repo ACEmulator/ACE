@@ -1517,6 +1517,8 @@ namespace ACE.Server.WorldObjects.Managers
 
             var emoteSet = GetEmoteSet(category, quest);
 
+            if (emoteSet == null) return;
+
             // TODO: revisit if nested chains need to propagate timers
             ExecuteEmoteSet(emoteSet, targetObject, nested);
         }

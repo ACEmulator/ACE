@@ -71,6 +71,9 @@ namespace ACE.Server.WorldObjects
         // ========== Account Properties ==========
         // ========================================
 
+        /// <summary>
+        /// Flag indicates if an account is at least 15 days old
+        /// </summary>
         public bool Account15Days
         {
             get => GetProperty(PropertyBool.Account15Days) ?? false;
@@ -1265,6 +1268,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInstanceId.CurrentAppraisalTarget);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentAppraisalTarget); else SetProperty(PropertyInstanceId.CurrentAppraisalTarget, value.Value); }
+        }
+
+        public double? LastPortalTeleportTimestamp
+        {
+            get => GetProperty(PropertyFloat.LastPortalTeleportTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.LastPortalTeleportTimestamp); else SetProperty(PropertyFloat.LastPortalTeleportTimestamp, value.Value); }
         }
 
         /// <summary>

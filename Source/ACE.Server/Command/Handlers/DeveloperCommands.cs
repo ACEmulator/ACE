@@ -21,6 +21,7 @@ using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Factories.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
@@ -1062,53 +1063,46 @@ namespace ACE.Server.Command.Handlers
             AddWeeniesToInventory(session, weenieIds);
         }
 
-        [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates random objects in your inventory.", "type (string or number) <num to create> defaults to 10 if omitted max 50")]
+        [CommandHandler("cirand", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates random objects in your inventory.", "type (string or number) <num to create> defaults to 10 if omitted, max 50")]
         public static void HandleCIRandom(Session session, params string[] parameters)
         {
-            string weenieTypeName = parameters[0];
-            bool isNumericType = uint.TryParse(weenieTypeName, out uint weenieTypeNumber);
-
-            if (!isNumericType)
+            if (!Enum.TryParse(parameters[0], true, out WeenieType weenieType) || !Enum.IsDefined(typeof(WeenieType), weenieType))
             {
-                try
-                {
-                    weenieTypeNumber = (uint)Enum.Parse(typeof(WeenieType), weenieTypeName);
-                }
-                catch
-                {
-                    ChatPacket.SendServerMessage(session, "Not a valid type name", ChatMessageType.Broadcast);
-                    return;
-                }
-            }
-
-            if (weenieTypeNumber == 0)
-            {
-                ChatPacket.SendServerMessage(session, "Not a valid type id - must be a number between 0 - 2,147,483,647", ChatMessageType.Broadcast);
+                ChatPacket.SendServerMessage(session, $"{parameters[0]} is not a valid WeenieType", ChatMessageType.Broadcast);
                 return;
             }
 
-            byte numItems = 10;
-
-            if (parameters.Length == 2)
+            if (!AdminCommands.VerifyCreateWeenieType(weenieType))
             {
-                try
-                {
-                    numItems = Convert.ToByte(parameters[1]);
+                ChatPacket.SendServerMessage(session, $"{weenieType} is not a valid WeenieType for create commands", ChatMessageType.Broadcast);
+                return;
+            }
 
-                    if (numItems < 1) numItems = 1;
-                    if (numItems > 50) numItems = 50;
-                }
-                catch (Exception)
+            var numItems = 10;
+
+            if (parameters.Length > 1)
+            {
+                if (!int.TryParse(parameters[1], out numItems) || numItems < 1 || numItems > 50)
                 {
-                    ChatPacket.SendServerMessage(session, "Not a valid number - must be a number between 1 - 50", ChatMessageType.Broadcast);
+                    ChatPacket.SendServerMessage(session, $"<num to create> must be a number between 1 - 50", ChatMessageType.Broadcast);
                     return;
                 }
             }
 
-            var items = LootGenerationFactory.CreateRandomObjectsOfType((WeenieType)weenieTypeNumber, numItems);
+            var items = LootGenerationFactory.CreateRandomObjectsOfType(weenieType, numItems);
+
+            var stuck = new List<WorldObject>();
 
             foreach (var item in items)
-                session.Player.TryCreateInInventoryWithNetworking(item);
+            {
+                if (!item.Stuck)
+                    session.Player.TryCreateInInventoryWithNetworking(item);
+                else
+                    stuck.Add(item);    
+            }
+
+            if (stuck.Count != 0)
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot spawn {string.Join(", ", stuck.Select(i => i.WeenieClassName))} in your inventory because it cannot be picked up", ChatMessageType.Broadcast));
         }
 
 
@@ -2151,12 +2145,15 @@ namespace ACE.Server.Command.Handlers
         {
             var landblock = session.Player.Location.Landblock;
 
+            var blockStart = landblock << 16;
+            var blockEnd = blockStart | 0xFFFF;
+
             using (var ctx = new WorldDbContext())
             {
                 var query = from weenie in ctx.Weenie
                             join wstr in ctx.WeeniePropertiesString on weenie.ClassId equals wstr.ObjectId
                             join wpos in ctx.WeeniePropertiesPosition on weenie.ClassId equals wpos.ObjectId
-                            where weenie.Type == (int)WeenieType.Portal && wpos.PositionType == (int)PositionType.Destination && wpos.ObjCellId >> 16 == landblock
+                            where weenie.Type == (int)WeenieType.Portal && wpos.PositionType == (int)PositionType.Destination && wpos.ObjCellId >= blockStart && wpos.ObjCellId <= blockEnd
                             select wstr;
 
                 var results = query.ToList();
@@ -2308,12 +2305,14 @@ namespace ACE.Server.Command.Handlers
             TreasureDeath profile = new TreasureDeath
             {
                 Tier = tier,
-                LootQualityMod = 0
+                LootQualityMod = 0,
+                MagicItemTreasureTypeSelectionChances = 9,  // 8 or 9?
             };
 
             for (var i = 0; i < numItems; i++)
             {
-                var wo = LootGenerationFactory.CreateRandomLootObjects(profile, true);
+                //var wo = LootGenerationFactory.CreateRandomLootObjects(profile, true);
+                var wo = LootGenerationFactory.CreateRandomLootObjects_New(profile, TreasureItemCategory.MagicItem);
                 if (wo != null)
                     session.Player.TryCreateInInventoryWithNetworking(wo);
                 else
@@ -2545,13 +2544,16 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("fellow-info", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows debug info for fellowships.")]
         public static void HandleFellowInfo(Session session, params string[] parameters)
         {
-            var player = session.Player;
+            var player = CommandHandlerHelper.GetLastAppraisedObject(session) as Player;
+
+            if (player == null)
+                player = session.Player;
 
             var fellowship = player.Fellowship;
 
             if (fellowship == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat("You must be in a fellowship to use this command.", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat("Player target must be in a fellowship to use this command.", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -2568,6 +2570,22 @@ namespace ACE.Server.Command.Handlers
 
                 //session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(levelScale * 100, 2)}% / {Math.Round(levelXPScale * 100, 2)}%", ChatMessageType.Broadcast));
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(levelXPScale * 100, 2)}%", ChatMessageType.Broadcast));
+            }
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"----------", ChatMessageType.Broadcast));
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"ShareXP: {fellowship.ShareXP}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"EvenShare: {fellowship.EvenShare}", ChatMessageType.Broadcast));
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Distance scale:", ChatMessageType.Broadcast));
+
+            foreach (var fellow in fellows.Values)
+            {
+                var dist = player.Location.Distance2D(fellow.Location);
+
+                var distanceScalar = fellowship.GetDistanceScalar(player, fellow, XpType.Kill);
+
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{fellow.Name}: {Math.Round(dist):N0} ({distanceScalar:F2}) - {fellow.Location}", ChatMessageType.Broadcast));
             }
         }
 
@@ -2841,26 +2859,26 @@ namespace ACE.Server.Command.Handlers
         public static void HandleFast(Session session, params string[] parameters)
         {
             var spell = new Spell(SpellId.QuicknessSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
 
             spell = new Spell(SpellId.SprintSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
 
             spell = new Spell(SpellId.StrengthSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
         }
 
         [CommandHandler("slow", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
         public static void HandleSlow(Session session, params string[] parameters)
         {
             var spell = new Spell(SpellId.SlownessSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
 
             spell = new Spell(SpellId.LeadenFeetSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
 
             spell = new Spell(SpellId.WeaknessSelf8);
-            session.Player.CreateEnchantment(session.Player, session.Player, spell);
+            session.Player.CreateEnchantment(session.Player, session.Player, null, spell);
         }
 
         [CommandHandler("rip", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld)]
