@@ -644,7 +644,7 @@ namespace ACE.Server.Managers
                 ("pk_new_character_grace_period", new Property<double>(300, "the number of seconds, in addition to pk_respite_timer, that a player killer is set to non-player killer status after first exiting training academy")),
                 ("pk_respite_timer", new Property<double>(300, "the number of seconds that a player killer is set to non-player killer status after dying to another player killer")),
                 ("quest_mindelta_rate", new Property<double>(1.0, "scales all quest min delta time between solves, 1 being normal")),
-                ("rare_drop_rate_percent", new Property<double>(0.04, "Adjust the chance of a rare to sapwn as a percentage. Default is 0.04, or 1 in 2,500. Max is 100, or every eligible drop.")),
+                ("rare_drop_rate_percent", new Property<double>(0.04, "Adjust the chance of a rare to spawn as a percentage. Default is 0.04, or 1 in 2,500. Max is 100, or every eligible drop.")),
                 ("spellcast_max_angle", new Property<double>(5.0, "for advanced player spell casting, the maximum angle to target release a spell projectile. retail seemed to default to a lower 5-20 value here, although some players seem to prefer a higher 45 degree angle")),
                 ("trophy_drop_rate", new Property<double>(1.0, "Modifier for trophies dropped on creature death")),
                 ("unlocker_window", new Property<double>(10.0, "The number of seconds a player unlocking a chest has exclusive access to first opening the chest.")),
