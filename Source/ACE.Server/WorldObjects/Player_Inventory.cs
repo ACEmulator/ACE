@@ -1347,6 +1347,10 @@ namespace ACE.Server.WorldObjects
             item.Location = new Position(Location);
             item.Placement = ACE.Entity.Enum.Placement.Resting;  // This is needed to make items lay flat on the ground.
 
+            // increased precision for non-ethereal objects
+            var ethereal = item.Ethereal;
+            item.Ethereal = true;
+
             if (!CurrentLandblock.AddWorldObject(item))
                 return false;
 
@@ -1365,6 +1369,8 @@ namespace ACE.Server.WorldObjects
 
                 item.SendUpdatePosition(true);
             }
+            item.Ethereal = ethereal;
+
             return true;
         }
 
