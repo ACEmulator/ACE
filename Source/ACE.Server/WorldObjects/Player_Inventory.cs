@@ -1288,7 +1288,52 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                HandleActionDropItem_Inner(item, wasEquipped);
+                if (wasEquipped)
+                {
+                    if (!TryDequipObjectWithNetworking(item.Guid.Full, out _, DequipObjectAction.DropItem))
+                    {
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to dequip item!")); // Custom error message
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                        return;
+                    }
+                }
+                else
+                {
+                    if (!TryRemoveFromInventoryWithNetworking(item.Guid.Full, out _, RemoveFromInventoryAction.DropItem))
+                    {
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to remove item from inventory!")); // Custom error message
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                        return;
+                    }
+                }
+
+                if (TryDropItem(item))
+                {
+                    // drop success
+                    Session.Network.EnqueueSend(
+                        new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, ObjectGuid.Invalid),
+                        new GameEventItemServerSaysMoveItem(Session, item),
+                        new GameMessageUpdatePosition(item));
+
+                    EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+
+                    item.EmoteManager.OnDrop(this);
+                }
+                else
+                {
+                    // drop failed, re-add to inventory
+                    if (TryAddToInventory(item))
+                    {
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                        if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
+                            UpdateCoinValue();
+
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                    }
+                    else
+                        log.Warn($"0x{item.Guid}:{item.Name} for player {Name} lost from HandleActionDropItem failure.");
+                }
 
                 var returnStance = new Motion(CurrentMotionState.Stance);
                 EnqueueBroadcastMotion(returnStance);
@@ -1297,64 +1342,30 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
         }
 
-        private void HandleActionDropItem_Inner(WorldObject item, bool wasEquipped)
+        private bool TryDropItem(WorldObject item)
         {
+            item.Location = new Position(Location);
+            item.Placement = ACE.Entity.Enum.Placement.Resting;  // This is needed to make items lay flat on the ground.
+
+            if (!CurrentLandblock.AddWorldObject(item))
+                return false;
+
+            // use radius?
             var targetPos = Location.InFrontOf(1.1f);
             targetPos.LandblockId = new LandblockId(targetPos.GetCell());
 
-            if (!IsDirectVisible(targetPos))
+            // try slide to new position
+            var transit = item.PhysicsObj.transition(item.PhysicsObj.Position, new Physics.Common.Position(targetPos), false);
+
+            if (transit != null && transit.SpherePath.CurCell != null)
             {
-                // not enough room to drop item
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.BadDrop));
-                return;
+                item.PhysicsObj.SetPositionInternal(transit);
+
+                item.SyncLocation();
+
+                item.SendUpdatePosition(true);
             }
-
-            if (wasEquipped)
-            {
-                if (!TryDequipObjectWithNetworking(item.Guid.Full, out _, DequipObjectAction.DropItem))
-                {
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to dequip item!")); // Custom error message
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
-                    return;
-                }
-            }
-            else
-            {
-                if (!TryRemoveFromInventoryWithNetworking(item.Guid.Full, out _, RemoveFromInventoryAction.DropItem))
-                {
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to remove item from inventory!")); // Custom error message
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
-                    return;
-                }
-            }
-
-            item.Location = new Position(targetPos);
-            item.Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
-
-            // TODO: get landblock for targetPos
-            if (CurrentLandblock.AddWorldObject(item))
-            {
-                Session.Network.EnqueueSend(
-                    new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, ObjectGuid.Invalid),
-                    new GameEventItemServerSaysMoveItem(Session, item),
-                    new GameMessageUpdatePosition(item));
-
-                EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
-
-                item.EmoteManager.OnDrop(this);
-
-            }
-            else
-            {
-                TryAddToInventory(item);
-
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
-
-                if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
-                    UpdateCoinValue();
-
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
-            }
+            return true;
         }
 
         /// <summary>
@@ -2173,17 +2184,24 @@ namespace ACE.Server.WorldObjects
                 if (stack.WeenieType == WeenieType.Coin)
                     UpdateCoinValue();
 
-                newStack.Location = new Position(Location.InFrontOf(1.1f));
-                newStack.Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
-
-                if (CurrentLandblock.AddWorldObject(newStack))
+                if (TryDropItem(newStack))
                 {
                     EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
                 }
                 else
                 {
-                    // todo: if this happens, we should just put split amount back into the original stack
-                    log.WarnFormat("Partial stack 0x{0:X8}:{1} for player {2} lost from HandleActionStackableSplitTo3D failure.", stack.Guid.Full, stack.Name, Name);
+                    // restore original stack
+                    if (AdjustStack(stack, amount, stackFoundInContainer, stackRootOwner))
+                    {
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                        if (stack.WeenieType == WeenieType.Coin)
+                            UpdateCoinValue();
+                    }
+                    else
+                        log.WarnFormat("Partial stack 0x{0:X8}:{1} for player {2} lost from HandleActionStackableSplitTo3D failure.", stack.Guid.Full, stack.Name, Name);
+
+                    newStack.Destroy();
                 }
 
                 var returnStance = new Motion(CurrentMotionState.Stance);
