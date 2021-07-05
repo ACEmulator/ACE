@@ -214,6 +214,23 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
+            if (PhysicsObj.Position.ObjCellID >> 16 != location.Landblock)
+            {
+                // AdjustToOutside and find_cell_list can inconsistently result in 2 different cells for edges
+                // if something directly on a landblock edge has resulted in a different landblock from find_cell_list, discard completely
+
+                // this can also (more legitimately) happen even if the object isn't directly on landblock edge, but is near it
+                // an object trying to spawn on a hillside near a landblock edge might get pushed slightly during spawning,
+                // resulting in a successful spawn in a neighboring landblock. we don't handle adjustments to the actual landblock reference in here
+
+                // ideally CellArray.LoadCells = false would be passed to find_cell_list to prevent it from even attempting to load an unloaded neighboring landblock
+
+                log.Debug($"{Name} ({Guid}) AddPhysicsObj() - {location} resulted in {PhysicsObj.Position.ShortLoc()}, discarding");
+                PhysicsObj.DestroyObject();
+                PhysicsObj = null;
+                return false;
+            }
+
             //Console.WriteLine($"AddPhysicsObj: success: {Name} ({Guid})");
             SyncLocation();
 
@@ -225,7 +242,13 @@ namespace ACE.Server.WorldObjects
         public void SyncLocation()
         {
             Location.LandblockId = new LandblockId(PhysicsObj.Position.ObjCellID);
-            Location.Pos = PhysicsObj.Position.Frame.Origin;
+
+            // skip ObjCellID check when updating from physics
+            // TODO: update to newer version of ACE.Entity.Position
+            Location.PositionX = PhysicsObj.Position.Frame.Origin.X;
+            Location.PositionY = PhysicsObj.Position.Frame.Origin.Y;
+            Location.PositionZ = PhysicsObj.Position.Frame.Origin.Z;
+
             Location.Rotation = PhysicsObj.Position.Frame.Orientation;
         }
 
@@ -826,7 +849,7 @@ namespace ACE.Server.WorldObjects
         /// If this is a container or a creature, all of the inventory and/or equipped objects will also be destroyed.<para />
         /// An object should only be destroyed once.
         /// </summary>
-        public virtual void Destroy(bool raiseNotifyOfDestructionEvent = true)
+        public void Destroy(bool raiseNotifyOfDestructionEvent = true, bool fromLandblockUnload = false)
         {
             if (IsDestroyed)
             {
@@ -857,7 +880,12 @@ namespace ACE.Server.WorldObjects
                 NotifyOfEvent(RegenerationType.Destruction);
 
             if (IsGenerator)
-                OnGeneratorDestroy();
+            {
+                if (fromLandblockUnload)
+                    ProcessGeneratorDestructionDirective(GeneratorDestruct.Destroy, fromLandblockUnload);
+                else
+                    OnGeneratorDestroy();
+            }
 
             CurrentLandblock?.RemoveWorldObject(Guid);
 
