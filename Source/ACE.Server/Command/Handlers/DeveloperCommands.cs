@@ -1898,38 +1898,43 @@ namespace ACE.Server.Command.Handlers
                 {
                     if (propType.Equals("PropertyInt", StringComparison.OrdinalIgnoreCase))
                     {
-                        obj.SetProperty((PropertyInt)result, Convert.ToInt32(value));
-                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(obj, (PropertyInt)result, Convert.ToInt32(value)));
+                        var intValue = Convert.ToInt32(value, value.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? 16 : 10);
+
+                        session.Player.UpdateProperty(obj, (PropertyInt)result, intValue, true);
                     }
                     else if (propType.Equals("PropertyInt64", StringComparison.OrdinalIgnoreCase))
                     {
-                        obj.SetProperty((PropertyInt64)result, Convert.ToInt64(value));
-                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt64(obj, (PropertyInt64)result, Convert.ToInt64(value)));
+                        var int64Value = Convert.ToInt64(value, value.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? 16 : 10);
+
+                        session.Player.UpdateProperty(obj, (PropertyInt64)result, int64Value, true);
                     }
                     else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
                     {
-                        obj.SetProperty((PropertyBool)result, Convert.ToBoolean(value));
-                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(obj, (PropertyBool)result, Convert.ToBoolean(value)));
+                        var boolValue = Convert.ToBoolean(value);
+
+                        session.Player.UpdateProperty(obj, (PropertyBool)result, boolValue, true);
                     }
                     else if (propType.Equals("PropertyFloat", StringComparison.OrdinalIgnoreCase))
                     {
-                        obj.SetProperty((PropertyFloat)result, Convert.ToDouble(value));
-                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyFloat(obj, (PropertyFloat)result, Convert.ToDouble(value)));
+                        var floatValue = Convert.ToDouble(value);
+
+                        session.Player.UpdateProperty(obj, (PropertyFloat)result, floatValue, true);
                     }
                     else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
                     {
-                        obj.SetProperty((PropertyString)result, value);
-                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(obj, (PropertyString)result, value));
+                        session.Player.UpdateProperty(obj, (PropertyString)result, value, true);
                     }
                     else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
                     {
-                        obj.SetProperty((PropertyInstanceId)result, Convert.ToUInt32(value));
-                        obj.EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(obj, (PropertyInstanceId)result, new ObjectGuid(Convert.ToUInt32(value))));
+                        var iidValue = Convert.ToUInt32(value, value.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? 16 : 10);
+
+                        session.Player.UpdateProperty(obj, (PropertyInstanceId)result, iidValue, true);
                     }
                     else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
                     {
-                        obj.SetProperty((PropertyDataId)result, Convert.ToUInt32(value));
-                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyDataID(obj, (PropertyDataId)result, Convert.ToUInt32(value)));
+                        var didValue = Convert.ToUInt32(value, value.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? 16 : 10);
+
+                        session.Player.UpdateProperty(obj, (PropertyDataId)result, didValue, true);
                     }
                 }
                 catch (Exception e)
