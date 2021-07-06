@@ -7,5 +7,7 @@ namespace ACE.Common
         public DatabaseConfiguration MySql { get; set; }
 
         public OfflineConfiguration Offline { get; set; } = new OfflineConfiguration();
+
+        public PluginsConfiguration Plugins { get; set; }
     }
 }
