@@ -1311,6 +1311,21 @@ namespace ACE.Server.Physics
                 WeenieObj.WorldObject.SetProperty(PropertyBool.Ethereal, true);
             }
 
+            if (entering_world && transition.SpherePath.CurPos.Landblock != pos.Landblock)
+            {
+                // AdjustToOutside and find_cell_list can inconsistently result in 2 different cells for edges
+                // if something directly on a landblock edge has resulted in a different landblock from find_cell_list, discard completely
+
+                // this can also (more legitimately) happen even if the object isn't directly on landblock edge, but is near it
+                // an object trying to spawn on a hillside near a landblock edge might get pushed slightly during spawning,
+                // resulting in a successful spawn in a neighboring landblock. we don't handle adjustments to the actual landblock reference in here
+
+                // ideally CellArray.LoadCells = false would be passed to find_cell_list to prevent it from even attempting to load an unloaded neighboring landblock
+
+                log.Debug($"{Name} ({ID:X8}) AddPhysicsObj() - {pos.ShortLoc()} resulted in {transition.SpherePath.CurPos.ShortLoc()}, discarding");
+                return SetPositionError.NoValidPosition;
+            }
+
             if (!SetPositionInternal(transition))
                 return SetPositionError.GeneralFailure;
 
