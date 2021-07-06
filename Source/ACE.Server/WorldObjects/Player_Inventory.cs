@@ -3258,6 +3258,33 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Used with UpdateObject to maintain container placement sync on server
+        /// </summary>
+        public bool MoveItemToFirstContainerSlot(WorldObject target)
+        {
+            var container = target.Container as Container;
+
+            if (container == null)
+            {
+                log.Error($"{Name}.Player_Inventory.MoveItemToFirstContainerSlot() - failed to find target item {target.Name} ({target.Guid}) in player inventory");
+                return false;
+            }
+
+            if (!TryRemoveFromInventory(target.Guid))
+            {
+                log.Error($"{Name}.Player_Inventory.MoveItemToFirstContainerSlot() - failed to remove target item {target.Name} ({target.Guid}) from player inventory");
+                return false;
+            }
+
+            if (!container.TryAddToInventory(target, 0, true, false))
+            {
+                log.Error($"{Name}.Player_Inventory.MoveItemToFirstContainerSlot() - failed to re-add target item {target.Name} ({target.Guid}) to player inventory");
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Returns the total # of equipped objects matching a wcid
         /// </summary>
         public int GetNumEquippedObjectsOfWCID(uint weenieClassId)

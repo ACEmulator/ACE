@@ -331,20 +331,29 @@ namespace ACE.Server.Managers
 
             CreateDestroyItems(player, recipe, source, target, successChance, success);
 
-            // this code was intended for dyes, but UpdateObj seems to remove crafting components
-            // from shortcut bar, if they are hotkeyed
-            // more specifity for this, only if relevant properties are modified?
-            var shortcuts = player.GetShortcuts();
-
-            if (!shortcuts.Select(i => i.ObjectId).Contains(target.Guid.Full))
+            if (!target.IsDestroyed)
             {
-                var updateObj = new GameMessageUpdateObject(target);
-                var updateDesc = new GameMessageObjDescEvent(player);
+                // this code was intended for dyes, but UpdateObj seems to remove crafting components
+                // from shortcut bar, if they are hotkeyed
+                // more specifity for this, only if relevant properties are modified?
+                var shortcuts = player.GetShortcuts();
 
-                if (target.CurrentWieldedLocation != null)
-                    player.EnqueueBroadcast(updateObj, updateDesc);
-                else
-                    player.Session.Network.EnqueueSend(updateObj);
+                if (!shortcuts.Select(i => i.ObjectId).Contains(target.Guid.Full))
+                {
+                    var updateObj = new GameMessageUpdateObject(target);
+                    var updateDesc = new GameMessageObjDescEvent(player);
+
+                    if (target.CurrentWieldedLocation != null)
+                        player.EnqueueBroadcast(updateObj, updateDesc);
+                    else
+                    {
+                        player.Session.Network.EnqueueSend(updateObj);
+
+                        // client automatically moves item to first slot in container
+                        // when an UpdateObject is sent. we must mimic this process on the server for persistance
+                        player.MoveItemToFirstContainerSlot(target);
+                    }
+                }
             }
 
             if (success && recipe.Skill > 0 && recipe.Difficulty > 0)
