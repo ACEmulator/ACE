@@ -1477,45 +1477,63 @@ namespace ACE.Server.Command.Handlers
             Console.WriteLine("Visible: " + visible);
         }
 
-        [CommandHandler("showstats", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows a list of player's current attribute/skill levels in console window", "showstats")]
+        [CommandHandler("showstats", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows a list of a creature's current attribute/skill levels", "showstats")]
         public static void HandleShowStats(Session session, params string[] parameters)
         {
-            var player = session.Player;
+            // get the last appraised object
+            var item = CommandHandlerHelper.GetLastAppraisedObject(session) as Creature;
+            if (item == null)
+            {
+                session.Player.SendMessage("ERROR: You must appraise a creature or player to use this function.");
+                return;
+            }
 
-            Console.WriteLine("Strength: " + player.Strength.Current);
-            Console.WriteLine("Endurance: " + player.Endurance.Current);
-            Console.WriteLine("Coordination: " + player.Coordination.Current);
-            Console.WriteLine("Quickness: " + player.Quickness.Current);
-            Console.WriteLine("Focus: " + player.Focus.Current);
-            Console.WriteLine("Self: " + player.Self.Current);
+            Creature creature = (Creature)item;
+            string output = "Strength: " + creature.Strength.Current;
+            output += "\nEndurance: " + creature.Endurance.Current;
+            output += "\nCoordination: " + creature.Coordination.Current;
+            output += "\nQuickness: " + creature.Quickness.Current;
+            output += "\nFocus: " + creature.Focus.Current;
+            output += "\nSelf: " + creature.Self.Current;
 
-            Console.WriteLine();
+            output += "\n\nHealth: " + creature.Health.Current + "/" + creature.Health.MaxValue;
+            output += "\nStamina: " + creature.Stamina.Current + "/" + creature.Stamina.MaxValue;
+            output += "\nMana: " + creature.Mana.Current + "/" + creature.Mana.MaxValue;
 
-            Console.WriteLine("Health: " + player.Health.Current + "/" + player.Health.MaxValue);
-            Console.WriteLine("Stamina: " + player.Stamina.Current + "/" + player.Stamina.MaxValue);
-            Console.WriteLine("Mana: " + player.Mana.Current + "/" + player.Mana.MaxValue);
+            var specialized = creature.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Specialized).OrderBy(s => s.Skill.ToString());
+            var trained = creature.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Trained).OrderBy(s => s.Skill.ToString());
+            var untrained = creature.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Untrained && s.IsUsable).OrderBy(s => s.Skill.ToString());
+            var unusable = creature.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Untrained && !s.IsUsable).OrderBy(s => s.Skill.ToString());
 
-            Console.WriteLine();
+            if (specialized.Count() > 0)
+            {
+                output += "\n\n== Specialized ==";
+                foreach (var skill in specialized)
+                    output += "\n" + skill.Skill + ": " + skill.Current;
+            }
 
-            var specialized = player.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Specialized).OrderBy(s => s.Skill.ToString());
-            var trained = player.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Trained).OrderBy(s => s.Skill.ToString());
-            var untrained = player.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Untrained && s.IsUsable).OrderBy(s => s.Skill.ToString());
-            var unusable = player.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Untrained && !s.IsUsable).OrderBy(s => s.Skill.ToString());
+            if (trained.Count() > 0)
+            {
+                output += "\n\n== Trained ==";
+                foreach (var skill in trained)
+                    output += "\n" + skill.Skill + ": " + skill.Current;
+            }
 
-            foreach (var skill in specialized)
-                Console.WriteLine(skill.Skill + ": " + skill.Current);
-            Console.WriteLine("===");
+            if (untrained.Count() > 0)
+            {
+                output += "\n\n== Untrained ==";
+                foreach (var skill in untrained)
+                    output += "\n" + skill.Skill + ": " + skill.Current;
+            }
 
-            foreach (var skill in trained)
-                Console.WriteLine(skill.Skill + ": " + skill.Current);
-            Console.WriteLine("===");
+            if (unusable.Count() > 0)
+            {
+                output += "\n\n== Unusable ==";
+                foreach (var skill in unusable)
+                    output += "\n" + skill.Skill + ": " + skill.Current;
+            }
 
-            foreach (var skill in untrained)
-                Console.WriteLine(skill.Skill + ": " + skill.Current);
-            Console.WriteLine("===");
-
-            foreach (var skill in unusable)
-                Console.WriteLine(skill.Skill + ": " + skill.Current);
+            session.Player.SendMessage(output);
         }
 
         [CommandHandler("givemana", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Gives mana to the last appraised object", "<amount>")]
