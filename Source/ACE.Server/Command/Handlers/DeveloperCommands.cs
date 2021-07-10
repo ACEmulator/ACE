@@ -3531,5 +3531,13 @@ namespace ACE.Server.Command.Handlers
                 }
             }
         }
+
+        [CommandHandler("audit-landblocks", AccessLevel.Developer, CommandHandlerFlag.None)]
+        public static void HandlAuditLandblocks(Session session, params string[] parameters)
+        {
+            LandblockDebugger.Audit();
+
+            CommandHandlerHelper.WriteOutputInfo(session, "Audit completed. Please check log4net output");
+        }
     }
 }

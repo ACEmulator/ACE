@@ -37,12 +37,16 @@ namespace ACE.Server.Physics.Common
 
         public Landblock() : base()
         {
+            LandblockDebugger.OnCtor(this);
+
             Init();
         }
 
         public Landblock(CellLandblock landblock)
             : base(landblock)
         {
+            LandblockDebugger.OnCtor(this);
+
             Init();
 
             ID = landblock.Id;

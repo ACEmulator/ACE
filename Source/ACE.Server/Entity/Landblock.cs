@@ -167,6 +167,8 @@ namespace ACE.Server.Entity
 
         public Landblock(LandblockId id)
         {
+            LandblockDebugger.OnCtor(this);
+
             //log.Debug($"Landblock({(id.Raw | 0xFFFF):X8})");
 
             Id = id;
