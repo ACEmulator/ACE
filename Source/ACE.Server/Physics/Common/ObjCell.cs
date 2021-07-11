@@ -9,10 +9,14 @@ using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Combat;
 using ACE.Server.Physics.Managers;
 
+using log4net;
+
 namespace ACE.Server.Physics.Common
 {
     public class ObjCell: PartCell, IEquatable<ObjCell>
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public uint ID;
         public LandDefs.WaterType WaterType;
         public Position Pos;
@@ -29,7 +33,26 @@ namespace ACE.Server.Physics.Common
         public List<DatLoader.Entity.Stab> VisibleCells;
         public bool SeenOutside;
         public List<uint> VoyeurTable;
-        public Landblock CurLandblock;
+
+        private WeakReference<Landblock> _curLandblockRef;
+        public Landblock CurLandblock
+        {
+            get
+            {
+                if (_curLandblockRef == null)
+                    return null;
+
+                if (_curLandblockRef.TryGetTarget(out var target))
+                    return target;
+
+                log.Error($"ObjCell {ID:X8} at Position {Pos} has CurLandblock that has gone null!!!");
+                return null;
+            }
+            set
+            {
+                _curLandblockRef = new WeakReference<Landblock>(value);
+            }
+        }
 
         /// <summary>
         /// Returns TRUE if this is a house cell that can be protected by a housing barrier
