@@ -50,7 +50,7 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        private static readonly List<uint> IconOverlay_ItemMaxLevel = new List<uint>()
+        public static readonly List<uint> IconOverlay_ItemMaxLevel = new List<uint>()
         {
             0x6006C34,  // 1
             0x6006C35,  // 2
