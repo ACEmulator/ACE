@@ -111,7 +111,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Attempts to remove the hourglass / fix the busy state for the player
         /// </summary>
-        [CommandHandler("fixbusy", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0, "Attempts to remove the hourglass / fix the busy state for the player", "/fixbusy")]
+        [CommandHandler("fixbusy", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0, "Attempts to remove the hourglass / fix the busy state for the player")]
         public static void HandleFixBusy(Session session, params string[] parameters)
         {
             session.Player.SendUseDoneEvent();
@@ -697,7 +697,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Debug command to print out all of the saved character positions.
         /// </summary>
-        [CommandHandler("listpositions", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Displays all available saved character positions from the database.", "@listpositions")]
+        [CommandHandler("listpositions", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Displays all available saved character positions from the database.")]
         public static void HandleListPositions(Session session, params string[] parameters)
         {
             var posDict = session.Player.GetAllPositions();
@@ -1434,7 +1434,7 @@ namespace ACE.Server.Command.Handlers
             creature.TurnTo(session.Player, true);
         }
 
-        [CommandHandler("debugmove", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Toggles movement debugging for the last appraised monster", "debugmove <on/off>")]
+        [CommandHandler("debugmove", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Toggles movement debugging for the last appraised monster", "<on/off>")]
         public static void ToggleMovementDebug(Session session, params string[] parameters)
         {
             // get the last appraised object
@@ -1553,7 +1553,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Teleport object culling precision test
         /// </summary>
-        [CommandHandler("teledist", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Teleports a some distance ahead of the last object spawned", "/teletest <distance>")]
+        [CommandHandler("teledist", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Teleports a some distance ahead of the last object spawned", "<distance>")]
         public static void HandleTeleportDist(Session session, params string[] parameters)
         {
             if (parameters.Length < 1)
@@ -1730,7 +1730,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Enables emote debugging for the last appraised object
         /// </summary>
-        [CommandHandler("debugemote", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Enables emote debugging for the last appraised object", "/debugemote")]
+        [CommandHandler("debugemote", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Enables emote debugging for the last appraised object")]
         public static void HandleDebugEmote(Session session, params string[] parameters)
         {
             var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
@@ -1744,7 +1744,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Shows the current player location, from the server perspective
         /// </summary>
-        [CommandHandler("myloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the current player location, from the server perspective", "/myloc")]
+        [CommandHandler("myloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the current player location, from the server perspective")]
         public static void HandleMyLoc(Session session, params string[] parameters)
         {
             session.Network.EnqueueSend(new GameMessageSystemChat($"CurrentLandblock: {session.Player.CurrentLandblock.Id.Landblock:X4}", ChatMessageType.Broadcast));
@@ -1755,7 +1755,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Gets a property for the last appraised object
         /// </summary>
-        [CommandHandler("getproperty", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Gets a property for the last appraised object", "/getproperty <property>")]
+        [CommandHandler("getproperty", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Gets a property for the last appraised object", "<property>")]
         public static void HandleGetProperty(Session session, params string[] parameters)
         {
             var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
@@ -1826,7 +1826,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Sets a property for the last appraised object
         /// </summary>
-        [CommandHandler("setproperty", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2, "Sets a property for the last appraised object", "/setproperty <property> <value>")]
+        [CommandHandler("setproperty", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2, "Sets a property for the last appraised object", "<property> <value>")]
         public static void HandleSetProperty(Session session, params string[] parameters)
         {
             var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
@@ -1898,38 +1898,43 @@ namespace ACE.Server.Command.Handlers
                 {
                     if (propType.Equals("PropertyInt", StringComparison.OrdinalIgnoreCase))
                     {
-                        obj.SetProperty((PropertyInt)result, Convert.ToInt32(value));
-                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(obj, (PropertyInt)result, Convert.ToInt32(value)));
+                        var intValue = Convert.ToInt32(value, value.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? 16 : 10);
+
+                        session.Player.UpdateProperty(obj, (PropertyInt)result, intValue, true);
                     }
                     else if (propType.Equals("PropertyInt64", StringComparison.OrdinalIgnoreCase))
                     {
-                        obj.SetProperty((PropertyInt64)result, Convert.ToInt64(value));
-                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt64(obj, (PropertyInt64)result, Convert.ToInt64(value)));
+                        var int64Value = Convert.ToInt64(value, value.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? 16 : 10);
+
+                        session.Player.UpdateProperty(obj, (PropertyInt64)result, int64Value, true);
                     }
                     else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
                     {
-                        obj.SetProperty((PropertyBool)result, Convert.ToBoolean(value));
-                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(obj, (PropertyBool)result, Convert.ToBoolean(value)));
+                        var boolValue = Convert.ToBoolean(value);
+
+                        session.Player.UpdateProperty(obj, (PropertyBool)result, boolValue, true);
                     }
                     else if (propType.Equals("PropertyFloat", StringComparison.OrdinalIgnoreCase))
                     {
-                        obj.SetProperty((PropertyFloat)result, Convert.ToDouble(value));
-                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyFloat(obj, (PropertyFloat)result, Convert.ToDouble(value)));
+                        var floatValue = Convert.ToDouble(value);
+
+                        session.Player.UpdateProperty(obj, (PropertyFloat)result, floatValue, true);
                     }
                     else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
                     {
-                        obj.SetProperty((PropertyString)result, value);
-                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(obj, (PropertyString)result, value));
+                        session.Player.UpdateProperty(obj, (PropertyString)result, value, true);
                     }
                     else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
                     {
-                        obj.SetProperty((PropertyInstanceId)result, Convert.ToUInt32(value));
-                        obj.EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(obj, (PropertyInstanceId)result, new ObjectGuid(Convert.ToUInt32(value))));
+                        var iidValue = Convert.ToUInt32(value, value.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? 16 : 10);
+
+                        session.Player.UpdateProperty(obj, (PropertyInstanceId)result, iidValue, true);
                     }
                     else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
                     {
-                        obj.SetProperty((PropertyDataId)result, Convert.ToUInt32(value));
-                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyDataID(obj, (PropertyDataId)result, Convert.ToUInt32(value)));
+                        var didValue = Convert.ToUInt32(value, value.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? 16 : 10);
+
+                        session.Player.UpdateProperty(obj, (PropertyDataId)result, didValue, true);
                     }
                 }
                 catch (Exception e)
@@ -1945,7 +1950,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Sets the house purchase time for this player
         /// </summary>
-        [CommandHandler("setpurchasetime", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Sets the house purchase time for this player", "/setpurchasetime")]
+        [CommandHandler("setpurchasetime", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Sets the house purchase time for this player")]
         public static void HandleSetPurchaseTime(Session session, params string[] parameters)
         {
             var currentTime = DateTime.UtcNow;
@@ -1975,7 +1980,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Toggles the display for player damage info
         /// </summary>
-        [CommandHandler("debugdamage", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Toggles the display for player damage info", "/debugdamage <attack|defense|all|on|off>")]
+        [CommandHandler("debugdamage", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Toggles the display for player damage info", "<attack|defense|all|on|off>")]
         public static void HandleDebugDamage(Session session, params string[] parameters)
         {
             // get last appraisal creature target
@@ -2457,7 +2462,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Enables / disables spell component burning
         /// </summary>
-        [CommandHandler("safecomps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Enables / disables spell component burning", "/safecomps <on/off>")]
+        [CommandHandler("safecomps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Enables / disables spell component burning", "<on/off>")]
         public static void HandleSafeComps(Session session, params string[] parameters)
         {
             var safeComps = true;
