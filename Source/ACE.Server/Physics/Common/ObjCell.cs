@@ -480,10 +480,12 @@ namespace ACE.Server.Physics.Common
 
         public LandDefs.WaterType get_block_water_type()
         {
-            if (CurLandblock != null)
-                return CurLandblock.WaterType;
-            else
-                return LandDefs.WaterType.NotWater;
+            var curLandBlock = CurLandblock; // cash the WeakRef result
+
+            if (curLandBlock != null)
+                return curLandBlock.WaterType;
+
+            return LandDefs.WaterType.NotWater;
         }
 
         public float get_water_depth(Vector3 point)
@@ -494,10 +496,12 @@ namespace ACE.Server.Physics.Common
             if (WaterType == LandDefs.WaterType.EntirelyWater)
                 return 0.89999998f;
 
-            if (CurLandblock != null)
-                return CurLandblock.calc_water_depth(ID, point);
-            else
-                return 0.1f;
+            var curLandBlock = CurLandblock; // cash the WeakRef result
+
+            if (curLandBlock != null)
+                return curLandBlock.calc_water_depth(ID, point);
+
+            return 0.1f;
         }
 
         public void hide_object(PhysicsObj obj)
