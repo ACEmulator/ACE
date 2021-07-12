@@ -488,7 +488,7 @@ namespace ACE.Server.Physics.Common
 
         public LandDefs.WaterType get_block_water_type()
         {
-            var curLandBlock = CurLandblock; // cash the WeakRef result
+            var curLandBlock = CurLandblock; // cache the WeakRef result
 
             if (curLandBlock != null)
                 return curLandBlock.WaterType;
@@ -504,7 +504,7 @@ namespace ACE.Server.Physics.Common
             if (WaterType == LandDefs.WaterType.EntirelyWater)
                 return 0.89999998f;
 
-            var curLandBlock = CurLandblock; // cash the WeakRef result
+            var curLandBlock = CurLandblock; // cache the WeakRef result
 
             if (curLandBlock != null)
                 return curLandBlock.calc_water_depth(ID, point);
