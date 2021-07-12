@@ -1,8 +1,8 @@
 using log4net;
 
-using ACE.Server.Factories.Enum;
+using ACE.Entity.Enum;
 
-namespace ACE.Server.Factories.Entity
+namespace ACE.Server.Entity.Mutations
 {
     public partial class EffectArgument
     {

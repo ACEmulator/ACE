@@ -1,4 +1,4 @@
-namespace ACE.Server.Factories.Enum
+namespace ACE.Entity.Enum
 {
     public enum EffectArgumentType
     {

@@ -2210,5 +2210,17 @@ namespace ACE.Server.WorldObjects
         {
             IsAffecting = false;
         }
+
+        private static readonly double defaultIgnoreSomeMagicProjectileDamage = 0.25;
+
+        public double? GetAbsorbMagicDamage()
+        {
+            var absorbMagicDamage = AbsorbMagicDamage;
+
+            if (absorbMagicDamage == null && HasImbuedEffect(ImbuedEffectType.IgnoreSomeMagicProjectileDamage))
+                absorbMagicDamage = defaultIgnoreSomeMagicProjectileDamage;
+
+            return absorbMagicDamage;
+        }
     }
 }

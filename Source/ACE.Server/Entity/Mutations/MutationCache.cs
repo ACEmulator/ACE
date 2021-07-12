@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -11,9 +12,8 @@ using log4net;
 
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Factories.Enum;
 
-namespace ACE.Server.Factories.Entity
+namespace ACE.Server.Entity.Mutations
 {
     public static class MutationCache
     {
@@ -21,6 +21,14 @@ namespace ACE.Server.Factories.Entity
 
         private static readonly ConcurrentDictionary<string, MutationFilter> tSysMutationFilters = new ConcurrentDictionary<string, MutationFilter>();
 
+        static MutationCache()
+        {
+            CacheResourceNames();
+        }
+
+        /// <summary>
+        /// For lootgen -- custom filenames
+        /// </summary>
         public static MutationFilter GetMutation(string filename)
         {
             if (!tSysMutationFilters.TryGetValue(filename, out var tSysMutationFilter))
@@ -31,6 +39,34 @@ namespace ACE.Server.Factories.Entity
                     tSysMutationFilters.TryAdd(filename, tSysMutationFilter);
             }
             return tSysMutationFilter;
+        }
+
+        /// <summary>
+        /// For recipes -- mutation script id + custom filename
+        /// </summary>
+        public static MutationFilter GetMutation(uint mutationId)
+        {
+            var mutationId_str = mutationId.ToString();
+
+            if (!tSysMutationFilters.TryGetValue(mutationId_str, out var tSysMutationFilter))
+            {
+                tSysMutationFilter = BuildMutation(mutationId);
+
+                if (tSysMutationFilter != null)
+                    tSysMutationFilters.TryAdd(mutationId_str, tSysMutationFilter);
+            }
+            return tSysMutationFilter;
+        }
+
+        private static MutationFilter BuildMutation(uint mutationId)
+        {
+            if (!mutationIdToFilename.TryGetValue(mutationId, out var filename))
+            {
+                log.Error($"MutationCache.BuildMutation({mutationId:X8}) - embedded resource not found");
+                return null;
+            }
+
+            return BuildMutation(filename);
         }
 
         private static MutationFilter BuildMutation(string filename)
@@ -214,10 +250,12 @@ namespace ACE.Server.Factories.Entity
 
                     if (!int.TryParse(operand, out effectArgument.IntVal))
                     {
-                        if (System.Enum.TryParse(operand, out WieldRequirement wieldRequirement))
+                        if (Enum.TryParse(operand, out WieldRequirement wieldRequirement))
                             effectArgument.IntVal = (int)wieldRequirement;
-                        else if (System.Enum.TryParse(operand, out Skill skill))
+                        else if (Enum.TryParse(operand, out Skill skill))
                             effectArgument.IntVal = (int)skill;
+                        else if (Enum.TryParse(operand, out ImbuedEffectType imbuedEffectType))
+                            effectArgument.IntVal = (int)imbuedEffectType;
                         else
                             log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse IntVal {operand}");
                     }
@@ -332,9 +370,9 @@ namespace ACE.Server.Factories.Entity
                 return MutationEffectType.AssignMultiply;
             else if (line.Contains("/"))
                 return MutationEffectType.AssignDivide;
-            else if (line.Contains(">="))
+            else if (line.Contains("(>="))
                 return MutationEffectType.AtLeastAdd;
-            else if (line.Contains("<="))
+            else if (line.Contains("(<="))
                 return MutationEffectType.AtMostSubtract;
             else
                 return MutationEffectType.Assign;
@@ -363,9 +401,9 @@ namespace ACE.Server.Factories.Entity
                 case MutationEffectType.Divide:
                     return "/=";
                 case MutationEffectType.AtLeastAdd:
-                    return ">=";
+                    return "(>=";
                 case MutationEffectType.AtMostSubtract:
-                    return "<=";
+                    return "(<=";
             }
             return null;
         }
@@ -386,7 +424,7 @@ namespace ACE.Server.Factories.Entity
 
         public static EffectArgumentType GetEffectArgumentType(string operand)
         {
-            if (IsNumber(operand) || System.Enum.TryParse(operand, out WieldRequirement wieldRequirement) || System.Enum.TryParse(operand, out Skill skill))
+            if (IsNumber(operand) || Enum.TryParse(operand, out WieldRequirement wieldRequirement) || Enum.TryParse(operand, out Skill skill) || Enum.TryParse(operand, out ImbuedEffectType imbuedEffectType))
             {
                 if (operand.Contains('.'))
                     return EffectArgumentType.Double;
@@ -447,14 +485,14 @@ namespace ACE.Server.Factories.Entity
                 case MutationEffectType.SubtractDivide:
                     return "/";
                 case MutationEffectType.AtLeastAdd:
-                    return ", add";
+                    return "? add : set)";
                 case MutationEffectType.AtMostSubtract:
-                    return ", sub";
+                    return "? sub : set)";
             }
             return null;
         }
 
-        private static readonly string prefix = "ACE.Server.Factories.Entity.Mutations.";
+        private static readonly string prefix = "ACE.Server.Entity.Mutations.";
 
         private static List<string> ReadScript(string filename)
         {
@@ -473,6 +511,32 @@ namespace ACE.Server.Factories.Entity
                         lines.Add(reader.ReadLine());
                 }
                 return lines;
+            }
+        }
+
+        private static readonly Dictionary<uint, string> mutationIdToFilename = new Dictionary<uint, string>();
+
+        private static void CacheResourceNames()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+
+            var resourceNames = assembly.GetManifestResourceNames();
+
+            foreach (var resourceName in resourceNames)
+            {
+                var pieces = resourceName.Split('.');
+
+                if (pieces.Length < 2)
+                {
+                    log.Error($"MutationCache.CacheResourceNames() - unknown resource format {resourceName}");
+                    continue;
+                }
+                var shortName = pieces[pieces.Length - 2];
+
+                var match = Regex.Match(shortName, @"([0-9A-F]{8})");
+
+                if (match.Success && uint.TryParse(match.Groups[1].Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var mutationId))
+                    mutationIdToFilename[mutationId] = resourceName.Replace(prefix, "");
             }
         }
     }
