@@ -34,7 +34,15 @@ namespace ACE.Server.Physics.Common
         public bool SeenOutside;
         public List<uint> VoyeurTable;
 
+        /// <summary>
+        /// TODO: This little bit of code is a temp fix to solve an issue where Physics landblocks are not being garbage collected. Mag-nus 2021-07-11
+        /// TODO: It has been determined that possibly disconnected/invalid ObjCell are holding onto physics landblocks that should have been garbage collected, and are no longer the current/live instance.
+        /// TODO: We should work this problem upstream to find out what is holding onto these ObjCells, that in turn, hold onto the old physics landblocks.
+        /// </summary>
         private WeakReference<Landblock> _curLandblockRef;
+        /// <summary>
+        /// If you reference this, cache the result as the get involves a WeakReference.TryGetTarget
+        /// </summary>
         public Landblock CurLandblock
         {
             get
