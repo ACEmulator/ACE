@@ -197,13 +197,13 @@ namespace ACE.Server.Entity.Mutations
                     continue;
                 }*/
 
-                effect.Quality = ParseEffectArgument(filename, pieces[0]);
+                effect.Quality = ParseEffectArgument(filename, effect, pieces[0]);
 
                 var hasSecondOperator = HasSecondOperator(effect.Type);
 
                 if (!hasSecondOperator)
                 {
-                    effect.Arg1 = ParseEffectArgument(filename, pieces[1]);
+                    effect.Arg1 = ParseEffectArgument(filename, effect, pieces[1]);
                 }
                 else
                 {
@@ -220,8 +220,8 @@ namespace ACE.Server.Entity.Mutations
                     subpieces[0] = subpieces[0].Trim();
                     subpieces[1] = subpieces[1].Trim();
 
-                    effect.Arg1 = ParseEffectArgument(filename, subpieces[0]);
-                    effect.Arg2 = ParseEffectArgument(filename, subpieces[1]);
+                    effect.Arg1 = ParseEffectArgument(filename, effect, subpieces[0]);
+                    effect.Arg2 = ParseEffectArgument(filename, effect, subpieces[1]);
                 }
 
                 effectList.Effects.Add(effect);
@@ -238,7 +238,7 @@ namespace ACE.Server.Entity.Mutations
             return mutationFilter;
         }
 
-        private static EffectArgument ParseEffectArgument(string filename, string operand)
+        private static EffectArgument ParseEffectArgument(string filename, Effect effect, string operand)
         {
             var effectArgument = new EffectArgument();
 
@@ -250,12 +250,12 @@ namespace ACE.Server.Entity.Mutations
 
                     if (!int.TryParse(operand, out effectArgument.IntVal))
                     {
-                        if (Enum.TryParse(operand, out WieldRequirement wieldRequirement))
+                        if (effect.Quality != null && effect.Quality.StatType == StatType.Int && effect.Quality.StatIdx == (int)PropertyInt.ImbuedEffect && Enum.TryParse(operand, out ImbuedEffectType imbuedEffectType))
+                            effectArgument.IntVal = (int)imbuedEffectType;
+                        else if (Enum.TryParse(operand, out WieldRequirement wieldRequirement))
                             effectArgument.IntVal = (int)wieldRequirement;
                         else if (Enum.TryParse(operand, out Skill skill))
                             effectArgument.IntVal = (int)skill;
-                        else if (Enum.TryParse(operand, out ImbuedEffectType imbuedEffectType))
-                            effectArgument.IntVal = (int)imbuedEffectType;
                         else
                             log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse IntVal {operand}");
                     }
