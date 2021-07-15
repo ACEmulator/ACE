@@ -1352,15 +1352,10 @@ namespace ACE.Server.Managers
 
         private static void HandleTinkerLog(WorldObject source, WorldObject target)
         {
-            var materialType = source.MaterialType;
-
-            if (source.WeenieClassId == (uint)WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS)
-                materialType = MaterialType.Leather;
-
             if (target.TinkerLog != null)
                 target.TinkerLog += ",";
 
-            target.TinkerLog += (int)materialType;
+            target.TinkerLog += (uint?)source.MaterialType ?? source.WeenieClassId;
         }
 
         public static uint MaterialDualDID = 0x27000000;
