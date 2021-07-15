@@ -46,6 +46,8 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         private readonly ReaderWriterLockSlim readerWriterLockSlim = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
 
+        public static readonly ObjCell EmptyCell = new ObjCell();
+
         public ObjCell(): base()
         {
             Init();

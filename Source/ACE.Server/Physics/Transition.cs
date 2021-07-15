@@ -24,7 +24,7 @@ namespace ACE.Server.Physics.Animation
         public SpherePath SpherePath;
         public CollisionInfo CollisionInfo;
         public CellArray CellArray;
-        public ObjCell NewCellPtr;
+        //public ObjCell NewCellPtr;
 
         public Transition()
         {
@@ -155,7 +155,7 @@ namespace ACE.Server.Physics.Animation
             SpherePath.HitsInteriorCell = false;
 
             //ObjCell newCell = null;
-            var newCell = new ObjCell();    // null check?
+            var newCell = ObjCell.EmptyCell;    // null check?
             ObjCell.find_cell_list(CellArray, ref newCell, SpherePath);
 
             for (var i = 0; i < CellArray.Cells.Count; i++)
@@ -607,7 +607,7 @@ namespace ACE.Server.Physics.Animation
             SpherePath = new SpherePath();
             CollisionInfo = new CollisionInfo();
             CellArray = new CellArray();
-            NewCellPtr = new ObjCell();
+            //NewCellPtr = new ObjCell();
         }
 
         public void InitContactPlane(uint cellID, Plane contactPlane, bool isWater)
