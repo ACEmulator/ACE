@@ -710,7 +710,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Destroys/Kills all of its spawned objects, if specifically directed, and resets back to default
         /// </summary>
-        public void ProcessGeneratorDestructionDirective(GeneratorDestruct generatorDestructType)
+        public void ProcessGeneratorDestructionDirective(GeneratorDestruct generatorDestructType, bool fromLandblockUnload = false)
         {
             switch (generatorDestructType)
             {
@@ -736,10 +736,8 @@ namespace ACE.Server.WorldObjects
                         {
                             var wo = rNode.TryGetWorldObject();
 
-                            if (wo != null && wo is Creature creature && !creature.IsDead)
-                                creature.Destroy();
-                            else if (wo != null)
-                                wo.Destroy();
+                            if (wo != null && (!(wo is Creature creature) || !creature.IsDead))
+                                wo.Destroy(true, fromLandblockUnload);
                         }
 
                         generator.Spawned.Clear();
