@@ -920,6 +920,13 @@ namespace ACE.Server.Physics.Common
                     Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add a non-monster");
                     return false;
                 }
+
+                // combat pets cannot attack PKs and PK only creatures
+                if (obj.WeenieObj.PlayerKillerStatus > ACE.Entity.Enum.PlayerKillerStatus.NPK)
+                {
+                    // Console.WriteLine($"{PhysicsObj.Name}.ObjectMaint.AddVisibleTarget({obj.Name}): tried to add a pk only monster");
+                    return false;
+                }
             }
             else if (PhysicsObj.WeenieObj.IsFactionMob)
             {
