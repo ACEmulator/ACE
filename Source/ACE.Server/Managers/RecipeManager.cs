@@ -1357,6 +1357,10 @@ namespace ACE.Server.Managers
             if (source.WeenieClassId == (uint)WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS)
                 materialType = MaterialType.Leather;
 
+            // fixme
+            if (materialType == null)
+                return;
+
             if (target.TinkerLog != null)
                 target.TinkerLog += ",";
 
