@@ -30,6 +30,8 @@ namespace ACE.Server.Physics.Common
 
         public CreatureType? FoeType { get; set; }
 
+        public PlayerKillerStatus PlayerKillerStatus { get; set; }
+
         public WeenieObject() { }
 
         public WeenieObject(WorldObject worldObject)
@@ -48,6 +50,8 @@ namespace ACE.Server.Physics.Common
             IsFactionMob = IsMonster && Faction1Bits != FactionBits.None;
 
             FoeType = creature.FoeType;
+
+            PlayerKillerStatus = creature.PlayerKillerStatus;
         }
 
         public bool SameFaction(PhysicsObj obj)
