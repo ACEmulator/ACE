@@ -1050,5 +1050,15 @@ namespace ACE.Common
         /// Converts the <see cref="DateTime.UtcNow"/> object to a new <see cref="DerethDateTime"/> object set to Lore Time.
         /// </summary>
         public static DerethDateTime UtcNowToLoreTime => ConvertRealWorldToLoreDateTime(DateTime.UtcNow);
+
+        /// <summary>
+        /// Converts the <see cref="DateTime.UtcNow"/> object to a new <see cref="DerethDateTime"/> object set to GDLE Time.
+        /// </summary>
+        public static DerethDateTime UtcNowToGDLETime => new DerethDateTime((DateTime.UtcNow - new DateTime(1999, 9, 1)).TotalSeconds);
+
+        /// <summary>
+        /// Converts the <see cref="DateTime.UtcNow"/> object to a new <see cref="DerethDateTime"/> object set to EMU Standard Sync Time.
+        /// </summary>
+        public static DerethDateTime UtcNowToEMUTime => new DerethDateTime((DateTime.UtcNow - TimeZoneInfo.ConvertTimeToUtc(retailDayLast_RealWorld, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"))).TotalSeconds);
     }
 }

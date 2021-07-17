@@ -26,12 +26,12 @@ namespace ACE.Server.Entity
         /// <summary>
         /// DerethDateTime.UtcNowToLoreTime at the time the server started.
         /// </summary>
-        public static DerethDateTime WorldStartLoreTime { get; } = DerethDateTime.UtcNowToLoreTime;
+        public static DerethDateTime WorldStartLoreTime { get; } = DerethDateTime.UtcNowToEMUTime;
 
         /// <summary>
         /// Returns DerethDateTime.UtcNowToLoreTime
         /// </summary>
-        public static DerethDateTime CurrentLoreTime => DerethDateTime.UtcNowToLoreTime;
+        public static DerethDateTime CurrentLoreTime => DerethDateTime.UtcNowToEMUTime;
 
         /// <summary>
         /// Returns current in game time, as seen on Map Panel, calculated from PortalYearTicks
