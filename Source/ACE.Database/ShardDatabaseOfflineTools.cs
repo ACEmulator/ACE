@@ -1021,44 +1021,21 @@ namespace ACE.Database
 
             using (var context = new ShardDbContext())
             {
-                //var charResults = context.Character
-                //            //.Include(r => r.CharacterPropertiesContractRegistry)
-                //            //.Include(r => r.CharacterPropertiesFillCompBook)
-                //            .Include(r => r.CharacterPropertiesFriendList)
-                //            // .Include(r => r.CharacterPropertiesQuestRegistry)
-                //            .Include(r => r.CharacterPropertiesShortcutBar)
-                //            //.Include(r => r.CharacterPropertiesSpellBar)
-                //            .Include(r => r.CharacterPropertiesSquelch)
-                //            //.Include(r => r.CharacterPropertiesTitleBook)
-                //            .ToList();
-
-                //foreach (var item in charResults)
-                //{
-                //    foreach (var friend in item.CharacterPropertiesFriendList.ToList())
-                //    {
-                //        var character = context.Character
-                //            .AsNoTracking()
-                //            .FirstOrDefault(c => c.Id == friend.FriendId && c.DeleteTime == 0 && !c.IsDeleted);
-
-                //        if (character == null)
-                //        {
-                //            item.CharacterPropertiesFriendList.Remove(friend);
-
-                //            log.Info($"Character for {item.Name} (0x{item.Id:X8}) has been altered. Reason: Friend (0x{friend.FriendId:X8}) was not found in database");
-
-                //            context.SaveChanges();
-                //        }
-                //    }
-                //}
-
                 var validCharacterIds = context.Character
                     .AsNoTracking()
                     .Where(c => !c.IsDeleted && c.DeleteTime == 0)
                     .Select(c => c.Id)
                     .ToList();
 
+                var friendIds = context.CharacterPropertiesFriendList
+                    .AsNoTracking()
+                    .Select(c => c.FriendId)
+                    .ToList();
+
+                var invalidFriendIds = friendIds.Except(validCharacterIds).ToList();
+
                 var invalidFriends = context.CharacterPropertiesFriendList
-                    .Where(c => !validCharacterIds.Contains(c.FriendId));
+                    .Where(c => invalidFriendIds.Contains(c.FriendId));
                 //.ToList();
 
                 foreach (var invalidFriend in invalidFriends)
@@ -1082,36 +1059,6 @@ namespace ACE.Database
 
             using (var context = new ShardDbContext())
             {
-                //var charResults = context.Character
-                //            //.Include(r => r.CharacterPropertiesContractRegistry)
-                //            //.Include(r => r.CharacterPropertiesFillCompBook)
-                //            .Include(r => r.CharacterPropertiesFriendList)
-                //            // .Include(r => r.CharacterPropertiesQuestRegistry)
-                //            .Include(r => r.CharacterPropertiesShortcutBar)
-                //            //.Include(r => r.CharacterPropertiesSpellBar)
-                //            .Include(r => r.CharacterPropertiesSquelch)
-                //            //.Include(r => r.CharacterPropertiesTitleBook)
-                //            .ToList();
-
-                //foreach (var item in charResults)
-                //{
-                //    foreach (var shortcut in item.CharacterPropertiesShortcutBar.ToList())
-                //    {
-                //        var biota = context.Biota
-                //            .AsNoTracking()
-                //            .FirstOrDefault(b => b.Id == shortcut.ShortcutObjectId);
-
-                //        if (biota == null)
-                //        {
-                //            item.CharacterPropertiesShortcutBar.Remove(shortcut);
-
-                //            log.Info($"Character for {item.Name} (0x{item.Id:X8}) has been altered. Reason: Shortcut (0x{shortcut.ShortcutObjectId:X8}) was not found in database");
-
-                //            context.SaveChanges();
-                //        }
-                //    }
-                //}
-
                 var validObjectIds = context.Biota
                     .AsNoTracking()
                     .Select(b => b.Id)
