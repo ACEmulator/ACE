@@ -1154,7 +1154,7 @@ namespace ACE.Server.WorldObjects
             var motion = CurrentMotionState.MotionState.ForwardCommand.ToString();
             foreach (DamageType damageType in Enum.GetValues(typeof(DamageType)))
             {
-                if ((damageTypes & damageType) != 0)
+                if ((damageTypes & damageType) != 0 && !damageType.IsMultiDamage())
                 {
                     // handle multiple damage types
                     if (damageType == DamageType.Slash && motion.Contains("Thrust"))
