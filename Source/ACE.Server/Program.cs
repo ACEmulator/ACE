@@ -171,6 +171,14 @@ namespace ACE.Server
                 log.Info($"Purged {numberOfBiotasPurged:N0} biotas.");
             }
 
+            log.Info($"Pruning invalid friends from all friend lists...");
+            ShardDatabaseOfflineTools.PruneDeletedCharactersFromFriendLists(out var numberOfFriendsPruned);
+            log.Info($"Pruned {numberOfFriendsPruned:N0} invalid friends found on friend lists.");
+
+            log.Info($"Pruning invalid shortcuts from all shortcut bars...");
+            ShardDatabaseOfflineTools.PruneDeletedObjectsFromShortcutBars(out var numberOfShortcutsPruned);
+            log.Info($"Pruned {numberOfShortcutsPruned:N0} deleted objects found on shortcut bars.");
+
             if (ConfigManager.Config.Offline.AutoUpdateWorldDatabase)
             {
                 CheckForWorldDatabaseUpdate();

@@ -1013,6 +1013,133 @@ namespace ACE.Database
 
 
         /// <summary>
+        /// Prune friend ids from character friend lists of ids of characters that have been deleted
+        /// </summary>
+        public static void PruneDeletedCharactersFromFriendLists(out int numberOfRecordsFixed)
+        {
+            numberOfRecordsFixed = 0;
+
+            using (var context = new ShardDbContext())
+            {
+                //var charResults = context.Character
+                //            //.Include(r => r.CharacterPropertiesContractRegistry)
+                //            //.Include(r => r.CharacterPropertiesFillCompBook)
+                //            .Include(r => r.CharacterPropertiesFriendList)
+                //            // .Include(r => r.CharacterPropertiesQuestRegistry)
+                //            .Include(r => r.CharacterPropertiesShortcutBar)
+                //            //.Include(r => r.CharacterPropertiesSpellBar)
+                //            .Include(r => r.CharacterPropertiesSquelch)
+                //            //.Include(r => r.CharacterPropertiesTitleBook)
+                //            .ToList();
+
+                //foreach (var item in charResults)
+                //{
+                //    foreach (var friend in item.CharacterPropertiesFriendList.ToList())
+                //    {
+                //        var character = context.Character
+                //            .AsNoTracking()
+                //            .FirstOrDefault(c => c.Id == friend.FriendId && c.DeleteTime == 0 && !c.IsDeleted);
+
+                //        if (character == null)
+                //        {
+                //            item.CharacterPropertiesFriendList.Remove(friend);
+
+                //            log.Info($"Character for {item.Name} (0x{item.Id:X8}) has been altered. Reason: Friend (0x{friend.FriendId:X8}) was not found in database");
+
+                //            context.SaveChanges();
+                //        }
+                //    }
+                //}
+
+                var validCharacterIds = context.Character
+                    .AsNoTracking()
+                    .Where(c => !c.IsDeleted && c.DeleteTime == 0)
+                    .Select(c => c.Id)
+                    .ToList();
+
+                var invalidFriends = context.CharacterPropertiesFriendList
+                    .Where(c => !validCharacterIds.Contains(c.FriendId));
+                //.ToList();
+
+                foreach (var invalidFriend in invalidFriends)
+                {
+                    log.Debug($"[PRUNE] Character 0x{invalidFriend.CharacterId:X8} had 0x{invalidFriend.FriendId:X8} for a friend, which is not found in database, and has been removed from their friends list.");
+                    context.CharacterPropertiesFriendList.Remove(invalidFriend);
+                    numberOfRecordsFixed++;
+                }
+
+                // Save
+                context.SaveChanges();
+            }
+        }
+
+        /// <summary>
+        /// Prune shortcut ids from character shortcut bars of objects that have been deleted
+        /// </summary>
+        public static void PruneDeletedObjectsFromShortcutBars(out int numberOfRecordsFixed)
+        {
+            numberOfRecordsFixed = 0;
+
+            using (var context = new ShardDbContext())
+            {
+                //var charResults = context.Character
+                //            //.Include(r => r.CharacterPropertiesContractRegistry)
+                //            //.Include(r => r.CharacterPropertiesFillCompBook)
+                //            .Include(r => r.CharacterPropertiesFriendList)
+                //            // .Include(r => r.CharacterPropertiesQuestRegistry)
+                //            .Include(r => r.CharacterPropertiesShortcutBar)
+                //            //.Include(r => r.CharacterPropertiesSpellBar)
+                //            .Include(r => r.CharacterPropertiesSquelch)
+                //            //.Include(r => r.CharacterPropertiesTitleBook)
+                //            .ToList();
+
+                //foreach (var item in charResults)
+                //{
+                //    foreach (var shortcut in item.CharacterPropertiesShortcutBar.ToList())
+                //    {
+                //        var biota = context.Biota
+                //            .AsNoTracking()
+                //            .FirstOrDefault(b => b.Id == shortcut.ShortcutObjectId);
+
+                //        if (biota == null)
+                //        {
+                //            item.CharacterPropertiesShortcutBar.Remove(shortcut);
+
+                //            log.Info($"Character for {item.Name} (0x{item.Id:X8}) has been altered. Reason: Shortcut (0x{shortcut.ShortcutObjectId:X8}) was not found in database");
+
+                //            context.SaveChanges();
+                //        }
+                //    }
+                //}
+
+                var validObjectIds = context.Biota
+                    .AsNoTracking()
+                    .Select(b => b.Id)
+                    .ToList();
+
+                var allShortcutIds = context.CharacterPropertiesShortcutBar
+                    .AsNoTracking()
+                    .Select(s => s.ShortcutObjectId)
+                    .ToList();
+
+                var invalidShortcutIds = allShortcutIds.Except(validObjectIds).ToList();
+
+                var invalidShortcuts = context.CharacterPropertiesShortcutBar
+                    .Where(s => invalidShortcutIds.Contains(s.ShortcutObjectId));
+
+                foreach (var invalidShortcut in invalidShortcuts)
+                {
+                    log.Debug($"[PRUNE] Character 0x{invalidShortcut.CharacterId:X8} had 0x{invalidShortcut.ShortcutObjectId:X8} as a shortcut (in position {invalidShortcut.ShortcutBarIndex}), which is not found in database, and has been removed from their shortcut bar.");
+                    context.CharacterPropertiesShortcutBar.Remove(invalidShortcut);
+                    numberOfRecordsFixed++;
+                }
+
+                // Save
+                context.SaveChanges();
+            }
+        }
+
+        /// <summary>
         /// TODO: remove this once upgraded to .NET Standard 2.1
         /// </summary>
         private static HashSet<TSource> ToHashSet<TSource>(this IEnumerable<TSource> source)
