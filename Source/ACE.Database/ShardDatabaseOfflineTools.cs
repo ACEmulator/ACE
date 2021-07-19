@@ -1087,6 +1087,45 @@ namespace ACE.Database
         }
 
         /// <summary>
+        /// Prune squelched characters ids from character squelch lists of ids of characters that have been deleted, excluding account wide squelches
+        /// </summary>
+        public static void PruneDeletedCharactersFromSquelchLists(out int numberOfRecordsFixed)
+        {
+            numberOfRecordsFixed = 0;
+
+            using (var context = new ShardDbContext())
+            {
+                var validCharacterIds = context.Character
+                    .AsNoTracking()
+                    .Where(c => !c.IsDeleted && c.DeleteTime == 0)
+                    .Select(c => c.Id)
+                    .ToList();
+
+                var squelchCharacterIds = context.CharacterPropertiesSquelch
+                    .AsNoTracking()
+                    .Where(s => s.SquelchAccountId == 0)
+                    .Select(s => s.SquelchCharacterId)
+                    .ToList();
+
+                var invalidSquelchCharacterIds = squelchCharacterIds.Except(validCharacterIds).ToList();
+
+                var invalidSquelchCharacters = context.CharacterPropertiesSquelch
+                    .Where(s => s.SquelchAccountId == 0 && invalidSquelchCharacterIds.Contains(s.SquelchCharacterId));
+                //.ToList();
+
+                foreach (var invalidSquelchCharacter in invalidSquelchCharacters)
+                {
+                    log.Debug($"[PRUNE] Character 0x{invalidSquelchCharacter.CharacterId:X8} had 0x{invalidSquelchCharacter.SquelchCharacterId:X8} squelched, which is not found in database, and has been removed from their squelch list.");
+                    context.CharacterPropertiesSquelch.Remove(invalidSquelchCharacter);
+                    numberOfRecordsFixed++;
+                }
+
+                // Save
+                context.SaveChanges();
+            }
+        }
+
+        /// <summary>
         /// TODO: remove this once upgraded to .NET Standard 2.1
         /// </summary>
         private static HashSet<TSource> ToHashSet<TSource>(this IEnumerable<TSource> source)
