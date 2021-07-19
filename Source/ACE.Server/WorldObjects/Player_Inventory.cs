@@ -1232,7 +1232,7 @@ namespace ACE.Server.WorldObjects
 
             // when moving from a non-stuck container to a different container,
             // the database must be synced immediately
-            if (prevContainer != null && !prevContainer.Stuck && container != prevContainer)
+            if (prevContainer != null && (!prevContainer.Stuck || prevContainer is Player) && container != prevContainer)
                 item.SaveBiotaToDatabase();
 
             Session.Network.EnqueueSend(
