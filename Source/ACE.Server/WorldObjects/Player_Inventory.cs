@@ -170,8 +170,11 @@ namespace ACE.Server.WorldObjects
         {
             var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
 
-            item.SaveBiotaToDatabase(false);
-            biotas.Add((item.Biota, item.BiotaDatabaseLock));
+            if (item.ChangesDetected)
+            {
+                item.SaveBiotaToDatabase(false);
+                biotas.Add((item.Biota, item.BiotaDatabaseLock));
+            }
 
             // if the player is dropping a container to the landblock,
             // we must ensure any items within the container also have the correct properties
@@ -179,8 +182,11 @@ namespace ACE.Server.WorldObjects
             {
                 foreach (var subItem in container.Inventory.Values)
                 {
-                    subItem.SaveBiotaToDatabase(false);
-                    biotas.Add((subItem.Biota, subItem.BiotaDatabaseLock));
+                    if (subItem.ChangesDetected)
+                    {
+                        subItem.SaveBiotaToDatabase(false);
+                        biotas.Add((subItem.Biota, subItem.BiotaDatabaseLock));
+                    }
                 }
             }
 
