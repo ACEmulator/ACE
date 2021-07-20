@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
+
 using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
@@ -165,15 +168,23 @@ namespace ACE.Server.WorldObjects
 
         private void DeepSave(WorldObject item)
         {
-            item.SaveBiotaToDatabase();
+            var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+
+            item.SaveBiotaToDatabase(false);
+            biotas.Add((item.Biota, item.BiotaDatabaseLock));
 
             // if the player is dropping a container to the landblock,
             // we must ensure any items within the container also have the correct properties
             if (item is Container container)
             {
                 foreach (var subItem in container.Inventory.Values)
-                    subItem.SaveBiotaToDatabase();
+                {
+                    subItem.SaveBiotaToDatabase(false);
+                    biotas.Add((subItem.Biota, subItem.BiotaDatabaseLock));
+                }
             }
+
+            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => { });
         }
 
         public enum RemoveFromInventoryAction
