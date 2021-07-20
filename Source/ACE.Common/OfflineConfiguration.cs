@@ -50,7 +50,7 @@ namespace ACE.Common
         public bool PruneDeletedObjectsFromShortcutBars { get; set; }
 
         /// <summary>
-        /// Prune deleted characters from all squelch lists
+        /// Prune deleted characters from all squelch lists, excluding those used to squelch entire accounts
         /// </summary>
         [System.ComponentModel.DefaultValue(false)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
