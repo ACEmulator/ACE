@@ -186,6 +186,15 @@
     // This can be time consuming so it's not something you would have set to true for every server startup. You might run this once every few months
     "PurgeOrphanedBiotas": false,
 
+    // This will prune characters that have been deleted from all friend lists in the database
+    "PruneDeletedCharactersFromFriendLists": true,
+
+    // This will prune shortcuts to objects that have been deleted
+    "PruneDeletedObjectsFromShortcutBars": false,
+
+    // This will prune characters that have been deleted from all squlech lists in the database, excluding those used to squlech ancounts
+    "PruneDeletedCharactersFromSquelchLists": false,
+
     // Automatically apply new updates to databases upon startup if they haven't yet been applied
     "AutoApplyDatabaseUpdates": true,
 
