@@ -163,6 +163,19 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+        private void DeepSave(WorldObject item)
+        {
+            item.SaveBiotaToDatabase();
+
+            // if the player is dropping a container to the landblock,
+            // we must ensure any items within the container also have the correct properties
+            if (item is Container container)
+            {
+                foreach (var subItem in container.Inventory.Values)
+                    subItem.SaveBiotaToDatabase();
+            }
+        }
+
         public enum RemoveFromInventoryAction
         {
             None,
@@ -387,7 +400,7 @@ namespace ACE.Server.WorldObjects
                 // If we don't, the player can drop the item, log out, and log back in. If the landblock hasn't queued a database save in that time,
                 // the player will end up loading with this object in their inventory even though the landblock is the true owner. This is because
                 // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
-                item.SaveBiotaToDatabase();
+                DeepSave(item);
             }
 
             if (dequipObjectAction != DequipObjectAction.ToCorpseOnDeath)
@@ -1147,19 +1160,6 @@ namespace ACE.Server.WorldObjects
                 }
             }
             return true;
-        }
-
-        private void DeepSave(WorldObject item)
-        {
-            item.SaveBiotaToDatabase();
-
-            // if the player is dropping a container to the landblock,
-            // we must ensure any items within the container also have the correct properties
-            if (item is Container container)
-            {
-                foreach (var subItem in container.Inventory.Values)
-                    subItem.SaveBiotaToDatabase();
-            }
         }
 
         private bool DoHandleActionPutItemInContainer(WorldObject item, Container itemRootOwner, bool itemWasEquipped, Container container, Container containerRootOwner, int placement)
