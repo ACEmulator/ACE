@@ -24,10 +24,7 @@ namespace ACE.Server.Entity
             // empty base
         }
 
-        public Player GetPlayerResponse(bool response)
-        {
-            return response ? PlayerManager.GetOnlinePlayer(PlayerGuid) : null;
-        }
+        public Player Player => PlayerManager.GetOnlinePlayer(PlayerGuid);
     }
 
     public class Confirmation_AlterAttribute: Confirmation
@@ -42,8 +39,10 @@ namespace ACE.Server.Entity
 
         public override void ProcessConfirmation(bool response)
         {
-            var player = GetPlayerResponse(response);
+            var player = Player;
             if (player == null) return;
+
+            if (!response) return;
 
             var attributeTransferDevice = player.FindObject(AttributeTransferDevice.Full, Player.SearchLocations.MyInventory) as AttributeTransferDevice;
 
@@ -64,8 +63,10 @@ namespace ACE.Server.Entity
 
         public override void ProcessConfirmation(bool response)
         {
-            var player = GetPlayerResponse(response);
+            var player = Player;
             if (player == null) return;
+
+            if (!response) return;
 
             var skillAlterationDevice = player.FindObject(SkillAlterationDevice.Full, Player.SearchLocations.MyInventory) as SkillAlterationDevice;
 
@@ -86,8 +87,10 @@ namespace ACE.Server.Entity
 
         public override void ProcessConfirmation(bool response)
         {
-            var player = GetPlayerResponse(response);
+            var player = Player;
             if (player == null) return;
+
+            if (!response) return;
 
             var augmentation = player.FindObject(AugmentationGuid.Full, Player.SearchLocations.MyInventory) as AugmentationDevice;
 
@@ -112,8 +115,16 @@ namespace ACE.Server.Entity
 
         public override void ProcessConfirmation(bool response)
         {
-            var player = GetPlayerResponse(response);
+            var player = Player;
             if (player == null) return;
+
+            if (!response)
+            {
+                if (player != null)
+                    player.SendWeenieError(WeenieError.YouChickenOut);
+
+                return;
+            }
 
             // inventory only?
             var source = player.FindObject(SourceGuid.Full, Player.SearchLocations.LocationsICanMove);
@@ -140,6 +151,8 @@ namespace ACE.Server.Entity
             var invited = PlayerManager.GetOnlinePlayer(PlayerGuid);
             var inviter = PlayerManager.GetOnlinePlayer(InviterGuid);
 
+            if (!response) return;
+
             if (invited != null && inviter != null && inviter.Fellowship != null)
                 inviter.Fellowship.AddConfirmedMember(inviter, invited, response);
         }
@@ -157,8 +170,10 @@ namespace ACE.Server.Entity
 
         public override void ProcessConfirmation(bool response)
         {
-            var patron = GetPlayerResponse(response);
+            var patron = Player;
             if (patron == null) return;
+
+            if (!response) return;
 
             var vassal = PlayerManager.GetOnlinePlayer(VassalGuid);
 
@@ -185,6 +200,8 @@ namespace ACE.Server.Entity
             var player = PlayerManager.GetOnlinePlayer(PlayerGuid);
             if (player == null) return;
 
+            if (!response) return;
+
             var source = player.FindObject(SourceGuid.Full, Player.SearchLocations.Landblock);
 
             if (source != null)
@@ -204,8 +221,10 @@ namespace ACE.Server.Entity
 
         public override void ProcessConfirmation(bool response)
         {
-            var player = GetPlayerResponse(response);
+            var player = Player;
             if (player == null) return;
+
+            if (!response) return;
 
             Action();
         }
