@@ -197,7 +197,7 @@ namespace ACE.Server.Entity
 
         public override void ProcessConfirmation(bool response)
         {
-            var player = PlayerManager.GetOnlinePlayer(PlayerGuid);
+            var player = Player;
             if (player == null) return;
 
             var source = player.FindObject(SourceGuid.Full, Player.SearchLocations.Landblock);
