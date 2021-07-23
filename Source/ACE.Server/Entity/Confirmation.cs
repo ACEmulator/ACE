@@ -148,7 +148,7 @@ namespace ACE.Server.Entity
 
         public override void ProcessConfirmation(bool response)
         {
-            var invited = PlayerManager.GetOnlinePlayer(PlayerGuid);
+            var invited = Player;
             var inviter = PlayerManager.GetOnlinePlayer(InviterGuid);
 
             if (!response) return;
