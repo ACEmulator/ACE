@@ -200,8 +200,6 @@ namespace ACE.Server.Entity
             var player = PlayerManager.GetOnlinePlayer(PlayerGuid);
             if (player == null) return;
 
-            if (!response) return;
-
             var source = player.FindObject(SourceGuid.Full, Player.SearchLocations.Landblock);
 
             if (source != null)
