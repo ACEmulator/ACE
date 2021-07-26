@@ -65,7 +65,7 @@ namespace ACE.Server.WorldObjects
                 {
                     HouseManager.GetHouse(House.Guid.Full, (house) =>
                     {
-                        if (house != null && !house.SlumLord.IsRentPaid())
+                        if (house != null && house.HouseStatus == HouseStatus.Active && !house.SlumLord.IsRentPaid())
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"Warning!  You have not paid your maintenance costs for the last {(house.IsApartment ? "90" : "30")} day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.Broadcast));
                     });
 
@@ -675,7 +675,12 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.HandleMotionDone({(MotionCommand)motionID}, {success})");
 
-            if (FastTick && MagicState.IsCasting)
+            if (!FastTick) return;
+
+            if (FoodState.IsChugging)
+                HandleMotionDone_UseConsumable(motionID, success);
+
+            if (MagicState.IsCasting)
                 HandleMotionDone_Magic(motionID, success);
         }
     }

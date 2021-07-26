@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -291,6 +290,8 @@ namespace ACE.Database
 
         private readonly Dictionary<uint /* source WCID */, Dictionary<uint /* target WCID */, CookBook>> cookbookCache = new Dictionary<uint, Dictionary<uint, CookBook>>();
 
+        private readonly Dictionary<uint, Recipe> recipeCache = new Dictionary<uint, Recipe>();
+
         public override CookBook GetCookbook(WorldDbContext context, uint sourceWeenieClassId, uint targetWeenieClassId)
         {
             var cookbook = base.GetCookbook(context, sourceWeenieClassId, targetWeenieClassId);
@@ -308,6 +309,15 @@ namespace ACE.Database
                     cookbookCache.Add(sourceWeenieClassId, new Dictionary<uint, CookBook>() { { targetWeenieClassId, cookbook } });
             }
 
+            if (cookbook != null)
+            {
+                // build secondary index for RecipeManager_New caching
+                lock (recipeCache)
+                {
+                    if (!recipeCache.ContainsKey(cookbook.RecipeId))
+                        recipeCache.Add(cookbook.RecipeId, cookbook.Recipe);
+                }
+            }
             return cookbook;
         }
 
@@ -332,13 +342,20 @@ namespace ACE.Database
                 }
             }
 
+            // build secondary index for RecipeManager_New caching
+            lock (recipeCache)
+            {
+                foreach (var cookbook in cookbooks)
+                {
+                    if (!recipeCache.ContainsKey(cookbook.RecipeId))
+                        recipeCache.Add(cookbook.RecipeId, cookbook.Recipe);
+                }
+            }
+
             return cookbooks;
         }
 
 
-        /// <summary>
-        /// This can take 1-2 minutes to complete.
-        /// </summary>
         public void CacheAllCookbooks()
         {
             GetAllCookbooks();
@@ -357,6 +374,9 @@ namespace ACE.Database
         {
             lock (cookbookCache)
                 cookbookCache.Clear();
+
+            lock (recipeCache)
+                recipeCache.Clear();
         }
 
         public CookBook GetCachedCookbook(uint sourceWeenieClassId, uint targetWeenieClassId)
@@ -369,10 +389,30 @@ namespace ACE.Database
                         return value;
                 }
             }
-
             return GetCookbook(sourceWeenieClassId, targetWeenieClassId);  // This will add the result into the cache
         }
 
+        public Recipe GetCachedRecipe(uint recipeId)
+        {
+            lock (recipeCache)
+            {
+                if (recipeCache.TryGetValue(recipeId, out var recipe))
+                    return recipe;
+            }
+            return GetRecipe(recipeId);  // This will add the result in the cache
+        }
+
+        public override Recipe GetRecipe(WorldDbContext context, uint recipeId)
+        {
+            var recipe = base.GetRecipe(context, recipeId);
+
+            lock (recipeCache)
+            {
+                if (!recipeCache.ContainsKey(recipeId))
+                    recipeCache.Add(recipeId, recipe);
+            }
+            return recipe;
+        }
 
         // =====================================
         // Encounter

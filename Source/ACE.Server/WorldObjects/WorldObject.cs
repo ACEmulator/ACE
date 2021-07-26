@@ -225,7 +225,13 @@ namespace ACE.Server.WorldObjects
         public void SyncLocation()
         {
             Location.LandblockId = new LandblockId(PhysicsObj.Position.ObjCellID);
-            Location.Pos = PhysicsObj.Position.Frame.Origin;
+
+            // skip ObjCellID check when updating from physics
+            // TODO: update to newer version of ACE.Entity.Position
+            Location.PositionX = PhysicsObj.Position.Frame.Origin.X;
+            Location.PositionY = PhysicsObj.Position.Frame.Origin.Y;
+            Location.PositionZ = PhysicsObj.Position.Frame.Origin.Z;
+
             Location.Rotation = PhysicsObj.Position.Frame.Orientation;
         }
 
@@ -826,7 +832,7 @@ namespace ACE.Server.WorldObjects
         /// If this is a container or a creature, all of the inventory and/or equipped objects will also be destroyed.<para />
         /// An object should only be destroyed once.
         /// </summary>
-        public virtual void Destroy(bool raiseNotifyOfDestructionEvent = true)
+        public void Destroy(bool raiseNotifyOfDestructionEvent = true, bool fromLandblockUnload = false)
         {
             if (IsDestroyed)
             {
@@ -857,7 +863,12 @@ namespace ACE.Server.WorldObjects
                 NotifyOfEvent(RegenerationType.Destruction);
 
             if (IsGenerator)
-                OnGeneratorDestroy();
+            {
+                if (fromLandblockUnload)
+                    ProcessGeneratorDestructionDirective(GeneratorDestruct.Destroy, fromLandblockUnload);
+                else
+                    OnGeneratorDestroy();
+            }
 
             CurrentLandblock?.RemoveWorldObject(Guid);
 

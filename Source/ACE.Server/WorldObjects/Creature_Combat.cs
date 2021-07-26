@@ -1039,6 +1039,8 @@ namespace ACE.Server.WorldObjects
                 {
                     if (sourcePet && targetPet)     // combat pets can't damage other pets
                         return false;
+                    else if (sourcePet && target.PlayerKillerStatus == PlayerKillerStatus.PK || targetPet && PlayerKillerStatus == PlayerKillerStatus.PK)   // combat pets can't damage pk-only creatures (ie. faction banners)
+                        return false;
                     else
                         return true;
                 }
@@ -1152,7 +1154,7 @@ namespace ACE.Server.WorldObjects
             var motion = CurrentMotionState.MotionState.ForwardCommand.ToString();
             foreach (DamageType damageType in Enum.GetValues(typeof(DamageType)))
             {
-                if ((damageTypes & damageType) != 0)
+                if ((damageTypes & damageType) != 0 && !damageType.IsMultiDamage())
                 {
                     // handle multiple damage types
                     if (damageType == DamageType.Slash && motion.Contains("Thrust"))
@@ -1263,7 +1265,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public int GetDefenseImbues(ImbuedEffectType imbuedEffectType)
         {
-            return EquippedObjects.Values.Count(i => i.GetImbuedEffects().HasFlag(imbuedEffectType));
+            return EquippedObjects.Values.Count(i => i.ImbuedEffect.HasFlag(imbuedEffectType));
         }
 
         /// <summary>

@@ -349,6 +349,46 @@ namespace ACE.Database
             return results;
         }
 
+        // =====================================
+        // Recipe
+        // =====================================
+
+        public Recipe GetRecipe(uint recipeId)
+        {
+            using (var context = new WorldDbContext())
+            {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
+                return GetRecipe(context, recipeId);
+            }
+        }
+
+        public virtual Recipe GetRecipe(WorldDbContext context, uint recipeId)
+        {
+            var result = context.Recipe
+                .Include(r => r.RecipeMod)
+                    .ThenInclude(r => r.RecipeModsBool)
+                .Include(r => r.RecipeMod)
+                    .ThenInclude(r => r.RecipeModsDID)
+                .Include(r => r.RecipeMod)
+                    .ThenInclude(r => r.RecipeModsFloat)
+                .Include(r => r.RecipeMod)
+                    .ThenInclude(r => r.RecipeModsIID)
+                .Include(r => r.RecipeMod)
+                    .ThenInclude(r => r.RecipeModsInt)
+                .Include(r => r.RecipeMod)
+                    .ThenInclude(r => r.RecipeModsString)
+                .Include(r => r.RecipeRequirementsBool)
+                .Include(r => r.RecipeRequirementsDID)
+                .Include(r => r.RecipeRequirementsFloat)
+                .Include(r => r.RecipeRequirementsIID)
+                .Include(r => r.RecipeRequirementsInt)
+                .Include(r => r.RecipeRequirementsString)
+                .FirstOrDefault(r => r.Id == recipeId);
+
+            return result;
+        }
+
 
         // =====================================
         // Encounter
@@ -435,47 +475,6 @@ namespace ACE.Database
         // =====================================
         // Quest
         // =====================================
-
-
-        // =====================================
-        // Recipe
-        // =====================================
-
-        public Recipe GetRecipe(WorldDbContext context, uint recipeId)
-        {
-            var result = context.Recipe
-                .Include(r => r.RecipeMod)
-                    .ThenInclude(r => r.RecipeModsBool)
-                .Include(r => r.RecipeMod)
-                    .ThenInclude(r => r.RecipeModsDID)
-                .Include(r => r.RecipeMod)
-                    .ThenInclude(r => r.RecipeModsFloat)
-                .Include(r => r.RecipeMod)
-                    .ThenInclude(r => r.RecipeModsIID)
-                .Include(r => r.RecipeMod)
-                    .ThenInclude(r => r.RecipeModsInt)
-                .Include(r => r.RecipeMod)
-                    .ThenInclude(r => r.RecipeModsString)
-                .Include(r => r.RecipeRequirementsBool)
-                .Include(r => r.RecipeRequirementsDID)
-                .Include(r => r.RecipeRequirementsFloat)
-                .Include(r => r.RecipeRequirementsIID)
-                .Include(r => r.RecipeRequirementsInt)
-                .Include(r => r.RecipeRequirementsString)
-                .FirstOrDefault(r => r.Id == recipeId);
-
-            return result;
-        }
-
-        public Recipe GetRecipe(uint recipeId)
-        {
-            using (var context = new WorldDbContext())
-            {
-                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
-                return GetRecipe(context, recipeId);
-            }
-        }
 
 
         // =====================================
