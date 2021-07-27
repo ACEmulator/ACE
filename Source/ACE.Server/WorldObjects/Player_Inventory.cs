@@ -3088,7 +3088,7 @@ namespace ACE.Server.WorldObjects
             Prev_PutItemInContainer[0] = new PutItemInContainerEvent(itemGuid, containerGuid, placement);
         }
         
-        public void GiveFromEmote(WorldObject emoter, uint weenieClassId, int amount = 1)
+        public void GiveFromEmote(WorldObject emoter, uint weenieClassId, int amount = 1, int palette = 0, float shade = 0)
         {
             if (emoter is null || weenieClassId == 0)
             {
@@ -3164,6 +3164,11 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                         amount -= 1;
+
+                    if (palette > 0)
+                        item.PaletteTemplate = palette;
+                    if (item.Shade > 0)
+                        item.Shade = shade;
 
                     TryCreateForGive(emoter, item);
                 }
