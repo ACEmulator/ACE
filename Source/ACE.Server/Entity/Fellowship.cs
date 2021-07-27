@@ -174,6 +174,8 @@ namespace ACE.Server.Entity
             }
 
             UpdateAllMembers();
+
+            inviter.SendMotionAsCommands(MotionCommand.BowDeep, inviter.CurrentMotionState.Stance);
         }
 
         public void RemoveFellowshipMember(Player player, Player leader)
