@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -96,47 +95,30 @@ namespace ACE.Server.Network.Structure
             writer.Write(har.Roommates);
         }
 
-        public static void Write(this BinaryWriter writer, Dictionary<ObjectGuid, GuestInfo> db)
+        // not found in retail pcaps, using client HAR constructor default
+        private static readonly GuidComparer guestComparer = new GuidComparer(64);
+
+        public static void Write(this BinaryWriter writer, Dictionary<ObjectGuid, GuestInfo> guestList)
         {
-            //PHashTable.WriteHeader(writer, db.Count);
+            PackableHashTable.WriteHeader(writer, guestList.Count, guestComparer.NumBuckets);
 
-            writer.Write((ushort)db.Count);
-            writer.Write((ushort)768);  // from retail pcaps, TODO: determine how this is calculated
+            var sorted = new SortedDictionary<ObjectGuid, GuestInfo>(guestList, guestComparer);
 
-            // reorder
-            var _db = new List<Tuple<ObjectGuid, GuestInfo>>();
-            foreach (var entry in db)
-                _db.Add(new Tuple<ObjectGuid, GuestInfo>(entry.Key, entry.Value));
-
-            // sort by client function - hashKey % tableSize - how it gets tableSize 89 from 768, no idea
-            _db = _db.OrderBy(i => i.Item1.Full % 89).ToList();
-
-            foreach (var entry in _db)
+            foreach (var kvp in sorted)
             {
-                writer.Write(entry.Item1.Full);
-                writer.Write(entry.Item2);
+                writer.Write(kvp.Key.Full);
+                writer.Write(kvp.Value);
             }
         }
 
-        public static void Write(this BinaryWriter writer, List<ObjectGuid> db)
+        public static void Write(this BinaryWriter writer, List<ObjectGuid> roommates)
         {
-            //PHashTable.WriteHeader(writer, db.Count);
+            // unused in client ui
 
-            writer.Write((ushort)db.Count);
-            writer.Write((ushort)768);  // from retail pcaps, TODO: determine how this is calculated
+            writer.Write(roommates.Count);
 
-            // reorder
-            var _db = new List<ObjectGuid>();
-            foreach (var entry in db)
-                _db.Add(new ObjectGuid(entry.Full));
-
-            // sort by client function - hashKey % tableSize - how it gets tableSize 89 from 768, no idea
-            _db = _db.OrderBy(i => i.Full % 89).ToList();
-
-            foreach (var entry in _db)
-            {
-                writer.Write(entry.Full);
-            }
+            foreach (var roommate in roommates)
+                writer.Write(roommate.Full);
         }
     }
 }

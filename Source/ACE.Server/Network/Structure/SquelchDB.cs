@@ -150,23 +150,26 @@ namespace ACE.Server.Network.Structure
 
         public static void Write(this BinaryWriter writer, Dictionary<string, uint> accountHash)
         {
-            PackableHashTable.WriteHeader(writer, accountHash.Count);
+            // unused in retail
+            PackableHashTable.WriteHeader(writer, 0, 0);
+
+            /*PHashTable.WriteHeader(writer, accountHash.Count);    // verify
+
             foreach (var kvp in accountHash)
             {
                 writer.WriteString16L(kvp.Key);
                 writer.Write(kvp.Value);
-            }
+            }*/
         }
 
-        public static ushort NumBuckets = 32;  // retail used either 32 or 128 here, but i could find no fully consistent pattern to discern them
+        // retail used either 32 or 128 here, but i could find no fully consistent pattern to discern them
 
-        public static HashComparer HashComparer = new HashComparer(NumBuckets);
+        // seems to be 128 in client constructor?
+        public static HashComparer HashComparer = new HashComparer(32);
 
         public static void Write(this BinaryWriter writer, Dictionary<uint, SquelchInfo> characterHash)
         {
-            //PackableHashTable.WriteHeader(writer, characterHash.Count);
-            writer.Write((ushort)characterHash.Count);
-            writer.Write(NumBuckets);
+            PackableHashTable.WriteHeader(writer, characterHash.Count, HashComparer.NumBuckets);
 
             var sorted = new SortedDictionary<uint, SquelchInfo>(characterHash, HashComparer);
 

@@ -978,38 +978,13 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Persistent boolean value that tracks whether an equipped item is affecting (the item's spells are in effect and its mana is burning) or not.
+        /// Flag indicates if an equipped item w/ built-in spells is currently activated, and mana is burning on item
         /// </summary>
-        public bool? IsAffecting
+        public bool IsAffecting
         {
-            get => GetProperty(PropertyBool.IsAffecting);
-            set
-            {
-                if (!value.HasValue)
-                {
-                    if (GetProperty(PropertyBool.IsAffecting).HasValue)
-                        RemoveProperty(PropertyBool.IsAffecting);
-                }
-                else
-                {
-                    var h = GetProperty(PropertyBool.IsAffecting);
-                    if (!h.HasValue || h.HasValue && h.Value != value.Value)
-                        SetProperty(PropertyBool.IsAffecting, value.Value);
-                }
-
-                if (!(value ?? false))
-                {
-                    ItemManaDepletionMessageTimestamp = null;
-                    ItemManaConsumptionTimestamp = null;
-                }
-                else
-                {
-                    ItemManaDepletionMessageTimestamp = null;
-                    ItemManaConsumptionTimestamp = DateTime.UtcNow;
-                }
-            }
+            get => GetProperty(PropertyBool.IsAffecting) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsAffecting); else SetProperty(PropertyBool.IsAffecting, value); }
         }
-
 
         public Usable? ItemUseable
         {
@@ -1451,6 +1426,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyDataId.IconOverlay);
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.IconOverlay); else SetProperty(PropertyDataId.IconOverlay, value.Value); }
+        }
+
+        public uint? IconOverlaySecondary
+        {
+            get => GetProperty(PropertyDataId.IconOverlaySecondary);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.IconOverlaySecondary); else SetProperty(PropertyDataId.IconOverlaySecondary, value.Value); }
         }
 
         public MaterialType? MaterialType
@@ -3082,6 +3063,18 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyFloat.SoldTimestamp);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.SoldTimestamp); else SetProperty(PropertyFloat.SoldTimestamp, value.Value); }
+        }
+
+        public bool AiAcceptEverything
+        {
+            get => GetProperty(PropertyBool.AiAcceptEverything) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.AiAcceptEverything); else SetProperty(PropertyBool.AiAcceptEverything, value); }
+        }
+
+        public ImbuedEffectType ImbuedEffect
+        {
+            get => (ImbuedEffectType)(GetProperty(PropertyInt.ImbuedEffect) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.ImbuedEffect); else SetProperty(PropertyInt.ImbuedEffect, (int)value); }
         }
     }
 }

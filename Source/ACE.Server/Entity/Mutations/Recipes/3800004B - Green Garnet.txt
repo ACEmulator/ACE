@@ -1,0 +1,7 @@
+0x3800004B Mutation #1:
+
+Tier chances: 1
+
+    - Chance: 100%:
+        ElementalDamageMod (>= 0.01 ? add : set) 0.01   // verify: applied to non-ElementalDamageMod casters? using Opal / ManaConversionMod as a reference, which appears to
+        NumTimesTinkered (>= 1 ? add : set) 1

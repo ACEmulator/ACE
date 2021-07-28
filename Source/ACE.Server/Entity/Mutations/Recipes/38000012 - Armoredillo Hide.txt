@@ -1,0 +1,8 @@
+0x38000012 Mutation #1:
+
+Tier chances: 1
+
+    - Chance: 100%:
+        ArmorModVsAcid += 0.4
+        NumTimesTinkered (>= 1 ? add : set) 1
+

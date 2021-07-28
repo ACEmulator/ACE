@@ -1,0 +1,9 @@
+0x3800001D Mutation #1:
+
+Tier chances: 1
+
+    - Chance: 100%:
+        WeaponTime -= 50
+        WeaponTime (>= 0 ? add : set) 0
+        NumTimesTinkered (>= 1 ? add : set) 1
+

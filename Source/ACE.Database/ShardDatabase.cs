@@ -57,23 +57,16 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
             {
-                var results = context.Biota
+                var result = context.Biota
                     .AsNoTracking()
                     .Where(r => r.Id >= min && r.Id <= max)
-                    .ToList();
+                    .OrderByDescending(r => r.Id)
+                    .FirstOrDefault();
 
-                if (!results.Any())
+                if (result == null)
                     return uint.MaxValue;
 
-                var maxId = min;
-
-                foreach (var result in results)
-                {
-                    if (result.Id > maxId)
-                        maxId = result.Id;
-                }
-
-                return maxId;
+                return result.Id;
             }
         }
 
@@ -106,6 +99,8 @@ namespace ACE.Database
 
             using (var context = new ShardDbContext())
             {
+                context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
                 var connection = context.Database.GetDbConnection();
                 connection.Open();
                 var command = connection.CreateCommand();
@@ -573,9 +568,24 @@ namespace ACE.Database
 
         public List<Character> GetCharacters(uint accountId, bool includeDeleted)
         {
+            return GetCharacterList(accountId, includeDeleted);
+        }
+
+        public Character GetCharacter(uint characterId)
+        {
+            return GetCharacterList(0, true, characterId).FirstOrDefault();
+        }
+
+        private static List<Character> GetCharacterList(uint accountID, bool includeDeleted, uint characterID = 0)
+        {
             var context = new ShardDbContext();
 
-            var query = context.Character.Where(r => r.AccountId == accountId && (includeDeleted || !r.IsDeleted));
+            IQueryable<Character> query;
+
+            if (accountID > 0)
+                query = context.Character.Where(r => r.AccountId == accountID && (includeDeleted || !r.IsDeleted));
+            else
+                query = context.Character.Where(r => r.Id == characterID && (includeDeleted || !r.IsDeleted));
 
             var results = query.ToList();
 

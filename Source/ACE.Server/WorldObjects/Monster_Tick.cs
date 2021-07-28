@@ -46,6 +46,8 @@ namespace ACE.Server.WorldObjects
 
             if (IsDead) return;
 
+            if (EmoteManager.IsBusy) return;
+
             HandleFindTarget();
 
             CheckMissHome();    // tickrate?

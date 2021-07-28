@@ -1,0 +1,7 @@
+0x3800000F Mutation #1:
+
+Tier chances: 1
+
+    - Chance: 100%:
+        IconOverlay = IconOverlaySecondary
+

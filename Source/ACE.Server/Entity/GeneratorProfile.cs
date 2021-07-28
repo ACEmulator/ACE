@@ -111,9 +111,7 @@ namespace ACE.Server.Entity
         {
             get
             {
-                // TODO: investigate this logic - why is the RegenerationInterval bit needed here?
-
-                if (Generator is Chest || !(Generator is PressurePlate) && Generator.RegenerationInterval == 0)
+                if (Generator is Chest)
                     return 0;
 
                 return Biota.Delay ?? Generator.GeneratorProfiles[0].Biota.Delay ?? 0.0f;

@@ -308,7 +308,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // handle self-procs
-            TryProcEquippedItems(this, true);
+            TryProcEquippedItems(this, this, true, weapon);
 
             var prevTime = 0.0f;
             bool targetProc = false;
@@ -335,7 +335,7 @@ namespace ACE.Server.WorldObjects
                     // handle target procs
                     if (damageEvent != null && damageEvent.HasDamage && !targetProc)
                     {
-                        TryProcEquippedItems(creature, false);
+                        TryProcEquippedItems(this, creature, false, weapon);
                         targetProc = true;
                     }
 

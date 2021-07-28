@@ -316,7 +316,12 @@ namespace ACE.Server.WorldObjects
                     if (curCell.ID != cellBefore)
                         Location.LandblockId = new LandblockId(curCell.ID);
 
-                    Location.Pos = newPos;
+                    // skip ObjCellID check when updating from physics
+                    // TODO: update to newer version of ACE.Entity.Position
+                    Location.PositionX = newPos.X;
+                    Location.PositionY = newPos.Y;
+                    Location.PositionZ = newPos.Z;
+
                     Location.Rotation = PhysicsObj.Position.Frame.Orientation;
 
                     //if (landblockUpdate)
@@ -338,7 +343,7 @@ namespace ACE.Server.WorldObjects
                         spellProjectile.DebugVelocity++;
 
                         if (spellProjectile.DebugVelocity == 30)
-                            log.Error($"Spell projectile w/ zero velocity detected @ {spellProjectile.Location.ToLOCString()}, launched by {spellProjectile.Caster?.Name} ({spellProjectile.Caster?.Guid}), spell ID {spellProjectile.Spell?.Id} - {spellProjectile.Spell?.Name}");
+                            log.Error($"Spell projectile w/ zero velocity detected @ {spellProjectile.Location.ToLOCString()}, launched by {spellProjectile.ProjectileSource?.Name} ({spellProjectile.ProjectileSource?.Guid}), spell ID {spellProjectile.Spell?.Id} - {spellProjectile.Spell?.Name}");
                     }
 
                     if (spellProjectile.SpellType == ProjectileSpellType.Ring)

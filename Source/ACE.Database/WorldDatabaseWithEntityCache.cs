@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -25,7 +24,7 @@ namespace ACE.Database
 
         private readonly ConcurrentDictionary<string /* Class Name */, uint /* WCID */> weenieClassNameToClassIdCache = new ConcurrentDictionary<string, uint>();
 
-         /// <summary>
+        /// <summary>
         /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest<para />
         /// This will also update the weenie cache.
         /// </summary>
@@ -45,25 +44,32 @@ namespace ACE.Database
             return weenie;
         }
 
+        /// <summary>
+        /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest<para />
+        /// This will also update the weenie cache.
+        /// </summary>
+        public override List<Weenie> GetAllWeenies()
+        {
+            var weenies = base.GetAllWeenies();
+
+            // Add the weenies to the cache
+            foreach (var weenie in weenies)
+            {
+                weenieCache[weenie.ClassId] = WeenieConverter.ConvertToEntityWeenie(weenie);
+                weenieClassNameToClassIdCache[weenie.ClassName.ToLower()] = weenie.ClassId;
+            }
+
+            return weenies;
+        }
+
 
         /// <summary>
         /// This will make sure every weenie in the database has been read and cached.<para />
-        /// This function may take 2+ minutes to complete.
+        /// This function may take 10+ seconds to complete.
         /// </summary>
-        public void CacheAllWeeniesInParallel()
+        public void CacheAllWeenies()
         {
-            using (var context = new WorldDbContext())
-            {
-                var results = context.Weenie
-                    .AsNoTracking()
-                    .ToList();
-
-                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
-                {
-                    if (!weenieCache.ContainsKey(result.ClassId))
-                        GetWeenie(result.ClassId); // This will add the result into the caches
-                });
-            }
+            GetAllWeenies();
 
             PopulateWeenieSpecificCaches();
         }
@@ -284,6 +290,8 @@ namespace ACE.Database
 
         private readonly Dictionary<uint /* source WCID */, Dictionary<uint /* target WCID */, CookBook>> cookbookCache = new Dictionary<uint, Dictionary<uint, CookBook>>();
 
+        private readonly Dictionary<uint, Recipe> recipeCache = new Dictionary<uint, Recipe>();
+
         public override CookBook GetCookbook(WorldDbContext context, uint sourceWeenieClassId, uint targetWeenieClassId)
         {
             var cookbook = base.GetCookbook(context, sourceWeenieClassId, targetWeenieClassId);
@@ -301,25 +309,56 @@ namespace ACE.Database
                     cookbookCache.Add(sourceWeenieClassId, new Dictionary<uint, CookBook>() { { targetWeenieClassId, cookbook } });
             }
 
+            if (cookbook != null)
+            {
+                // build secondary index for RecipeManager_New caching
+                lock (recipeCache)
+                {
+                    if (!recipeCache.ContainsKey(cookbook.RecipeId))
+                        recipeCache.Add(cookbook.RecipeId, cookbook.Recipe);
+                }
+            }
             return cookbook;
         }
 
-        /// <summary>
-        /// This can take 1-2 minutes to complete.
-        /// </summary>
-        public void CacheAllCookbooksInParallel()
+        public override List<CookBook> GetAllCookbooks()
         {
-            using (var context = new WorldDbContext())
-            {
-                var results = context.CookBook
-                    .AsNoTracking()
-                    .ToList();
+            var cookbooks = base.GetAllCookbooks();
 
-                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
+            // Add the cookbooks to the cache
+            lock (cookbookCache)
+            {
+                foreach (var cookbook in cookbooks)
                 {
-                    GetCookbook(result.SourceWCID, result.TargetWCID);  // This will add the result into the cache
-                });
+                    // We double check before commiting the recipe.
+                    // We could be in this lock, and queued up behind us is an attempt to add a result for the same source:target pair.
+                    if (cookbookCache.TryGetValue(cookbook.SourceWCID, out var sourceRecipes))
+                    {
+                        if (!sourceRecipes.ContainsKey(cookbook.TargetWCID))
+                            sourceRecipes.Add(cookbook.TargetWCID, cookbook);
+                    }
+                    else
+                        cookbookCache.Add(cookbook.SourceWCID, new Dictionary<uint, CookBook>() { { cookbook.TargetWCID, cookbook } });
+                }
             }
+
+            // build secondary index for RecipeManager_New caching
+            lock (recipeCache)
+            {
+                foreach (var cookbook in cookbooks)
+                {
+                    if (!recipeCache.ContainsKey(cookbook.RecipeId))
+                        recipeCache.Add(cookbook.RecipeId, cookbook.Recipe);
+                }
+            }
+
+            return cookbooks;
+        }
+
+
+        public void CacheAllCookbooks()
+        {
+            GetAllCookbooks();
         }
 
         /// <summary>
@@ -335,6 +374,9 @@ namespace ACE.Database
         {
             lock (cookbookCache)
                 cookbookCache.Clear();
+
+            lock (recipeCache)
+                recipeCache.Clear();
         }
 
         public CookBook GetCachedCookbook(uint sourceWeenieClassId, uint targetWeenieClassId)
@@ -347,10 +389,30 @@ namespace ACE.Database
                         return value;
                 }
             }
-
             return GetCookbook(sourceWeenieClassId, targetWeenieClassId);  // This will add the result into the cache
         }
 
+        public Recipe GetCachedRecipe(uint recipeId)
+        {
+            lock (recipeCache)
+            {
+                if (recipeCache.TryGetValue(recipeId, out var recipe))
+                    return recipe;
+            }
+            return GetRecipe(recipeId);  // This will add the result in the cache
+        }
+
+        public override Recipe GetRecipe(WorldDbContext context, uint recipeId)
+        {
+            var recipe = base.GetRecipe(context, recipeId);
+
+            lock (recipeCache)
+            {
+                if (!recipeCache.ContainsKey(recipeId))
+                    recipeCache.Add(recipeId, recipe);
+            }
+            return recipe;
+        }
 
         // =====================================
         // Encounter

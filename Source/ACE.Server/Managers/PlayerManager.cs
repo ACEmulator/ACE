@@ -806,5 +806,25 @@ namespace ACE.Server.Managers
                     break;
             }
         }
+
+        public static bool IsAccountAtMaxCharacterSlots(string accountName)
+        {
+            var slotsAvailable = (int)PropertyManager.GetLong("max_chars_per_account").Item;
+            var onlinePlayersTotal = 0;
+            var offlinePlayersTotal = 0;
+
+            playersLock.EnterReadLock();
+            try
+            {
+                onlinePlayersTotal = onlinePlayers.Count(a => a.Value.Account.AccountName.Equals(accountName, StringComparison.OrdinalIgnoreCase));
+                offlinePlayersTotal = offlinePlayers.Count(a => a.Value.Account.AccountName.Equals(accountName, StringComparison.OrdinalIgnoreCase));
+            }
+            finally
+            {
+                playersLock.ExitReadLock();
+            }
+
+            return (onlinePlayersTotal + offlinePlayersTotal) >= slotsAvailable;
+        }
     }
 }

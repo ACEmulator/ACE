@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Database.Models.Shard;
@@ -6,6 +7,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Network.Structure;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.Network.GameEvent.Events
 {
@@ -41,21 +43,36 @@ namespace ACE.Server.Network.GameEvent.Events
             WriteEventBody();
         }
 
+        private static readonly PropertyIntComparer PropertyIntComparer = new PropertyIntComparer(64);
+        private static readonly PropertyInt64Comparer PropertyInt64Comparer = new PropertyInt64Comparer(64);
+        private static readonly PropertyBoolComparer PropertyBoolComparer = new PropertyBoolComparer(32);
+        private static readonly PropertyFloatComparer PropertyDoubleComparer = new PropertyFloatComparer(32);
+        private static readonly PropertyStringComparer PropertyStringComparer = new PropertyStringComparer(32);  // 16 in client, 32 sent across wire
+        private static readonly PropertyDataIdComparer PropertyDataIdComparer = new PropertyDataIdComparer(32);
+        private static readonly PropertyInstanceIdComparer PropertyInstanceIdComparer = new PropertyInstanceIdComparer(32);
+        private static readonly SkillComparer SkillComparer = new SkillComparer(32);
+        private static readonly SpellComparer SpellComparer = new SpellComparer(64);
+
         private void WriteEventBody()
         {
+            // refactor this -- it is kind of ridiculous for this to all be in 1 giant function.
+            // this is a combination of CACQualities, BaseQualities, PlayerModule, and other structures
+
             var propertyFlags = DescriptionPropertyFlag.None;
             var propertyFlagsPos = Writer.BaseStream.Position;
+
             Writer.Write(0u);
             Writer.Write((uint)Session.Player.WeenieType);
 
-            var propertiesInt = Session.Player.GetAllPropertyInt().Where(x => SendOnLoginProperties.PropertiesInt.Contains((ushort)x.Key)).ToList();
+            var _propertiesInt = Session.Player.GetAllPropertyInt().Where(x => SendOnLoginProperties.PropertiesInt.Contains((ushort)x.Key)).ToDictionary(i => i.Key, i => i.Value);
 
-            if (propertiesInt.Count != 0)
+            if (_propertiesInt.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt32;
 
-                Writer.Write((ushort)propertiesInt.Count);
-                Writer.Write((ushort)0x40);
+                PackableHashTable.WriteHeader(Writer, _propertiesInt.Count, PropertyIntComparer.NumBuckets);
+
+                var propertiesInt = new SortedDictionary<PropertyInt, int>(_propertiesInt, PropertyIntComparer);
 
                 foreach (var property in propertiesInt)
                 {
@@ -64,14 +81,15 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var propertiesInt64 = Session.Player.GetAllPropertyInt64().Where(x => ClientProperties.PropertiesInt64.Contains((ushort)x.Key)).ToList();
+            var _propertiesInt64 = Session.Player.GetAllPropertyInt64().Where(x => ClientProperties.PropertiesInt64.Contains((ushort)x.Key)).ToDictionary(i => i.Key, i => i.Value);
 
-            if (propertiesInt64.Count != 0)
+            if (_propertiesInt64.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyInt64;
 
-                Writer.Write((ushort)propertiesInt64.Count);
-                Writer.Write((ushort)0x40);
+                PackableHashTable.WriteHeader(Writer, _propertiesInt64.Count, PropertyInt64Comparer.NumBuckets);
+
+                var propertiesInt64 = new SortedDictionary<PropertyInt64, long>(_propertiesInt64, PropertyInt64Comparer);
 
                 foreach (var property in propertiesInt64)
                 {
@@ -80,14 +98,15 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var propertiesBool = Session.Player.GetAllPropertyBools().Where(x => SendOnLoginProperties.PropertiesBool.Contains((ushort)x.Key)).ToList();
+            var _propertiesBool = Session.Player.GetAllPropertyBools().Where(x => SendOnLoginProperties.PropertiesBool.Contains((ushort)x.Key)).ToDictionary(i => i.Key, i => i.Value);
 
-            if (propertiesBool.Count != 0)
+            if (_propertiesBool.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyBool;
 
-                Writer.Write((ushort)propertiesBool.Count);
-                Writer.Write((ushort)0x20);
+                PackableHashTable.WriteHeader(Writer, _propertiesBool.Count, PropertyBoolComparer.NumBuckets);
+
+                var propertiesBool = new SortedDictionary<PropertyBool, bool>(_propertiesBool, PropertyBoolComparer);
 
                 foreach (var property in propertiesBool)
                 {
@@ -96,14 +115,15 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var propertiesDouble = Session.Player.GetAllPropertyFloat().Where(x => SendOnLoginProperties.PropertiesDouble.Contains((ushort)x.Key)).ToList();
+            var _propertiesDouble = Session.Player.GetAllPropertyFloat().Where(x => SendOnLoginProperties.PropertiesDouble.Contains((ushort)x.Key)).ToDictionary(i => i.Key, i => i.Value);
 
-            if (propertiesDouble.Count != 0)
+            if (_propertiesDouble.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyDouble;
 
-                Writer.Write((ushort)propertiesDouble.Count);
-                Writer.Write((ushort)0x20);
+                PackableHashTable.WriteHeader(Writer, _propertiesDouble.Count, PropertyDoubleComparer.NumBuckets);
+
+                var propertiesDouble = new SortedDictionary<PropertyFloat, double>(_propertiesDouble, PropertyDoubleComparer);
 
                 foreach (var property in propertiesDouble)
                 {
@@ -112,14 +132,15 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var propertiesString = Session.Player.GetAllPropertyString().Where(x => SendOnLoginProperties.PropertiesString.Contains((ushort)x.Key)).ToList();
+            var _propertiesString = Session.Player.GetAllPropertyString().Where(x => SendOnLoginProperties.PropertiesString.Contains((ushort)x.Key)).ToDictionary(i => i.Key, i => i.Value);
 
-            if (propertiesString != null && propertiesString.Count != 0)
+            if (_propertiesString.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyString;
 
-                Writer.Write((ushort)propertiesString.Count);
-                Writer.Write((ushort)0x10);
+                PackableHashTable.WriteHeader(Writer, _propertiesString.Count, PropertyStringComparer.NumBuckets);
+
+                var propertiesString = new SortedDictionary<PropertyString, string>(_propertiesString, PropertyStringComparer);
 
                 foreach (var property in propertiesString)
                 {
@@ -136,14 +157,15 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var propertiesDid = Session.Player.GetAllPropertyDataId().Where(x => SendOnLoginProperties.PropertiesDataId.Contains((ushort)x.Key)).ToList();
+            var _propertiesDid = Session.Player.GetAllPropertyDataId().Where(x => SendOnLoginProperties.PropertiesDataId.Contains((ushort)x.Key)).ToDictionary(i => i.Key, i => i.Value);
 
-            if (propertiesDid != null && propertiesDid.Count != 0)
+            if (_propertiesDid.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyDid;
 
-                Writer.Write((ushort)propertiesDid.Count);
-                Writer.Write((ushort)0x20);
+                PackableHashTable.WriteHeader(Writer, _propertiesDid.Count, PropertyDataIdComparer.NumBuckets);
+
+                var propertiesDid = new SortedDictionary<PropertyDataId, uint>(_propertiesDid, PropertyDataIdComparer);
 
                 foreach (var property in propertiesDid)
                 {
@@ -152,14 +174,15 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var propertiesIid = Session.Player.GetAllPropertyInstanceId().Where(x => SendOnLoginProperties.PropertiesInstanceId.Contains((ushort)x.Key)).ToList();
+            var _propertiesIid = Session.Player.GetAllPropertyInstanceId().Where(x => SendOnLoginProperties.PropertiesInstanceId.Contains((ushort)x.Key)).ToDictionary(i => i.Key, i => i.Value);
 
-            if (propertiesIid != null && propertiesIid.Count != 0)
+            if (_propertiesIid.Count != 0)
             {
                 propertyFlags |= DescriptionPropertyFlag.PropertyIid;
 
-                Writer.Write((ushort)propertiesIid.Count);
-                Writer.Write((ushort)0x20);
+                PackableHashTable.WriteHeader(Writer, _propertiesIid.Count, PropertyInstanceIdComparer.NumBuckets);
+
+                var propertiesIid = new SortedDictionary<PropertyInstanceId, uint>(_propertiesIid, PropertyInstanceIdComparer);
 
                 foreach (var property in propertiesIid)
                 {
@@ -182,8 +205,7 @@ namespace ACE.Server.Network.GameEvent.Events
             {
                 propertyFlags |= DescriptionPropertyFlag.Position;
 
-                Writer.Write((ushort)1);
-                Writer.Write((ushort)0x20);
+                PackableHashTable.WriteHeader(Writer, 1, 16);
 
                 Writer.Write((uint)PositionType.LastOutsideDeath);
                 lastOutsideDeath.Serialize(Writer);
@@ -197,6 +219,7 @@ namespace ACE.Server.Network.GameEvent.Events
 
             if (knownSpells.Count > 0)
                 vectorFlags |= DescriptionVectorFlag.Spell;
+
             if (Session.Player.EnchantmentManager.HasEnchantments)
                 vectorFlags |= DescriptionVectorFlag.Enchantment;
 
@@ -211,77 +234,78 @@ namespace ACE.Server.Network.GameEvent.Events
 
                 if ((attributeFlags & AttributeCache.Strength) != 0)
                 {
-                    Writer.Write(Session.Player.Strength.Ranks); // ranks
+                    Writer.Write(Session.Player.Strength.Ranks);
                     Writer.Write(Session.Player.Strength.StartingValue);
-                    Writer.Write(Session.Player.Strength.ExperienceSpent); // xp spent
+                    Writer.Write(Session.Player.Strength.ExperienceSpent);
                 }
 
                 if ((attributeFlags & AttributeCache.Endurance) != 0)
                 {
-                    Writer.Write(Session.Player.Endurance.Ranks); // ranks
+                    Writer.Write(Session.Player.Endurance.Ranks);
                     Writer.Write(Session.Player.Endurance.StartingValue);
-                    Writer.Write(Session.Player.Endurance.ExperienceSpent); // xp spent
+                    Writer.Write(Session.Player.Endurance.ExperienceSpent);
                 }
 
                 if ((attributeFlags & AttributeCache.Quickness) != 0)
                 {
-                    Writer.Write(Session.Player.Quickness.Ranks); // ranks
+                    Writer.Write(Session.Player.Quickness.Ranks);
                     Writer.Write(Session.Player.Quickness.StartingValue);
-                    Writer.Write(Session.Player.Quickness.ExperienceSpent); // xp spent
+                    Writer.Write(Session.Player.Quickness.ExperienceSpent);
                 }
 
                 if ((attributeFlags & AttributeCache.Coordination) != 0)
                 {
-                    Writer.Write(Session.Player.Coordination.Ranks); // ranks
+                    Writer.Write(Session.Player.Coordination.Ranks);
                     Writer.Write(Session.Player.Coordination.StartingValue);
-                    Writer.Write(Session.Player.Coordination.ExperienceSpent); // xp spent
+                    Writer.Write(Session.Player.Coordination.ExperienceSpent);
                 }
 
                 if ((attributeFlags & AttributeCache.Focus) != 0)
                 {
-                    Writer.Write(Session.Player.Focus.Ranks); // ranks
+                    Writer.Write(Session.Player.Focus.Ranks);
                     Writer.Write(Session.Player.Focus.StartingValue);
-                    Writer.Write(Session.Player.Focus.ExperienceSpent); // xp spent
+                    Writer.Write(Session.Player.Focus.ExperienceSpent);
                 }
 
                 if ((attributeFlags & AttributeCache.Self) != 0)
                 {
-                    Writer.Write(Session.Player.Self.Ranks); // ranks
+                    Writer.Write(Session.Player.Self.Ranks);
                     Writer.Write(Session.Player.Self.StartingValue);
-                    Writer.Write(Session.Player.Self.ExperienceSpent); // xp spent
+                    Writer.Write(Session.Player.Self.ExperienceSpent);
                 }
 
                 if ((attributeFlags & AttributeCache.Health) != 0)
                 {
-                    Writer.Write(Session.Player.Health.Ranks); // ranks
+                    Writer.Write(Session.Player.Health.Ranks);
                     Writer.Write(Session.Player.Health.StartingValue); // init_level - always appears to be 0
-                    Writer.Write(Session.Player.Health.ExperienceSpent); // xp spent
-                    Writer.Write(Session.Player.Health.Current); // current value
+                    Writer.Write(Session.Player.Health.ExperienceSpent);
+                    Writer.Write(Session.Player.Health.Current);
                 }
 
                 if ((attributeFlags & AttributeCache.Stamina) != 0)
                 {
-                    Writer.Write(Session.Player.Stamina.Ranks); // ranks
+                    Writer.Write(Session.Player.Stamina.Ranks);
                     Writer.Write(Session.Player.Stamina.StartingValue); // init_level - always appears to be 0
-                    Writer.Write(Session.Player.Stamina.ExperienceSpent); // xp spent
-                    Writer.Write(Session.Player.Stamina.Current); // current value
+                    Writer.Write(Session.Player.Stamina.ExperienceSpent);
+                    Writer.Write(Session.Player.Stamina.Current);
                 }
 
                 if ((attributeFlags & AttributeCache.Mana) != 0)
                 {
-                    Writer.Write(Session.Player.Mana.Ranks); // ranks
+                    Writer.Write(Session.Player.Mana.Ranks);
                     Writer.Write(Session.Player.Mana.StartingValue); // init_level - always appears to be 0
-                    Writer.Write(Session.Player.Mana.ExperienceSpent); // xp spent
-                    Writer.Write(Session.Player.Mana.Current); // current value
+                    Writer.Write(Session.Player.Mana.ExperienceSpent);
+                    Writer.Write(Session.Player.Mana.Current);
                 }
             }
 
             if ((vectorFlags & DescriptionVectorFlag.Skill) != 0)
             {
-                Writer.Write((ushort)Session.Player.Skills.Count);
-                Writer.Write((ushort)0x20); // unknown
+                PackableHashTable.WriteHeader(Writer, Session.Player.Skills.Count, SkillComparer.NumBuckets);
 
-                foreach (var kvp in Session.Player.Skills)
+                var skills = new SortedDictionary<Skill, CreatureSkill>(Session.Player.Skills, SkillComparer);
+
+                foreach (var kvp in skills)
                 {
                     // TODO: Network.Structure.Skill
 
@@ -298,10 +322,11 @@ namespace ACE.Server.Network.GameEvent.Events
 
             if ((vectorFlags & DescriptionVectorFlag.Spell) != 0)
             {
-                Writer.Write((ushort)knownSpells.Count);
-                Writer.Write((ushort)64);
+                PackableHashTable.WriteHeader(Writer, knownSpells.Count, SpellComparer.NumBuckets);
 
-                foreach (var spell in knownSpells)
+                var spells = new SortedDictionary<int, float>(knownSpells, SpellComparer);
+
+                foreach (var spell in spells)
                 {
                     Writer.Write(spell.Key);
                     // This sets a flag to use new spell configuration always 2
@@ -313,7 +338,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 Session.Player.EnchantmentManager.SendRegistry(Writer);
 
             // TODO: Refactor this to set all of these flags based on data. Og II
-            CharacterOptionDataFlag optionFlags = CharacterOptionDataFlag.CharacterOptions2;
+            var optionFlags = CharacterOptionDataFlag.CharacterOptions2;
 
             optionFlags |= CharacterOptionDataFlag.SpellLists8;
 
@@ -353,7 +378,7 @@ namespace ACE.Server.Network.GameEvent.Events
             }
 
             if ((optionFlags & CharacterOptionDataFlag.DesiredComps) != 0)
-                Writer.Write(fillComps);
+                Writer.WriteOld(fillComps);     // verify
 
             //if ((optionFlags & CharacterOptionDataFlag.SpellbookFilters) != 0)
             Writer.Write(Session.Player.Character.SpellbookFilters);

@@ -829,13 +829,9 @@ namespace ACE.Server.Entity
                     {
                         if (wo.ProjectileSource != null)
                             log.Error($"wo.ProjectileSource: 0x{wo.ProjectileSource?.Guid}:{wo.ProjectileSource?.Name}, position: {wo.ProjectileSource?.Location}");
-                        if (wo is SpellProjectile spellProjectile)
-                        {
-                            if (spellProjectile.Caster != null)
-                                log.Error($"wo.Caster: 0x{spellProjectile.Caster?.Guid}:{spellProjectile.Caster?.Name}, position: {spellProjectile.Caster?.Location}");
-                            if (spellProjectile.ProjectileTarget != null)
-                                log.Error($"wo.ProjectileTarget: 0x{spellProjectile.ProjectileTarget?.Guid}:{spellProjectile.ProjectileTarget?.Name}, position: {spellProjectile.ProjectileTarget?.Location}");
-                        }
+
+                        if (wo.ProjectileTarget != null)
+                            log.Error($"wo.ProjectileTarget: 0x{wo.ProjectileTarget?.Guid}:{wo.ProjectileTarget?.Name}, position: {wo.ProjectileTarget?.Location}");
                     }
 
                     log.Error(System.Environment.StackTrace);
@@ -1128,7 +1124,7 @@ namespace ACE.Server.Entity
             foreach (var wo in worldObjects.ToList())
             {
                 if (!wo.Value.BiotaOriginatedFromOrHasBeenSavedToDatabase())
-                    wo.Value.Destroy(false);
+                    wo.Value.Destroy(false, true);
                 else
                     RemoveWorldObjectInternal(wo.Key);
             }

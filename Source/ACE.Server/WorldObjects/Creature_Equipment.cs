@@ -145,10 +145,19 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Returns the currently equipped missile weapon
+        /// This can be either a missile launcher (bow, crossbow, atlatl) or stackable thrown weapons directly in the main hand slot
         /// </summary>
         public WorldObject GetEquippedMissileWeapon()
         {
             return EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileWeapon);
+        }
+
+        /// <summary>
+        /// Returns the currently equipped missile launcher
+        /// </summary>
+        public WorldObject GetEquippedMissileLauncher()
+        {
+            return EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileWeapon && e is MissileLauncher);
         }
 
         /// <summary>
@@ -370,7 +379,7 @@ namespace ACE.Server.WorldObjects
             worldObject.RemoveProperty(PropertyInstanceId.Wielder);
             worldObject.Wielder = null;
 
-            worldObject.IsAffecting = false;
+            worldObject.OnSpellsDeactivated();
 
             EncumbranceVal -= (worldObject.EncumbranceVal ?? 0);
             Value -= (worldObject.Value ?? 0);

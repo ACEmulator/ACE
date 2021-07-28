@@ -1,0 +1,8 @@
+0x39000000 Mutation #1:     // fixme: this should be a 0x38 file id
+
+Tier chances: 1
+
+    - Chance: 100%:
+        ItemMaxLevel (>= 1 ? add : set) 1
+        ItemBaseXp = 2000000000
+        ItemTotalXp (>= 0 ? add : set) 0
