@@ -45,22 +45,16 @@ namespace ACE.Server.WorldObjects
 
         public override void HandleActionUseOnTarget(Player player, WorldObject target)
         {
-            // check activation requirements
+            // verify use requirements
+            var result = CheckUseRequirements(player);
 
-            // verify player level
-            if (UseRequiresLevel != null)
+            if (!result.Success)
             {
-                var playerLevel = player.Level ?? 1;
-                if (playerLevel < UseRequiresLevel.Value)
-                //return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBe_ToUseItemMagic, $"level {UseRequiresLevel.Value}"));
-                {
-                    //player.SendWeenieError(ACE.Entity.Enum.WeenieError.LevelTooLow);
-                    //player.SendUseDoneEvent(ACE.Entity.Enum.WeenieError.LevelTooLow);
-                    //player.SendTransientError($"You are not high enough level to use {Name} on {target.Name}!"); // not retail message almost certainly, but unable to locate specific instance in pcaps of using a key on chest below the level required at this time
-                    player.SendTransientError("You are not high enough level to use that!");
-                    player.SendUseDoneEvent();
-                    return;
-                }
+                if (result.Message != null && player != null)
+                    player.Session.Network.EnqueueSend(result.Message);
+
+                player.SendUseDoneEvent();
+                return;
             }
 
             UnlockerHelper.UseUnlocker(player, this, target);
