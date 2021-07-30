@@ -56,7 +56,9 @@ namespace ACE.Server.WorldObjects
                 {
                     //player.SendWeenieError(ACE.Entity.Enum.WeenieError.LevelTooLow);
                     //player.SendUseDoneEvent(ACE.Entity.Enum.WeenieError.LevelTooLow);
-                    player.SendTransientError($"You are not high enough level to use {Name} on {target.Name}!"); // not retail message almost certainly, but unable to locate specific instance in pcaps of using a key on chest below the level required at this time
+                    //player.SendTransientError($"You are not high enough level to use {Name} on {target.Name}!"); // not retail message almost certainly, but unable to locate specific instance in pcaps of using a key on chest below the level required at this time
+                    player.SendTransientError("You are not high enough level to use that!");
+                    player.SendUseDoneEvent();
                     return;
                 }
             }
