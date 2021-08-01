@@ -45,6 +45,18 @@ namespace ACE.Server.WorldObjects
 
         public override void HandleActionUseOnTarget(Player player, WorldObject target)
         {
+            // verify use requirements
+            var result = CheckUseRequirements(player);
+
+            if (!result.Success)
+            {
+                if (result.Message != null && player != null)
+                    player.Session.Network.EnqueueSend(result.Message);
+
+                player.SendUseDoneEvent();
+                return;
+            }
+
             UnlockerHelper.UseUnlocker(player, this, target);
         }
     }
