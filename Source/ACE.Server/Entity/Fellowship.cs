@@ -174,6 +174,9 @@ namespace ACE.Server.Entity
             }
 
             UpdateAllMembers();
+
+            if (inviter.CurrentMotionState.Stance == MotionStance.NonCombat) // only do this motion if inviter is at peace, other times motion is skipped. 
+                inviter.SendMotionAsCommands(MotionCommand.BowDeep, MotionStance.NonCombat);
         }
 
         public void RemoveFellowshipMember(Player player, Player leader)
