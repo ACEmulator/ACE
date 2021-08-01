@@ -767,6 +767,25 @@ namespace ACE.Entity.Enum.Properties
 
                 case PropertyInt.UseCreatesContractId:
                     return System.Enum.GetName(typeof(ContractId), value);
+
+                case PropertyInt.Faction1Bits:
+                case PropertyInt.Faction2Bits:
+                case PropertyInt.Faction3Bits:
+                case PropertyInt.Hatred1Bits:
+                case PropertyInt.Hatred2Bits:
+                case PropertyInt.Hatred3Bits:
+                    return System.Enum.GetName(typeof(FactionBits), value);
+
+                case PropertyInt.UseRequiresSkill:
+                case PropertyInt.UseRequiresSkillSpec:
+                case PropertyInt.SkillToBeAltered:
+                    return System.Enum.GetName(typeof(Skill), value);
+
+                case PropertyInt.HookGroup:
+                    return System.Enum.GetName(typeof(HookGroupType), value);
+
+                //case PropertyInt.TypeOfAlteration:
+                //    return System.Enum.GetName(typeof(SkillAlterationType), value);
             }
 
             return null;
