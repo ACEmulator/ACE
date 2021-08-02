@@ -1424,7 +1424,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }*/
 
-            var item = FindObject(new ObjectGuid(itemGuid), SearchLocations.LocationsICanMove, out _, out var rootOwner, out var wasEquipped);
+            var item = FindObject(new ObjectGuid(itemGuid), SearchLocations.LocationsICanMove, out var fromContainer, out var rootOwner, out var wasEquipped);
 
             if (item == null)
             {
@@ -1501,7 +1501,7 @@ namespace ACE.Server.WorldObjects
                             return;
                         }
 
-                        if (DoHandleActionGetAndWieldItem(item, rootOwner, wasEquipped, wieldedLocation))
+                        if (DoHandleActionGetAndWieldItem(item, fromContainer, rootOwner, wasEquipped, wieldedLocation))
                         {
                             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
@@ -1519,11 +1519,11 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                DoHandleActionGetAndWieldItem(item, rootOwner, wasEquipped, wieldedLocation);
+                DoHandleActionGetAndWieldItem(item, fromContainer, rootOwner, wasEquipped, wieldedLocation);
             }
         }
 
-        private bool DoHandleActionGetAndWieldItem(WorldObject item, Container itemRootOwner, bool wasEquipped, EquipMask wieldedLocation)
+        private bool DoHandleActionGetAndWieldItem(WorldObject item, Container fromContainer, Container itemRootOwner, bool wasEquipped, EquipMask wieldedLocation)
         {
             //Console.WriteLine($"-> DoHandleActionGetAndWieldItem({item.Name}, {itemRootOwner?.Name}, {wasEquipped}, {wieldedLocation})");
 
@@ -1730,6 +1730,10 @@ namespace ACE.Server.WorldObjects
 
                 return false;
             }
+
+            // if wielding from a loose container, we must save immediately
+            if (fromContainer != null && !fromContainer.Stuck)
+                item.SaveBiotaToDatabase();
 
             return true;
         }
