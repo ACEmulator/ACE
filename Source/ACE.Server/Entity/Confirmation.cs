@@ -87,10 +87,10 @@ namespace ACE.Server.Entity
 
         public override void ProcessConfirmation(bool response)
         {
+            if (!response) return;
+
             var player = Player;
             if (player == null) return;
-
-            if (!response) return;
 
             var augmentation = player.FindObject(AugmentationGuid.Full, Player.SearchLocations.MyInventory) as AugmentationDevice;
 
@@ -120,8 +120,7 @@ namespace ACE.Server.Entity
 
             if (!response)
             {
-                if (player != null)
-                    player.SendWeenieError(WeenieError.YouChickenOut);
+                player.SendWeenieError(WeenieError.YouChickenOut);
 
                 return;
             }
@@ -148,10 +147,10 @@ namespace ACE.Server.Entity
 
         public override void ProcessConfirmation(bool response)
         {
+            if (!response) return;
+
             var invited = Player;
             var inviter = PlayerManager.GetOnlinePlayer(InviterGuid);
-
-            if (!response) return;
 
             if (invited != null && inviter != null && inviter.Fellowship != null)
                 inviter.Fellowship.AddConfirmedMember(inviter, invited, response);
@@ -170,10 +169,10 @@ namespace ACE.Server.Entity
 
         public override void ProcessConfirmation(bool response)
         {
+            if (!response) return;
+
             var patron = Player;
             if (patron == null) return;
-
-            if (!response) return;
 
             var vassal = PlayerManager.GetOnlinePlayer(VassalGuid);
 
@@ -219,10 +218,10 @@ namespace ACE.Server.Entity
 
         public override void ProcessConfirmation(bool response)
         {
+            if (!response) return;
+
             var player = Player;
             if (player == null) return;
-
-            if (!response) return;
 
             Action();
         }
