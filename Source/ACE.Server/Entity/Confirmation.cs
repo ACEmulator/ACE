@@ -39,10 +39,10 @@ namespace ACE.Server.Entity
 
         public override void ProcessConfirmation(bool response)
         {
+            if (!response) return;
+
             var player = Player;
             if (player == null) return;
-
-            if (!response) return;
 
             var attributeTransferDevice = player.FindObject(AttributeTransferDevice.Full, Player.SearchLocations.MyInventory) as AttributeTransferDevice;
 
@@ -63,10 +63,10 @@ namespace ACE.Server.Entity
 
         public override void ProcessConfirmation(bool response)
         {
+            if (!response) return;
+
             var player = Player;
             if (player == null) return;
-
-            if (!response) return;
 
             var skillAlterationDevice = player.FindObject(SkillAlterationDevice.Full, Player.SearchLocations.MyInventory) as SkillAlterationDevice;
 
