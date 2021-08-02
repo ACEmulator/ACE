@@ -598,8 +598,11 @@ namespace ACE.Server.WorldObjects
             // set player properties
             HouseId = house.HouseId;
             HouseInstance = house.Guid.Full;
-            HousePurchaseTimestamp = (int)Time.GetUnixTime();
-            HouseRentTimestamp = (int)house.GetRentDue((uint)HousePurchaseTimestamp.Value);
+
+            var housePurchaseTimestamp = Time.GetUnixTime();
+            if (house.HouseType != HouseType.Apartment)
+                HousePurchaseTimestamp = (int)housePurchaseTimestamp;
+            HouseRentTimestamp = (int)house.GetRentDue((uint)housePurchaseTimestamp);
             houseRentWarnTimestamp = 0;
 
             // set house properties
@@ -633,7 +636,8 @@ namespace ACE.Server.WorldObjects
             
             SaveBiotaToDatabase();
 
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.HousePurchaseTimestamp, HousePurchaseTimestamp ?? 0));
+            if (house.HouseType != HouseType.Apartment)
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.HousePurchaseTimestamp, HousePurchaseTimestamp ?? 0));
 
             // set house data
             // why has this changed? use callback?
