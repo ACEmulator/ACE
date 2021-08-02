@@ -1731,6 +1731,8 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
+            DeepSave(item);
+
             return true;
         }
 
