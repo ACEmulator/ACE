@@ -31,8 +31,6 @@ namespace ACE.Server.WorldObjects
             var tradePartner = PlayerManager.GetOnlinePlayer(tradePartnerGuid);
             if (tradePartner == null) return;
 
-            TradePartner = tradePartner.Guid;
-
             //Check to see if partner is not allowing trades
             if (initiator && tradePartner.GetCharacterOption(CharacterOption.IgnoreAllTradeRequests))
             {
@@ -82,6 +80,8 @@ namespace ACE.Server.WorldObjects
                 tradePartner.IsTrading = true;
                 TradeTransferInProgress = false;
                 tradePartner.TradeTransferInProgress = false;
+
+                TradePartner = tradePartner.Guid;
 
                 ItemsInTradeWindow.Clear();
 
