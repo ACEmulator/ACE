@@ -837,7 +837,7 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.TradeItemBeingTraded));
                 return false;
@@ -1302,7 +1302,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeItemBeingTraded));
                 return;
@@ -1977,7 +1977,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsTrading && ItemsInTradeWindow.Contains(stack.Guid))
+            if (IsTrading && stack.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.TradeItemBeingTraded));
                 return;
@@ -2179,7 +2179,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsTrading && ItemsInTradeWindow.Contains(stack.Guid))
+            if (IsTrading && stack.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.TradeItemBeingTraded));
                 return;
@@ -2372,12 +2372,12 @@ namespace ACE.Server.WorldObjects
 
             if (IsTrading)
             {
-                if (ItemsInTradeWindow.Contains(sourceStack.Guid))
+                if (sourceStack.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
                 {
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid, WeenieError.TradeItemBeingTraded));
                     return;
                 }
-                if (ItemsInTradeWindow.Contains(targetStack.Guid))
+                if (targetStack.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
                 {
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeToGuid, WeenieError.TradeItemBeingTraded));
                     return;
@@ -2617,7 +2617,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeItemBeingTraded));
                 return;
@@ -2653,7 +2653,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeItemBeingTraded));
                 return;
@@ -2764,7 +2764,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeItemBeingTraded));
                 return;
