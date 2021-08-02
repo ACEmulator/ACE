@@ -63,8 +63,6 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    ItemsInTradeWindow.Clear();
-
                     Session.Network.EnqueueSend(new GameEventRegisterTrade(Session, Guid, tradePartner.Guid));
 
                     // this fixes current version of DoThingsBot
@@ -82,8 +80,10 @@ namespace ACE.Server.WorldObjects
                 tradePartner.TradeTransferInProgress = false;
 
                 TradePartner = tradePartner.Guid;
+                tradePartner.TradePartner = Guid;
 
                 ItemsInTradeWindow.Clear();
+                tradePartner.ItemsInTradeWindow.Clear();
 
                 Session.Network.EnqueueSend(new GameEventRegisterTrade(Session, tradePartner.Guid, tradePartner.Guid));
 
