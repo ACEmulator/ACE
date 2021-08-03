@@ -76,7 +76,7 @@ namespace ACE.Server.Command.Handlers
                 if (success)
                     CommandHandlerHelper.WriteOutputInfo(session, $"Successfully {(isOnline ? "booted and " : "")}deleted character {foundPlayer.Name} (0x{foundPlayer.Guid}).", ChatMessageType.Broadcast);
                 else
-                    CommandHandlerHelper.WriteOutputInfo(session, $"Unable to {(isOnline ? "boot and " : "")}delete character {foundPlayer.Name} (0x{foundPlayer.Guid}) due to PlayerManager.", ChatMessageType.Broadcast);
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Unable to {(isOnline ? "boot and " : "")}delete character {foundPlayer.Name} (0x{foundPlayer.Guid}) due to PlayerManager failure.", ChatMessageType.Broadcast);
             }
             else
             {
