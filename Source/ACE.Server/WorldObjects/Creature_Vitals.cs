@@ -105,8 +105,7 @@ namespace ACE.Server.WorldObjects
             var vitalCurrent = vital.Current;
             var vitalMax = vital.MaxValue;
 
-            if (vitalCurrent >= vitalMax && vital.RegenRate > 0 ||
-              vitalCurrent <= 0 && vital.RegenRate < 0)
+            if (vitalCurrent >= vitalMax && vital.RegenRate > 0)
                 return false;
 
             if (vitalCurrent > vitalMax)
