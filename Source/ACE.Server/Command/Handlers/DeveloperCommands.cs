@@ -2434,7 +2434,7 @@ namespace ACE.Server.Command.Handlers
                 //else
                 //    player.LogOut();
 
-                var msg = $"Player {player.Name} (0x{player.Guid}) found in PlayerManager.\n";
+                var msg = $"Player {player.Name} (0x{player.Guid}) found in PlayerManager.onlinePlayers.\n";
                 msg += $"------- Session: {(player.Session != null ? $"0x{player.Session.EndPoint}" : "NULL")}\n";
                 msg += $"------- CurrentLandblock: {(player.CurrentLandblock != null ? $"0x{player.CurrentLandblock.Id:X4}" : "NULL")}\n";
                 msg += $"------- Location: {(player.Location != null ? $"0x{player.Location.ToLOCString()}" : "NULL")}\n";
@@ -2444,35 +2444,45 @@ namespace ACE.Server.Command.Handlers
                 if (player.CurrentLandblock != null)
                     foundOnLandblock = LandblockManager.GetLandblock(player.CurrentLandblock.Id, false).GetObject(player.Guid) != null;
                 msg += $"------- FoundOnLandblock: {foundOnLandblock}\n";
-                msg += $"------- ForcedLogOffRequested: {player.ForcedLogOffRequested}\n";
+                var playerForcedLogOffRequested = player.ForcedLogOffRequested;
+                msg += $"------- ForcedLogOffRequested: {playerForcedLogOffRequested}\n";
 
                 msg += "Log off path taken: ";
-                if (player.Session != null)
+                if (playerForcedLogOffRequested)
                 {
+                    player.Session?.Terminate(Network.Enum.SessionTerminationReason.ForcedLogOffRequested, new GameMessageBootAccount(" because the character was forced to log off by an admin"));
+                    player.ForceLogoff();
+                    msg += "player.Session?.Terminate() | player.ForceLogoff()";
+                }
+                else if (player.Session != null)
+                {
+                    player.ForcedLogOffRequested = true;
                     player.Session.Terminate(Network.Enum.SessionTerminationReason.ForcedLogOffRequested, new GameMessageBootAccount(" because the character was forced to log off by an admin"));
-                    msg += "player.Session.Terminate()";
+                    msg += "player.ForcedLogOffRequested = true | player.Session.Terminate()";
                 }
                 else if (player.CurrentLandblock != null && foundOnLandblock)
                 {
+                    player.ForcedLogOffRequested = true;
                     player.LogOut();
-                    msg += "player.LogOut()";
+                    msg += "player.ForcedLogOffRequested = true | player.LogOut()";
                 }
                 else if (player.IsInDeathProcess)
                 {
+                    player.ForcedLogOffRequested = true;
                     player.IsInDeathProcess = false;
                     player.LogOut_Inner(true);
-                    msg += "player.IsInDeathProcess = false | player.LogOut_Inner(true)";
-                }
-                else if (player.ForcedLogOffRequested)
-                {
-                    player.ForceLogoff();
-                    msg += " player.ForceLogoff()";
+                    msg += "player.ForcedLogOffRequested = true | player.IsInDeathProcess = false | player.LogOut_Inner(true)";
                 }
                 else
                 {
                     player.ForcedLogOffRequested = true;
-                    msg += "player.ForcedLogOffRequested = true\nUse this command again if this player does not properly log off within the next minute";
+                    msg += "player.ForcedLogOffRequested = true";
                 }
+
+                if (!playerForcedLogOffRequested)
+                    msg += "\nUse this command again if this player does not properly log off within the next minute.";
+                else
+                    msg += "\nPlease send the above report to ACEmulator development team via Discord.";
 
                 CommandHandlerHelper.WriteOutputInfo(session, msg);
 
