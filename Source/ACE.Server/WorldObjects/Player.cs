@@ -597,6 +597,10 @@ namespace ACE.Server.WorldObjects
 
         public bool ForcedLogOffRequested;
 
+        /// <summary>
+        /// Force Log off a player requested to log out by an admin command forcelogoff/forcelogout or the ServerManager.<para />
+        /// THIS FUNCTION FOR SYSTEM USE ONLY; If you want to force a player to logout, use Session.LogOffPlayer().
+        /// </summary>
         public void ForceLogoff()
         {
             if (!ForcedLogOffRequested) return;
