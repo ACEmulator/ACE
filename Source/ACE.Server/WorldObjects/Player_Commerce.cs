@@ -392,7 +392,7 @@ namespace ACE.Server.WorldObjects
                     continue;
                 }
 
-                if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+                if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
                 {
                     var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot sell that! The {itemName} is currently being traded.")); // custom message?

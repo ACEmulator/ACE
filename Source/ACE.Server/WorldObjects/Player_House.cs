@@ -246,7 +246,7 @@ namespace ACE.Server.WorldObjects
                 //Console.WriteLine($"{stackStr}{item.Name} ({item.Guid})");
                 logLine += $"{stackStr}{item.Name} ({item.Guid})" + Environment.NewLine;
 
-                if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+                if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
                 {
                     //Console.WriteLine($"{stackStr}{item.Name} ({item.Guid}) is currently being traded, skipping.");
                     logLine += $"{stackStr}{item.Name} ({item.Guid}) is currently being traded, skipping." + Environment.NewLine;
@@ -734,7 +734,7 @@ namespace ACE.Server.WorldObjects
                 //Console.WriteLine($"{stackStr}{item.Name} ({item.Guid})");
                 logLine += $"{stackStr}{item.Name} ({item.Guid})" + Environment.NewLine;
 
-                if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+                if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
                 {
                     //Console.WriteLine($"{stackStr}{item.Name} ({item.Guid}) is currently being traded, skipping.");
                     logLine += $"{stackStr}{item.Name} ({item.Guid}) is currently being traded, skipping." + Environment.NewLine;
