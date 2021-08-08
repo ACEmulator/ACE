@@ -124,7 +124,12 @@ namespace ACE.Server.Entity
                     AddConfirmedMember(inviter, newMember, true);
                 }
                 else
-                    newMember.ConfirmationManager.EnqueueSend(new Confirmation_Fellowship(inviter.Guid, newMember.Guid), inviter.Name);
+                {
+                    if (!newMember.ConfirmationManager.EnqueueSend(new Confirmation_Fellowship(inviter.Guid, newMember.Guid), inviter.Name))
+                    {
+                        inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newMember.Name} is busy.", ChatMessageType.Broadcast));
+                    }
+                }
             }
         }
 
