@@ -602,6 +602,8 @@ namespace ACE.Server.WorldObjects
             if (!ForcedLogOffRequested) return;
 
             FinalizeLogout();
+
+            ForcedLogOffRequested = false;
         }
 
         private void FinalizeLogout()
