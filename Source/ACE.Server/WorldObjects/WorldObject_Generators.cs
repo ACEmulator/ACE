@@ -756,7 +756,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void NotifyOfEvent(RegenerationType regenerationType)
         {
-            if (GeneratorId == null) return;
+            if (GeneratorId == null || Generator == null) return;
 
             //if (!Generator.GeneratorDisabled)
             //{
