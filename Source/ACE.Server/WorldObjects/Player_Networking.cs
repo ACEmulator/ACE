@@ -441,7 +441,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandlePreOrderItems()
         {
-            var subscriptionStatus = AccountRequirements;
+            var subscriptionStatus = (SubscriptionStatus)PropertyManager.GetLong("default_subscription_level").Item;
 
             string status;
             bool success;
@@ -462,6 +462,8 @@ namespace ACE.Server.WorldObjects
 
             if (PropertyManager.GetBool("show_first_login_gift").Item && success)
                 Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Magic));
+
+            AccountRequirements = subscriptionStatus;
         }
 
         private bool TryCreatePreOrderItem(PropertyBool propertyBool, WeenieClassName weenieClassName)
