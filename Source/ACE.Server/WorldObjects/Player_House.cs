@@ -539,7 +539,15 @@ namespace ACE.Server.WorldObjects
             if (House == null) LoadHouse(houseInstance);
             if (House == null || House.SlumLord == null) return;
 
-            var purchaseTime = (uint)(HousePurchaseTimestamp ?? 0);
+            var houseOwner = GetHouseOwner();
+
+            var purchaseTime = (uint)(houseOwner.HousePurchaseTimestamp ?? 0);
+
+            if (HousePurchaseTimestamp != purchaseTime)
+            {
+                HousePurchaseTimestamp = (int)purchaseTime;
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.HousePurchaseTimestamp, (int)HousePurchaseTimestamp));
+            }
 
             if (HouseRentTimestamp == null)
                 HouseRentTimestamp = (int)House.GetRentDue(purchaseTime);
