@@ -82,8 +82,8 @@ namespace ACE.Server.WorldObjects
 
         public SubscriptionStatus AccountRequirements
         {
-            get => (SubscriptionStatus)(GetProperty(PropertyInt.AccountRequirements) ?? (int)SubscriptionStatus.AsheronsCall_Subscription);
-            set { if (value == SubscriptionStatus.AsheronsCall_Subscription) RemoveProperty(PropertyInt.AccountRequirements); else SetProperty(PropertyInt.AccountRequirements, (int)value); }
+            get => (SubscriptionStatus)(GetProperty(PropertyInt.AccountRequirements) ?? (int)Server.Managers.PropertyManager.GetLong("default_subscription_level").Item);
+            set { if ((int)value == Server.Managers.PropertyManager.GetLong("default_subscription_level").Item) RemoveProperty(PropertyInt.AccountRequirements); else SetProperty(PropertyInt.AccountRequirements, (int)value); }
         }
 
         // ========================================

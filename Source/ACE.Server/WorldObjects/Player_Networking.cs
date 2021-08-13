@@ -66,6 +66,8 @@ namespace ACE.Server.WorldObjects
                 actionChain.EnqueueChain();
             }
 
+            HandlePreOrderItems();
+
             // SendSelf will trigger the entrance into portal space
             SendSelf();
 
@@ -435,6 +437,59 @@ namespace ACE.Server.WorldObjects
                 afkMessage = DefaultAFKMessage; // client default
 
             AfkMessage = afkMessage;
+        }
+
+        public void HandlePreOrderItems()
+        {
+            var subscriptionStatus = AccountRequirements;
+
+            string status;
+            bool success;
+            switch (subscriptionStatus)
+            {
+                default:
+                    status = "purchasing";
+                    success = TryCreatePreOrderItem(PropertyBool.ActdReceivedItems, ACE.Entity.Enum.WeenieClassName.W_GEMACTDPURCHASEREWARDARMOR_CLASS, "GEMACTDPURCHASEREWARDARMOR");
+                    break;
+                case SubscriptionStatus.ThroneOfDestiny_Preordered:
+                    status = "pre-ordering";
+                    TryCreatePreOrderItem(PropertyBool.ActdReceivedItems, ACE.Entity.Enum.WeenieClassName.W_GEMACTDPURCHASEREWARDARMOR_CLASS, "GEMACTDPURCHASEREWARDARMOR"); // pcaps show this actually didn't occur on retail. odd
+                    success = TryCreatePreOrderItem(PropertyBool.ActdPreorderReceivedItems, ACE.Entity.Enum.WeenieClassName.W_GEMACTDPURCHASEREWARDHEALTH_CLASS, "GEMACTDPURCHASEREWARDHEALTH");
+                    break;
+            }
+
+            var msg = $"Thank you for {status} the Throne of Destiny expansion! A special gift has been placed in your backpack.";
+
+            if (PropertyManager.GetBool("show_first_login_gift").Item && success)
+                Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Magic));
+        }
+
+        private bool TryCreatePreOrderItem(PropertyBool propertyBool, WeenieClassName weenieClassName, string weenieName)
+        {
+            var rcvdBlackmoorsFavor = GetProperty(propertyBool) ?? false;
+            if (!rcvdBlackmoorsFavor)
+            {
+                if (GetInventoryItemsOfWCID((uint)weenieClassName).Count == 0)
+                {
+                    var cachedWeenie = Database.DatabaseManager.World.GetCachedWeenie(weenieName);
+                    if (cachedWeenie == null)
+                        return false;
+
+                    var wo = Factories.WorldObjectFactory.CreateNewWorldObject(cachedWeenie);
+                    if (wo == null)
+                        return false;
+
+                    if (TryAddToInventory(wo))
+                    {
+                        SetProperty(propertyBool, true);
+                        return true;
+                    }
+                }
+                else
+                    SetProperty(propertyBool, true); // already had the item, set the property to reflect item was received
+            }
+
+            return false;
         }
     }
 }
