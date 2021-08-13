@@ -546,7 +546,7 @@ namespace ACE.Server.WorldObjects
             if (HousePurchaseTimestamp != purchaseTime)
             {
                 HousePurchaseTimestamp = (int)purchaseTime;
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.HousePurchaseTimestamp, (int)HousePurchaseTimestamp));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.HousePurchaseTimestamp, (int)HousePurchaseTimestamp), new GameMessageSystemChat("Updating housing information...", ChatMessageType.Broadcast), new GameEventHouseStatus(Session, WeenieError.HouseEvicted));
             }
 
             if (HouseRentTimestamp == null)
