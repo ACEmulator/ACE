@@ -449,12 +449,12 @@ namespace ACE.Server.WorldObjects
             {
                 default:
                     status = "purchasing";
-                    success = TryCreatePreOrderItem(PropertyBool.ActdReceivedItems, ACE.Entity.Enum.WeenieClassName.W_GEMACTDPURCHASEREWARDARMOR_CLASS, "GEMACTDPURCHASEREWARDARMOR");
+                    success = TryCreatePreOrderItem(PropertyBool.ActdReceivedItems, ACE.Entity.Enum.WeenieClassName.W_GEMACTDPURCHASEREWARDARMOR_CLASS);
                     break;
                 case SubscriptionStatus.ThroneOfDestiny_Preordered:
                     status = "pre-ordering";
-                    TryCreatePreOrderItem(PropertyBool.ActdReceivedItems, ACE.Entity.Enum.WeenieClassName.W_GEMACTDPURCHASEREWARDARMOR_CLASS, "GEMACTDPURCHASEREWARDARMOR"); // pcaps show this actually didn't occur on retail. odd
-                    success = TryCreatePreOrderItem(PropertyBool.ActdPreorderReceivedItems, ACE.Entity.Enum.WeenieClassName.W_GEMACTDPURCHASEREWARDHEALTH_CLASS, "GEMACTDPURCHASEREWARDHEALTH");
+                    TryCreatePreOrderItem(PropertyBool.ActdReceivedItems, ACE.Entity.Enum.WeenieClassName.W_GEMACTDPURCHASEREWARDARMOR_CLASS); // pcaps show this actually didn't occur on retail. odd
+                    success = TryCreatePreOrderItem(PropertyBool.ActdPreorderReceivedItems, ACE.Entity.Enum.WeenieClassName.W_GEMACTDPURCHASEREWARDHEALTH_CLASS);
                     break;
             }
 
@@ -464,14 +464,14 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Magic));
         }
 
-        private bool TryCreatePreOrderItem(PropertyBool propertyBool, WeenieClassName weenieClassName, string weenieName)
+        private bool TryCreatePreOrderItem(PropertyBool propertyBool, WeenieClassName weenieClassName)
         {
             var rcvdBlackmoorsFavor = GetProperty(propertyBool) ?? false;
             if (!rcvdBlackmoorsFavor)
             {
                 if (GetInventoryItemsOfWCID((uint)weenieClassName).Count == 0)
                 {
-                    var cachedWeenie = Database.DatabaseManager.World.GetCachedWeenie(weenieName);
+                    var cachedWeenie = Database.DatabaseManager.World.GetCachedWeenie((uint)weenieClassName);
                     if (cachedWeenie == null)
                         return false;
 
