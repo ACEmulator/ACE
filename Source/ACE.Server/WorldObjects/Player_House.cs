@@ -541,16 +541,18 @@ namespace ACE.Server.WorldObjects
 
             var houseOwner = GetHouseOwner();
 
-            var purchaseTime = (uint)(houseOwner.HousePurchaseTimestamp ?? 0);
+            // var purchaseTime = (uint)(houseOwner.HousePurchaseTimestamp ?? 0);
 
-            if (HousePurchaseTimestamp != purchaseTime)
+            if (HousePurchaseTimestamp != houseOwner.HousePurchaseTimestamp)
             {
-                HousePurchaseTimestamp = (int)purchaseTime;
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.HousePurchaseTimestamp, (int)HousePurchaseTimestamp), new GameMessageSystemChat("Updating housing information...", ChatMessageType.Broadcast), new GameEventHouseStatus(Session, WeenieError.HouseEvicted));
+                HousePurchaseTimestamp = houseOwner.HousePurchaseTimestamp;
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.HousePurchaseTimestamp, HousePurchaseTimestamp ?? 0), new GameMessageSystemChat("Updating housing information...", ChatMessageType.Broadcast), new GameEventHouseStatus(Session, WeenieError.HouseEvicted));
             }
 
-            if (HouseRentTimestamp == null)
-                HouseRentTimestamp = (int)House.GetRentDue(purchaseTime);
+            // var rentTime = (uint)(houseOwner.HouseRentTimestamp ?? 0);
+
+            if (HouseRentTimestamp != houseOwner.HouseRentTimestamp)
+                HouseRentTimestamp  = houseOwner.HouseRentTimestamp;
 
             if (!House.SlumLord.InventoryLoaded)
             {
