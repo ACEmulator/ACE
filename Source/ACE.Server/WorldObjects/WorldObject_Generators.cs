@@ -95,12 +95,17 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns TRUE if all generator profiles are at init objects created
         /// </summary>
-        public bool AllProfilesInitted { get => GeneratorProfiles.Count(i => i.InitObjectsSpawned) == GeneratorProfiles.Count; }
+        public bool AllProfilesInitted { get => GeneratorProfiles.Count(i => !i.IsPlaceholder && i.InitObjectsSpawned) == GeneratorProfiles.Count(i => !i.IsPlaceholder); }
 
         /// <summary>
-        /// Retunrs TRUE if all generator profiles are at max objects created
+        /// Returns TRUE if all generator profiles are at max objects created
         /// </summary>
-        public bool AllProfilesMaxed { get => GeneratorProfiles.Count(i => i.MaxObjectsSpawned) == GeneratorProfiles.Count; }
+        public bool AllProfilesMaxed { get => GeneratorProfiles.Count(i => !i.IsPlaceholder && i.MaxObjectsSpawned) == GeneratorProfiles.Count(i => !i.IsPlaceholder); }
+
+        /// <summary>
+        /// Returns TRUE if all generator profiles are all timed out
+        /// </summary>
+        public bool AllProfilesExhausted { get => GeneratorProfiles.Count(i => !i.IsPlaceholder && i.RemoveQueue.Count == i.MaxCreate) == GeneratorProfiles.Count(i => !i.IsPlaceholder); }
 
         /// <summary>
         /// Adds initial objects to the spawn queue based on RNG rolls
@@ -137,7 +142,7 @@ namespace ACE.Server.WorldObjects
                         continue;
 
                     // is this profile currently timed out?
-                    if (profile.RemoveQueue.Count > 0)
+                    if (profile.RemoveQueue.Count == MaxCreate)
                         continue;
 
                     if (profile.RegenLocationType.HasFlag(RegenLocationType.Treasure))
@@ -219,7 +224,7 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 // is this profile currently timed out?
-                if (profile.RemoveQueue.Count > 0)
+                if (profile.RemoveQueue.Count == MaxCreate)
                     continue;
 
                 var probability = GetAdjustedProbability(i);
@@ -268,7 +273,7 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 // is this profile currently timed out?
-                if (profile.RemoveQueue.Count > 0)
+                if (profile.RemoveQueue.Count == MaxCreate)
                     continue;
 
                 //var numObjects = 1;
@@ -785,10 +790,10 @@ namespace ACE.Server.WorldObjects
 
                 if (Generator.GeneratorId > 0) // Generator is controlled by another generator.
                 {
-                    if ((!(Generator is Container) || Generator.GeneratorAutomaticDestruction) && Generator.InitCreate > 0 && Generator.CurrentCreate == 0) // Parent generator is non-container (Container, Corpse, Chest, Slumlord, Storage, Hook, Creature) generator
+                    if ((!(Generator is Container) || Generator.GeneratorAutomaticDestruction) && Generator.InitCreate > 0 && Generator.AllProfilesExhausted) // Parent generator is non-container (Container, Corpse, Chest, Slumlord, Storage, Hook, Creature) generator
                         Generator.Destroy(); // Generator's complete spawn count has been wiped out
                 }
-                else if (Generator.GeneratorAutomaticDestruction && Generator.InitCreate > 0 && Generator.CurrentCreate == 0)
+                else if (Generator.GeneratorAutomaticDestruction && Generator.InitCreate > 0 && Generator.AllProfilesExhausted)
                 {
                     Generator.Destroy(); // Generator's complete spawn count has been wiped out
                 }
@@ -892,7 +897,7 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     //Console.WriteLine($"{Name}.Generator_Regeneration({RegenerationInterval}) SelectMoreProfiles: Init={InitCreate} Current={CurrentCreate} Max={MaxCreate}");
-                    SelectMoreProfiles();
+                    SelectProfilesMax();
                 }
             }
 
