@@ -53,6 +53,12 @@ namespace ACE.Server.Entity
         public readonly Queue<(DateTime time, uint objectGuid)> RemoveQueue = new Queue<(DateTime time, uint objectGuid)>();
 
         /// <summary>
+        /// A list of objects that have been spawned by this generator and destroyed
+        /// Mapping of object guid => registry node, which provides a bunch of detailed info about the spawn
+        /// </summary>
+        public readonly Dictionary<uint, WorldObjectInfo> Removed = new Dictionary<uint, WorldObjectInfo>();
+
+        /// <summary>
         /// Returns TRUE if this profile is a placeholder object
         /// Placeholder objects are used for linkable generators,
         /// and are used as a template for the real items contained in the links.
@@ -72,7 +78,8 @@ namespace ACE.Server.Entity
             get
             {
                 if (!GeneratedTreasureItem)
-                    return Spawned.Count + SpawnQueue.Count - RemoveQueue.Count(r => Spawned.ContainsKey(r.objectGuid));
+                    //return Spawned.Count + SpawnQueue.Count - RemoveQueue.Count(r => Spawned.ContainsKey(r.objectGuid));
+                    return Spawned.Keys.Except(Removed.Keys).Count() + SpawnQueue.Count;
                 else
                 {
                     if ((Spawned.Count + SpawnQueue.Count) > 0)
@@ -300,7 +307,8 @@ namespace ACE.Server.Entity
                     success = Spawn_Default(obj);
 
                 // if first spawn fails, don't continually attempt to retry
-                if (success || FirstSpawn)
+                //if (success || FirstSpawn)
+                if (success)
                     spawned.Add(obj);
             }
 
@@ -542,11 +550,13 @@ namespace ACE.Server.Entity
                 return;            
 
             RemoveQueue.Enqueue((DateTime.UtcNow.AddSeconds(Delay), woi.Guid.Full));
+            Removed.Add(woi.Guid.Full, woi);
         }
 
         public void FreeSlot(uint objectGuid)
         {
             Spawned.Remove(objectGuid);
+            Removed.Remove(objectGuid);
         }
     }
 }
