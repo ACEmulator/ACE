@@ -7,6 +7,9 @@ namespace ACE.Entity.Enum
         Int,
         Quality,
         Random,
-        Variable
+        Variable,
+
+        // added
+        Int64
     }
 }
