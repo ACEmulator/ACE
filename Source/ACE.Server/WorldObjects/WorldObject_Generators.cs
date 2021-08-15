@@ -772,13 +772,16 @@ namespace ACE.Server.WorldObjects
 
             //if (!Generator.GeneratorDisabled)
             //{
-                var removeQueueTotal = 0;
+                //var removeQueueTotal = 0;
 
-                foreach (var generator in Generator.GeneratorProfiles)
-                {
-                    generator.NotifyGenerator(Guid, regenerationType);
-                    removeQueueTotal += generator.RemoveQueue.Count;
-                }
+                //foreach (var generator in Generator.GeneratorProfiles)
+                //{
+                //    generator.NotifyGenerator(Guid, regenerationType);
+                //    removeQueueTotal += generator.RemoveQueue.Count;
+                //}
+
+                var generator = Generator.GeneratorProfiles.FirstOrDefault(g => g.Spawned.ContainsKey(Guid.Full));
+                generator?.NotifyGenerator(Guid, regenerationType);
 
                 if (Generator.GeneratorId > 0) // Generator is controlled by another generator.
                 {
