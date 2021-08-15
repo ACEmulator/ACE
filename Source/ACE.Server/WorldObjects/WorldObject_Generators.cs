@@ -85,7 +85,7 @@ namespace ACE.Server.WorldObjects
                 for (var i = 0; i < GeneratorProfiles.Count; i++)
                 {
                     var profile = GeneratorProfiles[i];
-                    if (profile.CurrentCreate > 0)
+                    if (profile.CurrentCreate > 0 || profile.RemoveQueue.Count > 0)
                         activeProfiles.Add(i);
                 }
                 return activeProfiles;
@@ -134,6 +134,10 @@ namespace ACE.Server.WorldObjects
 
                     // is this profile already at its max_create?
                     if (profile.MaxObjectsSpawned)
+                        continue;
+
+                    // is this profile currently timed out?
+                    if (profile.RemoveQueue.Count > 0)
                         continue;
 
                     if (profile.RegenLocationType.HasFlag(RegenLocationType.Treasure))
@@ -214,6 +218,10 @@ namespace ACE.Server.WorldObjects
                 if (profile.MaxObjectsSpawned)
                     continue;
 
+                // is this profile currently timed out?
+                if (profile.RemoveQueue.Count > 0)
+                    continue;
+
                 var probability = GetAdjustedProbability(i);
                 if (rng < probability || probability == -1)
                 {
@@ -257,6 +265,10 @@ namespace ACE.Server.WorldObjects
 
                 // is this profile already at its max_create?
                 if (profile.MaxObjectsSpawned)
+                    continue;
+
+                // is this profile currently timed out?
+                if (profile.RemoveQueue.Count > 0)
                     continue;
 
                 //var numObjects = 1;

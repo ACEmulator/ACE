@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 using log4net;
@@ -71,7 +72,17 @@ namespace ACE.Server.Entity
             get
             {
                 if (!GeneratedTreasureItem)
-                    return Spawned.Count + SpawnQueue.Count;
+                //return Spawned.Count + SpawnQueue.Count - RemoveQueue.Count;
+                {
+                    var x = 0;
+                    var y = RemoveQueue.ToDictionary(q => q.objectGuid, q => q.time);
+                    foreach (var spawn in Spawned)
+                        if (!y.ContainsKey(spawn.Key))
+                            x++;
+                    x += SpawnQueue.Count;
+
+                    return x;
+                }
                 else
                 {
                     if ((Spawned.Count + SpawnQueue.Count) > 0)
