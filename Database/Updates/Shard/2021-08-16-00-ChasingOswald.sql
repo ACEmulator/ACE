@@ -5,3 +5,4 @@ SET
     `quest_Name` = 'OswaldManualCompleted'
 WHERE
     `character_properties_quest_registry`.`quest_Name` = 'ChasingOswald';
+	
