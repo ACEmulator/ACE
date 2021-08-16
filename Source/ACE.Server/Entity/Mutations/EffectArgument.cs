@@ -19,6 +19,9 @@ namespace ACE.Server.Entity.Mutations
         // EffectArgumentType.Int
         public int IntVal;
 
+        // EffectArgumentType.Int64
+        public long LongVal;
+
         // EffectArgumentType.Double
         public double DoubleVal;
 
@@ -39,6 +42,13 @@ namespace ACE.Server.Entity.Mutations
         {
             Type = EffectArgumentType.Int;
             IntVal = val;
+            IsValid = true;
+        }
+
+        public EffectArgument(long val)
+        {
+            Type = EffectArgumentType.Int64;
+            LongVal = val;
             IsValid = true;
         }
 
@@ -68,6 +78,8 @@ namespace ACE.Server.Entity.Mutations
 
             IntVal = other.IntVal;
 
+            LongVal = other.LongVal;
+
             DoubleVal = other.DoubleVal;
 
             MinVal = other.MinVal;
@@ -82,6 +94,8 @@ namespace ACE.Server.Entity.Mutations
                     return DoubleVal;
                 case EffectArgumentType.Int:
                     return IntVal;
+                case EffectArgumentType.Int64:
+                    return LongVal;
             }
             return null;
         }
@@ -93,6 +107,8 @@ namespace ACE.Server.Entity.Mutations
             {
                 case EffectArgumentType.Int:
                     return IntVal;
+                case EffectArgumentType.Int64:
+                    return LongVal;
                 case EffectArgumentType.Double:
                     return DoubleVal;
             }
@@ -106,15 +122,32 @@ namespace ACE.Server.Entity.Mutations
             {
                 case EffectArgumentType.Int:
                     return IntVal;
+                case EffectArgumentType.Int64:
+                    return (int)LongVal;
                 case EffectArgumentType.Double:
                     return (int)DoubleVal;
             }
-            log.Error($"EffectArgument.ToDouble() - invalid type {Type}");
+            log.Error($"EffectArgument.ToInt() - invalid type {Type}");
+            return 0;
+        }
+
+        public long ToLong()
+        {
+            switch (Type)
+            {
+                case EffectArgumentType.Int:
+                    return IntVal;
+                case EffectArgumentType.Int64:
+                    return LongVal;
+                case EffectArgumentType.Double:
+                    return (long)DoubleVal;
+            }
+            log.Error($"EffectArgument.ToLong() - invalid type {Type}");
             return 0;
         }
 
         // gdle custom
-        
+
         public bool IsValid = false;
 
         public bool ResolveValue(WorldObject item)
@@ -124,6 +157,7 @@ namespace ACE.Server.Entity.Mutations
             {
                 case EffectArgumentType.Double:
                 case EffectArgumentType.Int:
+                case EffectArgumentType.Int64:
                     // these are ok as-is
                     IsValid = true;
                     break;
@@ -139,6 +173,17 @@ namespace ACE.Server.Entity.Mutations
                             if (intVal != null)
                             {
                                 IntVal = intVal.Value;
+                                IsValid = true;
+                            }
+                            break;
+
+                        case StatType.Int64:
+
+                            Type = EffectArgumentType.Int64;
+                            var int64Val = item.GetProperty((PropertyInt64)StatIdx);
+                            if (int64Val != null)
+                            {
+                                LongVal = int64Val.Value;
                                 IsValid = true;
                             }
                             break;
@@ -207,6 +252,10 @@ namespace ACE.Server.Entity.Mutations
                     {
                         case StatType.Int:
                             item.SetProperty((PropertyInt)StatIdx, result.ToInt());
+                            break;
+
+                        case StatType.Int64:
+                            item.SetProperty((PropertyInt64)StatIdx, result.ToLong());
                             break;
 
                         case StatType.Bool:
