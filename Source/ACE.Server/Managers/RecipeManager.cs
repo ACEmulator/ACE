@@ -358,7 +358,14 @@ namespace ACE.Server.Managers
 
                         // client automatically moves item to first slot in container
                         // when an UpdateObject is sent. we must mimic this process on the server for persistance
-                        player.MoveItemToFirstContainerSlot(target);
+
+                        // only run this for items in the player's inventory
+                        // ie. skip for items on landblock, such as chorizite ore
+
+                        var invObj = player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory);
+
+                        if (invObj != null)
+                            player.MoveItemToFirstContainerSlot(target);
                     }
                 }
             }
