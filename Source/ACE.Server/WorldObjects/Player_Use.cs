@@ -83,13 +83,13 @@ namespace ACE.Server.WorldObjects
 
             if (IsTrading)
             {
-                if (ItemsInTradeWindow.Contains(sourceItem.Guid))
+                if (sourceItem.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
                 {
                     SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
                     //SendWeenieError(WeenieError.TradeItemBeingTraded);
                     return;
                 }
-                if (ItemsInTradeWindow.Contains(target.Guid))
+                if (target.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
                 {
                     SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
                     //SendWeenieError(WeenieError.TradeItemBeingTraded);
@@ -147,7 +147,7 @@ namespace ACE.Server.WorldObjects
 
             var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock);
 
-            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
                 //SendWeenieError(WeenieError.TradeItemBeingTraded);

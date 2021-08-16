@@ -375,7 +375,7 @@ namespace ACE.Server.WorldObjects.Managers
                     var stackSize = emote.StackSize ?? 1;
 
                     if (player != null && emote.WeenieClassId != null)
-                        player.GiveFromEmote(WorldObject, emote.WeenieClassId ?? 0, stackSize > 0 ? stackSize : 1);
+                        player.GiveFromEmote(WorldObject, emote.WeenieClassId ?? 0, stackSize > 0 ? stackSize : 1, emote.Palette ?? 0, emote.Shade ?? 0);
 
                     break;
 
@@ -817,7 +817,10 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (player != null)
                     {
-                        player.ConfirmationManager.EnqueueSend(new Confirmation_YesNo(WorldObject.Guid, player.Guid, emote.Message), emote.TestString);
+                        if (!player.ConfirmationManager.EnqueueSend(new Confirmation_YesNo(WorldObject.Guid, player.Guid, emote.Message), emote.TestString))
+                        {
+                            ExecuteEmoteSet(EmoteCategory.TestFailure, emote.Message, player);
+                        }
                     }
                     break;
 

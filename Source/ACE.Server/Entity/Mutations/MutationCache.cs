@@ -242,7 +242,7 @@ namespace ACE.Server.Entity.Mutations
         {
             var effectArgument = new EffectArgument();
 
-            effectArgument.Type = GetEffectArgumentType(operand);
+            effectArgument.Type = GetEffectArgumentType(effect, operand);
 
             switch (effectArgument.Type)
             {
@@ -258,6 +258,14 @@ namespace ACE.Server.Entity.Mutations
                             effectArgument.IntVal = (int)skill;
                         else
                             log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse IntVal {operand}");
+                    }
+                    break;
+
+                case EffectArgumentType.Int64:
+
+                    if (!long.TryParse(operand, out effectArgument.LongVal))
+                    {
+                        log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse Int64Val {operand}");
                     }
                     break;
 
@@ -277,15 +285,23 @@ namespace ACE.Server.Entity.Mutations
                     {
                         case StatType.Int:
 
-                            if (System.Enum.TryParse(operand, out PropertyInt propInt))
+                            if (Enum.TryParse(operand, out PropertyInt propInt))
                                 effectArgument.StatIdx = (int)propInt;
                             else
                                 log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse PropertyInt.{operand}");
                             break;
 
+                        case StatType.Int64:
+
+                            if (Enum.TryParse(operand, out PropertyInt64 propInt64))
+                                effectArgument.StatIdx = (int)propInt64;
+                            else
+                                log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse PropertyInt64.{operand}");
+                            break;
+
                         case StatType.Float:
 
-                            if (System.Enum.TryParse(operand, out PropertyFloat propFloat))
+                            if (Enum.TryParse(operand, out PropertyFloat propFloat))
                                 effectArgument.StatIdx = (int)propFloat;
                             else
                                 log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse PropertyFloat.{operand}");
@@ -293,7 +309,7 @@ namespace ACE.Server.Entity.Mutations
 
                         case StatType.Bool:
 
-                            if (System.Enum.TryParse(operand, out PropertyBool propBool))
+                            if (Enum.TryParse(operand, out PropertyBool propBool))
                                 effectArgument.StatIdx = (int)propBool;
                             else
                                 log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse PropertyBool.{operand}");
@@ -301,7 +317,7 @@ namespace ACE.Server.Entity.Mutations
 
                         case StatType.DataID:
 
-                            if (System.Enum.TryParse(operand, out PropertyDataId propDID))
+                            if (Enum.TryParse(operand, out PropertyDataId propDID))
                                 effectArgument.StatIdx = (int)propDID;
                             else
                                 log.Error($"MutationCache.BuildMutation({filename}) - couldn't parse PropertyBool.{operand}");
@@ -410,24 +426,28 @@ namespace ACE.Server.Entity.Mutations
 
         public static StatType GetStatType(string operand)
         {
-            if (System.Enum.TryParse(operand, out PropertyInt propInt))
+            if (Enum.TryParse(operand, out PropertyInt propInt))
                 return StatType.Int;
-            else if (System.Enum.TryParse(operand, out PropertyFloat propFloat))
+            else if (Enum.TryParse(operand, out PropertyInt64 propInt64))
+                return StatType.Int64;
+            else if (Enum.TryParse(operand, out PropertyFloat propFloat))
                 return StatType.Float;
-            else if (System.Enum.TryParse(operand, out PropertyBool propBool))
+            else if (Enum.TryParse(operand, out PropertyBool propBool))
                 return StatType.Bool;
-            else if (System.Enum.TryParse(operand, out PropertyDataId propDID))
+            else if (Enum.TryParse(operand, out PropertyDataId propDID))
                 return StatType.DataID;
             else
                 return StatType.Undef;
         }
 
-        public static EffectArgumentType GetEffectArgumentType(string operand)
+        public static EffectArgumentType GetEffectArgumentType(Effect effect, string operand)
         {
             if (IsNumber(operand) || Enum.TryParse(operand, out WieldRequirement wieldRequirement) || Enum.TryParse(operand, out Skill skill) || Enum.TryParse(operand, out ImbuedEffectType imbuedEffectType))
             {
                 if (operand.Contains('.'))
                     return EffectArgumentType.Double;
+                else if (effect.Quality != null && effect.Quality.StatType == StatType.Int64)
+                    return EffectArgumentType.Int64;
                 else
                     return EffectArgumentType.Int;
             }

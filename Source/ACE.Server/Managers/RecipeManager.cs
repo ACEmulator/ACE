@@ -84,6 +84,9 @@ namespace ACE.Server.Managers
 
             var showDialog = HasDifficulty(recipe) && player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog);
 
+            if (!confirmed && player.LumAugSkilledCraft > 0)
+                player.SendMessage($"Your Aura of the Craftman augmentation increased your skill by {player.LumAugSkilledCraft}!");
+
             if (showDialog && !confirmed)
             {
                 ShowDialog(player, source, target, recipe, percentSuccess.Value);
@@ -165,7 +168,9 @@ namespace ACE.Server.Managers
 
             //Console.WriteLine("Skill difficulty: " + recipe.Recipe.Difficulty);
 
-            var successChance = SkillCheck.GetSkillChance(playerSkill.Current, recipe.Difficulty);
+            var playerCurrentPlusLumAugSkilledCraft = playerSkill.Current + (uint)player.LumAugSkilledCraft;
+
+            var successChance = SkillCheck.GetSkillChance(playerCurrentPlusLumAugSkilledCraft, recipe.Difficulty);
 
             return successChance;
         }
@@ -202,7 +207,9 @@ namespace ACE.Server.Managers
 
             var difficulty = (int)Math.Floor(((salvageMod * 5.0f) + (itemWorkmanship * salvageMod * 2.0f) - (toolWorkmanship * workmanshipMod * salvageMod / 5.0f)) * attemptMod);
 
-            var successChance = SkillCheck.GetSkillChance((int)skill.Current, difficulty);
+            var playerCurrentPlusLumAugSkilledCraft = skill.Current + (uint)player.LumAugSkilledCraft;
+
+            var successChance = SkillCheck.GetSkillChance((int)playerCurrentPlusLumAugSkilledCraft, difficulty);
 
             // imbue: divide success by 3
             if (recipe.IsImbuing())

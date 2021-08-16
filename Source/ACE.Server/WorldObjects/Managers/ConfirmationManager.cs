@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 
 using log4net;
@@ -16,6 +17,8 @@ namespace ACE.Server.WorldObjects.Managers
 
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        private static readonly double confirmationTimeout = 30;
+
         public ConfirmationManager(Player player)
         {
             Player = player;
@@ -25,16 +28,23 @@ namespace ACE.Server.WorldObjects.Managers
         /// Builds a new confirmation request on the server,
         /// and sends the request to the client
         /// </summary>
-        public void EnqueueSend(Confirmation confirmation, string text)
+        public bool EnqueueSend(Confirmation confirmation, string text)
         {
             if (confirmations.TryAdd(confirmation.ConfirmationType, confirmation))
             {
                 Player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(Player.Session, confirmation.ConfirmationType, (uint)confirmation.ConfirmationType, text));
+                var timeoutConfirmation = new ActionChain();
+                timeoutConfirmation.AddDelaySeconds(confirmationTimeout);
+                timeoutConfirmation.AddAction(Player, () => HandleResponse(confirmation.ConfirmationType, (uint)confirmation.ConfirmationType, false, true));
+                timeoutConfirmation.EnqueueChain();
             }
             else
             {
                 log.Error($"{Player.Name}.ConfirmationManager.EnqueueSend({confirmation.ConfirmationType}) - duplicate confirmation type");
+                return false;
             }
+
+            return true;
         }
 
         /// <summary>
@@ -49,7 +59,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// The client has responded to a confirmation box
         /// </summary>
-        public bool HandleResponse(ConfirmationType confirmType, uint contextId, bool response)
+        public bool HandleResponse(ConfirmationType confirmType, uint contextId, bool response, bool timeout = false)
         {
             // these should match up in current implementation
             if ((uint)confirmType != contextId)
@@ -60,9 +70,14 @@ namespace ACE.Server.WorldObjects.Managers
 
             if (!confirmations.TryRemove(confirmType, out var confirm))
             {
-                log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}) - confirmType not found");
+                if (!timeout)
+                    log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}) - confirmType not found");
+
                 return false;
             }
+
+            if (timeout)
+                EnqueueAbort(confirmType, contextId);
 
             confirm.ProcessConfirmation(response);
 

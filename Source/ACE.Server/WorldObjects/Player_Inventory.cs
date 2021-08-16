@@ -837,7 +837,7 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.TradeItemBeingTraded));
                 return false;
@@ -1302,7 +1302,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeItemBeingTraded));
                 return;
@@ -1424,7 +1424,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }*/
 
-            var item = FindObject(new ObjectGuid(itemGuid), SearchLocations.LocationsICanMove, out _, out var rootOwner, out var wasEquipped);
+            var item = FindObject(new ObjectGuid(itemGuid), SearchLocations.LocationsICanMove, out var fromContainer, out var rootOwner, out var wasEquipped);
 
             if (item == null)
             {
@@ -1501,7 +1501,7 @@ namespace ACE.Server.WorldObjects
                             return;
                         }
 
-                        if (DoHandleActionGetAndWieldItem(item, rootOwner, wasEquipped, wieldedLocation))
+                        if (DoHandleActionGetAndWieldItem(item, fromContainer, rootOwner, wasEquipped, wieldedLocation))
                         {
                             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
@@ -1519,11 +1519,11 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                DoHandleActionGetAndWieldItem(item, rootOwner, wasEquipped, wieldedLocation);
+                DoHandleActionGetAndWieldItem(item, fromContainer, rootOwner, wasEquipped, wieldedLocation);
             }
         }
 
-        private bool DoHandleActionGetAndWieldItem(WorldObject item, Container itemRootOwner, bool wasEquipped, EquipMask wieldedLocation)
+        private bool DoHandleActionGetAndWieldItem(WorldObject item, Container fromContainer, Container itemRootOwner, bool wasEquipped, EquipMask wieldedLocation)
         {
             //Console.WriteLine($"-> DoHandleActionGetAndWieldItem({item.Name}, {itemRootOwner?.Name}, {wasEquipped}, {wieldedLocation})");
 
@@ -1730,6 +1730,10 @@ namespace ACE.Server.WorldObjects
 
                 return false;
             }
+
+            // if wielding from a loose container, we must save immediately
+            if (fromContainer != null && !fromContainer.Stuck)
+                item.SaveBiotaToDatabase();
 
             return true;
         }
@@ -1977,7 +1981,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsTrading && ItemsInTradeWindow.Contains(stack.Guid))
+            if (IsTrading && stack.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.TradeItemBeingTraded));
                 return;
@@ -2179,7 +2183,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsTrading && ItemsInTradeWindow.Contains(stack.Guid))
+            if (IsTrading && stack.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.TradeItemBeingTraded));
                 return;
@@ -2372,12 +2376,12 @@ namespace ACE.Server.WorldObjects
 
             if (IsTrading)
             {
-                if (ItemsInTradeWindow.Contains(sourceStack.Guid))
+                if (sourceStack.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
                 {
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid, WeenieError.TradeItemBeingTraded));
                     return;
                 }
-                if (ItemsInTradeWindow.Contains(targetStack.Guid))
+                if (targetStack.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
                 {
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeToGuid, WeenieError.TradeItemBeingTraded));
                     return;
@@ -2617,7 +2621,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeItemBeingTraded));
                 return;
@@ -2653,7 +2657,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeItemBeingTraded));
                 return;
@@ -2764,7 +2768,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeItemBeingTraded));
                 return;
@@ -3088,7 +3092,7 @@ namespace ACE.Server.WorldObjects
             Prev_PutItemInContainer[0] = new PutItemInContainerEvent(itemGuid, containerGuid, placement);
         }
         
-        public void GiveFromEmote(WorldObject emoter, uint weenieClassId, int amount = 1)
+        public void GiveFromEmote(WorldObject emoter, uint weenieClassId, int amount = 1, int palette = 0, float shade = 0)
         {
             if (emoter is null || weenieClassId == 0)
             {
@@ -3164,6 +3168,11 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                         amount -= 1;
+
+                    if (palette > 0)
+                        item.PaletteTemplate = palette;
+                    if (item.Shade > 0)
+                        item.Shade = shade;
 
                     TryCreateForGive(emoter, item);
                 }

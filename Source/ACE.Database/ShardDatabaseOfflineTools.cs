@@ -1013,6 +1013,119 @@ namespace ACE.Database
 
 
         /// <summary>
+        /// Prune friend ids from character friend lists of ids of characters that have been deleted
+        /// </summary>
+        public static void PruneDeletedCharactersFromFriendLists(out int numberOfRecordsFixed)
+        {
+            numberOfRecordsFixed = 0;
+
+            using (var context = new ShardDbContext())
+            {
+                var validCharacterIds = context.Character
+                    .AsNoTracking()
+                    .Where(c => !c.IsDeleted && c.DeleteTime == 0)
+                    .Select(c => c.Id)
+                    .ToList();
+
+                var friendIds = context.CharacterPropertiesFriendList
+                    .AsNoTracking()
+                    .Select(c => c.FriendId)
+                    .ToList();
+
+                var invalidFriendIds = friendIds.Except(validCharacterIds).ToList();
+
+                var invalidFriends = context.CharacterPropertiesFriendList
+                    .Where(c => invalidFriendIds.Contains(c.FriendId));
+                //.ToList();
+
+                foreach (var invalidFriend in invalidFriends)
+                {
+                    log.Debug($"[PRUNE] Character 0x{invalidFriend.CharacterId:X8} had 0x{invalidFriend.FriendId:X8} for a friend, which is not found in database, and has been removed from their friends list.");
+                    context.CharacterPropertiesFriendList.Remove(invalidFriend);
+                    numberOfRecordsFixed++;
+                }
+
+                // Save
+                context.SaveChanges();
+            }
+        }
+
+        /// <summary>
+        /// Prune shortcut ids from character shortcut bars of objects that have been deleted
+        /// </summary>
+        public static void PruneDeletedObjectsFromShortcutBars(out int numberOfRecordsFixed)
+        {
+            numberOfRecordsFixed = 0;
+
+            using (var context = new ShardDbContext())
+            {
+                var validObjectIds = context.Biota
+                    .AsNoTracking()
+                    .Select(b => b.Id)
+                    .ToList();
+
+                var allShortcutIds = context.CharacterPropertiesShortcutBar
+                    .AsNoTracking()
+                    .Select(s => s.ShortcutObjectId)
+                    .ToList();
+
+                var invalidShortcutIds = allShortcutIds.Except(validObjectIds).ToList();
+
+                var invalidShortcuts = context.CharacterPropertiesShortcutBar
+                    .Where(s => invalidShortcutIds.Contains(s.ShortcutObjectId));
+
+                foreach (var invalidShortcut in invalidShortcuts)
+                {
+                    log.Debug($"[PRUNE] Character 0x{invalidShortcut.CharacterId:X8} had 0x{invalidShortcut.ShortcutObjectId:X8} as a shortcut (in position {invalidShortcut.ShortcutBarIndex}), which is not found in database, and has been removed from their shortcut bar.");
+                    context.CharacterPropertiesShortcutBar.Remove(invalidShortcut);
+                    numberOfRecordsFixed++;
+                }
+
+                // Save
+                context.SaveChanges();
+            }
+        }
+
+        /// <summary>
+        /// Prune squelched characters ids from character squelch lists of ids of characters that have been deleted, excluding account wide squelches
+        /// </summary>
+        public static void PruneDeletedCharactersFromSquelchLists(out int numberOfRecordsFixed)
+        {
+            numberOfRecordsFixed = 0;
+
+            using (var context = new ShardDbContext())
+            {
+                var validCharacterIds = context.Character
+                    .AsNoTracking()
+                    .Where(c => !c.IsDeleted && c.DeleteTime == 0)
+                    .Select(c => c.Id)
+                    .ToList();
+
+                var squelchCharacterIds = context.CharacterPropertiesSquelch
+                    .AsNoTracking()
+                    .Where(s => s.SquelchAccountId == 0)
+                    .Select(s => s.SquelchCharacterId)
+                    .ToList();
+
+                var invalidSquelchCharacterIds = squelchCharacterIds.Except(validCharacterIds).ToList();
+
+                var invalidSquelchCharacters = context.CharacterPropertiesSquelch
+                    .Where(s => s.SquelchAccountId == 0 && invalidSquelchCharacterIds.Contains(s.SquelchCharacterId));
+                //.ToList();
+
+                foreach (var invalidSquelchCharacter in invalidSquelchCharacters)
+                {
+                    log.Debug($"[PRUNE] Character 0x{invalidSquelchCharacter.CharacterId:X8} had 0x{invalidSquelchCharacter.SquelchCharacterId:X8} squelched, which is not found in database, and has been removed from their squelch list.");
+                    context.CharacterPropertiesSquelch.Remove(invalidSquelchCharacter);
+                    numberOfRecordsFixed++;
+                }
+
+                // Save
+                context.SaveChanges();
+            }
+        }
+
+        /// <summary>
         /// TODO: remove this once upgraded to .NET Standard 2.1
         /// </summary>
         private static HashSet<TSource> ToHashSet<TSource>(this IEnumerable<TSource> source)
