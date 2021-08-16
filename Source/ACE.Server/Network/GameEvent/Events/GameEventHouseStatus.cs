@@ -10,7 +10,7 @@ namespace ACE.Server.Network.GameEvent.Events
         {
             //Console.WriteLine("Sending 0x226 - HouseStatus");
 
-            var noticeType = 2u;    // type of message to display
+            //var noticeType = 2u;    // type of message to display
 
             Writer.Write((uint)weenieError);
         }
