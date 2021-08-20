@@ -141,7 +141,7 @@ namespace ACE.Server.WorldObjects
                     if (profile.MaxObjectsSpawned)
                         continue;
 
-                    // is this profile currently timed out?
+                    // is this profile currently exhausted and timed out?
                     if (profile.RemoveQueue.Count == MaxCreate)
                         continue;
 
@@ -223,7 +223,7 @@ namespace ACE.Server.WorldObjects
                 if (profile.MaxObjectsSpawned)
                     continue;
 
-                // is this profile currently timed out?
+                // is this profile currently exhausted and timed out?
                 if (profile.RemoveQueue.Count == MaxCreate)
                     continue;
 
@@ -272,7 +272,7 @@ namespace ACE.Server.WorldObjects
                 if (profile.MaxObjectsSpawned)
                     continue;
 
-                // is this profile currently timed out?
+                // is this profile currently exhausted and timed out?
                 if (profile.RemoveQueue.Count == MaxCreate)
                     continue;
 
