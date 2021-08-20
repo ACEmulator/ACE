@@ -78,7 +78,7 @@ namespace ACE.Server.Entity
             get
             {
                 if (!GeneratedTreasureItem)
-                    //return Spawned.Count + SpawnQueue.Count - RemoveQueue.Count(r => Spawned.ContainsKey(r.objectGuid));
+                    //return Spawned.Count + SpawnQueue.Count
                     return Spawned.Keys.Except(Removed.Keys).Count() + SpawnQueue.Count;
                 else
                 {
