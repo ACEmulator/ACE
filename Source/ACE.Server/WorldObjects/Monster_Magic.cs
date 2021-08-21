@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using ACE.Common;
+using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
@@ -147,6 +148,14 @@ namespace ACE.Server.WorldObjects
 
             // turn to?
             if (AiUsesMana && !UseMana()) return;
+
+            // spell words
+            if (AiUseHumanMagicAnimations)
+            {
+                var spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
+                if (!string.IsNullOrWhiteSpace(spellWords))
+                    EnqueueBroadcast(new GameMessageHearSpeech(spellWords, Name, Guid.Full, ChatMessageType.Spellcasting), LocalBroadcastRange, ChatMessageType.Spellcasting);
+            }
 
             var preCastTime = PreCastMotion(AttackTarget);
 
