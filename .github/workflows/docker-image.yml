@@ -1,4 +1,4 @@
-name: ci
+name: docker build
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: acemulator/ace:test-action
+          tags: acemulator/ace:latest
       -
         name: Update repo description
         uses: peter-evans/dockerhub-description@v2
