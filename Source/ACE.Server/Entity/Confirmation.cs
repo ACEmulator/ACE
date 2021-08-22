@@ -12,6 +12,8 @@ namespace ACE.Server.Entity
 
         public ConfirmationType ConfirmationType;
 
+        public uint ContextId;
+
         public Confirmation(ObjectGuid playerGuid, ConfirmationType confirmationType)
         {
             PlayerGuid = playerGuid;
