@@ -60,26 +60,56 @@ namespace ACE.Server.WorldObjects.Managers
             {
                 Player.Session.Network.EnqueueSend(new GameEventConfirmationDone(Player.Session, confirmationType, contextId));
 
-                if (confirm.ConfirmationType != ConfirmationType.Yes_No) // Yes_No automatically triggers a response from client, others do not.
-                    HandleResponse(confirm.ConfirmationType, confirm.ContextId, false);
+                switch (confirm.ConfirmationType)
+                {
+                    case ConfirmationType.SwearAllegiance:
+                        // This event automatically triggers a response from client, however due to the way ACE works, we want it to process as a timeout to match pcap output as best we can and inform players of results.
+                        HandleResponse(confirm.ConfirmationType, confirm.ContextId, false, true);
+                        break;
+                    case ConfirmationType.AlterSkill:
+                    case ConfirmationType.AlterAttribute:
+                    case ConfirmationType.CraftInteraction:
+                    case ConfirmationType.Augmentation:
+                    case ConfirmationType.Yes_No:
+                        // These events automatically trigger a response from client, others do not.
+                        // do nothing further
+                        break;
+
+                    default:
+                        HandleResponse(confirm.ConfirmationType, confirm.ContextId, false, true);
+                        break;
+                }
             }
         }
 
         /// <summary>
         /// The client has responded to a confirmation box
         /// </summary>
-        public bool HandleResponse(ConfirmationType confirmType, uint contextId, bool response)
+        public bool HandleResponse(ConfirmationType confirmType, uint contextId, bool response, bool timeout = false)
         {
             if (!confirmations.TryRemove(confirmType, out var confirm))
             {
-                log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}) - confirmType not found");
+                switch (confirmType)
+                {
+                    case ConfirmationType.SwearAllegiance:
+                        // do nothing.
+                        break;
+                    case ConfirmationType.Fellowship:
+                        // dialog box does not dismiss on ConfirmationDone, unlike on all other types, so we must let the player know when they click either yes or no, nothing occured because the offer has already expired.
+                        Player.SendMessage("That offer of fellowship has expired."); // still looking for pcap accurate response
+                        break;
+
+                    default:
+                        log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}, {timeout}) - confirmType not found");
+                        break;
+                }
 
                 return false;
             }
 
             if (confirm.ContextId != contextId)
             {
-                log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}) - contextId != confirm.ContextId");
+                log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}, {timeout}) - contextId != confirm.ContextId");
 
                 if (!confirmations.TryAdd(confirm.ConfirmationType, confirm))
                     log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirm.ConfirmationType}, {confirm.ContextId}) - Unable to re-add confirmation, duplicate confirmation type");
@@ -87,7 +117,7 @@ namespace ACE.Server.WorldObjects.Managers
                 return false;
             }
 
-            confirm.ProcessConfirmation(response);
+            confirm.ProcessConfirmation(response, timeout);
 
             return true;
         }
