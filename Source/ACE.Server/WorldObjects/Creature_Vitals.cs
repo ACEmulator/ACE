@@ -105,7 +105,7 @@ namespace ACE.Server.WorldObjects
             var vitalCurrent = vital.Current;
             var vitalMax = vital.MaxValue;
 
-            if (vitalCurrent >= vitalMax && vital.RegenRate > 0)
+            if (vitalCurrent == vitalMax && vital.RegenRate > 0)
                 return false;
 
             if (vitalCurrent > vitalMax)
@@ -152,7 +152,7 @@ namespace ACE.Server.WorldObjects
                         DamageHistory.OnHeal((uint)intTick);
                     else
                     {
-                        DamageHistory.Add(this, DamageType.Health, (uint)intTick);
+                        DamageHistory.Add(this, DamageType.Health, (uint)Math.Abs(intTick));
 
                         if (Health.Current <= 0)
                         {
