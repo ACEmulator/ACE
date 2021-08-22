@@ -4,7 +4,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
-
+using ACE.Server.Network.Sequence;
 using log4net;
 
 namespace ACE.Server.WorldObjects.Managers
@@ -13,11 +13,13 @@ namespace ACE.Server.WorldObjects.Managers
     {
         private Player Player;
 
-        private ConcurrentDictionary<ConfirmationType, Confirmation> confirmations = new ConcurrentDictionary<ConfirmationType, Confirmation>();
+        private ConcurrentDictionary<uint, Confirmation> confirmations = new ConcurrentDictionary<uint, Confirmation>();
 
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly double confirmationTimeout = 30;
+
+        private UIntSequence contextSequence = new UIntSequence();
 
         public ConfirmationManager(Player player)
         {
@@ -30,17 +32,18 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public bool EnqueueSend(Confirmation confirmation, string text)
         {
-            if (confirmations.TryAdd(confirmation.ConfirmationType, confirmation))
+            var contextId = contextSequence.NextValue;
+            if (confirmations.TryAdd(contextId, confirmation))
             {
-                Player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(Player.Session, confirmation.ConfirmationType, (uint)confirmation.ConfirmationType, text));
+                Player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(Player.Session, confirmation.ConfirmationType, contextId, text));
                 var timeoutConfirmation = new ActionChain();
                 timeoutConfirmation.AddDelaySeconds(confirmationTimeout);
-                timeoutConfirmation.AddAction(Player, () => HandleResponse(confirmation.ConfirmationType, (uint)confirmation.ConfirmationType, false, true));
+                timeoutConfirmation.AddAction(Player, () => EnqueueAbort(confirmation.ConfirmationType, contextId));
                 timeoutConfirmation.EnqueueChain();
             }
             else
             {
-                log.Error($"{Player.Name}.ConfirmationManager.EnqueueSend({confirmation.ConfirmationType}) - duplicate confirmation type");
+                log.Error($"{Player.Name}.ConfirmationManager.EnqueueSend({confirmation.ConfirmationType}) - duplicate context id");
                 return false;
             }
 
@@ -53,31 +56,30 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public void EnqueueAbort(ConfirmationType confirmationType, uint contextId)
         {
-            Player.Session.Network.EnqueueSend(new GameEventConfirmationDone(Player.Session, confirmationType, contextId));
+            if (confirmations.ContainsKey(contextId))
+                Player.Session.Network.EnqueueSend(new GameEventConfirmationDone(Player.Session, confirmationType, contextId));
         }
 
         /// <summary>
         /// The client has responded to a confirmation box
         /// </summary>
-        public bool HandleResponse(ConfirmationType confirmType, uint contextId, bool response, bool timeout = false)
+        public bool HandleResponse(ConfirmationType confirmType, uint contextId, bool response)
         {
-            // these should match up in current implementation
-            if ((uint)confirmType != contextId)
+            if (!confirmations.TryRemove(contextId, out var confirm))
             {
-                log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}) - confirmType != contextId");
-                return false;
-            }
-
-            if (!confirmations.TryRemove(confirmType, out var confirm))
-            {
-                if (!timeout)
-                    log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}) - confirmType not found");
+                log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}) - contextId not found");
 
                 return false;
             }
 
-            if (timeout)
-                EnqueueAbort(confirmType, contextId);
+            if (confirm.ConfirmationType != confirmType)
+            {
+                log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}) - confirmType != confirm.ConfirmationType");
+
+                confirmations.TryAdd(contextId, confirm);
+
+                return false;
+            }
 
             confirm.ProcessConfirmation(response);
 
