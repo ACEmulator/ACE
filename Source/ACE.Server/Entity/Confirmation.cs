@@ -12,6 +12,8 @@ namespace ACE.Server.Entity
 
         public ConfirmationType ConfirmationType;
 
+        public uint ContextId;
+
         public Confirmation(ObjectGuid playerGuid, ConfirmationType confirmationType)
         {
             PlayerGuid = playerGuid;
@@ -19,7 +21,7 @@ namespace ACE.Server.Entity
             ConfirmationType = confirmationType;
         }
 
-        public virtual void ProcessConfirmation(bool response)
+        public virtual void ProcessConfirmation(bool response, bool timeout = false)
         {
             // empty base
         }
@@ -37,7 +39,7 @@ namespace ACE.Server.Entity
             AttributeTransferDevice = attributeTransferDevice;
         }
 
-        public override void ProcessConfirmation(bool response)
+        public override void ProcessConfirmation(bool response, bool timeout = false)
         {
             if (!response) return;
 
@@ -61,7 +63,7 @@ namespace ACE.Server.Entity
             SkillAlterationDevice = skillAlterationDevice;
         }
 
-        public override void ProcessConfirmation(bool response)
+        public override void ProcessConfirmation(bool response, bool timeout = false)
         {
             if (!response) return;
 
@@ -85,7 +87,7 @@ namespace ACE.Server.Entity
             AugmentationGuid = augmentationGuid;
         }
 
-        public override void ProcessConfirmation(bool response)
+        public override void ProcessConfirmation(bool response, bool timeout = false)
         {
             if (!response) return;
 
@@ -113,7 +115,7 @@ namespace ACE.Server.Entity
             TargetGuid = targetGuid;
         }
 
-        public override void ProcessConfirmation(bool response)
+        public override void ProcessConfirmation(bool response, bool timeout = false)
         {
             var player = Player;
             if (player == null) return;
@@ -145,12 +147,18 @@ namespace ACE.Server.Entity
             InviterGuid = inviterGuid;
         }
 
-        public override void ProcessConfirmation(bool response)
+        public override void ProcessConfirmation(bool response, bool timeout = false)
         {
-            if (!response) return;
+            //if (!response) return;
 
             var invited = Player;
             var inviter = PlayerManager.GetOnlinePlayer(InviterGuid);
+
+            if (!response)
+            {
+                inviter?.SendMessage($"{invited.Name} {(timeout ? "did not respond to" : "has declined")} your offer of fellowship.");
+                return;
+            }
 
             if (invited != null && inviter != null && inviter.Fellowship != null)
                 inviter.Fellowship.AddConfirmedMember(inviter, invited, response);
@@ -167,14 +175,20 @@ namespace ACE.Server.Entity
             VassalGuid = vassalGuid;
         }
 
-        public override void ProcessConfirmation(bool response)
+        public override void ProcessConfirmation(bool response, bool timeout = false)
         {
-            if (!response) return;
+            //if (!response) return;
 
             var patron = Player;
             if (patron == null) return;
 
             var vassal = PlayerManager.GetOnlinePlayer(VassalGuid);
+
+            if (!response)
+            {
+                vassal?.SendMessage($"{patron.Name} {(timeout ? "did not respond to" : "has declined")} your offer of allegiance.");
+                return;
+            }
 
             if (vassal != null)
                 vassal.SwearAllegiance(patron.Guid.Full, true, true);
@@ -194,7 +208,7 @@ namespace ACE.Server.Entity
             Quest = quest;
         }
 
-        public override void ProcessConfirmation(bool response)
+        public override void ProcessConfirmation(bool response, bool timeout = false)
         {
             var player = Player;
             if (player == null) return;
@@ -216,7 +230,7 @@ namespace ACE.Server.Entity
             Action = action;
         }
 
-        public override void ProcessConfirmation(bool response)
+        public override void ProcessConfirmation(bool response, bool timeout = false)
         {
             if (!response) return;
 
