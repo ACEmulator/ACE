@@ -20,6 +20,8 @@ namespace ACE.Server.Entity.Mutations
                             return new EffectArgument(a.DoubleVal + b.DoubleVal);
                         case EffectArgumentType.Int:
                             return new EffectArgument(a.DoubleVal + b.IntVal);
+                        case EffectArgumentType.Int64:
+                            return new EffectArgument(a.DoubleVal + b.LongVal);
                     }
                     break;
 
@@ -31,6 +33,21 @@ namespace ACE.Server.Entity.Mutations
                             return new EffectArgument((int)(a.IntVal + b.DoubleVal));
                         case EffectArgumentType.Int:
                             return new EffectArgument(a.IntVal + b.IntVal);
+                        case EffectArgumentType.Int64:
+                            return new EffectArgument((int)(a.IntVal + b.LongVal));
+                    }
+                    break;
+
+                case EffectArgumentType.Int64:
+
+                    switch (b.Type)
+                    {
+                        case EffectArgumentType.Double:
+                            return new EffectArgument((long)(a.LongVal + b.DoubleVal));
+                        case EffectArgumentType.Int:
+                            return new EffectArgument(a.LongVal + b.IntVal);
+                        case EffectArgumentType.Int64:
+                            return new EffectArgument(a.LongVal + b.LongVal);
                     }
                     break;
             }
@@ -52,6 +69,8 @@ namespace ACE.Server.Entity.Mutations
                             return new EffectArgument(a.DoubleVal - b.DoubleVal);
                         case EffectArgumentType.Int:
                             return new EffectArgument(a.DoubleVal - b.IntVal);
+                        case EffectArgumentType.Int64:
+                            return new EffectArgument(a.DoubleVal - b.LongVal);
                     }
                     break;
 
@@ -63,6 +82,21 @@ namespace ACE.Server.Entity.Mutations
                             return new EffectArgument((int)(a.IntVal - b.DoubleVal));
                         case EffectArgumentType.Int:
                             return new EffectArgument(a.IntVal - b.IntVal);
+                        case EffectArgumentType.Int64:
+                            return new EffectArgument((int)(a.IntVal - b.LongVal));
+                    }
+                    break;
+
+                case EffectArgumentType.Int64:
+
+                    switch (b.Type)
+                    {
+                        case EffectArgumentType.Double:
+                            return new EffectArgument((long)(a.LongVal - b.DoubleVal));
+                        case EffectArgumentType.Int:
+                            return new EffectArgument(a.LongVal - b.IntVal);
+                        case EffectArgumentType.Int64:
+                            return new EffectArgument(a.LongVal - b.LongVal);
                     }
                     break;
             }
@@ -84,6 +118,8 @@ namespace ACE.Server.Entity.Mutations
                             return new EffectArgument(a.DoubleVal * b.DoubleVal);
                         case EffectArgumentType.Int:
                             return new EffectArgument(a.DoubleVal * b.IntVal);
+                        case EffectArgumentType.Int64:
+                            return new EffectArgument(a.DoubleVal * b.LongVal);
                     }
                     break;
 
@@ -95,6 +131,21 @@ namespace ACE.Server.Entity.Mutations
                             return new EffectArgument((int)(a.IntVal * b.DoubleVal));
                         case EffectArgumentType.Int:
                             return new EffectArgument(a.IntVal * b.IntVal);
+                        case EffectArgumentType.Int64:
+                            return new EffectArgument((int)(a.IntVal * b.LongVal));
+                    }
+                    break;
+
+                case EffectArgumentType.Int64:
+
+                    switch (b.Type)
+                    {
+                        case EffectArgumentType.Double:
+                            return new EffectArgument((long)(a.LongVal * b.DoubleVal));
+                        case EffectArgumentType.Int:
+                            return new EffectArgument(a.LongVal * b.IntVal);
+                        case EffectArgumentType.Int64:
+                            return new EffectArgument(a.LongVal * b.LongVal);
                     }
                     break;
             }
@@ -116,6 +167,8 @@ namespace ACE.Server.Entity.Mutations
                             return b.DoubleVal != 0 ? new EffectArgument(a.DoubleVal / b.DoubleVal) : a;
                         case EffectArgumentType.Int:
                             return b.IntVal != 0 ? new EffectArgument(a.DoubleVal / b.IntVal) : a;
+                        case EffectArgumentType.Int64:
+                            return b.LongVal != 0 ? new EffectArgument(a.DoubleVal / b.LongVal) : a;
                     }
                     break;
 
@@ -127,6 +180,21 @@ namespace ACE.Server.Entity.Mutations
                             return b.DoubleVal != 0 ? new EffectArgument((int)(a.IntVal / b.DoubleVal)) : a;
                         case EffectArgumentType.Int:
                             return b.IntVal != 0 ? new EffectArgument(a.IntVal / b.IntVal) : a;
+                        case EffectArgumentType.Int64:
+                            return b.LongVal != 0 ? new EffectArgument((int)(a.IntVal / b.LongVal)) : a;
+                    }
+                    break;
+
+                case EffectArgumentType.Int64:
+
+                    switch (b.Type)
+                    {
+                        case EffectArgumentType.Double:
+                            return b.DoubleVal != 0 ? new EffectArgument((long)(a.LongVal / b.DoubleVal)): a;
+                        case EffectArgumentType.Int:
+                            return b.IntVal != 0 ? new EffectArgument(a.LongVal / b.IntVal) : a;
+                        case EffectArgumentType.Int64:
+                            return b.LongVal != 0 ? new EffectArgument(a.LongVal / b.LongVal) : a;
                     }
                     break;
             }
@@ -151,6 +219,9 @@ namespace ACE.Server.Entity.Mutations
 
                 case EffectArgumentType.Int:
                     return a.IntVal < b.IntVal;
+
+                case EffectArgumentType.Int64:
+                    return a.LongVal < b.LongVal;
             }
             return false;
         }
@@ -170,6 +241,9 @@ namespace ACE.Server.Entity.Mutations
 
                 case EffectArgumentType.Int:
                     return a.IntVal > b.IntVal;
+
+                case EffectArgumentType.Int64:
+                    return a.LongVal > b.LongVal;
             }
             return false;
         }

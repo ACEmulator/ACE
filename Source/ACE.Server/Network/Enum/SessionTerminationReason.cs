@@ -29,7 +29,8 @@ namespace ACE.Server.Network.Enum
         AccountLoggedIn,
         ServerShuttingDown,
         AccountBanned,
-        ClientOutOfDate
+        ClientOutOfDate,
+        ForcedLogOffRequested
     }
     public static class SessionTerminationReasonHelper
     {
@@ -56,7 +57,8 @@ namespace ACE.Server.Network.Enum
             "Account was logged in, booting currently connected account in favor of new connection",
             "Server is shutting down",
             "Account is banned",
-            "Client is not up to date"
+            "Client is not up to date",
+            "Forced log off requested by Admin"
         };
         public static string GetDescription(this SessionTerminationReason reason)
         {

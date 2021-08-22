@@ -198,18 +198,18 @@ namespace ACE.Server.WorldObjects.Entity
             else if (player.AugmentationSkilledMagic > 0 && Player.MagicSkills.Contains(Skill))
                 total += (uint)(player.AugmentationSkilledMagic * 10);
 
-            switch (Skill)
-            {
-                case Skill.ArmorTinkering:
-                case Skill.ItemTinkering:
-                case Skill.MagicItemTinkering:
-                case Skill.WeaponTinkering:
-                case Skill.Salvaging:
+            //switch (Skill)
+            //{
+            //    case Skill.ArmorTinkering:
+            //    case Skill.ItemTinkering:
+            //    case Skill.MagicItemTinkering:
+            //    case Skill.WeaponTinkering:
+            //    case Skill.Salvaging:
 
-                    if (player.LumAugSkilledCraft != 0)
-                        total += (uint)player.LumAugSkilledCraft;
-                    break;
-            }
+            //        if (player.LumAugSkilledCraft != 0)
+            //            total += (uint)player.LumAugSkilledCraft;
+            //        break;
+            //}
 
             if (AdvancementClass >= SkillAdvancementClass.Trained && player.Enlightenment != 0)
                 total += (uint)player.Enlightenment;

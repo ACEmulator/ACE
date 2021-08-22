@@ -488,7 +488,7 @@ namespace ACE.Server.Network.Structure
 
             // this technically wasn't a feature in retail
 
-            if (wielder != null && wo.IsEnchantable && wo.WeenieType != WeenieType.Clothing && !wo.IsShield)
+            if (wielder != null && wo.IsEnchantable && wo.WeenieType != WeenieType.Clothing && !wo.IsShield && PropertyManager.GetBool("show_aura_buff").Item)
             {
                 // get all currently active item enchantment auras on the player
                 var wielderEnchantments = wielder.EnchantmentManager.GetEnchantments(MagicSchool.ItemEnchantment);

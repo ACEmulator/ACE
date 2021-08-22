@@ -955,6 +955,8 @@ namespace ACE.Server.WorldObjects
 
         public override bool IsUniqueOrContainsUnique => base.IsUniqueOrContainsUnique || Inventory.Values.Any(i => i.IsUniqueOrContainsUnique);
 
+        public override bool IsBeingTradedOrContainsItemBeingTraded(HashSet<ObjectGuid> guidList) => base.IsBeingTradedOrContainsItemBeingTraded(guidList) || Inventory.Values.Any(i => i.IsBeingTradedOrContainsItemBeingTraded(guidList));
+
         public override List<WorldObject> GetUniqueObjects()
         {
             var uniqueObjects = new List<WorldObject>();

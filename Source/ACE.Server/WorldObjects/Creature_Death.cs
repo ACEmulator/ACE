@@ -433,6 +433,8 @@ namespace ACE.Server.WorldObjects
 
                 foreach(var item in loot)
                 {
+                    if (!string.IsNullOrEmpty(item.Quest)) // if the item has a Quest string, make the creature a "generator" of the item so that the pickup action applies the quest. 
+                        item.GeneratorId = Guid.Full; 
                     item.Location = new Position(Location);
                     LandblockManager.AddObject(item);
                 }
