@@ -43,7 +43,7 @@ namespace ACE.Server.WorldObjects.Managers
             }
             else
             {
-                log.Error($"{Player.Name}.ConfirmationManager.EnqueueSend({confirmation.ConfirmationType}) - duplicate context id");
+                log.Error($"{Player.Name}.ConfirmationManager.EnqueueSend({confirmation.ConfirmationType}, {contextId}) - duplicate context id");
                 return false;
             }
 
@@ -76,7 +76,8 @@ namespace ACE.Server.WorldObjects.Managers
             {
                 log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}) - confirmType != confirm.ConfirmationType");
 
-                confirmations.TryAdd(contextId, confirm);
+                if (!confirmations.TryAdd(contextId, confirm))
+                    log.Error($"{Player.Name}.ConfirmationManager.EnqueueSend({confirmType}, {contextId}) - duplicate context id");
 
                 return false;
             }
