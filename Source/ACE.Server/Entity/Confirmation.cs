@@ -154,14 +154,9 @@ namespace ACE.Server.Entity
             var invited = Player;
             var inviter = PlayerManager.GetOnlinePlayer(InviterGuid);
 
-            if (!response && timeout)
+            if (!response)
             {
-                inviter.SendMessage($"{invited.Name} did not respond to your offer of fellowship.");
-                return;
-            }
-            else if (!response)
-            {
-                inviter.SendMessage($"{invited.Name} has declined your offer of fellowship.");
+                inviter.SendMessage($"{invited.Name} {(timeout ? "did not respond to" : "has declined")} your offer of fellowship.");
                 return;
             }
 
@@ -189,14 +184,9 @@ namespace ACE.Server.Entity
 
             var vassal = PlayerManager.GetOnlinePlayer(VassalGuid);
 
-            if (!response && timeout)
+            if (!response)
             {
-                vassal.SendMessage($"{patron.Name} did not respond to your offer of allegiance.");
-                return;
-            }
-            else if (!response)
-            {
-                vassal.SendMessage($"{patron.Name} has declined your offer of allegiance.");
+                vassal.SendMessage($"{patron.Name} {(timeout ? "did not respond to" : "has declined")} your offer of allegiance.");
                 return;
             }
 
