@@ -314,7 +314,11 @@ namespace ACE.Server.Managers
             if (numAugs > 0)
                 floorMsg += $"\n{numAugs * 5}% is due to your augmentation.";
 
-            player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, source.Guid, target.Guid), floorMsg);
+            if (!player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, source.Guid, target.Guid), floorMsg))
+            {
+                player.SendUseDoneEvent(WeenieError.ConfirmationInProgress);
+                return;
+            }
 
             if (PropertyManager.GetBool("craft_exact_msg").Item)
             {

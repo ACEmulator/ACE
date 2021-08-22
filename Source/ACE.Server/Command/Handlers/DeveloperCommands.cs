@@ -3440,7 +3440,8 @@ namespace ACE.Server.Command.Handlers
             if (!confirmed)
             {
                 var msg = $"Are you sure you want to delevel {session.Player.Name} to level {delevel}?";
-                session.Player.ConfirmationManager.EnqueueSend(new Confirmation_Custom(session.Player.Guid, () => HandleDelevel(session, true, parameters)), msg);
+                if (!session.Player.ConfirmationManager.EnqueueSend(new Confirmation_Custom(session.Player.Guid, () => HandleDelevel(session, true, parameters)), msg))
+                    session.Player.SendWeenieError(WeenieError.ConfirmationInProgress);
                 return;
             }
 

@@ -110,7 +110,8 @@ namespace ACE.Server.Command.Handlers
                 var loc = HouseManager.GetCoords(keepHouse.SlumLord.Location);
 
                 var msg = $"Are you sure you want to keep the {houseType} at\n{loc}?";
-                session.Player.ConfirmationManager.EnqueueSend(new Confirmation_Custom(session.Player.Guid, () => HandleHouseSelect(session, true, parameters)), msg);
+                if (!session.Player.ConfirmationManager.EnqueueSend(new Confirmation_Custom(session.Player.Guid, () => HandleHouseSelect(session, true, parameters)), msg))
+                    session.Player.SendWeenieError(WeenieError.ConfirmationInProgress);
                 return;
             }
 
