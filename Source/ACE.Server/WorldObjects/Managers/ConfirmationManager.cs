@@ -43,7 +43,7 @@ namespace ACE.Server.WorldObjects.Managers
             }
             else
             {
-                log.Error($"{Player.Name}.ConfirmationManager.EnqueueSend({confirmation.ConfirmationType}, {confirmation.ContextId}) - duplicate confirmation type");
+                //log.Error($"{Player.Name}.ConfirmationManager.EnqueueSend({confirmation.ConfirmationType}, {confirmation.ContextId}) - duplicate confirmation type");
                 return false;
             }
 
@@ -57,7 +57,12 @@ namespace ACE.Server.WorldObjects.Managers
         public void EnqueueAbort(ConfirmationType confirmationType, uint contextId)
         {
             if (confirmations.TryGetValue(confirmationType, out var confirm) && confirm.ContextId == contextId)
+            {
                 Player.Session.Network.EnqueueSend(new GameEventConfirmationDone(Player.Session, confirmationType, contextId));
+
+                if (confirm.ConfirmationType != ConfirmationType.Yes_No) // Yes_No automatically triggers a response from client, others do not.
+                    HandleResponse(confirm.ConfirmationType, confirm.ContextId, false);
+            }
         }
 
         /// <summary>
