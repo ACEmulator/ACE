@@ -109,6 +109,17 @@ namespace ACE.Server.WorldObjects.Managers
 
             if (confirm.ContextId != contextId)
             {
+                if (confirm.ConfirmationType == ConfirmationType.Fellowship)
+                {
+                    // dialog box does not dismiss on ConfirmationDone, unlike on all other types, so we must let the player know when they click either yes or no, nothing occured because the offer has already expired.
+                    if (!confirmations.TryAdd(confirm.ConfirmationType, confirm))
+                        log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirm.ConfirmationType}, {confirm.ContextId}) - Unable to re-add confirmation, duplicate confirmation type");
+
+                    Player.SendMessage("That offer of fellowship has expired."); // still looking for pcap accurate response
+
+                    return false;
+                }    
+
                 log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}, {timeout}) - contextId != confirm.ContextId");
 
                 if (!confirmations.TryAdd(confirm.ConfirmationType, confirm))
