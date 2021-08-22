@@ -13,7 +13,7 @@ namespace ACE.Server.WorldObjects.Managers
     {
         private Player Player;
 
-        private ConcurrentDictionary<uint, Confirmation> confirmations = new ConcurrentDictionary<uint, Confirmation>();
+        private ConcurrentDictionary<ConfirmationType, Confirmation> confirmations = new ConcurrentDictionary<ConfirmationType, Confirmation>();
 
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -32,18 +32,18 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public bool EnqueueSend(Confirmation confirmation, string text)
         {
-            var contextId = contextSequence.NextValue;
-            if (confirmations.TryAdd(contextId, confirmation))
+            confirmation.ContextId = contextSequence.NextValue;
+            if (confirmations.TryAdd(confirmation.ConfirmationType, confirmation))
             {
-                Player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(Player.Session, confirmation.ConfirmationType, contextId, text));
+                Player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(Player.Session, confirmation.ConfirmationType, confirmation.ContextId, text));
                 var timeoutConfirmation = new ActionChain();
                 timeoutConfirmation.AddDelaySeconds(confirmationTimeout);
-                timeoutConfirmation.AddAction(Player, () => EnqueueAbort(confirmation.ConfirmationType, contextId));
+                timeoutConfirmation.AddAction(Player, () => EnqueueAbort(confirmation.ConfirmationType, confirmation.ContextId));
                 timeoutConfirmation.EnqueueChain();
             }
             else
             {
-                log.Error($"{Player.Name}.ConfirmationManager.EnqueueSend({confirmation.ConfirmationType}, {contextId}) - duplicate context id");
+                log.Error($"{Player.Name}.ConfirmationManager.EnqueueSend({confirmation.ConfirmationType}, {confirmation.ContextId}) - duplicate confirmation type");
                 return false;
             }
 
@@ -56,7 +56,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public void EnqueueAbort(ConfirmationType confirmationType, uint contextId)
         {
-            if (confirmations.ContainsKey(contextId))
+            if (confirmations.TryGetValue(confirmationType, out var confirm) && confirm.ContextId == contextId)
                 Player.Session.Network.EnqueueSend(new GameEventConfirmationDone(Player.Session, confirmationType, contextId));
         }
 
@@ -65,19 +65,19 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public bool HandleResponse(ConfirmationType confirmType, uint contextId, bool response)
         {
-            if (!confirmations.TryRemove(contextId, out var confirm))
+            if (!confirmations.TryRemove(confirmType, out var confirm))
             {
-                log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}) - contextId not found");
+                log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}) - confirmType not found");
 
                 return false;
             }
 
-            if (confirm.ConfirmationType != confirmType)
+            if (confirm.ContextId != contextId)
             {
-                log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}) - confirmType != confirm.ConfirmationType");
+                log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}) - contextId != confirm.ContextId");
 
-                if (!confirmations.TryAdd(contextId, confirm))
-                    log.Error($"{Player.Name}.ConfirmationManager.EnqueueSend({confirmType}, {contextId}) - duplicate context id");
+                if (!confirmations.TryAdd(confirm.ConfirmationType, confirm))
+                    log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirm.ConfirmationType}, {confirm.ContextId}) - Unable to re-add confirmation, duplicate confirmation type");
 
                 return false;
             }
