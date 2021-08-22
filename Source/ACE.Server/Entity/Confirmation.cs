@@ -156,7 +156,7 @@ namespace ACE.Server.Entity
 
             if (!response)
             {
-                inviter.SendMessage($"{invited.Name} {(timeout ? "did not respond to" : "has declined")} your offer of fellowship.");
+                inviter?.SendMessage($"{invited.Name} {(timeout ? "did not respond to" : "has declined")} your offer of fellowship.");
                 return;
             }
 
@@ -186,7 +186,7 @@ namespace ACE.Server.Entity
 
             if (!response)
             {
-                vassal.SendMessage($"{patron.Name} {(timeout ? "did not respond to" : "has declined")} your offer of allegiance.");
+                vassal?.SendMessage($"{patron.Name} {(timeout ? "did not respond to" : "has declined")} your offer of allegiance.");
                 return;
             }
 
