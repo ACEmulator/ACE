@@ -1525,7 +1525,7 @@ namespace ACE.Server.WorldObjects
 
         private bool DoHandleActionGetAndWieldItem(WorldObject item, Container fromContainer, Container itemRootOwner, bool wasEquipped, EquipMask wieldedLocation)
         {
-            //Console.WriteLine($"-> DoHandleActionGetAndWieldItem({item.Name}, {itemRootOwner?.Name}, {wasEquipped}, {wieldedLocation})");
+            // Console.WriteLine($"-> DoHandleActionGetAndWieldItem({item.Name}, {itemRootOwner?.Name}, {wasEquipped}, {wieldedLocation})");
 
             var wieldError = CheckWieldRequirements(item);
 
@@ -1538,6 +1538,12 @@ namespace ACE.Server.WorldObjects
 
             // the client handles dequipping a lot of conflicting items automatically,
             // but there are some cases it misses that must be handled specifically here:
+            if (((item.CurrentWieldedLocation ?? 0) & EquipMask.SelectablePlusAmmo) == 0 && !CheckWeaponCollision(item, wieldedLocation))
+            {
+                // Is this generic message good enough? -- '<item> can't be wielded'?
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, wieldError));
+                return false;
+            }
 
             // Unwield wand/missile launcher/two-handed if dual wielding
             if (wieldedLocation == EquipMask.Shield && !item.IsShield)
@@ -1737,6 +1743,107 @@ namespace ACE.Server.WorldObjects
 
             return true;
         }
+
+        /// <summary>
+        /// Client will automatically send any unequip (PutItemInContainer) message before the GetAndWield, but misses some instances and can be memory hacked to ignore others.
+        //  Let's just make sure our status is accurate before actually equipping an item! 
+        /// </summary>
+        /// <param name="item">The weapon we are attempting to equip</param>
+        /// <returns>True if the items were successfuly remove and the new item can attempt to be equipped, otherwise false</returns>
+        private bool CheckWeaponCollision(WorldObject? item = null, EquipMask? wieldedLocation = null)
+        {
+            WorldObject offhand, mainhand, ammo;
+            if (item != null && wieldedLocation != null)
+            {
+                switch (wieldedLocation)
+                {
+                    case EquipMask.Shield:
+                        // Remove any items in the shield/offhand slot, two-handed weapons, missile weapons or casters
+                        offhand = GetEquippedOffHand();
+                        if (offhand != null)
+                            return false;
+
+                        mainhand = GetEquippedMainHand();
+                        // Remove any Two Handed, Caster (magic), or Missile Weapons
+                        if (mainhand != null && (mainhand.IsTwoHanded || mainhand.IsCaster || mainhand.IsAmmoLauncher))
+                            return false;
+                        break;
+                    case EquipMask.MissileWeapon:
+                        // Should not have any items in either hand
+                        offhand = GetEquippedOffHand();
+                        if (offhand != null)
+                            return false;
+
+                        mainhand = GetEquippedMainHand();
+                        if (mainhand != null)
+                            return false;
+
+                        // Ensure our ammo types align properly
+                        ammo = GetEquippedAmmo();
+                        if (ammo != null && ammo.AmmoType != mainhand.AmmoType)
+                            return false;
+
+                        break;
+                    case EquipMask.MissileAmmo:
+                        // Ensure our ammo types align properly
+                        mainhand = GetEquippedMainHand();
+                        if (mainhand != null && mainhand.AmmoType != item.AmmoType)
+                            return false;
+
+                        break;
+                    case EquipMask.TwoHanded:
+                        // Should not have any items in the shield/offhand slot, two-handed weapons, missile weapons or casters
+                        offhand = GetEquippedOffHand();
+                        if (offhand != null)
+                            return false;
+
+                        mainhand = GetEquippedMainHand();
+                        // Remove anything in the main hand!
+                        if (mainhand != null)
+                            return false;
+                        break;
+                    case EquipMask.MeleeWeapon:
+                        // Should not have any Caster, Missile, or TwoHanders equipped
+                        offhand = GetEquippedOffHand();
+                        if (offhand != null && (offhand.IsTwoHanded || offhand.IsCaster || offhand.IsAmmoLauncher))
+                            return false;
+
+                        mainhand = GetEquippedMainHand();
+                        if (mainhand != null && (mainhand.IsTwoHanded || mainhand.IsCaster || mainhand.IsAmmoLauncher))
+                            return false;
+                        break;
+                }
+            }
+            else
+            {
+                // Just do a quick sanity check to ensure the player isn't wielding two weapons they shouldn't
+                mainhand = GetEquippedMainHand();
+                offhand = GetEquippedOffHand();
+
+                // Wielding just one item is perfectly fine...its when they have two if might be suspect
+                if(mainhand != null)
+                {
+                    if (offhand != null)
+                    {
+                        // Can't wield these with anything else!
+                        if (mainhand.IsTwoHanded || mainhand.IsAmmoLauncher || mainhand.IsCaster)
+                            return false;
+                    }
+
+                    // Ensure our ammo matches up properly
+                    if (mainhand.IsAmmoLauncher)
+                    {
+                        ammo = GetEquippedAmmo();
+                        if (ammo != null && ammo.AmmoType != mainhand.AmmoType)
+                            return false;
+                    }
+                }
+            }
+
+            // All good at this point
+            return true;
+        }
+
 
         private bool DoHandleActionGetAndWieldItem_DequipItemToInventory(WorldObject mainWeapon, WorldObject item)
         {

@@ -741,6 +741,14 @@ namespace ACE.Server.WorldObjects
         {
             //log.Info($"{Name}.HandleActionChangeCombatMode({newCombatMode})");
 
+            // Make sure the player doesn't have an invalid weapon setup (e.g. sword + wand)
+            if (!CheckWeaponCollision())
+            {
+                // "You're too busy!" 
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                return;
+            }
+
             LastCombatMode = newCombatMode;
             
             if (DateTime.UtcNow >= NextUseTime.AddSeconds(UseTimeEpsilon))
