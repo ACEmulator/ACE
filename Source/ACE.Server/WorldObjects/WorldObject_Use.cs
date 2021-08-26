@@ -113,7 +113,7 @@ namespace ACE.Server.WorldObjects
                 OnGenerate(activator);
 
             // default use action
-            if (ActivationResponse.HasFlag(ActivationResponse.Use))
+            if (ActivationResponse.HasFlag(ActivationResponse.Use) || ActivationResponse.HasFlag(ActivationResponse.Animate))
             {
                 if (activator is Creature creature)
                 {
