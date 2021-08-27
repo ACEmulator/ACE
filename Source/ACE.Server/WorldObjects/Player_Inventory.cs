@@ -1750,7 +1750,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="item">The weapon we are attempting to equip</param>
         /// <returns>True if the items were successfuly remove and the new item can attempt to be equipped, otherwise false</returns>
-        private bool CheckWeaponCollision(WorldObject? item = null, EquipMask? wieldedLocation = null)
+        private bool CheckWeaponCollision(WorldObject item = null, EquipMask? wieldedLocation = null)
         {
             // Client actually allows these equip scenarios:
             // Shield with a Two-Handed weapon.
@@ -1856,7 +1856,7 @@ namespace ACE.Server.WorldObjects
                 offhand = GetEquippedOffHand();
 
                 // Wielding just one item is perfectly fine...its when they have two if might be suspect
-                if(mainhand != null)
+                if (mainhand != null)
                 {
                     if (offhand != null)
                     {
