@@ -744,8 +744,21 @@ namespace ACE.Server.WorldObjects
             // Make sure the player doesn't have an invalid weapon setup (e.g. sword + wand)
             if (!CheckWeaponCollision())
             {
-                // "You're too busy!" 
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ActionCancelled)); // "Action cancelled!"
+
+                // Go back to non-Combat mode
+                float animTime = 0.0f, queueTime = 0.0f;
+                animTime = SetCombatMode(newCombatMode, out queueTime);
+
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(animTime);
+                actionChain.AddAction(this, () =>
+                {
+                    SetCombatMode(CombatMode.NonCombat);
+                });
+                actionChain.EnqueueChain();
+
+                NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
                 return;
             }
 

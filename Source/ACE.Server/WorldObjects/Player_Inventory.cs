@@ -1799,7 +1799,7 @@ namespace ACE.Server.WorldObjects
                         ammo = GetEquippedAmmo();
                         if (item.AmmoType != null && ammo != null && ammo.AmmoType != item.AmmoType)
                         {
-                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}), AmmoType: {item.AmmoType} in slot {wieldedLocation}, which conflicts with ammo of '{ammo.Name}' ({ammo.AmmoType}");
+                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}), AmmoType: {item.AmmoType} in slot {wieldedLocation}, which conflicts with ammo of '{ammo.Name}' ({ammo.AmmoType})");
                             return false;
                         }
 
@@ -1809,7 +1809,7 @@ namespace ACE.Server.WorldObjects
                         mainhand = GetEquippedMainHand();
                         if (mainhand != null && mainhand.AmmoType != null && item.AmmoType != null && mainhand.AmmoType != item.AmmoType)
                         {
-                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}), AmmoType: {item.AmmoType} in slot {wieldedLocation}, which conflicts with AmmoType of '{mainhand.Name}' ({mainhand.AmmoType}");
+                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}), AmmoType: {item.AmmoType} in slot {wieldedLocation}, which conflicts with AmmoType of '{mainhand.Name}' ({mainhand.AmmoType})");
                             return false;
                         }
 
