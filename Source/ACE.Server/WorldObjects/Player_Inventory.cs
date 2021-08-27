@@ -1752,6 +1752,10 @@ namespace ACE.Server.WorldObjects
         /// <returns>True if the items were successfuly remove and the new item can attempt to be equipped, otherwise false</returns>
         private bool CheckWeaponCollision(WorldObject? item = null, EquipMask? wieldedLocation = null)
         {
+            // Client actually allows these equip scenarios:
+            // Shield with a Two-Handed weapon.
+
+
             WorldObject offhand, mainhand, ammo;
             if (item != null && wieldedLocation != null)
             {
@@ -1761,56 +1765,87 @@ namespace ACE.Server.WorldObjects
                         // Remove any items in the shield/offhand slot, two-handed weapons, missile weapons or casters
                         offhand = GetEquippedOffHand();
                         if (offhand != null)
+                        {
+                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}) in slot {wieldedLocation}, but is occupied by '{offhand.Name}'");
                             return false;
+                        }
 
                         mainhand = GetEquippedMainHand();
                         // Remove any Two Handed, Caster (magic), or Missile Weapons
                         if (mainhand != null && (mainhand.IsTwoHanded || mainhand.IsCaster || mainhand.IsAmmoLauncher))
+                        {
+                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}) in slot {wieldedLocation}, which conflicts with '{mainhand.Name}'");
                             return false;
+                        }
+
                         break;
                     case EquipMask.MissileWeapon:
                         // Should not have any items in either hand
                         offhand = GetEquippedOffHand();
                         if (offhand != null)
+                        {
+                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}) in slot {wieldedLocation}, which conflicts with '{offhand.Name}'");
                             return false;
+                        }
 
                         mainhand = GetEquippedMainHand();
                         if (mainhand != null)
+                        {
+                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}) in slot {wieldedLocation}, which conflicts with '{mainhand.Name}'");
                             return false;
+                        }
 
                         // Ensure our ammo types align properly
                         ammo = GetEquippedAmmo();
-                        if (ammo != null && ammo.AmmoType != mainhand.AmmoType)
+                        if (item.AmmoType != null && ammo != null && ammo.AmmoType != item.AmmoType)
+                        {
+                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}), AmmoType: {item.AmmoType} in slot {wieldedLocation}, which conflicts with ammo of '{ammo.Name}' ({ammo.AmmoType}");
                             return false;
+                        }
 
                         break;
                     case EquipMask.MissileAmmo:
                         // Ensure our ammo types align properly
                         mainhand = GetEquippedMainHand();
-                        if (mainhand != null && mainhand.AmmoType != item.AmmoType)
+                        if (mainhand != null && mainhand.AmmoType != null && item.AmmoType != null && mainhand.AmmoType != item.AmmoType)
+                        {
+                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}), AmmoType: {item.AmmoType} in slot {wieldedLocation}, which conflicts with AmmoType of '{mainhand.Name}' ({mainhand.AmmoType}");
                             return false;
+                        }
 
                         break;
                     case EquipMask.TwoHanded:
                         // Should not have any items in the shield/offhand slot, two-handed weapons, missile weapons or casters
                         offhand = GetEquippedOffHand();
                         if (offhand != null)
+                        {
+                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}) in slot {wieldedLocation}, which conflicts with '{offhand.Name}'");
                             return false;
+                        }
 
                         mainhand = GetEquippedMainHand();
                         // Remove anything in the main hand!
                         if (mainhand != null)
+                        {
+                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}) in slot {wieldedLocation}, which conflicts with '{mainhand.Name}'");
                             return false;
+                        }
                         break;
                     case EquipMask.MeleeWeapon:
                         // Should not have any Caster, Missile, or TwoHanders equipped
                         offhand = GetEquippedOffHand();
                         if (offhand != null && (offhand.IsTwoHanded || offhand.IsCaster || offhand.IsAmmoLauncher))
+                        {
+                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}) in slot {wieldedLocation}, which conflicts with '{offhand.Name}'");
                             return false;
+                        }
 
                         mainhand = GetEquippedMainHand();
                         if (mainhand != null && (mainhand.IsTwoHanded || mainhand.IsCaster || mainhand.IsAmmoLauncher))
+                        {
+                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}) in slot {wieldedLocation}, which conflicts with '{mainhand.Name}'");
                             return false;
+                        }
                         break;
                 }
             }
@@ -1827,15 +1862,21 @@ namespace ACE.Server.WorldObjects
                     {
                         // Can't wield these with anything else!
                         if (mainhand.IsTwoHanded || mainhand.IsAmmoLauncher || mainhand.IsCaster)
+                        {
+                            log.Warn($"'{Name}' is illegally wielding '{mainhand.Name}' ({mainhand.Guid}) and {offhand.Name}' ({offhand.Guid})");
                             return false;
+                        }
                     }
 
                     // Ensure our ammo matches up properly
                     if (mainhand.IsAmmoLauncher)
                     {
                         ammo = GetEquippedAmmo();
-                        if (ammo != null && ammo.AmmoType != mainhand.AmmoType)
+                        if (ammo != null && ammo.AmmoType != null && mainhand.AmmoType != null && ammo.AmmoType != mainhand.AmmoType)
+                        {
+                            log.Warn($"'{Name}' is illegally wielding '{mainhand.Name}' ({mainhand.Guid}) with ammo {ammo.Name}' ({ammo.AmmoType})");
                             return false;
+                        }
                     }
                 }
             }
