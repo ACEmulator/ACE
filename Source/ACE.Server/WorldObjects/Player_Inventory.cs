@@ -3330,7 +3330,7 @@ namespace ACE.Server.WorldObjects
 
                     if (palette > 0)
                         item.PaletteTemplate = palette;
-                    if (item.Shade > 0)
+                    if (shade > 0)
                         item.Shade = shade;
 
                     TryCreateForGive(emoter, item);
