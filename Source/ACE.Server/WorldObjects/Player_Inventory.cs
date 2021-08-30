@@ -1782,7 +1782,7 @@ namespace ACE.Server.WorldObjects
                     case EquipMask.MissileWeapon:
                         // Should not have any items in either hand
                         offhand = GetEquippedOffHand();
-                        if (offhand != null)
+                        if (offhand != null && item.IsAmmoLauncher)
                         {
                             log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}) in slot {wieldedLocation}, which conflicts with '{offhand.Name}'");
                             return false;
