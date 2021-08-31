@@ -471,7 +471,7 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.AvailableSkillCredits, AvailableSkillCredits ?? 0));
 
-            if (amount > 0)
+            if (amount > 1)
                 SendTransientError($"You have been awarded {amount:N0} additional skill credits.");
             else
                 SendTransientError("You have been awarded an additional skill credit.");
