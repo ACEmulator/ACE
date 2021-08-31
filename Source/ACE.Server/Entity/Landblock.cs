@@ -1136,41 +1136,7 @@ namespace ACE.Server.Entity
             // remove physics landblock
             LScape.unload_landblock(landblockID);
 
-            RemoveAdjacentShadowObjs();
-        }
-
-        /// <summary>
-        /// Removes shadow object references from adjacent landblocks
-        /// called when a landblock unloads
-        /// </summary>
-        private void RemoveAdjacentShadowObjs()
-        {
-            foreach (var adjacent in Adjacents)
-            {
-                foreach (var wo in adjacent.worldObjects.Values)
-                {
-                    if (wo.PhysicsObj == null)
-                        continue;
-
-                    List<uint> removeList = null;
-
-                    var cachedId = Id.Landblock;
-
-                    foreach (var objCell in wo.PhysicsObj.ShadowObjects.Keys.Where(i => i >> 16 == cachedId))
-                    {
-                        if (removeList == null)
-                            removeList = new List<uint>();
-
-                        removeList.Add(objCell);
-                    }
-
-                    if (removeList != null)
-                    {
-                        foreach (var objCell in removeList)
-                            wo.PhysicsObj.ShadowObjects.Remove(objCell);
-                    }
-                }
-            }
+            PhysicsLandblock.release_shadow_objs();
         }
 
         public void DestroyAllNonPlayerObjects()

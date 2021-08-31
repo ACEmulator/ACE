@@ -509,6 +509,12 @@ namespace ACE.Server.Physics.Common
             return false;
         }
 
+        public void release_shadow_objs()
+        {
+            foreach (var shadowObj in ShadowObjectList)
+                shadowObj.PhysicsObj.ShadowObjects.Remove(ID);
+        }
+
         public void release_objects()
         {
             readerWriterLockSlim.EnterWriteLock();
