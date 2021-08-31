@@ -380,7 +380,8 @@ namespace ACE.Server.Command.Handlers
 
                 var questCredits = 0;
 
-                // 2 possible skill credits from quests
+                // 4 possible skill credits from quests
+
                 // - OswaldManualCompleted
                 if (oswaldSkillCredit.Contains(player.Guid.Full))
                     questCredits++;
