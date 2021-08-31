@@ -59,8 +59,9 @@ namespace ACE.Server.WorldObjects
 
             if (!confirmed)
             {
-                player.ConfirmationManager.EnqueueSend(new Confirmation_Augmentation(player.Guid, Guid),
-                    $"This action will augment your character with {Name} and will cost {AugmentationCost:N0} available experience.");
+                if (!player.ConfirmationManager.EnqueueSend(new Confirmation_Augmentation(player.Guid, Guid),
+                    $"This action will augment your character with {Name} and will cost {AugmentationCost:N0} available experience."))
+                    player.SendWeenieError(WeenieError.ConfirmationInProgress);
 
                 return;
             }

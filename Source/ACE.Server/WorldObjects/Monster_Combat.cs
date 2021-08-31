@@ -104,7 +104,7 @@ namespace ACE.Server.WorldObjects
                 GetCombatTable();
 
             // if caster, roll for spellcasting chance
-            if (IsCaster && TryRollSpell())
+            if (HasKnownSpells && TryRollSpell())
                 return CombatType.Magic;
 
             if (IsRanged)

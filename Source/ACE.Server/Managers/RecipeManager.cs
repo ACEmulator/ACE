@@ -314,7 +314,11 @@ namespace ACE.Server.Managers
             if (numAugs > 0)
                 floorMsg += $"\n{numAugs * 5}% is due to your augmentation.";
 
-            player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, source.Guid, target.Guid), floorMsg);
+            if (!player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, source.Guid, target.Guid), floorMsg))
+            {
+                player.SendUseDoneEvent(WeenieError.ConfirmationInProgress);
+                return;
+            }
 
             if (PropertyManager.GetBool("craft_exact_msg").Item)
             {
@@ -358,7 +362,14 @@ namespace ACE.Server.Managers
 
                         // client automatically moves item to first slot in container
                         // when an UpdateObject is sent. we must mimic this process on the server for persistance
-                        player.MoveItemToFirstContainerSlot(target);
+
+                        // only run this for items in the player's inventory
+                        // ie. skip for items on landblock, such as chorizite ore
+
+                        var invObj = player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory);
+
+                        if (invObj != null)
+                            player.MoveItemToFirstContainerSlot(target);
                     }
                 }
             }

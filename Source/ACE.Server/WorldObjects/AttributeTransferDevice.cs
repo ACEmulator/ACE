@@ -76,7 +76,8 @@ namespace ACE.Server.WorldObjects
 
             if (!confirmed)
             {
-                player.ConfirmationManager.EnqueueSend(new Confirmation_AlterAttribute(player.Guid, Guid), $"This action will transfer 10 points from your {fromAttr.Attribute} to your {toAttr.Attribute}.");
+                if (!player.ConfirmationManager.EnqueueSend(new Confirmation_AlterAttribute(player.Guid, Guid), $"This action will transfer 10 points from your {fromAttr.Attribute} to your {toAttr.Attribute}."))
+                    player.SendWeenieError(WeenieError.ConfirmationInProgress);
                 return;
             }
 

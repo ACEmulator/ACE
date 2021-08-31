@@ -353,7 +353,7 @@ namespace ACE.Server.Command.Handlers
                 // - ArantahKill1 (no 'turned in' stamp, only if given figurine?)
                 // - LumAugSkillQuest (stamped either 1 or 2 times)
 
-                oswaldSkillCredit = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("ChasingOswaldDone")).Select(i => i.CharacterId).ToHashSet();
+                oswaldSkillCredit = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("OswaldManualCompleted")).Select(i => i.CharacterId).ToHashSet();
                 ralireaSkillCredit = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("ArantahKill1")).Select(i => i.CharacterId).ToHashSet();
                 lumAugSkillCredits = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("LumAugSkillQuest")).ToDictionary(i => i.CharacterId, i => i.NumTimesCompleted);
             }
