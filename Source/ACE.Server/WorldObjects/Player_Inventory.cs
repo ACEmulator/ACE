@@ -1780,9 +1780,10 @@ namespace ACE.Server.WorldObjects
 
                         break;
                     case EquipMask.MissileWeapon:
-                        // Should not have any items in either hand
+                        // Should not have any items in either hand for ammo launchers (bows, atlatls)
+                        // Thrown weapons (ie. phials) can have a shield
                         offhand = GetEquippedOffHand();
-                        if (offhand != null)
+                        if (offhand != null && item.IsAmmoLauncher)
                         {
                             log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}) in slot {wieldedLocation}, which conflicts with '{offhand.Name}'");
                             return false;
