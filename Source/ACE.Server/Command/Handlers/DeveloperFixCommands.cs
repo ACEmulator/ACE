@@ -464,7 +464,7 @@ namespace ACE.Server.Command.Handlers
                     // if the player has already spent more skill credits than they should have,
                     // unfortunately this situation requires a partial reset..
 
-                    Console.WriteLine($"{player.Name} (0x{player.Guid}) has spent {specCreditsSpent} skill credits on specalization, {specCreditsSpent - 70} over the limit of 70. To fix this situation, specialized skill reset will need to be applied{fixStr}");
+                    Console.WriteLine($"{player.Name} (0x{player.Guid}) has spent {specCreditsSpent} skill credits on specialization, {specCreditsSpent - 70} over the limit of 70. To fix this situation, specialized skill reset will need to be applied{fixStr}");
                     foundIssues = true;
 
                     if (fix)
@@ -609,6 +609,9 @@ namespace ACE.Server.Command.Handlers
             player.SetProperty(PropertyInt.AvailableSkillCredits, targetCredits);
 
             player.SetProperty(PropertyBool.UntrainedSkills, true);
+
+            player.SetProperty(PropertyBool.FreeSkillResetRenewed, true);
+            player.SetProperty(PropertyBool.SkillTemplesTimerReset, true);
 
             player.SaveBiotaToDatabase();
         }
