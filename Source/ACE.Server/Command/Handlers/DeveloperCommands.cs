@@ -2435,9 +2435,9 @@ namespace ACE.Server.Command.Handlers
                 //    player.LogOut();
 
                 var msg = $"Player {player.Name} (0x{player.Guid}) found in PlayerManager.onlinePlayers.\n";
-                msg += $"------- Session: {(player.Session != null ? $"0x{player.Session.EndPoint}" : "NULL")}\n";
+                msg += $"------- Session: {(player.Session != null ? $"{player.Session.EndPoint}" : "NULL")}\n";
                 msg += $"------- CurrentLandblock: {(player.CurrentLandblock != null ? $"0x{player.CurrentLandblock.Id:X4}" : "NULL")}\n";
-                msg += $"------- Location: {(player.Location != null ? $"0x{player.Location.ToLOCString()}" : "NULL")}\n";
+                msg += $"------- Location: {(player.Location != null ? $"{player.Location.ToLOCString()}" : "NULL")}\n";
                 msg += $"------- IsLoggingOut: {player.IsLoggingOut}\n";
                 msg += $"------- IsInDeathProcess: {player.IsInDeathProcess}\n";
                 var foundOnLandblock = false;
@@ -3440,7 +3440,8 @@ namespace ACE.Server.Command.Handlers
             if (!confirmed)
             {
                 var msg = $"Are you sure you want to delevel {session.Player.Name} to level {delevel}?";
-                session.Player.ConfirmationManager.EnqueueSend(new Confirmation_Custom(session.Player.Guid, () => HandleDelevel(session, true, parameters)), msg);
+                if (!session.Player.ConfirmationManager.EnqueueSend(new Confirmation_Custom(session.Player.Guid, () => HandleDelevel(session, true, parameters)), msg))
+                    session.Player.SendWeenieError(WeenieError.ConfirmationInProgress);
                 return;
             }
 
