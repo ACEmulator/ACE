@@ -120,6 +120,12 @@ namespace ACE.Server.WorldObjects
         /// <param name="action">The action performed by the player</param>
         private void ApproachVendor(Player player, VendorType action = VendorType.Undef, uint altCurrencySpent = 0)
         {
+            if (player.IsOlthoiPlayer && CreatureType != ACE.Entity.Enum.CreatureType.Olthoi)
+            {
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiVendorLooksInHorror));
+                return;
+            }
+
             var vendorList = AllItemsForSale.Values.ToList();
 
             vendorList = RotUniques(vendorList);
