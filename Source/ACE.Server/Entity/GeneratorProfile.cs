@@ -353,7 +353,7 @@ namespace ACE.Server.Entity
 
             // the following allows profile to offset from generators position, with no rotation changes, before then scattering from that position. Use case is mainly to spawn something higher or lower.
 
-            if ((Biota.ObjCellId ?? 0) == 0) // if ObjCellId is specific, throw out that that position (probably a linkable) and just use the generator's position else use the data as an offset. It is also possible that scatter always throws out all of it all cases.
+            if ((Biota.ObjCellId ?? 0) == 0) // if ObjCellId is specific, throw out that position (probably a linkable) and just use the generator's position else use the data as an offset. It is also possible that scatter always throws out all of it all cases.
             {
                 obj.Location.PositionX += Biota.OriginX ?? 0;
                 obj.Location.PositionY += Biota.OriginY ?? 0;
