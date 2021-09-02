@@ -742,7 +742,7 @@ namespace ACE.Server.WorldObjects
             //log.Info($"{Name}.HandleActionChangeCombatMode({newCombatMode})");
 
             // Make sure the player doesn't have an invalid weapon setup (e.g. sword + wand)
-            if (!CheckWeaponCollision())
+            if (!CheckWeaponCollision(null, null, newCombatMode))
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ActionCancelled)); // "Action cancelled!"
 
