@@ -1879,6 +1879,17 @@ namespace ACE.Server.WorldObjects
                             return false;
                         }
                     }
+
+                    // items such as 23307 - Ball of Gunk have EquipMask.Held and no DefaultCombatMode
+                    // they can be placed in main hand in NonCombat mode, but trying to wield them in combat mode results in the client-side error
+                    // 'You can't enter combat mode while wielding the <item>'
+                    // however, this client-side check can be bypassed with vtank
+
+                    if (mainhand.DefaultCombatStyle == null)
+                    {
+                        log.Warn($"'{Name}' is illegally wielding '{mainhand.Name}' ({mainhand.Guid})");
+                        return false;
+                    }
                 }
             }
 

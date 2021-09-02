@@ -748,7 +748,7 @@ namespace ACE.Server.WorldObjects
 
                 // Go back to non-Combat mode
                 float animTime = 0.0f, queueTime = 0.0f;
-                animTime = SetCombatMode(newCombatMode, out queueTime);
+                animTime = SetCombatMode(newCombatMode, out queueTime, false, true);
 
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(animTime);
