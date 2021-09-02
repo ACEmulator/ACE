@@ -1750,15 +1750,17 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="item">The weapon we are attempting to equip</param>
         /// <returns>True if the items were successfuly remove and the new item can attempt to be equipped, otherwise false</returns>
-        private bool CheckWeaponCollision(WorldObject item = null, EquipMask? wieldedLocation = null)
+        private bool CheckWeaponCollision(WorldObject item = null, EquipMask? wieldedLocation = null, CombatMode? combatMode = null)
         {
             // Client actually allows these equip scenarios:
             // Shield with a Two-Handed weapon.
 
+            combatMode = combatMode ?? CombatMode;
 
             WorldObject offhand, mainhand, ammo;
             if (item != null && wieldedLocation != null)
             {
+                // Equipping a new item
                 switch (wieldedLocation)
                 {
                     case EquipMask.Shield:
@@ -1848,10 +1850,41 @@ namespace ACE.Server.WorldObjects
                             return false;
                         }
                         break;
+
+                    case EquipMask.Held:
+                        // Should not have any items in offhand slot for casters only
+                        if (item.IsCaster)
+                        {
+                            offhand = GetEquippedOffHand();
+                            if (offhand != null)
+                            {
+                                log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}) in slot {wieldedLocation}, which conflicts with '{offhand.Name}'");
+                                return false;
+                            }
+                        }
+
+                        // Should not have any items still in mainhand slot
+                        mainhand = GetEquippedMainHand();
+                        if (mainhand != null)
+                        {
+                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}) in slot {wieldedLocation}, which conflicts with '{mainhand.Name}'");
+                            return false;
+                        }
+
+                        // items such as 23307 - Ball of Gunk have EquipMask.Held and no DefaultCombatMode
+                        // can only be wielded in NonCombat mode
+                        if (combatMode != CombatMode.NonCombat && item.DefaultCombatStyle == null)
+                        {
+                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}) in slot {wieldedLocation}, which conflicts with {combatMode} combat mode");
+                            return false;
+                        }
+                        break;
                 }
             }
             else
             {
+                // changing combat mode
+
                 // Just do a quick sanity check to ensure the player isn't wielding two weapons they shouldn't
                 mainhand = GetEquippedMainHand();
                 offhand = GetEquippedOffHand();
@@ -1878,6 +1911,17 @@ namespace ACE.Server.WorldObjects
                             log.Warn($"'{Name}' is illegally wielding '{mainhand.Name}' ({mainhand.Guid}) with ammo {ammo.Name}' ({ammo.AmmoType})");
                             return false;
                         }
+                    }
+
+                    // items such as 23307 - Ball of Gunk have EquipMask.Held and no DefaultCombatMode
+                    // they can be placed in main hand in NonCombat mode, but trying to wield them in combat mode results in the client-side error
+                    // 'You can't enter combat mode while wielding the <item>'
+                    // however, this client-side check can be bypassed with vtank
+
+                    if (mainhand.DefaultCombatStyle == null)
+                    {
+                        log.Warn($"'{Name}' is illegally wielding '{mainhand.Name}' ({mainhand.Guid}) in {combatMode} combat mode");
+                        return false;
                     }
                 }
             }
