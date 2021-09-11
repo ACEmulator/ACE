@@ -3023,6 +3023,18 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.GearMaxHealth); else SetProperty(PropertyInt.GearMaxHealth, value.Value); }
         }
 
+        public int? GearPKDamageRating
+        {
+            get => GetProperty(PropertyInt.GearPKDamageRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearPKDamageRating); else SetProperty(PropertyInt.GearPKDamageRating, value.Value); }
+        }
+
+        public int? GearPKDamageResistRating
+        {
+            get => GetProperty(PropertyInt.GearPKDamageResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.GearPKDamageResistRating); else SetProperty(PropertyInt.GearPKDamageResistRating, value.Value); }
+        }
+
         public int? ResistItemAppraisal
         {
             get => GetProperty(PropertyInt.ResistItemAppraisal);
