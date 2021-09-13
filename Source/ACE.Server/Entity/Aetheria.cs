@@ -98,7 +98,8 @@ namespace ACE.Server.Entity
 
         public static bool IsAetheria(uint wcid)
         {
-            return wcid == AetheriaBlue || wcid == AetheriaYellow || wcid == AetheriaRed;
+            return wcid == AetheriaBlue || wcid == AetheriaYellow || wcid == AetheriaRed ||
+            wcid == 1910505 || wcid == 1910506 || wcid == 1910507;
         }
 
         public static AetheriaColor? GetColor(uint wcid)
@@ -111,6 +112,12 @@ namespace ACE.Server.Entity
                     return AetheriaColor.Yellow;
                 case AetheriaRed:
                     return AetheriaColor.Red;
+                case 1910505:
+                    return AetheriaColor.Blue;
+                case 1910506:
+                    return AetheriaColor.Red;
+                case 1910507:
+                    return AetheriaColor.Yellow;
                 default:
                     return null;
             }
@@ -193,7 +200,7 @@ namespace ACE.Server.Entity
                 return WeenieError.YouDoNotPassCraftingRequirements;
 
             if (source.WeenieClassId != AetheriaManaStone ||
-                target.WeenieClassId != AetheriaBlue && target.WeenieClassId != AetheriaYellow && target.WeenieClassId != AetheriaRed)
+                !IsAetheria(target.WeenieClassId))
 
                 return WeenieError.YouDoNotPassCraftingRequirements;
 
