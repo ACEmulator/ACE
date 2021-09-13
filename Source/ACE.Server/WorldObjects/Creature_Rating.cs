@@ -460,7 +460,10 @@ namespace ACE.Server.WorldObjects
             // additive enchantments?
             var enchantments = EnchantmentManager.GetRating(PropertyInt.PKDamageRating);
 
-            return pkDamageRating + enchantments;
+            // equipment ratings
+            var equipment = GetEquippedItemsRatingSum(PropertyInt.GearPKDamageRating);
+
+            return pkDamageRating + equipment + enchantments;
         }
 
         public int GetPKDamageResistRating()
@@ -470,7 +473,20 @@ namespace ACE.Server.WorldObjects
             // additive enchantments?
             var enchantments = EnchantmentManager.GetRating(PropertyInt.PKDamageResistRating);
 
-            return pkDamageResistRating + enchantments;
+            // equipment ratings
+            var equipment = GetEquippedItemsRatingSum(PropertyInt.GearPKDamageResistRating);
+
+            return pkDamageResistRating + equipment + enchantments;
+        }
+
+        public int GetGearPKDamageRating()
+        {
+            return GetEquippedItemsRatingSum(PropertyInt.GearPKDamageRating);
+        }
+
+        public int GetGearPKDamageResistRating()
+        {
+            return GetEquippedItemsRatingSum(PropertyInt.GearPKDamageResistRating);
         }
 
         public int GetItemManaReductionRating()

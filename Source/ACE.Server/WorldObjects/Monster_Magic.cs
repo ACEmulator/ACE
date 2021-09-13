@@ -47,9 +47,9 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns TRUE if monster is a spell caster
+        /// Returns TRUE if monster has known spells
         /// </summary>
-        private bool IsCaster => Biota.HasKnownSpell(BiotaDatabaseLock);
+        private bool HasKnownSpells => Biota.HasKnownSpell(BiotaDatabaseLock);
 
         /// <summary>
         /// The next spell the monster will attempt to cast

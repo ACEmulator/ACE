@@ -242,7 +242,7 @@ namespace ACE.Server.Entity
             availableSkillCredits += (int)heritageGroup.SkillCredits; // base skill credits allowed
 
             availableSkillCredits += player.QuestManager.GetCurrentSolves("ArantahKill1");       // additional quest skill credit
-            availableSkillCredits += player.QuestManager.GetCurrentSolves("ChasingOswaldDone");  // additional quest skill credit
+            availableSkillCredits += player.QuestManager.GetCurrentSolves("OswaldManualCompleted");  // additional quest skill credit
             availableSkillCredits += player.QuestManager.GetCurrentSolves("LumAugSkillQuest");   // additional quest skill credits
 
             player.AvailableSkillCredits = availableSkillCredits;

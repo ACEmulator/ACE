@@ -607,6 +607,9 @@ namespace ACE.Server.Network.Structure
             var lifeResistRating = creature.GetLifeResistRating();  // drain / harm resistance
             var gearMaxHealth = creature.GetGearMaxHealth();
 
+            var pkDamageRating = creature.GetPKDamageRating();
+            var pkDamageResistRating = creature.GetPKDamageResistRating();
+
             if (damageRating != 0)
                 PropertiesInt[PropertyInt.DamageRating] = damageRating;
             if (damageResistRating != 0)
@@ -633,6 +636,11 @@ namespace ACE.Server.Network.Structure
                 PropertiesInt[PropertyInt.LifeResistRating] = lifeResistRating;
             if (gearMaxHealth != 0)
                 PropertiesInt[PropertyInt.GearMaxHealth] = gearMaxHealth;
+
+            if (pkDamageRating != 0)
+                PropertiesInt[PropertyInt.PKDamageRating] = pkDamageRating;
+            if (pkDamageResistRating != 0)
+                PropertiesInt[PropertyInt.PKDamageResistRating] = pkDamageResistRating;
 
             // add ratings from equipped items?
         }
