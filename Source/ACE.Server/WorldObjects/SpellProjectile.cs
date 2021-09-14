@@ -704,6 +704,8 @@ namespace ACE.Server.WorldObjects
             var sourceCreature = ProjectileSource as Creature;
             var sourcePlayer = ProjectileSource as Player;
 
+            var pkBattle = sourcePlayer != null && targetPlayer != null;
+
             var amount = 0u;
             var percent = 0.0f;
 
@@ -711,9 +713,11 @@ namespace ACE.Server.WorldObjects
             var heritageMod = 1.0f;
             var sneakAttackMod = 1.0f;
             var critDamageRatingMod = 1.0f;
+            var pkDamageRatingMod = 1.0f;
 
             var damageResistRatingMod = 1.0f;
             var critDamageResistRatingMod = 1.0f;
+            var pkDamageResistRatingMod = 1.0f;
 
             WorldObject equippedCloak = null;
 
@@ -755,6 +759,15 @@ namespace ACE.Server.WorldObjects
                     damageResistRatingMod = Creature.AdditiveCombine(damageResistRatingMod, critDamageResistRatingMod);
                 }
 
+                if (pkBattle)
+                {
+                    pkDamageRatingMod = Creature.GetPositiveRatingMod(sourceCreature?.GetPKDamageRating() ?? 0);
+                    pkDamageResistRatingMod = Creature.GetNegativeRatingMod(target.GetPKDamageResistRating());
+
+                    damageRatingMod = Creature.AdditiveCombine(damageRatingMod, pkDamageRatingMod);
+                    damageResistRatingMod = Creature.AdditiveCombine(damageResistRatingMod, pkDamageResistRatingMod);
+                }
+
                 damage *= damageRatingMod * damageResistRatingMod;
 
                 percent = damage / target.Health.MaxValue;
@@ -785,11 +798,11 @@ namespace ACE.Server.WorldObjects
             // show debug info
             if (sourceCreature != null && sourceCreature.DebugDamage.HasFlag(Creature.DebugDamageType.Attacker))
             {
-                ShowInfo(sourceCreature, heritageMod, sneakAttackMod, damageRatingMod, damageResistRatingMod, critDamageRatingMod, critDamageResistRatingMod, damage);
+                ShowInfo(sourceCreature, heritageMod, sneakAttackMod, damageRatingMod, damageResistRatingMod, critDamageRatingMod, critDamageResistRatingMod, pkDamageRatingMod, pkDamageResistRatingMod, damage);
             }
             if (target.DebugDamage.HasFlag(Creature.DebugDamageType.Defender))
             {
-                ShowInfo(target, heritageMod, sneakAttackMod, damageRatingMod, damageResistRatingMod, critDamageRatingMod, critDamageResistRatingMod, damage);
+                ShowInfo(target, heritageMod, sneakAttackMod, damageRatingMod, damageResistRatingMod, critDamageRatingMod, critDamageResistRatingMod, pkDamageRatingMod, pkDamageResistRatingMod, damage);
             }
 
             if (target.IsAlive)
@@ -957,7 +970,7 @@ namespace ACE.Server.WorldObjects
         }
 
         public static void ShowInfo(Creature observed, float heritageMod, float sneakAttackMod, float damageRatingMod, float damageResistRatingMod,
-            float critDamageRatingMod, float critDamageResistRatingMod, float damage)
+            float critDamageRatingMod, float critDamageResistRatingMod, float pkDamageRatingMod, float pkDamageResistRatingMod, float damage)
         {
             var observer = PlayerManager.GetOnlinePlayer(observed.DebugDamageTarget);
             if (observer == null)
@@ -976,11 +989,17 @@ namespace ACE.Server.WorldObjects
             if (critDamageRatingMod != 1.0f)
                 info += $"CritDamageRatingMod: {critDamageRatingMod}\n";
 
+            if (pkDamageRatingMod != 1.0f)
+                info += $"PkDamageRatingMod: {pkDamageRatingMod}\n";
+
             if (damageRatingMod != 1.0f)
                 info += $"DamageRatingMod: {damageRatingMod}\n";
 
             if (critDamageResistRatingMod != 1.0f)
                  info += $"CritDamageResistRatingMod: {critDamageResistRatingMod}\n";
+
+            if (pkDamageResistRatingMod != 1.0f)
+                info += $"PkDamageResistRatingMod: {pkDamageResistRatingMod}\n";
 
             if (damageResistRatingMod != 1.0f)
                 info += $"DamageResistRatingMod: {damageResistRatingMod}\n";
