@@ -91,8 +91,12 @@ namespace ACE.Server.Network.Structure
             // Help us make sure the item identify properly
             NPCLooksLikeObject = wo.GetProperty(PropertyBool.NpcLooksLikeObject) ?? false;
 
-            if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedWielder) && !PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedWielder))
-                PropertiesBool.Add(PropertyBool.AppraisalHasAllowedWielder, true);
+            if (!(PropertiesBool.ContainsKey(PropertyBool.ForedawnAmethystApplied) && PropertiesBool[PropertyBool.ForedawnAmethystApplied] == true))
+            {
+                if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedWielder))
+                    if (!PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedWielder))
+                        PropertiesBool.Add(PropertyBool.AppraisalHasAllowedWielder, true);
+            }
 
             if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedActivator) && !PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedActivator))
                 PropertiesBool.Add(PropertyBool.AppraisalHasAllowedActivator, true);

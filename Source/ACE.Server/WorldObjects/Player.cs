@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Linq;
 
 using log4net;
 
@@ -111,6 +112,18 @@ namespace ACE.Server.WorldObjects
             Account = DatabaseManager.Authentication.GetAccountById(Character.AccountId);
 
             SetEphemeralValues();
+
+            if (!string.IsNullOrEmpty(CurrentRareEnchantmentIds))
+            {
+                var list = CurrentRareEnchantmentIds.Split('|');
+                foreach (var spellIdStr in list)
+                {
+                    if (uint.TryParse(spellIdStr, out uint spellId))
+                    {
+                        RareSpellEnchantments.Add(spellId);
+                    }
+                }
+            }
 
             SortBiotasIntoInventory(inventory);
             AddBiotasToEquippedObjects(wieldedItems);

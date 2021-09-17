@@ -73,6 +73,15 @@ namespace ACE.Server.WorldObjects
             }
 
             // handle rare gems
+            if (RareId != null || RareUsesTimer)
+            {
+                if (player.PKTimerActive)
+                {
+                    player.SendWeenieError(WeenieError.YouHaveBeenInPKBattleTooRecently);
+                    return;
+                }
+            }
+
             if (RareId != null && player.GetCharacterOption(CharacterOption.ConfirmUseOfRareGems) && !confirmed)
             {
                 var msg = $"Are you sure you want to use {Name}?";
