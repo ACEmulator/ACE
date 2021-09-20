@@ -51,6 +51,14 @@ namespace ACE.Server.WorldObjects
 
                     damageEvent = DamageEvent.CalculateDamage(sourceCreature, targetCreature, worldObject);
 
+                    var targetPk = targetCreature as Player;
+                    if (targetPk != null)
+                    {
+                        var damageCap = PropertyManager.GetLong("pvp_damage_cap").Item;
+                        if (damageEvent.Damage > damageCap)
+                            damageEvent.Damage = damageCap;
+                    }
+
                     if (targetPlayer != null)
                     {
                         // monster damage player
