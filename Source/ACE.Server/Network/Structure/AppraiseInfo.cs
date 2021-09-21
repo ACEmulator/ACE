@@ -168,6 +168,8 @@ namespace ACE.Server.Network.Structure
                 var discardString = PropertiesString.Where(x => x.Key != PropertyString.LongDesc).Select(x => x.Key).ToList();
                 foreach (var key in discardString)
                     PropertiesString.Remove(key);
+
+                PropertiesInt[PropertyInt.Value] = 0;
             }
 
             if (wo is Portal)
