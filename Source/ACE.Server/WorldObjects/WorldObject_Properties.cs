@@ -3088,5 +3088,12 @@ namespace ACE.Server.WorldObjects
             get => (ImbuedEffectType)(GetProperty(PropertyInt.ImbuedEffect) ?? 0);
             set { if (value == 0) RemoveProperty(PropertyInt.ImbuedEffect); else SetProperty(PropertyInt.ImbuedEffect, (int)value); }
         }
+
+        /// <summary>
+        /// For items sold by vendors, StackSize of shop item profile from Vendor's CreateList.
+        /// This value is only set by Vendor.LoadInventoryItem, and is almost always -1 which means the item has no supply limits per transaction.
+        /// If not unlimited, client will only allow you to buy or add to buy list up this number of items for a single transaction.
+        /// </summary>
+        public int? VendorShopCreateListStackSize;
     }
 }

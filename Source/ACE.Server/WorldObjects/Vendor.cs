@@ -81,19 +81,19 @@ namespace ACE.Server.WorldObjects
             var itemsForSale = new Dictionary<(uint weenieClassId, int paletteTemplate, double shade), uint>();
 
             foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Shop))
-                LoadInventoryItem(itemsForSale, item.WeenieClassId, item.Palette, item.Shade);
+                LoadInventoryItem(itemsForSale, item.WeenieClassId, item.Palette, item.Shade, item.StackSize);
 
             if (Biota.PropertiesGenerator != null && !PropertyManager.GetBool("vendor_shop_uses_generator").Item)
             {
                 foreach (var item in Biota.PropertiesGenerator.Where(x => x.WhereCreate.HasFlag(RegenLocationType.Shop)))
-                    LoadInventoryItem(itemsForSale, item.WeenieClassId, (int?)item.PaletteId, item.Shade);
+                    LoadInventoryItem(itemsForSale, item.WeenieClassId, (int?)item.PaletteId, item.Shade, item.StackSize);
             }
 
             inventoryloaded = true;
         }
 
         private void LoadInventoryItem(Dictionary<(uint weenieClassId, int paletteTemplate, double shade), uint> itemsForSale,
-            uint weenieClassId, int? palette, float? shade)
+            uint weenieClassId, int? palette, float? shade, int? stackSize)
         {
             var itemProfile = (weenieClassId, palette ?? 0, shade ?? 0);
 
@@ -116,6 +116,8 @@ namespace ACE.Server.WorldObjects
             wo.CalculateObjDesc();
 
             itemsForSale.Add(itemProfile, wo.Guid.Full);
+
+            wo.VendorShopCreateListStackSize = stackSize ?? -1;
 
             DefaultItemsForSale.Add(wo.Guid, wo);
         }
