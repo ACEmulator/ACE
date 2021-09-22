@@ -2069,42 +2069,6 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ChessTotalGames); else SetProperty(PropertyInt.ChessTotalGames, value.Value); }
         }
 
-        public int? MerchandiseItemTypes
-        {
-            get => GetProperty(PropertyInt.MerchandiseItemTypes);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseItemTypes); else SetProperty(PropertyInt.MerchandiseItemTypes, value.Value); }
-        }
-
-        public int? MerchandiseMinValue
-        {
-            get => GetProperty(PropertyInt.MerchandiseMinValue);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseMinValue); else SetProperty(PropertyInt.MerchandiseMinValue, value.Value); }
-        }
-
-        public int? MerchandiseMaxValue
-        {
-            get => GetProperty(PropertyInt.MerchandiseMaxValue);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseMaxValue); else SetProperty(PropertyInt.MerchandiseMaxValue, value.Value); }
-        }
-
-        public double? BuyPrice
-        {
-            get => GetProperty(PropertyFloat.BuyPrice);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.BuyPrice); else SetProperty(PropertyFloat.BuyPrice, value.Value); }
-        }
-
-        public double? SellPrice
-        {
-            get => GetProperty(PropertyFloat.SellPrice);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.SellPrice); else SetProperty(PropertyFloat.SellPrice, value.Value); }
-        }
-
-        public bool? DealMagicalItems
-        {
-            get => GetProperty(PropertyBool.DealMagicalItems);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.DealMagicalItems); else SetProperty(PropertyBool.DealMagicalItems, value.Value); }
-        }
-
         public double? HeartbeatInterval
         {
             get => GetProperty(PropertyFloat.HeartbeatInterval);

@@ -14,6 +14,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Managers;
+using ACE.Database;
 
 namespace ACE.Server.WorldObjects
 {
@@ -69,6 +70,25 @@ namespace ACE.Server.WorldObjects
             {
                 GeneratorProfiles.RemoveAll(p => p.Biota.WhereCreate.HasFlag(RegenLocationType.Shop));
             }
+
+            var currencyWCID = AlternateCurrency ?? (uint)ACE.Entity.Enum.WeenieClassName.W_COINSTACK_CLASS;
+            var currencyWeenie = DatabaseManager.World.GetCachedWeenie(currencyWCID);
+            if (currencyWeenie == null)
+            {
+                var errorMsg = $"WCID {currencyWCID}{(AlternateCurrency.HasValue ? ", which comes from PropertyDataId.AlternateCurrency," : "")} is not found in the database, which will result in a server crash when this vendor is interacted with!";
+                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) Currency {errorMsg}");
+            }
+
+            if (!MerchandiseItemTypes.HasValue)
+                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) MerchandiseItemTypes is NULL which will result in a server crash when this vendor is interacted with!");
+            if (!MerchandiseMinValue.HasValue)
+                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) MerchandiseMinValue is NULL which will result in a server crash when this vendor is interacted with!");
+            if (!MerchandiseMaxValue.HasValue)
+                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) MerchandiseMaxValue is NULL which will result in a server crash when this vendor is interacted with!");
+            if (!BuyPrice.HasValue)
+                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) BuyPrice is NULL which will result in a server crash when this vendor is interacted with!");
+            if (!SellPrice.HasValue)
+                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) SellPrice is NULL which will result in a server crash when this vendor is interacted with!");
         }
 
         /// <summary>
@@ -543,6 +563,8 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                     item.Destroy();
+
+                NumItemsBought++;
             }
 
             ApproachVendor(player, VendorType.Sell);
@@ -574,6 +596,8 @@ namespace ACE.Server.WorldObjects
             castChain.AddAction(this, () => IsBusy = false);
 
             castChain.EnqueueChain();
+
+            NumServicesSold++;
         }
 
         /// <summary>
@@ -622,6 +646,102 @@ namespace ACE.Server.WorldObjects
         {
             foreach (var createdItem in createdItems)
                 createdItem.Destroy();
+        }
+
+        public bool OpenForBusiness
+        {
+            get => GetProperty(PropertyBool.OpenForBusiness) ?? true;
+            set { if (!value) RemoveProperty(PropertyBool.OpenForBusiness); else SetProperty(PropertyBool.OpenForBusiness, value); }
+        }
+
+        public int? MerchandiseItemTypes
+        {
+            get => GetProperty(PropertyInt.MerchandiseItemTypes);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseItemTypes); else SetProperty(PropertyInt.MerchandiseItemTypes, value.Value); }
+        }
+
+        public int? MerchandiseMinValue
+        {
+            get => GetProperty(PropertyInt.MerchandiseMinValue);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseMinValue); else SetProperty(PropertyInt.MerchandiseMinValue, value.Value); }
+        }
+
+        public int? MerchandiseMaxValue
+        {
+            get => GetProperty(PropertyInt.MerchandiseMaxValue);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseMaxValue); else SetProperty(PropertyInt.MerchandiseMaxValue, value.Value); }
+        }
+
+        public double? BuyPrice
+        {
+            get => GetProperty(PropertyFloat.BuyPrice);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.BuyPrice); else SetProperty(PropertyFloat.BuyPrice, value.Value); }
+        }
+
+        public double? SellPrice
+        {
+            get => GetProperty(PropertyFloat.SellPrice);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.SellPrice); else SetProperty(PropertyFloat.SellPrice, value.Value); }
+        }
+
+        public bool? DealMagicalItems
+        {
+            get => GetProperty(PropertyBool.DealMagicalItems);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.DealMagicalItems); else SetProperty(PropertyBool.DealMagicalItems, value.Value); }
+        }
+
+        public bool? VendorService
+        {
+            get => GetProperty(PropertyBool.VendorService);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.VendorService); else SetProperty(PropertyBool.VendorService, value.Value); }
+        }
+
+        public int? VendorHappyMean
+        {
+            get => GetProperty(PropertyInt.VendorHappyMean);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.VendorHappyMean); else SetProperty(PropertyInt.VendorHappyMean, value.Value); }
+        }
+
+        public int? VendorHappyVariance
+        {
+            get => GetProperty(PropertyInt.VendorHappyVariance);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.VendorHappyVariance); else SetProperty(PropertyInt.VendorHappyVariance, value.Value); }
+        }
+
+        public int? VendorHappyMaxItems
+        {
+            get => GetProperty(PropertyInt.VendorHappyMaxItems);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.VendorHappyMaxItems); else SetProperty(PropertyInt.VendorHappyMaxItems, value.Value); }
+        }
+
+        public int NumItemsSold
+        {
+            get => GetProperty(PropertyInt.NumItemsSold) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.NumItemsSold); else SetProperty(PropertyInt.NumItemsSold, value); }
+        }
+
+        public int NumItemsBought
+        {
+            get => GetProperty(PropertyInt.NumItemsBought) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.NumItemsBought); else SetProperty(PropertyInt.NumItemsBought, value); }
+        }
+
+        public int NumServicesSold
+        {
+            get => GetProperty(PropertyInt.NumServicesSold) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.NumServicesSold); else SetProperty(PropertyInt.NumServicesSold, value); }
+        }
+
+        public int MoneyIncome
+        {
+            get => GetProperty(PropertyInt.MoneyIncome) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.MoneyIncome); else SetProperty(PropertyInt.MoneyIncome, value); }
+        }
+
+        public int MoneyOutflow
+        {
+            get => GetProperty(PropertyInt.MoneyOutflow) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.MoneyOutflow); else SetProperty(PropertyInt.MoneyOutflow, value); }
         }
     }
 }
