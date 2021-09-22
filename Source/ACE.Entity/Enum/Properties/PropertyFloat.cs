@@ -216,7 +216,10 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         PCAPRecordeOmegaY              = 8017,
         [ServerOnly]
-        PCAPRecordeOmegaZ              = 8018
+        PCAPRecordeOmegaZ              = 8018,
+
+        /***** FOREDAWN CUSTOMS *****/
+        ForedawnPvpDamageMulti = 52000
     }
 
     public static class PropertyFloatExtensions

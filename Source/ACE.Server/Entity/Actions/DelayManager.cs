@@ -46,10 +46,19 @@ namespace ACE.Server.Entity.Actions
 
                 foreach (var action in toAct)
                 {
+                    if (action == null)
+                        continue;
+
                     Tuple<IActor, IAction> next = action.Act();
 
-                    if (next != null)
-                        next.Item1.EnqueueAction(next.Item2);
+                    if (next == null)
+                        continue;
+                    if (next.Item1 == null)
+                    {
+                        log.Warn("DelayManager Item1 is null - crash averted.");
+                        continue;
+                    }
+                    next.Item1.EnqueueAction(next.Item2);
                 }
             }
         }

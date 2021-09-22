@@ -254,7 +254,9 @@ namespace ACE.Server.WorldObjects
                 animTime = EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, (MotionCommand)prevStance);
 
             // start the eat/drink motion
-            var useAnimTime = EnqueueMotion_Force(actionChain, MotionStance.NonCombat, useMotion, null, 1.0f, animMod);
+            var speed = (float)Server.Managers.PropertyManager.GetDouble("consumable_speed_modifier").Item;
+            speed = Math.Clamp(speed, 0.1f, 10f);
+            var useAnimTime = EnqueueMotion_Force(actionChain, MotionStance.NonCombat, useMotion, null, speed, animMod);
             animTime += useAnimTime;
 
             // apply consumable

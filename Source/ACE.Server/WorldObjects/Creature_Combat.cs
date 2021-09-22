@@ -650,7 +650,7 @@ namespace ACE.Server.WorldObjects
 
             // phantom weapons ignore all armor and shields
             if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.IgnoreAllArmor))
-                return 1.0f;
+                return (float)Server.Managers.PropertyManager.GetDouble("phantom_damage_shield_multi", 1.0, false).Item;
 
             // is monster in front of player,
             // within shield effectiveness area?

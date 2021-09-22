@@ -1,5 +1,5 @@
 using System;
-
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
@@ -38,8 +38,36 @@ namespace ACE.Server.WorldObjects
             {
                 if (sourcePlayer != null)
                 {
+                    var weapon = sourcePlayer.GetEquippedMissileWeapon();
+
+                    if (weapon != null && weapon.NumTimesTinkered > 0 && target is Player)
+                    {
+                        var maxdmg = 0;
+
+                        if (weapon.W_WeaponType == WeaponType.Bow)
+                            maxdmg = (int)PropertyManager.GetDouble("bow_damage").Item;
+                        else if (weapon.W_WeaponType == WeaponType.Crossbow)
+                            maxdmg += (int)PropertyManager.GetDouble("xbow_damage").Item;
+                        else if (weapon.W_WeaponType == WeaponType.Thrown)
+                            maxdmg += (int)PropertyManager.GetDouble("thrown_damage").Item;
+                        maxdmg *= weapon.NumTimesTinkered;
+                        var dmgrng = maxdmg / 2;
+                        worldObject.Damage += dmgrng;
+                    }
+
                     // player damage monster or player
                     damageEvent = sourcePlayer.DamageTarget(targetCreature, worldObject);
+
+                    var targetPlayer = targetCreature as Player;
+                    if (targetPlayer != null)
+                    {
+                        if (damageEvent != null && damageEvent.HasDamage)
+                        {
+                            var damageCap = PropertyManager.GetLong("pvp_damage_cap").Item;
+                            if (damageEvent.Damage > damageCap)
+                                damageEvent.Damage = damageCap;
+                        }
+                    }
 
                     if (damageEvent != null && damageEvent.HasDamage)
                         worldObject.EnqueueBroadcast(new GameMessageSound(worldObject.Guid, Sound.Collision, 1.0f));

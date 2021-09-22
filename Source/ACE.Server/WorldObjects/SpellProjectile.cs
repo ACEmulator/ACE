@@ -467,6 +467,13 @@ namespace ACE.Server.WorldObjects
             // Possible 2x + damage bonus for the slayer property
             var slayerMod = GetWeaponCreatureSlayerModifier(weapon, sourceCreature, target);
 
+            if (isPVP && slayerMod > 1f && Spell.School != MagicSchool.LifeMagic)
+            {
+                var spellType = GetProjectileSpellType(Spell.Id);
+                if (spellType == ProjectileSpellType.Ring || spellType == ProjectileSpellType.Wall)
+                    slayerMod = 1f;
+            }
+
             // life magic projectiles: ie., martyr's hecatomb
             if (Spell.MetaSpellType == ACE.Entity.Enum.SpellType.LifeProjectile)
             {
@@ -495,6 +502,26 @@ namespace ACE.Server.WorldObjects
             // war/void magic projectiles
             else
             {
+                var modifier = 1.0;
+
+                if (isPVP)
+                {
+                    if (Spell.School == MagicSchool.WarMagic)
+                    {
+                        modifier = PropertyManager.GetDouble("spell_damage_modifier").Item; // mostly unused
+
+                        if (SpellType == ProjectileSpellType.Streak)
+                            modifier = PropertyManager.GetDouble("war_streak_spell_damage_modifier").Item; // scales war streak damages
+                    }
+                    else if (Spell.School == MagicSchool.VoidMagic)
+                    {
+                        if (SpellType == ProjectileSpellType.Streak)
+                            modifier = PropertyManager.GetDouble("void_streak_spell_damage_modifier").Item;
+                        else
+                            modifier = PropertyManager.GetDouble("void_projectile_modifier").Item;
+                    }
+                }
+
                 if (criticalHit)
                 {
                     // Original:
@@ -545,6 +572,7 @@ namespace ACE.Server.WorldObjects
                     }
                 }
                 baseDamage = ThreadSafeRandom.Next(Spell.MinDamage, Spell.MaxDamage);
+                baseDamage = (int)(baseDamage * modifier);
 
                 weaponResistanceMod = GetWeaponResistanceModifier(weapon, sourceCreature, attackSkill, Spell.DamageType);
 

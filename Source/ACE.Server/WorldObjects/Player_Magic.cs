@@ -212,7 +212,31 @@ namespace ACE.Server.WorldObjects
             {
                 // restart turn if required
                 if (PhysicsObj.MovementManager.MotionInterpreter.InterpretedState.TurnCommand == 0)
-                    TurnTo_Magic(target);
+                {
+                    var windUpRetryLimit = PropertyManager.GetLong("windup_turn_retry_number").Item;
+                    // Console.WriteLine($"windUpRetryLimit: {windUpRetryLimit}");
+                    if (windUpRetryLimit > 0)
+                    {
+                        if (windupParams.TurnTries < windUpRetryLimit)
+                        {
+                            windupParams.TurnTries += 1;
+                            // Console.WriteLine($"{Name} turn to in DoWindup try #{windupParams.TurnTries}/{windUpRetryLimit}");
+                            TurnTo_Magic(target);
+                        }
+                        else
+                        {
+                            // give up after trying to correct angle a few times..
+                            // Console.WriteLine($"{Name} turn to in DoWindup giving up..");
+                            MagicState.OnCastDone();
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        // If windup_turn_retry_number property is 0 try forever like before.
+                        TurnTo_Magic(target);
+                    }
+                }
                 else
                     MagicState.PendingTurnRelease = true;
             }

@@ -5,12 +5,14 @@ namespace ACE.Server.Entity
         public uint TargetGuid;
         public uint SpellId;
         public bool BuiltInSpell;
+        public long TurnTries;
 
         public WindupParams(uint targetGuid, uint spellId, bool builtInSpell)
         {
             TargetGuid = targetGuid;
             SpellId = spellId;
             BuiltInSpell = builtInSpell;
+            TurnTries = 0;
         }
 
         public override string ToString()

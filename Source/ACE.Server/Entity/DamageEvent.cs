@@ -146,7 +146,7 @@ namespace ACE.Server.Entity
             40301,  // Verdant Moar
         };
 
-        public static DamageEvent CalculateDamage(Creature attacker, Creature defender, WorldObject damageSource, MotionCommand? attackMotion = null, AttackHook attackHook = null)
+        public static DamageEvent CalculateDamage(Creature attacker, Creature defender, WorldObject damageSource, MotionCommand? attackMotion = null, AttackHook attackHook = null, int damageBonus = 0)
         {
             var damageEvent = new DamageEvent();
             damageEvent.AttackMotion = attackMotion;
@@ -154,14 +154,14 @@ namespace ACE.Server.Entity
             if (damageSource == null)
                 damageSource = attacker;
 
-            var damage = damageEvent.DoCalculateDamage(attacker, defender, damageSource);
+            var damage = damageEvent.DoCalculateDamage(attacker, defender, damageSource, damageBonus);
 
             damageEvent.HandleLogging(attacker, defender);
 
             return damageEvent;
         }
 
-        private float DoCalculateDamage(Creature attacker, Creature defender, WorldObject damageSource)
+        private float DoCalculateDamage(Creature attacker, Creature defender, WorldObject damageSource, int damageBonus = 0)
         {
             var playerAttacker = attacker as Player;
             var playerDefender = defender as Player;
@@ -208,7 +208,7 @@ namespace ACE.Server.Entity
 
             // get base damage
             if (playerAttacker != null)
-                GetBaseDamage(playerAttacker);
+                GetBaseDamage(playerAttacker, damageBonus);
             else
                 GetBaseDamage(attacker, AttackMotion ?? MotionCommand.Invalid, AttackHook);
 
@@ -241,6 +241,13 @@ namespace ACE.Server.Entity
 
             // damage before mitigation
             DamageBeforeMitigation = BaseDamage * AttributeMod * PowerMod * SlayerMod * DamageRatingMod;
+
+            float pvpBalanceMulti = 1f;
+            if (playerAttacker != null && playerDefender != null && Weapon?.WeaponSkill == Skill.MissileWeapons)
+                pvpBalanceMulti *= (float)PropertyManager.GetDouble("pvp_missile_weapon_damage_modifier").Item;
+            else if (playerAttacker != null && playerDefender != null && (Weapon == null || Weapon.WeaponSkill != Skill.MissileWeapons))
+                pvpBalanceMulti *= (float)PropertyManager.GetDouble("pvp_melee_weapon_damage_modifier").Item;
+            DamageBeforeMitigation *= pvpBalanceMulti;
 
             // critical hit?
             var attackSkill = attacker.GetCreatureSkill(attacker.GetCurrentWeaponSkill());
@@ -285,10 +292,17 @@ namespace ACE.Server.Entity
                 }
             }
 
+            if (playerAttacker != null && playerDefender != null && Weapon != null)
+            {
+                var multi = (float?)Weapon.GetProperty(ACE.Entity.Enum.Properties.PropertyFloat.ForedawnPvpDamageMulti);
+                if (multi.HasValue)
+                    DamageBeforeMitigation *= multi.Value;
+            }
+
             // armor rending and cleaving
             var armorRendingMod = 1.0f;
             if (Weapon != null && Weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
-                armorRendingMod = WorldObject.GetArmorRendingMod(attackSkill);
+                armorRendingMod = WorldObject.GetArmorRendingMod(attackSkill, playerDefender != null);
 
             var armorCleavingMod = attacker.GetArmorCleavingMod(Weapon);
 
@@ -323,7 +337,7 @@ namespace ACE.Server.Entity
             }
 
             if (Weapon != null && Weapon.HasImbuedEffect(ImbuedEffectType.IgnoreAllArmor))
-                ArmorMod = 1.0f;
+                ArmorMod = (float)PropertyManager.GetDouble("phantom_damage_multi", 1.0, false).Item;
 
             // get resistance modifiers
             WeaponResistanceMod = WorldObject.GetWeaponResistanceModifier(Weapon, attacker, attackSkill, DamageType);
@@ -363,6 +377,13 @@ namespace ACE.Server.Entity
 
             DamageMitigated = DamageBeforeMitigation - Damage;
 
+            if (playerDefender != null && playerAttacker != null)
+            {
+                var damageCap = PropertyManager.GetLong("pvp_damage_cap").Item;
+                if (Damage > damageCap)
+                    Damage = damageCap;
+            }
+
             return Damage;
         }
 
@@ -397,7 +418,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Returns the base damage for a player attacker
         /// </summary>
-        public void GetBaseDamage(Player attacker)
+        public void GetBaseDamage(Player attacker, int damageBonus = 0)
         {
             if (DamageSource.ItemType == ItemType.MissileWeapon)
             {
@@ -417,6 +438,7 @@ namespace ACE.Server.Entity
 
             // TODO: combat maneuvers for player?
             BaseDamageMod = attacker.GetBaseDamageMod(DamageSource);
+            BaseDamageMod.DamageBonus += damageBonus;
 
             // some quest bows can have built-in damage bonus
             if (Weapon?.WeenieType == WeenieType.MissileLauncher)

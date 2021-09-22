@@ -114,7 +114,7 @@ namespace ACE.Server.WorldObjects
                 return CombatType.Missile;
         }
 
-        public DamageEvent DamageTarget(Creature target, WorldObject damageSource)
+        public DamageEvent DamageTarget(Creature target, WorldObject damageSource, int damageBonus = 0)
         {
             if (target.Health.Current <= 0)
                 return null;
@@ -131,7 +131,7 @@ namespace ACE.Server.WorldObjects
                 return null;
             }
 
-            var damageEvent = DamageEvent.CalculateDamage(this, target, damageSource);
+            var damageEvent = DamageEvent.CalculateDamage(this, target, damageSource, null, null, damageBonus);
 
             if (damageEvent.HasDamage)
             {
