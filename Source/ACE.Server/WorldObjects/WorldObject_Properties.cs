@@ -3071,6 +3071,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemAttribute2ndLevelLimit); else SetProperty(PropertyInt.ItemAttribute2ndLevelLimit, value.Value); }
         }
 
+        public double? SoldTimestamp
+        {
+            get => GetProperty(PropertyFloat.SoldTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.SoldTimestamp); else SetProperty(PropertyFloat.SoldTimestamp, value.Value); }
+        }
+
         public bool AiAcceptEverything
         {
             get => GetProperty(PropertyBool.AiAcceptEverything) ?? false;

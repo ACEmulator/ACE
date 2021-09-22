@@ -459,7 +459,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                AttackType = PowerLevel > KickThreshold ? AttackType.Kick : AttackType.Punch;
+                AttackType = PowerLevel > KickThreshold && !IsDualWieldAttack ? AttackType.Kick : AttackType.Punch;
             }
 
             var motions = CombatTable.GetMotion(CurrentMotionState.Stance, AttackHeight.Value, AttackType, PrevMotionCommand);
