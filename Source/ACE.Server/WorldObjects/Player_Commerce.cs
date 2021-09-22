@@ -2,12 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Entity.Models;
 using ACE.Server.Entity;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
@@ -17,175 +14,11 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        private void UpdateCoinValue(bool sendUpdateMessageIfChanged = true)
-        {
-            int coins = 0;
-
-            foreach (var coinStack in GetInventoryItemsOfTypeWeenieType(WeenieType.Coin))
-                coins += coinStack.Value ?? 0;
-
-            if (sendUpdateMessageIfChanged && CoinValue == coins)
-                sendUpdateMessageIfChanged = false;
-
-            CoinValue = coins;
-
-            if (sendUpdateMessageIfChanged)
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, CoinValue ?? 0));
-        }
-
-        private List<WorldObject> CreatePayoutCoinStacks(int amount)
-        {
-            var coinStacks = new List<WorldObject>();
-
-            while (amount > 0)
-            {
-                var currencyStack = WorldObjectFactory.CreateNewWorldObject("coinstack");
-
-                // payment contains a max stack
-                if (currencyStack.MaxStackSize <= amount)
-                {
-                    currencyStack.SetStackSize(currencyStack.MaxStackSize);
-                    coinStacks.Add(currencyStack);
-                    amount -= currencyStack.MaxStackSize.Value;
-                }
-                else // not a full stack
-                {
-                    currencyStack.SetStackSize(amount);
-                    coinStacks.Add(currencyStack);
-                    amount -= amount;
-                }
-            }
-
-            return coinStacks;
-        }
-
-        public int PreCheckItem(uint weenieClassId, int amount, int playerFreeContainerSlots, int playerFreeInventorySlots, int playerFreeAvailableBurden, out int requiredEncumbrance, out bool requiresBackpackSlot)
-        {
-            var itemStacks = 0;
-            requiredEncumbrance = 0;
-            requiresBackpackSlot = false;
-
-            var item = DatabaseManager.World.GetCachedWeenie(weenieClassId);
-
-            if (item != null)
-            {
-                var isVendorService = item.IsVendorService();
-                if (isVendorService)
-                    return 0;
-
-                requiresBackpackSlot = item.RequiresBackpackSlotOrIsContainer();
-
-                var isStackable = item.IsStackable();
-
-                var itemStackUnitEncumbrance = isStackable ? (item.GetProperty(PropertyInt.StackUnitEncumbrance).HasValue ? item.GetProperty(PropertyInt.StackUnitEncumbrance) ?? 0 : item.GetProperty(PropertyInt.EncumbranceVal) ?? 0) : item.GetProperty(PropertyInt.EncumbranceVal) ?? 0;
-                var itemStackMaxStackSize = isStackable ? item.GetProperty(PropertyInt.MaxStackSize) ?? 1 : 1;
-
-                if (!isStackable)
-                {
-                    requiredEncumbrance = itemStackUnitEncumbrance;
-                    return amount;
-                }
-
-                while (amount > 0)
-                {
-                    // amount contains a max stack
-                    if (itemStackMaxStackSize <= amount)
-                    {
-                        itemStacks++;
-                        requiredEncumbrance += itemStackUnitEncumbrance * itemStackMaxStackSize;
-                        amount -= itemStackMaxStackSize;
-                    }
-                    else // not a full stack
-                    {
-                        itemStacks++;
-                        requiredEncumbrance += itemStackUnitEncumbrance * amount;
-                        amount -= amount;
-                    }
-
-                    if (itemStacks > playerFreeInventorySlots || requiredEncumbrance > playerFreeAvailableBurden)
-                        break;
-                }
-            }
-
-            return itemStacks;
-        }
-
-        private List<WorldObject> SpendCurrency(uint currencyWeenieClassId, uint amountToSpend, bool destroy = false)
-        {
-            if (currencyWeenieClassId == 0 || amountToSpend == 0)
-                return null;
-
-            var cost = new List<WorldObject>();
-
-            if (currencyWeenieClassId == Vendor.CoinStackWCID)
-            {
-                if (amountToSpend > CoinValue)
-                    return null;
-            }
-
-            if (destroy)
-            {
-                TryConsumeFromInventoryWithNetworking(currencyWeenieClassId, (int)amountToSpend);
-            }
-            else
-            {
-                cost = CollectCurrencyStacks(currencyWeenieClassId, amountToSpend);
-
-                foreach (var stack in cost)
-                    TryRemoveFromInventoryWithNetworking(stack.Guid, out _, RemoveFromInventoryAction.SpendItem);
-            }
-
-            return cost;
-        }
-
-        private List<WorldObject> CollectCurrencyStacks(uint currencyWeenieClassId, uint amountToSpend)
-        {
-            var currencyStacksCollected = new List<WorldObject>();
-
-            var currencyStacksInInventory = GetInventoryItemsOfWCID(currencyWeenieClassId);
-            //currencyStacksInInventory = currencyStacksInInventory.OrderBy(o => o.Value).ToList();
-
-            var leftToCollect = (int)amountToSpend;
-            foreach (var stack in currencyStacksInInventory)
-            {
-                var amountToRemove = Math.Min(leftToCollect, stack.StackSize ?? 1);
-                if (stack.StackSize == amountToRemove)
-                    currencyStacksCollected.Add(stack);
-                else
-                {
-                    var newStack = WorldObjectFactory.CreateNewWorldObject(currencyWeenieClassId);
-                    newStack.SetStackSize(amountToRemove);
-                    currencyStacksCollected.Add(newStack);
-                    var stackToAdjust = FindObject(stack.Guid, SearchLocations.MyInventory, out var foundInContainer, out var rootContainer, out _);
-                    if (stackToAdjust != null)
-                    {
-                        AdjustStack(stackToAdjust, -amountToRemove, foundInContainer, rootContainer);
-                        Session.Network.EnqueueSend(new GameMessageSetStackSize(stackToAdjust));
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
-
-                        if (stackToAdjust.WeenieType == WeenieType.Coin)
-                            UpdateCoinValue();
-                    }
-                }
-
-                leftToCollect -= amountToRemove;
-                if (leftToCollect <= 0)
-                    break;
-            }
-
-            return currencyStacksCollected;
-        }
-
-
-        // ===============================
-        // Game Action Handlers - Buy Item
-        // ===============================
+        // player buying items from vendor
 
         /// <summary>
-        /// Fired from the client / client is sending us a Buy transaction to vendor
+        /// Called when player clicks 'Buy Items'
         /// </summary>
-        /// <param name="vendorGuid"></param>
-        /// <param name="items"></param>
         public void HandleActionBuyItem(uint vendorGuid, List<ItemProfile> items)
         {
             if (IsBusy)
@@ -202,150 +35,85 @@ namespace ACE.Server.WorldObjects
 
             var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
 
-            if (vendor != null)
-                vendor.BuyItems_ValidateTransaction(items, this);
+            if (vendor == null)
+            {
+                SendUseDoneEvent(WeenieError.NoObject);
+                return;
+            }
+
+            // if this succeeds, it automatically calls player.FinalizeBuyTransaction()
+            vendor.BuyItems_ValidateTransaction(items, this);
 
             SendUseDoneEvent();
         }
 
-        /// <summary>
-        /// Returns TRUE if player meets the gold / alternate currency costs for purchase
-        /// </summary>
-        public bool ValidateBuyTransaction(Vendor vendor, uint goldcost, uint altcost)
-        {
-            // validation
-            var valid = true;
-
-            if (goldcost > CoinValue)
-                valid = false;
-
-            if (altcost > 0)
-            {
-                var altCurrency = vendor.AlternateCurrency ?? 0;
-
-                var numItems = GetNumInventoryItemsOfWCID(altCurrency);
-
-                if (numItems < altcost)
-                    valid = false;
-            }
-
-            return valid;
-        }
+        private static readonly uint coinStackWcid = (uint)ACE.Entity.Enum.WeenieClassName.W_COINSTACK_CLASS;
 
         /// <summary>
         /// Vendor has validated the transactions and sent a list of items for processing.
         /// </summary>
-        public void FinalizeBuyTransaction(Vendor vendor, List<WorldObject> uqlist, List<WorldObject> genlist, uint goldcost, uint altcost)
+        public void FinalizeBuyTransaction(Vendor vendor, List<WorldObject> genericItems, List<WorldObject> uniqueItems, uint cost)
         {
-            // vendor accepted the transaction
+            // transaction has been validated by this point
 
-            var valid = ValidateBuyTransaction(vendor, goldcost, altcost);
+            var currencyWcid = vendor.AlternateCurrency ?? coinStackWcid;
 
-            if (valid)
+            SpendCurrency(currencyWcid, cost, true);
+
+            foreach (var item in genericItems)
             {
-                if (altcost > 0)
+                var service = item.GetProperty(PropertyBool.VendorService) ?? false;
+
+                if (!service)
                 {
-                    var altCurrencyWCID = vendor.AlternateCurrency ?? 0;
-
-                    SpendCurrency(altCurrencyWCID, altcost, true);
-                }
-                else
-                    SpendCurrency(Vendor.CoinStackWCID, goldcost, true);
-
-                foreach (WorldObject wo in uqlist)
-                {
-                    wo.RemoveProperty(PropertyFloat.SoldTimestamp);
-                    TryCreateInInventoryWithNetworking(wo);
-                }
-
-                foreach (var gen in genlist)
-                {
-                    var service = gen.GetProperty(PropertyBool.VendorService) ?? false;
-
-                    if (!service)
-                        TryCreateInInventoryWithNetworking(gen);
-                    else
+                    // errors shouldn't be possible here, since the items were pre-validated, but just in case...
+                    if (!TryCreateInInventoryWithNetworking(item))
                     {
-                        var spell = new Spell(gen.SpellDID ?? 0);
-                        if (!spell.NotFound)
-                        {
-                            var preCastTime = vendor.PreCastMotion(this);
-                            vendor.IsBusy = true;
+                        log.Error($"[VENDOR] {Name}.FinalizeBuyTransaction({vendor.Name}) - couldn't add {item.Name} ({item.Guid}) to player inventory after validation, this shouldn't happen!");
 
-                            var castChain = new ActionChain();
-                            castChain.AddDelaySeconds(preCastTime);
-                            castChain.AddAction(vendor, () =>
-                            {
-                                vendor.TryCastSpell(spell, this, vendor);
-                                vendor.PostCastMotion();
-                            });
-
-                            var postCastTime = vendor.GetPostCastTime(spell);
-
-                            castChain.AddDelaySeconds(postCastTime);
-                            castChain.AddAction(vendor, () => vendor.IsBusy = false);
-
-                            castChain.EnqueueChain();
-                        }
+                        item.Destroy();  // cleanup for guid manager
                     }
                 }
-
-                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
-
-                if (PropertyManager.GetBool("player_receive_immediate_save").Item)
-                    RushNextPlayerSave(5);
+                else
+                    vendor.ApplyService(item, this);
             }
 
-            vendor.BuyItems_FinalTransaction(this, uqlist, valid, altcost);
-        }
-
-
-        public List<ItemProfile> VerifySellItems(List<ItemProfile> sellItems, Vendor vendor)
-        {
-            var uniques = new HashSet<uint>();
-
-            var verified = new List<ItemProfile>();
-
-            foreach (var sellItem in sellItems)
+            foreach (var item in uniqueItems)
             {
-                var wo = FindObject(sellItem.ObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems);
-
-                if (wo == null)
+                if (TryCreateInInventoryWithNetworking(item))
                 {
-                    log.Warn($"{Name} tried to sell item {sellItem.ObjectGuid:X8} not in their inventory to {vendor.Name}");
-                    continue;
+                    vendor.UniqueItemsForSale.Remove(item.Guid);
+
+                    // this was only for when the unique item was sold to the vendor,
+                    // to determine when the item should rot on the vendor. it gets removed now
+                    item.SoldTimestamp = null;
                 }
-
-                if (uniques.Contains(sellItem.ObjectGuid))
-                {
-                    log.Warn($"{Name} tried to sell duplicate item {wo.Name} ({wo.Guid}) to {vendor.Name}");
-                    continue;
-                }
-
-                if (sellItem.Amount > (wo.StackSize ?? 1))
-                {
-                    log.Warn($"{Name} tried to sell {sellItem.Amount}x {wo.Name} ({wo.Guid}) to {vendor.Name}, but they only have {wo.StackSize ?? 1}x");
-                    continue;
-                }
-
-                uniques.Add(sellItem.ObjectGuid);
-
-                verified.Add(sellItem);
+                else
+                    log.Error($"[VENDOR] {Name}.FinalizeBuyTransaction({vendor.Name}) - couldn't add {item.Name} ({item.Guid}) to player inventory after validation, this shouldn't happen!");
             }
 
-            return verified;
+            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
+
+            if (PropertyManager.GetBool("player_receive_immediate_save").Item)
+                RushNextPlayerSave(5);
+
+            var altCurrencySpent = vendor.AlternateCurrency != null ? cost : 0;
+
+            vendor.ApproachVendor(this, VendorType.Buy, altCurrencySpent);
         }
 
-        // ================================
-        // Game Action Handlers - Sell Item
-        // ================================
+        // player selling items to vendor
 
-        private const uint coinStackWeenieClassId = 273;
+        // whereas most of the logic for buying items is in vendor,
+        // most of the logic for selling items is located in player_commerce
+        // the functions have similar structure, just in different places
+        // there's really no point in there being differences in location,
+        // and it might be better to move them all to vendor for consistency.
 
         /// <summary>
-        /// Client Calls this when Sell is clicked.
+        /// Called when player clicks 'Sell Items'
         /// </summary>
-        public void HandleActionSellItem(List<ItemProfile> itemprofiles, uint vendorGuid)
+        public void HandleActionSellItem(uint vendorGuid, List<ItemProfile> itemProfiles)
         {
             if (IsBusy)
             {
@@ -361,127 +129,256 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            itemprofiles = VerifySellItems(itemprofiles, vendor);
+            // perform validations on requested sell items,
+            // and filter to list of validated items
 
-            var allPossessions = GetAllPossessions();
+            // one difference between sell and buy is here.
+            // when an itemProfile is invalid in buy, the entire transaction is failed immediately.
+            // when an itemProfile is invalid in sell, we just remove the invalid itemProfiles, and continue onwards
+            // this might not be the best for safety, and it's a tradeoff between safety and player convenience
+            // should we fail the entire transaction (similar to buy), if there are any invalids in the transaction request?
 
-            var sellList = new List<WorldObject>();
-
-            var acceptedItemTypes = (ItemType)(vendor.MerchandiseItemTypes ?? 0);
-
-            foreach (ItemProfile profile in itemprofiles)
-            {
-                var item = allPossessions.FirstOrDefault(i => i.Guid.Full == profile.ObjectGuid);
-
-                if (item == null)
-                    continue;
-
-                if ((acceptedItemTypes & item.ItemType) == 0 || !item.IsSellable || item.Retained)
-                {
-                    var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} is unsellable.")); // retail message did not include item name, leaving in that for now.
-
-                    continue;
-                }
-
-                if (item.Value < 1)
-                {
-                    var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} has no value and cannot be sold.")); // retail message did not include item name, leaving in that for now.
-
-                    continue;
-                }
-
-                if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
-                {
-                    var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot sell that! The {itemName} is currently being traded.")); // custom message?
-
-                    continue;
-                }
-
-                sellList.Add(item);
-            }
+            var sellList = VerifySellItems(itemProfiles, vendor);
 
             if (sellList.Count == 0)
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
-                SendUseDoneEvent(WeenieError.None);
+                SendUseDoneEvent();
                 return;
             }
 
+            // calculate pyreals to receive
             var payoutCoinAmount = vendor.CalculatePayoutCoinAmount(sellList);
 
             if (payoutCoinAmount < 0)
             {
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Transaction failed."));
-                log.Warn($"{Name} (0x({Guid}) tried to sell something to {vendor.Name} (0x{vendor.Guid}) resulting in a payout of {payoutCoinAmount} pyreals.");
+                log.Warn($"[VENDOR] {Name} (0x({Guid}) tried to sell something to {vendor.Name} (0x{vendor.Guid}) resulting in a payout of {payoutCoinAmount} pyreals.");
+
+                SendTransientError("Transaction failed.");
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
+
                 SendUseDoneEvent();
+
                 return;
             }
 
-            var playerFreeInventorySlots = GetFreeInventorySlots();
-            var playerAvailableBurden = GetAvailableBurden();
+            // verify player has enough pack slots / burden to receive these pyreals
+            var itemsToReceive = new ItemsToReceive(this);
 
-            var numberOfCoinStacksToCreate = PreCheckItem(coinStackWeenieClassId, payoutCoinAmount, 0, GetFreeInventorySlots(), GetAvailableBurden(), out var totalEncumburanceOfCoinStacks, out _);
+            itemsToReceive.Add((uint)ACE.Entity.Enum.WeenieClassName.W_COINSTACK_CLASS, payoutCoinAmount);
 
-            var playerDoesNotHaveEnoughPackSpace = playerFreeInventorySlots < numberOfCoinStacksToCreate;
-            var playerDoesNotHaveEnoughBurdenCapacity = playerAvailableBurden < totalEncumburanceOfCoinStacks;
-
-            if (playerDoesNotHaveEnoughPackSpace || playerDoesNotHaveEnoughBurdenCapacity)
+            if (itemsToReceive.PlayerExceedsLimits)
             {
-                if (playerDoesNotHaveEnoughBurdenCapacity)
+                if (itemsToReceive.PlayerExceedsAvailableBurden)
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to sell that!"));
-                else // if (playerDoesNotHaveEnoughPackSpace)
+                else if (itemsToReceive.PlayerOutOfInventorySlots)
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You do not have enough free pack space to sell that!"));
+
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
-                SendUseDoneEvent();
+                SendUseDoneEvent();     // WeenieError.FullInventoryLocation?
                 return;
             }
 
             var payoutCoinStacks = CreatePayoutCoinStacks(payoutCoinAmount);
 
-            // Make sure we have enough pack space for the payout
-            if (GetFreeInventorySlots() + sellList.Count - payoutCoinStacks.Count < 0)
-            {
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Not enough inventory space!")); // TODO: find retail messages
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
-
-                foreach (var item in payoutCoinStacks)
-                    item.Destroy();
-
-                SendUseDoneEvent(WeenieError.FullInventoryLocation);
-                return;
-            }
-
-            // Remove the items we're selling from our inventory
-            foreach (var item in sellList)
+            // remove sell items from player inventory
+            foreach (var item in sellList.Values)
             {
                 if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.SellItem) || TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.SellItem))
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, vendor));
                 else
-                    log.WarnFormat("Item 0x{0:X8}:{1} for player {2} not found in HandleActionSellItem.", item.Guid.Full, item.Name, Name); // This shouldn't happen
+                    log.WarnFormat("[VENDOR] Item 0x{0:X8}:{1} for player {2} not found in HandleActionSellItem.", item.Guid.Full, item.Name, Name); // This shouldn't happen
             }
 
-            // Send the list of items to the vendor to complete the transaction
+            // send the list of items to the vendor
+            // for the vendor to determine what to do with each item (resell, destroy)
             vendor.ProcessItemsForPurchase(this, sellList);
 
-            // Add the payout to inventory
+            // add coins to player inventory
             foreach (var item in payoutCoinStacks)
             {
-                if (!TryCreateInInventoryWithNetworking(item)) // This shouldn't happen
+                if (!TryCreateInInventoryWithNetworking(item))  // this shouldn't happen because of pre-validations in itemsToReceive
                 {
-                    log.WarnFormat("Payout 0x{0:X8}:{1} for player {2} failed to add to inventory HandleActionSellItem.", item.Guid.Full, item.Name, Name);
+                    log.WarnFormat("[VENDOR] Payout 0x{0:X8}:{1} for player {2} failed to add to inventory HandleActionSellItem.", item.Guid.Full, item.Name, Name);
                     item.Destroy();
                 }
             }
 
-            UpdateCoinValue(false);
+            // UpdateCoinValue removed -- already handled in TryCreateInInventoryWithNetworking
 
             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
 
             SendUseDoneEvent();
+        }
+
+        /// <summary>
+        /// Filters the list of ItemProfiles the player is attempting to sell to the vendor
+        /// to the list of verified WorldObjects in the player's inventory w/ validations
+        /// </summary>
+        private Dictionary<uint, WorldObject> VerifySellItems(List<ItemProfile> sellItems, Vendor vendor)
+        {
+            var allPossessions = GetAllPossessions().ToDictionary(i => i.Guid.Full, i => i);
+
+            var acceptedItemTypes = (ItemType)(vendor.MerchandiseItemTypes ?? 0);
+
+            var verified = new Dictionary<uint, WorldObject>();
+
+            foreach (var sellItem in sellItems)
+            {
+                if (!allPossessions.TryGetValue(sellItem.ObjectGuid, out var wo))
+                {
+                    log.Warn($"[VENDOR] {Name} tried to sell item {sellItem.ObjectGuid:X8} not in their inventory to {vendor.Name}");
+                    continue;
+                }
+
+                // verify item profile (unique guids, amount)
+                if (verified.ContainsKey(wo.Guid.Full))
+                {
+                    log.Warn($"[VENDOR] {Name} tried to sell duplicate item {wo.Name} ({wo.Guid}) to {vendor.Name}");
+                    continue;
+                }
+
+                if (!sellItem.IsValidAmount)
+                {
+                    log.Warn($"[VENDOR] {Name} tried to sell {sellItem.Amount}x {wo.Name} ({wo.Guid}) to {vendor.Name}");
+                    continue;
+                }
+
+                if (sellItem.Amount > (wo.StackSize ?? 1))
+                {
+                    log.Warn($"[VENDOR] {Name} tried to sell {sellItem.Amount}x {wo.Name} ({wo.Guid}) to {vendor.Name}, but they only have {wo.StackSize ?? 1}x");
+                    continue;
+                }
+
+                // verify wo / vendor / player properties
+                if ((acceptedItemTypes & wo.ItemType) == 0 || !wo.IsSellable || wo.Retained)
+                {
+                    var itemName = (wo.StackSize ?? 1) > 1 ? wo.GetPluralName() : wo.Name;
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} is unsellable.")); // retail message did not include item name, leaving in that for now.
+                    continue;
+                }
+
+                if (wo.Value < 1)
+                {
+                    var itemName = (wo.StackSize ?? 1) > 1 ? wo.GetPluralName() : wo.Name;
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} has no value and cannot be sold.")); // retail message did not include item name, leaving in that for now.
+                    continue;
+                }
+
+                if (IsTrading && wo.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
+                {
+                    var itemName = (wo.StackSize ?? 1) > 1 ? wo.GetPluralName() : wo.Name;
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot sell that! The {itemName} is currently being traded.")); // custom message?
+                    continue;
+                }
+
+                verified.Add(wo.Guid.Full, wo);
+            }
+
+            return verified;
+        }
+
+        private List<WorldObject> CreatePayoutCoinStacks(int amount)
+        {
+            var coinStacks = new List<WorldObject>();
+
+            while (amount > 0)
+            {
+                var currencyStack = WorldObjectFactory.CreateNewWorldObject("coinstack");
+
+                var currentStackAmount = Math.Min(amount, currencyStack.MaxStackSize.Value);
+
+                currencyStack.SetStackSize(currentStackAmount);
+                coinStacks.Add(currencyStack);
+                amount -= currentStackAmount;
+            }
+            return coinStacks;
+        }
+
+        private void UpdateCoinValue(bool sendUpdateMessageIfChanged = true)
+        {
+            int coins = 0;
+
+            foreach (var coinStack in GetInventoryItemsOfTypeWeenieType(WeenieType.Coin))
+                coins += coinStack.Value ?? 0;
+
+            if (sendUpdateMessageIfChanged && CoinValue == coins)
+                sendUpdateMessageIfChanged = false;
+
+            CoinValue = coins;
+
+            if (sendUpdateMessageIfChanged)
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, CoinValue ?? 0));
+        }
+
+        private List<WorldObject> SpendCurrency(uint currentWcid, uint amount, bool destroy = false)
+        {
+            if (currentWcid == 0 || amount == 0)
+                return null;
+
+            var cost = new List<WorldObject>();
+
+            if (currentWcid == coinStackWcid)
+            {
+                if (amount > CoinValue)
+                    return null;
+            }
+            if (destroy)
+            {
+                TryConsumeFromInventoryWithNetworking(currentWcid, (int)amount);
+            }
+            else
+            {
+                cost = CollectCurrencyStacks(currentWcid, amount);
+
+                foreach (var stack in cost)
+                    TryRemoveFromInventoryWithNetworking(stack.Guid, out _, RemoveFromInventoryAction.SpendItem);
+            }
+            return cost;
+        }
+
+        private List<WorldObject> CollectCurrencyStacks(uint currencyWcid, uint amount)
+        {
+            var currencyStacksCollected = new List<WorldObject>();
+
+            var currencyStacksInInventory = GetInventoryItemsOfWCID(currencyWcid);
+            //currencyStacksInInventory = currencyStacksInInventory.OrderBy(o => o.Value).ToList();
+
+            var remaining = (int)amount;
+
+            foreach (var stack in currencyStacksInInventory)
+            {
+                var amountToRemove = Math.Min(remaining, stack.StackSize ?? 1);
+
+                if (stack.StackSize == amountToRemove)
+                {
+                    currencyStacksCollected.Add(stack);
+                }
+                else
+                {
+                    // create new stack
+                    var newStack = WorldObjectFactory.CreateNewWorldObject(currencyWcid);
+                    newStack.SetStackSize(amountToRemove);
+                    currencyStacksCollected.Add(newStack);
+
+                    var stackToAdjust = FindObject(stack.Guid, SearchLocations.MyInventory, out var foundInContainer, out var rootContainer, out _);
+
+                    // adjust existing stack
+                    if (stackToAdjust != null)
+                    {
+                        AdjustStack(stackToAdjust, -amountToRemove, foundInContainer, rootContainer);
+                        Session.Network.EnqueueSend(new GameMessageSetStackSize(stackToAdjust));
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                    }
+                    // UpdateCoinValue removed -- already called upstream
+                }
+
+                remaining -= amountToRemove;
+
+                if (remaining <= 0)
+                    break;
+            }
+            return currencyStacksCollected;
         }
     }
 }
