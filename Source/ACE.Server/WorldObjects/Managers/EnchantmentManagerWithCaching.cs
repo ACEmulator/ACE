@@ -24,6 +24,19 @@ namespace ACE.Server.WorldObjects.Managers
             }
         }
 
+        private bool? hasVitae;
+
+        public override bool HasVitae
+        {
+            get
+            {
+                if (hasVitae == null)
+                    hasVitae = base.HasVitae;
+
+                return hasVitae.Value;
+            }
+        }
+
         /// <summary>
         /// Constructs a new EnchantmentManager for a WorldObject
         /// </summary>
@@ -34,9 +47,9 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Add/update an enchantment in this object's registry
         /// </summary>
-        public override AddEnchantmentResult Add(Spell spell, WorldObject caster, bool equip = false)
+        public override AddEnchantmentResult Add(Spell spell, WorldObject caster, WorldObject weapon, bool equip = false)
         {
-            var result = base.Add(spell, caster, equip);
+            var result = base.Add(spell, caster, weapon, equip);
 
             ClearCache();
 
@@ -145,6 +158,7 @@ namespace ACE.Server.WorldObjects.Managers
         private void ClearCache()
         {
             hasEnchantments = null;
+            hasVitae = null;
 
             attributeModCache.Clear();
             vitalModAdditiveCache.Clear();
@@ -169,7 +183,8 @@ namespace ACE.Server.WorldObjects.Managers
             armorModCache = null;
             armorModVsTypeModCache.Clear();
             ratingCache.Clear();
-            xpModCache = null;
+            netherDotDamageRatingCache = null;
+            xpBonusCache = null;
             resistLockpickCache = null;
         }
 
@@ -506,14 +521,24 @@ namespace ACE.Server.WorldObjects.Managers
             return value;
         }
 
-        private float? xpModCache;
+        private int? netherDotDamageRatingCache;
 
-        public override float GetXPMod()
+        public override int GetNetherDotDamageRating()
         {
-            if (xpModCache == null)
-                xpModCache = base.GetXPMod();
+            if (netherDotDamageRatingCache == null)
+                netherDotDamageRatingCache = base.GetNetherDotDamageRating();
 
-            return xpModCache.Value;
+            return netherDotDamageRatingCache.Value;
+        }
+
+        private float? xpBonusCache;
+
+        public override float GetXPBonus()
+        {
+            if (xpBonusCache == null)
+                xpBonusCache = base.GetXPBonus();
+
+            return xpBonusCache.Value;
         }
 
         public override bool StartCooldown(WorldObject item)

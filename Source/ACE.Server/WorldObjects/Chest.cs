@@ -31,6 +31,15 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// This is used for things like Dirty Old Crate
+        /// </summary>
+        public bool ChestClearedWhenClosed
+        {
+            get => GetProperty(PropertyBool.ChestClearedWhenClosed) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.ChestClearedWhenClosed); else SetProperty(PropertyBool.ChestClearedWhenClosed, value); }
+        }
+
+        /// <summary>
         /// This is the default setup for resetting chests
         /// </summary>
         public double ChestResetInterval
@@ -135,12 +144,12 @@ namespace ACE.Server.WorldObjects
             if (Quest != null)
             {
                 if (!player.QuestManager.HasQuest(Quest))
-                    player.QuestManager.Update(Quest);
+                    EmoteManager.OnQuest(player);
                 else
                 {
                     if (player.QuestManager.CanSolve(Quest))
                     {
-                        player.QuestManager.Update(Quest);
+                        EmoteManager.OnQuest(player);
                     }
                     else
                     {
@@ -203,12 +212,32 @@ namespace ACE.Server.WorldObjects
                 Reset(ResetTimestamp);
         }
 
+        public override void FinishClose(Player player)
+        {
+            base.FinishClose(player);
+
+            if (ChestClearedWhenClosed && InitCreate > 0)
+            {
+                var removeQueueTotal = 0;
+                foreach (var generator in GeneratorProfiles)
+                    removeQueueTotal += generator.RemoveQueue.Count;
+
+                if ((CurrentCreate - removeQueueTotal) == 0)
+                    FadeOutAndDestroy(); // Chest's complete generated inventory count has been wiped out
+                    //Destroy(); // Chest's complete generated inventory count has been wiped out
+            }
+        }
+
         public void Reset(double? resetTimestamp)
         {
             if (resetTimestamp != ResetTimestamp)
                 return;     // already cleared by previous reset
 
             // TODO: if 'ResetInterval' style, do we want to ensure a minimum amount of time for the last viewer?
+
+            // should only be an edge case with reload-landblock
+            if (CurrentLandblock == null)
+                return;
 
             var player = CurrentLandblock.GetObject(Viewer) as Player;
 
@@ -277,12 +306,18 @@ namespace ACE.Server.WorldObjects
 
         protected override float DoOnOpenMotionChanges()
         {
-            return ExecuteMotion(motionOpen);
+            if (MotionTableId != 0)
+                return ExecuteMotion(motionOpen);
+            else
+                return 0;
         }
 
         protected override float DoOnCloseMotionChanges()
         {
-            return ExecuteMotion(motionClosed);
+            if (MotionTableId != 0)
+                return ExecuteMotion(motionClosed);
+            else
+                return 0;
         }
 
         public string LockCode

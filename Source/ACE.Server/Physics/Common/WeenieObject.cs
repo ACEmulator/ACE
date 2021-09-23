@@ -20,9 +20,17 @@ namespace ACE.Server.Physics.Common
         public readonly WorldObjectInfo WorldObjectInfo;
         public WorldObject WorldObject => WorldObjectInfo?.TryGetWorldObject();
 
-        public bool IsMonster;
+        public bool IsMonster { get; set; }
 
-        public bool IsCombatPet;
+        public bool IsCombatPet { get; set; }
+
+        public bool IsFactionMob { get; set; }
+
+        public FactionBits Faction1Bits { get; set; }
+
+        public CreatureType? FoeType { get; set; }
+
+        public PlayerKillerStatus PlayerKillerStatus { get; set; }
 
         public WeenieObject() { }
 
@@ -30,9 +38,31 @@ namespace ACE.Server.Physics.Common
         {
             WorldObjectInfo = new WorldObjectInfo(worldObject);
 
+            if (!(worldObject is Creature creature))
+                return;
+
             IsCombatPet = worldObject is CombatPet;
 
-            IsMonster = worldObject is Creature creature && creature.IsMonster && !IsCombatPet;
+            IsMonster = creature.IsMonster && !IsCombatPet;
+
+            Faction1Bits = creature.Faction1Bits ?? FactionBits.None;
+
+            IsFactionMob = IsMonster && Faction1Bits != FactionBits.None;
+
+            FoeType = creature.FoeType;
+
+            PlayerKillerStatus = creature.PlayerKillerStatus;
+        }
+
+        public bool SameFaction(PhysicsObj obj)
+        {
+            return (Faction1Bits & obj.WeenieObj.Faction1Bits) != 0;
+        }
+
+        public bool PotentialFoe(PhysicsObj obj)
+        {
+            return FoeType != null && FoeType == obj.WeenieObj.WorldObject?.CreatureType ||
+                obj.WeenieObj.FoeType != null && obj.WeenieObj.FoeType == WorldObject?.CreatureType;
         }
 
         public bool CanJump(float extent)

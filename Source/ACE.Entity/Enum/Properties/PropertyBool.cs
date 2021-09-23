@@ -144,6 +144,7 @@ namespace ACE.Entity.Enum.Properties
         RecallsDisabled                  = 107,
         RareUsesTimer                    = 108,
         ActdPreorderReceivedItems        = 109,
+        [Ephemeral]
         Afk                              = 110,
         IsGagged                         = 111,
         ProcSpellSelfTargeted            = 112,
@@ -176,6 +177,16 @@ namespace ACE.Entity.Enum.Properties
         HouseEvicted                     = 9003,
         [ServerOnly]
         UntrainedSkills                  = 9004,
+        [Ephemeral][ServerOnly]
+        IsEnvoy                          = 9005,
+        [ServerOnly]
+        UnspecializedSkills              = 9006,
+        [ServerOnly]
+        FreeSkillResetRenewed            = 9007,
+        [ServerOnly]
+        FreeAttributeResetRenewed        = 9008,
+        [ServerOnly]
+        SkillTemplesTimerReset           = 9009,
     }
 
     public static class PropertyBoolExtensions

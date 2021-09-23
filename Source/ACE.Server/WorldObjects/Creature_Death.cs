@@ -39,8 +39,15 @@ namespace ACE.Server.WorldObjects
             IsTurning = false;
             IsMoving = false;
 
-            QuestManager.OnDeath(lastDamager?.TryGetAttacker());
-            
+            //QuestManager.OnDeath(lastDamager?.TryGetAttacker());
+
+            if (KillQuest != null)
+                OnDeath_HandleKillTask(KillQuest);
+            if (KillQuest2 != null)
+                OnDeath_HandleKillTask(KillQuest2);
+            if (KillQuest3 != null)
+                OnDeath_HandleKillTask(KillQuest3);
+
             if (!IsOnNoDeathXPLandblock)
                 OnDeath_GrantXP();
 
@@ -48,24 +55,24 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public DeathMessage GetDeathMessage(DamageHistoryInfo lastDamager, DamageType damageType, bool criticalHit = false)
+        public DeathMessage GetDeathMessage(DamageHistoryInfo lastDamagerInfo, DamageType damageType, bool criticalHit = false)
         {
-            var deathMessage = Strings.GetDeathMessage(damageType, criticalHit);
+            var lastDamager = lastDamagerInfo?.TryGetAttacker();
 
-            if (lastDamager == null || lastDamager.Guid == Guid)
+            if (lastDamagerInfo == null || lastDamagerInfo.Guid == Guid || lastDamager is Hotspot)
                 return Strings.General[1];
 
+            var deathMessage = Strings.GetDeathMessage(damageType, criticalHit);
+
             // if killed by a player, send them a message
-            if (lastDamager.IsPlayer)
+            if (lastDamagerInfo.IsPlayer)
             {
                 if (criticalHit && this is Player)
                     deathMessage = Strings.PKCritical[0];
 
                 var killerMsg = string.Format(deathMessage.Killer, Name);
 
-                var playerKiller = lastDamager.TryGetAttacker() as Player;
-
-                if (playerKiller != null)
+                if (lastDamager is Player playerKiller)
                     playerKiller.Session.Network.EnqueueSend(new GameEventKillerNotification(playerKiller.Session, killerMsg));
             }
             return deathMessage;
@@ -113,7 +120,7 @@ namespace ACE.Server.WorldObjects
             var motionDeath = new Motion(MotionStance.NonCombat, MotionCommand.Dead);
             var deathAnimLength = ExecuteMotion(motionDeath);
 
-            EmoteManager.OnDeath(lastDamager?.TryGetAttacker());
+            EmoteManager.OnDeath(lastDamager);
 
             var dieChain = new ActionChain();
 
@@ -185,10 +192,6 @@ namespace ACE.Server.WorldObjects
 
                 var totalXP = (XpOverride ?? 0) * damagePercent;
 
-                // should this be passed upstream to fellowship / allegiance?
-                if (playerDamager.AugmentationBonusXp > 0)
-                    totalXP *= 1.0f + playerDamager.AugmentationBonusXp * 0.05f;
-
                 playerDamager.EarnXP((long)Math.Round(totalXP), XpType.Kill);
 
                 // handle luminance
@@ -198,6 +201,225 @@ namespace ACE.Server.WorldObjects
                     playerDamager.EarnLuminance(totalLuminance, XpType.Kill);
                 }
             }
+        }
+
+        /// <summary>
+        /// Handles the KillTask for a killed creature
+        /// </summary>
+        public void OnDeath_HandleKillTask(string killQuest)
+        {
+            /*var receivers = KillTask_GetEligibleReceivers(killQuest);
+
+            foreach (var receiver in receivers)
+            {
+                var damager = receiver.Value.TryGetAttacker();
+
+                var player = damager as Player;
+
+                if (player == null && receiver.Value.PetOwner != null)
+                    player = receiver.Value.TryGetPetOwner();
+
+                if (player != null)
+                    player.QuestManager.HandleKillTask(killQuest, this);
+            }*/
+
+            // new method
+
+            // with full fellowship support and new config option for capping,
+            // building a pre-flattened structure is no longer really necessary,
+            // and we can do this more iteratively.
+
+            // one caveat to do this, we need to keep track of player and summoning caps separately
+            // this is to prevent ordering bugs, such as a player being processed after a summon,
+            // and already being at the 1 cap for players
+
+            var summon_credit_cap = (int)PropertyManager.GetLong("summoning_killtask_multicredit_cap").Item - 1;
+
+            var playerCredits = new Dictionary<ObjectGuid, int>();
+            var summonCredits = new Dictionary<ObjectGuid, int>();
+
+            // this option isn't really needed anymore, but keeping it around for compatibility
+            // it is now synonymous with summoning_killtask_multicredit_cap <= 1
+            if (!PropertyManager.GetBool("allow_summoning_killtask_multicredit").Item)
+                summon_credit_cap = 0;
+
+            foreach (var kvp in DamageHistory.TotalDamage)
+            {
+                if (kvp.Value.TotalDamage <= 0)
+                    continue;
+
+                var damager = kvp.Value.TryGetAttacker();
+
+                var combatPet = false;
+
+                var playerDamager = damager as Player;
+
+                if (playerDamager == null && kvp.Value.PetOwner != null)
+                {
+                    playerDamager = kvp.Value.TryGetPetOwner();
+                    combatPet = true;
+                }
+
+                if (playerDamager == null)
+                    continue;
+
+                var killTaskCredits = combatPet ? summonCredits : playerCredits;
+
+                var cap = combatPet ? summon_credit_cap : 1;
+
+                if (cap <= 0)
+                {
+                    // handle special case: use playerCredits
+                    killTaskCredits = playerCredits;
+                    cap = 1;
+                }
+
+                if (playerDamager.QuestManager.HasQuest(killQuest))
+                {
+                    TryHandleKillTask(playerDamager, killQuest, killTaskCredits, cap);
+                }
+                // check option that requires killer to have killtask to pass to fellows
+                else if (!PropertyManager.GetBool("fellow_kt_killer").Item)   
+                {
+                    continue;
+                }
+
+                if (playerDamager.Fellowship == null)
+                    continue;
+
+                // share with fellows in kill task range
+                var fellows = playerDamager.Fellowship.WithinRange(playerDamager);
+
+                foreach (var fellow in fellows)
+                {
+                    if (fellow.QuestManager.HasQuest(killQuest))
+                        TryHandleKillTask(fellow, killQuest, killTaskCredits, cap);
+                }
+            }
+        }
+
+        public bool TryHandleKillTask(Player player, string killTask, Dictionary<ObjectGuid, int> killTaskCredits, int cap)
+        {
+            if (killTaskCredits.TryGetValue(player.Guid, out var currentCredits))
+            {
+                if (currentCredits >= cap)
+                    return false;
+
+                killTaskCredits[player.Guid]++;
+            }
+            else
+                killTaskCredits[player.Guid] = 1;
+
+            player.QuestManager.HandleKillTask(killTask, this);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns a flattened structure of eligible Players, Fellows, and CombatPets
+        /// </summary>
+        public Dictionary<ObjectGuid, DamageHistoryInfo> KillTask_GetEligibleReceivers(string killQuest)
+        {
+            // http://acpedia.org/wiki/Announcements_-_2012/12_-_A_Growing_Twilight#Release_Notes
+
+            var questName = QuestManager.GetQuestName(killQuest);
+
+            // we are using DamageHistoryInfo here, instead of Creature or WorldObjectInfo
+            // WeakReference<CombatPet> may be null for expired CombatPets, but we still need the WeakReference<PetOwner> references
+
+            var receivers = new Dictionary<ObjectGuid, DamageHistoryInfo>();
+
+            foreach (var kvp in DamageHistory.TotalDamage)
+            {
+                if (kvp.Value.TotalDamage <= 0)
+                    continue;
+
+                var damager = kvp.Value.TryGetAttacker();
+
+                var playerDamager = damager as Player;
+
+                if (playerDamager == null && kvp.Value.PetOwner != null)
+                {
+                    // handle combat pets
+                    playerDamager = kvp.Value.TryGetPetOwner();
+
+                    if (playerDamager != null && playerDamager.QuestManager.HasQuest(questName))
+                    {
+                        // only add combat pet to eligible receivers if player has quest, and allow_summoning_killtask_multicredit = true (default, retail)
+                        if (DamageHistory.HasDamager(playerDamager, true) && PropertyManager.GetBool("allow_summoning_killtask_multicredit").Item)
+                            receivers[kvp.Value.Guid] = kvp.Value;  // add CombatPet
+                        else
+                            receivers[playerDamager.Guid] = new DamageHistoryInfo(playerDamager);   // add dummy profile for PetOwner
+                    }
+
+                    // regardless if combat pet is eligible, we still want to continue traversing to the pet owner, and possibly fellows
+
+                    // in a scenario where combat pet does 100% damage:
+
+                    // - regardless if allow_summoning_killtask_multicredit is enabled/disabled, it should continue traversing into pet owner and possibly their fellows
+
+                    // - if pet owner doesn't have kill task, and fellow_kt_killer=false, any fellows with the task should still receive 1 credit
+                }
+
+                if (playerDamager == null)
+                    continue;
+
+                // factors:
+                // - has quest
+                // - is killer (last damager, top damager, or any damager? in current context, considering it to be any damager)
+                // - has fellowship
+                // - server option: fellow_kt_killer
+                // - server option: fellow_kt_landblock
+
+                if (playerDamager.QuestManager.HasQuest(questName))
+                {
+                    // just add a fake DamageHistoryInfo for reference
+                    receivers[playerDamager.Guid] = new DamageHistoryInfo(playerDamager);
+                }
+                else if (PropertyManager.GetBool("fellow_kt_killer").Item)
+                {
+                    // if this option is enabled (retail default), the killer is required to have kill task
+                    // for it to share with fellowship
+                    continue;
+                }
+
+                // we want to add fellowship members in a flattened structure
+                // in this inner loop, instead of the outer loop
+
+                // scenarios:
+
+                // i am a summoner in a fellowship with 1 other player
+                // we both have a killtask
+
+                // - my combatpet does 100% damage to the monster
+                // result: i get 1 killtask credit, and my fellow gets 1 killtask credit
+
+                // - my combatpet does 50% damage to monster, and i do 50% damage
+                // result: i get 2 killtask credits (1 if allow_summoning_killtask_multicredit server option is disabled), and my fellow gets 1 killtask credit
+                // after update should be 2/2, instead of 2/1
+
+                // - my combatpet does 33% damage to monster, i do 33% damage, and fellow does 33% damage
+                // result: same as previous scenario
+                // after update should be 2/2, instead of 2/1 again
+
+                // 2 players not in a fellowship both have a killtask
+                // they each do 50% damage to monster
+
+                // result: both players receive killtask credit
+
+                if (playerDamager.Fellowship == null)
+                    continue;
+
+                // share with fellows in kill task range
+                var fellows = playerDamager.Fellowship.WithinRange(playerDamager);
+
+                foreach (var fellow in fellows)
+                {
+                    if (fellow.QuestManager.HasQuest(questName))
+                        receivers[fellow.Guid] = new DamageHistoryInfo(fellow);
+                }
+            }
+            return receivers;
         }
 
         /// <summary>
@@ -211,6 +433,8 @@ namespace ACE.Server.WorldObjects
 
                 foreach(var item in loot)
                 {
+                    if (!string.IsNullOrEmpty(item.Quest)) // if the item has a Quest string, make the creature a "generator" of the item so that the pickup action applies the quest. 
+                        item.GeneratorId = Guid.Full; 
                     item.Location = new Position(Location);
                     LandblockManager.AddObject(item);
                 }

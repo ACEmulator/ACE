@@ -6,7 +6,7 @@ namespace ACE.Entity.Enum
     public enum PortalBitmask
     {
         Undef           = 0x00,
-        NotPassable     = 0x00,
+        //NotPassable     = 0x00,
         Unrestricted    = 0x01,
         NoPk            = 0x02,
         NoPKLite        = 0x04,

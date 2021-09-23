@@ -25,7 +25,7 @@ namespace ACE.Server.Factories
         /// </summary>
         public static WorldObject CreateWorldObject(Weenie weenie, ObjectGuid guid)
         {
-            if (weenie == null || guid == null)
+            if (weenie == null)
                 return null;
 
             var objWeenieType = weenie.WeenieType;
@@ -400,7 +400,7 @@ namespace ACE.Server.Factories
                 wo.PaletteTemplate = item.Palette;
 
             // if treasure, this is probability instead of shade
-            if (!isTreasure && item.Shade > 0)
+            if (!isTreasure)
                 wo.Shade = item.Shade;
 
             return wo;

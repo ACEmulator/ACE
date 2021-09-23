@@ -58,7 +58,7 @@ namespace ACE.Server.Network.GameEvent.Events
             List<CharacterPropertiesFriendList> friendList;
 
             if (updateType == FriendsUpdateTypeFlag.FullList)
-                friendList = Session.Player.Character.CharacterPropertiesFriendList.ToList();
+                friendList = Session.Player.Character.GetFriends(Session.Player.CharacterDatabaseLock);
             else
                 friendList = new List<CharacterPropertiesFriendList>() { friend };
 

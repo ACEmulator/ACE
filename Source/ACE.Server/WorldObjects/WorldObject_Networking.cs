@@ -74,7 +74,7 @@ namespace ACE.Server.WorldObjects
                 objDescriptionFlags &= ~ObjectDescriptionFlag.UiHidden;
 
             writer.Write((uint)weenieFlags);
-            writer.WriteString16L(Name ?? String.Empty);
+            writer.WriteString16L(Name ?? string.Empty);
             writer.WritePackedDword(WeenieClassId);
             writer.WritePackedDwordOfKnownType(IconId, 0x6000000);
             writer.Write((uint)ItemType);
@@ -182,9 +182,9 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    // if mansion, send permissions from master copy
-                    if (house.HouseType == HouseType.Mansion)
-                        house = house.LinkedHouses[0];
+                    // if mansion or villa, send permissions from master copy
+                    if (house.HouseType == HouseType.Villa || house.HouseType == HouseType.Mansion)
+                        house = house.RootHouse;
                 }
 
                 writer.Write(new RestrictionDB(house));
@@ -1107,6 +1107,107 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
+        public float EnqueueMotion(ActionChain actionChain, MotionStance stance, MotionCommand motionCommand, float speed = 1.0f)
+        {
+            // specialized function to mitigate odd client behavior w/ swapping bows during repeat attacks
+            // TODO: fix the CurrentMotionState mess
+            var motion = new Motion(stance, motionCommand, speed);
+            motion.MotionState.TurnSpeed = 2.25f;  // ??
+
+            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
+
+            actionChain.AddAction(this, () =>
+            {
+                // if no longer in missile combat, don't bother
+                if (this is Player player && player.CombatMode != CombatMode.Missile) return;
+
+                // retain original profile of function, but if something else has changed the stance (such as weapon swapping),
+                // do not thrash CurrentMotionState.Stance
+                if (CurrentMotionState.Stance == stance)
+                    CurrentMotionState = motion;
+
+                EnqueueBroadcastMotion(motion);
+            });
+            actionChain.AddDelaySeconds(animLength);
+
+            return animLength;
+        }
+
+        public float EnqueueMotionPersist(ActionChain actionChain, MotionStance stance, MotionCommand motionCommand, float speed = 1.0f)
+        {
+            if (!PropertyManager.GetBool("persist_movement").Item)
+            {
+                return EnqueueMotion(actionChain, stance, motionCommand, speed);
+            }
+
+            // specialized function to mitigate odd client behavior w/ swapping bows during repeat attacks
+            // TODO: fix the CurrentMotionState mess
+            var motion = new Motion(stance, motionCommand, speed);
+            motion.MotionState.TurnSpeed = 2.25f;  // ??
+
+            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
+
+            actionChain.AddAction(this, () =>
+            {
+                // if no longer in missile combat, don't bother
+                if (this is Player player && player.CombatMode != CombatMode.Missile) return;
+
+                // retain original profile of function, but if something else has changed the stance (such as weapon swapping),
+                // do not thrash CurrentMotionState.Stance
+                if (CurrentMotionState.Stance == stance)
+                    CurrentMotionState = motion;
+
+                motion.Persist(CurrentMotionState);
+
+                EnqueueBroadcastMotion(motion);
+            });
+            actionChain.AddDelaySeconds(animLength);
+
+            return animLength;
+        }
+
+        public float EnqueueMotionPersist(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true, MotionCommand? prevCommand = null, bool castGesture = false, bool half = false)
+        {
+            if (!PropertyManager.GetBool("persist_movement").Item)
+            {
+                return EnqueueMotion(actionChain, motionCommand, speed, useStance, prevCommand, castGesture, half);
+            }
+
+            var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
+
+            if (castGesture)
+                stance = MotionStance.Magic;
+
+            var animLength = 0.0f;
+            if (prevCommand != null)
+            {
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, prevCommand.Value, motionCommand, speed);
+            }
+            else
+                animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand, speed);
+
+            actionChain.AddAction(this, () =>
+            {
+                if (castGesture && this is Player player && !player.MagicState.IsCasting)
+                    return;
+
+                var motion = new Motion(stance, motionCommand, speed);
+                motion.Persist(CurrentMotionState);
+
+                motion.MotionState.TurnSpeed = 2.25f;  // ??
+
+                CurrentMotionState = motion;
+                EnqueueBroadcastMotion(motion);
+            });
+
+            if (half)
+                animLength *= 0.5f;
+
+            actionChain.AddDelaySeconds(animLength);
+
+            return animLength;
+        }
+
         public float EnqueueMotionAction(ActionChain actionChain, List<MotionCommand> motionCommands, float speed = 1.0f, MotionStance? useStance = null, bool usePrevCommand = false)
         {
             var stance = useStance ?? CurrentMotionState.Stance;
@@ -1293,7 +1394,13 @@ namespace ACE.Server.WorldObjects
 
         public List<Player> EnqueueBroadcast(bool sendSelf = true, params GameMessage[] msgs)
         {
-            if (PhysicsObj == null) return null;
+            if (PhysicsObj == null)
+            {
+                if (Container != null)
+                    return Container.EnqueueBroadcast(sendSelf, msgs);
+
+                return null;
+            }
 
             if (sendSelf)
             {

@@ -44,12 +44,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         ///  The time when monster started its last attack
         /// </summary>
-        public double PrevAttackTime;
+        public double PrevAttackTime { get; set; }
 
         /// <summary>
         /// The time when monster can perform its next attack
         /// </summary>
-        public double NextAttackTime;
+        public double NextAttackTime { get; set; }
 
         /// <summary>
         /// The time when monster can perform its next magic attack
@@ -103,15 +103,14 @@ namespace ACE.Server.WorldObjects
             if (CombatTable == null)
                 GetCombatTable();
 
+            // if caster, roll for spellcasting chance
+            if (HasKnownSpells && TryRollSpell())
+                return CombatType.Magic;
+
             if (IsRanged)
                 return CombatType.Missile;
-
-            // if caster, roll for spellcasting chance
-            //if (!IsCaster || !RollCastMagic())
-            if (!IsCaster || TryRollSpell() == null)
-                return CombatType.Melee;
             else
-                return CombatType.Magic;
+                return CombatType.Melee;
         }
 
         /// <summary>
@@ -145,7 +144,16 @@ namespace ACE.Server.WorldObjects
                 NextAttackTime = nextTime;
 
             if (IsRanged)
-                NextAttackTime += 1.0f;
+            {
+                PrevAttackTime = NextAttackTime + MissileDelay - (AiUseMagicDelay ?? 3.0f);
+
+                NextAttackTime += MissileDelay;
+            }
+
+            if (NeverAttack)
+            {
+                PrevAttackTime = NextAttackTime = double.MaxValue - (AiUseMagicDelay ?? 3.0f);
+            }
 
             if (DebugMove)
                 Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - DoAttackStance - stanceTime: {stanceTime}, isAnimating: {IsAnimating}");
@@ -157,26 +165,35 @@ namespace ACE.Server.WorldObjects
         {
             // FIXME
             var it = 0;
+            bool? isVisible = null;
 
             while (CurrentAttack == CombatType.Magic)
             {
                 // select a magic spell
                 //CurrentSpell = GetRandomSpell();
-                var currentSpell = GetCurrentSpell();
-
-                if (currentSpell.IsProjectile)
+                if (CurrentSpell.IsProjectile)
                 {
+                    if (isVisible == null)
+                        isVisible = IsDirectVisible(AttackTarget);
+
                     // ensure direct los
-                    if (!IsDirectVisible(AttackTarget))
+                    if (!isVisible.Value)
                     {
                         // reroll attack type
                         CurrentAttack = GetNextAttackType();
                         it++;
 
                         // max iterations to melee?
-                        if (it >= 30)
+                        if (it >= 10)
+                        {
+                            //log.Warn($"{Name} ({Guid}) reached max iterations");
                             CurrentAttack = CombatType.Melee;
 
+                            var powerupTime = (float)(PowerupTime ?? 1.0f);
+                            var failDelay = ThreadSafeRandom.Next(0.0f, powerupTime);
+
+                            NextMoveTime = Timers.RunningTime + failDelay;
+                        }
                         continue;
                     }
                 }
@@ -256,8 +273,8 @@ namespace ACE.Server.WorldObjects
         public void ResetAttack()
         {
             // wait for missile to strike
-            if (CurrentAttack == CombatType.Missile)
-                return;
+            //if (CurrentAttack == CombatType.Missile)
+                //return;
 
             IsTurning = false;
             IsMoving = false;
@@ -356,14 +373,19 @@ namespace ACE.Server.WorldObjects
         /// <param name="amount">The amount of damage rounded</param>
         public virtual uint TakeDamage(WorldObject source, DamageType damageType, float amount, bool crit = false)
         {
-            var tryDamage = (uint)Math.Round(amount);
-            var damage = (uint)-UpdateVitalDelta(Health, (int)-tryDamage);
+            var tryDamage = (int)Math.Round(amount);
+            var damage = -UpdateVitalDelta(Health, -tryDamage);
 
             // TODO: update monster stamina?
 
             // source should only be null for combined DoT ticks from multiple sources
             if (source != null)
-                DamageHistory.Add(source, damageType, damage);
+            {
+                if (damage >= 0)
+                    DamageHistory.Add(source, damageType, (uint)damage);
+                else
+                    DamageHistory.OnHeal((uint)-damage);
+            }
 
             if (Health.Current <= 0)
             {
@@ -371,7 +393,7 @@ namespace ACE.Server.WorldObjects
 
                 Die();
             }
-            return damage;
+            return (uint)Math.Max(0, damage);
         }
 
         public void EmitSplatter(Creature target, float damage)
@@ -406,6 +428,15 @@ namespace ACE.Server.WorldObjects
                 BPTableCache[wcid] = bpTable;
             }
             return bpTable;
+        }
+
+        /// <summary>
+        /// Flag indicates if a monster will aggro, but not attack
+        /// </summary>
+        public bool NeverAttack
+        {
+            get => GetProperty(PropertyBool.NeverAttack) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.NeverAttack); else SetProperty(PropertyBool.NeverAttack, value); }
         }
     }
 }

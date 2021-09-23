@@ -28,7 +28,9 @@ namespace ACE.Server.Network.Enum
         AbnormalSequenceReceived,
         AccountLoggedIn,
         ServerShuttingDown,
-        AccountBanned
+        AccountBanned,
+        ClientOutOfDate,
+        ForcedLogOffRequested
     }
     public static class SessionTerminationReasonHelper
     {
@@ -54,7 +56,9 @@ namespace ACE.Server.Network.Enum
             "Client supplied an abnormal sequence",
             "Account was logged in, booting currently connected account in favor of new connection",
             "Server is shutting down",
-            "Account is banned"
+            "Account is banned",
+            "Client is not up to date",
+            "Forced log off requested by Admin"
         };
         public static string GetDescription(this SessionTerminationReason reason)
         {

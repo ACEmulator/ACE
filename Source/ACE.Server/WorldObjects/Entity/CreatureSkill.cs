@@ -145,7 +145,7 @@ namespace ACE.Server.WorldObjects.Entity
                 total += InitLevel + Ranks;
 
                 if (creature is Player player)
-                    total += GetAugBonus(player, false);
+                    total += GetAugBonus_Base(player);
 
                 return total;
             }
@@ -164,13 +164,15 @@ namespace ACE.Server.WorldObjects.Entity
 
                 if (creature is Player player)
                 {
+                    total += GetAugBonus_Base(player);
+
                     var vitae = player.Vitae;
 
                     if (vitae != 1.0f)
                         total = (uint)(total * vitae).Round();
 
                     // everything beyond this point does not get scaled by vitae
-                    total += GetAugBonus(player, true);
+                    total += GetAugBonus_Current(player);
                 }
 
                 var skillMod = creature.EnchantmentManager.GetSkillMod(Skill);
@@ -181,13 +183,10 @@ namespace ACE.Server.WorldObjects.Entity
             }
         }
 
-        public uint GetAugBonus(Player player, bool current)
+        public uint GetAugBonus_Base(Player player)
         {
             // TODO: verify which of these are base, and which are current
             uint total = 0;
-
-            if (current && player.AugmentationJackOfAllTrades != 0)
-                total += (uint)(player.AugmentationJackOfAllTrades * 5);
 
             if (player.LumAugAllSkills != 0)
                 total += (uint)player.LumAugAllSkills;
@@ -199,24 +198,35 @@ namespace ACE.Server.WorldObjects.Entity
             else if (player.AugmentationSkilledMagic > 0 && Player.MagicSkills.Contains(Skill))
                 total += (uint)(player.AugmentationSkilledMagic * 10);
 
-            switch (Skill)
-            {
-                case Skill.ArmorTinkering:
-                case Skill.ItemTinkering:
-                case Skill.MagicItemTinkering:
-                case Skill.WeaponTinkering:
-                case Skill.Salvaging:
+            //switch (Skill)
+            //{
+            //    case Skill.ArmorTinkering:
+            //    case Skill.ItemTinkering:
+            //    case Skill.MagicItemTinkering:
+            //    case Skill.WeaponTinkering:
+            //    case Skill.Salvaging:
 
-                    if (player.LumAugSkilledCraft != 0)
-                        total += (uint)player.LumAugSkilledCraft;
-                    break;
-            }
+            //        if (player.LumAugSkilledCraft != 0)
+            //            total += (uint)player.LumAugSkilledCraft;
+            //        break;
+            //}
+
+            if (AdvancementClass >= SkillAdvancementClass.Trained && player.Enlightenment != 0)
+                total += (uint)player.Enlightenment;
+
+            return total;
+        }
+
+        public uint GetAugBonus_Current(Player player)
+        {
+            // TODO: verify which of these are base, and which are current
+            uint total = 0;
+
+            if (player.AugmentationJackOfAllTrades != 0)
+                total += (uint)(player.AugmentationJackOfAllTrades * 5);
 
             if (AdvancementClass == SkillAdvancementClass.Specialized && player.LumAugSkilledSpec != 0)
                 total += (uint)player.LumAugSkilledSpec * 2;
-
-            if (player.Enlightenment != 0)
-                total += (uint)player.Enlightenment;
 
             return total;
         }

@@ -583,7 +583,7 @@ namespace ACE.Server.WorldObjects
                 return;
 
             var enabled = EventManager.IsEventEnabled(GeneratorEvent);
-            var started = EventManager.IsEventStarted(GeneratorEvent);
+            var started = EventManager.IsEventStarted(GeneratorEvent, this, null);
 
             //GeneratorDisabled = !enabled || !started;
             //HandleStatus(prevState);
@@ -664,7 +664,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                if (this is Container)
+                if (this is Container || (!string.IsNullOrEmpty(GeneratorEvent) && RegenerationInterval == 0))
                     Generator_Regeneration();
 
                 if (InitCreate == 0)
@@ -710,7 +710,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Destroys/Kills all of its spawned objects, if specifically directed, and resets back to default
         /// </summary>
-        public void ProcessGeneratorDestructionDirective(GeneratorDestruct generatorDestructType)
+        public void ProcessGeneratorDestructionDirective(GeneratorDestruct generatorDestructType, bool fromLandblockUnload = false)
         {
             switch (generatorDestructType)
             {
@@ -736,10 +736,8 @@ namespace ACE.Server.WorldObjects
                         {
                             var wo = rNode.TryGetWorldObject();
 
-                            if (wo != null && wo is Creature creature && !creature.IsDead)
-                                creature.Destroy();
-                            else if (wo != null)
-                                wo.Destroy();
+                            if (wo != null && (!(wo is Creature creature) || !creature.IsDead))
+                                wo.Destroy(true, fromLandblockUnload);
                         }
 
                         generator.Spawned.Clear();
@@ -758,10 +756,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void NotifyOfEvent(RegenerationType regenerationType)
         {
-            if (GeneratorId == null) return;
+            if (GeneratorId == null || Generator == null) return;
 
-            if (!Generator.GeneratorDisabled)
-            {
+            //if (!Generator.GeneratorDisabled)
+            //{
                 var removeQueueTotal = 0;
 
                 foreach (var generator in Generator.GeneratorProfiles)
@@ -772,10 +770,14 @@ namespace ACE.Server.WorldObjects
 
                 if (Generator.GeneratorId > 0) // Generator is controlled by another generator.
                 {
-                    if (!(Generator is Container) && Generator.InitCreate > 0 && (Generator.CurrentCreate - removeQueueTotal) == 0) // Parent generator is non-container (Container, Corpse, Chest, Slumlord, Storage, Hook, Creature) generator
+                    if ((!(Generator is Container) || Generator.GeneratorAutomaticDestruction) && Generator.InitCreate > 0 && (Generator.CurrentCreate - removeQueueTotal) == 0) // Parent generator is non-container (Container, Corpse, Chest, Slumlord, Storage, Hook, Creature) generator
                         Generator.Destroy(); // Generator's complete spawn count has been wiped out
                 }
-            }
+                else if (Generator.GeneratorAutomaticDestruction && Generator.InitCreate > 0 && (Generator.CurrentCreate - removeQueueTotal) == 0)
+                {
+                    Generator.Destroy(); // Generator's complete spawn count has been wiped out
+                }
+            //}
 
             Generator = null;
             GeneratorId = null;
@@ -903,6 +905,16 @@ namespace ACE.Server.WorldObjects
                 generator.Spawned.Clear();
                 generator.SpawnQueue.Clear();
             }
+        }
+
+        public uint? GetStaticGuid(uint dynamicGuid)
+        {
+            foreach (var profile in GeneratorProfiles)
+            {
+                if (profile.Spawned.ContainsKey(dynamicGuid))
+                    return profile.Id;
+            }
+            return null;
         }
     }
 }

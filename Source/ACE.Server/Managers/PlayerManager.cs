@@ -566,8 +566,10 @@ namespace ACE.Server.Managers
             else
                 BroadcastToChannelFromConsole(Channel.Audit, message);
 
-            if (PropertyManager.GetBool("log_audit", true).Item)
-                log.Info($"[AUDIT] {(issuer != null ? $"{issuer.Name} says on the Audit channel: " : "")}{message}");
+            //if (PropertyManager.GetBool("log_audit", true).Item)
+                //log.Info($"[AUDIT] {(issuer != null ? $"{issuer.Name} says on the Audit channel: " : "")}{message}");
+
+            //LogBroadcastChat(Channel.Audit, issuer, message);
         }
 
         public static void BroadcastToChannel(Channel channel, Player sender, string message, bool ignoreSquelch = false, bool ignoreActive = false)
@@ -579,13 +581,109 @@ namespace ACE.Server.Managers
                     if (!player.SquelchManager.Squelches.Contains(sender) || ignoreSquelch)
                         player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, sender.Guid == player.Guid ? "" : sender.Name, message));
                 }
+
+                LogBroadcastChat(channel, sender, message);
             }
+        }
+
+        public static void LogBroadcastChat(Channel channel, WorldObject sender, string message)
+        {
+            switch (channel)
+            {
+                case Channel.Abuse:
+                    if (!PropertyManager.GetBool("chat_log_abuse").Item)
+                        return;
+                    break;
+                case Channel.Admin:
+                    if (!PropertyManager.GetBool("chat_log_admin").Item)
+                        return;
+                    break;
+                case Channel.AllBroadcast: // using this to sub in for a WorldBroadcast channel which isn't technically a channel
+                    if (!PropertyManager.GetBool("chat_log_global").Item)
+                        return;
+                    break;
+                case Channel.Audit:
+                    if (!PropertyManager.GetBool("chat_log_audit").Item)
+                        return;
+                    break;
+                case Channel.Advocate1:
+                case Channel.Advocate2:
+                case Channel.Advocate3:
+                    if (!PropertyManager.GetBool("chat_log_advocate").Item)
+                        return;
+                    break;
+                case Channel.Debug:
+                    if (!PropertyManager.GetBool("chat_log_debug").Item)
+                        return;
+                    break;
+                case Channel.Fellow:
+                case Channel.FellowBroadcast:
+                    if (!PropertyManager.GetBool("chat_log_fellow").Item)
+                        return;
+                    break;
+                case Channel.Help:
+                    if (!PropertyManager.GetBool("chat_log_help").Item)
+                        return;
+                    break;
+                case Channel.Olthoi:
+                    if (!PropertyManager.GetBool("chat_log_olthoi").Item)
+                        return;
+                    break;
+                case Channel.QA1:
+                case Channel.QA2:
+                    if (!PropertyManager.GetBool("chat_log_qa").Item)
+                        return;
+                    break;
+                case Channel.Sentinel:
+                    if (!PropertyManager.GetBool("chat_log_sentinel").Item)
+                        return;
+                    break;
+
+                case Channel.SocietyCelHanBroadcast:
+                case Channel.SocietyEldWebBroadcast:
+                case Channel.SocietyRadBloBroadcast:
+                    if (!PropertyManager.GetBool("chat_log_society").Item)
+                        return;
+                    break;
+
+                case Channel.AllegianceBroadcast:
+                case Channel.CoVassals:
+                case Channel.Monarch:
+                case Channel.Patron:
+                case Channel.Vassals:
+                    if (!PropertyManager.GetBool("chat_log_allegiance").Item)
+                        return;
+                    break;
+
+                case Channel.AlArqas:
+                case Channel.Holtburg:
+                case Channel.Lytelthorpe:
+                case Channel.Nanto:
+                case Channel.Rithwic:
+                case Channel.Samsur:
+                case Channel.Shoushi:
+                case Channel.Yanshi:
+                case Channel.Yaraq:
+                    if (!PropertyManager.GetBool("chat_log_townchans").Item)
+                        return;
+                    break;
+
+                default:
+                    return;
+            }
+
+            if (channel != Channel.AllBroadcast)
+                log.Info($"[CHAT][{channel.ToString().ToUpper()}] {(sender != null ? sender.Name : "[SYSTEM]")} says on the {channel} channel, \"{message}\"");
+            else
+                log.Info($"[CHAT][GLOBAL] {(sender != null ? sender.Name : "[SYSTEM]")} issued a world broadcast, \"{message}\"");
         }
 
         public static void BroadcastToChannelFromConsole(Channel channel, string message)
         {
             foreach (var player in GetAllOnline().Where(p => (p.ChannelsActive ?? 0).HasFlag(channel)))
                 player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, "CONSOLE", message));
+
+            LogBroadcastChat(channel, null, message);
         }
 
         public static void BroadcastToChannelFromEmote(Channel channel, string message)
@@ -652,7 +750,9 @@ namespace ACE.Server.Managers
                             player.SetProperty(PropertyFloat.MinimumTimeSincePk, 0);
                         }
 
-                        BroadcastToAll(new GameMessageSystemChat($"This world has been changed to a Player Killer world. All players will become Player Killers in {PropertyManager.GetDouble("pk_respite_timer").Item} seconds.", ChatMessageType.WorldBroadcast));
+                        var msg = $"This world has been changed to a Player Killer world. All players will become Player Killers in {PropertyManager.GetDouble("pk_respite_timer").Item} seconds.";
+                        BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
+                        LogBroadcastChat(Channel.AllBroadcast, null, msg);
                     }
                     else
                     {
@@ -665,7 +765,9 @@ namespace ACE.Server.Managers
                             player.SetProperty(PropertyFloat.MinimumTimeSincePk, 0);
                         }
 
-                        BroadcastToAll(new GameMessageSystemChat("This world has been changed to a Non Player Killer world. All players are now Non-Player Killers.", ChatMessageType.WorldBroadcast));
+                        var msg = "This world has been changed to a Non Player Killer world. All players are now Non-Player Killers.";
+                        BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
+                        LogBroadcastChat(Channel.AllBroadcast, null, msg);
                     }
                     break;
                 case "pkl_server":
@@ -682,7 +784,9 @@ namespace ACE.Server.Managers
                             player.SetProperty(PropertyFloat.MinimumTimeSincePk, 0);
                         }
 
-                        BroadcastToAll(new GameMessageSystemChat($"This world has been changed to a Player Killer Lite world. All players will become Player Killer Lites in {PropertyManager.GetDouble("pk_respite_timer").Item} seconds.", ChatMessageType.WorldBroadcast));
+                        var msg = $"This world has been changed to a Player Killer Lite world. All players will become Player Killer Lites in {PropertyManager.GetDouble("pk_respite_timer").Item} seconds.";
+                        BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
+                        LogBroadcastChat(Channel.AllBroadcast, null, msg);
                     }
                     else
                     {
@@ -695,10 +799,32 @@ namespace ACE.Server.Managers
                             player.SetProperty(PropertyFloat.MinimumTimeSincePk, 0);
                         }
 
-                        BroadcastToAll(new GameMessageSystemChat("This world has been changed to a Non Player Killer world. All players are now Non-Player Killers.", ChatMessageType.WorldBroadcast));
+                        var msg = "This world has been changed to a Non Player Killer world. All players are now Non-Player Killers.";
+                        BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
+                        LogBroadcastChat(Channel.AllBroadcast, null, msg);
                     }
                     break;
             }
+        }
+
+        public static bool IsAccountAtMaxCharacterSlots(string accountName)
+        {
+            var slotsAvailable = (int)PropertyManager.GetLong("max_chars_per_account").Item;
+            var onlinePlayersTotal = 0;
+            var offlinePlayersTotal = 0;
+
+            playersLock.EnterReadLock();
+            try
+            {
+                onlinePlayersTotal = onlinePlayers.Count(a => a.Value.Account.AccountName.Equals(accountName, StringComparison.OrdinalIgnoreCase));
+                offlinePlayersTotal = offlinePlayers.Count(a => a.Value.Account.AccountName.Equals(accountName, StringComparison.OrdinalIgnoreCase));
+            }
+            finally
+            {
+                playersLock.ExitReadLock();
+            }
+
+            return (onlinePlayersTotal + offlinePlayersTotal) >= slotsAvailable;
         }
     }
 }

@@ -109,12 +109,14 @@ namespace ACE.Server.WorldObjects
                 baseCost += spell.ManaMod * (uint)numFellows;
             }
 
-            if (spell.Flags.HasFlag(SpellFlags.IgnoresManaConversion))
+            var manaConversion = caster.GetCreatureSkill(Skill.ManaConversion);
+
+            if (manaConversion.AdvancementClass < SkillAdvancementClass.Trained || spell.Flags.HasFlag(SpellFlags.IgnoresManaConversion))
                 return baseCost;
 
             var difficulty = spell.PowerMod;   // modified power difficulty
 
-            var mana_conversion_skill = (uint)Math.Round(caster.GetCreatureSkill(Skill.ManaConversion).Current * GetWeaponManaConversionModifier(caster));
+            var mana_conversion_skill = (uint)Math.Round(manaConversion.Current * GetWeaponManaConversionModifier(caster));
 
             var manaCost = GetManaCost(difficulty, baseCost, mana_conversion_skill);
 
@@ -139,7 +141,7 @@ namespace ACE.Server.WorldObjects
             //   so players will always have a level of "luck" in manacost if they make skill checks
             var luck = ThreadSafeRandom.Next(0.0f, 1.0f);
 
-            if (roll <= successChance)
+            if (roll < successChance)
             {
                 manaCost = (uint)Math.Round(manaCost * (1.0f - (successChance - (roll * luck))));
             }
@@ -154,7 +156,7 @@ namespace ACE.Server.WorldObjects
                 successChance = SkillCheck.GetSkillChance(manaConv, difficulty);
                 roll = ThreadSafeRandom.Next(0.0f, 1.0f);
 
-                if (roll <= successChance)
+                if (roll < successChance)
                     manaCost = (uint)Math.Round(manaCost * (1.0f - (successChance - (roll * luck))));
             }
 
@@ -185,7 +187,7 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
-                    LifeMagic(spell, out uint damage, out bool critical, out enchantmentStatus, this, item, true);
+                    LifeMagic(spell, out uint damage, out enchantmentStatus, this, item, equip: true);
                     if (enchantmentStatus.Message != null)
                         EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
 
@@ -194,9 +196,9 @@ namespace ACE.Server.WorldObjects
                 case MagicSchool.ItemEnchantment:
 
                     if (spell.HasItemCategory || spell.IsPortalSpell)
-                        enchantmentStatus = ItemMagic(this, spell, item, true);
+                        enchantmentStatus = ItemMagic(this, spell, item, item, true);
                     else
-                        enchantmentStatus = ItemMagic(item, spell, item, true);
+                        enchantmentStatus = ItemMagic(item, spell, item, item, true);
 
                     var playScript = spell.IsPortalSpell && spell.CasterEffect > 0 ? spell.CasterEffect : spell.TargetEffect;
                     EnqueueBroadcast(new GameMessageScript(Guid, playScript, spell.Formula.Scale));
@@ -223,15 +225,18 @@ namespace ACE.Server.WorldObjects
 
                 return;
             }
+
             var target = spell.School == MagicSchool.ItemEnchantment && !spell.HasItemCategory ? item : this;
 
             // Retrieve enchantment on target and remove it, if present
-            if (target.EnchantmentManager.HasSpell(spellId))
+            var propertiesEnchantmentRegistry = target.EnchantmentManager.GetEnchantment(spellId, item.Guid.Full);
+
+            if (propertiesEnchantmentRegistry != null)
             {
                 if (!silent)
-                    target.EnchantmentManager.Remove(target.EnchantmentManager.GetEnchantment(spellId, item.Guid.Full));
+                    target.EnchantmentManager.Remove(propertiesEnchantmentRegistry);
                 else
-                    target.EnchantmentManager.Dispel(target.EnchantmentManager.GetEnchantment(spellId, item.Guid.Full));
+                    target.EnchantmentManager.Dispel(propertiesEnchantmentRegistry);
             }
         }
 

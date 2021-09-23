@@ -227,7 +227,7 @@ namespace ACE.Server.Command
             {
                 bool isAdvocate = session.Player.IsAdvocate;
                 bool isSentinel = session.Player.IsSentinel;
-                bool isEnvoy = isSentinel; // TODO: Add more resolution to player levels so we can separate IsEnvoy from IsSentinel
+                bool isEnvoy = session.Player.IsEnvoy; 
                 bool isArch = session.Player.IsArch;
                 bool isAdmin = session.Player.IsAdmin;
 

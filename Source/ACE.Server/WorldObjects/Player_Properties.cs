@@ -32,6 +32,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.IsSentinel); else SetProperty(PropertyBool.IsSentinel, value); }
         }
 
+        public bool IsEnvoy
+        {
+            get => GetProperty(PropertyBool.IsEnvoy) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsEnvoy); else SetProperty(PropertyBool.IsEnvoy, value); }
+        }
+
         public bool IsArch
         {
             get => GetProperty(PropertyBool.IsArch) ?? false;
@@ -65,6 +71,9 @@ namespace ACE.Server.WorldObjects
         // ========== Account Properties ==========
         // ========================================
 
+        /// <summary>
+        /// Flag indicates if an account is at least 15 days old
+        /// </summary>
         public bool Account15Days
         {
             get => GetProperty(PropertyBool.Account15Days) ?? false;
@@ -409,6 +418,18 @@ namespace ACE.Server.WorldObjects
         //    get => GetProperty(PropertyInt.RaresTierSeven) ?? 0;
         //    set { if (value == 0) RemoveProperty(PropertyInt.RaresTierSeven); else SetProperty(PropertyInt.RaresTierSeven, value); }
         //}
+
+        public bool IsAfk
+        {
+            get => GetProperty(PropertyBool.Afk) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.Afk); else SetProperty(PropertyBool.Afk, value); }
+        }
+
+        public string AfkMessage
+        {
+            get => GetProperty(PropertyString.Afk);
+            set { if (value == null) RemoveProperty(PropertyString.Afk); else SetProperty(PropertyString.Afk, value); }
+        }
 
         // ========================================
         // ===== Player Properties - Titles========
@@ -1247,6 +1268,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInstanceId.CurrentAppraisalTarget);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.CurrentAppraisalTarget); else SetProperty(PropertyInstanceId.CurrentAppraisalTarget, value.Value); }
+        }
+
+        public double? LastPortalTeleportTimestamp
+        {
+            get => GetProperty(PropertyFloat.LastPortalTeleportTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.LastPortalTeleportTimestamp); else SetProperty(PropertyFloat.LastPortalTeleportTimestamp, value.Value); }
         }
 
         /// <summary>

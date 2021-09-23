@@ -5,6 +5,7 @@ using System.Numerics;
 
 using ACE.Common;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Physics.Animation;
@@ -144,6 +145,9 @@ namespace ACE.Server.Physics
             UpdateTime = PhysicsTimer.CurrentTime;
             UpdateTimes = new int[UpdateTimeLength];
             PhysicsTimer_CurrentTime = PhysicsTimer.CurrentTime;
+
+            // todo: only allocate these for server objects
+            // get rid of 'DatObject', use the existing WeenieObj == null
             WeenieObj = new WeenieObject();
             ObjMaint = new ObjectMaint(this);
 
@@ -1304,7 +1308,22 @@ namespace ACE.Server.Physics
             if (spellCollide)
             {
                 // send initial CO as ethereal
-                WeenieObj.WorldObject.Ethereal = true;
+                WeenieObj.WorldObject.SetProperty(PropertyBool.Ethereal, true);
+            }
+
+            if (entering_world && transition.SpherePath.CurPos.Landblock != pos.Landblock)
+            {
+                // AdjustToOutside and find_cell_list can inconsistently result in 2 different cells for edges
+                // if something directly on a landblock edge has resulted in a different landblock from find_cell_list, discard completely
+
+                // this can also (more legitimately) happen even if the object isn't directly on landblock edge, but is near it
+                // an object trying to spawn on a hillside near a landblock edge might get pushed slightly during spawning,
+                // resulting in a successful spawn in a neighboring landblock. we don't handle adjustments to the actual landblock reference in here
+
+                // ideally CellArray.LoadCells = false would be passed to find_cell_list to prevent it from even attempting to load an unloaded neighboring landblock
+
+                log.Debug($"{Name} ({ID:X8}) AddPhysicsObj() - {pos.ShortLoc()} resulted in {transition.SpherePath.CurPos.ShortLoc()}, discarding");
+                return SetPositionError.NoValidPosition;
             }
 
             if (!SetPositionInternal(transition))
@@ -1381,8 +1400,8 @@ namespace ACE.Server.Physics
             {
                 var newPos = new Position(setPos.Pos);
 
-                newPos.Frame.Origin.X += ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadX;
-                newPos.Frame.Origin.Y += ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadY;
+                newPos.Frame.Origin.X += (float)ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadX;
+                newPos.Frame.Origin.Y += (float)ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadY;
 
                 // customized
                 if ((newPos.ObjCellID & 0xFFFF) < 0x100)
@@ -3345,9 +3364,12 @@ namespace ACE.Server.Physics
             if (obj.State.HasFlag(PhysicsState.ReportCollisions) && !State.HasFlag(PhysicsState.IgnoreCollisions) && obj.WeenieObj != null)
             {
                 // acclient might have a bug here,
-                // prev_has_contact and missie state params swapped?
+                // prev_has_contact and missile state params swapped?
                 var profile = obj.build_collision_profile(this, obj.TransientState.HasFlag(TransientStateFlags.Contact), velocityCollide);
 
+                // ObjID and obj are custom parameters added by ace
+                // if obj. and obj) are the same, all of these calls seem to effectively get dropped
+                // is this intended for 1-way collisions??
                 obj.WeenieObj.DoCollision(profile, ObjID, obj);
 
                 collided = true;
@@ -3461,6 +3483,8 @@ namespace ACE.Server.Physics
                 }
                 change_cell_server(newCell);
             }
+
+            CachedVelocity = requestCachedVelocity;
         }
 
         /// <summary>
@@ -3856,6 +3880,8 @@ namespace ACE.Server.Physics
             return true;
         }
 
+        private Vector3 requestCachedVelocity;
+
         /// <summary>
         /// Sets the requested position to the AutonomousPosition
         /// received from the client
@@ -3876,6 +3902,8 @@ namespace ACE.Server.Physics
                 RequestPos.ObjCellID = RequestPos.GetCell(CurCell.ID);
             else
                 RequestPos.ObjCellID = cell.ID;
+
+            requestCachedVelocity = CachedVelocity;
         }
 
         public void set_sequence_animation(int animID, bool interrupt, int startFrame, float framerate)

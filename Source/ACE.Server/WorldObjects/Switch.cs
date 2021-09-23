@@ -50,7 +50,7 @@ namespace ACE.Server.WorldObjects
             {
                 var useAnimation = UseTargetAnimation != null ? (MotionCommand)UseTargetAnimation : MotionCommand.Twitch1;
 
-                EnqueueMotion(actionChain, useAnimation);
+                EnqueueMotion(actionChain, useAnimation, 1, false);
             }
 
             actionChain.AddAction(this, () => base.OnActivate(activator));

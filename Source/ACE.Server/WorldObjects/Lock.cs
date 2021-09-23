@@ -290,7 +290,7 @@ namespace ACE.Server.WorldObjects
 #endif
 
             var dice = ThreadSafeRandom.Next(0.0f, 1.0f);
-            if (dice > pickChance)
+            if (dice >= pickChance)
                 return UnlockResults.PickLockFailed;
 
             target.IsLocked = false;

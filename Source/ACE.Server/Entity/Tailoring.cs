@@ -226,8 +226,11 @@ namespace ACE.Server.Entity
             target.PaletteBaseId = source.PaletteBaseId;
             target.ClothingBase = source.ClothingBase;
 
+            target.PhysicsTableId = source.PhysicsTableId;
+            target.SoundTableId = source.SoundTableId;
+
             target.Name = source.Name;
-            target.LongDesc = source.LongDesc;
+            target.LongDesc = LootGenerationFactory.GetLongDesc(target);
 
             target.IgnoreCloIcons = source.IgnoreCloIcons;
             target.IconId = source.IconId;
@@ -287,6 +290,9 @@ namespace ACE.Server.Entity
 
             player.TryCreateInInventoryWithNetworking(result);
 
+            if (PropertyManager.GetBool("player_receive_immediate_save").Item)
+                player.RushNextPlayerSave(5);
+
             player.SendUseDoneEvent();
         }
 
@@ -301,6 +307,13 @@ namespace ACE.Server.Entity
             // ensure target is valid weapon
             if (!(target is MeleeWeapon) && !(target is MissileLauncher) && !(target is Caster))
             {
+                player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                return;
+            }
+
+            if (target is MeleeWeapon && target.W_WeaponType == WeaponType.Undef)
+            {
+                // 'difficult to master' weapons were not tailorable
                 player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                 return;
             }
@@ -394,6 +407,8 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyInt.ClothingPriority, (int)clothingPriority);
             player.TryConsumeFromInventoryWithNetworking(source, 1);
 
+            target.SaveBiotaToDatabase();
+
             player.SendUseDoneEvent();
         }
 
@@ -408,6 +423,8 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyBool.TopLayerPriority, topLayer);
 
             player.TryConsumeFromInventoryWithNetworking(source, 1);
+
+            target.SaveBiotaToDatabase();
 
             player.SendUseDoneEvent();
         }
@@ -435,6 +452,8 @@ namespace ACE.Server.Entity
             player.Session.Network.EnqueueSend(new GameMessageUpdateObject(target));
 
             player.TryConsumeFromInventoryWithNetworking(source, 1);
+
+            target.SaveBiotaToDatabase();
 
             player.SendUseDoneEvent();
         }
@@ -493,6 +512,8 @@ namespace ACE.Server.Entity
 
             player.TryConsumeFromInventoryWithNetworking(source, 1);
 
+            target.SaveBiotaToDatabase();
+
             player.SendUseDoneEvent();
         }
 
@@ -500,7 +521,8 @@ namespace ACE.Server.Entity
         {
             player.UpdateProperty(target, PropertyInt.PaletteTemplate, source.PaletteTemplate);
             //player.UpdateProperty(target, PropertyInt.UiEffects, (int?)source.UiEffects);
-            player.UpdateProperty(target, PropertyInt.MaterialType, (int?)source.MaterialType);
+            if (source.MaterialType.HasValue)
+                player.UpdateProperty(target, PropertyInt.MaterialType, (int?)source.MaterialType);
 
             player.UpdateProperty(target, PropertyFloat.DefaultScale, source.ObjScale);
 

@@ -11,6 +11,6 @@ namespace ACE.Database.Models.World
         public uint TargetWCID { get; set; }
         public DateTime LastModified { get; set; }
 
-        public Recipe Recipe { get; set; }
+        public virtual Recipe Recipe { get; set; }
     }
 }

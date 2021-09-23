@@ -104,13 +104,16 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!healer.Equals(targetPlayer))
+            /*if (!healer.Equals(targetPlayer))
             {
                 // perform moveto
                 healer.CreateMoveToChain(target, (success) => DoHealMotion(healer, targetPlayer, success));
             }
             else
-                DoHealMotion(healer, targetPlayer, true);
+                DoHealMotion(healer, targetPlayer, true);*/
+
+            // MoveTo is now handled in base Player_Use
+            DoHealMotion(healer, targetPlayer, true);
         }
 
         public static readonly float Healing_MaxMove = 5.0f;
@@ -128,12 +131,14 @@ namespace ACE.Server.WorldObjects
             var motionCommand = healer.Equals(target) ? MotionCommand.SkillHealSelf : MotionCommand.SkillHealOther;
 
             var motion = new Motion(healer, motionCommand);
-            var animLength = MotionTable.GetAnimationLength(healer.MotionTableId, healer.CurrentMotionState.Stance, motionCommand);
+            var currentStance = healer.CurrentMotionState.Stance;
+            var animLength = MotionTable.GetAnimationLength(healer.MotionTableId, currentStance, motionCommand);
 
             var startPos = new Physics.Common.Position(healer.PhysicsObj.Position);
 
             var actionChain = new ActionChain();
-            actionChain.AddAction(healer, () => healer.EnqueueBroadcastMotion(motion));
+            //actionChain.AddAction(healer, () => healer.EnqueueBroadcastMotion(motion));
+            actionChain.AddAction(healer, () => healer.SendMotionAsCommands(motionCommand, currentStance));
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(healer, () =>
             {
@@ -236,7 +241,7 @@ namespace ACE.Server.WorldObjects
             difficulty = (int)Math.Round((vital.MaxValue - vital.Current) * 2 * combatMod);
 
             var skillCheck = SkillCheck.GetSkillChance(effectiveSkill, difficulty);
-            return skillCheck >= ThreadSafeRandom.Next(0.0f, 1.0f);
+            return skillCheck > ThreadSafeRandom.Next(0.0f, 1.0f);
         }
 
         /// <summary>

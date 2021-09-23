@@ -1,9 +1,14 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
+
 using ACE.DatLoader.Entity;
+using ACE.DatLoader.Entity.AnimationHooks;
 using ACE.Entity.Enum;
+
+using AttackFrameParams = ACE.Entity.AttackFrameParams;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -77,16 +82,23 @@ namespace ACE.DatLoader.FileTypes
             return length;
         }
 
-        public List<float> GetAttackFrames(uint motionTableId, MotionStance stance, MotionCommand motion, MotionCommand? currentMotion = null)
+        private static readonly ConcurrentDictionary<AttackFrameParams, List<(float time, AttackHook attackHook)>> attackFrameCache = new ConcurrentDictionary<AttackFrameParams, List<(float time, AttackHook attackHook)>>();
+
+        public List<(float time, AttackHook attackHook)> GetAttackFrames(uint motionTableId, MotionStance stance, MotionCommand motion)
         {
+            // could also do uint, and then a packed ulong, but would be more complicated maybe?
+            var attackFrameParams = new AttackFrameParams(motionTableId, stance, motion);
+            if (attackFrameCache.TryGetValue(attackFrameParams, out var attackFrames))
+                return attackFrames;
+
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(motionTableId);
 
-            if (currentMotion == null)
-                currentMotion = GetDefaultMotion(stance);
+            var defaultMotion = GetDefaultMotion(stance);
 
-            var animData = GetAnimData(stance, motion, currentMotion.Value);
+            var animData = GetAnimData(stance, motion, defaultMotion);
 
             var frameNums = new List<int>();
+            var attackHooks = new List<AttackHook>();
             var totalFrames = 0;
 
             foreach (var anim in animData)
@@ -97,17 +109,21 @@ namespace ACE.DatLoader.FileTypes
                 {
                     foreach (var hook in frame.Hooks)
                     {
-                        if (hook.HookType == AnimationHookType.Attack)
+                        if (hook is AttackHook attackHook)
+                        {
                             frameNums.Add(totalFrames);
+                            attackHooks.Add(attackHook);
+                        }
                     }
                     totalFrames++;
                 }
             }
-            var attackFrames = new List<float>();
-            foreach (var frameNum in frameNums)
-                attackFrames.Add((float)frameNum / totalFrames);    // div 0?
+            attackFrames = new List<(float time, AttackHook attackHook)>();
+            for (var i = 0; i < frameNums.Count; i++)
+                attackFrames.Add(((float)frameNums[i] / totalFrames, attackHooks[i]));    // div 0?
 
-            // cache?
+            attackFrameCache.TryAdd(attackFrameParams, attackFrames);
+
             return attackFrames;
         }
 

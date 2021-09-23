@@ -57,23 +57,16 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
             {
-                var results = context.Biota
+                var result = context.Biota
                     .AsNoTracking()
                     .Where(r => r.Id >= min && r.Id <= max)
-                    .ToList();
+                    .OrderByDescending(r => r.Id)
+                    .FirstOrDefault();
 
-                if (!results.Any())
+                if (result == null)
                     return uint.MaxValue;
 
-                var maxId = min;
-
-                foreach (var result in results)
-                {
-                    if (result.Id > maxId)
-                        maxId = result.Id;
-                }
-
-                return maxId;
+                return result.Id;
             }
         }
 
@@ -88,7 +81,8 @@ namespace ACE.Database
             // https://stackoverflow.com/questions/50402015/how-to-execute-sqlquery-with-entity-framework-core-2-1
 
             // This query is ugly, but very fast.
-            var sql = "SELECT"                                                                          + Environment.NewLine +
+            var sql = "SET @available_ids=0, @rownum=0;"                                                + Environment.NewLine +
+                      "SELECT"                                                                          + Environment.NewLine +
                       " z.gap_starts_at, z.gap_ends_at_not_inclusive, @available_ids:=@available_ids+(z.gap_ends_at_not_inclusive - z.gap_starts_at) as running_total_available_ids" + Environment.NewLine +
                       "FROM ("                                                                          + Environment.NewLine +
                       " SELECT"                                                                         + Environment.NewLine +
@@ -105,6 +99,8 @@ namespace ACE.Database
 
             using (var context = new ShardDbContext())
             {
+                context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
                 var connection = context.Database.GetDbConnection();
                 connection.Open();
                 var command = connection.CreateCommand();
@@ -115,7 +111,7 @@ namespace ACE.Database
 
                 while (reader.Read())
                 {
-                    var gap_starts_at               = reader.GetFieldValue<double>(0);
+                    var gap_starts_at               = reader.GetFieldValue<long>(0);
                     var gap_ends_at_not_inclusive   = reader.GetFieldValue<decimal>(1);
                     //var running_total_available_ids = reader.GetFieldValue<double>(2);
 
@@ -206,8 +202,6 @@ namespace ACE.Database
 
             PopulatedCollectionFlags populatedCollectionFlags = (PopulatedCollectionFlags)biota.PopulatedCollectionFlags;
 
-            // todo: There are gains to be had here if we can conditionally perform mulitple .Include (.Where) statements in a single query.
-            // todo: Until I figure out how to do that, this is still pretty good. Mag-nus 2018-08-10
             if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAnimPart)) biota.BiotaPropertiesAnimPart = context.BiotaPropertiesAnimPart.Where(r => r.ObjectId == biota.Id).ToList();
             if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAttribute)) biota.BiotaPropertiesAttribute = context.BiotaPropertiesAttribute.Where(r => r.ObjectId == biota.Id).ToList();
             if (populatedCollectionFlags.HasFlag(PopulatedCollectionFlags.BiotaPropertiesAttribute2nd)) biota.BiotaPropertiesAttribute2nd = context.BiotaPropertiesAttribute2nd.Where(r => r.ObjectId == biota.Id).ToList();
@@ -247,6 +241,8 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
             {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
                 var results = context.Biota.Where(r => r.WeenieClassId == wcid);
 
                 var biotas = new List<Biota>();
@@ -265,6 +261,8 @@ namespace ACE.Database
             // warning: this query is currently unindexed!
             using (var context = new ShardDbContext())
             {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
                 var iType = (int)type;
 
                 var results = context.Biota.Where(r => r.WeenieType == iType);
@@ -570,19 +568,35 @@ namespace ACE.Database
 
         public List<Character> GetCharacters(uint accountId, bool includeDeleted)
         {
+            return GetCharacterList(accountId, includeDeleted);
+        }
+
+        public Character GetCharacter(uint characterId)
+        {
+            return GetCharacterList(0, true, characterId).FirstOrDefault();
+        }
+
+        private static List<Character> GetCharacterList(uint accountID, bool includeDeleted, uint characterID = 0)
+        {
             var context = new ShardDbContext();
 
-            var results = context.Character
-                .Include(r => r.CharacterPropertiesContractRegistry)
-                .Include(r => r.CharacterPropertiesFillCompBook)
-                .Include(r => r.CharacterPropertiesFriendList)
-                .Include(r => r.CharacterPropertiesQuestRegistry)
-                .Include(r => r.CharacterPropertiesShortcutBar)
-                .Include(r => r.CharacterPropertiesSpellBar)
-                .Include(r => r.CharacterPropertiesSquelch)
-                .Include(r => r.CharacterPropertiesTitleBook)
-                .Where(r => r.AccountId == accountId && (includeDeleted || !r.IsDeleted))
-                .ToList();
+            IQueryable<Character> query;
+
+            if (accountID > 0)
+                query = context.Character.Where(r => r.AccountId == accountID && (includeDeleted || !r.IsDeleted));
+            else
+                query = context.Character.Where(r => r.Id == characterID && (includeDeleted || !r.IsDeleted));
+
+            var results = query.ToList();
+
+            query.Include(r => r.CharacterPropertiesContractRegistry).Load();
+            query.Include(r => r.CharacterPropertiesFillCompBook).Load();
+            query.Include(r => r.CharacterPropertiesFriendList).Load();
+            query.Include(r => r.CharacterPropertiesQuestRegistry).Load();
+            query.Include(r => r.CharacterPropertiesShortcutBar).Load();
+            query.Include(r => r.CharacterPropertiesSpellBar).Load();
+            query.Include(r => r.CharacterPropertiesSquelch).Load();
+            query.Include(r => r.CharacterPropertiesTitleBook).Load();
 
             foreach (var result in results)
                 CharacterContexts.Add(result, context);
@@ -595,14 +609,7 @@ namespace ACE.Database
             var context = new ShardDbContext();
 
             var result = context.Character
-                //.Include(r => r.CharacterPropertiesContract)
-                //.Include(r => r.CharacterPropertiesFillCompBook)
-                //.Include(r => r.CharacterPropertiesFriendList)
-                //.Include(r => r.CharacterPropertiesQuestRegistry)
-                //.Include(r => r.CharacterPropertiesShortcutBar)
-                //.Include(r => r.CharacterPropertiesSpellBar)
-                //.Include(r => r.CharacterPropertiesTitleBook)
-                .FirstOrDefault(r => r.Name == name.ToLower() && !r.IsDeleted);
+                .FirstOrDefault(r => r.Name.Equals(name, StringComparison.OrdinalIgnoreCase) && !r.IsDeleted);
 
             return result;
         }
@@ -612,13 +619,6 @@ namespace ACE.Database
             var context = new ShardDbContext();
 
             var result = context.Character
-                //.Include(r => r.CharacterPropertiesContract)
-                //.Include(r => r.CharacterPropertiesFillCompBook)
-                //.Include(r => r.CharacterPropertiesFriendList)
-                //.Include(r => r.CharacterPropertiesQuestRegistry)
-                //.Include(r => r.CharacterPropertiesShortcutBar)
-                //.Include(r => r.CharacterPropertiesSpellBar)
-                //.Include(r => r.CharacterPropertiesTitleBook)
                 .FirstOrDefault(r => r.Id == guid);
 
             return result;
@@ -639,7 +639,7 @@ namespace ACE.Database
                         cachedContext.SaveChanges();
 
                         if (firstException != null)
-                            log.Debug($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+                            log.Debug($"[DATABASE] SaveCharacter-1 0x{character.Id:X8}:{character.Name} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
 
                         return true;
                     }
@@ -652,8 +652,8 @@ namespace ACE.Database
                         }
 
                         // Character name might be in use or some other fault
-                        log.Error($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
-                        log.Error($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
+                        log.Error($"[DATABASE] SaveCharacter-1 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
+                        log.Error($"[DATABASE] SaveCharacter-1 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
                         return false;
                     }
                 }
@@ -680,7 +680,7 @@ namespace ACE.Database
                     context.SaveChanges();
 
                     if (firstException != null)
-                        log.Debug($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+                        log.Debug($"[DATABASE] SaveCharacter-2 0x{character.Id:X8}:{character.Name} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
 
                     return true;
                 }
@@ -693,8 +693,8 @@ namespace ACE.Database
                     }
 
                     // Character name might be in use or some other fault
-                    log.Error($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
-                    log.Error($"[DATABASE] SaveCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
+                    log.Error($"[DATABASE] SaveCharacter-2 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
+                    log.Error($"[DATABASE] SaveCharacter-2 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
                     return false;
                 }
             }
@@ -762,6 +762,89 @@ namespace ACE.Database
                             select biota.Id;
 
                 return query.FirstOrDefault();
+            }
+        }
+
+        public bool RenameCharacter(Character character, string newName, ReaderWriterLockSlim rwLock)
+        {
+            if (CharacterContexts.TryGetValue(character, out var cachedContext))
+            {
+                rwLock.EnterReadLock();
+                try
+                {
+                    Exception firstException = null;
+                retry:
+
+                    try
+                    {
+                        character.Name = newName;
+                        cachedContext.SaveChanges();
+
+                        if (firstException != null)
+                            log.Debug($"[DATABASE] RenameCharacter 0x{character.Id:X8}:{character.Name} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (firstException == null)
+                        {
+                            firstException = ex;
+                            goto retry;
+                        }
+
+                        // Character name might be in use or some other fault
+                        log.Error($"[DATABASE] RenameCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
+                        log.Error($"[DATABASE] RenameCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
+                        return false;
+                    }
+                }
+                finally
+                {
+                    rwLock.ExitReadLock();
+                }
+            }
+
+            character.Name = newName;
+
+            var context = new ShardDbContext();
+
+            CharacterContexts.Add(character, context);
+
+            rwLock.EnterReadLock();
+            try
+            {
+                context.Character.Add(character);
+
+                Exception firstException = null;
+            retry:
+
+                try
+                {
+                    context.SaveChanges();
+
+                    if (firstException != null)
+                        log.Debug($"[DATABASE] RenameCharacter 0x{character.Id:X8}:{character.Name} retry succeeded after initial exception of: {firstException.GetFullMessage()}");
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    if (firstException == null)
+                    {
+                        firstException = ex;
+                        goto retry;
+                    }
+
+                    // Character name might be in use or some other fault
+                    log.Error($"[DATABASE] RenameCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
+                    log.Error($"[DATABASE] RenameCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
+                    return false;
+                }
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
             }
         }
     }

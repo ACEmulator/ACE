@@ -5,7 +5,6 @@ using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
@@ -49,24 +48,30 @@ namespace ACE.Server.WorldObjects
                 if (LastCombatMode == CombatMode.Missile)
                     CombatMode = CombatMode.Missile;
                 else
+                {
+                    OnAttackDone();
                     return;
+                }
             }
 
             if (IsBusy || Teleporting || suicideInProgress)
             {
                 SendWeenieError(WeenieError.YoureTooBusy);
+                OnAttackDone();
                 return;
             }
 
             if (IsJumping)
             {
                 SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
+                OnAttackDone();
                 return;
             }
 
             if (PKLogout)
             {
                 SendWeenieError(WeenieError.YouHaveBeenInPKBattleTooRecently);
+                OnAttackDone();
                 return;
             }
 
@@ -76,19 +81,24 @@ namespace ACE.Server.WorldObjects
             // sanity check
             accuracyLevel = Math.Clamp(accuracyLevel, 0.0f, 1.0f);
 
-            if (weapon == null || weapon.IsAmmoLauncher && ammo == null) return;
+            if (weapon == null || weapon.IsAmmoLauncher && ammo == null)
+            {
+                OnAttackDone();
+                return;
+            }
 
             AttackHeight = (AttackHeight)attackHeight;
             AttackQueue.Add(accuracyLevel);
 
             if (MissileTarget == null)
-                AccuracyLevel = accuracyLevel;
+                AccuracyLevel = accuracyLevel;  // verify
 
             // get world object of target guid
             var target = CurrentLandblock?.GetObject(targetGuid) as Creature;
             if (target == null || target.Teleporting)
             {
                 //log.Warn($"{Name}.HandleActionTargetedMissileAttack({targetGuid:X8}, {AttackHeight}, {accuracyLevel}) - couldn't find creature target guid");
+                OnAttackDone();
                 return;
             }
 
@@ -96,7 +106,11 @@ namespace ACE.Server.WorldObjects
                 return;
 
             if (!CanDamage(target))
-                return;     // werror?
+            {
+                SendTransientError($"You cannot attack {target.Name}");
+                OnAttackDone();
+                return;
+            }
 
             //log.Info($"{Name}.HandleActionTargetedMissileAttack({targetGuid:X8}, {attackHeight}, {accuracyLevel})");
 
@@ -104,6 +118,10 @@ namespace ACE.Server.WorldObjects
             MissileTarget = target;
 
             var attackSequence = ++AttackSequence;
+
+            // record stance here and pass it along
+            // accounts for odd client behavior with swapping bows during repeat attacks
+            var stance = CurrentMotionState.Stance;
 
             // turn if required
             var rotateTime = Rotate(target);
@@ -116,14 +134,14 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(delayTime);
 
             // do missile attack
-            actionChain.AddAction(this, () => LaunchMissile(target, attackSequence));
+            actionChain.AddAction(this, () => LaunchMissile(target, attackSequence, stance));
             actionChain.EnqueueChain();
         }
 
         /// <summary>
         /// Launches a missile attack from player to target
         /// </summary>
-        public void LaunchMissile(WorldObject target, int attackSequence, bool subsequent = false)
+        public void LaunchMissile(WorldObject target, int attackSequence, MotionStance stance, bool subsequent = false)
         {
             if (AttackSequence != attackSequence)
                 return;
@@ -141,6 +159,8 @@ namespace ACE.Server.WorldObjects
                 OnAttackDone();
                 return;
             }
+
+            var launcher = GetEquippedMissileLauncher();
 
             var creature = target as Creature;
             if (!IsAlive || IsBusy || MissileTarget == null || creature == null || !creature.IsAlive || suicideInProgress)
@@ -160,9 +180,17 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            var actionChain = new ActionChain();
+
+            if (subsequent && !IsFacing(target))
+            {
+                var rotateTime = Rotate(target);
+                actionChain.AddDelaySeconds(rotateTime);
+            }
+
             // launch animation
             // point of no return beyond this point -- cannot be cancelled
-            Attacking = true;
+            actionChain.AddAction(this, () => Attacking = true);
 
             if (subsequent)
             {
@@ -185,14 +213,24 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine($"Velocity: {velocity}");
 
-            var actionChain = new ActionChain();
-            var launchTime = EnqueueMotion(actionChain, aimLevel);
+            if (velocity == Vector3.Zero)
+            {
+                // pre-check succeeded, but actual velocity calculation failed
+                SendWeenieError(WeenieError.MissileOutOfRange);
+
+                // this prevents the accuracy bar from refilling when 'repeat attacks' is enabled
+                Attacking = false;
+                OnAttackDone();
+                return;
+            }
+
+            var launchTime = EnqueueMotionPersist(actionChain, aimLevel);
 
             // launch projectile
             actionChain.AddAction(this, () =>
             {
                 // handle self-procs
-                TryProcEquippedItems(this, true);
+                TryProcEquippedItems(this, this, true, weapon);
 
                 var sound = GetLaunchMissileSound(weapon);
                 EnqueueBroadcast(new GameMessageSound(Guid, sound, 1.0f));
@@ -203,12 +241,12 @@ namespace ACE.Server.WorldObjects
                 var staminaCost = GetAttackStamina(GetAccuracyRange());
                 UpdateVitalDelta(Stamina, -staminaCost);
 
-                var projectile = LaunchProjectile(weapon, ammo, target, origin, orientation, velocity);
+                var projectile = LaunchProjectile(launcher, ammo, target, origin, orientation, velocity);
                 UpdateAmmoAfterLaunch(ammo);
             });
 
             // ammo remaining?
-            if (ammo.StackSize == null || ammo.StackSize <= 1)
+            if (!ammo.UnlimitedUse && (ammo.StackSize == null || ammo.StackSize <= 1))
             {
                 actionChain.AddAction(this, () =>
                 {
@@ -224,15 +262,18 @@ namespace ACE.Server.WorldObjects
 
             // reload animation
             var animSpeed = GetAnimSpeed();
-            var reloadTime = EnqueueMotion(actionChain, MotionCommand.Reload, animSpeed);
+            var reloadTime = EnqueueMotionPersist(actionChain, stance, MotionCommand.Reload, animSpeed);
 
             // reset for next projectile
-            EnqueueMotion(actionChain, MotionCommand.Ready);
-            var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload, MotionCommand.Ready);
+            EnqueueMotionPersist(actionChain, stance, MotionCommand.Ready);
+            var linkTime = MotionTable.GetAnimationLength(MotionTableId, stance, MotionCommand.Reload, MotionCommand.Ready);
             //var cycleTime = MotionTable.GetCycleLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready);
 
-            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, ACE.Entity.Enum.ParentLocation.RightHand,
-                ACE.Entity.Enum.Placement.RightHandCombat)));
+            actionChain.AddAction(this, () =>
+            {
+                if (CombatMode == CombatMode.Missile)
+                    EnqueueBroadcast(new GameMessageParentEvent(this, ammo, ACE.Entity.Enum.ParentLocation.RightHand, ACE.Entity.Enum.Placement.RightHandCombat));
+            }); 
 
             actionChain.AddDelaySeconds(linkTime);
 
@@ -255,7 +296,7 @@ namespace ACE.Server.WorldObjects
                     nextAttack.AddDelaySeconds(nextRefillTime);
 
                     // perform next attack
-                    nextAttack.AddAction(this, () => { LaunchMissile(target, attackSequence, true); });
+                    nextAttack.AddAction(this, () => { LaunchMissile(target, attackSequence, stance, true); });
                     nextAttack.EnqueueChain();
                 }
                 else
@@ -287,8 +328,14 @@ namespace ACE.Server.WorldObjects
 
         public override void UpdateAmmoAfterLaunch(WorldObject ammo)
         {
+            //if (ammo.UnlimitedUse)
+            //    return;
+
             // hide previously held ammo
             EnqueueBroadcast(new GameMessagePickupEvent(ammo));
+
+            if (ammo.UnlimitedUse)
+                return;
 
             if (ammo.StackSize == null || ammo.StackSize <= 1)
                 TryDequipObjectWithNetworking(ammo.Guid, out _, DequipObjectAction.ConsumeItem);

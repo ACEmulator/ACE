@@ -57,6 +57,11 @@ namespace ACE.Server.Network
         public bool DatWarnPortal;
         public bool DatWarnLanguage;
 
+        /// <summary>
+        /// Rate limiter for /passwd command
+        /// </summary>
+        public DateTime LastPassTime { get; set; }
+
         public Session(ConnectionListener connectionListener, IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
             EndPoint = endPoint;
@@ -196,6 +201,11 @@ namespace ACE.Server.Network
         {
             if (Player == null) return;
 
+            // Character database objects are not cached. Each session gets a new character entity and dbContext from ShardDatabase.
+            // To ensure the latest version of the character is saved before any new logins pull these records again, we queue a save here if necessary, at the instant logoff is requested.
+            if (Player.CharacterChangesDetected)
+                Player.SaveCharacterToDatabase();
+
             if (logOffRequestTime == DateTime.MinValue)
             {
                 var result = Player.LogOut(false, forceImmediate);
@@ -208,7 +218,7 @@ namespace ACE.Server.Network
         private void SendFinalLogOffMessages()
         {
             // If we still exist on a landblock, we can't exit yet.
-            if (Player.CurrentLandblock != null)
+            if (Player?.CurrentLandblock != null)
                 return;
 
             logOffRequestTime = DateTime.MinValue;
@@ -217,8 +227,8 @@ namespace ACE.Server.Network
             // This message can be received/processed by the server AFTER LogOfPlayer has been called.
             // What that means is, we could end up with Character changes after the Character has been saved from the initial LogOff request.
             // To make sure we commit these additional changes (if any), we check again here
-            if (Player.CharacterChangesDetected)
-                Player.SaveCharacterToDatabase();
+            if (Player?.CharacterChangesDetected ?? false)
+                Player?.SaveCharacterToDatabase();
 
             Player = null;
 

@@ -13,6 +13,6 @@ namespace ACE.Database.Models.World
         public int Enum { get; set; }
         public int Source { get; set; }
 
-        public RecipeMod RecipeMod { get; set; }
+        public virtual RecipeMod RecipeMod { get; set; }
     }
 }

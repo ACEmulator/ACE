@@ -211,11 +211,29 @@ namespace ACE.Database
             }));
         }
 
+        public void GetCharacter(uint characterId, Action<Character> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = BaseDatabase.GetCharacter(characterId);
+                callback?.Invoke(result);
+            }));
+        }
+
         public void SaveCharacter(Character character, ReaderWriterLockSlim rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
                 var result = BaseDatabase.SaveCharacter(character, rwLock);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void RenameCharacter(Character character, string newName, ReaderWriterLockSlim rwLock, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = BaseDatabase.RenameCharacter(character, newName, rwLock);
                 callback?.Invoke(result);
             }));
         }

@@ -138,7 +138,7 @@ namespace ACE.Entity.Models
             (int)SpellId.HermeticLinkSelf8,
         };
 
-        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayer(this ICollection<PropertiesEnchantmentRegistry> value, ReaderWriterLockSlim rwLock)
+        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayer(this ICollection<PropertiesEnchantmentRegistry> value, ReaderWriterLockSlim rwLock, HashSet<int> setSpells)
         {
             if (value == null)
                 return null;
@@ -150,7 +150,9 @@ namespace ACE.Entity.Models
                     group e by e.SpellCategory
                     into categories
                     //select categories.OrderByDescending(c => c.LayerId).First();
-                    select categories.OrderByDescending(c => c.PowerLevel).ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId)).First();
+                    select categories.OrderByDescending(c => c.PowerLevel)
+                        .ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId))
+                        .ThenByDescending(c => setSpells.Contains(c.SpellId) ? c.SpellId : c.StartTime).First();
 
                 return results.ToList();
             }
@@ -163,7 +165,7 @@ namespace ACE.Entity.Models
         /// <summary>
         /// Returns the top layers in each spell category for a StatMod type
         /// </summary>
-        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayerByStatModType(this ICollection<PropertiesEnchantmentRegistry> value, EnchantmentTypeFlags statModType, ReaderWriterLockSlim rwLock)
+        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayerByStatModType(this ICollection<PropertiesEnchantmentRegistry> value, EnchantmentTypeFlags statModType, ReaderWriterLockSlim rwLock, HashSet<int> setSpells)
         {
             if (value == null)
                 return null;
@@ -177,7 +179,9 @@ namespace ACE.Entity.Models
                     group e by e.SpellCategory
                     into categories
                     //select categories.OrderByDescending(c => c.LayerId).First();
-                    select categories.OrderByDescending(c => c.PowerLevel).ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId)).First();
+                    select categories.OrderByDescending(c => c.PowerLevel)
+                        .ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId))
+                        .ThenByDescending(c => setSpells.Contains(c.SpellId) ? c.SpellId : c.StartTime).First();
 
                 return results.ToList();
             }
@@ -187,10 +191,16 @@ namespace ACE.Entity.Models
             }
         }
 
+        // todo: this is starting to get a bit messy here, EnchantmentTypeFlags handling should be more adaptable
+        // perhaps the enchantment registry in acclient should be investigated for reference logic
+        private static readonly EnchantmentTypeFlags MultiAttribute = EnchantmentTypeFlags.MultipleStat | EnchantmentTypeFlags.Attribute;
+
+        private static readonly EnchantmentTypeFlags MultiSkill = EnchantmentTypeFlags.MultipleStat | EnchantmentTypeFlags.Skill;
+
         /// <summary>
         /// Returns the top layers in each spell category for a StatMod type + key
         /// </summary>
-        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayerByStatModType(this ICollection<PropertiesEnchantmentRegistry> value, EnchantmentTypeFlags statModType, uint statModKey, ReaderWriterLockSlim rwLock)
+        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayerByStatModType(this ICollection<PropertiesEnchantmentRegistry> value, EnchantmentTypeFlags statModType, uint statModKey, ReaderWriterLockSlim rwLock, HashSet<int> setSpells, bool handleMultiple = false)
         {
             if (value == null)
                 return null;
@@ -198,13 +208,29 @@ namespace ACE.Entity.Models
             rwLock.EnterReadLock();
             try
             {
-                var valuesByStatModTypeAndKey = value.Where(e => (e.StatModType & statModType) == statModType && e.StatModKey == statModKey);
+                var multipleStat = EnchantmentTypeFlags.Undef;
+
+                if (handleMultiple)
+                {
+                    if (statModType == EnchantmentTypeFlags.Attribute)
+                        multipleStat = MultiAttribute;
+                    else if (statModType == EnchantmentTypeFlags.Skill)
+                        multipleStat = MultiSkill;
+                }
+
+                var valuesByStatModTypeAndKey = value.Where(e => (e.StatModType & statModType) == statModType && e.StatModKey == statModKey || (handleMultiple && (e.StatModType & multipleStat) == multipleStat && e.StatModKey == 0));
+
+                // 3rd spell id sort added for Gauntlet Damage Boost I / Gauntlet Damage Boost II, which is contained in multiple sets, and can overlap
+                // without this sorting criteria, it's already matched up to the client, but produces logically incorrect results for server spell stacking
+                // confirmed this bug still exists in acclient Enchantment.Duel(), unknown if it existed in retail server
 
                 var results = from e in valuesByStatModTypeAndKey
                     group e by e.SpellCategory
                     into categories
                     //select categories.OrderByDescending(c => c.LayerId).First();
-                    select categories.OrderByDescending(c => c.PowerLevel).ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId)).First();
+                    select categories.OrderByDescending(c => c.PowerLevel)
+                        .ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId))
+                        .ThenByDescending(c => setSpells.Contains(c.SpellId) ? c.SpellId : c.StartTime).First();
 
                 return results.ToList();
             }

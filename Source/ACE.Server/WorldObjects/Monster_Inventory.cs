@@ -37,7 +37,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<WorldObject> SelectWieldedClothing()
         {
-            var clothing = GetInventoryItemsOfTypeWeenieType(WeenieType.Clothing).Where(c => ((uint)(c.ClothingPriority ?? 0) & (uint)CoverageMaskHelper.Underwear) != 0).ToList();
+            var clothing = GetInventoryItemsOfTypeWeenieType(WeenieType.Clothing).Where(c => ((uint)(c.ClothingPriority ?? 0) & (uint)CoverageMaskHelper.Underwear) != 0 || ((uint)(c.ValidLocations ?? 0) & (uint)EquipMask.Cloak) != 0).ToList();
 
             if (clothing.Count == 0) return new List<WorldObject>();
 
@@ -77,12 +77,13 @@ namespace ACE.Server.WorldObjects
                     equipped.Add(item);
             }
 
-            var cloak = GetInventoryItemsOfTypeWeenieType(WeenieType.Clothing).Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)EquipMask.Cloak) != 0).FirstOrDefault();
-            if (cloak != null)
+            var cloaks = clothing.Where(c => ((uint)(c.ValidLocations ?? 0) & (uint)EquipMask.Cloak) != 0).ToList();
+            if (cloaks.Count > 0)
             {
-                TryRemoveFromInventory(cloak.Guid);
-                if (TryWieldObjectWithBroadcasting(cloak, cloak.ValidLocations ?? 0))
-                    equipped.Add(cloak);
+                var item = cloaks[0];
+                TryRemoveFromInventory(item.Guid);
+                if (TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0))
+                    equipped.Add(item);
             }
 
             return equipped;
@@ -183,6 +184,15 @@ namespace ACE.Server.WorldObjects
                     case WeenieType.Ammunition:
 
                         ammo.Add(item);
+                        break;
+
+                    default:
+
+                        // 6873 - Ulgrim the Unpleasant wields => 161 - Mug
+                        // 70995 - Ulgrim the Unquiet wields => 27808 - Great Elariwood Idol
+                        if (IsNPC && (item.ValidLocations & EquipMask.Selectable) != 0)
+                            allWeapons.Add(item);
+
                         break;
                 }
             }

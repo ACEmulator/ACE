@@ -105,7 +105,7 @@ namespace ACE.Server.WorldObjects
             var vitalCurrent = vital.Current;
             var vitalMax = vital.MaxValue;
 
-            if (vitalCurrent == vitalMax)
+            if (vitalCurrent == vitalMax && vital.RegenRate > 0)
                 return false;
 
             if (vitalCurrent > vitalMax)
@@ -140,16 +140,29 @@ namespace ACE.Server.WorldObjects
             var intTick = (int)totalTick;
             vital.PartialRegen = totalTick - intTick;
 
-            if (intTick > 0)
+            if (intTick != 0)
             {
                 //if (this is Player)
                     //Console.WriteLine($"VitalTick({vital.Vital.ToSentence()}): attributeMod={attributeMod}, stanceMod={stanceMod}, enchantmentMod={enchantmentMod}, regenRate={vital.RegenRate}, currentTick={currentTick}, totalTick={totalTick}, accumulated={vital.PartialRegen}");
 
                 UpdateVitalDelta(vital, intTick);
                 if (vital.Vital == PropertyAttribute2nd.MaxHealth)
-                    DamageHistory.OnHeal((uint)intTick);
+                {
+                    if (intTick > 0)
+                        DamageHistory.OnHeal((uint)intTick);
+                    else
+                    {
+                        DamageHistory.Add(this, DamageType.Health, (uint)Math.Abs(intTick));
 
-                return true;
+                        if (Health.Current <= 0)
+                        {
+                            OnDeath(DamageHistory.LastDamager, DamageType.Health);
+                            Die();
+                        }
+                    }
+
+                    return true;
+                }
             }
             return false;
         }

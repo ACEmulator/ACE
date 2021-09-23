@@ -37,7 +37,7 @@ namespace ACE.Server
         [DllImport("winmm.dll", EntryPoint = "timeEndPeriod")]
         public static extern uint MM_EndPeriod(uint uMilliseconds);
 
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static KestrelMetricServer metricServer;
         private static IDisposable collector;
@@ -46,6 +46,10 @@ namespace ACE.Server
 
         public static void Main(string[] args)
         {
+            var consoleTitle = $"ACEmulator - v{ServerBuildInfo.FullVersion}";
+
+            Console.Title = consoleTitle;
+
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
@@ -103,8 +107,8 @@ namespace ACE.Server
                 }
             }
 
-            var logRepository = LogManager.GetRepository(System.Reflection.Assembly.GetEntryAssembly());
-            XmlConfigurator.Configure(logRepository, log4netFileInfo);
+            var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
+            XmlConfigurator.ConfigureAndWatch(logRepository, log4netFileInfo);
 
             if (Environment.ProcessorCount < 2)
                 log.Warn("Only one vCPU was detected. ACE may run with limited performance. You should increase your vCPU count for anything more than a single player server.");
@@ -132,9 +136,7 @@ namespace ACE.Server
 
             if (IsRunningInContainer)
                 log.Info("ACEmulator is running in a container...");
-
-            Console.Title = @$"ACEmulator - v{ServerBuildInfo.FullVersion}";
-
+            
             var configFile = Path.Combine(exeLocation, "Config.js");
             var configConfigContainer = Path.Combine(containerConfigDirectory, "Config.js");
 
@@ -160,6 +162,12 @@ namespace ACE.Server
             log.Info("Initializing ConfigManager...");
             ConfigManager.Initialize();
 
+            if (ConfigManager.Config.Server.WorldName != "ACEmulator")
+            {
+                consoleTitle = $"{ConfigManager.Config.Server.WorldName} | {consoleTitle}";
+                Console.Title = consoleTitle;
+            }
+
             if (ConfigManager.Config.Offline.PurgeDeletedCharacters)
             {
                 log.Info($"Purging deleted characters, and their possessions, older than {ConfigManager.Config.Offline.PurgeDeletedCharactersDays} days ({DateTime.Now.AddDays(-ConfigManager.Config.Offline.PurgeDeletedCharactersDays)})...");
@@ -172,6 +180,27 @@ namespace ACE.Server
                 log.Info($"Purging orphaned biotas...");
                 ShardDatabaseOfflineTools.PurgeOrphanedBiotasInParallel(out var numberOfBiotasPurged);
                 log.Info($"Purged {numberOfBiotasPurged:N0} biotas.");
+            }
+
+            if (ConfigManager.Config.Offline.PruneDeletedCharactersFromFriendLists)
+            {
+                log.Info($"Pruning invalid friends from all friend lists...");
+                ShardDatabaseOfflineTools.PruneDeletedCharactersFromFriendLists(out var numberOfFriendsPruned);
+                log.Info($"Pruned {numberOfFriendsPruned:N0} invalid friends found on friend lists.");
+            }
+
+            if (ConfigManager.Config.Offline.PruneDeletedObjectsFromShortcutBars)
+            {
+                log.Info($"Pruning invalid shortcuts from all shortcut bars...");
+                ShardDatabaseOfflineTools.PruneDeletedObjectsFromShortcutBars(out var numberOfShortcutsPruned);
+                log.Info($"Pruned {numberOfShortcutsPruned:N0} deleted objects found on shortcut bars.");
+            }
+
+            if (ConfigManager.Config.Offline.PruneDeletedCharactersFromSquelchLists)
+            {
+                log.Info($"Pruning invalid squelches from all squelch lists...");
+                ShardDatabaseOfflineTools.PruneDeletedCharactersFromSquelchLists(out var numberOfSquelchesPruned);
+                log.Info($"Pruned {numberOfSquelchesPruned:N0} invalid squelched characters found on squelch lists.");
             }
 
             if (ConfigManager.Config.Offline.AutoUpdateWorldDatabase)
@@ -189,6 +218,11 @@ namespace ACE.Server
             else
                 log.Info($"AutoApplyDatabaseUpdates is disabled...");
 
+            // This should only be enabled manually. To enable it, simply uncomment this line
+            //ACE.Database.OfflineTools.Shard.BiotaGuidConsolidator.ConsolidateBiotaGuids(0xC0000000, out int numberOfBiotasConsolidated, out int numberOfErrors);
+
+            ShardDatabaseOfflineTools.CheckForBiotaPropertiesPaletteOrderColumnInShard();
+
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();
 
@@ -197,6 +231,13 @@ namespace ACE.Server
 
             log.Info("Initializing DatabaseManager...");
             DatabaseManager.Initialize();
+
+            if (DatabaseManager.InitializationFailure)
+            {
+                log.Fatal("DatabaseManager initialization failed. ACEmulator will now abort startup.");
+                ServerManager.StartupAbort();
+                Environment.Exit(0);
+            }
 
             log.Info("Starting DatabaseManager...");
             DatabaseManager.Start();
@@ -216,9 +257,9 @@ namespace ACE.Server
             if (ConfigManager.Config.Server.WorldDatabasePrecaching)
             {
                 log.Info("Precaching Weenies...");
-                DatabaseManager.World.CacheAllWeeniesInParallel();
+                DatabaseManager.World.CacheAllWeenies();
                 log.Info("Precaching Cookbooks...");
-                DatabaseManager.World.CacheAllCookbooksInParallel();
+                DatabaseManager.World.CacheAllCookbooks();
                 log.Info("Precaching Events...");
                 DatabaseManager.World.GetAllEvents();
                 log.Info("Precaching House Portals...");
@@ -230,13 +271,13 @@ namespace ACE.Server
                 log.Info("Precaching Treasures - Death...");
                 DatabaseManager.World.CacheAllTreasuresDeath();
                 log.Info("Precaching Treasures - Material Base...");
-                DatabaseManager.World.CacheAllTreasuresMaterialBaseInParallel();
+                DatabaseManager.World.CacheAllTreasureMaterialBase();
                 log.Info("Precaching Treasures - Material Groups...");
-                DatabaseManager.World.CacheAllTreasuresMaterialGroupsInParallel();
+                DatabaseManager.World.CacheAllTreasureMaterialGroups();
                 log.Info("Precaching Treasures - Material Colors...");
-                DatabaseManager.World.CacheAllTreasuresMaterialColorInParallel();
+                DatabaseManager.World.CacheAllTreasureMaterialColor();
                 log.Info("Precaching Treasures - Wielded...");
-                DatabaseManager.World.CacheAllTreasuresWieldedInParallel();
+                DatabaseManager.World.CacheAllTreasureWielded();
             }
             else
                 log.Info("Precaching World Database Disabled...");

@@ -12,7 +12,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        public List<WorldObject> GetCreateList(DestinationType type)
+        public List<WorldObject> GetCreateListForSlumLord(DestinationType type)
         {
             var items = new List<WorldObject>();
 
@@ -27,7 +27,12 @@ namespace ACE.Server.WorldObjects
                     wo.Shade = item.Shade;
 
                 if (item.StackSize > 0)
-                    wo.SetStackSize(item.StackSize);
+                {
+                    if (wo is Stackable)
+                        wo.SetStackSize(item.StackSize);
+                    else
+                        wo.StackSize = item.StackSize;  // item isn't a stackable object, but we want multiples of it while not displaying multiple single items in the profile. Munge stacksize to get us there.
+                }
 
                 items.Add(wo);
             }
@@ -48,13 +53,22 @@ namespace ACE.Server.WorldObjects
         {
             var wieldedTreasure = new List<WorldObject>();
 
-            var rng = ThreadSafeRandom.Next(0.0f, set.TotalProbability);
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
             var probability = 0.0f;
+            var rolled = false;
 
             foreach (var item in set.Items)
             {
+                if (probability >= 1.0f)
+                {
+                    probability = 0.0f;
+                    rolled = false;
+                }
                 probability += item.Item.Probability;
-                if (rng > probability) continue;
+
+                if (rng >= probability || rolled) continue;
+
+                rolled = true;
 
                 // item roll successful, spawn item in creature inventory
                 var wo = CreateWieldedTreasure(item.Item);
@@ -65,9 +79,8 @@ namespace ACE.Server.WorldObjects
                 // traverse into possible subsets
                 if (item.Subset != null)
                     wieldedTreasure.AddRange(GenerateWieldedTreasureSet(item.Subset));
-
-                break;
             }
+
             return wieldedTreasure;
         }
 

@@ -1,10 +1,14 @@
 using System;
 using System.Numerics;
 
+using log4net;
+
 using ACE.Entity;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
 using ACE.Server.Physics.Util;
+using ACE.Server.WorldObjects;
 
 using Position = ACE.Entity.Position;
 
@@ -12,6 +16,8 @@ namespace ACE.Server.Entity
 {
     public static class PositionExtensions
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public static Vector3 ToGlobal(this Position p, bool skipIndoors = true)
         {
             // TODO: Is this necessary? It seemed to be loading rogue physics landblocks. Commented out 2019-04 Mag-nus
@@ -293,6 +299,45 @@ namespace ACE.Server.Entity
         public static Physics.Common.Position PhysPosition(this Position pos)
         {
             return new Physics.Common.Position(pos.Cell, new Physics.Animation.AFrame(pos.Pos, pos.Rotation));
+        }
+
+
+        // differs from ac physics engine
+        public static readonly float RotationEpsilon = 0.0001f;
+
+        public static bool IsRotationValid(this Quaternion q)
+        {
+            if (q == Quaternion.Identity)
+                return true;
+
+            if (float.IsNaN(q.X) || float.IsNaN(q.Y) || float.IsNaN(q.Z) || float.IsNaN(q.W))
+                return false;
+
+            var length = q.Length();
+            if (float.IsNaN(length))
+                return false;
+
+            if (Math.Abs(1.0f - length) > RotationEpsilon)
+                return false;
+
+            return true;
+        }
+
+        public static bool AttemptToFixRotation(this Position pos, WorldObject wo, PositionType positionType)
+        {
+            log.Warn($"detected bad quaternion x y z w for {wo.Name} (0x{wo.Guid}) | WCID: {wo.WeenieClassId} | WeenieType: {wo.WeenieType} | PositionType: {positionType}");
+            log.Warn($"before fix: {pos.ToLOCString()}");
+
+            var normalized = Quaternion.Normalize(pos.Rotation);
+
+            var success = IsRotationValid(normalized);
+
+            if (success)
+                pos.Rotation = normalized;
+
+            log.Warn($" after fix: {pos.ToLOCString()}");
+
+            return success;
         }
     }
 }

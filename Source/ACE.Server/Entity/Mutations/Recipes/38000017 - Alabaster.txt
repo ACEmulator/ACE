@@ -1,0 +1,8 @@
+0x38000017 Mutation #1:
+
+Tier chances: 1
+
+    - Chance: 100%:
+        ArmorModVsPierce += 0.2
+        NumTimesTinkered (>= 1 ? add : set) 1
+

@@ -16,19 +16,22 @@ namespace ACE.Server.Network
         public BinaryReader DataReader { get; private set; }
         public PacketHeaderOptional HeaderOptional { get; } = new PacketHeaderOptional();
 
-        public bool Unpack(byte[] data)
+        /// <summary>
+        /// If you pass in a shared buffer, be sure to ReleaseBuffer() after you've processed the packet, and before you use the buffer again for the next job.
+        /// </summary>
+        public bool Unpack(byte[] buffer, int bufferSize)
         {
             try
             {
-                if (data.Length < PacketHeader.HeaderSize)
+                if (bufferSize < PacketHeader.HeaderSize)
                     return false;
 
-                Header.Unpack(data);
+                Header.Unpack(buffer);
 
-                if (Header.Size > data.Length - PacketHeader.HeaderSize)
+                if (Header.Size > bufferSize - PacketHeader.HeaderSize)
                     return false;
 
-                Data = new MemoryStream(data, PacketHeader.HeaderSize, Header.Size, false, true);
+                Data = new MemoryStream(buffer, PacketHeader.HeaderSize, Header.Size, false, true);
                 DataReader = new BinaryReader(Data);
                 HeaderOptional.Unpack(DataReader, Header);
 
@@ -70,6 +73,12 @@ namespace ACE.Server.Network
             }
 
             return true;
+        }
+
+        public void ReleaseBuffer()
+        {
+            Data = null;
+            DataReader = null;
         }
 
         private uint? _fragmentChecksum;
