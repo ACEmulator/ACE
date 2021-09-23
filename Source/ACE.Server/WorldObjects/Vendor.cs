@@ -5,6 +5,7 @@ using System.Linq;
 using log4net;
 
 using ACE.Common;
+using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -14,7 +15,6 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Managers;
-using ACE.Database;
 
 namespace ACE.Server.WorldObjects
 {
