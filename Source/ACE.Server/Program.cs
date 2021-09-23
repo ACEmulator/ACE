@@ -15,9 +15,6 @@ using ACE.Server.Command;
 using ACE.Server.Managers;
 using ACE.Server.Network.Managers;
 
-using Prometheus;
-using Prometheus.DotNetRuntime;
-
 namespace ACE.Server
 {
     partial class Program
@@ -38,10 +35,6 @@ namespace ACE.Server
         public static extern uint MM_EndPeriod(uint uMilliseconds);
 
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        //private static KestrelMetricServer metricServer;
-        private static MetricServer metricServer;
-        private static IDisposable collector;
 
         public static readonly bool IsRunningInContainer = Convert.ToBoolean(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"));
 
@@ -127,12 +120,6 @@ namespace ACE.Server
             {
                 log.Error(ex.ToString());
             }
-
-            //metricServer = new KestrelMetricServer(port: 9090);
-            //metricServer.Start();
-            metricServer = new MetricServer(hostname: "localhost", port: 1234);
-            metricServer.Start();
-            collector = DotNetRuntimeStatsBuilder.Default().StartCollecting();
 
             log.Info("Starting ACEmulator...");
 
@@ -315,6 +302,9 @@ namespace ACE.Server
             {
                 WorldManager.Open(null);
             }
+
+            log.Info("Initializing Metrics...");
+            InitMetrics();
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -351,7 +341,7 @@ namespace ACE.Server
                 DatabaseManager.Stop();
             }
 
-            collector.Dispose();
+            dotNetMetricsCollector.Dispose();
             metricServer.Stop();
         }
     }
