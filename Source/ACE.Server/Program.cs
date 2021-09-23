@@ -314,6 +314,8 @@ namespace ACE.Server
 
         private static void OnProcessExit(object sender, EventArgs e)
         {
+            ShutdownMetrics();
+
             if (!IsRunningInContainer)
             {
                 if (!ServerManager.ShutdownInitiated)
@@ -340,9 +342,6 @@ namespace ACE.Server
                 ServerManager.DoShutdownNow();
                 DatabaseManager.Stop();
             }
-
-            dotNetMetricsCollector.Dispose();
-            metricServer.Stop();
         }
     }
 }

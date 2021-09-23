@@ -1,9 +1,12 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 
 using ACE.Database;
+using ACE.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.Managers;
+using ACE.Server.Physics.Managers;
 using ACE.Server.WorldObjects;
 
 using Prometheus;
@@ -30,6 +33,8 @@ namespace ACE.Server
         private static readonly Gauge ace_PlayerManager_TotalCount = Metrics.CreateGauge("ace_PlayerManager_TotalCount", null, new GaugeConfiguration { SuppressInitialValue = true });
 
         private static readonly Gauge ace_DatabaseManager_AccountCount = Metrics.CreateGauge("ace_DatabaseManager_AccountCount", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_DatabaseManager_Shard_CachedPlayerBiotas = Metrics.CreateGauge("ace_DatabaseManager_Shard_CachedPlayerBiotas", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_DatabaseManager_Shard_CachedNonPlayerBiotas = Metrics.CreateGauge("ace_DatabaseManager_Shard_CachedNonPlayerBiotas", null, new GaugeConfiguration { SuppressInitialValue = true });
 
         private static readonly Gauge ace_LandblockManager_ActiveLandblocks = Metrics.CreateGauge("ace_LandblockManager_ActiveLandblocks", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_LandblockManager_DormantLandblocks = Metrics.CreateGauge("ace_LandblockManager_DormantLandblocks", null, new GaugeConfiguration { SuppressInitialValue = true });
@@ -42,19 +47,29 @@ namespace ACE.Server
         private static readonly Gauge ace_LandblockManager_Objects_Other = Metrics.CreateGauge("ace_LandblockManager_Objects_Other", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_LandblockManager_Objects_Total = Metrics.CreateGauge("ace_LandblockManager_Objects_Total", null, new GaugeConfiguration { SuppressInitialValue = true });
 
-        private static readonly Gauge ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Entire = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Entire", null, new GaugeConfiguration { SuppressInitialValue = true });
-        private static readonly Gauge ace_ServerPerformanceMonitor_1h_UpdateGameWorld_Entire = Metrics.CreateGauge("ace_ServerPerformanceMonitor_1h_UpdateGameWorld_Entire", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Entire_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Entire_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Entire_Longest = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Entire_Longest", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_ServerPerformanceMonitor_1h_UpdateGameWorld_Entire_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_1h_UpdateGameWorld_Entire_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
+
+        private static readonly Gauge ace_ServerObjectManager_ServerObjects = Metrics.CreateGauge("ace_ServerObjectManager_ServerObjects", null, new GaugeConfiguration { SuppressInitialValue = true });
 
         static void InitMetrics()
         {
             // https://github.com/prometheus-net/prometheus-net
             Metrics.DefaultRegistry.AddBeforeCollectCallback(MetricsAddBeforeCollectCallback);
 
-            metricServer = new MetricServer(hostname: "localhost", port: 1234);
+            metricServer = new MetricServer(hostname: "127.0.0.1", port: 1234);
             metricServer.Start();
 
             // https://github.com/djluck/prometheus-net.DotNetRuntime
             dotNetMetricsCollector = DotNetRuntimeStatsBuilder.Default().StartCollecting();
+        }
+
+        static void ShutdownMetrics()
+        {
+            dotNetMetricsCollector.Dispose();
+
+            metricServer.Stop();
         }
 
         static void MetricsAddBeforeCollectCallback()
@@ -74,6 +89,15 @@ namespace ACE.Server
             ace_PlayerManager_TotalCount.Set(PlayerManager.GetOfflineCount() + PlayerManager.GetOnlineCount());
 
             ace_DatabaseManager_AccountCount.Set(DatabaseManager.Authentication.GetAccountCount());
+            if (DatabaseManager.Shard.BaseDatabase is ShardDatabaseWithCaching shardDatabaseWithCaching)
+            {
+                var biotaIds = shardDatabaseWithCaching.GetBiotaCacheKeys();
+                var playerBiotaIds = biotaIds.Count(id => ObjectGuid.IsPlayer(id));
+                var nonPlayerBiotaIds = biotaIds.Count - playerBiotaIds;
+
+                ace_DatabaseManager_Shard_CachedPlayerBiotas.Set(playerBiotaIds);
+                ace_DatabaseManager_Shard_CachedNonPlayerBiotas.Set(nonPlayerBiotaIds);
+            }
 
             var loadedLandblocks = LandblockManager.GetLoadedLandblocks();
             int dormantLandblocks = 0, activeDungeonLandblocks = 0, dormantDungeonLandblocks = 0;
@@ -106,8 +130,8 @@ namespace ACE.Server
                 }
             }
             ace_LandblockManager_ActiveLandblocks.Set(loadedLandblocks.Count - dormantLandblocks);
-            ace_LandblockManager_DormantLandblocks.Set(activeDungeonLandblocks);
-            ace_LandblockManager_ActiveDungeons.Set(dormantLandblocks);
+            ace_LandblockManager_DormantLandblocks.Set(dormantLandblocks);
+            ace_LandblockManager_ActiveDungeons.Set(activeDungeonLandblocks);
             ace_LandblockManager_DormantDungeons.Set(dormantDungeonLandblocks);
             ace_LandblockManager_LandblockGroups.Set(LandblockManager.LandblockGroupsCount);
             ace_LandblockManager_Objects_Players.Set(players);
@@ -118,27 +142,25 @@ namespace ACE.Server
 
             if (ServerPerformanceMonitor.IsRunning)
             {
-                ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Entire.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration);
-                ace_ServerPerformanceMonitor_1h_UpdateGameWorld_Entire.Set(ServerPerformanceMonitor.GetEventHistory1h(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration);
+                ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Entire_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration);
+                ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Entire_Longest.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).LongestEvent);
+                ace_ServerPerformanceMonitor_1h_UpdateGameWorld_Entire_Average.Set(ServerPerformanceMonitor.GetEventHistory1h(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration);
             }
 
             /*
             sb.Append($"Threading - WorldThreadCount: {ConfigManager.Config.Server.Threading.LandblockManagerParallelOptions.MaxDegreeOfParallelism}, Multithread Physics: {ConfigManager.Config.Server.Threading.MultiThreadedLandblockGroupPhysicsTicking}, Multithread Non-Physics: {ConfigManager.Config.Server.Threading.MultiThreadedLandblockGroupTicking}, DatabaseThreadCount: {ConfigManager.Config.Server.Threading.DatabaseParallelOptions.MaxDegreeOfParallelism}{'\n'}");
 
             sb.Append($"Physics Cache Counts - BSPCache: {BSPCache.Count:N0}, GfxObjCache: {GfxObjCache.Count:N0}, PolygonCache: {PolygonCache.Count:N0}, VertexCache: {VertexCache.Count:N0}{'\n'}");
+            */
 
-            sb.Append($"Total Server Objects: {ServerObjectManager.ServerObjects.Count:N0}{'\n'}");
+            ace_ServerObjectManager_ServerObjects.Set(ServerObjectManager.ServerObjects.Count);
 
+            /*
             sb.Append($"World DB Cache Counts - Weenies: {DatabaseManager.World.GetWeenieCacheCount():N0}, LandblockInstances: {DatabaseManager.World.GetLandblockInstancesCacheCount():N0}, PointsOfInterest: {DatabaseManager.World.GetPointsOfInterestCacheCount():N0}, Cookbooks: {DatabaseManager.World.GetCookbookCacheCount():N0}, Spells: {DatabaseManager.World.GetSpellCacheCount():N0}, Encounters: {DatabaseManager.World.GetEncounterCacheCount():N0}, Events: {DatabaseManager.World.GetEventsCacheCount():N0}{'\n'}");
             sb.Append($"Shard DB Counts - Biotas: {DatabaseManager.Shard.BaseDatabase.GetBiotaCount():N0}{'\n'}");
-            if (DatabaseManager.Shard.BaseDatabase is ShardDatabaseWithCaching shardDatabaseWithCaching)
-            {
-                var biotaIds = shardDatabaseWithCaching.GetBiotaCacheKeys();
-                var playerBiotaIds = biotaIds.Count(id => ObjectGuid.IsPlayer(id));
-                var nonPlayerBiotaIds = biotaIds.Count - playerBiotaIds;
-                sb.Append($"Shard DB Cache Counts - Player Biotas: {playerBiotaIds} ~ {shardDatabaseWithCaching.PlayerBiotaRetentionTime.TotalMinutes:N0} m, Non Players {nonPlayerBiotaIds} ~ {shardDatabaseWithCaching.NonPlayerBiotaRetentionTime.TotalMinutes:N0} m{'\n'}");
-            }
+            */
 
+            /*
             sb.Append(GuidManager.GetDynamicGuidDebugInfo() + '\n');
 
             sb.Append($"Portal.dat has {DatManager.PortalDat.FileCache.Count:N0} files cached of {DatManager.PortalDat.AllFiles.Count:N0} total{'\n'}");
