@@ -39,7 +39,8 @@ namespace ACE.Server
 
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static KestrelMetricServer metricServer;
+        //private static KestrelMetricServer metricServer;
+        private static MetricServer metricServer;
         private static IDisposable collector;
 
         public static readonly bool IsRunningInContainer = Convert.ToBoolean(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"));
@@ -127,9 +128,10 @@ namespace ACE.Server
                 log.Error(ex.ToString());
             }
 
-            metricServer = new KestrelMetricServer(port: 9090);
+            //metricServer = new KestrelMetricServer(port: 9090);
+            //metricServer.Start();
+            metricServer = new MetricServer(hostname: "localhost", port: 1234);
             metricServer.Start();
-
             collector = DotNetRuntimeStatsBuilder.Default().StartCollecting();
 
             log.Info("Starting ACEmulator...");
