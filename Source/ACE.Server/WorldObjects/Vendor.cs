@@ -71,24 +71,53 @@ namespace ACE.Server.WorldObjects
                 GeneratorProfiles.RemoveAll(p => p.Biota.WhereCreate.HasFlag(RegenLocationType.Shop));
             }
 
+            OpenForBusiness = ValidateVendorRequirements();
+        }
+
+        private bool ValidateVendorRequirements()
+        {
+            var success = true;
+
             var currencyWCID = AlternateCurrency ?? (uint)ACE.Entity.Enum.WeenieClassName.W_COINSTACK_CLASS;
             var currencyWeenie = DatabaseManager.World.GetCachedWeenie(currencyWCID);
             if (currencyWeenie == null)
             {
-                var errorMsg = $"WCID {currencyWCID}{(AlternateCurrency.HasValue ? ", which comes from PropertyDataId.AlternateCurrency," : "")} is not found in the database, which will result in a server crash when this vendor is interacted with!";
+                var errorMsg = $"WCID {currencyWCID}{(AlternateCurrency.HasValue ? ", which comes from PropertyDataId.AlternateCurrency," : "")} is not found in the database, Vendor has been disabled as a result!";
                 log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) Currency {errorMsg}");
+                success = false;
             }
 
             if (!MerchandiseItemTypes.HasValue)
-                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) MerchandiseItemTypes is NULL which will result in a server crash when this vendor is interacted with!");
+            {
+                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) MerchandiseItemTypes is NULL, Vendor has been disabled as a result!");
+                success = false;
+            }
+
             if (!MerchandiseMinValue.HasValue)
-                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) MerchandiseMinValue is NULL which will result in a server crash when this vendor is interacted with!");
+            {
+                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) MerchandiseMinValue is NULL, Vendor has been disabled as a result!");
+                success = false;
+            }
+
             if (!MerchandiseMaxValue.HasValue)
-                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) MerchandiseMaxValue is NULL which will result in a server crash when this vendor is interacted with!");
+            {
+                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) MerchandiseMaxValue is NULL, Vendor has been disabled as a result!");
+                success = false;
+            }
+
             if (!BuyPrice.HasValue)
-                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) BuyPrice is NULL which will result in a server crash when this vendor is interacted with!");
+            {
+                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) BuyPrice is NULL, Vendor has been disabled as a result!");
+                success = false;
+            }
+
             if (!SellPrice.HasValue)
-                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) SellPrice is NULL which will result in a server crash when this vendor is interacted with!");
+            {
+                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) SellPrice is NULL, Vendor has been disabled as a result!");
+                success = false;
+            }
+
+            return success;
         }
 
         /// <summary>
@@ -201,6 +230,11 @@ namespace ACE.Server.WorldObjects
         {
             var player = wo as Player;
             if (player == null) return;
+
+            if (!OpenForBusiness || !ValidateVendorRequirements())
+            {
+                return;
+            }
 
             var rotateTime = Rotate(player);    // vendor rotates towards player
 
@@ -651,7 +685,7 @@ namespace ACE.Server.WorldObjects
         public bool OpenForBusiness
         {
             get => GetProperty(PropertyBool.OpenForBusiness) ?? true;
-            set { if (!value) RemoveProperty(PropertyBool.OpenForBusiness); else SetProperty(PropertyBool.OpenForBusiness, value); }
+            set { if (value) RemoveProperty(PropertyBool.OpenForBusiness); else SetProperty(PropertyBool.OpenForBusiness, value); }
         }
 
         public int? MerchandiseItemTypes
