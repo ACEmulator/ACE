@@ -233,6 +233,7 @@ namespace ACE.Server.WorldObjects
 
             if (!OpenForBusiness || !ValidateVendorRequirements())
             {
+                // should there be some sort of feedback to player here?
                 return;
             }
 
@@ -495,11 +496,7 @@ namespace ACE.Server.WorldObjects
 
             foreach (var item in purchaseItems)
             {
-                var sellRate = SellPrice ?? 1.0;
-                if (item.ItemType == ItemType.PromissoryNote)
-                    sellRate = 1.15;
-
-                var cost = Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (item.Value ?? 0)) - 0.1));
+                var cost = GetSellCost(item);
 
                 // detect rollover?
                 totalPrice += cost;
@@ -533,20 +530,40 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+        public uint GetSellCost(WorldObject item) => GetSellCost(item.Value, item.ItemType);
+
+        public uint GetSellCost(Weenie item) => GetSellCost(item.GetValue(), item.GetItemType());
+
+        private uint GetSellCost(int? value, ItemType? itemType)
+        {
+            var sellRate = SellPrice ?? 1.0;
+            if (itemType == ItemType.PromissoryNote)
+                sellRate = 1.15;
+
+            var cost = Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (value ?? 0)) - 0.1));
+            return cost;
+        }
+
+        public int GetBuyCost(WorldObject item) => GetBuyCost(item.Value, item.ItemType);
+
+        public int GetBuyCost(Weenie item) => GetBuyCost(item.GetValue(), item.GetItemType());
+
+        private int GetBuyCost(int? value, ItemType? itemType)
+        {
+            var buyRate = BuyPrice ?? 1;
+            if (itemType == ItemType.PromissoryNote)
+                buyRate = 1.0;
+
+            var cost = Math.Max(1, (int)Math.Floor(((float)buyRate * (value ?? 0)) + 0.1));
+            return cost;
+        }
+
         public int CalculatePayoutCoinAmount(Dictionary<uint, WorldObject> items)
         {
             var payout = 0;
 
             foreach (WorldObject item in items.Values)
-            {
-                var buyRate = BuyPrice ?? 1;
-
-                if (item.ItemType == ItemType.PromissoryNote)
-                    buyRate = 1.0;
-
-                // payout scaled by the vendor's buy rate
-                payout += Math.Max(1, (int)Math.Floor(((float)buyRate * (item.Value ?? 0)) + 0.1));
-            }
+                payout += GetBuyCost(item);
 
             return payout;
         }
