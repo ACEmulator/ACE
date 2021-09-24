@@ -1094,7 +1094,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// If one of these fields is set, potential aggro from monster alerts terminates immediately
         /// </summary>
-        protected static readonly Tolerance AlertExclude = Tolerance.NoAttack | Tolerance.Provoke | Tolerance.Target;
+        protected static readonly Tolerance AlertExclude = Tolerance.NoAttack | Tolerance.Provoke;
 
         /// <summary>
         /// Wakes up a monster if it can be alerted
