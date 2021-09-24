@@ -180,6 +180,12 @@ namespace ACE.Server.WorldObjects
             var player = wo as Player;
             if (player == null) return;
 
+            if (player.IsBusy)
+            {
+                player.SendWeenieError(WeenieError.YoureTooBusy);
+                return;
+            }
+
             var rotateTime = Rotate(player);    // vendor rotates towards player
 
             // TODO: remove this when DelayManager is not forward propagating current tick time
