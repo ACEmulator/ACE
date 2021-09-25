@@ -440,6 +440,9 @@ namespace ACE.Server.WorldObjects
                 if (nearbyCreature == null || nearbyCreature.IsAwake || !nearbyCreature.Attackable && nearbyCreature.TargetingTactic == TargetingTactic.None)
                     continue;
 
+                if ((nearbyCreature.Tolerance & AlertExclude) != 0)
+                    continue;
+
                 if (CreatureType != null && CreatureType == nearbyCreature.CreatureType ||
                       FriendType != null && FriendType == nearbyCreature.CreatureType)
                 {

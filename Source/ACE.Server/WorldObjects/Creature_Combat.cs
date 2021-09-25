@@ -1092,6 +1092,11 @@ namespace ACE.Server.WorldObjects
         protected static readonly Tolerance PlayerCombatPet_RetaliateExclude = Tolerance.NoAttack | Tolerance.Monster;
 
         /// <summary>
+        /// If one of these fields is set, potential aggro from monster alerts terminates immediately
+        /// </summary>
+        protected static readonly Tolerance AlertExclude = Tolerance.NoAttack | Tolerance.Provoke;
+
+        /// <summary>
         /// Wakes up a monster if it can be alerted
         /// </summary>
         public bool AlertMonster(Creature monster)
