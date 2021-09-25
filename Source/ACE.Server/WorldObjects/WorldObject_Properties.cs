@@ -3053,6 +3053,12 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt.ImbuedEffect); else SetProperty(PropertyInt.ImbuedEffect, (int)value); }
         }
 
+        public bool DontTurnOrMoveWhenGiving
+        {
+            get => GetProperty(PropertyBool.DontTurnOrMoveWhenGiving) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.DontTurnOrMoveWhenGiving); else SetProperty(PropertyBool.DontTurnOrMoveWhenGiving, value); }
+        }
+
         /// <summary>
         /// For items sold by vendors, StackSize of shop item profile from Vendor's CreateList.
         /// This value is only set by Vendor.LoadInventoryItem, and is almost always -1 which means the item has no supply limits per transaction.

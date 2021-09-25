@@ -231,6 +231,12 @@ namespace ACE.Server.WorldObjects
             var player = wo as Player;
             if (player == null) return;
 
+            if (player.IsBusy)
+            {
+                player.SendWeenieError(WeenieError.YoureTooBusy);
+                return;
+            }
+
             if (!OpenForBusiness || !ValidateVendorRequirements())
             {
                 // should there be some sort of feedback to player here?
