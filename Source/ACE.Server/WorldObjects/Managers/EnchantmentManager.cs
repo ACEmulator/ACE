@@ -1311,6 +1311,13 @@ namespace ACE.Server.WorldObjects.Managers
 
                 var damageResistRatingMod = creature.GetDamageResistRatingMod(CombatType.Magic, useNetherDotDamageRating);   // df?
 
+                if (sourcePlayer != null && targetPlayer != null)
+                {
+                    var pkDamageResistRatingMod = Creature.GetNegativeRatingMod(targetPlayer.GetPKDamageResistRating());
+
+                    damageResistRatingMod = Creature.AdditiveCombine(damageResistRatingMod, pkDamageResistRatingMod);
+                }
+
                 var dotResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDotResistanceRating());  // should this be here, or somewhere else?
                                                                                                             // should this affect NetherDotDamageRating?
 

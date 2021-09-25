@@ -176,76 +176,48 @@ namespace ACE.Server.WorldObjects
 
         public bool HandleUseCreateItem(Player player)
         {
-            var playerFreeInventorySlots = player.GetFreeInventorySlots();
-            var playerFreeContainerSlots = player.GetFreeContainerSlots();
-            var playerAvailableBurden = player.GetAvailableBurden();
-
-            var playerOutOfInventorySlots = false;
-            var playerOutOfContainerSlots = false;
-            var playerExceedsAvailableBurden = false;
-
             var amount = UseCreateQuantity ?? 1;
 
-            var itemStacks = player.PreCheckItem(UseCreateItem.Value, amount, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemRequiresBackpackSlot);
+            var itemsToReceive = new ItemsToReceive(player);
 
-            if (itemRequiresBackpackSlot)
+            itemsToReceive.Add(UseCreateItem.Value, amount);
+
+            if (itemsToReceive.PlayerExceedsLimits)
             {
-                playerFreeContainerSlots -= itemStacks;
-                playerAvailableBurden -= itemEncumberance;
-
-                playerOutOfContainerSlots = playerFreeContainerSlots < 0;
-            }
-            else
-            {
-                playerFreeInventorySlots -= itemStacks;
-                playerAvailableBurden -= itemEncumberance;
-
-                playerOutOfInventorySlots = playerFreeInventorySlots < 0;
-            }
-
-            playerExceedsAvailableBurden = playerAvailableBurden < 0;
-
-            if (playerOutOfInventorySlots || playerOutOfContainerSlots || playerExceedsAvailableBurden)
-            {
-                if (playerExceedsAvailableBurden)
+                if (itemsToReceive.PlayerExceedsAvailableBurden)
                     player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You are too encumbered to use that!"));
-                else if (playerOutOfInventorySlots)
+                else if (itemsToReceive.PlayerOutOfInventorySlots)
                     player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough pack space to use that!"));
-                else //if (playerOutOfContainerSlots)
+                else if (itemsToReceive.PlayerOutOfContainerSlots)
                     player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough container slots to use that!"));
 
                 return false;
             }
 
-            if (itemStacks > 0)
+            if (itemsToReceive.RequiredInventorySlots > 0)
             {
-                while (amount > 0)
+                var remaining = amount;
+
+                while (remaining > 0)
                 {
                     var item = WorldObjectFactory.CreateNewWorldObject(UseCreateItem.Value);
 
                     if (item is Stackable)
                     {
-                        // amount contains a max stack
-                        if (item.MaxStackSize <= amount)
-                        {
-                            item.SetStackSize(item.MaxStackSize);
-                            amount -= item.MaxStackSize.Value;
-                        }
-                        else // not a full stack
-                        {
-                            item.SetStackSize(amount);
-                            amount -= amount;
-                        }
+                        var stackSize = Math.Min(remaining, item.MaxStackSize ?? 1);
+
+                        item.SetStackSize(stackSize);
+                        remaining -= stackSize;
                     }
                     else
-                        amount -= 1;
+                        remaining--;
 
                     player.TryCreateInInventoryWithNetworking(item);
                 }
             }
             else
             {
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"Unable to use {Name} at this time!"));
+                player.SendTransientError($"Unable to use {Name} at this time!");
                 return false;
             }
             return true;

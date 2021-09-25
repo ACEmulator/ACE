@@ -43,7 +43,6 @@ namespace ACE.Server.WorldObjects
             return results;
         }
 
-
         public int GetEncumbranceCapacity()
         {
             var strength = Attributes[PropertyAttribute.Strength].Current;
@@ -543,7 +542,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (lastOpenedContainer is Vendor lastUsedVendor)
                     {
-                        if (lastUsedVendor.AllItemsForSale.TryGetValue(objectGuid, out result))
+                        if (lastUsedVendor.TryGetItemForSale(objectGuid, out result))
                         {
                             rootOwner = lastUsedVendor;
                             return result;
@@ -1750,15 +1749,17 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="item">The weapon we are attempting to equip</param>
         /// <returns>True if the items were successfuly remove and the new item can attempt to be equipped, otherwise false</returns>
-        private bool CheckWeaponCollision(WorldObject item = null, EquipMask? wieldedLocation = null)
+        private bool CheckWeaponCollision(WorldObject item = null, EquipMask? wieldedLocation = null, CombatMode? combatMode = null)
         {
             // Client actually allows these equip scenarios:
             // Shield with a Two-Handed weapon.
 
+            combatMode = combatMode ?? CombatMode;
 
             WorldObject offhand, mainhand, ammo;
             if (item != null && wieldedLocation != null)
             {
+                // Equipping a new item
                 switch (wieldedLocation)
                 {
                     case EquipMask.Shield:
@@ -1848,10 +1849,41 @@ namespace ACE.Server.WorldObjects
                             return false;
                         }
                         break;
+
+                    case EquipMask.Held:
+                        // Should not have any items in offhand slot for casters only
+                        if (item.IsCaster)
+                        {
+                            offhand = GetEquippedOffHand();
+                            if (offhand != null)
+                            {
+                                log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}) in slot {wieldedLocation}, which conflicts with '{offhand.Name}'");
+                                return false;
+                            }
+                        }
+
+                        // Should not have any items still in mainhand slot
+                        mainhand = GetEquippedMainHand();
+                        if (mainhand != null)
+                        {
+                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}) in slot {wieldedLocation}, which conflicts with '{mainhand.Name}'");
+                            return false;
+                        }
+
+                        // items such as 23307 - Ball of Gunk have EquipMask.Held and no DefaultCombatMode
+                        // can only be wielded in NonCombat mode
+                        if (combatMode != CombatMode.NonCombat && item.DefaultCombatStyle == null)
+                        {
+                            log.Warn($"'{Name}' tried to wield '{item.Name}' ({item.Guid}) in slot {wieldedLocation}, which conflicts with {combatMode} combat mode");
+                            return false;
+                        }
+                        break;
                 }
             }
             else
             {
+                // changing combat mode
+
                 // Just do a quick sanity check to ensure the player isn't wielding two weapons they shouldn't
                 mainhand = GetEquippedMainHand();
                 offhand = GetEquippedOffHand();
@@ -1878,6 +1910,17 @@ namespace ACE.Server.WorldObjects
                             log.Warn($"'{Name}' is illegally wielding '{mainhand.Name}' ({mainhand.Guid}) with ammo {ammo.Name}' ({ammo.AmmoType})");
                             return false;
                         }
+                    }
+
+                    // items such as 23307 - Ball of Gunk have EquipMask.Held and no DefaultCombatMode
+                    // they can be placed in main hand in NonCombat mode, but trying to wield them in combat mode results in the client-side error
+                    // 'You can't enter combat mode while wielding the <item>'
+                    // however, this client-side check can be bypassed with vtank
+
+                    if (mainhand.DefaultCombatStyle == null)
+                    {
+                        log.Warn($"'{Name}' is illegally wielding '{mainhand.Name}' ({mainhand.Guid}) in {combatMode} combat mode");
+                        return false;
                     }
                 }
             }
@@ -3257,46 +3300,26 @@ namespace ACE.Server.WorldObjects
             if (emoter is null || weenieClassId == 0)
             {
                 log.Warn($"Player.GiveFromEmote: Emoter is null: {emoter is null} | weenieClassId == 0: {weenieClassId == 0}");
+
                 if (emoter != null)
                     log.Warn($"Player.GiveFromEmote: Emoter is {emoter.Name} (0x{emoter.Guid}) | WCID: {emoter.WeenieClassId}");
+
                 return;
             }
+            var itemsToReceive = new ItemsToReceive(this);
 
-            var playerFreeInventorySlots = GetFreeInventorySlots();
-            var playerFreeContainerSlots = GetFreeContainerSlots();
-            var playerAvailableBurden = GetAvailableBurden();
+            itemsToReceive.Add(weenieClassId, amount);
 
-            var playerOutOfInventorySlots = false;
-            var playerOutOfContainerSlots = false;
-            var playerExceedsAvailableBurden = false;
+            var itemStacks = itemsToReceive.RequiredInventorySlots;
 
-            var itemStacks = PreCheckItem(weenieClassId, amount, playerFreeContainerSlots, playerFreeInventorySlots, playerAvailableBurden, out var itemEncumberance, out bool itemRequiresBackpackSlot);
-
-            if (itemRequiresBackpackSlot)
+            if (itemsToReceive.PlayerExceedsLimits)
             {
-                playerFreeContainerSlots -= itemStacks;
-                playerAvailableBurden -= itemEncumberance;
-
-                playerOutOfContainerSlots = playerFreeContainerSlots < 0;
-            }
-            else
-            {
-                playerFreeInventorySlots -= itemStacks;
-                playerAvailableBurden -= itemEncumberance;
-
-                playerOutOfInventorySlots = playerFreeInventorySlots < 0;
-            }
-
-            playerExceedsAvailableBurden = playerAvailableBurden < 0;
-
-            if (playerOutOfInventorySlots || playerOutOfContainerSlots || playerExceedsAvailableBurden)
-            {
-                //if (playerExceedsAvailableBurden)
-                //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You are too encumbered to use that!"));
-                //else if (playerOutOfInventorySlots)
-                //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough pack space to use that!"));
-                //else //if (playerOutOfContainerSlots)
-                //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough container slots to use that!"));
+                //if (itemsToReceive.PlayerExceedsAvailableBurden)
+                //    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to use that!"));
+                //else if (itemsToReceive.PlayerOutOfInventorySlots)
+                //    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You do not have enough pack space to use that!"));
+                //else if (itemsToReceive.PlayerOutOfContainerSlots)
+                //    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You do not have enough container slots to use that!"));
 
                 // Font of Enlightenment and Rebirth tries to give you Attribute Reset Certificate.
                 var itemBeingGiven = DatabaseManager.World.GetCachedWeenie(weenieClassId);
@@ -3308,26 +3331,21 @@ namespace ACE.Server.WorldObjects
 
             if (itemStacks > 0)
             {
-                while (amount > 0)
+                var remaining = amount;
+
+                while (remaining > 0)
                 {
                     var item = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
 
                     if (item is Stackable)
                     {
-                        // amount contains a max stack
-                        if (item.MaxStackSize <= amount)
-                        {
-                            item.SetStackSize(item.MaxStackSize);
-                            amount -= item.MaxStackSize.Value;
-                        }
-                        else // not a full stack
-                        {
-                            item.SetStackSize(amount);
-                            amount -= amount;
-                        }
+                        var stackSize = Math.Min(remaining, item.MaxStackSize ?? 1);
+
+                        item.SetStackSize(stackSize);
+                        remaining -= stackSize;
                     }
                     else
-                        amount -= 1;
+                        remaining--;
 
                     if (palette > 0)
                         item.PaletteTemplate = palette;
@@ -3375,12 +3393,20 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+        public bool CheckUniques(WorldObject obj, WorldObject giver = null)
+        {
+            return CheckUniques(new List<WorldObject>() { obj }, giver);
+        }
+
         /// <summary>
         /// Verifies a player can pick up an object that is unique,
         /// or contains uniques.
-        public bool CheckUniques(WorldObject obj, WorldObject giver = null)
+        public bool CheckUniques(List<WorldObject> objs, WorldObject giver = null)
         {
-            var uniqueObjects = obj.GetUniqueObjects();
+            var uniqueObjects = new List<WorldObject>();
+
+            foreach (var obj in objs)
+                uniqueObjects.AddRange(obj.GetUniqueObjects());
 
             // build dictionary of wcid => count
             var uniqueTable = new UniqueTable(uniqueObjects);
