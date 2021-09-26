@@ -134,6 +134,20 @@ namespace ACE.Entity.Models
             return pluralName;
         }
 
+        public static ItemType GetItemType(this Weenie weenie)
+        {
+            var itemType = weenie.GetProperty(PropertyInt.ItemType) ?? 0;
+
+            return (ItemType)itemType;
+        }
+
+        public static int? GetValue(this Weenie weenie)
+        {
+            var value = weenie.GetProperty(PropertyInt.Value);
+
+            return value;
+        }
+
         public static bool IsStackable(this Weenie weenie)
         {
             switch (weenie.WeenieType)
