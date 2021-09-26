@@ -132,11 +132,11 @@ namespace ACE.Server.WorldObjects
             foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Shop))
                 LoadInventoryItem(itemsForSale, item.WeenieClassId, item.Palette, item.Shade, item.StackSize);
 
-            if (Biota.PropertiesGenerator != null && !PropertyManager.GetBool("vendor_shop_uses_generator").Item)
-            {
-                foreach (var item in Biota.PropertiesGenerator.Where(x => x.WhereCreate.HasFlag(RegenLocationType.Shop)))
-                    LoadInventoryItem(itemsForSale, item.WeenieClassId, (int?)item.PaletteId, item.Shade, item.StackSize);
-            }
+            //if (Biota.PropertiesGenerator != null && !PropertyManager.GetBool("vendor_shop_uses_generator").Item)
+            //{
+            //    foreach (var item in Biota.PropertiesGenerator.Where(x => x.WhereCreate.HasFlag(RegenLocationType.Shop)))
+            //        LoadInventoryItem(itemsForSale, item.WeenieClassId, (int?)item.PaletteId, item.Shade, item.StackSize);
+            //}
 
             inventoryloaded = true;
         }
@@ -144,11 +144,11 @@ namespace ACE.Server.WorldObjects
         private void LoadInventoryItem(Dictionary<(uint weenieClassId, int paletteTemplate, double shade), uint> itemsForSale,
             uint weenieClassId, int? palette, float? shade, int? stackSize)
         {
-            var itemProfile = (weenieClassId, palette ?? 0, shade ?? 0);
+            //var itemProfile = (weenieClassId, palette ?? 0, shade ?? 0);
 
             // let's skip dupes if there are any
-            if (itemsForSale.ContainsKey(itemProfile))
-                return;
+            //if (itemsForSale.ContainsKey(itemProfile))
+            //    return;
 
             var wo = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
 
@@ -164,7 +164,7 @@ namespace ACE.Server.WorldObjects
 
             wo.CalculateObjDesc();
 
-            itemsForSale.Add(itemProfile, wo.Guid.Full);
+            //itemsForSale.Add(itemProfile, wo.Guid.Full);
 
             wo.VendorShopCreateListStackSize = stackSize ?? -1;
 
