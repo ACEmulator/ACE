@@ -3769,7 +3769,7 @@ namespace ACE.Server.Command.Handlers
                         msg += $"Currency: ";
                         if (currencyWeenie != null)
                         {
-                            msg += $"{currencyWeenie.GetPluralName()} (WCID: {currencyWCID}){(vendor.AlternateCurrency.HasValue ? "| AlternateCurrency" : "")}\n";
+                            msg += $"{currencyWeenie.GetPluralName()} (WCID: {currencyWCID}){(vendor.AlternateCurrency.HasValue ? " | AlternateCurrency" : "")}\n";
                         }
                         else
                         {
@@ -3790,11 +3790,11 @@ namespace ACE.Server.Command.Handlers
                         msg += $"VendorHappyVariance: {(vendor.VendorHappyVariance.HasValue ? $"{vendor.VendorHappyVariance}" : "NULL")}\n";
                         msg += $"VendorHappyMaxItems: {(vendor.VendorHappyMaxItems.HasValue ? $"{vendor.VendorHappyMaxItems}" : "NULL")}\n";
 
-                        msg += $"MoneyIncome: {vendor.MoneyIncome:N0} {(vendor.MoneyIncome == 1 ? currencyWeenie.GetName() : currencyWeenie.GetPluralName())}\n";
+                        msg += $"MoneyOutflow: {vendor.MoneyOutflow:N0} {(vendor.MoneyOutflow == 1 ? currencyWeenie.GetName() : currencyWeenie.GetPluralName())}\n";
                         msg += $"NumItemsBought: {vendor.NumItemsBought:N0}\n";
                         msg += $"NumItemsSold: {vendor.NumItemsSold:N0}\n";
                         msg += $"NumServicesSold: {vendor.NumServicesSold:N0}\n";
-                        msg += $"MoneyOutflow: {vendor.MoneyOutflow:N0} {(vendor.MoneyOutflow == 1 ? currencyWeenie.GetName() : currencyWeenie.GetPluralName())}\n";
+                        msg += $"MoneyIncome: {vendor.MoneyIncome:N0} {(vendor.MoneyIncome == 1 ? currencyWeenie.GetName() : currencyWeenie.GetPluralName())}\n";
                     }
 
                     if (all || createList)
