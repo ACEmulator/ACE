@@ -27,9 +27,11 @@ namespace ACE.Server.Network.Enum
 
     public static class ResistMaskHelper
     {
-        public static ResistMask GetHighlightMask(WorldObject wielder, WorldObject weapon = null)
+        public static ResistMask GetHighlightMask(WorldObject weapon)
         {
             ResistMask highlightMask = 0;
+
+            var wielder = weapon.Wielder;
 
             if (wielder != null)
             {
@@ -74,9 +76,11 @@ namespace ACE.Server.Network.Enum
             return highlightMask;
         }
 
-        public static ResistMask GetColorMask(WorldObject wielder, WorldObject weapon = null)
+        public static ResistMask GetColorMask(WorldObject weapon)
         {
             ResistMask colorMask = 0;
+
+            var wielder = weapon.Wielder;
 
             if (wielder != null)
             {
