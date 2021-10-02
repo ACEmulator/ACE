@@ -27,7 +27,7 @@ namespace ACE.Server.WorldObjects
 
         public bool HasItem => Inventory != null && Inventory.Count > 0;
 
-        public WorldObject Item => Inventory != null ? Inventory.Values.FirstOrDefault() : null;
+        public WorldObject Item => Inventory?.Values.FirstOrDefault();
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -62,7 +62,7 @@ namespace ACE.Server.WorldObjects
             var rootHouse = House.RootHouse;
             var houseOwner = rootHouse.HouseOwner;
 
-            var houseHooksVisible = rootHouse.HouseHooksVisible ?? true;
+            var houseHooksVisible = rootHouse?.HouseHooksVisible ?? true;
 
             if (!houseHooksVisible)
             {
@@ -93,7 +93,7 @@ namespace ACE.Server.WorldObjects
 
         public override void ActOnUse(WorldObject wo)
         {
-            if (!(House.RootHouse.HouseHooksVisible ?? true) && Item != null)
+            if (!(House?.RootHouse?.HouseHooksVisible ?? true) && Item != null)
             {
                 if (wo is Player player)
                     player.LasUsedHookId = Guid;
@@ -109,7 +109,7 @@ namespace ACE.Server.WorldObjects
 
         protected override void OnInitialInventoryLoadCompleted()
         {
-            var hidden = !(House.RootHouse.HouseHooksVisible ?? true);
+            var hidden = !(House?.RootHouse?.HouseHooksVisible ?? true);
 
             Ethereal = !HasItem;
             if (!HasItem)
@@ -236,7 +236,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!HasItem)
             {
-                if (!(House.HouseHooksVisible ?? false))
+                if (!(House?.RootHouse?.HouseHooksVisible ?? false))
                 {
                     NoDraw = true;
                     UiHidden = true;
