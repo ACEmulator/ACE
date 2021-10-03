@@ -59,8 +59,8 @@ namespace ACE.Server.WorldObjects
             if (player.IgnoreHouseBarriers)
                 return new ActivationResult(true);
 
-            var rootHouse = House.RootHouse;
-            var houseOwner = rootHouse.HouseOwner;
+            var rootHouse = House?.RootHouse;
+            var houseOwner = rootHouse?.HouseOwner;
 
             var houseHooksVisible = rootHouse?.HouseHooksVisible ?? true;
 
