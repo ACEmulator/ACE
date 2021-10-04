@@ -105,7 +105,7 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
             ephemeralPropertyInts.TryAdd(PropertyInt.EncumbranceVal, EncumbranceVal ?? 0); // Containers are init at 0 burden or their initial value from database. As inventory/equipment is added the burden will be increased
-            if (!(this is Creature)) // Creatures do not have a value
+            if (!(this is Creature) && !(this is Corpse)) // Creatures/Corpses do not have a value
                 ephemeralPropertyInts.TryAdd(PropertyInt.Value, Value ?? 0);
 
             //CurrentMotionState = motionStateClosed; // What container defaults to open?
