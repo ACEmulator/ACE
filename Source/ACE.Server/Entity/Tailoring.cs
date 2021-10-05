@@ -532,6 +532,9 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyFloat.Shade3, source.Shade3);
             player.UpdateProperty(target, PropertyFloat.Shade4, source.Shade4);
 
+            player.UpdateProperty(target, PropertyBool.LightsStatus, source.LightsStatus);
+            player.UpdateProperty(target, PropertyFloat.Translucency, source.Translucency);
+
             player.UpdateProperty(target, PropertyDataId.Setup, source.SetupTableId);
             player.UpdateProperty(target, PropertyDataId.ClothingBase, source.ClothingBase);
             player.UpdateProperty(target, PropertyDataId.PaletteBase, source.PaletteBaseId);
@@ -567,8 +570,6 @@ namespace ACE.Server.Entity
 
             player.UpdateProperty(target, PropertyInt.HookType, source.HookType);
             player.UpdateProperty(target, PropertyInt.HookPlacement, source.HookPlacement);
-            player.UpdateProperty(target, PropertyBool.LightsStatus, source.LightsStatus);
-            player.UpdateProperty(target, PropertyFloat.Translucency, source.Translucency);
         }
 
         public static uint? GetArmorWCID(EquipMask validLocations)
