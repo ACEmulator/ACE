@@ -222,6 +222,9 @@ namespace ACE.Server.Entity
             target.Shade3 = source.Shade3;
             target.Shade4 = source.Shade4;
 
+            target.LightsStatus = source.LightsStatus;
+            target.Translucency = source.Translucency;
+
             target.SetupTableId = source.SetupTableId;
             target.PaletteBaseId = source.PaletteBaseId;
             target.ClothingBase = source.ClothingBase;
@@ -267,8 +270,6 @@ namespace ACE.Server.Entity
 
             target.HookType = source.HookType;
             target.HookPlacement = source.HookPlacement;
-            target.LightsStatus = source.LightsStatus;
-            target.Translucency = source.Translucency;
 
             // These values are all set just for verification purposes. Likely originally handled by unique WCID and recipe system.
             if (source is MeleeWeapon)
