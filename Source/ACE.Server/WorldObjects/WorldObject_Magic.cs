@@ -1827,7 +1827,7 @@ namespace ACE.Server.WorldObjects
 
             if (playerTarget != null && playerTarget != this && !playerTarget.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic) && !cloakProc)
             {
-                var targetName = target == playerTarget ? "you" : target.Name;
+                var targetName = target == playerTarget ? "you" : $"your {target.Name}";
 
                 playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{caster.Name} cast {spell.Name} on {targetName}{suffix}", ChatMessageType.Magic));
             }
