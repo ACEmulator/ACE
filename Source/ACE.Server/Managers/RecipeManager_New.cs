@@ -93,9 +93,9 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALLEATHER_CLASS:
                 case WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS:
 
-                    // ensure item is not already retained
+                    // ensure item is not already retained, and not a gem
                     // and can either be salvaged, sold, or consumed with a mana stone
-                    if (target.Retained)
+                    if (target.Retained || target.ItemType == ItemType.Gem)
                         return null;
 
                     if (target.MaterialType == null && !target.IsSellable && target.ItemMaxMana == null)
@@ -110,9 +110,9 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALSANDSTONE_CLASS:
                 case WeenieClassName.W_MATERIALSANDSTONE100_CLASS:
 
-                    // ensure item is retained
+                    // ensure item is retained and not a gem
                     // and can either be salvaged, sold, or consumed with a mana stone
-                    if (!target.Retained)
+                    if (!target.Retained || target.ItemType == ItemType.Gem)
                         return null;
 
                     if (target.MaterialType == null && !target.IsSellable && target.ItemMaxMana == null)
