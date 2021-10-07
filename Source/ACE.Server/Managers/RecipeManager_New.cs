@@ -94,7 +94,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS:
 
                     // ensure item is not already retained
-                    // and can either be salavaged, sold, or consumed with a mana stone
+                    // and can either be salvaged, sold, or consumed with a mana stone
                     if (target.Retained)
                         return null;
 
