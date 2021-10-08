@@ -30,6 +30,31 @@ namespace ACE.Server.WorldObjects
     partial class WorldObject
     {
         /// <summary>
+        /// Instantly casts a spell for a WorldObject, with optional redirects for item enchantments
+        /// </summary>
+        public bool TryCastSpell_WithRedirects(Spell spell, WorldObject target, WorldObject itemCaster = null, WorldObject weapon = null, bool isWeaponSpell = false, bool fromProc = false, bool tryResist = true, bool showMsg = true)
+        {
+            var creatureTarget = target as Creature;
+
+            if (creatureTarget != null)
+            {
+                var targets = GetNonComponentTargetTypes(spell, creatureTarget);
+
+                if (targets != null)
+                {
+                    foreach (var itemTarget in targets)
+                        TryCastSpell(spell, itemTarget, itemCaster, weapon, isWeaponSpell, fromProc, tryResist, showMsg);
+
+                    return targets.Count > 0;
+                }
+            }
+
+            TryCastSpell(spell, target, itemCaster, weapon, isWeaponSpell, fromProc, tryResist, showMsg);
+
+            return true;
+        }
+
+        /// <summary>
         /// Instantly casts a spell for a WorldObject (ie. spell traps)
         /// </summary>
         public void TryCastSpell(Spell spell, WorldObject target, WorldObject itemCaster = null, WorldObject weapon = null, bool isWeaponSpell = false, bool fromProc = false, bool tryResist = true, bool showMsg = true)
@@ -1802,7 +1827,7 @@ namespace ACE.Server.WorldObjects
 
             if (playerTarget != null && playerTarget != this && !playerTarget.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic) && !cloakProc)
             {
-                var targetName = target == playerTarget ? "you" : target.Name;
+                var targetName = target == playerTarget ? "you" : $"your {target.Name}";
 
                 playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{caster.Name} cast {spell.Name} on {targetName}{suffix}", ChatMessageType.Magic));
             }
@@ -2224,6 +2249,25 @@ namespace ACE.Server.WorldObjects
                 absorbMagicDamage = defaultIgnoreSomeMagicProjectileDamage;
 
             return absorbMagicDamage;
+        }
+
+        /// <summary>
+        /// For spells with NonComponentTargetType, returns the list of equipped items matching the target type
+        /// </summary>
+        private List<WorldObject> GetNonComponentTargetTypes(Spell spell, Creature target)
+        {
+            switch (spell.NonComponentTargetType)
+            {
+                case ItemType.Vestements:               // impen / bane
+                case ItemType.Weapon:                   // blood drinker
+                case ItemType.LockableMagicTarget:      // strengthen lock
+                case ItemType.Caster:                   // hermetic void
+                case ItemType.WeaponOrCaster:           // lure blade, defender cantrip, hermetic link cantrip, mukkir sense
+                case ItemType.Item:                     // essence lull
+
+                    return target.EquippedObjects.Values.Where(i => (i.ItemType & spell.NonComponentTargetType) != 0).ToList();
+            }
+            return null;
         }
     }
 }

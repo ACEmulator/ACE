@@ -209,7 +209,7 @@ namespace ACE.Server.WorldObjects.Managers
                         castChain.AddDelaySeconds(preCastTime);
                         castChain.AddAction(creature, () =>
                         {
-                            creature.TryCastSpell(spell, spellTarget, creature);
+                            creature.TryCastSpell_WithRedirects(spell, spellTarget, creature);
                             creature.PostCastMotion();
                         });
                         castChain.EnqueueChain();
@@ -226,7 +226,7 @@ namespace ACE.Server.WorldObjects.Managers
                         {
                             var spellTarget = GetSpellTarget(spell, targetObject);
 
-                            WorldObject.TryCastSpell(spell, spellTarget, WorldObject);
+                            WorldObject.TryCastSpell_WithRedirects(spell, spellTarget, WorldObject);
                         }
                     }
                     break;
