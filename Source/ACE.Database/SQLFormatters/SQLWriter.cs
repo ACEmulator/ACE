@@ -181,6 +181,8 @@ namespace ACE.Database.SQLFormatters
                 case PropertyInt.Hatred2Bits:
                 case PropertyInt.Hatred3Bits:
                     return ((FactionBits)value).ToString();
+                case PropertyInt.CharacterTitleId:
+                    return ((CharacterTitle)value).ToString();
             }
 
             return property.GetValueEnumName(value);
