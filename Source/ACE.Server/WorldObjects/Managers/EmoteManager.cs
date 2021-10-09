@@ -209,7 +209,7 @@ namespace ACE.Server.WorldObjects.Managers
                         castChain.AddDelaySeconds(preCastTime);
                         castChain.AddAction(creature, () =>
                         {
-                            creature.TryCastSpell(spell, spellTarget, creature);
+                            creature.TryCastSpell_WithRedirects(spell, spellTarget, creature);
                             creature.PostCastMotion();
                         });
                         castChain.EnqueueChain();
@@ -226,7 +226,7 @@ namespace ACE.Server.WorldObjects.Managers
                         {
                             var spellTarget = GetSpellTarget(spell, targetObject);
 
-                            WorldObject.TryCastSpell(spell, spellTarget, WorldObject);
+                            WorldObject.TryCastSpell_WithRedirects(spell, spellTarget, WorldObject);
                         }
                     }
                     break;
@@ -375,7 +375,17 @@ namespace ACE.Server.WorldObjects.Managers
                     var stackSize = emote.StackSize ?? 1;
 
                     if (player != null && emote.WeenieClassId != null)
-                        player.GiveFromEmote(WorldObject, emote.WeenieClassId ?? 0, stackSize > 0 ? stackSize : 1, emote.Palette ?? 0, emote.Shade ?? 0);
+                    {
+                        var motionChain = new ActionChain();
+
+                        if (!WorldObject.DontTurnOrMoveWhenGiving && creature != null && targetCreature != null)
+                        {
+                            delay = creature.Rotate(targetCreature);
+                            motionChain.AddDelaySeconds(delay);
+                        }
+                        motionChain.AddAction(WorldObject, () => player.GiveFromEmote(WorldObject, emote.WeenieClassId ?? 0, stackSize > 0 ? stackSize : 1, emote.Palette ?? 0, emote.Shade ?? 0));
+                        motionChain.EnqueueChain();
+                    }
 
                     break;
 

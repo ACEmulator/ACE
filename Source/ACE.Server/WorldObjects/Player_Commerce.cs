@@ -60,6 +60,8 @@ namespace ACE.Server.WorldObjects
 
             SpendCurrency(currencyWcid, cost, true);
 
+            vendor.MoneyIncome += (int)cost;
+
             foreach (var item in genericItems)
             {
                 var service = item.GetProperty(PropertyBool.VendorService) ?? false;
@@ -73,6 +75,8 @@ namespace ACE.Server.WorldObjects
 
                         item.Destroy();  // cleanup for guid manager
                     }
+
+                    vendor.NumItemsSold++;
                 }
                 else
                     vendor.ApplyService(item, this);
@@ -87,6 +91,8 @@ namespace ACE.Server.WorldObjects
                     // this was only for when the unique item was sold to the vendor,
                     // to determine when the item should rot on the vendor. it gets removed now
                     item.SoldTimestamp = null;
+
+                    vendor.NumItemsSold++;
                 }
                 else
                     log.Error($"[VENDOR] {Name}.FinalizeBuyTransaction({vendor.Name}) - couldn't add {item.Name} ({item.Guid}) to player inventory after validation, this shouldn't happen!");
@@ -180,6 +186,8 @@ namespace ACE.Server.WorldObjects
             }
 
             var payoutCoinStacks = CreatePayoutCoinStacks(payoutCoinAmount);
+
+            vendor.MoneyOutflow += payoutCoinAmount;
 
             // remove sell items from player inventory
             foreach (var item in sellList.Values)
