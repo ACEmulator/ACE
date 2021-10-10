@@ -68,6 +68,15 @@ namespace ACE.Server.WorldObjects.Managers
             //if (Debug)
                 //Console.WriteLine($"{WorldObject.Name}.ExecuteEmote({emoteType})");
 
+            if (player != null && creature != null)
+            {
+                if (player.IsOlthoiPlayer && WorldObject.CreatureType != CreatureType.Olthoi)
+                {
+                    if (creature.CreatureType == null || creature.CreatureType == CreatureType.Statue)
+                        return delay;
+                }
+            }
+
             var text = emote.Message;
 
             switch ((EmoteType)emote.Type)
