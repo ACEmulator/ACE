@@ -814,7 +814,7 @@ namespace ACE.Server.WorldObjects
 
                 if (player.IsOlthoiPlayer)
                 {
-                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCanOnlyRecallToLifestone));
                 }
                 else
                 {

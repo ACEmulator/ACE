@@ -68,10 +68,11 @@ namespace ACE.Server.WorldObjects.Managers
             //if (Debug)
             //Console.WriteLine($"{WorldObject.Name}.ExecuteEmote({emoteType})");
 
-            // EmoteType short circuit for NpcLooksLikeObject
+            // Olthoi play EmoteType short circuit for NPC interaction
             if (player != null && creature != null)
             {
-                if (creature.WeenieClassId != 43631 /* Acid Pit */
+                /* Exception for Acid Pit object, Olthoi Queen, and both Olthoi Matron vendors */
+                if (creature.WeenieClassId != 43631
                     && player.IsOlthoiPlayer && creature.CreatureType != CreatureType.Olthoi)
                 {
 
