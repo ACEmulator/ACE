@@ -90,6 +90,7 @@ namespace ACE.Server.WorldObjects
         public WorldObject ProjectileTarget { get; set; }
 
         public WorldObject ProjectileLauncher { get; set; }
+        public WorldObject ProjectileAmmo { get; set; }
 
         public bool HitMsg;     // FIXME: find a better way to do this for projectiles
 

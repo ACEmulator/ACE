@@ -363,9 +363,9 @@ namespace ACE.Server.WorldObjects
                     damageSource = FootArmor;
 
                 // no weapon, no hand or foot armor
-                if (damageSource == null)
+                if (damageSource?.Damage == null)
                 {
-                    var baseDamage = new BaseDamage(5, 0.2f);   // 1-5
+                    var baseDamage = new BaseDamage(2, 0.75f);     // from player bp table
                     return new BaseDamageMod(baseDamage);
                 }
                 else
