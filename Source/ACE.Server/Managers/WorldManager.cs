@@ -213,7 +213,7 @@ namespace ACE.Server.Managers
             }
 
             if (session.Player.LoginAtLifestone)
-                session.Player.Location = session.Player.Sanctuary;
+                session.Player.Location = new Position(session.Player.Sanctuary);
 
             session.Player.PlayerEnterWorld();
 
