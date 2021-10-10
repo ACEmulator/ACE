@@ -271,6 +271,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.SafeSpellComponents); else SetProperty(PropertyBool.SafeSpellComponents, value); }
         }
 
+        public bool LoginAtLifestone
+        {
+            get => GetProperty(PropertyBool.LoginAtLifestone) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.LoginAtLifestone); else SetProperty(PropertyBool.LoginAtLifestone, value); }
+        }
+
         public bool IsOlthoiPlayer()
         {
             switch (WeenieClassId)
