@@ -79,10 +79,6 @@ namespace ACE.Server.WorldObjects
 
                     Session.Network.EnqueueSend(new GameEventRegisterTrade(Session, Guid, tradePartner.Guid));
 
-                    // this fixes current version of DoThingsBot
-                    // ideally future version of DTB should be updated to be based on RegisterTrade event, instead of ResetTrade
-                    Session.Network.EnqueueSend(new GameEventResetTrade(Session, Guid));
-
                     tradePartner.HandleActionOpenTradeNegotiations(Guid.Full, false);
                 });
             }
@@ -100,10 +96,6 @@ namespace ACE.Server.WorldObjects
                 tradePartner.ItemsInTradeWindow.Clear();
 
                 Session.Network.EnqueueSend(new GameEventRegisterTrade(Session, tradePartner.Guid, tradePartner.Guid));
-
-                // this fixes current version of DoThingsBot
-                // ideally future version of DTB should be updated to be based on RegisterTrade event, instead of ResetTrade
-                Session.Network.EnqueueSend(new GameEventResetTrade(Session, tradePartner.Guid));
             }
         }
 

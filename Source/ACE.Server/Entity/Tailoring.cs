@@ -222,6 +222,9 @@ namespace ACE.Server.Entity
             target.Shade3 = source.Shade3;
             target.Shade4 = source.Shade4;
 
+            target.LightsStatus = source.LightsStatus;
+            target.Translucency = source.Translucency;
+
             target.SetupTableId = source.SetupTableId;
             target.PaletteBaseId = source.PaletteBaseId;
             target.ClothingBase = source.ClothingBase;
@@ -267,8 +270,6 @@ namespace ACE.Server.Entity
 
             target.HookType = source.HookType;
             target.HookPlacement = source.HookPlacement;
-            target.LightsStatus = source.LightsStatus;
-            target.Translucency = source.Translucency;
 
             // These values are all set just for verification purposes. Likely originally handled by unique WCID and recipe system.
             if (source is MeleeWeapon)
@@ -531,6 +532,9 @@ namespace ACE.Server.Entity
             player.UpdateProperty(target, PropertyFloat.Shade3, source.Shade3);
             player.UpdateProperty(target, PropertyFloat.Shade4, source.Shade4);
 
+            player.UpdateProperty(target, PropertyBool.LightsStatus, source.LightsStatus);
+            player.UpdateProperty(target, PropertyFloat.Translucency, source.Translucency);
+
             player.UpdateProperty(target, PropertyDataId.Setup, source.SetupTableId);
             player.UpdateProperty(target, PropertyDataId.ClothingBase, source.ClothingBase);
             player.UpdateProperty(target, PropertyDataId.PaletteBase, source.PaletteBaseId);
@@ -566,8 +570,6 @@ namespace ACE.Server.Entity
 
             player.UpdateProperty(target, PropertyInt.HookType, source.HookType);
             player.UpdateProperty(target, PropertyInt.HookPlacement, source.HookPlacement);
-            player.UpdateProperty(target, PropertyBool.LightsStatus, source.LightsStatus);
-            player.UpdateProperty(target, PropertyFloat.Translucency, source.Translucency);
         }
 
         public static uint? GetArmorWCID(EquipMask validLocations)
