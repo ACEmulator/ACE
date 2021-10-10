@@ -66,13 +66,17 @@ namespace ACE.Server.WorldObjects.Managers
             var emoteType = (EmoteType)emote.Type;
 
             //if (Debug)
-                //Console.WriteLine($"{WorldObject.Name}.ExecuteEmote({emoteType})");
+            //Console.WriteLine($"{WorldObject.Name}.ExecuteEmote({emoteType})");
 
+            // EmoteType short circuit for NpcLooksLikeObject
             if (player != null && creature != null)
             {
-                if (player.IsOlthoiPlayer && WorldObject.CreatureType != CreatureType.Olthoi)
+                if (creature.WeenieClassId != 43631 /* Acid Pit */
+                    && player.IsOlthoiPlayer && creature.CreatureType != CreatureType.Olthoi)
                 {
-                    if (creature.CreatureType == null || creature.CreatureType == CreatureType.Statue)
+
+                    if (creature.CreatureType == null
+                        || creature.CreatureType == CreatureType.Statue)
                         return delay;
                 }
             }
