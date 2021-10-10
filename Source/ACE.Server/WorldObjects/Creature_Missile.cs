@@ -95,6 +95,7 @@ namespace ACE.Server.WorldObjects
             proj.ProjectileTarget = target;
 
             proj.ProjectileLauncher = weapon;
+            proj.ProjectileAmmo = ammo;
 
             proj.Location = new Position(Location);
             proj.Location.Pos = origin;
