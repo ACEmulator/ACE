@@ -3310,7 +3310,7 @@ namespace ACE.Server.WorldObjects
 
             itemsToReceive.Add(weenieClassId, amount);
 
-            var itemStacks = itemsToReceive.RequiredInventorySlots;
+            var itemStacks = itemsToReceive.RequiredSlots;
 
             if (itemsToReceive.PlayerExceedsLimits)
             {
