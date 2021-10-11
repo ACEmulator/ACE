@@ -3530,6 +3530,14 @@ namespace ACE.Server.WorldObjects
                 log.Error($"{Name}.Player_Inventory.MoveItemToFirstContainerSlot() - failed to re-add target item {target.Name} ({target.Guid}) to player inventory");
                 return false;
             }
+
+            if (container != this)
+            {
+                // container is sidepack - update EncumbranceVal and Value for Player
+                EncumbranceVal += (target.EncumbranceVal ?? 0);
+                Value += (target.Value ?? 0);
+            }
+
             return true;
         }
 
