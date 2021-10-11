@@ -342,11 +342,14 @@ namespace ACE.Server.Managers
 
             var modified = CreateDestroyItems(player, recipe, source, target, successChance, success);
 
-            if (modified.Contains(source.Guid.Full))
-                UpdateObj(player, source);
+            if (modified != null)
+            {
+                if (modified.Contains(source.Guid.Full))
+                    UpdateObj(player, source);
 
-            if (modified.Contains(target.Guid.Full))
-                UpdateObj(player, target);
+                if (modified.Contains(target.Guid.Full))
+                    UpdateObj(player, target);
+            }
 
             if (success && recipe.Skill > 0 && recipe.Difficulty > 0)
             {
@@ -994,7 +997,7 @@ namespace ACE.Server.Managers
             {
                 log.Error($"RecipeManager.CreateDestroyItems: Recipe.Id({recipe.Id}) couldn't find {(success ? "Success" : "Fail")}WCID {createItem} in database.");
                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.CraftGeneralErrorUiMsg));
-                return new HashSet<uint>();
+                return null;
             }
 
             if (destroyTarget)
