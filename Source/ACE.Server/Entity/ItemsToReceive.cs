@@ -22,7 +22,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The total amount of items needing to be created.
         /// </summary>
-        public int RequiredSlots => RequiredContainerSlots > 0 ? RequiredContainerSlots : RequiredInventorySlots;
+        public int RequiredSlots => RequiredContainerSlots + RequiredInventorySlots;
 
         private int playerFreeInventorySlots { get; set; }
         private int playerFreeContainerSlots { get; set; }
