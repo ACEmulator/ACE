@@ -555,10 +555,14 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                corpse.IsMonster = true;
-                GenerateTreasure(killer, corpse);
+                var killerPlayer = killer.TryGetAttacker() as Player;
 
-                if (killer != null && killer.IsPlayer)
+                corpse.IsMonster = true;
+
+                if (killerPlayer != null && !killerPlayer.IsOlthoiPlayer)
+                    GenerateTreasure(killer, corpse);
+
+                if (killer != null && killer.IsPlayer && killerPlayer != null && !killerPlayer.IsOlthoiPlayer)
                 {
                     if (Level >= 100)
                     {
