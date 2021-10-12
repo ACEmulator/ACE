@@ -925,7 +925,7 @@ namespace ACE.Server.WorldObjects
             // - surge of regeneration (caster gains health over time)
             // - dirty fighting bleed
 
-            if (spell.DurationOverride == 0)
+            if (spell.DotDuration == 0)
                 return statModVal;
 
             var enchantment_statModVal = statModVal;

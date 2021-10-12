@@ -108,12 +108,12 @@ namespace ACE.Server.Entity
         /// So there could be additional complication here if the target's Heartbeat is something other than 5
         /// This also affects the value that is sent over the wire, which could be further investigated
         /// </summary>
-        public double Duration { get => _spell != null && _spell.DurationOverride.HasValue ? _spell.DurationOverride.Value + 5.0f : _spellBase.Duration; }
+        public double Duration { get => _spell != null && _spell.DotDuration.HasValue ? _spell.DotDuration.Value + 5.0f : _spellBase.Duration; }
 
         /// <summary>
         /// The DoT (damage over time) duration for the spell
         /// </summary>
-        public double DurationOverride { get => _spell.DurationOverride ?? 0; }
+        public double DotDuration { get => _spell.DotDuration ?? 0; }
 
         /// <summary>
         /// Returns the number of ticks for a DoT spell
@@ -121,7 +121,7 @@ namespace ACE.Server.Entity
         /// <param name="heartbeat">The PropertyFloat.HeartbeatInterval of the Creature with the enchantment</param>
         public int GetNumTicks(float heartbeat = 5.0f)
         {
-            if (DurationOverride == 0)
+            if (DotDuration == 0)
                 return 0;
 
             // see explanation of Duration, and why it sets Duration to DotDuration + 5
@@ -138,7 +138,7 @@ namespace ACE.Server.Entity
         /// <param name="heartbeat">The PropertyFloat.HeartbeatInterval of the Creature with the enchantment</param>
         public float GetDamagePerTick(float heartbeat = 5.0f)
         {
-            if (DurationOverride == 0)
+            if (DotDuration == 0)
                 return 0;
 
             // normally we can just use the value in StatModVal for this,
