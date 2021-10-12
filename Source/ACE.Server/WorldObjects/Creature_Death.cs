@@ -570,7 +570,6 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                     {
-                        var killerPlayer = killer.TryGetAttacker();
                         if (killerPlayer != null && Level > killerPlayer.Level)
                             CanGenerateRare = true;
                     }
