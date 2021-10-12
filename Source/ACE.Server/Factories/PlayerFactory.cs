@@ -391,20 +391,22 @@ namespace ACE.Server.Factories
 
             player.Instantiation = new Position(instantiation);
 
-            player.Sanctuary = new Position(player.Location);
+            if (player.IsOlthoiPlayer)
+                player.Sanctuary = new Position(0xE6D3000E, 37.881401f, 134.464005f, 217.996094f,  0.0f, 0.0f, -0.5f, -0.866025f);
+            else
+                player.Sanctuary = new Position(player.Location);
 
             /* Turn off RecallsDisabled and requiring and burning spell components for Olthoi play */
             if (player.IsOlthoiPlayer)
             {
                 player.SetProperty(PropertyBool.RecallsDisabled, false);
+                player.SetProperty(PropertyBool.LoginAtLifestone, true);
                 player.SetProperty(PropertyBool.SpellComponentsRequired, false);
-                player.SetProperty(PropertyBool.SafeSpellComponents, true);
             }
             else
             {
                 player.SetProperty(PropertyBool.RecallsDisabled, true);
                 player.SetProperty(PropertyBool.SpellComponentsRequired, true);
-                player.SetProperty(PropertyBool.SafeSpellComponents, false);
             }
 
             if (PropertyManager.GetBool("pk_server").Item)
