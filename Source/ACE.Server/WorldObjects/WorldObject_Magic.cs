@@ -2031,9 +2031,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="target"></param>
         private void SpellTypePortalLink(Spell spell, WorldObject target)
         {
-            var player = this as Player;
-
-            if (player != null)
+            if (this is Player player)
             {
                 switch ((SpellId)spell.Id)
                 {
@@ -2216,12 +2214,15 @@ namespace ACE.Server.WorldObjects
 
             var targetPlayer = spellTarget as Player;
 
-            // NonComponentTargetType should be 0 for untargeted spells.
-            // Return if the spell type is targeted with no target defined or the target is already dead.
-            if ((spellTarget == null || !spellTarget.IsAlive) && spell.NonComponentTargetType != ItemType.None
-                && spell.DispelSchool != MagicSchool.ItemEnchantment)
+            if (spell.School == MagicSchool.LifeMagic || spell.MetaSpellType == SpellType.Dispel)
             {
-                return false;
+                // NonComponentTargetType should be 0 for untargeted spells.
+                // Return if the spell type is targeted with no target defined or the target is already dead.
+                if ((spellTarget == null || !spellTarget.IsAlive) && spell.NonComponentTargetType != ItemType.None
+                    && spell.DispelSchool != MagicSchool.ItemEnchantment)
+                {
+                    return false;
+                }
             }
 
             switch (spell.MetaSpellType)
