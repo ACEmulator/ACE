@@ -261,15 +261,15 @@ namespace ACE.Server.WorldObjects
                     EnchantmentStatus ec;
                     lifeBuffsForPlayer.ForEach(spl =>
                     {
-                        bool casted = targetPlayer.LifeMagic(spl.Spell, out dmg, out ec, targetPlayer);
+                        bool casted = LifeMagic(spl.Spell, out dmg, out ec, targetPlayer);
                     });
                     critterBuffsForPlayer.ForEach(spl =>
                     {
-                        ec = targetPlayer.CreatureMagic(targetPlayer, spl.Spell);
+                        ec = CreatureMagic(targetPlayer, spl.Spell);
                     });
                     itemBuffsForPlayer.ForEach(spl =>
                     {
-                        ec = targetPlayer.ItemMagic(targetPlayer, spl.Spell);
+                        ec = ItemMagic(targetPlayer, spl.Spell);
                     });
                 }
                 if (buffMessages.Any(k => k.Bane))

@@ -19,6 +19,11 @@ namespace ACE.Server.Entity
         public int RequiredContainerSlots { get; set; }
         public int RequiredBurden { get; set; }
 
+        /// <summary>
+        /// The total amount of items needing to be created.
+        /// </summary>
+        public int RequiredSlots => RequiredContainerSlots + RequiredInventorySlots;
+
         private int playerFreeInventorySlots { get; set; }
         private int playerFreeContainerSlots { get; set; }
         private int playerAvailableBurden { get; set; }
