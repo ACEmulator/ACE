@@ -1,0 +1,9 @@
+0x38000036 Mutation #1:
+
+Tier chances: 1
+
+    - Chance: 100%:
+        ItemAllegianceRankLimit = 0
+        ItemDifficulty = ItemSpellcraft
+        NumTimesTinkered (>= 1 ? add : set) 1
+

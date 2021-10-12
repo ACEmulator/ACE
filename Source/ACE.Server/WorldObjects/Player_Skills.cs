@@ -292,12 +292,18 @@ namespace ACE.Server.WorldObjects
 
             // refund xp and skill credits
             RefundXP(creatureSkill.ExperienceSpent);
-            AvailableSkillCredits += creditsSpent;
 
-            creatureSkill.AdvancementClass = SkillAdvancementClass.Trained;
-            creatureSkill.InitLevel = 0;
-            creatureSkill.ExperienceSpent = 0;
+            // salvaging / tinkering skills specialized through augmentation only
+            // cannot be unspecialized here, only refund xp
+            if (!IsSkillSpecializedViaAugmentation(skill, out var playerHasAugmentation) || !playerHasAugmentation)
+            {
+                creatureSkill.AdvancementClass = SkillAdvancementClass.Trained;
+                creatureSkill.InitLevel = 0;
+                AvailableSkillCredits += creditsSpent;
+            }
+
             creatureSkill.Ranks = 0;
+            creatureSkill.ExperienceSpent = 0;
 
             return true;
         }
@@ -458,19 +464,17 @@ namespace ACE.Server.WorldObjects
             return playerSkill.AdvancementClass >= SkillAdvancementClass.Trained && playerSkill.Current >= minSkill;
         }
 
-        public void AddSkillCredits(int amount, bool showText)
+        public void AddSkillCredits(int amount)
         {
             TotalSkillCredits += amount;
             AvailableSkillCredits += amount;
 
             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.AvailableSkillCredits, AvailableSkillCredits ?? 0));
 
-            if (showText)
-            {
-                var message = string.Format("You have earned {0} skill credit{1}!", amount, amount == 1 ? "" : "s");
-                Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Advancement));
-                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.RaiseTrait, 1f));
-            }
+            if (amount > 1)
+                SendTransientError($"You have been awarded {amount:N0} additional skill credits.");
+            else
+                SendTransientError("You have been awarded an additional skill credit.");
         }
 
         /// <summary>

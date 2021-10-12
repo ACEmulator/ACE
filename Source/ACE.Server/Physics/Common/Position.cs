@@ -286,5 +286,10 @@ namespace ACE.Server.Physics.Common
         {
             return $"0x{ObjCellID:X8} {Frame}";
         }
+
+        public string ShortLoc()
+        {
+            return $"0x{ObjCellID:X8} [{Frame.Origin.X} {Frame.Origin.Y} {Frame.Origin.Z}]";
+        }
     }
 }

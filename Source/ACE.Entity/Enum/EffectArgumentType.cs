@@ -1,4 +1,4 @@
-namespace ACE.Server.Factories.Enum
+namespace ACE.Entity.Enum
 {
     public enum EffectArgumentType
     {
@@ -7,6 +7,9 @@ namespace ACE.Server.Factories.Enum
         Int,
         Quality,
         Random,
-        Variable
+        Variable,
+
+        // added
+        Int64
     }
 }

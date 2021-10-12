@@ -354,7 +354,7 @@ namespace ACE.Server.Physics
                 t = diff * 2 - t;
             var time = (float)t / lenSq;
             var timecheck = (1 - time) * transition.SpherePath.WalkInterp;
-            if (timecheck < transition.SpherePath.WalkableAllowance && timecheck < -0.1f)
+            if (timecheck >= transition.SpherePath.WalkInterp || timecheck < -0.1f)
                 return TransitionState.Collided;
 
             movement *= time;

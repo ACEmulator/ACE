@@ -9,6 +9,11 @@ namespace ACE.Common.Extensions
             return (int)Math.Round(num, decimalPlaces, MidpointRounding.AwayFromZero);
         }
 
+        public static int Round(this double num, int decimalPlaces = 0)
+        {
+            return (int)Math.Round(num, decimalPlaces, MidpointRounding.AwayFromZero);
+        }
+
         public static float Truncate(this float num, int decimalPlaces)
         {
             var multiplier = Math.Pow(10, decimalPlaces);

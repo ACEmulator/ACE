@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using ACE.Common;
 using ACE.Entity;
@@ -86,7 +85,6 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-
             if (slumlord.House.HouseType != HouseType.Apartment)
             {
                 if (PropertyManager.GetBool("house_15day_account").Item && !Account15Days)
@@ -103,6 +101,9 @@ namespace ACE.Server.WorldObjects
 
                 if (PropertyManager.GetBool("house_30day_cooldown").Item)
                 {
+                    // fix gap
+                    if (!Account15Days) ManageAccount15Days_HousePurchaseTimestamp();
+
                     var lastPurchaseTime = Time.GetDateTimeFromTimestamp(HousePurchaseTimestamp ?? 0);
                     var lastPurchaseTimePlus30 = lastPurchaseTime.AddDays(30);
 
@@ -245,7 +246,7 @@ namespace ACE.Server.WorldObjects
                 //Console.WriteLine($"{stackStr}{item.Name} ({item.Guid})");
                 logLine += $"{stackStr}{item.Name} ({item.Guid})" + Environment.NewLine;
 
-                if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+                if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
                 {
                     //Console.WriteLine($"{stackStr}{item.Name} ({item.Guid}) is currently being traded, skipping.");
                     logLine += $"{stackStr}{item.Name} ({item.Guid}) is currently being traded, skipping." + Environment.NewLine;
@@ -538,10 +539,20 @@ namespace ACE.Server.WorldObjects
             if (House == null) LoadHouse(houseInstance);
             if (House == null || House.SlumLord == null) return;
 
-            var purchaseTime = (uint)(HousePurchaseTimestamp ?? 0);
+            var houseOwner = GetHouseOwner();
 
-            if (HouseRentTimestamp == null)
-                HouseRentTimestamp = (int)House.GetRentDue(purchaseTime);
+            // var purchaseTime = (uint)(houseOwner.HousePurchaseTimestamp ?? 0);
+
+            if (HousePurchaseTimestamp != houseOwner.HousePurchaseTimestamp)
+            {
+                HousePurchaseTimestamp = houseOwner.HousePurchaseTimestamp;
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.HousePurchaseTimestamp, HousePurchaseTimestamp ?? 0), new GameMessageSystemChat("Updating housing information...", ChatMessageType.Broadcast), new GameEventHouseStatus(Session, WeenieError.HouseEvicted));
+            }
+
+            // var rentTime = (uint)(houseOwner.HouseRentTimestamp ?? 0);
+
+            if (HouseRentTimestamp != houseOwner.HouseRentTimestamp)
+                HouseRentTimestamp  = houseOwner.HouseRentTimestamp;
 
             if (!House.SlumLord.InventoryLoaded)
             {
@@ -597,8 +608,11 @@ namespace ACE.Server.WorldObjects
             // set player properties
             HouseId = house.HouseId;
             HouseInstance = house.Guid.Full;
-            HousePurchaseTimestamp = (int)Time.GetUnixTime();
-            HouseRentTimestamp = (int)house.GetRentDue((uint)HousePurchaseTimestamp.Value);
+
+            var housePurchaseTimestamp = Time.GetUnixTime();
+            if (house.HouseType != HouseType.Apartment)
+                HousePurchaseTimestamp = (int)housePurchaseTimestamp;
+            HouseRentTimestamp = (int)house.GetRentDue((uint)housePurchaseTimestamp);
             houseRentWarnTimestamp = 0;
 
             // set house properties
@@ -632,7 +646,8 @@ namespace ACE.Server.WorldObjects
             
             SaveBiotaToDatabase();
 
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.HousePurchaseTimestamp, HousePurchaseTimestamp ?? 0));
+            if (house.HouseType != HouseType.Apartment)
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.HousePurchaseTimestamp, HousePurchaseTimestamp ?? 0));
 
             // set house data
             // why has this changed? use callback?
@@ -729,7 +744,7 @@ namespace ACE.Server.WorldObjects
                 //Console.WriteLine($"{stackStr}{item.Name} ({item.Guid})");
                 logLine += $"{stackStr}{item.Name} ({item.Guid})" + Environment.NewLine;
 
-                if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+                if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
                 {
                     //Console.WriteLine($"{stackStr}{item.Name} ({item.Guid}) is currently being traded, skipping.");
                     logLine += $"{stackStr}{item.Name} ({item.Guid}) is currently being traded, skipping." + Environment.NewLine;
@@ -1826,6 +1841,38 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{i + 1}. {coords}", ChatMessageType.Broadcast));
             }
             Session.Network.EnqueueSend(new GameMessageSystemChat($"Please choose the house you want to keep with /house-select # , where # is 1-{houses.Count}", ChatMessageType.Broadcast));
+        }
+
+        /// <summary>
+        /// When house_15day_account is true (retail server default),
+        /// new characters logging in on accounts less than 15 days old
+        /// have their HousePurchaseTimestamp set to 15 days before account creation.
+        /// 
+        /// This is for the House panel to show the correct date the character may purchase a house,
+        /// which the client automatically calculates as 30 days after HousePurchaseTimestamp
+        /// </summary>
+        private int FifteenDaysBeforeAccountCreation => (int)Time.GetUnixTime(Account.CreateTime.AddDays(-15));
+
+        /// <summary>
+        /// Munges the HousePurchaseTimestamp for new accounts for correct display on House panel
+        /// </summary>
+        private void ManageAccount15Days_HousePurchaseTimestamp()
+        {
+            // http://acpedia.org/wiki/Housing_FAQ#Purchase_timer
+
+            if (HouseRentTimestamp != null) return;
+
+            if (PropertyManager.GetBool("house_15day_account").Item && !Account15Days)
+            {
+                // this is set so the next purchase time displays properly on house tab
+                HousePurchaseTimestamp = FifteenDaysBeforeAccountCreation;
+            }
+            else if (HousePurchaseTimestamp == FifteenDaysBeforeAccountCreation)
+            {
+                // account is now 15+ days old and still has not purchased a house, remove unneeded HousePurchaseTimestamp
+                // also if server admin sets house_15day_account to false, this corrects the next purchase time on the House panel 
+                HousePurchaseTimestamp = null;
+            }
         }
     }
 }

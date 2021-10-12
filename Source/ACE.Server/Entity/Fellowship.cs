@@ -107,9 +107,7 @@ namespace ACE.Server.Entity
 
             if (newMember.Fellowship != null || FellowshipMembers.ContainsKey(newMember.Guid.Full))
             {
-                // todo: can't seem to find pcap of this scenario... seems odd..
-                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newMember.Name} is already in a fellowship", ChatMessageType.Fellowship));
-                //inviter.Session.Network.EnqueueSend(new GameEventWeenieError(inviter.Session, WeenieError.FellowshipMember)); 
+                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newMember.Name} is already a member of a Fellowship.", ChatMessageType.Broadcast));
             }
             else
             {
@@ -124,7 +122,12 @@ namespace ACE.Server.Entity
                     AddConfirmedMember(inviter, newMember, true);
                 }
                 else
-                    newMember.ConfirmationManager.EnqueueSend(new Confirmation_Fellowship(inviter.Guid, newMember.Guid), inviter.Name);
+                {
+                    if (!newMember.ConfirmationManager.EnqueueSend(new Confirmation_Fellowship(inviter.Guid, newMember.Guid), inviter.Name))
+                    {
+                        inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{newMember.Name} is busy.", ChatMessageType.Broadcast));
+                    }
+                }
             }
         }
 
@@ -174,6 +177,9 @@ namespace ACE.Server.Entity
             }
 
             UpdateAllMembers();
+
+            if (inviter.CurrentMotionState.Stance == MotionStance.NonCombat) // only do this motion if inviter is at peace, other times motion is skipped. 
+                inviter.SendMotionAsCommands(MotionCommand.BowDeep, MotionStance.NonCombat);
         }
 
         public void RemoveFellowshipMember(Player player, Player leader)
@@ -769,20 +775,18 @@ namespace ACE.Server.Entity
 
     public static class FellowshipExtensions
     {
-        public static ushort NumBuckets = 32;
+        private static readonly HashComparer hashComparer = new HashComparer(32);
 
-        public static HashComparer HashComparer = new HashComparer(NumBuckets);
-
-        public static void Write(this BinaryWriter writer, Dictionary<uint, int> departedMembersHash)
+        public static void Write(this BinaryWriter writer, Dictionary<uint, int> departedFellows)
         {
-            writer.Write((ushort)departedMembersHash.Count);
-            writer.Write(NumBuckets);
+            PackableHashTable.WriteHeader(writer, departedFellows.Count, hashComparer.NumBuckets);
 
-            var departedMembers = new SortedDictionary<uint, int>(departedMembersHash, HashComparer);
-            foreach (var member in departedMembers)
+            var sorted = new SortedDictionary<uint, int>(departedFellows, hashComparer);
+
+            foreach (var departed in sorted)
             {
-                writer.Write(member.Key);
-                writer.Write(member.Value);
+                writer.Write(departed.Key);
+                writer.Write(departed.Value);
             }
         }
     }

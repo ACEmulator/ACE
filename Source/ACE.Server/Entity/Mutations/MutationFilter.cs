@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using ACE.Common;
 using ACE.Server.WorldObjects;
 
-namespace ACE.Server.Factories.Entity
+namespace ACE.Server.Entity.Mutations
 {
     public class MutationFilter
     {
@@ -11,7 +11,7 @@ namespace ACE.Server.Factories.Entity
 
         // MutationFilter -> Mutation -> MutationOutcome -> EffectList -> Effect
         
-        public bool TryMutate(WorldObject wo, int tier)
+        public bool TryMutate(WorldObject wo, int tier = 1)
         {
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
 

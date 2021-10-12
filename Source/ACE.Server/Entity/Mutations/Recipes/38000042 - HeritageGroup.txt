@@ -1,0 +1,7 @@
+0x38000042 Mutation #1:
+
+Tier chances: 1
+
+    - Chance: 100%:
+        NumTimesTinkered (>= 1 ? add : set) 1
+

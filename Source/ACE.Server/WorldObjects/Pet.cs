@@ -57,21 +57,21 @@ namespace ACE.Server.WorldObjects
             if (result == null || !result.Value)
                 return result;
 
+            // get physics radius of player and pet
+            var playerRadius = player.PhysicsObj.GetPhysicsRadius();
+            var petRadius = GetPetRadius();
+
+            var spawnDist = playerRadius + petRadius + MinDistance;
+
             if (IsPassivePet)
             {
-                // get physics radius of player and pet
-                var playerRadius = player.PhysicsObj.GetPhysicsRadius();
-                var petRadius = GetPetRadius();
-
-                var spawnDist = playerRadius + petRadius + MinDistance;
-
                 Location = player.Location.InFrontOf(spawnDist, true);
 
                 TimeToRot = -1;
             }
             else
             {
-                Location = player.Location.InFrontOf(5.0f);
+                Location = player.Location.InFrontOf(spawnDist, false);
             }
 
             Location.LandblockId = new LandblockId(Location.GetCell());
@@ -80,6 +80,9 @@ namespace ACE.Server.WorldObjects
 
             PetOwner = player.Guid.Full;
             P_PetOwner = player;
+
+            // All pets don't leave corpses, this maybe should have been in data, but isn't so lets make sure its true.
+            NoCorpse = true;
 
             var success = EnterWorld();
 

@@ -1,9 +1,9 @@
 using log4net;
 
-using ACE.Server.Factories.Enum;
+using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 
-namespace ACE.Server.Factories.Entity
+namespace ACE.Server.Entity.Mutations
 {
     public class Effect
     {

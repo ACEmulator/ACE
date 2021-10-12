@@ -235,6 +235,10 @@ namespace ACE.Server.WorldObjects
 
             // TODO: if 'ResetInterval' style, do we want to ensure a minimum amount of time for the last viewer?
 
+            // should only be an edge case with reload-landblock
+            if (CurrentLandblock == null)
+                return;
+
             var player = CurrentLandblock.GetObject(Viewer) as Player;
 
             if (IsOpen)

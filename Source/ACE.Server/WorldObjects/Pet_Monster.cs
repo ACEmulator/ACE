@@ -31,7 +31,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private bool PetAlertMonster(Creature monster)
         {
-            if (!monster.Attackable || monster.MonsterState != State.Idle || (monster.Tolerance & PlayerCombatPat_MoveExclude) != 0)
+            if (!monster.Attackable || monster.MonsterState != State.Idle || (monster.Tolerance & PlayerCombatPet_MoveExclude) != 0)
                 return false;
 
             // if the combat pet's owner belongs to a faction,

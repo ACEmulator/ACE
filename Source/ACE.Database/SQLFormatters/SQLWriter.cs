@@ -174,6 +174,13 @@ namespace ACE.Database.SQLFormatters
                     return ((Tolerance)value).ToString();
                 case PropertyInt.AiOptions:
                     return ((AiOption)value).ToString();
+                case PropertyInt.Faction1Bits:
+                case PropertyInt.Faction2Bits:
+                case PropertyInt.Faction3Bits:
+                case PropertyInt.Hatred1Bits:
+                case PropertyInt.Hatred2Bits:
+                case PropertyInt.Hatred3Bits:
+                    return ((FactionBits)value).ToString();
             }
 
             return property.GetValueEnumName(value);

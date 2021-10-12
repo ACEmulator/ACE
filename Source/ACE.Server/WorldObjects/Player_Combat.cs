@@ -177,7 +177,7 @@ namespace ACE.Server.WorldObjects
 
                 // handle Dirty Fighting
                 if (GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
-                    FightDirty(target);
+                    FightDirty(target, damageEvent.Weapon);
                 
                 target.EmoteManager.OnDamage(this);
 
@@ -363,9 +363,9 @@ namespace ACE.Server.WorldObjects
                     damageSource = FootArmor;
 
                 // no weapon, no hand or foot armor
-                if (damageSource == null)
+                if (damageSource?.Damage == null)
                 {
-                    var baseDamage = new BaseDamage(5, 0.2f);   // 1-5
+                    var baseDamage = new BaseDamage(2, 0.75f);     // from player bp table
                     return new BaseDamageMod(baseDamage);
                 }
                 else
@@ -740,6 +740,27 @@ namespace ACE.Server.WorldObjects
         public void HandleActionChangeCombatMode(CombatMode newCombatMode, bool forceHandCombat = false, Action callback = null)
         {
             //log.Info($"{Name}.HandleActionChangeCombatMode({newCombatMode})");
+
+            // Make sure the player doesn't have an invalid weapon setup (e.g. sword + wand)
+            if (!CheckWeaponCollision(null, null, newCombatMode))
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ActionCancelled)); // "Action cancelled!"
+
+                // Go back to non-Combat mode
+                float animTime = 0.0f, queueTime = 0.0f;
+                animTime = SetCombatMode(newCombatMode, out queueTime, false, true);
+
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(animTime);
+                actionChain.AddAction(this, () =>
+                {
+                    SetCombatMode(CombatMode.NonCombat);
+                });
+                actionChain.EnqueueChain();
+
+                NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
+                return;
+            }
 
             LastCombatMode = newCombatMode;
             

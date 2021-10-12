@@ -160,6 +160,8 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            var launcher = GetEquippedMissileLauncher();
+
             var creature = target as Creature;
             if (!IsAlive || IsBusy || MissileTarget == null || creature == null || !creature.IsAlive || suicideInProgress)
             {
@@ -228,7 +230,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(this, () =>
             {
                 // handle self-procs
-                TryProcEquippedItems(this, true);
+                TryProcEquippedItems(this, this, true, weapon);
 
                 var sound = GetLaunchMissileSound(weapon);
                 EnqueueBroadcast(new GameMessageSound(Guid, sound, 1.0f));
@@ -239,7 +241,7 @@ namespace ACE.Server.WorldObjects
                 var staminaCost = GetAttackStamina(GetAccuracyRange());
                 UpdateVitalDelta(Stamina, -staminaCost);
 
-                var projectile = LaunchProjectile(weapon, ammo, target, origin, orientation, velocity);
+                var projectile = LaunchProjectile(launcher, ammo, target, origin, orientation, velocity);
                 UpdateAmmoAfterLaunch(ammo);
             });
 

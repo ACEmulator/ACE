@@ -248,49 +248,26 @@ namespace ACE.Server.WorldObjects.Managers
         }
     }
 
-    public class ContractComparer : IComparer<uint>
-    {
-        public static ushort TableSize = 32;
-
-        public int Compare(uint a, uint b)
-        {
-            var keyA = a % TableSize;
-            var keyB = b % TableSize;
-
-            var result = keyA.CompareTo(keyB);
-
-            if (result == 0)
-                result = a.CompareTo(b);
-
-            return result;
-        }
-    }
-
     public static class ContractManagerExtensions
     {
-        public static ContractComparer ContractComparer = new ContractComparer();
+        private static readonly HashComparer hashComparer = new HashComparer(32);   // static table size from retail pcaps
 
         public static void Write(this BinaryWriter writer, ContractManager contractManager)
         {
             writer.Write(contractManager.ContractTrackerTable);
         }
 
-        public static void Write(this BinaryWriter writer, Dictionary<uint, ContractTracker> contractTrackerHash)
+        public static void Write(this BinaryWriter writer, Dictionary<uint, ContractTracker> contractTable)
         {
-            #region PackableHashTable of Contract table - <uint, ContractTracker>
-            // the current number of contracts
-            writer.Write((ushort)contractTrackerHash.Count); //count - number of items in the table
-            writer.Write(ContractComparer.TableSize);    // static table size from retail pcaps
+            PackableHashTable.WriteHeader(writer, contractTable.Count, hashComparer.NumBuckets);
 
-            // --- ContractTrackers ---
+            var contractTrackers = new SortedDictionary<uint, ContractTracker>(contractTable, hashComparer);
 
-            var contractTrackers = new SortedDictionary<uint, ContractTracker>(contractTrackerHash, ContractComparer);
             foreach (var contractTracker in contractTrackers)
             {
                 writer.Write(contractTracker.Key);
                 writer.Write(contractTracker.Value);
             }
-            #endregion
         }
     }
 }

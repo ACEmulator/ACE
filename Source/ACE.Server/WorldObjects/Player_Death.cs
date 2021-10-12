@@ -141,7 +141,7 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        private bool isInDeathProcess;
+        public bool IsInDeathProcess;
 
         /// <summary>
         /// Broadcasts the player death animation, updates vitae, and sends network messages for player death
@@ -149,7 +149,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected override void Die(DamageHistoryInfo lastDamager, DamageHistoryInfo topDamager)
         {
-            isInDeathProcess = true;
+            IsInDeathProcess = true;
 
             if (topDamager?.Guid == Guid && IsPKType)
             {
@@ -269,7 +269,7 @@ namespace ACE.Server.WorldObjects
 
                     OnHealthUpdate();
 
-                    isInDeathProcess = false;
+                    IsInDeathProcess = false;
 
                     if (IsLoggingOut)
                         LogOut_Final(true);
@@ -498,7 +498,7 @@ namespace ACE.Server.WorldObjects
             if (numCoinsDropped > 0)
             {
                 // add pyreals to dropped items
-                var pyreals = SpendCurrency(Vendor.CoinStackWCID, (uint)numCoinsDropped);
+                var pyreals = SpendCurrency(coinStackWcid, (uint)numCoinsDropped);
                 dropItems.AddRange(pyreals);
                 //Console.WriteLine($"Dropping {numCoinsDropped} pyreals");
             }

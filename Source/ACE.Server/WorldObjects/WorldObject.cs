@@ -70,9 +70,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Landblock CurrentLandblock { get; internal set; }
 
-        public DateTime? ItemManaDepletionMessageTimestamp { get; set; } = null;
-        public DateTime? ItemManaConsumptionTimestamp { get; set; } = null;
-
         public bool IsBusy { get; set; }
         public bool IsShield { get => CombatUse != null && CombatUse == ACE.Entity.Enum.CombatUse.Shield; }
         // ValidLocations is bugged for some older two-handed weapons, still contains MeleeWeapon instead of TwoHanded?
@@ -83,14 +80,17 @@ namespace ACE.Server.WorldObjects
         public bool IsAmmoLauncher { get => IsBow || IsAtlatl; }
         public bool IsThrownWeapon { get => DefaultCombatStyle != null && DefaultCombatStyle == CombatStyle.ThrownWeapon; }
         public bool IsRanged { get => IsAmmoLauncher || IsThrownWeapon; }
+        public bool IsCaster { get => DefaultCombatStyle != null && (DefaultCombatStyle == CombatStyle.Magic); }
 
         public EmoteManager EmoteManager;
         public EnchantmentManagerWithCaching EnchantmentManager;
 
-        public WorldObject ProjectileSource;
-        public WorldObject ProjectileTarget;
+        // todo: move these to a base projectile class
+        public WorldObject ProjectileSource { get; set; }
+        public WorldObject ProjectileTarget { get; set; }
 
-        public WorldObject ProjectileLauncher;
+        public WorldObject ProjectileLauncher { get; set; }
+        public WorldObject ProjectileAmmo { get; set; }
 
         public bool HitMsg;     // FIXME: find a better way to do this for projectiles
 
@@ -227,7 +227,13 @@ namespace ACE.Server.WorldObjects
         public void SyncLocation()
         {
             Location.LandblockId = new LandblockId(PhysicsObj.Position.ObjCellID);
-            Location.Pos = PhysicsObj.Position.Frame.Origin;
+
+            // skip ObjCellID check when updating from physics
+            // TODO: update to newer version of ACE.Entity.Position
+            Location.PositionX = PhysicsObj.Position.Frame.Origin.X;
+            Location.PositionY = PhysicsObj.Position.Frame.Origin.Y;
+            Location.PositionZ = PhysicsObj.Position.Frame.Origin.Z;
+
             Location.Rotation = PhysicsObj.Position.Frame.Orientation;
         }
 
@@ -828,7 +834,7 @@ namespace ACE.Server.WorldObjects
         /// If this is a container or a creature, all of the inventory and/or equipped objects will also be destroyed.<para />
         /// An object should only be destroyed once.
         /// </summary>
-        public virtual void Destroy(bool raiseNotifyOfDestructionEvent = true)
+        public void Destroy(bool raiseNotifyOfDestructionEvent = true, bool fromLandblockUnload = false)
         {
             if (IsDestroyed)
             {
@@ -859,7 +865,12 @@ namespace ACE.Server.WorldObjects
                 NotifyOfEvent(RegenerationType.Destruction);
 
             if (IsGenerator)
-                OnGeneratorDestroy();
+            {
+                if (fromLandblockUnload)
+                    ProcessGeneratorDestructionDirective(GeneratorDestruct.Destroy, fromLandblockUnload);
+                else
+                    OnGeneratorDestroy();
+            }
 
             CurrentLandblock?.RemoveWorldObject(Guid);
 
@@ -1053,5 +1064,7 @@ namespace ACE.Server.WorldObjects
         {
             return ArmorLevel > 0;
         }
+
+        public virtual bool IsBeingTradedOrContainsItemBeingTraded(HashSet<ObjectGuid> guidList) => guidList.Contains(Guid);
     }
 }

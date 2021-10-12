@@ -25,6 +25,12 @@ namespace ACE.Server.WorldObjects
         {
             if (Fellowship != null)
             {
+                if (Guid.Full != Fellowship.FellowshipLeaderGuid)
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustBeLeaderOfFellowship));
+                    return;
+                }
+
                 if (!Fellowship.IsLocked)
                     Fellowship.UpdateOpenness(openness);
                 else

@@ -111,9 +111,7 @@ namespace ACE.Server.Entity
         {
             get
             {
-                // TODO: investigate this logic - why is the RegenerationInterval bit needed here?
-
-                if (Generator is Chest || !(Generator is PressurePlate) && Generator.RegenerationInterval == 0)
+                if (Generator is Chest)
                     return 0;
 
                 return Biota.Delay ?? Generator.GeneratorProfiles[0].Biota.Delay ?? 0.0f;
@@ -355,9 +353,12 @@ namespace ACE.Server.Entity
 
             // the following allows profile to offset from generators position, with no rotation changes, before then scattering from that position. Use case is mainly to spawn something higher or lower.
 
-            obj.Location.PositionX += Biota.OriginX ?? 0;
-            obj.Location.PositionY += Biota.OriginY ?? 0;
-            obj.Location.PositionZ += Biota.OriginZ ?? 0;
+            if ((Biota.ObjCellId ?? 0) == 0) // if ObjCellId is specific, throw out that position (probably a linkable) and just use the generator's position else use the data as an offset. It is also possible that scatter always throws out all of it all cases.
+            {
+                obj.Location.PositionX += Biota.OriginX ?? 0;
+                obj.Location.PositionY += Biota.OriginY ?? 0;
+                obj.Location.PositionZ += Biota.OriginZ ?? 0;
+            }
 
             obj.Location.PositionZ += 0.05f;
 

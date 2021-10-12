@@ -9,10 +9,14 @@ using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Combat;
 using ACE.Server.Physics.Managers;
 
+using log4net;
+
 namespace ACE.Server.Physics.Common
 {
     public class ObjCell: PartCell, IEquatable<ObjCell>
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public uint ID;
         public LandDefs.WaterType WaterType;
         public Position Pos;
@@ -29,6 +33,7 @@ namespace ACE.Server.Physics.Common
         public List<DatLoader.Entity.Stab> VisibleCells;
         public bool SeenOutside;
         public List<uint> VoyeurTable;
+
         public Landblock CurLandblock;
 
         /// <summary>
@@ -45,6 +50,8 @@ namespace ACE.Server.Physics.Common
         /// TODO: The above solution should remove the need for ObjCell access locking, and also increase performance
         /// </summary>
         private readonly ReaderWriterLockSlim readerWriterLockSlim = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+
+        public static readonly ObjCell EmptyCell = new ObjCell();
 
         public ObjCell(): base()
         {
@@ -459,8 +466,8 @@ namespace ACE.Server.Physics.Common
         {
             if (CurLandblock != null)
                 return CurLandblock.WaterType;
-            else
-                return LandDefs.WaterType.NotWater;
+
+            return LandDefs.WaterType.NotWater;
         }
 
         public float get_water_depth(Vector3 point)
@@ -473,8 +480,8 @@ namespace ACE.Server.Physics.Common
 
             if (CurLandblock != null)
                 return CurLandblock.calc_water_depth(ID, point);
-            else
-                return 0.1f;
+
+            return 0.1f;
         }
 
         public void hide_object(PhysicsObj obj)
@@ -500,6 +507,12 @@ namespace ACE.Server.Physics.Common
         public virtual bool point_in_cell(Vector3 point)
         {
             return false;
+        }
+
+        public void release_shadow_objs()
+        {
+            foreach (var shadowObj in ShadowObjectList)
+                shadowObj.PhysicsObj.ShadowObjects.Remove(ID);
         }
 
         public void release_objects()

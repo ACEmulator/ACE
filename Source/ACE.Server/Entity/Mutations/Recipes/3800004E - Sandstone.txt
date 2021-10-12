@@ -1,0 +1,7 @@
+0x3800004E Mutation #1:
+
+Tier chances: 1
+
+    - Chance: 100%:
+        Retained = 0
+

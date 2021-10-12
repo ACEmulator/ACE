@@ -45,22 +45,12 @@ namespace ACE.Server.WorldObjects
 
             if (!Account15Days)
             {
-                var accountTimeSpan = DateTime.UtcNow - Account.CreateTime;
-                if (accountTimeSpan.TotalDays >= 15)
+                var accountAge = DateTime.UtcNow - Account.CreateTime;
+
+                if (accountAge.TotalDays >= 15)
                     Account15Days = true;
 
-                if (PropertyManager.GetBool("house_15day_account").Item && !HouseRentTimestamp.HasValue) // account was created less than 15 days ago and has NOT purchased a house (HouseRentTimestamp is null because no house has been bought)
-                {
-                    if (!Account15Days) // http://acpedia.org/wiki/Housing_FAQ#Purchase_timer
-                    {
-                        var accountCreateTimeMinus15Days = Account.CreateTime.AddDays(-15);
-                        HousePurchaseTimestamp = (int)Time.GetUnixTime(accountCreateTimeMinus15Days);
-                    }
-                    else // account is now 15+ days old and still has not purchased a house, remove unneeded HousePurchaseTimestamp
-                    {
-                        HousePurchaseTimestamp = null;
-                    }
-                }
+                ManageAccount15Days_HousePurchaseTimestamp();
             }
 
             if (PlayerKillerStatus == PlayerKillerStatus.PKLite && !PropertyManager.GetBool("pkl_server").Item)
@@ -75,6 +65,8 @@ namespace ACE.Server.WorldObjects
                 });
                 actionChain.EnqueueChain();
             }
+
+            HandlePreOrderItems();
 
             // SendSelf will trigger the entrance into portal space
             SendSelf();
@@ -445,6 +437,61 @@ namespace ACE.Server.WorldObjects
                 afkMessage = DefaultAFKMessage; // client default
 
             AfkMessage = afkMessage;
+        }
+
+        public void HandlePreOrderItems()
+        {
+            var subscriptionStatus = (SubscriptionStatus)PropertyManager.GetLong("default_subscription_level").Item;
+
+            string status;
+            bool success;
+            switch (subscriptionStatus)
+            {
+                default:
+                    status = "purchasing";
+                    success = TryCreatePreOrderItem(PropertyBool.ActdReceivedItems, ACE.Entity.Enum.WeenieClassName.W_GEMACTDPURCHASEREWARDARMOR_CLASS);
+                    break;
+                case SubscriptionStatus.ThroneOfDestiny_Preordered:
+                    status = "pre-ordering";
+                    TryCreatePreOrderItem(PropertyBool.ActdReceivedItems, ACE.Entity.Enum.WeenieClassName.W_GEMACTDPURCHASEREWARDARMOR_CLASS); // pcaps show this actually didn't occur on retail. odd
+                    success = TryCreatePreOrderItem(PropertyBool.ActdPreorderReceivedItems, ACE.Entity.Enum.WeenieClassName.W_GEMACTDPURCHASEREWARDHEALTH_CLASS);
+                    break;
+            }
+
+            var msg = $"Thank you for {status} the Throne of Destiny expansion! A special gift has been placed in your backpack.";
+
+            if (PropertyManager.GetBool("show_first_login_gift").Item && success)
+                Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Magic));
+
+            AccountRequirements = subscriptionStatus;
+        }
+
+        private bool TryCreatePreOrderItem(PropertyBool propertyBool, WeenieClassName weenieClassName)
+        {
+            var rcvdBlackmoorsFavor = GetProperty(propertyBool) ?? false;
+            if (!rcvdBlackmoorsFavor)
+            {
+                if (GetInventoryItemsOfWCID((uint)weenieClassName).Count == 0)
+                {
+                    var cachedWeenie = Database.DatabaseManager.World.GetCachedWeenie((uint)weenieClassName);
+                    if (cachedWeenie == null)
+                        return false;
+
+                    var wo = Factories.WorldObjectFactory.CreateNewWorldObject(cachedWeenie);
+                    if (wo == null)
+                        return false;
+
+                    if (TryAddToInventory(wo))
+                    {
+                        SetProperty(propertyBool, true);
+                        return true;
+                    }
+                }
+                else
+                    SetProperty(propertyBool, true); // already had the item, set the property to reflect item was received
+            }
+
+            return false;
         }
     }
 }
