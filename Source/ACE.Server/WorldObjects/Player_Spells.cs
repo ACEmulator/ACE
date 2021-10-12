@@ -261,15 +261,15 @@ namespace ACE.Server.WorldObjects
                     EnchantmentStatus ec;
                     lifeBuffsForPlayer.ForEach(spl =>
                     {
-                        bool casted = targetPlayer.LifeMagic(spl.Spell, out dmg, out ec, targetPlayer);
+                        bool casted = targetPlayer.WorldMagic(spl.Spell, targetPlayer, out ec, out dmg);
                     });
                     critterBuffsForPlayer.ForEach(spl =>
                     {
-                        ec = targetPlayer.CreatureMagic(targetPlayer, spl.Spell);
+                        targetPlayer.WorldMagic(spl.Spell, targetPlayer, out ec, out _);
                     });
                     itemBuffsForPlayer.ForEach(spl =>
                     {
-                        ec = targetPlayer.ItemMagic(targetPlayer, spl.Spell);
+                        targetPlayer.WorldMagic(spl.Spell, targetPlayer, out ec, out _);
                     });
                 }
                 if (buffMessages.Any(k => k.Bane))
@@ -284,7 +284,7 @@ namespace ACE.Server.WorldObjects
                             if ((item.WeenieType == WeenieType.Clothing || item.IsShield) && item.IsEnchantable)
                             {
                                 itemBuff.SetLandblockMessage(item.Guid);
-                                var enchantmentStatus = targetPlayer.ItemMagic(item, itemBuff.Spell, this);
+                                WorldMagic(itemBuff.Spell, item, out _, out _, this);
                                 targetPlayer?.EnqueueBroadcast(itemBuff.LandblockMessage);
                             }
                         }

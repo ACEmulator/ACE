@@ -892,20 +892,7 @@ namespace ACE.Server.WorldObjects
                 case CastingPreCheckStatus.InvalidPKStatus:
 
                     if (spell.NumProjectiles > 0)
-                    {
-                        switch (spell.School)
-                        {
-                            case MagicSchool.WarMagic:
-                                WarMagic(target, spell, caster, isWeaponSpell);
-                                break;
-                            case MagicSchool.VoidMagic:
-                                VoidMagic(target, spell, caster, isWeaponSpell);
-                                break;
-                            case MagicSchool.LifeMagic:
-                                LifeMagic(spell, out uint damage, out var enchantmentStatus, target, itemCaster, caster, isWeaponSpell);
-                                break;
-                        }
-                    }
+                        WorldMagic(spell, target, out _, out _, itemCaster, caster, isWeaponSpell);
                     break;
 
                 default:
@@ -1060,7 +1047,6 @@ namespace ACE.Server.WorldObjects
             var targetPlayer = target as Player;
 
             bool targetDeath;
-            var enchantmentStatus = new EnchantmentStatus(spell);
 
             LastSuccessCast_School = spell.School;
             LastSuccessCast_Time = Time.GetUnixTime();
@@ -1075,101 +1061,6 @@ namespace ACE.Server.WorldObjects
 
             switch (spell.School)
             {
-                case MagicSchool.WarMagic:
-                    WarMagic(target, spell, caster, isWeaponSpell);
-                    break;
-                case MagicSchool.VoidMagic:
-                    VoidMagic(target, spell, caster, isWeaponSpell);
-                    break;
-
-                case MagicSchool.CreatureEnchantment:
-
-                    if (targetPlayer == null)
-                        OnAttackMonster(targetCreature);
-
-                    if (TryResistSpell(target, spell, itemCaster))
-                        break;
-
-                    if (targetCreature != null && targetCreature.NonProjectileMagicImmune)
-                    {
-                        Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetCreature.Name} with {spell.Name}", ChatMessageType.Magic));
-                        break;
-                    }
-
-                    EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-                    enchantmentStatus = CreatureMagic(target, spell);
-                    if (enchantmentStatus.Message != null)
-                        Session.Network.EnqueueSend(enchantmentStatus.Message);
-
-                    if (spell.IsHarmful)
-                    {
-                        if (targetCreature != null)
-                            Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.CreatureEnchantment), targetCreature.GetCreatureSkill(Skill.MagicDefense).Current);
-
-                        // handle target procs
-                        if (targetCreature != null && targetCreature != this)
-                            TryProcEquippedItems(this, targetCreature, false, caster);
-
-                        if (targetPlayer != null)
-                            UpdatePKTimers(this, targetPlayer);
-                    }
-                    else
-                        Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.CreatureEnchantment), spell.PowerMod);
-
-                    break;
-
-                case MagicSchool.LifeMagic:
-
-                    if (spell.MetaSpellType != SpellType.LifeProjectile)
-                    {
-                        if (targetPlayer == null)
-                            OnAttackMonster(targetCreature);
-
-                        if (TryResistSpell(target, spell, itemCaster))
-                            break;
-
-                        if (targetCreature != null && targetCreature.NonProjectileMagicImmune)
-                        {
-                            Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetCreature.Name} with {spell.Name}", ChatMessageType.Magic));
-                            break;
-                        }
-                    }
-
-                    targetDeath = LifeMagic(spell, out uint damage, out enchantmentStatus, target, itemCaster, caster, isWeaponSpell);
-
-                    if (spell.MetaSpellType != SpellType.LifeProjectile)
-                    {
-                        if (target != null)
-                            EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
-                        if (spell.IsHarmful)
-                        {
-                            if (targetCreature != null)
-                                Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.LifeMagic), targetCreature.GetCreatureSkill(Skill.MagicDefense).Current);
-
-                            // handle target procs
-                            if (targetCreature != null && targetCreature != this)
-                                TryProcEquippedItems(this, targetCreature, false, caster);
-
-                            if (targetPlayer != null)
-                                UpdatePKTimers(this, targetPlayer);
-                        }
-                        else
-                            Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.LifeMagic), spell.PowerMod);
-                    }
-
-                    if (targetDeath == true)
-                    {
-                        targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
-                        targetCreature.Die();
-                    }
-                    else
-                    {
-                        if (enchantmentStatus.Message != null)
-                            Session.Network.EnqueueSend(enchantmentStatus.Message);
-                    }
-                    break;
-
                 case MagicSchool.ItemEnchantment:
 
                     TryCastItemEnchantment_WithRedirects(spell, target, itemCaster);
@@ -1185,6 +1076,69 @@ namespace ACE.Server.WorldObjects
 
                         if (playerRedirect != null)
                             UpdatePKTimers(this, playerRedirect);
+                    }
+                    break;
+
+                default:
+
+                    if (spell.MetaSpellType != SpellType.Projectile
+                        && spell.MetaSpellType != SpellType.LifeProjectile
+                        && spell.MetaSpellType != SpellType.EnchantmentProjectile)
+                    {
+                        if (targetPlayer == null)
+                            OnAttackMonster(targetCreature);
+
+                        if (TryResistSpell(target, spell, itemCaster))
+                            break;
+
+                        if (targetCreature != null && targetCreature.NonProjectileMagicImmune)
+                        {
+                            Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetCreature.Name} with {spell.Name}", ChatMessageType.Magic));
+                            break;
+                        }
+                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+                    }
+
+                    EnchantmentStatus enchantmentStatus;
+                    targetDeath = WorldMagic(spell, target, out enchantmentStatus, out _, itemCaster, caster, isWeaponSpell);
+
+                    if (spell.MetaSpellType != SpellType.Projectile
+                        && spell.MetaSpellType != SpellType.LifeProjectile
+                        && spell.MetaSpellType != SpellType.EnchantmentProjectile)
+                    {
+                        if (spell.IsHarmful)
+                        {
+                            if (targetCreature != null)
+                                Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.CreatureEnchantment), targetCreature.GetCreatureSkill(Skill.MagicDefense).Current);
+
+                            // handle target procs
+                            if (targetCreature != null && targetCreature != this)
+                                TryProcEquippedItems(this, targetCreature, false, caster);
+
+                            if (targetPlayer != null)
+                                UpdatePKTimers(this, targetPlayer);
+                        }
+                        else
+                            Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.CreatureEnchantment), spell.PowerMod);
+                    }
+
+                    if (spell.School == MagicSchool.LifeMagic)
+                    {
+                        if (targetDeath == true)
+                        {
+                            targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
+                            targetCreature.Die();
+                        }
+                        else
+                        {
+                            if (enchantmentStatus.Message != null)
+                                Session.Network.EnqueueSend(enchantmentStatus.Message);
+                        }
+                    }
+                    else
+                    {
+                        if (enchantmentStatus.Message != null)
+                            Session.Network.EnqueueSend(enchantmentStatus.Message);
                     }
                     break;
             }
@@ -1319,39 +1273,21 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            var enchantmentStatus = new EnchantmentStatus(spell);
-
             switch (spell.School)
             {
                 case MagicSchool.CreatureEnchantment:
-
-                    enchantmentStatus = CreatureMagic(player, spell);
-                    if (enchantmentStatus.Message != null)
-                        EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
-                    break;
-
                 case MagicSchool.LifeMagic:
-
-                    LifeMagic(spell, out uint damage, out enchantmentStatus, player);
-                    if (enchantmentStatus.Message != null)
-                        EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
-                    break;
-
                 case MagicSchool.ItemEnchantment:
 
-                    if (spell.IsPortalSpell)
+                    if (spell.School == MagicSchool.ItemEnchantment && spell.IsPortalSpell)
                     {
                         var playScript = spell.CasterEffect > 0 ? spell.CasterEffect : spell.TargetEffect;
                         EnqueueBroadcast(new GameMessageScript(player.Guid, playScript, spell.Formula.Scale));
-                        enchantmentStatus = ItemMagic(player, spell);
                     }
-                    else
-                    {
-                        if (spell.HasItemCategory)
-                            enchantmentStatus = ItemMagic(player, spell);
 
+                    WorldMagic(spell, player, out EnchantmentStatus enchantmentStatus, out _);
+                    if (enchantmentStatus.Success == true && !spell.IsPortalSpell)
                         EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
-                    }
                     break;
 
                 default:

@@ -422,10 +422,10 @@ namespace ACE.Database.SQLFormatters.World
                 spellLine += $", {input.NumberVariance}";
             }
 
-            if (input.DotDuration.HasValue)
+            if (input.DurationOverride.HasValue)
             {
                 spellLineHdr += ", `dot_Duration`";
-                spellLine += $", {input.DotDuration}";
+                spellLine += $", {input.DurationOverride}";
             }
 
             

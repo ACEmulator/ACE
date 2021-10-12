@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace ACE.Database.Models.World
@@ -69,7 +69,7 @@ namespace ACE.Database.Models.World
         public int? Align { get; set; }
         public int? Number { get; set; }
         public float? NumberVariance { get; set; }
-        public double? DotDuration { get; set; }
+        public double? DurationOverride { get; set; }
         public DateTime LastModified { get; set; }
     }
 }

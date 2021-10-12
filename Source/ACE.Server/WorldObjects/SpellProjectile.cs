@@ -312,12 +312,15 @@ namespace ACE.Server.WorldObjects
             {
                 // handle void magic DoTs:
                 // instead of instant damage, add DoT to target's enchantment registry
-                if (Spell.School == MagicSchool.VoidMagic && Spell.Duration > 0)
+                if (damage == 0 || Spell.Duration > 0)
                 {
                     var dot = ProjectileSource.CreateEnchantment(creatureTarget, ProjectileSource, ProjectileLauncher, Spell);
 
                     if (dot.Message != null && player != null)
                         player.Session.Network.EnqueueSend(dot.Message);
+
+                    if (Spell.School != MagicSchool.VoidMagic)
+                        target.EnqueueBroadcast(new GameMessageScript(target.Guid, Spell.TargetEffect, Spell.Formula.Scale));
 
                     // corruption / corrosion playscript?
                     //target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.HealthDownVoid));

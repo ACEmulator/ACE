@@ -1027,7 +1027,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.DispelSchool).HasColumnName("dispel_School");
 
-                entity.Property(e => e.DotDuration).HasColumnName("dot_Duration");
+                entity.Property(e => e.DurationOverride).HasColumnName("duration_Override");
 
                 entity.Property(e => e.DrainPercentage).HasColumnName("drain_Percentage");
 

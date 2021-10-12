@@ -41,17 +41,10 @@ namespace ACE.Server.WorldObjects
             {
                 case MagicSchool.ItemEnchantment:
                     // if (!targetSelf && ResistSpell(Skill.CreatureEnchantment)) break;
-                    ItemMagic(target, spell);
+                    WorldMagic(spell, target, out _, out _);
                     EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                     break;
-                case MagicSchool.LifeMagic:
-
-                    break;
-                case MagicSchool.CreatureEnchantment:
-
-                    break;
-                case MagicSchool.WarMagic:
-
+                default:
                     break;
             }
 
@@ -178,16 +171,9 @@ namespace ACE.Server.WorldObjects
             switch (spell.School)
             {
                 case MagicSchool.CreatureEnchantment:
-
-                    enchantmentStatus = CreatureMagic(this, spell, item, true);
-                    if (enchantmentStatus.Message != null)
-                        EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
-
-                    break;
-
                 case MagicSchool.LifeMagic:
 
-                    LifeMagic(spell, out uint damage, out enchantmentStatus, this, item, equip: true);
+                    WorldMagic(spell, this, out enchantmentStatus, out _, item, equip: true);
                     if (enchantmentStatus.Message != null)
                         EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
 
@@ -196,9 +182,9 @@ namespace ACE.Server.WorldObjects
                 case MagicSchool.ItemEnchantment:
 
                     if (spell.HasItemCategory || spell.IsPortalSpell)
-                        enchantmentStatus = ItemMagic(this, spell, item, item, true);
+                        WorldMagic(spell, this, out enchantmentStatus, out _, item, item, true);
                     else
-                        enchantmentStatus = ItemMagic(item, spell, item, item, true);
+                        WorldMagic(spell, item, out enchantmentStatus, out _, item, item, true);
 
                     var playScript = spell.IsPortalSpell && spell.CasterEffect > 0 ? spell.CasterEffect : spell.TargetEffect;
                     EnqueueBroadcast(new GameMessageScript(Guid, playScript, spell.Formula.Scale));

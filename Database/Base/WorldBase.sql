@@ -575,7 +575,7 @@ CREATE TABLE `spell` (
   `align` int DEFAULT NULL,
   `number` int DEFAULT NULL,
   `number_Variance` float DEFAULT NULL,
-  `dot_Duration` double DEFAULT NULL,
+  `duration_Override` double DEFAULT NULL,
   `last_Modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Spell Table Extended Data';
