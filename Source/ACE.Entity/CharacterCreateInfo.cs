@@ -8,10 +8,10 @@ namespace ACE.Entity
 {
     public class CharacterCreateInfo
     {
-        public uint Heritage { get; set; }
+        public HeritageGroup Heritage { get; set; }
         public uint Gender { get; set; }
 
-        public Appearance Apperance { get; } = new Appearance();
+        public Appearance Appearance { get; } = new Appearance();
 
         public int TemplateOption { get; private set; }
 
@@ -38,10 +38,10 @@ namespace ACE.Entity
         {
             reader.BaseStream.Position += 4;   /* Unknown constant (1) */
 
-            Heritage    = reader.ReadUInt32();
+            Heritage    = (HeritageGroup)reader.ReadUInt32();
             Gender      = reader.ReadUInt32();
 
-            Apperance.Unpack(reader);
+            Appearance.Unpack(reader);
 
             TemplateOption = reader.ReadInt32();
 
