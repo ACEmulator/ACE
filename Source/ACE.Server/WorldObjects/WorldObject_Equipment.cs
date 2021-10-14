@@ -123,7 +123,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// This function is only to be executed when an object is first created.
-        /// Typically this would occur as a result of WorldObjectFactory.CreateNewWorldObject(weenie)
+        /// This is called directly from new WorldObject(Weenie weenie, ObjectGuid guid).
         /// </summary>
         public virtual void OnCreation()
         {
