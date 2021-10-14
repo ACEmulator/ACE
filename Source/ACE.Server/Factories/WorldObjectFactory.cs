@@ -294,6 +294,8 @@ namespace ACE.Server.Factories
                 {
                     worldObject = CreateWorldObject(weenie, guid);
 
+                    worldObject.OnCreation();
+
                     worldObject.Location = new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW);
                 }
                 else
