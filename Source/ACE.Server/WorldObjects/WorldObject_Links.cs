@@ -35,7 +35,10 @@ namespace ACE.Server.WorldObjects
                 WorldObject wo = null;
                 var biota = biotas.FirstOrDefault(b => b.Id == link.Guid);
                 if (biota == null)
+                {
                     wo = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(link.WeenieClassId), new ObjectGuid(link.Guid));
+                    wo.OnCreation();
+                }
                 else
                 {
                     wo = WorldObjectFactory.CreateWorldObject(biota);
