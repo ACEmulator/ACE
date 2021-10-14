@@ -121,8 +121,7 @@ namespace ACE.Server.WorldObjects
 
         public override void OnCreation()
         {
-            var creature = this as Creature;
-            if (creature == null)
+            if (!(this is Creature))
                 GenerateContainList();
         }
 
