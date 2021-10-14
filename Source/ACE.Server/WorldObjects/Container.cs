@@ -110,10 +110,6 @@ namespace ACE.Server.WorldObjects
 
             //CurrentMotionState = motionStateClosed; // What container defaults to open?
 
-            var creature = this as Creature;
-            if (creature == null)
-                GenerateContainList();
-
             if (!ContainerCapacity.HasValue)
                 ContainerCapacity = 0;
 
@@ -121,6 +117,13 @@ namespace ACE.Server.WorldObjects
                 UseRadius = 0.5f;
 
             IsOpen = false;
+        }
+
+        public override void OnCreation()
+        {
+            var creature = this as Creature;
+            if (creature == null)
+                GenerateContainList();
         }
 
 
