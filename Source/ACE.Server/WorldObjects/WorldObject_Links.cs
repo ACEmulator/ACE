@@ -37,7 +37,6 @@ namespace ACE.Server.WorldObjects
                 if (biota == null)
                 {
                     wo = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(link.WeenieClassId), new ObjectGuid(link.Guid));
-                    wo.OnCreation();
                 }
                 else
                 {

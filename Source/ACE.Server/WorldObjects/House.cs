@@ -134,7 +134,6 @@ namespace ACE.Server.WorldObjects
                         var objectGuid = new ObjectGuid(houseInstance.Guid);
 
                         var newWorldObject = WorldObjectFactory.CreateWorldObject(weenie, objectGuid);
-                        newWorldObject.OnCreation();
 
                         biota = ACE.Database.Adapter.BiotaConverter.ConvertFromEntityBiota(newWorldObject.Biota);
                     }

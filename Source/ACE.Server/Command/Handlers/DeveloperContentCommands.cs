@@ -1176,8 +1176,6 @@ namespace ACE.Server.Command.Handlers.Processors
                 return;
             }
 
-            wo.OnCreation();
-
             var isLinkChild = parentInstance != null;
 
             if (!wo.Stuck && !isLinkChild)
