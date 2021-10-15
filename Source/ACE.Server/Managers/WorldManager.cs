@@ -213,7 +213,8 @@ namespace ACE.Server.Managers
                     session.Player.Location = new Position(0xA9B40019, 84, 7.1f, 94, 0, 0, -0.0784591f, 0.996917f);  // ultimate fallback
             }
 
-            if (session.Player.LoginAtLifestone && character.TotalLogins >= 1)
+            var olthoiPlayerReturnedToLifestone = session.Player.LoginAtLifestone && character.TotalLogins >= 1;
+            if (olthoiPlayerReturnedToLifestone)
                 session.Player.Location = new Position(session.Player.Sanctuary);
 
             session.Player.PlayerEnterWorld();
@@ -270,8 +271,10 @@ namespace ACE.Server.Managers
             if (!string.IsNullOrEmpty(server_motd))
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{server_motd}\n", ChatMessageType.Broadcast));
 
-            if (playerLoggedInOnNoLogLandblock) // see http://acpedia.org/wiki/Mount_Elyrii_Hive
-                session.Network.EnqueueSend(new GameMessageSystemChat("The currents of portal space cannot return you from whence you came. Your previous location forbids login.", ChatMessageType.Broadcast));
+            if (olthoiPlayerReturnedToLifestone)
+                session.Network.EnqueueSend(new GameMessageSystemChat("You have returned to the Olthoi Queen to serve the hive.", ChatMessageType.Broadcast));
+            else if (playerLoggedInOnNoLogLandblock) // see http://acpedia.org/wiki/Mount_Elyrii_Hive
+                session.Network.EnqueueSend(new GameMessageSystemChat("The currents of portal space cannot return you from whence you came. Your previous location forbids login.", ChatMessageType.Broadcast));            
         }
 
         private static string AppendLines(params string[] lines)
