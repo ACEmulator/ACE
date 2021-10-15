@@ -9,6 +9,7 @@ using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -100,6 +101,12 @@ namespace ACE.Server.WorldObjects
 
             if (!(activator is Player player))
                 return new ActivationResult(false);
+
+            if (player.IsOlthoiPlayer)
+            {
+                EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
+                return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.OlthoiCannotInteractWithThat));
+            }
 
             if (IsLocked)
             {

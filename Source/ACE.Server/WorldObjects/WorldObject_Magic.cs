@@ -1787,6 +1787,9 @@ namespace ACE.Server.WorldObjects
         {
             var player = this as Player;
 
+            if (player != null && player.IsOlthoiPlayer)
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCanOnlyRecallToLifestone));
+
             var creature = this as Creature;
 
             var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
@@ -2033,6 +2036,9 @@ namespace ACE.Server.WorldObjects
         {
             if (this is Player player)
             {
+                if (player.IsOlthoiPlayer)
+                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCanOnlyRecallToLifestone));
+
                 switch ((SpellId)spell.Id)
                 {
                     case SpellId.LifestoneTie1:  // Lifestone Tie
@@ -2107,6 +2113,9 @@ namespace ACE.Server.WorldObjects
         private void SpellTypePortalSummon(Spell spell, WorldObject target, WorldObject itemCaster)
         {
             var player = this as Player;
+
+            if (player != null && player.IsOlthoiPlayer)
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCanOnlyRecallToLifestone));
 
             if (player != null && player.PKTimerActive)
             {

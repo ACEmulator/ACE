@@ -1188,7 +1188,7 @@ namespace ACE.Server.WorldObjects
 
         public void TryBurnComponents(Spell spell)
         {
-            if (SafeSpellComponents || PropertyManager.GetBool("safe_spell_comps").Item)
+            if (SafeSpellComponents || PropertyManager.GetBool("safe_spell_comps").Item || !SpellComponentsRequired)
                 return;
 
             var burned = spell.TryBurnComponents(this);

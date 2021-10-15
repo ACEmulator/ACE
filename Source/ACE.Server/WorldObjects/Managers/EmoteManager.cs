@@ -66,7 +66,21 @@ namespace ACE.Server.WorldObjects.Managers
             var emoteType = (EmoteType)emote.Type;
 
             //if (Debug)
-                //Console.WriteLine($"{WorldObject.Name}.ExecuteEmote({emoteType})");
+            //Console.WriteLine($"{WorldObject.Name}.ExecuteEmote({emoteType})");
+
+            // Olthoi play EmoteType short circuit for NPC interaction
+            if (player != null && creature != null)
+            {
+                /* Exception for Acid Pit object, Olthoi Queen, and both Olthoi Matron vendors */
+                if (creature.WeenieClassId != 43631
+                    && player.IsOlthoiPlayer && creature.CreatureType != CreatureType.Olthoi)
+                {
+
+                    if (creature.CreatureType == null
+                        || creature.CreatureType == CreatureType.Statue)
+                        return delay;
+                }
+            }
 
             var text = emote.Message;
 

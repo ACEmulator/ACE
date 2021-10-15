@@ -2855,6 +2855,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (target.IsOlthoiPlayer || IsOlthoiPlayer)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Olthoi cannot trade items with other players!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                return;
+            }
+
             if ((target.Character.CharacterOptions1 & (int)CharacterOptions1.LetOtherPlayersGiveYouItems) != (int)CharacterOptions1.LetOtherPlayersGiveYouItems)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
@@ -2954,6 +2961,13 @@ namespace ACE.Server.WorldObjects
             if (item.Name == "IOU" && item.WeenieType == WeenieType.Book && target.Name == "Town Crier")
             {
                 HandleIOUTurnIn(target, item);
+                return;
+            }
+
+            if (IsOlthoiPlayer && !target.AiAcceptEverything)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
                 return;
             }
 
@@ -3336,6 +3350,12 @@ namespace ACE.Server.WorldObjects
                 while (remaining > 0)
                 {
                     var item = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
+
+                    if (item == null)
+                    {
+                        log.Warn($"Player.GiveFromEmote: Emoter is {emoter.Name} (0x{emoter.Guid}) | WCID: {emoter.WeenieClassId} is not able to be created.");
+                        return;
+                    }
 
                     if (item is Stackable)
                     {
