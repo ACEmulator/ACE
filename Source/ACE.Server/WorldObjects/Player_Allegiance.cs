@@ -298,6 +298,14 @@ namespace ACE.Server.WorldObjects
             // the client doesn't seem to display most of these werrors,
             // so we also send similar messages as text
 
+            // An Olthoi player cannot swear allegiance to another player
+            if (IsOlthoiPlayer)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"The Olthoi only have an allegiance to the Olthoi Queen!", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OlthoiCannotJoinAllegiance));
+                return false;
+            }
+
             // check ignore allegiance requests
             if (target.GetCharacterOption(CharacterOption.IgnoreAllegianceRequests))
             {

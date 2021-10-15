@@ -18,7 +18,16 @@ namespace ACE.Server.WorldObjects
         // todo: Figure out if this is the best place to do this, and whether there are concurrency issues associated with it.
         public void FellowshipCreate(string fellowshipName, bool shareXP)
         {
+            // An Olthoi player cannot create a fellowship
+            if (IsOlthoiPlayer)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OlthoiCannotJoinFellowship));
+                return;
+            }
+
             Fellowship = new Fellowship(this, fellowshipName, shareXP);
+            Session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(Session));
+            Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(Session));
         }
 
         public void HandleActionFellowshipChangeOpenness(bool openness)
@@ -77,6 +86,13 @@ namespace ACE.Server.WorldObjects
         public void FellowshipRecruit(Player newPlayer)
         {
             if (newPlayer == null) return;
+
+            // An Olthoi player cannot join a fellowship
+            if (newPlayer.IsOlthoiPlayer)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OlthoiCannotJoinFellowship));
+                return;
+            }
 
             if (newPlayer.GetCharacterOption(CharacterOption.IgnoreFellowshipRequests))
             {
