@@ -3337,6 +3337,12 @@ namespace ACE.Server.WorldObjects
                 {
                     var item = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
 
+                    if (item == null)
+                    {
+                        log.Warn($"Player.GiveFromEmote: Emoter is {emoter.Name} (0x{emoter.Guid}) | WCID: {emoter.WeenieClassId} is not able to be created.");
+                        return;
+                    }
+
                     if (item is Stackable)
                     {
                         var stackSize = Math.Min(remaining, item.MaxStackSize ?? 1);
