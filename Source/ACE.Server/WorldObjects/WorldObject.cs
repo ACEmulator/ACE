@@ -113,7 +113,6 @@ namespace ACE.Server.WorldObjects
             InitializeHeartbeats();
 
             CreationTimestamp = (int)Time.GetUnixTime();
-            OnCreation();
         }
 
         /// <summary>

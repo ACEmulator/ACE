@@ -120,14 +120,5 @@ namespace ACE.Server.WorldObjects
         {
             EmoteManager.OnUnwield(creature);
         }
-
-        /// <summary>
-        /// This function is only to be executed when an object is first created.
-        /// This is called directly from new WorldObject(Weenie weenie, ObjectGuid guid).
-        /// </summary>
-        public virtual void OnCreation()
-        {
-           // empty base
-        }
     }
 }
