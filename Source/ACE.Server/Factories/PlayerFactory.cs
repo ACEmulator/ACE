@@ -648,26 +648,31 @@ namespace ACE.Server.Factories
 
         private static void CharacterCreateSetDefaultCharacterOptions(Player player)
         {
-            player.SetCharacterOption(CharacterOption.VividTargetingIndicator, true);
-            player.SetCharacterOption(CharacterOption.Display3dTooltips, true);
-            player.SetCharacterOption(CharacterOption.ShowCoordinatesByTheRadar, true);
-            player.SetCharacterOption(CharacterOption.DisplaySpellDurations, true);
-            player.SetCharacterOption(CharacterOption.IgnoreFellowshipRequests, true);
-            player.SetCharacterOption(CharacterOption.ShareFellowshipExpAndLuminance, true);
-            player.SetCharacterOption(CharacterOption.LetOtherPlayersGiveYouItems, true);
-            player.SetCharacterOption(CharacterOption.RunAsDefaultMovement, true);
-            player.SetCharacterOption(CharacterOption.AutoTarget, true);
-            player.SetCharacterOption(CharacterOption.AutoRepeatAttacks, true);
-            player.SetCharacterOption(CharacterOption.UseChargeAttack, true);
-            player.SetCharacterOption(CharacterOption.LeadMissileTargets, true);
-            player.SetCharacterOption(CharacterOption.ListenToAllegianceChat, true);
-            player.SetCharacterOption(CharacterOption.ListenToGeneralChat, true);
-            player.SetCharacterOption(CharacterOption.ListenToTradeChat, true);
-            player.SetCharacterOption(CharacterOption.ListenToLFGChat, true);
+            //player.SetCharacterOption(CharacterOption.AutoRepeatAttacks, true);
+            //player.SetCharacterOption(CharacterOption.IgnoreFellowshipRequests, true);
+            //player.SetCharacterOption(CharacterOption.LetOtherPlayersGiveYouItems, true);
+            //player.SetCharacterOption(CharacterOption.Display3dTooltips, true);
+            //player.SetCharacterOption(CharacterOption.RunAsDefaultMovement, true);
+            //player.SetCharacterOption(CharacterOption.AutoTarget, true);
+            //player.SetCharacterOption(CharacterOption.VividTargetingIndicator, true);
+            //player.SetCharacterOption(CharacterOption.ShareFellowshipExpAndLuminance, true);
+            //player.SetCharacterOption(CharacterOption.ShowCoordinatesByTheRadar, true);
+            //player.SetCharacterOption(CharacterOption.DisplaySpellDurations, true);
+            //player.SetCharacterOption(CharacterOption.UseChargeAttack, true);
+            //player.SetCharacterOption(CharacterOption.ListenToAllegianceChat, true);
+            //player.SetCharacterOption(CharacterOption.ListenToGeneralChat, true);
+            //player.SetCharacterOption(CharacterOption.ListenToTradeChat, true);
+            //player.SetCharacterOption(CharacterOption.ListenToLFGChat, true);
+            //player.SetCharacterOption(CharacterOption.LeadMissileTargets, true);
+            //player.SetCharacterOption(CharacterOption.ConfirmUseOfRareGems, true);
+            //player.SetCharacterOption(CharacterOption.ShowYourHelmOrHeadGear, true);
+            //player.SetCharacterOption(CharacterOption.ShowYourCloak, true);
 
-            // Not official client defaults, might have been creation defaults however to avoid initial confusion about helm/cloak equipping
-            player.SetCharacterOption(CharacterOption.ShowYourHelmOrHeadGear, true);
-            player.SetCharacterOption(CharacterOption.ShowYourCloak, true);
+            player.SetCharacterOption(CharacterOption.CharacterOptions1Default, true);
+            player.SetCharacterOption(CharacterOption.CharacterOptions2Default, true);
+
+            // This option was seen in PCAPs on new characters, and possibly was added to Defaults post PDB we have
+            player.SetCharacterOption(CharacterOption.ListenToPKDeathMessages, true);
         }
     }
 }
