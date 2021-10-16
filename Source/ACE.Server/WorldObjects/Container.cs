@@ -28,7 +28,7 @@ namespace ACE.Server.WorldObjects
         public Container(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             InitializePropertyDictionaries();
-            SetEphemeralValues();
+            SetEphemeralValues(false);
 
             InventoryLoaded = true;
         }
@@ -84,7 +84,7 @@ namespace ACE.Server.WorldObjects
             }
 
             InitializePropertyDictionaries();
-            SetEphemeralValues();
+            SetEphemeralValues(true);
 
             // A player has their possessions passed via the ctor. All other world objects must load their own inventory
             if (!(this is Player) && !ObjectGuid.IsPlayer(ContainerId ?? 0))
@@ -102,7 +102,7 @@ namespace ACE.Server.WorldObjects
                 ephemeralPropertyInts = new Dictionary<PropertyInt, int?>();
         }
 
-        private void SetEphemeralValues()
+        private void SetEphemeralValues(bool fromBiota)
         {
             ephemeralPropertyInts.TryAdd(PropertyInt.EncumbranceVal, EncumbranceVal ?? 0); // Containers are init at 0 burden or their initial value from database. As inventory/equipment is added the burden will be increased
             if (!(this is Creature) && !(this is Corpse)) // Creatures/Corpses do not have a value
@@ -110,8 +110,7 @@ namespace ACE.Server.WorldObjects
 
             //CurrentMotionState = motionStateClosed; // What container defaults to open?
 
-            var creature = this as Creature;
-            if (creature == null)
+            if (!fromBiota && !(this is Creature))
                 GenerateContainList();
 
             if (!ContainerCapacity.HasValue)
