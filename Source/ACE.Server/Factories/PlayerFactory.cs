@@ -595,6 +595,13 @@ namespace ACE.Server.Factories
 
         public static WorldObject CreateIOU(uint missingWeenieId)
         {
+            if (!PropertyManager.GetBool("iou_trades").Item)
+            {
+                log.Warn($"CreateIOU: Skipping creation of IOU for missing weenie {missingWeenieId} because IOU system is disabled.");
+
+                return null;
+            }
+
             var iou = (Book)WorldObjectFactory.CreateNewWorldObject("parchment");
 
             iou.SetProperties("IOU", "An IOU for a missing database object.", "Sorry about that chief...", "ACEmulator", "prewritten");

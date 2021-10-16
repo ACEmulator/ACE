@@ -384,7 +384,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool IsFacing(WorldObject target)
         {
-            if (target == null) return false;
+            if (target?.Location == null) return false;
 
             var angle = GetAngle(target);
             var dist = Math.Max(0, GetDistanceToTarget());
