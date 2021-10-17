@@ -364,7 +364,7 @@ namespace ACE.Server.WorldObjects
 
                 // no weapon, no hand or foot armor
                 if (damageSource?.Damage == null)
-                    return IsOlthoiPlayer ? new BaseDamageMod(new BaseDamage(130, 0.75f)) : new BaseDamageMod(new BaseDamage(2, 0.75f));
+                    return HeritageGroup == HeritageGroup.Olthoi ? new BaseDamageMod(new BaseDamage(130, 0.75f)) : new BaseDamageMod(new BaseDamage(2, 0.75f));
                 else
                     return damageSource.GetDamageMod(this, damageSource);
             }
