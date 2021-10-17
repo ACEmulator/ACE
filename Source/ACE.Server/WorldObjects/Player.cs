@@ -98,6 +98,13 @@ namespace ACE.Server.WorldObjects
             Attackable = true;
 
             SetProperty(PropertyString.DateOfBirth, $"{DateTime.UtcNow:dd MMMM yyyy}");
+
+            if (IsOlthoiPlayer)
+            {
+                GenerateContainList();
+            }
+            else
+                Biota.PropertiesCreateList?.Clear();
         }
 
         /// <summary>
@@ -157,8 +164,6 @@ namespace ACE.Server.WorldObjects
                 if (Session.AccessLevel == AccessLevel.Advocate)
                     IsAdvocate = true;
             }
-
-            IsOlthoiPlayer = HeritageGroup == HeritageGroup.Olthoi || HeritageGroup == HeritageGroup.OlthoiAcid;
 
             ContainerCapacity = (byte)(7 + AugmentationExtraPackSlot);
 
@@ -819,7 +824,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsGagged)
             {
-                EnqueueBroadcast(new GameMessageHearSpeech(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, ChatMessageType.Speech);
+                EnqueueBroadcast(new GameMessageHearSpeech(message, GetNameWithSuffix(), Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, ChatMessageType.Speech);
 
                 OnTalk(message);
             }
@@ -849,7 +854,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsGagged)
             {
-                EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, Name, message), LocalBroadcastRange);
+                EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, GetNameWithSuffix(), message), LocalBroadcastRange);
 
                 OnTalk(message);
             }
@@ -861,7 +866,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsGagged)
             {
-                EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message), LocalBroadcastRange);
+                EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, GetNameWithSuffix(), message), LocalBroadcastRange);
 
                 OnTalk(message);
             }

@@ -99,53 +99,42 @@ namespace ACE.Server.Factories
             // Eye Color
             player.SetProperty(PropertyDataId.EyesPalette, sex.EyeColorList[(int)characterCreateInfo.Appearance.EyeColor]);
 
-            // do olthoi get clothing?
-            if (characterCreateInfo.Appearance.HeadgearStyle < uint.MaxValue) // No headgear is max UINT
-            {
-                var hat = GetClothingObject(sex.GetHeadgearWeenie(characterCreateInfo.Appearance.HeadgearStyle), characterCreateInfo.Appearance.HeadgearColor, characterCreateInfo.Appearance.HeadgearHue);
-                if (hat != null)
-                    player.TryEquipObject(hat, hat.ValidLocations ?? 0);
-                else
-                    player.TryAddToInventory(CreateIOU(sex.GetHeadgearWeenie(characterCreateInfo.Appearance.HeadgearStyle)));
-            }
-
-            var shirt = GetClothingObject(sex.GetShirtWeenie(characterCreateInfo.Appearance.ShirtStyle), characterCreateInfo.Appearance.ShirtColor, characterCreateInfo.Appearance.ShirtHue);
-            if (shirt != null)
-                player.TryEquipObject(shirt, shirt.ValidLocations ?? 0);
-            else
-                player.TryAddToInventory(CreateIOU(sex.GetShirtWeenie(characterCreateInfo.Appearance.ShirtStyle)));
-
-            var pants = GetClothingObject(sex.GetPantsWeenie(characterCreateInfo.Appearance.PantsStyle), characterCreateInfo.Appearance.PantsColor, characterCreateInfo.Appearance.PantsHue);
-            if (pants != null)
-                player.TryEquipObject(pants, pants.ValidLocations ?? 0);
-            else
-                player.TryAddToInventory(CreateIOU(sex.GetPantsWeenie(characterCreateInfo.Appearance.PantsStyle)));
-
-            var shoes = GetClothingObject(sex.GetFootwearWeenie(characterCreateInfo.Appearance.FootwearStyle), characterCreateInfo.Appearance.FootwearColor, characterCreateInfo.Appearance.FootwearHue);
-            if (shoes != null)
-                player.TryEquipObject(shoes, shoes.ValidLocations ?? 0);
-            else
-                player.TryAddToInventory(CreateIOU(sex.GetFootwearWeenie(characterCreateInfo.Appearance.FootwearStyle)));
-
-            string templateName = heritageGroup.Templates[characterCreateInfo.TemplateOption].Name;
-            player.SetProperty(PropertyString.Template, templateName);
-
-            if (!player.IsOlthoiPlayer)
-            {
-                player.AddTitle(heritageGroup.Templates[characterCreateInfo.TemplateOption].Title, true);
-            }
-            else
-            {
-                // olthoi templates don't contain the correct titles for some reason
-                if (player.HeritageGroup == HeritageGroup.Olthoi)
-                    player.AddTitle(CharacterTitle.Ripper, true);
-                else if (player.HeritageGroup == HeritageGroup.OlthoiAcid)
-                    player.AddTitle(CharacterTitle.AcidSpitter, true);
-            }
-
             // skip over this for olthoi, use the weenie defaults
             if (!player.IsOlthoiPlayer)
             {
+                // do olthoi get clothing?
+                if (characterCreateInfo.Appearance.HeadgearStyle < uint.MaxValue) // No headgear is max UINT
+                {
+                    var hat = GetClothingObject(sex.GetHeadgearWeenie(characterCreateInfo.Appearance.HeadgearStyle), characterCreateInfo.Appearance.HeadgearColor, characterCreateInfo.Appearance.HeadgearHue);
+                    if (hat != null)
+                        player.TryEquipObject(hat, hat.ValidLocations ?? 0);
+                    else
+                        player.TryAddToInventory(CreateIOU(sex.GetHeadgearWeenie(characterCreateInfo.Appearance.HeadgearStyle)));
+                }
+
+                var shirt = GetClothingObject(sex.GetShirtWeenie(characterCreateInfo.Appearance.ShirtStyle), characterCreateInfo.Appearance.ShirtColor, characterCreateInfo.Appearance.ShirtHue);
+                if (shirt != null)
+                    player.TryEquipObject(shirt, shirt.ValidLocations ?? 0);
+                else
+                    player.TryAddToInventory(CreateIOU(sex.GetShirtWeenie(characterCreateInfo.Appearance.ShirtStyle)));
+
+                var pants = GetClothingObject(sex.GetPantsWeenie(characterCreateInfo.Appearance.PantsStyle), characterCreateInfo.Appearance.PantsColor, characterCreateInfo.Appearance.PantsHue);
+                if (pants != null)
+                    player.TryEquipObject(pants, pants.ValidLocations ?? 0);
+                else
+                    player.TryAddToInventory(CreateIOU(sex.GetPantsWeenie(characterCreateInfo.Appearance.PantsStyle)));
+
+                var shoes = GetClothingObject(sex.GetFootwearWeenie(characterCreateInfo.Appearance.FootwearStyle), characterCreateInfo.Appearance.FootwearColor, characterCreateInfo.Appearance.FootwearHue);
+                if (shoes != null)
+                    player.TryEquipObject(shoes, shoes.ValidLocations ?? 0);
+                else
+                    player.TryAddToInventory(CreateIOU(sex.GetFootwearWeenie(characterCreateInfo.Appearance.FootwearStyle)));
+
+                string templateName = heritageGroup.Templates[characterCreateInfo.TemplateOption].Name;
+                player.SetProperty(PropertyString.Template, templateName);
+
+                player.AddTitle(heritageGroup.Templates[characterCreateInfo.TemplateOption].Title, true);
+
                 // attributes
                 var result = ValidateAttributeCredits(characterCreateInfo, heritageGroup.AttributeCredits);
 
@@ -227,69 +216,22 @@ namespace ACE.Server.Factories
 
                 // Set innate augs
                 SetInnateAugmentations(player);
-            }
 
-            var isDualWieldTrainedOrSpecialized = player.Skills.TryGetValue(Skill.DualWield, out var dualWield) && dualWield.AdvancementClass > SkillAdvancementClass.Untrained;
+                var isDualWieldTrainedOrSpecialized = player.Skills.TryGetValue(Skill.DualWield, out var dualWield) && dualWield.AdvancementClass > SkillAdvancementClass.Untrained;
 
-            // grant starter items based on skills
-            var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
-            var grantedWeenies = new List<uint>();
+                // grant starter items based on skills
+                var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
+                var grantedWeenies = new List<uint>();
 
-            foreach (var skillGear in starterGearConfig.Skills)
-            {
-                //var charSkill = player.Skills[(Skill)skillGear.SkillId];
-                if (!player.Skills.TryGetValue((Skill)skillGear.SkillId, out var charSkill))
-                    continue;
-
-                if (charSkill.AdvancementClass == SkillAdvancementClass.Trained || charSkill.AdvancementClass == SkillAdvancementClass.Specialized)
+                foreach (var skillGear in starterGearConfig.Skills)
                 {
-                    foreach (var item in skillGear.Gear)
+                    //var charSkill = player.Skills[(Skill)skillGear.SkillId];
+                    if (!player.Skills.TryGetValue((Skill)skillGear.SkillId, out var charSkill))
+                        continue;
+
+                    if (charSkill.AdvancementClass == SkillAdvancementClass.Trained || charSkill.AdvancementClass == SkillAdvancementClass.Specialized)
                     {
-                        if (grantedWeenies.Contains(item.WeenieId))
-                        {
-                            var existingItem = player.Inventory.Values.FirstOrDefault(i => i.WeenieClassId == item.WeenieId);
-                            if (existingItem == null || (existingItem.MaxStackSize ?? 1) <= 1)
-                                continue;
-
-                            existingItem.SetStackSize(existingItem.StackSize + item.StackSize);
-                            continue;
-                        }
-
-                        var loot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
-                        if (loot != null)
-                        {
-                            if (loot.StackSize.HasValue && loot.MaxStackSize.HasValue)
-                                loot.SetStackSize((item.StackSize <= loot.MaxStackSize) ? item.StackSize : loot.MaxStackSize);
-                        }
-                        else
-                        {
-                            player.TryAddToInventory(CreateIOU(item.WeenieId));
-                        }
-
-                        if (loot != null && player.TryAddToInventory(loot))
-                            grantedWeenies.Add(item.WeenieId);
-
-                        if (isDualWieldTrainedOrSpecialized && loot != null)
-                        {
-                            if (loot.WeenieType == WeenieType.MeleeWeapon)
-                            {
-                                var dualloot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
-                                if (dualloot != null)
-                                {
-                                    player.TryAddToInventory(dualloot);
-                                }
-                                else
-                                {
-                                    player.TryAddToInventory(CreateIOU(item.WeenieId));
-                                }
-                            }
-                        }
-                    }
-
-                    var heritageLoot = skillGear.Heritage.FirstOrDefault(i => i.HeritageId == (ushort)characterCreateInfo.Heritage);
-                    if (heritageLoot != null)
-                    {
-                        foreach (var item in heritageLoot.Gear)
+                        foreach (var item in skillGear.Gear)
                         {
                             if (grantedWeenies.Contains(item.WeenieId))
                             {
@@ -331,22 +273,83 @@ namespace ACE.Server.Factories
                                 }
                             }
                         }
-                    }
 
-                    foreach (var spell in skillGear.Spells)
-                    {
-                        // Olthoi Spitter is a special case
-                        if (characterCreateInfo.Heritage == HeritageGroup.OlthoiAcid)
+                        var heritageLoot = skillGear.Heritage.FirstOrDefault(i => i.HeritageId == (ushort)characterCreateInfo.Heritage);
+                        if (heritageLoot != null)
                         {
-                            player.AddKnownSpell(spell.SpellId);
-                            // Continue to next spell as Olthoi spells do not have the SpecializedOnly field
-                            continue;
+                            foreach (var item in heritageLoot.Gear)
+                            {
+                                if (grantedWeenies.Contains(item.WeenieId))
+                                {
+                                    var existingItem = player.Inventory.Values.FirstOrDefault(i => i.WeenieClassId == item.WeenieId);
+                                    if (existingItem == null || (existingItem.MaxStackSize ?? 1) <= 1)
+                                        continue;
+
+                                    existingItem.SetStackSize(existingItem.StackSize + item.StackSize);
+                                    continue;
+                                }
+
+                                var loot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
+                                if (loot != null)
+                                {
+                                    if (loot.StackSize.HasValue && loot.MaxStackSize.HasValue)
+                                        loot.SetStackSize((item.StackSize <= loot.MaxStackSize) ? item.StackSize : loot.MaxStackSize);
+                                }
+                                else
+                                {
+                                    player.TryAddToInventory(CreateIOU(item.WeenieId));
+                                }
+
+                                if (loot != null && player.TryAddToInventory(loot))
+                                    grantedWeenies.Add(item.WeenieId);
+
+                                if (isDualWieldTrainedOrSpecialized && loot != null)
+                                {
+                                    if (loot.WeenieType == WeenieType.MeleeWeapon)
+                                    {
+                                        var dualloot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
+                                        if (dualloot != null)
+                                        {
+                                            player.TryAddToInventory(dualloot);
+                                        }
+                                        else
+                                        {
+                                            player.TryAddToInventory(CreateIOU(item.WeenieId));
+                                        }
+                                    }
+                                }
+                            }
                         }
 
-                        if (charSkill.AdvancementClass == SkillAdvancementClass.Trained && spell.SpecializedOnly == false)
-                            player.AddKnownSpell(spell.SpellId);
-                        else if (charSkill.AdvancementClass == SkillAdvancementClass.Specialized)
-                            player.AddKnownSpell(spell.SpellId);
+                        foreach (var spell in skillGear.Spells)
+                        {
+                            // Olthoi Spitter is a special case
+                            if (characterCreateInfo.Heritage == HeritageGroup.OlthoiAcid)
+                            {
+                                player.AddKnownSpell(spell.SpellId);
+                                // Continue to next spell as Olthoi spells do not have the SpecializedOnly field
+                                continue;
+                            }
+
+                            if (charSkill.AdvancementClass == SkillAdvancementClass.Trained && spell.SpecializedOnly == false)
+                                player.AddKnownSpell(spell.SpellId);
+                            else if (charSkill.AdvancementClass == SkillAdvancementClass.Specialized)
+                                player.AddKnownSpell(spell.SpellId);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (player.CharacterTitleId > 0)
+                    player.AddTitle((uint)player.CharacterTitleId.Value, true);
+
+                if (player.Biota.PropertiesSpellBook?.Count > 0)
+                {
+                    var i = 0u;
+                    foreach (var spell in player.Biota.PropertiesSpellBook)
+                    {
+                        player.HandleActionAddSpellFavorite((uint)spell.Key, i++, 0);
                     }
                 }
             }
@@ -391,33 +394,21 @@ namespace ACE.Server.Factories
 
             player.Instantiation = new Position(instantiation);
 
-            if (player.IsOlthoiPlayer)
-                player.Sanctuary = new Position(0xE6D3000E, 37.881401f, 134.464005f, 217.996094f,  0.0f, 0.0f, -0.5f, -0.866025f);
-            else
+            if (!player.IsOlthoiPlayer)
+            {
                 player.Sanctuary = new Position(player.Location);
-
-            /* Turn off RecallsDisabled and requiring and burning spell components for Olthoi play */
-            if (player.IsOlthoiPlayer)
-            {
-                player.SetProperty(PropertyBool.RecallsDisabled, false);
-                player.SetProperty(PropertyBool.LoginAtLifestone, true);
-                player.SetProperty(PropertyBool.SpellComponentsRequired, false);
-            }
-            else
-            {
                 player.SetProperty(PropertyBool.RecallsDisabled, true);
-                player.SetProperty(PropertyBool.SpellComponentsRequired, true);
-            }
 
-            if (PropertyManager.GetBool("pk_server").Item)
-                player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PK);
-            else if (PropertyManager.GetBool("pkl_server").Item)
-                player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+                if (PropertyManager.GetBool("pk_server").Item)
+                    player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PK);
+                else if (PropertyManager.GetBool("pkl_server").Item)
+                    player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
 
-            if ((PropertyManager.GetBool("pk_server").Item || PropertyManager.GetBool("pkl_server").Item) && PropertyManager.GetBool("pk_server_safe_training_academy").Item)
-            {
-                player.SetProperty(PropertyFloat.MinimumTimeSincePk, -PropertyManager.GetDouble("pk_new_character_grace_period").Item);
-                player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+                if ((PropertyManager.GetBool("pk_server").Item || PropertyManager.GetBool("pkl_server").Item) && PropertyManager.GetBool("pk_server_safe_training_academy").Item)
+                {
+                    player.SetProperty(PropertyFloat.MinimumTimeSincePk, -PropertyManager.GetDouble("pk_new_character_grace_period").Item);
+                    player.SetProperty(PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+                }
             }
 
             if (player is Sentinel || player is Admin)

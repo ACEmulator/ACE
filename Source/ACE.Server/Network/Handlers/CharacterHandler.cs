@@ -118,10 +118,6 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            // Removes the generic knife and buckler, hidden Javelin, 30 stack of arrows, and 5 stack of coins that are given to all characters
-            // Starter Gear from the JSON file are added to the character later in the CharacterCreateEx() process
-            weenie.PropertiesCreateList = null;
-
             var guid = GuidManager.NewPlayerGuid();
 
             var weenieType = weenie.WeenieType;
