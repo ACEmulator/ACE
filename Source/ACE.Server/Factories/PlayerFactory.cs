@@ -102,7 +102,6 @@ namespace ACE.Server.Factories
             // skip over this for olthoi, use the weenie defaults
             if (!player.IsOlthoiPlayer)
             {
-                // do olthoi get clothing?
                 if (characterCreateInfo.Appearance.HeadgearStyle < uint.MaxValue) // No headgear is max UINT
                 {
                     var hat = GetClothingObject(sex.GetHeadgearWeenie(characterCreateInfo.Appearance.HeadgearStyle), characterCreateInfo.Appearance.HeadgearColor, characterCreateInfo.Appearance.HeadgearHue);
@@ -323,14 +322,6 @@ namespace ACE.Server.Factories
 
                         foreach (var spell in skillGear.Spells)
                         {
-                            // Olthoi Spitter is a special case
-                            if (characterCreateInfo.Heritage == HeritageGroup.OlthoiAcid)
-                            {
-                                player.AddKnownSpell(spell.SpellId);
-                                // Continue to next spell as Olthoi spells do not have the SpecializedOnly field
-                                continue;
-                            }
-
                             if (charSkill.AdvancementClass == SkillAdvancementClass.Trained && spell.SpecializedOnly == false)
                                 player.AddKnownSpell(spell.SpellId);
                             else if (charSkill.AdvancementClass == SkillAdvancementClass.Specialized)
