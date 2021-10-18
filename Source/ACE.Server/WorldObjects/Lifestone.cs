@@ -46,12 +46,6 @@ namespace ACE.Server.WorldObjects
             if (!(worldObject is Player player))
                 return;
 
-            if (player.IsOlthoiPlayer)
-            {
-                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCannotUseLifestones));
-                return;
-            }
-
             var actionChain = new ActionChain();
             if (player.CombatMode != CombatMode.NonCombat)
             {

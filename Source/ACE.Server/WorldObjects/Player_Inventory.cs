@@ -2964,10 +2964,10 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (IsOlthoiPlayer && !target.AiAcceptEverything)
+            if (IsOlthoiPlayer && target.CreatureType != ACE.Entity.Enum.CreatureType.Olthoi)
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
-                Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
+                Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._CowersFromYou, target.Name));
                 return;
             }
 

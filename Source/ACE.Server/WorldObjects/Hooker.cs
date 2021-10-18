@@ -41,9 +41,6 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
-            if (player.IsOlthoiPlayer)
-                return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.OlthoiCannotInteractWithThat));
-
             if (!IsHooked(player, out var hook))
                 return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.ItemOnlyUsableOnHook, Name));
 

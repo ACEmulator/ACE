@@ -210,7 +210,7 @@ namespace ACE.Server.WorldObjects
                     return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.OnlyOlthoiMayUsePortal));
                 }
 
-                if (PortalRestrictions.HasFlag(PortalBitmask.NoOlthoiPCs) && player.IsOlthoiPlayer)
+                if ((PortalRestrictions.HasFlag(PortalBitmask.NoOlthoiPCs) || IsGateway) && player.IsOlthoiPlayer)
                 {
                     // Olthoi may not pass through this portal!
                     return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.OlthoiMayNotUsePortal));

@@ -61,12 +61,6 @@ namespace ACE.Server.WorldObjects
             var player = worldObject as Player;
             if (player == null) return;
 
-            if (player.IsOlthoiPlayer)
-            {
-                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCannotInteractWithThat));
-                return;
-            }
-
             // sent house profile
             var houseProfile = GetHouseProfile();
 

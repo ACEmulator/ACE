@@ -66,12 +66,6 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (player.IsOlthoiPlayer)
-            {
-                player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
-                return;
-            }
-
             if (!string.IsNullOrWhiteSpace(UseSendsSignal))
             {
                 player.CurrentLandblock?.EmitSignal(player, UseSendsSignal);

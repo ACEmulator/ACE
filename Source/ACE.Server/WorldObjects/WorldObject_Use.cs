@@ -300,27 +300,40 @@ namespace ACE.Server.WorldObjects
 
             if (player.IsOlthoiPlayer)
             {
-                //player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You have used this item too recently"));
+                //player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "Olthoi can't interact with that!"));
                 //player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
                 //return new ActivationResult(false);
 
-                if (this is Vendor && CreatureType != ACE.Entity.Enum.CreatureType.Olthoi)
+                if (this is Creature)
                 {
-                    player.SendWeenieError(WeenieError.OlthoiVendorLooksInHorror);
-                    return new ActivationResult(false);
-                }
-                else if (this is Player && CreatureType != ACE.Entity.Enum.CreatureType.Olthoi)
-                {
-                    player.SendWeenieError(WeenieError.ThisPersonWillNotInteractWithYou);
-                    return new ActivationResult(false);
-                }
-                else if (this is Creature && CreatureType != ACE.Entity.Enum.CreatureType.Olthoi)
-                {
-                    //player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
-                    if (NpcLooksLikeObject ?? false)
-                        player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
+                    if (CreatureType == ACE.Entity.Enum.CreatureType.Olthoi)
+                        return new ActivationResult(true);
                     else
-                        player.SendWeenieErrorWithString(WeenieErrorWithString._CowersFromYou, Name);
+                    {
+                        if (this is Vendor)
+                            player.SendWeenieError(WeenieError.OlthoiVendorLooksInHorror);
+                        else if (NpcLooksLikeObject ?? false)
+                            player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
+                        else
+                            player.SendWeenieErrorWithString(WeenieErrorWithString._CowersFromYou, Name);
+
+                        return new ActivationResult(false);
+                    }
+                }
+                else if (this is Lifestone)
+                {
+                    player.SendWeenieError(WeenieError.OlthoiCannotUseLifestones);
+                    return new ActivationResult(false);
+                }
+                else if (this is Container && !(this is Corpse))
+                {
+                    player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
+                    return new ActivationResult(false);
+                }
+                else if (this is AttributeTransferDevice || this is AugmentationDevice || this is Bindstone
+                    || this is Game || this is Gem || this is Key || this is PetDevice || this is SkillAlterationDevice)
+                {
+                    player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
                     return new ActivationResult(false);
                 }
             }

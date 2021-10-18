@@ -31,7 +31,7 @@ namespace ACE.Server.WorldObjects
         {
             if (IsOlthoiPlayer)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OlthoiCannotInteractWithThat));
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ThisPersonWillNotInteractWithYou));
                 return;
             }
 
@@ -41,7 +41,7 @@ namespace ACE.Server.WorldObjects
             //Check to see if potential trading partner is an Olthoi player
             if (initiator && tradePartner.IsOlthoiPlayer)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"You may not trade with an Olthoi", ChatMessageType.Magic));
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You may not trade with an Olthoi!", ChatMessageType.Magic));
                 return;
             }
 
