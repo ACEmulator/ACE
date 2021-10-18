@@ -886,7 +886,8 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsGagged)
             {
-                EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, GetNameWithSuffix(), message), LocalBroadcastRange);
+                if (!IsOlthoiPlayer || (IsOlthoiPlayer && NoOlthoiTalk))
+                    EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message), LocalBroadcastRange);
 
                 OnTalk(message);
             }
