@@ -155,7 +155,7 @@ namespace ACE.Server.WorldObjects.Entity
         {
             get
             {
-                var diff = Current - Base;
+                var diff = (int)Current - (int)Base;
 
                 if (diff > 0)
                     return ModifierType.Buffed;
