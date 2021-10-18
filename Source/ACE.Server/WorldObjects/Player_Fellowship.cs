@@ -90,7 +90,8 @@ namespace ACE.Server.WorldObjects
             // An Olthoi player cannot join a fellowship
             if (newPlayer.IsOlthoiPlayer)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OlthoiCannotJoinFellowship));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("The Olthoi's hunger for destruction is too great to understand a request for fellowship.", ChatMessageType.Broadcast));
+                SendWeenieError(WeenieError.None);
                 return;
             }
 
