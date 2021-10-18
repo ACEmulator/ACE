@@ -692,7 +692,6 @@ namespace ACE.Entity.Enum.Properties
                     return System.Enum.GetName(typeof(GeneratorType), value);
                 case PropertyInt.HeritageGroup:
                 case PropertyInt.HeritageSpecificArmor:
-                case PropertyInt.RestrictInteraction:
                     return System.Enum.GetName(typeof(HeritageGroup), value);
                 case PropertyInt.HookType:
                     return System.Enum.GetName(typeof(HookType), value);
