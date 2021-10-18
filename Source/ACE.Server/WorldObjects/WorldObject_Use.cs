@@ -298,6 +298,33 @@ namespace ACE.Server.WorldObjects
                 return new ActivationResult(false);
             }
 
+            if (player.IsOlthoiPlayer)
+            {
+                //player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You have used this item too recently"));
+                //player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
+                //return new ActivationResult(false);
+
+                if (this is Vendor && CreatureType != ACE.Entity.Enum.CreatureType.Olthoi)
+                {
+                    player.SendWeenieError(WeenieError.OlthoiVendorLooksInHorror);
+                    return new ActivationResult(false);
+                }
+                else if (this is Player && CreatureType != ACE.Entity.Enum.CreatureType.Olthoi)
+                {
+                    player.SendWeenieError(WeenieError.ThisPersonWillNotInteractWithYou);
+                    return new ActivationResult(false);
+                }
+                else if (this is Creature && CreatureType != ACE.Entity.Enum.CreatureType.Olthoi)
+                {
+                    //player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
+                    if (NpcLooksLikeObject ?? false)
+                        player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
+                    else
+                        player.SendWeenieErrorWithString(WeenieErrorWithString._CowersFromYou, Name);
+                    return new ActivationResult(false);
+                }
+            }
+
             return new ActivationResult(true);
         }
     }
