@@ -22,8 +22,10 @@ namespace ACE.Server.WorldObjects
 
         public bool GetCharacterOption(CharacterOption option)
         {
-            if (option.GetCharacterOptions1Attribute() != null)
-                return GetCharacterOptions1(option.GetCharacterOptions1Attribute().Option);
+            var option1 = option.GetCharacterOptions1Attribute();
+
+            if (option1 != null)
+                return GetCharacterOptions1(option1.Option);
 
             return GetCharacterOptions2(option.GetCharacterOptions2Attribute().Option);
         }
@@ -40,8 +42,10 @@ namespace ACE.Server.WorldObjects
 
         public void SetCharacterOption(CharacterOption option, bool value)
         {
-            if (option.GetCharacterOptions1Attribute() != null)
-                SetCharacterOptions1(option.GetCharacterOptions1Attribute().Option, value);
+            var option1 = option.GetCharacterOptions1Attribute();
+
+            if (option1 != null)
+                SetCharacterOptions1(option1.Option, value);
             else
                 SetCharacterOptions2(option.GetCharacterOptions2Attribute().Option, value);
         }
