@@ -160,7 +160,9 @@ namespace ACE.Server.WorldObjects.Managers
             hasEnchantments = null;
             hasVitae = null;
 
-            attributeModCache.Clear();
+            attributeModAdditiveCache.Clear();
+            attributeModMultiplierCache.Clear();
+
             vitalModAdditiveCache.Clear();
             vitalModMultiplierCache.Clear();
 
@@ -190,19 +192,35 @@ namespace ACE.Server.WorldObjects.Managers
         }
 
 
-        private readonly Dictionary<PropertyAttribute, int> attributeModCache = new Dictionary<PropertyAttribute, int>();
+        private readonly Dictionary<PropertyAttribute, int> attributeModAdditiveCache = new Dictionary<PropertyAttribute, int>();
+        private readonly Dictionary<PropertyAttribute, float> attributeModMultiplierCache = new Dictionary<PropertyAttribute, float>();
 
         /// <summary>
-        /// Returns the bonus to an attribute from enchantments
+        /// Returns the additive modifiers to an attribute from enchantments
         /// </summary>
-        public override int GetAttributeMod(PropertyAttribute attribute)
+        public override int GetAttributeMod_Additive(PropertyAttribute attribute)
         {
-            if (attributeModCache.TryGetValue(attribute, out var value))
+            if (attributeModAdditiveCache.TryGetValue(attribute, out var value))
                 return value;
 
-            value = base.GetAttributeMod(attribute);
+            value = base.GetAttributeMod_Additive(attribute);
 
-            attributeModCache[attribute] = value;
+            attributeModAdditiveCache[attribute] = value;
+
+            return value;
+        }
+
+        /// <summary>
+        /// Returns the multiplicative modifiers to an attribute from enchantments
+        /// </summary>
+        public override float GetAttributeMod_Multiplier(PropertyAttribute attribute)
+        {
+            if (attributeModMultiplierCache.TryGetValue(attribute, out var value))
+                return value;
+
+            value = base.GetAttributeMod_Multiplier(attribute);
+
+            attributeModMultiplierCache[attribute] = value;
 
             return value;
         }
