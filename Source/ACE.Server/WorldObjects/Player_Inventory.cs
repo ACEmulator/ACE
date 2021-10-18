@@ -1956,6 +1956,18 @@ namespace ACE.Server.WorldObjects
             if (!PropertyManager.GetBool("use_wield_requirements").Item)
                 return WeenieError.None;
 
+            var heritageSpecificArmor = item.GetProperty(PropertyInt.HeritageSpecificArmor);
+            if (IsOlthoiPlayer)
+            {
+                if (heritageSpecificArmor == null || (HeritageGroup)heritageSpecificArmor != HeritageGroup)
+                    return WeenieError.HeritageRequiresSpecificArmor;
+            }
+            else
+            {
+                if (heritageSpecificArmor != null || (HeritageGroup)heritageSpecificArmor != HeritageGroup)
+                    return WeenieError.ArmorRequiresSpecificHeritage;
+            }
+
             var allowedWielder = item.GetProperty(PropertyInstanceId.AllowedWielder);
             if (allowedWielder != null && (allowedWielder != Guid.Full))
                 return WeenieError.YouDoNotOwnThatItem; // Unsure of the exact message
