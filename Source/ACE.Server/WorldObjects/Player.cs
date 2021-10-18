@@ -490,12 +490,15 @@ namespace ACE.Server.WorldObjects
         {
             if (PKLogoutActive && !forceImmediate)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Logging out in 20s...", ChatMessageType.Magic));
+                //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Beginning delayed player killer logoff...", ChatMessageType.Broadcast));
 
                 if (!PKLogout)
                 {
                     PKLogout = true;
+
+                    IsFrozen = true;
+                    EnqueueBroadcastPhysicsState();
 
                     LogoffTimestamp = Time.GetFutureUnixTime(PropertyManager.GetLong("pk_timer").Item);
                     PlayerManager.AddPlayerToLogoffQueue(this);
@@ -528,18 +531,25 @@ namespace ACE.Server.WorldObjects
             {
                 if (PropertyManager.GetBool("use_turbine_chat").Item)
                 {
-                    if (GetCharacterOption(CharacterOption.ListenToGeneralChat))
-                        LeaveTurbineChatChannel("General");
-                    if (GetCharacterOption(CharacterOption.ListenToTradeChat))
-                        LeaveTurbineChatChannel("Trade");
-                    if (GetCharacterOption(CharacterOption.ListenToLFGChat))
-                        LeaveTurbineChatChannel("LFG");
-                    if (GetCharacterOption(CharacterOption.ListenToRoleplayChat))
-                        LeaveTurbineChatChannel("Roleplay");
-                    if (GetCharacterOption(CharacterOption.ListenToAllegianceChat) && Allegiance != null)
-                        LeaveTurbineChatChannel("Allegiance");
-                    if (GetCharacterOption(CharacterOption.ListenToSocietyChat) && Society != FactionBits.None)
-                        LeaveTurbineChatChannel("Society");
+                    if (IsOlthoiPlayer)
+                    {
+                        LeaveTurbineChatChannel("Olthoi");
+                    }
+                    else
+                    {
+                        if (GetCharacterOption(CharacterOption.ListenToGeneralChat))
+                            LeaveTurbineChatChannel("General");
+                        if (GetCharacterOption(CharacterOption.ListenToTradeChat))
+                            LeaveTurbineChatChannel("Trade");
+                        if (GetCharacterOption(CharacterOption.ListenToLFGChat))
+                            LeaveTurbineChatChannel("LFG");
+                        if (GetCharacterOption(CharacterOption.ListenToRoleplayChat))
+                            LeaveTurbineChatChannel("Roleplay");
+                        if (GetCharacterOption(CharacterOption.ListenToAllegianceChat) && Allegiance != null)
+                            LeaveTurbineChatChannel("Allegiance");
+                        if (GetCharacterOption(CharacterOption.ListenToSocietyChat) && Society != FactionBits.None)
+                            LeaveTurbineChatChannel("Society");
+                    }
                 }
             }
 
@@ -563,10 +573,13 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    var logout = new Motion(MotionStance.NonCombat, MotionCommand.LogOut);
-                    EnqueueBroadcastMotion(logout);
+                    if (IsFrozen ?? false)
+                        IsFrozen = false;
 
                     EnqueueBroadcastPhysicsState();
+
+                    var logout = new Motion(MotionStance.NonCombat, MotionCommand.LogOut);
+                    EnqueueBroadcastMotion(logout);                    
 
                     var logoutChain = new ActionChain();
 
