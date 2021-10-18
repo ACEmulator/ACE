@@ -41,7 +41,7 @@ namespace ACE.Server.WorldObjects
             {
                 case MagicSchool.ItemEnchantment:
                     // if (!targetSelf && ResistSpell(Skill.CreatureEnchantment)) break;
-                    WorldMagic(spell, target, out _, out _);
+                    HandleCastSpell(spell, target, out _, out _);
                     EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                     break;
                 default:
@@ -173,7 +173,7 @@ namespace ACE.Server.WorldObjects
                 case MagicSchool.CreatureEnchantment:
                 case MagicSchool.LifeMagic:
 
-                    WorldMagic(spell, this, out enchantmentStatus, out _, item, equip: true);
+                    HandleCastSpell(spell, this, out enchantmentStatus, out _, item, equip: true);
                     if (enchantmentStatus.Message != null)
                         EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
 
@@ -182,9 +182,9 @@ namespace ACE.Server.WorldObjects
                 case MagicSchool.ItemEnchantment:
 
                     if (spell.HasItemCategory || spell.IsPortalSpell)
-                        WorldMagic(spell, this, out enchantmentStatus, out _, item, item, true);
+                        HandleCastSpell(spell, this, out enchantmentStatus, out _, item, item, true);
                     else
-                        WorldMagic(spell, item, out enchantmentStatus, out _, item, item, true);
+                        HandleCastSpell(spell, item, out enchantmentStatus, out _, item, item, true);
 
                     var playScript = spell.IsPortalSpell && spell.CasterEffect > 0 ? spell.CasterEffect : spell.TargetEffect;
                     EnqueueBroadcast(new GameMessageScript(Guid, playScript, spell.Formula.Scale));

@@ -30,29 +30,6 @@ namespace ACE.Server.WorldObjects
     partial class WorldObject
     {
         /// <summary>
-        /// Instantly casts a spell for a WorldObject, with optional redirects for item enchantments
-        /// </summary>
-        public bool TryCastSpell_WithRedirects(Spell spell, WorldObject target, WorldObject itemCaster = null, WorldObject weapon = null, bool isWeaponSpell = false, bool fromProc = false, bool tryResist = true, bool showMsg = true)
-        {
-            if (target is Creature creatureTarget)
-            {
-                var targets = GetNonComponentTargetTypes(spell, creatureTarget);
-
-                if (targets != null)
-                {
-                    foreach (var itemTarget in targets)
-                        TryCastSpell(spell, itemTarget, itemCaster, weapon, isWeaponSpell, fromProc, tryResist, showMsg);
-
-                    return targets.Count > 0;
-                }
-            }
-
-            TryCastSpell(spell, target, itemCaster, weapon, isWeaponSpell, fromProc, tryResist, showMsg);
-
-            return true;
-        }
-
-        /// <summary>
         /// Instantly casts a spell for a WorldObject (ie. spell traps)
         /// </summary>
         public void TryCastSpell(Spell spell, WorldObject target, WorldObject itemCaster = null, WorldObject weapon = null, bool isWeaponSpell = false, bool fromProc = false, bool tryResist = true, bool showMsg = true)
@@ -93,7 +70,7 @@ namespace ACE.Server.WorldObjects
                 return;
 
             // if not resisted, cast spell
-            var targetDeath = WorldMagic(spell, target, out EnchantmentStatus status, out _, itemCaster, weapon, isWeaponSpell, fromProc);
+            var targetDeath = HandleCastSpell(spell, target, out EnchantmentStatus status, out _, itemCaster, weapon, isWeaponSpell, fromProc);
             if (spell.School == MagicSchool.LifeMagic && targetDeath && target is Creature targetCreature)
             {
                 targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
@@ -116,6 +93,29 @@ namespace ACE.Server.WorldObjects
 
             if (itemCaster != null && spell.CasterEffect != 0) //&& status.Success)
                 itemCaster.EnqueueBroadcast(new GameMessageScript(itemCaster.Guid, spell.CasterEffect, spell.Formula.Scale));
+        }
+
+        /// <summary>
+        /// Instantly casts a spell for a WorldObject, with optional redirects for item enchantments
+        /// </summary>
+        public bool TryCastSpell_WithRedirects(Spell spell, WorldObject target, WorldObject itemCaster = null, WorldObject weapon = null, bool isWeaponSpell = false, bool fromProc = false, bool tryResist = true, bool showMsg = true)
+        {
+            if (target is Creature creatureTarget)
+            {
+                var targets = GetNonComponentTargetTypes(spell, creatureTarget);
+
+                if (targets != null)
+                {
+                    foreach (var itemTarget in targets)
+                        TryCastSpell(spell, itemTarget, itemCaster, weapon, isWeaponSpell, fromProc, tryResist, showMsg);
+
+                    return targets.Count > 0;
+                }
+            }
+
+            TryCastSpell(spell, target, itemCaster, weapon, isWeaponSpell, fromProc, tryResist, showMsg);
+
+            return true;
         }
 
         /// <summary>
@@ -246,6 +246,1209 @@ namespace ACE.Server.WorldObjects
             return resisted;
         }
 
+        public static void ShowResistInfo(Creature observed, WorldObject attacker, WorldObject defender, Spell spell, uint attackSkill, uint defenseSkill, float resistChance, bool resisted)
+        {
+            var targetInfo = PlayerManager.GetOnlinePlayer(observed.DebugDamageTarget);
+
+            if (targetInfo == null)
+            {
+                observed.DebugDamage = Creature.DebugDamageType.None;
+                return;
+            }
+
+            // initial info / resist chance
+            var info = $"Attacker: {attacker.Name} ({attacker.Guid})\n";
+            info += $"Defender: {defender.Name} ({defender.Guid})\n";
+
+            info += $"CombatType: Magic\n";
+
+            info += $"Spell: {spell.Name} ({spell.Id})\n";
+
+            info += $"EffectiveAttackSkill: {attackSkill}\n";
+            info += $"EffectiveDefenseSkill: {defenseSkill}\n";
+
+            info += $"ResistChance: {resistChance}\n";
+
+            info += $"Resisted: {resisted}";
+
+            if (resisted || spell.NumProjectiles == 0)
+                targetInfo.Session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
+            else
+                targetInfo.DebugDamageBuffer = $"{info}\n";
+        }
+
+        /// <summary>
+        /// Creates a spell based on MetaSpellType
+        /// </summary>
+        protected bool HandleCastSpell(Spell spell, WorldObject target, out EnchantmentStatus enchantmentStatus, out uint damage, WorldObject itemCaster = null, WorldObject weapon = null, bool isWeaponSpell = false, bool fromProc = false, bool equip = false)
+        {
+            damage = 0;
+            enchantmentStatus = new EnchantmentStatus(spell);
+            GameMessageSystemChat targetMsg = null;
+
+            var creature = this as Creature;
+
+            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
+
+            if (this is Gem || this is Food || this is Hook)
+                spellTarget = target as Creature;
+
+            var targetPlayer = spellTarget as Player;
+
+            if (spell.School == MagicSchool.LifeMagic || spell.MetaSpellType == SpellType.Dispel)
+            {
+                // NonComponentTargetType should be 0 for untargeted spells.
+                // Return if the spell type is targeted with no target defined or the target is already dead.
+                if ((spellTarget == null || !spellTarget.IsAlive) && spell.NonComponentTargetType != ItemType.None
+                    && spell.DispelSchool != MagicSchool.ItemEnchantment)
+                {
+                    return false;
+                }
+            }
+
+            switch (spell.MetaSpellType)
+            {
+                case SpellType.Enchantment:
+                case SpellType.FellowEnchantment:
+
+                    // TODO: replace with some kind of 'rootOwner unless equip' concept?
+                    if (itemCaster != null && (equip || itemCaster is Gem || itemCaster is Food))
+                        enchantmentStatus = CreateEnchantment(spellTarget ?? target, itemCaster, itemCaster, spell, equip);
+                    else
+                        enchantmentStatus = CreateEnchantment(spellTarget ?? target, this, this, spell, equip);
+                    break;
+
+                case SpellType.Boost:
+                case SpellType.FellowBoost:
+
+                    targetMsg = HandleCastSpell_Boost(spell, target, out enchantmentStatus, out damage);
+                    break;
+
+                case SpellType.Transfer:
+
+                    targetMsg = HandleCastSpell_Transfer(spell, target, out enchantmentStatus, out damage);
+                    break;
+
+                case SpellType.Projectile:
+                case SpellType.LifeProjectile:
+                case SpellType.EnchantmentProjectile:
+
+                    HandleCastSpell_Projectile(spell, target, damage, itemCaster, weapon, isWeaponSpell, fromProc);
+                    break;
+
+                case SpellType.PortalLink:
+
+                    HandleCastSpell_PortalLink(spell, target);
+                    break;
+
+                case SpellType.PortalRecall:
+
+                    HandleCastSpell_PortalRecall(spell, target);
+                    break;
+
+                case SpellType.PortalSummon:
+
+                    HandleCastSpell_PortalSummon(spell, target, itemCaster);
+                    break;
+
+                case SpellType.PortalSending:
+
+                    HandleCastSpell_PortalSending(spell, target, itemCaster);
+                    break;
+
+                case SpellType.FellowPortalSending:
+
+                    HandleCastSpell_FellowPortalSending(spell, target, itemCaster);
+                    break;
+
+                case SpellType.Dispel:
+                case SpellType.FellowDispel:
+
+                    targetMsg = HandleCastSpell_Dispel(spell, target, out enchantmentStatus);
+                    break;
+
+                default:
+                    enchantmentStatus.Message = new GameMessageSystemChat("Spell not implemented, yet!", ChatMessageType.Magic);
+                    break;
+            }
+
+            if (targetMsg != null && !targetPlayer.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic))
+                targetPlayer.Session.Network.EnqueueSend(targetMsg);
+
+            enchantmentStatus.Success = true;
+
+            return spellTarget?.IsDead ?? false;
+        }
+
+        /// <summary>
+        /// Handles casting SpellType.Enchantment / FellowEnchantment spells
+        /// this is also called if SpellType.EnchantmentProjectile successfully hits
+        /// </summary>
+        public EnchantmentStatus CreateEnchantment(WorldObject target, WorldObject caster, WorldObject weapon, Spell spell, bool equip = false)
+        {
+            // weird itemCaster -> caster collapsing going on here -- fixme
+
+            var enchantmentStatus = new EnchantmentStatus(spell);
+
+            // create enchantment
+            AddEnchantmentResult addResult;
+            var aetheriaProc = false;
+            var cloakProc = false;
+
+            // technically unsafe, should be using fromProc
+            if (caster.ProcSpell == spell.Id)
+            {
+                if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId))
+                {
+                    caster = this;
+                    aetheriaProc = true;
+                }
+                else if (Cloak.IsCloak(caster))
+                {
+                    caster = this;
+                    cloakProc = true;
+                }
+            }
+            addResult = target.EnchantmentManager.Add(spell, caster, weapon, equip);
+
+            // build message
+            var suffix = "";
+            switch (addResult.StackType)
+            {
+                case StackType.Surpass:
+                    suffix = $", surpassing {addResult.SurpassSpell.Name}";
+                    break;
+                case StackType.Refresh:
+                    suffix = $", refreshing {addResult.RefreshSpell.Name}";
+                    break;
+                case StackType.Surpassed:
+                    suffix = $", but it is surpassed by {addResult.SurpassedSpell.Name}";
+                    break;
+            }
+
+            string message = null;
+
+            if (aetheriaProc)
+            {
+                message = $"Aetheria surges on {target.Name} with the power of {spell.Name}!";
+                enchantmentStatus.Broadcast = true;
+            }
+            else
+            {
+                // TODO: replace with some kind of 'rootOwner unless equip' concept?
+                // for item casters where the message should be 'You cast', we still need pass the caster as item
+                // down this far, to prevent using player's AugmentationIncreasedSpellDuration
+                var casterCheck = caster == this || caster is Gem || caster is Food;
+
+                if (casterCheck || target == this || caster != target)
+                {
+                    var casterName = casterCheck ? "You" : caster.Name;
+                    var targetName = target.Name;
+                    if (target == this)
+                        targetName = casterCheck ? "yourself" : "you";
+
+                    message = $"{casterName} cast {spell.Name} on {targetName}{suffix}";
+                }
+            }
+
+            if (message != null)
+                enchantmentStatus.Message = new GameMessageSystemChat(message, ChatMessageType.Magic);
+            else
+                enchantmentStatus.Message = null;
+
+            enchantmentStatus.StackType = addResult.StackType;
+            enchantmentStatus.Success = true;
+
+            var playerTarget = target as Player;
+
+            if (playerTarget != null)
+            {
+                playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
+
+                playerTarget.HandleSpellHooks(spell);
+
+                if (!spell.IsBeneficial && this is Creature creatureCaster)
+                    playerTarget.SetCurrentAttacker(creatureCaster);
+            }
+
+            if (playerTarget == null && target.Wielder is Player wielder)
+                playerTarget = wielder;
+
+            if (playerTarget != null && playerTarget != this && !playerTarget.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic) && !cloakProc)
+            {
+                var targetName = target == playerTarget ? "you" : $"your {target.Name}";
+
+                playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{caster.Name} cast {spell.Name} on {targetName}{suffix}", ChatMessageType.Magic));
+            }
+
+            return enchantmentStatus;
+        }
+
+        /// <summary>
+        /// Handles casting SpellType.Boost / FellowBoost spells
+        /// typically for Life Magic, ie. Heal, Harm
+        /// </summary>
+        private GameMessageSystemChat HandleCastSpell_Boost(Spell spell, WorldObject target, out EnchantmentStatus enchantmentStatus, out uint damage)
+        {
+            string srcVital;
+            damage = 0;
+            enchantmentStatus = new EnchantmentStatus(spell);
+            GameMessageSystemChat targetMsg = null;
+
+            var player = this as Player;
+            var creature = this as Creature;
+
+            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
+
+            if (this is Gem || this is Food || this is Hook)
+                spellTarget = target as Creature;
+
+            // handle negatives?
+            int minBoostValue = Math.Min(spell.Boost, spell.MaxBoost);
+            int maxBoostValue = Math.Max(spell.Boost, spell.MaxBoost);
+
+            var resistanceType = minBoostValue > 0 ? GetBoostResistanceType(spell.VitalDamageType) : GetDrainResistanceType(spell.VitalDamageType);
+
+            int tryBoost = ThreadSafeRandom.Next(minBoostValue, maxBoostValue);
+            tryBoost = (int)Math.Round(tryBoost * spellTarget.GetResistanceMod(resistanceType));
+
+            int boost = tryBoost;
+            damage = tryBoost < 0 ? (uint)Math.Abs(tryBoost) : 0;
+
+            // handle cloak damage proc for harm other
+            var equippedCloak = spellTarget?.EquippedCloak;
+
+            if (spellTarget != this && spell.VitalDamageType == DamageType.Health && tryBoost < 0)
+            {
+                var percent = (float)-tryBoost / spellTarget.Health.MaxValue;
+
+                if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(equippedCloak, percent))
+                {
+                    var reduced = -Cloak.GetReducedAmount(this, -tryBoost);
+
+                    Cloak.ShowMessage(spellTarget, this, -tryBoost, -reduced);
+
+                    tryBoost = boost = reduced;
+                    damage = (uint)Math.Abs(tryBoost);
+                }
+            }
+
+            switch (spell.VitalDamageType)
+            {
+                case DamageType.Mana:
+                    boost = spellTarget.UpdateVitalDelta(spellTarget.Mana, tryBoost);
+                    srcVital = "mana";
+                    break;
+                case DamageType.Stamina:
+                    boost = spellTarget.UpdateVitalDelta(spellTarget.Stamina, tryBoost);
+                    srcVital = "stamina";
+                    break;
+                default:   // Health
+                    boost = spellTarget.UpdateVitalDelta(spellTarget.Health, tryBoost);
+                    srcVital = "health";
+
+                    if (boost >= 0)
+                        spellTarget.DamageHistory.OnHeal((uint)boost);
+                    else
+                        spellTarget.DamageHistory.Add(this, DamageType.Health, (uint)-boost);
+
+                    //if (targetPlayer != null && targetPlayer.Fellowship != null)
+                    //targetPlayer.Fellowship.OnVitalUpdate(targetPlayer);
+
+                    break;
+            }
+
+            if (player != null)
+            {
+                if (player != spellTarget)
+                {
+                    string msg;
+                    if (spell.IsBeneficial)
+                    {
+                        //msg = $"You cast {spell.Name} and restore {boost} points of {srcVital} to {spellTarget.Name}.";
+                        msg = $"With {spell.Name} you restore {boost} points of {srcVital} to {spellTarget.Name}.";
+                        enchantmentStatus.Message = new GameMessageSystemChat(msg, ChatMessageType.Magic);
+                    }
+                    else
+                    {
+                        //msg = $"You cast {spell.Name} and drain {Math.Abs(boost)} points of {srcVital} from {spellTarget.Name}.";
+                        msg = $"With {spell.Name} you drain {Math.Abs(boost)} points of {srcVital} from {spellTarget.Name}.";
+                        enchantmentStatus.Message = new GameMessageSystemChat(msg, ChatMessageType.Magic);
+                    }
+                }
+                else
+                {
+                    var verb = spell.IsBeneficial ? "restore" : "drain";
+                    enchantmentStatus.Message = new GameMessageSystemChat($"You cast {spell.Name} and {verb} {Math.Abs(boost)} points of your {srcVital}.", ChatMessageType.Magic);
+                }
+            }
+
+            if (spellTarget is Player targetPlayer && player != targetPlayer)
+            {
+                string msg;
+                if (spell.IsBeneficial)
+                {
+                    msg = $"{Name} casts {spell.Name} and restores {boost} points of your {srcVital}.";
+                    targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Magic);
+                }
+                else
+                {
+                    msg = $"{Name} casts {spell.Name} and drains {Math.Abs(boost)} points of your {srcVital}.";
+                    targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Magic);
+
+                    if (creature != null)
+                        targetPlayer.SetCurrentAttacker(creature);
+                }
+            }
+
+            if (spellTarget != this && spellTarget.IsAlive && spell.VitalDamageType == DamageType.Health && boost < 0)
+            {
+                // handle cloak spell proc
+                if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak))
+                {
+                    var pct = (float)-boost / spellTarget.Health.MaxValue;
+
+                    // ensure message is sent after enchantment.Message
+                    var actionChain = new ActionChain();
+                    actionChain.AddDelayForOneTick();
+                    actionChain.AddAction(this, () => Cloak.TryProcSpell(spellTarget, this, equippedCloak, pct));
+                    actionChain.EnqueueChain();
+                }
+
+                // ensure emote process occurs after damage msg
+                var emoteChain = new ActionChain();
+                emoteChain.AddDelayForOneTick();
+                emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(creature));
+                //if (critical)
+                //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(creature));
+                emoteChain.EnqueueChain();
+            }
+
+            return targetMsg;
+        }
+
+        /// <summary>
+        /// Returns the boost resistance for a damage type
+        /// </summary>
+        private static ResistanceType GetBoostResistanceType(DamageType damageType)
+        {
+            switch (damageType)
+            {
+                case DamageType.Health:
+                    return ResistanceType.HealthBoost;
+                case DamageType.Stamina:
+                    return ResistanceType.StaminaBoost;
+                case DamageType.Mana:
+                    return ResistanceType.ManaBoost;
+                default:
+                    return ResistanceType.Undef;
+            }
+        }
+
+        /// <summary>
+        /// Returns the drain resistance for a damage type
+        /// </summary>
+        private static ResistanceType GetDrainResistanceType(DamageType damageType)
+        {
+            switch (damageType)
+            {
+                case DamageType.Health:
+                    return ResistanceType.HealthDrain;
+                case DamageType.Stamina:
+                    return ResistanceType.StaminaDrain;
+                case DamageType.Mana:
+                    return ResistanceType.ManaDrain;
+                default:
+                    return ResistanceType.Undef;
+            }
+        }
+
+        /// <summary>
+        /// Returns the boost resistance type for a vital
+        /// </summary>
+        private static ResistanceType GetBoostResistanceType(PropertyAttribute2nd vital)
+        {
+            switch (vital)
+            {
+                case PropertyAttribute2nd.Health:
+                    return ResistanceType.HealthBoost;
+                case PropertyAttribute2nd.Stamina:
+                    return ResistanceType.StaminaBoost;
+                case PropertyAttribute2nd.Mana:
+                    return ResistanceType.ManaBoost;
+                default:
+                    return ResistanceType.Undef;
+            }
+        }
+
+        /// <summary>
+        /// Returns the drain resistance type for a vital
+        /// </summary>
+        private static ResistanceType GetDrainResistanceType(PropertyAttribute2nd vital)
+        {
+            switch (vital)
+            {
+                case PropertyAttribute2nd.Health:
+                    return ResistanceType.HealthDrain;
+                case PropertyAttribute2nd.Stamina:
+                    return ResistanceType.StaminaDrain;
+                case PropertyAttribute2nd.Mana:
+                    return ResistanceType.ManaDrain;
+                default:
+                    return ResistanceType.Undef;
+            }
+        }
+
+        /// <summary>
+        /// Handles casting SpellType.Transfer spells
+        /// usually for Life Magic, ie. Stamina to Mana, Drain
+        /// </summary>
+        private GameMessageSystemChat HandleCastSpell_Transfer(Spell spell, WorldObject target, out EnchantmentStatus enchantmentStatus, out uint damage)
+        {
+            string srcVital, destVital;
+            damage = 0;
+            enchantmentStatus = new EnchantmentStatus(spell);
+            GameMessageSystemChat targetMsg = null;
+
+            var player = this as Player;
+            var creature = this as Creature;
+
+            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
+
+            if (this is Gem || this is Food || this is Hook)
+                spellTarget = target as Creature;
+
+            var targetPlayer = spellTarget as Player;
+
+            // source and destination can be the same creature, or different creatures
+            var caster = this as Creature;
+            var transferSource = spell.TransferFlags.HasFlag(TransferFlags.CasterSource) ? caster : spellTarget;
+            var destination = spell.TransferFlags.HasFlag(TransferFlags.CasterDestination) ? caster : spellTarget;
+
+            // Calculate vital changes
+            uint srcVitalChange, destVitalChange;
+
+            // Drain Resistances - allows one to partially resist drain health/stamina/mana and harm attacks (not including other life transfer spells).
+            var isDrain = spell.TransferFlags.HasFlag(TransferFlags.TargetSource | TransferFlags.CasterDestination);
+            var drainMod = isDrain ? (float)transferSource.GetResistanceMod(GetDrainResistanceType(spell.Source)) : 1.0f;
+
+            srcVitalChange = (uint)Math.Round(transferSource.GetCreatureVital(spell.Source).Current * spell.Proportion * drainMod);
+
+            // TransferCap caps both srcVitalChange and destVitalChange
+            // https://asheron.fandom.com/wiki/Announcements_-_2003/01_-_The_Slumbering_Giant#Letter_to_the_Players
+
+            if (spell.TransferCap != 0 && srcVitalChange > spell.TransferCap)
+                srcVitalChange = (uint)spell.TransferCap;
+
+            // should healing resistances be applied here?
+            var boostMod = isDrain ? (float)destination.GetResistanceMod(GetBoostResistanceType(spell.Destination)) : 1.0f;
+
+            destVitalChange = (uint)Math.Round(srcVitalChange * (1.0f - spell.LossPercent) * boostMod);
+
+            // scale srcVitalChange to destVitalChange?
+            var missingDest = destination.GetCreatureVital(spell.Destination).Missing;
+
+            var maxDestVitalChange = missingDest;
+            if (spell.TransferCap != 0 && maxDestVitalChange > spell.TransferCap)
+                maxDestVitalChange = (uint)spell.TransferCap;
+
+            if (destVitalChange > maxDestVitalChange)
+            {
+                var scalar = (float)maxDestVitalChange / destVitalChange;
+
+                srcVitalChange = (uint)Math.Round(srcVitalChange * scalar);
+                destVitalChange = maxDestVitalChange;
+            }
+
+            // handle cloak damage procs for drain health other
+            var equippedCloak = spellTarget?.EquippedCloak;
+
+            if (isDrain && spell.Source == PropertyAttribute2nd.Health)
+            {
+                var percent = (float)srcVitalChange / spellTarget.Health.MaxValue;
+
+                if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(equippedCloak, percent))
+                {
+                    var reduced = Cloak.GetReducedAmount(this, srcVitalChange);
+
+                    Cloak.ShowMessage(spellTarget, this, srcVitalChange, reduced);
+
+                    srcVitalChange = reduced;
+                    destVitalChange = (uint)Math.Round(srcVitalChange * (1.0f - spell.LossPercent) * boostMod);
+                }
+            }
+
+            // Apply the change in vitals to the source
+            switch (spell.Source)
+            {
+                case PropertyAttribute2nd.Mana:
+                    srcVital = "mana";
+                    srcVitalChange = (uint)-transferSource.UpdateVitalDelta(transferSource.Mana, -(int)srcVitalChange);
+                    break;
+                case PropertyAttribute2nd.Stamina:
+                    srcVital = "stamina";
+                    srcVitalChange = (uint)-transferSource.UpdateVitalDelta(transferSource.Stamina, -(int)srcVitalChange);
+                    break;
+                default:   // Health
+                    srcVital = "health";
+                    srcVitalChange = (uint)-transferSource.UpdateVitalDelta(transferSource.Health, -(int)srcVitalChange);
+
+                    transferSource.DamageHistory.Add(this, DamageType.Health, srcVitalChange);
+
+                    //var sourcePlayer = source as Player;
+                    //if (sourcePlayer != null && sourcePlayer.Fellowship != null)
+                    //sourcePlayer.Fellowship.OnVitalUpdate(sourcePlayer);
+
+                    break;
+            }
+            damage = srcVitalChange;
+
+            // Apply the scaled change in vitals to the caster
+            switch (spell.Destination)
+            {
+                case PropertyAttribute2nd.Mana:
+                    destVital = "mana";
+                    destVitalChange = (uint)destination.UpdateVitalDelta(destination.Mana, destVitalChange);
+                    break;
+                case PropertyAttribute2nd.Stamina:
+                    destVital = "stamina";
+                    destVitalChange = (uint)destination.UpdateVitalDelta(destination.Stamina, destVitalChange);
+                    break;
+                default:   // Health
+                    destVital = "health";
+                    destVitalChange = (uint)destination.UpdateVitalDelta(destination.Health, destVitalChange);
+
+                    destination.DamageHistory.OnHeal(destVitalChange);
+
+                    //var destPlayer = destination as Player;
+                    //if (destPlayer != null && destPlayer.Fellowship != null)
+                    //destPlayer.Fellowship.OnVitalUpdate(destPlayer);
+
+                    break;
+            }
+
+            // You gain 52 points of health due to casting Drain Health Other I on Olthoi Warrior
+            // You lose 22 points of mana due to casting Incantation of Infuse Mana Other on High-Voltage VI
+            // You lose 12 points of mana due to Zofrit Zefir casting Drain Mana Other II on you
+
+            // You cast Stamina to Mana Self I on yourself and lose 50 points of stamina and also gain 45 points of mana
+            // You cast Stamina to Health Self VI on yourself and fail to affect your  stamina and also gain 1 point of health
+
+            // unverified:
+            // You gain X points of vital due to caster casting spell on you
+            // You lose X points of vital due to caster casting spell on you
+
+            var playerSource = transferSource as Player;
+            var playerDestination = destination as Player;
+
+            if (playerSource != null && playerDestination != null && transferSource.Guid == destination.Guid)
+            {
+                enchantmentStatus.Message = new GameMessageSystemChat($"You cast {spell.Name} on yourself and lose {srcVitalChange} points of {srcVital} and also gain {destVitalChange} points of {destVital}", ChatMessageType.Magic);
+            }
+            else
+            {
+                if (playerSource != null)
+                {
+                    if (transferSource == this)
+                        enchantmentStatus.Message = new GameMessageSystemChat($"You lose {srcVitalChange} points of {srcVital} due to casting {spell.Name} on {spellTarget.Name}", ChatMessageType.Magic);
+                    else
+                        targetMsg = new GameMessageSystemChat($"You lose {srcVitalChange} points of {srcVital} due to {caster.Name} casting {spell.Name} on you", ChatMessageType.Magic);
+
+                    if (destination is Creature creatureDestination)
+                        playerSource.SetCurrentAttacker(creatureDestination);
+                }
+
+                if (playerDestination != null)
+                {
+                    if (destination == this)
+                        enchantmentStatus.Message = new GameMessageSystemChat($"You gain {destVitalChange} points of {destVital} due to casting {spell.Name} on {spellTarget.Name}", ChatMessageType.Magic);
+                    else
+                        targetMsg = new GameMessageSystemChat($"You gain {destVitalChange} points of {destVital} due to {caster.Name} casting {spell.Name} on you", ChatMessageType.Magic);
+                }
+            }
+
+            if (isDrain && spellTarget.IsAlive && spell.Source == PropertyAttribute2nd.Health)
+            {
+                // handle cloak spell proc
+                if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak))
+                {
+                    var pct = (float)srcVitalChange / spellTarget.Health.MaxValue;
+
+                    // ensure message is sent after enchantment.Message
+                    var actionChain = new ActionChain();
+                    actionChain.AddDelayForOneTick();
+                    actionChain.AddAction(this, () => Cloak.TryProcSpell(spellTarget, this, equippedCloak, pct));
+                    actionChain.EnqueueChain();
+                }
+
+                // ensure emote process occurs after damage msg
+                var emoteChain = new ActionChain();
+                emoteChain.AddDelayForOneTick();
+                emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(creature));
+                //if (critical)
+                //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(creature));
+                emoteChain.EnqueueChain();
+            }
+
+            return targetMsg;
+        }
+
+        /// <summary>
+        /// Handles casting SpellType.Projectile / LifeProjectile / EnchantmentProjectile spells
+        /// </summary>
+        private void HandleCastSpell_Projectile(Spell spell, WorldObject target, uint damage, WorldObject itemCaster, WorldObject weapon, bool isWeaponSpell, bool fromProc)
+        {
+            var caster = this as Creature;
+            var damageType = DamageType.Undef;
+
+            if (spell.School == MagicSchool.LifeMagic)
+            {
+                if (spell.Name.Contains("Blight"))
+                {
+                    var tryDamage = (int)Math.Round(caster.GetCreatureVital(PropertyAttribute2nd.Mana).Current * spell.DrainPercentage);
+                    damage = (uint)-caster.UpdateVitalDelta(caster.Mana, -tryDamage);
+                    damageType = DamageType.Mana;
+                }
+                else if (spell.Name.Contains("Tenacity"))
+                {
+                    var tryDamage = (int)Math.Round(caster.GetCreatureVital(PropertyAttribute2nd.Stamina).Current * spell.DrainPercentage);
+                    damage = (uint)-caster.UpdateVitalDelta(caster.Stamina, -tryDamage);
+                    damageType = DamageType.Stamina;
+                }
+                else
+                {
+                    var tryDamage = (int)Math.Round(caster.GetCreatureVital(PropertyAttribute2nd.Health).Current * spell.DrainPercentage);
+                    damage = (uint)-caster.UpdateVitalDelta(caster.Health, -tryDamage);
+                    caster.DamageHistory.Add(this, DamageType.Health, damage);
+                    damageType = DamageType.Health;
+
+                    //if (player != null && player.Fellowship != null)
+                        //player.Fellowship.OnVitalUpdate(player);
+                }
+            }
+
+            CreateSpellProjectiles(spell, target, weapon, isWeaponSpell, fromProc, damage);
+
+            if (spell.School == MagicSchool.LifeMagic)
+            {
+                if (caster.Health.Current <= 0)
+                {
+                    // should this be possible?
+                    var lastDamager = caster != null ? new DamageHistoryInfo(caster) : null;
+
+                    caster.OnDeath(lastDamager, damageType, false);
+                    caster.Die();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handles casting SpellType.PortalLink spells
+        /// </summary>
+        private void HandleCastSpell_PortalLink(Spell spell, WorldObject target)
+        {
+            var player = this as Player;
+
+            if (player == null) return;
+
+            if (player.IsOlthoiPlayer)
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCanOnlyRecallToLifestone));
+
+            switch ((SpellId)spell.Id)
+            {
+                case SpellId.LifestoneTie1:  // Lifestone Tie
+
+                    if (target.WeenieType == WeenieType.LifeStone)
+                    {
+                        EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the life stone.", ChatMessageType.Magic));
+                        player.LinkedLifestone = target.Location;
+                    }
+                    else
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You cannot link that.", ChatMessageType.Magic));
+
+                    break;
+
+                case SpellId.PortalTie1:    // Primary Portal Tie
+                case SpellId.PortalTie2:    // Secondary Portal Tie
+
+                    if (target.WeenieType != WeenieType.Portal)
+                    {
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You cannot link that.", ChatMessageType.Magic));
+                        break;
+                    }
+
+                    var targetPortal = target as Portal;
+
+                    var summoned = targetPortal.OriginalPortal != null;
+
+                    var targetDID = summoned ? targetPortal.OriginalPortal : targetPortal.WeenieClassId;
+
+                    var tiePortal = GetPortal(targetDID.Value);
+
+                    if (tiePortal == null)
+                    {
+                        player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotLinkToThatPortal));
+                        break;
+                    }
+
+                    var result = tiePortal.CheckUseRequirements(player);
+
+                    if (!result.Success && result.Message != null)
+                        player.Session.Network.EnqueueSend(result.Message);
+
+                    if (tiePortal.NoTie || !result.Success)
+                    {
+                        player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotLinkToThatPortal));
+                        break;
+                    }
+
+                    var isPrimary = spell.Id == (int)SpellId.PortalTie1;
+
+                    if (isPrimary)
+                    {
+                        player.LinkedPortalOneDID = targetDID;
+                        player.SetProperty(PropertyBool.LinkedPortalOneSummon, summoned);
+                    }
+                    else
+                    {
+                        player.LinkedPortalTwoDID = targetDID;
+                        player.SetProperty(PropertyBool.LinkedPortalTwoSummon, summoned);
+                    }
+
+                    EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the portal.", ChatMessageType.Magic));
+
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Returns a Portal object for a WCID
+        /// </summary>
+        private static Portal GetPortal(uint wcid)
+        {
+            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+
+            return WorldObjectFactory.CreateWorldObject(weenie, new ObjectGuid(wcid)) as Portal;
+        }
+
+        /// <summary>
+        /// Handles casting SpellType.PortalRecall spells
+        /// </summary>
+        private void HandleCastSpell_PortalRecall(Spell spell, WorldObject target)
+        {
+            var player = this as Player;
+
+            if (player != null && player.IsOlthoiPlayer)
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCanOnlyRecallToLifestone));
+
+            var creature = this as Creature;
+
+            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
+
+            if (this is Gem || this is Food || this is Hook)
+                spellTarget = target as Creature;
+
+            var targetPlayer = spellTarget as Player;
+
+            if (player != null && player.PKTimerActive)
+            {
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                return;
+            }
+
+            PositionType recall = PositionType.Undef;
+            uint? recallDID = null;
+
+            // verify pre-requirements for recalls
+
+            switch ((SpellId)spell.Id)
+            {
+                case SpellId.PortalRecall:       // portal recall
+
+                    if (targetPlayer.LastPortalDID == null)
+                    {
+                        // You must link to a portal to recall it!
+                        targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
+                    }
+                    else
+                    {
+                        recall = PositionType.LastPortal;
+                        recallDID = targetPlayer.LastPortalDID;
+                    }
+                    break;
+
+                case SpellId.LifestoneRecall1:   // lifestone recall
+
+                    if (targetPlayer.GetPosition(PositionType.LinkedLifestone) == null)
+                    {
+                        // You must link to a lifestone to recall it!
+                        targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToLifestoneToRecall));
+                    }
+                    else
+                        recall = PositionType.LinkedLifestone;
+                    break;
+
+                case SpellId.LifestoneSending1:
+
+                    if (player != null && player.GetPosition(PositionType.Sanctuary) != null)
+                        recall = PositionType.Sanctuary;
+                    else if (targetPlayer != null && targetPlayer.GetPosition(PositionType.Sanctuary) != null)
+                        recall = PositionType.Sanctuary;
+
+                    break;
+
+                case SpellId.PortalTieRecall1:   // primary portal tie recall
+
+                    if (targetPlayer.LinkedPortalOneDID == null)
+                    {
+                        // You must link to a portal to recall it!
+                        targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
+                    }
+                    else
+                    {
+                        recall = PositionType.LinkedPortalOne;
+                        recallDID = targetPlayer.LinkedPortalOneDID;
+                    }
+                    break;
+
+                case SpellId.PortalTieRecall2:   // secondary portal tie recall
+
+                    if (targetPlayer.LinkedPortalTwoDID == null)
+                    {
+                        // You must link to a portal to recall it!
+                        targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
+                    }
+                    else
+                    {
+                        recall = PositionType.LinkedPortalTwo;
+                        recallDID = targetPlayer.LinkedPortalTwoDID;
+                    }
+                    break;
+            }
+
+            if (recall != PositionType.Undef)
+            {
+                if (recallDID == null)
+                {
+                    EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+
+                    // lifestone recall
+                    ActionChain lifestoneRecall = new ActionChain();
+                    lifestoneRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
+                    lifestoneRecall.AddDelaySeconds(2.0f);  // 2 second delay
+                    lifestoneRecall.AddAction(targetPlayer, () => targetPlayer.TeleToPosition(recall));
+                    lifestoneRecall.EnqueueChain();
+                }
+                else
+                {
+                    // portal recall
+                    var portal = GetPortal(recallDID.Value);
+                    if (portal == null || portal.NoRecall)
+                    {
+                        // You cannot recall that portal!
+                        player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotRecallPortal));
+                        return;
+                    }
+
+                    var result = portal.CheckUseRequirements(targetPlayer);
+                    if (!result.Success)
+                    {
+                        if (result.Message != null)
+                            targetPlayer.Session.Network.EnqueueSend(result.Message);
+
+                        return;
+                    }
+
+                    EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+
+                    ActionChain portalRecall = new ActionChain();
+                    portalRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
+                    portalRecall.AddDelaySeconds(2.0f);  // 2 second delay
+                    portalRecall.AddAction(targetPlayer, () =>
+                    {
+                        var teleportDest = new Position(portal.Destination);
+                        AdjustDungeon(teleportDest);
+
+                        targetPlayer.Teleport(teleportDest);
+                    });
+                    portalRecall.EnqueueChain();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handles casting SpellType.PortalSummon spells
+        /// </summary>
+        private void HandleCastSpell_PortalSummon(Spell spell, WorldObject target, WorldObject itemCaster)
+        {
+            var player = this as Player;
+
+            if (player != null && player.IsOlthoiPlayer)
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCanOnlyRecallToLifestone));
+
+            if (player != null && player.PKTimerActive)
+            {
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                return;
+            }
+
+            var source = player ?? itemCaster;
+
+            uint portalId = 0;
+            bool linkSummoned;
+
+            // spell.link = 1 = LinkedPortalOneDID
+            // spell.link = 2 = LinkedPortalTwoDID
+
+            if (spell.Link <= 1)
+            {
+                portalId = source.LinkedPortalOneDID ?? 0;
+                linkSummoned = source.GetProperty(PropertyBool.LinkedPortalOneSummon) ?? false;
+            }
+            else
+            {
+                portalId = source.LinkedPortalTwoDID ?? 0;
+                linkSummoned = source.GetProperty(PropertyBool.LinkedPortalTwoSummon) ?? false;
+            }
+
+            Position summonLoc = null;
+
+            if (player != null)
+            {
+                if (portalId == 0)
+                {
+                    // You must link to a portal to summon it!
+                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToSummonIt));
+                    return;
+                }
+
+                var summonPortal = GetPortal(portalId);
+                if (summonPortal == null || summonPortal.NoSummon || (linkSummoned && !PropertyManager.GetBool("gateway_ties_summonable").Item))
+                {
+                    // You cannot summon that portal!
+                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotSummonPortal));
+                    return;
+                }
+
+                var result = summonPortal.CheckUseRequirements(player);
+                if (!result.Success)
+                {
+                    if (result.Message != null)
+                        player.Session.Network.EnqueueSend(result.Message);
+
+                    return;
+                }
+
+                summonLoc = player.Location.InFrontOf(3.0f);
+            }
+            else if (itemCaster != null)
+            {
+                if (itemCaster.PortalSummonLoc != null)
+                    summonLoc = new Position(PortalSummonLoc);
+                else
+                {
+                    if (itemCaster.Location != null)
+                        summonLoc = itemCaster.Location.InFrontOf(3.0f);
+                    else if (target != null && target.Location != null)
+                        summonLoc = target.Location.InFrontOf(3.0f);
+                }
+            }
+
+            if (summonLoc != null)
+                summonLoc.LandblockId = new LandblockId(summonLoc.GetCell());
+
+            if (SummonPortal(portalId, summonLoc, spell.PortalLifetime))
+                EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+            else if (player != null)
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouFailToSummonPortal));
+        }
+
+        /// <summary>
+        /// Spawns a portal for SpellType.PortalSummon spells
+        /// </summary>
+        protected static bool SummonPortal(uint portalId, Position location, double portalLifetime)
+        {
+            var portal = GetPortal(portalId);
+
+            if (portal == null || location == null)
+                return false;
+
+            var gateway = WorldObjectFactory.CreateNewWorldObject("portalgateway") as Portal;
+
+            if (gateway == null)
+                return false;
+
+            gateway.Location = new Position(location);
+            gateway.OriginalPortal = portalId;
+
+            gateway.UpdatePortalDestination(new Position(portal.Destination));
+
+            gateway.TimeToRot = portalLifetime;
+
+            gateway.MinLevel = portal.MinLevel;
+            gateway.MaxLevel = portal.MaxLevel;
+            gateway.PortalRestrictions = portal.PortalRestrictions;
+            gateway.AccountRequirements = portal.AccountRequirements;
+            gateway.AdvocateQuest = portal.AdvocateQuest;
+
+            gateway.Quest = portal.Quest;
+            gateway.QuestRestriction = portal.QuestRestriction;
+
+            gateway.PortalRestrictions |= PortalBitmask.NoSummon; // all gateways are marked NoSummon but by default ruleset, the OriginalPortal is the one that is checked against
+
+            gateway.EnterWorld();
+
+            return true;
+        }
+
+        /// <summary>
+        /// Handles casting SpellType.PortalSending spells
+        /// </summary>
+        private void HandleCastSpell_PortalSending(Spell spell, WorldObject target, WorldObject itemCaster)
+        {
+            var creature = this as Creature;
+
+            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
+
+            if (this is Gem || this is Food || this is Hook)
+                spellTarget = target as Creature;
+
+            if (spellTarget is Player targetPlayer)
+            {
+                if (targetPlayer.PKTimerActive)
+                {
+                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                    return;
+                }
+
+                ActionChain portalSendingChain = new ActionChain();
+                //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
+                portalSendingChain.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
+                portalSendingChain.AddAction(targetPlayer, () =>
+                {
+                    var teleportDest = new Position(spell.Position);
+                    AdjustDungeon(teleportDest);
+
+                    targetPlayer.Teleport(teleportDest);
+
+                    targetPlayer.SendTeleportedViaMagicMessage(itemCaster, spell);
+                });
+                portalSendingChain.EnqueueChain();
+            }
+            else if (target is Player targetCreature)
+            {
+                // monsters can cast some portal spells on themselves too, possibly?
+                // under certain circumstances, such as ensuring the destination is the same landblock
+                var teleportDest = new Position(spell.Position);
+                AdjustDungeon(teleportDest);
+
+                targetCreature.FakeTeleport(teleportDest);
+            }
+        }
+
+        /// <summary>
+        /// Handles casting SpellType.FellowPortalSending spells
+        /// </summary>
+        private void HandleCastSpell_FellowPortalSending(Spell spell, WorldObject target, WorldObject itemCaster)
+        {
+            var creature = this as Creature;
+
+            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
+
+            if (this is Gem || this is Food || this is Hook)
+                spellTarget = target as Creature;
+
+            if (spellTarget is Player targetPlayer && targetPlayer.Fellowship != null)
+            {
+                if (targetPlayer.PKTimerActive)
+                {
+                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                    return;
+                }
+
+                var distanceToTarget = creature.GetDistance(targetPlayer);
+                var skill = creature.GetCreatureSkill(spell.School);
+                var magicSkill = skill.InitLevel + skill.Ranks;
+                var maxRange = spell.BaseRangeConstant + magicSkill * spell.BaseRangeMod;
+                if (maxRange == 0.0f)
+                    maxRange = float.PositiveInfinity;
+
+                if (distanceToTarget <= maxRange)
+                {
+                    ActionChain portalSendingChain = new ActionChain();
+                    portalSendingChain.AddAction(targetPlayer, () => targetPlayer.EnqueueBroadcast(new GameMessageScript(targetPlayer.Guid, spell.TargetEffect, spell.Formula.Scale)));
+                    portalSendingChain.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
+                    portalSendingChain.AddAction(targetPlayer, () =>
+                    {
+                        var teleportDest = new Position(spell.Position);
+                        AdjustDungeon(teleportDest);
+
+                        targetPlayer.Teleport(teleportDest);
+
+                        targetPlayer.SendTeleportedViaMagicMessage(itemCaster, spell);
+                    });
+                    portalSendingChain.EnqueueChain();
+                }
+                //else
+                //{
+                //    enchantmentStatus.Success = false;
+                //    return enchantmentStatus;
+                //}
+            }
+        }
+
+        /// <summary>
+        /// Handles casting SpellType.Dispel / FellowDispel spells
+        /// </summary>
+        private GameMessageSystemChat HandleCastSpell_Dispel(Spell spell, WorldObject target, out EnchantmentStatus enchantmentStatus)
+        {
+            enchantmentStatus = new EnchantmentStatus(spell);
+            GameMessageSystemChat targetMsg = null;
+
+            var player = this as Player;
+            var creature = this as Creature;
+
+            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
+
+            if (this is Gem || this is Food || this is Hook)
+                spellTarget = target as Creature;
+
+            var removeSpells = target.EnchantmentManager.SelectDispel(spell);
+
+            // dispel on server and client
+            target.EnchantmentManager.Dispel(removeSpells.Select(s => s.Enchantment).ToList());
+
+            var spellList = BuildSpellList(removeSpells);
+            var suffix = "";
+            if (removeSpells.Count > 0)
+                suffix = $" and dispel: {spellList}.";
+            else
+                suffix = ", but the dispel fails.";
+
+            if (player != null)
+            {
+                if (player == target)
+                    enchantmentStatus.Message = new GameMessageSystemChat($"You cast {spell.Name} on yourself{suffix}", ChatMessageType.Magic);
+                else
+                    enchantmentStatus.Message = new GameMessageSystemChat($"You cast {spell.Name} on {target.Name}{suffix}", ChatMessageType.Magic);
+            }
+            if (spellTarget is Player targetPlayer && targetPlayer != player)
+            {
+                targetMsg = new GameMessageSystemChat($"{Name} casts {spell.Name} on you{suffix.Replace("and dispel", "and dispels")}", ChatMessageType.Magic);
+
+                // all dispels appear to be listed as non-beneficial, even the ones that only dispel negative spells
+                // we filter here to positive or all
+                if (creature != null && spell.Align != DispelType.Negative)
+                    targetPlayer.SetCurrentAttacker(creature);
+            }
+
+            return targetMsg;
+        }
+
         public static bool VerifyDispelPKStatus(WorldObject caster, WorldObject target)
         {
             // https://asheron.fandom.com/wiki/Announcements_-_2004/04_-_A_New_Threat
@@ -293,7 +1496,7 @@ namespace ACE.Server.WorldObjects
         /// Returns a string with the spell list format as:
         /// Spell Name 1, Spell Name 2, and Spell Name 3
         /// </summary>
-        public static string BuildSpellList(List<SpellEnchantment> spells)
+        private static string BuildSpellList(List<SpellEnchantment> spells)
         {
             var sb = new StringBuilder();
             for (var i = 0; i < spells.Count; i++)
@@ -310,49 +1513,6 @@ namespace ACE.Server.WorldObjects
                 sb.Append(spell.Spell.Name);
             }
             return sb.ToString();
-        }
-
-        /// <summary>
-        /// Returns a Portal object for a WCID
-        /// </summary>
-        private static Portal GetPortal(uint wcid)
-        {
-            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
-
-            return WorldObjectFactory.CreateWorldObject(weenie, new ObjectGuid(wcid)) as Portal;
-        }
-
-        /// <summary>
-        /// Spawns a player-summoned portal from item magic or gems
-        /// </summary>
-        protected static bool SummonPortal(uint portalId, Position location, double portalLifetime)
-        {
-            var portal = GetPortal(portalId);
-            if (portal == null || location == null)
-                return false;
-
-            if (WorldObjectFactory.CreateNewWorldObject("portalgateway") is not Portal gateway) return false;
-            gateway.Location = new Position(location);
-            gateway.OriginalPortal = portalId;
-
-            gateway.UpdatePortalDestination(new Position(portal.Destination));
-
-            gateway.TimeToRot = portalLifetime;
-
-            gateway.MinLevel = portal.MinLevel;
-            gateway.MaxLevel = portal.MaxLevel;
-            gateway.PortalRestrictions = portal.PortalRestrictions;
-            gateway.AccountRequirements = portal.AccountRequirements;
-            gateway.AdvocateQuest = portal.AdvocateQuest;
-
-            gateway.Quest = portal.Quest;
-            gateway.QuestRestriction = portal.QuestRestriction;
-
-            gateway.PortalRestrictions |= PortalBitmask.NoSummon; // all gateways are marked NoSummon but by default ruleset, the OriginalPortal is the one that is checked against
-
-            gateway.EnterWorld();
-
-            return true;
         }
 
         /// <summary>
@@ -662,7 +1822,7 @@ namespace ACE.Server.WorldObjects
                 sp.FromProc = fromProc;
 
                 // side projectiles always untargeted?
-                if (i == 0)     
+                if (i == 0)
                     sp.ProjectileTarget = target;
 
                 sp.ProjectileLauncher = weapon;
@@ -786,77 +1946,6 @@ namespace ACE.Server.WorldObjects
             return speed;
         }
 
-        /// <summary>
-        /// Returns the drain resistance for a damage type
-        /// </summary>
-        private static ResistanceType GetDrainResistanceType(DamageType damageType)
-        {
-            switch (damageType)
-            {
-                case DamageType.Health:
-                    return ResistanceType.HealthDrain;
-                case DamageType.Stamina:
-                    return ResistanceType.StaminaDrain;
-                case DamageType.Mana:
-                    return ResistanceType.ManaDrain;
-                default:
-                    return ResistanceType.Undef;
-            }
-        }
-
-        /// <summary>
-        /// Returns the boost resistance for a damage type
-        /// </summary>
-        private static ResistanceType GetBoostResistanceType(DamageType damageType)
-        {
-            switch (damageType)
-            {
-                case DamageType.Health:
-                    return ResistanceType.HealthBoost;
-                case DamageType.Stamina:
-                    return ResistanceType.StaminaBoost;
-                case DamageType.Mana:
-                    return ResistanceType.ManaBoost;
-                default:
-                    return ResistanceType.Undef;
-            }
-        }
-
-        /// <summary>
-        /// Returns the drain resistance type for a vital
-        /// </summary>
-        private static ResistanceType GetDrainResistanceType(PropertyAttribute2nd vital)
-        {
-            switch (vital)
-            {
-                case PropertyAttribute2nd.Health:
-                    return ResistanceType.HealthDrain;
-                case PropertyAttribute2nd.Stamina:
-                    return ResistanceType.StaminaDrain;
-                case PropertyAttribute2nd.Mana:
-                    return ResistanceType.ManaDrain;
-                default:
-                    return ResistanceType.Undef;
-            }
-        }
-
-        /// <summary>
-        /// Returns the boost resistance type for a vital
-        /// </summary>
-        private static ResistanceType GetBoostResistanceType(PropertyAttribute2nd vital)
-        {
-            switch (vital)
-            {
-                case PropertyAttribute2nd.Health:
-                    return ResistanceType.HealthBoost;
-                case PropertyAttribute2nd.Stamina:
-                    return ResistanceType.StaminaBoost;
-                case PropertyAttribute2nd.Mana:
-                    return ResistanceType.ManaBoost;
-                default:
-                    return ResistanceType.Undef;
-            }
-        }
 
         /// <summary>
         /// Returns the epic cantrips from this item's spellbook
@@ -879,38 +1968,6 @@ namespace ACE.Server.WorldObjects
             }
             return _maxSpellLevel.Value;
         }
-
-        public static void ShowResistInfo(Creature observed, WorldObject attacker, WorldObject defender, Spell spell, uint attackSkill, uint defenseSkill, float resistChance, bool resisted)
-        {
-            var targetInfo = PlayerManager.GetOnlinePlayer(observed.DebugDamageTarget);
-
-            if (targetInfo == null)
-            {
-                observed.DebugDamage = Creature.DebugDamageType.None;
-                return;
-            }
-
-            // initial info / resist chance
-            var info = $"Attacker: {attacker.Name} ({attacker.Guid})\n";
-            info += $"Defender: {defender.Name} ({defender.Guid})\n";
-
-            info += $"CombatType: Magic\n";
-
-            info += $"Spell: {spell.Name} ({spell.Id})\n";
-
-            info += $"EffectiveAttackSkill: {attackSkill}\n";
-            info += $"EffectiveDefenseSkill: {defenseSkill}\n";
-
-            info += $"ResistChance: {resistChance}\n";
-
-            info += $"Resisted: {resisted}";
-
-            if (resisted || spell.NumProjectiles == 0)
-                targetInfo.Session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
-            else
-                targetInfo.DebugDamageBuffer = $"{info}\n";
-        }
-
 
         /// <summary>
         /// Calculates the StatModVal x buffs to enter into the enchantment registry
@@ -937,7 +1994,7 @@ namespace ACE.Server.WorldObjects
                 // no healing boost rating modifier found in retail pcaps on apply,
                 // could there have been one on tick?
                 //if (creatureTarget != null)
-                    //enchantment_statModVal *= creatureTarget.GetHealingRatingMod();
+                //enchantment_statModVal *= creatureTarget.GetHealingRatingMod();
 
                 return enchantment_statModVal;
             }
@@ -999,7 +2056,7 @@ namespace ACE.Server.WorldObjects
                 elementalDamageMod = GetCasterElementalDamageModifier(weapon, creatureSource, creatureTarget, spell.DamageType);
 
                 // skillMod only applied to projectiles -- no destructive curse
-                if (spell.NumProjectiles > 0)   
+                if (spell.NumProjectiles > 0)
                 {
                     // from SpellProjectile, slightly modified
                     // convert this to common function
@@ -1064,7 +2121,7 @@ namespace ACE.Server.WorldObjects
                 if (targetCreature == null)
                 {
                     // targeting an individual item / wo
-                    WorldMagic(spell, target, out enchantmentStatus, out _);
+                    HandleCastSpell(spell, target, out enchantmentStatus, out _);
 
                     if (target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
@@ -1084,7 +2141,7 @@ namespace ACE.Server.WorldObjects
 
                             foreach (var item in items)
                             {
-                                WorldMagic(spell, target, out enchantmentStatus, out _);
+                                HandleCastSpell(spell, target, out enchantmentStatus, out _);
                                 if (player != null && enchantmentStatus.Message != null)
                                     player.Session.Network.EnqueueSend(enchantmentStatus.Message);
                             }
@@ -1099,7 +2156,7 @@ namespace ACE.Server.WorldObjects
 
                         if (item != null)
                         {
-                            WorldMagic(spell, target, out enchantmentStatus, out _);
+                            HandleCastSpell(spell, target, out enchantmentStatus, out _);
                             EnqueueBroadcast(new GameMessageScript(item.Guid, spell.TargetEffect, spell.Formula.Scale));
                             if (player != null && enchantmentStatus.Message != null)
                                 player.Session.Network.EnqueueSend(enchantmentStatus.Message);
@@ -1122,7 +2179,7 @@ namespace ACE.Server.WorldObjects
                 if (targetCreature == null)
                 {
                     // targeting an individual item / wo
-                    WorldMagic(spell, target, out enchantmentStatus, out _);
+                    HandleCastSpell(spell, target, out enchantmentStatus, out _);
 
                     if (target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
@@ -1143,7 +2200,7 @@ namespace ACE.Server.WorldObjects
 
                     if (weapon != null && weapon.IsEnchantable)
                     {
-                        WorldMagic(spell, target, out enchantmentStatus, out _);
+                        HandleCastSpell(spell, target, out enchantmentStatus, out _);
 
                         EnqueueBroadcast(new GameMessageScript(weapon.Guid, spell.TargetEffect, spell.Formula.Scale));
 
@@ -1164,7 +2221,7 @@ namespace ACE.Server.WorldObjects
             else
             {
                 // all other item spells, cast directly on target
-                WorldMagic(spell, target, out enchantmentStatus, out _);
+                HandleCastSpell(spell, target, out enchantmentStatus, out _);
 
                 if (target != null)
                     EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
@@ -1219,1093 +2276,6 @@ namespace ACE.Server.WorldObjects
                     return target.EquippedObjects.Values.Where(i => (i.ItemType & spell.NonComponentTargetType) != 0).ToList();
             }
             return null;
-        }
-
-        /// <summary>
-        /// Creates an enchantment and interacts with the Enchantment registry.
-        /// Used by Life, Creature, Item, and Void magic
-        /// </summary>
-        public EnchantmentStatus CreateEnchantment(WorldObject target, WorldObject caster, WorldObject weapon, Spell spell, bool equip = false)
-        {
-            // weird itemCaster -> caster collapsing going on here -- fixme
-
-            var enchantmentStatus = new EnchantmentStatus(spell);
-
-            // create enchantment
-            AddEnchantmentResult addResult;
-            var aetheriaProc = false;
-            var cloakProc = false;
-
-            // technically unsafe, should be using fromProc
-            if (caster.ProcSpell == spell.Id)
-            {
-                if (caster is Gem && Aetheria.IsAetheria(caster.WeenieClassId))
-                {
-                    caster = this;
-                    aetheriaProc = true;
-                }
-                else if (Cloak.IsCloak(caster))
-                {
-                    caster = this;
-                    cloakProc = true;
-                }
-            }
-            addResult = target.EnchantmentManager.Add(spell, caster, weapon, equip);
-
-            // build message
-            var suffix = "";
-            switch (addResult.StackType)
-            {
-                case StackType.Surpass:
-                    suffix = $", surpassing {addResult.SurpassSpell.Name}";
-                    break;
-                case StackType.Refresh:
-                    suffix = $", refreshing {addResult.RefreshSpell.Name}";
-                    break;
-                case StackType.Surpassed:
-                    suffix = $", but it is surpassed by {addResult.SurpassedSpell.Name}";
-                    break;
-            }
-
-            string message = null;
-
-            if (aetheriaProc)
-            {
-                message = $"Aetheria surges on {target.Name} with the power of {spell.Name}!";
-                enchantmentStatus.Broadcast = true;
-            }
-            else
-            {
-                // TODO: replace with some kind of 'rootOwner unless equip' concept?
-                // for item casters where the message should be 'You cast', we still need pass the caster as item
-                // down this far, to prevent using player's AugmentationIncreasedSpellDuration
-                var casterCheck = caster == this || caster is Gem || caster is Food;
-
-                if (casterCheck || target == this || caster != target)
-                {
-                    var casterName = casterCheck ? "You" : caster.Name;
-                    var targetName = target.Name;
-                    if (target == this)
-                        targetName = casterCheck ? "yourself" : "you";
-
-                    message = $"{casterName} cast {spell.Name} on {targetName}{suffix}";
-                }
-            }
-
-            if (message != null)
-                enchantmentStatus.Message = new GameMessageSystemChat(message, ChatMessageType.Magic);
-            else
-                enchantmentStatus.Message = null;
-
-            enchantmentStatus.StackType = addResult.StackType;
-            enchantmentStatus.Success = true;
-
-            var playerTarget = target as Player;
-
-            if (playerTarget != null)
-            {
-                playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
-
-                playerTarget.HandleSpellHooks(spell);
-
-                if (!spell.IsBeneficial && this is Creature creatureCaster)
-                    playerTarget.SetCurrentAttacker(creatureCaster);
-            }
-
-            if (playerTarget == null && target.Wielder is Player wielder)
-                playerTarget = wielder;
-
-            if (playerTarget != null && playerTarget != this && !playerTarget.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic) && !cloakProc)
-            {
-                var targetName = target == playerTarget ? "you" : $"your {target.Name}";
-
-                playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{caster.Name} cast {spell.Name} on {targetName}{suffix}", ChatMessageType.Magic));
-            }
-
-            return enchantmentStatus;
-        }
-
-        /// <summary>
-        /// Performs the Heal/Harm magic
-        /// </summary>
-        /// <param name="spell"></param>
-        /// <param name="target"></param>
-        /// <param name="enchantmentStatus"></param>
-        /// <param name="damage"></param>
-        /// <returns></returns>
-        private GameMessageSystemChat SpellTypeBoost(Spell spell, WorldObject target, out EnchantmentStatus enchantmentStatus, out uint damage)
-        {
-            string srcVital;
-            damage = 0;
-            enchantmentStatus = new EnchantmentStatus(spell);
-            GameMessageSystemChat targetMsg = null;
-
-            var player = this as Player;
-            var creature = this as Creature;
-
-            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
-
-            if (this is Gem || this is Food || this is Hook)
-                spellTarget = target as Creature;
-
-            // handle negatives?
-            int minBoostValue = Math.Min(spell.Boost, spell.MaxBoost);
-            int maxBoostValue = Math.Max(spell.Boost, spell.MaxBoost);
-
-            var resistanceType = minBoostValue > 0 ? GetBoostResistanceType(spell.VitalDamageType) : GetDrainResistanceType(spell.VitalDamageType);
-
-            int tryBoost = ThreadSafeRandom.Next(minBoostValue, maxBoostValue);
-            tryBoost = (int)Math.Round(tryBoost * spellTarget.GetResistanceMod(resistanceType));
-
-            int boost = tryBoost;
-            damage = tryBoost < 0 ? (uint)Math.Abs(tryBoost) : 0;
-
-            // handle cloak damage proc for harm other
-            var equippedCloak = spellTarget?.EquippedCloak;
-
-            if (spellTarget != this && spell.VitalDamageType == DamageType.Health && tryBoost < 0)
-            {
-                var percent = (float)-tryBoost / spellTarget.Health.MaxValue;
-
-                if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(equippedCloak, percent))
-                {
-                    var reduced = -Cloak.GetReducedAmount(this, -tryBoost);
-
-                    Cloak.ShowMessage(spellTarget, this, -tryBoost, -reduced);
-
-                    tryBoost = boost = reduced;
-                    damage = (uint)Math.Abs(tryBoost);
-                }
-            }
-
-            switch (spell.VitalDamageType)
-            {
-                case DamageType.Mana:
-                    boost = spellTarget.UpdateVitalDelta(spellTarget.Mana, tryBoost);
-                    srcVital = "mana";
-                    break;
-                case DamageType.Stamina:
-                    boost = spellTarget.UpdateVitalDelta(spellTarget.Stamina, tryBoost);
-                    srcVital = "stamina";
-                    break;
-                default:   // Health
-                    boost = spellTarget.UpdateVitalDelta(spellTarget.Health, tryBoost);
-                    srcVital = "health";
-
-                    if (boost >= 0)
-                        spellTarget.DamageHistory.OnHeal((uint)boost);
-                    else
-                        spellTarget.DamageHistory.Add(this, DamageType.Health, (uint)-boost);
-
-                    //if (targetPlayer != null && targetPlayer.Fellowship != null)
-                    //targetPlayer.Fellowship.OnVitalUpdate(targetPlayer);
-
-                    break;
-            }
-
-            if (player != null)
-            {
-                if (player != spellTarget)
-                {
-                    string msg;
-                    if (spell.IsBeneficial)
-                    {
-                        //msg = $"You cast {spell.Name} and restore {boost} points of {srcVital} to {spellTarget.Name}.";
-                        msg = $"With {spell.Name} you restore {boost} points of {srcVital} to {spellTarget.Name}.";
-                        enchantmentStatus.Message = new GameMessageSystemChat(msg, ChatMessageType.Magic);
-                    }
-                    else
-                    {
-                        //msg = $"You cast {spell.Name} and drain {Math.Abs(boost)} points of {srcVital} from {spellTarget.Name}.";
-                        msg = $"With {spell.Name} you drain {Math.Abs(boost)} points of {srcVital} from {spellTarget.Name}.";
-                        enchantmentStatus.Message = new GameMessageSystemChat(msg, ChatMessageType.Magic);
-                    }
-                }
-                else
-                {
-                    var verb = spell.IsBeneficial ? "restore" : "drain";
-                    enchantmentStatus.Message = new GameMessageSystemChat($"You cast {spell.Name} and {verb} {Math.Abs(boost)} points of your {srcVital}.", ChatMessageType.Magic);
-                }
-            }
-
-            if (spellTarget is Player targetPlayer && player != targetPlayer)
-            {
-                string msg;
-                if (spell.IsBeneficial)
-                {
-                    msg = $"{Name} casts {spell.Name} and restores {boost} points of your {srcVital}.";
-                    targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Magic);
-                }
-                else
-                {
-                    msg = $"{Name} casts {spell.Name} and drains {Math.Abs(boost)} points of your {srcVital}.";
-                    targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Magic);
-
-                    if (creature != null)
-                        targetPlayer.SetCurrentAttacker(creature);
-                }
-            }
-
-            if (spellTarget != this && spellTarget.IsAlive && spell.VitalDamageType == DamageType.Health && boost < 0)
-            {
-                // handle cloak spell proc
-                if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak))
-                {
-                    var pct = (float)-boost / spellTarget.Health.MaxValue;
-
-                    // ensure message is sent after enchantment.Message
-                    var actionChain = new ActionChain();
-                    actionChain.AddDelayForOneTick();
-                    actionChain.AddAction(this, () => Cloak.TryProcSpell(spellTarget, this, equippedCloak, pct));
-                    actionChain.EnqueueChain();
-                }
-
-                // ensure emote process occurs after damage msg
-                var emoteChain = new ActionChain();
-                emoteChain.AddDelayForOneTick();
-                emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(creature));
-                //if (critical)
-                //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(creature));
-                emoteChain.EnqueueChain();
-            }
-
-            return targetMsg;
-        }
-
-        /// <summary>
-        /// Performs vital transfer magic
-        /// </summary>
-        /// <param name="spell"></param>
-        /// <param name="target"></param>
-        /// <param name="enchantmentStatus"></param>
-        /// <param name="damage"></param>
-        /// <returns></returns>
-        private GameMessageSystemChat SpellTypeTransfer(Spell spell, WorldObject target, out EnchantmentStatus enchantmentStatus, out uint damage)
-        {
-            string srcVital, destVital;
-            damage = 0;
-            enchantmentStatus = new EnchantmentStatus(spell);
-            GameMessageSystemChat targetMsg = null;
-
-            var player = this as Player;
-            var creature = this as Creature;
-
-            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
-
-            if (this is Gem || this is Food || this is Hook)
-                spellTarget = target as Creature;
-
-            var targetPlayer = spellTarget as Player;
-
-            // source and destination can be the same creature, or different creatures
-            var caster = this as Creature;
-            var transferSource = spell.TransferFlags.HasFlag(TransferFlags.CasterSource) ? caster : spellTarget;
-            var destination = spell.TransferFlags.HasFlag(TransferFlags.CasterDestination) ? caster : spellTarget;
-
-            // Calculate vital changes
-            uint srcVitalChange, destVitalChange;
-
-            // Drain Resistances - allows one to partially resist drain health/stamina/mana and harm attacks (not including other life transfer spells).
-            var isDrain = spell.TransferFlags.HasFlag(TransferFlags.TargetSource | TransferFlags.CasterDestination);
-            var drainMod = isDrain ? (float)transferSource.GetResistanceMod(GetDrainResistanceType(spell.Source)) : 1.0f;
-
-            srcVitalChange = (uint)Math.Round(transferSource.GetCreatureVital(spell.Source).Current * spell.Proportion * drainMod);
-
-            // TransferCap caps both srcVitalChange and destVitalChange
-            // https://asheron.fandom.com/wiki/Announcements_-_2003/01_-_The_Slumbering_Giant#Letter_to_the_Players
-
-            if (spell.TransferCap != 0 && srcVitalChange > spell.TransferCap)
-                srcVitalChange = (uint)spell.TransferCap;
-
-            // should healing resistances be applied here?
-            var boostMod = isDrain ? (float)destination.GetResistanceMod(GetBoostResistanceType(spell.Destination)) : 1.0f;
-
-            destVitalChange = (uint)Math.Round(srcVitalChange * (1.0f - spell.LossPercent) * boostMod);
-
-            // scale srcVitalChange to destVitalChange?
-            var missingDest = destination.GetCreatureVital(spell.Destination).Missing;
-
-            var maxDestVitalChange = missingDest;
-            if (spell.TransferCap != 0 && maxDestVitalChange > spell.TransferCap)
-                maxDestVitalChange = (uint)spell.TransferCap;
-
-            if (destVitalChange > maxDestVitalChange)
-            {
-                var scalar = (float)maxDestVitalChange / destVitalChange;
-
-                srcVitalChange = (uint)Math.Round(srcVitalChange * scalar);
-                destVitalChange = maxDestVitalChange;
-            }
-
-            // handle cloak damage procs for drain health other
-            var equippedCloak = spellTarget?.EquippedCloak;
-
-            if (isDrain && spell.Source == PropertyAttribute2nd.Health)
-            {
-                var percent = (float)srcVitalChange / spellTarget.Health.MaxValue;
-
-                if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(equippedCloak, percent))
-                {
-                    var reduced = Cloak.GetReducedAmount(this, srcVitalChange);
-
-                    Cloak.ShowMessage(spellTarget, this, srcVitalChange, reduced);
-
-                    srcVitalChange = reduced;
-                    destVitalChange = (uint)Math.Round(srcVitalChange * (1.0f - spell.LossPercent) * boostMod);
-                }
-            }
-
-            // Apply the change in vitals to the source
-            switch (spell.Source)
-            {
-                case PropertyAttribute2nd.Mana:
-                    srcVital = "mana";
-                    srcVitalChange = (uint)-transferSource.UpdateVitalDelta(transferSource.Mana, -(int)srcVitalChange);
-                    break;
-                case PropertyAttribute2nd.Stamina:
-                    srcVital = "stamina";
-                    srcVitalChange = (uint)-transferSource.UpdateVitalDelta(transferSource.Stamina, -(int)srcVitalChange);
-                    break;
-                default:   // Health
-                    srcVital = "health";
-                    srcVitalChange = (uint)-transferSource.UpdateVitalDelta(transferSource.Health, -(int)srcVitalChange);
-
-                    transferSource.DamageHistory.Add(this, DamageType.Health, srcVitalChange);
-
-                    //var sourcePlayer = source as Player;
-                    //if (sourcePlayer != null && sourcePlayer.Fellowship != null)
-                    //sourcePlayer.Fellowship.OnVitalUpdate(sourcePlayer);
-
-                    break;
-            }
-            damage = srcVitalChange;
-
-            // Apply the scaled change in vitals to the caster
-            switch (spell.Destination)
-            {
-                case PropertyAttribute2nd.Mana:
-                    destVital = "mana";
-                    destVitalChange = (uint)destination.UpdateVitalDelta(destination.Mana, destVitalChange);
-                    break;
-                case PropertyAttribute2nd.Stamina:
-                    destVital = "stamina";
-                    destVitalChange = (uint)destination.UpdateVitalDelta(destination.Stamina, destVitalChange);
-                    break;
-                default:   // Health
-                    destVital = "health";
-                    destVitalChange = (uint)destination.UpdateVitalDelta(destination.Health, destVitalChange);
-
-                    destination.DamageHistory.OnHeal(destVitalChange);
-
-                    //var destPlayer = destination as Player;
-                    //if (destPlayer != null && destPlayer.Fellowship != null)
-                    //destPlayer.Fellowship.OnVitalUpdate(destPlayer);
-
-                    break;
-            }
-
-            // You gain 52 points of health due to casting Drain Health Other I on Olthoi Warrior
-            // You lose 22 points of mana due to casting Incantation of Infuse Mana Other on High-Voltage VI
-            // You lose 12 points of mana due to Zofrit Zefir casting Drain Mana Other II on you
-
-            // You cast Stamina to Mana Self I on yourself and lose 50 points of stamina and also gain 45 points of mana
-            // You cast Stamina to Health Self VI on yourself and fail to affect your  stamina and also gain 1 point of health
-
-            // unverified:
-            // You gain X points of vital due to caster casting spell on you
-            // You lose X points of vital due to caster casting spell on you
-
-            var playerSource = transferSource as Player;
-            var playerDestination = destination as Player;
-
-            if (playerSource != null && playerDestination != null && transferSource.Guid == destination.Guid)
-            {
-                enchantmentStatus.Message = new GameMessageSystemChat($"You cast {spell.Name} on yourself and lose {srcVitalChange} points of {srcVital} and also gain {destVitalChange} points of {destVital}", ChatMessageType.Magic);
-            }
-            else
-            {
-                if (playerSource != null)
-                {
-                    if (transferSource == this)
-                        enchantmentStatus.Message = new GameMessageSystemChat($"You lose {srcVitalChange} points of {srcVital} due to casting {spell.Name} on {spellTarget.Name}", ChatMessageType.Magic);
-                    else
-                        targetMsg = new GameMessageSystemChat($"You lose {srcVitalChange} points of {srcVital} due to {caster.Name} casting {spell.Name} on you", ChatMessageType.Magic);
-
-                    if (destination is Creature creatureDestination)
-                        playerSource.SetCurrentAttacker(creatureDestination);
-                }
-
-                if (playerDestination != null)
-                {
-                    if (destination == this)
-                        enchantmentStatus.Message = new GameMessageSystemChat($"You gain {destVitalChange} points of {destVital} due to casting {spell.Name} on {spellTarget.Name}", ChatMessageType.Magic);
-                    else
-                        targetMsg = new GameMessageSystemChat($"You gain {destVitalChange} points of {destVital} due to {caster.Name} casting {spell.Name} on you", ChatMessageType.Magic);
-                }
-            }
-
-            if (isDrain && spellTarget.IsAlive && spell.Source == PropertyAttribute2nd.Health)
-            {
-                // handle cloak spell proc
-                if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak))
-                {
-                    var pct = (float)srcVitalChange / spellTarget.Health.MaxValue;
-
-                    // ensure message is sent after enchantment.Message
-                    var actionChain = new ActionChain();
-                    actionChain.AddDelayForOneTick();
-                    actionChain.AddAction(this, () => Cloak.TryProcSpell(spellTarget, this, equippedCloak, pct));
-                    actionChain.EnqueueChain();
-                }
-
-                // ensure emote process occurs after damage msg
-                var emoteChain = new ActionChain();
-                emoteChain.AddDelayForOneTick();
-                emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(creature));
-                //if (critical)
-                //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(creature));
-                emoteChain.EnqueueChain();
-            }
-
-            return targetMsg;
-        }
-
-        /// <summary>
-        /// Performs a projectile based magic
-        /// </summary>
-        /// <param name="spell"></param>
-        /// <param name="target"></param>
-        /// <param name="damage"></param>
-        /// <param name="itemCaster"></param>
-        /// <param name="weapon"></param>
-        /// <param name="isWeaponSpell"></param>
-        /// <param name="fromProc"></param>
-        private void SpellTypeProjectile(Spell spell, WorldObject target, uint damage, WorldObject itemCaster, WorldObject weapon, bool isWeaponSpell, bool fromProc)
-        {
-            var caster = this as Creature;
-            var damageType = DamageType.Undef;
-
-            if (spell.School == MagicSchool.LifeMagic)
-            {
-                if (spell.Name.Contains("Blight"))
-                {
-                    var tryDamage = (int)Math.Round(caster.GetCreatureVital(PropertyAttribute2nd.Mana).Current * spell.DrainPercentage);
-                    damage = (uint)-caster.UpdateVitalDelta(caster.Mana, -tryDamage);
-                    damageType = DamageType.Mana;
-                }
-                else if (spell.Name.Contains("Tenacity"))
-                {
-                    var tryDamage = (int)Math.Round(caster.GetCreatureVital(PropertyAttribute2nd.Stamina).Current * spell.DrainPercentage);
-                    damage = (uint)-caster.UpdateVitalDelta(caster.Stamina, -tryDamage);
-                    damageType = DamageType.Stamina;
-                }
-                else
-                {
-                    var tryDamage = (int)Math.Round(caster.GetCreatureVital(PropertyAttribute2nd.Health).Current * spell.DrainPercentage);
-                    damage = (uint)-caster.UpdateVitalDelta(caster.Health, -tryDamage);
-                    caster.DamageHistory.Add(this, DamageType.Health, damage);
-                    damageType = DamageType.Health;
-
-                    //if (player != null && player.Fellowship != null)
-                    //player.Fellowship.OnVitalUpdate(player);
-                }
-            }
-
-            CreateSpellProjectiles(spell, target, weapon, isWeaponSpell, fromProc, damage);
-
-            if (spell.School == MagicSchool.LifeMagic)
-            {
-                if (caster.Health.Current <= 0)
-                {
-                    // should this be possible?
-                    var lastDamager = caster != null ? new DamageHistoryInfo(caster) : null;
-
-                    caster.OnDeath(lastDamager, damageType, false);
-                    caster.Die();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Performs a magic dispel
-        /// </summary>
-        /// <param name="spell"></param>
-        /// <param name="target"></param>
-        /// <param name="enchantmentStatus"></param>
-        /// <returns></returns>
-        private GameMessageSystemChat SpellTypeDispel(Spell spell, WorldObject target, out EnchantmentStatus enchantmentStatus)
-        {
-            enchantmentStatus = new EnchantmentStatus(spell);
-            GameMessageSystemChat targetMsg = null;
-
-            var player = this as Player;
-            var creature = this as Creature;
-
-            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
-
-            if (this is Gem || this is Food || this is Hook)
-                spellTarget = target as Creature;
-
-            var removeSpells = target.EnchantmentManager.SelectDispel(spell);
-
-            // dispel on server and client
-            target.EnchantmentManager.Dispel(removeSpells.Select(s => s.Enchantment).ToList());
-
-            var spellList = BuildSpellList(removeSpells);
-            var suffix = "";
-            if (removeSpells.Count > 0)
-                suffix = $" and dispel: {spellList}.";
-            else
-                suffix = ", but the dispel fails.";
-
-            if (player != null)
-            {
-                if (player == target)
-                    enchantmentStatus.Message = new GameMessageSystemChat($"You cast {spell.Name} on yourself{suffix}", ChatMessageType.Magic);
-                else
-                    enchantmentStatus.Message = new GameMessageSystemChat($"You cast {spell.Name} on {target.Name}{suffix}", ChatMessageType.Magic);
-            }
-            if (spellTarget is Player targetPlayer && targetPlayer != player)
-            {
-                targetMsg = new GameMessageSystemChat($"{Name} casts {spell.Name} on you{suffix.Replace("and dispel", "and dispels")}", ChatMessageType.Magic);
-
-                // all dispels appear to be listed as non-beneficial, even the ones that only dispel negative spells
-                // we filter here to positive or all
-                if (creature != null && spell.Align != DispelType.Negative)
-                    targetPlayer.SetCurrentAttacker(creature);
-            }
-
-            return targetMsg;
-        }
-
-        /// <summary>
-        /// Portal Recall
-        /// </summary>
-        /// <param name="spell"></param>
-        /// <param name="target"></param>
-        private void SpellTypePortalRecall(Spell spell, WorldObject target)
-        {
-            var player = this as Player;
-
-            if (player != null && player.IsOlthoiPlayer)
-                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCanOnlyRecallToLifestone));
-
-            var creature = this as Creature;
-
-            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
-
-            if (this is Gem || this is Food || this is Hook)
-                spellTarget = target as Creature;
-
-            var targetPlayer = spellTarget as Player;
-
-            if (player != null && player.PKTimerActive)
-            {
-                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
-                return;
-            }
-
-            PositionType recall = PositionType.Undef;
-            uint? recallDID = null;
-
-            // verify pre-requirements for recalls
-
-            switch ((SpellId)spell.Id)
-            {
-                case SpellId.PortalRecall:       // portal recall
-
-                    if (targetPlayer.LastPortalDID == null)
-                    {
-                        // You must link to a portal to recall it!
-                        targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
-                    }
-                    else
-                    {
-                        recall = PositionType.LastPortal;
-                        recallDID = targetPlayer.LastPortalDID;
-                    }
-                    break;
-
-                case SpellId.LifestoneRecall1:   // lifestone recall
-
-                    if (targetPlayer.GetPosition(PositionType.LinkedLifestone) == null)
-                    {
-                        // You must link to a lifestone to recall it!
-                        targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToLifestoneToRecall));
-                    }
-                    else
-                        recall = PositionType.LinkedLifestone;
-                    break;
-
-                case SpellId.LifestoneSending1:
-
-                    if (player != null && player.GetPosition(PositionType.Sanctuary) != null)
-                        recall = PositionType.Sanctuary;
-                    else if (targetPlayer != null && targetPlayer.GetPosition(PositionType.Sanctuary) != null)
-                        recall = PositionType.Sanctuary;
-
-                    break;
-
-                case SpellId.PortalTieRecall1:   // primary portal tie recall
-
-                    if (targetPlayer.LinkedPortalOneDID == null)
-                    {
-                        // You must link to a portal to recall it!
-                        targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
-                    }
-                    else
-                    {
-                        recall = PositionType.LinkedPortalOne;
-                        recallDID = targetPlayer.LinkedPortalOneDID;
-                    }
-                    break;
-
-                case SpellId.PortalTieRecall2:   // secondary portal tie recall
-
-                    if (targetPlayer.LinkedPortalTwoDID == null)
-                    {
-                        // You must link to a portal to recall it!
-                        targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
-                    }
-                    else
-                    {
-                        recall = PositionType.LinkedPortalTwo;
-                        recallDID = targetPlayer.LinkedPortalTwoDID;
-                    }
-                    break;
-            }
-
-            if (recall != PositionType.Undef)
-            {
-                if (recallDID == null)
-                {
-                    EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
-
-                    // lifestone recall
-                    ActionChain lifestoneRecall = new ActionChain();
-                    lifestoneRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
-                    lifestoneRecall.AddDelaySeconds(2.0f);  // 2 second delay
-                    lifestoneRecall.AddAction(targetPlayer, () => targetPlayer.TeleToPosition(recall));
-                    lifestoneRecall.EnqueueChain();
-                }
-                else
-                {
-                    // portal recall
-                    var portal = GetPortal(recallDID.Value);
-                    if (portal == null || portal.NoRecall)
-                    {
-                        // You cannot recall that portal!
-                        player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotRecallPortal));
-                        return;
-                    }
-
-                    var result = portal.CheckUseRequirements(targetPlayer);
-                    if (!result.Success)
-                    {
-                        if (result.Message != null)
-                            targetPlayer.Session.Network.EnqueueSend(result.Message);
-
-                        return;
-                    }
-
-                    EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
-
-                    ActionChain portalRecall = new ActionChain();
-                    portalRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
-                    portalRecall.AddDelaySeconds(2.0f);  // 2 second delay
-                    portalRecall.AddAction(targetPlayer, () =>
-                    {
-                        var teleportDest = new Position(portal.Destination);
-                        AdjustDungeon(teleportDest);
-
-                        targetPlayer.Teleport(teleportDest);
-                    });
-                    portalRecall.EnqueueChain();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Portal Sending
-        /// </summary>
-        /// <param name="spell"></param>
-        /// <param name="target"></param>
-        /// <param name="itemCaster"></param>
-        private void SpellTypePortalSending(Spell spell, WorldObject target, WorldObject itemCaster)
-        {
-            var creature = this as Creature;
-
-            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
-
-            if (this is Gem || this is Food || this is Hook)
-                spellTarget = target as Creature;
-
-            if (spellTarget is Player targetPlayer)
-            {
-                if (targetPlayer.PKTimerActive)
-                {
-                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
-                    return;
-                }
-
-                ActionChain portalSendingChain = new ActionChain();
-                //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
-                portalSendingChain.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
-                portalSendingChain.AddAction(targetPlayer, () =>
-                {
-                    var teleportDest = new Position(spell.Position);
-                    AdjustDungeon(teleportDest);
-
-                    targetPlayer.Teleport(teleportDest);
-
-                    targetPlayer.SendTeleportedViaMagicMessage(itemCaster, spell);
-                });
-                portalSendingChain.EnqueueChain();
-            }
-            else if (target is Player targetCreature)
-            {
-                // monsters can cast some portal spells on themselves too, possibly?
-                // under certain circumstances, such as ensuring the destination is the same landblock
-                var teleportDest = new Position(spell.Position);
-                AdjustDungeon(teleportDest);
-
-                targetCreature.FakeTeleport(teleportDest);
-            }
-        }
-
-        /// <summary>
-        /// Fellow Portal Sending
-        /// </summary>
-        /// <param name="spell"></param>
-        /// <param name="target"></param>
-        /// <param name="itemCaster"></param>
-        private void SpellTypeFellowPortalSending(Spell spell, WorldObject target, WorldObject itemCaster)
-        {
-            var creature = this as Creature;
-
-            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
-
-            if (this is Gem || this is Food || this is Hook)
-                spellTarget = target as Creature;
-
-            if (spellTarget is Player targetPlayer && targetPlayer.Fellowship != null)
-            {
-                if (targetPlayer.PKTimerActive)
-                {
-                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
-                    return;
-                }
-
-                var distanceToTarget = creature.GetDistance(targetPlayer);
-                var skill = creature.GetCreatureSkill(spell.School);
-                var magicSkill = skill.InitLevel + skill.Ranks;
-                var maxRange = spell.BaseRangeConstant + magicSkill * spell.BaseRangeMod;
-                if (maxRange == 0.0f)
-                    maxRange = float.PositiveInfinity;
-
-                if (distanceToTarget <= maxRange)
-                {
-                    ActionChain portalSendingChain = new ActionChain();
-                    portalSendingChain.AddAction(targetPlayer, () => targetPlayer.EnqueueBroadcast(new GameMessageScript(targetPlayer.Guid, spell.TargetEffect, spell.Formula.Scale)));
-                    portalSendingChain.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
-                    portalSendingChain.AddAction(targetPlayer, () =>
-                    {
-                        var teleportDest = new Position(spell.Position);
-                        AdjustDungeon(teleportDest);
-
-                        targetPlayer.Teleport(teleportDest);
-
-                        targetPlayer.SendTeleportedViaMagicMessage(itemCaster, spell);
-                    });
-                    portalSendingChain.EnqueueChain();
-                }
-                //else
-                //{
-                //    enchantmentStatus.Success = false;
-                //    return enchantmentStatus;
-                //}
-            }
-        }
-
-        /// <summary>
-        /// Portal Link
-        /// </summary>
-        /// <param name="spell"></param>
-        /// <param name="target"></param>
-        private void SpellTypePortalLink(Spell spell, WorldObject target)
-        {
-            if (this is Player player)
-            {
-                if (player.IsOlthoiPlayer)
-                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCanOnlyRecallToLifestone));
-
-                switch ((SpellId)spell.Id)
-                {
-                    case SpellId.LifestoneTie1:  // Lifestone Tie
-
-                        if (target.WeenieType == WeenieType.LifeStone)
-                        {
-                            EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
-
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the life stone.", ChatMessageType.Magic));
-                            player.LinkedLifestone = target.Location;
-                        }
-                        else
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You cannot link that.", ChatMessageType.Magic));
-
-                        break;
-
-                    case SpellId.PortalTie1:    // Primary Portal Tie
-                    case SpellId.PortalTie2:    // Secondary Portal Tie
-
-                        var isPrimary = spell.Id == (int)SpellId.PortalTie1;
-
-                        if (target.WeenieType == WeenieType.Portal)
-                        {
-                            var targetPortal = target as Portal;
-                            var summoned = targetPortal.OriginalPortal != null;
-
-                            var targetDID = summoned ? targetPortal.OriginalPortal : targetPortal.WeenieClassId;
-
-                            var tiePortal = GetPortal(targetDID.Value);
-                            if (tiePortal != null)
-                            {
-                                var result = tiePortal.CheckUseRequirements(player);
-                                if (!result.Success && result.Message != null)
-                                    player.Session.Network.EnqueueSend(result.Message);
-
-                                if (!tiePortal.NoTie && result.Success)
-                                {
-                                    if (isPrimary)
-                                    {
-                                        player.LinkedPortalOneDID = targetDID;
-                                        player.SetProperty(PropertyBool.LinkedPortalOneSummon, summoned);
-                                    }
-                                    else
-                                    {
-                                        player.LinkedPortalTwoDID = targetDID;
-                                        player.SetProperty(PropertyBool.LinkedPortalTwoSummon, summoned);
-                                    }
-
-                                    EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
-
-                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the portal.", ChatMessageType.Magic));
-                                }
-                                else
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotLinkToThatPortal));
-                            }
-                            else
-                                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotLinkToThatPortal));
-                        }
-                        else
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You cannot link that.", ChatMessageType.Magic));
-                        break;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Portal Summon
-        /// </summary>
-        /// <param name="spell"></param>
-        /// <param name="target"></param>
-        /// <param name="itemCaster"></param>
-        private void SpellTypePortalSummon(Spell spell, WorldObject target, WorldObject itemCaster)
-        {
-            var player = this as Player;
-
-            if (player != null && player.IsOlthoiPlayer)
-                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCanOnlyRecallToLifestone));
-
-            if (player != null && player.PKTimerActive)
-            {
-                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
-                return;
-            }
-
-            var source = player ?? itemCaster;
-
-            uint portalId = 0;
-            bool linkSummoned;
-
-            // spell.link = 1 = LinkedPortalOneDID
-            // spell.link = 2 = LinkedPortalTwoDID
-
-            if (spell.Link <= 1)
-            {
-                portalId = source.LinkedPortalOneDID ?? 0;
-                linkSummoned = source.GetProperty(PropertyBool.LinkedPortalOneSummon) ?? false;
-            }
-            else
-            {
-                portalId = source.LinkedPortalTwoDID ?? 0;
-                linkSummoned = source.GetProperty(PropertyBool.LinkedPortalTwoSummon) ?? false;
-            }
-
-            Position summonLoc = null;
-
-            if (player != null)
-            {
-                if (portalId == 0)
-                {
-                    // You must link to a portal to summon it!
-                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToSummonIt));
-                    return;
-                }
-
-                var summonPortal = GetPortal(portalId);
-                if (summonPortal == null || summonPortal.NoSummon || (linkSummoned && !PropertyManager.GetBool("gateway_ties_summonable").Item))
-                {
-                    // You cannot summon that portal!
-                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotSummonPortal));
-                    return;
-                }
-
-                var result = summonPortal.CheckUseRequirements(player);
-                if (!result.Success)
-                {
-                    if (result.Message != null)
-                        player.Session.Network.EnqueueSend(result.Message);
-
-                    return;
-                }
-
-                summonLoc = player.Location.InFrontOf(3.0f);
-            }
-            else if (itemCaster != null)
-            {
-                if (itemCaster.PortalSummonLoc != null)
-                    summonLoc = new Position(PortalSummonLoc);
-                else
-                {
-                    if (itemCaster.Location != null)
-                        summonLoc = itemCaster.Location.InFrontOf(3.0f);
-                    else if (target != null && target.Location != null)
-                        summonLoc = target.Location.InFrontOf(3.0f);
-                }
-            }
-
-            if (summonLoc != null)
-                summonLoc.LandblockId = new LandblockId(summonLoc.GetCell());
-
-            if (SummonPortal(portalId, summonLoc, spell.PortalLifetime))
-                EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
-            else if (player != null)
-                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouFailToSummonPortal));
-
-        }
-
-        /// <summary>
-        /// Select a SpellType primitive
-        /// </summary>
-        /// <param name="spell"></param>
-        /// <param name="target"></param>
-        /// <param name="enchantmentStatus"></param>
-        /// <param name="damage"></param>
-        /// <param name="itemCaster"></param>
-        /// <param name="weapon"></param>
-        /// <param name="isWeaponSpell"></param>
-        /// <param name="fromProc"></param>
-        /// <param name="equip"></param>
-        /// <returns></returns>
-        protected bool WorldMagic(Spell spell, WorldObject target, out EnchantmentStatus enchantmentStatus, out uint damage, WorldObject itemCaster = null, WorldObject weapon = null, bool isWeaponSpell = false, bool fromProc = false, bool equip = false)
-        {
-            damage = 0;
-            enchantmentStatus = new EnchantmentStatus(spell);
-            GameMessageSystemChat targetMsg = null;
-
-            var creature = this as Creature;
-
-            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
-
-            if (this is Gem || this is Food || this is Hook)
-                spellTarget = target as Creature;
-
-            var targetPlayer = spellTarget as Player;
-
-            if (spell.School == MagicSchool.LifeMagic || spell.MetaSpellType == SpellType.Dispel)
-            {
-                // NonComponentTargetType should be 0 for untargeted spells.
-                // Return if the spell type is targeted with no target defined or the target is already dead.
-                if ((spellTarget == null || !spellTarget.IsAlive) && spell.NonComponentTargetType != ItemType.None
-                    && spell.DispelSchool != MagicSchool.ItemEnchantment)
-                {
-                    return false;
-                }
-            }
-
-            switch (spell.MetaSpellType)
-            {
-                case SpellType.FellowBoost:
-                case SpellType.Boost:
-
-                    targetMsg = SpellTypeBoost(spell, target, out enchantmentStatus, out damage);
-                    break;
-
-                case SpellType.Transfer:
-
-                    targetMsg = SpellTypeTransfer(spell, target, out enchantmentStatus, out damage);
-                    break;
-
-                case SpellType.LifeProjectile:
-                case SpellType.EnchantmentProjectile:
-                case SpellType.Projectile:
-
-                    SpellTypeProjectile(spell, target, damage, itemCaster, weapon, isWeaponSpell, fromProc);
-                    break;
-
-                case SpellType.FellowDispel:
-                case SpellType.Dispel:
-
-                    targetMsg = SpellTypeDispel(spell, target, out enchantmentStatus);
-                    break;
-
-                case SpellType.PortalRecall:
-
-                    SpellTypePortalRecall(spell, target);
-                    break;
-
-                case SpellType.PortalSending:
-
-                    SpellTypePortalSending(spell, target, itemCaster);
-                    break;
-
-                case SpellType.FellowPortalSending:
-
-                    SpellTypeFellowPortalSending(spell, target, itemCaster);
-                    break;
-
-                case SpellType.PortalLink:
-
-                    SpellTypePortalLink(spell, target);
-                    break;
-
-                case SpellType.PortalSummon:
-
-                    SpellTypePortalSummon(spell, target, itemCaster);
-                    break;
-
-                case SpellType.FellowEnchantment:
-                case SpellType.Enchantment:
-
-                    // TODO: replace with some kind of 'rootOwner unless equip' concept?
-                    if (itemCaster != null && (equip || itemCaster is Gem || itemCaster is Food))
-                        enchantmentStatus = CreateEnchantment(spellTarget ?? target, itemCaster, itemCaster, spell, equip);
-                    else
-                        enchantmentStatus = CreateEnchantment(spellTarget ?? target, this, this, spell, equip);
-                    break;
-
-                default:
-                    enchantmentStatus.Message = new GameMessageSystemChat("Spell not implemented, yet!", ChatMessageType.Magic);
-                    break;
-            }
-
-            if (targetMsg != null && !targetPlayer.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic))
-                targetPlayer.Session.Network.EnqueueSend(targetMsg);
-
-            enchantmentStatus.Success = true;
-
-            return spellTarget?.IsDead ?? false;
         }
     }
 }

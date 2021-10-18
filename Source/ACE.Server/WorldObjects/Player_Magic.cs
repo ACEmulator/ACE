@@ -892,7 +892,7 @@ namespace ACE.Server.WorldObjects
                 case CastingPreCheckStatus.InvalidPKStatus:
 
                     if (spell.NumProjectiles > 0)
-                        WorldMagic(spell, target, out _, out _, itemCaster, caster, isWeaponSpell);
+                        HandleCastSpell(spell, target, out _, out _, itemCaster, caster, isWeaponSpell);
                     break;
 
                 default:
@@ -1100,7 +1100,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     EnchantmentStatus enchantmentStatus;
-                    targetDeath = WorldMagic(spell, target, out enchantmentStatus, out _, itemCaster, caster, isWeaponSpell);
+                    targetDeath = HandleCastSpell(spell, target, out enchantmentStatus, out _, itemCaster, caster, isWeaponSpell);
 
                     if (spell.MetaSpellType != SpellType.Projectile
                         && spell.MetaSpellType != SpellType.LifeProjectile
@@ -1285,7 +1285,7 @@ namespace ACE.Server.WorldObjects
                         EnqueueBroadcast(new GameMessageScript(player.Guid, playScript, spell.Formula.Scale));
                     }
 
-                    WorldMagic(spell, player, out EnchantmentStatus enchantmentStatus, out _);
+                    HandleCastSpell(spell, player, out EnchantmentStatus enchantmentStatus, out _);
                     if (enchantmentStatus.Success == true && !spell.IsPortalSpell)
                         EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
                     break;
