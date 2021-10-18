@@ -330,8 +330,8 @@ namespace ACE.Server.WorldObjects
                     player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
                     return new ActivationResult(false);
                 }
-                else if (this is AttributeTransferDevice || this is AugmentationDevice || this is Bindstone
-                    || this is Game || this is Gem || this is Key || this is PetDevice || this is SkillAlterationDevice)
+                else if (this is AttributeTransferDevice || this is AugmentationDevice || this is Bindstone || this is Book
+                    || this is Game || this is Gem || this is GenericObject || this is Key || this is SkillAlterationDevice)
                 {
                     player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
                     return new ActivationResult(false);
