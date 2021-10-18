@@ -672,7 +672,7 @@ namespace ACE.Server.WorldObjects.Managers
         }
 
         /// <summary>
-        /// Gets the direct modifiers to a vital / secondary attribute
+        /// Gets the additive modifiers to a vital / secondary attribute
         /// </summary>
         public virtual float GetVitalMod_Additives(CreatureVital vital)
         {
@@ -687,6 +687,9 @@ namespace ACE.Server.WorldObjects.Managers
             return modifier;
         }
 
+        /// <summary>
+        /// Gets the multiplicative modifiers to a vital / secondary attribute
+        /// </summary>
         public virtual float GetVitalMod_Multiplier(CreatureVital vital)
         {
             // multiplicatives (asheron's lesser benediction)
@@ -722,9 +725,9 @@ namespace ACE.Server.WorldObjects.Managers
         }
 
         /// <summary>
-        /// Returns the bonus to a skill from enchantments
+        /// Returns the additive modifiers to a skill from enchantments
         /// </summary>
-        public virtual int GetSkillMod(Skill skill)
+        public virtual int GetSkillMod_Additives(Skill skill)
         {
             var enchantments = GetEnchantments_TopLayer(EnchantmentTypeFlags.Skill, (uint)skill, true);
 
@@ -741,6 +744,21 @@ namespace ACE.Server.WorldObjects.Managers
             return skillMod;
         }
 
+        /// <summary>
+        /// Returns the multiplicative modifiers to a skill from enchantments
+        /// </summary>
+        public virtual float GetSkillMod_Multiplier(Skill skill)
+        {
+            // shroud spells
+            var typeFlags = EnchantmentTypeFlags.Skill | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
+            var enchantments = GetEnchantments_TopLayer(typeFlags, (uint)skill);
+
+            var multiplier = 1.0f;
+            foreach (var enchantment in enchantments)
+                multiplier *= enchantment.StatModValue;
+
+            return multiplier;
+        }
 
         /// <summary>
         /// Returns the sum of the StatModValues for an EnchantmentTypeFlag
