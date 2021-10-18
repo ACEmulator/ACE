@@ -812,7 +812,7 @@ namespace ACE.Server.WorldObjects
                 var targetPlayer = target as Player;
                 var targetCreature = target as Creature;
 
-                if ((player?.IsOlthoiPlayer ?? false))
+                if (player != null && player.IsOlthoiPlayer)
                 {
                     player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCanOnlyRecallToLifestone));
                 }
