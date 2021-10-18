@@ -308,6 +308,9 @@ namespace ACE.Server.Network.Handlers
                             return;
                         }
 
+                        if (recipient.IsOlthoiPlayer)
+                            continue;
+
                         if (recipient.SquelchManager.Squelches.Contains(session.Player, ChatMessageType.AllChannels))
                             continue;
 
