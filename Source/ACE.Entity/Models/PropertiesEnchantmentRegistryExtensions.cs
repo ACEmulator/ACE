@@ -214,7 +214,7 @@ namespace ACE.Entity.Models
                     statModType |= EnchantmentTypeFlags.SingleStat;
                 }
 
-                var valuesByStatModTypeAndKey = value.Where(e => (e.StatModType & statModType) == statModType && e.StatModKey == statModKey || (handleMultiple && (e.StatModType & multipleStat) == multipleStat && e.StatModKey == 0));
+                var valuesByStatModTypeAndKey = value.Where(e => (e.StatModType & statModType) == statModType && e.StatModKey == statModKey || (handleMultiple && (e.StatModType & multipleStat) == multipleStat && (e.StatModType & EnchantmentTypeFlags.Vitae) == 0 && e.StatModKey == 0));
 
                 // 3rd spell id sort added for Gauntlet Damage Boost I / Gauntlet Damage Boost II, which is contained in multiple sets, and can overlap
                 // without this sorting criteria, it's already matched up to the client, but produces logically incorrect results for server spell stacking
