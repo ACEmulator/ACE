@@ -143,6 +143,8 @@ namespace ACE.Server.Network.Handlers
                 }
                 else if (adjustedChannelID == TurbineChatChannel.Olthoi) // Channel must be the Olthoi play channel
                 {
+                    if (!session.Player.IsOlthoiPlayer) return;
+
                     if (PropertyManager.GetBool("chat_disable_olthoi").Item)
                     {
                         HandleChatReject(session, contextId, chatType, gameMessageTurbineChat, string.Empty);
