@@ -1964,7 +1964,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                if (heritageSpecificArmor != null || (HeritageGroup)heritageSpecificArmor != HeritageGroup)
+                if (heritageSpecificArmor != null && (HeritageGroup)heritageSpecificArmor != HeritageGroup)
                     return WeenieError.ArmorRequiresSpecificHeritage;
             }
 
