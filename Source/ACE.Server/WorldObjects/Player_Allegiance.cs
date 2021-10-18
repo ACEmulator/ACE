@@ -301,8 +301,15 @@ namespace ACE.Server.WorldObjects
             // An Olthoi player cannot swear allegiance to another player
             if (IsOlthoiPlayer)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"The Olthoi only have an allegiance to the Olthoi Queen!", ChatMessageType.Broadcast));
+                //Session.Network.EnqueueSend(new GameMessageSystemChat($"The Olthoi only have an allegiance to the Olthoi Queen!", ChatMessageType.Broadcast));
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OlthoiCannotJoinAllegiance));
+                return false;
+            }
+
+            if (target.IsOlthoiPlayer)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"The Olthoi have loyalty only to their Olthoi Queen!", ChatMessageType.Broadcast));
+                SendWeenieError(WeenieError.None);
                 return false;
             }
 
