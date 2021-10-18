@@ -197,6 +197,11 @@ namespace ACE.Server.WorldObjects
 
             AttackQueue = new AttackQueue(this);
 
+            if (!PlayerKillsPk.HasValue)
+                PlayerKillsPk = 0;
+            if (!PlayerKillsPkl.HasValue)
+                PlayerKillsPkl = 0;
+
             return; // todo
 
             // =======================================
