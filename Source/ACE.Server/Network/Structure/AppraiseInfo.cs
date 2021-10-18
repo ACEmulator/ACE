@@ -542,7 +542,7 @@ namespace ACE.Server.Network.Structure
 
             AddRatings(creature);
 
-            if (PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal))
+            if (PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal) && !NPCLooksLikeObject)
                 PropertiesInt.Remove(PropertyInt.EncumbranceVal);
 
             // see notes in CombatPet.Init()
