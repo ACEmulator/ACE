@@ -936,6 +936,9 @@ namespace ACE.Server.WorldObjects
 
         public void SetMinimumTimeSincePK()
         {
+            if (IsOlthoiPlayer)
+                return;
+
             if (PlayerKillerStatus == PlayerKillerStatus.NPK && MinimumTimeSincePk == null)
                 return;
 
