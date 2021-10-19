@@ -1946,7 +1946,6 @@ namespace ACE.Server.WorldObjects
             return speed;
         }
 
-
         /// <summary>
         /// Returns the epic cantrips from this item's spellbook
         /// </summary>

@@ -300,6 +300,7 @@ namespace ACE.Server.WorldObjects
 
             var targetCreature = target as Creature;
 
+            // TODO: see if this can be coalesced
             switch (spell.School)
             {
                 case MagicSchool.CreatureEnchantment:

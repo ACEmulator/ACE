@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 
 using ACE.Common;
-using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
@@ -12,69 +11,6 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        /// <summary>
-        /// Method used for handling creature targeted spell casts
-        /// </summary>
-        public void CreateCreatureSpell(ObjectGuid guidTarget, uint spellId)
-        {
-            Creature creature = CurrentLandblock?.GetObject(Guid) as Creature;
-
-            if (creature.IsBusy == true)
-                return;
-
-            creature.IsBusy = true;
-
-            var spell = new Spell(spellId);
-
-            if (spell.NotFound)
-            {
-                creature.IsBusy = false;
-                return;
-            }
-
-            // originally was using spell.RangeConstant, bug?
-            // is this floor required?
-            bool targetSelf = Math.Floor(spell.BaseRangeConstant) == 0;
-            var target = targetSelf ? this : CurrentLandblock?.GetObject(guidTarget);
-
-            switch (spell.School)
-            {
-                case MagicSchool.ItemEnchantment:
-                    // if (!targetSelf && ResistSpell(Skill.CreatureEnchantment)) break;
-                    HandleCastSpell(spell, target, out _, out _);
-                    EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-                    break;
-                default:
-                    break;
-            }
-
-            creature.IsBusy = false;
-            return;
-        }
-
-        /// <summary>
-        /// Method used for handling creature untargeted spell casts
-        /// </summary>
-        public void CreateCreatureSpell(uint spellId)
-        {
-            // does this function even do anything??
-            var creature = CurrentLandblock?.GetObject(Guid) as Creature;
-
-            if (creature == null || creature.IsBusy) return;
-
-            creature.IsBusy = true;
-
-            var spell = new Spell(spellId);
-
-            if (spell.NotFound)
-            {
-                creature.IsBusy = false;
-                return;
-            }
-
-            creature.IsBusy = false;
-        }
-
         public uint CalculateManaUsage(Creature caster, Spell spell, WorldObject target = null)
         {
             var baseCost = spell.BaseMana;
@@ -168,6 +104,7 @@ namespace ACE.Server.WorldObjects
             if (spell.NotFound)
                 return enchantmentStatus;
 
+            // TODO: look into condensing this
             switch (spell.School)
             {
                 case MagicSchool.CreatureEnchantment:

@@ -1099,8 +1099,7 @@ namespace ACE.Server.WorldObjects
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                     }
 
-                    EnchantmentStatus enchantmentStatus;
-                    targetDeath = HandleCastSpell(spell, target, out enchantmentStatus, out _, itemCaster, caster, isWeaponSpell);
+                    targetDeath = HandleCastSpell(spell, target, out var enchantmentStatus, out _, itemCaster, caster, isWeaponSpell);
 
                     if (spell.MetaSpellType != SpellType.Projectile
                         && spell.MetaSpellType != SpellType.LifeProjectile
@@ -1122,24 +1121,16 @@ namespace ACE.Server.WorldObjects
                             Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.CreatureEnchantment), spell.PowerMod);
                     }
 
-                    if (spell.School == MagicSchool.LifeMagic)
+                    if (targetDeath)
                     {
-                        if (targetDeath == true)
-                        {
-                            targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
-                            targetCreature.Die();
-                        }
-                        else
-                        {
-                            if (enchantmentStatus.Message != null)
-                                Session.Network.EnqueueSend(enchantmentStatus.Message);
-                        }
+                        targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
+                        targetCreature.Die();
+                        break;
                     }
-                    else
-                    {
-                        if (enchantmentStatus.Message != null)
-                            Session.Network.EnqueueSend(enchantmentStatus.Message);
-                    }
+
+                    if (enchantmentStatus.Message != null)
+                        Session.Network.EnqueueSend(enchantmentStatus.Message);
+
                     break;
             }
         }
@@ -1286,8 +1277,10 @@ namespace ACE.Server.WorldObjects
                     }
 
                     HandleCastSpell(spell, player, out EnchantmentStatus enchantmentStatus, out _);
-                    if (enchantmentStatus.Success == true && !spell.IsPortalSpell)
+
+                    if (enchantmentStatus.Success && !spell.IsPortalSpell)
                         EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
+
                     break;
 
                 default:

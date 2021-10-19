@@ -312,7 +312,7 @@ namespace ACE.Server.WorldObjects
             {
                 // handle void magic DoTs:
                 // instead of instant damage, add DoT to target's enchantment registry
-                if (damage == 0 || Spell.Duration > 0)
+                if (Spell.MetaSpellType == ACE.Entity.Enum.SpellType.EnchantmentProjectile)
                 {
                     var dot = ProjectileSource.CreateEnchantment(creatureTarget, ProjectileSource, ProjectileLauncher, Spell);
 
