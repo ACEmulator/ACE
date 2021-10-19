@@ -305,7 +305,7 @@ namespace ACE.Server.WorldObjects
             {
                 case MagicSchool.CreatureEnchantment:
 
-                    HandleCastSpell(spell, target, out _, out _);
+                    HandleCastSpell(spell, target, out _);
 
                     if (target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
@@ -325,7 +325,7 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
-                    var targetDeath = HandleCastSpell(spell, target, out _, out _, null, caster);
+                    var targetDeath = HandleCastSpell(spell, target, out _, null, caster);
 
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
@@ -351,7 +351,7 @@ namespace ACE.Server.WorldObjects
                 case MagicSchool.WarMagic:
                 case MagicSchool.VoidMagic:
 
-                    HandleCastSpell(spell, target, out _, out _, caster);
+                    HandleCastSpell(spell, target, out _, caster);
 
                     if (spell.School == MagicSchool.VoidMagic && spell.NumProjectiles == 0 && target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));

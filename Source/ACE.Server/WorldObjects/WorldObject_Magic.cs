@@ -70,7 +70,7 @@ namespace ACE.Server.WorldObjects
                 return;
 
             // if not resisted, cast spell
-            var targetDeath = HandleCastSpell(spell, target, out EnchantmentStatus status, out _, itemCaster, weapon, isWeaponSpell, fromProc);
+            var targetDeath = HandleCastSpell(spell, target, out EnchantmentStatus status, itemCaster, weapon, isWeaponSpell, fromProc);
             if (spell.School == MagicSchool.LifeMagic && targetDeath && target is Creature targetCreature)
             {
                 targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
@@ -280,9 +280,8 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Creates a spell based on MetaSpellType
         /// </summary>
-        protected bool HandleCastSpell(Spell spell, WorldObject target, out EnchantmentStatus enchantmentStatus, out uint damage, WorldObject itemCaster = null, WorldObject weapon = null, bool isWeaponSpell = false, bool fromProc = false, bool equip = false)
+        protected bool HandleCastSpell(Spell spell, WorldObject target, out EnchantmentStatus enchantmentStatus, WorldObject itemCaster = null, WorldObject weapon = null, bool isWeaponSpell = false, bool fromProc = false, bool equip = false)
         {
-            damage = 0;
             enchantmentStatus = new EnchantmentStatus(spell);
             GameMessageSystemChat targetMsg = null;
 
@@ -321,19 +320,19 @@ namespace ACE.Server.WorldObjects
                 case SpellType.Boost:
                 case SpellType.FellowBoost:
 
-                    targetMsg = HandleCastSpell_Boost(spell, target, out enchantmentStatus, out damage);
+                    targetMsg = HandleCastSpell_Boost(spell, target, out enchantmentStatus);
                     break;
 
                 case SpellType.Transfer:
 
-                    targetMsg = HandleCastSpell_Transfer(spell, target, out enchantmentStatus, out damage);
+                    targetMsg = HandleCastSpell_Transfer(spell, target, out enchantmentStatus);
                     break;
 
                 case SpellType.Projectile:
                 case SpellType.LifeProjectile:
                 case SpellType.EnchantmentProjectile:
 
-                    HandleCastSpell_Projectile(spell, target, damage, itemCaster, weapon, isWeaponSpell, fromProc);
+                    HandleCastSpell_Projectile(spell, target, itemCaster, weapon, isWeaponSpell, fromProc);
                     break;
 
                 case SpellType.PortalLink:
@@ -488,10 +487,9 @@ namespace ACE.Server.WorldObjects
         /// Handles casting SpellType.Boost / FellowBoost spells
         /// typically for Life Magic, ie. Heal, Harm
         /// </summary>
-        private GameMessageSystemChat HandleCastSpell_Boost(Spell spell, WorldObject target, out EnchantmentStatus enchantmentStatus, out uint damage)
+        private GameMessageSystemChat HandleCastSpell_Boost(Spell spell, WorldObject target, out EnchantmentStatus enchantmentStatus)
         {
             string srcVital;
-            damage = 0;
             enchantmentStatus = new EnchantmentStatus(spell);
             GameMessageSystemChat targetMsg = null;
 
@@ -513,7 +511,6 @@ namespace ACE.Server.WorldObjects
             tryBoost = (int)Math.Round(tryBoost * spellTarget.GetResistanceMod(resistanceType));
 
             int boost = tryBoost;
-            damage = tryBoost < 0 ? (uint)Math.Abs(tryBoost) : 0;
 
             // handle cloak damage proc for harm other
             var equippedCloak = spellTarget?.EquippedCloak;
@@ -529,7 +526,6 @@ namespace ACE.Server.WorldObjects
                     Cloak.ShowMessage(spellTarget, this, -tryBoost, -reduced);
 
                     tryBoost = boost = reduced;
-                    damage = (uint)Math.Abs(tryBoost);
                 }
             }
 
@@ -703,10 +699,9 @@ namespace ACE.Server.WorldObjects
         /// Handles casting SpellType.Transfer spells
         /// usually for Life Magic, ie. Stamina to Mana, Drain
         /// </summary>
-        private GameMessageSystemChat HandleCastSpell_Transfer(Spell spell, WorldObject target, out EnchantmentStatus enchantmentStatus, out uint damage)
+        private GameMessageSystemChat HandleCastSpell_Transfer(Spell spell, WorldObject target, out EnchantmentStatus enchantmentStatus)
         {
             string srcVital, destVital;
-            damage = 0;
             enchantmentStatus = new EnchantmentStatus(spell);
             GameMessageSystemChat targetMsg = null;
 
@@ -801,7 +796,6 @@ namespace ACE.Server.WorldObjects
 
                     break;
             }
-            damage = srcVitalChange;
 
             // Apply the scaled change in vitals to the caster
             switch (spell.Destination)
@@ -896,8 +890,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles casting SpellType.Projectile / LifeProjectile / EnchantmentProjectile spells
         /// </summary>
-        private void HandleCastSpell_Projectile(Spell spell, WorldObject target, uint damage, WorldObject itemCaster, WorldObject weapon, bool isWeaponSpell, bool fromProc)
+        private void HandleCastSpell_Projectile(Spell spell, WorldObject target, WorldObject itemCaster, WorldObject weapon, bool isWeaponSpell, bool fromProc)
         {
+            uint damage = 0;
             var caster = this as Creature;
             var damageType = DamageType.Undef;
 
@@ -2120,7 +2115,7 @@ namespace ACE.Server.WorldObjects
                 if (targetCreature == null)
                 {
                     // targeting an individual item / wo
-                    HandleCastSpell(spell, target, out enchantmentStatus, out _);
+                    HandleCastSpell(spell, target, out enchantmentStatus);
 
                     if (target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
@@ -2140,7 +2135,7 @@ namespace ACE.Server.WorldObjects
 
                             foreach (var item in items)
                             {
-                                HandleCastSpell(spell, target, out enchantmentStatus, out _);
+                                HandleCastSpell(spell, target, out enchantmentStatus);
                                 if (player != null && enchantmentStatus.Message != null)
                                     player.Session.Network.EnqueueSend(enchantmentStatus.Message);
                             }
@@ -2155,7 +2150,7 @@ namespace ACE.Server.WorldObjects
 
                         if (item != null)
                         {
-                            HandleCastSpell(spell, target, out enchantmentStatus, out _);
+                            HandleCastSpell(spell, target, out enchantmentStatus);
                             EnqueueBroadcast(new GameMessageScript(item.Guid, spell.TargetEffect, spell.Formula.Scale));
                             if (player != null && enchantmentStatus.Message != null)
                                 player.Session.Network.EnqueueSend(enchantmentStatus.Message);
@@ -2178,7 +2173,7 @@ namespace ACE.Server.WorldObjects
                 if (targetCreature == null)
                 {
                     // targeting an individual item / wo
-                    HandleCastSpell(spell, target, out enchantmentStatus, out _);
+                    HandleCastSpell(spell, target, out enchantmentStatus);
 
                     if (target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
@@ -2199,7 +2194,7 @@ namespace ACE.Server.WorldObjects
 
                     if (weapon != null && weapon.IsEnchantable)
                     {
-                        HandleCastSpell(spell, target, out enchantmentStatus, out _);
+                        HandleCastSpell(spell, target, out enchantmentStatus);
 
                         EnqueueBroadcast(new GameMessageScript(weapon.Guid, spell.TargetEffect, spell.Formula.Scale));
 
@@ -2220,7 +2215,7 @@ namespace ACE.Server.WorldObjects
             else
             {
                 // all other item spells, cast directly on target
-                HandleCastSpell(spell, target, out enchantmentStatus, out _);
+                HandleCastSpell(spell, target, out enchantmentStatus);
 
                 if (target != null)
                     EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
