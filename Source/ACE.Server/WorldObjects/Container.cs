@@ -866,7 +866,7 @@ namespace ACE.Server.WorldObjects
             ResetMessagePending = false;
         }
 
-        private void GenerateContainList()
+        public void GenerateContainList()
         {
             if (Biota.PropertiesCreateList == null)
                 return;

@@ -8,8 +8,10 @@ namespace ACE.Server.Network.GameEvent.Events
         public GameEventTell(WorldObject worldObject, string messageText, Player player, ChatMessageType chatMessageType)
             : base(GameEventType.Tell, GameMessageGroup.UIQueue, player.Session)
         {
+            var name = worldObject.CreatureType == CreatureType.Olthoi ? worldObject.Name + "&" : worldObject.Name;
+
             Writer.WriteString16L(messageText);
-            Writer.WriteString16L(worldObject.Name);
+            Writer.WriteString16L(name);
             Writer.WriteGuid(worldObject.Guid);
             Writer.WriteGuid(player.Guid);
             Writer.Write((uint)chatMessageType);

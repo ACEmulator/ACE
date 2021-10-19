@@ -98,6 +98,13 @@ namespace ACE.Server.WorldObjects
             Attackable = true;
 
             SetProperty(PropertyString.DateOfBirth, $"{DateTime.UtcNow:dd MMMM yyyy}");
+
+            if (IsOlthoiPlayer)
+            {
+                GenerateContainList();
+            }
+            else
+                Biota.PropertiesCreateList?.Clear();
         }
 
         /// <summary>
@@ -189,6 +196,11 @@ namespace ACE.Server.WorldObjects
             RecordCast = new RecordCast(this);
 
             AttackQueue = new AttackQueue(this);
+
+            if (!PlayerKillsPk.HasValue)
+                PlayerKillsPk = 0;
+            if (!PlayerKillsPkl.HasValue)
+                PlayerKillsPkl = 0;
 
             return; // todo
 
@@ -485,12 +497,15 @@ namespace ACE.Server.WorldObjects
         {
             if (PKLogoutActive && !forceImmediate)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Logging out in 20s...", ChatMessageType.Magic));
+                //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Beginning delayed player killer logoff...", ChatMessageType.Broadcast));
 
                 if (!PKLogout)
                 {
                     PKLogout = true;
+
+                    IsFrozen = true;
+                    EnqueueBroadcastPhysicsState();
 
                     LogoffTimestamp = Time.GetFutureUnixTime(PropertyManager.GetLong("pk_timer").Item);
                     PlayerManager.AddPlayerToLogoffQueue(this);
@@ -523,18 +538,25 @@ namespace ACE.Server.WorldObjects
             {
                 if (PropertyManager.GetBool("use_turbine_chat").Item)
                 {
-                    if (GetCharacterOption(CharacterOption.ListenToGeneralChat))
-                        LeaveTurbineChatChannel("General");
-                    if (GetCharacterOption(CharacterOption.ListenToTradeChat))
-                        LeaveTurbineChatChannel("Trade");
-                    if (GetCharacterOption(CharacterOption.ListenToLFGChat))
-                        LeaveTurbineChatChannel("LFG");
-                    if (GetCharacterOption(CharacterOption.ListenToRoleplayChat))
-                        LeaveTurbineChatChannel("Roleplay");
-                    if (GetCharacterOption(CharacterOption.ListenToAllegianceChat) && Allegiance != null)
-                        LeaveTurbineChatChannel("Allegiance");
-                    if (GetCharacterOption(CharacterOption.ListenToSocietyChat) && Society != FactionBits.None)
-                        LeaveTurbineChatChannel("Society");
+                    if (IsOlthoiPlayer)
+                    {
+                        LeaveTurbineChatChannel("Olthoi");
+                    }
+                    else
+                    {
+                        if (GetCharacterOption(CharacterOption.ListenToGeneralChat))
+                            LeaveTurbineChatChannel("General");
+                        if (GetCharacterOption(CharacterOption.ListenToTradeChat))
+                            LeaveTurbineChatChannel("Trade");
+                        if (GetCharacterOption(CharacterOption.ListenToLFGChat))
+                            LeaveTurbineChatChannel("LFG");
+                        if (GetCharacterOption(CharacterOption.ListenToRoleplayChat))
+                            LeaveTurbineChatChannel("Roleplay");
+                        if (GetCharacterOption(CharacterOption.ListenToAllegianceChat) && Allegiance != null)
+                            LeaveTurbineChatChannel("Allegiance");
+                        if (GetCharacterOption(CharacterOption.ListenToSocietyChat) && Society != FactionBits.None)
+                            LeaveTurbineChatChannel("Society");
+                    }
                 }
             }
 
@@ -558,10 +580,13 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    var logout = new Motion(MotionStance.NonCombat, MotionCommand.LogOut);
-                    EnqueueBroadcastMotion(logout);
+                    if (IsFrozen ?? false)
+                        IsFrozen = false;
 
                     EnqueueBroadcastPhysicsState();
+
+                    var logout = new Motion(MotionStance.NonCombat, MotionCommand.LogOut);
+                    EnqueueBroadcastMotion(logout);                    
 
                     var logoutChain = new ActionChain();
 
@@ -819,7 +844,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsGagged)
             {
-                EnqueueBroadcast(new GameMessageHearSpeech(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, ChatMessageType.Speech);
+                EnqueueBroadcast(new GameMessageHearSpeech(message, GetNameWithSuffix(), Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, ChatMessageType.Speech);
 
                 OnTalk(message);
             }
@@ -849,7 +874,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsGagged)
             {
-                EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, Name, message), LocalBroadcastRange);
+                EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, GetNameWithSuffix(), message), LocalBroadcastRange);
 
                 OnTalk(message);
             }
@@ -861,7 +886,8 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsGagged)
             {
-                EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message), LocalBroadcastRange);
+                if (!IsOlthoiPlayer || (IsOlthoiPlayer && NoOlthoiTalk))
+                    EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message), LocalBroadcastRange);
 
                 OnTalk(message);
             }

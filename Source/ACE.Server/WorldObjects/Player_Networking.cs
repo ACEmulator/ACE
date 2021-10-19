@@ -83,18 +83,25 @@ namespace ACE.Server.WorldObjects
                 // Init the client with the chat channel ID's, and then notify the player that they've joined the associated channels.
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.TurbineChatIsEnabled));
 
-                if (GetCharacterOption(CharacterOption.ListenToAllegianceChat) && Allegiance != null)
-                    JoinTurbineChatChannel("Allegiance");
-                if (GetCharacterOption(CharacterOption.ListenToGeneralChat))
-                    JoinTurbineChatChannel("General");
-                if (GetCharacterOption(CharacterOption.ListenToTradeChat))
-                    JoinTurbineChatChannel("Trade");
-                if (GetCharacterOption(CharacterOption.ListenToLFGChat))
-                    JoinTurbineChatChannel("LFG");
-                if (GetCharacterOption(CharacterOption.ListenToRoleplayChat))
-                    JoinTurbineChatChannel("Roleplay");
-                if (GetCharacterOption(CharacterOption.ListenToSocietyChat) && Society != FactionBits.None)
-                    JoinTurbineChatChannel("Society");
+                if (IsOlthoiPlayer)
+                {
+                    JoinTurbineChatChannel("Olthoi");
+                }
+                else
+                {
+                    if (GetCharacterOption(CharacterOption.ListenToAllegianceChat) && Allegiance != null)
+                        JoinTurbineChatChannel("Allegiance");
+                    if (GetCharacterOption(CharacterOption.ListenToGeneralChat))
+                        JoinTurbineChatChannel("General");
+                    if (GetCharacterOption(CharacterOption.ListenToTradeChat))
+                        JoinTurbineChatChannel("Trade");
+                    if (GetCharacterOption(CharacterOption.ListenToLFGChat))
+                        JoinTurbineChatChannel("LFG");
+                    if (GetCharacterOption(CharacterOption.ListenToRoleplayChat))
+                        JoinTurbineChatChannel("Roleplay");
+                    if (GetCharacterOption(CharacterOption.ListenToSocietyChat) && Society != FactionBits.None)
+                        JoinTurbineChatChannel("Society");
+                }
             }
 
             // check if vassals earned XP while offline
@@ -162,7 +169,9 @@ namespace ACE.Server.WorldObjects
                     _ => channelName
                 };
             }
-            else if (channelName == "Olthoi") //todo: olthoi play
+            else if (channelName == "Olthoi" && (!IsOlthoiPlayer || !IsAdmin))
+                return;
+            else if (IsOlthoiPlayer && !IsAdmin && channelName != "Olthoi")
                 return;
 
             Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, channelName));
@@ -187,7 +196,9 @@ namespace ACE.Server.WorldObjects
                     _ => channelName
                 };
             }
-            else if (channelName == "Olthoi") //todo: olthoi play
+            else if (channelName == "Olthoi" && (!IsOlthoiPlayer || !IsAdmin))
+                return;
+            else if (IsOlthoiPlayer && !IsAdmin && channelName != "Olthoi")
                 return;
 
             Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, channelName));
