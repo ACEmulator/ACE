@@ -1108,7 +1108,7 @@ namespace ACE.Server.WorldObjects
                         if (spell.IsHarmful)
                         {
                             if (targetCreature != null)
-                                Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.CreatureEnchantment), targetCreature.GetCreatureSkill(Skill.MagicDefense).Current);
+                                Proficiency.OnSuccessUse(this, GetCreatureSkill(spell.School), targetCreature.GetCreatureSkill(Skill.MagicDefense).Current);
 
                             // handle target procs
                             if (targetCreature != null && targetCreature != this)
@@ -1118,7 +1118,7 @@ namespace ACE.Server.WorldObjects
                                 UpdatePKTimers(this, targetPlayer);
                         }
                         else
-                            Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.CreatureEnchantment), spell.PowerMod);
+                            Proficiency.OnSuccessUse(this, GetCreatureSkill(spell.School), spell.PowerMod);
                     }
 
                     if (targetDeath)
