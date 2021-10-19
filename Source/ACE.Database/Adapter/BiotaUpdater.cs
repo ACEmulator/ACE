@@ -731,7 +731,7 @@ namespace ACE.Database.Adapter
             existingValue.Type = value.Type;
             existingValue.Delay = value.Delay;
             existingValue.Extent = value.Extent;
-            existingValue.Motion = (int?)value.Motion;
+            existingValue.Motion = (uint?)value.Motion;
             existingValue.Message = value.Message;
             existingValue.TestString = value.TestString;
             existingValue.Min = value.Min;

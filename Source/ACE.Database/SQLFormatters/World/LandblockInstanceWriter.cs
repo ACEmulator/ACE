@@ -49,13 +49,13 @@ namespace ACE.Database.SQLFormatters.World
                              $"0x{value.Guid.ToString("X8")}, " +
                              $"{value.WeenieClassId.ToString().PadLeft(5)}, " +
                              $"0x{value.ObjCellId:X8}, " +
-                             $"{value.OriginX}, " +
-                             $"{value.OriginY}, " +
-                             $"{value.OriginZ}, " +
-                             $"{value.AnglesW}, " +
-                             $"{value.AnglesX}, " +
-                             $"{value.AnglesY}, " +
-                             $"{value.AnglesZ}, " +
+                             $"{value.OriginX:0.######}, " +
+                             $"{value.OriginY:0.######}, " +
+                             $"{value.OriginZ:0.######}, " +
+                             $"{value.AnglesW:0.######}, " +
+                             $"{value.AnglesX:0.######}, " +
+                             $"{value.AnglesY:0.######}, " +
+                             $"{value.AnglesZ:0.######}, " +
                              $"{value.IsLinkChild.ToString().PadLeft(5)}, " +
                              $"'{value.LastModified:yyyy-MM-dd HH:mm:ss}'" +
                              $"); /* {label} */" +
