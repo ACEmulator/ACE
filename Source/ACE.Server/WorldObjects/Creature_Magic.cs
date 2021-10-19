@@ -119,9 +119,9 @@ namespace ACE.Server.WorldObjects
                 case MagicSchool.ItemEnchantment:
 
                     if (spell.HasItemCategory || spell.IsPortalSpell)
-                        HandleCastSpell(spell, this, out enchantmentStatus, out _, item, item, true);
+                        HandleCastSpell(spell, this, out enchantmentStatus, out _, item, item, equip: true);
                     else
-                        HandleCastSpell(spell, item, out enchantmentStatus, out _, item, item, true);
+                        HandleCastSpell(spell, item, out enchantmentStatus, out _, item, item, equip: true);
 
                     var playScript = spell.IsPortalSpell && spell.CasterEffect > 0 ? spell.CasterEffect : spell.TargetEffect;
                     EnqueueBroadcast(new GameMessageScript(Guid, playScript, spell.Formula.Scale));
