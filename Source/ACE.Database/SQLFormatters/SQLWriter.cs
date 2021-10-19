@@ -181,6 +181,8 @@ namespace ACE.Database.SQLFormatters
                 case PropertyInt.Hatred2Bits:
                 case PropertyInt.Hatred3Bits:
                     return ((FactionBits)value).ToString();
+                case PropertyInt.CharacterTitleId:
+                    return ((CharacterTitle)value).ToString();
             }
 
             return property.GetValueEnumName(value);
@@ -219,40 +221,32 @@ namespace ACE.Database.SQLFormatters
                     break;
                 case PropertyDataId.WieldedTreasureType:
                     string treasureW = "";
-                    if (TreasureWielded != null)
+                    if (TreasureWielded != null && TreasureWielded.ContainsKey(value))
                     {
-                        if (TreasureWielded.ContainsKey(value))
+                        foreach (var item in TreasureWielded[value])
                         {
-                            foreach (var item in TreasureWielded[value])
-                            {
-                                treasureW += GetValueForTreasureDID(item);
-                            }
-                            return treasureW;
+                            treasureW += GetValueForTreasureDID(item);
                         }
+                        return treasureW;
                     }
-                    else if (TreasureDeath != null)
+                    else if (TreasureDeath != null && TreasureDeath.ContainsKey(value))
                     {
-                        if (TreasureDeath.ContainsKey(value))
-                            return $"Loot Tier: {TreasureDeath[value].Tier}";
+                        return $"Loot Tier: {TreasureDeath[value].Tier}";
                     }
                     break;
                 case PropertyDataId.DeathTreasureType:
                     string treasureD = "";
-                    if (TreasureDeath != null)
+                    if (TreasureDeath != null && TreasureDeath.ContainsKey(value))
                     {
-                        if (TreasureDeath.ContainsKey(value))
-                            return $"Loot Tier: {TreasureDeath[value].Tier}";
+                        return $"Loot Tier: {TreasureDeath[value].Tier}";
                     }
-                    else if  (TreasureWielded != null)
+                    else if (TreasureWielded != null && TreasureWielded.ContainsKey(value))
                     {
-                        if (TreasureWielded.ContainsKey(value))
+                        foreach (var item in TreasureWielded[value])
                         {
-                            foreach (var item in TreasureWielded[value])
-                            {
-                                treasureD += GetValueForTreasureDID(item);
-                            }
-                            return treasureD;
+                            treasureD += GetValueForTreasureDID(item, true);
                         }
+                        return treasureD;
                     }
                     break;
                 case PropertyDataId.PCAPRecordedObjectDesc:
@@ -268,11 +262,11 @@ namespace ACE.Database.SQLFormatters
             return property.GetValueEnumName(value);
         }
 
-        protected string GetValueForTreasureDID(TreasureWielded item)
+        protected string GetValueForTreasureDID(TreasureWielded item, bool isUsedInDeath = false)
         {
             string treasure = "";
 
-            treasure += Environment.NewLine + $"                                   Wield ";
+            treasure += Environment.NewLine + $"                                   {(isUsedInDeath ? " Drop" : "Wield")} ";
             if (item.StackSize > 1)
                 treasure += $"{item.StackSize}x ";
             treasure += $"{WeenieNames[item.WeenieClassId]} ({item.WeenieClassId})";

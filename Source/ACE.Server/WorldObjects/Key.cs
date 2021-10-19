@@ -51,9 +51,6 @@ namespace ACE.Server.WorldObjects
             // verify use requirements
             var result = CheckUseRequirements(player);
 
-            if (player.IsOlthoiPlayer)
-                result = new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.OlthoiCannotInteractWithThat));
-
             if (!result.Success)
             {
                 if (result.Message != null && player != null)

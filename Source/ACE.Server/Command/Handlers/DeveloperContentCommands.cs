@@ -1996,6 +1996,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 WeenieSQLWriter.SpellNames = DatabaseManager.World.GetAllSpellNames();
                 WeenieSQLWriter.TreasureDeath = DatabaseManager.World.GetAllTreasureDeath();
                 WeenieSQLWriter.TreasureWielded = DatabaseManager.World.GetAllTreasureWielded();
+                WeenieSQLWriter.PacketOpCodes = PacketOpCodeNames.Values;
             }
 
             var sql_filename = WeenieSQLWriter.GetDefaultFileName(weenie);

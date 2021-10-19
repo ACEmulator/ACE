@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace ACE.Database.Models.Shard
@@ -11,7 +11,7 @@ namespace ACE.Database.Models.Shard
         public uint Type { get; set; }
         public float Delay { get; set; }
         public float Extent { get; set; }
-        public int? Motion { get; set; }
+        public uint? Motion { get; set; }
         public string Message { get; set; }
         public string TestString { get; set; }
         public int? Min { get; set; }

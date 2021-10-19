@@ -56,6 +56,12 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
+            if (player.IsOlthoiPlayer)
+            {
+                player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
+                return new ActivationResult(false);
+            }
+
             if (player.IgnoreHouseBarriers)
                 return new ActivationResult(true);
 

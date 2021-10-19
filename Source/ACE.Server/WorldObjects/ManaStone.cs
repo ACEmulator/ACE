@@ -62,6 +62,12 @@ namespace ACE.Server.WorldObjects
 
             var useResult = WeenieError.None;
 
+            if (player.IsOlthoiPlayer)
+            {
+                player.SendUseDoneEvent(WeenieError.OlthoiCannotInteractWithThat);
+                return;
+            }
+
             if (player != target)
             {
                 invTarget = player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory | Player.SearchLocations.MyEquippedItems);

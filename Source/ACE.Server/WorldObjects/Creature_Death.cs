@@ -429,6 +429,8 @@ namespace ACE.Server.WorldObjects
         {
             if (NoCorpse)
             {
+                if (killer.IsOlthoiPlayer) return;
+
                 var loot = GenerateTreasure(killer, null);
 
                 foreach(var item in loot)
@@ -555,14 +557,12 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                var killerPlayer = killer.TryGetAttacker() as Player;
-
                 corpse.IsMonster = true;
 
-                if (killerPlayer != null && !killerPlayer.IsOlthoiPlayer)
+                if (!killer.IsOlthoiPlayer)
                     GenerateTreasure(killer, corpse);
 
-                if (killer != null && killer.IsPlayer && killerPlayer != null && !killerPlayer.IsOlthoiPlayer)
+                if (killer != null && killer.IsPlayer && !killer.IsOlthoiPlayer)
                 {
                     if (Level >= 100)
                     {
@@ -570,6 +570,7 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                     {
+                        var killerPlayer = killer.TryGetAttacker();
                         if (killerPlayer != null && Level > killerPlayer.Level)
                             CanGenerateRare = true;
                     }

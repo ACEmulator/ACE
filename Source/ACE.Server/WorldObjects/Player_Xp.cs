@@ -21,9 +21,6 @@ namespace ACE.Server.WorldObjects
         /// <param name="shareable">True if this XP can be shared with Fellowship</param>
         public void EarnXP(long amount, XpType xpType, ShareType shareType = ShareType.All)
         {
-            if (IsOlthoiPlayer)
-                return;
-
             //Console.WriteLine($"{Name}.EarnXP({amount}, {sharable}, {fixedAmount})");
 
             // apply xp modifier
@@ -53,7 +50,12 @@ namespace ACE.Server.WorldObjects
         public void GrantXP(long amount, XpType xpType, ShareType shareType = ShareType.All)
         {
             if (IsOlthoiPlayer)
+            {
+                if (HasVitae)
+                    UpdateXpVitae(amount);
+
                 return;
+            }
 
             if (Fellowship != null && Fellowship.ShareXP && shareType.HasFlag(ShareType.Fellowship))
             {

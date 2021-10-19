@@ -16,6 +16,19 @@ namespace ACE.Server.WorldObjects
             set => base.Name = value.TrimStart('+');
         }
 
+        public string GetNameWithSuffix()
+        {
+            if (!IsOlthoiPlayer)
+                return Name;
+            else
+            {
+                if (NoOlthoiTalk)
+                    return Name + "^";
+                else
+                    return Name + "&";
+            }
+        }
+
         // ========================================
         // ========= Admin Tier Properties ========
         // ========================================
@@ -1289,6 +1302,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyBool.OlthoiPk) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.OlthoiPk); else SetProperty(PropertyBool.OlthoiPk, value); }
+        }
+
+        public bool NoOlthoiTalk
+        {
+            get => GetProperty(PropertyBool.NoOlthoiTalk) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.NoOlthoiTalk); else SetProperty(PropertyBool.NoOlthoiTalk, value); }
         }
 
         /// <summary>

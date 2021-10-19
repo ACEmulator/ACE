@@ -48,12 +48,6 @@ namespace ACE.Server.WorldObjects
             if (!(worldObject is Player player))
                 return;
 
-            if (player.IsOlthoiPlayer)
-            {
-                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCannotInteractWithThat));
-                return;
-            }
-
             // check if player is in an allegiance
             if (player.Allegiance == null)
             {
