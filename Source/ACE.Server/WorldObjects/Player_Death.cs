@@ -478,7 +478,7 @@ namespace ACE.Server.WorldObjects
             var inventory = GetAllPossessions();
 
             // exclude pyreals from randomized death item calculation
-            inventory = inventory.Where(i => !i.Name.Equals("Pyreal")).ToList();
+            inventory = inventory.Where(i => i.WeenieClassId != coinStackWcid).ToList();
 
             // exclude wielded items if < level 35
             if (!canDropWielded)
