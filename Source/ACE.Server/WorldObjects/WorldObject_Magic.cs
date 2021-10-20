@@ -949,7 +949,10 @@ namespace ACE.Server.WorldObjects
             if (player == null) return;
 
             if (player.IsOlthoiPlayer)
+            {
                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCanOnlyRecallToLifestone));
+                return;
+            }
 
             switch ((SpellId)spell.Id)
             {
@@ -1035,7 +1038,10 @@ namespace ACE.Server.WorldObjects
             var player = this as Player;
 
             if (player != null && player.IsOlthoiPlayer)
+            {
                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCanOnlyRecallToLifestone));
+                return;
+            }
 
             var creature = this as Creature;
 
@@ -1176,7 +1182,10 @@ namespace ACE.Server.WorldObjects
             var player = this as Player;
 
             if (player != null && player.IsOlthoiPlayer)
+            {
                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCanOnlyRecallToLifestone));
+                return;
+            }
 
             if (player != null && player.PKTimerActive)
             {
