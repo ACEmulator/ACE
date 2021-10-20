@@ -906,7 +906,7 @@ namespace ACE.Server.WorldObjects
             var spell = new Spell(spellID);
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
-            target.EnchantmentManager.Add(spell, this, weapon);
+            target.EnchantmentManager.Add(spell, this, weapon); // TODO: missing UpdateEnchantment for target?
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingDefenseDebuff));
 
             FightDirty_SendMessage(target, spell);

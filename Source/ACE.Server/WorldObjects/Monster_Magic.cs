@@ -307,9 +307,6 @@ namespace ACE.Server.WorldObjects
 
                     HandleCastSpell(spell, target);
 
-                    if (target != null)
-                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
                     if (spell.IsHarmful)
                     {
                         // handle target procs
@@ -331,9 +328,6 @@ namespace ACE.Server.WorldObjects
                     {
                         TryHandleFactionMob(target);
 
-                        if (target != null)
-                            EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
                         if (spell.IsHarmful)
                         {
                             // handle target procs
@@ -347,10 +341,6 @@ namespace ACE.Server.WorldObjects
                 case MagicSchool.VoidMagic:
 
                     HandleCastSpell(spell, target, caster);
-
-                    if (spell.School == MagicSchool.VoidMagic && spell.NumProjectiles == 0 && target != null)
-                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
                     break;
             }
         }

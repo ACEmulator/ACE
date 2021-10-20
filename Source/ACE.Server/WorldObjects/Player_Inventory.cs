@@ -327,7 +327,7 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            var isAffecting = true;
+            var isAffecting = true;     // ??
 
             foreach (var spell in item.Biota.GetKnownSpellsIds(BiotaDatabaseLock))
             {
@@ -337,9 +337,9 @@ namespace ACE.Server.WorldObjects
                 if (spell == item.SpellDID)
                     continue;
 
-                var enchantmentStatus = CreateItemSpell(item, (uint)spell);
+                var success = CreateItemSpell(item, (uint)spell);
 
-                if (enchantmentStatus.Success)
+                if (success)
                     isAffecting = true;
             }
 

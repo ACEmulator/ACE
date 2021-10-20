@@ -95,14 +95,21 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles equipping an item casting a spell on player or creature
         /// </summary>
-        public virtual EnchantmentStatus CreateItemSpell(WorldObject item, uint spellID)
+        public bool CreateItemSpell(WorldObject item, uint spellID)
         {
-            var enchantmentStatus = new EnchantmentStatus(spellID);
-
-            var spell = enchantmentStatus.Spell;
+            var spell = new Spell(spellID);
 
             if (spell.NotFound)
-                return enchantmentStatus;
+            {
+                if (this is Player player)
+                {
+                    if (spell._spellBase == null)
+                        player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"SpellID {spellID} Invalid."));
+                    else
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                }
+                return false;
+            }
 
             // TODO: look into condensing this
             switch (spell.School)
@@ -110,25 +117,20 @@ namespace ACE.Server.WorldObjects
                 case MagicSchool.CreatureEnchantment:
                 case MagicSchool.LifeMagic:
 
-                    enchantmentStatus = HandleCastSpell(spell, this, item, equip: true);
-                    if (enchantmentStatus.Message != null)
-                        EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
-
+                    HandleCastSpell(spell, this, item, equip: true);
                     break;
 
                 case MagicSchool.ItemEnchantment:
 
                     if (spell.HasItemCategory || spell.IsPortalSpell)
-                        enchantmentStatus = HandleCastSpell(spell, this, item, item, equip: true);
+                        HandleCastSpell(spell, this, item, item, equip: true);
                     else
-                        enchantmentStatus = HandleCastSpell(spell, item, item, item, equip: true);
-
-                    var playScript = spell.IsPortalSpell && spell.CasterEffect > 0 ? spell.CasterEffect : spell.TargetEffect;
-                    EnqueueBroadcast(new GameMessageScript(Guid, playScript, spell.Formula.Scale));
+                        HandleCastSpell(spell, item, item, item, equip: true);
 
                     break;
             }
-            return enchantmentStatus;
+
+            return true;
         }
 
         /// <summary>

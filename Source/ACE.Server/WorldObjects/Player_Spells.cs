@@ -257,18 +257,17 @@ namespace ACE.Server.WorldObjects
                     var critterBuffsForPlayer = buffsForPlayer.Where(k => k.Spell.School == MagicSchool.CreatureEnchantment).ToList();
                     var itemBuffsForPlayer = buffsForPlayer.Where(k => k.Spell.School == MagicSchool.ItemEnchantment).ToList();
 
-                    EnchantmentStatus ec;
                     lifeBuffsForPlayer.ForEach(spl =>
                     {
-                        ec = HandleCastSpell(spl.Spell, targetPlayer);
+                        CreateEnchantmentSilent(spl.Spell, targetPlayer);
                     });
                     critterBuffsForPlayer.ForEach(spl =>
                     {
-                        ec = HandleCastSpell(spl.Spell, targetPlayer);
+                        CreateEnchantmentSilent(spl.Spell, targetPlayer);
                     });
                     itemBuffsForPlayer.ForEach(spl =>
                     {
-                        ec = HandleCastSpell(spl.Spell, targetPlayer);
+                        CreateEnchantmentSilent(spl.Spell, targetPlayer);
                     });
                 }
                 if (buffMessages.Any(k => k.Bane))
@@ -281,15 +280,23 @@ namespace ACE.Server.WorldObjects
                         foreach (var item in items)
                         {
                             if ((item.WeenieType == WeenieType.Clothing || item.IsShield) && item.IsEnchantable)
-                            {
-                                itemBuff.SetLandblockMessage(item.Guid);
-                                HandleCastSpell(itemBuff.Spell, item, this);
-                                targetPlayer?.EnqueueBroadcast(itemBuff.LandblockMessage);
-                            }
+                                CreateEnchantmentSilent(itemBuff.Spell, item);
                         }
                     }
                 }
             });
+        }
+
+        private void CreateEnchantmentSilent(Spell spell, WorldObject target)
+        {
+            var addResult = target.EnchantmentManager.Add(spell, this, null);
+
+            if (target is Player targetPlayer)
+            {
+                targetPlayer.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(targetPlayer.Session, new Enchantment(targetPlayer, addResult.Enchantment)));
+
+                targetPlayer.HandleSpellHooks(spell);
+            }
         }
 
         // TODO: switch this over to SpellProgressionTables

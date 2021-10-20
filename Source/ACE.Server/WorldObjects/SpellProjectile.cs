@@ -310,26 +310,18 @@ namespace ACE.Server.WorldObjects
 
             if (damage != null)
             {
-                // handle void magic DoTs:
-                // instead of instant damage, add DoT to target's enchantment registry
                 if (Spell.MetaSpellType == ACE.Entity.Enum.SpellType.EnchantmentProjectile)
                 {
-                    var dot = ProjectileSource.CreateEnchantment(creatureTarget, ProjectileSource, ProjectileLauncher, Spell);
-
-                    if (dot.Message != null && player != null)
-                        player.Session.Network.EnqueueSend(dot.Message);
-
-                    if (Spell.School != MagicSchool.VoidMagic)
-                        target.EnqueueBroadcast(new GameMessageScript(target.Guid, Spell.TargetEffect, Spell.Formula.Scale));
-
-                    // corruption / corrosion playscript?
-                    //target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.HealthDownVoid));
-                    //target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingDefenseDebuff));
+                    // handle EnchantmentProjectile successfully landing on target
+                    ProjectileSource.CreateEnchantment(creatureTarget, ProjectileSource, ProjectileLauncher, Spell);
                 }
                 else
                 {
                     DamageTarget(creatureTarget, damage.Value, critical, critDefended, overpower);
                 }
+
+                // if this SpellProjectile has a TargetEffect, play it on successful hit
+                DoSpellEffects(Spell, ProjectileSource, creatureTarget, true);
 
                 if (player != null)
                     Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Spell.School), Spell.PowerMod);

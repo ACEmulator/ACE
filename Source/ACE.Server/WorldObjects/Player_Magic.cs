@@ -1092,7 +1092,6 @@ namespace ACE.Server.WorldObjects
                             Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetCreature.Name} with {spell.Name}", ChatMessageType.Magic));
                             break;
                         }
-                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                     }
 
                     HandleCastSpell(spell, target, itemCaster, caster, isWeaponSpell);
@@ -1202,73 +1201,6 @@ namespace ACE.Server.WorldObjects
             // send message to player
             var msg = Spell.GetConsumeString(burned);
             Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Magic));
-        }
-
-        /// <summary>
-        /// Handles equipping an item casting a spell on a player
-        /// </summary>
-        public override EnchantmentStatus CreateItemSpell(WorldObject item, uint spellID)
-        {
-            var spell = new Spell(spellID);
-
-            if (spell.NotFound)
-            {
-                if (spell._spellBase == null)
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellID {spellID} Invalid."));
-                else
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
-
-                return new EnchantmentStatus(false);
-            }
-
-            var enchantmentStatus = base.CreateItemSpell(item, spellID);
-
-            return enchantmentStatus;
-        }
-
-        /// <summary>
-        /// Called from consumables or sentinel buffs
-        /// </summary>
-        /// <returns>TRUE if cast success, or FALSE is spell doesn't exist on server</returns>
-        public bool CreateSingleSpell(uint spellId)
-        {
-            var player = this;
-            var spell = new Spell(spellId);
-
-            if (spell.NotFound)
-            {
-                if (spell._spellBase == null)
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
-                else
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
-
-                return false;
-            }
-
-            switch (spell.School)
-            {
-                case MagicSchool.CreatureEnchantment:
-                case MagicSchool.LifeMagic:
-                case MagicSchool.ItemEnchantment:
-
-                    if (spell.School == MagicSchool.ItemEnchantment && spell.IsPortalSpell)
-                    {
-                        var playScript = spell.CasterEffect > 0 ? spell.CasterEffect : spell.TargetEffect;
-                        EnqueueBroadcast(new GameMessageScript(player.Guid, playScript, spell.Formula.Scale));
-                    }
-
-                    var enchantmentStatus = HandleCastSpell(spell, player);
-
-                    if (enchantmentStatus.Success && !spell.IsPortalSpell)
-                        EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
-
-                    break;
-
-                default:
-                    Console.WriteLine("Unknown magic school: " + spell.School);
-                    break;
-            }
-            return true;
         }
 
         /// <summary>
@@ -1474,6 +1406,15 @@ namespace ACE.Server.WorldObjects
 
             log.Error($"VerifyNonComponentTargetType({spell.Id} - {spell.Name}, {target.Name}) - unexpected NonComponentTargetType {spell.NonComponentTargetType}");
             return false;
+        }
+
+        /// <summary>
+        /// Sends a chat message with respect to SquelchManager
+        /// </summary>
+        public void SendChatMessage(WorldObject source, string msg, ChatMessageType msgType)
+        {
+            if (!SquelchManager.Squelches.Contains(source, msgType))
+                Session.Network.EnqueueSend(new GameMessageSystemChat(msg, msgType));
         }
     }
 }
