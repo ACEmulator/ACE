@@ -70,21 +70,7 @@ namespace ACE.Server.WorldObjects
                 return;
 
             // if not resisted, cast spell
-            var targetDeath = HandleCastSpell(spell, target, out EnchantmentStatus status, itemCaster, weapon, isWeaponSpell, fromProc);
-            if (spell.School == MagicSchool.LifeMagic && targetDeath && target is Creature targetCreature)
-            {
-                targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
-                targetCreature.Die();
-            }
-
-            // send message to player, if applicable
-            if (this is Player player && status.Message != null && showMsg)
-            {
-                if (status.Broadcast)
-                    player.EnqueueBroadcast(status.Message, LocalBroadcastRange, ChatMessageType.Magic);
-                else
-                    player.Session.Network.EnqueueSend(status.Message);
-            }
+            HandleCastSpell(spell, target, itemCaster, weapon, isWeaponSpell, fromProc, showMsg: showMsg);
 
             // for invisible spell traps,
             // their effects won't be seen if they broadcast from themselves
@@ -280,9 +266,13 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Creates a spell based on MetaSpellType
         /// </summary>
-        protected bool HandleCastSpell(Spell spell, WorldObject target, out EnchantmentStatus enchantmentStatus, WorldObject itemCaster = null, WorldObject weapon = null, bool isWeaponSpell = false, bool fromProc = false, bool equip = false)
+        protected EnchantmentStatus HandleCastSpell(Spell spell, WorldObject target, WorldObject itemCaster = null, WorldObject weapon = null, bool isWeaponSpell = false, bool fromProc = false, bool equip = false, bool showMsg = true)
         {
-            enchantmentStatus = new EnchantmentStatus(spell);
+            var enchantmentStatus = new EnchantmentStatus(spell)
+            {
+                Success = false
+            };
+
             GameMessageSystemChat targetMsg = null;
 
             var creature = this as Creature;
@@ -301,7 +291,7 @@ namespace ACE.Server.WorldObjects
                 if ((spellTarget == null || !spellTarget.IsAlive) && spell.NonComponentTargetType != ItemType.None
                     && spell.DispelSchool != MagicSchool.ItemEnchantment)
                 {
-                    return false;
+                    return enchantmentStatus;
                 }
             }
 
@@ -320,19 +310,19 @@ namespace ACE.Server.WorldObjects
                 case SpellType.Boost:
                 case SpellType.FellowBoost:
 
-                    targetMsg = HandleCastSpell_Boost(spell, target, out enchantmentStatus);
+                    targetMsg = HandleCastSpell_Boost(spell, spellTarget, out enchantmentStatus);
                     break;
 
                 case SpellType.Transfer:
 
-                    targetMsg = HandleCastSpell_Transfer(spell, target, out enchantmentStatus);
+                    targetMsg = HandleCastSpell_Transfer(spell, spellTarget, out enchantmentStatus);
                     break;
 
                 case SpellType.Projectile:
                 case SpellType.LifeProjectile:
                 case SpellType.EnchantmentProjectile:
 
-                    HandleCastSpell_Projectile(spell, target, itemCaster, weapon, isWeaponSpell, fromProc);
+                    HandleCastSpell_Projectile(spell, spellTarget, itemCaster, weapon, isWeaponSpell, fromProc);
                     break;
 
                 case SpellType.PortalLink:
@@ -342,28 +332,28 @@ namespace ACE.Server.WorldObjects
 
                 case SpellType.PortalRecall:
 
-                    HandleCastSpell_PortalRecall(spell, target);
+                    HandleCastSpell_PortalRecall(spell, spellTarget);
                     break;
 
                 case SpellType.PortalSummon:
 
-                    HandleCastSpell_PortalSummon(spell, target, itemCaster);
+                    HandleCastSpell_PortalSummon(spell, spellTarget, itemCaster);
                     break;
 
                 case SpellType.PortalSending:
 
-                    HandleCastSpell_PortalSending(spell, target, itemCaster);
+                    HandleCastSpell_PortalSending(spell, spellTarget, itemCaster);
                     break;
 
                 case SpellType.FellowPortalSending:
 
-                    HandleCastSpell_FellowPortalSending(spell, target, itemCaster);
+                    HandleCastSpell_FellowPortalSending(spell, spellTarget, itemCaster);
                     break;
 
                 case SpellType.Dispel:
                 case SpellType.FellowDispel:
 
-                    targetMsg = HandleCastSpell_Dispel(spell, target, out enchantmentStatus);
+                    targetMsg = HandleCastSpell_Dispel(spell, spellTarget ?? target, out enchantmentStatus);
                     break;
 
                 default:
@@ -374,9 +364,27 @@ namespace ACE.Server.WorldObjects
             if (targetMsg != null && !targetPlayer.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic))
                 targetPlayer.Session.Network.EnqueueSend(targetMsg);
 
-            enchantmentStatus.Success = true;
+            // send message to player, if applicable
+            if (enchantmentStatus.Message != null && this is Player player)
+            {
+                if (enchantmentStatus.Broadcast)
+                    player.EnqueueBroadcast(enchantmentStatus.Message, LocalBroadcastRange, ChatMessageType.Magic);
+                else
+                    player.Session.Network.EnqueueSend(enchantmentStatus.Message);
+            }
 
-            return spellTarget?.IsDead ?? false;
+            // Initiate the death process for targets killed by Boost type spells
+            if (spell.MetaSpellType == SpellType.Boost || spell.MetaSpellType == SpellType.FellowBoost)
+            {
+                if (spellTarget?.IsDead ?? false)
+                {
+                    spellTarget.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
+                    spellTarget.Die();
+                }
+            }
+
+            enchantmentStatus.Success = true;
+            return enchantmentStatus;
         }
 
         /// <summary>
@@ -2115,13 +2123,10 @@ namespace ACE.Server.WorldObjects
                 if (targetCreature == null)
                 {
                     // targeting an individual item / wo
-                    HandleCastSpell(spell, target, out enchantmentStatus);
+                    HandleCastSpell(spell, target);
 
                     if (target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
-                    if (player != null && enchantmentStatus.Message != null)
-                        player.Session.Network.EnqueueSend(enchantmentStatus.Message);
                 }
                 else
                 {
@@ -2135,11 +2140,9 @@ namespace ACE.Server.WorldObjects
 
                             foreach (var item in items)
                             {
-                                HandleCastSpell(spell, target, out enchantmentStatus);
-                                if (player != null && enchantmentStatus.Message != null)
-                                    player.Session.Network.EnqueueSend(enchantmentStatus.Message);
+                                HandleCastSpell(spell, target);
                             }
-                            if (items.Count() > 0)
+                            if (items.Any())
                                 EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
                         }
                     }
@@ -2150,10 +2153,8 @@ namespace ACE.Server.WorldObjects
 
                         if (item != null)
                         {
-                            HandleCastSpell(spell, target, out enchantmentStatus);
+                            HandleCastSpell(spell, target);
                             EnqueueBroadcast(new GameMessageScript(item.Guid, spell.TargetEffect, spell.Formula.Scale));
-                            if (player != null && enchantmentStatus.Message != null)
-                                player.Session.Network.EnqueueSend(enchantmentStatus.Message);
                         }
                         else
                         {
@@ -2173,13 +2174,10 @@ namespace ACE.Server.WorldObjects
                 if (targetCreature == null)
                 {
                     // targeting an individual item / wo
-                    HandleCastSpell(spell, target, out enchantmentStatus);
+                    HandleCastSpell(spell, target);
 
                     if (target != null)
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
-                    if (player != null && enchantmentStatus.Message != null)
-                        player.Session.Network.EnqueueSend(enchantmentStatus.Message);
                 }
                 else
                 {
@@ -2194,12 +2192,9 @@ namespace ACE.Server.WorldObjects
 
                     if (weapon != null && weapon.IsEnchantable)
                     {
-                        HandleCastSpell(spell, target, out enchantmentStatus);
+                        HandleCastSpell(spell, target);
 
                         EnqueueBroadcast(new GameMessageScript(weapon.Guid, spell.TargetEffect, spell.Formula.Scale));
-
-                        if (player != null && enchantmentStatus.Message != null)
-                            player.Session.Network.EnqueueSend(enchantmentStatus.Message);
                     }
                     else
                     {
@@ -2215,13 +2210,10 @@ namespace ACE.Server.WorldObjects
             else
             {
                 // all other item spells, cast directly on target
-                HandleCastSpell(spell, target, out enchantmentStatus);
+                HandleCastSpell(spell, target);
 
                 if (target != null)
                     EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
-                if (player != null && enchantmentStatus.Message != null)
-                    player.Session.Network.EnqueueSend(enchantmentStatus.Message);
             }
         }
 

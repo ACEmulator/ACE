@@ -892,7 +892,7 @@ namespace ACE.Server.WorldObjects
                 case CastingPreCheckStatus.InvalidPKStatus:
 
                     if (spell.NumProjectiles > 0)
-                        HandleCastSpell(spell, target, out _, itemCaster, caster, isWeaponSpell);
+                        HandleCastSpell(spell, target, itemCaster, caster, isWeaponSpell);
                     break;
 
                 default:
@@ -1046,8 +1046,6 @@ namespace ACE.Server.WorldObjects
             var targetCreature = target as Creature;
             var targetPlayer = target as Player;
 
-            bool targetDeath;
-
             LastSuccessCast_School = spell.School;
             LastSuccessCast_Time = Time.GetUnixTime();
 
@@ -1081,9 +1079,7 @@ namespace ACE.Server.WorldObjects
 
                 default:
 
-                    if (spell.MetaSpellType != SpellType.Projectile
-                        && spell.MetaSpellType != SpellType.LifeProjectile
-                        && spell.MetaSpellType != SpellType.EnchantmentProjectile)
+                    if (!spell.IsProjectile)
                     {
                         if (targetPlayer == null)
                             OnAttackMonster(targetCreature);
@@ -1099,11 +1095,9 @@ namespace ACE.Server.WorldObjects
                         EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                     }
 
-                    targetDeath = HandleCastSpell(spell, target, out var enchantmentStatus, itemCaster, caster, isWeaponSpell);
+                    HandleCastSpell(spell, target, itemCaster, caster, isWeaponSpell);
 
-                    if (spell.MetaSpellType != SpellType.Projectile
-                        && spell.MetaSpellType != SpellType.LifeProjectile
-                        && spell.MetaSpellType != SpellType.EnchantmentProjectile)
+                    if (!spell.IsProjectile)
                     {
                         if (spell.IsHarmful)
                         {
@@ -1120,16 +1114,6 @@ namespace ACE.Server.WorldObjects
                         else
                             Proficiency.OnSuccessUse(this, GetCreatureSkill(spell.School), spell.PowerMod);
                     }
-
-                    if (targetDeath)
-                    {
-                        targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
-                        targetCreature.Die();
-                        break;
-                    }
-
-                    if (enchantmentStatus.Message != null)
-                        Session.Network.EnqueueSend(enchantmentStatus.Message);
 
                     break;
             }
@@ -1239,9 +1223,6 @@ namespace ACE.Server.WorldObjects
 
             var enchantmentStatus = base.CreateItemSpell(item, spellID);
 
-            if (enchantmentStatus.Message != null)
-                Session.Network.EnqueueSend(enchantmentStatus.Message);
-
             return enchantmentStatus;
         }
 
@@ -1276,7 +1257,7 @@ namespace ACE.Server.WorldObjects
                         EnqueueBroadcast(new GameMessageScript(player.Guid, playScript, spell.Formula.Scale));
                     }
 
-                    HandleCastSpell(spell, player, out EnchantmentStatus enchantmentStatus);
+                    var enchantmentStatus = HandleCastSpell(spell, player);
 
                     if (enchantmentStatus.Success && !spell.IsPortalSpell)
                         EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
