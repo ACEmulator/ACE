@@ -110,7 +110,7 @@ namespace ACE.Server.WorldObjects
                     if (threadSafe)
                         // This can result in spell projectiles being added to either sourceCreature or targetCreature landblock.
                         // worldObject is hitting targetCreature, so they should almost always be in the same landblock
-                        worldObject.TryProcEquippedItems(sourceCreature, targetCreature, false, worldObject.ProjectileLauncher ?? worldObject.ProjectileAmmo);
+                        worldObject.TryProcEquippedItems(sourceCreature, targetCreature, false, worldObject.ProjectileLauncher);
                     else
                     {
                         // sourceCreature and creatureTarget are now in different landblock groups.
