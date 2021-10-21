@@ -463,18 +463,13 @@ namespace ACE.Server.WorldObjects
         /// Handles casting SpellType.Boost / FellowBoost spells
         /// typically for Life Magic, ie. Heal, Harm
         /// </summary>
-        private void HandleCastSpell_Boost(Spell spell, WorldObject target)
+        private void HandleCastSpell_Boost(Spell spell, Creature targetCreature)
         {
             var player = this as Player;
             var creature = this as Creature;
 
-            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
-
-            if (this is Gem || this is Food || this is Hook)
-                spellTarget = target as Creature;
-
             // double check caster and target are alive
-            if (creature != null && creature.IsDead || spellTarget != null && spellTarget.IsDead)
+            if (creature != null && creature.IsDead || targetCreature != null && targetCreature.IsDead)
                 return;
 
             // handle negatives?
@@ -484,22 +479,22 @@ namespace ACE.Server.WorldObjects
             var resistanceType = minBoostValue > 0 ? GetBoostResistanceType(spell.VitalDamageType) : GetDrainResistanceType(spell.VitalDamageType);
 
             int tryBoost = ThreadSafeRandom.Next(minBoostValue, maxBoostValue);
-            tryBoost = (int)Math.Round(tryBoost * spellTarget.GetResistanceMod(resistanceType));
+            tryBoost = (int)Math.Round(tryBoost * targetCreature.GetResistanceMod(resistanceType));
 
             int boost = tryBoost;
 
             // handle cloak damage proc for harm other
-            var equippedCloak = spellTarget?.EquippedCloak;
+            var equippedCloak = targetCreature?.EquippedCloak;
 
-            if (spellTarget != this && spell.VitalDamageType == DamageType.Health && tryBoost < 0)
+            if (targetCreature != this && spell.VitalDamageType == DamageType.Health && tryBoost < 0)
             {
-                var percent = (float)-tryBoost / spellTarget.Health.MaxValue;
+                var percent = (float)-tryBoost / targetCreature.Health.MaxValue;
 
                 if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(equippedCloak, percent))
                 {
                     var reduced = -Cloak.GetReducedAmount(this, -tryBoost);
 
-                    Cloak.ShowMessage(spellTarget, this, -tryBoost, -reduced);
+                    Cloak.ShowMessage(targetCreature, this, -tryBoost, -reduced);
 
                     tryBoost = boost = reduced;
                 }
@@ -510,21 +505,21 @@ namespace ACE.Server.WorldObjects
             switch (spell.VitalDamageType)
             {
                 case DamageType.Mana:
-                    boost = spellTarget.UpdateVitalDelta(spellTarget.Mana, tryBoost);
+                    boost = targetCreature.UpdateVitalDelta(targetCreature.Mana, tryBoost);
                     srcVital = "mana";
                     break;
                 case DamageType.Stamina:
-                    boost = spellTarget.UpdateVitalDelta(spellTarget.Stamina, tryBoost);
+                    boost = targetCreature.UpdateVitalDelta(targetCreature.Stamina, tryBoost);
                     srcVital = "stamina";
                     break;
                 default:   // Health
-                    boost = spellTarget.UpdateVitalDelta(spellTarget.Health, tryBoost);
+                    boost = targetCreature.UpdateVitalDelta(targetCreature.Health, tryBoost);
                     srcVital = "health";
 
                     if (boost >= 0)
-                        spellTarget.DamageHistory.OnHeal((uint)boost);
+                        targetCreature.DamageHistory.OnHeal((uint)boost);
                     else
-                        spellTarget.DamageHistory.Add(this, DamageType.Health, (uint)-boost);
+                        targetCreature.DamageHistory.Add(this, DamageType.Health, (uint)-boost);
 
                     //if (targetPlayer != null && targetPlayer.Fellowship != null)
                         //targetPlayer.Fellowship.OnVitalUpdate(targetPlayer);
@@ -536,12 +531,12 @@ namespace ACE.Server.WorldObjects
             {
                 string casterMessage;
 
-                if (player != spellTarget)
+                if (player != targetCreature)
                 {
                     if (spell.IsBeneficial)
-                        casterMessage = $"With {spell.Name} you restore {boost} points of {srcVital} to {spellTarget.Name}.";
+                        casterMessage = $"With {spell.Name} you restore {boost} points of {srcVital} to {targetCreature.Name}.";
                     else
-                        casterMessage = $"With {spell.Name} you drain {Math.Abs(boost)} points of {srcVital} from {spellTarget.Name}.";
+                        casterMessage = $"With {spell.Name} you drain {Math.Abs(boost)} points of {srcVital} from {targetCreature.Name}.";
                 }
                 else
                 {
@@ -553,7 +548,7 @@ namespace ACE.Server.WorldObjects
                 player.SendChatMessage(player, casterMessage, ChatMessageType.Magic);
             }
 
-            if (spellTarget is Player targetPlayer && player != targetPlayer)
+            if (targetCreature is Player targetPlayer && player != targetPlayer)
             {
                 string targetMessage;
 
@@ -570,30 +565,30 @@ namespace ACE.Server.WorldObjects
                 targetPlayer.SendChatMessage(player, targetMessage, ChatMessageType.Magic);
             }
 
-            if (spellTarget != this && spellTarget.IsAlive && spell.VitalDamageType == DamageType.Health && boost < 0)
+            if (targetCreature != this && targetCreature.IsAlive && spell.VitalDamageType == DamageType.Health && boost < 0)
             {
                 // handle cloak spell proc
                 if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak))
                 {
-                    var pct = (float)-boost / spellTarget.Health.MaxValue;
+                    var pct = (float)-boost / targetCreature.Health.MaxValue;
 
                     // ensure message is sent after enchantment.Message
                     var actionChain = new ActionChain();
                     actionChain.AddDelayForOneTick();
-                    actionChain.AddAction(this, () => Cloak.TryProcSpell(spellTarget, this, equippedCloak, pct));
+                    actionChain.AddAction(this, () => Cloak.TryProcSpell(targetCreature, this, equippedCloak, pct));
                     actionChain.EnqueueChain();
                 }
 
                 // ensure emote process occurs after damage msg
                 var emoteChain = new ActionChain();
                 emoteChain.AddDelayForOneTick();
-                emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(creature));
+                emoteChain.AddAction(targetCreature, () => targetCreature.EmoteManager.OnDamage(creature));
                 //if (critical)
                 //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(creature));
                 emoteChain.EnqueueChain();
             }
 
-            HandleBoostTransferDeath(creature, spellTarget);
+            HandleBoostTransferDeath(creature, targetCreature);
         }
 
         /// <summary>
@@ -690,26 +685,21 @@ namespace ACE.Server.WorldObjects
         /// Handles casting SpellType.Transfer spells
         /// usually for Life Magic, ie. Stamina to Mana, Drain
         /// </summary>
-        private void HandleCastSpell_Transfer(Spell spell, WorldObject target)
+        private void HandleCastSpell_Transfer(Spell spell, Creature targetCreature)
         {
             var player = this as Player;
             var creature = this as Creature;
 
-            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
-
-            if (this is Gem || this is Food || this is Hook)
-                spellTarget = target as Creature;
-
-            var targetPlayer = spellTarget as Player;
+            var targetPlayer = targetCreature as Player;
 
             // double check caster and target are alive
-            if (creature != null && creature.IsDead || spellTarget != null && spellTarget.IsDead)
+            if (creature != null && creature.IsDead || targetCreature != null && targetCreature.IsDead)
                 return;
 
             // source and destination can be the same creature, or different creatures
             var caster = this as Creature;
-            var transferSource = spell.TransferFlags.HasFlag(TransferFlags.CasterSource) ? caster : spellTarget;
-            var destination = spell.TransferFlags.HasFlag(TransferFlags.CasterDestination) ? caster : spellTarget;
+            var transferSource = spell.TransferFlags.HasFlag(TransferFlags.CasterSource) ? caster : targetCreature;
+            var destination = spell.TransferFlags.HasFlag(TransferFlags.CasterDestination) ? caster : targetCreature;
 
             // Calculate vital changes
             uint srcVitalChange, destVitalChange;
@@ -747,17 +737,17 @@ namespace ACE.Server.WorldObjects
             }
 
             // handle cloak damage procs for drain health other
-            var equippedCloak = spellTarget?.EquippedCloak;
+            var equippedCloak = targetCreature?.EquippedCloak;
 
             if (isDrain && spell.Source == PropertyAttribute2nd.Health)
             {
-                var percent = (float)srcVitalChange / spellTarget.Health.MaxValue;
+                var percent = (float)srcVitalChange / targetCreature.Health.MaxValue;
 
                 if (equippedCloak != null && Cloak.HasDamageProc(equippedCloak) && Cloak.RollProc(equippedCloak, percent))
                 {
                     var reduced = Cloak.GetReducedAmount(this, srcVitalChange);
 
-                    Cloak.ShowMessage(spellTarget, this, srcVitalChange, reduced);
+                    Cloak.ShowMessage(targetCreature, this, srcVitalChange, reduced);
 
                     srcVitalChange = reduced;
                     destVitalChange = (uint)Math.Round(srcVitalChange * (1.0f - spell.LossPercent) * boostMod);
@@ -839,7 +829,7 @@ namespace ACE.Server.WorldObjects
                 if (playerSource != null)
                 {
                     if (transferSource == this)
-                        sourceMsg = $"You lose {srcVitalChange} points of {srcVital} due to casting {spell.Name} on {spellTarget.Name}";
+                        sourceMsg = $"You lose {srcVitalChange} points of {srcVital} due to casting {spell.Name} on {targetCreature.Name}";
                     else
                         targetMsg = $"You lose {srcVitalChange} points of {srcVital} due to {caster.Name} casting {spell.Name} on you";
 
@@ -850,7 +840,7 @@ namespace ACE.Server.WorldObjects
                 if (playerDestination != null)
                 {
                     if (destination == this)
-                        sourceMsg = $"You gain {destVitalChange} points of {destVital} due to casting {spell.Name} on {spellTarget.Name}";
+                        sourceMsg = $"You gain {destVitalChange} points of {destVital} due to casting {spell.Name} on {targetCreature.Name}";
                     else
                         targetMsg = $"You gain {destVitalChange} points of {destVital} due to {caster.Name} casting {spell.Name} on you";
                 }
@@ -863,30 +853,30 @@ namespace ACE.Server.WorldObjects
                 targetPlayer.SendChatMessage(caster, targetMsg, ChatMessageType.Magic);
 
 
-            if (isDrain && spellTarget.IsAlive && spell.Source == PropertyAttribute2nd.Health)
+            if (isDrain && targetCreature.IsAlive && spell.Source == PropertyAttribute2nd.Health)
             {
                 // handle cloak spell proc
                 if (equippedCloak != null && Cloak.HasProcSpell(equippedCloak))
                 {
-                    var pct = (float)srcVitalChange / spellTarget.Health.MaxValue;
+                    var pct = (float)srcVitalChange / targetCreature.Health.MaxValue;
 
                     // ensure message is sent after enchantment.Message
                     var actionChain = new ActionChain();
                     actionChain.AddDelayForOneTick();
-                    actionChain.AddAction(this, () => Cloak.TryProcSpell(spellTarget, this, equippedCloak, pct));
+                    actionChain.AddAction(this, () => Cloak.TryProcSpell(targetCreature, this, equippedCloak, pct));
                     actionChain.EnqueueChain();
                 }
 
                 // ensure emote process occurs after damage msg
                 var emoteChain = new ActionChain();
                 emoteChain.AddDelayForOneTick();
-                emoteChain.AddAction(target, () => target.EmoteManager.OnDamage(creature));
+                emoteChain.AddAction(targetCreature, () => targetCreature.EmoteManager.OnDamage(creature));
                 //if (critical)
-                //    emoteChain.AddAction(target, () => target.EmoteManager.OnReceiveCritical(creature));
+                //    emoteChain.AddAction(targetCreature, () => targetCreature.EmoteManager.OnReceiveCritical(creature));
                 emoteChain.EnqueueChain();
             }
 
-            HandleBoostTransferDeath(creature, spellTarget);
+            HandleBoostTransferDeath(creature, targetCreature);
         }
 
         /// <summary>
@@ -1033,7 +1023,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles casting SpellType.PortalRecall spells
         /// </summary>
-        private void HandleCastSpell_PortalRecall(Spell spell, WorldObject target)
+        private void HandleCastSpell_PortalRecall(Spell spell, Creature targetCreature)
         {
             var player = this as Player;
 
@@ -1045,12 +1035,7 @@ namespace ACE.Server.WorldObjects
 
             var creature = this as Creature;
 
-            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
-
-            if (this is Gem || this is Food || this is Hook)
-                spellTarget = target as Creature;
-
-            var targetPlayer = spellTarget as Player;
+            var targetPlayer = targetCreature as Player;
 
             if (player != null && player.PKTimerActive)
             {
@@ -1177,7 +1162,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles casting SpellType.PortalSummon spells
         /// </summary>
-        private void HandleCastSpell_PortalSummon(Spell spell, WorldObject target, WorldObject itemCaster)
+        private void HandleCastSpell_PortalSummon(Spell spell, Creature targetCreature, WorldObject itemCaster)
         {
             var player = this as Player;
 
@@ -1250,8 +1235,8 @@ namespace ACE.Server.WorldObjects
                 {
                     if (itemCaster.Location != null)
                         summonLoc = itemCaster.Location.InFrontOf(3.0f);
-                    else if (target != null && target.Location != null)
-                        summonLoc = target.Location.InFrontOf(3.0f);
+                    else if (targetCreature != null && targetCreature.Location != null)
+                        summonLoc = targetCreature.Location.InFrontOf(3.0f);
                 }
             }
 
@@ -1305,16 +1290,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles casting SpellType.PortalSending spells
         /// </summary>
-        private void HandleCastSpell_PortalSending(Spell spell, WorldObject target, WorldObject itemCaster)
+        private void HandleCastSpell_PortalSending(Spell spell, Creature targetCreature, WorldObject itemCaster)
         {
-            var creature = this as Creature;
-
-            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
-
-            if (this is Gem || this is Food || this is Hook)
-                spellTarget = target as Creature;
-
-            if (spellTarget is Player targetPlayer)
+            if (targetCreature is Player targetPlayer)
             {
                 if (targetPlayer.PKTimerActive)
                 {
@@ -1336,7 +1314,7 @@ namespace ACE.Server.WorldObjects
                 });
                 portalSendingChain.EnqueueChain();
             }
-            else if (target is Creature targetCreature)
+            else if (targetCreature != null)
             {
                 // monsters can cast some portal spells on themselves too, possibly?
                 // under certain circumstances, such as ensuring the destination is the same landblock
@@ -1350,16 +1328,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles casting SpellType.FellowPortalSending spells
         /// </summary>
-        private bool HandleCastSpell_FellowPortalSending(Spell spell, WorldObject target, WorldObject itemCaster)
+        private bool HandleCastSpell_FellowPortalSending(Spell spell, Creature targetCreature, WorldObject itemCaster)
         {
             var creature = this as Creature;
 
-            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
-
-            if (this is Gem || this is Food || this is Hook)
-                spellTarget = target as Creature;
-
-            var targetPlayer = spellTarget as Player;
+            var targetPlayer = targetCreature as Player;
 
             if (targetPlayer == null || targetPlayer.Fellowship == null)
                 return false;
@@ -1405,11 +1378,6 @@ namespace ACE.Server.WorldObjects
             var player = this as Player;
             var creature = this as Creature;
 
-            var spellTarget = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : creature;
-
-            if (this is Gem || this is Food || this is Hook)
-                spellTarget = target as Creature;
-
             var removeSpells = target.EnchantmentManager.SelectDispel(spell);
 
             // dispel on server and client
@@ -1434,7 +1402,7 @@ namespace ACE.Server.WorldObjects
                 player.SendChatMessage(player, casterMsg, ChatMessageType.Magic);
             }
 
-            if (spellTarget is Player targetPlayer && targetPlayer != player)
+            if (target is Player targetPlayer && targetPlayer != player)
             {
                 var targetMsg = $"{Name} casts {spell.Name} on you{suffix.Replace("and dispel", "and dispels")}";
 
