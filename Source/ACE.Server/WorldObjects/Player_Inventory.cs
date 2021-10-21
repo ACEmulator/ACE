@@ -1249,6 +1249,10 @@ namespace ACE.Server.WorldObjects
                     });
                     landblockReturn.EnqueueChain();
                 }
+                else if (itemRootOwner == null || !itemRootOwner.TryAddToInventory(item))
+                {
+                    log.Error($"{Name}.DoHandleActionPutItemInContainer({item.Name} ({item.Guid}), {itemRootOwner?.Name} ({itemRootOwner?.Guid}), {itemWasEquipped}, {container.Name} ({container.Guid}), {containerRootOwner?.Name} ({containerRootOwner?.Guid}), {placement}) - removed item from original location, failed to add to new container, failed to re-add to original location");
+                }
 
                 return false;
             }
