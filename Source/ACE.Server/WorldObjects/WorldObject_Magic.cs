@@ -1336,7 +1336,7 @@ namespace ACE.Server.WorldObjects
                 });
                 portalSendingChain.EnqueueChain();
             }
-            else if (target is Player targetCreature)
+            else if (target is Creature targetCreature)
             {
                 // monsters can cast some portal spells on themselves too, possibly?
                 // under certain circumstances, such as ensuring the destination is the same landblock
