@@ -76,7 +76,8 @@ namespace ACE.Server.Factories
                 wo.MaterialType = materialType;
 
             // item color
-            MutateColor(wo);
+            if (armorType != LootTables.ArmorType.SocietyArmor)     // TODO: verify society armor mutations
+                MutateColor(wo);
 
             // gem count / gem material
             if (wo.GemCode != null)
@@ -131,7 +132,7 @@ namespace ACE.Server.Factories
             if (roll == null)
                 AssignArmorLevel(wo, profile.Tier, armorType);
             else
-                AssignArmorLevel_New(wo, profile, roll);
+                AssignArmorLevel_New(wo, profile, roll, armorType);
 
             if (wo.HasMutateFilter(MutateFilter.ArmorModVsType))
                 MutateArmorModVsType(wo, profile);
@@ -149,7 +150,7 @@ namespace ACE.Server.Factories
                 wo.ItemDifficulty = null;
             }
 
-            if (profile.Tier > 6)
+            if (profile.Tier > 6 && armorType != LootTables.ArmorType.SocietyArmor)
                 TryRollEquipmentSet(wo, profile, roll);
 
             if (roll != null && profile.Tier == 8)
@@ -162,7 +163,7 @@ namespace ACE.Server.Factories
             wo.LongDesc = GetLongDesc(wo);
         }
 
-        private static bool AssignArmorLevel_New(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
+        private static bool AssignArmorLevel_New(WorldObject wo, TreasureDeath profile, TreasureRoll roll, LootTables.ArmorType armorType)
         {
             // retail was only divied up into a few different mutation scripts here
             // anything with ArmorLevel ran these mutation scripts
@@ -183,11 +184,25 @@ namespace ACE.Server.Factories
                 return false;
             }
 
+            // persist original values for society armor
+            var wieldRequirements = wo.WieldRequirements;
+            var wieldSkillType = wo.WieldSkillType;
+            var wieldDifficulty = wo.WieldDifficulty;
+
             //Console.WriteLine($"Mutating {wo.Name} with {scriptName}");
 
             var mutationFilter = MutationCache.GetMutation(scriptName);
 
-            return mutationFilter.TryMutate(wo, profile.Tier);
+            var success = mutationFilter.TryMutate(wo, profile.Tier);
+
+            if (armorType == LootTables.ArmorType.SocietyArmor)
+            {
+                wo.WieldRequirements = wieldRequirements;
+                wo.WieldSkillType = wieldSkillType;
+                wo.WieldDifficulty = wieldDifficulty;
+            }
+
+            return success;
         }
 
         private static string GetMutationScript_ArmorLevel(WorldObject wo, TreasureRoll roll)
@@ -1015,7 +1030,8 @@ namespace ACE.Server.Factories
             }
 
             // ensure wield requirement is level 180?
-            SetWieldLevelReq(wo, 180);
+            if (roll.ArmorType != TreasureArmorType.Society)
+                SetWieldLevelReq(wo, 180);
 
             return true;
         }

@@ -302,7 +302,7 @@ namespace ACE.Server.Factories
             }
 
             // if a legendary cantrip dropped on this item
-            if (hasLegendary)
+            if (hasLegendary && roll.ArmorType != TreasureArmorType.Society)
             {
                 // and if the item has a level requirement, ensure the level requirement is at least 180
                 // if the item does not already contain a level requirement, don't add one?
