@@ -76,8 +76,7 @@ namespace ACE.Server.Factories
                 wo.MaterialType = materialType;
 
             // item color
-            if (armorType != LootTables.ArmorType.SocietyArmor)     // TODO: verify society armor mutations
-                MutateColor(wo);
+            MutateColor(wo);
 
             // gem count / gem material
             if (wo.GemCode != null)
