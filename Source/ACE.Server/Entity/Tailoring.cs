@@ -123,6 +123,10 @@ namespace ACE.Server.Entity
                 return WeenieError.YouDoNotPassCraftingRequirements;
             }
 
+            // verify not society armor
+            if (source.IsSocietyArmor || target.IsSocietyArmor)
+                return WeenieError.YouDoNotPassCraftingRequirements;
+
             return WeenieError.None;
         }
 
