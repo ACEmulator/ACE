@@ -656,13 +656,14 @@ namespace ACE.Server.WorldObjects.Managers
             return 0;
         }
 
+        // refactor me
 
         /// <summary>
-        /// Returns the bonus to an attribute from enchantments
+        /// Returns the additive modifers to an attribute from enchantments
         /// </summary>
-        public virtual int GetAttributeMod(PropertyAttribute attribute)
+        public virtual int GetAttributeMod_Additive(PropertyAttribute attribute)
         {
-            var enchantments = GetEnchantments_TopLayer(EnchantmentTypeFlags.Attribute, (uint)attribute, true);
+            var enchantments = GetEnchantments_TopLayer(EnchantmentTypeFlags.Attribute | EnchantmentTypeFlags.Additive, (uint)attribute, true);
 
             var attributeMod = 0;
             foreach (var enchantment in enchantments)
@@ -672,12 +673,25 @@ namespace ACE.Server.WorldObjects.Managers
         }
 
         /// <summary>
-        /// Gets the direct modifiers to a vital / secondary attribute
+        /// Returns the multiplicative modifiers to an attribute from enchantments
+        /// </summary>
+        public virtual float GetAttributeMod_Multiplier(PropertyAttribute attribute)
+        {
+            var enchantments = GetEnchantments_TopLayer(EnchantmentTypeFlags.Attribute | EnchantmentTypeFlags.Multiplicative, (uint)attribute, true);
+
+            var multiplier = 1.0f;
+            foreach (var enchantment in enchantments)
+                multiplier *= enchantment.StatModValue;
+
+            return multiplier;
+        }
+
+        /// <summary>
+        /// Gets the additive modifiers to a vital / secondary attribute
         /// </summary>
         public virtual float GetVitalMod_Additives(CreatureVital vital)
         {
-            var typeFlags = EnchantmentTypeFlags.SecondAtt | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
-            var enchantments = GetEnchantments_TopLayer(typeFlags, (uint)vital.Vital);
+            var enchantments = GetEnchantments_TopLayer(EnchantmentTypeFlags.SecondAtt | EnchantmentTypeFlags.Additive, (uint)vital.Vital, true);
 
             // additive
             var modifier = 0.0f;
@@ -687,11 +701,13 @@ namespace ACE.Server.WorldObjects.Managers
             return modifier;
         }
 
+        /// <summary>
+        /// Gets the multiplicative modifiers to a vital / secondary attribute
+        /// </summary>
         public virtual float GetVitalMod_Multiplier(CreatureVital vital)
         {
             // multiplicatives (asheron's lesser benediction)
-            var typeFlags = EnchantmentTypeFlags.SecondAtt | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
-            var enchantments = GetEnchantments_TopLayer(typeFlags, (uint)vital.Vital);
+            var enchantments = GetEnchantments_TopLayer(EnchantmentTypeFlags.SecondAtt | EnchantmentTypeFlags.Multiplicative, (uint)vital.Vital, true);
 
             var multiplier = 1.0f;
             foreach (var enchantment in enchantments)
@@ -722,11 +738,11 @@ namespace ACE.Server.WorldObjects.Managers
         }
 
         /// <summary>
-        /// Returns the bonus to a skill from enchantments
+        /// Returns the additive modifiers to a skill from enchantments
         /// </summary>
-        public virtual int GetSkillMod(Skill skill)
+        public virtual int GetSkillMod_Additives(Skill skill)
         {
-            var enchantments = GetEnchantments_TopLayer(EnchantmentTypeFlags.Skill, (uint)skill, true);
+            var enchantments = GetEnchantments_TopLayer(EnchantmentTypeFlags.Skill | EnchantmentTypeFlags.Additive, (uint)skill, true);
 
             var skillMod = 0;
             foreach (var enchantment in enchantments)
@@ -741,6 +757,20 @@ namespace ACE.Server.WorldObjects.Managers
             return skillMod;
         }
 
+        /// <summary>
+        /// Returns the multiplicative modifiers to a skill from enchantments
+        /// </summary>
+        public virtual float GetSkillMod_Multiplier(Skill skill)
+        {
+            // shroud spells
+            var enchantments = GetEnchantments_TopLayer(EnchantmentTypeFlags.Skill | EnchantmentTypeFlags.Multiplicative, (uint)skill, true);
+
+            var multiplier = 1.0f;
+            foreach (var enchantment in enchantments)
+                multiplier *= enchantment.StatModValue;
+
+            return multiplier;
+        }
 
         /// <summary>
         /// Returns the sum of the StatModValues for an EnchantmentTypeFlag
@@ -770,7 +800,7 @@ namespace ACE.Server.WorldObjects.Managers
             var enchantments = GetEnchantments_TopLayer(EnchantmentTypeFlags.Additive, (uint)statModKey);
 
             var modifier = 0;
-            foreach (var enchantment in enchantments.Where(e => ((EnchantmentTypeFlags)e.StatModType & EnchantmentTypeFlags.Skill) == 0))
+            foreach (var enchantment in enchantments.Where(e => (e.StatModType & EnchantmentTypeFlags.Skill) == 0))
                 modifier += (int)enchantment.StatModValue;
 
             return modifier;
