@@ -666,6 +666,7 @@
                     "name": "Tumerok",
                     "gear": [
                         {
+                            "weenieId": "12745",
                             "name": "Training Trident",
                             "stacksize": "1"
                         }
@@ -737,6 +738,7 @@
                     "name": "Gharu'ndim",
                     "gear": [
                         {
+                            "weenieId":  "45550",
                             "name": "Training Staff",
                             "stacksize": "1"
                         }
@@ -780,6 +782,7 @@
                     "name": "Gear",
                     "gear": [
                         {
+                            "weenieID": "45542",
                             "name": "Training Club",
                             "stacksize": "1"
                         }
@@ -790,6 +793,7 @@
                     "name": "Tumerok",
                     "gear": [
                         {
+                            "weenieID": "45546",
                             "name": "Training Spear",
                             "stacksize": "1"
                         }
