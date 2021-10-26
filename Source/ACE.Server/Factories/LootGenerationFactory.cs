@@ -423,7 +423,8 @@ namespace ACE.Server.Factories
             {
                 roll.ItemType = TreasureItemType_Orig.SocietyArmor;     // collapsed for mutation
                 roll.ArmorType = TreasureArmorType.Society;
-                MutateSocietyArmor(item, profile, isMagical, roll);
+                var legacyArmorType = roll.ArmorType.ToACE();
+                MutateArmor(item, profile, isMagical, legacyArmorType, roll);
             }
             else if (ClothingWcids.Contains(roll.Wcid))
             {
@@ -1153,14 +1154,10 @@ namespace ACE.Server.Factories
                     break;
 
                 case TreasureItemType_Orig.Armor:
+                case TreasureItemType_Orig.SocietyArmor:    // collapsed, after rolling for initial wcid
 
                     var armorType = treasureRoll.ArmorType.ToACE();
                     MutateArmor(wo, treasureDeath, isMagical, armorType, treasureRoll);
-                    break;
-
-                case TreasureItemType_Orig.SocietyArmor:    // collapsed, after rolling for initial wcid
-
-                    MutateSocietyArmor(wo, treasureDeath, isMagical, treasureRoll);
                     break;
 
                 case TreasureItemType_Orig.Clothing:

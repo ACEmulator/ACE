@@ -32,11 +32,6 @@ namespace ACE.Server.Entity
         public Action Callback { get; set; }
 
         /// <summary>
-        /// Passing this along for some weird gem animations
-        /// </summary>
-        public float AnimMod { get; set; }
-
-        /// <summary>
         /// Similar requirements as previous var
         /// </summary>
         public float UseAnimTime { get; set; }
@@ -54,15 +49,13 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Called when a player starts performing the motion to apply a consumable
         /// </summary>
-        public void StartChugging(MotionCommand useMotion, Action callback, float animMod, float useAnimTime, MotionStance prevStance)
+        public void StartChugging(MotionCommand useMotion, Action callback, float useAnimTime, MotionStance prevStance)
         {
             IsChugging = true;
 
             UseMotion = useMotion;
 
             Callback = callback;
-
-            AnimMod = animMod;
 
             UseAnimTime = useAnimTime;
 
@@ -79,8 +72,6 @@ namespace ACE.Server.Entity
             UseMotion = MotionCommand.Invalid;
 
             Callback = null;
-
-            AnimMod = 1.0f;
 
             UseAnimTime = 0.0f;
 

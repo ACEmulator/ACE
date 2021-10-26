@@ -16,6 +16,19 @@ namespace ACE.Server.WorldObjects
             set => base.Name = value.TrimStart('+');
         }
 
+        public string GetNameWithSuffix()
+        {
+            if (!IsOlthoiPlayer)
+                return Name;
+            else
+            {
+                if (NoOlthoiTalk)
+                    return Name + "^";
+                else
+                    return Name + "&";
+            }
+        }
+
         // ========================================
         // ========= Admin Tier Properties ========
         // ========================================
@@ -60,6 +73,9 @@ namespace ACE.Server.WorldObjects
         {
             get => (Character != null && Character.IsPlussed) || (Session != null && ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && Session.AccessLevel > AccessLevel.Advocate);
         }
+
+        public bool IsOlthoiPlayer { get; set; }
+
 
         public string GodState
         {
@@ -271,7 +287,13 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.SafeSpellComponents); else SetProperty(PropertyBool.SafeSpellComponents, value); }
         }
 
-        public bool IsOlthoiPlayer()
+        public bool LoginAtLifestone
+        {
+            get => GetProperty(PropertyBool.LoginAtLifestone) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.LoginAtLifestone); else SetProperty(PropertyBool.LoginAtLifestone, value); }
+        }
+
+        /*public bool IsOlthoiPlayer()
         {
             switch (WeenieClassId)
             {
@@ -282,7 +304,7 @@ namespace ACE.Server.WorldObjects
                     return true;
             }
             return false;
-        }
+        }*/
 
         /// <summary>
         /// The timestamp when the player last generated a rare
@@ -1274,6 +1296,18 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyFloat.LastPortalTeleportTimestamp);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.LastPortalTeleportTimestamp); else SetProperty(PropertyFloat.LastPortalTeleportTimestamp, value.Value); }
+        }
+
+        public bool OlthoiPk
+        {
+            get => GetProperty(PropertyBool.OlthoiPk) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.OlthoiPk); else SetProperty(PropertyBool.OlthoiPk, value); }
+        }
+
+        public bool NoOlthoiTalk
+        {
+            get => GetProperty(PropertyBool.NoOlthoiTalk) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.NoOlthoiTalk); else SetProperty(PropertyBool.NoOlthoiTalk, value); }
         }
 
         /// <summary>

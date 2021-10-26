@@ -212,6 +212,14 @@ namespace ACE.Server
 
             ShardDatabaseOfflineTools.CheckForBiotaPropertiesPaletteOrderColumnInShard();
 
+            // pre-load starterGear.json, abort startup if file is not found as it is required to create new characters.
+            if (Factories.StarterGearFactory.GetStarterGearConfiguration() == null)
+            {
+                log.Fatal("Unable to load or parse starterGear.json. ACEmulator will now abort startup.");
+                ServerManager.StartupAbort();
+                Environment.Exit(0);
+            }
+
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();
 

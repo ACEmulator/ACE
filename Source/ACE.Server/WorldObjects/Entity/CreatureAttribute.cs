@@ -1,5 +1,6 @@
 using System;
 
+using ACE.Common.Extensions;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -139,12 +140,14 @@ namespace ACE.Server.WorldObjects.Entity
         {
             get
             {
-                var total = (int)Base;
+                var multipliers = creature.EnchantmentManager.GetAttributeMod_Multiplier(Attribute);
+                var additives = creature.EnchantmentManager.GetAttributeMod_Additive(Attribute);
 
-                var attributeMod = creature.EnchantmentManager.GetAttributeMod(Attribute);
-                total += attributeMod;
+                var total = (int)Base * multipliers + additives;
 
-                return (uint)Math.Max(total, 10);    // minimum value for an attribute: 10
+                total = total.Round();
+
+                return (uint)Math.Max(total, 10);  // minimum value for an attribute: 10
             }
         }
 
@@ -152,11 +155,11 @@ namespace ACE.Server.WorldObjects.Entity
         {
             get
             {
-                var attrMod = creature.EnchantmentManager.GetAttributeMod(Attribute);
+                var diff = (int)Current - (int)Base;
 
-                if (attrMod > 0)
+                if (diff > 0)
                     return ModifierType.Buffed;
-                else if (attrMod < 0)
+                else if (diff < 0)
                     return ModifierType.Debuffed;
                 else
                     return ModifierType.None;

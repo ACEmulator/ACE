@@ -31,6 +31,12 @@ namespace ACE.Server.WorldObjects
 
         public override void HandleActionUseOnTarget(Player player, WorldObject target)
         {
+            if (player.IsOlthoiPlayer)
+            {
+                player.SendUseDoneEvent(WeenieError.OlthoiCannotInteractWithThat);
+                return;
+            }
+
             UnlockerHelper.UseUnlocker(player, this, target);
         }
     }

@@ -644,7 +644,7 @@ namespace ACE.Database.Adapter
                             Type = value2.Type,
                             Delay = value2.Delay,
                             Extent = value2.Extent,
-                            Motion = (int?)value2.Motion,
+                            Motion = (uint?)value2.Motion,
                             Message = value2.Message,
                             TestString = value2.TestString,
                             Min = value2.Min,

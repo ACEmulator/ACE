@@ -319,7 +319,7 @@ namespace ACE.Server.WorldObjects
 
             if (step < SuicideMessages.Count)
             {
-                EnqueueBroadcast(new GameMessageHearSpeech(SuicideMessages[step], Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
+                EnqueueBroadcast(new GameMessageHearSpeech(SuicideMessages[step], GetNameWithSuffix(), Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
 
                 var suicideChain = new ActionChain();
                 suicideChain.AddDelaySeconds(3.0f);
@@ -478,7 +478,7 @@ namespace ACE.Server.WorldObjects
             var inventory = GetAllPossessions();
 
             // exclude pyreals from randomized death item calculation
-            inventory = inventory.Where(i => !i.Name.Equals("Pyreal")).ToList();
+            inventory = inventory.Where(i => i.WeenieClassId != coinStackWcid).ToList();
 
             // exclude wielded items if < level 35
             if (!canDropWielded)
@@ -936,6 +936,9 @@ namespace ACE.Server.WorldObjects
 
         public void SetMinimumTimeSincePK()
         {
+            if (IsOlthoiPlayer)
+                return;
+
             if (PlayerKillerStatus == PlayerKillerStatus.NPK && MinimumTimeSincePk == null)
                 return;
 

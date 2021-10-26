@@ -11,6 +11,7 @@ using ACE.Server.Managers;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -28,8 +29,21 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionOpenTradeNegotiations(uint tradePartnerGuid, bool initiator = false)
         {
+            if (IsOlthoiPlayer)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"As a mindless engine of destruction an Olthoi cannot participate in trade negotiations!", ChatMessageType.Magic));
+                return;
+            }
+
             var tradePartner = PlayerManager.GetOnlinePlayer(tradePartnerGuid);
             if (tradePartner == null) return;
+
+            //Check to see if potential trading partner is an Olthoi player
+            if (initiator && tradePartner.IsOlthoiPlayer)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"The Olthoi's hunger for destruction is too great to understand a request for trade negotiations!", ChatMessageType.Broadcast));
+                return;
+            }
 
             //Check to see if partner is not allowing trades
             if (initiator && tradePartner.GetCharacterOption(CharacterOption.IgnoreAllTradeRequests))

@@ -812,192 +812,154 @@ namespace ACE.Server.WorldObjects
                 var targetPlayer = target as Player;
                 var targetCreature = target as Creature;
 
-                switch (spell.MetaSpellType)
+                if (player != null && player.IsOlthoiPlayer)
                 {
-                    case SpellType.PortalRecall:
+                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.OlthoiCanOnlyRecallToLifestone));
+                }
+                else
+                {
+                    switch (spell.MetaSpellType)
+                    {
+                        case SpellType.PortalRecall:
 
-                        if (player != null && player.PKTimerActive)
-                        {
-                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                            if (player != null && player.PKTimerActive)
+                            {
+                                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                                break;
+                            }
+
+                            PositionType recall = PositionType.Undef;
+                            uint? recallDID = null;
+
+                            // verify pre-requirements for recalls
+
+                            switch ((SpellId)spell.Id)
+                            {
+                                case SpellId.PortalRecall:       // portal recall
+
+                                    if (targetPlayer.LastPortalDID == null)
+                                    {
+                                        // You must link to a portal to recall it!
+                                        targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
+                                    }
+                                    else
+                                    {
+                                        recall = PositionType.LastPortal;
+                                        recallDID = targetPlayer.LastPortalDID;
+                                    }
+                                    break;
+
+                                case SpellId.LifestoneRecall1:   // lifestone recall
+
+                                    if (targetPlayer.GetPosition(PositionType.LinkedLifestone) == null)
+                                    {
+                                        // You must link to a lifestone to recall it!
+                                        targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToLifestoneToRecall));
+                                    }
+                                    else
+                                        recall = PositionType.LinkedLifestone;
+                                    break;
+
+                                case SpellId.LifestoneSending1:
+
+                                    if (player != null && player.GetPosition(PositionType.Sanctuary) != null)
+                                        recall = PositionType.Sanctuary;
+                                    else if (targetPlayer != null && targetPlayer.GetPosition(PositionType.Sanctuary) != null)
+                                        recall = PositionType.Sanctuary;
+
+                                    break;
+
+                                case SpellId.PortalTieRecall1:   // primary portal tie recall
+
+                                    if (targetPlayer.LinkedPortalOneDID == null)
+                                    {
+                                        // You must link to a portal to recall it!
+                                        targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
+                                    }
+                                    else
+                                    {
+                                        recall = PositionType.LinkedPortalOne;
+                                        recallDID = targetPlayer.LinkedPortalOneDID;
+                                    }
+                                    break;
+
+                                case SpellId.PortalTieRecall2:   // secondary portal tie recall
+
+                                    if (targetPlayer.LinkedPortalTwoDID == null)
+                                    {
+                                        // You must link to a portal to recall it!
+                                        targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
+                                    }
+                                    else
+                                    {
+                                        recall = PositionType.LinkedPortalTwo;
+                                        recallDID = targetPlayer.LinkedPortalTwoDID;
+                                    }
+                                    break;
+                            }
+
+                            if (recall != PositionType.Undef)
+                            {
+                                if (recallDID == null)
+                                {
+                                    EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+
+                                    // lifestone recall
+                                    ActionChain lifestoneRecall = new ActionChain();
+                                    lifestoneRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
+                                    lifestoneRecall.AddDelaySeconds(2.0f);  // 2 second delay
+                                    lifestoneRecall.AddAction(targetPlayer, () => targetPlayer.TeleToPosition(recall));
+                                    lifestoneRecall.EnqueueChain();
+                                }
+                                else
+                                {
+                                    // portal recall
+                                    var portal = GetPortal(recallDID.Value);
+                                    if (portal == null || portal.NoRecall)
+                                    {
+                                        // You cannot recall that portal!
+                                        player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotRecallPortal));
+                                        break;
+                                    }
+
+                                    var result = portal.CheckUseRequirements(targetPlayer);
+                                    if (!result.Success)
+                                    {
+                                        if (result.Message != null)
+                                            targetPlayer.Session.Network.EnqueueSend(result.Message);
+
+                                        break;
+                                    }
+
+                                    EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+
+                                    ActionChain portalRecall = new ActionChain();
+                                    portalRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
+                                    portalRecall.AddDelaySeconds(2.0f);  // 2 second delay
+                                    portalRecall.AddAction(targetPlayer, () =>
+                                    {
+                                        var teleportDest = new Position(portal.Destination);
+                                        AdjustDungeon(teleportDest);
+
+                                        targetPlayer.Teleport(teleportDest);
+                                    });
+                                    portalRecall.EnqueueChain();
+                                }
+                            }
                             break;
-                        }
 
-                        PositionType recall = PositionType.Undef;
-                        uint? recallDID = null;
+                        case SpellType.PortalSending:
 
-                        // verify pre-requirements for recalls
-
-                        switch ((SpellId)spell.Id)
-                        {
-                            case SpellId.PortalRecall:       // portal recall
-
-                                if (targetPlayer.LastPortalDID == null)
-                                {
-                                    // You must link to a portal to recall it!
-                                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
-                                }
-                                else
-                                {
-                                    recall = PositionType.LastPortal;
-                                    recallDID = targetPlayer.LastPortalDID;
-                                }
-                                break;
-
-                            case SpellId.LifestoneRecall1:   // lifestone recall
-
-                                if (targetPlayer.GetPosition(PositionType.LinkedLifestone) == null)
-                                {
-                                    // You must link to a lifestone to recall it!
-                                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToLifestoneToRecall));
-                                }
-                                else
-                                    recall = PositionType.LinkedLifestone;
-                                break;
-
-                            case SpellId.LifestoneSending1:
-
-                                if (player != null && player.GetPosition(PositionType.Sanctuary) != null)
-                                    recall = PositionType.Sanctuary;
-                                else if (targetPlayer != null && targetPlayer.GetPosition(PositionType.Sanctuary) != null)
-                                    recall = PositionType.Sanctuary;
-
-                                break;
-
-                            case SpellId.PortalTieRecall1:   // primary portal tie recall
-
-                                if (targetPlayer.LinkedPortalOneDID == null)
-                                {
-                                    // You must link to a portal to recall it!
-                                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
-                                }
-                                else
-                                {
-                                    recall = PositionType.LinkedPortalOne;
-                                    recallDID = targetPlayer.LinkedPortalOneDID;
-                                }
-                                break;
-
-                            case SpellId.PortalTieRecall2:   // secondary portal tie recall
-
-                                if (targetPlayer.LinkedPortalTwoDID == null)
-                                {
-                                    // You must link to a portal to recall it!
-                                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouMustLinkToPortalToRecall));
-                                }
-                                else
-                                {
-                                    recall = PositionType.LinkedPortalTwo;
-                                    recallDID = targetPlayer.LinkedPortalTwoDID;
-                                }
-                                break;
-                        }
-
-                        if (recall != PositionType.Undef)
-                        {
-                            if (recallDID == null)
+                            if (targetPlayer != null)
                             {
-                                EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
-
-                                // lifestone recall
-                                ActionChain lifestoneRecall = new ActionChain();
-                                lifestoneRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
-                                lifestoneRecall.AddDelaySeconds(2.0f);  // 2 second delay
-                                lifestoneRecall.AddAction(targetPlayer, () => targetPlayer.TeleToPosition(recall));
-                                lifestoneRecall.EnqueueChain();
-                            }
-                            else
-                            {
-                                // portal recall
-                                var portal = GetPortal(recallDID.Value);
-                                if (portal == null || portal.NoRecall)
+                                if (targetPlayer.PKTimerActive)
                                 {
-                                    // You cannot recall that portal!
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotRecallPortal));
+                                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
                                     break;
                                 }
 
-                                var result = portal.CheckUseRequirements(targetPlayer);
-                                if (!result.Success)
-                                {
-                                    if (result.Message != null)
-                                        targetPlayer.Session.Network.EnqueueSend(result.Message);
-
-                                    break;
-                                }
-
-                                EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
-
-                                ActionChain portalRecall = new ActionChain();
-                                portalRecall.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
-                                portalRecall.AddDelaySeconds(2.0f);  // 2 second delay
-                                portalRecall.AddAction(targetPlayer, () =>
-                                {
-                                    var teleportDest = new Position(portal.Destination);
-                                    AdjustDungeon(teleportDest);
-
-                                    targetPlayer.Teleport(teleportDest);
-                                });
-                                portalRecall.EnqueueChain();
-                            }
-                        }
-                        break;
-
-                    case SpellType.PortalSending:
-
-                        if (targetPlayer != null)
-                        {
-                            if (targetPlayer.PKTimerActive)
-                            {
-                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
-                                break;
-                            }
-
-                            ActionChain portalSendingChain = new ActionChain();
-                            //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
-                            portalSendingChain.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
-                            portalSendingChain.AddAction(targetPlayer, () =>
-                            {
-                                var teleportDest = new Position(spell.Position);
-                                AdjustDungeon(teleportDest);
-
-                                targetPlayer.Teleport(teleportDest);
-
-                                targetPlayer.SendTeleportedViaMagicMessage(itemCaster, spell);
-                            });
-                            portalSendingChain.EnqueueChain();
-                        }
-                        else if (targetCreature != null)
-                        {
-                            // monsters can cast some portal spells on themselves too, possibly?
-                            // under certain circumstances, such as ensuring the destination is the same landblock
-                            var teleportDest = new Position(spell.Position);
-                            AdjustDungeon(teleportDest);
-
-                            targetCreature.FakeTeleport(teleportDest);
-                        }
-                        break;
-
-                    case SpellType.FellowPortalSending:
-
-                        if (targetPlayer != null && targetPlayer.Fellowship != null)
-                        {
-                            if (targetPlayer.PKTimerActive)
-                            {
-                                targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
-                                break;
-                            }
-
-                            var distanceToTarget = creature.GetDistance(targetPlayer);
-                            var skill = creature.GetCreatureSkill(spell.School);
-                            var magicSkill = skill.InitLevel + skill.Ranks;
-                            var maxRange = spell.BaseRangeConstant + magicSkill * spell.BaseRangeMod;
-                            if (maxRange == 0.0f)
-                                maxRange = float.PositiveInfinity;
-
-                            if (distanceToTarget <= maxRange)
-                            {
                                 ActionChain portalSendingChain = new ActionChain();
-                                portalSendingChain.AddAction(targetPlayer, () => targetPlayer.EnqueueBroadcast(new GameMessageScript(targetPlayer.Guid, spell.TargetEffect, spell.Formula.Scale)));
+                                //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
                                 portalSendingChain.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
                                 portalSendingChain.AddAction(targetPlayer, () =>
                                 {
@@ -1010,162 +972,207 @@ namespace ACE.Server.WorldObjects
                                 });
                                 portalSendingChain.EnqueueChain();
                             }
-                            //else
-                            //{
-                            //    enchantmentStatus.Success = false;
-                            //    return enchantmentStatus;
-                            //}
-                        }
-                        break;
-
-                    case SpellType.PortalLink:
-
-                        if (player != null)
-                        {
-                            switch ((SpellId)spell.Id)
+                            else if (targetCreature != null)
                             {
-                                case SpellId.LifestoneTie1:  // Lifestone Tie
+                                // monsters can cast some portal spells on themselves too, possibly?
+                                // under certain circumstances, such as ensuring the destination is the same landblock
+                                var teleportDest = new Position(spell.Position);
+                                AdjustDungeon(teleportDest);
 
-                                    if (target.WeenieType == WeenieType.LifeStone)
-                                    {
-                                        EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+                                targetCreature.FakeTeleport(teleportDest);
+                            }
+                            break;
 
-                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the life stone.", ChatMessageType.Magic));
-                                        player.LinkedLifestone = target.Location;
-                                    }
-                                    else
-                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You cannot link that.", ChatMessageType.Magic));
+                        case SpellType.FellowPortalSending:
 
+                            if (targetPlayer != null && targetPlayer.Fellowship != null)
+                            {
+                                if (targetPlayer.PKTimerActive)
+                                {
+                                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieError(targetPlayer.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
                                     break;
+                                }
 
-                                case SpellId.PortalTie1:    // Primary Portal Tie
-                                case SpellId.PortalTie2:    // Secondary Portal Tie
+                                var distanceToTarget = creature.GetDistance(targetPlayer);
+                                var skill = creature.GetCreatureSkill(spell.School);
+                                var magicSkill = skill.InitLevel + skill.Ranks;
+                                var maxRange = spell.BaseRangeConstant + magicSkill * spell.BaseRangeMod;
+                                if (maxRange == 0.0f)
+                                    maxRange = float.PositiveInfinity;
 
-                                    var isPrimary = spell.Id == (int)SpellId.PortalTie1;
-
-                                    if (target.WeenieType == WeenieType.Portal)
+                                if (distanceToTarget <= maxRange)
+                                {
+                                    ActionChain portalSendingChain = new ActionChain();
+                                    portalSendingChain.AddAction(targetPlayer, () => targetPlayer.EnqueueBroadcast(new GameMessageScript(targetPlayer.Guid, spell.TargetEffect, spell.Formula.Scale)));
+                                    portalSendingChain.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
+                                    portalSendingChain.AddAction(targetPlayer, () =>
                                     {
-                                        var targetPortal = target as Portal;
-                                        var summoned = targetPortal.OriginalPortal != null;
+                                        var teleportDest = new Position(spell.Position);
+                                        AdjustDungeon(teleportDest);
 
-                                        var targetDID = summoned ? targetPortal.OriginalPortal : targetPortal.WeenieClassId;
+                                        targetPlayer.Teleport(teleportDest);
 
-                                        var tiePortal = GetPortal(targetDID.Value);
-                                        if (tiePortal != null)
+                                        targetPlayer.SendTeleportedViaMagicMessage(itemCaster, spell);
+                                    });
+                                    portalSendingChain.EnqueueChain();
+                                }
+                                //else
+                                //{
+                                //    enchantmentStatus.Success = false;
+                                //    return enchantmentStatus;
+                                //}
+                            }
+                            break;
+
+                        case SpellType.PortalLink:
+
+                            if (player != null)
+                            {
+                                switch ((SpellId)spell.Id)
+                                {
+                                    case SpellId.LifestoneTie1:  // Lifestone Tie
+
+                                        if (target.WeenieType == WeenieType.LifeStone)
                                         {
-                                            var result = tiePortal.CheckUseRequirements(player);
-                                            if (!result.Success && result.Message != null)
-                                                player.Session.Network.EnqueueSend(result.Message);
+                                            EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
 
-                                            if (!tiePortal.NoTie && result.Success)
+                                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the life stone.", ChatMessageType.Magic));
+                                            player.LinkedLifestone = target.Location;
+                                        }
+                                        else
+                                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You cannot link that.", ChatMessageType.Magic));
+
+                                        break;
+
+                                    case SpellId.PortalTie1:    // Primary Portal Tie
+                                    case SpellId.PortalTie2:    // Secondary Portal Tie
+
+                                        var isPrimary = spell.Id == (int)SpellId.PortalTie1;
+
+                                        if (target.WeenieType == WeenieType.Portal)
+                                        {
+                                            var targetPortal = target as Portal;
+                                            var summoned = targetPortal.OriginalPortal != null;
+
+                                            var targetDID = summoned ? targetPortal.OriginalPortal : targetPortal.WeenieClassId;
+
+                                            var tiePortal = GetPortal(targetDID.Value);
+                                            if (tiePortal != null)
                                             {
-                                                if (isPrimary)
+                                                var result = tiePortal.CheckUseRequirements(player);
+                                                if (!result.Success && result.Message != null)
+                                                    player.Session.Network.EnqueueSend(result.Message);
+
+                                                if (!tiePortal.NoTie && result.Success)
                                                 {
-                                                    player.LinkedPortalOneDID = targetDID;
-                                                    player.SetProperty(PropertyBool.LinkedPortalOneSummon, summoned);
+                                                    if (isPrimary)
+                                                    {
+                                                        player.LinkedPortalOneDID = targetDID;
+                                                        player.SetProperty(PropertyBool.LinkedPortalOneSummon, summoned);
+                                                    }
+                                                    else
+                                                    {
+                                                        player.LinkedPortalTwoDID = targetDID;
+                                                        player.SetProperty(PropertyBool.LinkedPortalTwoSummon, summoned);
+                                                    }
+
+                                                    EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+
+                                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the portal.", ChatMessageType.Magic));
                                                 }
                                                 else
-                                                {
-                                                    player.LinkedPortalTwoDID = targetDID;
-                                                    player.SetProperty(PropertyBool.LinkedPortalTwoSummon, summoned);
-                                                }
-
-                                                EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
-
-                                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the portal.", ChatMessageType.Magic));
+                                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotLinkToThatPortal));
                                             }
                                             else
                                                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotLinkToThatPortal));
                                         }
                                         else
-                                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotLinkToThatPortal));
-                                    }
-                                    else
-                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You cannot link that.", ChatMessageType.Magic));
-                                    break;
+                                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You cannot link that.", ChatMessageType.Magic));
+                                        break;
+                                }
                             }
-                        }
-                        break;
-
-                    case SpellType.PortalSummon:
-
-                        if (player != null && player.PKTimerActive)
-                        {
-                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
                             break;
-                        }
 
-                        var source = player != null ? player : itemCaster;
+                        case SpellType.PortalSummon:
 
-                        uint portalId = 0;
-                        bool linkSummoned;
-
-                        // spell.link = 1 = LinkedPortalOneDID
-                        // spell.link = 2 = LinkedPortalTwoDID
-
-                        if (spell.Link <= 1)
-                        {
-                            portalId = source.LinkedPortalOneDID ?? 0;
-                            linkSummoned = source.GetProperty(PropertyBool.LinkedPortalOneSummon) ?? false;
-                        }
-                        else
-                        {
-                            portalId = source.LinkedPortalTwoDID ?? 0;
-                            linkSummoned = source.GetProperty(PropertyBool.LinkedPortalTwoSummon) ?? false;
-                        }
-
-                        Position summonLoc = null;
-
-                        if (player != null)
-                        {
-                            if (portalId == 0)
+                            if (player != null && player.PKTimerActive)
                             {
-                                // You must link to a portal to summon it!
-                                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToSummonIt));
+                                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
                                 break;
                             }
 
-                            var summonPortal = GetPortal(portalId);
-                            if (summonPortal == null || summonPortal.NoSummon || (linkSummoned && !PropertyManager.GetBool("gateway_ties_summonable").Item))
+                            var source = player != null ? player : itemCaster;
+
+                            uint portalId = 0;
+                            bool linkSummoned;
+
+                            // spell.link = 1 = LinkedPortalOneDID
+                            // spell.link = 2 = LinkedPortalTwoDID
+
+                            if (spell.Link <= 1)
                             {
-                                // You cannot summon that portal!
-                                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotSummonPortal));
-                                break;
+                                portalId = source.LinkedPortalOneDID ?? 0;
+                                linkSummoned = source.GetProperty(PropertyBool.LinkedPortalOneSummon) ?? false;
                             }
-
-                            var result = summonPortal.CheckUseRequirements(player);
-                            if (!result.Success)
-                            {
-                                if (result.Message != null)
-                                    player.Session.Network.EnqueueSend(result.Message);
-
-                                break;
-                            }
-
-                            summonLoc = player.Location.InFrontOf(3.0f);
-                        }
-                        else if (itemCaster != null)
-                        {
-                            if (itemCaster.PortalSummonLoc != null)
-                                summonLoc = new Position(PortalSummonLoc);
                             else
                             {
-                                if (itemCaster.Location != null)
-                                    summonLoc = itemCaster.Location.InFrontOf(3.0f);
-                                else if (target != null && target.Location != null)
-                                    summonLoc = target.Location.InFrontOf(3.0f);
+                                portalId = source.LinkedPortalTwoDID ?? 0;
+                                linkSummoned = source.GetProperty(PropertyBool.LinkedPortalTwoSummon) ?? false;
                             }
-                        }
 
-                        if (summonLoc != null)
-                            summonLoc.LandblockId = new LandblockId(summonLoc.GetCell());
+                            Position summonLoc = null;
 
-                        if (SummonPortal(portalId, summonLoc, spell.PortalLifetime))
-                            EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
-                        else if (player != null)
-                            player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouFailToSummonPortal));
+                            if (player != null)
+                            {
+                                if (portalId == 0)
+                                {
+                                    // You must link to a portal to summon it!
+                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToSummonIt));
+                                    break;
+                                }
 
-                        break;
+                                var summonPortal = GetPortal(portalId);
+                                if (summonPortal == null || summonPortal.NoSummon || (linkSummoned && !PropertyManager.GetBool("gateway_ties_summonable").Item))
+                                {
+                                    // You cannot summon that portal!
+                                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotSummonPortal));
+                                    break;
+                                }
+
+                                var result = summonPortal.CheckUseRequirements(player);
+                                if (!result.Success)
+                                {
+                                    if (result.Message != null)
+                                        player.Session.Network.EnqueueSend(result.Message);
+
+                                    break;
+                                }
+
+                                summonLoc = player.Location.InFrontOf(3.0f);
+                            }
+                            else if (itemCaster != null)
+                            {
+                                if (itemCaster.PortalSummonLoc != null)
+                                    summonLoc = new Position(PortalSummonLoc);
+                                else
+                                {
+                                    if (itemCaster.Location != null)
+                                        summonLoc = itemCaster.Location.InFrontOf(3.0f);
+                                    else if (target != null && target.Location != null)
+                                        summonLoc = target.Location.InFrontOf(3.0f);
+                                }
+                            }
+
+                            if (summonLoc != null)
+                                summonLoc.LandblockId = new LandblockId(summonLoc.GetCell());
+
+                            if (SummonPortal(portalId, summonLoc, spell.PortalLifetime))
+                                EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+                            else if (player != null)
+                                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouFailToSummonPortal));
+
+                            break;
+                    }
                 }
             }
             else if (spell.MetaSpellType == SpellType.Enchantment)
@@ -2265,7 +2272,7 @@ namespace ACE.Server.WorldObjects
                 case ItemType.WeaponOrCaster:           // lure blade, defender cantrip, hermetic link cantrip, mukkir sense
                 case ItemType.Item:                     // essence lull
 
-                    return target.EquippedObjects.Values.Where(i => (i.ItemType & spell.NonComponentTargetType) != 0).ToList();
+                    return target.EquippedObjects.Values.Where(i => (i.ItemType & spell.NonComponentTargetType) != 0 && (i.ValidLocations & EquipMask.Selectable) != 0 && i.IsEnchantable).ToList();
             }
             return null;
         }

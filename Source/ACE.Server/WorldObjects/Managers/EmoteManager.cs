@@ -66,7 +66,7 @@ namespace ACE.Server.WorldObjects.Managers
             var emoteType = (EmoteType)emote.Type;
 
             //if (Debug)
-                //Console.WriteLine($"{WorldObject.Name}.ExecuteEmote({emoteType})");
+            //Console.WriteLine($"{WorldObject.Name}.ExecuteEmote({emoteType})");
 
             var text = emote.Message;
 
@@ -1115,10 +1115,13 @@ namespace ACE.Server.WorldObjects.Managers
                         Console.Write($" - {emote.Message}");
 
                     message = Replace(emote.Message, WorldObject, targetObject, emoteSet.Quest);
+
+                    var name = WorldObject.CreatureType == CreatureType.Olthoi ? WorldObject.Name + "&" : WorldObject.Name;
+
                     if (emote.Extent > 0)
-                        WorldObject.EnqueueBroadcast(new GameMessageHearRangedSpeech(message, WorldObject.Name, WorldObject.Guid.Full, emote.Extent, ChatMessageType.Emote), WorldObject.LocalBroadcastRange);
+                        WorldObject.EnqueueBroadcast(new GameMessageHearRangedSpeech(message, name, WorldObject.Guid.Full, emote.Extent, ChatMessageType.Emote), WorldObject.LocalBroadcastRange);
                     else
-                        WorldObject.EnqueueBroadcast(new GameMessageHearSpeech(message, WorldObject.Name, WorldObject.Guid.Full, ChatMessageType.Emote), WorldObject.LocalBroadcastRange);
+                        WorldObject.EnqueueBroadcast(new GameMessageHearSpeech(message, name, WorldObject.Guid.Full, ChatMessageType.Emote), WorldObject.LocalBroadcastRange);
                     break;
 
                 case EmoteType.SetAltRacialSkills:
