@@ -49,7 +49,14 @@ namespace ACE.Server.Factories
 
         public static StarterGearConfiguration GetStarterGearConfiguration()
         {
-            return _config;
+            try
+            {
+                return _config;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }
