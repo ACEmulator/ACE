@@ -32,6 +32,9 @@ namespace ACE.Server.WorldObjects
             // These shoudl come from the weenie. After confirmation, remove these
             //KeyCode = AceObject.KeyCode ?? "";
             //Structure = AceObject.Structure ?? AceObject.MaxStructure;
+
+            if (Structure > MaxStructure)
+                Structure = MaxStructure;
         }
 
         public string KeyCode
@@ -57,6 +60,15 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(result.Message);
 
                 player.SendUseDoneEvent();
+                return;
+            }
+
+            if (Structure == 0)
+            {
+                var wo = player.FindObject(Guid.Full, Player.SearchLocations.Everywhere, out _, out Container rootOwner, out bool wasEquipped);
+                DeleteObject(rootOwner);
+
+                player.SendUseDoneEvent(WeenieError.YouCannotUseThatItem);
                 return;
             }
 
