@@ -340,7 +340,10 @@ namespace ACE.Server.WorldObjects
                 cost = CollectCurrencyStacks(currentWcid, amount);
 
                 foreach (var stack in cost)
-                    TryRemoveFromInventoryWithNetworking(stack.Guid, out _, RemoveFromInventoryAction.SpendItem);
+                {
+                    if (!TryRemoveFromInventoryWithNetworking(stack.Guid, out _, RemoveFromInventoryAction.SpendItem))
+                        UpdateCoinValue(); // this coinstack was created by spliting up an existing one, and not actually added to the players inventory. The existing stack was already adjusted down but we need to update the player's CoinValue, so we do that now.
+                }
             }
             return cost;
         }
