@@ -3013,42 +3013,24 @@ namespace ACE.Server.WorldObjects
             {
                 if (acceptAll || emoteResult.Category == EmoteCategory.Give)
                 {
-                    var isStackable = item is Stackable;
-
                     // for NPCs that accept items with EmoteCategory.Give,
-                    // if stacked item, only give 1
-                    if (!acceptAll && isStackable && RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, 1, out WorldObject itemToGive, true))
+                    // if stacked item, only give 1, ignoring amount indicated, unless they are AiAcceptEverything in which case, take full amount indicated
+                    if (RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, acceptAll ? amount : 1, out WorldObject itemToGive))
                     {
-                        if (itemToGive == null)
+                        if (item == itemToGive)
                             Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
 
-                        Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.NameWithMaterial}.", ChatMessageType.Broadcast));
+                        var stackSize = itemToGive.StackSize ?? 1;
+
+                        var stackMsg = stackSize != 1 ? $"{stackSize} " : "";
+                        var itemName = itemToGive.GetNameWithMaterial(stackSize);
+
+                        Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
                         target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
 
                         target.EmoteManager.ExecuteEmoteSet(emoteResult, this);
-                    }
-                    else
-                    {
-                        if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.GiveItem) || TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.GiveItem))
-                        {
-                            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
 
-                            var stackSize = item.StackSize ?? 1;
-
-                            var stackMsg = stackSize != 1 ? $"{stackSize} " : "";
-                            var itemName = item.GetNameWithMaterial(stackSize);
-
-                            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
-                            target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
-
-                            target.EmoteManager.ExecuteEmoteSet(emoteResult, this);
-
-                            item.Destroy();
-                        }
-                        else
-                        {
-                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
-                        }
+                        itemToGive.Destroy();
                     }
                 }
                 else if (emoteResult.Category == EmoteCategory.Refuse)
