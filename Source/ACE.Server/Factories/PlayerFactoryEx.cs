@@ -76,7 +76,7 @@ namespace ACE.Server.Factories
 
         private static void RandomizeHeritage(CharacterCreateInfo characterCreateInfo)
         {
-            var heritage = (HeritageGroup)rand.Next(1, 13);
+            var heritage = (HeritageGroup)rand.Next(1, 11);
             var heritageGroup = DatManager.PortalDat.CharGen.HeritageGroups[(uint)heritage];
 
             characterCreateInfo.Heritage = heritage;
@@ -129,12 +129,41 @@ namespace ACE.Server.Factories
             player.TotalSkillCredits += 46;
 
             // Playability Augs
-            player.AugmentationExtraPackSlot = 1;
-            player.AugmentationIncreasedCarryingCapacity = 5;
-            player.AugmentationLessDeathItemLoss = 3;
-            player.AugmentationSpellsRemainPastDeath = 1;
-            player.AugmentationIncreasedSpellDuration = 5;
-            player.AugmentationJackOfAllTrades = 1;
+            if (player.AugmentationExtraPackSlot == 0)
+            {
+                player.AugmentationExtraPackSlot = 1;
+                player.AvailableExperience -= 4000000000;
+            }
+
+            while (player.AugmentationIncreasedCarryingCapacity < 5)
+            {
+                player.AugmentationIncreasedCarryingCapacity++;
+                player.AvailableExperience -= 1000000000;
+            }
+
+            while (player.AugmentationLessDeathItemLoss < 3)
+            {
+                player.AugmentationLessDeathItemLoss++;
+                player.AvailableExperience -= 2000000000;
+            }
+
+            if (player.AugmentationSpellsRemainPastDeath == 0)
+            {
+                player.AugmentationSpellsRemainPastDeath = 1;
+                player.AvailableExperience -= 4000000000;
+            }
+
+            while (player.AugmentationIncreasedSpellDuration < 5)
+            {
+                player.AugmentationIncreasedSpellDuration++;
+                player.AvailableExperience -= 1000000000;
+            }
+
+            if (player.AugmentationJackOfAllTrades == 0)
+            {
+                player.AugmentationJackOfAllTrades = 1;
+                player.AvailableExperience -= 4000000000;
+            }
 
             // todo: Optionally add other augs
         }
