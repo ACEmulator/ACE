@@ -2953,7 +2953,7 @@ namespace ACE.Server.WorldObjects
 
                 var stackSize = itemToGive.StackSize ?? 1;
 
-                var stackMsg = stackSize != 1 ? $"{stackSize} " : "";
+                var stackMsg = stackSize != 1 ? $"{stackSize:N0} " : "";
                 var itemName = itemToGive.GetNameWithMaterial(stackSize);
 
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
@@ -3022,7 +3022,7 @@ namespace ACE.Server.WorldObjects
 
                         var stackSize = itemToGive.StackSize ?? 1;
 
-                        var stackMsg = stackSize != 1 ? $"{stackSize} " : "";
+                        var stackMsg = stackSize != 1 ? $"{stackSize:N0} " : "";
                         var itemName = itemToGive.GetNameWithMaterial(stackSize);
 
                         Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
