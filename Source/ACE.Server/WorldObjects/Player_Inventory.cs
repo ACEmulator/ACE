@@ -2773,6 +2773,18 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
             }
 
+            var itemFoundOnCorpse = sourceStackRootOwner is Corpse;
+
+            var isFromAPlayerCorpse = false;
+            if (itemFoundOnCorpse && sourceStackRootOwner.Level > 0)
+                isFromAPlayerCorpse = true;
+
+            if (isFromAPlayerCorpse)
+            {
+                log.Debug($"[CORPSE] {Name} (0x{Guid}) merged {amount:N0} {(sourceStack.IsDestroyed ? $"which resulted in the destruction" : $"leaving behind {sourceStack.StackSize:N0}")} of {sourceStack.Name} (0x{sourceStack.Guid}) to {targetStack.Name} (0x{targetStack.Guid}) from {sourceStackRootOwner.Name} (0x{sourceStackRootOwner.Guid})");
+                targetStack.SaveBiotaToDatabase();
+            }
+
             return true;
         }
 
