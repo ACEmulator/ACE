@@ -189,7 +189,15 @@ namespace ACE.Server.Managers
         /// </summary>
         public static float GameCap = 720.0f;
 
+        // This function can be called from multi-threaded operations
+        // We must add thread safety to prevent AllegianceManager corruption
+        // We must also protect against cross-thread operations on vassal/patron (non-concurrent collections)
         public static void PassXP(AllegianceNode vassalNode, ulong amount, bool direct)
+        {
+            WorldManager.EnqueueAction(new ActionEventDelegate(() => DoPassXP(vassalNode, amount, direct)));
+        }
+
+        private static void DoPassXP(AllegianceNode vassalNode, ulong amount, bool direct)
         {
             // http://asheron.wikia.com/wiki/Allegiance_Experience
 
@@ -301,7 +309,7 @@ namespace ACE.Server.Managers
                     onlinePatron.AddAllegianceXP();
 
                 // call recursively
-                PassXP(patronNode, passupAmount, false);
+                DoPassXP(patronNode, passupAmount, false);
             }
         }
 
