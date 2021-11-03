@@ -159,12 +159,15 @@ namespace ACE.Entity.Enum.Properties
         EquipmentSetAddLevel             = 121,
         BarberActive                     = 122,
         TopLayerPriority                 = 123,
+        [SendOnLogin]
         NoHeldItemShown                  = 124,
+        [SendOnLogin]
         LoginAtLifestone                 = 125,
         OlthoiPk                         = 126,
         [SendOnLogin]
         Account15Days                    = 127,
         HadNoVitae                       = 128,
+        [SendOnLogin]
         NoOlthoiTalk                     = 129,
         AutowieldLeft                    = 130,
 

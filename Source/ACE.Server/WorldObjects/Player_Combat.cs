@@ -363,11 +363,8 @@ namespace ACE.Server.WorldObjects
                     damageSource = FootArmor;
 
                 // no weapon, no hand or foot armor
-                if (damageSource == null)
-                {
-                    var baseDamage = new BaseDamage(5, 0.2f);   // 1-5
-                    return new BaseDamageMod(baseDamage);
-                }
+                if (damageSource?.Damage == null)
+                    return HeritageGroup == HeritageGroup.Olthoi ? new BaseDamageMod(new BaseDamage(130, 0.75f)) : new BaseDamageMod(new BaseDamage(2, 0.75f));
                 else
                     return damageSource.GetDamageMod(this, damageSource);
             }

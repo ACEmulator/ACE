@@ -160,11 +160,14 @@ namespace ACE.Server.WorldObjects.Managers
             hasEnchantments = null;
             hasVitae = null;
 
-            attributeModCache.Clear();
+            attributeModAdditiveCache.Clear();
+            attributeModMultiplierCache.Clear();
+
             vitalModAdditiveCache.Clear();
             vitalModMultiplierCache.Clear();
 
-            skillModCache.Clear();
+            skillModAdditiveCache.Clear();
+            skillModMultiplierCache.Clear();
 
             bodyArmorModCache = null;
             resistanceModCache.Clear();
@@ -189,19 +192,35 @@ namespace ACE.Server.WorldObjects.Managers
         }
 
 
-        private readonly Dictionary<PropertyAttribute, int> attributeModCache = new Dictionary<PropertyAttribute, int>();
+        private readonly Dictionary<PropertyAttribute, int> attributeModAdditiveCache = new Dictionary<PropertyAttribute, int>();
+        private readonly Dictionary<PropertyAttribute, float> attributeModMultiplierCache = new Dictionary<PropertyAttribute, float>();
 
         /// <summary>
-        /// Returns the bonus to an attribute from enchantments
+        /// Returns the additive modifiers to an attribute from enchantments
         /// </summary>
-        public override int GetAttributeMod(PropertyAttribute attribute)
+        public override int GetAttributeMod_Additive(PropertyAttribute attribute)
         {
-            if (attributeModCache.TryGetValue(attribute, out var value))
+            if (attributeModAdditiveCache.TryGetValue(attribute, out var value))
                 return value;
 
-            value = base.GetAttributeMod(attribute);
+            value = base.GetAttributeMod_Additive(attribute);
 
-            attributeModCache[attribute] = value;
+            attributeModAdditiveCache[attribute] = value;
+
+            return value;
+        }
+
+        /// <summary>
+        /// Returns the multiplicative modifiers to an attribute from enchantments
+        /// </summary>
+        public override float GetAttributeMod_Multiplier(PropertyAttribute attribute)
+        {
+            if (attributeModMultiplierCache.TryGetValue(attribute, out var value))
+                return value;
+
+            value = base.GetAttributeMod_Multiplier(attribute);
+
+            attributeModMultiplierCache[attribute] = value;
 
             return value;
         }
@@ -239,23 +258,38 @@ namespace ACE.Server.WorldObjects.Managers
             return value;
         }
 
-        private readonly Dictionary<Skill, int> skillModCache = new Dictionary<Skill, int>();
+        private readonly Dictionary<Skill, int> skillModAdditiveCache = new Dictionary<Skill, int>();
+        private readonly Dictionary<Skill, float> skillModMultiplierCache = new Dictionary<Skill, float>();
 
         /// <summary>
-        /// Returns the bonus to a skill from enchantments
+        /// Returns the additive modifiers to a skill from enchantments
         /// </summary>
-        public override int GetSkillMod(Skill skill)
+        public override int GetSkillMod_Additives(Skill skill)
         {
-            if (skillModCache.TryGetValue(skill, out var value))
+            if (skillModAdditiveCache.TryGetValue(skill, out var value))
                 return value;
 
-            value = base.GetSkillMod(skill);
+            value = base.GetSkillMod_Additives(skill);
 
-            skillModCache[skill] = value;
+            skillModAdditiveCache[skill] = value;
 
             return value;
         }
 
+        /// <summary>
+        /// Returns the multiplicative modifiers to a skill from enchantments
+        /// </summary>
+        public override float GetSkillMod_Multiplier(Skill skill)
+        {
+            if (skillModMultiplierCache.TryGetValue(skill, out var value))
+                return value;
+
+            value = base.GetSkillMod_Multiplier(skill);
+
+            skillModMultiplierCache[skill] = value;
+
+            return value;
+        }
 
         private int? bodyArmorModCache;
 

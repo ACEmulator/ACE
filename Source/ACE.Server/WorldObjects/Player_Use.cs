@@ -237,7 +237,7 @@ namespace ACE.Server.WorldObjects
         {
             if (PropertyManager.GetBool("allow_fast_chug").Item && FastTick)
             {
-                ApplyConsumableWithAnimationCallbacks(useMotion, action, animMod);
+                ApplyConsumableWithAnimationCallbacks(useMotion, action);
                 return;
             }
             IsBusy = true;
@@ -285,7 +285,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public FoodState FoodState { get; set; }
 
-        public void ApplyConsumableWithAnimationCallbacks(MotionCommand useMotion, Action action, float animMod = 1.0f)
+        public void ApplyConsumableWithAnimationCallbacks(MotionCommand useMotion, Action action)
         {
             IsBusy = true;
 
@@ -300,12 +300,12 @@ namespace ACE.Server.WorldObjects
                 animTime = EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, (MotionCommand)prevStance);
 
             // start the eat/drink motion
-            var useAnimTime = EnqueueMotion_Force(actionChain, MotionStance.NonCombat, useMotion, null, 1.0f, animMod);
+            var useAnimTime = EnqueueMotion_Force(actionChain, MotionStance.NonCombat, useMotion);
 
             animTime += useAnimTime;
 
             // the rest is based on animation callback now
-            FoodState.StartChugging(useMotion, action, animMod, useAnimTime, prevStance);
+            FoodState.StartChugging(useMotion, action, useAnimTime, prevStance);
 
             actionChain.EnqueueChain();
 
@@ -323,7 +323,6 @@ namespace ACE.Server.WorldObjects
                 return;
 
             // restore state vars
-            var animMod = FoodState.AnimMod;
             var animTime = 0.0f;
             var actionChain = new ActionChain();
             var useMotion = FoodState.UseMotion;
@@ -340,13 +339,7 @@ namespace ACE.Server.WorldObjects
 
                 FoodState.UseMotion = MotionCommand.Ready;
 
-                if (animMod == 1.0f)
-                {
-                    // return to ready stance
-                    animTime += EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, useMotion);
-                }
-                else
-                    actionChain.AddDelaySeconds(useAnimTime * (1.0f - animMod));
+                animTime += EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, useMotion);
             }
             else
             {

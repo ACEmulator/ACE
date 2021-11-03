@@ -52,6 +52,12 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
+            if (player.IsOlthoiPlayer)
+            {
+                player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
+                return new ActivationResult(false);
+            }
+
             if (player.PkLevel > PKLevel.PK || PropertyManager.GetBool("pk_server").Item || PropertyManager.GetBool("pkl_server").Item)
             {
                 if (!string.IsNullOrWhiteSpace(GetProperty(PropertyString.UsePkServerError)))

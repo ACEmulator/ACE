@@ -5,6 +5,7 @@ using System.Linq;
 using log4net;
 
 using ACE.Common;
+using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -69,6 +70,54 @@ namespace ACE.Server.WorldObjects
             {
                 GeneratorProfiles.RemoveAll(p => p.Biota.WhereCreate.HasFlag(RegenLocationType.Shop));
             }
+
+            OpenForBusiness = ValidateVendorRequirements();
+        }
+
+        private bool ValidateVendorRequirements()
+        {
+            var success = true;
+
+            var currencyWCID = AlternateCurrency ?? (uint)ACE.Entity.Enum.WeenieClassName.W_COINSTACK_CLASS;
+            var currencyWeenie = DatabaseManager.World.GetCachedWeenie(currencyWCID);
+            if (currencyWeenie == null)
+            {
+                var errorMsg = $"WCID {currencyWCID}{(AlternateCurrency.HasValue ? ", which comes from PropertyDataId.AlternateCurrency," : "")} is not found in the database, Vendor has been disabled as a result!";
+                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) Currency {errorMsg}");
+                success = false;
+            }
+
+            if (!MerchandiseItemTypes.HasValue)
+            {
+                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) MerchandiseItemTypes is NULL, Vendor has been disabled as a result!");
+                success = false;
+            }
+
+            if (!MerchandiseMinValue.HasValue)
+            {
+                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) MerchandiseMinValue is NULL, Vendor has been disabled as a result!");
+                success = false;
+            }
+
+            if (!MerchandiseMaxValue.HasValue)
+            {
+                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) MerchandiseMaxValue is NULL, Vendor has been disabled as a result!");
+                success = false;
+            }
+
+            if (!BuyPrice.HasValue)
+            {
+                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) BuyPrice is NULL, Vendor has been disabled as a result!");
+                success = false;
+            }
+
+            if (!SellPrice.HasValue)
+            {
+                log.Error($"[VENDOR] {Name} (0x{Guid}:{WeenieClassId}) SellPrice is NULL, Vendor has been disabled as a result!");
+                success = false;
+            }
+
+            return success;
         }
 
         /// <summary>
@@ -81,25 +130,25 @@ namespace ACE.Server.WorldObjects
             var itemsForSale = new Dictionary<(uint weenieClassId, int paletteTemplate, double shade), uint>();
 
             foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Shop))
-                LoadInventoryItem(itemsForSale, item.WeenieClassId, item.Palette, item.Shade);
+                LoadInventoryItem(itemsForSale, item.WeenieClassId, item.Palette, item.Shade, item.StackSize);
 
-            if (Biota.PropertiesGenerator != null && !PropertyManager.GetBool("vendor_shop_uses_generator").Item)
-            {
-                foreach (var item in Biota.PropertiesGenerator.Where(x => x.WhereCreate.HasFlag(RegenLocationType.Shop)))
-                    LoadInventoryItem(itemsForSale, item.WeenieClassId, (int?)item.PaletteId, item.Shade);
-            }
+            //if (Biota.PropertiesGenerator != null && !PropertyManager.GetBool("vendor_shop_uses_generator").Item)
+            //{
+            //    foreach (var item in Biota.PropertiesGenerator.Where(x => x.WhereCreate.HasFlag(RegenLocationType.Shop)))
+            //        LoadInventoryItem(itemsForSale, item.WeenieClassId, (int?)item.PaletteId, item.Shade, item.StackSize);
+            //}
 
             inventoryloaded = true;
         }
 
         private void LoadInventoryItem(Dictionary<(uint weenieClassId, int paletteTemplate, double shade), uint> itemsForSale,
-            uint weenieClassId, int? palette, float? shade)
+            uint weenieClassId, int? palette, float? shade, int? stackSize)
         {
-            var itemProfile = (weenieClassId, palette ?? 0, shade ?? 0);
+            //var itemProfile = (weenieClassId, palette ?? 0, shade ?? 0);
 
             // let's skip dupes if there are any
-            if (itemsForSale.ContainsKey(itemProfile))
-                return;
+            //if (itemsForSale.ContainsKey(itemProfile))
+            //    return;
 
             var wo = WorldObjectFactory.CreateNewWorldObject(weenieClassId);
 
@@ -115,7 +164,9 @@ namespace ACE.Server.WorldObjects
 
             wo.CalculateObjDesc();
 
-            itemsForSale.Add(itemProfile, wo.Guid.Full);
+            //itemsForSale.Add(itemProfile, wo.Guid.Full);
+
+            wo.VendorShopCreateListStackSize = stackSize ?? -1;
 
             DefaultItemsForSale.Add(wo.Guid, wo);
         }
@@ -179,6 +230,18 @@ namespace ACE.Server.WorldObjects
         {
             var player = wo as Player;
             if (player == null) return;
+
+            if (player.IsBusy)
+            {
+                player.SendWeenieError(WeenieError.YoureTooBusy);
+                return;
+            }
+
+            if (!OpenForBusiness || !ValidateVendorRequirements())
+            {
+                // should there be some sort of feedback to player here?
+                return;
+            }
 
             var rotateTime = Rotate(player);    // vendor rotates towards player
 
@@ -439,11 +502,7 @@ namespace ACE.Server.WorldObjects
 
             foreach (var item in purchaseItems)
             {
-                var sellRate = SellPrice ?? 1.0;
-                if (item.ItemType == ItemType.PromissoryNote)
-                    sellRate = 1.15;
-
-                var cost = Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (item.Value ?? 0)) - 0.1));
+                var cost = GetSellCost(item);
 
                 // detect rollover?
                 totalPrice += cost;
@@ -477,20 +536,40 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+        public uint GetSellCost(WorldObject item) => GetSellCost(item.Value, item.ItemType);
+
+        public uint GetSellCost(Weenie item) => GetSellCost(item.GetValue(), item.GetItemType());
+
+        private uint GetSellCost(int? value, ItemType? itemType)
+        {
+            var sellRate = SellPrice ?? 1.0;
+            if (itemType == ItemType.PromissoryNote)
+                sellRate = 1.15;
+
+            var cost = Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (value ?? 0)) - 0.1));
+            return cost;
+        }
+
+        public int GetBuyCost(WorldObject item) => GetBuyCost(item.Value, item.ItemType);
+
+        public int GetBuyCost(Weenie item) => GetBuyCost(item.GetValue(), item.GetItemType());
+
+        private int GetBuyCost(int? value, ItemType? itemType)
+        {
+            var buyRate = BuyPrice ?? 1;
+            if (itemType == ItemType.PromissoryNote)
+                buyRate = 1.0;
+
+            var cost = Math.Max(1, (int)Math.Floor(((float)buyRate * (value ?? 0)) + 0.1));
+            return cost;
+        }
+
         public int CalculatePayoutCoinAmount(Dictionary<uint, WorldObject> items)
         {
             var payout = 0;
 
             foreach (WorldObject item in items.Values)
-            {
-                var buyRate = BuyPrice ?? 1;
-
-                if (item.ItemType == ItemType.PromissoryNote)
-                    buyRate = 1.0;
-
-                // payout scaled by the vendor's buy rate
-                payout += Math.Max(1, (int)Math.Floor(((float)buyRate * (item.Value ?? 0)) + 0.1));
-            }
+                payout += GetBuyCost(item);
 
             return payout;
         }
@@ -541,6 +620,8 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                     item.Destroy();
+
+                NumItemsBought++;
             }
 
             ApproachVendor(player, VendorType.Sell);
@@ -572,6 +653,8 @@ namespace ACE.Server.WorldObjects
             castChain.AddAction(this, () => IsBusy = false);
 
             castChain.EnqueueChain();
+
+            NumServicesSold++;
         }
 
         /// <summary>
@@ -620,6 +703,102 @@ namespace ACE.Server.WorldObjects
         {
             foreach (var createdItem in createdItems)
                 createdItem.Destroy();
+        }
+
+        public bool OpenForBusiness
+        {
+            get => GetProperty(PropertyBool.OpenForBusiness) ?? true;
+            set { if (value) RemoveProperty(PropertyBool.OpenForBusiness); else SetProperty(PropertyBool.OpenForBusiness, value); }
+        }
+
+        public int? MerchandiseItemTypes
+        {
+            get => GetProperty(PropertyInt.MerchandiseItemTypes);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseItemTypes); else SetProperty(PropertyInt.MerchandiseItemTypes, value.Value); }
+        }
+
+        public int? MerchandiseMinValue
+        {
+            get => GetProperty(PropertyInt.MerchandiseMinValue);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseMinValue); else SetProperty(PropertyInt.MerchandiseMinValue, value.Value); }
+        }
+
+        public int? MerchandiseMaxValue
+        {
+            get => GetProperty(PropertyInt.MerchandiseMaxValue);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MerchandiseMaxValue); else SetProperty(PropertyInt.MerchandiseMaxValue, value.Value); }
+        }
+
+        public double? BuyPrice
+        {
+            get => GetProperty(PropertyFloat.BuyPrice);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.BuyPrice); else SetProperty(PropertyFloat.BuyPrice, value.Value); }
+        }
+
+        public double? SellPrice
+        {
+            get => GetProperty(PropertyFloat.SellPrice);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.SellPrice); else SetProperty(PropertyFloat.SellPrice, value.Value); }
+        }
+
+        public bool? DealMagicalItems
+        {
+            get => GetProperty(PropertyBool.DealMagicalItems);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.DealMagicalItems); else SetProperty(PropertyBool.DealMagicalItems, value.Value); }
+        }
+
+        public bool? VendorService
+        {
+            get => GetProperty(PropertyBool.VendorService);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.VendorService); else SetProperty(PropertyBool.VendorService, value.Value); }
+        }
+
+        public int? VendorHappyMean
+        {
+            get => GetProperty(PropertyInt.VendorHappyMean);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.VendorHappyMean); else SetProperty(PropertyInt.VendorHappyMean, value.Value); }
+        }
+
+        public int? VendorHappyVariance
+        {
+            get => GetProperty(PropertyInt.VendorHappyVariance);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.VendorHappyVariance); else SetProperty(PropertyInt.VendorHappyVariance, value.Value); }
+        }
+
+        public int? VendorHappyMaxItems
+        {
+            get => GetProperty(PropertyInt.VendorHappyMaxItems);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.VendorHappyMaxItems); else SetProperty(PropertyInt.VendorHappyMaxItems, value.Value); }
+        }
+
+        public int NumItemsSold
+        {
+            get => GetProperty(PropertyInt.NumItemsSold) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.NumItemsSold); else SetProperty(PropertyInt.NumItemsSold, value); }
+        }
+
+        public int NumItemsBought
+        {
+            get => GetProperty(PropertyInt.NumItemsBought) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.NumItemsBought); else SetProperty(PropertyInt.NumItemsBought, value); }
+        }
+
+        public int NumServicesSold
+        {
+            get => GetProperty(PropertyInt.NumServicesSold) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.NumServicesSold); else SetProperty(PropertyInt.NumServicesSold, value); }
+        }
+
+        public int MoneyIncome
+        {
+            get => GetProperty(PropertyInt.MoneyIncome) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.MoneyIncome); else SetProperty(PropertyInt.MoneyIncome, value); }
+        }
+
+        public int MoneyOutflow
+        {
+            get => GetProperty(PropertyInt.MoneyOutflow) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.MoneyOutflow); else SetProperty(PropertyInt.MoneyOutflow, value); }
         }
     }
 }

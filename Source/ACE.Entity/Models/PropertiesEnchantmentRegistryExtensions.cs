@@ -191,12 +191,6 @@ namespace ACE.Entity.Models
             }
         }
 
-        // todo: this is starting to get a bit messy here, EnchantmentTypeFlags handling should be more adaptable
-        // perhaps the enchantment registry in acclient should be investigated for reference logic
-        private static readonly EnchantmentTypeFlags MultiAttribute = EnchantmentTypeFlags.MultipleStat | EnchantmentTypeFlags.Attribute;
-
-        private static readonly EnchantmentTypeFlags MultiSkill = EnchantmentTypeFlags.MultipleStat | EnchantmentTypeFlags.Skill;
-
         /// <summary>
         /// Returns the top layers in each spell category for a StatMod type + key
         /// </summary>
@@ -212,13 +206,15 @@ namespace ACE.Entity.Models
 
                 if (handleMultiple)
                 {
-                    if (statModType == EnchantmentTypeFlags.Attribute)
-                        multipleStat = MultiAttribute;
-                    else if (statModType == EnchantmentTypeFlags.Skill)
-                        multipleStat = MultiSkill;
+                    // todo: this is starting to get a bit messy here, EnchantmentTypeFlags handling should be more adaptable
+                    // perhaps the enchantment registry in acclient should be investigated for reference logic
+
+                    multipleStat = statModType | EnchantmentTypeFlags.MultipleStat;
+
+                    statModType |= EnchantmentTypeFlags.SingleStat;
                 }
 
-                var valuesByStatModTypeAndKey = value.Where(e => (e.StatModType & statModType) == statModType && e.StatModKey == statModKey || (handleMultiple && (e.StatModType & multipleStat) == multipleStat && e.StatModKey == 0));
+                var valuesByStatModTypeAndKey = value.Where(e => (e.StatModType & statModType) == statModType && e.StatModKey == statModKey || (handleMultiple && (e.StatModType & multipleStat) == multipleStat && (e.StatModType & EnchantmentTypeFlags.Vitae) == 0 && e.StatModKey == 0));
 
                 // 3rd spell id sort added for Gauntlet Damage Boost I / Gauntlet Damage Boost II, which is contained in multiple sets, and can overlap
                 // without this sorting criteria, it's already matched up to the client, but produces logically incorrect results for server spell stacking

@@ -340,38 +340,15 @@ namespace ACE.Server.Managers
 
             var success = ThreadSafeRandom.Next(0.0f, 1.0f) < successChance;
 
-            CreateDestroyItems(player, recipe, source, target, successChance, success);
+            var modified = CreateDestroyItems(player, recipe, source, target, successChance, success);
 
-            if (!target.IsDestroyed)
+            if (modified != null)
             {
-                // this code was intended for dyes, but UpdateObj seems to remove crafting components
-                // from shortcut bar, if they are hotkeyed
-                // more specifity for this, only if relevant properties are modified?
-                var shortcuts = player.GetShortcuts();
+                if (modified.Contains(source.Guid.Full))
+                    UpdateObj(player, source);
 
-                if (!shortcuts.Select(i => i.ObjectId).Contains(target.Guid.Full))
-                {
-                    var updateObj = new GameMessageUpdateObject(target);
-                    var updateDesc = new GameMessageObjDescEvent(player);
-
-                    if (target.CurrentWieldedLocation != null)
-                        player.EnqueueBroadcast(updateObj, updateDesc);
-                    else
-                    {
-                        player.Session.Network.EnqueueSend(updateObj);
-
-                        // client automatically moves item to first slot in container
-                        // when an UpdateObject is sent. we must mimic this process on the server for persistance
-
-                        // only run this for items in the player's inventory
-                        // ie. skip for items on landblock, such as chorizite ore
-
-                        var invObj = player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory);
-
-                        if (invObj != null)
-                            player.MoveItemToFirstContainerSlot(target);
-                    }
-                }
+                if (modified.Contains(target.Guid.Full))
+                    UpdateObj(player, target);
             }
 
             if (success && recipe.Skill > 0 && recipe.Difficulty > 0)
@@ -379,6 +356,36 @@ namespace ACE.Server.Managers
                 var skill = player.GetCreatureSkill((Skill)recipe.Skill);
                 Proficiency.OnSuccessUse(player, skill, recipe.Difficulty);
             }
+        }
+
+        /// <summary>
+        /// Sends an UpdateObj to the client for modified sources / targets
+        /// </summary>
+        private static void UpdateObj(Player player, WorldObject obj)
+        {
+            if (Debug)
+                Console.WriteLine($"{player.Name}.UpdateObj({obj.Name})");
+
+            player.EnqueueBroadcast(new GameMessageUpdateObject(obj));
+
+            if (obj.CurrentWieldedLocation != null)
+            {
+                // retail possibly required sources / targets to be in the player's inventory,
+                // and not equipped. this scenario might already be prevented beforehand in VerifyUse()
+                player.EnqueueBroadcast(new GameMessageObjDescEvent(player));
+                return;
+            }
+
+            // client automatically moves item to first slot in container
+            // when an UpdateObject is sent. we must mimic this process on the server for persistance
+
+            // only run this for items in the player's inventory
+            // ie. skip for items on landblock, such as chorizite ore
+
+            var invObj = player.FindObject(obj.Guid.Full, Player.SearchLocations.MyInventory);
+
+            if (invObj != null)
+                player.MoveItemToFirstContainerSlot(obj);
         }
 
         public static bool TryMutateNative(Player player, WorldObject source, WorldObject target, Recipe recipe, uint dataId)
@@ -972,7 +979,10 @@ namespace ACE.Server.Managers
             return success;
         }
 
-        public static void CreateDestroyItems(Player player, Recipe recipe, WorldObject source, WorldObject target, double successChance, bool success)
+        /// <summary>
+        /// Returns a list of object guids that have been modified
+        /// </summary>
+        public static HashSet<uint> CreateDestroyItems(Player player, Recipe recipe, WorldObject source, WorldObject target, double successChance, bool success)
         {
             var destroyTargetChance = success ? recipe.SuccessDestroyTargetChance : recipe.FailDestroyTargetChance;
             var destroySourceChance = success ? recipe.SuccessDestroySourceChance : recipe.FailDestroySourceChance;
@@ -987,7 +997,7 @@ namespace ACE.Server.Managers
             {
                 log.Error($"RecipeManager.CreateDestroyItems: Recipe.Id({recipe.Id}) couldn't find {(success ? "Success" : "Fail")}WCID {createItem} in database.");
                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.CraftGeneralErrorUiMsg));
-                return;
+                return null;
             }
 
             if (destroyTarget)
@@ -1011,7 +1021,7 @@ namespace ACE.Server.Managers
             if (createItem > 0)
                 result = CreateItem(player, createItem, createAmount);
 
-            ModifyItem(player, recipe, source, target, result, success);
+            var modified = ModifyItem(player, recipe, source, target, result, success);
 
             // broadcast different messages based on recipe type
             if (!recipe.IsTinkering())
@@ -1024,6 +1034,8 @@ namespace ACE.Server.Managers
             }
             else
                 BroadcastTinkering(player, source, target, successChance, success);
+
+            return modified;
         }
 
         public static void BroadcastTinkering(Player player, WorldObject tool, WorldObject target, double chance, bool success)
@@ -1113,8 +1125,13 @@ namespace ACE.Server.Managers
             }
         }
 
-        public static void ModifyItem(Player player, Recipe recipe, WorldObject source, WorldObject target, WorldObject result, bool success)
+        /// <summary>
+        /// Returns a list of object guids that have been modified
+        /// </summary>
+        public static HashSet<uint> ModifyItem(Player player, Recipe recipe, WorldObject source, WorldObject target, WorldObject result, bool success)
         {
+            var modified = new HashSet<uint>();
+
             foreach (var mod in recipe.RecipeMod)
             {
                 if (mod.ExecutesOnSuccess != success)
@@ -1124,30 +1141,32 @@ namespace ACE.Server.Managers
 
                 // apply type mods
                 foreach (var boolMod in mod.RecipeModsBool)
-                    ModifyBool(player, boolMod, source, target, result);
+                    ModifyBool(player, boolMod, source, target, result, modified);
 
                 foreach (var intMod in mod.RecipeModsInt)
-                    ModifyInt(player, intMod, source, target, result);
+                    ModifyInt(player, intMod, source, target, result, modified);
 
                 foreach (var floatMod in mod.RecipeModsFloat)
-                    ModifyFloat(player, floatMod, source, target, result);
+                    ModifyFloat(player, floatMod, source, target, result, modified);
 
                 foreach (var stringMod in mod.RecipeModsString)
-                    ModifyString(player, stringMod, source, target, result);
+                    ModifyString(player, stringMod, source, target, result, modified);
 
                 foreach (var iidMod in mod.RecipeModsIID)
-                    ModifyInstanceID(player, iidMod, source, target, result);
+                    ModifyInstanceID(player, iidMod, source, target, result, modified);
 
                 foreach (var didMod in mod.RecipeModsDID)
-                    ModifyDataID(player, didMod, source, target, result);
+                    ModifyDataID(player, didMod, source, target, result, modified);
 
                 // run mutation script, if applicable
                 if (mod.DataId != 0)
-                    TryMutate(player, source, target, recipe, (uint)mod.DataId);
+                    TryMutate(player, source, target, recipe, (uint)mod.DataId, modified);
             }
+
+            return modified;
         }
 
-        public static void ModifyBool(Player player, RecipeModsBool boolMod, WorldObject source, WorldObject target, WorldObject result)
+        public static void ModifyBool(Player player, RecipeModsBool boolMod, WorldObject source, WorldObject target, WorldObject result, HashSet<uint> modified)
         {
             var op = (ModificationOperation)boolMod.Enum;
             var prop = (PropertyBool)boolMod.Stat;
@@ -1162,12 +1181,13 @@ namespace ACE.Server.Managers
                 return;
             }
             player.UpdateProperty(targetMod, prop, value);
+            modified.Add(targetMod.Guid.Full);
 
             if (Debug)
                 Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
         }
 
-        public static void ModifyInt(Player player, RecipeModsInt intMod, WorldObject source, WorldObject target, WorldObject result)
+        public static void ModifyInt(Player player, RecipeModsInt intMod, WorldObject source, WorldObject target, WorldObject result, HashSet<uint> modified)
         {
             var op = (ModificationOperation)intMod.Enum;
             var prop = (PropertyInt)intMod.Stat;
@@ -1180,22 +1200,27 @@ namespace ACE.Server.Managers
             {
                 case ModificationOperation.SetValue:
                     player.UpdateProperty(targetMod, prop, value);
+                    modified.Add(targetMod.Guid.Full);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.Add:
                     player.UpdateProperty(targetMod, prop, (targetMod.GetProperty(prop) ?? 0) + value);
+                    modified.Add(targetMod.Guid.Full);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.IncProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
                     player.UpdateProperty(target, prop, sourceMod.GetProperty(prop) ?? 0);
+                    modified.Add(target.Guid.Full);
                     if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
                     player.UpdateProperty(result, prop, player.GetProperty(prop) ?? 0);     // ??
+                    modified.Add(result.Guid.Full);
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.AddSpell:
                     targetMod.Biota.GetOrAddKnownSpell(intMod.Stat, target.BiotaDatabaseLock, out var added);
+                    modified.Add(targetMod.Guid.Full);
                     if (added)
                         targetMod.ChangesDetected = true;
                     if (Debug) Console.WriteLine($"{targetMod.Name}.AddSpell({intMod.Stat}) - {op}");
@@ -1206,7 +1231,7 @@ namespace ACE.Server.Managers
             }
         }
 
-        public static void ModifyFloat(Player player, RecipeModsFloat floatMod, WorldObject source, WorldObject target, WorldObject result)
+        public static void ModifyFloat(Player player, RecipeModsFloat floatMod, WorldObject source, WorldObject target, WorldObject result, HashSet<uint> modified)
         {
             var op = (ModificationOperation)floatMod.Enum;
             var prop = (PropertyFloat)floatMod.Stat;
@@ -1219,18 +1244,22 @@ namespace ACE.Server.Managers
             {
                 case ModificationOperation.SetValue:
                     player.UpdateProperty(targetMod, prop, value);
+                    modified.Add(targetMod.Guid.Full);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.Add:
                     player.UpdateProperty(targetMod, prop, (targetMod.GetProperty(prop) ?? 0) + value);
+                    modified.Add(targetMod.Guid.Full);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.IncProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
                     player.UpdateProperty(target, prop, sourceMod.GetProperty(prop) ?? 0);
+                    modified.Add(target.Guid.Full);
                     if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
                     player.UpdateProperty(result, prop, player.GetProperty(prop) ?? 0);
+                    modified.Add(result.Guid.Full);
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 default:
@@ -1239,7 +1268,7 @@ namespace ACE.Server.Managers
             }
         }
 
-        public static void ModifyString(Player player, RecipeModsString stringMod, WorldObject source, WorldObject target, WorldObject result)
+        public static void ModifyString(Player player, RecipeModsString stringMod, WorldObject source, WorldObject target, WorldObject result, HashSet<uint> modified)
         {
             var op = (ModificationOperation)stringMod.Enum;
             var prop = (PropertyString)stringMod.Stat;
@@ -1252,14 +1281,17 @@ namespace ACE.Server.Managers
             {
                 case ModificationOperation.SetValue:
                     player.UpdateProperty(targetMod, prop, value);
+                    modified.Add(targetMod.Guid.Full);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
                     player.UpdateProperty(target, prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
+                    modified.Add(target.Guid.Full);
                     if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? sourceMod.Name}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
                     player.UpdateProperty(result, prop, player.GetProperty(prop) ?? player.Name);
+                    modified.Add(result.Guid.Full);
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? player.Name}) - {op}");
                     break;
                 default:
@@ -1268,7 +1300,7 @@ namespace ACE.Server.Managers
             }
         }
 
-        public static void ModifyInstanceID(Player player, RecipeModsIID iidMod, WorldObject source, WorldObject target, WorldObject result)
+        public static void ModifyInstanceID(Player player, RecipeModsIID iidMod, WorldObject source, WorldObject target, WorldObject result, HashSet<uint> modified)
         {
             var op = (ModificationOperation)iidMod.Enum;
             var prop = (PropertyInstanceId)iidMod.Stat;
@@ -1281,14 +1313,17 @@ namespace ACE.Server.Managers
             {
                 case ModificationOperation.SetValue:
                     player.UpdateProperty(targetMod, prop, value);
+                    modified.Add(targetMod.Guid.Full);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
                     player.UpdateProperty(target, prop, ModifyInstanceIDRuleSet(prop, sourceMod, targetMod));
+                    modified.Add(target.Guid.Full);
                     if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {ModifyInstanceIDRuleSet(prop, sourceMod, targetMod)}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
                     player.UpdateProperty(result, prop, ModifyInstanceIDRuleSet(prop, player, targetMod));     // ??
+                    modified.Add(result.Guid.Full);
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {ModifyInstanceIDRuleSet(prop, player, targetMod)}) - {op}");
                     break;
                 default:
@@ -1311,7 +1346,7 @@ namespace ACE.Server.Managers
             return sourceMod.GetProperty(property) ?? 0;
         }
 
-        public static void ModifyDataID(Player player, RecipeModsDID didMod, WorldObject source, WorldObject target, WorldObject result)
+        public static void ModifyDataID(Player player, RecipeModsDID didMod, WorldObject source, WorldObject target, WorldObject result, HashSet<uint> modified)
         {
             var op = (ModificationOperation)didMod.Enum;
             var prop = (PropertyDataId)didMod.Stat;
@@ -1324,14 +1359,17 @@ namespace ACE.Server.Managers
             {
                 case ModificationOperation.SetValue:
                     player.UpdateProperty(targetMod, prop, value);
+                    modified.Add(targetMod.Guid.Full);
                     if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, {value}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToTarget:
                     player.UpdateProperty(target, prop, sourceMod.GetProperty(prop) ?? 0);
+                    modified.Add(target.Guid.Full);
                     if (Debug) Console.WriteLine($"{target.Name}.SetProperty({prop}, {sourceMod.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 case ModificationOperation.CopyFromSourceToResult:
                     player.UpdateProperty(result, prop, player.GetProperty(prop) ?? 0);
+                    modified.Add(result.Guid.Full);
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 default:
@@ -1345,7 +1383,7 @@ namespace ACE.Server.Managers
         /// </summary>
         private static readonly bool useMutateNative = false;
 
-        public static bool TryMutate(Player player, WorldObject source, WorldObject target, Recipe recipe, uint dataId)
+        public static bool TryMutate(Player player, WorldObject source, WorldObject target, Recipe recipe, uint dataId, HashSet<uint> modified)
         {
             if (useMutateNative)
                 return TryMutateNative(player, source, target, recipe, dataId);
@@ -1364,6 +1402,8 @@ namespace ACE.Server.Managers
 
             if (numTimesTinkered != target.NumTimesTinkered)
                 HandleTinkerLog(source, target);
+
+            modified.Add(target.Guid.Full);
 
             return result;
         }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 using ACE.Database;
 using ACE.Entity.Models;
@@ -52,7 +51,12 @@ namespace ACE.Server.Network.GameEvent.Events
 
             vendor.forEachItem((obj) =>
             {
-                Writer.Write(-1);   // -1 = unlimited supply?
+                int stackSize = obj.VendorShopCreateListStackSize ?? obj.StackSize ?? 1; // -1 = unlimited supply
+
+                // packed value: (stackSize & 0xFFFFFF) | (pwdType << 24)
+                // pwdType: flag indicating whether the new or old PublicWeenieDesc is used; -1 = PublicWeenieDesc, 1 = OldPublicWeenieDesc; -1 always used.
+                Writer.Write(stackSize & 0xFFFFFF | -1 << 24);
+
                 obj.SerializeGameDataOnly(Writer);
             });
 

@@ -76,21 +76,21 @@ namespace ACE.Server.Factories
 
         private static void RandomizeHeritage(CharacterCreateInfo characterCreateInfo)
         {
-            var heritage = (uint)rand.Next(1, 12);
-            var heritageGroup = DatManager.PortalDat.CharGen.HeritageGroups[heritage];
+            var heritage = (HeritageGroup)rand.Next(1, 11);
+            var heritageGroup = DatManager.PortalDat.CharGen.HeritageGroups[(uint)heritage];
 
             characterCreateInfo.Heritage = heritage;
             characterCreateInfo.Gender = (uint)heritageGroup.Genders.ElementAt(rand.Next(0, heritageGroup.Genders.Count)).Key;
 
             var sex = heritageGroup.Genders[(int)characterCreateInfo.Gender];
 
-            characterCreateInfo.Apperance.HairColor = (uint)rand.Next(0, sex.HairColorList.Count);
-            characterCreateInfo.Apperance.HairStyle = (uint)rand.Next(0, sex.HairStyleList.Count);
+            characterCreateInfo.Appearance.HairColor = (uint)rand.Next(0, sex.HairColorList.Count);
+            characterCreateInfo.Appearance.HairStyle = (uint)rand.Next(0, sex.HairStyleList.Count);
 
-            characterCreateInfo.Apperance.Eyes = (uint)rand.Next(0, sex.EyeStripList.Count);
-            characterCreateInfo.Apperance.EyeColor = (uint)rand.Next(0, sex.EyeColorList.Count);
-            characterCreateInfo.Apperance.Nose = (uint)rand.Next(0, sex.NoseStripList.Count);
-            characterCreateInfo.Apperance.Mouth = (uint)rand.Next(0, sex.MouthStripList.Count);
+            characterCreateInfo.Appearance.Eyes = (uint)rand.Next(0, sex.EyeStripList.Count);
+            characterCreateInfo.Appearance.EyeColor = (uint)rand.Next(0, sex.EyeColorList.Count);
+            characterCreateInfo.Appearance.Nose = (uint)rand.Next(0, sex.NoseStripList.Count);
+            characterCreateInfo.Appearance.Mouth = (uint)rand.Next(0, sex.MouthStripList.Count);
 
             // todo randomize skin
         }
@@ -129,12 +129,41 @@ namespace ACE.Server.Factories
             player.TotalSkillCredits += 46;
 
             // Playability Augs
-            player.AugmentationExtraPackSlot = 1;
-            player.AugmentationIncreasedCarryingCapacity = 5;
-            player.AugmentationLessDeathItemLoss = 3;
-            player.AugmentationSpellsRemainPastDeath = 1;
-            player.AugmentationIncreasedSpellDuration = 5;
-            player.AugmentationJackOfAllTrades = 1;
+            if (player.AugmentationExtraPackSlot == 0)
+            {
+                player.AugmentationExtraPackSlot = 1;
+                player.AvailableExperience -= 4000000000;
+            }
+
+            while (player.AugmentationIncreasedCarryingCapacity < 5)
+            {
+                player.AugmentationIncreasedCarryingCapacity++;
+                player.AvailableExperience -= 1000000000;
+            }
+
+            while (player.AugmentationLessDeathItemLoss < 3)
+            {
+                player.AugmentationLessDeathItemLoss++;
+                player.AvailableExperience -= 2000000000;
+            }
+
+            if (player.AugmentationSpellsRemainPastDeath == 0)
+            {
+                player.AugmentationSpellsRemainPastDeath = 1;
+                player.AvailableExperience -= 4000000000;
+            }
+
+            while (player.AugmentationIncreasedSpellDuration < 5)
+            {
+                player.AugmentationIncreasedSpellDuration++;
+                player.AvailableExperience -= 1000000000;
+            }
+
+            if (player.AugmentationJackOfAllTrades == 0)
+            {
+                player.AugmentationJackOfAllTrades = 1;
+                player.AvailableExperience -= 4000000000;
+            }
 
             // todo: Optionally add other augs
         }

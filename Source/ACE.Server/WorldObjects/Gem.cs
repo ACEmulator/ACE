@@ -203,7 +203,7 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            if (itemsToReceive.RequiredInventorySlots > 0)
+            if (itemsToReceive.RequiredSlots > 0)
             {
                 var remaining = amount;
 
