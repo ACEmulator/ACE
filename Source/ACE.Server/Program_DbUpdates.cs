@@ -239,6 +239,7 @@ namespace ACE.Server
             PatchDatabase("Authentication", ConfigManager.Config.MySql.Authentication.Host, ConfigManager.Config.MySql.Authentication.Port, ConfigManager.Config.MySql.Authentication.Username, ConfigManager.Config.MySql.Authentication.Password, ConfigManager.Config.MySql.Authentication.Database);
             PatchDatabase("Shard", ConfigManager.Config.MySql.Shard.Host, ConfigManager.Config.MySql.Shard.Port, ConfigManager.Config.MySql.Shard.Username, ConfigManager.Config.MySql.Shard.Password, ConfigManager.Config.MySql.Shard.Database);
             PatchDatabase("World", ConfigManager.Config.MySql.World.Host, ConfigManager.Config.MySql.World.Port, ConfigManager.Config.MySql.World.Username, ConfigManager.Config.MySql.World.Password, ConfigManager.Config.MySql.World.Database);
+            PatchDatabase("PKKills", ConfigManager.Config.MySql.PKKills.Host, ConfigManager.Config.MySql.PKKills.Port, ConfigManager.Config.MySql.PKKills.Username, ConfigManager.Config.MySql.PKKills.Password, ConfigManager.Config.MySql.PKKills.Database);
 
             Thread.Sleep(1000);
             log.Info($"Automatic Database Patching complete.");
