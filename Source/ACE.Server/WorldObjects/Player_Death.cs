@@ -157,6 +157,7 @@ namespace ACE.Server.WorldObjects
 
                 if (topDamagerOther != null && topDamagerOther.IsPlayer)
                     topDamager = topDamagerOther;
+                    
             }
 
             UpdateVital(Health, 0);
@@ -553,6 +554,18 @@ namespace ACE.Server.WorldObjects
             }
 
             var destroyCoins = PropertyManager.GetBool("corpse_destroy_pyreals").Item;
+
+            if(IsPKDeath(corpse.KillerId))
+            {
+                Random rnd = new Random();
+                var shouldDropTrophy = rnd.Next(4);
+                if (shouldDropTrophy == 0)
+                {
+                    var dropItem = WorldObjectFactory.CreateNewWorldObject(1000002);
+                    dropItem.SetStackSize(1);
+                    dropItems.Add(dropItem);
+                }
+            }
 
             // add items to corpse
             foreach (var dropItem in dropItems)
