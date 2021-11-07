@@ -300,14 +300,12 @@ namespace ACE.Server.WorldObjects
 
             var targetCreature = target as Creature;
 
+            // TODO: see if this can be coalesced
             switch (spell.School)
             {
                 case MagicSchool.CreatureEnchantment:
 
-                    CreatureMagic(target, spell);
-
-                    if (target != null)
-                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+                    HandleCastSpell(spell, target);
 
                     if (spell.IsHarmful)
                     {
@@ -324,14 +322,11 @@ namespace ACE.Server.WorldObjects
 
                 case MagicSchool.LifeMagic:
 
-                    var targetDeath = LifeMagic(spell, out uint damage, out var msg, target, null, caster);
+                    HandleCastSpell(spell, target, null, caster);
 
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
                         TryHandleFactionMob(target);
-
-                        if (target != null)
-                            EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
 
                         if (spell.IsHarmful)
                         {
@@ -340,25 +335,12 @@ namespace ACE.Server.WorldObjects
                                 TryProcEquippedItems(this, targetCreature, false, caster);
                         }
                     }
-                    if (targetDeath && targetCreature != null)
-                    {
-                        targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
-                        targetCreature.Die();
-                    }
-                    break;
-
-                case MagicSchool.VoidMagic:
-
-                    VoidMagic(target, spell, caster);
-
-                    if (spell.NumProjectiles == 0 && target != null)
-                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
                     break;
 
                 case MagicSchool.WarMagic:
+                case MagicSchool.VoidMagic:
 
-                    WarMagic(target, spell, caster);
+                    HandleCastSpell(spell, target, caster);
                     break;
             }
         }

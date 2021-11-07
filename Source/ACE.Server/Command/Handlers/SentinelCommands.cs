@@ -7,9 +7,12 @@ using ACE.Database.Models.Auth;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.Enum;
+using ACE.Server.Network.Structure;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Managers;
 using ACE.Server.WorldObjects;
@@ -243,8 +246,11 @@ namespace ACE.Server.Command.Handlers
                         session.Network.EnqueueSend(new GameMessageSystemChat("Run speed boost is currently INACTIVE", ChatMessageType.Broadcast));
                     break;
                 case "on":
-                    session.Player.CreateSingleSpell(spellID);
+                    var spell = new Spell(spellID);
+                    var addResult = session.Player.EnchantmentManager.Add(spell, session.Player, null);
+                    session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, new Enchantment(session.Player, addResult.Enchantment)));
                     session.Network.EnqueueSend(new GameMessageSystemChat("Run forrest, run!", ChatMessageType.Broadcast));
+                    session.Player.HandleSpellHooks(spell);
                     break;
             }
         }
