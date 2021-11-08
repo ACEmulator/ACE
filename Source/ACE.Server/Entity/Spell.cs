@@ -358,6 +358,43 @@ namespace ACE.Server.Entity
             }
         }
 
+        /// <summary>
+        /// Returns TRUE if this spell is a DamageOverTime or HealingOverTime spell
+        /// </summary>
+        public bool IsDamageOverTime
+        {
+            get
+            {
+                if (Flags.HasFlag(SpellFlags.DamageOverTime))
+                    return true;
+
+                switch (Category)
+                {
+                    case SpellCategory.HealOverTimeRaising:
+                    case SpellCategory.DamageOverTimeRaising:
+                    case SpellCategory.AetheriaProcHealthOverTimeRaising:
+                    case SpellCategory.AetheriaProcDamageOverTimeRaising:
+                    case SpellCategory.NetherDamageOverTimeRaising:
+                    case SpellCategory.NetherDamageOverTimeRaising2:
+                    case SpellCategory.NetherDamageOverTimeRaising3:
+
+                        return true;
+                }
+
+                switch ((PropertyInt)StatModKey)
+                {
+                    case PropertyInt.HealOverTime:
+                    case PropertyInt.DamageOverTime:
+
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
+        public bool HasExtraTick => IsDamageOverTime;
+
         public bool Equals(Spell spell)
         {
             return spell != null && Id == spell.Id;
