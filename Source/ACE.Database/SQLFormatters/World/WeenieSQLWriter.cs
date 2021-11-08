@@ -296,7 +296,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `weenie_properties_position` (`object_Id`, `position_Type`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {(uint)input[i].PositionType}, 0x{input[i].ObjCellId:X8}, {input[i].OriginX:0.######}, {input[i].OriginY:0.######}, {input[i].OriginZ:0.######}, {input[i].AnglesW:0.######}, {input[i].AnglesX:0.######}, {input[i].AnglesY:0.######}, {input[i].AnglesZ:0.######}) /* {Enum.GetName(typeof(PositionType), input[i].PositionType)} */" + Environment.NewLine + $"/* @teleloc 0x{input[i].ObjCellId:X8} [{input[i].OriginX:F6} {input[i].OriginY:F6} {input[i].OriginZ:F6}] {input[i].AnglesW:F6} {input[i].AnglesX:F6} {input[i].AnglesY:F6} {input[i].AnglesZ:F6} */");
+            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {(uint)input[i].PositionType}, 0x{input[i].ObjCellId:X8}, {TrimNegativeZero(input[i].OriginX):0.######}, {TrimNegativeZero(input[i].OriginY):0.######}, {TrimNegativeZero(input[i].OriginZ):0.######}, {TrimNegativeZero(input[i].AnglesW):0.######}, {TrimNegativeZero(input[i].AnglesX):0.######}, {TrimNegativeZero(input[i].AnglesY):0.######}, {TrimNegativeZero(input[i].AnglesZ):0.######}) /* {Enum.GetName(typeof(PositionType), input[i].PositionType)} */" + Environment.NewLine + $"/* @teleloc 0x{input[i].ObjCellId:X8} [{TrimNegativeZero(input[i].OriginX):F6} {TrimNegativeZero(input[i].OriginY):F6} {TrimNegativeZero(input[i].OriginZ):F6}] {TrimNegativeZero(input[i].AnglesW):F6} {TrimNegativeZero(input[i].AnglesX):F6} {TrimNegativeZero(input[i].AnglesY):F6} {TrimNegativeZero(input[i].AnglesZ):F6} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -555,7 +555,7 @@ namespace ACE.Database.SQLFormatters.World
                 string telelocLabel = null;
                 if (input[i].ObjCellId.HasValue && input[i].ObjCellId.Value > 0)
                 {
-                    telelocLabel = $" /* @teleloc 0x{input[i].ObjCellId.Value:X8} [{input[i].OriginX.Value:F6} {input[i].OriginY.Value:F6} {input[i].OriginZ.Value:F6}] {input[i].AnglesW.Value:F6} {input[i].AnglesX.Value:F6} {input[i].AnglesY.Value:F6} {input[i].AnglesZ.Value:F6} */";
+                    telelocLabel = $" /* @teleloc 0x{input[i].ObjCellId.Value:X8} [{TrimNegativeZero(input[i].OriginX.Value):F6} {TrimNegativeZero(input[i].OriginY.Value):F6} {TrimNegativeZero(input[i].OriginZ.Value):F6}] {TrimNegativeZero(input[i].AnglesW.Value):F6} {TrimNegativeZero(input[i].AnglesX.Value):F6} {TrimNegativeZero(input[i].AnglesY.Value):F6} {TrimNegativeZero(input[i].AnglesZ.Value):F6} */";
                 }
 
                 string statLabel = null;
@@ -693,13 +693,13 @@ namespace ACE.Database.SQLFormatters.World
                     $"{input[i].Shade:0.######}, " +
                     $"{input[i].TryToBond}, " +
                     $"{(input[i].ObjCellId.HasValue ? "0x" : "")}{input[i].ObjCellId:X8}{telelocLabel}, " +
-                    $"{input[i].OriginX:0.######}, " +
-                    $"{input[i].OriginY:0.######}, " +
-                    $"{input[i].OriginZ:0.######}, " +
-                    $"{input[i].AnglesW:0.######}, " +
-                    $"{input[i].AnglesX:0.######}, " +
-                    $"{input[i].AnglesY:0.######}, " +
-                    $"{input[i].AnglesZ:0.######})";
+                    $"{TrimNegativeZero(input[i].OriginX):0.######}, " +
+                    $"{TrimNegativeZero(input[i].OriginY):0.######}, " +
+                    $"{TrimNegativeZero(input[i].OriginZ):0.######}, " +
+                    $"{TrimNegativeZero(input[i].AnglesW):0.######}, " +
+                    $"{TrimNegativeZero(input[i].AnglesX):0.######}, " +
+                    $"{TrimNegativeZero(input[i].AnglesY):0.######}, " +
+                    $"{TrimNegativeZero(input[i].AnglesZ):0.######})";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);
@@ -741,7 +741,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `weenie_properties_book_page_data` (`object_Id`, `page_Id`, `author_Id`, `author_Name`, `author_Account`, `ignore_Author`, `page_Text`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {input[i].PageId}, {input[i].AuthorId}, {GetSQLString(input[i].AuthorName)}, {GetSQLString(input[i].AuthorAccount)}, {input[i].IgnoreAuthor}, {GetSQLString(input[i].PageText)})");
+            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {input[i].PageId}, 0x{input[i].AuthorId:X8}, {GetSQLString(input[i].AuthorName)}, {GetSQLString(input[i].AuthorAccount)}, {input[i].IgnoreAuthor}, {GetSQLString(input[i].PageText)})");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -778,13 +778,13 @@ namespace ACE.Database.SQLFormatters.World
                         $"{input[i].PaletteId}, " +
                         $"{input[i].Shade:0.######}, " +
                         $"{(input[i].ObjCellId > 0 ? $"0x{input[i].ObjCellId:X8}" : $"{input[i].ObjCellId}")}, " +
-                        $"{input[i].OriginX:0.######}, " +
-                        $"{input[i].OriginY:0.######}, " +
-                        $"{input[i].OriginZ:0.######}, " +
-                        $"{input[i].AnglesW:0.######}, " +
-                        $"{input[i].AnglesX:0.######}, " +
-                        $"{input[i].AnglesY:0.######}, " +
-                        $"{input[i].AnglesZ:0.######})" +
+                        $"{TrimNegativeZero(input[i].OriginX):0.######}, " +
+                        $"{TrimNegativeZero(input[i].OriginY):0.######}, " +
+                        $"{TrimNegativeZero(input[i].OriginZ):0.######}, " +
+                        $"{TrimNegativeZero(input[i].AnglesW):0.######}, " +
+                        $"{TrimNegativeZero(input[i].AnglesX):0.######}, " +
+                        $"{TrimNegativeZero(input[i].AnglesY):0.######}, " +
+                        $"{TrimNegativeZero(input[i].AnglesZ):0.######})" +
                         $" /* Generate {label} (x{input[i].InitCreate:N0} up to max of {input[i].MaxCreate:N0}) - Regenerate upon {Enum.GetName(typeof(RegenerationType), input[i].WhenCreate)} - Location to (re)Generate: {Enum.GetName(typeof(RegenLocationType), input[i].WhereCreate)} */";
             });
             ValuesWriter(input.Count, lineGenerator, writer);
