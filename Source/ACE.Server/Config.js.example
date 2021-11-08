@@ -148,29 +148,37 @@
         }
     ]
   },
-  "MySql": {
-    "Authentication": {
-      "Host": "127.0.0.1",
-      "Port": 3306,
-      "Database": "ace_auth",
-      "Username": "root",
-      "Password": ""
+    "MySql": {
+        "Authentication": {
+            "Host": "127.0.0.1",
+            "Port": 3306,
+            "Database": "ace_auth",
+            "Username": "root",
+            "Password": ""
+        },
+        "Shard": {
+            "Host": "127.0.0.1",
+            "Port": 3306,
+            "Database": "ace_shard",
+            "Username": "root",
+            "Password": ""
+        },
+        "World": {
+            "Host": "127.0.0.1",
+            "Port": 3306,
+            "Database": "ace_world",
+            "Username": "root",
+            "Password": ""
+        },
+        "PKKills": {
+            "Host": "127.0.0.1",
+            "Port": 3306,
+            "Database": "ace_pk_kills",
+            "Username": "root",
+            "Password": ""
+        }
+
     },
-    "Shard": {
-      "Host": "127.0.0.1",
-      "Port": 3306,
-      "Database": "ace_shard",
-      "Username": "root",
-      "Password": ""
-    },
-    "World": {
-      "Host": "127.0.0.1",
-      "Port": 3306,
-      "Database": "ace_world",
-      "Username": "root",
-      "Password": ""
-    }
-  },
   // This section can trigger events that may happen before the world starts up, or after it shuts down
   // The shard should be in a disconnected state from any running ACE world
   "Offline": {
