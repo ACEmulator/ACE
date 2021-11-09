@@ -1343,8 +1343,118 @@ namespace ACE.Server.WorldObjects
             }
             return 0;
         }
+        public int KillStreak
+        {
+            get => GetProperty(PropertyInt.KillStreak) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.KillStreak); else SetProperty(PropertyInt.KillStreak, (int)value); }
+        }
+        public string PlayersKilled
+        {
+            get => GetProperty(PropertyString.PlayersKilled);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilled); else SetProperty(PropertyString.PlayersKilled, value); }
+        }
+        public string PlayersKilled1
+        {
+            get => GetProperty(PropertyString.PlayersKilled1);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilled1); else SetProperty(PropertyString.PlayersKilled1, value); }
+        }
+        public string PlayersKilled2
+        {
+            get => GetProperty(PropertyString.PlayersKilled2);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilled2); else SetProperty(PropertyString.PlayersKilled2, value); }
+        }
+        public string PlayersKilled3
+        {
+            get => GetProperty(PropertyString.PlayersKilled3);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilled3); else SetProperty(PropertyString.PlayersKilled3, value); }
+        }
+        public string PlayersKilled4
+        {
+            get => GetProperty(PropertyString.PlayersKilled4);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilled4); else SetProperty(PropertyString.PlayersKilled4, value); }
+        }
+        public string PlayersKilled5
+        {
+            get => GetProperty(PropertyString.PlayersKilled5);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilled5); else SetProperty(PropertyString.PlayersKilled5, value); }
+        }
+        public string PlayersKilled6
+        {
+            get => GetProperty(PropertyString.PlayersKilled6);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilled6); else SetProperty(PropertyString.PlayersKilled6, value); }
+        }
+        public string PlayersKilled7
+        {
+            get => GetProperty(PropertyString.PlayersKilled7);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilled7); else SetProperty(PropertyString.PlayersKilled7, value); }
+        }
+        public string PlayersKilled8
+        {
+            get => GetProperty(PropertyString.PlayersKilled8);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilled8); else SetProperty(PropertyString.PlayersKilled8, value); }
+        }
+        public string PlayersKilled9
+        {
+            get => GetProperty(PropertyString.PlayersKilled9);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilled9); else SetProperty(PropertyString.PlayersKilled9, value); }
+        }
+        public string PlayersKilled10
+        {
+            get => GetProperty(PropertyString.PlayersKilled10);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilled10); else SetProperty(PropertyString.PlayersKilled10, value); }
+        }
+        public string PlayersKilledIP1
+        {
+            get => GetProperty(PropertyString.PlayersKilledIP1);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilledIP1); else SetProperty(PropertyString.PlayersKilledIP1, value); }
+        }
+        public string PlayersKilledIP2
+        {
+            get => GetProperty(PropertyString.PlayersKilledIP2);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilledIP2); else SetProperty(PropertyString.PlayersKilledIP2, value); }
+        }
+        public string PlayersKilledIP3
+        {
+            get => GetProperty(PropertyString.PlayersKilledIP3);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilledIP3); else SetProperty(PropertyString.PlayersKilledIP3, value); }
+        }
+        public string PlayersKilledIP4
+        {
+            get => GetProperty(PropertyString.PlayersKilledIP4);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilledIP4); else SetProperty(PropertyString.PlayersKilledIP4, value); }
+        }
+        public string PlayersKilledIP5
+        {
+            get => GetProperty(PropertyString.PlayersKilledIP5);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilledIP5); else SetProperty(PropertyString.PlayersKilledIP5, value); }
+        }
+        public string PlayersKilledIP6
+        {
+            get => GetProperty(PropertyString.PlayersKilledIP6);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilledIP6); else SetProperty(PropertyString.PlayersKilledIP6, value); }
+        }
+        public string PlayersKilledIP7
+        {
+            get => GetProperty(PropertyString.PlayersKilledIP7);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilledIP7); else SetProperty(PropertyString.PlayersKilledIP7, value); }
+        }
+        public string PlayersKilledIP8
+        {
+            get => GetProperty(PropertyString.PlayersKilledIP8);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilledIP8); else SetProperty(PropertyString.PlayersKilledIP8, value); }
+        }
+        public string PlayersKilledIP9
+        {
+            get => GetProperty(PropertyString.PlayersKilledIP9);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilledIP9); else SetProperty(PropertyString.PlayersKilledIP9, value); }
+        }
+        public string PlayersKilledIP10
+        {
+            get => GetProperty(PropertyString.PlayersKilledIP10);
+            set { if (value == null) RemoveProperty(PropertyString.PlayersKilledIP10); else SetProperty(PropertyString.PlayersKilledIP10, value); }
+        }
 
-        public string CurrentRareEnchantmentIds
+    public string CurrentRareEnchantmentIds
         {
             get => GetProperty(PropertyString.CurrentRareEnchantmentIds);
             set { if (string.IsNullOrEmpty(value)) RemoveProperty(PropertyString.CurrentRareEnchantmentIds); else SetProperty(PropertyString.CurrentRareEnchantmentIds, value); }

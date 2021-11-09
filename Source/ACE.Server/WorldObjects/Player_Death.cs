@@ -157,7 +157,7 @@ namespace ACE.Server.WorldObjects
 
                 if (topDamagerOther != null && topDamagerOther.IsPlayer)
                     topDamager = topDamagerOther;
-                    
+
             }
 
             UpdateVital(Health, 0);
@@ -203,6 +203,11 @@ namespace ACE.Server.WorldObjects
 
             if (IsPKDeath(topDamager) || AugmentationSpellsRemainPastDeath == 0)
             {
+                var killer = topDamager.TryGetAttacker() as Player;
+                if (killer != null && Level >= 75)
+                {
+                    HandleKillStreak(killer);
+                }
                 var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
                 EnchantmentManager.RemoveAllEnchantments();
                 Session.Network.EnqueueSend(msgPurgeEnchantments);
@@ -555,7 +560,7 @@ namespace ACE.Server.WorldObjects
 
             var destroyCoins = PropertyManager.GetBool("corpse_destroy_pyreals").Item;
 
-            if(IsPKDeath(corpse.KillerId))
+            if (IsPKDeath(corpse.KillerId))
             {
                 Random rnd = new Random();
                 var shouldDropTrophy = rnd.Next(4);
@@ -1036,6 +1041,143 @@ namespace ACE.Server.WorldObjects
                 destroyedItems.Add(destroyItem);
             }
             return destroyedItems;
+        }
+        public void HandleKillStreak(Player killer)
+        {
+            if (KillStreak >= 5)
+                PlayerManager.BroadcastToAll(new GameMessageSystemChat($"[KS] {killer.Name} ended {Name}'s {KillStreak} kill streak!", ChatMessageType.Broadcast));
+
+            KillStreak = 0;
+
+            killer.KillStreak++;
+
+            string msg = null;
+            var Killed = killer.KillStreak;
+
+            if (Killed >= 2 && Killed <= 3)
+            {
+                msg = $"[KS] {killer.Name} is on a Killing Spree! [{killer.KillStreak}]";
+            }
+            else if (Killed >= 4 && Killed <= 5)
+            {
+                msg = $"[KS] {killer.Name} is on a Rampage! [{killer.KillStreak}]";
+            }
+            else if (Killed >= 6 && Killed <= 7)
+            {
+                msg = $"[KS] {killer.Name} is Dominating! [{killer.KillStreak}]";
+            }
+            else if (Killed >= 8 && Killed <= 9)
+            {
+                msg = $"[KS] {killer.Name} is Unstoppable! [{killer.KillStreak}]";
+            }
+            else if (Killed >= 10 && Killed <= 14)
+            {
+                msg = $"[KS] {killer.Name} is Godlike!! [{killer.KillStreak}]";
+            }
+            else if (Killed >= 15 && Killed <= 20)
+            {
+                msg = $"[KS]{killer.Name} is Beyond Godlike!! [{killer.KillStreak}]";
+            }
+            else if (Killed >= 20)
+            {
+                msg = $"[KS]{killer.Name} is going to break the game he's so good!! [{killer.KillStreak}]";
+            }
+
+            if (msg != null)
+                PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+        }
+
+        public void Display(DamageHistoryInfo topDamager)
+        {
+            var killer = topDamager.TryGetAttacker() as Player;
+
+            if (killer == null)
+                return;
+
+            killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-------------------------------------------", ChatMessageType.x1B));
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(0.5f);
+            actionChain.AddAction(this, () =>
+            {
+
+
+                if (killer.PlayersKilled1 != null)
+                {
+
+
+                    if (killer.PlayersKilled2 == null)
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled1} [Newest]", ChatMessageType.Combat));
+                    else
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled1}", ChatMessageType.System));
+                }
+                if (killer.PlayersKilled2 != null)
+                {
+                    if (killer.PlayersKilled3 == null)
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled2} [Newest]", ChatMessageType.Combat));
+                    else
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled2}", ChatMessageType.System));
+                }
+                if (killer.PlayersKilled3 != null)
+                {
+                    if (killer.PlayersKilled4 == null)
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled3} [Newest]", ChatMessageType.Combat));
+                    else
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled3}", ChatMessageType.System));
+                }
+                if (killer.PlayersKilled4 != null)
+                {
+                    if (killer.PlayersKilled5 == null)
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled4} [Newest]", ChatMessageType.Combat));
+                    else
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled4}", ChatMessageType.System));
+                }
+                if (killer.PlayersKilled5 != null)
+                {
+                    if (killer.PlayersKilled6 == null)
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled5} [Newest]", ChatMessageType.Combat));
+                    else
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled5}", ChatMessageType.System));
+                }
+                if (killer.PlayersKilled6 != null)
+                {
+                    if (killer.PlayersKilled7 == null)
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled6} [Newest]", ChatMessageType.Combat));
+                    else
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled6}", ChatMessageType.System));
+                }
+                if (killer.PlayersKilled7 != null)
+                {
+                    if (killer.PlayersKilled8 == null)
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled7} [Newest]", ChatMessageType.Combat));
+                    else
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled7}", ChatMessageType.System));
+                }
+                if (killer.PlayersKilled8 != null)
+                {
+                    if (killer.PlayersKilled9 == null)
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled8} [Newest]", ChatMessageType.Combat));
+                    else
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled8}", ChatMessageType.System));
+                }
+                if (killer.PlayersKilled9 != null)
+                {
+                    if (killer.PlayersKilled10 == null)
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled9} [Newest]", ChatMessageType.Combat));
+                    else
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled9}", ChatMessageType.System));
+                }
+                if (killer.PlayersKilled10 != null)
+                {
+                    if (killer.PlayersKilled9 != null)
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled10} [Newest]", ChatMessageType.Combat));
+                    else
+                        killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-> {killer.PlayersKilled10}", ChatMessageType.System));
+                }
+
+                killer.Session.Network.EnqueueSend(new GameMessageSystemChat($"-------------------------------------------", ChatMessageType.x1B));
+
+            });
+            actionChain.EnqueueChain();
         }
     }
 }
