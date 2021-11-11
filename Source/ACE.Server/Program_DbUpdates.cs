@@ -84,18 +84,16 @@ namespace ACE.Server
             }
 
             Console.Write($"Downloading {dbFileName} .... ");
-            using (var client = new WebClient())
+            using var client = new WebClient();
+            try
             {
-                try
-                {
-                    var dlTask = client.DownloadFile(dbURL, dbFileName);
-                    dlTask.Wait();
-                }
-                catch
-                {
-                    Console.Write($"Download for {dbFileName} failed!");
-                    return;
-                }
+                var dlTask = client.DownloadFile(dbURL, dbFileName);
+                dlTask.Wait();
+            }
+            catch
+            {
+                Console.Write($"Download for {dbFileName} failed!");
+                return;
             }
             Console.WriteLine("download complete!");
 
