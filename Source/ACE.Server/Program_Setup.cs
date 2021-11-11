@@ -385,66 +385,64 @@ namespace ACE.Server
                 Console.Write("Looking up latest release from ACEmulator/ACE-World-16PY-Patches .... ");
 
                 var url = "https://api.github.com/repos/ACEmulator/ACE-World-16PY-Patches/releases";
-                using (var client = new WebClient())
+                using var client = new WebClient();
+                var html = client.GetStringFromURL(url).Result;
+
+                dynamic json = JsonConvert.DeserializeObject(html);
+                string tag = json[0].tag_name;
+                string dbURL = json[0].assets[0].browser_download_url;
+                string dbFileName = json[0].assets[0].name;
+
+                Console.WriteLine($"Found {tag} !");
+
+                Console.Write($"Downloading {dbFileName} .... ");
+                var dlTask = client.DownloadFile(dbURL, dbFileName);
+                dlTask.Wait();
+                Console.WriteLine("download complete!");
+
+                Console.Write($"Extracting {dbFileName} .... ");
+                ZipFile.ExtractToDirectory(dbFileName, ".", true);
+                Console.WriteLine("extraction complete!");
+                Console.Write($"Deleting {dbFileName} .... ");
+                File.Delete(dbFileName);
+                Console.WriteLine("Deleted!");
+
+                var sqlFile = dbFileName.Substring(0, dbFileName.Length - 4);
+                Console.Write($"Importing {sqlFile} into SQL server at {config.MySql.World.Host}:{config.MySql.World.Port} (This will take a while, please be patient) .... ");
+                using (var sr = File.OpenText(sqlFile))
                 {
-                    var html = client.GetStringFromURL(url).Result;
+                    var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};DefaultCommandTimeout=120");
 
-                    dynamic json = JsonConvert.DeserializeObject(html);
-                    string tag = json[0].tag_name;
-                    string dbURL = json[0].assets[0].browser_download_url;
-                    string dbFileName = json[0].assets[0].name;
-
-                    Console.WriteLine($"Found {tag} !");
-
-                    Console.Write($"Downloading {dbFileName} .... ");
-                    var dlTask = client.DownloadFile(dbURL, dbFileName);
-                    dlTask.Wait();
-                    Console.WriteLine("download complete!");
-
-                    Console.Write($"Extracting {dbFileName} .... ");
-                    ZipFile.ExtractToDirectory(dbFileName, ".", true);
-                    Console.WriteLine("extraction complete!");
-                    Console.Write($"Deleting {dbFileName} .... ");
-                    File.Delete(dbFileName);
-                    Console.WriteLine("Deleted!");
-
-                    var sqlFile = dbFileName.Substring(0, dbFileName.Length - 4);
-                    Console.Write($"Importing {sqlFile} into SQL server at {config.MySql.World.Host}:{config.MySql.World.Port} (This will take a while, please be patient) .... ");
-                    using (var sr = File.OpenText(sqlFile))
+                    var line = string.Empty;
+                    var completeSQLline = string.Empty;
+                    while ((line = sr.ReadLine()) != null)
                     {
-                        var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};DefaultCommandTimeout=120");
-
-                        var line = string.Empty;
-                        var completeSQLline = string.Empty;
-                        while ((line = sr.ReadLine()) != null)
+                        //do minimal amount of work here
+                        if (line.EndsWith(";"))
                         {
-                            //do minimal amount of work here
-                            if (line.EndsWith(";"))
+                            completeSQLline += line + Environment.NewLine;
+
+                            var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, completeSQLline);
+                            try
                             {
-                                completeSQLline += line + Environment.NewLine;
-
-                                var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, completeSQLline);
-                                try
-                                {
-                                    script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
-                                    var count = script.Execute();
-                                }
-                                catch (MySql.Data.MySqlClient.MySqlException)
-                                {
-
-                                }
-                                completeSQLline = string.Empty;
+                                script.StatementExecuted += new MySql.Data.MySqlClient.MySqlStatementExecutedEventHandler(OnStatementExecutedOutputDot);
+                                var count = script.Execute();
                             }
-                            else
-                                completeSQLline += line + Environment.NewLine;
-                        }
-                    }
-                    Console.WriteLine(" complete!");
+                            catch (MySql.Data.MySqlClient.MySqlException)
+                            {
 
-                    Console.Write($"Deleting {sqlFile} .... ");
-                    File.Delete(sqlFile);
-                    Console.WriteLine("Deleted!");
+                            }
+                            completeSQLline = string.Empty;
+                        }
+                        else
+                            completeSQLline += line + Environment.NewLine;
+                    }
                 }
+                Console.WriteLine(" complete!");
+
+                Console.Write($"Deleting {sqlFile} .... ");
+                File.Delete(sqlFile);
+                Console.WriteLine("Deleted!");
             }
 
             Console.WriteLine("exiting setup for ACEmulator.");
