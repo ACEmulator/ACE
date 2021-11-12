@@ -321,6 +321,11 @@ namespace ACE.Server.Network.Handlers
                     }
 
                     session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, ChatNetworkBlobDispatchType.ASYNCMETHOD_SENDTOROOMBYNAME, contextId, null, null, 0, adjustedchatType));
+
+                    if(adjustedchatType == ChatType.General)
+                    {
+                        _ = SendWebhookedChat(gameMessageTurbineChat.SenderName, gameMessageTurbineChat.Message, null, gameMessageTurbineChat.Channel);
+                    }
                 }
 
                 LogTurbineChat(adjustedChannelID, session.Player.Name, message, senderID, adjustedchatType);
