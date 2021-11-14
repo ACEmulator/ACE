@@ -2046,7 +2046,7 @@ namespace ACE.Server.WorldObjects
             return enchantment_statModVal;
         }
 
-        protected void TryCastItemEnchantment_WithRedirects(Spell spell, WorldObject target, WorldObject itemCaster = null)
+        public void TryCastItemEnchantment_WithRedirects(Spell spell, WorldObject target, WorldObject itemCaster = null)
         {
             var caster = itemCaster ?? this;
 
