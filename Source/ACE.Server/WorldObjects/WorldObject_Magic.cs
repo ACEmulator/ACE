@@ -1245,7 +1245,7 @@ namespace ACE.Server.WorldObjects
 
             var success = SummonPortal(portalId, summonLoc, spell.PortalLifetime);
 
-            if (!success)
+            if (!success && player != null)
                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouFailToSummonPortal));
         }
 
