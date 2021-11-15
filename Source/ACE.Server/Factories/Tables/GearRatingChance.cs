@@ -3,6 +3,8 @@ using log4net;
 using ACE.Database.Models.World;
 using ACE.Server.Factories.Entity;
 using ACE.Server.WorldObjects;
+using ACE.Server.Managers;
+using System;
 
 namespace ACE.Server.Factories.Tables
 {
@@ -32,6 +34,24 @@ namespace ACE.Server.Factories.Tables
 
         public static int Roll(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
+
+            var rating_drop_rate = (float)Math.Max(0.0f, PropertyManager.GetDouble("rating_drop_rate").Item);
+            if(rating_drop_rate > 1.0f)
+            {
+                rating_drop_rate = 1.0f;
+            }
+
+            if (rating_drop_rate < 0.0f)
+            {
+                rating_drop_rate = 0.0f;
+            }
+
+            RatingChance = new ChanceTable<bool>()
+            {
+                ( false, 1.0f - rating_drop_rate ),
+                ( true,  rating_drop_rate ),
+            };
+
             // initial roll for rating chance
             if (!RatingChance.Roll(profile.LootQualityMod))
                 return 0;
