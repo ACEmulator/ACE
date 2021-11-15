@@ -985,7 +985,7 @@ namespace ACE.Server.Factories
 
         private static bool TryMutateGearRating(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
-            if (profile.Tier != 10)
+            if (profile.Tier != 8)
                 return false;
 
             // shields don't have gear ratings
