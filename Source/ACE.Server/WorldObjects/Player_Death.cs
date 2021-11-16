@@ -112,11 +112,13 @@ namespace ACE.Server.WorldObjects
                 if ((Location.Cell & 0xFFFF) < 0x100)
                     globalPKDe += $" The kill occured at {Location.GetMapCoordStr()}";
 
+                string webhookMsg = new String(globalPKDe);
+
                 globalPKDe += "\n[PKDe]";
 
                 PlayerManager.BroadcastToAll(new GameMessageSystemChat(globalPKDe, ChatMessageType.Broadcast));
 
-                _ = TurbineChatHandler.SendWebhookedChat("God of PK", globalPKDe, null, "General");
+                _ = TurbineChatHandler.SendWebhookedChat("God of PK", webhookMsg, null, "General");
             }
             else if (IsPKLiteDeath(topDamager))
                 pkPlayer.PlayerKillsPkl++;
