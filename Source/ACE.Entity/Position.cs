@@ -254,26 +254,40 @@ namespace ACE.Entity
             RotationZ = payload.ReadSingle();
         }
 
-        public Position(float northSouth, float eastWest)
+        public Position(float northSouth, float eastWest, bool vCoordCorrection = false)
         {
-            northSouth = (northSouth - 0.5f) * 10.0f;
-            eastWest = (eastWest - 0.5f) * 10.0f;
+            var mapCoords = new Vector2(eastWest, northSouth);
 
-            var baseX = (uint)(eastWest + 0x400);
-            var baseY = (uint)(northSouth + 0x400);
+            // convert from (-102, 102) to (0, 204)
+            mapCoords += Vector2.One * 102;
 
-            if (baseX >= 0x7F8 || baseY >= 0x7F8)
-                throw new Exception("Bad coordinates");  // TODO: Instead of throwing exception should we set to a default location?
+            // 204 = map clicks across dereth
+            // 2040 = number of cells across dereth
+            // 24 = meters per cell
+            //var globalPos = mapCoords / 204 * 2040 * 24;
+            var globalPos = mapCoords * 240;   // simplified
 
-            float xOffset = ((baseX & 7) * 24.0f) + 12;
-            float yOffset = ((baseY & 7) * 24.0f) + 12;
-            // float zOffset = GetZFromCellXY(LandblockId.Raw, xOffset, yOffset);
-            const float zOffset = 0.0f;
+            if (vCoordCorrection)
+                globalPos -= Vector2.One * 12.0f; // ?????
 
-            LandblockId = new LandblockId(GetCellFromBase(baseX, baseY));
-            PositionX = xOffset;
-            PositionY = yOffset;
-            PositionZ = zOffset;
+            // inlining, this logic is in PositionExtensions.FromGlobal()
+            var blockX = (int)globalPos.X / BlockLength;
+            var blockY = (int)globalPos.Y / BlockLength;
+
+            var originX = globalPos.X % BlockLength;
+            var originY = globalPos.Y % BlockLength;
+
+            var cellX = (int)originX / CellLength;
+            var cellY = (int)originY / CellLength;
+
+            var cell = cellX * CellSide + cellY + 1;
+
+            var objCellID = (uint)(blockX << 24 | blockY << 16 | cell);
+
+            LandblockId = new LandblockId(objCellID);
+
+            Pos = new Vector3(originX, originY, 0);     // must use PositionExtensions.AdjustMapCoords() to get Z
+
             Rotation = Quaternion.Identity;
         }
 
