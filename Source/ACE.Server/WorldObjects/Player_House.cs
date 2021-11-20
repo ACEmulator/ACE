@@ -622,11 +622,6 @@ namespace ACE.Server.WorldObjects
             house.OpenStatus = true; //barriers are for pussies
             house.SaveBiotaToDatabase();
 
-            
-            //house.Biota.SetProperty(PropertyBool.Open, house.OpenStatus, house.BiotaDatabaseLock, out _);
-            //house.ChangesDetected = true;
-            //house.UpdateRestrictionDB();
-
             // relink
             house.UpdateLinks();
 

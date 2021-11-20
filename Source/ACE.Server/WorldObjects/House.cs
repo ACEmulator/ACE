@@ -146,11 +146,6 @@ namespace ACE.Server.WorldObjects
                 linkedHouse.ActivateLinks(instances, new List<ACE.Database.Models.Shard.Biota> { biota }, linkedHouses[0]);
 
             var house = (House)linkedHouses[0];
-            house.OpenStatus = true;
-            house.OpenToEveryone = true;
-            house.Biota.SetProperty(PropertyBool.Open, house.OpenStatus, house.BiotaDatabaseLock, out _);
-            house.ChangesDetected = true;
-            house.UpdateRestrictionDB();
 
             if (isBasement)
                 return house;
@@ -173,6 +168,7 @@ namespace ACE.Server.WorldObjects
                 house.ChildLinks.Remove(house.SlumLord);
                 house.ChildLinks.Add(slumlord);
             }
+
             return house;
         }
 
