@@ -2787,6 +2787,7 @@ namespace ACE.Server.Command.Handlers.Processors
                     }
                 }
 
+                vi = new FileInfo(vlocFile);
                 if (vi.Exists)
                     CommandHandlerHelper.WriteOutputInfo(session, $"Successfully wrote VLOCs for 0x{lbid:X4} to {vlocFile}");
                 else
