@@ -32,7 +32,7 @@ namespace ACE.Server.WorldObjects
         /// house open/closed status
         /// 0 = closed, 1 = open
         /// </summary>
-        public bool OpenStatus { get => OpenToEveryone; set => OpenToEveryone = value; }
+        public bool OpenStatus { get => true; set => OpenToEveryone = true; }
 
         /// <summary>
         /// For linking mansions
@@ -146,6 +146,11 @@ namespace ACE.Server.WorldObjects
                 linkedHouse.ActivateLinks(instances, new List<ACE.Database.Models.Shard.Biota> { biota }, linkedHouses[0]);
 
             var house = (House)linkedHouses[0];
+            house.OpenStatus = true;
+            house.OpenToEveryone = true;
+            house.Biota.SetProperty(PropertyBool.Open, house.OpenStatus, house.BiotaDatabaseLock, out _);
+            house.ChangesDetected = true;
+            house.UpdateRestrictionDB();
 
             if (isBasement)
                 return house;
@@ -671,7 +676,7 @@ namespace ACE.Server.WorldObjects
 
         public bool OpenToEveryone
         {
-            get => (GetProperty(PropertyInt.OpenToEveryone) ?? 0) == 1;
+            get => (GetProperty(PropertyInt.OpenToEveryone) ?? 1) == 1;
             set { if (!value) RemoveProperty(PropertyInt.OpenToEveryone); else SetProperty(PropertyInt.OpenToEveryone, 1); }
         }
 
