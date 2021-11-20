@@ -35,7 +35,6 @@ using ACE.Server.WorldObjects.Entity;
 
 using Position = ACE.Entity.Position;
 using Spell = ACE.Server.Entity.Spell;
-using System.IO;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -3336,69 +3335,6 @@ namespace ACE.Server.Command.Handlers
 
                 PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} changed their Faction state to {session.Player.Society.ToSentence()}{(session.Player.Society != FactionBits.None ? $" with a rank of {rankStr}" : "")}.");
             }
-        }
-
-        [CommandHandler("telev", AccessLevel.Developer, CommandHandlerFlag.None, "")]
-        public static void HandleTeleToVCoord(Session session, params string[] parameters)
-        {
-            // Name,ObjectClass,LandCell,X,Y
-            // Master MacTavish,37,-114359889,97.14075000286103,-63.93749958674113
-
-            var vlocs = File.ReadLines(@"c:\ace\vloc.txt").ToArray();
-
-            for (var i = 1; i < vlocs.Count(); i++)
-            {
-                //var split = string.Join(" ", parameters).Split(",");
-
-                var split = vlocs[i].Split(",");
-
-                var name = split[0].Trim();
-                var objectClass = split[1].Trim();
-                var strLandCell = split[2].Trim();
-                var strX = split[3].Trim();
-                var strY = split[4].Trim();
-
-                int.TryParse(strLandCell, out var landCell);
-                var objCellId = (uint)landCell;
-                float.TryParse(strX, out var x);
-                float.TryParse(strY, out var y);
-
-                //if ((objCellId >> 16) != 0x9EE5 && (objCellId >> 16) != 0xF92F) continue;
-
-                //if ((objCellId >> 16) != 0xF81E) continue;
-
-                //if ((objCellId >> 16) != 0x00AB && (objCellId >> 16) != 0x00AC) continue;
-
-                if ((objCellId >> 16) != 0x005F) continue;
-
-                try
-                {
-                    var pos = new Position(y, x, true);
-                    pos.AdjustMapCoords();
-                    pos.Translate(objCellId);
-                    pos.FindZ();
-
-                    using (StreamWriter sw = File.AppendText(@"c:\ace\vlocs.txt"))
-                    {
-                        //sw.WriteLine("This");
-                        //sw.WriteLine("is Extra");
-                        //sw.WriteLine("Text");
-                        sw.WriteLine($"{name} - @teleloc {pos.ToLOCString()}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    using (StreamWriter sw = File.AppendText(@"c:\ace\vlocs.txt"))
-                    {
-                        //sw.WriteLine("This");
-                        //sw.WriteLine("is Extra");
-                        //sw.WriteLine("Text");
-                        sw.WriteLine($"Unable to parse {name} - 0x{objCellId:X8} {strX}, {strY}");
-                    }
-                }
-            }
-
-            //session.Player.Teleport(pos);
         }
 
         /// <summary>
