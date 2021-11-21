@@ -22,10 +22,12 @@ namespace ACE.Server.WorldObjects
 
         public bool GetCharacterOption(CharacterOption option)
         {
-            if (option.GetCharacterOptions1Attribute() != null)
-                return GetCharacterOptions1((CharacterOptions1)Enum.Parse(typeof(CharacterOptions1), option.ToString()));
+            var option1 = option.GetCharacterOptions1Attribute();
 
-            return GetCharacterOptions2((CharacterOptions2)Enum.Parse(typeof(CharacterOptions2), option.ToString()));
+            if (option1 != null)
+                return GetCharacterOptions1(option1.Option);
+
+            return GetCharacterOptions2(option.GetCharacterOptions2Attribute().Option);
         }
 
         private bool GetCharacterOptions1(CharacterOptions1 option)
@@ -40,10 +42,12 @@ namespace ACE.Server.WorldObjects
 
         public void SetCharacterOption(CharacterOption option, bool value)
         {
-            if (option.GetCharacterOptions1Attribute() != null)
-                SetCharacterOptions1((CharacterOptions1)Enum.Parse(typeof(CharacterOptions1), option.ToString()), value);
+            var option1 = option.GetCharacterOptions1Attribute();
+
+            if (option1 != null)
+                SetCharacterOptions1(option1.Option, value);
             else
-                SetCharacterOptions2((CharacterOptions2)Enum.Parse(typeof(CharacterOptions2), option.ToString()), value);
+                SetCharacterOptions2(option.GetCharacterOptions2Attribute().Option, value);
         }
 
         private void SetCharacterOptions1(CharacterOptions1 option, bool value)

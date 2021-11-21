@@ -33,6 +33,7 @@ namespace ACE.Server.Factories
             switch (objWeenieType)
             {
                 case WeenieType.Undef:
+                    log.Warn($"CreateWorldObject: {weenie.GetName()} (0x{guid}:{weenie.WeenieClassId}) - WeenieType is Undef, Object cannot be created.");
                     return null;
                 case WeenieType.LifeStone:
                     return new Lifestone(weenie, guid);

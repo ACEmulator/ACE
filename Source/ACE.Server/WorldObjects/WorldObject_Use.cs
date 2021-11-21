@@ -298,6 +298,46 @@ namespace ACE.Server.WorldObjects
                 return new ActivationResult(false);
             }
 
+            if (player.IsOlthoiPlayer)
+            {
+                //player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "Olthoi can't interact with that!"));
+                //player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
+                //return new ActivationResult(false);
+
+                if (this is Creature)
+                {
+                    if (CreatureType == ACE.Entity.Enum.CreatureType.Olthoi)
+                        return new ActivationResult(true);
+                    else
+                    {
+                        if (this is Vendor)
+                            player.SendWeenieError(WeenieError.OlthoiVendorLooksInHorror);
+                        else if (NpcLooksLikeObject ?? false)
+                            player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
+                        else
+                            player.SendWeenieErrorWithString(WeenieErrorWithString._CowersFromYou, Name);
+
+                        return new ActivationResult(false);
+                    }
+                }
+                else if (this is Lifestone)
+                {
+                    player.SendWeenieError(WeenieError.OlthoiCannotUseLifestones);
+                    return new ActivationResult(false);
+                }
+                else if (this is Container && !(this is Corpse))
+                {
+                    player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
+                    return new ActivationResult(false);
+                }
+                else if (this is AttributeTransferDevice || this is AugmentationDevice || this is Bindstone || this is Book
+                    || this is Game || this is Gem || this is GenericObject || this is Key || this is SkillAlterationDevice)
+                {
+                    player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
+                    return new ActivationResult(false);
+                }
+            }
+
             return new ActivationResult(true);
         }
     }

@@ -512,6 +512,7 @@ namespace ACE.Server.Managers
                 ("assess_creature_mod", new Property<bool>(false, "(non-retail function) If enabled, re-enables former skill formula, when assess creature skill is not trained or spec'ed")),
                 ("chat_disable_general", new Property<bool>(false, "disable general global chat channel")),
                 ("chat_disable_lfg", new Property<bool>(false, "disable lfg global chat channel")),
+                ("chat_disable_olthoi", new Property<bool>(false, "disable olthoi global chat channel")),
                 ("chat_disable_roleplay", new Property<bool>(false, "disable roleplay global chat channel")),
                 ("chat_disable_trade", new Property<bool>(false, "disable trade global chat channel")),
                 ("chat_echo_only", new Property<bool>(false, "global chat returns to sender only")),
@@ -565,6 +566,7 @@ namespace ACE.Server.Managers
                 ("lifestone_broadcast_death", new Property<bool>(true, "if true, player deaths are additionally broadcast to other players standing near the destination lifestone")),
                 ("loot_quality_mod", new Property<bool>(true, "if FALSE then the loot quality modifier of a Death Treasure profile does not affect loot generation")),
                 ("npc_hairstyle_fullrange", new Property<bool>(false, "if TRUE, allows generated creatures to use full range of hairstyles. Retail only allowed first nine (0-8) out of 51")),
+                ("olthoi_play_enabled", new Property<bool>(false, "allows players to create and play as olthoi characters")),
                 ("override_encounter_spawn_rates", new Property<bool>(false, "if enabled, landblock encounter spawns are overidden by double properties below.")),
                 ("permit_corpse_all", new Property<bool>(false, "If TRUE, /permit grants permittees access to all corpses of the permitter. Defaults to FALSE as per retail, where /permit only grants access to 1 locked corpse")),
                 ("persist_movement", new Property<bool>(false, "If TRUE, persists autonomous movements such as turns and sidesteps through non-autonomous server actions. Retail didn't appear to do this, but some players may prefer this.")),
@@ -666,6 +668,7 @@ namespace ACE.Server.Managers
                 ("dat_warning_msg", new Property<string>("Your DAT files are incomplete.\nACEmulator does not support dynamic DAT updating at this time.\nPlease visit https://emulator.ac/how-to-play to download the complete DAT files.", "Warning message displayed (if show_dat_warning is true) to player if client attempts DAT download from server")),
                 ("popup_header", new Property<string>("Welcome to Asheron's Call!", "Welcome message displayed when you log in")),
                 ("popup_welcome", new Property<string>("To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.", "Welcome message popup in training halls")),
+                ("popup_welcome_olthoi", new Property<string>("Welcome to the Olthoi hive! Be sure to talk to the Olthoi Queen to receive the Olthoi protections granted by the energies of the hive.", "Welcome message displayed on the first login for an Olthoi Player")),
                 ("popup_motd", new Property<string>("", "Popup message of the day")),
                 ("server_motd", new Property<string>("", "Server message of the day"))
                 );

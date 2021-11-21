@@ -93,8 +93,12 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALLEATHER_CLASS:
                 case WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS:
 
-                    // ensure item is not retained and sellable
-                    if (target.Retained || !target.IsSellable)
+                    // ensure item is not already retained, and is not stackable
+                    // and can either be salvaged, sold, or consumed with a mana stone
+                    if (target.Retained || target is Stackable)
+                        return null;
+
+                    if (target.MaterialType == null && !target.IsSellable && target.ItemMaxMana == null)
                         return null;
 
                     recipeId = source.WeenieClassId == (int)WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS ? 9070 : 4426;
@@ -106,8 +110,12 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALSANDSTONE_CLASS:
                 case WeenieClassName.W_MATERIALSANDSTONE100_CLASS:
 
-                    // ensure item is retained and sellable
-                    if (!target.Retained || !target.IsSellable)
+                    // ensure item is retained and not stackable
+                    // and can either be salvaged, sold, or consumed with a mana stone
+                    if (!target.Retained || target is Stackable)
+                        return null;
+
+                    if (target.MaterialType == null && !target.IsSellable && target.ItemMaxMana == null)
                         return null;
 
                     // use sandstone recipe as base

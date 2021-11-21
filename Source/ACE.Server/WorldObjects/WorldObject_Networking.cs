@@ -763,7 +763,7 @@ namespace ACE.Server.WorldObjects
             if ((Workmanship != null) && (uint?)Workmanship != 0u)
                 weenieHeaderFlag |= WeenieHeaderFlag.Workmanship;
 
-            if (EncumbranceVal != 0 && !(this is Creature) && !(this is SpellProjectile))
+            if ((EncumbranceVal != null) && (EncumbranceVal != 0) && !(this is Creature) && !(this is SpellProjectile))
                 weenieHeaderFlag |= WeenieHeaderFlag.Burden;
 
             if ((SpellDID != null) && (SpellDID != 0))

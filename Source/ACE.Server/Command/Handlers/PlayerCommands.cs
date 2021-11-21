@@ -351,10 +351,15 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
+            var creaturesOnly = parameters.Length > 0 && parameters[0].Contains("creature", StringComparison.OrdinalIgnoreCase);
+
             var knownObjs = session.Player.GetKnownObjects();
 
             foreach (var knownObj in knownObjs)
             {
+                if (creaturesOnly && !(knownObj is Creature))
+                    continue;
+
                 session.Player.RemoveTrackedObject(knownObj, false);
                 session.Player.TrackObject(knownObj);
             }

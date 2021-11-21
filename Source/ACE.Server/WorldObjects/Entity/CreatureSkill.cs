@@ -162,24 +162,35 @@ namespace ACE.Server.WorldObjects.Entity
 
                 total += InitLevel + Ranks;
 
-                if (creature is Player player)
-                {
+                var player = creature as Player;
+
+                // base gets scaled by vitae
+                if (player != null)
                     total += GetAugBonus_Base(player);
 
+                // apply multiplicative enchantments
+                var multiplier = creature.EnchantmentManager.GetSkillMod_Multiplier(Skill);
+
+                var fTotal = total * multiplier;
+
+                if (player != null)
+                {
                     var vitae = player.Vitae;
 
                     if (vitae != 1.0f)
-                        total = (uint)(total * vitae).Round();
+                        fTotal *= vitae;
 
                     // everything beyond this point does not get scaled by vitae
-                    total += GetAugBonus_Current(player);
+                    fTotal += GetAugBonus_Current(player);
                 }
 
-                var skillMod = creature.EnchantmentManager.GetSkillMod(Skill);
+                var additives = creature.EnchantmentManager.GetSkillMod_Additives(Skill);
 
-                total = (uint)Math.Max(0, total + skillMod);    // skill level cannot be debuffed below 0
+                var iTotal = (fTotal + additives).Round();
 
-                return total;
+                iTotal = Math.Max(iTotal, 0);   // skill level cannot be debuffed below 0
+
+                return (uint)iTotal;
             }
         }
 
