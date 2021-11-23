@@ -144,6 +144,7 @@ namespace ACE.Server.Entity
             40298,  // Ardent Moar
             40300,  // Blessed Moar
             40301,  // Verdant Moar
+            72682,  // Jester's Malevolent Eye
         };
 
         public static DamageEvent CalculateDamage(Creature attacker, Creature defender, WorldObject damageSource, MotionCommand? attackMotion = null, AttackHook attackHook = null)
