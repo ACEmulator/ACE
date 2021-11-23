@@ -3068,7 +3068,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.RotationSpeed); else SetProperty(PropertyFloat.RotationSpeed, value.Value); }
         }
 
-        public bool HasMissileFlightPlacement => CSetup.PlacementFrames.ContainsKey((int)ACE.Entity.Enum.Placement.MissileFlight);
+        public bool HasMissileFlightPlacement => CSetup.HasMissileFlightPlacement;
 
         /// <summary>
         /// For items sold by vendors, StackSize of shop item profile from Vendor's CreateList.
