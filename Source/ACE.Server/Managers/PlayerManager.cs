@@ -709,11 +709,11 @@ namespace ACE.Server.Managers
 
             player.SetProperty(ACE.Entity.Enum.Properties.PropertyBool.IsGagged, true);
             player.SetProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagTimestamp, Common.Time.GetUnixTime());
-            player.SetProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagDuration, 300);
+            player.SetProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagDuration, 259200);
 
             player.SaveBiotaToDatabase();
 
-            BroadcastToAuditChannel(issuer, $"{issuer.Name} has gagged {player.Name} for five minutes.");
+            BroadcastToAuditChannel(issuer, $"{issuer.Name} has gagged {player.Name} for three days.");
 
             return true;
         }
