@@ -206,7 +206,7 @@ namespace ACE.Server.WorldObjects
             if (!IsPKLiteDeath(topDamager))
                 InflictVitaePenalty();
 
-            if (IsPKDeath(topDamager) || AugmentationSpellsRemainPastDeath == 0)
+            if (topDamager != null && (IsPKDeath(topDamager) || AugmentationSpellsRemainPastDeath == 0))
             {
                 var killer = topDamager.TryGetAttacker() as Player;
                 if (killer != null && Level >= 75)

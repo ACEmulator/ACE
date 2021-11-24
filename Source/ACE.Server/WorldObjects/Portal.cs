@@ -39,6 +39,8 @@ namespace ACE.Server.WorldObjects
         {
             ObjectDescriptionFlags |= ObjectDescriptionFlag.Portal;
 
+            ActivationResponse |= ActivationResponse.Use;
+
             UpdatePortalDestination(Destination);
         }
 
