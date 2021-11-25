@@ -2854,6 +2854,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.SummoningMastery); else SetProperty(PropertyInt.SummoningMastery, (int)value.Value); }
         }
 
+        public double? TrophyTimer
+        {
+            get => GetProperty(PropertyFloat.TrophyTimer);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.TrophyTimer); else SetProperty(PropertyFloat.TrophyTimer, value.Value); }
+        }
+
         public double? MaximumVelocity
         {
             get => GetProperty(PropertyFloat.MaximumVelocity);

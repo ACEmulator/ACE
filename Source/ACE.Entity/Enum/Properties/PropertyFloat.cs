@@ -218,6 +218,11 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         PCAPRecordeOmegaZ              = 8018,
 
+        /***** PODTIDE CUSTOMS *****/
+        [ServerOnly]
+        TrophyTime                     = 9001,
+        [ServerOnly]
+        TrophyTimer                    = 9002,
         /***** FOREDAWN CUSTOMS *****/
         ForedawnPvpDamageMulti = 52000
     }

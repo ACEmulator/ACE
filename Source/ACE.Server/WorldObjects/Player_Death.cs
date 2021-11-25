@@ -564,16 +564,30 @@ namespace ACE.Server.WorldObjects
             }
 
             var destroyCoins = PropertyManager.GetBool("corpse_destroy_pyreals").Item;
-
             if (IsPKDeath(corpse.KillerId))
             {
                 Random rnd = new Random();
-                var shouldDropTrophy = rnd.Next(4);
-                if (shouldDropTrophy == 0)
+                var shouldDropTrophy = 0;
+                switch(this.Level)
+                {
+                    case > 150:
+                        shouldDropTrophy = rnd.Next(4);
+                        break;
+                    case > 100:
+                        shouldDropTrophy = rnd.Next(10);
+                        break;
+                }
+
+                var killer = PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));
+                var victimMonarch = this.MonarchId != null ? this.MonarchId : this.Guid.Full;
+                var killerMonarch = killer.MonarchId != null ? killer.MonarchId : killer.Guid.Full;
+                var timerLogic = TrophyTimer == null ? true : Time.GetUnixTime() > TrophyTimer; 
+                if (shouldDropTrophy == 1 && victimMonarch != killerMonarch && timerLogic)
                 {
                     var dropItem = WorldObjectFactory.CreateNewWorldObject(1000002);
                     dropItem.SetStackSize(1);
                     dropItems.Add(dropItem);
+                    SetProperty(PropertyFloat.TrophyTimer, Time.GetFutureUnixTime(3600)); // Set the cooldown only on trophy generation
                 }
             }
 
