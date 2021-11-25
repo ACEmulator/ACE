@@ -283,7 +283,7 @@ namespace ACE.Server.Command.Handlers
                 var msg = "";
                 if (PlayerManager.GagPlayer(session.Player, playerName))
                 {
-                    msg = $"{playerName} has been gagged for five minutes.";
+                    msg = $"{playerName} has been gagged indefinitely.";
                 }
                 else
                 {
