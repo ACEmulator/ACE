@@ -47,6 +47,7 @@ namespace ACE.Server
         private static readonly Gauge ace_LandblockManager_Objects_Other = Metrics.CreateGauge("ace_LandblockManager_Objects_Other", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_LandblockManager_Objects_Total = Metrics.CreateGauge("ace_LandblockManager_Objects_Total", null, new GaugeConfiguration { SuppressInitialValue = true });
 
+        // Calls from WorldManager.UpdateWorld()
         private static readonly Gauge ace_ServerPerformanceMonitor_5m_PlayerManager_Tick_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_PlayerManager_Tick_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_ServerPerformanceMonitor_5m_NetworkManager_InboundClientMessageQueueRun_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_NetworkManager_InboundClientMessageQueueRun_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_ServerPerformanceMonitor_5m_actionQueue_RunActions_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_actionQueue_RunActions_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
@@ -54,17 +55,42 @@ namespace ACE.Server
         private static readonly Gauge ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_ServerPerformanceMonitor_5m_NetworkManager_DoSessionWork_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_NetworkManager_DoSessionWork_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
 
+        // WorldManager.UpdateGameWorld() time not including throttled returns
         private static readonly Gauge ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Entire_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Entire_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Entire_Longest = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Entire_Longest", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_ServerPerformanceMonitor_1h_UpdateGameWorld_Entire_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_1h_UpdateGameWorld_Entire_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
 
+        // Calls from WorldManager.UpdateGameWorld()
         private static readonly Gauge ace_ServerPerformanceMonitor_5m_LandblockManager_TickPhysics_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_LandblockManager_TickPhysics_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_ServerPerformanceMonitor_5m_LandblockManager_TickMultiThreadedWork_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_LandblockManager_TickMultiThreadedWork_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_ServerPerformanceMonitor_5m_LandblockManager_TickSingleThreadedWork_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_LandblockManager_TickSingleThreadedWork_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
+        /*
+        // Calls from Landblock.TickPhysics() - Cumulative over a single UpdateGameWorld Tick
+        private static readonly Gauge ace_ServerPerformanceMonitor_5m_Player_Tick_UpdateObjectPhysics_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_Player_Tick_UpdateObjectPhysics_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_ServerPerformanceMonitor_5m_WorldObject_Tick_UpdateObjectPhysics_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_WorldObject_Tick_UpdateObjectPhysics_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
 
+        // Calls from Landblock.TickLandblockGroupThreadSafeWork() - Cumulative over a single UpdateGameWorld Tick
+        private static readonly Gauge ace_ServerPerformanceMonitor_5m_Landblock_Tick_RunActions_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_Landblock_Tick_RunActions_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_ServerPerformanceMonitor_5m_Landblock_Tick_Monster_Tick_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_Landblock_Tick_Monster_Tick_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_ServerPerformanceMonitor_5m_Landblock_Tick_GeneratorUpdate_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_Landblock_Tick_GeneratorUpdate_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_ServerPerformanceMonitor_5m_Landblock_Tick_GeneratorRegeneration_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_Landblock_Tick_GeneratorRegeneration_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_ServerPerformanceMonitor_5m_Landblock_Tick_Heartbeat_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_Landblock_Tick_Heartbeat_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_ServerPerformanceMonitor_5m_Landblock_Tick_Database_Save_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_Landblock_Tick_Database_Save_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
+
+        // Calls from Landblock.TickLandblockGroupThreadSafeWork() - Misc - Cumulative over a single UpdateGameWorld Tick
+        private static readonly Gauge ace_ServerPerformanceMonitor_5m_Monster_Awareness_FindNextTarget_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_Monster_Awareness_FindNextTarget_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_ServerPerformanceMonitor_5m_Monster_Navigation_UpdatePosition_PUO_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_Monster_Navigation_UpdatePosition_PUO_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_ServerPerformanceMonitor_5m_LootGenerationFactory_CreateRandomLootObjects_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_LootGenerationFactory_CreateRandomLootObjects_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
+
+        // Calls from Landblock.TickSingleThreadedWork() - Cumulative over a single UpdateGameWorld Tick
+        private static readonly Gauge ace_ServerPerformanceMonitor_5m_Landblock_Tick_Player_Tick_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_Landblock_Tick_Player_Tick_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_ServerPerformanceMonitor_5m_Landblock_Tick_WorldObject_Heartbeat_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_Landblock_Tick_WorldObject_Heartbeat_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
+        */
+        // Calls from NetworkManager.DoSessionWork()
         private static readonly Gauge ace_ServerPerformanceMonitor_5m_DoSessionWork_TickOutbound_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_DoSessionWork_TickOutbound_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_ServerPerformanceMonitor_5m_DoSessionWork_RemoveSessions_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_DoSessionWork_RemoveSessions_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
 
+        // Calls from NetworkManager.ProcessPacket()
         private static readonly Gauge ace_ServerPerformanceMonitor_5m_ProcessPacket_0_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_ProcessPacket_0_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_ServerPerformanceMonitor_5m_ProcessPacket_1_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_ProcessPacket_1_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
 
@@ -75,7 +101,7 @@ namespace ACE.Server
             // https://github.com/prometheus-net/prometheus-net
             Metrics.DefaultRegistry.AddBeforeCollectCallback(MetricsAddBeforeCollectCallback);
 
-            metricServer = new MetricServer(hostname: "127.0.0.1", port: 1234);
+            metricServer = new MetricServer(hostname: "127.0.0.1", port: 1234); // todo make this configurable
             metricServer.Start();
 
             // https://github.com/djluck/prometheus-net.DotNetRuntime
@@ -167,6 +193,7 @@ namespace ACE.Server
 
             if (ServerPerformanceMonitor.IsRunning)
             {
+                // Calls from WorldManager.UpdateWorld()
                 ace_ServerPerformanceMonitor_5m_PlayerManager_Tick_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.PlayerManager_Tick).AverageEventDuration);
                 ace_ServerPerformanceMonitor_5m_NetworkManager_InboundClientMessageQueueRun_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.NetworkManager_InboundClientMessageQueueRun).AverageEventDuration);
                 ace_ServerPerformanceMonitor_5m_actionQueue_RunActions_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.actionQueue_RunActions).AverageEventDuration);
@@ -174,17 +201,21 @@ namespace ACE.Server
                 ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.UpdateGameWorld).AverageEventDuration);
                 ace_ServerPerformanceMonitor_5m_NetworkManager_DoSessionWork_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.NetworkManager_DoSessionWork).AverageEventDuration);
 
+                // WorldManager.UpdateGameWorld() time not including throttled returns
                 ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Entire_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration);
                 ace_ServerPerformanceMonitor_5m_UpdateGameWorld_Entire_Longest.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).LongestEvent);
                 ace_ServerPerformanceMonitor_1h_UpdateGameWorld_Entire_Average.Set(ServerPerformanceMonitor.GetEventHistory1h(ServerPerformanceMonitor.MonitorType.UpdateGameWorld_Entire).AverageEventDuration);
 
+                // Calls from WorldManager.UpdateGameWorld()
                 ace_ServerPerformanceMonitor_5m_LandblockManager_TickPhysics_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.LandblockManager_TickPhysics).AverageEventDuration);
                 ace_ServerPerformanceMonitor_5m_LandblockManager_TickMultiThreadedWork_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.LandblockManager_TickMultiThreadedWork).AverageEventDuration);
                 ace_ServerPerformanceMonitor_5m_LandblockManager_TickSingleThreadedWork_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.LandblockManager_TickSingleThreadedWork).AverageEventDuration);
 
+                // Calls from NetworkManager.DoSessionWork()
                 ace_ServerPerformanceMonitor_5m_DoSessionWork_TickOutbound_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.DoSessionWork_TickOutbound).AverageEventDuration);
                 ace_ServerPerformanceMonitor_5m_DoSessionWork_RemoveSessions_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions).AverageEventDuration);
 
+                // Calls from NetworkManager.ProcessPacket()
                 ace_ServerPerformanceMonitor_5m_ProcessPacket_0_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.ProcessPacket_0).AverageEventDuration);
                 ace_ServerPerformanceMonitor_5m_ProcessPacket_1_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.ProcessPacket_1).AverageEventDuration);
             }
