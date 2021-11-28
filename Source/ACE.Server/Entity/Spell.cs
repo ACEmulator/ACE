@@ -230,7 +230,27 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Returns TRUE if spell category matches impen / bane / brittlemail / lure
         /// </summary>
-        public bool IsImpenBaneType => Category >= SpellCategory.ArmorValueRaising && Category <= SpellCategory.AcidicResistanceLowering;
+        public bool IsImpenBaneType
+        {
+            get
+            {
+                switch (Category)
+                {
+                    case SpellCategory n when n >= SpellCategory.ArmorValueRaising && n <= SpellCategory.AcidicResistanceLowering:
+                    case SpellCategory.ArmorValueRaisingRare:
+                    case SpellCategory.AcidResistanceRaisingRare:
+                    case SpellCategory.BludgeonResistanceRaisingRare:
+                    case SpellCategory.ColdResistanceRaisingRare:
+                    case SpellCategory.ElectricResistanceRaisingRare:
+                    case SpellCategory.FireResistanceRaisingRare:
+                    case SpellCategory.PierceResistanceRaisingRare:
+                    case SpellCategory.SlashResistanceRaisingRare:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        }
 
         public bool IsNegativeRedirectable => IsHarmful && (IsImpenBaneType || IsOtherNegativeRedirectable);
 
