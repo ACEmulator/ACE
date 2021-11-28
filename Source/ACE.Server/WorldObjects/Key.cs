@@ -1,16 +1,18 @@
 using System;
 
+using log4net;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
-using ACE.Server.Entity;
-using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.WorldObjects
 {
     public class Key : WorldObject
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -32,6 +34,9 @@ namespace ACE.Server.WorldObjects
             // These shoudl come from the weenie. After confirmation, remove these
             //KeyCode = AceObject.KeyCode ?? "";
             //Structure = AceObject.Structure ?? AceObject.MaxStructure;
+
+            if (Structure > MaxStructure)
+                Structure = MaxStructure;
         }
 
         public string KeyCode
@@ -57,6 +62,17 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(result.Message);
 
                 player.SendUseDoneEvent();
+                return;
+            }
+
+            if (Structure == 0 || Structure > MaxStructure)
+            {
+                log.Warn($"Key.HandleActionUseOnTarget: Structure / MaxStructure is {Structure:N0} / {MaxStructure:N0} for {Name} (0x{Guid}:{WeenieClassId}), used on {target.Name} (0x{target.Guid}:{target.WeenieClassId}) and used by {player.Name} (0x{player.Guid})");
+
+                var wo = player.FindObject(Guid.Full, Player.SearchLocations.Everywhere, out _, out Container rootOwner, out bool wasEquipped);
+                DeleteObject(rootOwner);
+
+                player.SendUseDoneEvent(WeenieError.YouCannotUseThatItem);
                 return;
             }
 

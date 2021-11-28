@@ -327,5 +327,20 @@ namespace ACE.Database.SQLFormatters
 
             return label;
         }
+
+        protected static float? TrimNegativeZero(float? input, int places = 6)
+        {
+            if (input == null)
+                return null;
+
+            var str = input.Value.ToString($"0.{new string('#', places)}");
+
+            if (str == $"-0.{new string('#', places)}" || str == "-0")
+                str = str.Substring(1, str.Length - 1);
+
+            var ret = float.Parse(str);
+
+            return ret;
+        }
     }
 }

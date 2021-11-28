@@ -136,26 +136,25 @@ namespace ACE.Server.WorldObjects.Entity
             }
         }
 
-        public uint Current
+        public uint Current => GetCurrent(true);
+
+        public uint GetCurrent(bool enchanted)
         {
-            get
-            {
-                var multipliers = creature.EnchantmentManager.GetAttributeMod_Multiplier(Attribute);
-                var additives = creature.EnchantmentManager.GetAttributeMod_Additive(Attribute);
+            var multipliers = enchanted ? creature.EnchantmentManager.GetAttributeMod_Multiplier(Attribute) : 1.0f;
+            var additives = enchanted ? creature.EnchantmentManager.GetAttributeMod_Additive(Attribute) : 0;
 
-                var total = (int)Base * multipliers + additives;
+            var total = (int)Base * multipliers + additives;
 
-                total = total.Round();
+            total = total.Round();
 
-                return (uint)Math.Max(total, 10);  // minimum value for an attribute: 10
-            }
+            return (uint)Math.Max(total, 10);  // minimum value for an attribute: 10
         }
 
         public ModifierType ModifierType
         {
             get
             {
-                var diff = (int)Current - (int)Base;
+                var diff = (int)GetCurrent(true) - (int)GetCurrent(false);
 
                 if (diff > 0)
                     return ModifierType.Buffed;
