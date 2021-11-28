@@ -3,6 +3,7 @@ using System.Numerics;
 
 using log4net;
 
+using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Physics.Common;
@@ -243,6 +244,29 @@ namespace ACE.Server.Entity
 
                 pos.LandblockId = new LandblockId(pos.GetCell());
             }
+        }
+
+        public static void Translate(this Position pos, uint blockCell)
+        {
+            var newBlockX = blockCell >> 24;
+            var newBlockY = (blockCell >> 16) & 0xFF;
+
+            var xDiff = (int)newBlockX - pos.LandblockX;
+            var yDiff = (int)newBlockY - pos.LandblockY;
+
+            //pos.Origin.X -= xDiff * 192;
+            pos.PositionX -= xDiff * 192;
+            //pos.Origin.Y -= yDiff * 192;
+            pos.PositionY -= yDiff * 192;
+
+            //pos.ObjCellID = blockCell;
+            pos.LandblockId = new LandblockId(blockCell);
+        }
+
+        public static void FindZ(this Position pos)
+        {
+            var envCell = DatManager.CellDat.ReadFromDat<DatLoader.FileTypes.EnvCell>(pos.Cell);
+            pos.PositionZ = envCell.Position.Origin.Z;
         }
 
         public static float GetTerrainZ(this Position p)
