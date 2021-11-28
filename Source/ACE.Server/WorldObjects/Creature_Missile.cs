@@ -358,11 +358,24 @@ namespace ACE.Server.WorldObjects
             var rotation = obj.Location.Rotation;
             obj.PhysicsObj.Position.Frame.Origin = pos;
             obj.PhysicsObj.Position.Frame.Orientation = rotation;
-            obj.Placement = ACE.Entity.Enum.Placement.MissileFlight;
+
+            if (obj.HasMissileFlightPlacement)
+                obj.Placement = ACE.Entity.Enum.Placement.MissileFlight;
+            else
+                obj.Placement = null;
+
             obj.CurrentMotionState = null;
 
             obj.PhysicsObj.Velocity = velocity;
             obj.PhysicsObj.ProjectileTarget = target.PhysicsObj;
+
+            // Projectiles with RotationSpeed get omega values and "align path" turned off which
+            // creates the nice swirling animation
+            if ((obj.RotationSpeed ?? 0) != 0)
+            {
+                obj.AlignPath = false;
+                obj.PhysicsObj.Omega = new Vector3((float)(Math.PI * 2 * obj.RotationSpeed), 0, 0);
+            }
 
             obj.PhysicsObj.set_active(true);
         }

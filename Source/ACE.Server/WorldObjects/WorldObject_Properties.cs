@@ -3060,6 +3060,17 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Determines the rotation speed for projectiles in global X
+        /// </summary>
+        public double? RotationSpeed
+        {
+            get => GetProperty(PropertyFloat.RotationSpeed);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.RotationSpeed); else SetProperty(PropertyFloat.RotationSpeed, value.Value); }
+        }
+
+        public bool HasMissileFlightPlacement => CSetup.HasMissileFlightPlacement;
+
+        /// <summary>
         /// For items sold by vendors, StackSize of shop item profile from Vendor's CreateList.
         /// This value is only set by Vendor.LoadInventoryItem, and is almost always -1 which means the item has no supply limits per transaction.
         /// If not unlimited, client will only allow you to buy or add to buy list up this number of items for a single transaction.
