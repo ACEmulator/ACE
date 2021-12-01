@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace ACE.Database.Models.Shard
 {
     public partial class CharacterPropertiesShortcutBar
