@@ -57,12 +57,43 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            switch(xpType)
+            {
+                case XpType.Allegiance: //No passup xp or quest xp when enlightened
+                case XpType.Quest:
+                    return;
+            }
+
             if (Fellowship != null && Fellowship.ShareXP && shareType.HasFlag(ShareType.Fellowship))
             {
                 // this will divy up the XP, and re-call this function
                 // with ShareType.Fellowship removed
                 Fellowship.SplitXp((ulong)amount, xpType, shareType, this);
                 return;
+            }
+
+
+            switch (Enlightenment)
+            {
+                case 0:
+                    break;
+                case 1:
+                    amount = (long)Math.Round((double)amount * 0.9d);
+                    break;
+                case 2:
+                    amount = (long)Math.Round((double)amount * 0.7d);
+                    break;
+                case 3:
+                    amount = (long)Math.Round((double)amount * 0.5d);
+                    break;
+                case 4:
+                    amount = (long)Math.Round((double)amount * 0.3d);
+                    break;
+                case 5:
+                    amount = (long)Math.Round((double)amount * 0.2d);
+                    break;
+                default:
+                    break;
             }
 
             // Make sure UpdateXpAndLevel is done on this players thread

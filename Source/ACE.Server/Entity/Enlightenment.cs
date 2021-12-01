@@ -68,11 +68,11 @@ namespace ACE.Server.Entity
                 return false;
             }
 
-            if (!VerifyLumAugs(player))
-            {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must have all luminance auras for enlightenment.", ChatMessageType.Broadcast));
-                return false;
-            }
+            //if (!VerifyLumAugs(player))
+            //{
+            //    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must have all luminance auras for enlightenment.", ChatMessageType.Broadcast));
+            //    return false;
+            //}
 
             if (!VerifySocietyMaster(player))
             {

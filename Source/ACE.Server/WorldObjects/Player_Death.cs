@@ -1079,13 +1079,21 @@ namespace ACE.Server.WorldObjects
             {
                 msg = $"[KS] {killer.Name} is Godlike!! [{killer.KillStreak}]";
             }
-            else if (Killed >= 15 && Killed <= 20)
+            else if (Killed >= 15 && Killed <= 19)
             {
                 msg = $"[KS]{killer.Name} is Beyond Godlike!! [{killer.KillStreak}]";
             }
-            else if (Killed >= 20)
+            else if (Killed >= 20 && Killed <= 249)
             {
                 msg = $"[KS]{killer.Name} is going to break the game he's so good!! [{killer.KillStreak}]";
+            }
+            else if (Killed >= 250 && Killed <= 499)
+            {
+                msg = $"[KS]{killer.Name} is an absolute sweaty meta killing maniac!! Someone please do a welfare check, I fear for {killer.Name}'s wellbeing. [{killer.KillStreak}]";
+            }
+            else if (Killed >= 500)
+            {
+                msg = $"This is ridiculous. [KS]{killer.Name} is in the throes of a quickly spiraling AC addiction. Someone please stage an intervention ASAP. [{killer.KillStreak}]";
             }
 
             if (msg != null)

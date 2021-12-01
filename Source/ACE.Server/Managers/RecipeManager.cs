@@ -218,6 +218,11 @@ namespace ACE.Server.Managers
 
                 if (player.AugmentationBonusImbueChance > 0)
                     successChance += player.AugmentationBonusImbueChance * 0.05f;
+
+                if(player.Enlightenment > 0)
+                {
+                    successChance += player.Enlightenment * 0.05f;
+                }    
             }
 
             // todo: remove this once foolproof salvage recipes are updated
