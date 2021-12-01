@@ -77,6 +77,7 @@ namespace ACE.Server.Entity
         public float RecklessnessMod;
         public float SneakAttackMod;
         public float HeritageMod;
+        public float PkDamageMod;
 
         public float DamageRatingMod;
 
@@ -97,6 +98,7 @@ namespace ACE.Server.Entity
 
         public float DamageResistanceRatingBaseMod;
         public float DamageResistanceRatingMod;
+        public float PkDamageResistanceMod;
 
         public float DamageMitigated;
 
@@ -164,6 +166,8 @@ namespace ACE.Server.Entity
             var playerAttacker = attacker as Player;
             var playerDefender = defender as Player;
 
+            var pkBattle = playerAttacker != null && playerDefender != null;
+
             Attacker = attacker;
             Defender = defender;
 
@@ -171,7 +175,7 @@ namespace ACE.Server.Entity
 
             DamageSource = damageSource;
 
-            Weapon = damageSource.ProjectileSource == null ? attacker.GetEquippedMeleeWeapon() : damageSource.ProjectileLauncher;
+            Weapon = damageSource.ProjectileSource == null ? attacker.GetEquippedMeleeWeapon() : (damageSource.ProjectileLauncher ?? damageSource.ProjectileAmmo);
 
             AttackType = attacker.AttackType;
             AttackHeight = attacker.AttackHeight ?? AttackHeight.Medium;
@@ -208,10 +212,13 @@ namespace ACE.Server.Entity
             else
                 GetBaseDamage(attacker, AttackMotion ?? MotionCommand.Invalid, AttackHook);
 
-            if (DamageType == DamageType.Undef && !AllowDamageTypeUndef.Contains(damageSource.WeenieClassId))
+            if (DamageType == DamageType.Undef)
             {
-                log.Error($"DamageEvent.DoCalculateDamage({attacker?.Name} ({attacker?.Guid}), {defender?.Name} ({defender?.Guid}), {damageSource?.Name} ({damageSource?.Guid})) - DamageType == DamageType.Undef");
-                GeneralFailure = true;
+                if ((attacker?.Guid.IsPlayer() ?? false) || (damageSource?.Guid.IsPlayer() ?? false))
+                {
+                    log.Error($"DamageEvent.DoCalculateDamage({attacker?.Name} ({attacker?.Guid}), {defender?.Name} ({defender?.Guid}), {damageSource?.Name} ({damageSource?.Guid})) - DamageType == DamageType.Undef");
+                    GeneralFailure = true;
+                }
             }
 
             if (GeneralFailure) return 0.0f;
@@ -228,6 +235,12 @@ namespace ACE.Server.Entity
             HeritageMod = attacker.GetHeritageBonus(Weapon) ? 1.05f : 1.0f;
 
             DamageRatingMod = Creature.AdditiveCombine(DamageRatingBaseMod, RecklessnessMod, SneakAttackMod, HeritageMod);
+
+            if (pkBattle)
+            {
+                PkDamageMod = Creature.GetPositiveRatingMod(attacker.GetPKDamageRating());
+                DamageRatingMod = Creature.AdditiveCombine(DamageRatingMod, PkDamageMod);
+            }
 
             // damage before mitigation
             DamageBeforeMitigation = BaseDamage * AttributeMod * PowerMod * SlayerMod * DamageRatingMod;
@@ -267,6 +280,9 @@ namespace ACE.Server.Entity
                     // recklessness excluded from crits
                     RecklessnessMod = 1.0f;
                     DamageRatingMod = Creature.AdditiveCombine(DamageRatingBaseMod, CriticalDamageRatingMod, SneakAttackMod, HeritageMod);
+
+                    if (pkBattle)
+                        DamageRatingMod = Creature.AdditiveCombine(DamageRatingMod, PkDamageMod);
 
                     DamageBeforeMitigation = BaseDamageMod.MaxDamage * AttributeMod * PowerMod * SlayerMod * DamageRatingMod * CriticalDamageMod;
                 }
@@ -333,6 +349,13 @@ namespace ACE.Server.Entity
                 CriticalDamageResistanceRatingMod = Creature.GetNegativeRatingMod(defender.GetCritDamageResistRating());
 
                 DamageResistanceRatingMod = Creature.AdditiveCombine(DamageResistanceRatingBaseMod, CriticalDamageResistanceRatingMod);
+            }
+
+            if (pkBattle)
+            {
+                PkDamageResistanceMod = Creature.GetNegativeRatingMod(defender.GetPKDamageResistRating());
+
+                DamageResistanceRatingMod = Creature.AdditiveCombine(DamageResistanceRatingMod, PkDamageResistanceMod);
             }
 
             // get shield modifier
@@ -576,6 +599,9 @@ namespace ACE.Server.Entity
             if (SneakAttackMod != 0.0f && SneakAttackMod != 1.0f)
                 info += $"SneakAttackMod: {SneakAttackMod}\n";
 
+            if (PkDamageMod != 0.0f && PkDamageMod != 1.0f)
+                info += $"PkDamageMod: {PkDamageMod}\n";
+
             if (DamageRatingMod != 0.0f && DamageRatingMod != 1.0f)
                 info += $"DamageRatingMod: {DamageRatingMod}\n";
 
@@ -615,8 +641,11 @@ namespace ACE.Server.Entity
             if (CriticalDamageResistanceRatingMod != 0.0f && CriticalDamageResistanceRatingMod != 1.0f)
                 info += $"CriticalDamageResistanceRatingMod: {CriticalDamageResistanceRatingMod}\n";
 
+            if (PkDamageResistanceMod != 0.0f && PkDamageResistanceMod != 1.0f)
+                info += $"PkDamageResistanceMod: {PkDamageResistanceMod}\n";
+
             if (DamageResistanceRatingMod != 0.0f && DamageResistanceRatingMod != 1.0f)
-                info += $"DamageResistanceRatingMod: {DamageResistanceRatingBaseMod}\n";
+                info += $"DamageResistanceRatingMod: {DamageResistanceRatingMod}\n";
 
             if (IgnoreMagicArmor)
                 info += $"IgnoreMagicArmor: {IgnoreMagicArmor}\n";

@@ -116,13 +116,13 @@ namespace ACE.Server.WorldObjects
                     ScriptedCollision = false;
                 }
             }
-                
-            // Whirling Blade spells get omega values and "align path" turned off which
+
+            // Projectiles with RotationSpeed get omega values and "align path" turned off which
             // creates the nice swirling animation
-            if (WeenieClassId == 1636 || WeenieClassId == 7268 || WeenieClassId == 20979)
+            if ((RotationSpeed ?? 0) != 0)
             {
                 AlignPath = false;
-                PhysicsObj.Omega = new Vector3(12.56637f, 0, 0);
+                PhysicsObj.Omega = new Vector3((float)(Math.PI * 2 * RotationSpeed), 0, 0);
             }
         }
 
@@ -310,23 +310,18 @@ namespace ACE.Server.WorldObjects
 
             if (damage != null)
             {
-                // handle void magic DoTs:
-                // instead of instant damage, add DoT to target's enchantment registry
-                if (Spell.School == MagicSchool.VoidMagic && Spell.Duration > 0)
+                if (Spell.MetaSpellType == ACE.Entity.Enum.SpellType.EnchantmentProjectile)
                 {
-                    var dot = ProjectileSource.CreateEnchantment(creatureTarget, ProjectileSource, ProjectileLauncher, Spell);
-
-                    if (dot.Message != null && player != null)
-                        player.Session.Network.EnqueueSend(dot.Message);
-
-                    // corruption / corrosion playscript?
-                    //target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.HealthDownVoid));
-                    //target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingDefenseDebuff));
+                    // handle EnchantmentProjectile successfully landing on target
+                    ProjectileSource.CreateEnchantment(creatureTarget, ProjectileSource, ProjectileLauncher, Spell);
                 }
                 else
                 {
                     DamageTarget(creatureTarget, damage.Value, critical, critDefended, overpower);
                 }
+
+                // if this SpellProjectile has a TargetEffect, play it on successful hit
+                DoSpellEffects(Spell, ProjectileSource, creatureTarget, true);
 
                 if (player != null)
                     Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Spell.School), Spell.PowerMod);
@@ -704,6 +699,8 @@ namespace ACE.Server.WorldObjects
             var sourceCreature = ProjectileSource as Creature;
             var sourcePlayer = ProjectileSource as Player;
 
+            var pkBattle = sourcePlayer != null && targetPlayer != null;
+
             var amount = 0u;
             var percent = 0.0f;
 
@@ -711,9 +708,11 @@ namespace ACE.Server.WorldObjects
             var heritageMod = 1.0f;
             var sneakAttackMod = 1.0f;
             var critDamageRatingMod = 1.0f;
+            var pkDamageRatingMod = 1.0f;
 
             var damageResistRatingMod = 1.0f;
             var critDamageResistRatingMod = 1.0f;
+            var pkDamageResistRatingMod = 1.0f;
 
             WorldObject equippedCloak = null;
 
@@ -755,6 +754,15 @@ namespace ACE.Server.WorldObjects
                     damageResistRatingMod = Creature.AdditiveCombine(damageResistRatingMod, critDamageResistRatingMod);
                 }
 
+                if (pkBattle)
+                {
+                    pkDamageRatingMod = Creature.GetPositiveRatingMod(sourceCreature?.GetPKDamageRating() ?? 0);
+                    pkDamageResistRatingMod = Creature.GetNegativeRatingMod(target.GetPKDamageResistRating());
+
+                    damageRatingMod = Creature.AdditiveCombine(damageRatingMod, pkDamageRatingMod);
+                    damageResistRatingMod = Creature.AdditiveCombine(damageResistRatingMod, pkDamageResistRatingMod);
+                }
+
                 damage *= damageRatingMod * damageResistRatingMod;
 
                 percent = damage / target.Health.MaxValue;
@@ -785,11 +793,11 @@ namespace ACE.Server.WorldObjects
             // show debug info
             if (sourceCreature != null && sourceCreature.DebugDamage.HasFlag(Creature.DebugDamageType.Attacker))
             {
-                ShowInfo(sourceCreature, heritageMod, sneakAttackMod, damageRatingMod, damageResistRatingMod, critDamageRatingMod, critDamageResistRatingMod, damage);
+                ShowInfo(sourceCreature, heritageMod, sneakAttackMod, damageRatingMod, damageResistRatingMod, critDamageRatingMod, critDamageResistRatingMod, pkDamageRatingMod, pkDamageResistRatingMod, damage);
             }
             if (target.DebugDamage.HasFlag(Creature.DebugDamageType.Defender))
             {
-                ShowInfo(target, heritageMod, sneakAttackMod, damageRatingMod, damageResistRatingMod, critDamageRatingMod, critDamageResistRatingMod, damage);
+                ShowInfo(target, heritageMod, sneakAttackMod, damageRatingMod, damageResistRatingMod, critDamageRatingMod, critDamageResistRatingMod, pkDamageRatingMod, pkDamageResistRatingMod, damage);
             }
 
             if (target.IsAlive)
@@ -957,7 +965,7 @@ namespace ACE.Server.WorldObjects
         }
 
         public static void ShowInfo(Creature observed, float heritageMod, float sneakAttackMod, float damageRatingMod, float damageResistRatingMod,
-            float critDamageRatingMod, float critDamageResistRatingMod, float damage)
+            float critDamageRatingMod, float critDamageResistRatingMod, float pkDamageRatingMod, float pkDamageResistRatingMod, float damage)
         {
             var observer = PlayerManager.GetOnlinePlayer(observed.DebugDamageTarget);
             if (observer == null)
@@ -976,11 +984,17 @@ namespace ACE.Server.WorldObjects
             if (critDamageRatingMod != 1.0f)
                 info += $"CritDamageRatingMod: {critDamageRatingMod}\n";
 
+            if (pkDamageRatingMod != 1.0f)
+                info += $"PkDamageRatingMod: {pkDamageRatingMod}\n";
+
             if (damageRatingMod != 1.0f)
                 info += $"DamageRatingMod: {damageRatingMod}\n";
 
             if (critDamageResistRatingMod != 1.0f)
                  info += $"CritDamageResistRatingMod: {critDamageResistRatingMod}\n";
+
+            if (pkDamageResistRatingMod != 1.0f)
+                info += $"PkDamageResistRatingMod: {pkDamageResistRatingMod}\n";
 
             if (damageResistRatingMod != 1.0f)
                 info += $"DamageResistRatingMod: {damageResistRatingMod}\n";

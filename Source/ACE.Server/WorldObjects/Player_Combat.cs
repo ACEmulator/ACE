@@ -363,11 +363,8 @@ namespace ACE.Server.WorldObjects
                     damageSource = FootArmor;
 
                 // no weapon, no hand or foot armor
-                if (damageSource == null)
-                {
-                    var baseDamage = new BaseDamage(5, 0.2f);   // 1-5
-                    return new BaseDamageMod(baseDamage);
-                }
+                if (damageSource?.Damage == null)
+                    return HeritageGroup == HeritageGroup.Olthoi ? new BaseDamageMod(new BaseDamage(130, 0.75f)) : new BaseDamageMod(new BaseDamage(2, 0.75f));
                 else
                     return damageSource.GetDamageMod(this, damageSource);
             }
@@ -742,13 +739,13 @@ namespace ACE.Server.WorldObjects
             //log.Info($"{Name}.HandleActionChangeCombatMode({newCombatMode})");
 
             // Make sure the player doesn't have an invalid weapon setup (e.g. sword + wand)
-            if (!CheckWeaponCollision())
+            if (!CheckWeaponCollision(null, null, newCombatMode))
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ActionCancelled)); // "Action cancelled!"
 
                 // Go back to non-Combat mode
                 float animTime = 0.0f, queueTime = 0.0f;
-                animTime = SetCombatMode(newCombatMode, out queueTime);
+                animTime = SetCombatMode(newCombatMode, out queueTime, false, true);
 
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(animTime);

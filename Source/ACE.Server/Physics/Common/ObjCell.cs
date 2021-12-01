@@ -34,33 +34,7 @@ namespace ACE.Server.Physics.Common
         public bool SeenOutside;
         public List<uint> VoyeurTable;
 
-        /// <summary>
-        /// TODO: This little bit of code is a temp fix to solve an issue where Physics landblocks are not being garbage collected. Mag-nus 2021-07-11
-        /// TODO: It has been determined that possibly disconnected/invalid ObjCell are holding onto physics landblocks that should have been garbage collected, and are no longer the current/live instance.
-        /// TODO: We should work this problem upstream to find out what is holding onto these ObjCells, that in turn, hold onto the old physics landblocks.
-        /// </summary>
-        private WeakReference<Landblock> _curLandblockRef;
-        /// <summary>
-        /// If you reference this, cache the result as the get involves a WeakReference.TryGetTarget
-        /// </summary>
-        public Landblock CurLandblock
-        {
-            get
-            {
-                if (_curLandblockRef == null)
-                    return null;
-
-                if (_curLandblockRef.TryGetTarget(out var target))
-                    return target;
-
-                log.Error($"ObjCell {ID:X8} at Position {Pos} has CurLandblock that has gone null!!!");
-                return null;
-            }
-            set
-            {
-                _curLandblockRef = new WeakReference<Landblock>(value);
-            }
-        }
+        public Landblock CurLandblock;
 
         /// <summary>
         /// Returns TRUE if this is a house cell that can be protected by a housing barrier
@@ -490,10 +464,8 @@ namespace ACE.Server.Physics.Common
 
         public LandDefs.WaterType get_block_water_type()
         {
-            var curLandBlock = CurLandblock; // cache the WeakRef result
-
-            if (curLandBlock != null)
-                return curLandBlock.WaterType;
+            if (CurLandblock != null)
+                return CurLandblock.WaterType;
 
             return LandDefs.WaterType.NotWater;
         }
@@ -506,10 +478,8 @@ namespace ACE.Server.Physics.Common
             if (WaterType == LandDefs.WaterType.EntirelyWater)
                 return 0.89999998f;
 
-            var curLandBlock = CurLandblock; // cache the WeakRef result
-
-            if (curLandBlock != null)
-                return curLandBlock.calc_water_depth(ID, point);
+            if (CurLandblock != null)
+                return CurLandblock.calc_water_depth(ID, point);
 
             return 0.1f;
         }
@@ -537,6 +507,12 @@ namespace ACE.Server.Physics.Common
         public virtual bool point_in_cell(Vector3 point)
         {
             return false;
+        }
+
+        public void release_shadow_objs()
+        {
+            foreach (var shadowObj in ShadowObjectList)
+                shadowObj.PhysicsObj.ShadowObjects.Remove(ID);
         }
 
         public void release_objects()

@@ -134,6 +134,20 @@ namespace ACE.Entity.Models
             return pluralName;
         }
 
+        public static ItemType GetItemType(this Weenie weenie)
+        {
+            var itemType = weenie.GetProperty(PropertyInt.ItemType) ?? 0;
+
+            return (ItemType)itemType;
+        }
+
+        public static int? GetValue(this Weenie weenie)
+        {
+            var value = weenie.GetProperty(PropertyInt.Value);
+
+            return value;
+        }
+
         public static bool IsStackable(this Weenie weenie)
         {
             switch (weenie.WeenieType)
@@ -168,6 +182,30 @@ namespace ACE.Entity.Models
         public static bool IsVendorService(this Weenie weenie)
         {
             return weenie.GetProperty(PropertyBool.VendorService) ?? false;
+        }
+
+        public static int GetStackUnitEncumbrance(this Weenie weenie)
+        {
+            if (weenie.IsStackable())
+            {
+                var stackUnitEncumbrance = weenie.GetProperty(PropertyInt.StackUnitEncumbrance);
+
+                if (stackUnitEncumbrance != null)
+                    return stackUnitEncumbrance.Value;
+            }
+            return weenie.GetProperty(PropertyInt.EncumbranceVal) ?? 0;
+        }
+
+        public static int GetMaxStackSize(this Weenie weenie)
+        {
+            if (weenie.IsStackable())
+            {
+                var maxStackSize = weenie.GetProperty(PropertyInt.MaxStackSize);
+
+                if (maxStackSize != null)
+                    return maxStackSize.Value;
+            }
+            return 1;
         }
     }
 }

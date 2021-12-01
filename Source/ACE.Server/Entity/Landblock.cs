@@ -1135,6 +1135,8 @@ namespace ACE.Server.Entity
 
             // remove physics landblock
             LScape.unload_landblock(landblockID);
+
+            PhysicsLandblock.release_shadow_objs();
         }
 
         public void DestroyAllNonPlayerObjects()

@@ -90,6 +90,7 @@ namespace ACE.Server.WorldObjects
         public WorldObject ProjectileTarget { get; set; }
 
         public WorldObject ProjectileLauncher { get; set; }
+        public WorldObject ProjectileAmmo { get; set; }
 
         public bool HitMsg;     // FIXME: find a better way to do this for projectiles
 
@@ -1065,5 +1066,7 @@ namespace ACE.Server.WorldObjects
         }
 
         public virtual bool IsBeingTradedOrContainsItemBeingTraded(HashSet<ObjectGuid> guidList) => guidList.Contains(Guid);
+
+        public bool IsSocietyArmor => WieldSkillType >= (int)PropertyInt.SocietyRankCelhan && WieldSkillType <= (int)PropertyInt.SocietyRankRadblo;
     }
 }

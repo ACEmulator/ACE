@@ -251,7 +251,7 @@ namespace ACE.Adapter.Lifestoned
                                     Delay = action.Delay ?? 0,
                                     Extent = action.Extent ?? 0,
 
-                                    Motion = (int?)action.Motion,
+                                    Motion = (uint?)action.Motion,
 
                                     Message = action.Message,
                                     TestString = action.TestString,

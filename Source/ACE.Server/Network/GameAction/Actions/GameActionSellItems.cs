@@ -10,26 +10,26 @@ namespace ACE.Server.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             var vendorGuid = message.Payload.ReadUInt32();
-            uint itemcount = message.Payload.ReadUInt32();
+            var numItems = message.Payload.ReadUInt32();
 
-            List<ItemProfile> items = new List<ItemProfile>();
+            var items = new List<ItemProfile>();
 
-            while (itemcount > 0)
+            for (var i = 0; i < numItems; i++)
             {
-                itemcount--;
-                ItemProfile item = new ItemProfile();
-                item.Amount = message.Payload.ReadUInt32();
-                // item.Amount = item.Amount & 0xFFFFFF;
+                var amount = message.Payload.ReadInt32();
+                //amount &= 0xFFFFFF;
 
-                item.ObjectGuid = message.Payload.ReadUInt32();
-                items.Add(item);
+                var objectGuid = message.Payload.ReadUInt32();
+
+                items.Add(new ItemProfile(amount, objectGuid));
             }
 
-            // curancy 0 default, if else then currancy is set other then money
-            // uint i_alternateCurrencyID = message.Payload.ReadUInt32();
+            // currency id is set to 0 by default
+            // if non-zero, use as alternate currency wcid
 
-            // todo: take into account other currencyIds other then assuming default
-            session.Player.HandleActionSellItem(items, vendorGuid);
+            //var altCurrencyWcid = message.Payload.ReadUInt32();
+
+            session.Player.HandleActionSellItem(vendorGuid, items);
         }
     }
 }

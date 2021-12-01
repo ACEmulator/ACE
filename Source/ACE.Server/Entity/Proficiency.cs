@@ -23,6 +23,9 @@ namespace ACE.Server.Entity
             // ie., can monsters still level up from skill usage, or killing players?
             // it was possible on release, but i think they might have removed that feature?
 
+            if (player.IsOlthoiPlayer)
+                return;
+
             // ensure skill is at least trained
             if (skill.AdvancementClass < SkillAdvancementClass.Trained)
                 return;
