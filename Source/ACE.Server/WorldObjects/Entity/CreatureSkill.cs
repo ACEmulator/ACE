@@ -224,26 +224,7 @@ namespace ACE.Server.WorldObjects.Entity
 
             if (AdvancementClass >= SkillAdvancementClass.Trained && player.Enlightenment != 0)
             {
-                switch(player.Enlightenment)
-                {
-                    case 1:
-                        total += 3;
-                        break;
-                    case 2:
-                        total += 5;
-                        break;
-                    case 3:
-                        total += 7;
-                        break;
-                    case 4:
-                        total += 10;
-                        break;
-                    case 5:
-                        total += 15;
-                        break;
-                    default:
-                        break;
-                }
+                total += (uint)player.Enlightenment;
             }
                 
 

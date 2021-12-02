@@ -111,29 +111,7 @@ namespace ACE.Server.WorldObjects.Entity
 
                 if (creature is Player player && Vital == PropertyAttribute2nd.MaxHealth)
                 {
-                    var enlightenBonus = 0;
-                    switch(player.Enlightenment)
-                    {
-                        case 1:
-                            enlightenBonus = 5;
-                            break;
-                        case 2:
-                            enlightenBonus = 10;
-                            break;
-                        case 3:
-                            enlightenBonus = 15;
-                            break;
-                        case 4:
-                            enlightenBonus = 20;
-                            break;
-                        case 5:
-                            enlightenBonus = 20;
-                            break;
-                        default:
-                            break;
-                    }
-
-                    total += (uint)(enlightenBonus + player.GetGearMaxHealth());
+                    total += (uint)(player.Enlightenment * 2 + player.GetGearMaxHealth());
                 }
 
                 return total;
