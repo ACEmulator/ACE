@@ -2778,7 +2778,7 @@ namespace ACE.Server.Command.Handlers.Processors
                             sw.WriteLine($"{name} - @teleloc {pos.ToLOCString()}");
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         using (StreamWriter sw = File.AppendText(vlocFile))
                         {
