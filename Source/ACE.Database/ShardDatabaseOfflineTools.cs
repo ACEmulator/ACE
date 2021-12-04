@@ -990,7 +990,7 @@ namespace ACE.Database
                 {
                     var result = context.BiotaPropertiesPalette.FirstOrDefault();
                 }
-                catch (MySql.Data.MySqlClient.MySqlException)
+                catch (MySqlConnector.MySqlException)
                 {
                     log.Warn("order column in biota_properties_palette table in shard database is missing! Attempting to fix...");
                     try

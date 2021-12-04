@@ -212,10 +212,13 @@ namespace ACE.Server.Entity
             else
                 GetBaseDamage(attacker, AttackMotion ?? MotionCommand.Invalid, AttackHook);
 
-            if (DamageType == DamageType.Undef && !AllowDamageTypeUndef.Contains(damageSource.WeenieClassId))
+            if (DamageType == DamageType.Undef)
             {
-                log.Error($"DamageEvent.DoCalculateDamage({attacker?.Name} ({attacker?.Guid}), {defender?.Name} ({defender?.Guid}), {damageSource?.Name} ({damageSource?.Guid})) - DamageType == DamageType.Undef");
-                GeneralFailure = true;
+                if ((attacker?.Guid.IsPlayer() ?? false) || (damageSource?.Guid.IsPlayer() ?? false))
+                {
+                    log.Error($"DamageEvent.DoCalculateDamage({attacker?.Name} ({attacker?.Guid}), {defender?.Name} ({defender?.Guid}), {damageSource?.Name} ({damageSource?.Guid})) - DamageType == DamageType.Undef");
+                    GeneralFailure = true;
+                }
             }
 
             if (GeneralFailure) return 0.0f;
