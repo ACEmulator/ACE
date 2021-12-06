@@ -280,7 +280,7 @@ namespace ACE.Server.WorldObjects
 
                 if (FastTick && PhysicsObj.IsMovingOrAnimating || PhysicsObj.Velocity != Vector3.Zero)
                 {
-                    UpdatePlayerPhysics();
+                    landblockUpdate |= UpdatePlayerPhysics();
 
                     if (MoveToParams?.Callback != null && !PhysicsObj.IsMovingOrAnimating)
                         HandleMoveToCallback();
@@ -301,8 +301,10 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void UpdatePlayerPhysics()
+        public bool UpdatePlayerPhysics()
         {
+            var landblockUpdate = false;
+
             if (DebugPlayerMoveToStatePhysics)
                 Console.WriteLine($"{Name}.UpdatePlayerPhysics({PhysicsObj.PartArray.Sequence.CurrAnim.Value.Anim.ID:X8})");
 
@@ -312,9 +314,10 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.update_object();
 
             // sync ace position?
-            Location.Rotation = PhysicsObj.Position.Frame.Orientation;
+            landblockUpdate = SyncLocationWithPhysics();
+            //Location.Rotation = PhysicsObj.Position.Frame.Orientation;
 
-            if (!FastTick) return;
+            if (!FastTick) return landblockUpdate;
 
             // ensure PKLogout position is synced up for other players
             if (PKLogout)
@@ -361,6 +364,8 @@ namespace ACE.Server.WorldObjects
 
             if (MagicState.IsCasting && MagicState.PendingTurnRelease)
                 CheckTurn();
+
+            return landblockUpdate;
         }
 
         /// <summary>
