@@ -85,7 +85,7 @@ namespace ACE.Server.WorldObjects
                 for (var i = 0; i < GeneratorProfiles.Count; i++)
                 {
                     var profile = GeneratorProfiles[i];
-                    if (profile.CurrentCreate > 0 || profile.RemoveQueue.Count > 0)
+                    if (profile.CurrentCreate > 0 || profile.RemoveQueue.Any())
                         activeProfiles.Add(i);
                 }
                 return activeProfiles;
