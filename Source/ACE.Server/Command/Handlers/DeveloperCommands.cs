@@ -2825,7 +2825,7 @@ namespace ACE.Server.Command.Handlers
                                         break;
                                 }
 
-                                msg += $"0x{spawn.objectGuid:X8} {action} at {spawn.time.AddSeconds(-profile.Delay).ToLocalTime()} and will be removed from profile at {spawn.time.ToLocalTime()}\n";
+                                msg += $"0x{spawn.Guid:X8} {action} at {spawn.When.AddSeconds(-profile.Delay).ToLocalTime()} and will be removed from profile at {spawn.When.ToLocalTime()}\n";
                             }
                             msg += $"--====--\n";
                         }

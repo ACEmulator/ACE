@@ -50,7 +50,8 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The list of pending times awaiting slot removal
         /// </summary>
-        public readonly Queue<(DateTime time, uint objectGuid)> RemoveQueue = new Queue<(DateTime time, uint objectGuid)>();
+        //public readonly Queue<(DateTime time, uint objectGuid)> RemoveQueue = new Queue<(DateTime time, uint objectGuid)>();
+        public readonly LinkedList<RemoveQueueNode> RemoveQueue = new LinkedList<RemoveQueueNode>();
 
         /// <summary>
         /// A list of objects that have been spawned by this generator and destroyed
@@ -70,6 +71,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public bool GeneratedTreasureItem { get; private set; }
 
+        private int currentCreate = 0;
         /// <summary>
         /// The total # of active spawned objects + awaiting spawning
         /// </summary>
@@ -79,10 +81,11 @@ namespace ACE.Server.Entity
             {
                 if (!GeneratedTreasureItem)
                     //return Spawned.Count + SpawnQueue.Count
-                    return Spawned.Keys.Except(Removed.Keys).Count() + SpawnQueue.Count;
+                    //return Spawned.Keys.Except(Removed.Keys).Count() + SpawnQueue.Count;
+                    return currentCreate;
                 else
                 {
-                    if ((Spawned.Count + SpawnQueue.Count) > 0)
+                    if (Spawned.Any() || SpawnQueue.Any())
                         return 1;
                     else
                         return 0;
@@ -150,10 +153,27 @@ namespace ACE.Server.Entity
         /// </summary>
         public void Maintenance_HeartBeat()
         {
-            while (RemoveQueue.TryPeek(out var result) && result.time <= DateTime.UtcNow)
+            //while (RemoveQueue.TryPeek(out var result) && result.time <= DateTime.UtcNow)
+            //{
+            //    RemoveQueue.Dequeue();
+            //    FreeSlot(result.objectGuid);
+            //}
+
+            var currentUnixTime = DateTime.UtcNow;
+
+            while (RemoveQueue.Count > 0)
             {
-                RemoveQueue.Dequeue();
-                FreeSlot(result.objectGuid);
+                var first = RemoveQueue.First.Value;
+
+                if (first.When <= currentUnixTime)
+                {
+                    RemoveQueue.RemoveFirst();
+                    FreeSlot(first.Guid);
+                }
+                else
+                {
+                    break;
+                }
             }
         }
 
@@ -190,6 +210,7 @@ namespace ACE.Server.Entity
                     break;
                 }*/
                 SpawnQueue.Add(GetSpawnTime());
+                UpdateCurrentCreate();
             }
         }
 
@@ -235,6 +256,7 @@ namespace ACE.Server.Entity
                     log.Debug($"GeneratorProfile: objects enqueued for {Generator.Name}, but MaxCreate({MaxCreate}) already reached!");
                 }
                 SpawnQueue.RemoveAt(index);
+                UpdateCurrentCreate();
             }
             FirstSpawn = false;
         }
@@ -517,6 +539,7 @@ namespace ACE.Server.Entity
                 inventoryObj.Destroy();
             }
             Spawned.Clear();
+            UpdateCurrentCreate();
         }
 
 
@@ -559,14 +582,130 @@ namespace ACE.Server.Entity
             if (adjWhenCreate != adjEventType)
                 return;            
 
-            RemoveQueue.Enqueue((DateTime.UtcNow.AddSeconds(Delay), woi.Guid.Full));
+            InsertIntoRemoveQueue(Delay, woi.Guid.Full);
             Removed.Add(woi.Guid.Full, woi);
+
+            UpdateCurrentCreate();
         }
 
         public void FreeSlot(uint objectGuid)
         {
             Spawned.Remove(objectGuid);
             Removed.Remove(objectGuid);
+
+            UpdateCurrentCreate();
+        }
+
+        private void UpdateCurrentCreate()
+        {
+            currentCreate = Spawned.Keys.Except(Removed.Keys).Count() + SpawnQueue.Count;
+        }
+
+        public class RemoveQueueNode
+        {
+            public float Delay { get; private set; }
+            public uint Guid { get; private set; }
+            public DateTime When { get; private set; }
+
+            public RemoveQueueNode(float delay, uint guid)
+            {
+                Delay = delay;
+                Guid = guid;
+                When = DateTime.UtcNow.AddSeconds(Delay);
+            }
+        }
+
+        private void InsertIntoRemoveQueue(float delay, uint guid)
+        {
+            var rqn = new RemoveQueueNode(delay, guid);
+
+            if (RemoveQueue.Count == 0)
+            {
+                RemoveQueue.AddFirst(new RemoveQueueNode(delay, guid));
+                return;
+            }
+
+            if (RemoveQueue.Last.Value.When <= rqn.When)
+            {
+                RemoveQueue.AddLast(rqn);
+                return;
+            }
+
+            var currentNode = RemoveQueue.First;
+
+            while (currentNode != null)
+            {
+                if (rqn.When <= currentNode.Value.When)
+                {
+                    RemoveQueue.AddBefore(currentNode, rqn);
+                    return;
+                }
+
+                currentNode = currentNode.Next;
+            }
+
+            RemoveQueue.AddLast(rqn); // This line really shouldn't be hit
+        }
+
+        public void Reset()
+        {
+            foreach (var rNode in Spawned.Values)
+            {
+                var wo = rNode.TryGetWorldObject();
+
+                if (wo != null && !wo.IsGenerator)
+                    wo.Destroy();
+                else if (wo != null && wo.IsGenerator)
+                {
+                    wo.ResetGenerator();
+                    wo.Destroy();
+                }
+            }
+
+            Spawned.Clear();
+            SpawnQueue.Clear();
+            RemoveQueue.Clear();
+            Removed.Clear();
+
+            UpdateCurrentCreate();
+        }
+
+        public void KillAll()
+        {
+            foreach (var rNode in Spawned.Values)
+            {
+                var wo = rNode.TryGetWorldObject();
+
+                if (wo is Creature creature && !creature.IsDead)
+                    creature.Smite(Generator, true);
+            }
+
+            Spawned.Clear();
+            SpawnQueue.Clear();
+
+            //RemoveQueue.Clear();
+            //Removed.Clear();
+
+            UpdateCurrentCreate();
+        }
+
+        public void DestroyAll(bool fromLandblockUnload = false)
+        {
+            foreach (var rNode in Spawned.Values)
+            {
+                var wo = rNode.TryGetWorldObject();
+
+                if (wo != null && (!(wo is Creature creature) || !creature.IsDead))
+                    wo.Destroy(true, fromLandblockUnload);
+            }
+
+            Spawned.Clear();
+            SpawnQueue.Clear();
+
+            //RemoveQueue.Clear();
+            //Removed.Clear();
+
+            UpdateCurrentCreate();
         }
     }
 }

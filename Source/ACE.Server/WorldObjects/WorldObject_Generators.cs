@@ -734,31 +734,13 @@ namespace ACE.Server.WorldObjects
                 case GeneratorDestruct.Kill:
                     foreach (var generator in GeneratorProfiles)
                     {
-                        foreach (var rNode in generator.Spawned.Values)
-                        {
-                            var wo = rNode.TryGetWorldObject();
-
-                            if (wo is Creature creature && !creature.IsDead)
-                                creature.Smite(this, true);
-                        }
-
-                        generator.Spawned.Clear();
-                        generator.SpawnQueue.Clear();
+                        generator.KillAll();
                     }
                     break;
                 case GeneratorDestruct.Destroy:
                     foreach (var generator in GeneratorProfiles)
                     {
-                        foreach (var rNode in generator.Spawned.Values)
-                        {
-                            var wo = rNode.TryGetWorldObject();
-
-                            if (wo != null && (!(wo is Creature creature) || !creature.IsDead))
-                                wo.Destroy(true, fromLandblockUnload);
-                        }
-
-                        generator.Spawned.Clear();
-                        generator.SpawnQueue.Clear();
+                        generator.DestroyAll(fromLandblockUnload);
                     }
                     break;
                 case GeneratorDestruct.Nothing:
@@ -889,7 +871,8 @@ namespace ACE.Server.WorldObjects
 
             if (!GeneratorDisabled)
             {
-                if (CurrentlyPoweringUp || (this is Container container && container.ResetMessagePending))
+                //if (CurrentlyPoweringUp || (this is Container container && container.ResetMessagePending))
+                if (CurrentlyPoweringUp)
                 {
                     //Console.WriteLine($"{Name}.Generator_Regeneration({RegenerationInterval}) SelectProfilesInit: Init={InitCreate} Current={CurrentCreate} Max={MaxCreate}");
                     SelectProfilesInit();
@@ -909,23 +892,7 @@ namespace ACE.Server.WorldObjects
         {
             foreach (var generator in GeneratorProfiles)
             {
-                foreach (var rNode in generator.Spawned.Values)
-                {
-                    var wo = rNode.TryGetWorldObject();
-
-                    if (wo != null && !wo.IsGenerator)
-                        wo.Destroy();
-                    else if (wo != null && wo.IsGenerator)
-                    {
-                        wo.ResetGenerator();
-                        wo.Destroy();
-                    }
-                }
-
-                generator.Spawned.Clear();
-                generator.SpawnQueue.Clear();
-                generator.RemoveQueue.Clear();
-                generator.Removed.Clear();
+                generator.Reset();
             }
         }
 
