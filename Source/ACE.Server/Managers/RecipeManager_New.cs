@@ -9,6 +9,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.Managers
 {
@@ -172,12 +173,14 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALVELVET100_CLASS:
                 case WeenieClassName.W_MATERIALVELVET_CLASS:
                 case WeenieClassName.W_LUCKYRABBITSFOOT_CLASS:
+                case WeenieClassName.W_GEMOFVERDANTFORCE_CLASS:
 
                     // ensure melee weapon and workmanship
                     if (target.WeenieType != WeenieType.MeleeWeapon || target.Workmanship == null)
                         return null;
 
                     // grab correct recipe to use as base
+
                     recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
                     break;
 
@@ -490,6 +493,7 @@ namespace ACE.Server.Managers
             { WeenieClassName.W_MATERIALGRANITE_CLASS,         3852 },
             { WeenieClassName.W_MATERIALGRANITEPATHWARDEN_CLASS, 3852 },
             { WeenieClassName.W_LUCKYRABBITSFOOT_CLASS,        8751 },
+            { WeenieClassName.W_GEMOFVERDANTFORCE_CLASS,       8934 },
 
             { WeenieClassName.W_MATERIALVELVET100_CLASS,       3861 },
             { WeenieClassName.W_MATERIALVELVET_CLASS,          3861 },
