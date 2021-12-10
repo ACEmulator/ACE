@@ -9,8 +9,6 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects;
-using ACE.Server.Network.GameMessages.Messages;
-
 namespace ACE.Server.Managers
 {
     public partial class RecipeManager
@@ -180,7 +178,6 @@ namespace ACE.Server.Managers
                         return null;
 
                     // grab correct recipe to use as base
-
                     recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
                     break;
 
