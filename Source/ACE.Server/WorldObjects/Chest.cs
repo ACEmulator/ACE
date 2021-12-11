@@ -254,6 +254,7 @@ namespace ACE.Server.WorldObjects
             if (IsGenerator)
             {
                 ResetGenerator();
+                CurrentlyPoweringUp = true;
                 if (InitCreate > 0)
                     Generator_Regeneration();
             }
@@ -262,50 +263,50 @@ namespace ACE.Server.WorldObjects
             ResetMessagePending = false;
         }
 
-        public override void ResetGenerator()
-        {
-            foreach (var generator in GeneratorProfiles)
-            {
-                var profileReset = false;
+        //public override void ResetGenerator()
+        //{
+        //    foreach (var generator in GeneratorProfiles)
+        //    {
+        //        var profileReset = false;
 
-                foreach (var rNode in generator.Spawned.Values)
-                {
-                    var wo = rNode.TryGetWorldObject();
+        //        foreach (var rNode in generator.Spawned.Values)
+        //        {
+        //            var wo = rNode.TryGetWorldObject();
 
-                    if (wo != null)
-                    {
-                        if (TryRemoveFromInventory(wo.Guid)) // only affect contained items.
-                        {
-                            wo.Destroy();
-                        }
+        //            if (wo != null)
+        //            {
+        //                if (TryRemoveFromInventory(wo.Guid)) // only affect contained items.
+        //                {
+        //                    wo.Destroy();
+        //                }
 
-                        if (!(wo is Creature))
-                            profileReset = true;
-                    }
-                }
+        //                if (!(wo is Creature))
+        //                    profileReset = true;
+        //            }
+        //        }
 
-                if (profileReset)
-                {
-                    generator.Spawned.Clear();
-                    generator.SpawnQueue.Clear();
-                    generator.RemoveQueue.Clear();
-                    generator.Removed.Clear();
-                }
-            }
+        //        if (profileReset)
+        //        {
+        //            generator.Spawned.Clear();
+        //            generator.SpawnQueue.Clear();
+        //            generator.RemoveQueue.Clear();
+        //            generator.Removed.Clear();
+        //        }
+        //    }
 
-            if (GeneratedTreasureItem)
-            {
-                var items = new List<WorldObject>();
-                foreach (var item in Inventory.Values)
-                    items.Add(item);
-                foreach (var item in items)
-                {
-                    if (TryRemoveFromInventory(item.Guid))
-                        item.Destroy();
-                }
-                GeneratedTreasureItem = false;
-            }
-        }
+        //    if (GeneratedTreasureItem)
+        //    {
+        //        var items = new List<WorldObject>();
+        //        foreach (var item in Inventory.Values)
+        //            items.Add(item);
+        //        foreach (var item in items)
+        //        {
+        //            if (TryRemoveFromInventory(item.Guid))
+        //                item.Destroy();
+        //        }
+        //        GeneratedTreasureItem = false;
+        //    }
+        //}
 
         protected override float DoOnOpenMotionChanges()
         {

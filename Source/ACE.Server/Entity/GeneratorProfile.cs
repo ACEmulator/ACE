@@ -113,7 +113,7 @@ namespace ACE.Server.Entity
         /// Flag indicates if generator profile is performing the initial spawn (TRUE / default),
         /// or the respawn (false)
         /// </summary>
-        public bool FirstSpawn { get; set; } = true;
+        //public bool FirstSpawn { get; set; } = true;
 
         /// <summary>
         /// The delay for respawning objects
@@ -232,8 +232,8 @@ namespace ACE.Server.Entity
                     continue;
                 }
 
-                if ((RegenLocationType & RegenLocationType.Treasure) != 0)
-                    RemoveTreasure();
+                //if ((RegenLocationType & RegenLocationType.Treasure) != 0)
+                //    RemoveTreasure();
 
                 if (Spawned.Count < MaxCreate)
                 {
@@ -258,7 +258,7 @@ namespace ACE.Server.Entity
                 SpawnQueue.RemoveAt(index);
                 UpdateCurrentCreate();
             }
-            FirstSpawn = false;
+            //FirstSpawn = false;
         }
 
         /// <summary>
@@ -653,19 +653,30 @@ namespace ACE.Server.Entity
             {
                 var wo = rNode.TryGetWorldObject();
 
-                if (wo != null && !wo.IsGenerator)
-                    wo.Destroy();
-                else if (wo != null && wo.IsGenerator)
+                if (wo != null)
                 {
-                    wo.ResetGenerator();
+                    if (wo.IsGenerator)
+                        wo.ResetGenerator();
+
+                    if (wo.Container == Generator)
+                    {
+                        var container = Generator as Container;
+                        if (container?.TryRemoveFromInventory(wo.Guid) ?? false)
+                            wo.Destroy();
+                    }
+
                     wo.Destroy();
                 }
             }
 
             Spawned.Clear();
             SpawnQueue.Clear();
+
             RemoveQueue.Clear();
             Removed.Clear();
+
+            GeneratedTreasureItem = false;
+            Generator.GeneratedTreasureItem = false;
 
             UpdateCurrentCreate();
         }
@@ -683,8 +694,8 @@ namespace ACE.Server.Entity
             Spawned.Clear();
             SpawnQueue.Clear();
 
-            //RemoveQueue.Clear();
-            //Removed.Clear();
+            RemoveQueue.Clear();
+            Removed.Clear();
 
             UpdateCurrentCreate();
         }
@@ -702,8 +713,8 @@ namespace ACE.Server.Entity
             Spawned.Clear();
             SpawnQueue.Clear();
 
-            //RemoveQueue.Clear();
-            //Removed.Clear();
+            RemoveQueue.Clear();
+            Removed.Clear();
 
             UpdateCurrentCreate();
         }
