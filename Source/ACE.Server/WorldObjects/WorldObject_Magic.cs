@@ -1436,13 +1436,15 @@ namespace ACE.Server.WorldObjects
 
             var casterPlayer = caster as Player;
 
-            if (casterPlayer != null && casterPlayer.PKTimerActive)
+            var _targetPlayer = target as Player;
+
+            if (casterPlayer != null && (casterPlayer.PKTimerActive || casterPlayer.PKDispelTimerActive))
             {
                 casterPlayer.SendWeenieError(WeenieError.YouHaveBeenInPKBattleTooRecently);
                 return false;
             }
 
-            if ((target.Wielder ?? target) is Player targetPlayer && targetPlayer.PKTimerActive)
+            if ((target.Wielder ?? target) is Player targetPlayer && (targetPlayer.PKTimerActive || targetPlayer.PKDispelTimerActive))
             {
                 if (/* casterPlayer != null || */ caster is Gem || caster is Food)
                 {
@@ -1451,6 +1453,11 @@ namespace ACE.Server.WorldObjects
                     else
                         targetPlayer.SendWeenieError(WeenieError.YouHaveBeenInPKBattleTooRecently);
 
+                    return false;
+                }
+                if(casterPlayer != null && targetPlayer != null && (targetPlayer.PKTimerActive || targetPlayer.PKDispelTimerActive))
+                {
+                    casterPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{targetPlayer.Name} has been involved in a player killer battle too recently to do that!", ChatMessageType.Magic));
                     return false;
                 }
             }
