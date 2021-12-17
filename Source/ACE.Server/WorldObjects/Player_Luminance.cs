@@ -14,6 +14,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void EarnLuminance(long amount, XpType xpType, ShareType shareType = ShareType.All)
         {
+            return; //Hard disable luminance
+
             if (IsOlthoiPlayer)
                 return;
 
@@ -34,6 +36,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void GrantLuminance(long amount, XpType xpType, ShareType shareType = ShareType.All)
         {
+            return; //Luminance is hard disabled
+
             if (IsOlthoiPlayer)
                 return;
 
@@ -49,6 +53,8 @@ namespace ACE.Server.WorldObjects
 
         private void AddLuminance(long amount, XpType xpType)
         {
+            return; //Hard disable luminance
+
             var available = AvailableLuminance ?? 0;
             var maximum = MaximumLuminance ?? 0;
 
@@ -74,6 +80,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool SpendLuminance(long amount)
         {
+            return false; //Hard disable luminance
+
             var available = AvailableLuminance ?? 0;
 
             if (amount > available)
@@ -91,6 +99,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private void UpdateLuminance()
         {
+            return; //Hard disable luminance
+
             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableLuminance, AvailableLuminance ?? 0));
         }
     }
