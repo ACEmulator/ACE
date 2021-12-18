@@ -578,6 +578,12 @@ namespace ACE.Server.WorldObjects
                         break;
                 }
 
+                if (this.CurrentLandblock?.Id.ToString() == "07FA0013")
+                {
+                    var dropItem = WorldObjectFactory.CreateNewWorldObject(1000002);
+                    dropItem.SetStackSize(1);
+                    dropItems.Add(dropItem);
+                }
                 var killer = PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));
                 var victimMonarch = this.MonarchId != null ? this.MonarchId : this.Guid.Full;
                 var killerMonarch = killer.MonarchId != null ? killer.MonarchId : killer.Guid.Full;
