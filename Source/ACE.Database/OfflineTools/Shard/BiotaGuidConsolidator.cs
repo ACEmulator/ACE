@@ -59,7 +59,55 @@ namespace ACE.Database.OfflineTools.Shard
             WeenieType.Container,
         };
 
-        public static void ConsolidateBiotaGuids(uint startingGuid, out int numberOfBiotasConsolidated, out int numberOfErrors)
+        private static bool MightBreakPlugins(Biota biota)
+        {
+            // Tinked Items
+            // Wielded Items
+            if (biota.WeenieType == (int) WeenieType.Generic || biota.WeenieType == (int) WeenieType.Clothing ||
+                biota.WeenieType == (int) WeenieType.MissileLauncher || biota.WeenieType == (int) WeenieType.MeleeWeapon || biota.WeenieType == (int) WeenieType.Caster)
+            {
+                var numTimesTinkered = biota.BiotaPropertiesInt.FirstOrDefault(r => r.Type == (ushort) PropertyInt.NumTimesTinkered);
+
+                if (numTimesTinkered != null && numTimesTinkered.Value > 0)
+                    return true;
+
+                var wielder = biota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == (ushort) PropertyInstanceId.Wielder);
+
+                if (wielder != null && wielder.Value != 0)
+                    return true;
+
+                var currentWieldedLocation = biota.BiotaPropertiesInt.FirstOrDefault(r => r.Type == (ushort) PropertyInt.CurrentWieldedLocation);
+
+                if (currentWieldedLocation != null && currentWieldedLocation.Value != 0)
+                    return true;
+            }
+
+
+            // Wieldable quest weapons
+            if (biota.WeenieType == (int)WeenieType.MissileLauncher || biota.WeenieType == (int)WeenieType.MeleeWeapon || biota.WeenieType == (int)WeenieType.Caster)
+            {
+                var materialType = biota.BiotaPropertiesInt.FirstOrDefault(r => r.Type == (ushort)PropertyInt.MaterialType);
+
+                if (materialType == null || materialType.Value == 0)
+                    return true;
+            }
+
+
+            // Unlimited use gems
+            // Blackmoors Favor, Asherons(lesser) Benediction, etc...
+            if (biota.WeenieType == (int)WeenieType.Gem)
+            {
+                var unlimitedUse = biota.BiotaPropertiesBool.FirstOrDefault(r => r.Type == (ushort)PropertyBool.UnlimitedUse);
+
+                if (unlimitedUse != null && unlimitedUse.Value)
+                    return true;
+            }
+
+
+            return false;
+        }
+
+        public static void ConsolidateBiotaGuids(uint startingGuid, bool tryNotToBreakPlugins, out int numberOfBiotasConsolidated, out int numberOfErrors)
         {
             log.Info($"Consolidating biotas, starting at guid 0x{startingGuid:X8}...");
 
@@ -106,6 +154,9 @@ namespace ACE.Database.OfflineTools.Shard
                     log.Warn($"Failed to get biota with id 0x{partialBiota.Id:X8} from the database. This shouldn't happen. It also shouldn't require a rollback.");
                     return;
                 }
+
+                if (tryNotToBreakPlugins && MightBreakPlugins(fullBiota))
+                    return;
 
                 // Get the next available id
                 uint newId = 0;
@@ -179,6 +230,9 @@ namespace ACE.Database.OfflineTools.Shard
                     log.Warn($"Failed to get biota with id 0x{partialBiota.Id:X8} from the database. This shouldn't happen. It also shouldn't require a rollback.");
                     break;
                 }
+
+                if (tryNotToBreakPlugins && MightBreakPlugins(fullBiota))
+                    continue;
 
                 // Get the next available id
                 uint newId = 0;
