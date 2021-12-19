@@ -369,6 +369,9 @@ namespace ACE.Server.WorldObjects
 
             bool isPvP = wielder is Player && target is Player;
 
+            if(isPvP && weapon?.WeenieClassId == 37585)
+                critDamageMod = (float)1.5;
+
             if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
             {
                 var cripplingBlowMod = GetCripplingBlowMod(skill, isPvP);
