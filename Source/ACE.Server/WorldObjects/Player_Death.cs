@@ -577,8 +577,8 @@ namespace ACE.Server.WorldObjects
                         shouldDropTrophy = rnd.Next(10);
                         break;
                 }
-
-                if (this.CurrentLandblock?.Id.ToString() == "07FA0013")
+                
+                if (this.CurrentLandblock.Id.ToString().Contains("07FA"))
                 {
                     var dropItem = WorldObjectFactory.CreateNewWorldObject(1000002);
                     dropItem.SetStackSize(1);
