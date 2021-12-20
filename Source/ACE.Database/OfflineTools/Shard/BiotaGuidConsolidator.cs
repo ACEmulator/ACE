@@ -135,81 +135,86 @@ namespace ACE.Database.OfflineTools.Shard
             // Process ConsolidatableBasicWeenieTypes first
             Parallel.ForEach(partialBiotas, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, partialBiota =>
             {
-                var tempCounter = Interlocked.Increment(ref counter);
-
-                if (numOfErrors > 0)
-                    return;
-
-                if (!ConsolidatableBasicWeenieTypes.Contains((WeenieType)partialBiota.WeenieType))
-                    return;
-
-                // Get the original biota
-                var fullBiota = shardDatabase.GetBiota(partialBiota.Id, true);
-
-                if (fullBiota == null)
+                try
                 {
-                    Interlocked.Increment(ref numOfErrors);
-                    log.Warn($"Failed to get biota with id 0x{partialBiota.Id:X8} from the database. This shouldn't happen. It also shouldn't require a rollback.");
-                    return;
-                }
+                    if (numOfErrors > 0)
+                        return;
 
-                if (tryNotToBreakPlugins && MightBreakPlugins(fullBiota))
-                {
-                    Interlocked.Increment(ref numOfBiotasSkipped);
-                    return;
-                }
+                    if (!ConsolidatableBasicWeenieTypes.Contains((WeenieType) partialBiota.WeenieType))
+                        return;
 
-                // Get the next available id
-                uint newId = 0;
+                    // Get the original biota
+                    var fullBiota = shardDatabase.GetBiota(partialBiota.Id, true);
 
-                lock (availableIDs)
-                {
-                    if (availableIDs.First != null)
+                    if (fullBiota == null)
                     {
-                        var id = availableIDs.First.Value.start;
-
-                        if (availableIDs.First.Value.start == availableIDs.First.Value.end)
-                            availableIDs.RemoveFirst();
-                        else
-                            availableIDs.First.Value = (availableIDs.First.Value.start + 1, availableIDs.First.Value.end);
-
-                        newId = id;
+                        Interlocked.Increment(ref numOfErrors);
+                        log.Warn($"Failed to get biota with id 0x{partialBiota.Id:X8} from the database. This shouldn't happen. It also shouldn't require a rollback.");
+                        return;
                     }
-                }
 
-                if (newId == 0)
+                    if (tryNotToBreakPlugins && MightBreakPlugins(fullBiota))
+                    {
+                        Interlocked.Increment(ref numOfBiotasSkipped);
+                        return;
+                    }
+
+                    // Get the next available id
+                    uint newId = 0;
+
+                    lock (availableIDs)
+                    {
+                        if (availableIDs.First != null)
+                        {
+                            var id = availableIDs.First.Value.start;
+
+                            if (availableIDs.First.Value.start == availableIDs.First.Value.end)
+                                availableIDs.RemoveFirst();
+                            else
+                                availableIDs.First.Value = (availableIDs.First.Value.start + 1, availableIDs.First.Value.end);
+
+                            newId = id;
+                        }
+                    }
+
+                    if (newId == 0)
+                    {
+                        Interlocked.Increment(ref numOfErrors);
+                        log.Fatal("Failed to generate new id. No more id's available for consolidation. This shouldn't require a rollback.");
+                        return;
+                    }
+
+                    idConversions[fullBiota.Id] = newId;
+
+                    // Copy our original biota into a new biota and set the new id
+                    var converted = BiotaConverter.ConvertToEntityBiota(fullBiota);
+                    converted.Id = newId;
+
+                    // Save the new biota
+                    if (!shardDatabase.SaveBiota(converted, new ReaderWriterLockSlim()))
+                    {
+                        Interlocked.Increment(ref numOfErrors);
+                        log.Fatal($"Failed to save new biota with id 0x{fullBiota.Id:X8} to the database. Please rollback your shard.");
+                        return;
+                    }
+
+                    // Finally, remove the original biota
+                    if (!shardDatabase.RemoveBiota(fullBiota.Id))
+                    {
+                        Interlocked.Increment(ref numOfErrors);
+                        log.Fatal($"Failed to remove original biota with id 0x{fullBiota.Id:X8} from database. Please rollback your shard.");
+                        return;
+                    }
+
+                    Interlocked.Increment(ref numOfBiotasConsolidated);
+                }
+                finally
                 {
-                    Interlocked.Increment(ref numOfErrors);
-                    log.Fatal("Failed to generate new id. No more id's available for consolidation. This shouldn't require a rollback.");
-                    return;
+                    var tempCounter = Interlocked.Increment(ref counter);
+
+                    if (tempCounter % 1000 == 0)
+                        Console.WriteLine($"{tempCounter:N0} biotas successfully processed out of {partialBiotas.Count:N0}, Phase 1 of 2...");
                 }
-
-                idConversions[fullBiota.Id] = newId;
-
-                // Copy our original biota into a new biota and set the new id
-                var converted = BiotaConverter.ConvertToEntityBiota(fullBiota);
-                converted.Id = newId;
-
-                // Save the new biota
-                if (!shardDatabase.SaveBiota(converted, new ReaderWriterLockSlim()))
-                {
-                    Interlocked.Increment(ref numOfErrors);
-                    log.Fatal($"Failed to save new biota with id 0x{fullBiota.Id:X8} to the database. Please rollback your shard.");
-                    return;
-                }
-
-                // Finally, remove the original biota
-                if (!shardDatabase.RemoveBiota(fullBiota.Id))
-                {
-                    Interlocked.Increment(ref numOfErrors);
-                    log.Fatal($"Failed to remove original biota with id 0x{fullBiota.Id:X8} from database. Please rollback your shard.");
-                    return;
-                }
-
-                Interlocked.Increment(ref numOfBiotasConsolidated);
-
-                if (tempCounter % 1000 == 0)
-                    Console.WriteLine($"{tempCounter:N0} biotas successfully processed out of {partialBiotas.Count:N0}, Phase 1 of 2...");
             });
 
 
@@ -218,97 +223,102 @@ namespace ACE.Database.OfflineTools.Shard
             // Process ConsolidatableContainerWeenieTypes second
             foreach (var partialBiota in partialBiotas)
             {
-                var tempCounter = Interlocked.Increment(ref counter);
-
-                if (numOfErrors > 0)
-                    break;
-
-                if (!ConsolidatableContainerWeenieTypes.Contains((WeenieType)partialBiota.WeenieType))
-                    continue;
-
-                // Get the original biota
-                var fullBiota = shardDatabase.GetBiota(partialBiota.Id, true);
-
-                if (fullBiota == null)
+                try
                 {
-                    Interlocked.Increment(ref numOfErrors);
-                    log.Warn($"Failed to get biota with id 0x{partialBiota.Id:X8} from the database. This shouldn't happen. It also shouldn't require a rollback.");
-                    break;
-                }
+                    if (numOfErrors > 0)
+                        break;
 
-                if (tryNotToBreakPlugins && MightBreakPlugins(fullBiota))
-                {
-                    Interlocked.Increment(ref numOfBiotasSkipped);
-                    continue;
-                }
+                    if (!ConsolidatableContainerWeenieTypes.Contains((WeenieType) partialBiota.WeenieType))
+                        continue;
 
-                // Get the next available id
-                uint newId = 0;
+                    // Get the original biota
+                    var fullBiota = shardDatabase.GetBiota(partialBiota.Id, true);
 
-                lock (availableIDs)
-                {
-                    if (availableIDs.First != null)
+                    if (fullBiota == null)
                     {
-                        var id = availableIDs.First.Value.start;
-
-                        if (availableIDs.First.Value.start == availableIDs.First.Value.end)
-                            availableIDs.RemoveFirst();
-                        else
-                            availableIDs.First.Value = (availableIDs.First.Value.start + 1, availableIDs.First.Value.end);
-
-                        newId = id;
+                        Interlocked.Increment(ref numOfErrors);
+                        log.Warn($"Failed to get biota with id 0x{partialBiota.Id:X8} from the database. This shouldn't happen. It also shouldn't require a rollback.");
+                        break;
                     }
-                }
 
-                if (newId == 0)
+                    if (tryNotToBreakPlugins && MightBreakPlugins(fullBiota))
+                    {
+                        Interlocked.Increment(ref numOfBiotasSkipped);
+                        continue;
+                    }
+
+                    // Get the next available id
+                    uint newId = 0;
+
+                    lock (availableIDs)
+                    {
+                        if (availableIDs.First != null)
+                        {
+                            var id = availableIDs.First.Value.start;
+
+                            if (availableIDs.First.Value.start == availableIDs.First.Value.end)
+                                availableIDs.RemoveFirst();
+                            else
+                                availableIDs.First.Value = (availableIDs.First.Value.start + 1, availableIDs.First.Value.end);
+
+                            newId = id;
+                        }
+                    }
+
+                    if (newId == 0)
+                    {
+                        Interlocked.Increment(ref numOfErrors);
+                        log.Fatal("Failed to generate new id. No more id's available for consolidation. This shouldn't require a rollback.");
+                        break;
+                    }
+
+                    idConversions[fullBiota.Id] = newId;
+
+                    // Copy our original biota into a new biota and set the new id
+                    var converted = BiotaConverter.ConvertToEntityBiota(fullBiota);
+                    converted.Id = newId;
+
+                    // Save the new biota
+                    if (!shardDatabase.SaveBiota(converted, new ReaderWriterLockSlim()))
+                    {
+                        Interlocked.Increment(ref numOfErrors);
+                        log.Fatal($"Failed to save new biota with id 0x{fullBiota.Id:X8} to the database. Please rollback your shard.");
+                        break;
+                    }
+
+                    // update contained items to point to the new container
+                    using (var context = new ShardDbContext())
+                    {
+                        var ownedItems = context.BiotaPropertiesIID.Where(r => r.Type == (ushort) PropertyInstanceId.Owner && r.Value == fullBiota.Id);
+
+                        foreach (var item in ownedItems)
+                            item.Value = converted.Id;
+
+                        var containedItems = context.BiotaPropertiesIID.Where(r => r.Type == (ushort) PropertyInstanceId.Container && r.Value == fullBiota.Id);
+
+                        foreach (var item in containedItems)
+                            item.Value = converted.Id;
+
+                        context.SaveChanges();
+                    }
+
+                    // Finally, remove the original biota
+                    if (!shardDatabase.RemoveBiota(fullBiota.Id))
+                    {
+                        Interlocked.Increment(ref numOfErrors);
+                        log.Fatal($"Failed to remove original biota with id 0x{fullBiota.Id:X8} from database. Please rollback your shard.");
+                        break;
+                    }
+
+                    Interlocked.Increment(ref numOfBiotasConsolidated);
+                }
+                finally
                 {
-                    Interlocked.Increment(ref numOfErrors);
-                    log.Fatal("Failed to generate new id. No more id's available for consolidation. This shouldn't require a rollback.");
-                    break;
+                    var tempCounter = Interlocked.Increment(ref counter);
+
+                    if (tempCounter % 1000 == 0)
+                        Console.WriteLine($"{tempCounter:N0} biotas successfully processed out of {partialBiotas.Count:N0}, Phase 2 of 2...");
                 }
-
-                idConversions[fullBiota.Id] = newId;
-
-                // Copy our original biota into a new biota and set the new id
-                var converted = BiotaConverter.ConvertToEntityBiota(fullBiota);
-                converted.Id = newId;
-
-                // Save the new biota
-                if (!shardDatabase.SaveBiota(converted, new ReaderWriterLockSlim()))
-                {
-                    Interlocked.Increment(ref numOfErrors);
-                    log.Fatal($"Failed to save new biota with id 0x{fullBiota.Id:X8} to the database. Please rollback your shard.");
-                    break;
-                }
-
-                // update contained items to point to the new container
-                using (var context = new ShardDbContext())
-                {
-                    var ownedItems = context.BiotaPropertiesIID.Where(r => r.Type == (ushort)PropertyInstanceId.Owner && r.Value == fullBiota.Id);
-
-                    foreach (var item in ownedItems)
-                        item.Value = converted.Id;
-
-                    var containedItems = context.BiotaPropertiesIID.Where(r => r.Type == (ushort)PropertyInstanceId.Container && r.Value == fullBiota.Id);
-
-                    foreach (var item in containedItems)
-                        item.Value = converted.Id;
-
-                    context.SaveChanges();
-                }
-
-                // Finally, remove the original biota
-                if (!shardDatabase.RemoveBiota(fullBiota.Id))
-                {
-                    Interlocked.Increment(ref numOfErrors);
-                    log.Fatal($"Failed to remove original biota with id 0x{fullBiota.Id:X8} from database. Please rollback your shard.");
-                    break;
-                }
-
-                Interlocked.Increment(ref numOfBiotasConsolidated);
-
-                if (tempCounter % 1000 == 0)
-                    Console.WriteLine($"{tempCounter:N0} biotas successfully processed out of {partialBiotas.Count:N0}, Phase 2 of 2...");
             }
 
 
