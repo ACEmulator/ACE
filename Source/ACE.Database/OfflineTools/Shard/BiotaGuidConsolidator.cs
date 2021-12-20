@@ -94,7 +94,7 @@ namespace ACE.Database.OfflineTools.Shard
             return false;
         }
 
-        public static void ConsolidateBiotaGuids(uint startingGuid, bool tryNotToBreakPlugins, out int numberOfBiotasConsolidated, out int numberOfBiotasSkipped, out int numberOfErrors)
+        public static void ConsolidateBiotaGuids(uint startingGuid, bool tryNotToBreakPlugins, bool skipUserInputAfterWarning, out int numberOfBiotasConsolidated, out int numberOfBiotasSkipped, out int numberOfErrors)
         {
             log.Info($"Consolidating biotas, starting at guid 0x{startingGuid:X8}, tryNotToBreakPlugins: {tryNotToBreakPlugins}...");
 
@@ -102,8 +102,11 @@ namespace ACE.Database.OfflineTools.Shard
 
             Console.WriteLine("!!! Do not proceed unless you have backed up your shard database first !!!");
             Console.WriteLine("In the event of any failure, you may be asked to rollback your shard database.");
-            Console.WriteLine("Press any key to proceed, or abort the process to quit.");
-            Console.ReadLine();
+            if (!skipUserInputAfterWarning)
+            {
+                Console.WriteLine("Press any key to proceed, or abort the process to quit.");
+                Console.ReadLine();
+            }
             Console.WriteLine(".... hold on to your butts...");
 
             if (startingGuid < ObjectGuid.DynamicMin)
