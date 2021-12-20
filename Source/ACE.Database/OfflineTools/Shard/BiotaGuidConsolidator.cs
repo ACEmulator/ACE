@@ -78,11 +78,6 @@ namespace ACE.Database.OfflineTools.Shard
 
                 if (wielder != null && wielder.Value != 0)
                     return true;
-
-                var currentWieldedLocation = biota.BiotaPropertiesInt.FirstOrDefault(r => r.Type == (ushort)PropertyInt.CurrentWieldedLocation);
-
-                if (currentWieldedLocation != null && currentWieldedLocation.Value != 0)
-                    return true;
             }
 
 
@@ -114,13 +109,17 @@ namespace ACE.Database.OfflineTools.Shard
             if (startingGuid < ObjectGuid.DynamicMin)
                 throw new Exception($"startingGuid cannot be lower than ObjectGuid.DynamicMin (0x{ObjectGuid.DynamicMin:X8})");
 
+            int counter = 0;
+
             int numOfBiotasConsolidated = 0;
             int numOfBiotasSkipped = 0;
             int numOfErrors = 0;
 
             var shardDatabase = new ShardDatabase();
 
-            var sequenceGaps = shardDatabase.GetSequenceGaps(ObjectGuid.DynamicMin, 10000000);
+            var biotaCount = shardDatabase.GetBiotaCount();
+
+            var sequenceGaps = shardDatabase.GetSequenceGaps(ObjectGuid.DynamicMin, (uint)biotaCount);
             var availableIDs = new LinkedList<(uint start, uint end)>(sequenceGaps);
             List<Biota> partialBiotas;
 
@@ -136,6 +135,8 @@ namespace ACE.Database.OfflineTools.Shard
             // Process ConsolidatableBasicWeenieTypes first
             Parallel.ForEach(partialBiotas, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, partialBiota =>
             {
+                var tempCounter = Interlocked.Increment(ref counter);
+
                 if (numOfErrors > 0)
                     return;
 
@@ -205,16 +206,20 @@ namespace ACE.Database.OfflineTools.Shard
                     return;
                 }
 
-                var tempNumOfBiotasConsolidated = Interlocked.Increment(ref numOfBiotasConsolidated);
+                Interlocked.Increment(ref numOfBiotasConsolidated);
 
-                if ((tempNumOfBiotasConsolidated + numOfErrors) % 1000 == 0)
-                    Console.WriteLine($"{tempNumOfBiotasConsolidated:N0} biotas successfully processed out of {partialBiotas.Count:N0}...");
+                if (tempCounter % 1000 == 0)
+                    Console.WriteLine($"{tempCounter:N0} biotas successfully processed out of {partialBiotas.Count:N0}, Phase 1 of 2...");
             });
 
+
+            counter = 0;
 
             // Process ConsolidatableContainerWeenieTypes second
             foreach (var partialBiota in partialBiotas)
             {
+                var tempCounter = Interlocked.Increment(ref counter);
+
                 if (numOfErrors > 0)
                     break;
 
@@ -300,10 +305,10 @@ namespace ACE.Database.OfflineTools.Shard
                     break;
                 }
 
-                var tempNumOfBiotasConsolidated = Interlocked.Increment(ref numOfBiotasConsolidated);
+                Interlocked.Increment(ref numOfBiotasConsolidated);
 
-                if ((tempNumOfBiotasConsolidated + numOfErrors) % 1000 == 0)
-                    Console.WriteLine($"{tempNumOfBiotasConsolidated:N0} biotas successfully processed out of {partialBiotas.Count:N0}...");
+                if (tempCounter % 1000 == 0)
+                    Console.WriteLine($"{tempCounter:N0} biotas successfully processed out of {partialBiotas.Count:N0}, Phase 2 of 2...");
             }
 
 
