@@ -7,11 +7,14 @@ using System.Threading.Tasks;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database.Adapter;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+
+using Microsoft.EntityFrameworkCore;
 
 namespace ACE.Database.OfflineTools.Shard
 {
@@ -66,17 +69,17 @@ namespace ACE.Database.OfflineTools.Shard
             if (biota.WeenieType == (int) WeenieType.Generic || biota.WeenieType == (int) WeenieType.Clothing ||
                 biota.WeenieType == (int) WeenieType.MissileLauncher || biota.WeenieType == (int) WeenieType.MeleeWeapon || biota.WeenieType == (int) WeenieType.Caster)
             {
-                var numTimesTinkered = biota.BiotaPropertiesInt.FirstOrDefault(r => r.Type == (ushort) PropertyInt.NumTimesTinkered);
+                var numTimesTinkered = biota.BiotaPropertiesInt.FirstOrDefault(r => r.Type == (ushort)PropertyInt.NumTimesTinkered);
 
                 if (numTimesTinkered != null && numTimesTinkered.Value > 0)
                     return true;
 
-                var wielder = biota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == (ushort) PropertyInstanceId.Wielder);
+                var wielder = biota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == (ushort)PropertyInstanceId.Wielder);
 
                 if (wielder != null && wielder.Value != 0)
                     return true;
 
-                var currentWieldedLocation = biota.BiotaPropertiesInt.FirstOrDefault(r => r.Type == (ushort) PropertyInt.CurrentWieldedLocation);
+                var currentWieldedLocation = biota.BiotaPropertiesInt.FirstOrDefault(r => r.Type == (ushort)PropertyInt.CurrentWieldedLocation);
 
                 if (currentWieldedLocation != null && currentWieldedLocation.Value != 0)
                     return true;
@@ -93,23 +96,12 @@ namespace ACE.Database.OfflineTools.Shard
             }
 
 
-            // Unlimited use gems
-            // Blackmoors Favor, Asherons(lesser) Benediction, etc...
-            if (biota.WeenieType == (int)WeenieType.Gem)
-            {
-                var unlimitedUse = biota.BiotaPropertiesBool.FirstOrDefault(r => r.Type == (ushort)PropertyBool.UnlimitedUse);
-
-                if (unlimitedUse != null && unlimitedUse.Value)
-                    return true;
-            }
-
-
             return false;
         }
 
-        public static void ConsolidateBiotaGuids(uint startingGuid, bool tryNotToBreakPlugins, out int numberOfBiotasConsolidated, out int numberOfErrors)
+        public static void ConsolidateBiotaGuids(uint startingGuid, bool tryNotToBreakPlugins, out int numberOfBiotasConsolidated, out int numberOfBiotasSkipped, out int numberOfErrors)
         {
-            log.Info($"Consolidating biotas, starting at guid 0x{startingGuid:X8}...");
+            log.Info($"Consolidating biotas, starting at guid 0x{startingGuid:X8}, tryNotToBreakPlugins: {tryNotToBreakPlugins}...");
 
             Thread.Sleep(1000); // Give the logger type to flush to the client so that our output lines up in order
 
@@ -123,6 +115,7 @@ namespace ACE.Database.OfflineTools.Shard
                 throw new Exception($"startingGuid cannot be lower than ObjectGuid.DynamicMin (0x{ObjectGuid.DynamicMin:X8})");
 
             int numOfBiotasConsolidated = 0;
+            int numOfBiotasSkipped = 0;
             int numOfErrors = 0;
 
             var shardDatabase = new ShardDatabase();
@@ -132,12 +125,16 @@ namespace ACE.Database.OfflineTools.Shard
             List<Biota> partialBiotas;
 
             using (var context = new ShardDbContext())
+            {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
                 partialBiotas = context.Biota.Where(r => r.Id >= startingGuid).OrderByDescending(r => r.Id).ToList();
+            }
 
             var idConversions = new ConcurrentDictionary<uint, uint>();
 
             // Process ConsolidatableBasicWeenieTypes first
-            Parallel.ForEach(partialBiotas, partialBiota =>
+            Parallel.ForEach(partialBiotas, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, partialBiota =>
             {
                 if (numOfErrors > 0)
                     return;
@@ -156,7 +153,10 @@ namespace ACE.Database.OfflineTools.Shard
                 }
 
                 if (tryNotToBreakPlugins && MightBreakPlugins(fullBiota))
+                {
+                    Interlocked.Increment(ref numOfBiotasSkipped);
                     return;
+                }
 
                 // Get the next available id
                 uint newId = 0;
@@ -232,7 +232,10 @@ namespace ACE.Database.OfflineTools.Shard
                 }
 
                 if (tryNotToBreakPlugins && MightBreakPlugins(fullBiota))
+                {
+                    Interlocked.Increment(ref numOfBiotasSkipped);
                     continue;
+                }
 
                 // Get the next available id
                 uint newId = 0;
@@ -343,9 +346,10 @@ namespace ACE.Database.OfflineTools.Shard
 
             // Finished
             numberOfBiotasConsolidated = numOfBiotasConsolidated;
+            numberOfBiotasSkipped = numOfBiotasSkipped;
             numberOfErrors = numOfErrors;
 
-            log.Info($"Consolidated {numberOfBiotasConsolidated:N0} biotas with {numberOfErrors:N0} errors out of {partialBiotas.Count:N0} total.");
+            log.Info($"Consolidated {numberOfBiotasConsolidated:N0} biotas, {numberOfBiotasSkipped:N0} skipped, with {numberOfErrors:N0} errors out of {partialBiotas.Count:N0} total.");
         }
     }
 }
