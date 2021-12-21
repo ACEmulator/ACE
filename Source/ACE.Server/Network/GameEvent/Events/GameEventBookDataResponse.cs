@@ -52,10 +52,7 @@ namespace ACE.Server.Network.GameEvent.Events
             }
 
             Writer.WriteString16L(inscription);
-            if (inscription != "")
-                Writer.Write(authorId);
-            else
-                Writer.Write(0x0u);
+            Writer.Write(authorId != 0xFFFFFFFF ? authorId : 0x0u);
             Writer.WriteString16L(authorName);
         }
     }
