@@ -1135,11 +1135,6 @@ namespace ACE.Server.Factories
                             MutateMeleeWeapon(wo, treasureDeath, isMagical, treasureRoll);
                             break;
 
-                        case TreasureWeaponType.Caster:
-
-                            MutateCaster(wo, treasureDeath, isMagical, null, treasureRoll);
-                            break;
-
                         case TreasureWeaponType.Bow:
                         case TreasureWeaponType.Crossbow:
                         case TreasureWeaponType.Atlatl:
@@ -1151,6 +1146,11 @@ namespace ACE.Server.Factories
                             log.Error($"CreateAndMutateWcid({treasureDeath.TreasureType}, {(int)treasureRoll.Wcid} - {treasureRoll.Wcid}, {treasureRoll.GetItemType()}, {isMagical}) - unknown weapon type");
                             break;
                     }
+                    break;
+
+                case TreasureItemType_Orig.Caster:
+
+                    MutateCaster(wo, treasureDeath, isMagical, null, treasureRoll);
                     break;
 
                 case TreasureItemType_Orig.Armor:
