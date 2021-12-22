@@ -985,6 +985,7 @@ namespace ACE.Server.Factories
 
                 case TreasureItemType_Orig.Caster:
 
+                    treasureRoll.WeaponType = TreasureWeaponType.Caster;
                     treasureRoll.Wcid = CasterWcids.Roll(treasureDeath.Tier);
                     break;
 
