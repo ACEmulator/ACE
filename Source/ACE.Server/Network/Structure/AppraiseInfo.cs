@@ -545,7 +545,7 @@ namespace ACE.Server.Network.Structure
             if (PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal) && !NPCLooksLikeObject)
                 PropertiesInt.Remove(PropertyInt.EncumbranceVal);
 
-            if (NPCLooksLikeObject && !creature.Weenie.GetProperty(PropertyInt.EncumbranceVal).HasValue)
+            if (NPCLooksLikeObject && !(creature.Weenie?.GetProperty(PropertyInt.EncumbranceVal).HasValue ?? false))
                 PropertiesInt.Remove(PropertyInt.EncumbranceVal);
 
             // see notes in CombatPet.Init()
