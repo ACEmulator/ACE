@@ -176,6 +176,13 @@
             "Database": "ace_pk_kills",
             "Username": "root",
             "Password": ""
+        },
+        "TownControl": {
+            "Host": "127.0.0.1",
+            "Port": 3306,
+            "Database": "ace_town_control",
+            "Username": "root",
+            "Password": ""
         }
 
     },

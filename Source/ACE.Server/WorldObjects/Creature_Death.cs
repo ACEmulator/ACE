@@ -10,6 +10,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Entity.TownControl;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
@@ -50,6 +51,11 @@ namespace ACE.Server.WorldObjects
 
             if (!IsOnNoDeathXPLandblock)
                 OnDeath_GrantXP();
+
+            if(IsTownControlBoss())
+            {
+                HandleTownControlBossDeath();
+            }
 
             return GetDeathMessage(lastDamager, damageType, criticalHit);
         }
@@ -729,5 +735,57 @@ namespace ACE.Server.WorldObjects
             0x5965,     // Gauntlet Arena Two (Radiant Blood)
             0x596B,     // Gauntlet Staging Area (All Societies)
         };
+
+
+        public void HandleTownControlBossDeath()
+        {
+            var deadBoss = TownControlBosses.TownControlBossMap[this.WeenieClassId];
+            var killer = DamageHistory.TopDamager;
+
+            if (deadBoss.BossType.Equals(TownControlBossType.InitiationBoss))
+            {
+                //check if enough time has passed since last conflict to start a new conflict
+                var town = DatabaseManager.TownControl.GetTownById(deadBoss.TownID);
+
+                //If enough time has not passed (the last conflict start + the town's respite time is still in the future)
+                if (town.LastConflictStartDateTime.HasValue && town.LastConflictStartDateTime.Value.AddSeconds(Convert.ToInt32(town.ConflictRespiteLength)) > DateTime.Now)
+                {
+                    //TODO
+                    string respiteCheckFailedMsg = $"{this.WeenieClassName} with WeenieClassID = {this.WeenieClassId} has been killed.  But the respite timer is still in the future, so no conflict is started";
+                    PlayerManager.BroadcastToAll(new GameMessageSystemChat(respiteCheckFailedMsg, ChatMessageType.Broadcast));
+                    return;
+                }                
+                
+                //create the conflict event and update the town status in the DB
+
+
+                //send a global message about the conflict starting
+                string msg = $"{this.DisplayName} with WeenieClassID = {this.WeenieClassId} has been killed.  This is where we will start the conflict";
+                PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                
+                //spawn the conflict bosses
+            }
+            else
+            {
+                //TODO verify that a conflict event is still active for this town
+
+                //keep track of the conflict boss's death
+
+                //Check if all conflict bosses for this town are now dead and if so, end the event and determine whether the attackers succeeded within the time limit
+
+                //If attackers succeeded, change ownership
+
+                //Send out a global
+            }
+
+            
+
+        }
+
+        public bool IsTownControlBoss()
+        {
+            return TownControlBosses.TownControlBossMap.ContainsKey(this.WeenieClassId);
+        }       
+
     }
 }

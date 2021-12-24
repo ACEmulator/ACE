@@ -14,6 +14,8 @@ namespace ACE.Database
 
         public static PKKillsDatabase PKKills { get; } = new PKKillsDatabase();
 
+        public static TownControlDatabase TownControl { get; } = new TownControlDatabase();
+
         private static SerializedShardDatabase serializedShardDb;
 
         public static SerializedShardDatabase Shard { get; private set; }
@@ -57,6 +59,9 @@ namespace ACE.Database
             Shard = serializedShardDb;
 
             shardDb.Exists(true);
+
+            PKKills.Exists(true);
+            TownControl.Exists(true);
         }
 
         public static bool AutoPromoteNextAccountToAdmin { get; set; }
