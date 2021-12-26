@@ -91,8 +91,8 @@ namespace ACE.Server
         private static readonly Gauge ace_ServerPerformanceMonitor_5m_DoSessionWork_RemoveSessions_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_DoSessionWork_RemoveSessions_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
 
         // Calls from NetworkManager.ProcessPacket()
-        private static readonly Gauge ace_ServerPerformanceMonitor_5m_ProcessPacket_0_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_ProcessPacket_0_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
-        private static readonly Gauge ace_ServerPerformanceMonitor_5m_ProcessPacket_1_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_ProcessPacket_1_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
+        //private static readonly Gauge ace_ServerPerformanceMonitor_5m_ProcessPacket_0_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_ProcessPacket_0_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
+        //private static readonly Gauge ace_ServerPerformanceMonitor_5m_ProcessPacket_1_Average = Metrics.CreateGauge("ace_ServerPerformanceMonitor_5m_ProcessPacket_1_Average", null, new GaugeConfiguration { SuppressInitialValue = true });
 
         private static readonly Gauge ace_ServerObjectManager_ServerObjects = Metrics.CreateGauge("ace_ServerObjectManager_ServerObjects", null, new GaugeConfiguration { SuppressInitialValue = true });
 
@@ -216,8 +216,8 @@ namespace ACE.Server
                 ace_ServerPerformanceMonitor_5m_DoSessionWork_RemoveSessions_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.DoSessionWork_RemoveSessions).AverageEventDuration);
 
                 // Calls from NetworkManager.ProcessPacket()
-                ace_ServerPerformanceMonitor_5m_ProcessPacket_0_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.ProcessPacket_0).AverageEventDuration);
-                ace_ServerPerformanceMonitor_5m_ProcessPacket_1_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.ProcessPacket_1).AverageEventDuration);
+                //ace_ServerPerformanceMonitor_5m_ProcessPacket_0_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.ProcessPacket_0).AverageEventDuration);
+                //ace_ServerPerformanceMonitor_5m_ProcessPacket_1_Average.Set(ServerPerformanceMonitor.GetEventHistory5m(ServerPerformanceMonitor.MonitorType.ProcessPacket_1).AverageEventDuration);
             }
 
             /*
