@@ -122,7 +122,7 @@ CREATE TABLE `town_control_event` (
   `attacker_clan_name` TEXT NOT NULL COMMENT 'name of the clan who is attacking the town',
   `defender_id` INT UNSIGNED NULL COMMENT 'character id of the monarch whose clan is defending the town', 
   `defender_clan_name` TEXT NULL COMMENT 'name of the clan who is defending the town',
-  `is_attack_success` BIT(1) NOT NULL DEFAULT 0,
+  `is_attack_success` BIT(1) NULL DEFAULT,
   PRIMARY KEY (`event_id`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;

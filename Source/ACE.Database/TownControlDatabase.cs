@@ -46,81 +46,83 @@ namespace ACE.Database
 
         public Town GetTownById(uint townId)
         {
-            using (var context = new TownControlDbContext())
+            try
             {
-                Town town = context.Town.Where(x => x.TownId == townId).FirstOrDefault();
+                using (var context = new TownControlDbContext())
+                {
+                    Town town = context.Town.Where(x => x.TownId == townId).FirstOrDefault();
 
-                return town;
+                    return town;
+                }
             }
+            catch(Exception ex)
+            {
+                //TODO logging
+            }
+
+            return null;
         }
 
 
-        public TownControlEvent StartTownControlEvent(uint townId, uint attackingClanId, string attackingClanName, uint defendingClanId, string defendingClanName)
+        public TownControlEvent StartTownControlEvent(uint townId, uint attackingClanId, string attackingClanName, uint? defendingClanId, string defendingClanName)
         {
-            var tcEvent = new TownControlEvent()
+            try
             {
-                EventStartDateTime = DateTime.UtcNow,
-                EventEndDateTime = null,
-                TownId = townId,
-                AttackingClanId = attackingClanId,
-                AttackingClanName = attackingClanName,
-                DefendingClanId = defendingClanId,
-                DefendingClanName = defendingClanName,
-                IsAttackSuccess = null
-            };
+                var tcEvent = new TownControlEvent()
+                {
+                    EventStartDateTime = DateTime.UtcNow,
+                    EventEndDateTime = null,
+                    TownId = townId,
+                    AttackingClanId = attackingClanId,
+                    AttackingClanName = attackingClanName,
+                    DefendingClanId = defendingClanId,
+                    DefendingClanName = defendingClanName,
+                    IsAttackSuccess = null
+                };
 
-            using (var context = new TownControlDbContext())
+                using (var context = new TownControlDbContext())
+                {
+                    context.TownControlEvent.Add(tcEvent);
+                    context.SaveChanges();
+                }
+
+                return tcEvent;
+            }
+            catch(Exception ex)
             {
-                context.TownControlEvent.Add(tcEvent);
-                context.SaveChanges();
+                //TODO logging
             }
 
-            return tcEvent;
+            return null;
         }
 
         public TownControlEvent GetLatestTownControlEventByTownId(uint townId)
         {
-            using (var context = new TownControlDbContext())
+            try
             {
-                var townEvents = context.TownControlEvent
-                    .AsNoTracking()
-                    .Where(r => r.TownId == townId);
+                using (var context = new TownControlDbContext())
+                {
+                    var townEvents = context.TownControlEvent
+                        .AsNoTracking()
+                        .Where(r => r.TownId == townId);
 
-                if(townEvents != null && townEvents.Count() > 0)
-                {
-                    return townEvents.ToList().OrderByDescending(x => x.EventId).FirstOrDefault();
-                }
-                else
-                {
-                    return null;
+                    if (townEvents != null && townEvents.Count() > 0)
+                    {
+                        return townEvents.ToList().OrderByDescending(x => x.EventId).FirstOrDefault();
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
             }
+            catch(Exception ex)
+            {
+                //TODO logging
+            }
+
+            return null;
         }
-
-
-        //public void GetCharacter(uint characterId, Action<Character> callback)
-        //{
-        //    _queue.Add(new Task(() =>
-        //    {
-        //        var result = BaseDatabase.GetCharacter(characterId);
-        //        callback?.Invoke(result);
-        //    }));
-        //}
-
-        //public Kills CreateKill(uint victimId, uint killerId)
-        //{
-        //    var kill = new Kills();
-        //    kill.VictimId = victimId;
-        //    kill.KillerId = killerId;
-        //    //            account.CreateTime = DateTime.UtcNow;
-        //    using (var context = new PKKillsDbContext())
-        //    {
-        //        context.Kills.Add(kill);
-        //        context.SaveChanges();
-        //    }
-
-        //    return kill;
-        //}
 
     }
 }

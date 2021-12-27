@@ -10,8 +10,6 @@ namespace ACE.Database.Models.TownControl
 
         public uint TownId { get; set; }
 
-        public string TownName { get; set; }
-
         public DateTime? EventStartDateTime { get; set; }
 
         public DateTime? EventEndDateTime { get; set; }
