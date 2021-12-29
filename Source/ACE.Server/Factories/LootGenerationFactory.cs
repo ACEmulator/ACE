@@ -985,6 +985,8 @@ namespace ACE.Server.Factories
 
                 case TreasureItemType_Orig.Caster:
 
+                    // only called if TreasureItemType.Caster was specified directly
+                    treasureRoll.WeaponType = TreasureWeaponType.Caster;
                     treasureRoll.Wcid = CasterWcids.Roll(treasureDeath.Tier);
                     break;
 
@@ -1151,6 +1153,12 @@ namespace ACE.Server.Factories
                             log.Error($"CreateAndMutateWcid({treasureDeath.TreasureType}, {(int)treasureRoll.Wcid} - {treasureRoll.Wcid}, {treasureRoll.GetItemType()}, {isMagical}) - unknown weapon type");
                             break;
                     }
+                    break;
+
+                case TreasureItemType_Orig.Caster:
+
+                    // alternate path -- only called if TreasureItemType.Caster was specified directly
+                    MutateCaster(wo, treasureDeath, isMagical, null, treasureRoll);
                     break;
 
                 case TreasureItemType_Orig.Armor:

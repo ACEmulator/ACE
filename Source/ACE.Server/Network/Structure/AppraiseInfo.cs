@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
+using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
@@ -542,10 +542,14 @@ namespace ACE.Server.Network.Structure
 
             AddRatings(creature);
 
-            if (PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal) && !NPCLooksLikeObject)
-                PropertiesInt.Remove(PropertyInt.EncumbranceVal);
+            if (NPCLooksLikeObject)
+            {
+                var weenie = creature.Weenie ?? DatabaseManager.World.GetCachedWeenie(creature.WeenieClassId);
 
-            if (NPCLooksLikeObject && !creature.Weenie.GetProperty(PropertyInt.EncumbranceVal).HasValue)
+                if (!weenie.GetProperty(PropertyInt.EncumbranceVal).HasValue)
+                    PropertiesInt.Remove(PropertyInt.EncumbranceVal);
+            }
+            else
                 PropertiesInt.Remove(PropertyInt.EncumbranceVal);
 
             // see notes in CombatPet.Init()

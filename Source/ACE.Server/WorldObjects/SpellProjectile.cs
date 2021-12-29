@@ -670,7 +670,7 @@ namespace ACE.Server.WorldObjects
             // using an equivalent formula that produces the correct results for 10% and 25%,
             // and also produces the correct results for any %
 
-            var absorbMagicDamage = GetAbsorbMagicDamage();
+            var absorbMagicDamage = item.GetAbsorbMagicDamage();
 
             if (absorbMagicDamage == null)
                 return 1.0f;
