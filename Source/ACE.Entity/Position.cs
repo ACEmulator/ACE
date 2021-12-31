@@ -277,6 +277,44 @@ namespace ACE.Entity
             Rotation = Quaternion.Identity;
         }
 
+        /// <summary>
+        /// Given a Vector2 set of coordinates, create a new position object for use in converting from VLOC to LOC
+        /// </summary>
+        /// <param name="coordinates">A set coordinates provided in a Vector2 object with East-West being the X value and North-South being the Y value</param>
+        public Position(Vector2 coordinates)
+        {
+            // convert from (-102, 102) to (0, 204)
+            coordinates += Vector2.One * 102;
+
+            // 204 = map clicks across dereth
+            // 2040 = number of cells across dereth
+            // 24 = meters per cell
+            //var globalPos = coordinates / 204 * 2040 * 24;
+            var globalPos = coordinates * 240;   // simplified
+
+            globalPos -= Vector2.One * 12.0f; // ?????
+
+            // inlining, this logic is in PositionExtensions.FromGlobal()
+            var blockX = (int)globalPos.X / BlockLength;
+            var blockY = (int)globalPos.Y / BlockLength;
+
+            var originX = globalPos.X % BlockLength;
+            var originY = globalPos.Y % BlockLength;
+
+            var cellX = (int)originX / CellLength;
+            var cellY = (int)originY / CellLength;
+
+            var cell = cellX * CellSide + cellY + 1;
+
+            var objCellID = (uint)(blockX << 24 | blockY << 16 | cell);
+
+            LandblockId = new LandblockId(objCellID);
+
+            Pos = new Vector3(originX, originY, 0);     // must use PositionExtensions.AdjustMapCoords() to get Z
+
+            Rotation = Quaternion.Identity;
+        }
+
         public void Serialize(BinaryWriter payload, PositionFlags positionFlags, int animationFrame, bool writeLandblock = true)
         {
             payload.Write((uint)positionFlags);

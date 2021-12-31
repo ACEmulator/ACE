@@ -116,13 +116,13 @@ namespace ACE.Server.WorldObjects
                     ScriptedCollision = false;
                 }
             }
-                
-            // Whirling Blade spells get omega values and "align path" turned off which
+
+            // Projectiles with RotationSpeed get omega values and "align path" turned off which
             // creates the nice swirling animation
-            if (WeenieClassId == 1636 || WeenieClassId == 7268 || WeenieClassId == 20979)
+            if ((RotationSpeed ?? 0) != 0)
             {
                 AlignPath = false;
-                PhysicsObj.Omega = new Vector3(12.56637f, 0, 0);
+                PhysicsObj.Omega = new Vector3((float)(Math.PI * 2 * RotationSpeed), 0, 0);
             }
         }
 

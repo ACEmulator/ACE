@@ -265,7 +265,7 @@ namespace ACE.Database
         {
             var query = from weenieRecord in context.Weenie
                         join stringProperty in context.WeeniePropertiesString on weenieRecord.ClassId equals stringProperty.ObjectId
-                        where weenieRecord.Type == (int)WeenieType.Creature && stringProperty.Type == (ushort)PropertyString.Name && stringProperty.Value.Equals(name, StringComparison.InvariantCultureIgnoreCase)
+                        where weenieRecord.Type == (int)WeenieType.Creature && stringProperty.Type == (ushort)PropertyString.Name && stringProperty.Value == name
                         select weenieRecord;
 
             var weenie = query
