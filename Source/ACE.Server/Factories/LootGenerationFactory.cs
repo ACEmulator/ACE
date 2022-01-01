@@ -359,6 +359,7 @@ namespace ACE.Server.Factories
             var roll = new TreasureRoll();
 
             roll.Wcid = (WeenieClassName)item.WeenieClassId;
+            roll.BaseArmorLevel = item.ArmorLevel ?? 0;
 
             if (roll.Wcid == WeenieClassName.coinstack)
             {
