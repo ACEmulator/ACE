@@ -63,6 +63,32 @@ namespace ACE.Database
             return null;
         }
 
+        public void UpdateTown(Town town)
+        {
+            try
+            {
+                using (var context = new TownControlDbContext())
+                {
+                    var townDbRec = context.Town.FirstOrDefault(x => x.TownId == town.TownId);
+
+                    if(townDbRec == null)
+                    {
+                        return;
+                    }
+
+                    townDbRec.IsInConflict = town.IsInConflict;
+                    townDbRec.LastConflictStartDateTime = town.LastConflictStartDateTime;
+                    townDbRec.CurrentOwnerID = town.CurrentOwnerID;
+
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                //TODO logging
+            }
+        }
+
 
         public TownControlEvent StartTownControlEvent(uint townId, uint attackingClanId, string attackingClanName, uint? defendingClanId, string defendingClanName)
         {
@@ -94,6 +120,35 @@ namespace ACE.Database
             }
 
             return null;
+        }
+
+        public void UpdateTownControlEvent(TownControlEvent tcEvent)
+        {
+            try
+            {
+                using (var context = new TownControlDbContext())
+                {
+                    var eventDbRec = context.TownControlEvent.FirstOrDefault(x => x.EventId == tcEvent.EventId);
+
+                    if (eventDbRec == null)
+                    {
+                        return;
+                    }
+
+                    eventDbRec.AttackingClanId = tcEvent.AttackingClanId;
+                    eventDbRec.AttackingClanName = tcEvent.AttackingClanName;
+                    eventDbRec.DefendingClanId = tcEvent.DefendingClanId;
+                    eventDbRec.EventStartDateTime = tcEvent.EventStartDateTime;
+                    eventDbRec.EventEndDateTime = tcEvent.EventEndDateTime;
+                    eventDbRec.IsAttackSuccess = tcEvent.IsAttackSuccess;
+
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                //TODO logging
+            }
         }
 
         public TownControlEvent GetLatestTownControlEventByTownId(uint townId)

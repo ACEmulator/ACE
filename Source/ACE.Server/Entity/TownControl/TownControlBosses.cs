@@ -30,10 +30,10 @@ namespace ACE.Server.Entity.TownControl
                     );
 
                     _tcBossMap.Add(
-                        12346, //TODO
+                        42153366,
                         new TownControlBoss()
                         {
-                            WeenieID = 12346, //TODO
+                            WeenieID = 42153366,
                             TownID = 91,
                             TownName = "Shoushi",
                             BossType = TownControlBossType.ConflictBoss
@@ -92,6 +92,23 @@ namespace ACE.Server.Entity.TownControl
             }
         }
 
+        public static bool IsTownControlBoss(uint weenieId)
+        {
+            return TownControlBosses.TownControlBossMap.ContainsKey(weenieId);
+        }
+
+        public static bool IsTownControlConflictBoss(uint weenieId)
+        {
+            if (TownControlBosses.TownControlBossMap.ContainsKey(weenieId))
+            {
+                if(TownControlBosses.TownControlBossMap[weenieId].BossType.Equals(TownControlBossType.ConflictBoss))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     public class TownControlBoss
@@ -109,6 +126,5 @@ namespace ACE.Server.Entity.TownControl
     {
         InitiationBoss = 0,
         ConflictBoss = 1
-    }
-
+    }    
 }

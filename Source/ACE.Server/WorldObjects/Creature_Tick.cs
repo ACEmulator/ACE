@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using ACE.Database;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
+using ACE.Server.Entity.TownControl;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -43,6 +46,32 @@ namespace ACE.Server.WorldObjects
 
                 if (this is Player player)
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Its lifespan finished, your {expireItem.Name} crumbles to dust.", ChatMessageType.Broadcast));
+            }
+
+            if(TownControlBosses.IsTownControlConflictBoss(this.WeenieClassId))
+            {
+                //Check if there is an active Town Control event for this boss
+                var tcBoss = TownControlBosses.TownControlBossMap[this.WeenieClassId];
+                var town = DatabaseManager.TownControl.GetTownById(tcBoss.TownID);
+                var tcEvent = DatabaseManager.TownControl.GetLatestTownControlEventByTownId(town.TownId);
+
+                if (!town.IsInConflict || tcEvent == null || !tcEvent.EventStartDateTime.HasValue || tcEvent.EventEndDateTime.HasValue)
+                {
+                    //TODO what if the town isn't in conflict?  destroy the boss?
+                    return;
+                }
+
+                var tcEventDurationExpiredTime = tcEvent.EventStartDateTime.Value.AddSeconds(town.ConflictLength);
+
+                //If the town control event duration is past and this creature is still alive
+                //end the TC event with defenders winning
+                //destroy the TC boss
+                if(DateTime.UtcNow > tcEventDurationExpiredTime)
+                {
+                    var dmgHistory = new DamageHistoryInfo(this);
+                    OnDeath(dmgHistory, DamageType.Bludgeon);
+                    Die(dmgHistory, dmgHistory);
+                }
             }
 
             base.Heartbeat(currentUnixTime);

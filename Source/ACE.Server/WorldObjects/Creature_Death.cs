@@ -52,7 +52,7 @@ namespace ACE.Server.WorldObjects
             if (!IsOnNoDeathXPLandblock)
                 OnDeath_GrantXP();
 
-            if(IsTownControlBoss())
+            if(TownControlBosses.IsTownControlBoss(this.WeenieClassId))
             {
                 HandleTownControlBossDeath();
             }
@@ -739,126 +739,220 @@ namespace ACE.Server.WorldObjects
 
         public void HandleTownControlBossDeath()
         {
-            var deadBoss = TownControlBosses.TownControlBossMap[this.WeenieClassId];
-            var killer = DamageHistory.TopDamager;
-
-            var deadBossWeenie = DatabaseManager.World.GetWeenie(this.WeenieClassId);
-
-            if(!killer.IsPlayer)
+            try
             {
-                //TODO - what to do if the killer isn't a player?
-                return;
-            }
+                var deadBoss = TownControlBosses.TownControlBossMap[this.WeenieClassId];
+                var killer = DamageHistory.TopDamager;
 
-            if (deadBoss.BossType.Equals(TownControlBossType.InitiationBoss))
-            {
-                //check if enough time has passed since last conflict to start a new conflict
-                var town = DatabaseManager.TownControl.GetTownById(deadBoss.TownID);
+                var deadBossWeenie = DatabaseManager.World.GetWeenie(this.WeenieClassId);
 
-                //If enough time has not passed (the last conflict start + the town's respite time is still in the future)
-                if (town.LastConflictStartDateTime.HasValue && town.LastConflictStartDateTime.Value.AddSeconds(Convert.ToInt32(town.ConflictRespiteLength)) > DateTime.Now)
+                var town = DatabaseManager.TownControl.GetTownById(deadBoss.TownID);                
+
+                if (deadBoss.BossType.Equals(TownControlBossType.InitiationBoss))
                 {
-                    //TODO - what is the behavior if the boss is killed before conflict respite time is up?
-
-                    string respiteCheckFailedMsg = $"{deadBossWeenie.ClassName} with WeenieClassID = {this.WeenieClassId} has been killed.  But the respite timer is still in the future, so no conflict is started";
-                    PlayerManager.BroadcastToAll(new GameMessageSystemChat(respiteCheckFailedMsg, ChatMessageType.Broadcast));
-                    return;
-                }
-
-                //Get the attacking clan ID and name
-                uint? killerMonarchId = null;
-                string killerAllegName = null;
-                var killerPlayer = PlayerManager.FindByGuid(killer.Guid);
-                var killerAllegiance = AllegianceManager.GetAllegiance(killerPlayer);
-                if(killerAllegiance != null)
-                {
-                    killerMonarchId = killerAllegiance.MonarchId;
-                    killerAllegName = killerAllegiance.Monarch.Player.Name;
-                }
-                else
-                {
-                    //TODO - what do we do if the killer isn't part of any allegiance?
-                    return;
-                }                
-
-                //Get the defending cland ID and name, if the town has an owner already
-                //cover scenario where owning clan is not longer a valid monarchy
-                uint? defendingClanId = null;
-                string defendingClanName = null;
-                if(town.CurrentOwnerID.HasValue)
-                {
-                    var owningMonarch = PlayerManager.FindByGuid(town.CurrentOwnerID.Value);
-                    if(owningMonarch != null)
+                    if (!killer.IsPlayer)
                     {
-                        var owningAlleg = AllegianceManager.GetAllegiance(owningMonarch);
-                        if(owningAlleg != null)
+                        //TODO - what to do if the killer isn't a player?
+                        return;
+                    }
+
+                    //check if enough time has passed since last conflict to start a new conflict                
+                    //If enough time has not passed (the last conflict start + the town's respite time is still in the future)
+                    if (town.LastConflictStartDateTime.HasValue && town.LastConflictStartDateTime.Value.AddSeconds(Convert.ToInt32(town.ConflictRespiteLength)) > DateTime.Now)
+                    {
+                        //TODO - what is the behavior if the boss is killed before conflict respite time is up?
+
+                        string respiteCheckFailedMsg = $"{deadBossWeenie.ClassName} with WeenieClassID = {this.WeenieClassId} has been killed.  But the respite timer is still in the future, so no conflict is started";
+                        PlayerManager.BroadcastToAll(new GameMessageSystemChat(respiteCheckFailedMsg, ChatMessageType.Broadcast));
+                        return;
+                    }
+
+                    //Get the attacking clan ID and name
+                    uint? killerMonarchId = null;
+                    string killerAllegName = null;
+                    var killerPlayer = PlayerManager.FindByGuid(killer.Guid);
+                    var killerAllegiance = AllegianceManager.GetAllegiance(killerPlayer);
+                    if (killerAllegiance != null)
+                    {
+                        killerMonarchId = killerAllegiance.MonarchId;
+                        killerAllegName = killerAllegiance.Monarch.Player.Name;
+                    }
+                    else
+                    {
+                        //TODO - what do we do if the killer isn't part of any allegiance?
+                        return;
+                    }
+
+                    //Get the defending cland ID and name, if the town has an owner already
+                    //cover scenario where owning clan is not longer a valid monarchy
+                    uint? defendingClanId = null;
+                    string defendingClanName = null;
+                    if (town.CurrentOwnerID.HasValue)
+                    {
+                        var owningMonarch = PlayerManager.FindByGuid(town.CurrentOwnerID.Value);
+                        if (owningMonarch != null)
                         {
-                            if(owningAlleg.Monarch.PlayerGuid != owningMonarch.Guid)
+                            var owningAlleg = AllegianceManager.GetAllegiance(owningMonarch);
+                            if (owningAlleg != null)
                             {
-                                //TODO
-                                //This is the scenario where the monarch who owned the town has sworn into a different allegiance                                
+                                if (owningAlleg.Monarch.PlayerGuid != owningMonarch.Guid)
+                                {
+                                    //TODO
+                                    //This is the scenario where the monarch who owned the town has sworn into a different allegiance                                
+                                }
+                                else
+                                {
+                                    //The owning monarch is still a valid player and still a monarch
+                                    defendingClanId = owningAlleg.MonarchId;
+                                    defendingClanName = owningAlleg.AllegianceName;
+                                }
                             }
                             else
                             {
-                                //The owning monarch is still a valid player and still a monarch
-                                defendingClanId = owningAlleg.MonarchId;
-                                defendingClanName = owningAlleg.AllegianceName;
+                                //TODO
+                                //This is scenario where monarch who owned the town is no longer part of any allegiance
                             }
                         }
                         else
                         {
                             //TODO
-                            //This is scenario where monarch who owned the town is no longer part of any allegiance
+                            //This is scenario where monarch who owned the town isn't a valid player, maybe deleted?
                         }
                     }
                     else
                     {
-                        //TODO
-                        //This is scenario where monarch who owned the town isn't a valid player, maybe deleted?
+                        //When the town is not owned by any allegiance
+                    }
+
+                    //create the conflict event and update the town status in the DB
+                    var tcEvent = DatabaseManager.TownControl.StartTownControlEvent(town.TownId, killerMonarchId.Value, killerAllegName, defendingClanId, defendingClanName);
+                    town.IsInConflict = true;
+                    DatabaseManager.TownControl.UpdateTown(town);
+
+                    //send a global message about the conflict starting
+                    string conflictStartMsg = "";
+
+                    if (defendingClanId.HasValue)
+                    {
+                        conflictStartMsg = $"{killerPlayer.Name} has slain {deadBossWeenie.ClassName} throwing {town.TownName} into conflict.  A battle for town ownership has begun as clan {killerAllegName} attempts to wrest control of {town.TownName} from clan {defendingClanName}.  Will you join the fray and turn the tides of this battle?";
+                    }
+                    else
+                    {
+                        conflictStartMsg = $"{killerPlayer.Name} has slain {deadBossWeenie.ClassName} throwing {town.TownName} into conflict.  With no current owner, clan {killerAllegName} is poised to claim ownership of {town.TownName}.  Who will try to stop them?";
+                    }
+
+                    PlayerManager.BroadcastToAll(new GameMessageSystemChat(conflictStartMsg, ChatMessageType.Broadcast));
+
+                    //spawn the conflict bosses
+                    //var tcConflictBosses = TownControlBosses.TownControlBossMap.Values.Where(x => x.BossType == TownControlBossType.ConflictBoss && x.TownID == town.TownId);
+
+                    //foreach (var conflictBoss in tcConflictBosses)
+                    //{
+                    //    var bossWeenie = DatabaseManager.World.GetCachedWeenie(conflictBoss.WeenieID);
+                    //    var bossWorldObj = WorldObjectFactory.CreateNewWorldObject(bossWeenie);
+                    //    bossWorldObj.Location = this.Location;
+                    //    bossWorldObj.Location.LandblockId = new LandblockId(this.Location.GetCell());
+                    //    //bossWorldObj.CurrentLandblock = this.CurrentLandblock;
+                    //    bossWorldObj.EnterWorld();
+                    //}
+
+                }
+                else //If this is a Conflict boss
+                {
+                    //verify that a conflict event is still active for this town
+                    var tcEvent = DatabaseManager.TownControl.GetLatestTownControlEventByTownId(town.TownId);
+                    if (!town.IsInConflict || tcEvent == null || !tcEvent.EventStartDateTime.HasValue || tcEvent.EventEndDateTime.HasValue)
+                    {
+                        //A conflict event isn't active
+                        //TODO - broadcast something?
+                        return;
+                    }
+
+                    var tcEventDurationExpiredTime = tcEvent.EventStartDateTime.Value.AddSeconds(town.ConflictLength);
+
+                    //TODD - for future we may want multiple conflict bosses and need to track 
+                    ////Check if all conflict bosses for this town are now dead and if so, end the event and determine whether the attackers succeeded within the time limit
+                    
+                    string conflictEndMsg = "";
+
+                    //If the town control event duration is not past and the boss is dead and he didn't self destruct, attackers are the winners
+                    //end the TC event with attackers winning
+                    if (DateTime.UtcNow < tcEventDurationExpiredTime)
+                    {
+                        //Update the Town's owner and conflict status
+                        town.CurrentOwnerID = tcEvent.AttackingClanId;
+                        town.IsInConflict = false;
+                        DatabaseManager.TownControl.UpdateTown(town);
+
+                        //End the TownControlEvent
+                        tcEvent.IsAttackSuccess = true;
+                        tcEvent.EventEndDateTime = DateTime.UtcNow;
+                        DatabaseManager.TownControl.UpdateTownControlEvent(tcEvent);
+
+                        string tcQuestName = town.TownName.Trim().Replace(" ", "") + "TownControlOwner";
+
+                        //Remove town's TC quest stamp from everyone who has it
+                        var charsWithQuestStamp = DatabaseManager.Shard.BaseDatabase.GetCharacterIDsWithQuestCompletion(tcQuestName);
+                        if(charsWithQuestStamp != null)
+                        {
+                            foreach(uint charid in charsWithQuestStamp)
+                            {
+                                var playerWithQuest = PlayerManager.FindByGuid(new ObjectGuid(charid));
+                                ((Creature)playerWithQuest).QuestManager.Erase(tcQuestName);
+                            }
+                        }
+
+                        //Add town's TC quest stamp to the attacking allegiance
+                        var winnerAllegMembers = AllegianceManager.FindAllPlayers(new ObjectGuid(tcEvent.AttackingClanId));
+                        if(winnerAllegMembers != null)
+                        {
+                            foreach(var allegMember in winnerAllegMembers)
+                            {
+                                ((Creature)allegMember).QuestManager.Update(tcQuestName);
+                            }
+                        }
+
+                        //Send a global announcing the attackers win
+                        if (tcEvent.DefendingClanId.HasValue)
+                        {
+                            conflictEndMsg = $"The battle for ownership of {town.TownName} has ended.  Clan {tcEvent.DefendingClanName} has failed to defend {town.TownName} from the attack of clan {tcEvent.AttackingClanName} and the attackers have prevailed in taking ownership of {town.TownName}!";
+                        }
+                        else
+                        {
+                            conflictEndMsg = $"The battle for ownership of {town.TownName} has ended.  Clan {tcEvent.AttackingClanName} was victorious in their attack and are the new owners of {town.TownName}!";                            
+                        }
+
+                        PlayerManager.BroadcastToAll(new GameMessageSystemChat(conflictEndMsg, ChatMessageType.Broadcast));
+                    }
+                    else
+                    {
+                        //Update the Town's conflict status
+                        town.IsInConflict = false;
+                        DatabaseManager.TownControl.UpdateTown(town);
+
+                        //End the TownControlEvent
+                        tcEvent.IsAttackSuccess = false;
+                        tcEvent.EventEndDateTime = DateTime.UtcNow;
+                        DatabaseManager.TownControl.UpdateTownControlEvent(tcEvent);
+
+                        //Send global announcing the defenders win
+                        if (tcEvent.DefendingClanId.HasValue)
+                        {
+                            conflictEndMsg = $"The battle for ownership of {town.TownName} has ended.  Clan {tcEvent.DefendingClanName} has successfully defended {town.TownName} from the attack of clan {tcEvent.AttackingClanName}.  The defenders retain their ownership of {town.TownName}!";                            
+                        }
+                        else
+                        {
+                            conflictEndMsg = $"The battle for ownership of {town.TownName} has ended.  Clan {tcEvent.AttackingClanName} has failed in their attack!  Ownership of {town.TownName} is still unclaimed.";
+                        }
+
+                        PlayerManager.BroadcastToAll(new GameMessageSystemChat(conflictEndMsg, ChatMessageType.Broadcast));
                     }
                 }
-                else
-                {
-                    //When the town is not owned by any allegiance
-                }
-
-                //create the conflict event and update the town status in the DB
-                var tcEvent = DatabaseManager.TownControl.StartTownControlEvent(town.TownId, killerMonarchId.Value, killerAllegName, defendingClanId, defendingClanName);
-
-                //send a global message about the conflict starting
-                string conflictStartMsg = "";
-
-                if(defendingClanId.HasValue)
-                {
-                    conflictStartMsg = $"{killerPlayer.Name} has slain {deadBossWeenie.ClassName} throwing {town.TownName} into conflict.  A battle for town ownership has begun as clan {killerAllegName} attempts to wrest control of {town.TownName} from clan {defendingClanName}.  Will you join the fray and turn the tides of this battle?";
-                }
-                else
-                {
-                    conflictStartMsg = $"{killerPlayer.Name} has slain {deadBossWeenie.ClassName} throwing {town.TownName} into conflict.  With no current owner, clan {killerAllegName} is poised to claim ownership of {town.TownName}.  Who will try to stop them?";
-                }
-
-                PlayerManager.BroadcastToAll(new GameMessageSystemChat(conflictStartMsg, ChatMessageType.Broadcast));
-                
-                //spawn the conflict bosses
             }
-            else
+            catch(Exception ex)
             {
-                //TODO verify that a conflict event is still active for this town
-
-                //keep track of the conflict boss's death
-
-                //Check if all conflict bosses for this town are now dead and if so, end the event and determine whether the attackers succeeded within the time limit
-
-                //If attackers succeeded, change ownership
-
-                //Send out a global
+                //TODO logging
             }
-        }
-
-        public bool IsTownControlBoss()
-        {
-            return TownControlBosses.TownControlBossMap.ContainsKey(this.WeenieClassId);
-        }       
-
+        }    
     }
 }

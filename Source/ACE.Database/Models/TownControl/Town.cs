@@ -18,7 +18,7 @@ namespace ACE.Database.Models.TownControl
 
         public uint ConflictLength { get; set; }
 
-        public uint? ConflictRespiteLength { get; set; }        
+        public uint? ConflictRespiteLength { get; set; }
 
     }
 }
