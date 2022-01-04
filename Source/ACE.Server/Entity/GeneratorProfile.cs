@@ -242,7 +242,8 @@ namespace ACE.Server.Entity
             if (RegenLocationType.HasFlag(RegenLocationType.Treasure))
             {
                 objects = TreasureGenerator();
-                if (objects.Count > 0)
+
+                if (objects != null && objects.Count > 0)
                 {
                     Generator.GeneratedTreasureItem = true;
                     GeneratedTreasureItem = true;
@@ -474,13 +475,13 @@ namespace ACE.Server.Entity
                     //log.Debug($"{_generator.Name}.TreasureGenerator(): found wielded treasure {Biota.WeenieClassId}");
 
                     // roll into the wielded treasure table
-                    var table = new TreasureWieldedTable(wieldedTreasure);
-                    return Generator.GenerateWieldedTreasureSets(table);
+                    //var table = new TreasureWieldedTable(wieldedTreasure);
+                    return WorldObject.GenerateWieldedTreasureSets(wieldedTreasure);
                 }
                 else
                 {
                     log.Debug($"{Generator.Name}.TreasureGenerator(): couldn't find death treasure or wielded treasure for ID {Biota.WeenieClassId}");
-                    return new List<WorldObject>();
+                    return null;
                 }
             }
         }
