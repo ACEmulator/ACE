@@ -1340,5 +1340,17 @@ namespace ACE.Server.WorldObjects
             }
             return 0;
         }
+
+        public int ImbueAttempts
+        {
+            get => GetProperty(PropertyInt.ImbueAttempts) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.ImbueAttempts); else SetProperty(PropertyInt.ImbueAttempts, value); }
+        }
+
+        public int ImbueSuccesses
+        {
+            get => GetProperty(PropertyInt.ImbueSuccesses) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.ImbueSuccesses); else SetProperty(PropertyInt.ImbueSuccesses, value); }
+        }
     }
 }
