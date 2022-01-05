@@ -56,10 +56,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!AddKnownSpell(spellId) && uiOutput)
+            if (!AddKnownSpell(spellId))
             {
-                GameMessageSystemChat errorMessage = new GameMessageSystemChat("You already know that spell!", ChatMessageType.Broadcast);
-                Session.Network.EnqueueSend(errorMessage);
+                if (uiOutput)
+                {
+                    GameMessageSystemChat errorMessage = new GameMessageSystemChat("You already know that spell!", ChatMessageType.Broadcast);
+                    Session.Network.EnqueueSend(errorMessage);
+                }
                 return;
             }
 
