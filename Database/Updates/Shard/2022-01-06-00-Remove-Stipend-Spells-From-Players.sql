@@ -26,7 +26,6 @@ AND (    /* creature */
      OR `spell` = '4585'
      OR `spell` = '4591'
      OR `spell` = '4595'
-     OR `spell` = '4509'
      OR `spell` = '4601'
      OR `spell` = '4603'
      OR `spell` = '4607'
