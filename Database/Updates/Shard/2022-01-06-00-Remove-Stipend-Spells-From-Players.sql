@@ -1,5 +1,5 @@
 DELETE FROM `biota_properties_spell_book`
-WHERE (`object_Id` >= 0x50000000 and `object_Id`<= 0x70000000)
+WHERE (`object_Id` >= 0x50000000 and `object_Id`< 0x70000000)
 AND (    /* creature */
         `spell` = '4505'
      OR `spell` = '4509'
@@ -9,7 +9,7 @@ AND (    /* creature */
      OR `spell` = '4521'
      OR `spell` = '4525'
      OR `spell` = '4529'
-     OR `spell` = '4538'
+  /* OR `spell` = '4538' */
      OR `spell` = '4541'
      OR `spell` = '5778'
      OR `spell` = '5802'
