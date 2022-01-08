@@ -9,9 +9,9 @@ namespace ACE.Server.Factories.Tables
     {
         private static readonly List<WeenieClassName> aetheriaColors = new List<WeenieClassName>()
         {
-            WeenieClassName.ace42635_aetheria,  // blue
-            WeenieClassName.ace42637_aetheria,  // yellow
-            WeenieClassName.ace42636_aetheria,  // red
+            WeenieClassName.ace42635_coalescedaetheria,  // blue
+            WeenieClassName.ace42637_coalescedaetheria,  // yellow
+            WeenieClassName.ace42636_coalescedaetheria,  // red
         };
 
         public static WeenieClassName Roll(int tier)
