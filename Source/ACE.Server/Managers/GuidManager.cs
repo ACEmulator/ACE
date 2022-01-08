@@ -123,7 +123,7 @@ namespace ACE.Server.Managers
             /// Once sequence gaps are depleted and there are no available id's in the recycle queue, DB Max + 1 is used
             /// You can monitor the amount of available id's using /serverstatus
             /// </summary>
-            private const int limitAvailableIDsReturnedInGetSequenceGaps = 10000000;
+            private const int limitAvailableIDsReturnedInGetSequenceGaps = 200000000;
             private bool useSequenceGapExhaustedMessageDisplayed;
             private LinkedList<(uint start, uint end)> availableIDs = new LinkedList<(uint start, uint end)>();
 
