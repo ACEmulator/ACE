@@ -334,9 +334,16 @@ namespace ACE.Server
                     {
                         case "AuthenticationBase":
                             sqlConnectInfo = $"server={config.MySql.Authentication.Host};port={config.MySql.Authentication.Port};user={config.MySql.Authentication.Username};password={config.MySql.Authentication.Password};DefaultCommandTimeout=120";
+                            sqlDBFile = sqlDBFile.Replace("ace_auth", config.MySql.Authentication.Database);
                             break;
                         case "ShardBase":
                             sqlConnectInfo = $"server={config.MySql.Shard.Host};port={config.MySql.Shard.Port};user={config.MySql.Shard.Username};password={config.MySql.Shard.Password};DefaultCommandTimeout=120";
+                            sqlDBFile = sqlDBFile.Replace("ace_shard", config.MySql.Shard.Database);
+                            break;
+                        case "WorldBase":
+                        default:
+                            //sqlConnectInfo = $"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};DefaultCommandTimeout=120";
+                            sqlDBFile = sqlDBFile.Replace("ace_world", config.MySql.World.Database);
                             break;
                     }
                     var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection(sqlConnectInfo);
@@ -427,8 +434,12 @@ namespace ACE.Server
 
                     var line = string.Empty;
                     var completeSQLline = string.Empty;
+
+                    var dbname = ConfigManager.Config.MySql.World.Database;
+
                     while ((line = sr.ReadLine()) != null)
                     {
+                        line = line.Replace("ace_world", dbname);
                         //do minimal amount of work here
                         if (line.EndsWith(";"))
                         {
