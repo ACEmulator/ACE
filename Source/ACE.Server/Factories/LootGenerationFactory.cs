@@ -359,6 +359,7 @@ namespace ACE.Server.Factories
             var roll = new TreasureRoll();
 
             roll.Wcid = (WeenieClassName)item.WeenieClassId;
+            roll.BaseArmorLevel = item.ArmorLevel ?? 0;
 
             if (roll.Wcid == WeenieClassName.coinstack)
             {
@@ -632,17 +633,23 @@ namespace ACE.Server.Factories
                 // BYTE gemCode = (tsysMutationData >> 8) & 0xFF;
                 // BYTE materialCode = (tsysMutationData >> 0) & 0xFF;
 
-                List<TreasureMaterialColor> colors;
-                // This is a unique situation that typically applies to Under Clothes.
-                // If the Color Code is 0, they can be PaletteTemplate 1-18, assuming there is a MaterialType
-                // (gems have ColorCode of 0, but also no MaterialCode as they are defined by the weenie)
-                if (colorCode == 0 && (uint)wo.MaterialType > 0)
-                    colors = clothingColors;
-                else
-                    colors = DatabaseManager.World.GetCachedTreasureMaterialColors((int)wo.MaterialType, colorCode);
+                List<TreasureMaterialColor> colors = DatabaseManager.World.GetCachedTreasureMaterialColors((int)wo.MaterialType, colorCode);
 
                 if (colors == null)
-                    return;
+                {
+                    // legacy support for hardcoded colorCode 0 table
+                    if (colorCode == 0 && (uint)wo.MaterialType > 0)
+                    {
+                        // This is a unique situation that typically applies to Under Clothes.
+                        // If the Color Code is 0, they can be PaletteTemplate 1-18, assuming there is a MaterialType
+                        // (gems have ColorCode of 0, but also no MaterialCode as they are defined by the weenie)
+
+                        // this can be removed after all servers have upgraded to latest db
+                        colors = clothingColors;
+                    }
+                    else
+                        return;
+                }
 
                 // Load the clothingBase associated with the WorldObject
                 DatLoader.FileTypes.ClothingTable clothingBase = DatLoader.DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.ClothingTable>((uint)wo.ClothingBase);

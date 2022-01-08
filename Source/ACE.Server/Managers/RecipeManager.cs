@@ -340,6 +340,12 @@ namespace ACE.Server.Managers
 
             var success = ThreadSafeRandom.Next(0.0f, 1.0f) < successChance;
 
+            if (recipe.IsImbuing())
+            {
+                player.ImbueAttempts++;
+                if (success) player.ImbueSuccesses++;
+            }
+
             var modified = CreateDestroyItems(player, recipe, source, target, successChance, success);
 
             if (modified != null)
