@@ -153,9 +153,9 @@ namespace ACE.Server.Factories.Tables.Wcids
             // light - Epee - MS
             ( WeenieClassName.ace45099_epee,          0.40f ),
             ( WeenieClassName.ace45100_acidepee,      0.15f ),
-            ( WeenieClassName.ace45100_lightningepee, 0.15f ),
-            ( WeenieClassName.ace45100_flamingepee,   0.15f ),
-            ( WeenieClassName.ace45100_frostepee,     0.15f ),
+            ( WeenieClassName.ace45101_lightningepee, 0.15f ),
+            ( WeenieClassName.ace45102_flamingepee,   0.15f ),
+            ( WeenieClassName.ace45103_frostepee,     0.15f ),
         };
 
         private static ChanceTable<WeenieClassName> Kaskaras = new ChanceTable<WeenieClassName>()
