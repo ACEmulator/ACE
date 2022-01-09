@@ -94,7 +94,7 @@ namespace ACE.Server
 
             Console.WriteLine();
             Console.WriteLine();
-            Console.WriteLine("Next we will configure your SQL server connections. You will need to know your database name, username and password for each.");
+            Console.WriteLine("Next we will configure your SQL server connections. You will need to provide a database name, username and password for each.");
             Console.WriteLine("Default names for the databases are recommended, and it is also recommended you not use root for login to database. The password must not be blank.");
             Console.WriteLine("It is also recommended the SQL server be hosted on the same machine as this server, so defaults for Host and Port would be ideal as well.");
             Console.WriteLine("As before, pressing enter will use default value.");
