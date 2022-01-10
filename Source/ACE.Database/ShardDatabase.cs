@@ -95,7 +95,8 @@ namespace ACE.Database
                       "  WHERE id > " + min                                                             + Environment.NewLine +
                       "  ORDER BY id"                                                                   + Environment.NewLine +
                       " ) AS z"                                                                         + Environment.NewLine +
-                      "WHERE z.gap_ends_at_not_inclusive!=0 AND @available_ids<" + limitAvailableIDsReturned + "; ";
+                      //"WHERE z.gap_ends_at_not_inclusive!=0 AND @available_ids<" + limitAvailableIDsReturned + "; ";
+                      "WHERE z.gap_ends_at_not_inclusive!=0;";
 
             using (var context = new ShardDbContext())
             {
