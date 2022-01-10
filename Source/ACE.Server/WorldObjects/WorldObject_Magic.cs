@@ -1801,8 +1801,8 @@ namespace ACE.Server.WorldObjects
 
                 if (!LandblockManager.AddObject(sp) || sp.WorldEntryCollision)
                 {
-                    if (sp.PhysicsObj != null)
-                        sp.PhysicsObj.set_active(false);
+                    if (sp.PhysicsObj == null || sp.PhysicsObj.is_active())
+                        sp.Destroy();
 
                     continue;
                 }
