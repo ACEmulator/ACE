@@ -275,7 +275,7 @@ namespace ACE.Server
             Console.WriteLine();
             Console.WriteLine();
             Console.WriteLine();
-            Console.Write("Do you want to ACEmulator to attempt to initilize your SQL databases? This will erase any existing ACEmulator specific databases that may already exist on the server (Y/n): ");
+            Console.Write("Do you want to ACEmulator to attempt to initialize your SQL databases? This will erase any existing ACEmulator specific databases that may already exist on the server (Y/n): ");
             variable = Console.ReadLine();
             if (IsRunningInContainer) variable = Convert.ToBoolean(Environment.GetEnvironmentVariable("ACE_SQL_INITIALIZE_DATABASES")) ? "y" : "n";
             if (!variable.Equals("n", StringComparison.OrdinalIgnoreCase) && !variable.Equals("no", StringComparison.OrdinalIgnoreCase))
