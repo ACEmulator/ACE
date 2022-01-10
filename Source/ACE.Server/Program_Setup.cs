@@ -332,15 +332,15 @@ namespace ACE.Server
                     var sqlConnectInfo = $"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};DefaultCommandTimeout=120";
                     switch (file.Name)
                     {
-                        case "AuthenticationBase":
+                        case "AuthenticationBase.sql":
                             sqlConnectInfo = $"server={config.MySql.Authentication.Host};port={config.MySql.Authentication.Port};user={config.MySql.Authentication.Username};password={config.MySql.Authentication.Password};DefaultCommandTimeout=120";
                             sqlDBFile = sqlDBFile.Replace("ace_auth", config.MySql.Authentication.Database);
                             break;
-                        case "ShardBase":
+                        case "ShardBase.sql":
                             sqlConnectInfo = $"server={config.MySql.Shard.Host};port={config.MySql.Shard.Port};user={config.MySql.Shard.Username};password={config.MySql.Shard.Password};DefaultCommandTimeout=120";
                             sqlDBFile = sqlDBFile.Replace("ace_shard", config.MySql.Shard.Database);
                             break;
-                        case "WorldBase":
+                        case "WorldBase.sql":
                         default:
                             //sqlConnectInfo = $"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};DefaultCommandTimeout=120";
                             sqlDBFile = sqlDBFile.Replace("ace_world", config.MySql.World.Database);
@@ -435,7 +435,7 @@ namespace ACE.Server
                     var line = string.Empty;
                     var completeSQLline = string.Empty;
 
-                    var dbname = ConfigManager.Config.MySql.World.Database;
+                    var dbname = config.MySql.World.Database;
 
                     while ((line = sr.ReadLine()) != null)
                     {
