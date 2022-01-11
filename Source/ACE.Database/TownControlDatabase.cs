@@ -44,6 +44,28 @@ namespace ACE.Database
             }
         }
 
+        public List<Town> GetAllTowns()
+        {
+            var townList = new List<Town>();
+
+            try
+            {
+                using (var context = new TownControlDbContext())
+                {
+                    if (context != null && context.Town != null)
+                    {
+                        townList = context.Town.ToList();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                //TODO logging
+            }
+
+            return townList;
+        }
+
         public Town GetTownById(uint townId)
         {
             try
@@ -172,6 +194,35 @@ namespace ACE.Database
                 }
             }
             catch(Exception ex)
+            {
+                //TODO logging
+            }
+
+            return null;
+        }
+
+
+        public TownControlEvent GetLatestTownControlEventByAttackingMonarchId(uint attackingMonarchId, uint townId)
+        {
+            try
+            {
+                using (var context = new TownControlDbContext())
+                {
+                    var townEvents = context.TownControlEvent
+                        .AsNoTracking()
+                        .Where(r => r.TownId == townId && r.AttackingClanId == attackingMonarchId);
+
+                    if (townEvents != null && townEvents.Count() > 0)
+                    {
+                        return townEvents.ToList().OrderByDescending(x => x.EventId).FirstOrDefault();
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+            catch (Exception ex)
             {
                 //TODO logging
             }

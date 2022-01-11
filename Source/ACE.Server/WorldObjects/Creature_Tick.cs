@@ -48,7 +48,7 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Its lifespan finished, your {expireItem.Name} crumbles to dust.", ChatMessageType.Broadcast));
             }
 
-            if(TownControlBosses.IsTownControlConflictBoss(this.WeenieClassId))
+            if(this.IsTownControlConflictBoss)
             {
                 //Check if there is an active Town Control event for this boss
                 var tcBoss = TownControlBosses.TownControlBossMap[this.WeenieClassId];

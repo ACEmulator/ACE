@@ -52,7 +52,7 @@ namespace ACE.Server.WorldObjects
             if (!IsOnNoDeathXPLandblock)
                 OnDeath_GrantXP();
 
-            if(TownControlBosses.IsTownControlBoss(this.WeenieClassId))
+            if(this.IsTownControlBoss)
             {
                 HandleTownControlBossDeath();
             }
@@ -754,18 +754,7 @@ namespace ACE.Server.WorldObjects
                     {
                         //TODO - what to do if the killer isn't a player?
                         return;
-                    }
-
-                    //check if enough time has passed since last conflict to start a new conflict                
-                    //If enough time has not passed (the last conflict start + the town's respite time is still in the future)
-                    if (town.LastConflictStartDateTime.HasValue && town.LastConflictStartDateTime.Value.AddSeconds(Convert.ToInt32(town.ConflictRespiteLength)) > DateTime.Now)
-                    {
-                        //TODO - what is the behavior if the boss is killed before conflict respite time is up?
-
-                        string respiteCheckFailedMsg = $"{deadBossWeenie.ClassName} with WeenieClassID = {this.WeenieClassId} has been killed.  But the respite timer is still in the future, so no conflict is started";
-                        PlayerManager.BroadcastToAll(new GameMessageSystemChat(respiteCheckFailedMsg, ChatMessageType.Broadcast));
-                        return;
-                    }
+                    }                    
 
                     //Get the attacking clan ID and name
                     uint? killerMonarchId = null;
@@ -784,7 +773,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     //Get the defending cland ID and name, if the town has an owner already
-                    //cover scenario where owning clan is not longer a valid monarchy
+                    //cover scenario where owning clan is no longer a valid monarchy
                     uint? defendingClanId = null;
                     string defendingClanName = null;
                     if (town.CurrentOwnerID.HasValue)
@@ -822,6 +811,32 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         //When the town is not owned by any allegiance
+                    }                    
+
+                    
+                    //  Check if the killer is from the defending clan - if so don't start a conflict as the town owners can't start a conflict against themselves
+                    if(defendingClanId.HasValue && defendingClanId.Value.Equals(killerMonarchId.Value))
+                    {
+                        //TODO - Send a global, or local message?
+                        //TODO - manually respawn the initiation boss?
+
+                        return;
+                    }
+
+
+                    //Check if the attacking clan has started a conflict too recently in this town
+                    //  get most recent conflict event for this town where this same clan was the attacker
+                    //  check if respite time has elapsed - i.e. Now is > the most recent event's start + respite time for the town
+                    var recentSameAttackerEvent = DatabaseManager.TownControl.GetLatestTownControlEventByAttackingMonarchId(killerMonarchId.Value, town.TownId);
+                    if(recentSameAttackerEvent != null)
+                    {
+                        var sameAttackerRespiteExpiration = recentSameAttackerEvent.EventStartDateTime.Value.AddSeconds(town.ConflictRespiteLength.HasValue ? town.ConflictRespiteLength.Value : 0);
+                        if(DateTime.UtcNow < sameAttackerRespiteExpiration)
+                        {
+                            //TODO - this clan has attacked this town too recently, send a global?
+                            //TODO - manually respawn the initiation boss?
+                            return;
+                        }
                     }
 
                     //create the conflict event and update the town status in the DB
@@ -870,7 +885,7 @@ namespace ACE.Server.WorldObjects
 
                     var tcEventDurationExpiredTime = tcEvent.EventStartDateTime.Value.AddSeconds(town.ConflictLength);
 
-                    //TODD - for future we may want multiple conflict bosses and need to track 
+                    //TODO - for future we may want multiple conflict bosses and need to track 
                     ////Check if all conflict bosses for this town are now dead and if so, end the event and determine whether the attackers succeeded within the time limit
                     
                     string conflictEndMsg = "";
@@ -897,8 +912,12 @@ namespace ACE.Server.WorldObjects
                         {
                             foreach(uint charid in charsWithQuestStamp)
                             {
-                                var playerWithQuest = PlayerManager.FindByGuid(new ObjectGuid(charid));
-                                ((Creature)playerWithQuest).QuestManager.Erase(tcQuestName);
+                                bool isOnline;
+                                var playerWithQuest = PlayerManager.FindByGuid(new ObjectGuid(charid), out isOnline);
+                                if (playerWithQuest != null)
+                                {
+                                    ((Creature)playerWithQuest).QuestManager.Erase(tcQuestName);
+                                }
                             }
                         }
 

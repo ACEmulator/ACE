@@ -15,6 +15,7 @@ using ACE.Server.Managers;
 using ACE.Server.WorldObjects.Entity;
 
 using Position = ACE.Entity.Position;
+using ACE.Server.Entity.TownControl;
 
 namespace ACE.Server.WorldObjects
 {
@@ -376,5 +377,36 @@ namespace ACE.Server.WorldObjects
                     selectedTargets.Remove(kvp.Key);
             }
         }
+
+        private bool? _isTownControlBoss = null;
+        public bool IsTownControlBoss
+        {
+            get
+            {
+                if (!_isTownControlBoss.HasValue)
+                {
+                    _isTownControlBoss = TownControlBosses.IsTownControlBoss(this.WeenieClassId);
+                }
+
+                return _isTownControlBoss.Value;
+            }
+        }
+
+        private bool? _isTownControlConflictBoss = null;
+        public bool IsTownControlConflictBoss
+        {
+            get
+            {
+                if(!_isTownControlConflictBoss.HasValue)
+                {
+                    _isTownControlConflictBoss = TownControlBosses.IsTownControlConflictBoss(this.WeenieClassId);
+                }
+
+                return _isTownControlConflictBoss.Value;
+            }
+        }
+
+
+
     }
 }
