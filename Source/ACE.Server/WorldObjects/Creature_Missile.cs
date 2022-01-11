@@ -107,8 +107,13 @@ namespace ACE.Server.WorldObjects
 
             if (!success || proj.PhysicsObj == null)
             {
-                if (!proj.HitMsg && player != null)
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("Your missile attack hit the environment.", ChatMessageType.Broadcast));
+                if (!proj.HitMsg)
+                {
+                    if (player != null)
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("Your missile attack hit the environment.", ChatMessageType.Broadcast));
+
+                    proj.Destroy();
+                }
 
                 return null;
             }

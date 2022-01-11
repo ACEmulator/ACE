@@ -1799,13 +1799,14 @@ namespace ACE.Server.WorldObjects
 
                 sp.LifeProjectileDamage = lifeProjectileDamage;
 
-                if (!LandblockManager.AddObject(sp) || sp.WorldEntryCollision)
+                if (!LandblockManager.AddObject(sp))
                 {
-                    if (sp.PhysicsObj != null)
-                        sp.PhysicsObj.set_active(false);
-
+                    sp.Destroy();
                     continue;
                 }
+
+                if (sp.WorldEntryCollision)
+                    continue;
 
                 sp.EnqueueBroadcast(new GameMessageScript(sp.Guid, PlayScript.Launch, sp.GetProjectileScriptIntensity(spellType)));
 
