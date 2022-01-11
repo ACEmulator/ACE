@@ -864,21 +864,23 @@ namespace ACE.Server.Physics.Animation
                                     stepDownHeight = SpherePath.GlobalSphere[0].Radius * 0.5f;
                             }
 
-                            if (radsum < stepDownHeight)
+                            if (radsum >= stepDownHeight)
                             {
-                                // bad path
-                                stepDownHeight *= 0.5f;
-                                if (StepDown(stepDownHeight, zVal) || StepDown(stepDownHeight, zVal))   // double step..
+                                if (StepDown(stepDownHeight, zVal))
                                 {
                                     SpherePath.Walkable = null;
                                     return TransitionState.OK;
                                 }
                             }
-
-                            if (StepDown(stepDownHeight, zVal)) // triple step?
+                            else
                             {
-                                SpherePath.Walkable = null;
-                                return TransitionState.OK;
+                                // 2 half-steps
+                                stepDownHeight *= 0.5f;
+                                if (StepDown(stepDownHeight, zVal) || StepDown(stepDownHeight, zVal))
+                                {
+                                    SpherePath.Walkable = null;
+                                    return TransitionState.OK;
+                                }
                             }
 
                             if (EdgeSlide(ref transitState, stepDownHeight, zVal))
