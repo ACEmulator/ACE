@@ -68,7 +68,7 @@ namespace ACE.Server.WorldObjects
 
                 foreach (var town in ownedTowns)
                 {
-                    this.QuestManager.Stamp(town.TownName.Trim().Replace(" ", "") + "TownControlOwner");
+                    this.QuestManager.Update(town.TownName.Trim().Replace(" ", "") + "TownControlOwner");
                 }
             }
             catch(Exception ex)

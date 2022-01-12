@@ -753,6 +753,7 @@ namespace ACE.Server.WorldObjects
                     if (!killer.IsPlayer)
                     {
                         //TODO - what to do if the killer isn't a player?
+                        PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - Init boss killer is not a player, conflict event not started", ChatMessageType.Broadcast));
                         return;
                     }                    
 
@@ -769,6 +770,7 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         //TODO - what do we do if the killer isn't part of any allegiance?
+                        PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - Killer isn't part of any allegiance.  Conflict event not started", ChatMessageType.Broadcast));
                         return;
                     }
 
@@ -787,25 +789,28 @@ namespace ACE.Server.WorldObjects
                                 if (owningAlleg.Monarch.PlayerGuid != owningMonarch.Guid)
                                 {
                                     //TODO
-                                    //This is the scenario where the monarch who owned the town has sworn into a different allegiance                                
+                                    //This is the scenario where the monarch who owned the town has sworn into a different allegiance
+                                    PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - Owning monarch is no longer a monarch, behaving as if town isn't owned by anyone", ChatMessageType.Broadcast));
                                 }
                                 else
                                 {
                                     //The owning monarch is still a valid player and still a monarch
                                     defendingClanId = owningAlleg.MonarchId;
-                                    defendingClanName = owningAlleg.AllegianceName;
+                                    defendingClanName = owningAlleg.Monarch.Player.Name;
                                 }
                             }
                             else
                             {
                                 //TODO
                                 //This is scenario where monarch who owned the town is no longer part of any allegiance
+                                PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - owningAlleg == null.  Owning monarch is no longer a monarch, behaving as if town isn't owned by anyone", ChatMessageType.Broadcast));
                             }
                         }
                         else
                         {
                             //TODO
                             //This is scenario where monarch who owned the town isn't a valid player, maybe deleted?
+                            PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - owningMonarch == null.  Owning monarch is no longer a monarch, behaving as if town isn't owned by anyone", ChatMessageType.Broadcast));
                         }
                     }
                     else
@@ -820,6 +825,7 @@ namespace ACE.Server.WorldObjects
                         //TODO - Send a global, or local message?
                         //TODO - manually respawn the initiation boss?
 
+                        PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - Init boss killer is from allegiance who owns the town, conflict event will not be started", ChatMessageType.Broadcast));
                         return;
                     }
 
@@ -835,6 +841,8 @@ namespace ACE.Server.WorldObjects
                         {
                             //TODO - this clan has attacked this town too recently, send a global?
                             //TODO - manually respawn the initiation boss?
+
+                            PlayerManager.BroadcastToAll(new GameMessageSystemChat($"DEBUG - Respite timer has not passed.  Respite expires in {sameAttackerRespiteExpiration.Subtract(DateTime.UtcNow).TotalSeconds} seconds", ChatMessageType.Broadcast));
                             return;
                         }
                     }
@@ -880,6 +888,9 @@ namespace ACE.Server.WorldObjects
                     {
                         //A conflict event isn't active
                         //TODO - broadcast something?
+
+                        PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - conflict boss killed but no active conflict event found", ChatMessageType.Broadcast));
+
                         return;
                     }
 
@@ -906,14 +917,13 @@ namespace ACE.Server.WorldObjects
 
                         string tcQuestName = town.TownName.Trim().Replace(" ", "") + "TownControlOwner";
 
-                        //Remove town's TC quest stamp from everyone who has it
+                        //Remove town's TC quest stamp from everyone online who has it
                         var charsWithQuestStamp = DatabaseManager.Shard.BaseDatabase.GetCharacterIDsWithQuestCompletion(tcQuestName);
                         if(charsWithQuestStamp != null)
                         {
                             foreach(uint charid in charsWithQuestStamp)
                             {
-                                bool isOnline;
-                                var playerWithQuest = PlayerManager.FindByGuid(new ObjectGuid(charid), out isOnline);
+                                var playerWithQuest = PlayerManager.GetOnlinePlayer(charid);
                                 if (playerWithQuest != null)
                                 {
                                     ((Creature)playerWithQuest).QuestManager.Erase(tcQuestName);
@@ -927,7 +937,11 @@ namespace ACE.Server.WorldObjects
                         {
                             foreach(var allegMember in winnerAllegMembers)
                             {
-                                ((Creature)allegMember).QuestManager.Update(tcQuestName);
+                                var onlineAllegPlayer = PlayerManager.GetOnlinePlayer(allegMember.Guid);
+                                if (onlineAllegPlayer != null)
+                                {
+                                    onlineAllegPlayer.QuestManager.Update(tcQuestName);
+                                }
                             }
                         }
 
