@@ -30,10 +30,10 @@ namespace ACE.Server.Entity.TownControl
                     );
 
                     _tcBossMap.Add(
-                        42153366,
+                        42132032,
                         new TownControlBoss()
                         {
-                            WeenieID = 42153366,
+                            WeenieID = 42132032,
                             TownID = 91,
                             TownName = "Shoushi",
                             BossType = TownControlBossType.ConflictBoss
@@ -43,10 +43,10 @@ namespace ACE.Server.Entity.TownControl
 
                     //Holtburg
                     _tcBossMap.Add(
-                        13345,
+                        4200001,
                         new TownControlBoss()
                         {
-                            WeenieID = 13345,
+                            WeenieID = 4200001,
                             TownID = 72,
                             TownName = "Holtburg",
                             BossType = TownControlBossType.InitiationBoss
@@ -54,10 +54,10 @@ namespace ACE.Server.Entity.TownControl
                     );
 
                     _tcBossMap.Add(
-                        13346, //TODO
+                        4200007,
                         new TownControlBoss()
                         {
-                            WeenieID = 12346, //TODO
+                            WeenieID = 4200007,
                             TownID = 72,
                             TownName = "Holtburg",
                             BossType = TownControlBossType.ConflictBoss
@@ -66,10 +66,10 @@ namespace ACE.Server.Entity.TownControl
 
                     //Yaraq
                     _tcBossMap.Add(
-                        14345, //TODO
+                        4200003, //TODO
                         new TownControlBoss()
                         {
-                            WeenieID = 14345, //TODO
+                            WeenieID = 4200003, //TODO
                             TownID = 102,
                             TownName = "Yaraq",
                             BossType = TownControlBossType.InitiationBoss
@@ -77,10 +77,10 @@ namespace ACE.Server.Entity.TownControl
                     );
 
                     _tcBossMap.Add(
-                        14346, //TODO
+                        4200008,
                         new TownControlBoss()
                         {
-                            WeenieID = 14346, //TODO
+                            WeenieID = 4200008,
                             TownID = 102,
                             TownName = "Yaraq",
                             BossType = TownControlBossType.ConflictBoss
