@@ -1326,7 +1326,7 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.TeachSpell:
 
                     if (player != null)
-                        player.LearnSpellWithNetworking((uint)emote.SpellId);
+                        player.LearnSpellWithNetworking((uint)emote.SpellId, false);
                     break;
 
                 case EmoteType.TeleportSelf:

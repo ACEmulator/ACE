@@ -66,7 +66,9 @@ namespace ACE.Server.WorldObjects
                 return 0.0f;
 
             DoSwingMotion(AttackTarget, motionCommand.Value, out float animLength, out var attackFrames);
-            PhysicsObj.stick_to_object(AttackTarget.PhysicsObj.ID);
+
+            if (!AiImmobile)
+                PhysicsObj.stick_to_object(AttackTarget.PhysicsObj.ID);
 
             var numStrikes = attackFrames.Count;
 
@@ -367,6 +369,7 @@ namespace ACE.Server.WorldObjects
 
             var motion = new Motion(this, motionCommand, animSpeed);
             motion.MotionState.TurnSpeed = 2.25f;
+
             if (!AiImmobile)
                 motion.MotionFlags |= MotionFlags.StickToObject;
 
