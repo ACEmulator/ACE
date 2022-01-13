@@ -168,6 +168,15 @@ namespace ACE.Server.Entity
 
             var pkBattle = playerAttacker != null && playerDefender != null;
 
+            //If defender is town control boss and attacker is not a player in PK state, dmg is zero
+            if(playerDefender == null)
+            {
+                if(defender.IsTownControlBoss && (playerAttacker == null || !playerAttacker.IsPK))
+                {
+                    return 0.0f;
+                }
+            }
+
             Attacker = attacker;
             Defender = defender;
 
