@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 using log4net;
 
 using ACE.Entity;
+using ACE.Entity.Enum;
+using ACE.Entity.Models;
 
 namespace ACE.Server.Managers
 {
@@ -310,9 +314,20 @@ namespace ACE.Server.Managers
         /// Some of them will be saved to the Shard db.
         /// They can be monsters, loot, etc..
         /// </summary>
-        public static ObjectGuid NewDynamicGuid()
+        public static ObjectGuid NewDynamicGuid(Weenie weenie)
         {
-            return new ObjectGuid(dynamicAlloc.Alloc());
+            var alloc = dynamicAlloc.Alloc();
+
+            var lightWeenieTracker = new LightWeenieTracker()
+            {
+                WeenieClassId = weenie.WeenieClassId,
+                WeenieType = weenie.WeenieType
+
+            };
+
+            DynamicGUIDDebugger[alloc] = lightWeenieTracker;
+
+            return new ObjectGuid(alloc);
         }
 
         /// <summary>
@@ -321,6 +336,8 @@ namespace ACE.Server.Managers
         /// <param name="guid"></param>
         public static void RecycleDynamicGuid(ObjectGuid guid)
         {
+            DynamicGUIDDebugger.TryRemove(guid.Full, out _);
+
             dynamicAlloc.Recycle(guid.Full);
         }
 
@@ -349,6 +366,89 @@ namespace ACE.Server.Managers
                 else
                     message += $"After {dynamicDebugInfo.totalSequenceGapGuids:N0} sequence gap ids have been consumed, and {dynamicDebugInfo.totalPendingRecycledGuids:N0} recycled ids have been consumed, the next of which is available in {nextDynamicIsAvailIn.TotalMinutes:N1} m, the next id will be: 0x{dynamicGuidCurrent:X8}";
             }
+
+            return message;
+        }
+
+
+        public class LightWeenieTracker
+        {
+            public DateTime Timestamp = DateTime.UtcNow;
+
+            public uint WeenieClassId { get; set; }
+            public WeenieType WeenieType { get; set; }
+        }
+
+        public static readonly ConcurrentDictionary<uint, LightWeenieTracker> DynamicGUIDDebugger = new ConcurrentDictionary<uint, LightWeenieTracker>();
+
+        public static string GetGUIDDebuggerOutput()
+        {
+            // let's just look at GUID's that are older than 6 hours
+
+            uint totalHits = 0;
+            var weenieClassIdHits = new Dictionary<uint, uint>();
+            var weenieTypeHits = new Dictionary<WeenieType, uint>();
+
+            var latestTime = DateTime.UtcNow.Subtract(TimeSpan.FromHours(6));
+
+            foreach (var entry in DynamicGUIDDebugger)
+            {
+                if (entry.Value.Timestamp < latestTime)
+                {
+                    totalHits++;
+
+                    if (weenieClassIdHits.ContainsKey(entry.Value.WeenieClassId))
+                        weenieClassIdHits[entry.Value.WeenieClassId]++;
+                    else
+                        weenieClassIdHits[entry.Value.WeenieClassId] = 1;
+
+                    if (weenieTypeHits.ContainsKey(entry.Value.WeenieType))
+                        weenieTypeHits[entry.Value.WeenieType]++;
+                    else
+                        weenieTypeHits[entry.Value.WeenieType] = 1;
+                }
+            }
+
+            string message = $"GUIDs older than 6 hours that haven't been recycled: {totalHits}\n";
+
+
+            int counter = 0;
+
+            var sortedweenieClassIdHits = weenieClassIdHits.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+
+            message += "Top 20 hits by WCID: ";
+
+            foreach (var entry in sortedweenieClassIdHits)
+            {
+                message += $"{entry.Key}:{entry.Value}, ";
+
+                counter++;
+
+                if (counter >= 20)
+                    break;
+            }
+
+            message += "\n";
+
+
+            counter = 0;
+
+            var sortedweenieTypeHits = weenieTypeHits.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+
+            message += "Top 20 hits by WeenieType: ";
+
+            foreach (var entry in sortedweenieTypeHits)
+            {
+                message += $"{entry.Key}:{entry.Value}, ";
+
+                counter++;
+
+                if (counter >= 20)
+                    break;
+            }
+
+            message += "\n";
+
 
             return message;
         }

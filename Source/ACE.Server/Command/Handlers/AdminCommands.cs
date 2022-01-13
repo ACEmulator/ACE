@@ -1938,7 +1938,7 @@ namespace ACE.Server.Command.Handlers
                             foreach (var item in existingPossessions.WieldedItems)
                             {
                                 var newItemBiota = Database.Adapter.BiotaConverter.ConvertToEntityBiota(item);
-                                var newGuid = GuidManager.NewDynamicGuid();
+                                var newGuid = GuidManager.NewDynamicGuid(null);
                                 idSwaps[newItemBiota.Id] = newGuid.Full;
                                 newItemBiota.Id = newGuid.Full;
                                 newTempWieldedItems.Add(newItemBiota);
@@ -1951,7 +1951,7 @@ namespace ACE.Server.Command.Handlers
                                     continue;
 
                                 var newItemBiota = Database.Adapter.BiotaConverter.ConvertToEntityBiota(item);
-                                var newGuid = GuidManager.NewDynamicGuid();
+                                var newGuid = GuidManager.NewDynamicGuid(null);
                                 idSwaps[newItemBiota.Id] = newGuid.Full;
                                 newItemBiota.Id = newGuid.Full;
                                 newTempInventoryItems.Add(newItemBiota);
@@ -3216,6 +3216,14 @@ namespace ACE.Server.Command.Handlers
             // @idlist - Shows the next ID that will be allocated from SQL.
 
             var sysChatMsg = new GameMessageSystemChat(GuidManager.GetIdListCommandOutput(), ChatMessageType.WorldBroadcast);
+            session.Network.EnqueueSend(sysChatMsg);
+        }
+
+        // guidmanagerdebug
+        [CommandHandler("guidmanagerdebug", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        public static void Handleguidmanagerdebug(Session session, params string[] parameters)
+        {
+            var sysChatMsg = new GameMessageSystemChat(GuidManager.GetGUIDDebuggerOutput(), ChatMessageType.WorldBroadcast);
             session.Network.EnqueueSend(sysChatMsg);
         }
 

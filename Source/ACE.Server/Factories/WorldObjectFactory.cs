@@ -348,7 +348,7 @@ namespace ACE.Server.Factories
         /// </summary>
         public static WorldObject CreateNewWorldObject(Weenie weenie)
         {
-            var worldObject = CreateWorldObject(weenie, GuidManager.NewDynamicGuid());
+            var worldObject = CreateWorldObject(weenie, GuidManager.NewDynamicGuid(weenie));
 
             return worldObject;
         }
