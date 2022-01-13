@@ -15,6 +15,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Managers;
+using ACE.Server.Entity.TownControl;
 
 namespace ACE.Server.WorldObjects
 {
@@ -241,6 +242,41 @@ namespace ACE.Server.WorldObjects
             {
                 // should there be some sort of feedback to player here?
                 return;
+            }
+
+            //If this is a Town Control vendor, don't allow it to open inventory unless player's clan owns the town
+            if (TownControlVendors.IsTownControlVendor(this.WeenieClassId))
+            {
+                try
+                {
+                    bool playerOwnsTown = false;
+
+                    var tcVendor = TownControlVendors.TownControlVendorMap[this.WeenieClassId];
+                    var town = DatabaseManager.TownControl.GetTownById(tcVendor.TownID);
+
+                    var playerAlleg = AllegianceManager.GetAllegiance(player);
+                    if (playerAlleg != null)
+                    {
+                        var playerMonarchId = playerAlleg.MonarchId;
+                        var playerAllegName = playerAlleg.Monarch.Player.Name;
+
+                        if (town.CurrentOwnerID.HasValue && town.CurrentOwnerID.Value == playerMonarchId)
+                        {
+                            playerOwnsTown = true;
+                        }
+                    }
+
+                    if (!playerOwnsTown)
+                    {
+                        player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"Your clan does not own {town.TownName}!"));
+                        player.SendWeenieError(WeenieError.YouAreNotInAllegiance);
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //TODO logging
+                }
             }
 
             var rotateTime = Rotate(player);    // vendor rotates towards player
