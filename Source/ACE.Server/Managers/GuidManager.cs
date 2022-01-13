@@ -318,12 +318,13 @@ namespace ACE.Server.Managers
         {
             var alloc = dynamicAlloc.Alloc();
 
-            var lightWeenieTracker = new LightWeenieTracker()
-            {
-                WeenieClassId = weenie.WeenieClassId,
-                WeenieType = weenie.WeenieType
+            var lightWeenieTracker = new LightWeenieTracker();
 
-            };
+            if (weenie != null)
+            {
+                lightWeenieTracker.WeenieClassId = weenie.WeenieClassId;
+                lightWeenieTracker.WeenieType = weenie.WeenieType;
+            }
 
             DynamicGUIDDebugger[alloc] = lightWeenieTracker;
 
