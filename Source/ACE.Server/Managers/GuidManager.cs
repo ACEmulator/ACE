@@ -414,7 +414,7 @@ namespace ACE.Server.Managers
 
             int counter = 0;
 
-            var sortedweenieClassIdHits = weenieClassIdHits.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+            var sortedweenieClassIdHits = weenieClassIdHits.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
 
             message += "Top 20 hits by WCID: ";
 
@@ -433,7 +433,7 @@ namespace ACE.Server.Managers
 
             counter = 0;
 
-            var sortedweenieTypeHits = weenieTypeHits.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+            var sortedweenieTypeHits = weenieTypeHits.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
 
             message += "Top 20 hits by WeenieType: ";
 
