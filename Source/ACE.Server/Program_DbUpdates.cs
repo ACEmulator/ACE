@@ -236,15 +236,15 @@ namespace ACE.Server
             log.Info($"Automatic Database Patching started...");
             Thread.Sleep(1000);
 
-            PatchDatabase("Authentication", ConfigManager.Config.MySql.Authentication.Host, ConfigManager.Config.MySql.Authentication.Port, ConfigManager.Config.MySql.Authentication.Username, ConfigManager.Config.MySql.Authentication.Password, ConfigManager.Config.MySql.Authentication.Database, ConfigManager.Config.MySql.Authentication.Database, ConfigManager.Config.MySql.Shard.Database, ConfigManager.Config.MySql.World.Database);
-            PatchDatabase("Shard", ConfigManager.Config.MySql.Shard.Host, ConfigManager.Config.MySql.Shard.Port, ConfigManager.Config.MySql.Shard.Username, ConfigManager.Config.MySql.Shard.Password, ConfigManager.Config.MySql.Shard.Database, ConfigManager.Config.MySql.Authentication.Database, ConfigManager.Config.MySql.Shard.Database, ConfigManager.Config.MySql.World.Database);
-            PatchDatabase("World", ConfigManager.Config.MySql.World.Host, ConfigManager.Config.MySql.World.Port, ConfigManager.Config.MySql.World.Username, ConfigManager.Config.MySql.World.Password, ConfigManager.Config.MySql.World.Database, ConfigManager.Config.MySql.Authentication.Database, ConfigManager.Config.MySql.Shard.Database, ConfigManager.Config.MySql.World.Database);
+            PatchDatabase("Authentication", ConfigManager.Config.MySql.Authentication.Host, ConfigManager.Config.MySql.Authentication.Port, ConfigManager.Config.MySql.Authentication.Username, ConfigManager.Config.MySql.Authentication.Password, ConfigManager.Config.MySql.Authentication.Database, ConfigManager.Config.MySql.Shard.Database, ConfigManager.Config.MySql.World.Database);
+            PatchDatabase("Shard", ConfigManager.Config.MySql.Shard.Host, ConfigManager.Config.MySql.Shard.Port, ConfigManager.Config.MySql.Shard.Username, ConfigManager.Config.MySql.Shard.Password, ConfigManager.Config.MySql.Authentication.Database, ConfigManager.Config.MySql.Shard.Database, ConfigManager.Config.MySql.World.Database);
+            PatchDatabase("World", ConfigManager.Config.MySql.World.Host, ConfigManager.Config.MySql.World.Port, ConfigManager.Config.MySql.World.Username, ConfigManager.Config.MySql.World.Password, ConfigManager.Config.MySql.Authentication.Database, ConfigManager.Config.MySql.Shard.Database, ConfigManager.Config.MySql.World.Database);
 
             Thread.Sleep(1000);
             log.Info($"Automatic Database Patching complete.");
         }
 
-        private static void PatchDatabase(string dbType, string host, uint port, string username, string password, string database, string authDB, string shardDB, string worldDB)
+        private static void PatchDatabase(string dbType, string host, uint port, string username, string password, string authDB, string shardDB, string worldDB)
         {
             var updatesPath = $"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}{dbType}";
             var updatesFile = $"{updatesPath}{Path.DirectorySeparatorChar}applied_updates.txt";
@@ -265,19 +265,20 @@ namespace ACE.Server
 
                 Console.Write($"Found {file.Name} .... ");
                 var sqlDBFile = File.ReadAllText(file.FullName);
+                var database = "";
+                switch (dbType)
+                {
+                    case "Authentication":
+                        database = authDB;
+                        break;
+                    case "Shard":
+                        database = shardDB;
+                        break;
+                    case "World":
+                        database = worldDB;
+                        break;
+                }
                 var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={host};port={port};user={username};password={password};database={database};DefaultCommandTimeout=120");
-                //switch (dbType)
-                //{
-                //    case "Authentication":
-                //        sqlDBFile = sqlDBFile.Replace("ace_auth", database);
-                //        break;
-                //    case "Shard":
-                //        sqlDBFile = sqlDBFile.Replace("ace_shard", database);
-                //        break;
-                //    case "World":
-                //        sqlDBFile = sqlDBFile.Replace("ace_world", database);
-                //        break;
-                //}
                 sqlDBFile = sqlDBFile.Replace("ace_auth", authDB);
                 sqlDBFile = sqlDBFile.Replace("ace_shard", shardDB);
                 sqlDBFile = sqlDBFile.Replace("ace_world", worldDB);
