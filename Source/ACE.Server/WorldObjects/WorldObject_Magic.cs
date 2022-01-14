@@ -1971,6 +1971,7 @@ namespace ACE.Server.WorldObjects
                 return enchantment_statModVal;
             }
 
+            var player = this as Player;
             var creatureSource = this as Creature;
 
             var damageRatingMod = 1.0f;
@@ -1980,7 +1981,7 @@ namespace ACE.Server.WorldObjects
                 // damage rating mod
                 var damageRating = creatureSource.GetDamageRating();
 
-                if (this is Player player)
+                if (player != null)
                 {
                     // TODO: merge this with damage rating
                     var equippedWeapon = player.GetEquippedWeapon() ?? player.GetEquippedWand();
@@ -2022,11 +2023,11 @@ namespace ACE.Server.WorldObjects
                 elementalDamageMod = GetCasterElementalDamageModifier(weapon, creatureSource, creatureTarget, spell.DamageType);
 
                 // skillMod only applied to projectiles -- no destructive curse
-                if (spell.NumProjectiles > 0)
+                if (player != null && spell.NumProjectiles > 0)
                 {
                     // from SpellProjectile, slightly modified
                     // convert this to common function
-                    var magicSkill = creatureSource.GetCreatureSkill(spell.School).Current;
+                    var magicSkill = player.GetCreatureSkill(spell.School).Current;
 
                     if (magicSkill > spell.Power)
                     {
