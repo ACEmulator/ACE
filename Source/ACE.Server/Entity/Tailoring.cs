@@ -431,19 +431,27 @@ namespace ACE.Server.Entity
         {
             try
             {
-                switch(source.WeenieClassId)
+                //Only allow loot gen items to be morphed
+                if (target.ItemWorkmanship == null || target.IsAttunedOrContainsAttuned)
                 {
-                    case MorphGemArmorLevel:
+                    player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                    return;
+                }
 
+                switch (source.WeenieClassId)
+                {
+                    case MorphGemArmorLevel:                                              
+
+                        //Get the current AL of the item
                         var currentItemAL = target.GetProperty(PropertyInt.ArmorLevel);
 
                         if (!currentItemAL.HasValue)
                         {
-                            //TODO
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                             return;
                         }
 
-                        //Roll for a value to change the AL
+                        //Roll for a value to change the AL by
                         var random = new Random();
                         var alGain = random.Next(0, 15);
                         var alLoss = random.Next(0, 7);
@@ -454,9 +462,10 @@ namespace ACE.Server.Entity
 
                         //Don't let new Armor Level exceed maximums
                         var validLocations = target.ValidLocations ?? EquipMask.None;
-                        var maxAl = validLocations.HasFlag(EquipMask.Extremity) ? MaxExtremityArmorLevel : MaxBodyArmorLevel;
+                        var maxAl = validLocations.HasFlag(EquipMask.HeadWear) || validLocations.HasFlag(EquipMask.HandWear) || validLocations.HasFlag(EquipMask.FootWear) ? MaxExtremityArmorLevel : MaxBodyArmorLevel;
                         newAl = newAl > maxAl ? (int)maxAl : newAl;
 
+                        //Set the new AL value
                         player.UpdateProperty(target, PropertyInt.ArmorLevel, newAl);
                         break;
                 }
