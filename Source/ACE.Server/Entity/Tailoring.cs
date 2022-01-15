@@ -27,6 +27,7 @@ namespace ACE.Server.Entity
         public const uint ArmorLayeringToolBottom = 42726;
 
         public const uint MorphGemArmorLevel = 4200022;
+        public const uint MorphGemArmorValue = 4200023;
 
         public const uint MaxBodyArmorLevel = 330;
         public const uint MaxExtremityArmorLevel = 360;
@@ -184,6 +185,7 @@ namespace ACE.Server.Entity
                     return;
 
                 case MorphGemArmorLevel:
+                case MorphGemArmorValue:
                     ApplyMorphGem(player, source, target);
                     return;
             }
@@ -452,9 +454,9 @@ namespace ACE.Server.Entity
                         }
 
                         //Roll for a value to change the AL by
-                        var random = new Random();
-                        var alGain = random.Next(0, 15);
-                        var alLoss = random.Next(0, 7);
+                        var alRandom = new Random();
+                        var alGain = alRandom.Next(0, 15);
+                        var alLoss = alRandom.Next(0, 7);
                         var alChange = alGain - alLoss;
                         alChange = alChange > 10 ? 10 : alChange < -5 ? -5 : alChange;
 
@@ -467,6 +469,33 @@ namespace ACE.Server.Entity
 
                         //Set the new AL value
                         player.UpdateProperty(target, PropertyInt.ArmorLevel, newAl);
+                        break;
+
+                    case MorphGemArmorValue:
+
+                        //Get the current Value of the item
+                        var currentItemValue = target.GetProperty(PropertyInt.Value);
+
+                        if (!currentItemValue.HasValue)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        //Roll for an amount to change the item Value by
+                        var valRandom = new Random();
+                        var valueGain = valRandom.Next(0, 20000);
+                        var valueLoss = valRandom.Next(0, 15000);
+                        var valueChange = valueGain - valueLoss;
+
+                        var newValue = currentItemValue.Value + valueChange;
+
+                        //Don't let new Armor Value exceed minimum of 1k
+                        if(newValue < 1000 || currentItemValue > 1000) { newValue = 1000; }
+
+                        //Set the new AL value
+                        player.UpdateProperty(target, PropertyInt.Value, newValue);
+
                         break;
                 }
 
