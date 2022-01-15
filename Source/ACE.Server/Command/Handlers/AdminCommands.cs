@@ -3220,11 +3220,12 @@ namespace ACE.Server.Command.Handlers
         }
 
         // guidmanagerdebug
-        [CommandHandler("guidmanagerdebug", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("guidmanagerdebug", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0)]
         public static void Handleguidmanagerdebug(Session session, params string[] parameters)
         {
-            var sysChatMsg = new GameMessageSystemChat(GuidManager.GetGUIDDebuggerOutput(), ChatMessageType.WorldBroadcast);
-            session.Network.EnqueueSend(sysChatMsg);
+            var message = GuidManager.GetGUIDDebuggerOutput();
+
+            CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.WorldBroadcast);
         }
 
         // gamecastlocalemote <message>
