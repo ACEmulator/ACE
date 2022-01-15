@@ -11,6 +11,8 @@ using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+using ACE.Server.Entity.TownControl;
+using ACE.Database;
 
 namespace ACE.Server.Entity
 {
@@ -171,10 +173,37 @@ namespace ACE.Server.Entity
             //If defender is town control boss and attacker is not a player in PK state, dmg is zero
             if(playerDefender == null)
             {
-                if(defender.IsTownControlBoss && (playerAttacker == null || !playerAttacker.IsPK))
+                if(defender.IsTownControlBoss)
                 {
-                    return 0.0f;
-                }
+                    if (playerAttacker == null || !playerAttacker.IsPK)
+                    {
+                        //Don't allow summons or NPKs to damage the town control bosses
+                        return 0.0f;
+                    }
+                    else
+                    {
+                        //Don't allow the owning clan to damage the town control bosses
+                        bool playerOwnsTown = false;
+                        var boss = TownControlBosses.TownControlBossMap[defender.WeenieClassId];
+                        var town = DatabaseManager.TownControl.GetTownById(boss.TownID);
+                        var playerAlleg = AllegianceManager.GetAllegiance(playerAttacker);
+                        if(playerAlleg != null)
+                        {
+                            var playerMonarchId = playerAlleg.MonarchId;
+                            var playerAllegName = playerAlleg.Monarch.Player.Name;
+
+                            if (town.CurrentOwnerID.HasValue && town.CurrentOwnerID.Value == playerMonarchId)
+                            {
+                                playerOwnsTown = true;
+                            }
+                        }
+
+                        if (playerOwnsTown)
+                        {
+                            return 0.0f;
+                        }
+                    }
+                }                
             }
 
             Attacker = attacker;
