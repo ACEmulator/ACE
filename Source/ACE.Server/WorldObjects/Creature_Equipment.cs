@@ -738,9 +738,12 @@ namespace ACE.Server.WorldObjects
         {
             if (WieldedTreasure == null) return;
 
-            var table = new TreasureWieldedTable(WieldedTreasure);
+            //var table = new TreasureWieldedTable(WieldedTreasure);
 
-            var wieldedTreasure = GenerateWieldedTreasureSets(table);
+            var wieldedTreasure = GenerateWieldedTreasureSets(WieldedTreasure);
+
+            if (wieldedTreasure == null)
+                return;
 
             foreach (var item in wieldedTreasure)
             {

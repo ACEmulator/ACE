@@ -32,8 +32,8 @@ namespace ACE.Database.SQLFormatters.World
 
             var output = "VALUES (" +
                              $"{GetSQLString(input.Name)}, " +
-                             $"{(input.StartTime == -1 ? $"{input.StartTime}" : $"{input.StartTime} /* {DateTimeOffset.FromUnixTimeSeconds(input.StartTime).DateTime.ToUniversalTime().ToString(CultureInfo.InvariantCulture)} */")}, " +
-                             $"{(input.EndTime == -1 ? $"{input.EndTime}" : $"{input.EndTime} /* {DateTimeOffset.FromUnixTimeSeconds(input.EndTime).DateTime.ToUniversalTime().ToString(CultureInfo.InvariantCulture)} */")}, " +
+                             $"{(input.StartTime == -1 ? $"{input.StartTime}" : $"{input.StartTime} /* {DateTimeOffset.FromUnixTimeSeconds(input.StartTime).DateTime.ToString(CultureInfo.InvariantCulture)} */")}, " +
+                             $"{(input.EndTime == -1 ? $"{input.EndTime}" : $"{input.EndTime} /* {DateTimeOffset.FromUnixTimeSeconds(input.EndTime).DateTime.ToString(CultureInfo.InvariantCulture)} */")}, " +
                              $"{input.State} /* GameEventState.{(GameEventState)input.State} */, " +
                              $"'{input.LastModified:yyyy-MM-dd HH:mm:ss}'" +
                              ");";
