@@ -21,10 +21,15 @@ namespace ACE.Server.Entity
 
         public const uint ArmorMainReductionTool = 42622;
         public const uint ArmorLowerReductionTool = 44879;
-        public const uint ArmorMiddleReductionTool = 44880;
+        public const uint ArmorMiddleReductionTool = 44880;        
 
         public const uint ArmorLayeringToolTop = 42724;
         public const uint ArmorLayeringToolBottom = 42726;
+
+        public const uint MorphGemArmorLevel = 4200022;
+
+        public const uint MaxBodyArmorLevel = 330;
+        public const uint MaxExtremityArmorLevel = 360;
 
         // Some WCIDs have Overlay Icons that need to be removed (e.g. Olthoi Alduressa Gauntlets or Boots)
         // There are other examples not here, like some stamped shields that might need to be added, as well.
@@ -176,6 +181,10 @@ namespace ACE.Server.Entity
                 case DarkHeart:
 
                     WeaponApply(player, source, target);
+                    return;
+
+                case MorphGemArmorLevel:
+                    ApplyMorphGem(player, source, target);
                     return;
             }
 
@@ -417,6 +426,53 @@ namespace ACE.Server.Entity
             player.SendUseDoneEvent();
         }
 
+
+        public static void ApplyMorphGem(Player player, WorldObject source, WorldObject target)
+        {
+            try
+            {
+                switch(source.WeenieClassId)
+                {
+                    case MorphGemArmorLevel:
+
+                        var currentItemAL = target.GetProperty(PropertyInt.ArmorLevel);
+
+                        if (!currentItemAL.HasValue)
+                        {
+                            //TODO
+                            return;
+                        }
+
+                        //Roll for a value to change the AL
+                        var random = new Random();
+                        var alGain = random.Next(0, 15);
+                        var alLoss = random.Next(0, 7);
+                        var alChange = alGain - alLoss;
+                        alChange = alChange > 10 ? 10 : alChange < -5 ? -5 : alChange;
+
+                        var newAl = currentItemAL.Value + alChange;
+
+                        //Don't let new Armor Level exceed maximums
+                        var validLocations = target.ValidLocations ?? EquipMask.None;
+                        var maxAl = validLocations.HasFlag(EquipMask.Extremity) ? MaxExtremityArmorLevel : MaxBodyArmorLevel;
+                        newAl = newAl > maxAl ? (int)maxAl : newAl;
+
+                        player.UpdateProperty(target, PropertyInt.ArmorLevel, newAl);
+                        break;
+                }
+
+                player.TryConsumeFromInventoryWithNetworking(source, 1);
+
+                target.SaveBiotaToDatabase();
+
+                player.SendUseDoneEvent();
+            }
+            catch(Exception ex)
+            {
+                //TODO
+            }
+        }
+
         /// <summary>
         /// Adjusts the layering priority for a piece of armor
         /// </summary>
@@ -656,6 +712,7 @@ namespace ACE.Server.Entity
                 case WingedCoat:
                 case Tentacles:
                 case DarkHeart:
+                case MorphGemArmorLevel:
 
                     return true;
 
