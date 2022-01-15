@@ -323,7 +323,8 @@ namespace ACE.Server.Entity
                         }
                     }
 
-                    AddWorldObject(wo);
+                    if (!AddWorldObject(wo))
+                        wo.Destroy();
                 }));
             }
         }
