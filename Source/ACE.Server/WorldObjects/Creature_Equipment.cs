@@ -618,7 +618,10 @@ namespace ACE.Server.WorldObjects
                 if (wo == null) continue;
 
                 //if (wo.ValidLocations == null || (ItemCapacity ?? 0) > 0)
-                    TryAddToInventory(wo);
+                {
+                    if (!TryAddToInventory(wo))
+                        wo.Destroy();
+                }
                 //else
                     //TryWieldObject(wo, (EquipMask)wo.ValidLocations);
             }
@@ -748,7 +751,10 @@ namespace ACE.Server.WorldObjects
             foreach (var item in wieldedTreasure)
             {
                 //if (item.ValidLocations == null || (ItemCapacity ?? 0) > 0)
-                    TryAddToInventory(item);
+                {
+                    if (!TryAddToInventory(item))
+                        item.Destroy();
+                }
                 //else
                     //TryWieldObject(item, (EquipMask)item.ValidLocations);
             }
