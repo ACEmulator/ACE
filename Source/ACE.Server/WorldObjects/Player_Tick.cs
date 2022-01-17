@@ -607,7 +607,7 @@ namespace ACE.Server.WorldObjects
             Console.WriteLine($"Town in conflict: {town.IsInConflict}");
             var tearsTimerLogic = TownControlTrophyTimer == null ? true : Time.GetUnixTime() > TownControlTrophyTimer;
 
-            if (town.IsInConflict && tearsTimerLogic)
+            if (PlayerKillerStatus == PlayerKillerStatus.PK && town.IsInConflict && tearsTimerLogic)
             {
                 var tcTrophy = WorldObjectFactory.CreateNewWorldObject(42127923);
                 this.TryAddToInventory(tcTrophy);
