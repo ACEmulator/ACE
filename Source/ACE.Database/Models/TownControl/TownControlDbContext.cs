@@ -26,7 +26,9 @@ namespace ACE.Database.Models.TownControl
             {
                 var config = Common.ConfigManager.Config.MySql.TownControl;
 
-                optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database};TreatTinyAsBoolean=False", builder =>
+                var connectionString = $"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database};TreatTinyAsBoolean=False";
+
+                optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), builder =>
                 {
                     builder.EnableRetryOnFailure(10);
                 });
