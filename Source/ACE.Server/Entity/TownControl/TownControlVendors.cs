@@ -30,10 +30,10 @@ namespace ACE.Server.Entity.TownControl
 
                     //Holtburg
                     _tcVendorMap.Add(
-                        4200001,
+                        42128708,
                         new TownControlVendor()
                         {
-                            WeenieID = 4200001,
+                            WeenieID = 42128708,
                             TownID = 72,
                             TownName = "Holtburg"
                         }
@@ -42,10 +42,10 @@ namespace ACE.Server.Entity.TownControl
 
                     //Yaraq
                     _tcVendorMap.Add(
-                        4200003, //TODO
+                        42128709, //TODO
                         new TownControlVendor()
                         {
-                            WeenieID = 4200003, //TODO
+                            WeenieID = 42128709,
                             TownID = 102,
                             TownName = "Yaraq"
                         }
