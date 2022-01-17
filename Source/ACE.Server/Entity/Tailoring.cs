@@ -491,7 +491,7 @@ namespace ACE.Server.Entity
                         var newValue = currentItemValue.Value + valueChange;
 
                         //Don't let new Armor Value exceed minimum of 1k
-                        if(newValue < 1000 || currentItemValue > 1000) { newValue = 1000; }
+                        if(newValue < 1000 || currentItemValue < 1000) { newValue = 1000; }
 
                         //Set the new AL value
                         player.UpdateProperty(target, PropertyInt.Value, newValue);
@@ -751,6 +751,7 @@ namespace ACE.Server.Entity
                 case Tentacles:
                 case DarkHeart:
                 case MorphGemArmorLevel:
+                case MorphGemArmorValue:
 
                     return true;
 
