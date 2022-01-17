@@ -577,7 +577,13 @@ namespace ACE.Server.WorldObjects
                         shouldDropTrophy = rnd.Next(10);
                         break;
                 }
-
+                
+                if (this.CurrentLandblock.Id.ToString().Contains("07FA"))
+                {
+                    var dropItem = WorldObjectFactory.CreateNewWorldObject(1000002);
+                    dropItem.SetStackSize(1);
+                    dropItems.Add(dropItem);
+                }
                 var killer = PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));
                 var victimMonarch = this.MonarchId != null ? this.MonarchId : this.Guid.Full;
                 var killerMonarch = killer.MonarchId != null ? killer.MonarchId : killer.Guid.Full;

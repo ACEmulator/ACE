@@ -1261,7 +1261,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void setVisualClothingPriority()
         {
-            if (ClothingBase.HasValue && (CurrentWieldedLocation & (EquipMask.Armor | EquipMask.HandWear)) != 0)
+            if (ClothingBase.HasValue && (CurrentWieldedLocation & (EquipMask.Armor | EquipMask.Extremity)) != 0)
             {
                 ClothingTable item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint)ClothingBase);
                 VisualClothingPriority = item.GetVisualPriority();
@@ -3064,6 +3064,17 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyBool.DontTurnOrMoveWhenGiving) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.DontTurnOrMoveWhenGiving); else SetProperty(PropertyBool.DontTurnOrMoveWhenGiving, value); }
         }
+
+        /// <summary>
+        /// Determines the rotation speed for projectiles in global X
+        /// </summary>
+        public double? RotationSpeed
+        {
+            get => GetProperty(PropertyFloat.RotationSpeed);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.RotationSpeed); else SetProperty(PropertyFloat.RotationSpeed, value.Value); }
+        }
+
+        public bool HasMissileFlightPlacement => CSetup.HasMissileFlightPlacement;
 
         /// <summary>
         /// For items sold by vendors, StackSize of shop item profile from Vendor's CreateList.
