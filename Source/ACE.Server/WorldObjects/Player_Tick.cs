@@ -18,6 +18,9 @@ using ACE.Server.Network.Structure;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
 
+using ACE.Database;
+using ACE.Server.Entity.TownControl;
+
 namespace ACE.Server.WorldObjects
 {
     partial class Player
@@ -94,6 +97,8 @@ namespace ACE.Server.WorldObjects
             PK_DeathTick();
 
             GagsTick();
+
+            TownControlTick();
 
             PhysicsObj.ObjMaint.DestroyObjects();
 
@@ -441,7 +446,7 @@ namespace ACE.Server.WorldObjects
                         if (curCell != null)
                         {
                             //if (PhysicsObj.CurCell == null || curCell.ID != PhysicsObj.CurCell.ID)
-                                //PhysicsObj.change_cell_server(curCell);
+                            //PhysicsObj.change_cell_server(curCell);
 
                             PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell, Location.LandblockId.Raw);
                             if (FastTick)
@@ -585,6 +590,52 @@ namespace ACE.Server.WorldObjects
                     gagNoticeSent = false;
                 }
             }
+        }
+
+        public void TownControlTick()
+        {
+            if (CurrentLandblock == null)
+                return;
+
+            var whichTown = IsInTownControlLandblock();
+
+            if (whichTown == 0)
+                return;
+
+            //Console.WriteLine($"{inLandblock}");
+            var town = DatabaseManager.TownControl.GetTownById((uint)whichTown);
+            Console.WriteLine($"Town in conflict: {town.IsInConflict}");
+            var tearsTimerLogic = TownControlTrophyTimer == null ? true : Time.GetUnixTime() > TownControlTrophyTimer;
+
+            if (town.IsInConflict && tearsTimerLogic)
+            {
+                var tcTrophy = WorldObjectFactory.CreateNewWorldObject(42127923);
+                this.TryAddToInventory(tcTrophy);
+                Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
+                var msg = new GameMessageSystemChat($"You have received a participation trophy.", ChatMessageType.Broadcast);
+                Session.Network.EnqueueSend(msg);
+                SetProperty(PropertyFloat.TownControlTrophyTimer, Time.GetFutureUnixTime(30)); // every 30 seconds of participation, you get a town control trophy
+            }
+        }
+
+        public int IsInTownControlLandblock()
+        {
+            //Shoushi SE location 0xDE510015[49.071442 109.183655 16.004999] - 0.996967 0.000000 0.000000 0.077820
+
+            //Holtburg West location 0xA5B4002D[140.216034 108.323578 54.058929] 0.138897 0.000000 0.000000 - 0.990307
+
+            //Yaraq East Location 0x81640017[50.047153 147.723450 22.004999] - 0.989617 0.000000 0.000000 0.143732
+
+            // TODO: Make this use the actual map instead of hardcoding town ID's
+            var cLandblock = CurrentLandblock.Id.Landblock;
+            if (TownControlLandblocks.TownControlLandblocksMap[72].Contains(cLandblock))
+                return 72;
+            else if (TownControlLandblocks.TownControlLandblocksMap[91].Contains(cLandblock))
+                return 91;
+            else if (TownControlLandblocks.TownControlLandblocksMap[102].Contains(cLandblock))
+                return 102;
+            else
+                return 0;
         }
 
         /// <summary>

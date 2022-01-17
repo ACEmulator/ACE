@@ -17,6 +17,8 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
 
+using ACE.Database;
+
 namespace ACE.Server.WorldObjects
 {
     partial class Player
@@ -584,11 +586,28 @@ namespace ACE.Server.WorldObjects
                     dropItem.SetStackSize(1);
                     dropItems.Add(dropItem);
                 }
+
                 var killer = PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));
                 var victimMonarch = this.MonarchId != null ? this.MonarchId : this.Guid.Full;
                 var killerMonarch = killer.MonarchId != null ? killer.MonarchId : killer.Guid.Full;
-                var timerLogic = TrophyTimer == null ? true : Time.GetUnixTime() > TrophyTimer; 
-                if (shouldDropTrophy == 1 && victimMonarch != killerMonarch && timerLogic)
+                var timerLogic = TrophyTimer == null ? true : Time.GetUnixTime() > TrophyTimer;
+                var monarchCheck = victimMonarch != killerMonarch;
+
+                var whichTown = IsInTownControlLandblock();
+                var alreadyDropped = false;
+                if (whichTown != 0 && monarchCheck)
+                {
+                    var town = DatabaseManager.TownControl.GetTownById((uint)whichTown);
+                    if (town.IsInConflict)
+                    {
+                        var pkTrophy = WorldObjectFactory.CreateNewWorldObject(1000002);
+                        pkTrophy.SetStackSize(1);
+                        dropItems.Add(pkTrophy);
+                        alreadyDropped = true;
+                    }
+                }
+
+                if (!alreadyDropped && shouldDropTrophy == 1 && monarchCheck && timerLogic)
                 {
                     var dropItem = WorldObjectFactory.CreateNewWorldObject(1000002);
                     dropItem.SetStackSize(1);
