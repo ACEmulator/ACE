@@ -740,6 +740,9 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcastPhysicsState();
 
+            LastAutoPos = new Position(Location);
+            LastAutoPosTime = DateTime.UtcNow;
+
             // hijacking this for both start/end on portal teleport
             if (LastTeleportStartTimestamp == LastPortalTeleportTimestamp)
                 LastPortalTeleportTimestamp = Time.GetUnixTime();
@@ -755,6 +758,49 @@ namespace ACE.Server.WorldObjects
             //    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ITeleported));
         }
 
+        public Position LastAutoPos;
+        public DateTime LastAutoPosTime;
+
+        public readonly static TimeSpan MinAutoPosThreshold = TimeSpan.FromSeconds(5);
+
+        public readonly static float MinAutoPosFactor = 1.25f;
+
+        public void OnAutoPos(Position newPos)
+        {
+            if (Teleporting)
+               return;
+
+            if (LastAutoPos != null)
+            {
+                var timeElapsed = DateTime.UtcNow - LastAutoPosTime;
+
+                if (timeElapsed<MinAutoPosThreshold)
+                    return;
+
+                var dist = LastAutoPos.Distance2D(newPos);
+
+                var speed = dist / timeElapsed.TotalSeconds;
+
+                //Console.WriteLine($"Current speed (estimated): {speed}");
+
+                var runRate = GetRunRate();
+
+                var runSpeed = runRate * Physics.Animation.MotionInterp.RunAnimSpeed;
+
+                //Console.WriteLine($"Ideal speed: {runSpeed}");
+
+                if (speed > runSpeed* MinAutoPosFactor)
+                {
+                    var factor = Math.Round(speed / runSpeed, 2);
+                    var str = $"{Name} is running {factor}x faster than normal";
+                    log.Warn(str);
+                    PlayerManager.BroadcastToAuditChannel(this, str);
+                }
+           }
+
+            LastAutoPos = newPos;
+            LastAutoPosTime = DateTime.UtcNow;
+        }
         public void NotifyLandblocks()
         {
             // the original implementations of this were done on landblock heartbeat,
