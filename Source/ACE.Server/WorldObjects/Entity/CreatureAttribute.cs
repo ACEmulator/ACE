@@ -147,7 +147,11 @@ namespace ACE.Server.WorldObjects.Entity
 
             total = total.Round();
 
-            return (uint)Math.Max(total, 10);  // minimum value for an attribute: 10
+            // attributes cannot be debuffed below 10 normally,
+            // or 1 for creatures with very low starting attributes
+            var minimumAttribute = Base >= 10 ? 10 : 1;
+
+            return (uint)Math.Max(minimumAttribute, total);
         }
 
         public ModifierType ModifierType
