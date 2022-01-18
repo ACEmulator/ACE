@@ -92,8 +92,15 @@ namespace ACE.Server.WorldObjects
             var soundEvent = new GameMessageSound(player.Guid, GetUseSound(), 1.0f);
             player.EnqueueBroadcast(soundEvent);
 
-            if ((bool)this.GetProperty(PropertyBool.UnlimitedUse))
-                return;
+            try
+            {
+                if ((bool)this.GetProperty(PropertyBool.UnlimitedUse))
+                    return;
+            }
+            catch (Exception ex)
+            {
+                //TODO Logging
+            }
 
             player.TryConsumeFromInventoryWithNetworking(this, 1);
         }
