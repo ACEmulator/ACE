@@ -469,6 +469,8 @@ namespace ACE.Server.Entity
 
                         //Set the new AL value
                         player.UpdateProperty(target, PropertyInt.ArmorLevel, newAl);
+                        //Send player message confirming the applied morph gem
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You apply the Morph Gem.", ChatMessageType.Broadcast));
                         break;
 
                     case MorphGemArmorValue:
@@ -495,6 +497,8 @@ namespace ACE.Server.Entity
 
                         //Set the new AL value
                         player.UpdateProperty(target, PropertyInt.Value, newValue);
+                        //Send player message confirming the applied morph gem
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You apply the Morph Gem.", ChatMessageType.Broadcast));
 
                         break;
                 }
