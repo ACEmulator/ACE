@@ -604,7 +604,6 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine($"{inLandblock}");
             var town = DatabaseManager.TownControl.GetTownById((uint)whichTown);
-            Console.WriteLine($"Town in conflict: {town.IsInConflict}");
             var tearsTimerLogic = TownControlTrophyTimer == null ? true : Time.GetUnixTime() > TownControlTrophyTimer;
 
             if (PlayerKillerStatus == PlayerKillerStatus.PK && town.IsInConflict && tearsTimerLogic)
