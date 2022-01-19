@@ -264,6 +264,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Spawns an object from the generator queue
         /// for RNG treasure, can spawn multiple objects
+        /// If an object failed to spawn, but FirstSpawn is true, the object will still be returned as a spawned item, but, it will have been Destroy()'d first.
         /// </summary>
         public List<WorldObject> Spawn()
         {
@@ -333,6 +334,11 @@ namespace ACE.Server.Entity
                 //if (success || FirstSpawn)
                 if (success)
                     spawned.Add(obj);
+
+                // If the object failed to spawn, we still destroy it. This cleans up the object and releases the GUID.
+                // This object still may be returned in the spawned collection if FirstSpawn is true. This is to prevent retry spam.
+                if (!success)
+                    obj.Destroy();
             }
 
             return spawned;
