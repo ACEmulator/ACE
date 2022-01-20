@@ -525,16 +525,11 @@ namespace ACE.Server.WorldObjects
                  */
                 if (sourcePlayer != null)
                 {
-                    // per retail stats, level 8 difficulty is capped to 350 instead of 400
-                    // without this, level 7s have the potential to deal more damage than level 8s
-                    var difficulty = Math.Min(Spell.Power, 350);    // was skillMod possibility capped to 1.3x for level 7 spells in retail, instead of level 8 difficulty cap?
                     var magicSkill = sourcePlayer.GetCreatureSkill(Spell.School).Current;
 
-                    if (magicSkill > difficulty)
+                    if (magicSkill > Spell.Power)
                     {
-                        // Bonus clamped to a maximum of 50%
-                        //var percentageBonus = Math.Clamp((magicSkill - Spell.Power) / 100.0f, 0.0f, 0.5f);
-                        var percentageBonus = (magicSkill - difficulty) / 1000.0f;
+                        var percentageBonus = (magicSkill - Spell.Power) / 1000.0f;
 
                         skillBonus = Spell.MinDamage * percentageBonus;
                     }
