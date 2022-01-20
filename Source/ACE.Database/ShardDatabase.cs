@@ -610,7 +610,7 @@ namespace ACE.Database
             var context = new ShardDbContext();
 
             var result = context.Character
-                .FirstOrDefault(r => r.Name.Equals(name, StringComparison.OrdinalIgnoreCase) && !r.IsDeleted);
+                .FirstOrDefault(r => r.Name == name && !r.IsDeleted);
 
             return result;
         }
