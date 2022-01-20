@@ -28,9 +28,13 @@ namespace ACE.Server.Entity
 
         public const uint MorphGemArmorLevel = 4200022;
         public const uint MorphGemArmorValue = 4200023;
+        public const uint MorphGemArmorWork = 4200024;
 
         public const uint MaxBodyArmorLevel = 330;
         public const uint MaxExtremityArmorLevel = 360;
+
+        public const uint MaxItemWork = 10;
+        public const uint MinItemWork = 1;
 
         // Some WCIDs have Overlay Icons that need to be removed (e.g. Olthoi Alduressa Gauntlets or Boots)
         // There are other examples not here, like some stamped shields that might need to be added, as well.
@@ -186,6 +190,7 @@ namespace ACE.Server.Entity
 
                 case MorphGemArmorLevel:
                 case MorphGemArmorValue:
+                case MorphGemArmorWork:
                     ApplyMorphGem(player, source, target);
                     return;
             }
@@ -471,6 +476,7 @@ namespace ACE.Server.Entity
                         player.UpdateProperty(target, PropertyInt.ArmorLevel, newAl);
                         //Send player message confirming the applied morph gem
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat("You apply the Morph Gem.", ChatMessageType.Broadcast));
+
                         break;
 
                     case MorphGemArmorValue:
@@ -497,6 +503,40 @@ namespace ACE.Server.Entity
 
                         //Set the new AL value
                         player.UpdateProperty(target, PropertyInt.Value, newValue);
+                        //Send player message confirming the applied morph gem
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You apply the Morph Gem.", ChatMessageType.Broadcast));
+
+                        break;
+
+                    case MorphGemArmorWork:
+
+                        //Get the current Work of the item
+                        var currentItemWork = target.GetProperty(PropertyInt.ItemWorkmanship);
+
+                        if (!currentItemWork.HasValue)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        //Roll for a value to change the Workmanship by
+                        var WorkRandom = new Random();
+                        var WorkGain = WorkRandom.Next(0, 1);
+                        var WorkLoss = WorkRandom.Next(0, 2);
+                        var WorkChange = WorkGain - WorkLoss;
+                        WorkChange = WorkChange > 1 ? 1 : WorkChange < -2 ? -2 : WorkChange;
+
+                        var newWork = currentItemWork.Value + WorkChange;
+
+                        //Don't let new Workmanship exceed maximums
+                      
+                        var maxWork = MaxItemWork;
+                        newWork = newWork > maxWork ? (int)maxWork : newWork;
+                        var minWork = MinItemWork;
+                        newWork = newWork < minWork ? (int)minWork : newWork;
+
+                        //Set the new Workmanship value
+                        player.UpdateProperty(target, PropertyInt.ItemWorkmanship, newWork);
                         //Send player message confirming the applied morph gem
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat("You apply the Morph Gem.", ChatMessageType.Broadcast));
 
@@ -756,6 +796,7 @@ namespace ACE.Server.Entity
                 case DarkHeart:
                 case MorphGemArmorLevel:
                 case MorphGemArmorValue:
+                case MorphGemArmorWork:
 
                     return true;
 
