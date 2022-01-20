@@ -60,7 +60,8 @@ namespace ACE.Database
             }
             catch (Exception ex)
             {
-                //TODO logging
+                log.ErrorFormat("GetAllTowns hit an exception. Ex: {0}", ex);
+                throw;
             }
 
             return townList;
@@ -79,7 +80,8 @@ namespace ACE.Database
             }
             catch(Exception ex)
             {
-                //TODO logging
+                log.ErrorFormat("GetTownById hit an exception. Ex: {0}", ex);
+                throw;
             }
 
             return null;
@@ -107,7 +109,8 @@ namespace ACE.Database
             }
             catch (Exception ex)
             {
-                //TODO logging
+                log.ErrorFormat("UpdateTown hit an exception. Ex: {0}", ex);
+                throw;
             }
         }
 
@@ -138,7 +141,8 @@ namespace ACE.Database
             }
             catch(Exception ex)
             {
-                //TODO logging
+                log.ErrorFormat("StartTownControlEvent hit an exception. Ex: {0}", ex);
+                throw;
             }
 
             return null;
@@ -169,7 +173,8 @@ namespace ACE.Database
             }
             catch (Exception ex)
             {
-                //TODO logging
+                log.ErrorFormat("UpdateTownControlEvent hit an exception. Ex: {0}", ex);
+                throw;
             }
         }
 
@@ -195,7 +200,8 @@ namespace ACE.Database
             }
             catch(Exception ex)
             {
-                //TODO logging
+                log.ErrorFormat("GetLatestTownControlEventByTownId hit an exception. Ex: {0}", ex);
+                throw;
             }
 
             return null;
@@ -224,11 +230,11 @@ namespace ACE.Database
             }
             catch (Exception ex)
             {
-                //TODO logging
+                log.ErrorFormat("GetLatestTownControlEventByAttackingMonarchId hit an exception. Ex: {0}", ex);
+                throw;
             }
 
             return null;
         }
-
     }
 }

@@ -7,6 +7,7 @@ using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+using log4net;
 
 namespace ACE.Server.Entity
 {
@@ -14,6 +15,8 @@ namespace ACE.Server.Entity
     {
         // http://acpedia.org/wiki/Tailoring
         // https://asheron.fandom.com/wiki/Tailoring
+
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // tailoring kits
         public const uint ArmorTailoringKit = 41956;
@@ -511,7 +514,7 @@ namespace ACE.Server.Entity
             }
             catch(Exception ex)
             {
-                //TODO
+                log.ErrorFormat("Exception in Tailoring.ApplyMorphGem. Ex: {0}", ex);
             }
         }
 

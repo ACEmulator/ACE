@@ -83,7 +83,7 @@ namespace ACE.Server.WorldObjects
                 }
                 catch(Exception ex)
                 {
-                    //TODO logging
+                    log.ErrorFormat("Exception applying Town Control behavior in creature tick.  WeenieClassID = {0}, Ex: {1}", this.WeenieClassId, ex);
                 }
             }
 

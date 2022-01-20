@@ -33,25 +33,49 @@ namespace ACE.Server.Entity.TownControl
                 return _landblocks;
             }
         }
-        //public static int IsInTownControlLandblock(Landblock currentLandblock)
-        //{
-        //    //Shoushi SE location 0xDE510015[49.071442 109.183655 16.004999] - 0.996967 0.000000 0.000000 0.077820
 
-        //    //Holtburg West location 0xA5B4002D[140.216034 108.323578 54.058929] 0.138897 0.000000 0.000000 - 0.990307
+        public static List<uint> _townControlLanblockList = null;
 
-        //    //Yaraq East Location 0x81640017[50.047153 147.723450 22.004999] - 0.989617 0.000000 0.000000 0.143732
+        public static List<uint> TownControlLanblockList
+        {
+            get
+            {
+                if(_townControlLanblockList == null)
+                {
+                    _townControlLanblockList = new List<uint>();
 
-        //    var cLandblock = currentLandblock.Id.Landblock;
-        //    if (TownControlLandblocks.TownControlLandblocksMap[72].Contains(cLandblock))
-        //        return 72;
-        //    else if (TownControlLandblocks.TownControlLandblocksMap[91].Contains(cLandblock))
-        //        return 91;
-        //    else if (TownControlLandblocks.TownControlLandblocksMap[102].Contains(cLandblock))
-        //        return 102;
-        //    else
-        //        return 0;
+                    foreach(uint key in TownControlLandblocksMap.Keys)
+                    {
+                        foreach(uint landblockId in TownControlLandblocksMap[key])
+                        {
+                            _townControlLanblockList.Add(landblockId);
+                        }
+                    }
+                }
 
-        //}
+                return _townControlLanblockList;
+            }
+        }
 
+        public static bool IsTownControlLandblock(uint landblockId)
+        {
+            return TownControlLandblocks.TownControlLanblockList.Contains(landblockId);
+        }
+
+        public static uint? GetTownIdByLandblockId(uint landblockId)
+        {
+            foreach(uint key in TownControlLandblocksMap.Keys)
+            {
+                foreach(uint value in TownControlLandblocksMap[key])
+                {
+                    if(value == landblockId)
+                    {
+                        return key;
+                    }
+                }
+            }
+
+            return null;
+        }
     }
 }

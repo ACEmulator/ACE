@@ -42,7 +42,7 @@ namespace ACE.Server.Entity.TownControl
 
                     //Yaraq
                     _tcVendorMap.Add(
-                        42128709, //TODO
+                        42128709,
                         new TownControlVendor()
                         {
                             WeenieID = 42128709,
