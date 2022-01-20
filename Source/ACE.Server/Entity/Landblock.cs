@@ -212,13 +212,17 @@ namespace ACE.Server.Entity
                 {
                     uint? townId = TownControlLandblocks.GetTownIdByLandblockId(this.Id.Landblock);
                     var latestEvent = DatabaseManager.TownControl.GetLatestTownControlEventByTownId(townId.HasValue ? townId.Value : 0);
-                    if(latestEvent != null)
+                    if(latestEvent != null && townId.HasValue)
                     {
                         if(!latestEvent.EventEndDateTime.HasValue || !latestEvent.IsAttackSuccess.HasValue)
                         {
                             latestEvent.EventEndDateTime = DateTime.UtcNow;
                             latestEvent.IsAttackSuccess = false;
                             DatabaseManager.TownControl.UpdateTownControlEvent(latestEvent);
+
+                            var town = DatabaseManager.TownControl.GetTownById(townId.Value);
+                            town.IsInConflict = false;
+                            DatabaseManager.TownControl.UpdateTown(town);
                         }
                     }
                 }
