@@ -739,6 +739,8 @@ namespace ACE.Server.WorldObjects
 
         public void HandleTownControlBossDeath()
         {
+            log.Info("Creature_Death.HandleTownControlBossDeath");
+
             try
             {
                 var deadBoss = TownControlBosses.TownControlBossMap[this.WeenieClassId];
@@ -984,7 +986,7 @@ namespace ACE.Server.WorldObjects
             }
             catch(Exception ex)
             {
-                //TODO logging
+                log.ErrorFormat("Exception in Creature_Death.HandleTownControlBossDeath. Ex: {0}", ex);
             }
         }    
     }

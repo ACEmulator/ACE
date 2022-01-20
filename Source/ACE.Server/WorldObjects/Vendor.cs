@@ -275,7 +275,7 @@ namespace ACE.Server.WorldObjects
                 }
                 catch (Exception ex)
                 {
-                    //TODO logging
+                    log.ErrorFormat("Exception applying Town Control behavior to vendor.  Vendor WeenieClassId = {0}, Ex: {1}", this.WeenieClassId, ex);
                 }
             }
 

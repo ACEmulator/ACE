@@ -66,7 +66,7 @@ namespace ACE.Server.Entity.TownControl
 
                     //Yaraq
                     _tcBossMap.Add(
-                        4200003, //TODO
+                        4200003,
                         new TownControlBoss()
                         {
                             WeenieID = 4200003, //TODO
@@ -101,10 +101,7 @@ namespace ACE.Server.Entity.TownControl
         {
             if (TownControlBosses.TownControlBossMap.ContainsKey(weenieId))
             {
-                if(TownControlBosses.TownControlBossMap[weenieId].BossType.Equals(TownControlBossType.ConflictBoss))
-                {
-                    return true;
-                }
+                return TownControlBosses.TownControlBossMap[weenieId].BossType.Equals(TownControlBossType.ConflictBoss);                
             }
 
             return false;
