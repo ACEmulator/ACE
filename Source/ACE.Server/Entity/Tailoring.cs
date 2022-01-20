@@ -434,7 +434,7 @@ namespace ACE.Server.Entity
             try
             {
                 //Only allow loot gen items to be morphed
-                if (target.ItemWorkmanship == null || target.IsAttunedOrContainsAttuned || target.ArmorLevel == 0)
+                if (target.ItemWorkmanship == null || target.IsAttunedOrContainsAttuned || target.ArmorLevel == 0 || target.NumTimesTinkered != 0)
                 {
                     player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                     return;
