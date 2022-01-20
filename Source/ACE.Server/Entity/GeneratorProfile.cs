@@ -71,7 +71,8 @@ namespace ACE.Server.Entity
         /// </summary>
         public bool GeneratedTreasureItem { get; private set; }
 
-        private int currentCreate = 0;
+        private int? currentCreate { get; set; }
+
         /// <summary>
         /// The total # of active spawned objects + awaiting spawning
         /// </summary>
@@ -80,12 +81,16 @@ namespace ACE.Server.Entity
             get
             {
                 if (!GeneratedTreasureItem)
-                    //return Spawned.Count + SpawnQueue.Count
-                    //return Spawned.Keys.Except(Removed.Keys).Count() + SpawnQueue.Count;
-                    return currentCreate;
+                {
+                    if (currentCreate == null)
+                        //return Spawned.Count + SpawnQueue.Count
+                        currentCreate = Spawned.Keys.Except(Removed.Keys).Count() + SpawnQueue.Count;
+
+                    return currentCreate.Value;
+                }
                 else
                 {
-                    if (Spawned.Any() || SpawnQueue.Any())
+                    if (Spawned.Count > 0 || SpawnQueue.Count > 0)
                         return 1;
                     else
                         return 0;
@@ -113,7 +118,7 @@ namespace ACE.Server.Entity
         /// Flag indicates if generator profile is performing the initial spawn (TRUE / default),
         /// or the respawn (false)
         /// </summary>
-        //public bool FirstSpawn { get; set; } = true;
+        public bool FirstSpawn { get; set; } = true;
 
         /// <summary>
         /// The delay for respawning objects
@@ -202,6 +207,8 @@ namespace ACE.Server.Entity
         /// </summary>
         public void Enqueue(int numObjects = 1)
         {
+            if (numObjects < 1) return;
+
             for (var i = 0; i < numObjects; i++)
             {
                 /*if (MaxObjectsSpawned)
@@ -210,8 +217,17 @@ namespace ACE.Server.Entity
                     break;
                 }*/
                 SpawnQueue.Add(GetSpawnTime());
-                UpdateCurrentCreate();
             }
+
+            InvalidateCurrentCreateCache();
+        }
+
+        /// <summary>
+        /// This should be called anytime SpawnQueue, Spawned, or Removed is updated
+        /// </summary>
+        private void InvalidateCurrentCreateCache()
+        {
+            currentCreate = null;
         }
 
         /// <summary>
@@ -221,6 +237,8 @@ namespace ACE.Server.Entity
         public void ProcessQueue()
         {
             var index = 0;
+            var updates = false;
+
             while (index < SpawnQueue.Count)
             {
                 var queuedTime = SpawnQueue[index];
@@ -248,17 +266,21 @@ namespace ACE.Server.Entity
                             Spawned.Add(obj.Guid.Full, woi);
                         }
                     }
-
                 }
                 else
                 {
                     // this shouldn't happen (hopefully)
                     log.Debug($"GeneratorProfile: objects enqueued for {Generator.Name}, but MaxCreate({MaxCreate}) already reached!");
                 }
+
                 SpawnQueue.RemoveAt(index);
-                UpdateCurrentCreate();
+                updates = true;
             }
-            //FirstSpawn = false;
+
+            if (updates)
+                InvalidateCurrentCreateCache();
+
+            FirstSpawn = false;
         }
 
         /// <summary>
@@ -331,8 +353,8 @@ namespace ACE.Server.Entity
                     success = Spawn_Default(obj);
 
                 // if first spawn fails, don't continually attempt to retry
-                //if (success || FirstSpawn)
-                if (success)
+                //if (success)
+                if (success || FirstSpawn)
                     spawned.Add(obj);
 
                 // If the object failed to spawn, we still destroy it. This cleans up the object and releases the GUID.
@@ -546,7 +568,7 @@ namespace ACE.Server.Entity
                 inventoryObj.Destroy();
             }
             Spawned.Clear();
-            UpdateCurrentCreate();
+            InvalidateCurrentCreateCache();
         }
 
 
@@ -592,7 +614,7 @@ namespace ACE.Server.Entity
             InsertIntoRemoveQueue(Delay, woi.Guid.Full);
             Removed.Add(woi.Guid.Full, woi);
 
-            UpdateCurrentCreate();
+            InvalidateCurrentCreateCache();
         }
 
         public void FreeSlot(uint objectGuid)
@@ -600,12 +622,7 @@ namespace ACE.Server.Entity
             Spawned.Remove(objectGuid);
             Removed.Remove(objectGuid);
 
-            UpdateCurrentCreate();
-        }
-
-        private void UpdateCurrentCreate()
-        {
-            currentCreate = Spawned.Keys.Except(Removed.Keys).Count() + SpawnQueue.Count;
+            InvalidateCurrentCreateCache();
         }
 
         public class RemoveQueueNode
@@ -685,7 +702,7 @@ namespace ACE.Server.Entity
             GeneratedTreasureItem = false;
             Generator.GeneratedTreasureItem = false;
 
-            UpdateCurrentCreate();
+            InvalidateCurrentCreateCache();
         }
 
         public void KillAll()
@@ -704,7 +721,7 @@ namespace ACE.Server.Entity
             RemoveQueue.Clear();
             Removed.Clear();
 
-            UpdateCurrentCreate();
+            InvalidateCurrentCreateCache();
         }
 
         public void DestroyAll(bool fromLandblockUnload = false)
@@ -723,7 +740,7 @@ namespace ACE.Server.Entity
             RemoveQueue.Clear();
             Removed.Clear();
 
-            UpdateCurrentCreate();
+            InvalidateCurrentCreateCache();
         }
     }
 }

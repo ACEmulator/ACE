@@ -85,7 +85,7 @@ namespace ACE.Server.WorldObjects
                 for (var i = 0; i < GeneratorProfiles.Count; i++)
                 {
                     var profile = GeneratorProfiles[i];
-                    if (profile.CurrentCreate > 0 || profile.RemoveQueue.Any())
+                    if (profile.CurrentCreate > 0 || profile.RemoveQueue.Count > 0)
                         activeProfiles.Add(i);
                 }
                 return activeProfiles;
@@ -95,17 +95,17 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns TRUE if all generator profiles are at init objects created
         /// </summary>
-        public bool AllProfilesInitted { get => GeneratorProfiles.Count(i => !i.IsPlaceholder && i.InitObjectsSpawned) == GeneratorProfiles.Count(i => !i.IsPlaceholder); }
+        public bool AllProfilesInitted => !GeneratorProfiles.Any(i => !i.IsPlaceholder && !i.InitObjectsSpawned);
 
         /// <summary>
         /// Returns TRUE if all generator profiles are at max objects created
         /// </summary>
-        public bool AllProfilesMaxed { get => GeneratorProfiles.Count(i => !i.IsPlaceholder && i.MaxObjectsSpawned) == GeneratorProfiles.Count(i => !i.IsPlaceholder); }
+        public bool AllProfilesMaxed => !GeneratorProfiles.Any(i => !i.IsPlaceholder && !i.MaxObjectsSpawned);
 
         /// <summary>
         /// Returns TRUE if all generator profiles are all timed out
         /// </summary>
-        public bool AllProfilesExhausted { get => GeneratorProfiles.Count(i => !i.IsPlaceholder && i.RemoveQueue.Count == i.MaxCreate) == GeneratorProfiles.Count(i => !i.IsPlaceholder); }
+        public bool AllProfilesExhausted => !GeneratorProfiles.Any(i => !i.IsPlaceholder && i.RemoveQueue.Count < i.MaxCreate);
 
         /// <summary>
         /// Adds initial objects to the spawn queue based on RNG rolls
