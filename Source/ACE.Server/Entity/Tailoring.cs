@@ -463,7 +463,7 @@ namespace ACE.Server.Entity
 
                         //Roll for a value to change the AL by
                         var alRandom = new Random();
-                        var alGain = alRandom.Next(0, 15);
+                        var alGain = alRandom.Next(0, 14);
                         var alLoss = alRandom.Next(0, 7);
                         var alChange = alGain - alLoss;
                         alChange = alChange > 10 ? 10 : alChange < -5 ? -5 : alChange;
@@ -495,8 +495,8 @@ namespace ACE.Server.Entity
 
                         //Roll for an amount to change the item Value by
                         var valRandom = new Random();
-                        var valueGain = valRandom.Next(0, 20000);
-                        var valueLoss = valRandom.Next(0, 15000);
+                        var valueGain = valRandom.Next(0, 15000);
+                        var valueLoss = valRandom.Next(0, 15750);
                         var valueChange = valueGain - valueLoss;
 
                         var newValue = currentItemValue.Value + valueChange;
@@ -523,13 +523,13 @@ namespace ACE.Server.Entity
                         }
 
                         //Roll for a value to change the Workmanship by
-                        var WorkRandom = new Random();
-                        var WorkGain = WorkRandom.Next(0, 1);
-                        var WorkLoss = WorkRandom.Next(0, 2);
-                        var WorkChange = WorkGain - WorkLoss;
-                        WorkChange = WorkChange > 1 ? 1 : WorkChange < -2 ? -2 : WorkChange;
+                        var workRandom = new Random();
+                        var workGain = workRandom.Next(0, 9);
+                        var workLoss = workRandom.Next(0, 9);
+                        var workChange = workGain - workLoss;
+                        workChange = workChange > 1 ? 1 : workChange < -2 ? -2 : workChange;
 
-                        var newWork = currentItemWork.Value + WorkChange;
+                        var newWork = currentItemWork.Value + workChange;
 
                         //Don't let new Workmanship exceed maximums
                       
