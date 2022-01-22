@@ -411,10 +411,11 @@ namespace ACE.Server.Physics
 
             var contactPlane = collisions.ContactPlaneValid ? collisions.ContactPlane : collisions.LastKnownContactPlane;
             var skid_dir = contactPlane.Normal;
-            var direction = Vector3.Cross(skid_dir, collisionNormal);
+            //var direction = Vector3.Cross(skid_dir, collisionNormal);
+            var direction = Vector3.Cross(collisionNormal, skid_dir);
 
             var blockOffset = LandDefs.GetBlockOffset(path.CurPos.ObjCellID, path.CheckPos.ObjCellID);
-            var globOffset = globSphere.Center - Center + blockOffset;
+            var globOffset = globSphere.Center - path.GlobalCurrCenter[sphereNum].Center + blockOffset;
             var dirLenSq = direction.LengthSquared();
             if (dirLenSq >= PhysicsGlobals.EPSILON)
             {
@@ -427,7 +428,8 @@ namespace ACE.Server.Physics
                 direction = skid_dir;
 
                 // only x?
-                if (direction.X * direction.X < PhysicsGlobals.EPSILON)
+                //if (direction.X * direction.X < PhysicsGlobals.EPSILON)
+                if (direction.LengthSquared() < PhysicsGlobals.EPSILON)
                     return TransitionState.Collided;
 
                 direction -= globOffset;

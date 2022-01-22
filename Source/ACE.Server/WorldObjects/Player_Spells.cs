@@ -58,16 +58,19 @@ namespace ACE.Server.WorldObjects
 
             if (!AddKnownSpell(spellId))
             {
-                GameMessageSystemChat errorMessage = new GameMessageSystemChat("That spell is already known", ChatMessageType.Broadcast);
-                Session.Network.EnqueueSend(errorMessage);
+                if (uiOutput)
+                {
+                    GameMessageSystemChat errorMessage = new GameMessageSystemChat("You already know that spell!", ChatMessageType.Broadcast);
+                    Session.Network.EnqueueSend(errorMessage);
+                }
                 return;
             }
 
             GameEventMagicUpdateSpell updateSpellEvent = new GameEventMagicUpdateSpell(Session, (ushort)spellId);
             Session.Network.EnqueueSend(updateSpellEvent);
 
-            //Check to see if we echo output to the client
-            if (uiOutput == true)
+            // Check to see if we echo output to the client text area and do playscript animation
+            if (uiOutput)
             {
                 // Always seems to be this SkillUpPurple effect
                 ApplyVisualEffects(PlayScript.SkillUpPurple);
@@ -75,6 +78,10 @@ namespace ACE.Server.WorldObjects
                 string message = $"You learn the {spells.Spells[spellId].Name} spell.\n";
                 GameMessageSystemChat learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
                 Session.Network.EnqueueSend(learnMessage);
+            }
+            else
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You have learned a new spell."));
             }
         }
 
