@@ -612,7 +612,7 @@ namespace ACE.Server.Entity
                 return;            
 
             InsertIntoRemoveQueue(Delay, woi.Guid.Full);
-            Removed.Add(woi.Guid.Full, woi);
+            Removed.TryAdd(woi.Guid.Full, woi);
 
             InvalidateCurrentCreateCache();
         }
