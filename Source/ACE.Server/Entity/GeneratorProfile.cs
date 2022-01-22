@@ -612,7 +612,8 @@ namespace ACE.Server.Entity
                 return;            
 
             InsertIntoRemoveQueue(Delay, woi.Guid.Full);
-            Removed.TryAdd(woi.Guid.Full, woi);
+            if (!Removed.TryAdd(woi.Guid.Full, woi))
+                log.Warn($"0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: Cannot add 0x{woi.Guid}:{woi.Name} to Removed. Already exists.");
 
             InvalidateCurrentCreateCache();
         }
