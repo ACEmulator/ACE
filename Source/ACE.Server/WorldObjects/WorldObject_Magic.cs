@@ -1971,6 +1971,7 @@ namespace ACE.Server.WorldObjects
                 return enchantment_statModVal;
             }
 
+            var player = this as Player;
             var creatureSource = this as Creature;
 
             var damageRatingMod = 1.0f;
@@ -1980,7 +1981,7 @@ namespace ACE.Server.WorldObjects
                 // damage rating mod
                 var damageRating = creatureSource.GetDamageRating();
 
-                if (this is Player player)
+                if (player != null)
                 {
                     // TODO: merge this with damage rating
                     var equippedWeapon = player.GetEquippedWeapon() ?? player.GetEquippedWand();
@@ -2022,21 +2023,15 @@ namespace ACE.Server.WorldObjects
                 elementalDamageMod = GetCasterElementalDamageModifier(weapon, creatureSource, creatureTarget, spell.DamageType);
 
                 // skillMod only applied to projectiles -- no destructive curse
-                if (spell.NumProjectiles > 0)
+                if (player != null && spell.NumProjectiles > 0)
                 {
                     // from SpellProjectile, slightly modified
                     // convert this to common function
+                    var magicSkill = player.GetCreatureSkill(spell.School).Current;
 
-                    // per retail stats, level 8 difficulty is capped to 350 instead of 400
-                    // without this, level 7s have the potential to deal more damage than level 8s
-                    var difficulty = Math.Min(spell.Power, 350);    // was skillMod possibility capped to 1.3x in retail, instead of level 8 difficulty cap?
-                    var magicSkill = creatureSource.GetCreatureSkill(spell.School).Current;
-
-                    if (magicSkill > difficulty)
+                    if (magicSkill > spell.Power)
                     {
-                        // Bonus clamped to a maximum of 50%
-                        //var percentageBonus = Math.Clamp((magicSkill - Spell.Power) / 100.0f, 0.0f, 0.5f);
-                        var percentageBonus = (magicSkill - difficulty) / 1000.0f;
+                        var percentageBonus = (magicSkill - spell.Power) / 1000.0f;
 
                         skillMod = 1.0f + percentageBonus;
                     }

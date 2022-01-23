@@ -117,6 +117,7 @@
     <None Remove="Entity\Mutations\Recipes\3800004B - Green Garnet.txt" />
     <None Remove="Entity\Mutations\Recipes\3800004E - Sandstone.txt" />
     <None Remove="Entity\Mutations\Recipes\39000000 - Paragon Weapons.txt" />
+    <None Remove="Entity\Mutations\Recipes\39000001 - Lucky White Rabbit%27s Foot.txt" />
     <None Include="..\..\LICENSE">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
@@ -219,6 +220,7 @@
     <EmbeddedResource Include="Entity\Mutations\Recipes\3800004B - Green Garnet.txt" />
     <EmbeddedResource Include="Entity\Mutations\Recipes\3800004E - Sandstone.txt" />
     <EmbeddedResource Include="Entity\Mutations\Recipes\39000000 - Paragon Weapons.txt" />
+    <EmbeddedResource Include="Entity\Mutations\Recipes\39000001 - Lucky White Rabbit's Foot.txt" />
   </ItemGroup>
 
   <ItemGroup>
