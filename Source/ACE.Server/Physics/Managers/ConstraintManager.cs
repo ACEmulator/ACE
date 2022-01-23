@@ -36,7 +36,7 @@ namespace ACE.Server.Physics.Animation
 
         public bool IsFullyConstrained()
         {
-            return ConstraintDistanceMax * 0.9f < ConstraintPosOffset;
+            return ConstraintPosOffset > ConstraintDistanceMax * 0.9f;
         }
 
         public void SetPhysicsObject(PhysicsObj obj)
@@ -73,7 +73,7 @@ namespace ACE.Server.Physics.Animation
                 else
                     offset.Origin = Vector3.Zero;
             }
-            ConstraintPosOffset = offset.Origin.Length();
+            ConstraintPosOffset += offset.Origin.Length();
         }
     }
 }
