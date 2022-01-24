@@ -225,6 +225,8 @@ namespace ACE.Entity.Enum.Properties
         TrophyTimer                    = 9002,
         [ServerOnly]
         TownControlTrophyTimer         = 9003,
+        [ServerOnly]
+        JumpTimer                      = 9004,
 
         /***** FOREDAWN CUSTOMS *****/
         ForedawnPvpDamageMulti = 52000

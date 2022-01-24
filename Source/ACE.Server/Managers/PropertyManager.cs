@@ -599,6 +599,7 @@ namespace ACE.Server.Managers
                 ("trajectory_alt_solver", new Property<bool>(false, "use the alternate trajectory solver for missiles and spell projectiles")),
                 ("universal_masteries", new Property<bool>(true, "if TRUE, matches end of retail masteries - players wielding almost any weapon get +5 DR, except if the weapon \"seems tough to master\". " +
                                                                  "if FALSE, players start with mastery of 1 melee and 1 ranged weapon type based on heritage, and can later re-select these 2 masteries")),
+                ("use_constraint_manager", new Property<bool>(false, "enables the constraint manager on the server, which can mitigate some of the desyncs between the client and server movement methods")),
                 ("use_generator_rotation_offset", new Property<bool>(true, "enables or disables using the generator's current rotation when offseting relative positions")),
                 ("use_turbine_chat", new Property<bool>(true, "enables or disables global chat channels (General, LFG, Roleplay, Trade, Olthoi, Society, Allegience)")),
                 ("use_wield_requirements", new Property<bool>(true, "disable this to bypass wield requirements. mostly for dev debugging")),
@@ -628,7 +629,10 @@ namespace ACE.Server.Managers
                 ("windup_turn_retry_number", new Property<long>(0, "Fixes turning forever during windup. 0 = default / disabled, 1 = retry one time, 2 = retry two times, ...")),
                 ("pvp_damage_cap", new Property<long>(450, "The cap for PvP damage per strike")),
 
-                ("pk_dispel_timer", new Property<long>(120, "the number of seconds where a player cannot perform dispel actions after becoming involved in a PK battle"))
+                ("pk_dispel_timer", new Property<long>(120, "the number of seconds where a player cannot perform dispel actions after becoming involved in a PK battle")),
+                ("jump_limit", new Property<long>(7, "the number of jumps you can do before being penalized")),
+                ("jump_second_timer", new Property<long>(10, "the number of seconds cutoff for jumping")),
+                ("jump_penalty_length", new Property<long>(5, "the number of seconds you're penalized after hitting the jump limits"))
 
                 );
 

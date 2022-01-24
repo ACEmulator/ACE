@@ -677,6 +677,7 @@ namespace ACE.Entity.Enum.Properties
                 case PropertyInt.FriendType:
                     return System.Enum.GetName(typeof(CreatureType), value);
                 case PropertyInt.DamageType:
+                case PropertyInt.ResistanceModifierType:
                     return System.Enum.GetName(typeof(DamageType), value);
                 case PropertyInt.CurrentWieldedLocation:
                 case PropertyInt.ValidLocations:
@@ -757,7 +758,7 @@ namespace ACE.Entity.Enum.Properties
 
                 case PropertyInt.GeneratorStartTime:
                 case PropertyInt.GeneratorEndTime:
-                    return DateTimeOffset.FromUnixTimeSeconds(value).DateTime.ToUniversalTime().ToString(CultureInfo.InvariantCulture);
+                    return DateTimeOffset.FromUnixTimeSeconds(value).DateTime.ToString(CultureInfo.InvariantCulture);
 
                 case PropertyInt.ArmorType:
                     return System.Enum.GetName(typeof(ArmorType), value);

@@ -30,6 +30,8 @@ namespace ACE.Server.Network.GameAction.Actions
             if (!session.Player.Teleporting)
                 session.Player.SetRequestedLocation(position);
 
+            session.Player.OnAutoPos(position);
+
             message.Payload.Align();
         }
     }

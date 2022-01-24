@@ -1475,5 +1475,17 @@ namespace ACE.Server.WorldObjects
 
         public void ClearRareEnchantments() { this.RareSpellEnchantments.Clear(); CurrentRareEnchantmentIds = null; }
         public void PackCurrentRareEnchantmentIds() => CurrentRareEnchantmentIds = string.Join("|", RareSpellEnchantments);
+
+        public int ImbueAttempts
+        {
+            get => GetProperty(PropertyInt.ImbueAttempts) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.ImbueAttempts); else SetProperty(PropertyInt.ImbueAttempts, value); }
+        }
+
+        public int ImbueSuccesses
+        {
+            get => GetProperty(PropertyInt.ImbueSuccesses) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.ImbueSuccesses); else SetProperty(PropertyInt.ImbueSuccesses, value); }
+        }
     }
 }

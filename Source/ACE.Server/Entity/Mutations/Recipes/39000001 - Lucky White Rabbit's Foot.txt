@@ -1,0 +1,7 @@
+0x39000001 Mutation #1:     // fixme: this should be a 0x38 file id
+
+Tier chances: 1
+
+    - Chance: 100%:
+        DamageVariance *= 0.8
+
