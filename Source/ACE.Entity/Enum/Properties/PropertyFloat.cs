@@ -223,6 +223,9 @@ namespace ACE.Entity.Enum.Properties
         TrophyTime                     = 9001,
         [ServerOnly]
         TrophyTimer                    = 9002,
+        [ServerOnly]
+        JumpTimer                      = 9004,
+
         /***** FOREDAWN CUSTOMS *****/
         ForedawnPvpDamageMulti = 52000
     }

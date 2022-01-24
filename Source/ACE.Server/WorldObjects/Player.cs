@@ -46,6 +46,8 @@ namespace ACE.Server.WorldObjects
 
         public bool LastContact = true;
 
+        private List<double> recentJumps = new List<double>();
+
         public bool IsJumping
         {
             get
@@ -931,14 +933,28 @@ namespace ACE.Server.WorldObjects
         {
             StartJump = new ACE.Entity.Position(Location);
             //Console.WriteLine($"JumpPack: Velocity: {jump.Velocity}, Extent: {jump.Extent}");
-
             var strength = Strength.Current;
             var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity);
             var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
 
+            // clear jump penalty if you're outside the bounds of the length
+            if (JumpTimer != null && JumpTimer + PropertyManager.GetLong("jump_penalty_length").Item < Time.GetUnixTime())
+                JumpTimer = null;
+            var nerfJumpRun = JumpTimer == null ? false : Time.GetUnixTime() > JumpTimer;
+            recentJumps.Add(Time.GetUnixTime()); // Add current time to recent run jumps
+            // Remove jumps that are outside the bounds of the tracking
+            recentJumps.RemoveAll(recentJump => recentJump + PropertyManager.GetLong("jump_second_timer").Item < Time.GetUnixTime());
+            var shouldGetFucked = false;
+            if (nerfJumpRun || recentJumps.Count >= PropertyManager.GetLong("jump_limit").Item)
+            {
+                shouldGetFucked = true;
+                if(JumpTimer == null)
+                    SetProperty(PropertyFloat.TrophyTimer, Time.GetFutureUnixTime(PropertyManager.GetLong("jump_penalty_length").Item));
+            }
+
             // calculate stamina cost for this jump
             var extent = Math.Clamp(jump.Extent, 0.0f, 1.0f);
-            var staminaCost = MovementSystem.JumpStaminaCost(extent, burden, PKTimerActive);
+            var staminaCost = MovementSystem.JumpStaminaCost(extent, burden, PKTimerActive || shouldGetFucked);
 
             //Console.WriteLine($"Strength: {strength}, Capacity: {capacity}, Encumbrance: {EncumbranceVal ?? 0}, Burden: {burden}, StaminaCost: {staminaCost}");
 
