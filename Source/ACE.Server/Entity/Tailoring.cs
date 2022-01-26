@@ -442,7 +442,7 @@ namespace ACE.Server.Entity
             try
             {
                 //Only allow loot gen items to be morphed
-                if (target.ItemWorkmanship == null || target.IsAttunedOrContainsAttuned || target.ArmorLevel == 0 || target.NumTimesTinkered != 0)
+                if (target.ItemWorkmanship == null || target.IsAttunedOrContainsAttuned || target.ArmorLevel == 0 || target.ResistMagic == 9999)
                 {
                     player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                     return;
@@ -455,7 +455,7 @@ namespace ACE.Server.Entity
                         //Get the current AL of the item
                         var currentItemAL = target.GetProperty(PropertyInt.ArmorLevel);
 
-                        if (!currentItemAL.HasValue)
+                        if (!currentItemAL.HasValue || target.NumTimesTinkered != 0)
                         {
                             player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                             return;
