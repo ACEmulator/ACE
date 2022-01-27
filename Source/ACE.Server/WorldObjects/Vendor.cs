@@ -16,6 +16,7 @@ using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Managers;
 using ACE.Server.Entity.TownControl;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -269,7 +270,7 @@ namespace ACE.Server.WorldObjects
                     if (!playerOwnsTown)
                     {
                         player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"Your clan does not own {town.TownName}!"));
-                        player.SendWeenieError(WeenieError.YouAreNotInAllegiance);
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You think you own {town.TownName}?  {town.TownName} owns you bitch!  Only the town owner may browse my wares.  Fuck all the way off.", ChatMessageType.Broadcast));
                         return;
                     }
                 }

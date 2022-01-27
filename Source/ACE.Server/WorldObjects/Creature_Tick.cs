@@ -60,7 +60,8 @@ namespace ACE.Server.WorldObjects
 
                     if (!town.IsInConflict || tcEvent == null || !tcEvent.EventStartDateTime.HasValue || tcEvent.EventEndDateTime.HasValue)
                     {
-                        PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - conflict boss exists but there is no active conflict, destroying the boss", ChatMessageType.Broadcast));
+                        //PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - conflict boss exists but there is no active conflict, destroying the boss", ChatMessageType.Broadcast));
+                        log.DebugFormat("Conflict boss with WeenieID = {0} exists but there is no active conflict, destroying the boss", this.WeenieClassId);
                         var dmgHistory = new DamageHistoryInfo(this);
                         OnDeath(dmgHistory, DamageType.Bludgeon);
                         Die(dmgHistory, dmgHistory);

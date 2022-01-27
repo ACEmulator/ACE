@@ -450,11 +450,12 @@ namespace ACE.Server.Entity
 
                 switch (source.WeenieClassId)
                 {
-                    case MorphGemArmorLevel:                                              
+                    case MorphGemArmorLevel:                        
 
                         //Get the current AL of the item
                         var currentItemAL = target.GetProperty(PropertyInt.ArmorLevel);
 
+                        //Disallow using AL morph gem on tinkered items or items w/ no AL
                         if (!currentItemAL.HasValue || target.NumTimesTinkered != 0)
                         {
                             player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
@@ -477,8 +478,23 @@ namespace ACE.Server.Entity
 
                         //Set the new AL value
                         player.UpdateProperty(target, PropertyInt.ArmorLevel, newAl);
+
                         //Send player message confirming the applied morph gem
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You apply the Morph Gem.", ChatMessageType.Broadcast));
+                        string playerMsg = string.Empty;
+                        if (alChange > 0)
+                        {
+                            playerMsg = $"As your skilled hands run softly along the contours of your armor, you quiver with anticipation.  With a swift and decisive thrust you apply the Morph Gem in a movement that is somehow both forceful and gentle at the same time.  With a short girly gasp that turns into a smile you realize that your armor has been enhanced and has gained {alGain} armor level.";
+                        }
+                        else if (alChange == 0)
+                        {
+                            playerMsg = $"As your hands run softly along the contours of your armor, you quiver with anticipation.  With a timid yet determined thrust you attempt to apply the Morph Gem.  But luck being the cunt she is, the Morph Gem shatters on impact and your armor remains unchanged.";
+                        }
+                        else
+                        {
+                            playerMsg = $"As your hands run softly along the contours of your armor, you quiver with anticipation.  With a timid yet determined thrust you attempt to apply the Morph Gem, but alas your hand is led astray of its mark as you are distracted by your 'room mate' calling out that your salad is ready and she bought you some new underwear with a smaller crotch for added support.  You cry softly in despair as you realize you've damaged your precious armor, which has lost {-1 * alChange} armor level as a result.";
+                        }
+                        
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
 
                         break;
 
@@ -506,8 +522,22 @@ namespace ACE.Server.Entity
 
                         //Set the new AL value
                         player.UpdateProperty(target, PropertyInt.Value, newValue);
+
+                        if (valueChange > 0)
+                        {
+                            playerMsg = $"Bad luck cunt.  The Morph Gem fucked you.  Your armor value has increased by {valueChange}";
+                        }
+                        else if (valueChange == 0)
+                        {
+                            playerMsg = $"The Morph Gem shatters against your armor and leaves it unchanged.  Could be worse.";
+                        }
+                        else
+                        {
+                            playerMsg = $"You apply the Morph Gem skillfully and have reduced the value of your armor by {-1 * valueChange}";
+                        }
+
                         //Send player message confirming the applied morph gem
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You apply the Morph Gem.", ChatMessageType.Broadcast));
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
 
                         break;
 
@@ -540,10 +570,28 @@ namespace ACE.Server.Entity
 
                         //Set the new Workmanship value
                         player.UpdateProperty(target, PropertyInt.ItemWorkmanship, newWork);
+
+                        if (workChange > 0)
+                        {
+                            playerMsg = $"Bad luck cunt.  The Morph Gem fucked you.  Your armor workmanship has increased by {workChange}";
+                        }
+                        else if (workChange == 0)
+                        {
+                            playerMsg = $"The Morph Gem shatters against your armor and leaves it unchanged.  Could be worse.";
+                        }
+                        else
+                        {
+                            playerMsg = $"You apply the Morph Gem skillfully and have reduced the workmanship of your armor by {-1 * workChange}";
+                        }
+
                         //Send player message confirming the applied morph gem
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You apply the Morph Gem.", ChatMessageType.Broadcast));
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
 
                         break;
+
+                    default:
+                        player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                        return;
                 }
 
                 player.TryConsumeFromInventoryWithNetworking(source, 1);

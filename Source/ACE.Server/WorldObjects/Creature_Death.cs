@@ -747,15 +747,20 @@ namespace ACE.Server.WorldObjects
                 var killer = DamageHistory.TopDamager;
 
                 var deadBossWeenie = DatabaseManager.World.GetWeenie(this.WeenieClassId);
+                var deadBossNameProp = deadBossWeenie.WeeniePropertiesString.FirstOrDefault(x => x.Type == (ushort)PropertyString.Name);
+                var deadBossName = deadBossNameProp?.Value;
 
                 var town = DatabaseManager.TownControl.GetTownById(deadBoss.TownID);                
 
                 if (deadBoss.BossType.Equals(TownControlBossType.InitiationBoss))
                 {
+                    log.DebugFormat("Town Control - {0} Init boss killed by player guid = {1}", town.TownName, killer.Guid);
+
                     if (!killer.IsPlayer)
                     {
-                        //TODO - what to do if the killer isn't a player?
-                        PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - Init boss killer is not a player, conflict event not started", ChatMessageType.Broadcast));
+                        //TODO - what to do if the killer isn't a player?                        
+                        //PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - Init boss killer is not a player, conflict event not started", ChatMessageType.Broadcast));
+                        log.DebugFormat("Town Control - {0} Init boss killer is not a player, conflict event not started", town.TownName);
                         return;
                     }                    
 
@@ -768,11 +773,14 @@ namespace ACE.Server.WorldObjects
                     {
                         killerMonarchId = killerAllegiance.MonarchId;
                         killerAllegName = killerAllegiance.Monarch.Player.Name;
+                        log.DebugFormat("Town Control - {0} Init boss killerMonarchId = {1}, killerAllegName = {2}", town.TownName, killerMonarchId, killerAllegName);
                     }
                     else
                     {
                         //TODO - what do we do if the killer isn't part of any allegiance?
-                        PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - Killer isn't part of any allegiance.  Conflict event not started", ChatMessageType.Broadcast));
+                        log.DebugFormat("Town Control - {0} Init boss killer is not in an allegiance.  Killer PlayerID = {1}", town.TownName, killerPlayer.Guid);
+                        //PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - Killer isn't part of any allegiance.  Conflict event not started", ChatMessageType.Broadcast));
+                        this.CurrentLandblock?.EnqueueBroadcast(null, true, null, null, new GameMessageSystemChat($"{deadBossName} has been killed by a poor lone wolf with no allegiance.  {town.TownName} will not yield to an incel.", ChatMessageType.Broadcast));
                         return;
                     }
 
@@ -791,28 +799,32 @@ namespace ACE.Server.WorldObjects
                                 if (owningAlleg.Monarch.PlayerGuid != owningMonarch.Guid)
                                 {
                                     //TODO
-                                    //This is the scenario where the monarch who owned the town has sworn into a different allegiance
-                                    PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - Owning monarch is no longer a monarch, behaving as if town isn't owned by anyone", ChatMessageType.Broadcast));
+                                    //This is the scenario where the monarch who owned the town has sworn into a different allegiance                                    
+                                    //PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - Owning monarch is no longer a monarch, behaving as if town isn't owned by anyone", ChatMessageType.Broadcast));
+                                    log.DebugFormat("Town Control - {0} Owning monarch is no longer a monarch, behaving as if town isn't owned by anyone", town.TownName);
                                 }
                                 else
                                 {
                                     //The owning monarch is still a valid player and still a monarch
                                     defendingClanId = owningAlleg.MonarchId;
                                     defendingClanName = owningAlleg.Monarch.Player.Name;
+                                    log.DebugFormat("Town Control - {0} defenders are defendingClanId = {1}, defendingClanName = {2}", town.TownName, defendingClanId, defendingClanName);
                                 }
                             }
                             else
                             {
                                 //TODO
                                 //This is scenario where monarch who owned the town is no longer part of any allegiance
-                                PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - owningAlleg == null.  Owning monarch is no longer a monarch, behaving as if town isn't owned by anyone", ChatMessageType.Broadcast));
+                                //PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - owningAlleg == null.  Owning monarch is no longer a monarch, behaving as if town isn't owned by anyone", ChatMessageType.Broadcast));
+                                log.DebugFormat("Town Control - {0} Init boss killer owningAlleg == null.  Owning monarch is no longer a monarch, behaving as if town isn't owned by anyone", town.TownName);
                             }
                         }
                         else
                         {
                             //TODO
                             //This is scenario where monarch who owned the town isn't a valid player, maybe deleted?
-                            PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - owningMonarch == null.  Owning monarch is no longer a monarch, behaving as if town isn't owned by anyone", ChatMessageType.Broadcast));
+                            //PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - owningMonarch == null.  Owning monarch is no longer a monarch, behaving as if town isn't owned by anyone", ChatMessageType.Broadcast));
+                            log.DebugFormat("Town Control - {0} Init boss killer owningMonarch == null.  Owning monarch is no longer a monarch, behaving as if town isn't owned by anyone", town.TownName);
                         }
                     }
                     else
@@ -826,8 +838,10 @@ namespace ACE.Server.WorldObjects
                     {
                         //TODO - Send a global, or local message?
                         //TODO - manually respawn the initiation boss?
+                        //PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - Init boss killer is from allegiance who owns the town, conflict event will not be started", ChatMessageType.Broadcast));
+                        this.CurrentLandblock?.EnqueueBroadcast(null, true, null, null, new GameMessageSystemChat($"{deadBossName} has been killed by a member of the allegiance who owns {town.TownName}.  You worthless dickbag, your name is now on the terrorist list and Im fucking coming for you.", ChatMessageType.Broadcast));
+                        log.DebugFormat("Town Control - {0} Init boss killer is from clan that owns the town.  Conflict event not started", town.TownName);
 
-                        PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - Init boss killer is from allegiance who owns the town, conflict event will not be started", ChatMessageType.Broadcast));
                         return;
                     }
 
@@ -845,6 +859,9 @@ namespace ACE.Server.WorldObjects
                             //TODO - manually respawn the initiation boss?
 
                             PlayerManager.BroadcastToAll(new GameMessageSystemChat($"DEBUG - Respite timer has not passed.  Respite expires in {sameAttackerRespiteExpiration.Subtract(DateTime.UtcNow).TotalSeconds} seconds", ChatMessageType.Broadcast));
+                            this.CurrentLandblock?.EnqueueBroadcast(null, true, null, null, new GameMessageSystemChat($"{deadBossName} has been killed by a member of {killerAllegName}, but Clan {killerAllegName} has attacked {town.TownName} too recently.  Ok thanks byeeeeeee.", ChatMessageType.Broadcast));
+                            log.DebugFormat("Town Control - {0} Init boss killer is from clan whose respite timer is not expired.  Conflict event not started.", town.TownName);
+
                             return;
                         }
                     }
@@ -859,11 +876,11 @@ namespace ACE.Server.WorldObjects
 
                     if (defendingClanId.HasValue)
                     {
-                        conflictStartMsg = $"{killerPlayer.Name} has slain {deadBossWeenie.ClassName} throwing {town.TownName} into conflict.  A battle for town ownership has begun as clan {killerAllegName} attempts to wrest control of {town.TownName} from clan {defendingClanName}.  Will you join the fray and turn the tides of this battle?";
+                        conflictStartMsg = $"{killerPlayer.Name} has slain {deadBossName} throwing {town.TownName} into conflict.  A battle for town ownership has begun as clan {killerAllegName} attempts to wrest control of {town.TownName} from clan {defendingClanName}.  Will you join the fray and turn the tides of this battle?";
                     }
                     else
                     {
-                        conflictStartMsg = $"{killerPlayer.Name} has slain {deadBossWeenie.ClassName} throwing {town.TownName} into conflict.  With no current owner, clan {killerAllegName} is poised to claim ownership of {town.TownName}.  Who will try to stop them?";
+                        conflictStartMsg = $"{killerPlayer.Name} has slain {deadBossName} throwing {town.TownName} into conflict.  With no current owner, clan {killerAllegName} is poised to claim ownership of {town.TownName}.  Who will try to stop them?";
                     }
 
                     PlayerManager.BroadcastToAll(new GameMessageSystemChat(conflictStartMsg, ChatMessageType.Broadcast));
@@ -891,7 +908,10 @@ namespace ACE.Server.WorldObjects
                         //A conflict event isn't active
                         //TODO - broadcast something?
 
-                        PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - conflict boss killed but no active conflict event found", ChatMessageType.Broadcast));
+                        //PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - conflict boss killed but no active conflict event found", ChatMessageType.Broadcast));
+
+                        this.CurrentLandblock?.EnqueueBroadcast(null, true, null, null, new GameMessageSystemChat($"{deadBossName} has been killed but there is no active conflict event found for {town.TownName}.  {deadBossName} fucks off.", ChatMessageType.Broadcast));
+                        log.DebugFormat("Town Control - {0} conflict boss killed but no active conflict event found.", town.TownName);
 
                         return;
                     }
@@ -907,6 +927,8 @@ namespace ACE.Server.WorldObjects
                     //end the TC event with attackers winning
                     if (DateTime.UtcNow < tcEventDurationExpiredTime)
                     {
+                        log.DebugFormat("Town Control - {0} conflict boss killed within event duration, the attackers win.  Updating TC event, Town status and player quest stamps", town.TownName);
+
                         //Update the Town's owner and conflict status
                         town.CurrentOwnerID = tcEvent.AttackingClanId;
                         town.IsInConflict = false;
@@ -950,17 +972,19 @@ namespace ACE.Server.WorldObjects
                         //Send a global announcing the attackers win
                         if (tcEvent.DefendingClanId.HasValue)
                         {
-                            conflictEndMsg = $"The battle for ownership of {town.TownName} has ended.  Clan {tcEvent.DefendingClanName} has failed to defend {town.TownName} from the attack of clan {tcEvent.AttackingClanName} and the attackers have prevailed in taking ownership of {town.TownName}!";
+                            conflictEndMsg = $"The battle for ownership of {town.TownName} has ended.  Clan {tcEvent.AttackingClanName} has slain the {deadBossName}.  {tcEvent.DefendingClanName} has failed to defend {town.TownName} from the attack of clan {tcEvent.AttackingClanName} and the attackers have prevailed in taking ownership of {town.TownName}!";
                         }
                         else
                         {
-                            conflictEndMsg = $"The battle for ownership of {town.TownName} has ended.  Clan {tcEvent.AttackingClanName} was victorious in their attack and are the new owners of {town.TownName}!";                            
+                            conflictEndMsg = $"The battle for ownership of {town.TownName} has ended.  Clan {tcEvent.AttackingClanName} has slain the {deadBossName}.  Clan {tcEvent.AttackingClanName} was victorious in their attack and are the new owners of {town.TownName}!";                            
                         }
 
                         PlayerManager.BroadcastToAll(new GameMessageSystemChat(conflictEndMsg, ChatMessageType.Broadcast));
                     }
                     else
                     {
+                        log.DebugFormat("Town Control - {0} conflict boss killed after event duration has passed, the defenders win.  Updating TC event and Town status", town.TownName);
+
                         //Update the Town's conflict status
                         town.IsInConflict = false;
                         DatabaseManager.TownControl.UpdateTown(town);
@@ -973,11 +997,11 @@ namespace ACE.Server.WorldObjects
                         //Send global announcing the defenders win
                         if (tcEvent.DefendingClanId.HasValue)
                         {
-                            conflictEndMsg = $"The battle for ownership of {town.TownName} has ended.  Clan {tcEvent.DefendingClanName} has successfully defended {town.TownName} from the attack of clan {tcEvent.AttackingClanName}.  The defenders retain their ownership of {town.TownName}!";                            
+                            conflictEndMsg = $"The battle for ownership of {town.TownName} has ended.  Clan {tcEvent.AttackingClanName} has failed to kill {deadBossName} before the conflict period expired.  Clan {tcEvent.DefendingClanName} has successfully defended {town.TownName} from the attack of clan {tcEvent.AttackingClanName}.  The defenders retain their ownership of {town.TownName}!";
                         }
                         else
                         {
-                            conflictEndMsg = $"The battle for ownership of {town.TownName} has ended.  Clan {tcEvent.AttackingClanName} has failed in their attack!  Ownership of {town.TownName} is still unclaimed.";
+                            conflictEndMsg = $"The battle for ownership of {town.TownName} has ended.  Clan {tcEvent.AttackingClanName} has failed to kill {deadBossName} before the conflict period expired and have failed in their attack!  Ownership of {town.TownName} is still unclaimed.";
                         }
 
                         PlayerManager.BroadcastToAll(new GameMessageSystemChat(conflictEndMsg, ChatMessageType.Broadcast));
