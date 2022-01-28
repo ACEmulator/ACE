@@ -49,40 +49,61 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Its lifespan finished, your {expireItem.Name} crumbles to dust.", ChatMessageType.Broadcast));
             }
 
-            if (this.IsTownControlConflictBoss)
+            if (this.IsTownControlBoss)
             {
                 try
                 {
-                    //Check if there is an active Town Control event for this boss
                     var tcBoss = TownControlBosses.TownControlBossMap[this.WeenieClassId];
                     var town = DatabaseManager.TownControl.GetTownById(tcBoss.TownID);
-                    var tcEvent = DatabaseManager.TownControl.GetLatestTownControlEventByTownId(town.TownId);
 
-                    if (!town.IsInConflict || tcEvent == null || !tcEvent.EventStartDateTime.HasValue || tcEvent.EventEndDateTime.HasValue)
-                    {
-                        //PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - conflict boss exists but there is no active conflict, destroying the boss", ChatMessageType.Broadcast));
-                        log.DebugFormat("Conflict boss with WeenieID = {0} exists but there is no active conflict, destroying the boss", this.WeenieClassId);
-                        var dmgHistory = new DamageHistoryInfo(this);
-                        OnDeath(dmgHistory, DamageType.Bludgeon);
-                        Die(dmgHistory, dmgHistory);
-                    }
-                    else
-                    {
+                    if (this.IsTownControlConflictBoss)
+                    {                    
+                        //Check if there is an active Town Control event for this boss                        
+                        var tcEvent = DatabaseManager.TownControl.GetLatestTownControlEventByTownId(town.TownId);
 
-                        var tcEventDurationExpiredTime = tcEvent.EventStartDateTime.Value.AddSeconds(town.ConflictLength);
-
-                        //If the town control event duration is past and this creature is still alive
-                        //end the TC event with defenders winning
-                        //destroy the TC boss
-                        if (DateTime.UtcNow > tcEventDurationExpiredTime)
+                        if (!town.IsInConflict || tcEvent == null || !tcEvent.EventStartDateTime.HasValue || tcEvent.EventEndDateTime.HasValue)
                         {
+                            //PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - conflict boss exists but there is no active conflict, destroying the boss", ChatMessageType.Broadcast));
+                            log.DebugFormat("Conflict boss with WeenieID = {0} exists but there is no active conflict, destroying the boss", this.WeenieClassId);
                             var dmgHistory = new DamageHistoryInfo(this);
                             OnDeath(dmgHistory, DamageType.Bludgeon);
                             Die(dmgHistory, dmgHistory);
                         }
+                        else
+                        {
+
+                            var tcEventDurationExpiredTime = tcEvent.EventStartDateTime.Value.AddSeconds(town.ConflictLength);
+
+                            //If the town control event duration is past and this creature is still alive
+                            //end the TC event with defenders winning
+                            //destroy the TC boss
+                            if (DateTime.UtcNow > tcEventDurationExpiredTime)
+                            {
+                                var dmgHistory = new DamageHistoryInfo(this);
+                                OnDeath(dmgHistory, DamageType.Bludgeon);
+                                Die(dmgHistory, dmgHistory);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //Init boss
+                        if (!TownControl_InitLowHpBroadcastSent)
+                        {
+                            if (this.Health.Percent < 0.25f)
+                            {
+                                string bossName = this.Weenie?.PropertiesString.FirstOrDefault(x => x.Key == ACE.Entity.Enum.Properties.PropertyString.Name).Value;
+                                PlayerManager.BroadcastToAll(new GameMessageSystemChat($"The town of {town.TownName} is under attack!  {bossName} is faltering and can't hold up much longer.  All those who seek to rule {town.TownName} must come at once, for when {bossName} falls the town will be thrust into full blown conflict!", ChatMessageType.Broadcast));
+                                this.TownControl_InitLowHpBroadcastSent = true;
+                            }                            
+                        }
+                        else if (this.Health.Percent > 0.95f)
+                        {
+                            this.TownControl_InitLowHpBroadcastSent = false;
+                        }
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     log.ErrorFormat("Exception applying Town Control behavior in creature tick.  WeenieClassID = {0}, Ex: {1}", this.WeenieClassId, ex);
                 }

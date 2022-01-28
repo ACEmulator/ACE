@@ -406,7 +406,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-
+        public bool TownControl_InitLowHpBroadcastSent = false;
 
     }
 }

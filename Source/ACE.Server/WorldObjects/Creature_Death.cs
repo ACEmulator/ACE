@@ -858,7 +858,7 @@ namespace ACE.Server.WorldObjects
                             //TODO - this clan has attacked this town too recently, send a global?
                             //TODO - manually respawn the initiation boss?
 
-                            PlayerManager.BroadcastToAll(new GameMessageSystemChat($"DEBUG - Respite timer has not passed.  Respite expires in {sameAttackerRespiteExpiration.Subtract(DateTime.UtcNow).TotalSeconds} seconds", ChatMessageType.Broadcast));
+                            //PlayerManager.BroadcastToAll(new GameMessageSystemChat($"DEBUG - Respite timer has not passed.  Respite expires in {sameAttackerRespiteExpiration.Subtract(DateTime.UtcNow).TotalSeconds} seconds", ChatMessageType.Broadcast));
                             this.CurrentLandblock?.EnqueueBroadcast(null, true, null, null, new GameMessageSystemChat($"{deadBossName} has been killed by a member of {killerAllegName}, but Clan {killerAllegName} has attacked {town.TownName} too recently.  Ok thanks byeeeeeee.", ChatMessageType.Broadcast));
                             log.DebugFormat("Town Control - {0} Init boss killer is from clan whose respite timer is not expired.  Conflict event not started.", town.TownName);
 
