@@ -71,7 +71,6 @@ namespace ACE.Server.WorldObjects
                         }
                         else
                         {
-
                             var tcEventDurationExpiredTime = tcEvent.EventStartDateTime.Value.AddSeconds(town.ConflictLength);
 
                             //If the town control event duration is past and this creature is still alive
@@ -83,6 +82,37 @@ namespace ACE.Server.WorldObjects
                                 OnDeath(dmgHistory, DamageType.Bludgeon);
                                 Die(dmgHistory, dmgHistory);
                             }
+                            else
+                            {
+                                //Send global broadcasts to update on remaining hp / time left in the event
+                                if(!TownControl_ConflictBroadcast1Sent)
+                                {
+                                    if(this.Health.Percent < 0.75 || DateTime.UtcNow > tcEvent.EventStartDateTime.Value.AddSeconds(town.ConflictLength / 4))
+                                    {
+                                        string msg = $"The conflict for ownership of {town.TownName} rages on!  Join the battle, if you dare.  But be quick, clan {tcEvent.AttackingClanName} has reduced the town's defences to {Math.Round(this.Health.Percent * 100, 0)}% with {Math.Round((tcEventDurationExpiredTime - DateTime.UtcNow).TotalMinutes, 0, MidpointRounding.AwayFromZero)} minutes remaining.";
+                                        PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                                        TownControl_ConflictBroadcast1Sent = true;
+                                    }
+                                }
+                                else if(!TownControl_ConflictBroadcast2Sent)
+                                {
+                                    if (this.Health.Percent < 0.5 || DateTime.UtcNow > tcEvent.EventStartDateTime.Value.AddSeconds(town.ConflictLength / 2))
+                                    {
+                                        string msg = $"The conflict for ownership of {town.TownName} rages on!  Join the battle, if you dare.  But be quick, clan {tcEvent.AttackingClanName} has reduced the town's defences to {Math.Round(this.Health.Percent * 100, 0)}% with {Math.Round((tcEventDurationExpiredTime - DateTime.UtcNow).TotalMinutes, 0, MidpointRounding.AwayFromZero)} minutes remaining.";
+                                        PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                                        TownControl_ConflictBroadcast2Sent = true;
+                                    }
+                                }
+                                else if (!TownControl_ConflictBroadcast3Sent)
+                                {
+                                    if (this.Health.Percent < 0.25 || DateTime.UtcNow > tcEvent.EventStartDateTime.Value.AddSeconds(town.ConflictLength / 1.25))
+                                    {
+                                        string msg = $"The conflict for ownership of {town.TownName} rages on!  Join the battle, if you dare.  But be quick, clan {tcEvent.AttackingClanName} has reduced the town's defences to {Math.Round(this.Health.Percent * 100, 0)}% with {Math.Round((tcEventDurationExpiredTime - DateTime.UtcNow).TotalMinutes, 0, MidpointRounding.AwayFromZero)} minutes remaining.";
+                                        PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                                        TownControl_ConflictBroadcast3Sent = true;
+                                    }
+                                }
+                            }
                         }
                     }
                     else
@@ -90,7 +120,7 @@ namespace ACE.Server.WorldObjects
                         //Init boss
                         if (!TownControl_InitLowHpBroadcastSent)
                         {
-                            if (this.Health.Percent < 0.25f)
+                            if (this.Health.Percent < 0.33f)
                             {
                                 string bossName = this.Weenie?.PropertiesString.FirstOrDefault(x => x.Key == ACE.Entity.Enum.Properties.PropertyString.Name).Value;
                                 PlayerManager.BroadcastToAll(new GameMessageSystemChat($"The town of {town.TownName} is under attack!  {bossName} is faltering and can't hold up much longer.  All those who seek to rule {town.TownName} must come at once, for when {bossName} falls the town will be thrust into full blown conflict!", ChatMessageType.Broadcast));
