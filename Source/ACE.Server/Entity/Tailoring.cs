@@ -32,6 +32,7 @@ namespace ACE.Server.Entity
         public const uint MorphGemArmorLevel = 4200022;
         public const uint MorphGemArmorValue = 4200023;
         public const uint MorphGemArmorWork = 4200024;
+        public const uint MorphGemArcane = 4200026;
 
         public const uint MaxBodyArmorLevel = 330;
         public const uint MaxExtremityArmorLevel = 360;
@@ -194,6 +195,7 @@ namespace ACE.Server.Entity
                 case MorphGemArmorLevel:
                 case MorphGemArmorValue:
                 case MorphGemArmorWork:
+                case MorphGemArcane:
                     ApplyMorphGem(player, source, target);
                     return;
             }
@@ -455,11 +457,30 @@ namespace ACE.Server.Entity
                         //Get the current AL of the item
                         var currentItemAL = target.GetProperty(PropertyInt.ArmorLevel);
 
-                        //Disallow using AL morph gem on tinkered items or items w/ no AL
-                        if (!currentItemAL.HasValue || target.NumTimesTinkered != 0)
+                        //Disallow using AL morph gem on items w/ no AL
+                        //if (!currentItemAL.HasValue || target.NumTimesTinkered != 0)
+                        if (!currentItemAL.HasValue)
                         {
                             player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                             return;
+                        }
+
+                        //Get tinker log to get the num steel tinks
+                        var tinkerLog = target.GetProperty(PropertyString.TinkerLog);
+                        ushort numSteelTinks = 0;
+                        if(!string.IsNullOrEmpty(tinkerLog))
+                        {
+                            string[] tinkerLogItems = tinkerLog.Split(',');
+                            if(tinkerLogItems != null && tinkerLogItems.Length > 0)
+                            {
+                                foreach(var tink in tinkerLogItems)
+                                {
+                                    if(tink.Equals("64"))
+                                    {
+                                        numSteelTinks++;
+                                    }
+                                }
+                            }
                         }
 
                         //Roll for a value to change the AL by
@@ -474,7 +495,13 @@ namespace ACE.Server.Entity
                         //Don't let new Armor Level exceed maximums
                         var validLocations = target.ValidLocations ?? EquipMask.None;
                         var maxAl = validLocations.HasFlag(EquipMask.HeadWear) || validLocations.HasFlag(EquipMask.HandWear) || validLocations.HasFlag(EquipMask.FootWear) ? MaxExtremityArmorLevel : MaxBodyArmorLevel;
-                        newAl = newAl > maxAl ? (int)maxAl : newAl;
+                        maxAl = maxAl + (numSteelTinks * 20u);
+
+                        if(newAl > maxAl)
+                        {
+                            alChange = currentItemAL.Value - (int)maxAl;
+                            newAl = (int)maxAl;
+                        }
 
                         //Set the new AL value
                         player.UpdateProperty(target, PropertyInt.ArmorLevel, newAl);
@@ -483,7 +510,7 @@ namespace ACE.Server.Entity
                         string playerMsg = string.Empty;
                         if (alChange > 0)
                         {
-                            playerMsg = $"As your skilled hands run softly along the contours of your armor, you quiver with anticipation.  With a swift and decisive thrust you apply the Morph Gem in a movement that is somehow both forceful and gentle at the same time.  With a short girly gasp that turns into a smile you realize that your armor has been enhanced and has gained {alGain} armor level.";
+                            playerMsg = $"As your skilled hands run softly along the contours of your armor, you quiver with anticipation.  With a swift and decisive thrust you apply the Morph Gem in a movement that is somehow both forceful and gentle at the same time.  With a short girly gasp that turns into a smile you realize that your armor has been enhanced and has gained {alChange} armor level.";
                         }
                         else if (alChange == 0)
                         {
@@ -512,13 +539,17 @@ namespace ACE.Server.Entity
                         //Roll for an amount to change the item Value by
                         var valRandom = new Random();
                         var valueGain = valRandom.Next(0, 15000);
-                        var valueLoss = valRandom.Next(0, 15750);
+                        var valueLoss = valRandom.Next(0, 17500);
                         var valueChange = valueGain - valueLoss;
 
                         var newValue = currentItemValue.Value + valueChange;
 
                         //Don't let new Armor Value exceed minimum of 1k
-                        if(newValue < 1000 || currentItemValue < 1000) { newValue = 1000; }
+                        if(newValue < 1000)
+                        {
+                            valueChange = currentItemValue.Value - 1000;
+                            newValue = 1000;
+                        }
 
                         //Set the new AL value
                         player.UpdateProperty(target, PropertyInt.Value, newValue);
@@ -562,11 +593,16 @@ namespace ACE.Server.Entity
                         var newWork = currentItemWork.Value + workChange;
 
                         //Don't let new Workmanship exceed maximums
-                      
-                        var maxWork = MaxItemWork;
-                        newWork = newWork > maxWork ? (int)maxWork : newWork;
-                        var minWork = MinItemWork;
-                        newWork = newWork < minWork ? (int)minWork : newWork;
+                        if(newWork > MaxItemWork)
+                        {
+                            workChange = (int)MaxItemWork - currentItemWork.Value;
+                            newWork = (int)MaxItemWork;                            
+                        }
+                        else if(newWork < MinItemWork)
+                        {
+                            workChange = currentItemWork.Value - (int)MaxItemWork;
+                            newWork = (int)MinItemWork;
+                        }                        
 
                         //Set the new Workmanship value
                         player.UpdateProperty(target, PropertyInt.ItemWorkmanship, newWork);
@@ -582,6 +618,53 @@ namespace ACE.Server.Entity
                         else
                         {
                             playerMsg = $"You apply the Morph Gem skillfully and have reduced the workmanship of your armor by {-1 * workChange}";
+                        }
+
+                        //Send player message confirming the applied morph gem
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+
+                        break;
+
+                    case MorphGemArcane:
+
+                        //Get the current Arcane of the item
+                        var currentItemArcane = target.GetProperty(PropertyInt.ItemDifficulty);
+
+                        if (!currentItemArcane.HasValue)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        //Roll for an amount to change the item Arcane by
+                        var arcaneRandom = new Random();
+                        var arcaneGain = arcaneRandom.Next(0, 50);
+                        var arcaneLoss = arcaneRandom.Next(0, 65);
+                        var arcaneChange = arcaneGain - arcaneLoss;
+
+                        var newArcane = currentItemArcane.Value + arcaneChange;
+
+                        //Don't let new arcane exceed minimum of 100
+                        if (newArcane < 100)
+                        {
+                            newArcane = currentItemArcane.Value < 100 ? currentItemArcane.Value : 100;
+                            arcaneChange = currentItemArcane.Value < 100 ? 0 : currentItemArcane.Value - 100;
+                        }
+
+                        //Set the new arcane
+                        player.UpdateProperty(target, PropertyInt.ItemDifficulty, newArcane);
+
+                        if (arcaneChange > 0)
+                        {
+                            playerMsg = $"Bad luck cunt.  The Morph Gem fucked you.  Your item arcane requirement has increased by {arcaneChange}";
+                        }
+                        else if (arcaneChange == 0)
+                        {
+                            playerMsg = $"The Morph Gem shatters against your item and leaves it unchanged.  Could be worse.";
+                        }
+                        else
+                        {
+                            playerMsg = $"You apply the Morph Gem skillfully and have reduced the arcane requirement of your item by {-1 * arcaneChange}";
                         }
 
                         //Send player message confirming the applied morph gem
@@ -848,6 +931,7 @@ namespace ACE.Server.Entity
                 case MorphGemArmorLevel:
                 case MorphGemArmorValue:
                 case MorphGemArmorWork:
+                case MorphGemArcane:
 
                     return true;
 
