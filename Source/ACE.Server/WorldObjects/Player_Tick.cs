@@ -605,8 +605,8 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"{inLandblock}");
             var town = DatabaseManager.TownControl.GetTownById((uint)whichTown);
             var tearsTimerLogic = TownControlTrophyTimer == null ? true : Time.GetUnixTime() > TownControlTrophyTimer;
-
-            if (PlayerKillerStatus == PlayerKillerStatus.PK && town.IsInConflict && tearsTimerLogic)
+            var satisfiesLevelReq = this.Level >= PropertyManager.GetLong("town_control_currency_level_minimum").Item;
+            if (PlayerKillerStatus == PlayerKillerStatus.PK && town.IsInConflict && tearsTimerLogic && satisfiesLevelReq)
             {
                 var tcTrophy = WorldObjectFactory.CreateNewWorldObject(42127923);
                 this.TryAddToInventory(tcTrophy);
