@@ -597,8 +597,8 @@ namespace ACE.Server.WorldObjects
             if (CurrentLandblock == null)
                 return;
 
-            var whichTown = IsInTownControlLandblock();
-
+            var whichTown = IsInTownControlLandcell();
+            //Console.WriteLine($"In TC Landcell: {whichTown}");
             if (whichTown == 0)
                 return;
 
@@ -617,7 +617,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public int IsInTownControlLandblock()
+        public int IsInTownControlLandcell()
         {
             //Shoushi SE location 0xDE510015[49.071442 109.183655 16.004999] - 0.996967 0.000000 0.000000 0.077820
 
@@ -626,12 +626,12 @@ namespace ACE.Server.WorldObjects
             //Yaraq East Location 0x81640017[50.047153 147.723450 22.004999] - 0.989617 0.000000 0.000000 0.143732
 
             // TODO: Make this use the actual map instead of hardcoding town ID's
-            var cLandblock = CurrentLandblock.Id.Landblock;
-            if (TownControlLandblocks.TownControlLandblocksMap[72].Contains(cLandblock))
+            var loc = this.Location.Cell;
+            if (TownControlLandblocks.TownControlLandblocksMap[72].Contains(loc))
                 return 72;
-            else if (TownControlLandblocks.TownControlLandblocksMap[91].Contains(cLandblock))
+            else if (TownControlLandblocks.TownControlLandblocksMap[91].Contains(loc))
                 return 91;
-            else if (TownControlLandblocks.TownControlLandblocksMap[102].Contains(cLandblock))
+            else if (TownControlLandblocks.TownControlLandblocksMap[102].Contains(loc))
                 return 102;
             else
                 return 0;
