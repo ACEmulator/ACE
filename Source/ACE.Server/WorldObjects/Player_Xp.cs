@@ -334,6 +334,10 @@ namespace ACE.Server.WorldObjects
 
                 Session.Network.EnqueueSend(levelUp);
 
+                var ignore_burden_below_character_level = PropertyManager.GetLong("ignore_burden_below_character_level").Item;
+                if (startingLevel < ignore_burden_below_character_level && Level >= ignore_burden_below_character_level)
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"WARNING: Your level has reached {Level.Value} you now suffer from the effects of burden! (This effect may not be applied until the next time you log in.)", ChatMessageType.Broadcast));
+
                 SetMaxVitals();
 
                 // play level up effect
