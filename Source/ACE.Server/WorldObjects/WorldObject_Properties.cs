@@ -1874,7 +1874,18 @@ namespace ACE.Server.WorldObjects
         public int? EncumbranceVal
         {
             get => GetProperty(PropertyInt.EncumbranceVal);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.EncumbranceVal); else SetProperty(PropertyInt.EncumbranceVal, value.Value); }
+            set { 
+                if (!value.HasValue)
+                    RemoveProperty(PropertyInt.EncumbranceVal);
+                else
+                {
+                    //Player will need to relog once they are past the level limit for burden.
+                    //Couldn't find any way around this as the packet for EncumbranceCapacity seems to be ignored by the client. 
+                    if (this is Player && this.Level < PropertyManager.GetLong("ignore_burden_below_character_level").Item)
+                        value = 0;
+                    SetProperty(PropertyInt.EncumbranceVal, value.Value);
+                }
+            }
         }
 
         public double? BulkMod

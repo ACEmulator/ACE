@@ -45,6 +45,8 @@ namespace ACE.Server.WorldObjects
 
         public int GetEncumbranceCapacity()
         {
+            if (this.IsBurdenIgnored)
+                return 10000000;
             var strength = Attributes[PropertyAttribute.Strength].Current;
 
             return (int)((150 * strength) + (AugmentationIncreasedCarryingCapacity * 30 * strength));
