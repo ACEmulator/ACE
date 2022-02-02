@@ -593,8 +593,7 @@ namespace ACE.Server.WorldObjects
                 var timerLogic = TrophyTimer == null ? true : Time.GetUnixTime() > TrophyTimer;
                 var monarchCheck = victimMonarch != killerMonarch;
 
-                var whichTown = IsInTownControlLandcell();
-
+                var whichTown = IsInTownControlLandblock();
                 var alreadyDropped = false;
                 if (whichTown != 0 && monarchCheck)
                 {
