@@ -1290,15 +1290,49 @@ namespace ACE.Server.WorldObjects
                     applyPhysics = false;
             }
 
+            //Anti War Detect - do not send TurnTo spellcasting packet if it has a target which is an online player
+            if (PropertyManager.GetBool("anti_war_detect").Item == true)
+            {
+                if (this is Player p && motion?.Stance == MotionStance.Magic && motion?.MovementType == MovementType.TurnToObject && motion?.TargetGuid.Full != 0)
+                {
+                    var targetguid = motion.TargetGuid;
+                    var targetPlayer = PlayerManager.GetOnlinePlayer(targetguid);
+                    if (targetPlayer == null)
+                    {
+                        DoEnqueueBroadcastMotion(motion, maxRange);
+                    }
+                    else
+                    {
+                        //Send a false packet with the target info stripped
+                        var motion2 = new Motion(MotionStance.Magic);
+                        motion2.MotionState.ForwardCommand = motion.MotionState.ForwardCommand;
+                        motion2.MotionState.ForwardSpeed = motion.MotionState.ForwardSpeed;
+                        motion2.MovementType = motion.MovementType;
+                        DoEnqueueBroadcastMotion(motion2, maxRange);
+                    }
+                }
+                else
+                {
+                    DoEnqueueBroadcastMotion(motion, maxRange);
+                }
+            }
+            else
+            {
+                DoEnqueueBroadcastMotion(motion, maxRange);
+            }
+
+            if (EnqueueBroadcastMotion_Physics && applyPhysics.Value)
+                ApplyPhysicsMotion(motion);
+        }
+
+        private void DoEnqueueBroadcastMotion(Motion motion, float? maxRange)
+        {
             var msg = new GameMessageUpdateMotion(this, motion);
 
             if (maxRange == null)
                 EnqueueBroadcast(msg);
             else
                 EnqueueBroadcast(msg, maxRange.Value);
-
-            if (EnqueueBroadcastMotion_Physics && applyPhysics.Value)
-                ApplyPhysicsMotion(motion);
         }
 
         public void ApplyPhysicsMotion(Motion motion)

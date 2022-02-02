@@ -606,6 +606,7 @@ namespace ACE.Server.Managers
                 ("version_info_enabled", new Property<bool>(false, "toggles the /aceversion player command")),
                 ("vendor_shop_uses_generator", new Property<bool>(false, "enables or disables vendors using generator system in addition to createlist to create artificial scarcity")),
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world")),
+                ("anti_war_detect", new Property<bool>(false, "enable this to break some types of war detect, including the Defiance plugin")),
                 ("dispel_rares_pvp", new Property<bool>(false, "If true, disables rare gem buffs from being usable in PvP."))
                 );
 
