@@ -7,6 +7,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
@@ -642,13 +643,23 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public float GetShieldMod(WorldObject attacker, DamageType damageType, WorldObject weapon)
         {
-            // ensure combat stance
-            if (CombatMode == CombatMode.NonCombat)
-                return 1.0f;
-
+      
             // does the player have a shield equipped?
             var shield = GetEquippedShield();
             if (shield == null) return 1.0f;
+
+            // ensure combat stance
+            bool specShieldAllowsNoncombat = PropertyManager.GetBool("shields_allow_noncombat_mode_if_specialized").Item;
+            bool noncombat = CombatMode == CombatMode.NonCombat;
+
+            var hasShield = this.Skills?.ContainsKey(Skill.Shield);
+            bool isSpec = hasShield == true && this.Skills[Skill.Shield]?.AdvancementClass == SkillAdvancementClass.Specialized;
+
+            if (noncombat)
+            {
+                if (!specShieldAllowsNoncombat || !isSpec)
+                    return 1.0f;
+            }
 
             // phantom weapons ignore all armor and shields
             if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.IgnoreAllArmor))

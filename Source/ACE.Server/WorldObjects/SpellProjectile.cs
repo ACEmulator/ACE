@@ -625,6 +625,18 @@ namespace ACE.Server.WorldObjects
                         return AbsorbMagic(target, caster);
 
                     break;
+                case CombatMode.NonCombat:
+                    if (PropertyManager.GetBool("shields_allow_noncombat_mode_if_specialized").Item)
+                    {
+                        shield = target.GetEquippedShield();
+                        if (shield != null && shield.AbsorbMagicDamage != null)
+                        {
+                            var hasShield = target.Skills?.ContainsKey(Skill.Shield);
+                            if (hasShield == true && target.Skills[Skill.Shield]?.AdvancementClass == SkillAdvancementClass.Specialized)
+                                return GetShieldMod(target, shield);
+                        }
+                    }
+                    break;
             }
             return 1.0f;
         }
