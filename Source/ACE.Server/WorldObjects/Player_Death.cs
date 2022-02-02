@@ -18,6 +18,7 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
 
 using ACE.Database;
+using ACE.Server.Entity.TownControl;
 
 namespace ACE.Server.WorldObjects
 {
@@ -591,20 +592,24 @@ namespace ACE.Server.WorldObjects
                 var victimMonarch = this.MonarchId != null ? this.MonarchId : this.Guid.Full;
                 var killerMonarch = killer.MonarchId != null ? killer.MonarchId : killer.Guid.Full;
                 var timerLogic = TrophyTimer == null ? true : Time.GetUnixTime() > TrophyTimer;
-                var monarchCheck = victimMonarch != killerMonarch;
-
-                var whichTown = IsInTownControlLandcell();
+                var monarchCheck = victimMonarch != killerMonarch;                
 
                 var alreadyDropped = false;
-                if (whichTown != 0 && monarchCheck)
+
+                if (TownControlLandblocks.IsTownControlLandcell(this.Location.Cell))
                 {
-                    var town = DatabaseManager.TownControl.GetTownById((uint)whichTown);
-                    if (town.IsInConflict)
+                    var townId = TownControlLandblocks.GetTownIdByLandcellId(this.Location.Cell);
+
+                    if (townId.HasValue && monarchCheck)
                     {
-                        var pkTrophy = WorldObjectFactory.CreateNewWorldObject(1000002);
-                        pkTrophy.SetStackSize(1);
-                        dropItems.Add(pkTrophy);
-                        alreadyDropped = true;
+                        var town = DatabaseManager.TownControl.GetTownById(townId.Value);
+                        if (town.IsInConflict)
+                        {
+                            var pkTrophy = WorldObjectFactory.CreateNewWorldObject(1000002);
+                            pkTrophy.SetStackSize(1);
+                            dropItems.Add(pkTrophy);
+                            alreadyDropped = true;
+                        }
                     }
                 }
 
@@ -614,7 +619,7 @@ namespace ACE.Server.WorldObjects
                     dropItem.SetStackSize(1);
                     dropItems.Add(dropItem);
                     SetProperty(PropertyFloat.TrophyTimer, Time.GetFutureUnixTime(3600)); // Set the cooldown only on trophy generation
-                }
+                }                
             }
 
             // add items to corpse

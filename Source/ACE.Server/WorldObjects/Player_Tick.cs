@@ -594,48 +594,38 @@ namespace ACE.Server.WorldObjects
 
         public void TownControlTick()
         {
-            if (CurrentLandblock == null)
-                return;
-
-            var whichTown = IsInTownControlLandcell();
-            //Console.WriteLine($"In TC Landcell: {whichTown}");
-            if (whichTown == 0)
-                return;
-
-            //Console.WriteLine($"{inLandblock}");
-            var town = DatabaseManager.TownControl.GetTownById((uint)whichTown);
-            var tearsTimerLogic = TownControlTrophyTimer == null ? true : Time.GetUnixTime() > TownControlTrophyTimer;
-            var satisfiesLevelReq = this.Level >= PropertyManager.GetLong("town_control_currency_level_minimum").Item;
-            if (PlayerKillerStatus == PlayerKillerStatus.PK && town.IsInConflict && tearsTimerLogic && satisfiesLevelReq)
+            try
             {
-                var tcTrophy = WorldObjectFactory.CreateNewWorldObject(42127923);
-                this.TryAddToInventory(tcTrophy);
-                Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
-                var msg = new GameMessageSystemChat($"You have received a participation trophy.", ChatMessageType.Broadcast);
-                Session.Network.EnqueueSend(msg);
-                SetProperty(PropertyFloat.TownControlTrophyTimer, Time.GetFutureUnixTime(30)); // every 30 seconds of participation, you get a town control trophy
+                if (CurrentLandblock == null)
+                    return;
+
+                if (TownControlLandblocks.IsTownControlLandcell(this.Location.Cell))
+                {
+                    var townId = TownControlLandblocks.GetTownIdByLandcellId(this.Location.Cell);
+
+                    if (townId.HasValue)
+                    {
+                        //Console.WriteLine($"{inLandblock}");
+                        var town = DatabaseManager.TownControl.GetTownById(townId.Value);
+                        var tearsTimerLogic = TownControlTrophyTimer == null ? true : Time.GetUnixTime() > TownControlTrophyTimer;
+                        var satisfiesLevelReq = this.Level >= PropertyManager.GetLong("town_control_currency_level_minimum").Item;
+                        if (PlayerKillerStatus == PlayerKillerStatus.PK && town.IsInConflict && tearsTimerLogic && satisfiesLevelReq)
+                        {
+                            var tcTrophy = WorldObjectFactory.CreateNewWorldObject(42127923);
+                            this.TryAddToInventory(tcTrophy);
+                            Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
+                            var msg = new GameMessageSystemChat($"You have received a participation trophy.", ChatMessageType.Broadcast);
+                            Session.Network.EnqueueSend(msg);
+                            SetProperty(PropertyFloat.TownControlTrophyTimer, Time.GetFutureUnixTime(30)); // every 30 seconds of participation, you get a town control trophy
+                        }
+                    }
+                }
             }
-        }
-
-        public int IsInTownControlLandcell()
-        {
-            //Shoushi SE location 0xDE510015[49.071442 109.183655 16.004999] - 0.996967 0.000000 0.000000 0.077820
-
-            //Holtburg West location 0xA5B4002D[140.216034 108.323578 54.058929] 0.138897 0.000000 0.000000 - 0.990307
-
-            //Yaraq East Location 0x81640017[50.047153 147.723450 22.004999] - 0.989617 0.000000 0.000000 0.143732
-
-            // TODO: Make this use the actual map instead of hardcoding town ID's
-            var loc = this.Location.Cell;
-            if (TownControlLandblocks.TownControlLandblocksMap[72].Contains(loc))
-                return 72;
-            else if (TownControlLandblocks.TownControlLandblocksMap[91].Contains(loc))
-                return 91;
-            else if (TownControlLandblocks.TownControlLandblocksMap[102].Contains(loc))
-                return 102;
-            else
-                return 0;
-        }
+            catch(Exception ex)
+            {
+                log.ErrorFormat("Exception in Player_Tick.TownControlTick. ex: {0}", ex);
+            }
+        }        
 
         /// <summary>
         /// Prepare new action to run on this player
