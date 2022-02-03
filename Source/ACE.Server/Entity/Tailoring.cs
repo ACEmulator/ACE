@@ -33,6 +33,7 @@ namespace ACE.Server.Entity
         public const uint MorphGemArmorValue = 4200023;
         public const uint MorphGemArmorWork = 4200024;
         public const uint MorphGemArcane = 4200026;
+        public const uint MorphGemRandomEpic = 4200027;
 
         public const uint MaxBodyArmorLevel = 330;
         public const uint MaxExtremityArmorLevel = 360;
@@ -196,6 +197,7 @@ namespace ACE.Server.Entity
                 case MorphGemArmorValue:
                 case MorphGemArmorWork:
                 case MorphGemArcane:
+                case MorphGemRandomEpic:
                     ApplyMorphGem(player, source, target);
                     return;
             }
@@ -669,6 +671,16 @@ namespace ACE.Server.Entity
 
                         //Send player message confirming the applied morph gem
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+
+                        break;
+
+                    case MorphGemRandomEpic:
+
+                        //First check if the item has any epics, and see how many
+                        var critterSpells = target.EnchantmentManager.GetEnchantments(MagicSchool.CreatureEnchantment);
+                        var lifeSpells = target.EnchantmentManager.GetEnchantments(MagicSchool.LifeMagic);
+                        var itemSpells = target.EnchantmentManager.GetEnchantments(MagicSchool.ItemEnchantment);
+
 
                         break;
 
