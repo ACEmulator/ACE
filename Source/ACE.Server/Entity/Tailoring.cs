@@ -7,6 +7,7 @@ using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+using log4net;
 
 namespace ACE.Server.Entity
 {
@@ -15,16 +16,30 @@ namespace ACE.Server.Entity
         // http://acpedia.org/wiki/Tailoring
         // https://asheron.fandom.com/wiki/Tailoring
 
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // tailoring kits
         public const uint ArmorTailoringKit = 41956;
         public const uint WeaponTailoringKit = 51445;
 
         public const uint ArmorMainReductionTool = 42622;
         public const uint ArmorLowerReductionTool = 44879;
-        public const uint ArmorMiddleReductionTool = 44880;
+        public const uint ArmorMiddleReductionTool = 44880;        
 
         public const uint ArmorLayeringToolTop = 42724;
         public const uint ArmorLayeringToolBottom = 42726;
+
+        public const uint MorphGemArmorLevel = 4200022;
+        public const uint MorphGemArmorValue = 4200023;
+        public const uint MorphGemArmorWork = 4200024;
+        public const uint MorphGemArcane = 4200026;
+        public const uint MorphGemRandomEpic = 4200027;
+
+        public const uint MaxBodyArmorLevel = 330;
+        public const uint MaxExtremityArmorLevel = 360;
+
+        public const uint MaxItemWork = 10;
+        public const uint MinItemWork = 1;
 
         // Some WCIDs have Overlay Icons that need to be removed (e.g. Olthoi Alduressa Gauntlets or Boots)
         // There are other examples not here, like some stamped shields that might need to be added, as well.
@@ -176,6 +191,14 @@ namespace ACE.Server.Entity
                 case DarkHeart:
 
                     WeaponApply(player, source, target);
+                    return;
+
+                case MorphGemArmorLevel:
+                case MorphGemArmorValue:
+                case MorphGemArmorWork:
+                case MorphGemArcane:
+                case MorphGemRandomEpic:
+                    ApplyMorphGem(player, source, target);
                     return;
             }
 
@@ -417,6 +440,267 @@ namespace ACE.Server.Entity
             player.SendUseDoneEvent();
         }
 
+
+        public static void ApplyMorphGem(Player player, WorldObject source, WorldObject target)
+        {
+            try
+            {
+                //Only allow loot gen items to be morphed
+                if (target.ItemWorkmanship == null || target.IsAttunedOrContainsAttuned || target.ArmorLevel == 0 || target.ResistMagic == 9999)
+                {
+                    player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                    return;
+                }
+
+                switch (source.WeenieClassId)
+                {
+                    case MorphGemArmorLevel:                        
+
+                        //Get the current AL of the item
+                        var currentItemAL = target.GetProperty(PropertyInt.ArmorLevel);
+
+                        //Disallow using AL morph gem on items w/ no AL
+                        //if (!currentItemAL.HasValue || target.NumTimesTinkered != 0)
+                        if (!currentItemAL.HasValue)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        //Get tinker log to get the num steel tinks
+                        var tinkerLog = target.GetProperty(PropertyString.TinkerLog);
+                        ushort numSteelTinks = 0;
+                        if(!string.IsNullOrEmpty(tinkerLog))
+                        {
+                            string[] tinkerLogItems = tinkerLog.Split(',');
+                            if(tinkerLogItems != null && tinkerLogItems.Length > 0)
+                            {
+                                foreach(var tink in tinkerLogItems)
+                                {
+                                    if(tink.Equals("64"))
+                                    {
+                                        numSteelTinks++;
+                                    }
+                                }
+                            }
+                        }
+
+                        //Roll for a value to change the AL by
+                        var alRandom = new Random();
+                        var alGain = alRandom.Next(0, 14);
+                        var alLoss = alRandom.Next(0, 7);
+                        var alChange = alGain - alLoss;
+                        alChange = alChange > 10 ? 10 : alChange < -5 ? -5 : alChange;
+
+                        var newAl = currentItemAL.Value + alChange;
+
+                        //Don't let new Armor Level exceed maximums
+                        var validLocations = target.ValidLocations ?? EquipMask.None;
+                        var maxAl = validLocations.HasFlag(EquipMask.HeadWear) || validLocations.HasFlag(EquipMask.HandWear) || validLocations.HasFlag(EquipMask.FootWear) ? MaxExtremityArmorLevel : MaxBodyArmorLevel;
+                        maxAl = maxAl + (numSteelTinks * 20u);
+
+                        if(newAl > maxAl)
+                        {
+                            alChange = currentItemAL.Value - (int)maxAl;
+                            newAl = (int)maxAl;
+                        }
+
+                        //Set the new AL value
+                        player.UpdateProperty(target, PropertyInt.ArmorLevel, newAl);
+
+                        //Send player message confirming the applied morph gem
+                        string playerMsg = string.Empty;
+                        if (alChange > 0)
+                        {
+                            playerMsg = $"As your skilled hands run softly along the contours of your armor, you quiver with anticipation.  With a swift and decisive thrust you apply the Morph Gem in a movement that is somehow both forceful and gentle at the same time.  With a short girly gasp that turns into a smile you realize that your armor has been enhanced and has gained {alChange} armor level.";
+                        }
+                        else if (alChange == 0)
+                        {
+                            playerMsg = $"As your hands run softly along the contours of your armor, you quiver with anticipation.  With a timid yet determined thrust you attempt to apply the Morph Gem.  But luck being the cunt she is, the Morph Gem shatters on impact and your armor remains unchanged.";
+                        }
+                        else
+                        {
+                            playerMsg = $"As your hands run softly along the contours of your armor, you quiver with anticipation.  With a timid yet determined thrust you attempt to apply the Morph Gem, but alas your hand is led astray of its mark as you are distracted by your 'room mate' calling out that your salad is ready and she bought you some new underwear with a smaller crotch for added support.  You cry softly in despair as you realize you've damaged your precious armor, which has lost {-1 * alChange} armor level as a result.";
+                        }
+                        
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+
+                        break;
+
+                    case MorphGemArmorValue:
+
+                        //Get the current Value of the item
+                        var currentItemValue = target.GetProperty(PropertyInt.Value);
+
+                        if (!currentItemValue.HasValue)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        //Roll for an amount to change the item Value by
+                        var valRandom = new Random();
+                        var valueGain = valRandom.Next(0, 15000);
+                        var valueLoss = valRandom.Next(0, 17500);
+                        var valueChange = valueGain - valueLoss;
+
+                        var newValue = currentItemValue.Value + valueChange;
+
+                        //Don't let new Armor Value exceed minimum of 1k
+                        if(newValue < 1000)
+                        {
+                            valueChange = currentItemValue.Value - 1000;
+                            newValue = 1000;
+                        }
+
+                        //Set the new AL value
+                        player.UpdateProperty(target, PropertyInt.Value, newValue);
+
+                        if (valueChange > 0)
+                        {
+                            playerMsg = $"Bad luck cunt.  The Morph Gem fucked you.  Your armor value has increased by {valueChange}";
+                        }
+                        else if (valueChange == 0)
+                        {
+                            playerMsg = $"The Morph Gem shatters against your armor and leaves it unchanged.  Could be worse.";
+                        }
+                        else
+                        {
+                            playerMsg = $"You apply the Morph Gem skillfully and have reduced the value of your armor by {-1 * valueChange}";
+                        }
+
+                        //Send player message confirming the applied morph gem
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+
+                        break;
+
+                    case MorphGemArmorWork:
+
+                        //Get the current Work of the item
+                        var currentItemWork = target.GetProperty(PropertyInt.ItemWorkmanship);
+
+                        if (!currentItemWork.HasValue)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        //Roll for a value to change the Workmanship by
+                        var workRandom = new Random();
+                        var workGain = workRandom.Next(0, 9);
+                        var workLoss = workRandom.Next(0, 9);
+                        var workChange = workGain - workLoss;
+                        workChange = workChange > 1 ? 1 : workChange < -2 ? -2 : workChange;
+
+                        var newWork = currentItemWork.Value + workChange;
+
+                        //Don't let new Workmanship exceed maximums
+                        if(newWork > MaxItemWork)
+                        {
+                            workChange = (int)MaxItemWork - currentItemWork.Value;
+                            newWork = (int)MaxItemWork;                            
+                        }
+                        else if(newWork < MinItemWork)
+                        {
+                            workChange = currentItemWork.Value - (int)MaxItemWork;
+                            newWork = (int)MinItemWork;
+                        }                        
+
+                        //Set the new Workmanship value
+                        player.UpdateProperty(target, PropertyInt.ItemWorkmanship, newWork);
+
+                        if (workChange > 0)
+                        {
+                            playerMsg = $"Bad luck cunt.  The Morph Gem fucked you.  Your armor workmanship has increased by {workChange}";
+                        }
+                        else if (workChange == 0)
+                        {
+                            playerMsg = $"The Morph Gem shatters against your armor and leaves it unchanged.  Could be worse.";
+                        }
+                        else
+                        {
+                            playerMsg = $"You apply the Morph Gem skillfully and have reduced the workmanship of your armor by {-1 * workChange}";
+                        }
+
+                        //Send player message confirming the applied morph gem
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+
+                        break;
+
+                    case MorphGemArcane:
+
+                        //Get the current Arcane of the item
+                        var currentItemArcane = target.GetProperty(PropertyInt.ItemDifficulty);
+
+                        if (!currentItemArcane.HasValue)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        //Roll for an amount to change the item Arcane by
+                        var arcaneRandom = new Random();
+                        var arcaneGain = arcaneRandom.Next(0, 50);
+                        var arcaneLoss = arcaneRandom.Next(0, 65);
+                        var arcaneChange = arcaneGain - arcaneLoss;
+
+                        var newArcane = currentItemArcane.Value + arcaneChange;
+
+                        //Don't let new arcane exceed minimum of 100
+                        if (newArcane < 100)
+                        {
+                            newArcane = currentItemArcane.Value < 100 ? currentItemArcane.Value : 100;
+                            arcaneChange = currentItemArcane.Value < 100 ? 0 : currentItemArcane.Value - 100;
+                        }
+
+                        //Set the new arcane
+                        player.UpdateProperty(target, PropertyInt.ItemDifficulty, newArcane);
+
+                        if (arcaneChange > 0)
+                        {
+                            playerMsg = $"Bad luck cunt.  The Morph Gem fucked you.  Your item arcane requirement has increased by {arcaneChange}";
+                        }
+                        else if (arcaneChange == 0)
+                        {
+                            playerMsg = $"The Morph Gem shatters against your item and leaves it unchanged.  Could be worse.";
+                        }
+                        else
+                        {
+                            playerMsg = $"You apply the Morph Gem skillfully and have reduced the arcane requirement of your item by {-1 * arcaneChange}";
+                        }
+
+                        //Send player message confirming the applied morph gem
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+
+                        break;
+
+                    case MorphGemRandomEpic:
+
+                        //First check if the item has any epics, and see how many
+                        var critterSpells = target.EnchantmentManager.GetEnchantments(MagicSchool.CreatureEnchantment);
+                        var lifeSpells = target.EnchantmentManager.GetEnchantments(MagicSchool.LifeMagic);
+                        var itemSpells = target.EnchantmentManager.GetEnchantments(MagicSchool.ItemEnchantment);
+
+
+                        break;
+
+                    default:
+                        player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                        return;
+                }
+
+                player.TryConsumeFromInventoryWithNetworking(source, 1);
+
+                target.SaveBiotaToDatabase();
+
+                player.SendUseDoneEvent();
+            }
+            catch(Exception ex)
+            {
+                log.ErrorFormat("Exception in Tailoring.ApplyMorphGem. Ex: {0}", ex);
+            }
+        }
+
         /// <summary>
         /// Adjusts the layering priority for a piece of armor
         /// </summary>
@@ -656,6 +940,10 @@ namespace ACE.Server.Entity
                 case WingedCoat:
                 case Tentacles:
                 case DarkHeart:
+                case MorphGemArmorLevel:
+                case MorphGemArmorValue:
+                case MorphGemArmorWork:
+                case MorphGemArcane:
 
                     return true;
 

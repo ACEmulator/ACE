@@ -2840,7 +2840,7 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyString.TinkerLog);
             set { if (value == null) RemoveProperty(PropertyString.TinkerLog); else SetProperty(PropertyString.TinkerLog, value); }
         }
-        
+
         public int? CreatureKills
         {
             get => GetProperty(PropertyInt.CreatureKills);
@@ -2869,6 +2869,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyFloat.TrophyTimer);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.TrophyTimer); else SetProperty(PropertyFloat.TrophyTimer, value.Value); }
+        }
+
+        public double? TownControlTrophyTimer
+        {
+            get => GetProperty(PropertyFloat.TownControlTrophyTimer);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.TownControlTrophyTimer); else SetProperty(PropertyFloat.TownControlTrophyTimer, value.Value); }
         }
 
         public double? JumpTimer

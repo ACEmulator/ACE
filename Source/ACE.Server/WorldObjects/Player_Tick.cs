@@ -18,6 +18,9 @@ using ACE.Server.Network.Structure;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
 
+using ACE.Database;
+using ACE.Server.Entity.TownControl;
+
 namespace ACE.Server.WorldObjects
 {
     partial class Player
@@ -94,6 +97,8 @@ namespace ACE.Server.WorldObjects
             PK_DeathTick();
 
             GagsTick();
+
+            TownControlTick();
 
             PhysicsObj.ObjMaint.DestroyObjects();
 
@@ -441,7 +446,7 @@ namespace ACE.Server.WorldObjects
                         if (curCell != null)
                         {
                             //if (PhysicsObj.CurCell == null || curCell.ID != PhysicsObj.CurCell.ID)
-                                //PhysicsObj.change_cell_server(curCell);
+                            //PhysicsObj.change_cell_server(curCell);
 
                             PhysicsObj.set_request_pos(newPosition.Pos, newPosition.Rotation, curCell, Location.LandblockId.Raw);
                             if (FastTick)
@@ -586,6 +591,41 @@ namespace ACE.Server.WorldObjects
                 }
             }
         }
+
+        public void TownControlTick()
+        {
+            try
+            {
+                if (CurrentLandblock == null)
+                    return;
+
+                if (TownControlLandblocks.IsTownControlLandcell(this.Location.Cell))
+                {
+                    var townId = TownControlLandblocks.GetTownIdByLandcellId(this.Location.Cell);
+
+                    if (townId.HasValue)
+                    {
+                        //Console.WriteLine($"{inLandblock}");
+                        var town = DatabaseManager.TownControl.GetTownById(townId.Value);
+                        var tearsTimerLogic = TownControlTrophyTimer == null ? true : Time.GetUnixTime() > TownControlTrophyTimer;
+                        var satisfiesLevelReq = this.Level >= PropertyManager.GetLong("town_control_currency_level_minimum").Item;
+                        if (PlayerKillerStatus == PlayerKillerStatus.PK && town.IsInConflict && tearsTimerLogic && satisfiesLevelReq)
+                        {
+                            var tcTrophy = WorldObjectFactory.CreateNewWorldObject(42127923);
+                            this.TryAddToInventory(tcTrophy);
+                            Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
+                            var msg = new GameMessageSystemChat($"You have received a participation trophy.", ChatMessageType.Broadcast);
+                            Session.Network.EnqueueSend(msg);
+                            SetProperty(PropertyFloat.TownControlTrophyTimer, Time.GetFutureUnixTime(30)); // every 30 seconds of participation, you get a town control trophy
+                        }
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                log.ErrorFormat("Exception in Player_Tick.TownControlTick. ex: {0}", ex);
+            }
+        }        
 
         /// <summary>
         /// Prepare new action to run on this player

@@ -224,6 +224,8 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         TrophyTimer                    = 9002,
         [ServerOnly]
+        TownControlTrophyTimer         = 9003,
+        [ServerOnly]
         JumpTimer                      = 9004,
 
         /***** FOREDAWN CUSTOMS *****/

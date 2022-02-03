@@ -106,7 +106,7 @@ namespace ACE.Server.WorldObjects
 
             // check if vassals earned XP while offline
             HandleAllegianceOnLogin();
-            HandleHouseOnLogin();
+            HandleHouseOnLogin();            
 
             // retail appeared to send the squelch list very early,
             // even before the CreatePlayer, but doing it here
@@ -124,6 +124,8 @@ namespace ACE.Server.WorldObjects
             HandleFreeAttributeResetRenewal();
 
             HandleDBUpdates();
+
+            HandleTownControlQuestStamps();
 
             if (ServerManager.ShutdownInitiated)
             {

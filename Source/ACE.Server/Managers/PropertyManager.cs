@@ -635,7 +635,8 @@ namespace ACE.Server.Managers
                 ("pk_dispel_timer", new Property<long>(120, "the number of seconds where a player cannot perform dispel actions after becoming involved in a PK battle")),
                 ("jump_limit", new Property<long>(7, "the number of jumps you can do before being penalized")),
                 ("jump_second_timer", new Property<long>(10, "the number of seconds cutoff for jumping")),
-                ("jump_penalty_length", new Property<long>(5, "the number of seconds you're penalized after hitting the jump limits"))
+                ("jump_penalty_length", new Property<long>(5, "the number of seconds you're penalized after hitting the jump limits")),
+                ("town_control_currency_level_minimum", new Property<long>(150, "the level you are required to be before town control gives you periodic trophies"))
 
                 );
 
