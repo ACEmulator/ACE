@@ -59,8 +59,8 @@ VALUES
   NULL,
   0,
   NULL,
-  3600,/*1 hr*/
-  86400 /*24 hrs*/
+  1800,/*30 mins*/
+  129600 /*36 hrs*/
 );
 
 INSERT INTO `town`
@@ -80,8 +80,8 @@ VALUES
   NULL,
   0,
   NULL,
-  3600,/*1 hr*/
-  86400 /*24 hrs*/
+  1800,/*30 mins*/
+  129600 /*36 hrs*/
 );
 
 INSERT INTO `town`
@@ -101,8 +101,8 @@ VALUES
   NULL,
   0,
   NULL,
-  3600,/*1 hr*/
-  86400 /*24 hrs*/
+  1800,/*30 mins*/
+  129600 /*36 hrs*/
 );
 
 
