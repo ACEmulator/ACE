@@ -611,12 +611,17 @@ namespace ACE.Server.WorldObjects
                         var satisfiesLevelReq = this.Level >= PropertyManager.GetLong("town_control_currency_level_minimum").Item;
                         if (PlayerKillerStatus == PlayerKillerStatus.PK && town.IsInConflict && tearsTimerLogic && satisfiesLevelReq)
                         {
-                            var tcTrophy = WorldObjectFactory.CreateNewWorldObject(42127923);
-                            this.TryAddToInventory(tcTrophy);
-                            Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
-                            var msg = new GameMessageSystemChat($"You have received a participation trophy.", ChatMessageType.Broadcast);
-                            Session.Network.EnqueueSend(msg);
-                            SetProperty(PropertyFloat.TownControlTrophyTimer, Time.GetFutureUnixTime(30)); // every 30 seconds of participation, you get a town control trophy
+                            Random rnd = new Random();
+                            var shouldDropTrophy = rnd.Next((int)PropertyManager.GetLong("tc_trophy_randomness").Item);
+                            if(shouldDropTrophy == 1)
+                            {
+                                var tcTrophy = WorldObjectFactory.CreateNewWorldObject(42127923);
+                                this.TryAddToInventory(tcTrophy);
+                                Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
+                                var msg = new GameMessageSystemChat($"You have received a participation trophy.", ChatMessageType.Broadcast);
+                                Session.Network.EnqueueSend(msg);
+                            }
+                            SetProperty(PropertyFloat.TownControlTrophyTimer, Time.GetFutureUnixTime(PropertyManager.GetLong("tc_trophy_seconds").Item)); // every 30 (default 30) seconds of participation, you get a town control trophy
                         }
                     }
                 }
