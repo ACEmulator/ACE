@@ -270,7 +270,7 @@ namespace ACE.Server.Entity
                 else
                 {
                     // this shouldn't happen (hopefully)
-                    log.Debug($"GeneratorProfile: objects enqueued for {Generator.Name}, but MaxCreate({MaxCreate}) already reached!");
+                    log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} ProcessQueue(): objects enqueued for {Generator.Name}, but MaxCreate({MaxCreate}) already reached!");
                 }
 
                 SpawnQueue.RemoveAt(index);
@@ -307,7 +307,7 @@ namespace ACE.Server.Entity
                 var wo = WorldObjectFactory.CreateNewWorldObject(Biota.WeenieClassId);
                 if (wo == null)
                 {
-                    log.Debug($"{Generator.Name}.Spawn(): failed to create wcid {Biota.WeenieClassId}");
+                    log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.Spawn(): failed to create wcid {Biota.WeenieClassId}");
                     return null;
                 }
 
@@ -449,7 +449,7 @@ namespace ACE.Server.Entity
             var success = Generator is Container container && container.TryAddToInventory(obj);
 
             if (!success)
-                log.Debug($"{Generator.Name}.Spawn_Container({obj.Name}) - failed to add to container inventory");
+                log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.Spawn_Container({obj.Name}) - failed to add to container inventory");
 
             return success;
         }
@@ -459,7 +459,7 @@ namespace ACE.Server.Entity
             // spawn item in vendor shop inventory
             if (!(Generator is Vendor vendor))
             {
-                log.Debug($"{Generator.Name}.Spawn_Shop({obj.Name}) - generator is not a vendor type");
+                log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.Spawn_Shop({obj.Name}) - generator is not a vendor type");
                 return false;
             }
 
@@ -539,7 +539,7 @@ namespace ACE.Server.Entity
                 }
                 else
                 {
-                    log.Debug($"{Generator.Name}.TreasureGenerator(): couldn't find death treasure or wielded treasure for ID {Biota.WeenieClassId}");
+                    log.Debug($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.TreasureGenerator(): couldn't find death treasure or wielded treasure for ID {Biota.WeenieClassId}");
                     return null;
                 }
             }
@@ -553,7 +553,7 @@ namespace ACE.Server.Entity
             var container = Generator as Container;
             if (container == null)
             {
-                log.Debug($"{Generator.Name}.RemoveTreasure(): container not found");
+                log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.RemoveTreasure(): container not found");
                 return;
             }
             foreach (var spawned in Spawned.Keys)
@@ -561,7 +561,7 @@ namespace ACE.Server.Entity
                 var inventoryObjGuid = new ObjectGuid(spawned);
                 if (!container.Inventory.TryGetValue(inventoryObjGuid, out var inventoryObj))
                 {
-                    log.Debug($"{Generator.Name}.RemoveTreasure(): couldn't find {inventoryObjGuid}");
+                    log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.RemoveTreasure(): couldn't find {inventoryObjGuid}");
                     continue;
                 }
                 container.TryRemoveFromInventory(inventoryObjGuid);
@@ -606,14 +606,14 @@ namespace ACE.Server.Entity
             //    log.Warn($"0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: RegenerationType = {eventType.ToString()}, WhenCreate = {whenCreate.ToString()}, Using {adjEventType.ToString()} as RegenerationType instead");
 
             if (whenCreate != adjWhenCreate)
-                log.Warn($"0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: RegenerationType = {eventType.ToString()}, WhenCreate = {whenCreate.ToString()}, Using {adjWhenCreate.ToString()} as WhenCreate instead");
+                log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: RegenerationType = {eventType.ToString()}, WhenCreate = {whenCreate.ToString()}, Using {adjWhenCreate.ToString()} as WhenCreate instead");
 
             if (adjWhenCreate != adjEventType)
                 return;            
 
             InsertIntoRemoveQueue(Delay, woi.Guid.Full);
             if (!Removed.TryAdd(woi.Guid.Full, woi))
-                log.Warn($"0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: Cannot add 0x{woi.Guid}:{woi.Name} to Removed. Already exists.");
+                log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: Cannot add 0x{woi.Guid}:{woi.Name} to Removed. Already exists.");
 
             InvalidateCurrentCreateCache();
         }
