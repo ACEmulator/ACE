@@ -270,7 +270,7 @@ namespace ACE.Server.Entity
                 else
                 {
                     // this shouldn't happen (hopefully)
-                    log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} ProcessQueue(): objects enqueued for {Generator.Name}, but MaxCreate({MaxCreate}) already reached!");
+                    log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} ProcessQueue(): {LinkId}:{Biota.WeenieClassId} object(s) enqueued for {Generator.Name}, but MaxCreate({MaxCreate}) already reached!");
                 }
 
                 SpawnQueue.RemoveAt(index);
