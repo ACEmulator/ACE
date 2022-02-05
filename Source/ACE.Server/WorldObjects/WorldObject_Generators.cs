@@ -142,7 +142,7 @@ namespace ACE.Server.WorldObjects
                         continue;
 
                     // is this profile currently exhausted and timed out?
-                    if (profile.RemoveQueue.Count == MaxCreate)
+                    if (profile.RemoveQueue.Count == profile.MaxCreate)
                         continue;
 
                     if (profile.RegenLocationType.HasFlag(RegenLocationType.Treasure))
@@ -224,7 +224,7 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 // is this profile currently exhausted and timed out?
-                if (profile.RemoveQueue.Count == MaxCreate)
+                if (profile.RemoveQueue.Count == profile.MaxCreate)
                     continue;
 
                 var probability = GetAdjustedProbability(i);
@@ -273,7 +273,7 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 // is this profile currently exhausted and timed out?
-                if (profile.RemoveQueue.Count == MaxCreate)
+                if (profile.RemoveQueue.Count == profile.MaxCreate)
                     continue;
 
                 //var numObjects = 1;
@@ -880,7 +880,7 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     //Console.WriteLine($"{Name}.Generator_Regeneration({RegenerationInterval}) SelectMoreProfiles: Init={InitCreate} Current={CurrentCreate} Max={MaxCreate}");
-                    SelectProfilesMax();
+                    SelectMoreProfiles();
                 }
             }
 
