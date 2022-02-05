@@ -163,10 +163,12 @@ namespace ACE.Server.WorldObjects
                 if (target == null || target.Location == null)
                     return;
 
-                var matchIndoors = Location.Indoors == target.Location.Indoors;
+                //var matchIndoors = Location.Indoors == target.Location.Indoors;
 
-                var globalLoc = matchIndoors ? Location.ToGlobal() : Location.Pos;
-                var targetLoc = matchIndoors ? target.Location.ToGlobal() : target.Location.Pos;
+                //var globalLoc = matchIndoors ? Location.ToGlobal() : Location.Pos;
+                //var targetLoc = matchIndoors ? target.Location.ToGlobal() : target.Location.Pos;
+                var globalLoc = Location.ToGlobal();
+                var targetLoc = target.Location.ToGlobal();
 
                 var targetDir = GetDirection(globalLoc, targetLoc);
 
