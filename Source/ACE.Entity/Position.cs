@@ -281,18 +281,24 @@ namespace ACE.Entity
         /// Given a Vector2 set of coordinates, create a new position object for use in converting from VLOC to LOC
         /// </summary>
         /// <param name="coordinates">A set coordinates provided in a Vector2 object with East-West being the X value and North-South being the Y value</param>
-        public Position(Vector2 coordinates)
+        public Position(Vector2 coordinates, bool isVirindi = true)
         {
-            // convert from (-102, 102) to (0, 204)
-            coordinates += Vector2.One * 102;
+            if (isVirindi)
+            {
+                // convert from (-101.95, 102.05) to (0, 204)
+                coordinates += Vector2.One * 101.95f;
+            }
+            else
+            {
+                // convert from (-101.9, 102.1) to (0, 204)
+                coordinates += Vector2.One * 101.9f;
+            }
 
             // 204 = map clicks across dereth
             // 2040 = number of cells across dereth
             // 24 = meters per cell
             //var globalPos = coordinates / 204 * 2040 * 24;
             var globalPos = coordinates * 240;   // simplified
-
-            globalPos -= Vector2.One * 12.0f; // ?????
 
             // inlining, this logic is in PositionExtensions.FromGlobal()
             var blockX = (int)globalPos.X / BlockLength;

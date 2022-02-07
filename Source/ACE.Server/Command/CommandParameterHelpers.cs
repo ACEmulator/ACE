@@ -8,6 +8,7 @@ using ACE.Server.WorldObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text.RegularExpressions;
 
 namespace ACE.Server.Command
@@ -605,7 +606,12 @@ namespace ACE.Server.Command
 
             try
             {
-                position = new Position(coordNS, coordEW);
+                position = new Position(new Vector2(coordEW, coordNS), false);
+
+                // add a tiny bit of epsilon
+                position.PositionX += Physics.PhysicsGlobals.EPSILON;
+                position.PositionY += Physics.PhysicsGlobals.EPSILON;
+
                 position.AdjustMapCoords();
             }
             catch (Exception e)
