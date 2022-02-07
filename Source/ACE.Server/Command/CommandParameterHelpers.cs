@@ -606,12 +606,7 @@ namespace ACE.Server.Command
 
             try
             {
-                position = new Position(new Vector2(coordEW, coordNS), false);
-
-                // add a tiny bit of epsilon
-                position.PositionX += Physics.PhysicsGlobals.EPSILON;
-                position.PositionY += Physics.PhysicsGlobals.EPSILON;
-
+                position = new Position(new Vector2(coordEW, coordNS));
                 position.AdjustMapCoords();
             }
             catch (Exception e)
