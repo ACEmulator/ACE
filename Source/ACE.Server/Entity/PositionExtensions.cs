@@ -19,7 +19,7 @@ namespace ACE.Server.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static Vector3 ToGlobal(this Position p, bool skipIndoors = true)
+        public static Vector3 ToGlobal(this Position p, bool skipIndoors = false)
         {
             // TODO: Is this necessary? It seemed to be loading rogue physics landblocks. Commented out 2019-04 Mag-nus
             //var landblock = LScape.get_landblock(p.LandblockId.Raw);

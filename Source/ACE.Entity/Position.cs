@@ -283,16 +283,14 @@ namespace ACE.Entity
         /// <param name="coordinates">A set coordinates provided in a Vector2 object with East-West being the X value and North-South being the Y value</param>
         public Position(Vector2 coordinates)
         {
-            // convert from (-102, 102) to (0, 204)
-            coordinates += Vector2.One * 102;
+            // convert from (-101.95, 102.05) to (0, 204)
+            coordinates += Vector2.One * 101.95f;
 
             // 204 = map clicks across dereth
             // 2040 = number of cells across dereth
             // 24 = meters per cell
             //var globalPos = coordinates / 204 * 2040 * 24;
             var globalPos = coordinates * 240;   // simplified
-
-            globalPos -= Vector2.One * 12.0f; // ?????
 
             // inlining, this logic is in PositionExtensions.FromGlobal()
             var blockX = (int)globalPos.X / BlockLength;
