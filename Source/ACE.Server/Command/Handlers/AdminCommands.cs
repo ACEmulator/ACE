@@ -1053,7 +1053,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // gamecast <message>
-        [CommandHandler("gamecast", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 1,
+        [CommandHandler("gamecast", AccessLevel.Envoy, CommandHandlerFlag.None, 1,
             "Sends a world-wide broadcast.",
             "<message>\n" +
             "This command sends a world-wide broadcast to everyone in the game. Text is prefixed with 'Broadcast from (admin-name)> '.\n" +
@@ -1065,7 +1065,12 @@ namespace ACE.Server.Command.Handlers
             // See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.
             // @gamecast - Sends a world-wide broadcast.
 
-            session.Player.HandleActionWorldBroadcast($"Broadcast from {session.Player.Name}> {string.Join(" ", parameters)}", ChatMessageType.WorldBroadcast);
+            //session.Player.HandleActionWorldBroadcast($"Broadcast from {session.Player.Name}> {string.Join(" ", parameters)}", ChatMessageType.WorldBroadcast);
+
+            var msg = $"Broadcast from {(session != null ? session.Player.Name : "System")}> {string.Join(" ", parameters)}";
+            GameMessageSystemChat sysMessage = new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast);
+            PlayerManager.BroadcastToAll(sysMessage);
+            PlayerManager.LogBroadcastChat(Channel.AllBroadcast, session?.Player, msg);
         }
 
         // add <spell>
@@ -2670,7 +2675,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // event
-        [CommandHandler("event", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2,
+        [CommandHandler("event", AccessLevel.Developer, CommandHandlerFlag.None, 2,
             "Maniuplates the state of an event",
             "[ start | stop | disable | enable | clear | status ] (name)\n"
             + "@event clear < name > - clears event with name <name> or all events if you put in 'all' (All clears registered generators, <name> does not)\n"
@@ -2691,22 +2696,22 @@ namespace ACE.Server.Command.Handlers
             switch (eventCmd)
             {
                 case "start":
-                    if (EventManager.StartEvent(eventName, session.Player, null))
+                    if (EventManager.StartEvent(eventName, session?.Player, null))
                     {
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"Event {eventName} started successfully.", ChatMessageType.Broadcast));
-                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has started event {eventName}.");
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Event {eventName} started successfully.", ChatMessageType.Broadcast);
+                        PlayerManager.BroadcastToAuditChannel(session?.Player, $"{(session != null ? session.Player.Name : "CONSOLE")} has started event {eventName}.");
                     }
                     else
                         session.Network.EnqueueSend(new GameMessageSystemChat($"Unable to start event named {eventName} .", ChatMessageType.Broadcast));
                     break;
                 case "stop":
-                    if (EventManager.StopEvent(eventName, session.Player, null))
+                    if (EventManager.StopEvent(eventName, session?.Player, null))
                     {
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"Event {eventName} stopped successfully.", ChatMessageType.Broadcast));
-                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has stopped event {eventName}.");
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Event {eventName} stopped successfully.", ChatMessageType.Broadcast);
+                        PlayerManager.BroadcastToAuditChannel(session?.Player, $"{(session != null ? session.Player.Name : "CONSOLE")} has stopped event {eventName}.");
                     }
                     else
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"Unable to stop event named {eventName} .", ChatMessageType.Broadcast));
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Unable to stop event named {eventName} .", ChatMessageType.Broadcast);
                     break;
                 case "disable":
                     break;
@@ -2717,11 +2722,11 @@ namespace ACE.Server.Command.Handlers
                 case "status":
                     if (eventName != "all" && eventName != "")
                     {
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"Event {eventName} - GameEventState.{EventManager.GetEventStatus(eventName)}", ChatMessageType.Broadcast));
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Event {eventName} - GameEventState.{EventManager.GetEventStatus(eventName)}", ChatMessageType.Broadcast);
                     }
                     break;
                 default:
-                    session.Network.EnqueueSend(new GameMessageSystemChat("That is not a valid event command", ChatMessageType.Broadcast));
+                    CommandHandlerHelper.WriteOutputInfo(session, "That is not a valid event command", ChatMessageType.Broadcast);
                     break;
             }
         }
@@ -3220,7 +3225,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // gamecastlocalemote <message>
-        [CommandHandler("gamecastlocalemote", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+        [CommandHandler("gamecastlocalemote", AccessLevel.Developer, CommandHandlerFlag.None, 1,
             "Sends text to all players within chat range, formatted exactly as entered.",
             "<message>\n" +
             "Sends text to all players within chat range, formatted exactly as entered, with no prefix of any kind.\n" +
@@ -3667,7 +3672,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // gamecastlocal <message>
-        [CommandHandler("gamecastlocal", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+        [CommandHandler("gamecastlocal", AccessLevel.Developer, CommandHandlerFlag.None, 1,
             "Sends a server-wide broadcast.",
             "<message>\n" +
             "This command sends the specified text to every player on the current server.\n" +
@@ -3748,7 +3753,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // gamecastemote <message>
-        [CommandHandler("gamecastemote", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+        [CommandHandler("gamecastemote", AccessLevel.Developer, CommandHandlerFlag.None, 1,
             "Sends text to all players, formatted exactly as entered.",
             "<message>\n" +
             "See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.")]
@@ -3761,11 +3766,15 @@ namespace ACE.Server.Command.Handlers
 
             string msg = string.Join(" ", parameters);
             msg = msg.Replace("\\n", "\n");
-            session.Player.HandleActionWorldBroadcast($"{msg}", ChatMessageType.WorldBroadcast);
+            //session.Player.HandleActionWorldBroadcast($"{msg}", ChatMessageType.WorldBroadcast);
+
+            GameMessageSystemChat sysMessage = new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast);
+            PlayerManager.BroadcastToAll(sysMessage);
+            PlayerManager.LogBroadcastChat(Channel.AllBroadcast, session?.Player, msg);
         }
 
         // we <message>
-        [CommandHandler("we", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+        [CommandHandler("we", AccessLevel.Developer, CommandHandlerFlag.None, 1,
             "Sends text to all players, formatted exactly as entered.",
             "<message>\n" +
             "See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.")]
