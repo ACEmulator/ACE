@@ -636,7 +636,9 @@ namespace ACE.Server.Managers
                 ("jump_limit", new Property<long>(7, "the number of jumps you can do before being penalized")),
                 ("jump_second_timer", new Property<long>(10, "the number of seconds cutoff for jumping")),
                 ("jump_penalty_length", new Property<long>(5, "the number of seconds you're penalized after hitting the jump limits")),
-                ("town_control_currency_level_minimum", new Property<long>(150, "the level you are required to be before town control gives you periodic trophies"))
+                ("town_control_currency_level_minimum", new Property<long>(150, "the level you are required to be before town control gives you periodic trophies")),
+                ("tc_trophy_randomness", new Property<long>(3, "this number represents the chance to drop trophies in a town control conflict event. 1/3 is the default.")),
+                ("tc_trophy_seconds", new Property<long>(30, "this number represents the seconds between each check for trophy drops"))
 
                 );
 
