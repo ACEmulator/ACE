@@ -426,6 +426,15 @@ namespace ACE.Server.WorldObjects
                         {
                             return 0.0f;
                         }
+
+                        //Only allow clans that are whitelisted to damage the Init bosses                        
+                        if (target.IsTownControlInitBoss)
+                        {                            
+                            if (playerAlleg == null || !playerAlleg.MonarchId.HasValue || !TownControlAllegiances.IsAllowedAllegiance((int)playerAlleg.MonarchId.Value))
+                            {
+                                return 0.0f;
+                            }                            
+                        }
                     }
                 }
             }

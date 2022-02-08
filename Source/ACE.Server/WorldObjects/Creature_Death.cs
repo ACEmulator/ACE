@@ -769,7 +769,7 @@ namespace ACE.Server.WorldObjects
                     string killerAllegName = null;
                     var killerPlayer = PlayerManager.FindByGuid(killer.Guid);
                     var killerAllegiance = AllegianceManager.GetAllegiance(killerPlayer);
-                    if (killerAllegiance != null)
+                    if (killerAllegiance != null && killerAllegiance.MonarchId.HasValue)
                     {
                         killerMonarchId = killerAllegiance.MonarchId;
                         killerAllegName = killerAllegiance.Monarch.Player.Name;
@@ -784,7 +784,15 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    //Get the defending cland ID and name, if the town has an owner already
+                    //Verify that the killer is in an allegiance that is whitelisted                    
+                    if(!TownControlAllegiances.IsAllowedAllegiance((int)killerMonarchId.Value))
+                    {
+                        log.DebugFormat("Town Control - {0} Init boss killer is in an allegiance that is not whitelisted.  Killer PlayerID = {1}, Killer MonarchID = {2}", town.TownName, killerPlayer.Guid, killerMonarchId);
+                        this.CurrentLandblock?.EnqueueBroadcast(null, true, null, null, new GameMessageSystemChat($"{deadBossName} has been killed by an allegiance who has not been enabled for town control events.  As such, a conflict event will not be started.  Please reach out to an admin to have your clan enabled for town control.", ChatMessageType.Broadcast));
+                        return;
+                    }
+
+                    //Get the defending clan ID and name, if the town has an owner already
                     //cover scenario where owning clan is no longer a valid monarchy
                     uint? defendingClanId = null;
                     string defendingClanName = null;
