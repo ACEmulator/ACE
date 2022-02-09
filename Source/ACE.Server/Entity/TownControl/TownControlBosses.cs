@@ -97,6 +97,16 @@ namespace ACE.Server.Entity.TownControl
             return TownControlBosses.TownControlBossMap.ContainsKey(weenieId);
         }
 
+        public static bool IsTownControlInitBoss(uint weenieId)
+        {
+            if (TownControlBosses.TownControlBossMap.ContainsKey(weenieId))
+            {
+                return TownControlBosses.TownControlBossMap[weenieId].BossType.Equals(TownControlBossType.InitiationBoss);
+            }
+
+            return false;
+        }
+
         public static bool IsTownControlConflictBoss(uint weenieId)
         {
             if (TownControlBosses.TownControlBossMap.ContainsKey(weenieId))

@@ -37,6 +37,7 @@ namespace ACE.Server.Entity
 
         public const uint MaxBodyArmorLevel = 330;
         public const uint MaxExtremityArmorLevel = 360;
+        public const uint MaxShieldArmorLevel = 220;
 
         public const uint MaxItemWork = 10;
         public const uint MinItemWork = 1;
@@ -496,13 +497,40 @@ namespace ACE.Server.Entity
 
                         //Don't let new Armor Level exceed maximums
                         var validLocations = target.ValidLocations ?? EquipMask.None;
-                        var maxAl = validLocations.HasFlag(EquipMask.HeadWear) || validLocations.HasFlag(EquipMask.HandWear) || validLocations.HasFlag(EquipMask.FootWear) ? MaxExtremityArmorLevel : MaxBodyArmorLevel;
+
+                        uint maxAl = 0;
+
+                        if (validLocations.HasFlag(EquipMask.HeadWear) || validLocations.HasFlag(EquipMask.HandWear) || validLocations.HasFlag(EquipMask.FootWear))
+                        {
+                            maxAl = MaxExtremityArmorLevel;
+                        }
+                        else if (validLocations.HasFlag(EquipMask.AbdomenArmor) ||
+                                 validLocations.HasFlag(EquipMask.ChestArmor) ||
+                                 validLocations.HasFlag(EquipMask.LowerArmArmor) ||
+                                 validLocations.HasFlag(EquipMask.UpperArmArmor) ||
+                                 validLocations.HasFlag(EquipMask.LowerLegArmor) ||
+                                 validLocations.HasFlag(EquipMask.UpperLegArmor) 
+                        )
+                        {
+                            maxAl = MaxBodyArmorLevel;
+                        }
+                        else if(validLocations.HasFlag(EquipMask.Shield))
+                        {
+                            maxAl = MaxShieldArmorLevel;
+                        }
+
+                        if(maxAl == 0)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
                         maxAl = maxAl + (numSteelTinks * 20u);
 
                         if(newAl > maxAl)
-                        {
-                            alChange = currentItemAL.Value - (int)maxAl;
+                        {                            
                             newAl = (int)maxAl;
+                            alChange = newAl - currentItemAL.Value;
                         }
 
                         //Set the new AL value
@@ -512,7 +540,7 @@ namespace ACE.Server.Entity
                         string playerMsg = string.Empty;
                         if (alChange > 0)
                         {
-                            playerMsg = $"As your skilled hands run softly along the contours of your armor, you quiver with anticipation.  With a swift and decisive thrust you apply the Morph Gem in a movement that is somehow both forceful and gentle at the same time.  With a short girly gasp that turns into a smile you realize that your armor has been enhanced and has gained {alChange} armor level.";
+                            playerMsg = $"As your skilled hands run softly along the contours of your armor, you quiver with anticipation.  With a swift and decisive thrust you apply the Morph Gem in a movement that is somehow both forceful and gentle at the same time.  You let out a short girly gasp that turns into a smile as you realize that your armor has been enhanced and has gained {alChange} armor level.";
                         }
                         else if (alChange == 0)
                         {
@@ -520,7 +548,7 @@ namespace ACE.Server.Entity
                         }
                         else
                         {
-                            playerMsg = $"As your hands run softly along the contours of your armor, you quiver with anticipation.  With a timid yet determined thrust you attempt to apply the Morph Gem, but alas your hand is led astray of its mark as you are distracted by your 'room mate' calling out that your salad is ready and she bought you some new underwear with a smaller crotch for added support.  You cry softly in despair as you realize you've damaged your precious armor, which has lost {-1 * alChange} armor level as a result.";
+                            playerMsg = $"As your shaking hands run softly along the contours of your armor, you quiver with anticipation.  With a timid yet determined thrust you attempt to apply the Morph Gem, but alas your hand is led astray of its mark as you are distracted by your 'room mate' calling out that your salad is ready and she bought you some new underwear with a smaller crotch for added support.  You cry softly in despair as you realize you've damaged your precious armor, which has lost {-1 * alChange} armor level as a result.";
                         }
                         
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
@@ -547,7 +575,6 @@ namespace ACE.Server.Entity
                         var newValue = currentItemValue.Value + valueChange;
 
                         //Don't let new Armor Value exceed minimum of 1k
-                        if(newValue < 1000)
                         {
                             valueChange = currentItemValue.Value - 1000;
                             newValue = 1000;
@@ -602,8 +629,8 @@ namespace ACE.Server.Entity
                         }
                         else if(newWork < MinItemWork)
                         {
-                            workChange = currentItemWork.Value - (int)MaxItemWork;
                             newWork = (int)MinItemWork;
+                            workChange = newWork - currentItemWork.Value;
                         }                        
 
                         //Set the new Workmanship value
@@ -650,7 +677,7 @@ namespace ACE.Server.Entity
                         if (newArcane < 100)
                         {
                             newArcane = currentItemArcane.Value < 100 ? currentItemArcane.Value : 100;
-                            arcaneChange = currentItemArcane.Value < 100 ? 0 : currentItemArcane.Value - 100;
+                            arcaneChange = currentItemArcane.Value < 100 ? 0 : 100 - currentItemArcane.Value;
                         }
 
                         //Set the new arcane

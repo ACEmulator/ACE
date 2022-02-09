@@ -187,7 +187,7 @@ namespace ACE.Server.Entity
                         var boss = TownControlBosses.TownControlBossMap[defender.WeenieClassId];
                         var town = DatabaseManager.TownControl.GetTownById(boss.TownID);
                         var playerAlleg = AllegianceManager.GetAllegiance(playerAttacker);
-                        if(playerAlleg != null)
+                        if (playerAlleg != null)
                         {
                             var playerMonarchId = playerAlleg.MonarchId;
                             var playerAllegName = playerAlleg.Monarch.Player.Name;
@@ -201,6 +201,15 @@ namespace ACE.Server.Entity
                         if (playerOwnsTown)
                         {
                             return 0.0f;
+                        }
+
+                        //Only allow clans that are whitelisted to damage the Init bosses                        
+                        if (defender.IsTownControlInitBoss)
+                        {                            
+                            if(playerAlleg == null || !playerAlleg.MonarchId.HasValue || !TownControlAllegiances.IsAllowedAllegiance((int)playerAlleg.MonarchId.Value))
+                            {
+                                return 0.0f;
+                            }
                         }
                     }
                 }                

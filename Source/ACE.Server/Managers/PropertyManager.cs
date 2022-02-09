@@ -639,7 +639,6 @@ namespace ACE.Server.Managers
                 ("town_control_currency_level_minimum", new Property<long>(150, "the level you are required to be before town control gives you periodic trophies")),
                 ("tc_trophy_randomness", new Property<long>(3, "this number represents the chance to drop trophies in a town control conflict event. 1/3 is the default.")),
                 ("tc_trophy_seconds", new Property<long>(30, "this number represents the seconds between each check for trophy drops"))
-
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
@@ -749,7 +748,8 @@ namespace ACE.Server.Managers
                 ("popup_motd", new Property<string>("", "Join discord https://discord.gg/SMHBK839CV")),
                 ("server_motd", new Property<string>("", "Join discord https://discord.gg/SMHBK839CV")),
                 ("turbine_chat_webhook", new Property<string>("", "Webhook to be used for turbine chat. This is for copying ingame general chat channels to a Discord channel.")),
-                ("turbine_chat_webhook_audit", new Property<string>("", "Webhook to be used for ingame audit log."))
+                ("turbine_chat_webhook_audit", new Property<string>("", "Webhook to be used for ingame audit log.")),
+                ("town_control_alleglist", new Property<string>("", "A comma separated list of MonarchID values to whitelist allegiances for participation in town control events"))
                 );
     }
 }

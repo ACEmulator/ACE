@@ -392,6 +392,20 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        private bool? _isTownControlInitBoss = null;
+        public bool IsTownControlInitBoss
+        {
+            get
+            {
+                if (!_isTownControlInitBoss.HasValue)
+                {
+                    _isTownControlInitBoss = TownControlBosses.IsTownControlInitBoss(this.WeenieClassId);
+                }
+
+                return _isTownControlInitBoss.Value;
+            }
+        }
+
         private bool? _isTownControlConflictBoss = null;
         public bool IsTownControlConflictBoss
         {
