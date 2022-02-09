@@ -105,14 +105,24 @@ namespace ACE.Server.Entity
         public int MaxCreate { get => Biota.MaxCreate > -1 ? Biota.MaxCreate : Generator.MaxCreate; }
 
         /// <summary>
-        /// Returns TRUE if the initial # of objects have been spawned
+        /// Returns TRUE if the initial # of objects have been spawned currently
         /// </summary>
         public bool InitObjectsSpawned { get => CurrentCreate >= Biota.InitCreate; }
 
         /// <summary>
-        /// Returns TRUE if the maximum # of objects have been spawned
+        /// Returns TRUE if the maximum # of objects have been spawned currently
         /// </summary>
         public bool MaxObjectsSpawned { get => CurrentCreate >= MaxCreate; }
+
+        /// <summary>
+        /// Returns TRUE if the maximum # of objects have been spawned for the profile before being exhausted
+        /// </summary>
+        public bool ProfileMaxSpawned { get => Spawned.Count == MaxCreate && RemoveQueue.Count < MaxCreate; }
+
+        /// <summary>
+        /// Returns TRUE if the maximum # of objects have been spawned, killed or picked up, and the profile is now exhausted and timed out
+        /// </summary>
+        public bool ProfileExhausted { get => Spawned.Count == RemoveQueue.Count && Spawned.Count == MaxCreate || Biota.InitCreate == 0; }
 
         /// <summary>
         /// Flag indicates if generator profile is performing the initial spawn (TRUE / default),
