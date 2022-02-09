@@ -528,9 +528,9 @@ namespace ACE.Server.Entity
                         maxAl = maxAl + (numSteelTinks * 20u);
 
                         if(newAl > maxAl)
-                        {
-                            alChange = currentItemAL.Value - (int)maxAl;
+                        {                            
                             newAl = (int)maxAl;
+                            alChange = newAl - currentItemAL.Value;
                         }
 
                         //Set the new AL value
@@ -575,7 +575,6 @@ namespace ACE.Server.Entity
                         var newValue = currentItemValue.Value + valueChange;
 
                         //Don't let new Armor Value exceed minimum of 1k
-                        if(newValue < 1000)
                         {
                             valueChange = currentItemValue.Value - 1000;
                             newValue = 1000;
@@ -630,8 +629,8 @@ namespace ACE.Server.Entity
                         }
                         else if(newWork < MinItemWork)
                         {
-                            workChange = currentItemWork.Value - (int)MaxItemWork;
                             newWork = (int)MinItemWork;
+                            workChange = newWork - currentItemWork.Value;
                         }                        
 
                         //Set the new Workmanship value
@@ -678,7 +677,7 @@ namespace ACE.Server.Entity
                         if (newArcane < 100)
                         {
                             newArcane = currentItemArcane.Value < 100 ? currentItemArcane.Value : 100;
-                            arcaneChange = currentItemArcane.Value < 100 ? 0 : currentItemArcane.Value - 100;
+                            arcaneChange = currentItemArcane.Value < 100 ? 0 : 100 - currentItemArcane.Value;
                         }
 
                         //Set the new arcane
