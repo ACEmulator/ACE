@@ -312,10 +312,7 @@ namespace ACE.Server.Physics
 
                     var offsetDispSum = offset + disp;
 
-                    var radSumSq = radsum * radsum;
-                    var offsetDispSumDot2D = offsetDispSum.Dot2D(offsetDispSum);
-
-                    if (radSumSq < offsetDispSumDot2D)
+                    if (radsum * radsum < offsetDispSum.Dot2D(offsetDispSum))
                         return TransitionState.OK;
 
                     var t = (1.0f - timecheck) * transition.SpherePath.WalkInterp;
@@ -323,12 +320,10 @@ namespace ACE.Server.Physics
                     if (t >= transition.SpherePath.WalkInterp || t < -0.1f)
                         return TransitionState.Collided;
 
-                    var _pDist = globSphere.Center + offset;
-                    _pDist.Z -= globSphere.Radius;
+                    var pDist = globSphere.Center + offset;
+                    pDist.Z -= globSphere.Radius;
 
-                    var pDist = -Vector3.Dot(Vector3.UnitZ, _pDist);
-
-                    var contactPlane = new Plane(Vector3.UnitZ, pDist);
+                    var contactPlane = new Plane(Vector3.UnitZ, -Vector3.Dot(Vector3.UnitZ, pDist));
 
                     transition.CollisionInfo.SetContactPlane(contactPlane, true);
                     transition.CollisionInfo.ContactPlaneCellID = transition.SpherePath.CheckPos.ObjCellID;
