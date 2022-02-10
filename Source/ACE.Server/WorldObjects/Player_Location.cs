@@ -452,11 +452,11 @@ namespace ACE.Server.WorldObjects
 
         private static List<Position> pkArenaLocs = new List<Position>()
         {
-            new Position(0x00660117, new Vector3(30, -50, 0.005f), new Quaternion(0, 0, 0, 1)),
-            new Position(0x00660106, new Vector3(10, 0, 0.005f), new Quaternion(0, 0, -0.947071f, 0.321023f)),
-            new Position(0x00660103, new Vector3(0, -30, 0.005f), new Quaternion(0, 0, -0.699713f, 0.714424f)),
-            new Position(0x0066011E, new Vector3(50, 0, 0.005f), new Quaternion(0, 0, -0.961021f, -0.276474f)),
-            new Position(0x00660127, new Vector3(60, -30, 0.005f), new Quaternion(0, 0, 0.681639f, 0.731689f)),
+            new Position(DatabaseManager.World.GetCachedWeenie("portalpkarenanew1").GetPosition(PositionType.Destination)),
+            new Position(DatabaseManager.World.GetCachedWeenie("portalpkarenanew2").GetPosition(PositionType.Destination)),
+            new Position(DatabaseManager.World.GetCachedWeenie("portalpkarenanew3").GetPosition(PositionType.Destination)),
+            new Position(DatabaseManager.World.GetCachedWeenie("portalpkarenanew4").GetPosition(PositionType.Destination)),
+            new Position(DatabaseManager.World.GetCachedWeenie("portalpkarenanew5").GetPosition(PositionType.Destination)),
         };
 
         public void HandleActionTeleToPkArena()
@@ -530,11 +530,11 @@ namespace ACE.Server.WorldObjects
 
         private static List<Position> pklArenaLocs = new List<Position>()
         {
-            new Position(0x00670117, new Vector3(30, -50, 0.005f), new Quaternion(0, 0, 0, 1)),
-            new Position(0x00670106, new Vector3(10, 0, 0.005f), new Quaternion(0, 0, -0.947071f, 0.321023f)),
-            new Position(0x00670103, new Vector3(0, -30, 0.005f), new Quaternion(0, 0, -0.699713f, 0.714424f)),
-            new Position(0x0067011E, new Vector3(50, 0, 0.005f), new Quaternion(0, 0, -0.961021f, -0.276474f)),
-            new Position(0x00670127, new Vector3(60, -30, 0.005f), new Quaternion(0, 0, 0.681639f, 0.731689f)),
+            new Position(DatabaseManager.World.GetCachedWeenie("portalpklarenanew1").GetPosition(PositionType.Destination)),
+            new Position(DatabaseManager.World.GetCachedWeenie("portalpklarenanew2").GetPosition(PositionType.Destination)),
+            new Position(DatabaseManager.World.GetCachedWeenie("portalpklarenanew3").GetPosition(PositionType.Destination)),
+            new Position(DatabaseManager.World.GetCachedWeenie("portalpklarenanew4").GetPosition(PositionType.Destination)),
+            new Position(DatabaseManager.World.GetCachedWeenie("portalpklarenanew5").GetPosition(PositionType.Destination)),
         };
 
         public void HandleActionTeleToPklArena()
