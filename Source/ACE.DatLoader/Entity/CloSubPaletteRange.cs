@@ -4,8 +4,8 @@ namespace ACE.DatLoader.Entity
 {
     public class CloSubPaletteRange : IUnpackable
     {
-        public uint Offset { get; private set; }
-        public uint NumColors { get; private set; }
+        public uint Offset { get; set; }
+        public uint NumColors { get; set; }
 
         public void Unpack(BinaryReader reader)
         {

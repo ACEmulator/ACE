@@ -148,7 +148,15 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace31758_frostdericostblade,     0.15f ),
         };
 
-        // epee?
+        private static ChanceTable<WeenieClassName> EpeeSwords = new ChanceTable<WeenieClassName>()
+        {
+            // light - Epee - MS
+            ( WeenieClassName.ace45099_epee,          0.40f ),
+            ( WeenieClassName.ace45100_acidepee,      0.15f ),
+            ( WeenieClassName.ace45101_lightningepee, 0.15f ),
+            ( WeenieClassName.ace45102_flamingepee,   0.15f ),
+            ( WeenieClassName.ace45103_frostepee,     0.15f ),
+        };
 
         private static ChanceTable<WeenieClassName> Kaskaras = new ChanceTable<WeenieClassName>()
         {
@@ -219,6 +227,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( Kaskaras,       TreasureWeaponType.Sword ),
             ( Shamshirs,      TreasureWeaponType.Sword ),
             ( Spadas,         TreasureWeaponType.Sword ),
+            ( EpeeSwords,     TreasureWeaponType.SwordMS ),
             ( Katars,         TreasureWeaponType.Unarmed ),
             ( Knuckles,       TreasureWeaponType.Unarmed ),
         };

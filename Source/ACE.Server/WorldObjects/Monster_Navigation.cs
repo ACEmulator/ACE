@@ -451,10 +451,12 @@ namespace ACE.Server.WorldObjects
                 return;
 
             var homePosition = GetPosition(PositionType.Home);
-            var matchIndoors = Location.Indoors == homePosition.Indoors;
+            //var matchIndoors = Location.Indoors == homePosition.Indoors;
 
-            var globalPos = matchIndoors ? Location.ToGlobal() : Location.Pos;
-            var globalHomePos = matchIndoors ? homePosition.ToGlobal() : homePosition.Pos;
+            //var globalPos = matchIndoors ? Location.ToGlobal() : Location.Pos;
+            //var globalHomePos = matchIndoors ? homePosition.ToGlobal() : homePosition.Pos;
+            var globalPos = Location.ToGlobal();
+            var globalHomePos = homePosition.ToGlobal();
 
             var homeDistSq = Vector3.DistanceSquared(globalHomePos, globalPos);
 

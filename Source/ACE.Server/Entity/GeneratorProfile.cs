@@ -234,6 +234,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Spawns an object from the generator queue
         /// for RNG treasure, can spawn multiple objects
+        /// If an object failed to spawn, but FirstSpawn is true, the object will still be returned as a spawned item, but, it will have been Destroy()'d first.
         /// </summary>
         public List<WorldObject> Spawn()
         {
@@ -242,7 +243,8 @@ namespace ACE.Server.Entity
             if (RegenLocationType.HasFlag(RegenLocationType.Treasure))
             {
                 objects = TreasureGenerator();
-                if (objects.Count > 0)
+
+                if (objects != null && objects.Count > 0)
                 {
                     Generator.GeneratedTreasureItem = true;
                     GeneratedTreasureItem = true;
@@ -301,6 +303,11 @@ namespace ACE.Server.Entity
                 // if first spawn fails, don't continually attempt to retry
                 if (success || FirstSpawn)
                     spawned.Add(obj);
+
+                // If the object failed to spawn, we still destroy it. This cleans up the object and releases the GUID.
+                // This object still may be returned in the spawned collection if FirstSpawn is true. This is to prevent retry spam.
+                if (!success)
+                    obj.Destroy();
             }
 
             return spawned;
@@ -474,13 +481,13 @@ namespace ACE.Server.Entity
                     //log.Debug($"{_generator.Name}.TreasureGenerator(): found wielded treasure {Biota.WeenieClassId}");
 
                     // roll into the wielded treasure table
-                    var table = new TreasureWieldedTable(wieldedTreasure);
-                    return Generator.GenerateWieldedTreasureSets(table);
+                    //var table = new TreasureWieldedTable(wieldedTreasure);
+                    return WorldObject.GenerateWieldedTreasureSets(wieldedTreasure);
                 }
                 else
                 {
                     log.Debug($"{Generator.Name}.TreasureGenerator(): couldn't find death treasure or wielded treasure for ID {Biota.WeenieClassId}");
-                    return new List<WorldObject>();
+                    return null;
                 }
             }
         }

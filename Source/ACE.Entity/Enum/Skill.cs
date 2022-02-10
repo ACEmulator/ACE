@@ -167,16 +167,17 @@ namespace ACE.Entity.Enum
             Skill.LifeMagic,
             Skill.VoidMagic,
             Skill.DualWield,
-            Skill.Recklessness,
-            Skill.DirtyFighting,
-            Skill.SneakAttack
+            //Skill.Recklessness,   // confirmed not in client
+            //Skill.DirtyFighting,
+            //Skill.SneakAttack
         };
 
         public static HashSet<Skill> DefenseSkills = new HashSet<Skill>()
         {
             Skill.MeleeDefense,
             Skill.MissileDefense,
-            Skill.MagicDefense
+            Skill.MagicDefense,
+            Skill.Shield            // confirmed in client
         };
     }
 }
