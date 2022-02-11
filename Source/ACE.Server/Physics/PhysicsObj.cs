@@ -1681,34 +1681,34 @@ namespace ACE.Server.Physics
                     }
                     else if ((State & PhysicsState.Sledding) != 0 && Velocity != Vector3.Zero)
                         newPos.Frame.set_vector_heading(Vector3.Normalize(Velocity));
-                }
 
-                if (GetBlockDist(Position, newPos) > 1)
-                {
-                    log.Warn($"WARNING: failed transition for {Name} from {Position} to {newPos}");
-                    return;
-                }
+                    if (GetBlockDist(Position, newPos) > 1)
+                    {
+                        log.Warn($"WARNING: failed transition for {Name} from {Position} to {newPos}");
+                        return;
+                    }
 
-                var transit = transition(Position, newPos, false);
+                    var transit = transition(Position, newPos, false);
 
 
-                // temporarily modified while debug path is examined
-                if (transit != null && transit.SpherePath.CurCell != null)
-                {
-                    CachedVelocity = Position.GetOffset(transit.SpherePath.CurPos) / (float)quantum;
+                    // temporarily modified while debug path is examined
+                    if (transit != null && transit.SpherePath.CurCell != null)
+                    {
+                        CachedVelocity = Position.GetOffset(transit.SpherePath.CurPos) / (float)quantum;
 
-                    SetPositionInternal(transit);
-                }
-                else
-                {
-                    if (IsPlayer)
-                        log.Debug($"{Name} ({ID:X8}).UpdateObjectInternal({quantum}) - failed transition from {Position} to {newPos}");
-                    else if (transit != null && transit.SpherePath.CurCell == null)
-                        log.Warn($"{Name} ({ID:X8}).UpdateObjectInternal({quantum}) - avoided CurCell=null from {Position} to {newPos}");
+                        SetPositionInternal(transit);
+                    }
+                    else
+                    {
+                        if (IsPlayer)
+                            log.Debug($"{Name} ({ID:X8}).UpdateObjectInternal({quantum}) - failed transition from {Position} to {newPos}");
+                        else if (transit != null && transit.SpherePath.CurCell == null)
+                            log.Warn($"{Name} ({ID:X8}).UpdateObjectInternal({quantum}) - avoided CurCell=null from {Position} to {newPos}");
 
-                    newPos.Frame.Origin = Position.Frame.Origin;
-                    set_initial_frame(newPos.Frame);
-                    CachedVelocity = Vector3.Zero;
+                        newPos.Frame.Origin = Position.Frame.Origin;
+                        set_initial_frame(newPos.Frame);
+                        CachedVelocity = Vector3.Zero;
+                    }
                 }
             }
             else
@@ -2672,9 +2672,8 @@ namespace ACE.Server.Physics
             }
             else if (collisions.CollidedWithEnvironment || !prev_on_walkable && TransientState.HasFlag(TransientStateFlags.OnWalkable))
             {
-                //retval = report_environment_collision(prev_has_contact);
-                report_environment_collision(prev_has_contact);
-                retval = true;
+                if (report_environment_collision(prev_has_contact))
+                    retval = true;
             }
 
             if (collisions.FramesStationaryFall <= 1)
@@ -2701,7 +2700,7 @@ namespace ACE.Server.Physics
             }
             else
             {
-                //Velocity = Vector3.Zero;  // gets objects stuck in falling state?
+                Velocity = Vector3.Zero;
                 if (collisions.FramesStationaryFall == 3)
                 {
                     TransientState &= ~TransientStateFlags.StationaryComplete;
