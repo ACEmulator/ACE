@@ -566,6 +566,12 @@ namespace ACE.Server.Entity
                             return;
                         }
 
+                        if(currentItemValue.Value < 1000)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
                         //Roll for an amount to change the item Value by
                         var valRandom = new Random();
                         var valueGain = valRandom.Next(0, 15000);
@@ -575,8 +581,9 @@ namespace ACE.Server.Entity
                         var newValue = currentItemValue.Value + valueChange;
 
                         //Don't let new Armor Value exceed minimum of 1k
+                        if(newValue < 1000)
                         {
-                            valueChange = currentItemValue.Value - 1000;
+                            valueChange = 1000 - currentItemValue.Value;
                             newValue = 1000;
                         }
 
