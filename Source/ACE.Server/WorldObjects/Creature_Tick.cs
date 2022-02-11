@@ -7,6 +7,7 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.TownControl;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Handlers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -89,27 +90,69 @@ namespace ACE.Server.WorldObjects
                                 {
                                     if(this.Health.Percent < 0.75 || DateTime.UtcNow > tcEvent.EventStartDateTime.Value.AddSeconds(town.ConflictLength / 4))
                                     {
-                                        string msg = $"The conflict for ownership of {town.TownName} rages on!  Join the battle, if you dare.  But be quick, clan {tcEvent.AttackingClanName} has reduced the town's defences to {Math.Round(this.Health.Percent * 100, 0)}% with {Math.Round((tcEventDurationExpiredTime - DateTime.UtcNow).TotalMinutes, 0, MidpointRounding.AwayFromZero)} minutes remaining.";
+                                        string msg = $"The conflict for ownership of {town.TownName} rages on!  Join the battle, if you dare.  But be quick, clan {tcEvent.AttackingClanName} has reduced the town's defenses to {Math.Round(this.Health.Percent * 100, 0)}% with {Math.Round((tcEventDurationExpiredTime - DateTime.UtcNow).TotalMinutes, 0, MidpointRounding.AwayFromZero)} minutes remaining.";
                                         PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                                         TownControl_ConflictBroadcast1Sent = true;
+
+                                        //Send global to TC webhook
+                                        try
+                                        {
+                                            var webhookUrl = PropertyManager.GetString("turbine_chat_webhook_audit").Item;
+                                            if (!string.IsNullOrEmpty(webhookUrl))
+                                            {
+                                                _ = TurbineChatHandler.SendWebhookedChat("God of PK", msg, webhookUrl, "General");
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            log.ErrorFormat("Failed sending TownControl global message to webhook. Ex:{0}", ex);
+                                        }
                                     }
                                 }
                                 else if(!TownControl_ConflictBroadcast2Sent)
                                 {
                                     if (this.Health.Percent < 0.5 || DateTime.UtcNow > tcEvent.EventStartDateTime.Value.AddSeconds(town.ConflictLength / 2))
                                     {
-                                        string msg = $"The conflict for ownership of {town.TownName} rages on!  Join the battle, if you dare.  But be quick, clan {tcEvent.AttackingClanName} has reduced the town's defences to {Math.Round(this.Health.Percent * 100, 0)}% with {Math.Round((tcEventDurationExpiredTime - DateTime.UtcNow).TotalMinutes, 0, MidpointRounding.AwayFromZero)} minutes remaining.";
+                                        string msg = $"The conflict for ownership of {town.TownName} rages on!  Join the battle, if you dare.  But be quick, clan {tcEvent.AttackingClanName} has reduced the town's defenses to {Math.Round(this.Health.Percent * 100, 0)}% with {Math.Round((tcEventDurationExpiredTime - DateTime.UtcNow).TotalMinutes, 0, MidpointRounding.AwayFromZero)} minutes remaining.";
                                         PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                                         TownControl_ConflictBroadcast2Sent = true;
+
+                                        //Send global to TC webhook
+                                        try
+                                        {
+                                            var webhookUrl = PropertyManager.GetString("turbine_chat_webhook_audit").Item;
+                                            if (!string.IsNullOrEmpty(webhookUrl))
+                                            {
+                                                _ = TurbineChatHandler.SendWebhookedChat("God of PK", msg, webhookUrl, "General");
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            log.ErrorFormat("Failed sending TownControl global message to webhook. Ex:{0}", ex);
+                                        }
                                     }
                                 }
                                 else if (!TownControl_ConflictBroadcast3Sent)
                                 {
                                     if (this.Health.Percent < 0.25 || DateTime.UtcNow > tcEvent.EventStartDateTime.Value.AddSeconds(town.ConflictLength / 1.25))
                                     {
-                                        string msg = $"The conflict for ownership of {town.TownName} rages on!  Join the battle, if you dare.  But be quick, clan {tcEvent.AttackingClanName} has reduced the town's defences to {Math.Round(this.Health.Percent * 100, 0)}% with {Math.Round((tcEventDurationExpiredTime - DateTime.UtcNow).TotalMinutes, 0, MidpointRounding.AwayFromZero)} minutes remaining.";
+                                        string msg = $"The conflict for ownership of {town.TownName} rages on!  Join the battle, if you dare.  But be quick, clan {tcEvent.AttackingClanName} has reduced the town's defenses to {Math.Round(this.Health.Percent * 100, 0)}% with {Math.Round((tcEventDurationExpiredTime - DateTime.UtcNow).TotalMinutes, 0, MidpointRounding.AwayFromZero)} minutes remaining.";
                                         PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                                         TownControl_ConflictBroadcast3Sent = true;
+
+                                        //Send global to TC webhook
+                                        try
+                                        {
+                                            var webhookUrl = PropertyManager.GetString("turbine_chat_webhook_audit").Item;
+                                            if (!string.IsNullOrEmpty(webhookUrl))
+                                            {
+                                                _ = TurbineChatHandler.SendWebhookedChat("God of PK", msg, webhookUrl, "General");
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            log.ErrorFormat("Failed sending TownControl global message to webhook. Ex:{0}", ex);
+                                        }
                                     }
                                 }
                             }
@@ -123,8 +166,23 @@ namespace ACE.Server.WorldObjects
                             if (this.Health.Percent < 0.33f)
                             {
                                 string bossName = this.Weenie?.PropertiesString.FirstOrDefault(x => x.Key == ACE.Entity.Enum.Properties.PropertyString.Name).Value;
-                                PlayerManager.BroadcastToAll(new GameMessageSystemChat($"The town of {town.TownName} is under attack!  {bossName} is faltering and can't hold up much longer.  All those who seek to rule {town.TownName} must come at once, for when {bossName} falls the town will be thrust into full blown conflict!", ChatMessageType.Broadcast));
+                                var msg = $"The town of {town.TownName} is under attack!  {bossName} is faltering and can't hold up much longer.  All those who seek to rule {town.TownName} must come at once, for when {bossName} falls the town will be thrust into full blown conflict!";
+                                PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                                 this.TownControl_InitLowHpBroadcastSent = true;
+
+                                //Send global to TC webhook
+                                try
+                                {
+                                    var webhookUrl = PropertyManager.GetString("turbine_chat_webhook_audit").Item;
+                                    if (!string.IsNullOrEmpty(webhookUrl))
+                                    {
+                                        _ = TurbineChatHandler.SendWebhookedChat("God of PK", msg, webhookUrl, "General");
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    log.ErrorFormat("Failed sending TownControl global message to webhook. Ex:{0}", ex);
+                                }
                             }                            
                         }
                         else if (this.Health.Percent > 0.95f)

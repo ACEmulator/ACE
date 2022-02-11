@@ -749,7 +749,8 @@ namespace ACE.Server.Managers
                 ("server_motd", new Property<string>("", "Join discord https://discord.gg/SMHBK839CV")),
                 ("turbine_chat_webhook", new Property<string>("", "Webhook to be used for turbine chat. This is for copying ingame general chat channels to a Discord channel.")),
                 ("turbine_chat_webhook_audit", new Property<string>("", "Webhook to be used for ingame audit log.")),
-                ("town_control_alleglist", new Property<string>("", "A comma separated list of MonarchID values to whitelist allegiances for participation in town control events"))
+                ("town_control_alleglist", new Property<string>("", "A comma separated list of MonarchID values to whitelist allegiances for participation in town control events")),
+                ("town_control_globals_webhook", new Property<string>("", "Webhook to be send Town Control global messages."))
                 );
     }
 }

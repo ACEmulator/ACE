@@ -69,6 +69,18 @@ namespace ACE.Database.Models.TownControl
                 entity.Property(e => e.LastConflictStartDateTime)
                     .HasColumnName("last_conflict_start_time");
 
+                entity.Property(e => e.AttackerAwardsPerPerson)
+                    .HasColumnName("attacker_awards_individual");
+
+                entity.Property(e => e.AttackerAwardsTotal)
+                    .HasColumnName("attacker_awards_total");
+
+                entity.Property(e => e.DefenderAwardsPerPerson)
+                    .HasColumnName("defender_awards_individual");
+
+                entity.Property(e => e.DefenderAwardsTotal)
+                    .HasColumnName("defender_awards_total");
+
             });
 
             modelBuilder.Entity<TownControlEvent>(entity =>

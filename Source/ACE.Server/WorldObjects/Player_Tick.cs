@@ -616,7 +616,7 @@ namespace ACE.Server.WorldObjects
                             if(shouldDropTrophy == 1)
                             {
                                 var tcTrophy = WorldObjectFactory.CreateNewWorldObject(42127923);
-                                this.TryAddToInventory(tcTrophy);
+                                this.TryCreateInInventoryWithNetworking(tcTrophy);
                                 Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
                                 var msg = new GameMessageSystemChat($"You have received a participation trophy.", ChatMessageType.Broadcast);
                                 Session.Network.EnqueueSend(msg);

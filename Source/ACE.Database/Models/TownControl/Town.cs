@@ -20,5 +20,13 @@ namespace ACE.Database.Models.TownControl
 
         public uint? ConflictRespiteLength { get; set; }
 
+        public uint AttackerAwardsPerPerson { get; set; }
+
+        public uint AttackerAwardsTotal { get; set; }
+
+        public uint DefenderAwardsPerPerson { get; set; }
+
+        public uint DefenderAwardsTotal { get; set; }
+
     }
 }
