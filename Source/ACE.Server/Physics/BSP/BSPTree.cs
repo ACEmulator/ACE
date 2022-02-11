@@ -337,7 +337,7 @@ namespace ACE.Server.Physics.BSP
             if (changed)
             {
                 var adjusted = validPos.Center - checkPos.Center;
-                var offset = path.LocalSpacePos.LocalToGlobalVec(adjusted);
+                var offset = path.LocalSpacePos.LocalToGlobalVec(adjusted) * scale;
                 path.CheckPos.Frame.Origin += offset;
                 path.CacheGlobalSphere(offset);
 
