@@ -173,9 +173,13 @@ namespace ACE.Entity.Enum.Properties
         Save9 = 25, // @save 9 | @home 9 | @recall 9
 
         /// <summary>
-        /// needs research
+        /// Position data is relative to Location
         /// </summary>
         RelativeDestination = 26,
+
+        /// <summary>
+        /// Admin - Position to return player to when using @telereturn which is where a character was at time of admin using @teletome
+        /// </summary>
         TeleportedCharacter = 27,
 
         [ServerOnly]
