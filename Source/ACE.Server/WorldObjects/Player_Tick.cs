@@ -118,7 +118,7 @@ namespace ACE.Server.WorldObjects
         public static float MaxSpeed = 50;
         public static float MaxSpeedSq = MaxSpeed * MaxSpeed;
 
-        public static bool DebugPlayerMoveToStatePhysics = false;
+        public static bool DebugPlayerMoveToStatePhysics { get; set; } = false;
 
         /// <summary>
         /// Flag indicates if player is doing full physics simulation
