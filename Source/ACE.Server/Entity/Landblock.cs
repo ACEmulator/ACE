@@ -1385,5 +1385,12 @@ namespace ACE.Server.Entity
             else
                 SendEnvironSound(environChangeType);
         }
+
+        public List<Player> GetCurrentLandblockPlayers()
+        {
+            var playerList = new List<Player>();
+            playerList.AddRange(players);
+            return playerList;
+        }
     }
 }

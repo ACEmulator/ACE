@@ -15,6 +15,8 @@ using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Handlers;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.WorldObjects
 {
@@ -893,6 +895,20 @@ namespace ACE.Server.WorldObjects
 
                     PlayerManager.BroadcastToAll(new GameMessageSystemChat(conflictStartMsg, ChatMessageType.Broadcast));
 
+                    //Send global to TC webhook
+                    try
+                    {
+                        var webhookUrl = PropertyManager.GetString("turbine_chat_webhook_audit").Item;
+                        if (!string.IsNullOrEmpty(webhookUrl))
+                        {
+                            _ = TurbineChatHandler.SendWebhookedChat("God of PK", conflictStartMsg, webhookUrl, "General");
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        log.ErrorFormat("Failed sending TownControl global message to webhook. Ex:{0}", ex);
+                    }
+
                     //spawn the conflict bosses
                     //var tcConflictBosses = TownControlBosses.TownControlBossMap.Values.Where(x => x.BossType == TownControlBossType.ConflictBoss && x.TownID == town.TownId);
 
@@ -977,6 +993,43 @@ namespace ACE.Server.WorldObjects
                             }
                         }
 
+                        //Award bonus tears to attackers in the landblock
+                        var landcellList = TownControlLandblocks.TownControlLandcellsMap[town.TownId];
+                        var attackerList = new List<Player>();
+                        foreach (var landcellId in landcellList)
+                        {
+                            var landblock = LandblockManager.GetLandblock(new LandblockId(landcellId), false);
+                            var players = landblock.GetCurrentLandblockPlayers();
+                            foreach (var player in players)
+                            {
+                                var playerAllegiance = AllegianceManager.GetAllegiance(player);
+                                if (playerAllegiance != null && playerAllegiance.MonarchId == tcEvent.AttackingClanId)
+                                {
+                                    if (!attackerList.Contains(player))
+                                    {
+                                        attackerList.Add(player);
+                                    }
+                                }
+                            }
+                        }
+
+                        var trophiesPerAttacker = attackerList.Count() == 0 ? 0 : town.AttackerAwardsTotal / attackerList.Count();
+                        trophiesPerAttacker = trophiesPerAttacker > town.AttackerAwardsPerPerson ? town.AttackerAwardsPerPerson : trophiesPerAttacker;
+
+                        foreach (var player in attackerList)
+                        {
+                            var tcTrophy = WorldObjectFactory.CreateNewWorldObject(42127923);
+                            tcTrophy.SetStackSize((int)trophiesPerAttacker);
+
+                            var invCreateResult = player.TryCreateInInventoryWithNetworking(tcTrophy);
+                            if (invCreateResult)
+                            {
+                                player.Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
+                                var msg = new GameMessageSystemChat($"You have received {trophiesPerAttacker} bottled tears for successfully attacking {town.TownName}.", ChatMessageType.Broadcast);
+                                player.Session.Network.EnqueueSend(msg);
+                            }
+                        }
+
                         //Send a global announcing the attackers win
                         if (tcEvent.DefendingClanId.HasValue)
                         {
@@ -988,6 +1041,19 @@ namespace ACE.Server.WorldObjects
                         }
 
                         PlayerManager.BroadcastToAll(new GameMessageSystemChat(conflictEndMsg, ChatMessageType.Broadcast));
+
+                        //Send global to TC webhook
+                        try
+                        {
+                            var webhookUrl = PropertyManager.GetString("turbine_chat_webhook_audit").Item;
+                            {
+                                _ = TurbineChatHandler.SendWebhookedChat("God of PK", conflictEndMsg, webhookUrl, "General");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            log.ErrorFormat("Failed sending TownControl global message to webhook. Ex:{0}", ex);
+                        }
                     }
                     else
                     {
@@ -1002,6 +1068,43 @@ namespace ACE.Server.WorldObjects
                         tcEvent.EventEndDateTime = DateTime.UtcNow;
                         DatabaseManager.TownControl.UpdateTownControlEvent(tcEvent);
 
+                        //Award bonus tears to defenders in the landblock
+                        var landcellList = TownControlLandblocks.TownControlLandcellsMap[town.TownId];
+                        var defenderList = new List<Player>();
+                        foreach (var landcellId in landcellList)
+                        {
+                            var landblock = LandblockManager.GetLandblock(new LandblockId(landcellId), false);
+                            var players = landblock.GetCurrentLandblockPlayers();
+                            foreach(var player in players)
+                            {
+                                var playerAllegiance = AllegianceManager.GetAllegiance(player);
+                                if (playerAllegiance != null && playerAllegiance.MonarchId == tcEvent.DefendingClanId)
+                                {
+                                    if (!defenderList.Contains(player))
+                                    {
+                                        defenderList.Add(player);
+                                    }
+                                }
+                            }
+                        }
+
+                        var trophiesPerDefender = defenderList.Count() == 0 ? 0 : town.DefenderAwardsTotal / defenderList.Count();
+                        trophiesPerDefender = trophiesPerDefender > town.DefenderAwardsPerPerson ? town.DefenderAwardsPerPerson : trophiesPerDefender;
+
+                        foreach (var player in defenderList)
+                        {
+                            var tcTrophy = WorldObjectFactory.CreateNewWorldObject(42127923);
+                            tcTrophy.SetStackSize((int)trophiesPerDefender);
+                            
+                            var invCreateResult = player.TryCreateInInventoryWithNetworking(tcTrophy);
+                            if (invCreateResult)
+                            {
+                                player.Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
+                                var msg = new GameMessageSystemChat($"You have received {trophiesPerDefender} bottled tears for successfully defending {town.TownName}.", ChatMessageType.Broadcast);
+                                player.Session.Network.EnqueueSend(msg);
+                            }
+                        }
+
                         //Send global announcing the defenders win
                         if (tcEvent.DefendingClanId.HasValue)
                         {
@@ -1013,6 +1116,20 @@ namespace ACE.Server.WorldObjects
                         }
 
                         PlayerManager.BroadcastToAll(new GameMessageSystemChat(conflictEndMsg, ChatMessageType.Broadcast));
+
+                        //Send global to TC webhook
+                        try
+                        {
+                            var webhookUrl = PropertyManager.GetString("turbine_chat_webhook_audit").Item;
+                            if (!string.IsNullOrEmpty(webhookUrl))
+                            {
+                                _ = TurbineChatHandler.SendWebhookedChat("God of PK", conflictEndMsg, webhookUrl, "General");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            log.ErrorFormat("Failed sending TownControl global message to webhook. Ex:{0}", ex);
+                        }
                     }
                 }
             }
