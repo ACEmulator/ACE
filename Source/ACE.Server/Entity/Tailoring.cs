@@ -782,6 +782,7 @@ namespace ACE.Server.Entity
 
                         //Give a small chance to add Epic Impen
                         var impenRandom = new Random();
+                        bool impenSuccess = false;
                         var impenRoll = impenRandom.Next(0, int.MaxValue);
                         if (impenRoll % 3 == 0 && !newEpicList.Contains(4667))
                         {
@@ -793,21 +794,60 @@ namespace ACE.Server.Entity
                             {
                                 newEpicList[0] = 4667;
                             }
+
+                            impenSuccess = true;
                         }
 
                         //Remove all existing epics
+                        string removedSpellList = "";
+                        int removedEpicNum = 0;
                         foreach (var spell in itemEpicList)
-                        {
-                            target.Biota.TryRemoveKnownSpell(spell.Key, target.BiotaDatabaseLock);                            
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Removed spellId { spell.Key }", ChatMessageType.Broadcast));
+                        {                            
+                            target.Biota.TryRemoveKnownSpell(spell.Key, target.BiotaDatabaseLock);
+                            //player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Removed spellId { spell.Key }", ChatMessageType.Broadcast));
+                            removedEpicNum++;
+                            if (removedEpicNum == 1)
+                            {
+                                removedSpellList = $"{ new Spell(spell.Key, true).Name }";
+                            }
+                            else if (removedEpicNum == itemEpicList.Count)
+                            {
+                                removedSpellList += $" and { new Spell(spell.Key, true).Name }";
+                            }
+                            else
+                            {
+                                removedSpellList += $", { new Spell(spell.Key, true).Name }";
+                            }
+                            //removedSpellList += removedEpicNum < itemEpicList.Count ? $"{ new Spell(spell.Key, true).Name }, " : $"and { new Spell(spell.Key, true).Name }";
                         }
 
                         //Add new epics
+                        string addedSpellList = "";
+                        int addedEpicNum = 0;
                         foreach (var spellId in newEpicList)
                         {
                             target.Biota.GetOrAddKnownSpell(spellId, target.BiotaDatabaseLock, out _);
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Added spellId { spellId }", ChatMessageType.Broadcast));
-                        }                            
+                            //player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Added spellId { spellId }", ChatMessageType.Broadcast));
+                            addedEpicNum++;
+                            if(addedEpicNum == 1)
+                            {
+                                addedSpellList = $"{ new Spell(spellId, true).Name }";
+                            }
+                            else if(addedEpicNum == newEpicList.Count)
+                            {
+                                addedSpellList += $" and { new Spell(spellId, true).Name }";
+                            }
+                            else
+                            {
+                                addedSpellList += $", { new Spell(spellId, true).Name }";
+                            }
+                            //addedSpellList += addedEpicNum < itemEpicList.Count ? $"{ new Spell(spellId, true).Name }" : $"and { new Spell(spellId, true).Name }";
+                        }
+
+                        string impenMessage = impenSuccess ? "\n\nYour armor also somehow looks tougher, like it might have once been worn by some kind of tough guy and his tough guy essence sort of rubbed off on it and now it's more tough than it was before." : "";
+
+                        string randomizeResultMsg = $"Staring into the morph gem intently, your head swims at the chaos within it.  As you slump to the ground you scream in silence at the realization that eternity is boundless and upon you; upon us all.  You smash the morph gem hard against your armor and it explodes into everything and nothing.  Washed away are the epic enchantments that once took hold.\n\nThe spells { removedSpellList } are no longer.\n\nIn their place, the spells { addedSpellList } have been cast upon your armor.{impenMessage}";
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(randomizeResultMsg, ChatMessageType.Broadcast));
 
                         break;
 
