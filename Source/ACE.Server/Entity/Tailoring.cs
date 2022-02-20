@@ -784,7 +784,7 @@ namespace ACE.Server.Entity
                         var impenRandom = new Random();
                         bool impenSuccess = false;
                         var impenRoll = impenRandom.Next(0, int.MaxValue);
-                        if (impenRoll % 3 == 0 && !newEpicList.Contains(4667))
+                        if (impenRoll % 7 == 0 && !newEpicList.Contains(4667))
                         {
                             if(newEpicList.Count < 4)
                             {
