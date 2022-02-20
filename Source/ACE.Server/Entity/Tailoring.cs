@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Factories.Tables;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
@@ -711,10 +713,101 @@ namespace ACE.Server.Entity
                     case MorphGemRandomEpic:
 
                         //First check if the item has any epics, and see how many
-                        var critterSpells = target.EnchantmentManager.GetEnchantments(MagicSchool.CreatureEnchantment);
-                        var lifeSpells = target.EnchantmentManager.GetEnchantments(MagicSchool.LifeMagic);
-                        var itemSpells = target.EnchantmentManager.GetEnchantments(MagicSchool.ItemEnchantment);
+                        var itemEpicList = target.EpicCantrips;
+                        if(itemEpicList == null || itemEpicList.Count < 1)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);                            
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("The target item has no epic cantrips to randomize", ChatMessageType.Broadcast));
+                            return;
+                        }
 
+                        //Come up with a new random list of epics to apply
+                        List<int> newEpicList = new List<int>();
+                        foreach(var currEpic in itemEpicList)
+                        {
+                            while (true)
+                            {
+                                //For now this morph gem can only be applied to armor.
+                                //In the future if we expand to include non-armor (like jewelry),
+                                //will need to have logic to use different Roll methods (like JewelryCantrips.Roll())
+                                SpellId newCantrip = ArmorCantrips.Roll();
+                                List<SpellId> progression = SpellLevelProgression.GetSpellLevels(newCantrip);
+
+                                if (progression != null && progression.Count >= 3)
+                                {
+                                    int newEpicSpellId = (int)progression[2];
+                                    if (newEpicSpellId != currEpic.Key && !newEpicList.Contains(newEpicSpellId))
+                                    {
+                                        newEpicList.Add(newEpicSpellId);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        //Give a small chance to remove an epic
+                        if (newEpicList.Count > 1)
+                        {
+                            var epicRandom = new Random();
+                            var roll = epicRandom.Next(0, int.MaxValue);
+                            if (roll % 15 == 0 && newEpicList.Count > 0)
+                            {
+                                newEpicList.RemoveAt(0);
+                            }
+                        }
+
+                        //Give a small chance to add an epic
+                        if (newEpicList.Count < 4)
+                        {
+                            var epicRandom = new Random();
+                            var roll = epicRandom.Next(0, int.MaxValue);
+                            if (roll % 10 == 0 && newEpicList.Count > 0)
+                            {
+                                while (true)
+                                {
+                                    SpellId newCantrip = ArmorCantrips.Roll();
+                                    List<SpellId> progression = SpellLevelProgression.GetSpellLevels(newCantrip);
+                                    if (progression != null && progression.Count >= 3)
+                                    {
+                                        int newEpicSpellId = (int)progression[2];
+                                        if (!newEpicList.Contains(newEpicSpellId))
+                                        {
+                                            newEpicList.Add((int)progression[2]);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        //Give a small chance to add Epic Impen
+                        var impenRandom = new Random();
+                        var impenRoll = impenRandom.Next(0, int.MaxValue);
+                        if (impenRoll % 3 == 0 && !newEpicList.Contains(4667))
+                        {
+                            if(newEpicList.Count < 4)
+                            {
+                                newEpicList.Add(4667);
+                            }
+                            else
+                            {
+                                newEpicList[0] = 4667;
+                            }
+                        }
+
+                        //Remove all existing epics
+                        foreach (var spell in itemEpicList)
+                        {
+                            target.Biota.TryRemoveKnownSpell(spell.Key, target.BiotaDatabaseLock);                            
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Removed spellId { spell.Key }", ChatMessageType.Broadcast));
+                        }
+
+                        //Add new epics
+                        foreach (var spellId in newEpicList)
+                        {
+                            target.Biota.GetOrAddKnownSpell(spellId, target.BiotaDatabaseLock, out _);
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Added spellId { spellId }", ChatMessageType.Broadcast));
+                        }                            
 
                         break;
 
@@ -978,6 +1071,7 @@ namespace ACE.Server.Entity
                 case MorphGemArmorValue:
                 case MorphGemArmorWork:
                 case MorphGemArcane:
+                case MorphGemRandomEpic:
 
                     return true;
 
