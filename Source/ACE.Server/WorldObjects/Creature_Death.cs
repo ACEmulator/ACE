@@ -898,7 +898,7 @@ namespace ACE.Server.WorldObjects
                     //Send global to TC webhook
                     try
                     {
-                        var webhookUrl = PropertyManager.GetString("turbine_chat_webhook_audit").Item;
+                        var webhookUrl = PropertyManager.GetString("town_control_globals_webhook").Item;
                         if (!string.IsNullOrEmpty(webhookUrl))
                         {
                             _ = TurbineChatHandler.SendWebhookedChat("God of PK", conflictStartMsg, webhookUrl, "General");
@@ -1045,7 +1045,7 @@ namespace ACE.Server.WorldObjects
                         //Send global to TC webhook
                         try
                         {
-                            var webhookUrl = PropertyManager.GetString("turbine_chat_webhook_audit").Item;
+                            var webhookUrl = PropertyManager.GetString("town_control_globals_webhook").Item;
                             {
                                 _ = TurbineChatHandler.SendWebhookedChat("God of PK", conflictEndMsg, webhookUrl, "General");
                             }
@@ -1120,7 +1120,7 @@ namespace ACE.Server.WorldObjects
                         //Send global to TC webhook
                         try
                         {
-                            var webhookUrl = PropertyManager.GetString("turbine_chat_webhook_audit").Item;
+                            var webhookUrl = PropertyManager.GetString("town_control_globals_webhook").Item;
                             if (!string.IsNullOrEmpty(webhookUrl))
                             {
                                 _ = TurbineChatHandler.SendWebhookedChat("God of PK", conflictEndMsg, webhookUrl, "General");
